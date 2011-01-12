@@ -113,20 +113,20 @@ class WebEntity_RPC(jsonrpc.JSONRPC):
 
 	def jsonrpc_setStatus(self,lru,status) :
 		"""Set the status of a web entity defined by his lru"""
-		if self.corpus.has_keys(lru) :
+		if lru in self.corpus.keys() :
 			self.corpus[lru]["status"]=status
 			return self.corpus[lru]
 		else :
 			return "not found"
 	
 	def jsonrpc_getLinksTo(self,lru) :
-		if self.corpus.has_keys(lru) :
+		if lru in self.corpus.keys() :
 			return self.corpus[lru].weLinked
 		else :
 			return "not found"
 	
 	def jsonrpc_getPages(self,lru) :
-		if self.corpus.has_keys(lru) :
+		if lru in self.corpus.keys() :
 			return self.corpus[lru].pages
 		else :
 			return "not found"
