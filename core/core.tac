@@ -89,6 +89,7 @@ class WebEntity(dict):
 class Corpus(dict) :
 
 	def __init__(self):
+		self.defaultweDepth=5
 		self.addWebEntity(urlTokenizer("http://www.sciencespo.fr"),5,"undefined")
 		self.addWebEntity(urlTokenizer("http://medialab.sciences-po.fr"),5,"included")
 	
@@ -103,6 +104,27 @@ class Corpus(dict) :
 		self[lru].pages.append(page)	
 		
 		return self[lru]
+	
+	def findWebEntity(self,lru) :
+		page=lru
+		we_candidates=[]
+		for we in self.keys() : 
+			if we in lru :
+				we_candidates.append(we)
+		if len(we_candidates)>0:
+		# found one
+			we=self[max(we_candidates,key=lambda w:len(w.split("|")))]
+		else :	
+		# no web create one
+			# cut the LRU to default depth 
+			welru="|".join(lru.split("|")[0:self.defaultweDepth])
+			we=WebEntity(welru,"undefined")
+			self[welru]=we
+			
+		# in both cases add lru to pages
+		we.pages.append(lru)
+		
+		return we
 
 		
 
@@ -156,6 +178,10 @@ class Core_RPC(jsonrpc.JSONRPC):
 	def jsonrpc_declareWebEntity(self,lru,depth):
 		"""Return the corpus as list of web entities"""
 		return self.corpus.addWebEntity(lru,depth)
+	
+	def jsonrpc_getWebEntity(self,lru):
+		"""Return the web entity which holds a specific lru"""
+		return self.corpus.findWebEntity(lru)
 	
 	def jsonrpc_crawl(self,lrus):
 		""" launch crawl on web entities' id list"""
