@@ -1,10 +1,6 @@
 HCI PROJECT - TODO & pending issues
 ===================================
 
-- rich media (non html)
-  - collect links to them, but don't follow
-  - do not store body in full feed (only html pages for now)
-
 - implement link metadata feed
 
 - respect robots.txt
