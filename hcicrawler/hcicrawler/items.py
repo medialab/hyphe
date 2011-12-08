@@ -10,7 +10,5 @@ class Page(Item):
     depth = Field()
     content_type = Field()
     redirects_to = Field()
-
-    # only available in GETs
     body = Field()
     lrulinks = Field()
