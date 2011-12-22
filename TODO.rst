@@ -1,19 +1,32 @@
+===================================
 HCI PROJECT - TODO & pending issues
 ===================================
 
-- implement link metadata feed
+TODO for prototype
+------------------
 
-- respect robots.txt
-  - add flag to spider arguments
-- respect rel=nofollow
-  - add flag to spider arguments
+- implement new scrapyd api methods: {listjobs,jobinfo,cancel}.json
+
+- implement storage & queue using kyoto cabinet
 
 - implement error handling. possible errors:
+
   - connection error
   - timeout error
   - dns error
   - response too big
   - forbidden by robots.txt?
+
+
+TODO for beta version
+---------------------
+
+- implement robots.txt middleware
+
+- respect rel=nofollow based on flag passed in spider arguments
+
+- packaging?
+
 
 OTHER (MINOR PRIORITY)
 ----------------------
