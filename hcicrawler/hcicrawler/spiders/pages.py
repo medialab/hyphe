@@ -1,4 +1,4 @@
-import time, uuid
+import time
 
 from scrapy.spider import BaseSpider
 from scrapy.http import Request, HtmlResponse
@@ -18,13 +18,11 @@ class PagesCrawler(BaseSpider):
     def __init__(self, **kw):
         # TODO: use spider arguments
         super(PagesCrawler, self).__init__(**MONGODB_INPUT)
-        # TODO: get from scrapyd
-        self.jobid = uuid.uuid4()
         self.link_extractor = SgmlLinkExtractor(deny_extensions=[])
         self.ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
 
     def start_requests(self):
-        self.log("Starting crawl task - jobid: %s" % self.jobid)
+        self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'])
         for url in self.start_urls:
             yield Request(url, callback=self.parse)
 
