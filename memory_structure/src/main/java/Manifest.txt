@@ -1,0 +1,3 @@
+Main-Class: fr.sciencespo.medialab.hci.memorystructure.thrift.ThriftServer
+Class-Path: .
+

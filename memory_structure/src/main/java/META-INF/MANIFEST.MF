@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: fr.sciencespo.medialab.hci.memorystructure.domain.MemorySt
+ ructureServer
+
