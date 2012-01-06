@@ -8,7 +8,6 @@ NEWSPIDER_MODULE = 'hcicrawler.spiders'
 USER_AGENT = '%s/%s' % (BOT_NAME, BOT_VERSION)
 
 ITEM_PIPELINES = [
-    'hcicrawler.pipelines.OutputFeeds',
     'hcicrawler.pipelines.OutputStore',
     'hcicrawler.pipelines.RemoveBody',
     'hcicrawler.pipelines.OutputQueue',
