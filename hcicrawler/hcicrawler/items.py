@@ -12,3 +12,4 @@ class Page(Item):
     redirects_to = Field()
     body = Field()
     lrulinks = Field()
+    error = Field()

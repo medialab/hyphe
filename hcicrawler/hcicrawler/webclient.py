@@ -7,7 +7,7 @@ class LimitSizePageGetter(ScrapyHTTPPageGetter):
     def handleHeader(self, key, value):
         ScrapyHTTPPageGetter.handleHeader(self, key, value)
         if self.factory.method.upper() == 'GET' and key.lower() == 'content-length' and int(value) > MAX_RESPONSE_SIZE:
-            self.connectionLost('RESPONSE_TOO_LARGE')
+            self.connectionLost('response_too_big: %s' % value)
 
 
 class LimitSizeHTTPClientFactory(ScrapyHTTPClientFactory):
