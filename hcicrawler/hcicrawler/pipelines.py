@@ -5,7 +5,7 @@ from hcicrawler.mongo import MongoPageQueue, MongoPageStore
 class RemoveBody(object):
 
     def process_item(self, item, spider):
-        del item['body']
+        item.pop('body', None)
         return item
 
 
