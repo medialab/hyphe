@@ -1,6 +1,8 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
 import fr.sciencespo.medialab.hci.memorystructure.thrift.LRUItem;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
@@ -14,17 +16,16 @@ import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopScoreDocCollector;
-import org.apache.lucene.search.TotalHitCountCollector;
 import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +44,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class LRUIndex {
 
+    private Logger logger = LoggerFactory.getLogger(LRUIndex.class);
+
     //
     // Lucene settings
     //
@@ -58,6 +61,11 @@ public class LRUIndex {
     // Lucene settings to be tested to optimize
     private static final int RAM_BUFFER_SIZE_MB = 512;
 
+    /**
+     * number of objects to be passed to a single indexwriter. // TODO test for optimal value
+     */
+    private static int INDEXWRITER_MAX = 250000;
+
 	private FSDirectory diskDirectory;
     private final Analyzer analyzer = new KeywordAnalyzer();
     private IndexReader indexReader;
@@ -65,10 +73,12 @@ public class LRUIndex {
     private IndexWriter indexWriter;
 
     /**
-     * Execution service used for asynchronous batch index tasks.
+     * Executor service used for asynchronous batch index tasks.
      */
-    private static ScheduledExecutorService executionService = Executors.newScheduledThreadPool(2);
+    //private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+            private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(50);
 
+ //TODO   private static ScheduledExecutorService executorService2 = new ThreadPoolExecutor();
     //
     // singleton-ness
     //
@@ -83,12 +93,27 @@ public class LRUIndex {
         throw new CloneNotSupportedException();
     }
 
+
+    public synchronized void clearIndex() throws IndexException {
+        try {
+            logger.debug("clearing index");
+            indexWriter.deleteAll();
+            indexWriter.commit();
+            logger.debug("index now has # " + indexCount() + " documents");
+        }
+        catch(Exception x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x);
+        }
+    }
+
     /**
      *
      * @param path
      */
 	private LRUIndex(String path, IndexWriterConfig.OpenMode openMode) {
-        System.out.println("creating LRUIndex");
+        logger.info("creating LRUIndex");
         try {
             OPEN_MODE = openMode;
             File indexDirectory = new File(path);
@@ -101,18 +126,18 @@ public class LRUIndex {
             else if(! indexDirectory.isDirectory()) {
                 throw new ExceptionInInitializerError("can't create Lucene index in requested location " + path);
             }
-            System.out.println("opening FSDirectory");
+            logger.debug("opening FSDirectory");
             this.diskDirectory = FSDirectory.open(indexDirectory);
-            System.out.println("creating IndexWriter");
+            logger.debug("creating IndexWriter");
             this.indexWriter = createIndexWriter(this.diskDirectory);
-            System.out.println("creating IndexReader");
+            logger.debug("creating IndexReader");
             this.indexReader = IndexReader.open(this.indexWriter, false);
-            System.out.println("creating IndexSearcher");
-            this.indexSearcher = new IndexSearcher(indexReader);
-            System.out.println("successfully created LRUIndex");
+            logger.debug("creating IndexSearcher");
+            this.indexSearcher = new IndexSearcher(this.indexReader);
+            logger.info("successfully created LRUIndex");
         }
         catch(Exception x) {
-            System.err.println(x.getMessage());
+            logger.error(x.getMessage());
             x.printStackTrace();
             throw new ExceptionInInitializerError("can't create Lucene index, error: " + x.getMessage());
         }
@@ -141,14 +166,29 @@ public class LRUIndex {
      * @throws IOException hmm
      */
 	public void close() throws IOException {
-        System.out.println("close: closing IndexReader and IndexWriter");
+        logger.info("close: closing IndexReader and IndexWriter");
 		if(indexReader != null) {
 			indexReader.close();
 		}
 		if(indexWriter != null) {
 			indexWriter.close();
 		}
-        executionService.shutdown();
+        executorService.shutdown();
+        /* TODO how to deal with threads taking very long to shutdown
+        try {
+            // pool didn't terminate after the first try
+            if(!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+            // pool didn't terminate after the second try
+            if(!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+            }
+        }
+        catch (InterruptedException ex) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        */
 	}
 
     /**
@@ -159,19 +199,21 @@ public class LRUIndex {
      */
     public void indexPrecisionException(String precisionException) throws IndexException{
         try {
-            Document precisionExceptionDocument = IndexConfiguration.PrecisionLimitDocument(precisionException);
+            Document precisionExceptionDocument = IndexConfiguration.PrecisionExceptionDocument(precisionException);
             this.indexWriter.addDocument(precisionExceptionDocument);
             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
             this.indexWriter.commit();
             this.indexSearcher = new IndexSearcher(this.indexReader);
         }
         catch(Exception x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
             throw new IndexException(x);
         }
     }
 
     /**
-     * Returns whether all schedulesFutures are done.
+     * Returns whether all scheduledFutures are done.
      *
      * @param scheduledFutures the scheduledfutures to check
      * @return whether they're all done
@@ -194,36 +236,41 @@ public class LRUIndex {
      * @throws Exception
      */
     public void batchIndex(List<?> objects) throws Exception {
-        if(objects == null || objects.size() == 0) {
+        if(CollectionUtils.isEmpty(objects)) {
+            logger.info("batchIndex received batch of 0 objects");
             return;
         }
-        int number = objects.size();
-        System.out.println("batchIndex processing # " + number + " objects");
+        int batchSize = objects.size();
+        logger.debug("batchIndex processing # " + batchSize + " objects");
 
-        long start = System.currentTimeMillis();
+        long startRAMIndexing = System.currentTimeMillis();
 
-        int INDEXWRITER_MAX = 250000;
         List<RAMDirectory> ramDirectories = new ArrayList<RAMDirectory>();
-        List<ScheduledFuture> scheduledFutures = new ArrayList<ScheduledFuture>();
+        List<ScheduledFuture> indexTasks = new ArrayList<ScheduledFuture>();
         long delay = 0;
-        int processedNumber = 0;
-        while(processedNumber < number) {
+        int processedSoFar = 0;
+        while(processedSoFar < batchSize) {
             List<?> batch;
-            if(number >= processedNumber + INDEXWRITER_MAX) {
-                batch = objects.subList(processedNumber, processedNumber + INDEXWRITER_MAX);
+            if(batchSize >= processedSoFar + INDEXWRITER_MAX) {
+                batch = objects.subList(processedSoFar, processedSoFar + INDEXWRITER_MAX);
             }
             else {
-                batch = objects.subList(processedNumber, objects.size());
+                batch = objects.subList(processedSoFar, objects.size());
             }
             RAMDirectory ramDirectory = new RAMDirectory();
             ramDirectories.add(ramDirectory);
-            ScheduledFuture scheduledFuture = executionService.schedule(new AsyncIndexWriterTask(UUID.randomUUID().toString(), batch,
-                    ramDirectory, LUCENE_VERSION, OPEN_MODE, RAM_BUFFER_SIZE_MB, analyzer), delay, TimeUnit.SECONDS);
-            scheduledFutures.add(scheduledFuture);
-            processedNumber += INDEXWRITER_MAX;
+            logger.debug("about to create index task with RAMBUFFERSIZE " + RAM_BUFFER_SIZE_MB);
+            logger.debug("before creating there are now # " + indexTasks.size() + " index tasks");
+            ScheduledFuture indexTask = executorService.schedule(
+                    new AsyncIndexWriterTask(UUID.randomUUID().toString(), batch, ramDirectory, LUCENE_VERSION,
+                            OPEN_MODE, RAM_BUFFER_SIZE_MB, analyzer),
+                    delay, TimeUnit.SECONDS);
+            indexTasks.add(indexTask);
+            logger.debug("there are now # " + indexTasks.size() + " index tasks");
+            processedSoFar += INDEXWRITER_MAX;
         }
 
-        while(! allDone(scheduledFutures)) {
+        while(! allDone(indexTasks)) {
             // wait a bit
             try {
                 Thread.sleep(500);
@@ -233,20 +280,29 @@ public class LRUIndex {
             }
         }
 
-        long end = System.currentTimeMillis();
-        float duration = (end - start);
-        float throughput = ((float) number / duration) * 1000;
-        System.out.println("Indexed # " + number + " objects in " + duration + " ms, that's " + throughput + " docs/second");
+        if(logger.isDebugEnabled()) {
+            long endRAMIndexing = System.currentTimeMillis();
+            float duration = (endRAMIndexing - startRAMIndexing);
+            float throughput = ((float) batchSize / duration) * 1000;
+            logger.debug("Indexed # " + batchSize + " objects in " + duration + " ms, that's " + throughput + " docs/second");
+        }
 
         long start2 = System.currentTimeMillis();
+
         RAMDirectory[] ramsj = ramDirectories.toArray(new RAMDirectory[ramDirectories.size()]);
+        logger.debug("# docs in filesystem index before adding the newly indexed objects: " + this.indexWriter.numDocs());
         this.indexWriter.addIndexes(ramsj);
-        System.out.println("fsIndexWriter.numDocs(): " + this.indexWriter.numDocs());
+        logger.debug("# docs in filesystem index after adding the newly indexed objects: " + this.indexWriter.numDocs());
+
         this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
+        this.indexWriter.commit();
         this.indexSearcher = new IndexSearcher(this.indexReader);
-        long end2 = System.currentTimeMillis();
-        float duration2 = (end2 - start2);
-        System.out.println("fs " + duration2 + " ms");
+
+        if(logger.isDebugEnabled()) {
+            long end2 = System.currentTimeMillis();
+            float duration2 = (end2 - start2);
+            logger.debug("Syncing RAM indexes to filesystem index took " + duration2 + " ms");
+        }
     }
 
     /**
@@ -256,11 +312,11 @@ public class LRUIndex {
     public List<String> retrievePrecisionExceptions() throws IndexException {
         try {
             List<String> results = new ArrayList<String>();
-            Term term = new Term(IndexConfiguration.fieldName.TYPE.name(), IndexConfiguration.docType.PRECISION_EXCEPTION.name());
+            Term term = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.PRECISION_EXCEPTION.name());
             TermDocs termDocs = this.indexReader.termDocs(term);
             while(termDocs.next()) {
                 Document precisionExceptionDoc = indexReader.document(termDocs.doc());
-                String precisionExceptionFound = precisionExceptionDoc.get(IndexConfiguration.fieldName.lRU.name());
+                String precisionExceptionFound = precisionExceptionDoc.get(IndexConfiguration.FieldName.LRU.name());
                 results.add(precisionExceptionFound);
             }
             termDocs.close();
@@ -278,8 +334,8 @@ public class LRUIndex {
     public String retrievePrecisionException(String precisionException) throws IndexException {
         try {
             String result = null;
-            Term isPrecisionException = new Term(IndexConfiguration.fieldName.TYPE.name(), IndexConfiguration.docType.PRECISION_EXCEPTION.name());
-            Term lru = new Term(IndexConfiguration.fieldName.lRU.name(), precisionException);
+            Term isPrecisionException = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.PRECISION_EXCEPTION.name());
+            Term lru = new Term(IndexConfiguration.FieldName.LRU.name(), precisionException);
             TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
 
             BooleanQuery q = new BooleanQuery();
@@ -293,7 +349,7 @@ public class LRUIndex {
             if(hits != null && hits.length > 0) {
                 int id = hits[0].doc;
                 Document doc = indexSearcher.doc(id);
-                result = doc.get(IndexConfiguration.fieldName.lRU.name());
+                result = doc.get(IndexConfiguration.FieldName.LRU.name());
             }
             return result;
         }
@@ -302,60 +358,102 @@ public class LRUIndex {
         }
     }
 
-    public LRUItem retrieveByLRU(String lru) {
-        LRUItem result = null;
+    public LRUItem retrieveByLRU(String lru) throws IndexException {
+        logger.debug("retrieving LRU " + lru);
         try {
+            LRUItem result = null;
+
+            Term isLRUTerm = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.LRU_ITEM.name());
+            Term lruTerm = new Term(IndexConfiguration.FieldName.LRU.name(), lru);
+            TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
+
+            BooleanQuery q = new BooleanQuery();
+            TermQuery isLRUQuery = new TermQuery(isLRUTerm);
+            Query lruQuery;
+            // wildcard query
+            if(lru.contains("*") || lru.contains("?")) {
+                logger.debug("creating wildcard query");
+                 lruQuery = new WildcardQuery(lruTerm);
+            }
+            // no-wildcard query (faster)
+            else {
+                logger.debug("creating term query");
+                lruQuery = new TermQuery(lruTerm);
+            }
+
+            q.add(isLRUQuery, BooleanClause.Occur.MUST);
+            q.add(lruQuery, BooleanClause.Occur.MUST);
+
+            logger.debug("Lucene query: " + q.toString());
+            logger.debug("Lucene query (rewritten): " + q.rewrite(indexReader).toString());
+
+            indexSearcher.search(q, collector);
+
+            ScoreDoc[] hits = collector.topDocs().scoreDocs;
+            logger.debug("# " + hits.length + " hits");
+            if(hits != null && hits.length > 0) {
+                int id = hits[0].doc;
+                Document doc = indexSearcher.doc(id);
+                String foundLRU = doc.get(IndexConfiguration.FieldName.LRU.name());
+                if(StringUtils.isNotEmpty(foundLRU)) {
+                    result = new LRUItem().setLru(foundLRU);
+                }
+            }
+
+            /*
             Term term = new Term("lru", lru);
 
-            long s1 = System.currentTimeMillis();
+            long start = System.currentTimeMillis();
 
             Query query;
             // wildcard query
             if(lru.contains("*") || lru.contains("?")) {
+                logger.debug("creating wildcard query");
                 query = new WildcardQuery(term);
             }
             // no-wildcard query (faster)
             else {
+                logger.debug("creating term query");
                 query = new TermQuery(term);
             }
-
+            logger.debug("Lucene query: " + query.toString());
+            logger.debug("Lucene query (rewritten): " + query.rewrite(indexReader).toString());
 
             TopDocs topDocs = this.indexSearcher.search(query, 10);
             if(topDocs.scoreDocs.length > 0) {
-                result = new LRUItem();//(topDocs.scoreDocs[0].toString());
+                result = new LRUItem().setLru(topDocs.scoreDocs[0].toString());
             }
 
-            long s2 = System.currentTimeMillis();
+            long end = System.currentTimeMillis();
+            float time = (float) end - start;
+            logger.debug("method 1 finished in " + time + " ms");
 
-            float time = (float) s2 - s1;
+            logger.debug("retrieveByLRU found # " + topDocs.totalHits + " matches");
 
-            System.out.println("method 1 in " + time + " ms");
-
-            //System.out.println("retrieveByLRU found # " + topDocs.totalHits + " matches");
-
-            s1 = System.currentTimeMillis();
+            start = System.currentTimeMillis();
 
             TermDocs termDocs = this.indexReader.termDocs(term);
-
 			if(termDocs.next()) {
 				Document lruItemDoc = indexReader.document(termDocs.doc());
 				String lruFound = lruItemDoc.get("lru");
-				result = new LRUItem();//(lruFound);
+				result = new LRUItem().setLru(lruFound);
 			}
-
 			termDocs.close();
 
-            s2 = System.currentTimeMillis();
+            end = System.currentTimeMillis();
+            time = (float) end - start;
+            logger.debug("method 2 finished in " + time + " ms");
 
-            time = (float) s2 - s1;
+            */
 
-            System.out.println("method 1 in " + time + " ms");
+            return result;
         }
         catch(Exception x) {
-            System.out.println(x.getMessage());
+            logger.error(x.getMessage());
             x.printStackTrace();
+            throw new IndexException(x);
         }
-        return result;
+
     }
 
     /**
@@ -366,13 +464,14 @@ public class LRUIndex {
      */
     public int indexCount() throws Exception {
         try {
-            MatchAllDocsQuery matchAllDocsQuery = new MatchAllDocsQuery();
-            TotalHitCountCollector totalHitCountCollector = new TotalHitCountCollector();
-            this.indexSearcher.search(matchAllDocsQuery, totalHitCountCollector);
-            return totalHitCountCollector.getTotalHits();
+            //MatchAllDocsQuery matchAllDocsQuery = new MatchAllDocsQuery();
+            //TotalHitCountCollector totalHitCountCollector = new TotalHitCountCollector();
+            //this.indexSearcher.search(matchAllDocsQuery, totalHitCountCollector);
+            //return totalHitCountCollector.getTotalHits();
+            return indexWriter.numDocs();
         }
         catch(Exception x) {
-            System.err.println(x.getMessage());
+            logger.error(x.getMessage());
             x.printStackTrace();
             throw x;
         }

@@ -1,11 +1,13 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
 import fr.sciencespo.medialab.hci.memorystructure.thrift.LRUItem;
-import fr.sciencespo.medialab.hci.memorystructure.util.LineFileReader;
+import fr.sciencespo.medialab.hci.util.LineFileReader;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -20,84 +22,51 @@ import java.util.List;
  */
 public class LRUIndexTest extends TestCase {
 
-    public void testAddPrecisionException() throws Exception {
-        LRUIndex lruIndex = LRUIndex.getInstance("C:\\source\\peace\\data\\tests\\luceneurldb", IndexWriterConfig.OpenMode.CREATE);
-        String precisionExceptionLRU1 = "com.blogspot.rivieraonline";
-        String precisionExceptionLRU2 = "com.blogspot.braziland";
-        lruIndex.indexPrecisionException(precisionExceptionLRU1);
-        lruIndex.indexPrecisionException(precisionExceptionLRU2);
+    private static Logger logger = LoggerFactory.getLogger(LRUIndexTest.class);
 
-        List<String> foundList = lruIndex.retrievePrecisionExceptions();
-        assertEquals(2, foundList.size());
+    LRUIndex lruIndex;
 
-        String found1 = lruIndex.retrievePrecisionException(precisionExceptionLRU1);
-        assertEquals(precisionExceptionLRU1, found1);
-
-        String found2 = lruIndex.retrievePrecisionException(precisionExceptionLRU2);
-        assertEquals(precisionExceptionLRU2, found2);
-
-        String found3 = lruIndex.retrievePrecisionException("this-was-never-stored");
-        assertNull(found3);
+    /**
+     * Invoked before each test* method.
+     */
+    public void setUp() {
+        lruIndex = LRUIndex.getInstance("luceneindex", IndexWriterConfig.OpenMode.CREATE);
     }
 
     /**
-     * Tests retrieving using an exact match.
-     *
-     * @throws Exception hmm
+     * Invoked after each test* method. Empties the index between tests.
      */
-    public void testRetrieveLRUItem() throws Exception {
-        LRUIndex lruIndex = LRUIndex.getInstance("C:\\source\\peace\\data\\tests\\luceneurldb", IndexWriterConfig.OpenMode.CREATE);
-        List<LRUItem> lruItems = new ArrayList<LRUItem>();
-       // LRUItem lruItem1 = new LRUItem("find-me");
-      //  lruItems.add(lruItem1);
-      //  lruIndex.batchIndex(lruItems);
-        LRUItem found = lruIndex.retrieveByLRU("find-me");
-        assertNotNull("Could not retrieve expected object", found);
+    public void tearDown() throws Exception {
+            lruIndex.clearIndex();
     }
 
     /**
-     * Tests retrieving a non-existing item, which souldn't succeed.
+     * Tests clearing an empty index.
      *
      * @throws Exception hmm
      */
-    public void testDonotRetrieveNonExistingLRUItem() throws Exception {
-        LRUIndex lruIndex = LRUIndex.getInstance("C:\\source\\peace\\data\\tests\\luceneurldb", IndexWriterConfig.OpenMode.CREATE);
+    public void testClearEmptyIndex() throws Exception {
+        assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+        lruIndex.clearIndex();
+        assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+    }
+
+    /**
+     * Tests clearing a non-empty index.
+     *
+     * @throws Exception hmm
+     */
+    public void testClearNonEmptyIndex() throws Exception {
         List<LRUItem> lruItems = new ArrayList<LRUItem>();
-      //  LRUItem lruItem1 = new LRUItem("find-me");
-     //   lruItems.add(lruItem1);
+        LRUItem lruItem1 = new LRUItem().setLru("1");
+        LRUItem lruItem2 = new LRUItem().setLru("2");
+        LRUItem lruItem3 = new LRUItem().setLru("3");
+        lruItems.add(lruItem1);
+        lruItems.add(lruItem2);
+        lruItems.add(lruItem3);
         lruIndex.batchIndex(lruItems);
-        LRUItem found = lruIndex.retrieveByLRU("do-not-find-me");
-        assertNull("Retrieved unexpected object", found);
-    }
-
-    /**
-     * Tests retrieving using the multi-character '*' wildcard.
-     *
-     * @throws Exception hmm
-     */
-    public void testRetrieveLRUItemByPrefix() throws Exception {
-        LRUIndex lruIndex = LRUIndex.getInstance("C:\\source\\peace\\data\\tests\\luceneurldb", IndexWriterConfig.OpenMode.CREATE);
-        List<LRUItem> lruItems = new ArrayList<LRUItem>();
-     //   LRUItem lruItem1 = new LRUItem("find-me");
-      //  lruItems.add(lruItem1);
-     //   lruIndex.batchIndex(lruItems);
-        LRUItem found = lruIndex.retrieveByLRU("fin*");
-        assertNotNull("Could not retrieve expected object by wildcard", found);
-    }
-
-    /**
-     * Tests retrieving using the single character '?' wildcard.
-     *
-     * @throws Exception hmm
-     */
-    public void testRetrieveLRUItemBySingleCharWildCard() throws Exception {
-        LRUIndex lruIndex = LRUIndex.getInstance("C:\\source\\peace\\data\\tests\\luceneurldb", IndexWriterConfig.OpenMode.CREATE);
-        List<LRUItem> lruItems = new ArrayList<LRUItem>();
-     //   LRUItem lruItem1 = new LRUItem("find-me");
-     //   lruItems.add(lruItem1);
-        lruIndex.batchIndex(lruItems);
-        LRUItem found = lruIndex.retrieveByLRU("find-?e");
-        assertNotNull("Could not retrieve expected object by single character wildcard", found);
+        lruIndex.clearIndex();
+        assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
     }
 
     /**
@@ -106,22 +75,156 @@ public class LRUIndexTest extends TestCase {
      * @throws Exception hmm
      */
     public void testIndexCount() throws Exception {
-        LRUIndex lruIndex = LRUIndex.getInstance("C:\\source\\peace\\data\\tests\\luceneurldb", IndexWriterConfig.OpenMode.CREATE);
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
         List<LRUItem> lruItems = new ArrayList<LRUItem>();
-     //   LRUItem lruItem1 = new LRUItem("1");
-     //   LRUItem lruItem2 = new LRUItem("2");
-     //   LRUItem lruItem3 = new LRUItem("3");
-     //   lruItems.add(lruItem1);
-     //   lruItems.add(lruItem2);
-     //   lruItems.add(lruItem3);
+        LRUItem lruItem1 = new LRUItem().setLru("1");
+        LRUItem lruItem2 = new LRUItem().setLru("2");
+        LRUItem lruItem3 = new LRUItem().setLru("3");
+        lruItems.add(lruItem1);
+        lruItems.add(lruItem2);
+        lruItems.add(lruItem3);
         lruIndex.batchIndex(lruItems);
         assertEquals("IndexCount returns unexpected number", 3, lruIndex.indexCount());
-        lruIndex.close();
+        //lruIndex.close();
+        logger.info("testIndexCount success");
     }
 
+    //
+    // Precision Exception index tests.
+    //
 
-    public void testBatchIndexLRUItem() throws Exception {
+    /**
+     * Tests adding and retrieving Precision Exceptions.
+     *
+     * @throws Exception hmm
+     */
+    public void testAddPrecisionException() throws Exception {
+        //
+        // add 2 precision exceptions to a new index
+        //
+        String precisionExceptionLRU1 = "com.blogspot.rivieraonline";
+        String precisionExceptionLRU2 = "com.blogspot.braziland";
+        lruIndex.indexPrecisionException(precisionExceptionLRU1);
+        lruIndex.indexPrecisionException(precisionExceptionLRU2);
+
+        // test if all are retrieved
+        List<String> foundList = lruIndex.retrievePrecisionExceptions();
+        assertEquals("Did not retrieve all Precision Exceptions", 2, foundList.size());
+
+        // test if a specific one is retrieved
+        String found1 = lruIndex.retrievePrecisionException(precisionExceptionLRU1);
+        assertEquals("Did not find expected single Precision Exception", precisionExceptionLRU1, found1);
+
+        // test if a specific one is retrieved
+        String found2 = lruIndex.retrievePrecisionException(precisionExceptionLRU2);
+        assertEquals("Did not find expected single Precision Exception", precisionExceptionLRU2, found2);
+
+        // test if a specific non-existing one is not retrieved
+        String found3 = lruIndex.retrievePrecisionException("this-was-never-stored");
+        assertNull("Found unexpected Precision Exception", found3);
+
+        //lruIndex.close();
+        logger.info("testAddPrecisionException success");
+    }
+
+    //
+    // LRUItem index tests.
+    //
+
+
+    /**
+     * Tests retrieving LRUItem using an exact match.
+     *
+     * @throws Exception hmm
+     */
+    public void testRetrieveLRUItem() throws Exception {
+        //
+        // add 1 LRUItem to a new index
+        //
+        List<LRUItem> lruItems = new ArrayList<LRUItem>();
+        LRUItem lruItem1 = new LRUItem().setLru("find-me");
+        lruItems.add(lruItem1);
+        lruIndex.batchIndex(lruItems);
+
+        // test if this LRUItem can be found
+        LRUItem found = lruIndex.retrieveByLRU("find-me");
+        assertNotNull("Could not retrieve expected object", found);
+
+        //lruIndex.close();
+        logger.info("testRetrieveLRUItem success");
+
+    }
+
+    /**
+     * Tests retrieving a non-existing LRUItem, which shouldn't be found.
+     *
+     * @throws Exception hmm
+     */
+    public void testDonotRetrieveNonExistingLRUItem() throws Exception {
+        List<LRUItem> lruItems = new ArrayList<LRUItem>();
+        LRUItem lruItem1 = new LRUItem().setLru("find-me");
+        lruItems.add(lruItem1);
+        lruIndex.batchIndex(lruItems);
+        LRUItem found = lruIndex.retrieveByLRU("do-not-find-me");
+        assertNull("Retrieved unexpected object", found);
+        //lruIndex.close();
+        logger.info("testDonotRetrieveNonExistingLRUItem success");
+    }
+
+    /**
+     * Tests retrieving LRUItems using the multi-character '*' wildcard.
+     *
+     * @throws Exception hmm
+     */
+    public void testRetrieveLRUItemByPrefix() throws Exception {
+        List<LRUItem> lruItems = new ArrayList<LRUItem>();
+        LRUItem lruItem1 = new LRUItem().setLru("find-me");
+        lruItems.add(lruItem1);
+        lruIndex.batchIndex(lruItems);
+        LRUItem found = lruIndex.retrieveByLRU("fin*");
+        assertNotNull("Could not retrieve expected object by wildcard", found);
+        //lruIndex.close();
+        logger.info("testRetrieveLRUItemByPrefix success");
+    }
+
+    /**
+     * Tests retrieving LRUItem using the single character '?' wildcard.
+     *
+     * @throws Exception hmm
+     */
+    public void testRetrieveLRUItemBySingleCharWildCard() throws Exception {
+        List<LRUItem> lruItems = new ArrayList<LRUItem>();
+        LRUItem lruItem1 = new LRUItem().setLru("find-me");
+        lruItems.add(lruItem1);
+        lruIndex.batchIndex(lruItems);
+        LRUItem found = lruIndex.retrieveByLRU("find-?e");
+        assertNotNull("Could not retrieve expected object by single character wildcard", found);
+        //lruIndex.close();
+        logger.info("testRetrieveLRUItemBySingleCharWildCard success");
+    }
+
+    /**
+     * Tests retrieving LRUItems using the multi character '*' wildcard.
+     *
+     * @throws Exception hmm
+     */
+    public void testRetrieveLRUItemByMultiCharacterWildCard() throws Exception {
+        assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+        List<LRUItem> lruItems = new ArrayList<LRUItem>();
+        LRUItem lruItem1 = new LRUItem().setLru("1");
+        LRUItem lruItem2 = new LRUItem().setLru("2");
+        LRUItem lruItem3 = new LRUItem().setLru("3");
+        lruItems.add(lruItem1);
+        lruItems.add(lruItem2);
+        lruItems.add(lruItem3);
+        lruIndex.batchIndex(lruItems);
+        LRUItem found = lruIndex.retrieveByLRU("*");
+        assertEquals("IndexCount returns unexpected number", 3, lruIndex.indexCount());
+        //lruIndex.close();
+        logger.info("testRetrieveLRUItemByMultiCharacterWildCard success");
+    }
+
+    public void xtestBatchIndexLRUItem() throws Exception {
 
         int totalDocCount = 0;
         int addedDocCount = 0;
@@ -148,13 +251,14 @@ public class LRUIndexTest extends TestCase {
             String lru = rawUrlsIterator.next();
 
             if(lru != null) {
-    //            lruItems.add(new LRUItem(lru));
+                lruItems.add(new LRUItem().setLru(lru));
                 //if(urldb.addUrl(url))
                 //	addedDocCount++;
 
             }
 
             if(lruItems.size() > 600000) {
+                System.out.println("sending a batch to be indexed");
                 urldb.batchIndex(lruItems);
                 lruItems.clear();
             }

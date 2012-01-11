@@ -4,6 +4,8 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +17,8 @@ import java.util.Properties;
  * @author heikki doeleman
  */
 public class ThriftServer {
+
+    private static Logger logger = LoggerFactory.getLogger(ThriftServer.class);
 
     private final static int port = 9090;
 
@@ -34,21 +38,21 @@ public class ThriftServer {
             //
             try {
                 properties.load(new FileInputStream("memorystructure.properties"));
-                System.out.println("properties file found");
-                System.out.println("lucene.path: " + properties.getProperty("lucene.path"));
+                logger.debug("properties file found");
+                logger.debug("lucene.path: " + properties.getProperty("lucene.path"));
                 luceneDirectoryPath = properties.getProperty("lucene.path");
                 propertiesFileFound = true;
                 lucenePathProvided = true;
             }
             catch(Exception x) {
-                System.out.println("no properties file found");
+                logger.warn("no properties file found");
             }
 
             //
             // if no properties file provided and no command line arguments, show usage
             //
             if(!propertiesFileFound && args == null || args.length != 1) {
-                System.out.println("usage: java -jar MemoryStructure.jar lucene.path=[path to Lucene directory, if it does not exist yet this program will attempt to create it]");
+                logger.info("usage: java -jar MemoryStructure.jar lucene.path=[path to Lucene directory, if it does not exist yet this program will attempt to create it]");
                 System.exit(0);
             }
             //
@@ -65,29 +69,26 @@ public class ThriftServer {
             // verify necessary parameters have been received, if no use defaults
             //
             if(lucenePathProvided == false) {
-                System.out.println("Could not find lucene.path either from memeorystructure.properties or from command line arguments.");
+                logger.warn("Could not find lucene.path either from memeorystructure.properties or from command line arguments.");
                 luceneDirectoryPath = System.getProperty("user.home") + File.separator + "memorystructure.lucene";
-                System.out.println("Using default: lucene.path is ");
-                System.exit(0);
+                logger.warn("Using default: lucene.path is ");
+                //System.exit(0);
             }
 
             File luceneDir = new File(luceneDirectoryPath);
             if(luceneDir.exists() && !luceneDir.isDirectory()) {
-                System.out.println("Lucene path already exists: " + luceneDirectoryPath + " but it is not a directory, exiting");
+                logger.error("Lucene path already exists: " + luceneDirectoryPath + " but it is not a directory, exiting");
                 System.exit(0);
             }
             else if(!luceneDir.exists()) {
-                System.out.println("Lucene path does not exist, creating directory: " + luceneDirectoryPath);
+                logger.info("Lucene path does not exist, creating directory: " + luceneDirectoryPath);
                 luceneDir.mkdirs();
             }
             else {
-                System.out.println("Using existing Lucene path: " + luceneDirectoryPath);
+                logger.info("Using existing Lucene path: " + luceneDirectoryPath);
             }
 
             memoryStructureImpl.setLucenePath(luceneDirectoryPath);
-
-
-            System.out.println("ThriftServer main()");
 
             //TNonblockingServerSocket serverTransport = new TNonblockingServerSocket(9090);
             TServerTransport serverTransport = new TServerSocket(port);
@@ -96,12 +97,12 @@ public class ThriftServer {
             //final TServer server = new THsHaServer(processor, socket, new TFramedTransport.Factory(), new TCompactProtocol.Factory());
             TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
 
-            System.out.println("starting Thrift server at port " + port);
+            logger.info("starting Thrift server at port " + port);
             server.serve();
 
         }
         catch(Throwable x) {
-            System.err.println("Thrift server internal error " + x.getMessage() + ", shutting down");
+            logger.error("Thrift server internal error " + x.getMessage() + ", shutting down");
             x.printStackTrace();
             System.exit(-1);
         }

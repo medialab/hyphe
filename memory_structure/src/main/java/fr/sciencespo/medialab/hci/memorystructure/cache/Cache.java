@@ -1,6 +1,8 @@
 package fr.sciencespo.medialab.hci.memorystructure.cache;
 
 import fr.sciencespo.medialab.hci.memorystructure.thrift.LRUItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +13,8 @@ import java.util.UUID;
  * @author heikki doeleman
  */
 public class Cache {
+
+    private Logger logger = LoggerFactory.getLogger(Cache.class);
 
     private final String id;
 
@@ -31,9 +35,9 @@ public class Cache {
     }
 
     public synchronized void setLruItems(List<LRUItem> lruItems) {
-        System.out.println("adding LRUItems to cache");
+        logger.debug("adding LRUItems to cache");
         if(lruItems.size() > MAX_CACHE_SIZE) {
-            System.out.println("WARNING: attempt to add # " + lruItems.size() + " elements to cache, which is larger than the allowed max " + MAX_CACHE_SIZE + " , cutting off surplus");
+            logger.warn("attempt to add # " + lruItems.size() + " elements to cache, which is larger than the allowed max " + MAX_CACHE_SIZE + " , cutting off surplus");
             lruItems = lruItems.subList(0, MAX_CACHE_SIZE);
         }
         if(this.lruItems == null) {
@@ -43,7 +47,7 @@ public class Cache {
     }
 
     public void clear() {
-        System.out.println("clearing cache");
+        logger.info("clearing cache");
         this.lruItems.clear();
     }
 }

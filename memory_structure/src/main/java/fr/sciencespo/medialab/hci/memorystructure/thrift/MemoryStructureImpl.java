@@ -6,6 +6,8 @@ import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,8 @@ import java.util.List;
  */
 public class MemoryStructureImpl implements MemoryStructure.Iface {
 
+    private static Logger logger = LoggerFactory.getLogger(MemoryStructureImpl.class);
+
     private String lucenePath;
 
     public void setLucenePath(String lucenePath) {
@@ -25,22 +29,22 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     @Override
     public String createCache(List<LRUItem> lruItems) throws TException {
         if(lruItems != null) {
-            System.out.println("MemoryStructure createCache() received " + lruItems.size() + " LRUItems");
+            logger.debug("MemoryStructure createCache() received " + lruItems.size() + " LRUItems");
             Cache cache = new Cache();
             cache.setLruItems(lruItems);
             CacheMap.getInstance().add(cache);
-            System.out.println("MemoryStructure createCache() created cache with id " + cache.getId());
+            logger.debug("MemoryStructure createCache() created cache with id " + cache.getId());
             return cache.getId();
         }
         else {
-            System.out.println("WARNING: MemoryStructure createCache() received null");
-            return "WARNING: MemoryStructure createCache() received null";
+            logger.warn("MemoryStructure createCache() received null");
+            return "WARNING: MemoryStructure createCache() received null. No cache created.";
         }
     }
 
     @Override
     public String indexCache(String cacheId) throws TException {
-        System.out.println("MemoryStructure indexCache() received id: " + cacheId);
+        logger.debug("MemoryStructure indexCache() received id: " + cacheId);
         try {
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
             Cache cache = CacheMap.getInstance().get(cacheId);
@@ -48,12 +52,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
                 throw new Exception("Could not find cache with id: " + cacheId);
             }
             lruIndex.batchIndex(cache.getLruItems());
-            System.out.println("MemoryStructure indexCache() finished indexing cache with id: " + cacheId);
+            logger.debug("MemoryStructure indexCache() finished indexing cache with id: " + cacheId);
             // TODO what acknowledgement to return ?
             return "ack";
         }
         catch(Exception x) {
-            System.out.println("ERROR: " + x.getMessage());
+            logger.error(x.getMessage());
             x.printStackTrace();
             // TODO what acknowledgement to return ?
             return "ERROR: " + x.getMessage();
@@ -79,20 +83,29 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     @Override
     public List<String> getPrecisionExceptionsFromCache(String cacheId) throws TException {
         try {
-            System.out.println("MemoryStructure getPrecisionExceptionsFromCache() received id: " + cacheId);
+            logger.debug("MemoryStructure getPrecisionExceptionsFromCache() received id: " + cacheId);
             List<String> results = new ArrayList<String>();
+            // get precisionExceptions from index
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.APPEND);
             List<String> precisionExceptions = lruIndex.retrievePrecisionExceptions();
+
             Cache cache = CacheMap.getInstance().get(cacheId);
-            for(LRUItem lruItem : cache.getLruItems()) {
-                if(!lruItem.isNode) {
-                    if(precisionExceptions.contains(lruItem.getLru())) {
-                        results.add(lruItem.getLru());
+            if(cache != null) {
+                for(LRUItem lruItem : cache.getLruItems()) {
+                    if(!lruItem.isNode) {
+                        if(precisionExceptions.contains(lruItem.getLru())) {
+                            results.add(lruItem.getLru());
+                        }
                     }
                 }
+                logger.debug("MemoryStructure getPrecisionExceptionsFromCache() returns # " + results.size() + " results");
+                return results;
             }
-            System.out.println("MemoryStructure getPrecisionExceptionsFromCache() returns # " + results.size() + " results");
-            return results;
+            else {
+                logger.warn("could not find cache with id " + cacheId);
+                // TODO what to do
+                return null;
+            }
         }
         catch(IndexException x) {
             // TODO what to do
@@ -131,13 +144,13 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      */
     @Override
     public List<WebEntityInfo> getWebEntitiesFromCache(String cacheId) throws TException {
-        System.out.println("MemoryStructure getWebEntitiesFromCache() received id: " + cacheId);
+        logger.debug("MemoryStructure getWebEntitiesFromCache() received id: " + cacheId);
         return null;
     }
 
     @Override
     public int deleteCache(String cacheId) throws TException {
-        System.out.println("MemoryStructure deleteCache() received id: " + cacheId);
+        logger.debug("MemoryStructure deleteCache() received id: " + cacheId);
         try {
             Cache cache = CacheMap.getInstance().get(cacheId);
             if(cache == null) {
@@ -149,7 +162,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             return 0;
         }
         catch(Exception x) {
-            System.out.println("ERROR: " + x.getMessage());
+            logger.error(x.getMessage());
             x.printStackTrace();
             // TODO what status to return ?
             return -1;
@@ -158,16 +171,16 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     @Override
     public int setPrecisionException(String precisionException) throws TException {
-        System.out.println("MemoryStructure setPrecisionException() received precision exception LRU: " + precisionException);
+        logger.debug("MemoryStructure setPrecisionException() received precision exception LRU: " + precisionException);
         try {
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
             lruIndex.indexPrecisionException(precisionException);
-            System.out.println("MemoryStructure indexCache() finished indexing precision exception LRU: " + precisionException);
+            logger.debug("MemoryStructure indexCache() finished indexing precision exception LRU: " + precisionException);
             // TODO what status to return ?
             return 0;
         }
         catch(Exception x) {
-            System.out.println("ERROR: " + x.getMessage());
+            logger.error(x.getMessage());
             x.printStackTrace();
             // TODO what status to return ?
             return -1;
@@ -181,26 +194,26 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     @Override
     public boolean storeNodeLinks(List<NodeLink> nodeLinks) throws TException {
-        System.out.println("MemoryStructure storeNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
+        logger.debug("MemoryStructure storeNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
         return true;
     }
 
     @Override
     public boolean storeWebEntity(LRUItem lruItem) throws TException {
-        System.out.println("MemoryStructure storeWebEntity() received LRUItem " + lruItem.getLru());
+        logger.debug("MemoryStructure storeWebEntity() received LRUItem " + lruItem.getLru());
         return false;
     }
 
     @Override
     public boolean storeLRUItems(List<LRUItem> lruItems) throws TException {
         try {
-            System.out.println("MemoryStructure storeLRUItems() received # " + lruItems.size() + " LRUItems");
+            logger.debug("MemoryStructure storeLRUItems() received # " + lruItems.size() + " LRUItems");
             LRUIndex index = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
             index.batchIndex(lruItems);
             return true;
         }
         catch(Exception x) {
-            System.out.println(x.getMessage());
+            logger.error(x.getMessage());
             x.printStackTrace();
             return false;
         }

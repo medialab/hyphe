@@ -6,16 +6,20 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Example client for the MemeoryStructure server.
+ * Example client for the MemoryStructure server.
  *
  * @author heikki doeleman
  */
 public class MemoryStructureClient {
+
+    private static Logger logger = LoggerFactory.getLogger(MemoryStructureClient.class);
 
     private final static int port = 9090;
     private final static String server = "localhost";
@@ -46,7 +50,7 @@ public class MemoryStructureClient {
             //
             // test: store LRUItems
             //
-            System.out.println("fr.sciencespo.medialab.hci.memorystructure.client.MemoryStructureClient storeLRUItems() test start");
+            logger.debug("fr.sciencespo.medialab.hci.memorystructure.client.MemoryStructureClient storeLRUItems() test start");
             //
             // create/retrieve test data
             //
@@ -59,16 +63,16 @@ public class MemoryStructureClient {
             // store in Memory Structure
             boolean success = client.storeLRUItems(lruItems);
             if(success) {
-                System.out.println("Thrift server returned success");
+                logger.debug("Thrift server returned success");
             }
             else {
-                System.out.println("Thrift server returned failure");
+                logger.debug("Thrift server returned failure");
             }
-            System.out.println("fr.sciencespo.medialab.hci.memorystructure.client.MemoryStructureClient storeLRUItems() test finished");
+            logger.debug("fr.sciencespo.medialab.hci.memorystructure.client.MemoryStructureClient storeLRUItems() test finished");
 
         }
         catch(Throwable x) {
-            System.err.println("Thrift fr.sciencespo.medialab.hci.memorystructure.client.MemoryStructureClient internal error: " + x.getMessage());
+            logger.error("Thrift fr.sciencespo.medialab.hci.memorystructure.client.MemoryStructureClient internal error: " + x.getMessage());
             x.printStackTrace();
         }
         finally {

@@ -2,6 +2,7 @@ package fr.sciencespo.medialab.hci.memorystructure.index;
 
 import fr.sciencespo.medialab.hci.memorystructure.thrift.LRUItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -12,6 +13,8 @@ import org.apache.lucene.index.LogByteSizeMergePolicy;
 import org.apache.lucene.index.LogMergePolicy;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,6 +30,8 @@ import java.util.concurrent.TimeoutException;
  */
 public class AsyncIndexWriterTask implements RunnableFuture {
 
+    private Logger logger = LoggerFactory.getLogger(AsyncIndexWriterTask.class);
+
     private static Version LUCENE_VERSION;
     private static IndexWriterConfig.OpenMode OPEN_MODE;
     private static int RAM_BUFFER_SIZE_MB;
@@ -37,8 +42,10 @@ public class AsyncIndexWriterTask implements RunnableFuture {
     private String name;
     private IndexWriter indexWriter;
 
-    AsyncIndexWriterTask(String name, List<?> objectsToWrite, RAMDirectory directory, Version LuceneVersion, IndexWriterConfig.OpenMode openMode, int ramBufferSize, Analyzer analyzer) {
+    AsyncIndexWriterTask(String name, List<?> objectsToWrite, RAMDirectory directory, Version LuceneVersion,
+                         IndexWriterConfig.OpenMode openMode, int ramBufferSize, Analyzer analyzer) {
         try {
+            System.out.println("creating new AsyncIndexWriterTask indexing # " + objectsToWrite.size() + " objects with OPEN_MODE " + openMode.name() + " RAM_BUFFER_SIZE_MB " + ramBufferSize);
             LUCENE_VERSION = LuceneVersion;
             OPEN_MODE = openMode;
             RAM_BUFFER_SIZE_MB = ramBufferSize;
@@ -47,6 +54,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
             this.name = name;
             this.objectsToWrite = objectsToWrite;
             this.indexWriter = newRAMWriter(directory);
+            this.indexWriter.commit();
         }
         catch(Exception x) {
             System.err.println(x.getMessage());
@@ -62,6 +70,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
      * @throws java.io.IOException
      */
     private IndexWriter newRAMWriter(RAMDirectory ramDirectory) throws IOException {
+        System.out.println("creating new RAM writer");
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(LUCENE_VERSION, ANALYZER);
         indexWriterConfig.setOpenMode(OPEN_MODE);
         indexWriterConfig.setRAMBufferSizeMB(RAM_BUFFER_SIZE_MB);
@@ -72,16 +81,19 @@ public class AsyncIndexWriterTask implements RunnableFuture {
     }
 
     public void run() {
+        System.out.println("run !");
         try {
-            if(objectsToWrite == null || objectsToWrite.size() == 0 ) {
-                isDone = true;
+            if(CollectionUtils.isEmpty(objectsToWrite)) {
+                this.isDone = true;
                 return;
             }
-            if(objectsToWrite.get(0) instanceof LRUItem) {
-                System.out.println("AsyncIndexWriterTask run started for LRUItems");
-            }
-            else if(objectsToWrite.get(0) instanceof NodeLink) {
-                System.out.println("AsyncIndexWriterTask run started for NodeLinks");
+            if(logger.isDebugEnabled()) {
+                if(objectsToWrite.get(0) instanceof LRUItem) {
+                    logger.debug("AsyncIndexWriterTask run started for LRUItems");
+                }
+                else if(objectsToWrite.get(0) instanceof NodeLink) {
+                    logger.debug("AsyncIndexWriterTask run started for NodeLinks");
+                }
             }
             isDone = false;
             int written = 0;
@@ -93,11 +105,11 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                 }
                 written++;
             }
-            isDone = true;
-            System.out.println("AsyncIndexWriterTask " + name + " run finished, wrote # " + written + " documents to Lucene index");
+            this.isDone = true;
+            logger.debug("AsyncIndexWriterTask " + name + " run finished, wrote # " + written + " documents to Lucene index");
         }
         catch(Exception x) {
-            System.out.println(x.getMessage());
+            logger.error(x.getMessage());
             x.printStackTrace();
         }
         finally {
@@ -105,7 +117,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                 this.indexWriter.close();
             }
             catch (IOException x) {
-                System.err.println(x.getMessage());
+                logger.error(x.getMessage());
                 x.printStackTrace();
             }
         }
@@ -120,7 +132,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
     }
 
     public boolean isDone() {
-        return isDone;
+        return this.isDone;
     }
 
     public Object get() throws InterruptedException, ExecutionException {
