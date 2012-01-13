@@ -78,14 +78,17 @@ class PagesCrawler(BaseSpider):
         p['timestamp'] = int(time.time())
         return p
 
-    def _should_follow(self, depth, lru, lrulink):
+    def _should_follow(self, depth, fromlru, tolru):
         return depth < self.maxdepth \
-            and not any((lru.startswith(p) for p in self.discover_prefixes)) \
-            and any((lrulink.startswith(p) for p in self.follow_prefixes)) \
-            and not any((lrulink.startswith(p) for p in self.discover_prefixes))
+            and not has_prefix(fromlru, self.discover_prefixes) \
+            and     has_prefix(tolru,   self.follow_prefixes) \
+            and not has_prefix(tolru,   self.discover_prefixes)
 
     def _request(self, url, **kw):
         kw['meta'] = {'handle_httpstatus_all': True}
         kw['callback'] = self.handle_response
         kw['errback'] = self.handle_error
         return Request(url, **kw)
+
+def has_prefix(string, prefixes):
+    return any((string.startswith(p) for p in prefixes))
