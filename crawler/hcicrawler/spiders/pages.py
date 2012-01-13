@@ -9,7 +9,7 @@ from scrapy import log
 
 from hcicrawler.lru import url_to_lru
 from hcicrawler.items import Page
-from hcicrawler.samples import MONGODB_INPUT
+from hcicrawler.samples import DEFAULT_INPUT
 from hcicrawler.errors import error_name
 
 class PagesCrawler(BaseSpider):
@@ -18,7 +18,14 @@ class PagesCrawler(BaseSpider):
 
     def __init__(self, **kw):
         # TODO: use spider arguments
-        super(PagesCrawler, self).__init__(**MONGODB_INPUT)
+        args = DEFAULT_INPUT.copy()
+        args.update(kw)
+        self.start_urls = to_list(args['start_urls'])
+        self.maxdepth = int(args['maxdepth'])
+        self.follow_prefixes = to_list(args['follow_prefixes'])
+        self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
+        self.discover_prefixes = to_list(args['discover_prefixes'])
+        self.user_agent = args['user_agent']
         self.link_extractor = SgmlLinkExtractor(deny_extensions=[])
         self.ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
 
@@ -81,10 +88,12 @@ class PagesCrawler(BaseSpider):
     def _should_follow(self, depth, fromlru, tolru):
         # this condition is documented here (please keep updated)
         # http://jiminy.medialab.sciences-po.fr/hci/index.php/Crawler#Link_following
-        return depth < self.maxdepth \
-            and     has_prefix(tolru,   self.follow_prefixes + self.discover_prefixes) \
-            and not has_prefix(tolru,   self.nofollow_prefixes) \
-            and not has_prefix(fromlru, self.discover_prefixes)
+        c1 = depth < self.maxdepth
+        c2 = has_prefix(tolru,   self.follow_prefixes + self.discover_prefixes)
+        c3 = has_prefix(tolru,   self.nofollow_prefixes)
+        c4 = has_prefix(fromlru, self.discover_prefixes)
+        #print depth, c1, c2, c3, c4, tolru # DEBUG
+        return c1 and c2 and c3 and c4
 
     def _request(self, url, **kw):
         kw['meta'] = {'handle_httpstatus_all': True}
@@ -94,3 +103,9 @@ class PagesCrawler(BaseSpider):
 
 def has_prefix(string, prefixes):
     return any((string.startswith(p) for p in prefixes))
+
+def to_list(obj):
+    if isinstance(obj, basestring):
+        return obj.split(',')
+    else:
+        return list(obj)
