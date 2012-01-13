@@ -6,8 +6,8 @@ Welcome to the Hypertext Corpus Initiative (HCI) project.
 
 This project consist in the following components:
 
-	* HCI core
-	* HCI crawler
+* HCI core
+* HCI crawler
 
 HCI core
 ========
