@@ -170,12 +170,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public int setPrecisionException(String precisionException) throws TException {
-        logger.debug("MemoryStructure setPrecisionException() received precision exception LRU: " + precisionException);
+    public int storePrecisionException(String precisionException) throws TException {
+        logger.debug("MemoryStructure storePrecisionException() received precision exception LRU: " + precisionException);
         try {
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
             lruIndex.indexPrecisionException(precisionException);
-            logger.debug("MemoryStructure indexCache() finished indexing precision exception LRU: " + precisionException);
+            logger.debug("MemoryStructure indexPrecisionException() finished indexing precision exception LRU: " + precisionException);
             // TODO what status to return ?
             return 0;
         }
@@ -187,10 +187,23 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
-
-    //
-    // below old API, no longer necessary (?)
-    //
+    @Override
+    public int storeWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException {
+        logger.debug("MemoryStructure storeWebEntityCreationRule() received webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
+        try {
+            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+            lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
+            logger.debug("MemoryStructure indexWebEntityCreationRule() finished indexing webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
+            // TODO what status to return ?
+            return 0;
+        }
+        catch(Exception x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            // TODO what status to return ?
+            return -1;
+        }
+    }
 
     @Override
     public boolean storeNodeLinks(List<NodeLink> nodeLinks) throws TException {
@@ -199,9 +212,21 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public boolean storeWebEntity(LRUItem lruItem) throws TException {
-        logger.debug("MemoryStructure storeWebEntity() received LRUItem " + lruItem.getLru());
-        return false;
+    public boolean storeWebEntity(String id, LRUItem lruItem) throws TException {
+        logger.debug("MemoryStructure storeWebEntity() received LRUItem: " + lruItem.getLru() + " for WebEntity: " + id);
+        try {
+            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+            lruIndex.indexWebEntity(id, lruItem);
+            logger.debug("MemoryStructure storeWebEntity() finished indexing LRUItem: " + lruItem.getLru() + " for WebEntity: " + id);
+            // TODO change to return int
+            return true;
+        }
+        catch(Exception x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            // TODO change to return int
+            return false;
+        }
     }
 
     @Override

@@ -81,7 +81,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
     }
 
     public void run() {
-        System.out.println("run !");
+        logger.debug("started run");
         try {
             if(CollectionUtils.isEmpty(objectsToWrite)) {
                 this.isDone = true;
@@ -98,12 +98,19 @@ public class AsyncIndexWriterTask implements RunnableFuture {
             isDone = false;
             int written = 0;
             for(Object object : objectsToWrite) {
+                boolean wasIndexed = false;
                 if(object instanceof LRUItem) {
                     LRUItem lruItem = (LRUItem) object;
                     Document lruDocument = IndexConfiguration.LRUItemDocument(lruItem);
-                    indexWriter.addDocument(lruDocument);
+                    // it may be null if it's rejected (e.g. there is no value for LRU in the LRUItem)
+                    if(lruDocument != null) {
+                        indexWriter.addDocument(lruDocument);
+                        wasIndexed = true;
+                    }
                 }
-                written++;
+                if(wasIndexed) {
+                    written++;
+                }
             }
             this.isDone = true;
             logger.debug("AsyncIndexWriterTask " + name + " run finished, wrote # " + written + " documents to Lucene index");
@@ -120,6 +127,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                 logger.error(x.getMessage());
                 x.printStackTrace();
             }
+            logger.debug("finished run");
         }
     }
 

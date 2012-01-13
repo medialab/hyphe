@@ -1,6 +1,8 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
 import fr.sciencespo.medialab.hci.memorystructure.thrift.LRUItem;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -41,8 +43,6 @@ import java.util.concurrent.TimeUnit;
 /**
  *
  * @author heikki doeleman
- *
- * test
  */
 public class LRUIndex {
 
@@ -77,8 +77,8 @@ public class LRUIndex {
     /**
      * Executor service used for asynchronous batch index tasks.
      */
-    //private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
-            private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(50);
+    private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+    //        private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(50);
 
  //TODO   private static ScheduledExecutorService executorService2 = new ThreadPoolExecutor();
     //
@@ -99,6 +99,7 @@ public class LRUIndex {
     public synchronized void clearIndex() throws IndexException {
         try {
             logger.debug("clearing index");
+
             indexWriter.deleteAll();
             indexWriter.commit();
             logger.debug("index now has # " + indexCount() + " documents");
@@ -203,6 +204,95 @@ public class LRUIndex {
         try {
             Document precisionExceptionDocument = IndexConfiguration.PrecisionExceptionDocument(precisionException);
             this.indexWriter.addDocument(precisionExceptionDocument);
+            this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
+            this.indexWriter.commit();
+            this.indexSearcher = new IndexSearcher(this.indexReader);
+        }
+        catch(Exception x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x);
+        }
+    }
+
+   /**
+     * Adds or updates a WebEntity to the index. If ID is not empty, the existing WebEntity with that ID is retrieved
+     * and this LRU is added to it; if no existing WebEntity with that ID is found, or if ID is empty, a new WebEntity
+     * is created.
+     *
+     * @param id
+     * @param lruItem
+     * @throws IndexException hmm
+     */
+    public String indexWebEntity(String id, LRUItem lruItem) throws IndexException{
+        logger.debug("indexWebEntity id: " + id);
+        try {
+            WebEntity webEntity = null;
+            boolean updating = false;
+
+            // id has a value
+            if(StringUtils.isNotEmpty(id)) {
+                logger.debug("id is not null, retrieving existing webentity");
+                // retieve webEntity with that id
+                webEntity = retrieveWebEntity(id);
+                if(logger.isDebugEnabled()) {
+                    if(webEntity != null) {
+                        logger.debug("webentity found");
+                    }
+                    else {
+                        logger.debug("did not find webentity with id " + id);
+                    }
+                }
+            }
+            // id has no value or no webentity found with that id: create new
+            if(webEntity == null) {
+                logger.debug("creating new webentity");
+                webEntity = new WebEntity();
+                webEntity.setLRUlist(new ArrayList<String>());
+            }
+            else {
+                logger.debug("updating webentity with id " + id);
+                updating = true;
+            }
+            webEntity.addToLRUlist(lruItem.getLru());
+
+            // update: first delete old webentity
+            if(updating) {
+                logger.debug("deleting existing webentity with id " + id);
+                Query q = findWebEntityQuery(id);
+                this.indexWriter.deleteDocuments(q);
+                this.indexWriter.commit();
+            }
+            logger.debug("indexing webentity");
+            Document webEntityDocument = IndexConfiguration.WebEntityDocument(webEntity);
+            this.indexWriter.addDocument(webEntityDocument);
+            this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
+            this.indexWriter.commit();
+            this.indexSearcher = new IndexSearcher(this.indexReader);
+
+            // return id of indexed webentity
+            String indexedId = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
+            logger.debug("indexed webentity with id " + id);
+            return indexedId;
+
+        }
+        catch(Exception x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x);
+        }
+    }
+
+    /**
+     * Adds a single WebEntityCreationRule to the index.
+     *
+     * @param webEntityCreationRule
+     * @throws IndexException hmm
+     */
+    public void indexWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws IndexException{
+        try {
+            Document webEntityCreationRuleDocument = IndexConfiguration.WebEntityCreationRuleDocument(webEntityCreationRule);
+            this.indexWriter.addDocument(webEntityCreationRuleDocument);
             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
             this.indexWriter.commit();
             this.indexSearcher = new IndexSearcher(this.indexReader);
@@ -325,6 +415,58 @@ public class LRUIndex {
             return results;
         }
         catch(Exception x) {
+            throw new IndexException(x);
+        }
+    }
+
+    /**
+     * Query to search for WebEntity by ID.
+     *
+     * @param id
+     * @return
+     */
+    private Query findWebEntityQuery(String id) {
+        Term isWebEntity = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY.name());
+        Term idTerm = new Term(IndexConfiguration.FieldName.ID.name(), id);
+
+        BooleanQuery q = new BooleanQuery();
+        TermQuery q1 = new TermQuery(isWebEntity);
+        TermQuery q2 = new TermQuery(idTerm);
+        q.add(q1, BooleanClause.Occur.MUST);
+        q.add(q2, BooleanClause.Occur.MUST);
+
+        return q;
+    }
+
+    /**
+     * Retrieves a particular WebEntity.
+     * @param id
+     * @return
+     */
+    public WebEntity retrieveWebEntity(String id) throws IndexException {
+        try {
+            WebEntity result = null;
+            TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
+            Query q = findWebEntityQuery(id);
+            indexSearcher.search(q, collector);
+
+            ScoreDoc[] hits = collector.topDocs().scoreDocs;
+            if(hits != null && hits.length > 0) {
+                logger.debug("found # " + hits.length + " webentities");
+                int i = hits[0].doc;
+                Document doc = indexSearcher.doc(i);
+                result = IndexConfiguration.convertWebEntity(doc);
+            }
+            if(result != null) {
+                logger.debug("retrieved webentity with id " + result.getId());
+            }
+            else {
+                logger.debug("failed to retrieve webentity with id " + id);
+            }
+            return result;
+        }
+        catch(Exception x) {
+            x.printStackTrace();
             throw new IndexException(x);
         }
     }

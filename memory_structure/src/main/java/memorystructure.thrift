@@ -38,6 +38,16 @@ struct NodeLink {
   4: i32 weight=1
 }
 
+struct WebEntity {
+  1: string id,
+  2: list<string> LRUlist
+}
+
+struct WebEntityCreationRule {
+  1: string regExp,
+  2: string LRU
+}
+
 struct WebEntityInfo {
   1: string id,
   2: string flagType,
@@ -85,10 +95,22 @@ string indexCache(1:string cacheId),
   * @return status
   */  
  i32 deleteCache(1:string cacheId),
+
+ // store precision exception
+ /**
+  * @param 1 precisionException : preciosn exception to store
+  * @return status
+  */
+ i32 storePrecisionException(1:string precisionException),
+
+ // store WebEntityCreationRule
+ /**
+  * @param 1 webEntityCreationRule : webentity creation rule to store
+  * @return status
+  */
+ i32 storeWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule),
  
- 
- // heikki: does it mean the rest of the earlier interface below is no longer necessary ?
- 
+
  
 // LRUItems
 /**
@@ -109,9 +131,10 @@ bool storeNodeLinks(1:list<NodeLink> nodeLinks),
 // WebEntity
 /**
  *
- * @param 1 lruItem : the lruItem to be marked as WebEntity
+ * @param 1 id : the id of the WebEntity to add this LRU to
+ * @param 2 lruItem : the lruItem to be marked as WebEntity
  * @return true if success, false else
 **/
-bool storeWebEntity(1:LRUItem lruItem),
+bool storeWebEntity(1:string id, 2:LRUItem lruItem),
 
 }
