@@ -79,10 +79,12 @@ class PagesCrawler(BaseSpider):
         return p
 
     def _should_follow(self, depth, fromlru, tolru):
+        # this condition is documented here (please keep updated)
+        # http://jiminy.medialab.sciences-po.fr/hci/index.php/Crawler#Link_following
         return depth < self.maxdepth \
-            and not has_prefix(fromlru, self.discover_prefixes) \
-            and     has_prefix(tolru,   self.follow_prefixes) \
-            and not has_prefix(tolru,   self.discover_prefixes)
+            and     has_prefix(tolru,   self.follow_prefixes + self.discover_prefixes) \
+            and not has_prefix(tolru,   self.nofollow_prefixes) \
+            and not has_prefix(fromlru, self.discover_prefixes)
 
     def _request(self, url, **kw):
         kw['meta'] = {'handle_httpstatus_all': True}
