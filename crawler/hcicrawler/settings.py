@@ -13,8 +13,6 @@ ITEM_PIPELINES = [
     'hcicrawler.pipelines.OutputQueue',
 ]
 
-#OUTPUT_DIR = 'output'
-
 DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
 
 MONGO_HOST = 'localhost'

@@ -1,6 +1,10 @@
 import pymongo
+from zope.interface import implements
+from hcicrawler.interfaces import IPageQueue, IPageStore
 
 class MongoPageQueue(object):
+
+    implements(IPageQueue)
 
     def __init__(self, collection, jobid):
         self._col = collection
@@ -22,6 +26,8 @@ class MongoPageQueue(object):
 
 
 class MongoPageStore(object):
+
+    implements(IPageStore)
 
     def __init__(self, collection, jobid):
         self._col = collection
