@@ -5,7 +5,7 @@ Hypertext Corpus Initiative
 Welcome to the Hypertext Corpus Initiative (HCI) project.
 
 This project consist in the following components:
-
+i
 * HCI core
 * HCI crawler
 
