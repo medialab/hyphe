@@ -32,6 +32,28 @@ public class MemoryStructure {
   public interface Iface {
 
     /**
+     * @param 1 webEntity
+     * @return id
+     * 
+     * @param webEntity
+     */
+    public String storeWebEntity(WebEntity webEntity) throws org.apache.thrift.TException;
+
+    /**
+     * @param 1 id
+     * @return webEntity
+     * 
+     * @param id
+     */
+    public WebEntity findWebEntity(String id) throws org.apache.thrift.TException;
+
+    /**
+     *    *
+     * * @return set of webEntities
+     */
+    public Set<WebEntity> findWebEntities() throws org.apache.thrift.TException;
+
+    /**
      * @param 1 lruItems : list of LRUItem objects
      * @return id of the created cache
      * 
@@ -117,11 +139,17 @@ public class MemoryStructure {
      * @param id
      * @param lruItem
      */
-    public boolean storeWebEntity(String id, LRUItem lruItem) throws org.apache.thrift.TException;
+    public boolean addLRUtoWebEntity(String id, LRUItem lruItem) throws org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface {
+
+    public void storeWebEntity(WebEntity webEntity, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.storeWebEntity_call> resultHandler) throws org.apache.thrift.TException;
+
+    public void findWebEntity(String id, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.findWebEntity_call> resultHandler) throws org.apache.thrift.TException;
+
+    public void findWebEntities(org.apache.thrift.async.AsyncMethodCallback<AsyncClient.findWebEntities_call> resultHandler) throws org.apache.thrift.TException;
 
     public void createCache(List<LRUItem> lruItems, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.createCache_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -141,7 +169,7 @@ public class MemoryStructure {
 
     public void storeNodeLinks(List<NodeLink> nodeLinks, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.storeNodeLinks_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void storeWebEntity(String id, LRUItem lruItem, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.storeWebEntity_call> resultHandler) throws org.apache.thrift.TException;
+    public void addLRUtoWebEntity(String id, LRUItem lruItem, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.addLRUtoWebEntity_call> resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -163,6 +191,74 @@ public class MemoryStructure {
 
     public Client(org.apache.thrift.protocol.TProtocol iprot, org.apache.thrift.protocol.TProtocol oprot) {
       super(iprot, oprot);
+    }
+
+    public String storeWebEntity(WebEntity webEntity) throws org.apache.thrift.TException
+    {
+      send_storeWebEntity(webEntity);
+      return recv_storeWebEntity();
+    }
+
+    public void send_storeWebEntity(WebEntity webEntity) throws org.apache.thrift.TException
+    {
+      storeWebEntity_args args = new storeWebEntity_args();
+      args.setWebEntity(webEntity);
+      sendBase("storeWebEntity", args);
+    }
+
+    public String recv_storeWebEntity() throws org.apache.thrift.TException
+    {
+      storeWebEntity_result result = new storeWebEntity_result();
+      receiveBase(result, "storeWebEntity");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "storeWebEntity failed: unknown result");
+    }
+
+    public WebEntity findWebEntity(String id) throws org.apache.thrift.TException
+    {
+      send_findWebEntity(id);
+      return recv_findWebEntity();
+    }
+
+    public void send_findWebEntity(String id) throws org.apache.thrift.TException
+    {
+      findWebEntity_args args = new findWebEntity_args();
+      args.setId(id);
+      sendBase("findWebEntity", args);
+    }
+
+    public WebEntity recv_findWebEntity() throws org.apache.thrift.TException
+    {
+      findWebEntity_result result = new findWebEntity_result();
+      receiveBase(result, "findWebEntity");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "findWebEntity failed: unknown result");
+    }
+
+    public Set<WebEntity> findWebEntities() throws org.apache.thrift.TException
+    {
+      send_findWebEntities();
+      return recv_findWebEntities();
+    }
+
+    public void send_findWebEntities() throws org.apache.thrift.TException
+    {
+      findWebEntities_args args = new findWebEntities_args();
+      sendBase("findWebEntities", args);
+    }
+
+    public Set<WebEntity> recv_findWebEntities() throws org.apache.thrift.TException
+    {
+      findWebEntities_result result = new findWebEntities_result();
+      receiveBase(result, "findWebEntities");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "findWebEntities failed: unknown result");
     }
 
     public String createCache(List<LRUItem> lruItems) throws org.apache.thrift.TException
@@ -372,28 +468,28 @@ public class MemoryStructure {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "storeNodeLinks failed: unknown result");
     }
 
-    public boolean storeWebEntity(String id, LRUItem lruItem) throws org.apache.thrift.TException
+    public boolean addLRUtoWebEntity(String id, LRUItem lruItem) throws org.apache.thrift.TException
     {
-      send_storeWebEntity(id, lruItem);
-      return recv_storeWebEntity();
+      send_addLRUtoWebEntity(id, lruItem);
+      return recv_addLRUtoWebEntity();
     }
 
-    public void send_storeWebEntity(String id, LRUItem lruItem) throws org.apache.thrift.TException
+    public void send_addLRUtoWebEntity(String id, LRUItem lruItem) throws org.apache.thrift.TException
     {
-      storeWebEntity_args args = new storeWebEntity_args();
+      addLRUtoWebEntity_args args = new addLRUtoWebEntity_args();
       args.setId(id);
       args.setLruItem(lruItem);
-      sendBase("storeWebEntity", args);
+      sendBase("addLRUtoWebEntity", args);
     }
 
-    public boolean recv_storeWebEntity() throws org.apache.thrift.TException
+    public boolean recv_addLRUtoWebEntity() throws org.apache.thrift.TException
     {
-      storeWebEntity_result result = new storeWebEntity_result();
-      receiveBase(result, "storeWebEntity");
+      addLRUtoWebEntity_result result = new addLRUtoWebEntity_result();
+      receiveBase(result, "addLRUtoWebEntity");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "storeWebEntity failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "addLRUtoWebEntity failed: unknown result");
     }
 
   }
@@ -412,6 +508,99 @@ public class MemoryStructure {
 
     public AsyncClient(org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.async.TAsyncClientManager clientManager, org.apache.thrift.transport.TNonblockingTransport transport) {
       super(protocolFactory, clientManager, transport);
+    }
+
+    public void storeWebEntity(WebEntity webEntity, org.apache.thrift.async.AsyncMethodCallback<storeWebEntity_call> resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      storeWebEntity_call method_call = new storeWebEntity_call(webEntity, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class storeWebEntity_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private WebEntity webEntity;
+      public storeWebEntity_call(WebEntity webEntity, org.apache.thrift.async.AsyncMethodCallback<storeWebEntity_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.webEntity = webEntity;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("storeWebEntity", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        storeWebEntity_args args = new storeWebEntity_args();
+        args.setWebEntity(webEntity);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public String getResult() throws org.apache.thrift.TException {
+        if (getState() != State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_storeWebEntity();
+      }
+    }
+
+    public void findWebEntity(String id, org.apache.thrift.async.AsyncMethodCallback<findWebEntity_call> resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      findWebEntity_call method_call = new findWebEntity_call(id, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class findWebEntity_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String id;
+      public findWebEntity_call(String id, org.apache.thrift.async.AsyncMethodCallback<findWebEntity_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.id = id;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("findWebEntity", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        findWebEntity_args args = new findWebEntity_args();
+        args.setId(id);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public WebEntity getResult() throws org.apache.thrift.TException {
+        if (getState() != State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_findWebEntity();
+      }
+    }
+
+    public void findWebEntities(org.apache.thrift.async.AsyncMethodCallback<findWebEntities_call> resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      findWebEntities_call method_call = new findWebEntities_call(resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class findWebEntities_call extends org.apache.thrift.async.TAsyncMethodCall {
+      public findWebEntities_call(org.apache.thrift.async.AsyncMethodCallback<findWebEntities_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("findWebEntities", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        findWebEntities_args args = new findWebEntities_args();
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public Set<WebEntity> getResult() throws org.apache.thrift.TException {
+        if (getState() != State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_findWebEntities();
+      }
     }
 
     public void createCache(List<LRUItem> lruItems, org.apache.thrift.async.AsyncMethodCallback<createCache_call> resultHandler) throws org.apache.thrift.TException {
@@ -702,25 +891,25 @@ public class MemoryStructure {
       }
     }
 
-    public void storeWebEntity(String id, LRUItem lruItem, org.apache.thrift.async.AsyncMethodCallback<storeWebEntity_call> resultHandler) throws org.apache.thrift.TException {
+    public void addLRUtoWebEntity(String id, LRUItem lruItem, org.apache.thrift.async.AsyncMethodCallback<addLRUtoWebEntity_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      storeWebEntity_call method_call = new storeWebEntity_call(id, lruItem, resultHandler, this, ___protocolFactory, ___transport);
+      addLRUtoWebEntity_call method_call = new addLRUtoWebEntity_call(id, lruItem, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class storeWebEntity_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class addLRUtoWebEntity_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String id;
       private LRUItem lruItem;
-      public storeWebEntity_call(String id, LRUItem lruItem, org.apache.thrift.async.AsyncMethodCallback<storeWebEntity_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public addLRUtoWebEntity_call(String id, LRUItem lruItem, org.apache.thrift.async.AsyncMethodCallback<addLRUtoWebEntity_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.id = id;
         this.lruItem = lruItem;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("storeWebEntity", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        storeWebEntity_args args = new storeWebEntity_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("addLRUtoWebEntity", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        addLRUtoWebEntity_args args = new addLRUtoWebEntity_args();
         args.setId(id);
         args.setLruItem(lruItem);
         args.write(prot);
@@ -733,7 +922,7 @@ public class MemoryStructure {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_storeWebEntity();
+        return (new Client(prot)).recv_addLRUtoWebEntity();
       }
     }
 
@@ -750,6 +939,9 @@ public class MemoryStructure {
     }
 
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
+      processMap.put("storeWebEntity", new storeWebEntity());
+      processMap.put("findWebEntity", new findWebEntity());
+      processMap.put("findWebEntities", new findWebEntities());
       processMap.put("createCache", new createCache());
       processMap.put("indexCache", new indexCache());
       processMap.put("getPrecisionExceptionsFromCache", new getPrecisionExceptionsFromCache());
@@ -759,8 +951,56 @@ public class MemoryStructure {
       processMap.put("storeWebEntityCreationRule", new storeWebEntityCreationRule());
       processMap.put("storeLRUItems", new storeLRUItems());
       processMap.put("storeNodeLinks", new storeNodeLinks());
-      processMap.put("storeWebEntity", new storeWebEntity());
+      processMap.put("addLRUtoWebEntity", new addLRUtoWebEntity());
       return processMap;
+    }
+
+    private static class storeWebEntity<I extends Iface> extends org.apache.thrift.ProcessFunction<I, storeWebEntity_args> {
+      public storeWebEntity() {
+        super("storeWebEntity");
+      }
+
+      protected storeWebEntity_args getEmptyArgsInstance() {
+        return new storeWebEntity_args();
+      }
+
+      protected storeWebEntity_result getResult(I iface, storeWebEntity_args args) throws org.apache.thrift.TException {
+        storeWebEntity_result result = new storeWebEntity_result();
+        result.success = iface.storeWebEntity(args.webEntity);
+        return result;
+      }
+    }
+
+    private static class findWebEntity<I extends Iface> extends org.apache.thrift.ProcessFunction<I, findWebEntity_args> {
+      public findWebEntity() {
+        super("findWebEntity");
+      }
+
+      protected findWebEntity_args getEmptyArgsInstance() {
+        return new findWebEntity_args();
+      }
+
+      protected findWebEntity_result getResult(I iface, findWebEntity_args args) throws org.apache.thrift.TException {
+        findWebEntity_result result = new findWebEntity_result();
+        result.success = iface.findWebEntity(args.id);
+        return result;
+      }
+    }
+
+    private static class findWebEntities<I extends Iface> extends org.apache.thrift.ProcessFunction<I, findWebEntities_args> {
+      public findWebEntities() {
+        super("findWebEntities");
+      }
+
+      protected findWebEntities_args getEmptyArgsInstance() {
+        return new findWebEntities_args();
+      }
+
+      protected findWebEntities_result getResult(I iface, findWebEntities_args args) throws org.apache.thrift.TException {
+        findWebEntities_result result = new findWebEntities_result();
+        result.success = iface.findWebEntities();
+        return result;
+      }
     }
 
     private static class createCache<I extends Iface> extends org.apache.thrift.ProcessFunction<I, createCache_args> {
@@ -912,20 +1152,2088 @@ public class MemoryStructure {
       }
     }
 
-    private static class storeWebEntity<I extends Iface> extends org.apache.thrift.ProcessFunction<I, storeWebEntity_args> {
-      public storeWebEntity() {
-        super("storeWebEntity");
+    private static class addLRUtoWebEntity<I extends Iface> extends org.apache.thrift.ProcessFunction<I, addLRUtoWebEntity_args> {
+      public addLRUtoWebEntity() {
+        super("addLRUtoWebEntity");
       }
 
-      protected storeWebEntity_args getEmptyArgsInstance() {
-        return new storeWebEntity_args();
+      protected addLRUtoWebEntity_args getEmptyArgsInstance() {
+        return new addLRUtoWebEntity_args();
       }
 
-      protected storeWebEntity_result getResult(I iface, storeWebEntity_args args) throws org.apache.thrift.TException {
-        storeWebEntity_result result = new storeWebEntity_result();
-        result.success = iface.storeWebEntity(args.id, args.lruItem);
+      protected addLRUtoWebEntity_result getResult(I iface, addLRUtoWebEntity_args args) throws org.apache.thrift.TException {
+        addLRUtoWebEntity_result result = new addLRUtoWebEntity_result();
+        result.success = iface.addLRUtoWebEntity(args.id, args.lruItem);
         result.setSuccessIsSet(true);
         return result;
+      }
+    }
+
+  }
+
+  public static class storeWebEntity_args implements org.apache.thrift.TBase<storeWebEntity_args, storeWebEntity_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storeWebEntity_args");
+
+    private static final org.apache.thrift.protocol.TField WEB_ENTITY_FIELD_DESC = new org.apache.thrift.protocol.TField("webEntity", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new storeWebEntity_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new storeWebEntity_argsTupleSchemeFactory());
+    }
+
+    public WebEntity webEntity; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      WEB_ENTITY((short)1, "webEntity");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // WEB_ENTITY
+            return WEB_ENTITY;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.WEB_ENTITY, new org.apache.thrift.meta_data.FieldMetaData("webEntity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, WebEntity.class)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storeWebEntity_args.class, metaDataMap);
+    }
+
+    public storeWebEntity_args() {
+    }
+
+    public storeWebEntity_args(
+      WebEntity webEntity)
+    {
+      this();
+      this.webEntity = webEntity;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public storeWebEntity_args(storeWebEntity_args other) {
+      if (other.isSetWebEntity()) {
+        this.webEntity = new WebEntity(other.webEntity);
+      }
+    }
+
+    public storeWebEntity_args deepCopy() {
+      return new storeWebEntity_args(this);
+    }
+
+    @Override
+    public void clear() {
+      this.webEntity = null;
+    }
+
+    public WebEntity getWebEntity() {
+      return this.webEntity;
+    }
+
+    public storeWebEntity_args setWebEntity(WebEntity webEntity) {
+      this.webEntity = webEntity;
+      return this;
+    }
+
+    public void unsetWebEntity() {
+      this.webEntity = null;
+    }
+
+    /** Returns true if field webEntity is set (has been assigned a value) and false otherwise */
+    public boolean isSetWebEntity() {
+      return this.webEntity != null;
+    }
+
+    public void setWebEntityIsSet(boolean value) {
+      if (!value) {
+        this.webEntity = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case WEB_ENTITY:
+        if (value == null) {
+          unsetWebEntity();
+        } else {
+          setWebEntity((WebEntity)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case WEB_ENTITY:
+        return getWebEntity();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case WEB_ENTITY:
+        return isSetWebEntity();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof storeWebEntity_args)
+        return this.equals((storeWebEntity_args)that);
+      return false;
+    }
+
+    public boolean equals(storeWebEntity_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_webEntity = true && this.isSetWebEntity();
+      boolean that_present_webEntity = true && that.isSetWebEntity();
+      if (this_present_webEntity || that_present_webEntity) {
+        if (!(this_present_webEntity && that_present_webEntity))
+          return false;
+        if (!this.webEntity.equals(that.webEntity))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(storeWebEntity_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      storeWebEntity_args typedOther = (storeWebEntity_args)other;
+
+      lastComparison = Boolean.valueOf(isSetWebEntity()).compareTo(typedOther.isSetWebEntity());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetWebEntity()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.webEntity, typedOther.webEntity);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("storeWebEntity_args(");
+      boolean first = true;
+
+      sb.append("webEntity:");
+      if (this.webEntity == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.webEntity);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class storeWebEntity_argsStandardSchemeFactory implements SchemeFactory {
+      public storeWebEntity_argsStandardScheme getScheme() {
+        return new storeWebEntity_argsStandardScheme();
+      }
+    }
+
+    private static class storeWebEntity_argsStandardScheme extends StandardScheme<storeWebEntity_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, storeWebEntity_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // WEB_ENTITY
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.webEntity = new WebEntity();
+                struct.webEntity.read(iprot);
+                struct.setWebEntityIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, storeWebEntity_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.webEntity != null) {
+          oprot.writeFieldBegin(WEB_ENTITY_FIELD_DESC);
+          struct.webEntity.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class storeWebEntity_argsTupleSchemeFactory implements SchemeFactory {
+      public storeWebEntity_argsTupleScheme getScheme() {
+        return new storeWebEntity_argsTupleScheme();
+      }
+    }
+
+    private static class storeWebEntity_argsTupleScheme extends TupleScheme<storeWebEntity_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, storeWebEntity_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetWebEntity()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetWebEntity()) {
+          struct.webEntity.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, storeWebEntity_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.webEntity = new WebEntity();
+          struct.webEntity.read(iprot);
+          struct.setWebEntityIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class storeWebEntity_result implements org.apache.thrift.TBase<storeWebEntity_result, storeWebEntity_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storeWebEntity_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new storeWebEntity_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new storeWebEntity_resultTupleSchemeFactory());
+    }
+
+    public String success; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storeWebEntity_result.class, metaDataMap);
+    }
+
+    public storeWebEntity_result() {
+    }
+
+    public storeWebEntity_result(
+      String success)
+    {
+      this();
+      this.success = success;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public storeWebEntity_result(storeWebEntity_result other) {
+      if (other.isSetSuccess()) {
+        this.success = other.success;
+      }
+    }
+
+    public storeWebEntity_result deepCopy() {
+      return new storeWebEntity_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+    }
+
+    public String getSuccess() {
+      return this.success;
+    }
+
+    public storeWebEntity_result setSuccess(String success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((String)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof storeWebEntity_result)
+        return this.equals((storeWebEntity_result)that);
+      return false;
+    }
+
+    public boolean equals(storeWebEntity_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(storeWebEntity_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      storeWebEntity_result typedOther = (storeWebEntity_result)other;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("storeWebEntity_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class storeWebEntity_resultStandardSchemeFactory implements SchemeFactory {
+      public storeWebEntity_resultStandardScheme getScheme() {
+        return new storeWebEntity_resultStandardScheme();
+      }
+    }
+
+    private static class storeWebEntity_resultStandardScheme extends StandardScheme<storeWebEntity_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, storeWebEntity_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.success = iprot.readString();
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, storeWebEntity_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          oprot.writeString(struct.success);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class storeWebEntity_resultTupleSchemeFactory implements SchemeFactory {
+      public storeWebEntity_resultTupleScheme getScheme() {
+        return new storeWebEntity_resultTupleScheme();
+      }
+    }
+
+    private static class storeWebEntity_resultTupleScheme extends TupleScheme<storeWebEntity_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, storeWebEntity_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetSuccess()) {
+          oprot.writeString(struct.success);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, storeWebEntity_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.success = iprot.readString();
+          struct.setSuccessIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class findWebEntity_args implements org.apache.thrift.TBase<findWebEntity_args, findWebEntity_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("findWebEntity_args");
+
+    private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.STRING, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new findWebEntity_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new findWebEntity_argsTupleSchemeFactory());
+    }
+
+    public String id; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      ID((short)1, "id");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // ID
+            return ID;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(findWebEntity_args.class, metaDataMap);
+    }
+
+    public findWebEntity_args() {
+    }
+
+    public findWebEntity_args(
+      String id)
+    {
+      this();
+      this.id = id;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public findWebEntity_args(findWebEntity_args other) {
+      if (other.isSetId()) {
+        this.id = other.id;
+      }
+    }
+
+    public findWebEntity_args deepCopy() {
+      return new findWebEntity_args(this);
+    }
+
+    @Override
+    public void clear() {
+      this.id = null;
+    }
+
+    public String getId() {
+      return this.id;
+    }
+
+    public findWebEntity_args setId(String id) {
+      this.id = id;
+      return this;
+    }
+
+    public void unsetId() {
+      this.id = null;
+    }
+
+    /** Returns true if field id is set (has been assigned a value) and false otherwise */
+    public boolean isSetId() {
+      return this.id != null;
+    }
+
+    public void setIdIsSet(boolean value) {
+      if (!value) {
+        this.id = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case ID:
+        if (value == null) {
+          unsetId();
+        } else {
+          setId((String)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case ID:
+        return getId();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case ID:
+        return isSetId();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof findWebEntity_args)
+        return this.equals((findWebEntity_args)that);
+      return false;
+    }
+
+    public boolean equals(findWebEntity_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_id = true && this.isSetId();
+      boolean that_present_id = true && that.isSetId();
+      if (this_present_id || that_present_id) {
+        if (!(this_present_id && that_present_id))
+          return false;
+        if (!this.id.equals(that.id))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(findWebEntity_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      findWebEntity_args typedOther = (findWebEntity_args)other;
+
+      lastComparison = Boolean.valueOf(isSetId()).compareTo(typedOther.isSetId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.id, typedOther.id);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("findWebEntity_args(");
+      boolean first = true;
+
+      sb.append("id:");
+      if (this.id == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.id);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class findWebEntity_argsStandardSchemeFactory implements SchemeFactory {
+      public findWebEntity_argsStandardScheme getScheme() {
+        return new findWebEntity_argsStandardScheme();
+      }
+    }
+
+    private static class findWebEntity_argsStandardScheme extends StandardScheme<findWebEntity_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, findWebEntity_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.id = iprot.readString();
+                struct.setIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, findWebEntity_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.id != null) {
+          oprot.writeFieldBegin(ID_FIELD_DESC);
+          oprot.writeString(struct.id);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class findWebEntity_argsTupleSchemeFactory implements SchemeFactory {
+      public findWebEntity_argsTupleScheme getScheme() {
+        return new findWebEntity_argsTupleScheme();
+      }
+    }
+
+    private static class findWebEntity_argsTupleScheme extends TupleScheme<findWebEntity_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, findWebEntity_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetId()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetId()) {
+          oprot.writeString(struct.id);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, findWebEntity_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.id = iprot.readString();
+          struct.setIdIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class findWebEntity_result implements org.apache.thrift.TBase<findWebEntity_result, findWebEntity_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("findWebEntity_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new findWebEntity_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new findWebEntity_resultTupleSchemeFactory());
+    }
+
+    public WebEntity success; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, WebEntity.class)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(findWebEntity_result.class, metaDataMap);
+    }
+
+    public findWebEntity_result() {
+    }
+
+    public findWebEntity_result(
+      WebEntity success)
+    {
+      this();
+      this.success = success;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public findWebEntity_result(findWebEntity_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new WebEntity(other.success);
+      }
+    }
+
+    public findWebEntity_result deepCopy() {
+      return new findWebEntity_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+    }
+
+    public WebEntity getSuccess() {
+      return this.success;
+    }
+
+    public findWebEntity_result setSuccess(WebEntity success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((WebEntity)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof findWebEntity_result)
+        return this.equals((findWebEntity_result)that);
+      return false;
+    }
+
+    public boolean equals(findWebEntity_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(findWebEntity_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      findWebEntity_result typedOther = (findWebEntity_result)other;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("findWebEntity_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class findWebEntity_resultStandardSchemeFactory implements SchemeFactory {
+      public findWebEntity_resultStandardScheme getScheme() {
+        return new findWebEntity_resultStandardScheme();
+      }
+    }
+
+    private static class findWebEntity_resultStandardScheme extends StandardScheme<findWebEntity_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, findWebEntity_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new WebEntity();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, findWebEntity_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class findWebEntity_resultTupleSchemeFactory implements SchemeFactory {
+      public findWebEntity_resultTupleScheme getScheme() {
+        return new findWebEntity_resultTupleScheme();
+      }
+    }
+
+    private static class findWebEntity_resultTupleScheme extends TupleScheme<findWebEntity_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, findWebEntity_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, findWebEntity_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.success = new WebEntity();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class findWebEntities_args implements org.apache.thrift.TBase<findWebEntities_args, findWebEntities_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("findWebEntities_args");
+
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new findWebEntities_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new findWebEntities_argsTupleSchemeFactory());
+    }
+
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+;
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(findWebEntities_args.class, metaDataMap);
+    }
+
+    public findWebEntities_args() {
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public findWebEntities_args(findWebEntities_args other) {
+    }
+
+    public findWebEntities_args deepCopy() {
+      return new findWebEntities_args(this);
+    }
+
+    @Override
+    public void clear() {
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof findWebEntities_args)
+        return this.equals((findWebEntities_args)that);
+      return false;
+    }
+
+    public boolean equals(findWebEntities_args that) {
+      if (that == null)
+        return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(findWebEntities_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      findWebEntities_args typedOther = (findWebEntities_args)other;
+
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("findWebEntities_args(");
+      boolean first = true;
+
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class findWebEntities_argsStandardSchemeFactory implements SchemeFactory {
+      public findWebEntities_argsStandardScheme getScheme() {
+        return new findWebEntities_argsStandardScheme();
+      }
+    }
+
+    private static class findWebEntities_argsStandardScheme extends StandardScheme<findWebEntities_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, findWebEntities_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, findWebEntities_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class findWebEntities_argsTupleSchemeFactory implements SchemeFactory {
+      public findWebEntities_argsTupleScheme getScheme() {
+        return new findWebEntities_argsTupleScheme();
+      }
+    }
+
+    private static class findWebEntities_argsTupleScheme extends TupleScheme<findWebEntities_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, findWebEntities_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, findWebEntities_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+      }
+    }
+
+  }
+
+  public static class findWebEntities_result implements org.apache.thrift.TBase<findWebEntities_result, findWebEntities_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("findWebEntities_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.SET, (short)0);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new findWebEntities_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new findWebEntities_resultTupleSchemeFactory());
+    }
+
+    public Set<WebEntity> success; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, WebEntity.class))));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(findWebEntities_result.class, metaDataMap);
+    }
+
+    public findWebEntities_result() {
+    }
+
+    public findWebEntities_result(
+      Set<WebEntity> success)
+    {
+      this();
+      this.success = success;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public findWebEntities_result(findWebEntities_result other) {
+      if (other.isSetSuccess()) {
+        Set<WebEntity> __this__success = new HashSet<WebEntity>();
+        for (WebEntity other_element : other.success) {
+          __this__success.add(new WebEntity(other_element));
+        }
+        this.success = __this__success;
+      }
+    }
+
+    public findWebEntities_result deepCopy() {
+      return new findWebEntities_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+    }
+
+    public int getSuccessSize() {
+      return (this.success == null) ? 0 : this.success.size();
+    }
+
+    public java.util.Iterator<WebEntity> getSuccessIterator() {
+      return (this.success == null) ? null : this.success.iterator();
+    }
+
+    public void addToSuccess(WebEntity elem) {
+      if (this.success == null) {
+        this.success = new HashSet<WebEntity>();
+      }
+      this.success.add(elem);
+    }
+
+    public Set<WebEntity> getSuccess() {
+      return this.success;
+    }
+
+    public findWebEntities_result setSuccess(Set<WebEntity> success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((Set<WebEntity>)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof findWebEntities_result)
+        return this.equals((findWebEntities_result)that);
+      return false;
+    }
+
+    public boolean equals(findWebEntities_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(findWebEntities_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      findWebEntities_result typedOther = (findWebEntities_result)other;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("findWebEntities_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class findWebEntities_resultStandardSchemeFactory implements SchemeFactory {
+      public findWebEntities_resultStandardScheme getScheme() {
+        return new findWebEntities_resultStandardScheme();
+      }
+    }
+
+    private static class findWebEntities_resultStandardScheme extends StandardScheme<findWebEntities_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, findWebEntities_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
+                {
+                  org.apache.thrift.protocol.TSet _set16 = iprot.readSetBegin();
+                  struct.success = new HashSet<WebEntity>(2*_set16.size);
+                  for (int _i17 = 0; _i17 < _set16.size; ++_i17)
+                  {
+                    WebEntity _elem18; // required
+                    _elem18 = new WebEntity();
+                    _elem18.read(iprot);
+                    struct.success.add(_elem18);
+                  }
+                  iprot.readSetEnd();
+                }
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, findWebEntities_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          {
+            oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
+            for (WebEntity _iter19 : struct.success)
+            {
+              _iter19.write(oprot);
+            }
+            oprot.writeSetEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class findWebEntities_resultTupleSchemeFactory implements SchemeFactory {
+      public findWebEntities_resultTupleScheme getScheme() {
+        return new findWebEntities_resultTupleScheme();
+      }
+    }
+
+    private static class findWebEntities_resultTupleScheme extends TupleScheme<findWebEntities_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, findWebEntities_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetSuccess()) {
+          {
+            oprot.writeI32(struct.success.size());
+            for (WebEntity _iter20 : struct.success)
+            {
+              _iter20.write(oprot);
+            }
+          }
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, findWebEntities_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          {
+            org.apache.thrift.protocol.TSet _set21 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new HashSet<WebEntity>(2*_set21.size);
+            for (int _i22 = 0; _i22 < _set21.size; ++_i22)
+            {
+              WebEntity _elem23; // required
+              _elem23 = new WebEntity();
+              _elem23.read(iprot);
+              struct.success.add(_elem23);
+            }
+          }
+          struct.setSuccessIsSet(true);
+        }
       }
     }
 
@@ -1239,14 +3547,14 @@ public class MemoryStructure {
             case 1: // LRU_ITEMS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list16 = iprot.readListBegin();
-                  struct.lruItems = new ArrayList<LRUItem>(_list16.size);
-                  for (int _i17 = 0; _i17 < _list16.size; ++_i17)
+                  org.apache.thrift.protocol.TList _list24 = iprot.readListBegin();
+                  struct.lruItems = new ArrayList<LRUItem>(_list24.size);
+                  for (int _i25 = 0; _i25 < _list24.size; ++_i25)
                   {
-                    LRUItem _elem18; // required
-                    _elem18 = new LRUItem();
-                    _elem18.read(iprot);
-                    struct.lruItems.add(_elem18);
+                    LRUItem _elem26; // required
+                    _elem26 = new LRUItem();
+                    _elem26.read(iprot);
+                    struct.lruItems.add(_elem26);
                   }
                   iprot.readListEnd();
                 }
@@ -1274,9 +3582,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(LRU_ITEMS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.lruItems.size()));
-            for (LRUItem _iter19 : struct.lruItems)
+            for (LRUItem _iter27 : struct.lruItems)
             {
-              _iter19.write(oprot);
+              _iter27.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -1307,9 +3615,9 @@ public class MemoryStructure {
         if (struct.isSetLruItems()) {
           {
             oprot.writeI32(struct.lruItems.size());
-            for (LRUItem _iter20 : struct.lruItems)
+            for (LRUItem _iter28 : struct.lruItems)
             {
-              _iter20.write(oprot);
+              _iter28.write(oprot);
             }
           }
         }
@@ -1321,14 +3629,14 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list21 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.lruItems = new ArrayList<LRUItem>(_list21.size);
-            for (int _i22 = 0; _i22 < _list21.size; ++_i22)
+            org.apache.thrift.protocol.TList _list29 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.lruItems = new ArrayList<LRUItem>(_list29.size);
+            for (int _i30 = 0; _i30 < _list29.size; ++_i30)
             {
-              LRUItem _elem23; // required
-              _elem23 = new LRUItem();
-              _elem23.read(iprot);
-              struct.lruItems.add(_elem23);
+              LRUItem _elem31; // required
+              _elem31 = new LRUItem();
+              _elem31.read(iprot);
+              struct.lruItems.add(_elem31);
             }
           }
           struct.setLruItemsIsSet(true);
@@ -3058,13 +5366,13 @@ public class MemoryStructure {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list24 = iprot.readListBegin();
-                  struct.success = new ArrayList<String>(_list24.size);
-                  for (int _i25 = 0; _i25 < _list24.size; ++_i25)
+                  org.apache.thrift.protocol.TList _list32 = iprot.readListBegin();
+                  struct.success = new ArrayList<String>(_list32.size);
+                  for (int _i33 = 0; _i33 < _list32.size; ++_i33)
                   {
-                    String _elem26; // required
-                    _elem26 = iprot.readString();
-                    struct.success.add(_elem26);
+                    String _elem34; // required
+                    _elem34 = iprot.readString();
+                    struct.success.add(_elem34);
                   }
                   iprot.readListEnd();
                 }
@@ -3092,9 +5400,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.success.size()));
-            for (String _iter27 : struct.success)
+            for (String _iter35 : struct.success)
             {
-              oprot.writeString(_iter27);
+              oprot.writeString(_iter35);
             }
             oprot.writeListEnd();
           }
@@ -3125,9 +5433,9 @@ public class MemoryStructure {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (String _iter28 : struct.success)
+            for (String _iter36 : struct.success)
             {
-              oprot.writeString(_iter28);
+              oprot.writeString(_iter36);
             }
           }
         }
@@ -3139,13 +5447,13 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list29 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.success = new ArrayList<String>(_list29.size);
-            for (int _i30 = 0; _i30 < _list29.size; ++_i30)
+            org.apache.thrift.protocol.TList _list37 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.success = new ArrayList<String>(_list37.size);
+            for (int _i38 = 0; _i38 < _list37.size; ++_i38)
             {
-              String _elem31; // required
-              _elem31 = iprot.readString();
-              struct.success.add(_elem31);
+              String _elem39; // required
+              _elem39 = iprot.readString();
+              struct.success.add(_elem39);
             }
           }
           struct.setSuccessIsSet(true);
@@ -3816,14 +6124,14 @@ public class MemoryStructure {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list32 = iprot.readListBegin();
-                  struct.success = new ArrayList<WebEntityInfo>(_list32.size);
-                  for (int _i33 = 0; _i33 < _list32.size; ++_i33)
+                  org.apache.thrift.protocol.TList _list40 = iprot.readListBegin();
+                  struct.success = new ArrayList<WebEntityInfo>(_list40.size);
+                  for (int _i41 = 0; _i41 < _list40.size; ++_i41)
                   {
-                    WebEntityInfo _elem34; // required
-                    _elem34 = new WebEntityInfo();
-                    _elem34.read(iprot);
-                    struct.success.add(_elem34);
+                    WebEntityInfo _elem42; // required
+                    _elem42 = new WebEntityInfo();
+                    _elem42.read(iprot);
+                    struct.success.add(_elem42);
                   }
                   iprot.readListEnd();
                 }
@@ -3851,9 +6159,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (WebEntityInfo _iter35 : struct.success)
+            for (WebEntityInfo _iter43 : struct.success)
             {
-              _iter35.write(oprot);
+              _iter43.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -3884,9 +6192,9 @@ public class MemoryStructure {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (WebEntityInfo _iter36 : struct.success)
+            for (WebEntityInfo _iter44 : struct.success)
             {
-              _iter36.write(oprot);
+              _iter44.write(oprot);
             }
           }
         }
@@ -3898,14 +6206,14 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list37 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<WebEntityInfo>(_list37.size);
-            for (int _i38 = 0; _i38 < _list37.size; ++_i38)
+            org.apache.thrift.protocol.TList _list45 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<WebEntityInfo>(_list45.size);
+            for (int _i46 = 0; _i46 < _list45.size; ++_i46)
             {
-              WebEntityInfo _elem39; // required
-              _elem39 = new WebEntityInfo();
-              _elem39.read(iprot);
-              struct.success.add(_elem39);
+              WebEntityInfo _elem47; // required
+              _elem47 = new WebEntityInfo();
+              _elem47.read(iprot);
+              struct.success.add(_elem47);
             }
           }
           struct.setSuccessIsSet(true);
@@ -6334,14 +8642,14 @@ public class MemoryStructure {
             case 1: // LRU_ITEMS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list40 = iprot.readListBegin();
-                  struct.lruItems = new ArrayList<LRUItem>(_list40.size);
-                  for (int _i41 = 0; _i41 < _list40.size; ++_i41)
+                  org.apache.thrift.protocol.TList _list48 = iprot.readListBegin();
+                  struct.lruItems = new ArrayList<LRUItem>(_list48.size);
+                  for (int _i49 = 0; _i49 < _list48.size; ++_i49)
                   {
-                    LRUItem _elem42; // required
-                    _elem42 = new LRUItem();
-                    _elem42.read(iprot);
-                    struct.lruItems.add(_elem42);
+                    LRUItem _elem50; // required
+                    _elem50 = new LRUItem();
+                    _elem50.read(iprot);
+                    struct.lruItems.add(_elem50);
                   }
                   iprot.readListEnd();
                 }
@@ -6369,9 +8677,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(LRU_ITEMS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.lruItems.size()));
-            for (LRUItem _iter43 : struct.lruItems)
+            for (LRUItem _iter51 : struct.lruItems)
             {
-              _iter43.write(oprot);
+              _iter51.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -6402,9 +8710,9 @@ public class MemoryStructure {
         if (struct.isSetLruItems()) {
           {
             oprot.writeI32(struct.lruItems.size());
-            for (LRUItem _iter44 : struct.lruItems)
+            for (LRUItem _iter52 : struct.lruItems)
             {
-              _iter44.write(oprot);
+              _iter52.write(oprot);
             }
           }
         }
@@ -6416,14 +8724,14 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list45 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.lruItems = new ArrayList<LRUItem>(_list45.size);
-            for (int _i46 = 0; _i46 < _list45.size; ++_i46)
+            org.apache.thrift.protocol.TList _list53 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.lruItems = new ArrayList<LRUItem>(_list53.size);
+            for (int _i54 = 0; _i54 < _list53.size; ++_i54)
             {
-              LRUItem _elem47; // required
-              _elem47 = new LRUItem();
-              _elem47.read(iprot);
-              struct.lruItems.add(_elem47);
+              LRUItem _elem55; // required
+              _elem55 = new LRUItem();
+              _elem55.read(iprot);
+              struct.lruItems.add(_elem55);
             }
           }
           struct.setLruItemsIsSet(true);
@@ -7091,14 +9399,14 @@ public class MemoryStructure {
             case 1: // NODE_LINKS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list48 = iprot.readListBegin();
-                  struct.nodeLinks = new ArrayList<NodeLink>(_list48.size);
-                  for (int _i49 = 0; _i49 < _list48.size; ++_i49)
+                  org.apache.thrift.protocol.TList _list56 = iprot.readListBegin();
+                  struct.nodeLinks = new ArrayList<NodeLink>(_list56.size);
+                  for (int _i57 = 0; _i57 < _list56.size; ++_i57)
                   {
-                    NodeLink _elem50; // required
-                    _elem50 = new NodeLink();
-                    _elem50.read(iprot);
-                    struct.nodeLinks.add(_elem50);
+                    NodeLink _elem58; // required
+                    _elem58 = new NodeLink();
+                    _elem58.read(iprot);
+                    struct.nodeLinks.add(_elem58);
                   }
                   iprot.readListEnd();
                 }
@@ -7126,9 +9434,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(NODE_LINKS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.nodeLinks.size()));
-            for (NodeLink _iter51 : struct.nodeLinks)
+            for (NodeLink _iter59 : struct.nodeLinks)
             {
-              _iter51.write(oprot);
+              _iter59.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -7159,9 +9467,9 @@ public class MemoryStructure {
         if (struct.isSetNodeLinks()) {
           {
             oprot.writeI32(struct.nodeLinks.size());
-            for (NodeLink _iter52 : struct.nodeLinks)
+            for (NodeLink _iter60 : struct.nodeLinks)
             {
-              _iter52.write(oprot);
+              _iter60.write(oprot);
             }
           }
         }
@@ -7173,14 +9481,14 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list53 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.nodeLinks = new ArrayList<NodeLink>(_list53.size);
-            for (int _i54 = 0; _i54 < _list53.size; ++_i54)
+            org.apache.thrift.protocol.TList _list61 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.nodeLinks = new ArrayList<NodeLink>(_list61.size);
+            for (int _i62 = 0; _i62 < _list61.size; ++_i62)
             {
-              NodeLink _elem55; // required
-              _elem55 = new NodeLink();
-              _elem55.read(iprot);
-              struct.nodeLinks.add(_elem55);
+              NodeLink _elem63; // required
+              _elem63 = new NodeLink();
+              _elem63.read(iprot);
+              struct.nodeLinks.add(_elem63);
             }
           }
           struct.setNodeLinksIsSet(true);
@@ -7540,16 +9848,16 @@ public class MemoryStructure {
 
   }
 
-  public static class storeWebEntity_args implements org.apache.thrift.TBase<storeWebEntity_args, storeWebEntity_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storeWebEntity_args");
+  public static class addLRUtoWebEntity_args implements org.apache.thrift.TBase<addLRUtoWebEntity_args, addLRUtoWebEntity_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("addLRUtoWebEntity_args");
 
     private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField LRU_ITEM_FIELD_DESC = new org.apache.thrift.protocol.TField("lruItem", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new storeWebEntity_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new storeWebEntity_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new addLRUtoWebEntity_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new addLRUtoWebEntity_argsTupleSchemeFactory());
     }
 
     public String id; // required
@@ -7625,13 +9933,13 @@ public class MemoryStructure {
       tmpMap.put(_Fields.LRU_ITEM, new org.apache.thrift.meta_data.FieldMetaData("lruItem", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LRUItem.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storeWebEntity_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(addLRUtoWebEntity_args.class, metaDataMap);
     }
 
-    public storeWebEntity_args() {
+    public addLRUtoWebEntity_args() {
     }
 
-    public storeWebEntity_args(
+    public addLRUtoWebEntity_args(
       String id,
       LRUItem lruItem)
     {
@@ -7643,7 +9951,7 @@ public class MemoryStructure {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public storeWebEntity_args(storeWebEntity_args other) {
+    public addLRUtoWebEntity_args(addLRUtoWebEntity_args other) {
       if (other.isSetId()) {
         this.id = other.id;
       }
@@ -7652,8 +9960,8 @@ public class MemoryStructure {
       }
     }
 
-    public storeWebEntity_args deepCopy() {
-      return new storeWebEntity_args(this);
+    public addLRUtoWebEntity_args deepCopy() {
+      return new addLRUtoWebEntity_args(this);
     }
 
     @Override
@@ -7666,7 +9974,7 @@ public class MemoryStructure {
       return this.id;
     }
 
-    public storeWebEntity_args setId(String id) {
+    public addLRUtoWebEntity_args setId(String id) {
       this.id = id;
       return this;
     }
@@ -7690,7 +9998,7 @@ public class MemoryStructure {
       return this.lruItem;
     }
 
-    public storeWebEntity_args setLruItem(LRUItem lruItem) {
+    public addLRUtoWebEntity_args setLruItem(LRUItem lruItem) {
       this.lruItem = lruItem;
       return this;
     }
@@ -7762,12 +10070,12 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof storeWebEntity_args)
-        return this.equals((storeWebEntity_args)that);
+      if (that instanceof addLRUtoWebEntity_args)
+        return this.equals((addLRUtoWebEntity_args)that);
       return false;
     }
 
-    public boolean equals(storeWebEntity_args that) {
+    public boolean equals(addLRUtoWebEntity_args that) {
       if (that == null)
         return false;
 
@@ -7797,13 +10105,13 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(storeWebEntity_args other) {
+    public int compareTo(addLRUtoWebEntity_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      storeWebEntity_args typedOther = (storeWebEntity_args)other;
+      addLRUtoWebEntity_args typedOther = (addLRUtoWebEntity_args)other;
 
       lastComparison = Boolean.valueOf(isSetId()).compareTo(typedOther.isSetId());
       if (lastComparison != 0) {
@@ -7842,7 +10150,7 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("storeWebEntity_args(");
+      StringBuilder sb = new StringBuilder("addLRUtoWebEntity_args(");
       boolean first = true;
 
       sb.append("id:");
@@ -7884,15 +10192,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class storeWebEntity_argsStandardSchemeFactory implements SchemeFactory {
-      public storeWebEntity_argsStandardScheme getScheme() {
-        return new storeWebEntity_argsStandardScheme();
+    private static class addLRUtoWebEntity_argsStandardSchemeFactory implements SchemeFactory {
+      public addLRUtoWebEntity_argsStandardScheme getScheme() {
+        return new addLRUtoWebEntity_argsStandardScheme();
       }
     }
 
-    private static class storeWebEntity_argsStandardScheme extends StandardScheme<storeWebEntity_args> {
+    private static class addLRUtoWebEntity_argsStandardScheme extends StandardScheme<addLRUtoWebEntity_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, storeWebEntity_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, addLRUtoWebEntity_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -7930,7 +10238,7 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, storeWebEntity_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, addLRUtoWebEntity_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -7950,16 +10258,16 @@ public class MemoryStructure {
 
     }
 
-    private static class storeWebEntity_argsTupleSchemeFactory implements SchemeFactory {
-      public storeWebEntity_argsTupleScheme getScheme() {
-        return new storeWebEntity_argsTupleScheme();
+    private static class addLRUtoWebEntity_argsTupleSchemeFactory implements SchemeFactory {
+      public addLRUtoWebEntity_argsTupleScheme getScheme() {
+        return new addLRUtoWebEntity_argsTupleScheme();
       }
     }
 
-    private static class storeWebEntity_argsTupleScheme extends TupleScheme<storeWebEntity_args> {
+    private static class addLRUtoWebEntity_argsTupleScheme extends TupleScheme<addLRUtoWebEntity_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, storeWebEntity_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, addLRUtoWebEntity_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetId()) {
@@ -7978,7 +10286,7 @@ public class MemoryStructure {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, storeWebEntity_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, addLRUtoWebEntity_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
@@ -7995,15 +10303,15 @@ public class MemoryStructure {
 
   }
 
-  public static class storeWebEntity_result implements org.apache.thrift.TBase<storeWebEntity_result, storeWebEntity_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storeWebEntity_result");
+  public static class addLRUtoWebEntity_result implements org.apache.thrift.TBase<addLRUtoWebEntity_result, addLRUtoWebEntity_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("addLRUtoWebEntity_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new storeWebEntity_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new storeWebEntity_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new addLRUtoWebEntity_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new addLRUtoWebEntity_resultTupleSchemeFactory());
     }
 
     public boolean success; // required
@@ -8075,13 +10383,13 @@ public class MemoryStructure {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storeWebEntity_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(addLRUtoWebEntity_result.class, metaDataMap);
     }
 
-    public storeWebEntity_result() {
+    public addLRUtoWebEntity_result() {
     }
 
-    public storeWebEntity_result(
+    public addLRUtoWebEntity_result(
       boolean success)
     {
       this();
@@ -8092,14 +10400,14 @@ public class MemoryStructure {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public storeWebEntity_result(storeWebEntity_result other) {
+    public addLRUtoWebEntity_result(addLRUtoWebEntity_result other) {
       __isset_bit_vector.clear();
       __isset_bit_vector.or(other.__isset_bit_vector);
       this.success = other.success;
     }
 
-    public storeWebEntity_result deepCopy() {
-      return new storeWebEntity_result(this);
+    public addLRUtoWebEntity_result deepCopy() {
+      return new addLRUtoWebEntity_result(this);
     }
 
     @Override
@@ -8112,7 +10420,7 @@ public class MemoryStructure {
       return this.success;
     }
 
-    public storeWebEntity_result setSuccess(boolean success) {
+    public addLRUtoWebEntity_result setSuccess(boolean success) {
       this.success = success;
       setSuccessIsSet(true);
       return this;
@@ -8170,12 +10478,12 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof storeWebEntity_result)
-        return this.equals((storeWebEntity_result)that);
+      if (that instanceof addLRUtoWebEntity_result)
+        return this.equals((addLRUtoWebEntity_result)that);
       return false;
     }
 
-    public boolean equals(storeWebEntity_result that) {
+    public boolean equals(addLRUtoWebEntity_result that) {
       if (that == null)
         return false;
 
@@ -8196,13 +10504,13 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(storeWebEntity_result other) {
+    public int compareTo(addLRUtoWebEntity_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      storeWebEntity_result typedOther = (storeWebEntity_result)other;
+      addLRUtoWebEntity_result typedOther = (addLRUtoWebEntity_result)other;
 
       lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
       if (lastComparison != 0) {
@@ -8231,7 +10539,7 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("storeWebEntity_result(");
+      StringBuilder sb = new StringBuilder("addLRUtoWebEntity_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -8261,15 +10569,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class storeWebEntity_resultStandardSchemeFactory implements SchemeFactory {
-      public storeWebEntity_resultStandardScheme getScheme() {
-        return new storeWebEntity_resultStandardScheme();
+    private static class addLRUtoWebEntity_resultStandardSchemeFactory implements SchemeFactory {
+      public addLRUtoWebEntity_resultStandardScheme getScheme() {
+        return new addLRUtoWebEntity_resultStandardScheme();
       }
     }
 
-    private static class storeWebEntity_resultStandardScheme extends StandardScheme<storeWebEntity_result> {
+    private static class addLRUtoWebEntity_resultStandardScheme extends StandardScheme<addLRUtoWebEntity_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, storeWebEntity_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, addLRUtoWebEntity_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -8298,7 +10606,7 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, storeWebEntity_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, addLRUtoWebEntity_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -8311,16 +10619,16 @@ public class MemoryStructure {
 
     }
 
-    private static class storeWebEntity_resultTupleSchemeFactory implements SchemeFactory {
-      public storeWebEntity_resultTupleScheme getScheme() {
-        return new storeWebEntity_resultTupleScheme();
+    private static class addLRUtoWebEntity_resultTupleSchemeFactory implements SchemeFactory {
+      public addLRUtoWebEntity_resultTupleScheme getScheme() {
+        return new addLRUtoWebEntity_resultTupleScheme();
       }
     }
 
-    private static class storeWebEntity_resultTupleScheme extends TupleScheme<storeWebEntity_result> {
+    private static class addLRUtoWebEntity_resultTupleScheme extends TupleScheme<addLRUtoWebEntity_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, storeWebEntity_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, addLRUtoWebEntity_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -8333,7 +10641,7 @@ public class MemoryStructure {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, storeWebEntity_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, addLRUtoWebEntity_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {

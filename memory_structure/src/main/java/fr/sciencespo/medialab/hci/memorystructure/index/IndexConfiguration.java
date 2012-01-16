@@ -12,7 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -137,7 +139,12 @@ public class IndexConfiguration {
      * @param webEntityCreationRule
      * @return
      */
-    protected static Document WebEntityCreationRuleDocument(WebEntityCreationRule webEntityCreationRule) {
+    protected static Document WebEntityCreationRuleDocument(WebEntityCreationRule webEntityCreationRule) throws IndexException {
+
+        if(webEntityCreationRule.getLRU() == null || webEntityCreationRule.getRegExp() == null) {
+            throw new IndexException("WebEntityCreationRule has null properties");
+        }
+
         Document document = new Document();
 
         Field idField = new Field(FieldName.ID.name(), UUID.randomUUID().toString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
@@ -164,7 +171,8 @@ public class IndexConfiguration {
     }
 
     /**
-     * Converts a WebEntity into a Lucene document.
+     * Converts a WebEntity into a Lucene document. If the webEntity has no ID, one is created (in case of new
+     * WebEntities that weren't stored before).
      *
      * @param webEntity
      * @return
@@ -196,22 +204,24 @@ public class IndexConfiguration {
     }
 
     /**
-     * Creates a WebEntity object from a WebEntity Lucene document.
+     * Returns a WebEntity object from a WebEntity Lucene document.
      *
      * @param webEntityDocument
      * @return
      */
-    protected static WebEntity convertWebEntity(Document webEntityDocument) {
-        WebEntity result = new WebEntity();
+    protected static WebEntity convertLuceneDocument2WebEntity(Document webEntityDocument) {
+        WebEntity webEntity = new WebEntity();
         String id = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
-        result.setId(id);
+        webEntity.setId(id);
         Fieldable[] lruFields = webEntityDocument.getFieldables(IndexConfiguration.FieldName.LRU.name());
-        List<String> lruList = new ArrayList<String>();
+        logger.debug("lucene doc for webentity has # " + lruFields.length + " lru fields");
+        Set<String> lruList = new HashSet<String>();
         for(Fieldable lruField : lruFields) {
             lruList.add(lruField.stringValue());
         }
-        result.setLRUlist(lruList);
-        return result;
+        webEntity.setLRUlist(lruList);
+        logger.debug("convertLuceneDocument2WebEntity returns webentity with id: " + id);
+        return webEntity;
     }
 
 }

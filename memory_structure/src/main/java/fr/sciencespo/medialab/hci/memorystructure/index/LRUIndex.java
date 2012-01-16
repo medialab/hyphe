@@ -17,11 +17,14 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopScoreDocCollector;
+import org.apache.lucene.search.TotalHitCountCollector;
 import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
@@ -33,7 +36,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -215,6 +220,81 @@ public class LRUIndex {
         }
     }
 
+
+    /**
+      * Adds or updates a WebEntity to the index. If ID is not empty, the existing WebEntity with that ID is retrieved
+      * and this LRU is added to it; if no existing WebEntity with that ID is found, or if ID is empty, a new WebEntity
+      * is created.
+      *
+      * @param webEntity
+      * @throws IndexException hmm
+      */
+     public String indexWebEntity(WebEntity webEntity) throws IndexException{
+         logger.debug("indexWebEntity");
+        if(CollectionUtils.isEmpty(webEntity.getLRUlist())) {
+            throw new IndexException("WebEntity has empty lru list");
+        }
+
+         try {
+             boolean updating = false;
+
+             // id has no value or no webentity found with that id: create new
+             if(webEntity == null) {
+                 logger.debug("creating new webentity");
+                 webEntity = new WebEntity();
+                 webEntity.setLRUlist(new HashSet<String>());
+             }
+             else if(StringUtils.isEmpty(webEntity.getId())) {
+                 logger.debug("indexing webentity with id null");
+             }
+             else {
+                 logger.debug("updating webentity with id " + webEntity.getId());
+                 updating = true;
+             }
+
+             String id = webEntity.getId();
+             // id has a value
+             if(StringUtils.isNotEmpty(id)) {
+                 logger.debug("id is not null, retrieving existing webentity");
+                 // retieve webEntity with that id
+                 WebEntity toUpdate = retrieveWebEntity(id);
+                 if(toUpdate != null) {
+                     logger.debug("webentity found");
+                     // 'merge' existing webentity with the one requested for indexing: lrus may be added
+                     webEntity.getLRUlist().addAll(toUpdate.getLRUlist());
+                 }
+                 else {
+                     logger.debug("did not find webentity with id " + id);
+                 }
+             }
+
+             if(updating) {
+                // delete old webentity before indexing
+                 logger.debug("deleting existing webentity with id " + id);
+                 Query q = findWebEntityQuery(id);
+                 this.indexWriter.deleteDocuments(q);
+                 this.indexWriter.commit();
+             }
+             logger.debug("indexing webentity");
+             Document webEntityDocument = IndexConfiguration.WebEntityDocument(webEntity);
+             this.indexWriter.addDocument(webEntityDocument);
+             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
+             this.indexWriter.commit();
+             this.indexSearcher = new IndexSearcher(this.indexReader);
+
+             // return id of indexed webentity
+             String indexedId = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
+             logger.debug("indexed webentity with id " + id);
+             return indexedId;
+
+         }
+         catch(Exception x) {
+             logger.error(x.getMessage());
+             x.printStackTrace();
+             throw new IndexException(x);
+         }
+     }
+
    /**
      * Adds or updates a WebEntity to the index. If ID is not empty, the existing WebEntity with that ID is retrieved
      * and this LRU is added to it; if no existing WebEntity with that ID is found, or if ID is empty, a new WebEntity
@@ -238,6 +318,7 @@ public class LRUIndex {
                 if(logger.isDebugEnabled()) {
                     if(webEntity != null) {
                         logger.debug("webentity found");
+                        logger.debug("found webentity has # " + webEntity.getLRUlist().size() + " lrus");
                     }
                     else {
                         logger.debug("did not find webentity with id " + id);
@@ -248,7 +329,7 @@ public class LRUIndex {
             if(webEntity == null) {
                 logger.debug("creating new webentity");
                 webEntity = new WebEntity();
-                webEntity.setLRUlist(new ArrayList<String>());
+                webEntity.setLRUlist(new HashSet<String>());
             }
             else {
                 logger.debug("updating webentity with id " + id);
@@ -272,7 +353,7 @@ public class LRUIndex {
 
             // return id of indexed webentity
             String indexedId = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
-            logger.debug("indexed webentity with id " + id);
+            logger.debug("indexed webentity with id " + indexedId);
             return indexedId;
 
         }
@@ -455,7 +536,7 @@ public class LRUIndex {
                 logger.debug("found # " + hits.length + " webentities");
                 int i = hits[0].doc;
                 Document doc = indexSearcher.doc(i);
-                result = IndexConfiguration.convertWebEntity(doc);
+                result = IndexConfiguration.convertLuceneDocument2WebEntity(doc);
             }
             if(result != null) {
                 logger.debug("retrieved webentity with id " + result.getId());
@@ -470,6 +551,49 @@ public class LRUIndex {
             throw new IndexException(x);
         }
     }
+
+    /**
+     * Retrieves all webentities.
+     * @return
+     */
+    public Set<WebEntity> retrieveWebEntities() throws IndexException {
+        try {
+            Set<WebEntity> result = new HashSet<WebEntity>();
+            Term isWebEntity = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY.name());
+            TermQuery q = new TermQuery(isWebEntity);
+            final List<Document> hits2 = new ArrayList<Document>();
+            indexSearcher.search(q, new Collector() {
+                private IndexReader reader;
+                @Override
+                public void setScorer(Scorer scorer) throws IOException {}
+
+                @Override
+                public void collect(int doc) throws IOException {
+                    hits2.add(reader.document(doc));
+                }
+
+                @Override
+                public void setNextReader(IndexReader reader, int docBase) throws IOException {
+                    this.reader = reader;
+                }
+
+                @Override
+                public boolean acceptsDocsOutOfOrder() {
+                    return true;
+                }
+            });
+            for(Document hit: hits2) {
+                    WebEntity webEntity = IndexConfiguration.convertLuceneDocument2WebEntity(hit);
+                    result.add(webEntity);
+            }
+            logger.debug("retrieved # " + result.size() + " webentities from index");
+            return result;
+        }
+        catch(Exception x) {
+            throw new IndexException(x);
+        }
+    }
+
 
     /**
      * Retrieves a particular precision exception.

@@ -38,9 +38,14 @@ struct NodeLink {
   4: i32 weight=1
 }
 
+/**
+ *
+ * Note: property 'name' is 'alias' in the wiki, but that is a reserved Thrift word
+ */
 struct WebEntity {
   1: string id,
-  2: list<string> LRUlist
+  2: list<string> LRUlist,
+  3: string name
 }
 
 struct WebEntityCreationRule {
@@ -61,6 +66,13 @@ service MemoryStructure {
 
 // heikki: implementation of the new interface described on http://jiminy.medialab.sciences-po.fr/hci/index.php/Memory_structure_interface
 
+ // store webentity
+ /**
+  * @param 1 webEntity
+  * @return id
+  */
+  string storeWebEntity(1:WebEntity webEntity),
+  
 // create_pages_cache
 /**
  * @param 1 lruItems : list of LRUItem objects
@@ -135,6 +147,6 @@ bool storeNodeLinks(1:list<NodeLink> nodeLinks),
  * @param 2 lruItem : the lruItem to be marked as WebEntity
  * @return true if success, false else
 **/
-bool storeWebEntity(1:string id, 2:LRUItem lruItem),
+bool addLRUtoWebEntity(1:string id, 2:LRUItem lruItem),
 
 }

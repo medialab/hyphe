@@ -17,8 +17,6 @@ import java.util.List;
 /**
  * Test LRUIndex.
  *
- * TODO broken by Thrift-generated domain classes
- *
  * @author heikki doeleman
  */
 public class LRUIndexTest extends TestCase {
@@ -225,6 +223,11 @@ public class LRUIndexTest extends TestCase {
         logger.info("testRetrieveLRUItemByMultiCharacterWildCard success");
     }
 
+    /**
+     * Tests indexing a new WebEntity.
+     *
+     * @throws Exception hmm
+     */
     public void testIndexNewWebEntity() throws Exception {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
         LRUItem lruItem1 = new LRUItem().setLru("1");
@@ -233,6 +236,11 @@ public class LRUIndexTest extends TestCase {
         assertEquals("IndexCount returns unexpected number", 1, lruIndex.indexCount());
     }
 
+    /**
+     * Tests adding a LRU to an existing WebEntity.
+     *
+     * @throws Exception hmm
+     */
     public void testAddToExistingWebEntity() throws Exception {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
 
@@ -254,6 +262,12 @@ public class LRUIndexTest extends TestCase {
         }
     }
 
+    /**
+     *  Tests adding a LRU to an 'existing' WebEntity that does not actually exist -- in this case, a new WebEntity
+     *  is created.
+     *
+     * @throws Exception hmm
+     */
     public void testAddToExistingWebEntityThatDoesNotActuallyExist() throws Exception {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
         LRUItem lruItem1 = new LRUItem().setLru("1");

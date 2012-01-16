@@ -4,13 +4,17 @@ import fr.sciencespo.medialab.hci.memorystructure.cache.Cache;
 import fr.sciencespo.medialab.hci.memorystructure.cache.CacheMap;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.TimeLimitingCollector;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -24,6 +28,62 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     public void setLucenePath(String lucenePath) {
         this.lucenePath = lucenePath;
+    }
+
+    @Override
+    public String storeWebEntity(WebEntity webEntity) throws TException {
+        logger.debug("storeWebEntity");
+        try {
+            if(webEntity == null) {
+                throw new TException("WebEntity is null");
+            }
+            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
+            String id = lruIndex.indexWebEntity(webEntity);
+            return id;
+        }
+        catch(Exception x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+    @Override
+    public WebEntity findWebEntity(String id) throws TException {
+        logger.debug("findWebEntity with id: " + id);
+        if(StringUtils.isEmpty(id)) {
+            logger.debug("requested id is null, returning null");
+            return null;
+        }
+        try {
+            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
+            WebEntity found = lruIndex.retrieveWebEntity(id);
+            logger.debug("found webentity with id: " + found.getId());
+            logger.debug("webentity has # " + found.getLRUlist().size() + " lrus");
+            return found;
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+
+    }
+
+    @Override
+    public Set<WebEntity> findWebEntities() throws TException {
+        logger.debug("findWebEntities");
+        Set<WebEntity> webEntities = new HashSet<WebEntity>();
+        try {
+            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
+            webEntities = lruIndex.retrieveWebEntities();
+            return webEntities;
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
     }
 
     @Override
@@ -189,8 +249,15 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     @Override
     public int storeWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException {
-        logger.debug("MemoryStructure storeWebEntityCreationRule() received webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
+        if(webEntityCreationRule != null) {
+            logger.debug("MemoryStructure storeWebEntityCreationRule() received webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
+        }
+        else {
+            logger.warn("MemoryStructure storeWebEntityCreationRule() received NULL webEntityCreationRule");
+            return -1;
+        }
         try {
+
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
             lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
             logger.debug("MemoryStructure indexWebEntityCreationRule() finished indexing webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
@@ -199,7 +266,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         catch(Exception x) {
             logger.error(x.getMessage());
-            x.printStackTrace();
+            //x.printStackTrace();
             // TODO what status to return ?
             return -1;
         }
@@ -212,7 +279,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public boolean storeWebEntity(String id, LRUItem lruItem) throws TException {
+    public boolean addLRUtoWebEntity(String id, LRUItem lruItem) throws TException {
         logger.debug("MemoryStructure storeWebEntity() received LRUItem: " + lruItem.getLru() + " for WebEntity: " + id);
         try {
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);

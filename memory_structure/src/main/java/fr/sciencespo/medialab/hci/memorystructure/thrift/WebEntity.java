@@ -27,11 +27,16 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * Note: property 'name' is 'alias' in the wiki, but that is a reserved Thrift word
+ */
 public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._Fields>, java.io.Serializable, Cloneable {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("WebEntity");
 
   private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.STRING, (short)1);
-  private static final org.apache.thrift.protocol.TField LRULIST_FIELD_DESC = new org.apache.thrift.protocol.TField("LRUlist", org.apache.thrift.protocol.TType.LIST, (short)2);
+  private static final org.apache.thrift.protocol.TField LRULIST_FIELD_DESC = new org.apache.thrift.protocol.TField("LRUlist", org.apache.thrift.protocol.TType.SET, (short)2);
+  private static final org.apache.thrift.protocol.TField NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("name", org.apache.thrift.protocol.TType.STRING, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -40,12 +45,14 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
   }
 
   public String id; // required
-  public List<String> LRUlist; // required
+  public Set<String> LRUlist; // required
+  public String name; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     ID((short)1, "id"),
-    LRULIST((short)2, "LRUlist");
+    LRULIST((short)2, "LRUlist"),
+    NAME((short)3, "name");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -64,6 +71,8 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
           return ID;
         case 2: // LRULIST
           return LRULIST;
+        case 3: // NAME
+          return NAME;
         default:
           return null;
       }
@@ -110,8 +119,10 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
     tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.LRULIST, new org.apache.thrift.meta_data.FieldMetaData("LRUlist", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+        new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
+    tmpMap.put(_Fields.NAME, new org.apache.thrift.meta_data.FieldMetaData("name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(WebEntity.class, metaDataMap);
   }
@@ -121,11 +132,13 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
 
   public WebEntity(
     String id,
-    List<String> LRUlist)
+    Set<String> LRUlist,
+    String name)
   {
     this();
     this.id = id;
     this.LRUlist = LRUlist;
+    this.name = name;
   }
 
   /**
@@ -136,11 +149,14 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       this.id = other.id;
     }
     if (other.isSetLRUlist()) {
-      List<String> __this__LRUlist = new ArrayList<String>();
+      Set<String> __this__LRUlist = new HashSet<String>();
       for (String other_element : other.LRUlist) {
         __this__LRUlist.add(other_element);
       }
       this.LRUlist = __this__LRUlist;
+    }
+    if (other.isSetName()) {
+      this.name = other.name;
     }
   }
 
@@ -152,6 +168,7 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
   public void clear() {
     this.id = null;
     this.LRUlist = null;
+    this.name = null;
   }
 
   public String getId() {
@@ -188,16 +205,16 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
 
   public void addToLRUlist(String elem) {
     if (this.LRUlist == null) {
-      this.LRUlist = new ArrayList<String>();
+      this.LRUlist = new HashSet<String>();
     }
     this.LRUlist.add(elem);
   }
 
-  public List<String> getLRUlist() {
+  public Set<String> getLRUlist() {
     return this.LRUlist;
   }
 
-  public WebEntity setLRUlist(List<String> LRUlist) {
+  public WebEntity setLRUlist(Set<String> LRUlist) {
     this.LRUlist = LRUlist;
     return this;
   }
@@ -217,6 +234,30 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
     }
   }
 
+  public String getName() {
+    return this.name;
+  }
+
+  public WebEntity setName(String name) {
+    this.name = name;
+    return this;
+  }
+
+  public void unsetName() {
+    this.name = null;
+  }
+
+  /** Returns true if field name is set (has been assigned a value) and false otherwise */
+  public boolean isSetName() {
+    return this.name != null;
+  }
+
+  public void setNameIsSet(boolean value) {
+    if (!value) {
+      this.name = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case ID:
@@ -231,7 +272,15 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       if (value == null) {
         unsetLRUlist();
       } else {
-        setLRUlist((List<String>)value);
+        setLRUlist((Set<String>)value);
+      }
+      break;
+
+    case NAME:
+      if (value == null) {
+        unsetName();
+      } else {
+        setName((String)value);
       }
       break;
 
@@ -245,6 +294,9 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
 
     case LRULIST:
       return getLRUlist();
+
+    case NAME:
+      return getName();
 
     }
     throw new IllegalStateException();
@@ -261,6 +313,8 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       return isSetId();
     case LRULIST:
       return isSetLRUlist();
+    case NAME:
+      return isSetName();
     }
     throw new IllegalStateException();
   }
@@ -293,6 +347,15 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       if (!(this_present_LRUlist && that_present_LRUlist))
         return false;
       if (!this.LRUlist.equals(that.LRUlist))
+        return false;
+    }
+
+    boolean this_present_name = true && this.isSetName();
+    boolean that_present_name = true && that.isSetName();
+    if (this_present_name || that_present_name) {
+      if (!(this_present_name && that_present_name))
+        return false;
+      if (!this.name.equals(that.name))
         return false;
     }
 
@@ -332,6 +395,16 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetName()).compareTo(typedOther.isSetName());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetName()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.name, typedOther.name);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -365,6 +438,14 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       sb.append("null");
     } else {
       sb.append(this.LRUlist);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("name:");
+    if (this.name == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.name);
     }
     first = false;
     sb.append(")");
@@ -418,19 +499,27 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
             }
             break;
           case 2: // LRULIST
-            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+            if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
               {
-                org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
-                struct.LRUlist = new ArrayList<String>(_list8.size);
-                for (int _i9 = 0; _i9 < _list8.size; ++_i9)
+                org.apache.thrift.protocol.TSet _set8 = iprot.readSetBegin();
+                struct.LRUlist = new HashSet<String>(2*_set8.size);
+                for (int _i9 = 0; _i9 < _set8.size; ++_i9)
                 {
                   String _elem10; // required
                   _elem10 = iprot.readString();
                   struct.LRUlist.add(_elem10);
                 }
-                iprot.readListEnd();
+                iprot.readSetEnd();
               }
               struct.setLRUlistIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 3: // NAME
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.name = iprot.readString();
+              struct.setNameIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -458,13 +547,18 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       if (struct.LRUlist != null) {
         oprot.writeFieldBegin(LRULIST_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.LRUlist.size()));
+          oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, struct.LRUlist.size()));
           for (String _iter11 : struct.LRUlist)
           {
             oprot.writeString(_iter11);
           }
-          oprot.writeListEnd();
+          oprot.writeSetEnd();
         }
+        oprot.writeFieldEnd();
+      }
+      if (struct.name != null) {
+        oprot.writeFieldBegin(NAME_FIELD_DESC);
+        oprot.writeString(struct.name);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -491,7 +585,10 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       if (struct.isSetLRUlist()) {
         optionals.set(1);
       }
-      oprot.writeBitSet(optionals, 2);
+      if (struct.isSetName()) {
+        optionals.set(2);
+      }
+      oprot.writeBitSet(optionals, 3);
       if (struct.isSetId()) {
         oprot.writeString(struct.id);
       }
@@ -504,21 +601,24 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
           }
         }
       }
+      if (struct.isSetName()) {
+        oprot.writeString(struct.name);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, WebEntity struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(2);
+      BitSet incoming = iprot.readBitSet(3);
       if (incoming.get(0)) {
         struct.id = iprot.readString();
         struct.setIdIsSet(true);
       }
       if (incoming.get(1)) {
         {
-          org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.LRUlist = new ArrayList<String>(_list13.size);
-          for (int _i14 = 0; _i14 < _list13.size; ++_i14)
+          org.apache.thrift.protocol.TSet _set13 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.LRUlist = new HashSet<String>(2*_set13.size);
+          for (int _i14 = 0; _i14 < _set13.size; ++_i14)
           {
             String _elem15; // required
             _elem15 = iprot.readString();
@@ -526,6 +626,10 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
           }
         }
         struct.setLRUlistIsSet(true);
+      }
+      if (incoming.get(2)) {
+        struct.name = iprot.readString();
+        struct.setNameIsSet(true);
       }
     }
   }
