@@ -58,12 +58,38 @@ struct WebEntityCreationRule {
  
 service MemoryStructure {
 
- // store webentity
+// CREATED by PAUL
+// ping
+/*¨replies pong */
+string ping(), 
+
+
+// MODIFIED by Paul
+ //update  webentity
  /**
   * @param 1 webEntity
   * @return id of the web entity
   */
-  string saveWebEntity(1:WebEntity webEntity) throws (1:MemoryStructureException x),
+  string updateWebEntity(1:WebEntity webEntity) throws (1:MemoryStructureException x),
+
+// ADDED by Paul 
+// create webentity
+/**
+* @param 1 name
+* @param 2 lrusList
+* @return a WebEntity object
+**/
+  WebEntity createWebEntity(1: string name,2:list<string> lrusList) throws (1:MemoryStructureException x),
+
+// ADDED by Paul 
+// get webentity
+/**
+* @param 1 id
+* @return a WebEntity Object
+**/
+WebEntity getWebEntity(1: string id) throws (1:MemoryStructureException x),
+
+
 
 // create_pages_cache
 /**
