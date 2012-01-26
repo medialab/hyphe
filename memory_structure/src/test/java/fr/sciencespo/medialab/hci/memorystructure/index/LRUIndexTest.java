@@ -1,6 +1,6 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
-import fr.sciencespo.medialab.hci.memorystructure.thrift.LRUItem;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.util.LineFileReader;
 import junit.framework.Test;
@@ -56,10 +56,10 @@ public class LRUIndexTest extends TestCase {
      * @throws Exception hmm
      */
     public void testClearNonEmptyIndex() throws Exception {
-        List<LRUItem> lruItems = new ArrayList<LRUItem>();
-        LRUItem lruItem1 = new LRUItem().setLru("1");
-        LRUItem lruItem2 = new LRUItem().setLru("2");
-        LRUItem lruItem3 = new LRUItem().setLru("3");
+        List<Object> lruItems = new ArrayList<Object>();
+        PageItem lruItem1 = new PageItem().setLru("1");
+        PageItem lruItem2 = new PageItem().setLru("2");
+        PageItem lruItem3 = new PageItem().setLru("3");
         lruItems.add(lruItem1);
         lruItems.add(lruItem2);
         lruItems.add(lruItem3);
@@ -75,10 +75,10 @@ public class LRUIndexTest extends TestCase {
      */
     public void testIndexCount() throws Exception {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
-        List<LRUItem> lruItems = new ArrayList<LRUItem>();
-        LRUItem lruItem1 = new LRUItem().setLru("1");
-        LRUItem lruItem2 = new LRUItem().setLru("2");
-        LRUItem lruItem3 = new LRUItem().setLru("3");
+        List<Object> lruItems = new ArrayList<Object>();
+        PageItem lruItem1 = new PageItem().setLru("1");
+        PageItem lruItem2 = new PageItem().setLru("2");
+        PageItem lruItem3 = new PageItem().setLru("3");
         lruItems.add(lruItem1);
         lruItems.add(lruItem2);
         lruItems.add(lruItem3);
@@ -88,139 +88,102 @@ public class LRUIndexTest extends TestCase {
         logger.info("testIndexCount success");
     }
 
-    //
-    // Precision Exception index tests.
-    //
-
-    /**
-     * Tests adding and retrieving Precision Exceptions.
-     *
-     * @throws Exception hmm
-     */
-    public void testAddPrecisionException() throws Exception {
-        //
-        // add 2 precision exceptions to a new index
-        //
-        String precisionExceptionLRU1 = "com.blogspot.rivieraonline";
-        String precisionExceptionLRU2 = "com.blogspot.braziland";
-        lruIndex.indexPrecisionException(precisionExceptionLRU1);
-        lruIndex.indexPrecisionException(precisionExceptionLRU2);
-
-        // test if all are retrieved
-        List<String> foundList = lruIndex.retrievePrecisionExceptions();
-        assertEquals("Did not retrieve all Precision Exceptions", 2, foundList.size());
-
-        // test if a specific one is retrieved
-        String found1 = lruIndex.retrievePrecisionException(precisionExceptionLRU1);
-        assertEquals("Did not find expected single Precision Exception", precisionExceptionLRU1, found1);
-
-        // test if a specific one is retrieved
-        String found2 = lruIndex.retrievePrecisionException(precisionExceptionLRU2);
-        assertEquals("Did not find expected single Precision Exception", precisionExceptionLRU2, found2);
-
-        // test if a specific non-existing one is not retrieved
-        String found3 = lruIndex.retrievePrecisionException("this-was-never-stored");
-        assertNull("Found unexpected Precision Exception", found3);
-
-        //lruIndex.close();
-        logger.info("testAddPrecisionException success");
-    }
 
     //
-    // LRUItem index tests.
+    // PageItem index tests.
     //
 
 
     /**
-     * Tests retrieving LRUItem using an exact match.
+     * Tests retrieving PageItem using an exact match.
      *
      * @throws Exception hmm
      */
-    public void testRetrieveLRUItem() throws Exception {
+    public void testRetrievePageItem() throws Exception {
         //
-        // add 1 LRUItem to a new index
+        // add 1 PageItem to a new index
         //
-        List<LRUItem> lruItems = new ArrayList<LRUItem>();
-        LRUItem lruItem1 = new LRUItem().setLru("find-me");
+        List<Object> lruItems = new ArrayList<Object>();
+        PageItem lruItem1 = new PageItem().setLru("find-me");
         lruItems.add(lruItem1);
         lruIndex.batchIndex(lruItems);
 
-        // test if this LRUItem can be found
-        LRUItem found = lruIndex.retrieveByLRU("find-me");
+        // test if this PageItem can be found
+        PageItem found = lruIndex.retrieveByLRU("find-me");
         assertNotNull("Could not retrieve expected object", found);
 
         //lruIndex.close();
-        logger.info("testRetrieveLRUItem success");
+        logger.info("testRetrievePageItem success");
 
     }
 
     /**
-     * Tests retrieving a non-existing LRUItem, which shouldn't be found.
+     * Tests retrieving a non-existing PageItem, which shouldn't be found.
      *
      * @throws Exception hmm
      */
-    public void testDonotRetrieveNonExistingLRUItem() throws Exception {
-        List<LRUItem> lruItems = new ArrayList<LRUItem>();
-        LRUItem lruItem1 = new LRUItem().setLru("find-me");
+    public void testDonotRetrieveNonExistingPageItem() throws Exception {
+        List<Object> lruItems = new ArrayList<Object>();
+        PageItem lruItem1 = new PageItem().setLru("find-me");
         lruItems.add(lruItem1);
         lruIndex.batchIndex(lruItems);
-        LRUItem found = lruIndex.retrieveByLRU("do-not-find-me");
+        PageItem found = lruIndex.retrieveByLRU("do-not-find-me");
         assertNull("Retrieved unexpected object", found);
         //lruIndex.close();
-        logger.info("testDonotRetrieveNonExistingLRUItem success");
+        logger.info("testDonotRetrieveNonExistingPageItem success");
     }
 
     /**
-     * Tests retrieving LRUItems using the multi-character '*' wildcard.
+     * Tests retrieving PageItems using the multi-character '*' wildcard.
      *
      * @throws Exception hmm
      */
-    public void testRetrieveLRUItemByPrefix() throws Exception {
-        List<LRUItem> lruItems = new ArrayList<LRUItem>();
-        LRUItem lruItem1 = new LRUItem().setLru("find-me");
+    public void testRetrievePageItemByPrefix() throws Exception {
+        List<Object> lruItems = new ArrayList<Object>();
+        PageItem lruItem1 = new PageItem().setLru("find-me");
         lruItems.add(lruItem1);
         lruIndex.batchIndex(lruItems);
-        LRUItem found = lruIndex.retrieveByLRU("fin*");
+        PageItem found = lruIndex.retrieveByLRU("fin*");
         assertNotNull("Could not retrieve expected object by wildcard", found);
         //lruIndex.close();
-        logger.info("testRetrieveLRUItemByPrefix success");
+        logger.info("testRetrievePageItemByPrefix success");
     }
 
     /**
-     * Tests retrieving LRUItem using the single character '?' wildcard.
+     * Tests retrieving PageItem using the single character '?' wildcard.
      *
      * @throws Exception hmm
      */
-    public void testRetrieveLRUItemBySingleCharWildCard() throws Exception {
-        List<LRUItem> lruItems = new ArrayList<LRUItem>();
-        LRUItem lruItem1 = new LRUItem().setLru("find-me");
+    public void testRetrievePageItemBySingleCharWildCard() throws Exception {
+        List<Object> lruItems = new ArrayList<Object>();
+        PageItem lruItem1 = new PageItem().setLru("find-me");
         lruItems.add(lruItem1);
         lruIndex.batchIndex(lruItems);
-        LRUItem found = lruIndex.retrieveByLRU("find-?e");
+        PageItem found = lruIndex.retrieveByLRU("find-?e");
         assertNotNull("Could not retrieve expected object by single character wildcard", found);
         //lruIndex.close();
-        logger.info("testRetrieveLRUItemBySingleCharWildCard success");
+        logger.info("testRetrievePageItemBySingleCharWildCard success");
     }
 
     /**
-     * Tests retrieving LRUItems using the multi character '*' wildcard.
+     * Tests retrieving PageItems using the multi character '*' wildcard.
      *
      * @throws Exception hmm
      */
-    public void testRetrieveLRUItemByMultiCharacterWildCard() throws Exception {
+    public void testRetrievePageItemByMultiCharacterWildCard() throws Exception {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
-        List<LRUItem> lruItems = new ArrayList<LRUItem>();
-        LRUItem lruItem1 = new LRUItem().setLru("1");
-        LRUItem lruItem2 = new LRUItem().setLru("2");
-        LRUItem lruItem3 = new LRUItem().setLru("3");
+        List<Object> lruItems = new ArrayList<Object>();
+        PageItem lruItem1 = new PageItem().setLru("1");
+        PageItem lruItem2 = new PageItem().setLru("2");
+        PageItem lruItem3 = new PageItem().setLru("3");
         lruItems.add(lruItem1);
         lruItems.add(lruItem2);
         lruItems.add(lruItem3);
         lruIndex.batchIndex(lruItems);
-        LRUItem found = lruIndex.retrieveByLRU("*");
+        PageItem found = lruIndex.retrieveByLRU("*");
         assertEquals("IndexCount returns unexpected number", 3, lruIndex.indexCount());
         //lruIndex.close();
-        logger.info("testRetrieveLRUItemByMultiCharacterWildCard success");
+        logger.info("testRetrievePageItemByMultiCharacterWildCard success");
     }
 
     /**
@@ -230,7 +193,7 @@ public class LRUIndexTest extends TestCase {
      */
     public void testIndexNewWebEntity() throws Exception {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
-        LRUItem lruItem1 = new LRUItem().setLru("1");
+        PageItem lruItem1 = new PageItem().setLru("1");
         String id = lruIndex.indexWebEntity(null, lruItem1);
         logger.debug("indexed webentity with id " + id);
         assertEquals("IndexCount returns unexpected number", 1, lruIndex.indexCount());
@@ -245,11 +208,11 @@ public class LRUIndexTest extends TestCase {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
 
         // create a webentity
-        LRUItem lruItem1 = new LRUItem().setLru("1");
+        PageItem lruItem1 = new PageItem().setLru("1");
         String id = lruIndex.indexWebEntity(null, lruItem1);
 
         // add lru to this webentity
-        LRUItem lruItem2 = new LRUItem().setLru("2");
+        PageItem lruItem2 = new PageItem().setLru("2");
         String id2 = lruIndex.indexWebEntity(id, lruItem2);
 
         assertEquals("update existing webentity returns unexpected id", id, id2);
@@ -270,14 +233,14 @@ public class LRUIndexTest extends TestCase {
      */
     public void testAddToExistingWebEntityThatDoesNotActuallyExist() throws Exception {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
-        LRUItem lruItem1 = new LRUItem().setLru("1");
+        PageItem lruItem1 = new PageItem().setLru("1");
         String nonExistingId = "there-is-no-webentity-with-this-id";
         String id = lruIndex.indexWebEntity(nonExistingId, lruItem1);
         assertNotSame("update existing webentity that does not really exist returns unexpected id", id, nonExistingId);
         assertEquals("IndexCount returns unexpected number", 1, lruIndex.indexCount());
     }
 
-    public void xtestBatchIndexLRUItem() throws Exception {
+    public void xtestBatchIndexPageItem() throws Exception {
 
         int totalDocCount = 0;
         int addedDocCount = 0;
@@ -293,8 +256,8 @@ public class LRUIndexTest extends TestCase {
         long localStart = 0;
         long localDuration = 0;
 
-        List<LRUItem> lruItems = new ArrayList<LRUItem>();
-        LRUItem lruItem = new LRUItem().setLru("heikkitest");
+        List<Object> lruItems = new ArrayList<Object>();
+        PageItem lruItem = new PageItem().setLru("heikkitest");
         lruItems.add(lruItem);
         System.out.println("reading");
         while(rawUrlsIterator.hasNext()) {
@@ -304,7 +267,7 @@ public class LRUIndexTest extends TestCase {
             String lru = rawUrlsIterator.next();
 
             if(lru != null) {
-                lruItems.add(new LRUItem().setLru(lru));
+                lruItems.add(new PageItem().setLru(lru));
                 //if(urldb.addUrl(url))
                 //	addedDocCount++;
 
@@ -325,7 +288,7 @@ public class LRUIndexTest extends TestCase {
         // process rest
         urldb.batchIndex(lruItems);
 
-        LRUItem found = urldb.retrieveByLRU("heikkitest");
+        PageItem found = urldb.retrieveByLRU("heikkitest");
         if(found != null) {
             System.out.println("found it");
         }

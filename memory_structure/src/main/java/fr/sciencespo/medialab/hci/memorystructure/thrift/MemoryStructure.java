@@ -33,143 +33,135 @@ public class MemoryStructure {
 
     /**
      * @param 1 webEntity
-     * @return id
+     * @return id of the web entity
      * 
      * @param webEntity
      */
-    public String storeWebEntity(WebEntity webEntity) throws org.apache.thrift.TException;
+    public String saveWebEntity(WebEntity webEntity) throws MemoryStructureException, org.apache.thrift.TException;
 
     /**
-     * @param 1 id
-     * @return webEntity
      * 
-     * @param id
+     * @param 1 id of the webentity
+     * @return webentity
+     * 
+     * @param webEntityId
      */
-    public WebEntity findWebEntity(String id) throws org.apache.thrift.TException;
+    public WebEntity getWebEntity(String webEntityId) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException;
 
     /**
-     *    *
-     * * @return set of webEntities
+     * 
+     * @return webentities
      */
-    public Set<WebEntity> findWebEntities() throws org.apache.thrift.TException;
+    public Set<WebEntity> getWebEntities() throws MemoryStructureException, org.apache.thrift.TException;
 
     /**
-     * @param 1 lruItems : list of LRUItem objects
+     * @param 1 pageItems : set of PageItem objects
      * @return id of the created cache
      * 
-     * @param lruItems
+     * @param pageItems
      */
-    public String createCache(List<LRUItem> lruItems) throws org.apache.thrift.TException;
+    public String createCache(Set<PageItem> pageItems) throws MemoryStructureException, org.apache.thrift.TException;
 
     /**
      * @param 1 cacheId : id of the cache
-     * @return acknowledgement
+     * @return number of indexed PageItems
      * 
      * @param cacheId
      */
-    public String indexCache(String cacheId) throws org.apache.thrift.TException;
+    public int indexCache(String cacheId) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException;
 
     /**
      * @param 1 cacheId : id of the cache
-     * @return list of lru prefixes
+     * @return set of lru prefixes
      * 
      * @param cacheId
      */
-    public List<String> getPrecisionExceptionsFromCache(String cacheId) throws org.apache.thrift.TException;
+    public Set<String> getPrecisionExceptionsFromCache(String cacheId) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException;
 
     /**
      * @param 1 cacheId : id of the cache
-     * @return list of WebEntityInfo
      * 
      * @param cacheId
      */
-    public List<WebEntityInfo> getWebEntitiesFromCache(String cacheId) throws org.apache.thrift.TException;
+    public void createWebEntities(String cacheId) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException;
 
     /**
      * @param 1 cacheId : id of the cache
-     * @return status
      * 
      * @param cacheId
      */
-    public int deleteCache(String cacheId) throws org.apache.thrift.TException;
+    public void deleteCache(String cacheId) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException;
 
     /**
-     * @param 1 precisionException : preciosn exception to store
-     * @return status
+     * @param 1 pageItemId : id of the pageItem to be
      * 
-     * @param precisionException
+     * @param pageItemId
      */
-    public int storePrecisionException(String precisionException) throws org.apache.thrift.TException;
+    public void markPageWithPrecisionException(String pageItemId) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException;
 
     /**
      * @param 1 webEntityCreationRule : webentity creation rule to store
-     * @return status
      * 
      * @param webEntityCreationRule
      */
-    public int storeWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws org.apache.thrift.TException;
+    public void saveWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws MemoryStructureException, org.apache.thrift.TException;
 
     /**
-     *  *
-     *  * @param 1 lruItems : list of LRUItem objects
-     *  * @return true if success, false else
-     * *
      * 
-     * @param lruItems
+     * @param 1 pageItems : set of PageItem objects
+     * 
+     * @param pageItems
      */
-    public boolean storeLRUItems(List<LRUItem> lruItems) throws org.apache.thrift.TException;
+    public void savePageItems(Set<PageItem> pageItems) throws MemoryStructureException, org.apache.thrift.TException;
 
     /**
-     *  *
-     *  * @param 1 nodeLinks : list of NodeLink objects
-     *  * @return true if success, false else
-     * *
+     * 
+     * @param 1 nodeLinks : list of NodeLink objects
      * 
      * @param nodeLinks
      */
-    public boolean storeNodeLinks(List<NodeLink> nodeLinks) throws org.apache.thrift.TException;
+    public void saveNodeLinks(List<NodeLink> nodeLinks) throws MemoryStructureException, org.apache.thrift.TException;
 
     /**
      *  *
      *  * @param 1 id : the id of the WebEntity to add this LRU to
      *  * @param 2 lruItem : the lruItem to be marked as WebEntity
-     *  * @return true if success, false else
      * *
      * 
      * @param id
-     * @param lruItem
+     * @param pageItem
      */
-    public boolean addLRUtoWebEntity(String id, LRUItem lruItem) throws org.apache.thrift.TException;
+    public void addLRUtoWebEntity(String id, PageItem pageItem) throws MemoryStructureException, org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface {
 
-    public void storeWebEntity(WebEntity webEntity, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.storeWebEntity_call> resultHandler) throws org.apache.thrift.TException;
+    public void saveWebEntity(WebEntity webEntity, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.saveWebEntity_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void findWebEntity(String id, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.findWebEntity_call> resultHandler) throws org.apache.thrift.TException;
+    public void getWebEntity(String webEntityId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.getWebEntity_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void findWebEntities(org.apache.thrift.async.AsyncMethodCallback<AsyncClient.findWebEntities_call> resultHandler) throws org.apache.thrift.TException;
+    public void getWebEntities(org.apache.thrift.async.AsyncMethodCallback<AsyncClient.getWebEntities_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void createCache(List<LRUItem> lruItems, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.createCache_call> resultHandler) throws org.apache.thrift.TException;
+    public void createCache(Set<PageItem> pageItems, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.createCache_call> resultHandler) throws org.apache.thrift.TException;
 
     public void indexCache(String cacheId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.indexCache_call> resultHandler) throws org.apache.thrift.TException;
 
     public void getPrecisionExceptionsFromCache(String cacheId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.getPrecisionExceptionsFromCache_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void getWebEntitiesFromCache(String cacheId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.getWebEntitiesFromCache_call> resultHandler) throws org.apache.thrift.TException;
+    public void createWebEntities(String cacheId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.createWebEntities_call> resultHandler) throws org.apache.thrift.TException;
 
     public void deleteCache(String cacheId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.deleteCache_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void storePrecisionException(String precisionException, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.storePrecisionException_call> resultHandler) throws org.apache.thrift.TException;
+    public void markPageWithPrecisionException(String pageItemId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.markPageWithPrecisionException_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void storeWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.storeWebEntityCreationRule_call> resultHandler) throws org.apache.thrift.TException;
+    public void saveWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.saveWebEntityCreationRule_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void storeLRUItems(List<LRUItem> lruItems, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.storeLRUItems_call> resultHandler) throws org.apache.thrift.TException;
+    public void savePageItems(Set<PageItem> pageItems, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.savePageItems_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void storeNodeLinks(List<NodeLink> nodeLinks, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.storeNodeLinks_call> resultHandler) throws org.apache.thrift.TException;
+    public void saveNodeLinks(List<NodeLink> nodeLinks, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.saveNodeLinks_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void addLRUtoWebEntity(String id, LRUItem lruItem, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.addLRUtoWebEntity_call> resultHandler) throws org.apache.thrift.TException;
+    public void addLRUtoWebEntity(String id, PageItem pageItem, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.addLRUtoWebEntity_call> resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -193,98 +185,113 @@ public class MemoryStructure {
       super(iprot, oprot);
     }
 
-    public String storeWebEntity(WebEntity webEntity) throws org.apache.thrift.TException
+    public String saveWebEntity(WebEntity webEntity) throws MemoryStructureException, org.apache.thrift.TException
     {
-      send_storeWebEntity(webEntity);
-      return recv_storeWebEntity();
+      send_saveWebEntity(webEntity);
+      return recv_saveWebEntity();
     }
 
-    public void send_storeWebEntity(WebEntity webEntity) throws org.apache.thrift.TException
+    public void send_saveWebEntity(WebEntity webEntity) throws org.apache.thrift.TException
     {
-      storeWebEntity_args args = new storeWebEntity_args();
+      saveWebEntity_args args = new saveWebEntity_args();
       args.setWebEntity(webEntity);
-      sendBase("storeWebEntity", args);
+      sendBase("saveWebEntity", args);
     }
 
-    public String recv_storeWebEntity() throws org.apache.thrift.TException
+    public String recv_saveWebEntity() throws MemoryStructureException, org.apache.thrift.TException
     {
-      storeWebEntity_result result = new storeWebEntity_result();
-      receiveBase(result, "storeWebEntity");
+      saveWebEntity_result result = new saveWebEntity_result();
+      receiveBase(result, "saveWebEntity");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "storeWebEntity failed: unknown result");
+      if (result.x != null) {
+        throw result.x;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "saveWebEntity failed: unknown result");
     }
 
-    public WebEntity findWebEntity(String id) throws org.apache.thrift.TException
+    public WebEntity getWebEntity(String webEntityId) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
-      send_findWebEntity(id);
-      return recv_findWebEntity();
+      send_getWebEntity(webEntityId);
+      return recv_getWebEntity();
     }
 
-    public void send_findWebEntity(String id) throws org.apache.thrift.TException
+    public void send_getWebEntity(String webEntityId) throws org.apache.thrift.TException
     {
-      findWebEntity_args args = new findWebEntity_args();
-      args.setId(id);
-      sendBase("findWebEntity", args);
+      getWebEntity_args args = new getWebEntity_args();
+      args.setWebEntityId(webEntityId);
+      sendBase("getWebEntity", args);
     }
 
-    public WebEntity recv_findWebEntity() throws org.apache.thrift.TException
+    public WebEntity recv_getWebEntity() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
-      findWebEntity_result result = new findWebEntity_result();
-      receiveBase(result, "findWebEntity");
+      getWebEntity_result result = new getWebEntity_result();
+      receiveBase(result, "getWebEntity");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "findWebEntity failed: unknown result");
+      if (result.me != null) {
+        throw result.me;
+      }
+      if (result.x != null) {
+        throw result.x;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getWebEntity failed: unknown result");
     }
 
-    public Set<WebEntity> findWebEntities() throws org.apache.thrift.TException
+    public Set<WebEntity> getWebEntities() throws MemoryStructureException, org.apache.thrift.TException
     {
-      send_findWebEntities();
-      return recv_findWebEntities();
+      send_getWebEntities();
+      return recv_getWebEntities();
     }
 
-    public void send_findWebEntities() throws org.apache.thrift.TException
+    public void send_getWebEntities() throws org.apache.thrift.TException
     {
-      findWebEntities_args args = new findWebEntities_args();
-      sendBase("findWebEntities", args);
+      getWebEntities_args args = new getWebEntities_args();
+      sendBase("getWebEntities", args);
     }
 
-    public Set<WebEntity> recv_findWebEntities() throws org.apache.thrift.TException
+    public Set<WebEntity> recv_getWebEntities() throws MemoryStructureException, org.apache.thrift.TException
     {
-      findWebEntities_result result = new findWebEntities_result();
-      receiveBase(result, "findWebEntities");
+      getWebEntities_result result = new getWebEntities_result();
+      receiveBase(result, "getWebEntities");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "findWebEntities failed: unknown result");
+      if (result.me != null) {
+        throw result.me;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getWebEntities failed: unknown result");
     }
 
-    public String createCache(List<LRUItem> lruItems) throws org.apache.thrift.TException
+    public String createCache(Set<PageItem> pageItems) throws MemoryStructureException, org.apache.thrift.TException
     {
-      send_createCache(lruItems);
+      send_createCache(pageItems);
       return recv_createCache();
     }
 
-    public void send_createCache(List<LRUItem> lruItems) throws org.apache.thrift.TException
+    public void send_createCache(Set<PageItem> pageItems) throws org.apache.thrift.TException
     {
       createCache_args args = new createCache_args();
-      args.setLruItems(lruItems);
+      args.setPageItems(pageItems);
       sendBase("createCache", args);
     }
 
-    public String recv_createCache() throws org.apache.thrift.TException
+    public String recv_createCache() throws MemoryStructureException, org.apache.thrift.TException
     {
       createCache_result result = new createCache_result();
       receiveBase(result, "createCache");
       if (result.isSetSuccess()) {
         return result.success;
       }
+      if (result.x != null) {
+        throw result.x;
+      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "createCache failed: unknown result");
     }
 
-    public String indexCache(String cacheId) throws org.apache.thrift.TException
+    public int indexCache(String cacheId) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
       send_indexCache(cacheId);
       return recv_indexCache();
@@ -297,17 +304,23 @@ public class MemoryStructure {
       sendBase("indexCache", args);
     }
 
-    public String recv_indexCache() throws org.apache.thrift.TException
+    public int recv_indexCache() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
       indexCache_result result = new indexCache_result();
       receiveBase(result, "indexCache");
       if (result.isSetSuccess()) {
         return result.success;
       }
+      if (result.me != null) {
+        throw result.me;
+      }
+      if (result.x != null) {
+        throw result.x;
+      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "indexCache failed: unknown result");
     }
 
-    public List<String> getPrecisionExceptionsFromCache(String cacheId) throws org.apache.thrift.TException
+    public Set<String> getPrecisionExceptionsFromCache(String cacheId) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
       send_getPrecisionExceptionsFromCache(cacheId);
       return recv_getPrecisionExceptionsFromCache();
@@ -320,43 +333,52 @@ public class MemoryStructure {
       sendBase("getPrecisionExceptionsFromCache", args);
     }
 
-    public List<String> recv_getPrecisionExceptionsFromCache() throws org.apache.thrift.TException
+    public Set<String> recv_getPrecisionExceptionsFromCache() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
       getPrecisionExceptionsFromCache_result result = new getPrecisionExceptionsFromCache_result();
       receiveBase(result, "getPrecisionExceptionsFromCache");
       if (result.isSetSuccess()) {
         return result.success;
       }
+      if (result.me != null) {
+        throw result.me;
+      }
+      if (result.x != null) {
+        throw result.x;
+      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getPrecisionExceptionsFromCache failed: unknown result");
     }
 
-    public List<WebEntityInfo> getWebEntitiesFromCache(String cacheId) throws org.apache.thrift.TException
+    public void createWebEntities(String cacheId) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
-      send_getWebEntitiesFromCache(cacheId);
-      return recv_getWebEntitiesFromCache();
+      send_createWebEntities(cacheId);
+      recv_createWebEntities();
     }
 
-    public void send_getWebEntitiesFromCache(String cacheId) throws org.apache.thrift.TException
+    public void send_createWebEntities(String cacheId) throws org.apache.thrift.TException
     {
-      getWebEntitiesFromCache_args args = new getWebEntitiesFromCache_args();
+      createWebEntities_args args = new createWebEntities_args();
       args.setCacheId(cacheId);
-      sendBase("getWebEntitiesFromCache", args);
+      sendBase("createWebEntities", args);
     }
 
-    public List<WebEntityInfo> recv_getWebEntitiesFromCache() throws org.apache.thrift.TException
+    public void recv_createWebEntities() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
-      getWebEntitiesFromCache_result result = new getWebEntitiesFromCache_result();
-      receiveBase(result, "getWebEntitiesFromCache");
-      if (result.isSetSuccess()) {
-        return result.success;
+      createWebEntities_result result = new createWebEntities_result();
+      receiveBase(result, "createWebEntities");
+      if (result.me != null) {
+        throw result.me;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getWebEntitiesFromCache failed: unknown result");
+      if (result.x != null) {
+        throw result.x;
+      }
+      return;
     }
 
-    public int deleteCache(String cacheId) throws org.apache.thrift.TException
+    public void deleteCache(String cacheId) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
       send_deleteCache(cacheId);
-      return recv_deleteCache();
+      recv_deleteCache();
     }
 
     public void send_deleteCache(String cacheId) throws org.apache.thrift.TException
@@ -366,130 +388,136 @@ public class MemoryStructure {
       sendBase("deleteCache", args);
     }
 
-    public int recv_deleteCache() throws org.apache.thrift.TException
+    public void recv_deleteCache() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
       deleteCache_result result = new deleteCache_result();
       receiveBase(result, "deleteCache");
-      if (result.isSetSuccess()) {
-        return result.success;
+      if (result.me != null) {
+        throw result.me;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "deleteCache failed: unknown result");
-    }
-
-    public int storePrecisionException(String precisionException) throws org.apache.thrift.TException
-    {
-      send_storePrecisionException(precisionException);
-      return recv_storePrecisionException();
-    }
-
-    public void send_storePrecisionException(String precisionException) throws org.apache.thrift.TException
-    {
-      storePrecisionException_args args = new storePrecisionException_args();
-      args.setPrecisionException(precisionException);
-      sendBase("storePrecisionException", args);
-    }
-
-    public int recv_storePrecisionException() throws org.apache.thrift.TException
-    {
-      storePrecisionException_result result = new storePrecisionException_result();
-      receiveBase(result, "storePrecisionException");
-      if (result.isSetSuccess()) {
-        return result.success;
+      if (result.x != null) {
+        throw result.x;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "storePrecisionException failed: unknown result");
+      return;
     }
 
-    public int storeWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws org.apache.thrift.TException
+    public void markPageWithPrecisionException(String pageItemId) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
-      send_storeWebEntityCreationRule(webEntityCreationRule);
-      return recv_storeWebEntityCreationRule();
+      send_markPageWithPrecisionException(pageItemId);
+      recv_markPageWithPrecisionException();
     }
 
-    public void send_storeWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws org.apache.thrift.TException
+    public void send_markPageWithPrecisionException(String pageItemId) throws org.apache.thrift.TException
     {
-      storeWebEntityCreationRule_args args = new storeWebEntityCreationRule_args();
+      markPageWithPrecisionException_args args = new markPageWithPrecisionException_args();
+      args.setPageItemId(pageItemId);
+      sendBase("markPageWithPrecisionException", args);
+    }
+
+    public void recv_markPageWithPrecisionException() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
+    {
+      markPageWithPrecisionException_result result = new markPageWithPrecisionException_result();
+      receiveBase(result, "markPageWithPrecisionException");
+      if (result.me != null) {
+        throw result.me;
+      }
+      if (result.x != null) {
+        throw result.x;
+      }
+      return;
+    }
+
+    public void saveWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws MemoryStructureException, org.apache.thrift.TException
+    {
+      send_saveWebEntityCreationRule(webEntityCreationRule);
+      recv_saveWebEntityCreationRule();
+    }
+
+    public void send_saveWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws org.apache.thrift.TException
+    {
+      saveWebEntityCreationRule_args args = new saveWebEntityCreationRule_args();
       args.setWebEntityCreationRule(webEntityCreationRule);
-      sendBase("storeWebEntityCreationRule", args);
+      sendBase("saveWebEntityCreationRule", args);
     }
 
-    public int recv_storeWebEntityCreationRule() throws org.apache.thrift.TException
+    public void recv_saveWebEntityCreationRule() throws MemoryStructureException, org.apache.thrift.TException
     {
-      storeWebEntityCreationRule_result result = new storeWebEntityCreationRule_result();
-      receiveBase(result, "storeWebEntityCreationRule");
-      if (result.isSetSuccess()) {
-        return result.success;
+      saveWebEntityCreationRule_result result = new saveWebEntityCreationRule_result();
+      receiveBase(result, "saveWebEntityCreationRule");
+      if (result.me != null) {
+        throw result.me;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "storeWebEntityCreationRule failed: unknown result");
+      return;
     }
 
-    public boolean storeLRUItems(List<LRUItem> lruItems) throws org.apache.thrift.TException
+    public void savePageItems(Set<PageItem> pageItems) throws MemoryStructureException, org.apache.thrift.TException
     {
-      send_storeLRUItems(lruItems);
-      return recv_storeLRUItems();
+      send_savePageItems(pageItems);
+      recv_savePageItems();
     }
 
-    public void send_storeLRUItems(List<LRUItem> lruItems) throws org.apache.thrift.TException
+    public void send_savePageItems(Set<PageItem> pageItems) throws org.apache.thrift.TException
     {
-      storeLRUItems_args args = new storeLRUItems_args();
-      args.setLruItems(lruItems);
-      sendBase("storeLRUItems", args);
+      savePageItems_args args = new savePageItems_args();
+      args.setPageItems(pageItems);
+      sendBase("savePageItems", args);
     }
 
-    public boolean recv_storeLRUItems() throws org.apache.thrift.TException
+    public void recv_savePageItems() throws MemoryStructureException, org.apache.thrift.TException
     {
-      storeLRUItems_result result = new storeLRUItems_result();
-      receiveBase(result, "storeLRUItems");
-      if (result.isSetSuccess()) {
-        return result.success;
+      savePageItems_result result = new savePageItems_result();
+      receiveBase(result, "savePageItems");
+      if (result.me != null) {
+        throw result.me;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "storeLRUItems failed: unknown result");
+      return;
     }
 
-    public boolean storeNodeLinks(List<NodeLink> nodeLinks) throws org.apache.thrift.TException
+    public void saveNodeLinks(List<NodeLink> nodeLinks) throws MemoryStructureException, org.apache.thrift.TException
     {
-      send_storeNodeLinks(nodeLinks);
-      return recv_storeNodeLinks();
+      send_saveNodeLinks(nodeLinks);
+      recv_saveNodeLinks();
     }
 
-    public void send_storeNodeLinks(List<NodeLink> nodeLinks) throws org.apache.thrift.TException
+    public void send_saveNodeLinks(List<NodeLink> nodeLinks) throws org.apache.thrift.TException
     {
-      storeNodeLinks_args args = new storeNodeLinks_args();
+      saveNodeLinks_args args = new saveNodeLinks_args();
       args.setNodeLinks(nodeLinks);
-      sendBase("storeNodeLinks", args);
+      sendBase("saveNodeLinks", args);
     }
 
-    public boolean recv_storeNodeLinks() throws org.apache.thrift.TException
+    public void recv_saveNodeLinks() throws MemoryStructureException, org.apache.thrift.TException
     {
-      storeNodeLinks_result result = new storeNodeLinks_result();
-      receiveBase(result, "storeNodeLinks");
-      if (result.isSetSuccess()) {
-        return result.success;
+      saveNodeLinks_result result = new saveNodeLinks_result();
+      receiveBase(result, "saveNodeLinks");
+      if (result.me != null) {
+        throw result.me;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "storeNodeLinks failed: unknown result");
+      return;
     }
 
-    public boolean addLRUtoWebEntity(String id, LRUItem lruItem) throws org.apache.thrift.TException
+    public void addLRUtoWebEntity(String id, PageItem pageItem) throws MemoryStructureException, org.apache.thrift.TException
     {
-      send_addLRUtoWebEntity(id, lruItem);
-      return recv_addLRUtoWebEntity();
+      send_addLRUtoWebEntity(id, pageItem);
+      recv_addLRUtoWebEntity();
     }
 
-    public void send_addLRUtoWebEntity(String id, LRUItem lruItem) throws org.apache.thrift.TException
+    public void send_addLRUtoWebEntity(String id, PageItem pageItem) throws org.apache.thrift.TException
     {
       addLRUtoWebEntity_args args = new addLRUtoWebEntity_args();
       args.setId(id);
-      args.setLruItem(lruItem);
+      args.setPageItem(pageItem);
       sendBase("addLRUtoWebEntity", args);
     }
 
-    public boolean recv_addLRUtoWebEntity() throws org.apache.thrift.TException
+    public void recv_addLRUtoWebEntity() throws MemoryStructureException, org.apache.thrift.TException
     {
       addLRUtoWebEntity_result result = new addLRUtoWebEntity_result();
       receiveBase(result, "addLRUtoWebEntity");
-      if (result.isSetSuccess()) {
-        return result.success;
+      if (result.me != null) {
+        throw result.me;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "addLRUtoWebEntity failed: unknown result");
+      return;
     }
 
   }
@@ -510,122 +538,122 @@ public class MemoryStructure {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void storeWebEntity(WebEntity webEntity, org.apache.thrift.async.AsyncMethodCallback<storeWebEntity_call> resultHandler) throws org.apache.thrift.TException {
+    public void saveWebEntity(WebEntity webEntity, org.apache.thrift.async.AsyncMethodCallback<saveWebEntity_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      storeWebEntity_call method_call = new storeWebEntity_call(webEntity, resultHandler, this, ___protocolFactory, ___transport);
+      saveWebEntity_call method_call = new saveWebEntity_call(webEntity, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class storeWebEntity_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class saveWebEntity_call extends org.apache.thrift.async.TAsyncMethodCall {
       private WebEntity webEntity;
-      public storeWebEntity_call(WebEntity webEntity, org.apache.thrift.async.AsyncMethodCallback<storeWebEntity_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public saveWebEntity_call(WebEntity webEntity, org.apache.thrift.async.AsyncMethodCallback<saveWebEntity_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.webEntity = webEntity;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("storeWebEntity", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        storeWebEntity_args args = new storeWebEntity_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("saveWebEntity", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        saveWebEntity_args args = new saveWebEntity_args();
         args.setWebEntity(webEntity);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws org.apache.thrift.TException {
+      public String getResult() throws MemoryStructureException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_storeWebEntity();
+        return (new Client(prot)).recv_saveWebEntity();
       }
     }
 
-    public void findWebEntity(String id, org.apache.thrift.async.AsyncMethodCallback<findWebEntity_call> resultHandler) throws org.apache.thrift.TException {
+    public void getWebEntity(String webEntityId, org.apache.thrift.async.AsyncMethodCallback<getWebEntity_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      findWebEntity_call method_call = new findWebEntity_call(id, resultHandler, this, ___protocolFactory, ___transport);
+      getWebEntity_call method_call = new getWebEntity_call(webEntityId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class findWebEntity_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String id;
-      public findWebEntity_call(String id, org.apache.thrift.async.AsyncMethodCallback<findWebEntity_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class getWebEntity_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String webEntityId;
+      public getWebEntity_call(String webEntityId, org.apache.thrift.async.AsyncMethodCallback<getWebEntity_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.id = id;
+        this.webEntityId = webEntityId;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("findWebEntity", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        findWebEntity_args args = new findWebEntity_args();
-        args.setId(id);
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getWebEntity", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getWebEntity_args args = new getWebEntity_args();
+        args.setWebEntityId(webEntityId);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public WebEntity getResult() throws org.apache.thrift.TException {
+      public WebEntity getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_findWebEntity();
+        return (new Client(prot)).recv_getWebEntity();
       }
     }
 
-    public void findWebEntities(org.apache.thrift.async.AsyncMethodCallback<findWebEntities_call> resultHandler) throws org.apache.thrift.TException {
+    public void getWebEntities(org.apache.thrift.async.AsyncMethodCallback<getWebEntities_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      findWebEntities_call method_call = new findWebEntities_call(resultHandler, this, ___protocolFactory, ___transport);
+      getWebEntities_call method_call = new getWebEntities_call(resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class findWebEntities_call extends org.apache.thrift.async.TAsyncMethodCall {
-      public findWebEntities_call(org.apache.thrift.async.AsyncMethodCallback<findWebEntities_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class getWebEntities_call extends org.apache.thrift.async.TAsyncMethodCall {
+      public getWebEntities_call(org.apache.thrift.async.AsyncMethodCallback<getWebEntities_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("findWebEntities", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        findWebEntities_args args = new findWebEntities_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getWebEntities", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getWebEntities_args args = new getWebEntities_args();
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public Set<WebEntity> getResult() throws org.apache.thrift.TException {
+      public Set<WebEntity> getResult() throws MemoryStructureException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_findWebEntities();
+        return (new Client(prot)).recv_getWebEntities();
       }
     }
 
-    public void createCache(List<LRUItem> lruItems, org.apache.thrift.async.AsyncMethodCallback<createCache_call> resultHandler) throws org.apache.thrift.TException {
+    public void createCache(Set<PageItem> pageItems, org.apache.thrift.async.AsyncMethodCallback<createCache_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      createCache_call method_call = new createCache_call(lruItems, resultHandler, this, ___protocolFactory, ___transport);
+      createCache_call method_call = new createCache_call(pageItems, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class createCache_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private List<LRUItem> lruItems;
-      public createCache_call(List<LRUItem> lruItems, org.apache.thrift.async.AsyncMethodCallback<createCache_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private Set<PageItem> pageItems;
+      public createCache_call(Set<PageItem> pageItems, org.apache.thrift.async.AsyncMethodCallback<createCache_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.lruItems = lruItems;
+        this.pageItems = pageItems;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("createCache", org.apache.thrift.protocol.TMessageType.CALL, 0));
         createCache_args args = new createCache_args();
-        args.setLruItems(lruItems);
+        args.setPageItems(pageItems);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws org.apache.thrift.TException {
+      public String getResult() throws MemoryStructureException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -657,7 +685,7 @@ public class MemoryStructure {
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws org.apache.thrift.TException {
+      public int getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -689,7 +717,7 @@ public class MemoryStructure {
         prot.writeMessageEnd();
       }
 
-      public List<String> getResult() throws org.apache.thrift.TException {
+      public Set<String> getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -699,35 +727,35 @@ public class MemoryStructure {
       }
     }
 
-    public void getWebEntitiesFromCache(String cacheId, org.apache.thrift.async.AsyncMethodCallback<getWebEntitiesFromCache_call> resultHandler) throws org.apache.thrift.TException {
+    public void createWebEntities(String cacheId, org.apache.thrift.async.AsyncMethodCallback<createWebEntities_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getWebEntitiesFromCache_call method_call = new getWebEntitiesFromCache_call(cacheId, resultHandler, this, ___protocolFactory, ___transport);
+      createWebEntities_call method_call = new createWebEntities_call(cacheId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class getWebEntitiesFromCache_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class createWebEntities_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String cacheId;
-      public getWebEntitiesFromCache_call(String cacheId, org.apache.thrift.async.AsyncMethodCallback<getWebEntitiesFromCache_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public createWebEntities_call(String cacheId, org.apache.thrift.async.AsyncMethodCallback<createWebEntities_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.cacheId = cacheId;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getWebEntitiesFromCache", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        getWebEntitiesFromCache_args args = new getWebEntitiesFromCache_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("createWebEntities", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        createWebEntities_args args = new createWebEntities_args();
         args.setCacheId(cacheId);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public List<WebEntityInfo> getResult() throws org.apache.thrift.TException {
+      public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_getWebEntitiesFromCache();
+        (new Client(prot)).recv_createWebEntities();
       }
     }
 
@@ -753,176 +781,176 @@ public class MemoryStructure {
         prot.writeMessageEnd();
       }
 
-      public int getResult() throws org.apache.thrift.TException {
+      public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_deleteCache();
+        (new Client(prot)).recv_deleteCache();
       }
     }
 
-    public void storePrecisionException(String precisionException, org.apache.thrift.async.AsyncMethodCallback<storePrecisionException_call> resultHandler) throws org.apache.thrift.TException {
+    public void markPageWithPrecisionException(String pageItemId, org.apache.thrift.async.AsyncMethodCallback<markPageWithPrecisionException_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      storePrecisionException_call method_call = new storePrecisionException_call(precisionException, resultHandler, this, ___protocolFactory, ___transport);
+      markPageWithPrecisionException_call method_call = new markPageWithPrecisionException_call(pageItemId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class storePrecisionException_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String precisionException;
-      public storePrecisionException_call(String precisionException, org.apache.thrift.async.AsyncMethodCallback<storePrecisionException_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class markPageWithPrecisionException_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String pageItemId;
+      public markPageWithPrecisionException_call(String pageItemId, org.apache.thrift.async.AsyncMethodCallback<markPageWithPrecisionException_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.precisionException = precisionException;
+        this.pageItemId = pageItemId;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("storePrecisionException", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        storePrecisionException_args args = new storePrecisionException_args();
-        args.setPrecisionException(precisionException);
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("markPageWithPrecisionException", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        markPageWithPrecisionException_args args = new markPageWithPrecisionException_args();
+        args.setPageItemId(pageItemId);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public int getResult() throws org.apache.thrift.TException {
+      public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_storePrecisionException();
+        (new Client(prot)).recv_markPageWithPrecisionException();
       }
     }
 
-    public void storeWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule, org.apache.thrift.async.AsyncMethodCallback<storeWebEntityCreationRule_call> resultHandler) throws org.apache.thrift.TException {
+    public void saveWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule, org.apache.thrift.async.AsyncMethodCallback<saveWebEntityCreationRule_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      storeWebEntityCreationRule_call method_call = new storeWebEntityCreationRule_call(webEntityCreationRule, resultHandler, this, ___protocolFactory, ___transport);
+      saveWebEntityCreationRule_call method_call = new saveWebEntityCreationRule_call(webEntityCreationRule, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class storeWebEntityCreationRule_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class saveWebEntityCreationRule_call extends org.apache.thrift.async.TAsyncMethodCall {
       private WebEntityCreationRule webEntityCreationRule;
-      public storeWebEntityCreationRule_call(WebEntityCreationRule webEntityCreationRule, org.apache.thrift.async.AsyncMethodCallback<storeWebEntityCreationRule_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public saveWebEntityCreationRule_call(WebEntityCreationRule webEntityCreationRule, org.apache.thrift.async.AsyncMethodCallback<saveWebEntityCreationRule_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.webEntityCreationRule = webEntityCreationRule;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("storeWebEntityCreationRule", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        storeWebEntityCreationRule_args args = new storeWebEntityCreationRule_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("saveWebEntityCreationRule", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        saveWebEntityCreationRule_args args = new saveWebEntityCreationRule_args();
         args.setWebEntityCreationRule(webEntityCreationRule);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public int getResult() throws org.apache.thrift.TException {
+      public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_storeWebEntityCreationRule();
+        (new Client(prot)).recv_saveWebEntityCreationRule();
       }
     }
 
-    public void storeLRUItems(List<LRUItem> lruItems, org.apache.thrift.async.AsyncMethodCallback<storeLRUItems_call> resultHandler) throws org.apache.thrift.TException {
+    public void savePageItems(Set<PageItem> pageItems, org.apache.thrift.async.AsyncMethodCallback<savePageItems_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      storeLRUItems_call method_call = new storeLRUItems_call(lruItems, resultHandler, this, ___protocolFactory, ___transport);
+      savePageItems_call method_call = new savePageItems_call(pageItems, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class storeLRUItems_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private List<LRUItem> lruItems;
-      public storeLRUItems_call(List<LRUItem> lruItems, org.apache.thrift.async.AsyncMethodCallback<storeLRUItems_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class savePageItems_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private Set<PageItem> pageItems;
+      public savePageItems_call(Set<PageItem> pageItems, org.apache.thrift.async.AsyncMethodCallback<savePageItems_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.lruItems = lruItems;
+        this.pageItems = pageItems;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("storeLRUItems", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        storeLRUItems_args args = new storeLRUItems_args();
-        args.setLruItems(lruItems);
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("savePageItems", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        savePageItems_args args = new savePageItems_args();
+        args.setPageItems(pageItems);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws org.apache.thrift.TException {
+      public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_storeLRUItems();
+        (new Client(prot)).recv_savePageItems();
       }
     }
 
-    public void storeNodeLinks(List<NodeLink> nodeLinks, org.apache.thrift.async.AsyncMethodCallback<storeNodeLinks_call> resultHandler) throws org.apache.thrift.TException {
+    public void saveNodeLinks(List<NodeLink> nodeLinks, org.apache.thrift.async.AsyncMethodCallback<saveNodeLinks_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      storeNodeLinks_call method_call = new storeNodeLinks_call(nodeLinks, resultHandler, this, ___protocolFactory, ___transport);
+      saveNodeLinks_call method_call = new saveNodeLinks_call(nodeLinks, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class storeNodeLinks_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class saveNodeLinks_call extends org.apache.thrift.async.TAsyncMethodCall {
       private List<NodeLink> nodeLinks;
-      public storeNodeLinks_call(List<NodeLink> nodeLinks, org.apache.thrift.async.AsyncMethodCallback<storeNodeLinks_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public saveNodeLinks_call(List<NodeLink> nodeLinks, org.apache.thrift.async.AsyncMethodCallback<saveNodeLinks_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.nodeLinks = nodeLinks;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("storeNodeLinks", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        storeNodeLinks_args args = new storeNodeLinks_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("saveNodeLinks", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        saveNodeLinks_args args = new saveNodeLinks_args();
         args.setNodeLinks(nodeLinks);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws org.apache.thrift.TException {
+      public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_storeNodeLinks();
+        (new Client(prot)).recv_saveNodeLinks();
       }
     }
 
-    public void addLRUtoWebEntity(String id, LRUItem lruItem, org.apache.thrift.async.AsyncMethodCallback<addLRUtoWebEntity_call> resultHandler) throws org.apache.thrift.TException {
+    public void addLRUtoWebEntity(String id, PageItem pageItem, org.apache.thrift.async.AsyncMethodCallback<addLRUtoWebEntity_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      addLRUtoWebEntity_call method_call = new addLRUtoWebEntity_call(id, lruItem, resultHandler, this, ___protocolFactory, ___transport);
+      addLRUtoWebEntity_call method_call = new addLRUtoWebEntity_call(id, pageItem, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class addLRUtoWebEntity_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String id;
-      private LRUItem lruItem;
-      public addLRUtoWebEntity_call(String id, LRUItem lruItem, org.apache.thrift.async.AsyncMethodCallback<addLRUtoWebEntity_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private PageItem pageItem;
+      public addLRUtoWebEntity_call(String id, PageItem pageItem, org.apache.thrift.async.AsyncMethodCallback<addLRUtoWebEntity_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.id = id;
-        this.lruItem = lruItem;
+        this.pageItem = pageItem;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("addLRUtoWebEntity", org.apache.thrift.protocol.TMessageType.CALL, 0));
         addLRUtoWebEntity_args args = new addLRUtoWebEntity_args();
         args.setId(id);
-        args.setLruItem(lruItem);
+        args.setPageItem(pageItem);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws org.apache.thrift.TException {
+      public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_addLRUtoWebEntity();
+        (new Client(prot)).recv_addLRUtoWebEntity();
       }
     }
 
@@ -939,66 +967,80 @@ public class MemoryStructure {
     }
 
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
-      processMap.put("storeWebEntity", new storeWebEntity());
-      processMap.put("findWebEntity", new findWebEntity());
-      processMap.put("findWebEntities", new findWebEntities());
+      processMap.put("saveWebEntity", new saveWebEntity());
+      processMap.put("getWebEntity", new getWebEntity());
+      processMap.put("getWebEntities", new getWebEntities());
       processMap.put("createCache", new createCache());
       processMap.put("indexCache", new indexCache());
       processMap.put("getPrecisionExceptionsFromCache", new getPrecisionExceptionsFromCache());
-      processMap.put("getWebEntitiesFromCache", new getWebEntitiesFromCache());
+      processMap.put("createWebEntities", new createWebEntities());
       processMap.put("deleteCache", new deleteCache());
-      processMap.put("storePrecisionException", new storePrecisionException());
-      processMap.put("storeWebEntityCreationRule", new storeWebEntityCreationRule());
-      processMap.put("storeLRUItems", new storeLRUItems());
-      processMap.put("storeNodeLinks", new storeNodeLinks());
+      processMap.put("markPageWithPrecisionException", new markPageWithPrecisionException());
+      processMap.put("saveWebEntityCreationRule", new saveWebEntityCreationRule());
+      processMap.put("savePageItems", new savePageItems());
+      processMap.put("saveNodeLinks", new saveNodeLinks());
       processMap.put("addLRUtoWebEntity", new addLRUtoWebEntity());
       return processMap;
     }
 
-    private static class storeWebEntity<I extends Iface> extends org.apache.thrift.ProcessFunction<I, storeWebEntity_args> {
-      public storeWebEntity() {
-        super("storeWebEntity");
+    private static class saveWebEntity<I extends Iface> extends org.apache.thrift.ProcessFunction<I, saveWebEntity_args> {
+      public saveWebEntity() {
+        super("saveWebEntity");
       }
 
-      protected storeWebEntity_args getEmptyArgsInstance() {
-        return new storeWebEntity_args();
+      protected saveWebEntity_args getEmptyArgsInstance() {
+        return new saveWebEntity_args();
       }
 
-      protected storeWebEntity_result getResult(I iface, storeWebEntity_args args) throws org.apache.thrift.TException {
-        storeWebEntity_result result = new storeWebEntity_result();
-        result.success = iface.storeWebEntity(args.webEntity);
+      protected saveWebEntity_result getResult(I iface, saveWebEntity_args args) throws org.apache.thrift.TException {
+        saveWebEntity_result result = new saveWebEntity_result();
+        try {
+          result.success = iface.saveWebEntity(args.webEntity);
+        } catch (MemoryStructureException x) {
+          result.x = x;
+        }
         return result;
       }
     }
 
-    private static class findWebEntity<I extends Iface> extends org.apache.thrift.ProcessFunction<I, findWebEntity_args> {
-      public findWebEntity() {
-        super("findWebEntity");
+    private static class getWebEntity<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getWebEntity_args> {
+      public getWebEntity() {
+        super("getWebEntity");
       }
 
-      protected findWebEntity_args getEmptyArgsInstance() {
-        return new findWebEntity_args();
+      protected getWebEntity_args getEmptyArgsInstance() {
+        return new getWebEntity_args();
       }
 
-      protected findWebEntity_result getResult(I iface, findWebEntity_args args) throws org.apache.thrift.TException {
-        findWebEntity_result result = new findWebEntity_result();
-        result.success = iface.findWebEntity(args.id);
+      protected getWebEntity_result getResult(I iface, getWebEntity_args args) throws org.apache.thrift.TException {
+        getWebEntity_result result = new getWebEntity_result();
+        try {
+          result.success = iface.getWebEntity(args.webEntityId);
+        } catch (MemoryStructureException me) {
+          result.me = me;
+        } catch (ObjectNotFoundException x) {
+          result.x = x;
+        }
         return result;
       }
     }
 
-    private static class findWebEntities<I extends Iface> extends org.apache.thrift.ProcessFunction<I, findWebEntities_args> {
-      public findWebEntities() {
-        super("findWebEntities");
+    private static class getWebEntities<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getWebEntities_args> {
+      public getWebEntities() {
+        super("getWebEntities");
       }
 
-      protected findWebEntities_args getEmptyArgsInstance() {
-        return new findWebEntities_args();
+      protected getWebEntities_args getEmptyArgsInstance() {
+        return new getWebEntities_args();
       }
 
-      protected findWebEntities_result getResult(I iface, findWebEntities_args args) throws org.apache.thrift.TException {
-        findWebEntities_result result = new findWebEntities_result();
-        result.success = iface.findWebEntities();
+      protected getWebEntities_result getResult(I iface, getWebEntities_args args) throws org.apache.thrift.TException {
+        getWebEntities_result result = new getWebEntities_result();
+        try {
+          result.success = iface.getWebEntities();
+        } catch (MemoryStructureException me) {
+          result.me = me;
+        }
         return result;
       }
     }
@@ -1014,7 +1056,11 @@ public class MemoryStructure {
 
       protected createCache_result getResult(I iface, createCache_args args) throws org.apache.thrift.TException {
         createCache_result result = new createCache_result();
-        result.success = iface.createCache(args.lruItems);
+        try {
+          result.success = iface.createCache(args.pageItems);
+        } catch (MemoryStructureException x) {
+          result.x = x;
+        }
         return result;
       }
     }
@@ -1030,7 +1076,14 @@ public class MemoryStructure {
 
       protected indexCache_result getResult(I iface, indexCache_args args) throws org.apache.thrift.TException {
         indexCache_result result = new indexCache_result();
-        result.success = iface.indexCache(args.cacheId);
+        try {
+          result.success = iface.indexCache(args.cacheId);
+          result.setSuccessIsSet(true);
+        } catch (MemoryStructureException me) {
+          result.me = me;
+        } catch (ObjectNotFoundException x) {
+          result.x = x;
+        }
         return result;
       }
     }
@@ -1046,23 +1099,35 @@ public class MemoryStructure {
 
       protected getPrecisionExceptionsFromCache_result getResult(I iface, getPrecisionExceptionsFromCache_args args) throws org.apache.thrift.TException {
         getPrecisionExceptionsFromCache_result result = new getPrecisionExceptionsFromCache_result();
-        result.success = iface.getPrecisionExceptionsFromCache(args.cacheId);
+        try {
+          result.success = iface.getPrecisionExceptionsFromCache(args.cacheId);
+        } catch (MemoryStructureException me) {
+          result.me = me;
+        } catch (ObjectNotFoundException x) {
+          result.x = x;
+        }
         return result;
       }
     }
 
-    private static class getWebEntitiesFromCache<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getWebEntitiesFromCache_args> {
-      public getWebEntitiesFromCache() {
-        super("getWebEntitiesFromCache");
+    private static class createWebEntities<I extends Iface> extends org.apache.thrift.ProcessFunction<I, createWebEntities_args> {
+      public createWebEntities() {
+        super("createWebEntities");
       }
 
-      protected getWebEntitiesFromCache_args getEmptyArgsInstance() {
-        return new getWebEntitiesFromCache_args();
+      protected createWebEntities_args getEmptyArgsInstance() {
+        return new createWebEntities_args();
       }
 
-      protected getWebEntitiesFromCache_result getResult(I iface, getWebEntitiesFromCache_args args) throws org.apache.thrift.TException {
-        getWebEntitiesFromCache_result result = new getWebEntitiesFromCache_result();
-        result.success = iface.getWebEntitiesFromCache(args.cacheId);
+      protected createWebEntities_result getResult(I iface, createWebEntities_args args) throws org.apache.thrift.TException {
+        createWebEntities_result result = new createWebEntities_result();
+        try {
+          iface.createWebEntities(args.cacheId);
+        } catch (MemoryStructureException me) {
+          result.me = me;
+        } catch (ObjectNotFoundException x) {
+          result.x = x;
+        }
         return result;
       }
     }
@@ -1078,76 +1143,95 @@ public class MemoryStructure {
 
       protected deleteCache_result getResult(I iface, deleteCache_args args) throws org.apache.thrift.TException {
         deleteCache_result result = new deleteCache_result();
-        result.success = iface.deleteCache(args.cacheId);
-        result.setSuccessIsSet(true);
+        try {
+          iface.deleteCache(args.cacheId);
+        } catch (MemoryStructureException me) {
+          result.me = me;
+        } catch (ObjectNotFoundException x) {
+          result.x = x;
+        }
         return result;
       }
     }
 
-    private static class storePrecisionException<I extends Iface> extends org.apache.thrift.ProcessFunction<I, storePrecisionException_args> {
-      public storePrecisionException() {
-        super("storePrecisionException");
+    private static class markPageWithPrecisionException<I extends Iface> extends org.apache.thrift.ProcessFunction<I, markPageWithPrecisionException_args> {
+      public markPageWithPrecisionException() {
+        super("markPageWithPrecisionException");
       }
 
-      protected storePrecisionException_args getEmptyArgsInstance() {
-        return new storePrecisionException_args();
+      protected markPageWithPrecisionException_args getEmptyArgsInstance() {
+        return new markPageWithPrecisionException_args();
       }
 
-      protected storePrecisionException_result getResult(I iface, storePrecisionException_args args) throws org.apache.thrift.TException {
-        storePrecisionException_result result = new storePrecisionException_result();
-        result.success = iface.storePrecisionException(args.precisionException);
-        result.setSuccessIsSet(true);
+      protected markPageWithPrecisionException_result getResult(I iface, markPageWithPrecisionException_args args) throws org.apache.thrift.TException {
+        markPageWithPrecisionException_result result = new markPageWithPrecisionException_result();
+        try {
+          iface.markPageWithPrecisionException(args.pageItemId);
+        } catch (MemoryStructureException me) {
+          result.me = me;
+        } catch (ObjectNotFoundException x) {
+          result.x = x;
+        }
         return result;
       }
     }
 
-    private static class storeWebEntityCreationRule<I extends Iface> extends org.apache.thrift.ProcessFunction<I, storeWebEntityCreationRule_args> {
-      public storeWebEntityCreationRule() {
-        super("storeWebEntityCreationRule");
+    private static class saveWebEntityCreationRule<I extends Iface> extends org.apache.thrift.ProcessFunction<I, saveWebEntityCreationRule_args> {
+      public saveWebEntityCreationRule() {
+        super("saveWebEntityCreationRule");
       }
 
-      protected storeWebEntityCreationRule_args getEmptyArgsInstance() {
-        return new storeWebEntityCreationRule_args();
+      protected saveWebEntityCreationRule_args getEmptyArgsInstance() {
+        return new saveWebEntityCreationRule_args();
       }
 
-      protected storeWebEntityCreationRule_result getResult(I iface, storeWebEntityCreationRule_args args) throws org.apache.thrift.TException {
-        storeWebEntityCreationRule_result result = new storeWebEntityCreationRule_result();
-        result.success = iface.storeWebEntityCreationRule(args.webEntityCreationRule);
-        result.setSuccessIsSet(true);
+      protected saveWebEntityCreationRule_result getResult(I iface, saveWebEntityCreationRule_args args) throws org.apache.thrift.TException {
+        saveWebEntityCreationRule_result result = new saveWebEntityCreationRule_result();
+        try {
+          iface.saveWebEntityCreationRule(args.webEntityCreationRule);
+        } catch (MemoryStructureException me) {
+          result.me = me;
+        }
         return result;
       }
     }
 
-    private static class storeLRUItems<I extends Iface> extends org.apache.thrift.ProcessFunction<I, storeLRUItems_args> {
-      public storeLRUItems() {
-        super("storeLRUItems");
+    private static class savePageItems<I extends Iface> extends org.apache.thrift.ProcessFunction<I, savePageItems_args> {
+      public savePageItems() {
+        super("savePageItems");
       }
 
-      protected storeLRUItems_args getEmptyArgsInstance() {
-        return new storeLRUItems_args();
+      protected savePageItems_args getEmptyArgsInstance() {
+        return new savePageItems_args();
       }
 
-      protected storeLRUItems_result getResult(I iface, storeLRUItems_args args) throws org.apache.thrift.TException {
-        storeLRUItems_result result = new storeLRUItems_result();
-        result.success = iface.storeLRUItems(args.lruItems);
-        result.setSuccessIsSet(true);
+      protected savePageItems_result getResult(I iface, savePageItems_args args) throws org.apache.thrift.TException {
+        savePageItems_result result = new savePageItems_result();
+        try {
+          iface.savePageItems(args.pageItems);
+        } catch (MemoryStructureException me) {
+          result.me = me;
+        }
         return result;
       }
     }
 
-    private static class storeNodeLinks<I extends Iface> extends org.apache.thrift.ProcessFunction<I, storeNodeLinks_args> {
-      public storeNodeLinks() {
-        super("storeNodeLinks");
+    private static class saveNodeLinks<I extends Iface> extends org.apache.thrift.ProcessFunction<I, saveNodeLinks_args> {
+      public saveNodeLinks() {
+        super("saveNodeLinks");
       }
 
-      protected storeNodeLinks_args getEmptyArgsInstance() {
-        return new storeNodeLinks_args();
+      protected saveNodeLinks_args getEmptyArgsInstance() {
+        return new saveNodeLinks_args();
       }
 
-      protected storeNodeLinks_result getResult(I iface, storeNodeLinks_args args) throws org.apache.thrift.TException {
-        storeNodeLinks_result result = new storeNodeLinks_result();
-        result.success = iface.storeNodeLinks(args.nodeLinks);
-        result.setSuccessIsSet(true);
+      protected saveNodeLinks_result getResult(I iface, saveNodeLinks_args args) throws org.apache.thrift.TException {
+        saveNodeLinks_result result = new saveNodeLinks_result();
+        try {
+          iface.saveNodeLinks(args.nodeLinks);
+        } catch (MemoryStructureException me) {
+          result.me = me;
+        }
         return result;
       }
     }
@@ -1163,23 +1247,26 @@ public class MemoryStructure {
 
       protected addLRUtoWebEntity_result getResult(I iface, addLRUtoWebEntity_args args) throws org.apache.thrift.TException {
         addLRUtoWebEntity_result result = new addLRUtoWebEntity_result();
-        result.success = iface.addLRUtoWebEntity(args.id, args.lruItem);
-        result.setSuccessIsSet(true);
+        try {
+          iface.addLRUtoWebEntity(args.id, args.pageItem);
+        } catch (MemoryStructureException me) {
+          result.me = me;
+        }
         return result;
       }
     }
 
   }
 
-  public static class storeWebEntity_args implements org.apache.thrift.TBase<storeWebEntity_args, storeWebEntity_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storeWebEntity_args");
+  public static class saveWebEntity_args implements org.apache.thrift.TBase<saveWebEntity_args, saveWebEntity_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("saveWebEntity_args");
 
     private static final org.apache.thrift.protocol.TField WEB_ENTITY_FIELD_DESC = new org.apache.thrift.protocol.TField("webEntity", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new storeWebEntity_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new storeWebEntity_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new saveWebEntity_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new saveWebEntity_argsTupleSchemeFactory());
     }
 
     public WebEntity webEntity; // required
@@ -1249,13 +1336,13 @@ public class MemoryStructure {
       tmpMap.put(_Fields.WEB_ENTITY, new org.apache.thrift.meta_data.FieldMetaData("webEntity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, WebEntity.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storeWebEntity_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(saveWebEntity_args.class, metaDataMap);
     }
 
-    public storeWebEntity_args() {
+    public saveWebEntity_args() {
     }
 
-    public storeWebEntity_args(
+    public saveWebEntity_args(
       WebEntity webEntity)
     {
       this();
@@ -1265,14 +1352,14 @@ public class MemoryStructure {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public storeWebEntity_args(storeWebEntity_args other) {
+    public saveWebEntity_args(saveWebEntity_args other) {
       if (other.isSetWebEntity()) {
         this.webEntity = new WebEntity(other.webEntity);
       }
     }
 
-    public storeWebEntity_args deepCopy() {
-      return new storeWebEntity_args(this);
+    public saveWebEntity_args deepCopy() {
+      return new saveWebEntity_args(this);
     }
 
     @Override
@@ -1284,7 +1371,7 @@ public class MemoryStructure {
       return this.webEntity;
     }
 
-    public storeWebEntity_args setWebEntity(WebEntity webEntity) {
+    public saveWebEntity_args setWebEntity(WebEntity webEntity) {
       this.webEntity = webEntity;
       return this;
     }
@@ -1343,12 +1430,12 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof storeWebEntity_args)
-        return this.equals((storeWebEntity_args)that);
+      if (that instanceof saveWebEntity_args)
+        return this.equals((saveWebEntity_args)that);
       return false;
     }
 
-    public boolean equals(storeWebEntity_args that) {
+    public boolean equals(saveWebEntity_args that) {
       if (that == null)
         return false;
 
@@ -1369,13 +1456,13 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(storeWebEntity_args other) {
+    public int compareTo(saveWebEntity_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      storeWebEntity_args typedOther = (storeWebEntity_args)other;
+      saveWebEntity_args typedOther = (saveWebEntity_args)other;
 
       lastComparison = Boolean.valueOf(isSetWebEntity()).compareTo(typedOther.isSetWebEntity());
       if (lastComparison != 0) {
@@ -1404,7 +1491,7 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("storeWebEntity_args(");
+      StringBuilder sb = new StringBuilder("saveWebEntity_args(");
       boolean first = true;
 
       sb.append("webEntity:");
@@ -1438,15 +1525,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class storeWebEntity_argsStandardSchemeFactory implements SchemeFactory {
-      public storeWebEntity_argsStandardScheme getScheme() {
-        return new storeWebEntity_argsStandardScheme();
+    private static class saveWebEntity_argsStandardSchemeFactory implements SchemeFactory {
+      public saveWebEntity_argsStandardScheme getScheme() {
+        return new saveWebEntity_argsStandardScheme();
       }
     }
 
-    private static class storeWebEntity_argsStandardScheme extends StandardScheme<storeWebEntity_args> {
+    private static class saveWebEntity_argsStandardScheme extends StandardScheme<saveWebEntity_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, storeWebEntity_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, saveWebEntity_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -1476,7 +1563,7 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, storeWebEntity_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, saveWebEntity_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -1491,16 +1578,16 @@ public class MemoryStructure {
 
     }
 
-    private static class storeWebEntity_argsTupleSchemeFactory implements SchemeFactory {
-      public storeWebEntity_argsTupleScheme getScheme() {
-        return new storeWebEntity_argsTupleScheme();
+    private static class saveWebEntity_argsTupleSchemeFactory implements SchemeFactory {
+      public saveWebEntity_argsTupleScheme getScheme() {
+        return new saveWebEntity_argsTupleScheme();
       }
     }
 
-    private static class storeWebEntity_argsTupleScheme extends TupleScheme<storeWebEntity_args> {
+    private static class saveWebEntity_argsTupleScheme extends TupleScheme<saveWebEntity_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, storeWebEntity_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, saveWebEntity_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetWebEntity()) {
@@ -1513,7 +1600,7 @@ public class MemoryStructure {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, storeWebEntity_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, saveWebEntity_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
@@ -1526,22 +1613,25 @@ public class MemoryStructure {
 
   }
 
-  public static class storeWebEntity_result implements org.apache.thrift.TBase<storeWebEntity_result, storeWebEntity_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storeWebEntity_result");
+  public static class saveWebEntity_result implements org.apache.thrift.TBase<saveWebEntity_result, saveWebEntity_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("saveWebEntity_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField X_FIELD_DESC = new org.apache.thrift.protocol.TField("x", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new storeWebEntity_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new storeWebEntity_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new saveWebEntity_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new saveWebEntity_resultTupleSchemeFactory());
     }
 
     public String success; // required
+    public MemoryStructureException x; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      X((short)1, "x");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1558,6 +1648,8 @@ public class MemoryStructure {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // X
+            return X;
           default:
             return null;
         }
@@ -1603,43 +1695,51 @@ public class MemoryStructure {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.X, new org.apache.thrift.meta_data.FieldMetaData("x", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storeWebEntity_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(saveWebEntity_result.class, metaDataMap);
     }
 
-    public storeWebEntity_result() {
+    public saveWebEntity_result() {
     }
 
-    public storeWebEntity_result(
-      String success)
+    public saveWebEntity_result(
+      String success,
+      MemoryStructureException x)
     {
       this();
       this.success = success;
+      this.x = x;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public storeWebEntity_result(storeWebEntity_result other) {
+    public saveWebEntity_result(saveWebEntity_result other) {
       if (other.isSetSuccess()) {
         this.success = other.success;
       }
+      if (other.isSetX()) {
+        this.x = new MemoryStructureException(other.x);
+      }
     }
 
-    public storeWebEntity_result deepCopy() {
-      return new storeWebEntity_result(this);
+    public saveWebEntity_result deepCopy() {
+      return new saveWebEntity_result(this);
     }
 
     @Override
     public void clear() {
       this.success = null;
+      this.x = null;
     }
 
     public String getSuccess() {
       return this.success;
     }
 
-    public storeWebEntity_result setSuccess(String success) {
+    public saveWebEntity_result setSuccess(String success) {
       this.success = success;
       return this;
     }
@@ -1659,6 +1759,30 @@ public class MemoryStructure {
       }
     }
 
+    public MemoryStructureException getX() {
+      return this.x;
+    }
+
+    public saveWebEntity_result setX(MemoryStructureException x) {
+      this.x = x;
+      return this;
+    }
+
+    public void unsetX() {
+      this.x = null;
+    }
+
+    /** Returns true if field x is set (has been assigned a value) and false otherwise */
+    public boolean isSetX() {
+      return this.x != null;
+    }
+
+    public void setXIsSet(boolean value) {
+      if (!value) {
+        this.x = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -1669,6 +1793,14 @@ public class MemoryStructure {
         }
         break;
 
+      case X:
+        if (value == null) {
+          unsetX();
+        } else {
+          setX((MemoryStructureException)value);
+        }
+        break;
+
       }
     }
 
@@ -1676,6 +1808,9 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return getSuccess();
+
+      case X:
+        return getX();
 
       }
       throw new IllegalStateException();
@@ -1690,6 +1825,8 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case X:
+        return isSetX();
       }
       throw new IllegalStateException();
     }
@@ -1698,12 +1835,12 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof storeWebEntity_result)
-        return this.equals((storeWebEntity_result)that);
+      if (that instanceof saveWebEntity_result)
+        return this.equals((saveWebEntity_result)that);
       return false;
     }
 
-    public boolean equals(storeWebEntity_result that) {
+    public boolean equals(saveWebEntity_result that) {
       if (that == null)
         return false;
 
@@ -1716,6 +1853,15 @@ public class MemoryStructure {
           return false;
       }
 
+      boolean this_present_x = true && this.isSetX();
+      boolean that_present_x = true && that.isSetX();
+      if (this_present_x || that_present_x) {
+        if (!(this_present_x && that_present_x))
+          return false;
+        if (!this.x.equals(that.x))
+          return false;
+      }
+
       return true;
     }
 
@@ -1724,13 +1870,13 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(storeWebEntity_result other) {
+    public int compareTo(saveWebEntity_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      storeWebEntity_result typedOther = (storeWebEntity_result)other;
+      saveWebEntity_result typedOther = (saveWebEntity_result)other;
 
       lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
       if (lastComparison != 0) {
@@ -1738,6 +1884,16 @@ public class MemoryStructure {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetX()).compareTo(typedOther.isSetX());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetX()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.x, typedOther.x);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -1759,7 +1915,7 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("storeWebEntity_result(");
+      StringBuilder sb = new StringBuilder("saveWebEntity_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -1767,6 +1923,14 @@ public class MemoryStructure {
         sb.append("null");
       } else {
         sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("x:");
+      if (this.x == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.x);
       }
       first = false;
       sb.append(")");
@@ -1793,15 +1957,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class storeWebEntity_resultStandardSchemeFactory implements SchemeFactory {
-      public storeWebEntity_resultStandardScheme getScheme() {
-        return new storeWebEntity_resultStandardScheme();
+    private static class saveWebEntity_resultStandardSchemeFactory implements SchemeFactory {
+      public saveWebEntity_resultStandardScheme getScheme() {
+        return new saveWebEntity_resultStandardScheme();
       }
     }
 
-    private static class storeWebEntity_resultStandardScheme extends StandardScheme<storeWebEntity_result> {
+    private static class saveWebEntity_resultStandardScheme extends StandardScheme<saveWebEntity_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, storeWebEntity_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, saveWebEntity_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -1819,6 +1983,15 @@ public class MemoryStructure {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // X
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.x = new MemoryStructureException();
+                struct.x.read(iprot);
+                struct.setXIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -1830,7 +2003,7 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, storeWebEntity_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, saveWebEntity_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -1839,62 +2012,78 @@ public class MemoryStructure {
           oprot.writeString(struct.success);
           oprot.writeFieldEnd();
         }
+        if (struct.x != null) {
+          oprot.writeFieldBegin(X_FIELD_DESC);
+          struct.x.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class storeWebEntity_resultTupleSchemeFactory implements SchemeFactory {
-      public storeWebEntity_resultTupleScheme getScheme() {
-        return new storeWebEntity_resultTupleScheme();
+    private static class saveWebEntity_resultTupleSchemeFactory implements SchemeFactory {
+      public saveWebEntity_resultTupleScheme getScheme() {
+        return new saveWebEntity_resultTupleScheme();
       }
     }
 
-    private static class storeWebEntity_resultTupleScheme extends TupleScheme<storeWebEntity_result> {
+    private static class saveWebEntity_resultTupleScheme extends TupleScheme<saveWebEntity_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, storeWebEntity_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, saveWebEntity_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetX()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeString(struct.success);
+        }
+        if (struct.isSetX()) {
+          struct.x.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, storeWebEntity_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, saveWebEntity_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = iprot.readString();
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.x = new MemoryStructureException();
+          struct.x.read(iprot);
+          struct.setXIsSet(true);
         }
       }
     }
 
   }
 
-  public static class findWebEntity_args implements org.apache.thrift.TBase<findWebEntity_args, findWebEntity_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("findWebEntity_args");
+  public static class getWebEntity_args implements org.apache.thrift.TBase<getWebEntity_args, getWebEntity_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getWebEntity_args");
 
-    private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField WEB_ENTITY_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("webEntityId", org.apache.thrift.protocol.TType.STRING, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new findWebEntity_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new findWebEntity_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getWebEntity_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getWebEntity_argsTupleSchemeFactory());
     }
 
-    public String id; // required
+    public String webEntityId; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      ID((short)1, "id");
+      WEB_ENTITY_ID((short)1, "webEntityId");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1909,8 +2098,8 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // ID
-            return ID;
+          case 1: // WEB_ENTITY_ID
+            return WEB_ENTITY_ID;
           default:
             return null;
         }
@@ -1954,71 +2143,71 @@ public class MemoryStructure {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.WEB_ENTITY_ID, new org.apache.thrift.meta_data.FieldMetaData("webEntityId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(findWebEntity_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getWebEntity_args.class, metaDataMap);
     }
 
-    public findWebEntity_args() {
+    public getWebEntity_args() {
     }
 
-    public findWebEntity_args(
-      String id)
+    public getWebEntity_args(
+      String webEntityId)
     {
       this();
-      this.id = id;
+      this.webEntityId = webEntityId;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public findWebEntity_args(findWebEntity_args other) {
-      if (other.isSetId()) {
-        this.id = other.id;
+    public getWebEntity_args(getWebEntity_args other) {
+      if (other.isSetWebEntityId()) {
+        this.webEntityId = other.webEntityId;
       }
     }
 
-    public findWebEntity_args deepCopy() {
-      return new findWebEntity_args(this);
+    public getWebEntity_args deepCopy() {
+      return new getWebEntity_args(this);
     }
 
     @Override
     public void clear() {
-      this.id = null;
+      this.webEntityId = null;
     }
 
-    public String getId() {
-      return this.id;
+    public String getWebEntityId() {
+      return this.webEntityId;
     }
 
-    public findWebEntity_args setId(String id) {
-      this.id = id;
+    public getWebEntity_args setWebEntityId(String webEntityId) {
+      this.webEntityId = webEntityId;
       return this;
     }
 
-    public void unsetId() {
-      this.id = null;
+    public void unsetWebEntityId() {
+      this.webEntityId = null;
     }
 
-    /** Returns true if field id is set (has been assigned a value) and false otherwise */
-    public boolean isSetId() {
-      return this.id != null;
+    /** Returns true if field webEntityId is set (has been assigned a value) and false otherwise */
+    public boolean isSetWebEntityId() {
+      return this.webEntityId != null;
     }
 
-    public void setIdIsSet(boolean value) {
+    public void setWebEntityIdIsSet(boolean value) {
       if (!value) {
-        this.id = null;
+        this.webEntityId = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case ID:
+      case WEB_ENTITY_ID:
         if (value == null) {
-          unsetId();
+          unsetWebEntityId();
         } else {
-          setId((String)value);
+          setWebEntityId((String)value);
         }
         break;
 
@@ -2027,8 +2216,8 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case ID:
-        return getId();
+      case WEB_ENTITY_ID:
+        return getWebEntityId();
 
       }
       throw new IllegalStateException();
@@ -2041,8 +2230,8 @@ public class MemoryStructure {
       }
 
       switch (field) {
-      case ID:
-        return isSetId();
+      case WEB_ENTITY_ID:
+        return isSetWebEntityId();
       }
       throw new IllegalStateException();
     }
@@ -2051,21 +2240,21 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof findWebEntity_args)
-        return this.equals((findWebEntity_args)that);
+      if (that instanceof getWebEntity_args)
+        return this.equals((getWebEntity_args)that);
       return false;
     }
 
-    public boolean equals(findWebEntity_args that) {
+    public boolean equals(getWebEntity_args that) {
       if (that == null)
         return false;
 
-      boolean this_present_id = true && this.isSetId();
-      boolean that_present_id = true && that.isSetId();
-      if (this_present_id || that_present_id) {
-        if (!(this_present_id && that_present_id))
+      boolean this_present_webEntityId = true && this.isSetWebEntityId();
+      boolean that_present_webEntityId = true && that.isSetWebEntityId();
+      if (this_present_webEntityId || that_present_webEntityId) {
+        if (!(this_present_webEntityId && that_present_webEntityId))
           return false;
-        if (!this.id.equals(that.id))
+        if (!this.webEntityId.equals(that.webEntityId))
           return false;
       }
 
@@ -2077,20 +2266,20 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(findWebEntity_args other) {
+    public int compareTo(getWebEntity_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      findWebEntity_args typedOther = (findWebEntity_args)other;
+      getWebEntity_args typedOther = (getWebEntity_args)other;
 
-      lastComparison = Boolean.valueOf(isSetId()).compareTo(typedOther.isSetId());
+      lastComparison = Boolean.valueOf(isSetWebEntityId()).compareTo(typedOther.isSetWebEntityId());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.id, typedOther.id);
+      if (isSetWebEntityId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.webEntityId, typedOther.webEntityId);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -2112,14 +2301,14 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("findWebEntity_args(");
+      StringBuilder sb = new StringBuilder("getWebEntity_args(");
       boolean first = true;
 
-      sb.append("id:");
-      if (this.id == null) {
+      sb.append("webEntityId:");
+      if (this.webEntityId == null) {
         sb.append("null");
       } else {
-        sb.append(this.id);
+        sb.append(this.webEntityId);
       }
       first = false;
       sb.append(")");
@@ -2146,15 +2335,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class findWebEntity_argsStandardSchemeFactory implements SchemeFactory {
-      public findWebEntity_argsStandardScheme getScheme() {
-        return new findWebEntity_argsStandardScheme();
+    private static class getWebEntity_argsStandardSchemeFactory implements SchemeFactory {
+      public getWebEntity_argsStandardScheme getScheme() {
+        return new getWebEntity_argsStandardScheme();
       }
     }
 
-    private static class findWebEntity_argsStandardScheme extends StandardScheme<findWebEntity_args> {
+    private static class getWebEntity_argsStandardScheme extends StandardScheme<getWebEntity_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, findWebEntity_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getWebEntity_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -2164,10 +2353,10 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
-            case 1: // ID
+            case 1: // WEB_ENTITY_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.id = iprot.readString();
-                struct.setIdIsSet(true);
+                struct.webEntityId = iprot.readString();
+                struct.setWebEntityIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -2183,13 +2372,13 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, findWebEntity_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getWebEntity_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.id != null) {
-          oprot.writeFieldBegin(ID_FIELD_DESC);
-          oprot.writeString(struct.id);
+        if (struct.webEntityId != null) {
+          oprot.writeFieldBegin(WEB_ENTITY_ID_FIELD_DESC);
+          oprot.writeString(struct.webEntityId);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -2198,56 +2387,62 @@ public class MemoryStructure {
 
     }
 
-    private static class findWebEntity_argsTupleSchemeFactory implements SchemeFactory {
-      public findWebEntity_argsTupleScheme getScheme() {
-        return new findWebEntity_argsTupleScheme();
+    private static class getWebEntity_argsTupleSchemeFactory implements SchemeFactory {
+      public getWebEntity_argsTupleScheme getScheme() {
+        return new getWebEntity_argsTupleScheme();
       }
     }
 
-    private static class findWebEntity_argsTupleScheme extends TupleScheme<findWebEntity_args> {
+    private static class getWebEntity_argsTupleScheme extends TupleScheme<getWebEntity_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, findWebEntity_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getWebEntity_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetId()) {
+        if (struct.isSetWebEntityId()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetId()) {
-          oprot.writeString(struct.id);
+        if (struct.isSetWebEntityId()) {
+          oprot.writeString(struct.webEntityId);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, findWebEntity_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getWebEntity_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.id = iprot.readString();
-          struct.setIdIsSet(true);
+          struct.webEntityId = iprot.readString();
+          struct.setWebEntityIdIsSet(true);
         }
       }
     }
 
   }
 
-  public static class findWebEntity_result implements org.apache.thrift.TBase<findWebEntity_result, findWebEntity_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("findWebEntity_result");
+  public static class getWebEntity_result implements org.apache.thrift.TBase<getWebEntity_result, getWebEntity_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getWebEntity_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+    private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField X_FIELD_DESC = new org.apache.thrift.protocol.TField("x", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new findWebEntity_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new findWebEntity_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getWebEntity_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getWebEntity_resultTupleSchemeFactory());
     }
 
     public WebEntity success; // required
+    public MemoryStructureException me; // required
+    public ObjectNotFoundException x; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      ME((short)1, "me"),
+      X((short)2, "x");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2264,6 +2459,10 @@ public class MemoryStructure {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // ME
+            return ME;
+          case 2: // X
+            return X;
           default:
             return null;
         }
@@ -2309,43 +2508,59 @@ public class MemoryStructure {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, WebEntity.class)));
+      tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.X, new org.apache.thrift.meta_data.FieldMetaData("x", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(findWebEntity_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getWebEntity_result.class, metaDataMap);
     }
 
-    public findWebEntity_result() {
+    public getWebEntity_result() {
     }
 
-    public findWebEntity_result(
-      WebEntity success)
+    public getWebEntity_result(
+      WebEntity success,
+      MemoryStructureException me,
+      ObjectNotFoundException x)
     {
       this();
       this.success = success;
+      this.me = me;
+      this.x = x;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public findWebEntity_result(findWebEntity_result other) {
+    public getWebEntity_result(getWebEntity_result other) {
       if (other.isSetSuccess()) {
         this.success = new WebEntity(other.success);
       }
+      if (other.isSetMe()) {
+        this.me = new MemoryStructureException(other.me);
+      }
+      if (other.isSetX()) {
+        this.x = new ObjectNotFoundException(other.x);
+      }
     }
 
-    public findWebEntity_result deepCopy() {
-      return new findWebEntity_result(this);
+    public getWebEntity_result deepCopy() {
+      return new getWebEntity_result(this);
     }
 
     @Override
     public void clear() {
       this.success = null;
+      this.me = null;
+      this.x = null;
     }
 
     public WebEntity getSuccess() {
       return this.success;
     }
 
-    public findWebEntity_result setSuccess(WebEntity success) {
+    public getWebEntity_result setSuccess(WebEntity success) {
       this.success = success;
       return this;
     }
@@ -2365,6 +2580,54 @@ public class MemoryStructure {
       }
     }
 
+    public MemoryStructureException getMe() {
+      return this.me;
+    }
+
+    public getWebEntity_result setMe(MemoryStructureException me) {
+      this.me = me;
+      return this;
+    }
+
+    public void unsetMe() {
+      this.me = null;
+    }
+
+    /** Returns true if field me is set (has been assigned a value) and false otherwise */
+    public boolean isSetMe() {
+      return this.me != null;
+    }
+
+    public void setMeIsSet(boolean value) {
+      if (!value) {
+        this.me = null;
+      }
+    }
+
+    public ObjectNotFoundException getX() {
+      return this.x;
+    }
+
+    public getWebEntity_result setX(ObjectNotFoundException x) {
+      this.x = x;
+      return this;
+    }
+
+    public void unsetX() {
+      this.x = null;
+    }
+
+    /** Returns true if field x is set (has been assigned a value) and false otherwise */
+    public boolean isSetX() {
+      return this.x != null;
+    }
+
+    public void setXIsSet(boolean value) {
+      if (!value) {
+        this.x = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -2375,6 +2638,22 @@ public class MemoryStructure {
         }
         break;
 
+      case ME:
+        if (value == null) {
+          unsetMe();
+        } else {
+          setMe((MemoryStructureException)value);
+        }
+        break;
+
+      case X:
+        if (value == null) {
+          unsetX();
+        } else {
+          setX((ObjectNotFoundException)value);
+        }
+        break;
+
       }
     }
 
@@ -2382,6 +2661,12 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return getSuccess();
+
+      case ME:
+        return getMe();
+
+      case X:
+        return getX();
 
       }
       throw new IllegalStateException();
@@ -2396,6 +2681,10 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case ME:
+        return isSetMe();
+      case X:
+        return isSetX();
       }
       throw new IllegalStateException();
     }
@@ -2404,12 +2693,12 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof findWebEntity_result)
-        return this.equals((findWebEntity_result)that);
+      if (that instanceof getWebEntity_result)
+        return this.equals((getWebEntity_result)that);
       return false;
     }
 
-    public boolean equals(findWebEntity_result that) {
+    public boolean equals(getWebEntity_result that) {
       if (that == null)
         return false;
 
@@ -2422,6 +2711,24 @@ public class MemoryStructure {
           return false;
       }
 
+      boolean this_present_me = true && this.isSetMe();
+      boolean that_present_me = true && that.isSetMe();
+      if (this_present_me || that_present_me) {
+        if (!(this_present_me && that_present_me))
+          return false;
+        if (!this.me.equals(that.me))
+          return false;
+      }
+
+      boolean this_present_x = true && this.isSetX();
+      boolean that_present_x = true && that.isSetX();
+      if (this_present_x || that_present_x) {
+        if (!(this_present_x && that_present_x))
+          return false;
+        if (!this.x.equals(that.x))
+          return false;
+      }
+
       return true;
     }
 
@@ -2430,13 +2737,13 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(findWebEntity_result other) {
+    public int compareTo(getWebEntity_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      findWebEntity_result typedOther = (findWebEntity_result)other;
+      getWebEntity_result typedOther = (getWebEntity_result)other;
 
       lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
       if (lastComparison != 0) {
@@ -2444,6 +2751,26 @@ public class MemoryStructure {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetMe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetX()).compareTo(typedOther.isSetX());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetX()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.x, typedOther.x);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -2465,7 +2792,7 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("findWebEntity_result(");
+      StringBuilder sb = new StringBuilder("getWebEntity_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -2473,6 +2800,22 @@ public class MemoryStructure {
         sb.append("null");
       } else {
         sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("me:");
+      if (this.me == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.me);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("x:");
+      if (this.x == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.x);
       }
       first = false;
       sb.append(")");
@@ -2499,15 +2842,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class findWebEntity_resultStandardSchemeFactory implements SchemeFactory {
-      public findWebEntity_resultStandardScheme getScheme() {
-        return new findWebEntity_resultStandardScheme();
+    private static class getWebEntity_resultStandardSchemeFactory implements SchemeFactory {
+      public getWebEntity_resultStandardScheme getScheme() {
+        return new getWebEntity_resultStandardScheme();
       }
     }
 
-    private static class findWebEntity_resultStandardScheme extends StandardScheme<findWebEntity_result> {
+    private static class getWebEntity_resultStandardScheme extends StandardScheme<getWebEntity_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, findWebEntity_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getWebEntity_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -2526,6 +2869,24 @@ public class MemoryStructure {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // ME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.me = new MemoryStructureException();
+                struct.me.read(iprot);
+                struct.setMeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // X
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.x = new ObjectNotFoundException();
+                struct.x.read(iprot);
+                struct.setXIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -2537,7 +2898,7 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, findWebEntity_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getWebEntity_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -2546,55 +2907,87 @@ public class MemoryStructure {
           struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
+        if (struct.me != null) {
+          oprot.writeFieldBegin(ME_FIELD_DESC);
+          struct.me.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.x != null) {
+          oprot.writeFieldBegin(X_FIELD_DESC);
+          struct.x.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class findWebEntity_resultTupleSchemeFactory implements SchemeFactory {
-      public findWebEntity_resultTupleScheme getScheme() {
-        return new findWebEntity_resultTupleScheme();
+    private static class getWebEntity_resultTupleSchemeFactory implements SchemeFactory {
+      public getWebEntity_resultTupleScheme getScheme() {
+        return new getWebEntity_resultTupleScheme();
       }
     }
 
-    private static class findWebEntity_resultTupleScheme extends TupleScheme<findWebEntity_result> {
+    private static class getWebEntity_resultTupleScheme extends TupleScheme<getWebEntity_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, findWebEntity_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getWebEntity_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetMe()) {
+          optionals.set(1);
+        }
+        if (struct.isSetX()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           struct.success.write(oprot);
+        }
+        if (struct.isSetMe()) {
+          struct.me.write(oprot);
+        }
+        if (struct.isSetX()) {
+          struct.x.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, findWebEntity_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getWebEntity_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.success = new WebEntity();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.me = new MemoryStructureException();
+          struct.me.read(iprot);
+          struct.setMeIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.x = new ObjectNotFoundException();
+          struct.x.read(iprot);
+          struct.setXIsSet(true);
         }
       }
     }
 
   }
 
-  public static class findWebEntities_args implements org.apache.thrift.TBase<findWebEntities_args, findWebEntities_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("findWebEntities_args");
+  public static class getWebEntities_args implements org.apache.thrift.TBase<getWebEntities_args, getWebEntities_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getWebEntities_args");
 
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new findWebEntities_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new findWebEntities_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getWebEntities_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getWebEntities_argsTupleSchemeFactory());
     }
 
 
@@ -2657,20 +3050,20 @@ public class MemoryStructure {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(findWebEntities_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getWebEntities_args.class, metaDataMap);
     }
 
-    public findWebEntities_args() {
+    public getWebEntities_args() {
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public findWebEntities_args(findWebEntities_args other) {
+    public getWebEntities_args(getWebEntities_args other) {
     }
 
-    public findWebEntities_args deepCopy() {
-      return new findWebEntities_args(this);
+    public getWebEntities_args deepCopy() {
+      return new getWebEntities_args(this);
     }
 
     @Override
@@ -2703,12 +3096,12 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof findWebEntities_args)
-        return this.equals((findWebEntities_args)that);
+      if (that instanceof getWebEntities_args)
+        return this.equals((getWebEntities_args)that);
       return false;
     }
 
-    public boolean equals(findWebEntities_args that) {
+    public boolean equals(getWebEntities_args that) {
       if (that == null)
         return false;
 
@@ -2720,13 +3113,13 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(findWebEntities_args other) {
+    public int compareTo(getWebEntities_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      findWebEntities_args typedOther = (findWebEntities_args)other;
+      getWebEntities_args typedOther = (getWebEntities_args)other;
 
       return 0;
     }
@@ -2745,7 +3138,7 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("findWebEntities_args(");
+      StringBuilder sb = new StringBuilder("getWebEntities_args(");
       boolean first = true;
 
       sb.append(")");
@@ -2772,15 +3165,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class findWebEntities_argsStandardSchemeFactory implements SchemeFactory {
-      public findWebEntities_argsStandardScheme getScheme() {
-        return new findWebEntities_argsStandardScheme();
+    private static class getWebEntities_argsStandardSchemeFactory implements SchemeFactory {
+      public getWebEntities_argsStandardScheme getScheme() {
+        return new getWebEntities_argsStandardScheme();
       }
     }
 
-    private static class findWebEntities_argsStandardScheme extends StandardScheme<findWebEntities_args> {
+    private static class getWebEntities_argsStandardScheme extends StandardScheme<getWebEntities_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, findWebEntities_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getWebEntities_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -2801,7 +3194,7 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, findWebEntities_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getWebEntities_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -2811,43 +3204,46 @@ public class MemoryStructure {
 
     }
 
-    private static class findWebEntities_argsTupleSchemeFactory implements SchemeFactory {
-      public findWebEntities_argsTupleScheme getScheme() {
-        return new findWebEntities_argsTupleScheme();
+    private static class getWebEntities_argsTupleSchemeFactory implements SchemeFactory {
+      public getWebEntities_argsTupleScheme getScheme() {
+        return new getWebEntities_argsTupleScheme();
       }
     }
 
-    private static class findWebEntities_argsTupleScheme extends TupleScheme<findWebEntities_args> {
+    private static class getWebEntities_argsTupleScheme extends TupleScheme<getWebEntities_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, findWebEntities_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getWebEntities_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, findWebEntities_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getWebEntities_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
       }
     }
 
   }
 
-  public static class findWebEntities_result implements org.apache.thrift.TBase<findWebEntities_result, findWebEntities_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("findWebEntities_result");
+  public static class getWebEntities_result implements org.apache.thrift.TBase<getWebEntities_result, getWebEntities_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getWebEntities_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.SET, (short)0);
+    private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new findWebEntities_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new findWebEntities_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getWebEntities_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getWebEntities_resultTupleSchemeFactory());
     }
 
     public Set<WebEntity> success; // required
+    public MemoryStructureException me; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      ME((short)1, "me");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2864,6 +3260,8 @@ public class MemoryStructure {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // ME
+            return ME;
           default:
             return null;
         }
@@ -2910,24 +3308,28 @@ public class MemoryStructure {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, WebEntity.class))));
+      tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(findWebEntities_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getWebEntities_result.class, metaDataMap);
     }
 
-    public findWebEntities_result() {
+    public getWebEntities_result() {
     }
 
-    public findWebEntities_result(
-      Set<WebEntity> success)
+    public getWebEntities_result(
+      Set<WebEntity> success,
+      MemoryStructureException me)
     {
       this();
       this.success = success;
+      this.me = me;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public findWebEntities_result(findWebEntities_result other) {
+    public getWebEntities_result(getWebEntities_result other) {
       if (other.isSetSuccess()) {
         Set<WebEntity> __this__success = new HashSet<WebEntity>();
         for (WebEntity other_element : other.success) {
@@ -2935,15 +3337,19 @@ public class MemoryStructure {
         }
         this.success = __this__success;
       }
+      if (other.isSetMe()) {
+        this.me = new MemoryStructureException(other.me);
+      }
     }
 
-    public findWebEntities_result deepCopy() {
-      return new findWebEntities_result(this);
+    public getWebEntities_result deepCopy() {
+      return new getWebEntities_result(this);
     }
 
     @Override
     public void clear() {
       this.success = null;
+      this.me = null;
     }
 
     public int getSuccessSize() {
@@ -2965,7 +3371,7 @@ public class MemoryStructure {
       return this.success;
     }
 
-    public findWebEntities_result setSuccess(Set<WebEntity> success) {
+    public getWebEntities_result setSuccess(Set<WebEntity> success) {
       this.success = success;
       return this;
     }
@@ -2985,6 +3391,30 @@ public class MemoryStructure {
       }
     }
 
+    public MemoryStructureException getMe() {
+      return this.me;
+    }
+
+    public getWebEntities_result setMe(MemoryStructureException me) {
+      this.me = me;
+      return this;
+    }
+
+    public void unsetMe() {
+      this.me = null;
+    }
+
+    /** Returns true if field me is set (has been assigned a value) and false otherwise */
+    public boolean isSetMe() {
+      return this.me != null;
+    }
+
+    public void setMeIsSet(boolean value) {
+      if (!value) {
+        this.me = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -2995,6 +3425,14 @@ public class MemoryStructure {
         }
         break;
 
+      case ME:
+        if (value == null) {
+          unsetMe();
+        } else {
+          setMe((MemoryStructureException)value);
+        }
+        break;
+
       }
     }
 
@@ -3002,6 +3440,9 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return getSuccess();
+
+      case ME:
+        return getMe();
 
       }
       throw new IllegalStateException();
@@ -3016,6 +3457,8 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case ME:
+        return isSetMe();
       }
       throw new IllegalStateException();
     }
@@ -3024,12 +3467,12 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof findWebEntities_result)
-        return this.equals((findWebEntities_result)that);
+      if (that instanceof getWebEntities_result)
+        return this.equals((getWebEntities_result)that);
       return false;
     }
 
-    public boolean equals(findWebEntities_result that) {
+    public boolean equals(getWebEntities_result that) {
       if (that == null)
         return false;
 
@@ -3042,6 +3485,15 @@ public class MemoryStructure {
           return false;
       }
 
+      boolean this_present_me = true && this.isSetMe();
+      boolean that_present_me = true && that.isSetMe();
+      if (this_present_me || that_present_me) {
+        if (!(this_present_me && that_present_me))
+          return false;
+        if (!this.me.equals(that.me))
+          return false;
+      }
+
       return true;
     }
 
@@ -3050,13 +3502,13 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(findWebEntities_result other) {
+    public int compareTo(getWebEntities_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      findWebEntities_result typedOther = (findWebEntities_result)other;
+      getWebEntities_result typedOther = (getWebEntities_result)other;
 
       lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
       if (lastComparison != 0) {
@@ -3064,6 +3516,16 @@ public class MemoryStructure {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetMe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -3085,7 +3547,7 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("findWebEntities_result(");
+      StringBuilder sb = new StringBuilder("getWebEntities_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -3093,6 +3555,14 @@ public class MemoryStructure {
         sb.append("null");
       } else {
         sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("me:");
+      if (this.me == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.me);
       }
       first = false;
       sb.append(")");
@@ -3119,15 +3589,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class findWebEntities_resultStandardSchemeFactory implements SchemeFactory {
-      public findWebEntities_resultStandardScheme getScheme() {
-        return new findWebEntities_resultStandardScheme();
+    private static class getWebEntities_resultStandardSchemeFactory implements SchemeFactory {
+      public getWebEntities_resultStandardScheme getScheme() {
+        return new getWebEntities_resultStandardScheme();
       }
     }
 
-    private static class findWebEntities_resultStandardScheme extends StandardScheme<findWebEntities_result> {
+    private static class getWebEntities_resultStandardScheme extends StandardScheme<getWebEntities_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, findWebEntities_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getWebEntities_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -3140,18 +3610,27 @@ public class MemoryStructure {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set16 = iprot.readSetBegin();
-                  struct.success = new HashSet<WebEntity>(2*_set16.size);
-                  for (int _i17 = 0; _i17 < _set16.size; ++_i17)
+                  org.apache.thrift.protocol.TSet _set26 = iprot.readSetBegin();
+                  struct.success = new HashSet<WebEntity>(2*_set26.size);
+                  for (int _i27 = 0; _i27 < _set26.size; ++_i27)
                   {
-                    WebEntity _elem18; // required
-                    _elem18 = new WebEntity();
-                    _elem18.read(iprot);
-                    struct.success.add(_elem18);
+                    WebEntity _elem28; // required
+                    _elem28 = new WebEntity();
+                    _elem28.read(iprot);
+                    struct.success.add(_elem28);
                   }
                   iprot.readSetEnd();
                 }
                 struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 1: // ME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.me = new MemoryStructureException();
+                struct.me.read(iprot);
+                struct.setMeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -3167,7 +3646,7 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, findWebEntities_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getWebEntities_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -3175,12 +3654,17 @@ public class MemoryStructure {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (WebEntity _iter19 : struct.success)
+            for (WebEntity _iter29 : struct.success)
             {
-              _iter19.write(oprot);
+              _iter29.write(oprot);
             }
             oprot.writeSetEnd();
           }
+          oprot.writeFieldEnd();
+        }
+        if (struct.me != null) {
+          oprot.writeFieldBegin(ME_FIELD_DESC);
+          struct.me.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -3189,50 +3673,61 @@ public class MemoryStructure {
 
     }
 
-    private static class findWebEntities_resultTupleSchemeFactory implements SchemeFactory {
-      public findWebEntities_resultTupleScheme getScheme() {
-        return new findWebEntities_resultTupleScheme();
+    private static class getWebEntities_resultTupleSchemeFactory implements SchemeFactory {
+      public getWebEntities_resultTupleScheme getScheme() {
+        return new getWebEntities_resultTupleScheme();
       }
     }
 
-    private static class findWebEntities_resultTupleScheme extends TupleScheme<findWebEntities_result> {
+    private static class getWebEntities_resultTupleScheme extends TupleScheme<getWebEntities_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, findWebEntities_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getWebEntities_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetMe()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (WebEntity _iter20 : struct.success)
+            for (WebEntity _iter30 : struct.success)
             {
-              _iter20.write(oprot);
+              _iter30.write(oprot);
             }
           }
+        }
+        if (struct.isSetMe()) {
+          struct.me.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, findWebEntities_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getWebEntities_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TSet _set21 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new HashSet<WebEntity>(2*_set21.size);
-            for (int _i22 = 0; _i22 < _set21.size; ++_i22)
+            org.apache.thrift.protocol.TSet _set31 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new HashSet<WebEntity>(2*_set31.size);
+            for (int _i32 = 0; _i32 < _set31.size; ++_i32)
             {
-              WebEntity _elem23; // required
-              _elem23 = new WebEntity();
-              _elem23.read(iprot);
-              struct.success.add(_elem23);
+              WebEntity _elem33; // required
+              _elem33 = new WebEntity();
+              _elem33.read(iprot);
+              struct.success.add(_elem33);
             }
           }
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.me = new MemoryStructureException();
+          struct.me.read(iprot);
+          struct.setMeIsSet(true);
         }
       }
     }
@@ -3242,7 +3737,7 @@ public class MemoryStructure {
   public static class createCache_args implements org.apache.thrift.TBase<createCache_args, createCache_args._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createCache_args");
 
-    private static final org.apache.thrift.protocol.TField LRU_ITEMS_FIELD_DESC = new org.apache.thrift.protocol.TField("lruItems", org.apache.thrift.protocol.TType.LIST, (short)1);
+    private static final org.apache.thrift.protocol.TField PAGE_ITEMS_FIELD_DESC = new org.apache.thrift.protocol.TField("pageItems", org.apache.thrift.protocol.TType.SET, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -3250,11 +3745,11 @@ public class MemoryStructure {
       schemes.put(TupleScheme.class, new createCache_argsTupleSchemeFactory());
     }
 
-    public List<LRUItem> lruItems; // required
+    public Set<PageItem> pageItems; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      LRU_ITEMS((short)1, "lruItems");
+      PAGE_ITEMS((short)1, "pageItems");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -3269,8 +3764,8 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // LRU_ITEMS
-            return LRU_ITEMS;
+          case 1: // PAGE_ITEMS
+            return PAGE_ITEMS;
           default:
             return null;
         }
@@ -3314,9 +3809,9 @@ public class MemoryStructure {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.LRU_ITEMS, new org.apache.thrift.meta_data.FieldMetaData("lruItems", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LRUItem.class))));
+      tmpMap.put(_Fields.PAGE_ITEMS, new org.apache.thrift.meta_data.FieldMetaData("pageItems", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PageItem.class))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createCache_args.class, metaDataMap);
     }
@@ -3325,22 +3820,22 @@ public class MemoryStructure {
     }
 
     public createCache_args(
-      List<LRUItem> lruItems)
+      Set<PageItem> pageItems)
     {
       this();
-      this.lruItems = lruItems;
+      this.pageItems = pageItems;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public createCache_args(createCache_args other) {
-      if (other.isSetLruItems()) {
-        List<LRUItem> __this__lruItems = new ArrayList<LRUItem>();
-        for (LRUItem other_element : other.lruItems) {
-          __this__lruItems.add(new LRUItem(other_element));
+      if (other.isSetPageItems()) {
+        Set<PageItem> __this__pageItems = new HashSet<PageItem>();
+        for (PageItem other_element : other.pageItems) {
+          __this__pageItems.add(new PageItem(other_element));
         }
-        this.lruItems = __this__lruItems;
+        this.pageItems = __this__pageItems;
       }
     }
 
@@ -3350,55 +3845,55 @@ public class MemoryStructure {
 
     @Override
     public void clear() {
-      this.lruItems = null;
+      this.pageItems = null;
     }
 
-    public int getLruItemsSize() {
-      return (this.lruItems == null) ? 0 : this.lruItems.size();
+    public int getPageItemsSize() {
+      return (this.pageItems == null) ? 0 : this.pageItems.size();
     }
 
-    public java.util.Iterator<LRUItem> getLruItemsIterator() {
-      return (this.lruItems == null) ? null : this.lruItems.iterator();
+    public java.util.Iterator<PageItem> getPageItemsIterator() {
+      return (this.pageItems == null) ? null : this.pageItems.iterator();
     }
 
-    public void addToLruItems(LRUItem elem) {
-      if (this.lruItems == null) {
-        this.lruItems = new ArrayList<LRUItem>();
+    public void addToPageItems(PageItem elem) {
+      if (this.pageItems == null) {
+        this.pageItems = new HashSet<PageItem>();
       }
-      this.lruItems.add(elem);
+      this.pageItems.add(elem);
     }
 
-    public List<LRUItem> getLruItems() {
-      return this.lruItems;
+    public Set<PageItem> getPageItems() {
+      return this.pageItems;
     }
 
-    public createCache_args setLruItems(List<LRUItem> lruItems) {
-      this.lruItems = lruItems;
+    public createCache_args setPageItems(Set<PageItem> pageItems) {
+      this.pageItems = pageItems;
       return this;
     }
 
-    public void unsetLruItems() {
-      this.lruItems = null;
+    public void unsetPageItems() {
+      this.pageItems = null;
     }
 
-    /** Returns true if field lruItems is set (has been assigned a value) and false otherwise */
-    public boolean isSetLruItems() {
-      return this.lruItems != null;
+    /** Returns true if field pageItems is set (has been assigned a value) and false otherwise */
+    public boolean isSetPageItems() {
+      return this.pageItems != null;
     }
 
-    public void setLruItemsIsSet(boolean value) {
+    public void setPageItemsIsSet(boolean value) {
       if (!value) {
-        this.lruItems = null;
+        this.pageItems = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case LRU_ITEMS:
+      case PAGE_ITEMS:
         if (value == null) {
-          unsetLruItems();
+          unsetPageItems();
         } else {
-          setLruItems((List<LRUItem>)value);
+          setPageItems((Set<PageItem>)value);
         }
         break;
 
@@ -3407,8 +3902,8 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case LRU_ITEMS:
-        return getLruItems();
+      case PAGE_ITEMS:
+        return getPageItems();
 
       }
       throw new IllegalStateException();
@@ -3421,8 +3916,8 @@ public class MemoryStructure {
       }
 
       switch (field) {
-      case LRU_ITEMS:
-        return isSetLruItems();
+      case PAGE_ITEMS:
+        return isSetPageItems();
       }
       throw new IllegalStateException();
     }
@@ -3440,12 +3935,12 @@ public class MemoryStructure {
       if (that == null)
         return false;
 
-      boolean this_present_lruItems = true && this.isSetLruItems();
-      boolean that_present_lruItems = true && that.isSetLruItems();
-      if (this_present_lruItems || that_present_lruItems) {
-        if (!(this_present_lruItems && that_present_lruItems))
+      boolean this_present_pageItems = true && this.isSetPageItems();
+      boolean that_present_pageItems = true && that.isSetPageItems();
+      if (this_present_pageItems || that_present_pageItems) {
+        if (!(this_present_pageItems && that_present_pageItems))
           return false;
-        if (!this.lruItems.equals(that.lruItems))
+        if (!this.pageItems.equals(that.pageItems))
           return false;
       }
 
@@ -3465,12 +3960,12 @@ public class MemoryStructure {
       int lastComparison = 0;
       createCache_args typedOther = (createCache_args)other;
 
-      lastComparison = Boolean.valueOf(isSetLruItems()).compareTo(typedOther.isSetLruItems());
+      lastComparison = Boolean.valueOf(isSetPageItems()).compareTo(typedOther.isSetPageItems());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetLruItems()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lruItems, typedOther.lruItems);
+      if (isSetPageItems()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.pageItems, typedOther.pageItems);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -3495,11 +3990,11 @@ public class MemoryStructure {
       StringBuilder sb = new StringBuilder("createCache_args(");
       boolean first = true;
 
-      sb.append("lruItems:");
-      if (this.lruItems == null) {
+      sb.append("pageItems:");
+      if (this.pageItems == null) {
         sb.append("null");
       } else {
-        sb.append(this.lruItems);
+        sb.append(this.pageItems);
       }
       first = false;
       sb.append(")");
@@ -3544,21 +4039,21 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
-            case 1: // LRU_ITEMS
-              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+            case 1: // PAGE_ITEMS
+              if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TList _list24 = iprot.readListBegin();
-                  struct.lruItems = new ArrayList<LRUItem>(_list24.size);
-                  for (int _i25 = 0; _i25 < _list24.size; ++_i25)
+                  org.apache.thrift.protocol.TSet _set34 = iprot.readSetBegin();
+                  struct.pageItems = new HashSet<PageItem>(2*_set34.size);
+                  for (int _i35 = 0; _i35 < _set34.size; ++_i35)
                   {
-                    LRUItem _elem26; // required
-                    _elem26 = new LRUItem();
-                    _elem26.read(iprot);
-                    struct.lruItems.add(_elem26);
+                    PageItem _elem36; // required
+                    _elem36 = new PageItem();
+                    _elem36.read(iprot);
+                    struct.pageItems.add(_elem36);
                   }
-                  iprot.readListEnd();
+                  iprot.readSetEnd();
                 }
-                struct.setLruItemsIsSet(true);
+                struct.setPageItemsIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -3578,15 +4073,15 @@ public class MemoryStructure {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.lruItems != null) {
-          oprot.writeFieldBegin(LRU_ITEMS_FIELD_DESC);
+        if (struct.pageItems != null) {
+          oprot.writeFieldBegin(PAGE_ITEMS_FIELD_DESC);
           {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.lruItems.size()));
-            for (LRUItem _iter27 : struct.lruItems)
+            oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, struct.pageItems.size()));
+            for (PageItem _iter37 : struct.pageItems)
             {
-              _iter27.write(oprot);
+              _iter37.write(oprot);
             }
-            oprot.writeListEnd();
+            oprot.writeSetEnd();
           }
           oprot.writeFieldEnd();
         }
@@ -3608,16 +4103,16 @@ public class MemoryStructure {
       public void write(org.apache.thrift.protocol.TProtocol prot, createCache_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetLruItems()) {
+        if (struct.isSetPageItems()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetLruItems()) {
+        if (struct.isSetPageItems()) {
           {
-            oprot.writeI32(struct.lruItems.size());
-            for (LRUItem _iter28 : struct.lruItems)
+            oprot.writeI32(struct.pageItems.size());
+            for (PageItem _iter38 : struct.pageItems)
             {
-              _iter28.write(oprot);
+              _iter38.write(oprot);
             }
           }
         }
@@ -3629,17 +4124,17 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list29 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.lruItems = new ArrayList<LRUItem>(_list29.size);
-            for (int _i30 = 0; _i30 < _list29.size; ++_i30)
+            org.apache.thrift.protocol.TSet _set39 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.pageItems = new HashSet<PageItem>(2*_set39.size);
+            for (int _i40 = 0; _i40 < _set39.size; ++_i40)
             {
-              LRUItem _elem31; // required
-              _elem31 = new LRUItem();
-              _elem31.read(iprot);
-              struct.lruItems.add(_elem31);
+              PageItem _elem41; // required
+              _elem41 = new PageItem();
+              _elem41.read(iprot);
+              struct.pageItems.add(_elem41);
             }
           }
-          struct.setLruItemsIsSet(true);
+          struct.setPageItemsIsSet(true);
         }
       }
     }
@@ -3650,6 +4145,7 @@ public class MemoryStructure {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createCache_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField X_FIELD_DESC = new org.apache.thrift.protocol.TField("x", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -3658,10 +4154,12 @@ public class MemoryStructure {
     }
 
     public String success; // required
+    public MemoryStructureException x; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      X((short)1, "x");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -3678,6 +4176,8 @@ public class MemoryStructure {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // X
+            return X;
           default:
             return null;
         }
@@ -3723,6 +4223,8 @@ public class MemoryStructure {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.X, new org.apache.thrift.meta_data.FieldMetaData("x", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createCache_result.class, metaDataMap);
     }
@@ -3731,10 +4233,12 @@ public class MemoryStructure {
     }
 
     public createCache_result(
-      String success)
+      String success,
+      MemoryStructureException x)
     {
       this();
       this.success = success;
+      this.x = x;
     }
 
     /**
@@ -3743,6 +4247,9 @@ public class MemoryStructure {
     public createCache_result(createCache_result other) {
       if (other.isSetSuccess()) {
         this.success = other.success;
+      }
+      if (other.isSetX()) {
+        this.x = new MemoryStructureException(other.x);
       }
     }
 
@@ -3753,6 +4260,7 @@ public class MemoryStructure {
     @Override
     public void clear() {
       this.success = null;
+      this.x = null;
     }
 
     public String getSuccess() {
@@ -3779,6 +4287,30 @@ public class MemoryStructure {
       }
     }
 
+    public MemoryStructureException getX() {
+      return this.x;
+    }
+
+    public createCache_result setX(MemoryStructureException x) {
+      this.x = x;
+      return this;
+    }
+
+    public void unsetX() {
+      this.x = null;
+    }
+
+    /** Returns true if field x is set (has been assigned a value) and false otherwise */
+    public boolean isSetX() {
+      return this.x != null;
+    }
+
+    public void setXIsSet(boolean value) {
+      if (!value) {
+        this.x = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -3789,6 +4321,14 @@ public class MemoryStructure {
         }
         break;
 
+      case X:
+        if (value == null) {
+          unsetX();
+        } else {
+          setX((MemoryStructureException)value);
+        }
+        break;
+
       }
     }
 
@@ -3796,6 +4336,9 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return getSuccess();
+
+      case X:
+        return getX();
 
       }
       throw new IllegalStateException();
@@ -3810,6 +4353,8 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case X:
+        return isSetX();
       }
       throw new IllegalStateException();
     }
@@ -3833,6 +4378,15 @@ public class MemoryStructure {
         if (!(this_present_success && that_present_success))
           return false;
         if (!this.success.equals(that.success))
+          return false;
+      }
+
+      boolean this_present_x = true && this.isSetX();
+      boolean that_present_x = true && that.isSetX();
+      if (this_present_x || that_present_x) {
+        if (!(this_present_x && that_present_x))
+          return false;
+        if (!this.x.equals(that.x))
           return false;
       }
 
@@ -3862,6 +4416,16 @@ public class MemoryStructure {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetX()).compareTo(typedOther.isSetX());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetX()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.x, typedOther.x);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -3887,6 +4451,14 @@ public class MemoryStructure {
         sb.append("null");
       } else {
         sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("x:");
+      if (this.x == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.x);
       }
       first = false;
       sb.append(")");
@@ -3939,6 +4511,15 @@ public class MemoryStructure {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // X
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.x = new MemoryStructureException();
+                struct.x.read(iprot);
+                struct.setXIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -3957,6 +4538,11 @@ public class MemoryStructure {
         if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           oprot.writeString(struct.success);
+          oprot.writeFieldEnd();
+        }
+        if (struct.x != null) {
+          oprot.writeFieldBegin(X_FIELD_DESC);
+          struct.x.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -3980,19 +4566,30 @@ public class MemoryStructure {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetX()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeString(struct.success);
+        }
+        if (struct.isSetX()) {
+          struct.x.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, createCache_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = iprot.readString();
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.x = new MemoryStructureException();
+          struct.x.read(iprot);
+          struct.setXIsSet(true);
         }
       }
     }
@@ -4355,7 +4952,9 @@ public class MemoryStructure {
   public static class indexCache_result implements org.apache.thrift.TBase<indexCache_result, indexCache_result._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("indexCache_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I32, (short)0);
+    private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField X_FIELD_DESC = new org.apache.thrift.protocol.TField("x", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4363,11 +4962,15 @@ public class MemoryStructure {
       schemes.put(TupleScheme.class, new indexCache_resultTupleSchemeFactory());
     }
 
-    public String success; // required
+    public int success; // required
+    public MemoryStructureException me; // required
+    public ObjectNotFoundException x; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      ME((short)1, "me"),
+      X((short)2, "x");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4384,6 +4987,10 @@ public class MemoryStructure {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // ME
+            return ME;
+          case 2: // X
+            return X;
           default:
             return null;
         }
@@ -4424,11 +5031,17 @@ public class MemoryStructure {
     }
 
     // isset id assignments
+    private static final int __SUCCESS_ISSET_ID = 0;
+    private BitSet __isset_bit_vector = new BitSet(1);
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.X, new org.apache.thrift.meta_data.FieldMetaData("x", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(indexCache_result.class, metaDataMap);
     }
@@ -4437,18 +5050,29 @@ public class MemoryStructure {
     }
 
     public indexCache_result(
-      String success)
+      int success,
+      MemoryStructureException me,
+      ObjectNotFoundException x)
     {
       this();
       this.success = success;
+      setSuccessIsSet(true);
+      this.me = me;
+      this.x = x;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public indexCache_result(indexCache_result other) {
-      if (other.isSetSuccess()) {
-        this.success = other.success;
+      __isset_bit_vector.clear();
+      __isset_bit_vector.or(other.__isset_bit_vector);
+      this.success = other.success;
+      if (other.isSetMe()) {
+        this.me = new MemoryStructureException(other.me);
+      }
+      if (other.isSetX()) {
+        this.x = new ObjectNotFoundException(other.x);
       }
     }
 
@@ -4458,30 +5082,80 @@ public class MemoryStructure {
 
     @Override
     public void clear() {
-      this.success = null;
+      setSuccessIsSet(false);
+      this.success = 0;
+      this.me = null;
+      this.x = null;
     }
 
-    public String getSuccess() {
+    public int getSuccess() {
       return this.success;
     }
 
-    public indexCache_result setSuccess(String success) {
+    public indexCache_result setSuccess(int success) {
       this.success = success;
+      setSuccessIsSet(true);
       return this;
     }
 
     public void unsetSuccess() {
-      this.success = null;
+      __isset_bit_vector.clear(__SUCCESS_ISSET_ID);
     }
 
     /** Returns true if field success is set (has been assigned a value) and false otherwise */
     public boolean isSetSuccess() {
-      return this.success != null;
+      return __isset_bit_vector.get(__SUCCESS_ISSET_ID);
     }
 
     public void setSuccessIsSet(boolean value) {
+      __isset_bit_vector.set(__SUCCESS_ISSET_ID, value);
+    }
+
+    public MemoryStructureException getMe() {
+      return this.me;
+    }
+
+    public indexCache_result setMe(MemoryStructureException me) {
+      this.me = me;
+      return this;
+    }
+
+    public void unsetMe() {
+      this.me = null;
+    }
+
+    /** Returns true if field me is set (has been assigned a value) and false otherwise */
+    public boolean isSetMe() {
+      return this.me != null;
+    }
+
+    public void setMeIsSet(boolean value) {
       if (!value) {
-        this.success = null;
+        this.me = null;
+      }
+    }
+
+    public ObjectNotFoundException getX() {
+      return this.x;
+    }
+
+    public indexCache_result setX(ObjectNotFoundException x) {
+      this.x = x;
+      return this;
+    }
+
+    public void unsetX() {
+      this.x = null;
+    }
+
+    /** Returns true if field x is set (has been assigned a value) and false otherwise */
+    public boolean isSetX() {
+      return this.x != null;
+    }
+
+    public void setXIsSet(boolean value) {
+      if (!value) {
+        this.x = null;
       }
     }
 
@@ -4491,7 +5165,23 @@ public class MemoryStructure {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((String)value);
+          setSuccess((Integer)value);
+        }
+        break;
+
+      case ME:
+        if (value == null) {
+          unsetMe();
+        } else {
+          setMe((MemoryStructureException)value);
+        }
+        break;
+
+      case X:
+        if (value == null) {
+          unsetX();
+        } else {
+          setX((ObjectNotFoundException)value);
         }
         break;
 
@@ -4501,7 +5191,13 @@ public class MemoryStructure {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case SUCCESS:
-        return getSuccess();
+        return Integer.valueOf(getSuccess());
+
+      case ME:
+        return getMe();
+
+      case X:
+        return getX();
 
       }
       throw new IllegalStateException();
@@ -4516,6 +5212,10 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case ME:
+        return isSetMe();
+      case X:
+        return isSetX();
       }
       throw new IllegalStateException();
     }
@@ -4533,12 +5233,30 @@ public class MemoryStructure {
       if (that == null)
         return false;
 
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
+      boolean this_present_success = true;
+      boolean that_present_success = true;
       if (this_present_success || that_present_success) {
         if (!(this_present_success && that_present_success))
           return false;
-        if (!this.success.equals(that.success))
+        if (this.success != that.success)
+          return false;
+      }
+
+      boolean this_present_me = true && this.isSetMe();
+      boolean that_present_me = true && that.isSetMe();
+      if (this_present_me || that_present_me) {
+        if (!(this_present_me && that_present_me))
+          return false;
+        if (!this.me.equals(that.me))
+          return false;
+      }
+
+      boolean this_present_x = true && this.isSetX();
+      boolean that_present_x = true && that.isSetX();
+      if (this_present_x || that_present_x) {
+        if (!(this_present_x && that_present_x))
+          return false;
+        if (!this.x.equals(that.x))
           return false;
       }
 
@@ -4568,6 +5286,26 @@ public class MemoryStructure {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetMe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetX()).compareTo(typedOther.isSetX());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetX()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.x, typedOther.x);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -4589,10 +5327,22 @@ public class MemoryStructure {
       boolean first = true;
 
       sb.append("success:");
-      if (this.success == null) {
+      sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("me:");
+      if (this.me == null) {
         sb.append("null");
       } else {
-        sb.append(this.success);
+        sb.append(this.me);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("x:");
+      if (this.x == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.x);
       }
       first = false;
       sb.append(")");
@@ -4638,9 +5388,27 @@ public class MemoryStructure {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.success = iprot.readString();
+              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+                struct.success = iprot.readI32();
                 struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 1: // ME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.me = new MemoryStructureException();
+                struct.me.read(iprot);
+                struct.setMeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // X
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.x = new ObjectNotFoundException();
+                struct.x.read(iprot);
+                struct.setXIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -4660,9 +5428,17 @@ public class MemoryStructure {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeString(struct.success);
+        oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+        oprot.writeI32(struct.success);
+        oprot.writeFieldEnd();
+        if (struct.me != null) {
+          oprot.writeFieldBegin(ME_FIELD_DESC);
+          struct.me.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.x != null) {
+          oprot.writeFieldBegin(X_FIELD_DESC);
+          struct.x.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -4686,19 +5462,41 @@ public class MemoryStructure {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetMe()) {
+          optionals.set(1);
+        }
+        if (struct.isSetX()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
-          oprot.writeString(struct.success);
+          oprot.writeI32(struct.success);
+        }
+        if (struct.isSetMe()) {
+          struct.me.write(oprot);
+        }
+        if (struct.isSetX()) {
+          struct.x.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, indexCache_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
-          struct.success = iprot.readString();
+          struct.success = iprot.readI32();
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.me = new MemoryStructureException();
+          struct.me.read(iprot);
+          struct.setMeIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.x = new ObjectNotFoundException();
+          struct.x.read(iprot);
+          struct.setXIsSet(true);
         }
       }
     }
@@ -5061,7 +5859,9 @@ public class MemoryStructure {
   public static class getPrecisionExceptionsFromCache_result implements org.apache.thrift.TBase<getPrecisionExceptionsFromCache_result, getPrecisionExceptionsFromCache_result._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getPrecisionExceptionsFromCache_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.SET, (short)0);
+    private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField X_FIELD_DESC = new org.apache.thrift.protocol.TField("x", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -5069,11 +5869,15 @@ public class MemoryStructure {
       schemes.put(TupleScheme.class, new getPrecisionExceptionsFromCache_resultTupleSchemeFactory());
     }
 
-    public List<String> success; // required
+    public Set<String> success; // required
+    public MemoryStructureException me; // required
+    public ObjectNotFoundException x; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      ME((short)1, "me"),
+      X((short)2, "x");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -5090,6 +5894,10 @@ public class MemoryStructure {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // ME
+            return ME;
+          case 2: // X
+            return X;
           default:
             return null;
         }
@@ -5134,8 +5942,12 @@ public class MemoryStructure {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+          new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
+      tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.X, new org.apache.thrift.meta_data.FieldMetaData("x", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getPrecisionExceptionsFromCache_result.class, metaDataMap);
     }
@@ -5144,10 +5956,14 @@ public class MemoryStructure {
     }
 
     public getPrecisionExceptionsFromCache_result(
-      List<String> success)
+      Set<String> success,
+      MemoryStructureException me,
+      ObjectNotFoundException x)
     {
       this();
       this.success = success;
+      this.me = me;
+      this.x = x;
     }
 
     /**
@@ -5155,11 +5971,17 @@ public class MemoryStructure {
      */
     public getPrecisionExceptionsFromCache_result(getPrecisionExceptionsFromCache_result other) {
       if (other.isSetSuccess()) {
-        List<String> __this__success = new ArrayList<String>();
+        Set<String> __this__success = new HashSet<String>();
         for (String other_element : other.success) {
           __this__success.add(other_element);
         }
         this.success = __this__success;
+      }
+      if (other.isSetMe()) {
+        this.me = new MemoryStructureException(other.me);
+      }
+      if (other.isSetX()) {
+        this.x = new ObjectNotFoundException(other.x);
       }
     }
 
@@ -5170,6 +5992,8 @@ public class MemoryStructure {
     @Override
     public void clear() {
       this.success = null;
+      this.me = null;
+      this.x = null;
     }
 
     public int getSuccessSize() {
@@ -5182,16 +6006,16 @@ public class MemoryStructure {
 
     public void addToSuccess(String elem) {
       if (this.success == null) {
-        this.success = new ArrayList<String>();
+        this.success = new HashSet<String>();
       }
       this.success.add(elem);
     }
 
-    public List<String> getSuccess() {
+    public Set<String> getSuccess() {
       return this.success;
     }
 
-    public getPrecisionExceptionsFromCache_result setSuccess(List<String> success) {
+    public getPrecisionExceptionsFromCache_result setSuccess(Set<String> success) {
       this.success = success;
       return this;
     }
@@ -5211,13 +6035,77 @@ public class MemoryStructure {
       }
     }
 
+    public MemoryStructureException getMe() {
+      return this.me;
+    }
+
+    public getPrecisionExceptionsFromCache_result setMe(MemoryStructureException me) {
+      this.me = me;
+      return this;
+    }
+
+    public void unsetMe() {
+      this.me = null;
+    }
+
+    /** Returns true if field me is set (has been assigned a value) and false otherwise */
+    public boolean isSetMe() {
+      return this.me != null;
+    }
+
+    public void setMeIsSet(boolean value) {
+      if (!value) {
+        this.me = null;
+      }
+    }
+
+    public ObjectNotFoundException getX() {
+      return this.x;
+    }
+
+    public getPrecisionExceptionsFromCache_result setX(ObjectNotFoundException x) {
+      this.x = x;
+      return this;
+    }
+
+    public void unsetX() {
+      this.x = null;
+    }
+
+    /** Returns true if field x is set (has been assigned a value) and false otherwise */
+    public boolean isSetX() {
+      return this.x != null;
+    }
+
+    public void setXIsSet(boolean value) {
+      if (!value) {
+        this.x = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((List<String>)value);
+          setSuccess((Set<String>)value);
+        }
+        break;
+
+      case ME:
+        if (value == null) {
+          unsetMe();
+        } else {
+          setMe((MemoryStructureException)value);
+        }
+        break;
+
+      case X:
+        if (value == null) {
+          unsetX();
+        } else {
+          setX((ObjectNotFoundException)value);
         }
         break;
 
@@ -5228,6 +6116,12 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return getSuccess();
+
+      case ME:
+        return getMe();
+
+      case X:
+        return getX();
 
       }
       throw new IllegalStateException();
@@ -5242,6 +6136,10 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case ME:
+        return isSetMe();
+      case X:
+        return isSetX();
       }
       throw new IllegalStateException();
     }
@@ -5265,6 +6163,24 @@ public class MemoryStructure {
         if (!(this_present_success && that_present_success))
           return false;
         if (!this.success.equals(that.success))
+          return false;
+      }
+
+      boolean this_present_me = true && this.isSetMe();
+      boolean that_present_me = true && that.isSetMe();
+      if (this_present_me || that_present_me) {
+        if (!(this_present_me && that_present_me))
+          return false;
+        if (!this.me.equals(that.me))
+          return false;
+      }
+
+      boolean this_present_x = true && this.isSetX();
+      boolean that_present_x = true && that.isSetX();
+      if (this_present_x || that_present_x) {
+        if (!(this_present_x && that_present_x))
+          return false;
+        if (!this.x.equals(that.x))
           return false;
       }
 
@@ -5294,6 +6210,26 @@ public class MemoryStructure {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetMe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetX()).compareTo(typedOther.isSetX());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetX()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.x, typedOther.x);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -5319,6 +6255,22 @@ public class MemoryStructure {
         sb.append("null");
       } else {
         sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("me:");
+      if (this.me == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.me);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("x:");
+      if (this.x == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.x);
       }
       first = false;
       sb.append(")");
@@ -5364,19 +6316,37 @@ public class MemoryStructure {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TList _list32 = iprot.readListBegin();
-                  struct.success = new ArrayList<String>(_list32.size);
-                  for (int _i33 = 0; _i33 < _list32.size; ++_i33)
+                  org.apache.thrift.protocol.TSet _set42 = iprot.readSetBegin();
+                  struct.success = new HashSet<String>(2*_set42.size);
+                  for (int _i43 = 0; _i43 < _set42.size; ++_i43)
                   {
-                    String _elem34; // required
-                    _elem34 = iprot.readString();
-                    struct.success.add(_elem34);
+                    String _elem44; // required
+                    _elem44 = iprot.readString();
+                    struct.success.add(_elem44);
                   }
-                  iprot.readListEnd();
+                  iprot.readSetEnd();
                 }
                 struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 1: // ME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.me = new MemoryStructureException();
+                struct.me.read(iprot);
+                struct.setMeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // X
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.x = new ObjectNotFoundException();
+                struct.x.read(iprot);
+                struct.setXIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -5399,13 +6369,23 @@ public class MemoryStructure {
         if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.success.size()));
-            for (String _iter35 : struct.success)
+            oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, struct.success.size()));
+            for (String _iter45 : struct.success)
             {
-              oprot.writeString(_iter35);
+              oprot.writeString(_iter45);
             }
-            oprot.writeListEnd();
+            oprot.writeSetEnd();
           }
+          oprot.writeFieldEnd();
+        }
+        if (struct.me != null) {
+          oprot.writeFieldBegin(ME_FIELD_DESC);
+          struct.me.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.x != null) {
+          oprot.writeFieldBegin(X_FIELD_DESC);
+          struct.x.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -5429,49 +6409,71 @@ public class MemoryStructure {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetMe()) {
+          optionals.set(1);
+        }
+        if (struct.isSetX()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (String _iter36 : struct.success)
+            for (String _iter46 : struct.success)
             {
-              oprot.writeString(_iter36);
+              oprot.writeString(_iter46);
             }
           }
+        }
+        if (struct.isSetMe()) {
+          struct.me.write(oprot);
+        }
+        if (struct.isSetX()) {
+          struct.x.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getPrecisionExceptionsFromCache_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list37 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.success = new ArrayList<String>(_list37.size);
-            for (int _i38 = 0; _i38 < _list37.size; ++_i38)
+            org.apache.thrift.protocol.TSet _set47 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.success = new HashSet<String>(2*_set47.size);
+            for (int _i48 = 0; _i48 < _set47.size; ++_i48)
             {
-              String _elem39; // required
-              _elem39 = iprot.readString();
-              struct.success.add(_elem39);
+              String _elem49; // required
+              _elem49 = iprot.readString();
+              struct.success.add(_elem49);
             }
           }
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.me = new MemoryStructureException();
+          struct.me.read(iprot);
+          struct.setMeIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.x = new ObjectNotFoundException();
+          struct.x.read(iprot);
+          struct.setXIsSet(true);
         }
       }
     }
 
   }
 
-  public static class getWebEntitiesFromCache_args implements org.apache.thrift.TBase<getWebEntitiesFromCache_args, getWebEntitiesFromCache_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getWebEntitiesFromCache_args");
+  public static class createWebEntities_args implements org.apache.thrift.TBase<createWebEntities_args, createWebEntities_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createWebEntities_args");
 
     private static final org.apache.thrift.protocol.TField CACHE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("cacheId", org.apache.thrift.protocol.TType.STRING, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getWebEntitiesFromCache_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getWebEntitiesFromCache_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new createWebEntities_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new createWebEntities_argsTupleSchemeFactory());
     }
 
     public String cacheId; // required
@@ -5541,13 +6543,13 @@ public class MemoryStructure {
       tmpMap.put(_Fields.CACHE_ID, new org.apache.thrift.meta_data.FieldMetaData("cacheId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getWebEntitiesFromCache_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createWebEntities_args.class, metaDataMap);
     }
 
-    public getWebEntitiesFromCache_args() {
+    public createWebEntities_args() {
     }
 
-    public getWebEntitiesFromCache_args(
+    public createWebEntities_args(
       String cacheId)
     {
       this();
@@ -5557,14 +6559,14 @@ public class MemoryStructure {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getWebEntitiesFromCache_args(getWebEntitiesFromCache_args other) {
+    public createWebEntities_args(createWebEntities_args other) {
       if (other.isSetCacheId()) {
         this.cacheId = other.cacheId;
       }
     }
 
-    public getWebEntitiesFromCache_args deepCopy() {
-      return new getWebEntitiesFromCache_args(this);
+    public createWebEntities_args deepCopy() {
+      return new createWebEntities_args(this);
     }
 
     @Override
@@ -5576,7 +6578,7 @@ public class MemoryStructure {
       return this.cacheId;
     }
 
-    public getWebEntitiesFromCache_args setCacheId(String cacheId) {
+    public createWebEntities_args setCacheId(String cacheId) {
       this.cacheId = cacheId;
       return this;
     }
@@ -5635,12 +6637,12 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getWebEntitiesFromCache_args)
-        return this.equals((getWebEntitiesFromCache_args)that);
+      if (that instanceof createWebEntities_args)
+        return this.equals((createWebEntities_args)that);
       return false;
     }
 
-    public boolean equals(getWebEntitiesFromCache_args that) {
+    public boolean equals(createWebEntities_args that) {
       if (that == null)
         return false;
 
@@ -5661,13 +6663,13 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(getWebEntitiesFromCache_args other) {
+    public int compareTo(createWebEntities_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      getWebEntitiesFromCache_args typedOther = (getWebEntitiesFromCache_args)other;
+      createWebEntities_args typedOther = (createWebEntities_args)other;
 
       lastComparison = Boolean.valueOf(isSetCacheId()).compareTo(typedOther.isSetCacheId());
       if (lastComparison != 0) {
@@ -5696,7 +6698,7 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getWebEntitiesFromCache_args(");
+      StringBuilder sb = new StringBuilder("createWebEntities_args(");
       boolean first = true;
 
       sb.append("cacheId:");
@@ -5730,15 +6732,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class getWebEntitiesFromCache_argsStandardSchemeFactory implements SchemeFactory {
-      public getWebEntitiesFromCache_argsStandardScheme getScheme() {
-        return new getWebEntitiesFromCache_argsStandardScheme();
+    private static class createWebEntities_argsStandardSchemeFactory implements SchemeFactory {
+      public createWebEntities_argsStandardScheme getScheme() {
+        return new createWebEntities_argsStandardScheme();
       }
     }
 
-    private static class getWebEntitiesFromCache_argsStandardScheme extends StandardScheme<getWebEntitiesFromCache_args> {
+    private static class createWebEntities_argsStandardScheme extends StandardScheme<createWebEntities_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getWebEntitiesFromCache_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, createWebEntities_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -5767,7 +6769,7 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getWebEntitiesFromCache_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, createWebEntities_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -5782,16 +6784,16 @@ public class MemoryStructure {
 
     }
 
-    private static class getWebEntitiesFromCache_argsTupleSchemeFactory implements SchemeFactory {
-      public getWebEntitiesFromCache_argsTupleScheme getScheme() {
-        return new getWebEntitiesFromCache_argsTupleScheme();
+    private static class createWebEntities_argsTupleSchemeFactory implements SchemeFactory {
+      public createWebEntities_argsTupleScheme getScheme() {
+        return new createWebEntities_argsTupleScheme();
       }
     }
 
-    private static class getWebEntitiesFromCache_argsTupleScheme extends TupleScheme<getWebEntitiesFromCache_args> {
+    private static class createWebEntities_argsTupleScheme extends TupleScheme<createWebEntities_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getWebEntitiesFromCache_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, createWebEntities_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetCacheId()) {
@@ -5804,7 +6806,7 @@ public class MemoryStructure {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getWebEntitiesFromCache_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, createWebEntities_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
@@ -5816,22 +6818,25 @@ public class MemoryStructure {
 
   }
 
-  public static class getWebEntitiesFromCache_result implements org.apache.thrift.TBase<getWebEntitiesFromCache_result, getWebEntitiesFromCache_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getWebEntitiesFromCache_result");
+  public static class createWebEntities_result implements org.apache.thrift.TBase<createWebEntities_result, createWebEntities_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createWebEntities_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
+    private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField X_FIELD_DESC = new org.apache.thrift.protocol.TField("x", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getWebEntitiesFromCache_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getWebEntitiesFromCache_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new createWebEntities_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new createWebEntities_resultTupleSchemeFactory());
     }
 
-    public List<WebEntityInfo> success; // required
+    public MemoryStructureException me; // required
+    public ObjectNotFoundException x; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      ME((short)1, "me"),
+      X((short)2, "x");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -5846,8 +6851,10 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
+          case 1: // ME
+            return ME;
+          case 2: // X
+            return X;
           default:
             return null;
         }
@@ -5891,91 +6898,111 @@ public class MemoryStructure {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, WebEntityInfo.class))));
+      tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.X, new org.apache.thrift.meta_data.FieldMetaData("x", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getWebEntitiesFromCache_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createWebEntities_result.class, metaDataMap);
     }
 
-    public getWebEntitiesFromCache_result() {
+    public createWebEntities_result() {
     }
 
-    public getWebEntitiesFromCache_result(
-      List<WebEntityInfo> success)
+    public createWebEntities_result(
+      MemoryStructureException me,
+      ObjectNotFoundException x)
     {
       this();
-      this.success = success;
+      this.me = me;
+      this.x = x;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getWebEntitiesFromCache_result(getWebEntitiesFromCache_result other) {
-      if (other.isSetSuccess()) {
-        List<WebEntityInfo> __this__success = new ArrayList<WebEntityInfo>();
-        for (WebEntityInfo other_element : other.success) {
-          __this__success.add(new WebEntityInfo(other_element));
-        }
-        this.success = __this__success;
+    public createWebEntities_result(createWebEntities_result other) {
+      if (other.isSetMe()) {
+        this.me = new MemoryStructureException(other.me);
+      }
+      if (other.isSetX()) {
+        this.x = new ObjectNotFoundException(other.x);
       }
     }
 
-    public getWebEntitiesFromCache_result deepCopy() {
-      return new getWebEntitiesFromCache_result(this);
+    public createWebEntities_result deepCopy() {
+      return new createWebEntities_result(this);
     }
 
     @Override
     public void clear() {
-      this.success = null;
+      this.me = null;
+      this.x = null;
     }
 
-    public int getSuccessSize() {
-      return (this.success == null) ? 0 : this.success.size();
+    public MemoryStructureException getMe() {
+      return this.me;
     }
 
-    public java.util.Iterator<WebEntityInfo> getSuccessIterator() {
-      return (this.success == null) ? null : this.success.iterator();
-    }
-
-    public void addToSuccess(WebEntityInfo elem) {
-      if (this.success == null) {
-        this.success = new ArrayList<WebEntityInfo>();
-      }
-      this.success.add(elem);
-    }
-
-    public List<WebEntityInfo> getSuccess() {
-      return this.success;
-    }
-
-    public getWebEntitiesFromCache_result setSuccess(List<WebEntityInfo> success) {
-      this.success = success;
+    public createWebEntities_result setMe(MemoryStructureException me) {
+      this.me = me;
       return this;
     }
 
-    public void unsetSuccess() {
-      this.success = null;
+    public void unsetMe() {
+      this.me = null;
     }
 
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return this.success != null;
+    /** Returns true if field me is set (has been assigned a value) and false otherwise */
+    public boolean isSetMe() {
+      return this.me != null;
     }
 
-    public void setSuccessIsSet(boolean value) {
+    public void setMeIsSet(boolean value) {
       if (!value) {
-        this.success = null;
+        this.me = null;
+      }
+    }
+
+    public ObjectNotFoundException getX() {
+      return this.x;
+    }
+
+    public createWebEntities_result setX(ObjectNotFoundException x) {
+      this.x = x;
+      return this;
+    }
+
+    public void unsetX() {
+      this.x = null;
+    }
+
+    /** Returns true if field x is set (has been assigned a value) and false otherwise */
+    public boolean isSetX() {
+      return this.x != null;
+    }
+
+    public void setXIsSet(boolean value) {
+      if (!value) {
+        this.x = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case SUCCESS:
+      case ME:
         if (value == null) {
-          unsetSuccess();
+          unsetMe();
         } else {
-          setSuccess((List<WebEntityInfo>)value);
+          setMe((MemoryStructureException)value);
+        }
+        break;
+
+      case X:
+        if (value == null) {
+          unsetX();
+        } else {
+          setX((ObjectNotFoundException)value);
         }
         break;
 
@@ -5984,8 +7011,11 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case SUCCESS:
-        return getSuccess();
+      case ME:
+        return getMe();
+
+      case X:
+        return getX();
 
       }
       throw new IllegalStateException();
@@ -5998,8 +7028,10 @@ public class MemoryStructure {
       }
 
       switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
+      case ME:
+        return isSetMe();
+      case X:
+        return isSetX();
       }
       throw new IllegalStateException();
     }
@@ -6008,21 +7040,30 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getWebEntitiesFromCache_result)
-        return this.equals((getWebEntitiesFromCache_result)that);
+      if (that instanceof createWebEntities_result)
+        return this.equals((createWebEntities_result)that);
       return false;
     }
 
-    public boolean equals(getWebEntitiesFromCache_result that) {
+    public boolean equals(createWebEntities_result that) {
       if (that == null)
         return false;
 
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
+      boolean this_present_me = true && this.isSetMe();
+      boolean that_present_me = true && that.isSetMe();
+      if (this_present_me || that_present_me) {
+        if (!(this_present_me && that_present_me))
           return false;
-        if (!this.success.equals(that.success))
+        if (!this.me.equals(that.me))
+          return false;
+      }
+
+      boolean this_present_x = true && this.isSetX();
+      boolean that_present_x = true && that.isSetX();
+      if (this_present_x || that_present_x) {
+        if (!(this_present_x && that_present_x))
+          return false;
+        if (!this.x.equals(that.x))
           return false;
       }
 
@@ -6034,20 +7075,30 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(getWebEntitiesFromCache_result other) {
+    public int compareTo(createWebEntities_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      getWebEntitiesFromCache_result typedOther = (getWebEntitiesFromCache_result)other;
+      createWebEntities_result typedOther = (createWebEntities_result)other;
 
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+      if (isSetMe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetX()).compareTo(typedOther.isSetX());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetX()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.x, typedOther.x);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -6069,14 +7120,22 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getWebEntitiesFromCache_result(");
+      StringBuilder sb = new StringBuilder("createWebEntities_result(");
       boolean first = true;
 
-      sb.append("success:");
-      if (this.success == null) {
+      sb.append("me:");
+      if (this.me == null) {
         sb.append("null");
       } else {
-        sb.append(this.success);
+        sb.append(this.me);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("x:");
+      if (this.x == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.x);
       }
       first = false;
       sb.append(")");
@@ -6103,15 +7162,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class getWebEntitiesFromCache_resultStandardSchemeFactory implements SchemeFactory {
-      public getWebEntitiesFromCache_resultStandardScheme getScheme() {
-        return new getWebEntitiesFromCache_resultStandardScheme();
+    private static class createWebEntities_resultStandardSchemeFactory implements SchemeFactory {
+      public createWebEntities_resultStandardScheme getScheme() {
+        return new createWebEntities_resultStandardScheme();
       }
     }
 
-    private static class getWebEntitiesFromCache_resultStandardScheme extends StandardScheme<getWebEntitiesFromCache_result> {
+    private static class createWebEntities_resultStandardScheme extends StandardScheme<createWebEntities_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getWebEntitiesFromCache_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, createWebEntities_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -6121,21 +7180,20 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
-                {
-                  org.apache.thrift.protocol.TList _list40 = iprot.readListBegin();
-                  struct.success = new ArrayList<WebEntityInfo>(_list40.size);
-                  for (int _i41 = 0; _i41 < _list40.size; ++_i41)
-                  {
-                    WebEntityInfo _elem42; // required
-                    _elem42 = new WebEntityInfo();
-                    _elem42.read(iprot);
-                    struct.success.add(_elem42);
-                  }
-                  iprot.readListEnd();
-                }
-                struct.setSuccessIsSet(true);
+            case 1: // ME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.me = new MemoryStructureException();
+                struct.me.read(iprot);
+                struct.setMeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // X
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.x = new ObjectNotFoundException();
+                struct.x.read(iprot);
+                struct.setXIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -6151,20 +7209,18 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getWebEntitiesFromCache_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, createWebEntities_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (WebEntityInfo _iter43 : struct.success)
-            {
-              _iter43.write(oprot);
-            }
-            oprot.writeListEnd();
-          }
+        if (struct.me != null) {
+          oprot.writeFieldBegin(ME_FIELD_DESC);
+          struct.me.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.x != null) {
+          oprot.writeFieldBegin(X_FIELD_DESC);
+          struct.x.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -6173,50 +7229,46 @@ public class MemoryStructure {
 
     }
 
-    private static class getWebEntitiesFromCache_resultTupleSchemeFactory implements SchemeFactory {
-      public getWebEntitiesFromCache_resultTupleScheme getScheme() {
-        return new getWebEntitiesFromCache_resultTupleScheme();
+    private static class createWebEntities_resultTupleSchemeFactory implements SchemeFactory {
+      public createWebEntities_resultTupleScheme getScheme() {
+        return new createWebEntities_resultTupleScheme();
       }
     }
 
-    private static class getWebEntitiesFromCache_resultTupleScheme extends TupleScheme<getWebEntitiesFromCache_result> {
+    private static class createWebEntities_resultTupleScheme extends TupleScheme<createWebEntities_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getWebEntitiesFromCache_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, createWebEntities_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
+        if (struct.isSetMe()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetSuccess()) {
-          {
-            oprot.writeI32(struct.success.size());
-            for (WebEntityInfo _iter44 : struct.success)
-            {
-              _iter44.write(oprot);
-            }
-          }
+        if (struct.isSetX()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetMe()) {
+          struct.me.write(oprot);
+        }
+        if (struct.isSetX()) {
+          struct.x.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getWebEntitiesFromCache_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, createWebEntities_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          {
-            org.apache.thrift.protocol.TList _list45 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<WebEntityInfo>(_list45.size);
-            for (int _i46 = 0; _i46 < _list45.size; ++_i46)
-            {
-              WebEntityInfo _elem47; // required
-              _elem47 = new WebEntityInfo();
-              _elem47.read(iprot);
-              struct.success.add(_elem47);
-            }
-          }
-          struct.setSuccessIsSet(true);
+          struct.me = new MemoryStructureException();
+          struct.me.read(iprot);
+          struct.setMeIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.x = new ObjectNotFoundException();
+          struct.x.read(iprot);
+          struct.setXIsSet(true);
         }
       }
     }
@@ -6579,7 +7631,8 @@ public class MemoryStructure {
   public static class deleteCache_result implements org.apache.thrift.TBase<deleteCache_result, deleteCache_result._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("deleteCache_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I32, (short)0);
+    private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField X_FIELD_DESC = new org.apache.thrift.protocol.TField("x", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -6587,11 +7640,13 @@ public class MemoryStructure {
       schemes.put(TupleScheme.class, new deleteCache_resultTupleSchemeFactory());
     }
 
-    public int success; // required
+    public MemoryStructureException me; // required
+    public ObjectNotFoundException x; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      ME((short)1, "me"),
+      X((short)2, "x");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -6606,8 +7661,10 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
+          case 1: // ME
+            return ME;
+          case 2: // X
+            return X;
           default:
             return null;
         }
@@ -6648,13 +7705,13 @@ public class MemoryStructure {
     }
 
     // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private BitSet __isset_bit_vector = new BitSet(1);
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.X, new org.apache.thrift.meta_data.FieldMetaData("x", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(deleteCache_result.class, metaDataMap);
     }
@@ -6663,20 +7720,24 @@ public class MemoryStructure {
     }
 
     public deleteCache_result(
-      int success)
+      MemoryStructureException me,
+      ObjectNotFoundException x)
     {
       this();
-      this.success = success;
-      setSuccessIsSet(true);
+      this.me = me;
+      this.x = x;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public deleteCache_result(deleteCache_result other) {
-      __isset_bit_vector.clear();
-      __isset_bit_vector.or(other.__isset_bit_vector);
-      this.success = other.success;
+      if (other.isSetMe()) {
+        this.me = new MemoryStructureException(other.me);
+      }
+      if (other.isSetX()) {
+        this.x = new ObjectNotFoundException(other.x);
+      }
     }
 
     public deleteCache_result deepCopy() {
@@ -6685,40 +7746,73 @@ public class MemoryStructure {
 
     @Override
     public void clear() {
-      setSuccessIsSet(false);
-      this.success = 0;
+      this.me = null;
+      this.x = null;
     }
 
-    public int getSuccess() {
-      return this.success;
+    public MemoryStructureException getMe() {
+      return this.me;
     }
 
-    public deleteCache_result setSuccess(int success) {
-      this.success = success;
-      setSuccessIsSet(true);
+    public deleteCache_result setMe(MemoryStructureException me) {
+      this.me = me;
       return this;
     }
 
-    public void unsetSuccess() {
-      __isset_bit_vector.clear(__SUCCESS_ISSET_ID);
+    public void unsetMe() {
+      this.me = null;
     }
 
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return __isset_bit_vector.get(__SUCCESS_ISSET_ID);
+    /** Returns true if field me is set (has been assigned a value) and false otherwise */
+    public boolean isSetMe() {
+      return this.me != null;
     }
 
-    public void setSuccessIsSet(boolean value) {
-      __isset_bit_vector.set(__SUCCESS_ISSET_ID, value);
+    public void setMeIsSet(boolean value) {
+      if (!value) {
+        this.me = null;
+      }
+    }
+
+    public ObjectNotFoundException getX() {
+      return this.x;
+    }
+
+    public deleteCache_result setX(ObjectNotFoundException x) {
+      this.x = x;
+      return this;
+    }
+
+    public void unsetX() {
+      this.x = null;
+    }
+
+    /** Returns true if field x is set (has been assigned a value) and false otherwise */
+    public boolean isSetX() {
+      return this.x != null;
+    }
+
+    public void setXIsSet(boolean value) {
+      if (!value) {
+        this.x = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case SUCCESS:
+      case ME:
         if (value == null) {
-          unsetSuccess();
+          unsetMe();
         } else {
-          setSuccess((Integer)value);
+          setMe((MemoryStructureException)value);
+        }
+        break;
+
+      case X:
+        if (value == null) {
+          unsetX();
+        } else {
+          setX((ObjectNotFoundException)value);
         }
         break;
 
@@ -6727,8 +7821,11 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case SUCCESS:
-        return Integer.valueOf(getSuccess());
+      case ME:
+        return getMe();
+
+      case X:
+        return getX();
 
       }
       throw new IllegalStateException();
@@ -6741,8 +7838,10 @@ public class MemoryStructure {
       }
 
       switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
+      case ME:
+        return isSetMe();
+      case X:
+        return isSetX();
       }
       throw new IllegalStateException();
     }
@@ -6760,12 +7859,21 @@ public class MemoryStructure {
       if (that == null)
         return false;
 
-      boolean this_present_success = true;
-      boolean that_present_success = true;
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
+      boolean this_present_me = true && this.isSetMe();
+      boolean that_present_me = true && that.isSetMe();
+      if (this_present_me || that_present_me) {
+        if (!(this_present_me && that_present_me))
           return false;
-        if (this.success != that.success)
+        if (!this.me.equals(that.me))
+          return false;
+      }
+
+      boolean this_present_x = true && this.isSetX();
+      boolean that_present_x = true && that.isSetX();
+      if (this_present_x || that_present_x) {
+        if (!(this_present_x && that_present_x))
+          return false;
+        if (!this.x.equals(that.x))
           return false;
       }
 
@@ -6785,12 +7893,22 @@ public class MemoryStructure {
       int lastComparison = 0;
       deleteCache_result typedOther = (deleteCache_result)other;
 
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+      if (isSetMe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetX()).compareTo(typedOther.isSetX());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetX()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.x, typedOther.x);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -6815,8 +7933,20 @@ public class MemoryStructure {
       StringBuilder sb = new StringBuilder("deleteCache_result(");
       boolean first = true;
 
-      sb.append("success:");
-      sb.append(this.success);
+      sb.append("me:");
+      if (this.me == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.me);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("x:");
+      if (this.x == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.x);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -6860,10 +7990,20 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.success = iprot.readI32();
-                struct.setSuccessIsSet(true);
+            case 1: // ME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.me = new MemoryStructureException();
+                struct.me.read(iprot);
+                struct.setMeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // X
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.x = new ObjectNotFoundException();
+                struct.x.read(iprot);
+                struct.setXIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -6883,9 +8023,16 @@ public class MemoryStructure {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-        oprot.writeI32(struct.success);
-        oprot.writeFieldEnd();
+        if (struct.me != null) {
+          oprot.writeFieldBegin(ME_FIELD_DESC);
+          struct.me.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.x != null) {
+          oprot.writeFieldBegin(X_FIELD_DESC);
+          struct.x.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -6904,44 +8051,56 @@ public class MemoryStructure {
       public void write(org.apache.thrift.protocol.TProtocol prot, deleteCache_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
+        if (struct.isSetMe()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetSuccess()) {
-          oprot.writeI32(struct.success);
+        if (struct.isSetX()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetMe()) {
+          struct.me.write(oprot);
+        }
+        if (struct.isSetX()) {
+          struct.x.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, deleteCache_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = iprot.readI32();
-          struct.setSuccessIsSet(true);
+          struct.me = new MemoryStructureException();
+          struct.me.read(iprot);
+          struct.setMeIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.x = new ObjectNotFoundException();
+          struct.x.read(iprot);
+          struct.setXIsSet(true);
         }
       }
     }
 
   }
 
-  public static class storePrecisionException_args implements org.apache.thrift.TBase<storePrecisionException_args, storePrecisionException_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storePrecisionException_args");
+  public static class markPageWithPrecisionException_args implements org.apache.thrift.TBase<markPageWithPrecisionException_args, markPageWithPrecisionException_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("markPageWithPrecisionException_args");
 
-    private static final org.apache.thrift.protocol.TField PRECISION_EXCEPTION_FIELD_DESC = new org.apache.thrift.protocol.TField("precisionException", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField PAGE_ITEM_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("pageItemId", org.apache.thrift.protocol.TType.STRING, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new storePrecisionException_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new storePrecisionException_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new markPageWithPrecisionException_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new markPageWithPrecisionException_argsTupleSchemeFactory());
     }
 
-    public String precisionException; // required
+    public String pageItemId; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      PRECISION_EXCEPTION((short)1, "precisionException");
+      PAGE_ITEM_ID((short)1, "pageItemId");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -6956,8 +8115,8 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // PRECISION_EXCEPTION
-            return PRECISION_EXCEPTION;
+          case 1: // PAGE_ITEM_ID
+            return PAGE_ITEM_ID;
           default:
             return null;
         }
@@ -7001,71 +8160,71 @@ public class MemoryStructure {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PRECISION_EXCEPTION, new org.apache.thrift.meta_data.FieldMetaData("precisionException", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.PAGE_ITEM_ID, new org.apache.thrift.meta_data.FieldMetaData("pageItemId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storePrecisionException_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(markPageWithPrecisionException_args.class, metaDataMap);
     }
 
-    public storePrecisionException_args() {
+    public markPageWithPrecisionException_args() {
     }
 
-    public storePrecisionException_args(
-      String precisionException)
+    public markPageWithPrecisionException_args(
+      String pageItemId)
     {
       this();
-      this.precisionException = precisionException;
+      this.pageItemId = pageItemId;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public storePrecisionException_args(storePrecisionException_args other) {
-      if (other.isSetPrecisionException()) {
-        this.precisionException = other.precisionException;
+    public markPageWithPrecisionException_args(markPageWithPrecisionException_args other) {
+      if (other.isSetPageItemId()) {
+        this.pageItemId = other.pageItemId;
       }
     }
 
-    public storePrecisionException_args deepCopy() {
-      return new storePrecisionException_args(this);
+    public markPageWithPrecisionException_args deepCopy() {
+      return new markPageWithPrecisionException_args(this);
     }
 
     @Override
     public void clear() {
-      this.precisionException = null;
+      this.pageItemId = null;
     }
 
-    public String getPrecisionException() {
-      return this.precisionException;
+    public String getPageItemId() {
+      return this.pageItemId;
     }
 
-    public storePrecisionException_args setPrecisionException(String precisionException) {
-      this.precisionException = precisionException;
+    public markPageWithPrecisionException_args setPageItemId(String pageItemId) {
+      this.pageItemId = pageItemId;
       return this;
     }
 
-    public void unsetPrecisionException() {
-      this.precisionException = null;
+    public void unsetPageItemId() {
+      this.pageItemId = null;
     }
 
-    /** Returns true if field precisionException is set (has been assigned a value) and false otherwise */
-    public boolean isSetPrecisionException() {
-      return this.precisionException != null;
+    /** Returns true if field pageItemId is set (has been assigned a value) and false otherwise */
+    public boolean isSetPageItemId() {
+      return this.pageItemId != null;
     }
 
-    public void setPrecisionExceptionIsSet(boolean value) {
+    public void setPageItemIdIsSet(boolean value) {
       if (!value) {
-        this.precisionException = null;
+        this.pageItemId = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case PRECISION_EXCEPTION:
+      case PAGE_ITEM_ID:
         if (value == null) {
-          unsetPrecisionException();
+          unsetPageItemId();
         } else {
-          setPrecisionException((String)value);
+          setPageItemId((String)value);
         }
         break;
 
@@ -7074,8 +8233,8 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case PRECISION_EXCEPTION:
-        return getPrecisionException();
+      case PAGE_ITEM_ID:
+        return getPageItemId();
 
       }
       throw new IllegalStateException();
@@ -7088,8 +8247,8 @@ public class MemoryStructure {
       }
 
       switch (field) {
-      case PRECISION_EXCEPTION:
-        return isSetPrecisionException();
+      case PAGE_ITEM_ID:
+        return isSetPageItemId();
       }
       throw new IllegalStateException();
     }
@@ -7098,21 +8257,21 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof storePrecisionException_args)
-        return this.equals((storePrecisionException_args)that);
+      if (that instanceof markPageWithPrecisionException_args)
+        return this.equals((markPageWithPrecisionException_args)that);
       return false;
     }
 
-    public boolean equals(storePrecisionException_args that) {
+    public boolean equals(markPageWithPrecisionException_args that) {
       if (that == null)
         return false;
 
-      boolean this_present_precisionException = true && this.isSetPrecisionException();
-      boolean that_present_precisionException = true && that.isSetPrecisionException();
-      if (this_present_precisionException || that_present_precisionException) {
-        if (!(this_present_precisionException && that_present_precisionException))
+      boolean this_present_pageItemId = true && this.isSetPageItemId();
+      boolean that_present_pageItemId = true && that.isSetPageItemId();
+      if (this_present_pageItemId || that_present_pageItemId) {
+        if (!(this_present_pageItemId && that_present_pageItemId))
           return false;
-        if (!this.precisionException.equals(that.precisionException))
+        if (!this.pageItemId.equals(that.pageItemId))
           return false;
       }
 
@@ -7124,20 +8283,20 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(storePrecisionException_args other) {
+    public int compareTo(markPageWithPrecisionException_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      storePrecisionException_args typedOther = (storePrecisionException_args)other;
+      markPageWithPrecisionException_args typedOther = (markPageWithPrecisionException_args)other;
 
-      lastComparison = Boolean.valueOf(isSetPrecisionException()).compareTo(typedOther.isSetPrecisionException());
+      lastComparison = Boolean.valueOf(isSetPageItemId()).compareTo(typedOther.isSetPageItemId());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetPrecisionException()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.precisionException, typedOther.precisionException);
+      if (isSetPageItemId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.pageItemId, typedOther.pageItemId);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -7159,14 +8318,14 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("storePrecisionException_args(");
+      StringBuilder sb = new StringBuilder("markPageWithPrecisionException_args(");
       boolean first = true;
 
-      sb.append("precisionException:");
-      if (this.precisionException == null) {
+      sb.append("pageItemId:");
+      if (this.pageItemId == null) {
         sb.append("null");
       } else {
-        sb.append(this.precisionException);
+        sb.append(this.pageItemId);
       }
       first = false;
       sb.append(")");
@@ -7193,15 +8352,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class storePrecisionException_argsStandardSchemeFactory implements SchemeFactory {
-      public storePrecisionException_argsStandardScheme getScheme() {
-        return new storePrecisionException_argsStandardScheme();
+    private static class markPageWithPrecisionException_argsStandardSchemeFactory implements SchemeFactory {
+      public markPageWithPrecisionException_argsStandardScheme getScheme() {
+        return new markPageWithPrecisionException_argsStandardScheme();
       }
     }
 
-    private static class storePrecisionException_argsStandardScheme extends StandardScheme<storePrecisionException_args> {
+    private static class markPageWithPrecisionException_argsStandardScheme extends StandardScheme<markPageWithPrecisionException_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, storePrecisionException_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, markPageWithPrecisionException_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -7211,10 +8370,10 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
-            case 1: // PRECISION_EXCEPTION
+            case 1: // PAGE_ITEM_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.precisionException = iprot.readString();
-                struct.setPrecisionExceptionIsSet(true);
+                struct.pageItemId = iprot.readString();
+                struct.setPageItemIdIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -7230,13 +8389,13 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, storePrecisionException_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, markPageWithPrecisionException_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.precisionException != null) {
-          oprot.writeFieldBegin(PRECISION_EXCEPTION_FIELD_DESC);
-          oprot.writeString(struct.precisionException);
+        if (struct.pageItemId != null) {
+          oprot.writeFieldBegin(PAGE_ITEM_ID_FIELD_DESC);
+          oprot.writeString(struct.pageItemId);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -7245,56 +8404,59 @@ public class MemoryStructure {
 
     }
 
-    private static class storePrecisionException_argsTupleSchemeFactory implements SchemeFactory {
-      public storePrecisionException_argsTupleScheme getScheme() {
-        return new storePrecisionException_argsTupleScheme();
+    private static class markPageWithPrecisionException_argsTupleSchemeFactory implements SchemeFactory {
+      public markPageWithPrecisionException_argsTupleScheme getScheme() {
+        return new markPageWithPrecisionException_argsTupleScheme();
       }
     }
 
-    private static class storePrecisionException_argsTupleScheme extends TupleScheme<storePrecisionException_args> {
+    private static class markPageWithPrecisionException_argsTupleScheme extends TupleScheme<markPageWithPrecisionException_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, storePrecisionException_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, markPageWithPrecisionException_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetPrecisionException()) {
+        if (struct.isSetPageItemId()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetPrecisionException()) {
-          oprot.writeString(struct.precisionException);
+        if (struct.isSetPageItemId()) {
+          oprot.writeString(struct.pageItemId);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, storePrecisionException_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, markPageWithPrecisionException_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.precisionException = iprot.readString();
-          struct.setPrecisionExceptionIsSet(true);
+          struct.pageItemId = iprot.readString();
+          struct.setPageItemIdIsSet(true);
         }
       }
     }
 
   }
 
-  public static class storePrecisionException_result implements org.apache.thrift.TBase<storePrecisionException_result, storePrecisionException_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storePrecisionException_result");
+  public static class markPageWithPrecisionException_result implements org.apache.thrift.TBase<markPageWithPrecisionException_result, markPageWithPrecisionException_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("markPageWithPrecisionException_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I32, (short)0);
+    private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField X_FIELD_DESC = new org.apache.thrift.protocol.TField("x", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new storePrecisionException_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new storePrecisionException_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new markPageWithPrecisionException_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new markPageWithPrecisionException_resultTupleSchemeFactory());
     }
 
-    public int success; // required
+    public MemoryStructureException me; // required
+    public ObjectNotFoundException x; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      ME((short)1, "me"),
+      X((short)2, "x");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -7309,8 +8471,10 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
+          case 1: // ME
+            return ME;
+          case 2: // X
+            return X;
           default:
             return null;
         }
@@ -7351,77 +8515,114 @@ public class MemoryStructure {
     }
 
     // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private BitSet __isset_bit_vector = new BitSet(1);
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.X, new org.apache.thrift.meta_data.FieldMetaData("x", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storePrecisionException_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(markPageWithPrecisionException_result.class, metaDataMap);
     }
 
-    public storePrecisionException_result() {
+    public markPageWithPrecisionException_result() {
     }
 
-    public storePrecisionException_result(
-      int success)
+    public markPageWithPrecisionException_result(
+      MemoryStructureException me,
+      ObjectNotFoundException x)
     {
       this();
-      this.success = success;
-      setSuccessIsSet(true);
+      this.me = me;
+      this.x = x;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public storePrecisionException_result(storePrecisionException_result other) {
-      __isset_bit_vector.clear();
-      __isset_bit_vector.or(other.__isset_bit_vector);
-      this.success = other.success;
+    public markPageWithPrecisionException_result(markPageWithPrecisionException_result other) {
+      if (other.isSetMe()) {
+        this.me = new MemoryStructureException(other.me);
+      }
+      if (other.isSetX()) {
+        this.x = new ObjectNotFoundException(other.x);
+      }
     }
 
-    public storePrecisionException_result deepCopy() {
-      return new storePrecisionException_result(this);
+    public markPageWithPrecisionException_result deepCopy() {
+      return new markPageWithPrecisionException_result(this);
     }
 
     @Override
     public void clear() {
-      setSuccessIsSet(false);
-      this.success = 0;
+      this.me = null;
+      this.x = null;
     }
 
-    public int getSuccess() {
-      return this.success;
+    public MemoryStructureException getMe() {
+      return this.me;
     }
 
-    public storePrecisionException_result setSuccess(int success) {
-      this.success = success;
-      setSuccessIsSet(true);
+    public markPageWithPrecisionException_result setMe(MemoryStructureException me) {
+      this.me = me;
       return this;
     }
 
-    public void unsetSuccess() {
-      __isset_bit_vector.clear(__SUCCESS_ISSET_ID);
+    public void unsetMe() {
+      this.me = null;
     }
 
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return __isset_bit_vector.get(__SUCCESS_ISSET_ID);
+    /** Returns true if field me is set (has been assigned a value) and false otherwise */
+    public boolean isSetMe() {
+      return this.me != null;
     }
 
-    public void setSuccessIsSet(boolean value) {
-      __isset_bit_vector.set(__SUCCESS_ISSET_ID, value);
+    public void setMeIsSet(boolean value) {
+      if (!value) {
+        this.me = null;
+      }
+    }
+
+    public ObjectNotFoundException getX() {
+      return this.x;
+    }
+
+    public markPageWithPrecisionException_result setX(ObjectNotFoundException x) {
+      this.x = x;
+      return this;
+    }
+
+    public void unsetX() {
+      this.x = null;
+    }
+
+    /** Returns true if field x is set (has been assigned a value) and false otherwise */
+    public boolean isSetX() {
+      return this.x != null;
+    }
+
+    public void setXIsSet(boolean value) {
+      if (!value) {
+        this.x = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case SUCCESS:
+      case ME:
         if (value == null) {
-          unsetSuccess();
+          unsetMe();
         } else {
-          setSuccess((Integer)value);
+          setMe((MemoryStructureException)value);
+        }
+        break;
+
+      case X:
+        if (value == null) {
+          unsetX();
+        } else {
+          setX((ObjectNotFoundException)value);
         }
         break;
 
@@ -7430,8 +8631,11 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case SUCCESS:
-        return Integer.valueOf(getSuccess());
+      case ME:
+        return getMe();
+
+      case X:
+        return getX();
 
       }
       throw new IllegalStateException();
@@ -7444,8 +8648,10 @@ public class MemoryStructure {
       }
 
       switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
+      case ME:
+        return isSetMe();
+      case X:
+        return isSetX();
       }
       throw new IllegalStateException();
     }
@@ -7454,21 +8660,30 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof storePrecisionException_result)
-        return this.equals((storePrecisionException_result)that);
+      if (that instanceof markPageWithPrecisionException_result)
+        return this.equals((markPageWithPrecisionException_result)that);
       return false;
     }
 
-    public boolean equals(storePrecisionException_result that) {
+    public boolean equals(markPageWithPrecisionException_result that) {
       if (that == null)
         return false;
 
-      boolean this_present_success = true;
-      boolean that_present_success = true;
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
+      boolean this_present_me = true && this.isSetMe();
+      boolean that_present_me = true && that.isSetMe();
+      if (this_present_me || that_present_me) {
+        if (!(this_present_me && that_present_me))
           return false;
-        if (this.success != that.success)
+        if (!this.me.equals(that.me))
+          return false;
+      }
+
+      boolean this_present_x = true && this.isSetX();
+      boolean that_present_x = true && that.isSetX();
+      if (this_present_x || that_present_x) {
+        if (!(this_present_x && that_present_x))
+          return false;
+        if (!this.x.equals(that.x))
           return false;
       }
 
@@ -7480,20 +8695,30 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(storePrecisionException_result other) {
+    public int compareTo(markPageWithPrecisionException_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      storePrecisionException_result typedOther = (storePrecisionException_result)other;
+      markPageWithPrecisionException_result typedOther = (markPageWithPrecisionException_result)other;
 
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+      if (isSetMe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetX()).compareTo(typedOther.isSetX());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetX()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.x, typedOther.x);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -7515,11 +8740,23 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("storePrecisionException_result(");
+      StringBuilder sb = new StringBuilder("markPageWithPrecisionException_result(");
       boolean first = true;
 
-      sb.append("success:");
-      sb.append(this.success);
+      sb.append("me:");
+      if (this.me == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.me);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("x:");
+      if (this.x == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.x);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -7545,15 +8782,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class storePrecisionException_resultStandardSchemeFactory implements SchemeFactory {
-      public storePrecisionException_resultStandardScheme getScheme() {
-        return new storePrecisionException_resultStandardScheme();
+    private static class markPageWithPrecisionException_resultStandardSchemeFactory implements SchemeFactory {
+      public markPageWithPrecisionException_resultStandardScheme getScheme() {
+        return new markPageWithPrecisionException_resultStandardScheme();
       }
     }
 
-    private static class storePrecisionException_resultStandardScheme extends StandardScheme<storePrecisionException_result> {
+    private static class markPageWithPrecisionException_resultStandardScheme extends StandardScheme<markPageWithPrecisionException_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, storePrecisionException_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, markPageWithPrecisionException_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -7563,10 +8800,20 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.success = iprot.readI32();
-                struct.setSuccessIsSet(true);
+            case 1: // ME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.me = new MemoryStructureException();
+                struct.me.read(iprot);
+                struct.setMeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // X
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.x = new ObjectNotFoundException();
+                struct.x.read(iprot);
+                struct.setXIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -7582,62 +8829,81 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, storePrecisionException_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, markPageWithPrecisionException_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-        oprot.writeI32(struct.success);
-        oprot.writeFieldEnd();
+        if (struct.me != null) {
+          oprot.writeFieldBegin(ME_FIELD_DESC);
+          struct.me.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.x != null) {
+          oprot.writeFieldBegin(X_FIELD_DESC);
+          struct.x.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class storePrecisionException_resultTupleSchemeFactory implements SchemeFactory {
-      public storePrecisionException_resultTupleScheme getScheme() {
-        return new storePrecisionException_resultTupleScheme();
+    private static class markPageWithPrecisionException_resultTupleSchemeFactory implements SchemeFactory {
+      public markPageWithPrecisionException_resultTupleScheme getScheme() {
+        return new markPageWithPrecisionException_resultTupleScheme();
       }
     }
 
-    private static class storePrecisionException_resultTupleScheme extends TupleScheme<storePrecisionException_result> {
+    private static class markPageWithPrecisionException_resultTupleScheme extends TupleScheme<markPageWithPrecisionException_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, storePrecisionException_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, markPageWithPrecisionException_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
+        if (struct.isSetMe()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetSuccess()) {
-          oprot.writeI32(struct.success);
+        if (struct.isSetX()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetMe()) {
+          struct.me.write(oprot);
+        }
+        if (struct.isSetX()) {
+          struct.x.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, storePrecisionException_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, markPageWithPrecisionException_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = iprot.readI32();
-          struct.setSuccessIsSet(true);
+          struct.me = new MemoryStructureException();
+          struct.me.read(iprot);
+          struct.setMeIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.x = new ObjectNotFoundException();
+          struct.x.read(iprot);
+          struct.setXIsSet(true);
         }
       }
     }
 
   }
 
-  public static class storeWebEntityCreationRule_args implements org.apache.thrift.TBase<storeWebEntityCreationRule_args, storeWebEntityCreationRule_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storeWebEntityCreationRule_args");
+  public static class saveWebEntityCreationRule_args implements org.apache.thrift.TBase<saveWebEntityCreationRule_args, saveWebEntityCreationRule_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("saveWebEntityCreationRule_args");
 
     private static final org.apache.thrift.protocol.TField WEB_ENTITY_CREATION_RULE_FIELD_DESC = new org.apache.thrift.protocol.TField("webEntityCreationRule", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new storeWebEntityCreationRule_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new storeWebEntityCreationRule_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new saveWebEntityCreationRule_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new saveWebEntityCreationRule_argsTupleSchemeFactory());
     }
 
     public WebEntityCreationRule webEntityCreationRule; // required
@@ -7707,13 +8973,13 @@ public class MemoryStructure {
       tmpMap.put(_Fields.WEB_ENTITY_CREATION_RULE, new org.apache.thrift.meta_data.FieldMetaData("webEntityCreationRule", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, WebEntityCreationRule.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storeWebEntityCreationRule_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(saveWebEntityCreationRule_args.class, metaDataMap);
     }
 
-    public storeWebEntityCreationRule_args() {
+    public saveWebEntityCreationRule_args() {
     }
 
-    public storeWebEntityCreationRule_args(
+    public saveWebEntityCreationRule_args(
       WebEntityCreationRule webEntityCreationRule)
     {
       this();
@@ -7723,14 +8989,14 @@ public class MemoryStructure {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public storeWebEntityCreationRule_args(storeWebEntityCreationRule_args other) {
+    public saveWebEntityCreationRule_args(saveWebEntityCreationRule_args other) {
       if (other.isSetWebEntityCreationRule()) {
         this.webEntityCreationRule = new WebEntityCreationRule(other.webEntityCreationRule);
       }
     }
 
-    public storeWebEntityCreationRule_args deepCopy() {
-      return new storeWebEntityCreationRule_args(this);
+    public saveWebEntityCreationRule_args deepCopy() {
+      return new saveWebEntityCreationRule_args(this);
     }
 
     @Override
@@ -7742,7 +9008,7 @@ public class MemoryStructure {
       return this.webEntityCreationRule;
     }
 
-    public storeWebEntityCreationRule_args setWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) {
+    public saveWebEntityCreationRule_args setWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) {
       this.webEntityCreationRule = webEntityCreationRule;
       return this;
     }
@@ -7801,12 +9067,12 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof storeWebEntityCreationRule_args)
-        return this.equals((storeWebEntityCreationRule_args)that);
+      if (that instanceof saveWebEntityCreationRule_args)
+        return this.equals((saveWebEntityCreationRule_args)that);
       return false;
     }
 
-    public boolean equals(storeWebEntityCreationRule_args that) {
+    public boolean equals(saveWebEntityCreationRule_args that) {
       if (that == null)
         return false;
 
@@ -7827,13 +9093,13 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(storeWebEntityCreationRule_args other) {
+    public int compareTo(saveWebEntityCreationRule_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      storeWebEntityCreationRule_args typedOther = (storeWebEntityCreationRule_args)other;
+      saveWebEntityCreationRule_args typedOther = (saveWebEntityCreationRule_args)other;
 
       lastComparison = Boolean.valueOf(isSetWebEntityCreationRule()).compareTo(typedOther.isSetWebEntityCreationRule());
       if (lastComparison != 0) {
@@ -7862,7 +9128,7 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("storeWebEntityCreationRule_args(");
+      StringBuilder sb = new StringBuilder("saveWebEntityCreationRule_args(");
       boolean first = true;
 
       sb.append("webEntityCreationRule:");
@@ -7896,15 +9162,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class storeWebEntityCreationRule_argsStandardSchemeFactory implements SchemeFactory {
-      public storeWebEntityCreationRule_argsStandardScheme getScheme() {
-        return new storeWebEntityCreationRule_argsStandardScheme();
+    private static class saveWebEntityCreationRule_argsStandardSchemeFactory implements SchemeFactory {
+      public saveWebEntityCreationRule_argsStandardScheme getScheme() {
+        return new saveWebEntityCreationRule_argsStandardScheme();
       }
     }
 
-    private static class storeWebEntityCreationRule_argsStandardScheme extends StandardScheme<storeWebEntityCreationRule_args> {
+    private static class saveWebEntityCreationRule_argsStandardScheme extends StandardScheme<saveWebEntityCreationRule_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, storeWebEntityCreationRule_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, saveWebEntityCreationRule_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -7934,7 +9200,7 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, storeWebEntityCreationRule_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, saveWebEntityCreationRule_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -7949,16 +9215,16 @@ public class MemoryStructure {
 
     }
 
-    private static class storeWebEntityCreationRule_argsTupleSchemeFactory implements SchemeFactory {
-      public storeWebEntityCreationRule_argsTupleScheme getScheme() {
-        return new storeWebEntityCreationRule_argsTupleScheme();
+    private static class saveWebEntityCreationRule_argsTupleSchemeFactory implements SchemeFactory {
+      public saveWebEntityCreationRule_argsTupleScheme getScheme() {
+        return new saveWebEntityCreationRule_argsTupleScheme();
       }
     }
 
-    private static class storeWebEntityCreationRule_argsTupleScheme extends TupleScheme<storeWebEntityCreationRule_args> {
+    private static class saveWebEntityCreationRule_argsTupleScheme extends TupleScheme<saveWebEntityCreationRule_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, storeWebEntityCreationRule_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, saveWebEntityCreationRule_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetWebEntityCreationRule()) {
@@ -7971,7 +9237,7 @@ public class MemoryStructure {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, storeWebEntityCreationRule_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, saveWebEntityCreationRule_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
@@ -7984,22 +9250,22 @@ public class MemoryStructure {
 
   }
 
-  public static class storeWebEntityCreationRule_result implements org.apache.thrift.TBase<storeWebEntityCreationRule_result, storeWebEntityCreationRule_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storeWebEntityCreationRule_result");
+  public static class saveWebEntityCreationRule_result implements org.apache.thrift.TBase<saveWebEntityCreationRule_result, saveWebEntityCreationRule_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("saveWebEntityCreationRule_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I32, (short)0);
+    private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new storeWebEntityCreationRule_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new storeWebEntityCreationRule_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new saveWebEntityCreationRule_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new saveWebEntityCreationRule_resultTupleSchemeFactory());
     }
 
-    public int success; // required
+    public MemoryStructureException me; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      ME((short)1, "me");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -8014,8 +9280,8 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
+          case 1: // ME
+            return ME;
           default:
             return null;
         }
@@ -8056,77 +9322,74 @@ public class MemoryStructure {
     }
 
     // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private BitSet __isset_bit_vector = new BitSet(1);
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storeWebEntityCreationRule_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(saveWebEntityCreationRule_result.class, metaDataMap);
     }
 
-    public storeWebEntityCreationRule_result() {
+    public saveWebEntityCreationRule_result() {
     }
 
-    public storeWebEntityCreationRule_result(
-      int success)
+    public saveWebEntityCreationRule_result(
+      MemoryStructureException me)
     {
       this();
-      this.success = success;
-      setSuccessIsSet(true);
+      this.me = me;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public storeWebEntityCreationRule_result(storeWebEntityCreationRule_result other) {
-      __isset_bit_vector.clear();
-      __isset_bit_vector.or(other.__isset_bit_vector);
-      this.success = other.success;
+    public saveWebEntityCreationRule_result(saveWebEntityCreationRule_result other) {
+      if (other.isSetMe()) {
+        this.me = new MemoryStructureException(other.me);
+      }
     }
 
-    public storeWebEntityCreationRule_result deepCopy() {
-      return new storeWebEntityCreationRule_result(this);
+    public saveWebEntityCreationRule_result deepCopy() {
+      return new saveWebEntityCreationRule_result(this);
     }
 
     @Override
     public void clear() {
-      setSuccessIsSet(false);
-      this.success = 0;
+      this.me = null;
     }
 
-    public int getSuccess() {
-      return this.success;
+    public MemoryStructureException getMe() {
+      return this.me;
     }
 
-    public storeWebEntityCreationRule_result setSuccess(int success) {
-      this.success = success;
-      setSuccessIsSet(true);
+    public saveWebEntityCreationRule_result setMe(MemoryStructureException me) {
+      this.me = me;
       return this;
     }
 
-    public void unsetSuccess() {
-      __isset_bit_vector.clear(__SUCCESS_ISSET_ID);
+    public void unsetMe() {
+      this.me = null;
     }
 
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return __isset_bit_vector.get(__SUCCESS_ISSET_ID);
+    /** Returns true if field me is set (has been assigned a value) and false otherwise */
+    public boolean isSetMe() {
+      return this.me != null;
     }
 
-    public void setSuccessIsSet(boolean value) {
-      __isset_bit_vector.set(__SUCCESS_ISSET_ID, value);
+    public void setMeIsSet(boolean value) {
+      if (!value) {
+        this.me = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case SUCCESS:
+      case ME:
         if (value == null) {
-          unsetSuccess();
+          unsetMe();
         } else {
-          setSuccess((Integer)value);
+          setMe((MemoryStructureException)value);
         }
         break;
 
@@ -8135,8 +9398,8 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case SUCCESS:
-        return Integer.valueOf(getSuccess());
+      case ME:
+        return getMe();
 
       }
       throw new IllegalStateException();
@@ -8149,8 +9412,8 @@ public class MemoryStructure {
       }
 
       switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
+      case ME:
+        return isSetMe();
       }
       throw new IllegalStateException();
     }
@@ -8159,21 +9422,21 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof storeWebEntityCreationRule_result)
-        return this.equals((storeWebEntityCreationRule_result)that);
+      if (that instanceof saveWebEntityCreationRule_result)
+        return this.equals((saveWebEntityCreationRule_result)that);
       return false;
     }
 
-    public boolean equals(storeWebEntityCreationRule_result that) {
+    public boolean equals(saveWebEntityCreationRule_result that) {
       if (that == null)
         return false;
 
-      boolean this_present_success = true;
-      boolean that_present_success = true;
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
+      boolean this_present_me = true && this.isSetMe();
+      boolean that_present_me = true && that.isSetMe();
+      if (this_present_me || that_present_me) {
+        if (!(this_present_me && that_present_me))
           return false;
-        if (this.success != that.success)
+        if (!this.me.equals(that.me))
           return false;
       }
 
@@ -8185,20 +9448,20 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(storeWebEntityCreationRule_result other) {
+    public int compareTo(saveWebEntityCreationRule_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      storeWebEntityCreationRule_result typedOther = (storeWebEntityCreationRule_result)other;
+      saveWebEntityCreationRule_result typedOther = (saveWebEntityCreationRule_result)other;
 
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+      if (isSetMe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -8220,11 +9483,15 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("storeWebEntityCreationRule_result(");
+      StringBuilder sb = new StringBuilder("saveWebEntityCreationRule_result(");
       boolean first = true;
 
-      sb.append("success:");
-      sb.append(this.success);
+      sb.append("me:");
+      if (this.me == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.me);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -8250,15 +9517,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class storeWebEntityCreationRule_resultStandardSchemeFactory implements SchemeFactory {
-      public storeWebEntityCreationRule_resultStandardScheme getScheme() {
-        return new storeWebEntityCreationRule_resultStandardScheme();
+    private static class saveWebEntityCreationRule_resultStandardSchemeFactory implements SchemeFactory {
+      public saveWebEntityCreationRule_resultStandardScheme getScheme() {
+        return new saveWebEntityCreationRule_resultStandardScheme();
       }
     }
 
-    private static class storeWebEntityCreationRule_resultStandardScheme extends StandardScheme<storeWebEntityCreationRule_result> {
+    private static class saveWebEntityCreationRule_resultStandardScheme extends StandardScheme<saveWebEntityCreationRule_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, storeWebEntityCreationRule_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, saveWebEntityCreationRule_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -8268,10 +9535,11 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.success = iprot.readI32();
-                struct.setSuccessIsSet(true);
+            case 1: // ME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.me = new MemoryStructureException();
+                struct.me.read(iprot);
+                struct.setMeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -8287,69 +9555,72 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, storeWebEntityCreationRule_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, saveWebEntityCreationRule_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-        oprot.writeI32(struct.success);
-        oprot.writeFieldEnd();
+        if (struct.me != null) {
+          oprot.writeFieldBegin(ME_FIELD_DESC);
+          struct.me.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class storeWebEntityCreationRule_resultTupleSchemeFactory implements SchemeFactory {
-      public storeWebEntityCreationRule_resultTupleScheme getScheme() {
-        return new storeWebEntityCreationRule_resultTupleScheme();
+    private static class saveWebEntityCreationRule_resultTupleSchemeFactory implements SchemeFactory {
+      public saveWebEntityCreationRule_resultTupleScheme getScheme() {
+        return new saveWebEntityCreationRule_resultTupleScheme();
       }
     }
 
-    private static class storeWebEntityCreationRule_resultTupleScheme extends TupleScheme<storeWebEntityCreationRule_result> {
+    private static class saveWebEntityCreationRule_resultTupleScheme extends TupleScheme<saveWebEntityCreationRule_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, storeWebEntityCreationRule_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, saveWebEntityCreationRule_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
+        if (struct.isSetMe()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetSuccess()) {
-          oprot.writeI32(struct.success);
+        if (struct.isSetMe()) {
+          struct.me.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, storeWebEntityCreationRule_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, saveWebEntityCreationRule_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.success = iprot.readI32();
-          struct.setSuccessIsSet(true);
+          struct.me = new MemoryStructureException();
+          struct.me.read(iprot);
+          struct.setMeIsSet(true);
         }
       }
     }
 
   }
 
-  public static class storeLRUItems_args implements org.apache.thrift.TBase<storeLRUItems_args, storeLRUItems_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storeLRUItems_args");
+  public static class savePageItems_args implements org.apache.thrift.TBase<savePageItems_args, savePageItems_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("savePageItems_args");
 
-    private static final org.apache.thrift.protocol.TField LRU_ITEMS_FIELD_DESC = new org.apache.thrift.protocol.TField("lruItems", org.apache.thrift.protocol.TType.LIST, (short)1);
+    private static final org.apache.thrift.protocol.TField PAGE_ITEMS_FIELD_DESC = new org.apache.thrift.protocol.TField("pageItems", org.apache.thrift.protocol.TType.SET, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new storeLRUItems_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new storeLRUItems_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new savePageItems_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new savePageItems_argsTupleSchemeFactory());
     }
 
-    public List<LRUItem> lruItems; // required
+    public Set<PageItem> pageItems; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      LRU_ITEMS((short)1, "lruItems");
+      PAGE_ITEMS((short)1, "pageItems");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -8364,8 +9635,8 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // LRU_ITEMS
-            return LRU_ITEMS;
+          case 1: // PAGE_ITEMS
+            return PAGE_ITEMS;
           default:
             return null;
         }
@@ -8409,91 +9680,91 @@ public class MemoryStructure {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.LRU_ITEMS, new org.apache.thrift.meta_data.FieldMetaData("lruItems", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LRUItem.class))));
+      tmpMap.put(_Fields.PAGE_ITEMS, new org.apache.thrift.meta_data.FieldMetaData("pageItems", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PageItem.class))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storeLRUItems_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(savePageItems_args.class, metaDataMap);
     }
 
-    public storeLRUItems_args() {
+    public savePageItems_args() {
     }
 
-    public storeLRUItems_args(
-      List<LRUItem> lruItems)
+    public savePageItems_args(
+      Set<PageItem> pageItems)
     {
       this();
-      this.lruItems = lruItems;
+      this.pageItems = pageItems;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public storeLRUItems_args(storeLRUItems_args other) {
-      if (other.isSetLruItems()) {
-        List<LRUItem> __this__lruItems = new ArrayList<LRUItem>();
-        for (LRUItem other_element : other.lruItems) {
-          __this__lruItems.add(new LRUItem(other_element));
+    public savePageItems_args(savePageItems_args other) {
+      if (other.isSetPageItems()) {
+        Set<PageItem> __this__pageItems = new HashSet<PageItem>();
+        for (PageItem other_element : other.pageItems) {
+          __this__pageItems.add(new PageItem(other_element));
         }
-        this.lruItems = __this__lruItems;
+        this.pageItems = __this__pageItems;
       }
     }
 
-    public storeLRUItems_args deepCopy() {
-      return new storeLRUItems_args(this);
+    public savePageItems_args deepCopy() {
+      return new savePageItems_args(this);
     }
 
     @Override
     public void clear() {
-      this.lruItems = null;
+      this.pageItems = null;
     }
 
-    public int getLruItemsSize() {
-      return (this.lruItems == null) ? 0 : this.lruItems.size();
+    public int getPageItemsSize() {
+      return (this.pageItems == null) ? 0 : this.pageItems.size();
     }
 
-    public java.util.Iterator<LRUItem> getLruItemsIterator() {
-      return (this.lruItems == null) ? null : this.lruItems.iterator();
+    public java.util.Iterator<PageItem> getPageItemsIterator() {
+      return (this.pageItems == null) ? null : this.pageItems.iterator();
     }
 
-    public void addToLruItems(LRUItem elem) {
-      if (this.lruItems == null) {
-        this.lruItems = new ArrayList<LRUItem>();
+    public void addToPageItems(PageItem elem) {
+      if (this.pageItems == null) {
+        this.pageItems = new HashSet<PageItem>();
       }
-      this.lruItems.add(elem);
+      this.pageItems.add(elem);
     }
 
-    public List<LRUItem> getLruItems() {
-      return this.lruItems;
+    public Set<PageItem> getPageItems() {
+      return this.pageItems;
     }
 
-    public storeLRUItems_args setLruItems(List<LRUItem> lruItems) {
-      this.lruItems = lruItems;
+    public savePageItems_args setPageItems(Set<PageItem> pageItems) {
+      this.pageItems = pageItems;
       return this;
     }
 
-    public void unsetLruItems() {
-      this.lruItems = null;
+    public void unsetPageItems() {
+      this.pageItems = null;
     }
 
-    /** Returns true if field lruItems is set (has been assigned a value) and false otherwise */
-    public boolean isSetLruItems() {
-      return this.lruItems != null;
+    /** Returns true if field pageItems is set (has been assigned a value) and false otherwise */
+    public boolean isSetPageItems() {
+      return this.pageItems != null;
     }
 
-    public void setLruItemsIsSet(boolean value) {
+    public void setPageItemsIsSet(boolean value) {
       if (!value) {
-        this.lruItems = null;
+        this.pageItems = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case LRU_ITEMS:
+      case PAGE_ITEMS:
         if (value == null) {
-          unsetLruItems();
+          unsetPageItems();
         } else {
-          setLruItems((List<LRUItem>)value);
+          setPageItems((Set<PageItem>)value);
         }
         break;
 
@@ -8502,8 +9773,8 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case LRU_ITEMS:
-        return getLruItems();
+      case PAGE_ITEMS:
+        return getPageItems();
 
       }
       throw new IllegalStateException();
@@ -8516,8 +9787,8 @@ public class MemoryStructure {
       }
 
       switch (field) {
-      case LRU_ITEMS:
-        return isSetLruItems();
+      case PAGE_ITEMS:
+        return isSetPageItems();
       }
       throw new IllegalStateException();
     }
@@ -8526,21 +9797,21 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof storeLRUItems_args)
-        return this.equals((storeLRUItems_args)that);
+      if (that instanceof savePageItems_args)
+        return this.equals((savePageItems_args)that);
       return false;
     }
 
-    public boolean equals(storeLRUItems_args that) {
+    public boolean equals(savePageItems_args that) {
       if (that == null)
         return false;
 
-      boolean this_present_lruItems = true && this.isSetLruItems();
-      boolean that_present_lruItems = true && that.isSetLruItems();
-      if (this_present_lruItems || that_present_lruItems) {
-        if (!(this_present_lruItems && that_present_lruItems))
+      boolean this_present_pageItems = true && this.isSetPageItems();
+      boolean that_present_pageItems = true && that.isSetPageItems();
+      if (this_present_pageItems || that_present_pageItems) {
+        if (!(this_present_pageItems && that_present_pageItems))
           return false;
-        if (!this.lruItems.equals(that.lruItems))
+        if (!this.pageItems.equals(that.pageItems))
           return false;
       }
 
@@ -8552,20 +9823,20 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(storeLRUItems_args other) {
+    public int compareTo(savePageItems_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      storeLRUItems_args typedOther = (storeLRUItems_args)other;
+      savePageItems_args typedOther = (savePageItems_args)other;
 
-      lastComparison = Boolean.valueOf(isSetLruItems()).compareTo(typedOther.isSetLruItems());
+      lastComparison = Boolean.valueOf(isSetPageItems()).compareTo(typedOther.isSetPageItems());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetLruItems()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lruItems, typedOther.lruItems);
+      if (isSetPageItems()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.pageItems, typedOther.pageItems);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -8587,14 +9858,14 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("storeLRUItems_args(");
+      StringBuilder sb = new StringBuilder("savePageItems_args(");
       boolean first = true;
 
-      sb.append("lruItems:");
-      if (this.lruItems == null) {
+      sb.append("pageItems:");
+      if (this.pageItems == null) {
         sb.append("null");
       } else {
-        sb.append(this.lruItems);
+        sb.append(this.pageItems);
       }
       first = false;
       sb.append(")");
@@ -8621,15 +9892,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class storeLRUItems_argsStandardSchemeFactory implements SchemeFactory {
-      public storeLRUItems_argsStandardScheme getScheme() {
-        return new storeLRUItems_argsStandardScheme();
+    private static class savePageItems_argsStandardSchemeFactory implements SchemeFactory {
+      public savePageItems_argsStandardScheme getScheme() {
+        return new savePageItems_argsStandardScheme();
       }
     }
 
-    private static class storeLRUItems_argsStandardScheme extends StandardScheme<storeLRUItems_args> {
+    private static class savePageItems_argsStandardScheme extends StandardScheme<savePageItems_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, storeLRUItems_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, savePageItems_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -8639,21 +9910,21 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
-            case 1: // LRU_ITEMS
-              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+            case 1: // PAGE_ITEMS
+              if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TList _list48 = iprot.readListBegin();
-                  struct.lruItems = new ArrayList<LRUItem>(_list48.size);
-                  for (int _i49 = 0; _i49 < _list48.size; ++_i49)
+                  org.apache.thrift.protocol.TSet _set50 = iprot.readSetBegin();
+                  struct.pageItems = new HashSet<PageItem>(2*_set50.size);
+                  for (int _i51 = 0; _i51 < _set50.size; ++_i51)
                   {
-                    LRUItem _elem50; // required
-                    _elem50 = new LRUItem();
-                    _elem50.read(iprot);
-                    struct.lruItems.add(_elem50);
+                    PageItem _elem52; // required
+                    _elem52 = new PageItem();
+                    _elem52.read(iprot);
+                    struct.pageItems.add(_elem52);
                   }
-                  iprot.readListEnd();
+                  iprot.readSetEnd();
                 }
-                struct.setLruItemsIsSet(true);
+                struct.setPageItemsIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -8669,19 +9940,19 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, storeLRUItems_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, savePageItems_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.lruItems != null) {
-          oprot.writeFieldBegin(LRU_ITEMS_FIELD_DESC);
+        if (struct.pageItems != null) {
+          oprot.writeFieldBegin(PAGE_ITEMS_FIELD_DESC);
           {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.lruItems.size()));
-            for (LRUItem _iter51 : struct.lruItems)
+            oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, struct.pageItems.size()));
+            for (PageItem _iter53 : struct.pageItems)
             {
-              _iter51.write(oprot);
+              _iter53.write(oprot);
             }
-            oprot.writeListEnd();
+            oprot.writeSetEnd();
           }
           oprot.writeFieldEnd();
         }
@@ -8691,72 +9962,72 @@ public class MemoryStructure {
 
     }
 
-    private static class storeLRUItems_argsTupleSchemeFactory implements SchemeFactory {
-      public storeLRUItems_argsTupleScheme getScheme() {
-        return new storeLRUItems_argsTupleScheme();
+    private static class savePageItems_argsTupleSchemeFactory implements SchemeFactory {
+      public savePageItems_argsTupleScheme getScheme() {
+        return new savePageItems_argsTupleScheme();
       }
     }
 
-    private static class storeLRUItems_argsTupleScheme extends TupleScheme<storeLRUItems_args> {
+    private static class savePageItems_argsTupleScheme extends TupleScheme<savePageItems_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, storeLRUItems_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, savePageItems_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetLruItems()) {
+        if (struct.isSetPageItems()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetLruItems()) {
+        if (struct.isSetPageItems()) {
           {
-            oprot.writeI32(struct.lruItems.size());
-            for (LRUItem _iter52 : struct.lruItems)
+            oprot.writeI32(struct.pageItems.size());
+            for (PageItem _iter54 : struct.pageItems)
             {
-              _iter52.write(oprot);
+              _iter54.write(oprot);
             }
           }
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, storeLRUItems_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, savePageItems_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list53 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.lruItems = new ArrayList<LRUItem>(_list53.size);
-            for (int _i54 = 0; _i54 < _list53.size; ++_i54)
+            org.apache.thrift.protocol.TSet _set55 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.pageItems = new HashSet<PageItem>(2*_set55.size);
+            for (int _i56 = 0; _i56 < _set55.size; ++_i56)
             {
-              LRUItem _elem55; // required
-              _elem55 = new LRUItem();
-              _elem55.read(iprot);
-              struct.lruItems.add(_elem55);
+              PageItem _elem57; // required
+              _elem57 = new PageItem();
+              _elem57.read(iprot);
+              struct.pageItems.add(_elem57);
             }
           }
-          struct.setLruItemsIsSet(true);
+          struct.setPageItemsIsSet(true);
         }
       }
     }
 
   }
 
-  public static class storeLRUItems_result implements org.apache.thrift.TBase<storeLRUItems_result, storeLRUItems_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storeLRUItems_result");
+  public static class savePageItems_result implements org.apache.thrift.TBase<savePageItems_result, savePageItems_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("savePageItems_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
+    private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new storeLRUItems_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new storeLRUItems_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new savePageItems_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new savePageItems_resultTupleSchemeFactory());
     }
 
-    public boolean success; // required
+    public MemoryStructureException me; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      ME((short)1, "me");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -8771,8 +10042,8 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
+          case 1: // ME
+            return ME;
           default:
             return null;
         }
@@ -8813,77 +10084,74 @@ public class MemoryStructure {
     }
 
     // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private BitSet __isset_bit_vector = new BitSet(1);
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+      tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storeLRUItems_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(savePageItems_result.class, metaDataMap);
     }
 
-    public storeLRUItems_result() {
+    public savePageItems_result() {
     }
 
-    public storeLRUItems_result(
-      boolean success)
+    public savePageItems_result(
+      MemoryStructureException me)
     {
       this();
-      this.success = success;
-      setSuccessIsSet(true);
+      this.me = me;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public storeLRUItems_result(storeLRUItems_result other) {
-      __isset_bit_vector.clear();
-      __isset_bit_vector.or(other.__isset_bit_vector);
-      this.success = other.success;
+    public savePageItems_result(savePageItems_result other) {
+      if (other.isSetMe()) {
+        this.me = new MemoryStructureException(other.me);
+      }
     }
 
-    public storeLRUItems_result deepCopy() {
-      return new storeLRUItems_result(this);
+    public savePageItems_result deepCopy() {
+      return new savePageItems_result(this);
     }
 
     @Override
     public void clear() {
-      setSuccessIsSet(false);
-      this.success = false;
+      this.me = null;
     }
 
-    public boolean isSuccess() {
-      return this.success;
+    public MemoryStructureException getMe() {
+      return this.me;
     }
 
-    public storeLRUItems_result setSuccess(boolean success) {
-      this.success = success;
-      setSuccessIsSet(true);
+    public savePageItems_result setMe(MemoryStructureException me) {
+      this.me = me;
       return this;
     }
 
-    public void unsetSuccess() {
-      __isset_bit_vector.clear(__SUCCESS_ISSET_ID);
+    public void unsetMe() {
+      this.me = null;
     }
 
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return __isset_bit_vector.get(__SUCCESS_ISSET_ID);
+    /** Returns true if field me is set (has been assigned a value) and false otherwise */
+    public boolean isSetMe() {
+      return this.me != null;
     }
 
-    public void setSuccessIsSet(boolean value) {
-      __isset_bit_vector.set(__SUCCESS_ISSET_ID, value);
+    public void setMeIsSet(boolean value) {
+      if (!value) {
+        this.me = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case SUCCESS:
+      case ME:
         if (value == null) {
-          unsetSuccess();
+          unsetMe();
         } else {
-          setSuccess((Boolean)value);
+          setMe((MemoryStructureException)value);
         }
         break;
 
@@ -8892,8 +10160,8 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case SUCCESS:
-        return Boolean.valueOf(isSuccess());
+      case ME:
+        return getMe();
 
       }
       throw new IllegalStateException();
@@ -8906,8 +10174,8 @@ public class MemoryStructure {
       }
 
       switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
+      case ME:
+        return isSetMe();
       }
       throw new IllegalStateException();
     }
@@ -8916,21 +10184,21 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof storeLRUItems_result)
-        return this.equals((storeLRUItems_result)that);
+      if (that instanceof savePageItems_result)
+        return this.equals((savePageItems_result)that);
       return false;
     }
 
-    public boolean equals(storeLRUItems_result that) {
+    public boolean equals(savePageItems_result that) {
       if (that == null)
         return false;
 
-      boolean this_present_success = true;
-      boolean that_present_success = true;
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
+      boolean this_present_me = true && this.isSetMe();
+      boolean that_present_me = true && that.isSetMe();
+      if (this_present_me || that_present_me) {
+        if (!(this_present_me && that_present_me))
           return false;
-        if (this.success != that.success)
+        if (!this.me.equals(that.me))
           return false;
       }
 
@@ -8942,20 +10210,20 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(storeLRUItems_result other) {
+    public int compareTo(savePageItems_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      storeLRUItems_result typedOther = (storeLRUItems_result)other;
+      savePageItems_result typedOther = (savePageItems_result)other;
 
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+      if (isSetMe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -8977,11 +10245,15 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("storeLRUItems_result(");
+      StringBuilder sb = new StringBuilder("savePageItems_result(");
       boolean first = true;
 
-      sb.append("success:");
-      sb.append(this.success);
+      sb.append("me:");
+      if (this.me == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.me);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -9007,15 +10279,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class storeLRUItems_resultStandardSchemeFactory implements SchemeFactory {
-      public storeLRUItems_resultStandardScheme getScheme() {
-        return new storeLRUItems_resultStandardScheme();
+    private static class savePageItems_resultStandardSchemeFactory implements SchemeFactory {
+      public savePageItems_resultStandardScheme getScheme() {
+        return new savePageItems_resultStandardScheme();
       }
     }
 
-    private static class storeLRUItems_resultStandardScheme extends StandardScheme<storeLRUItems_result> {
+    private static class savePageItems_resultStandardScheme extends StandardScheme<savePageItems_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, storeLRUItems_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, savePageItems_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -9025,10 +10297,11 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.success = iprot.readBool();
-                struct.setSuccessIsSet(true);
+            case 1: // ME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.me = new MemoryStructureException();
+                struct.me.read(iprot);
+                struct.setMeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -9044,62 +10317,65 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, storeLRUItems_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, savePageItems_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-        oprot.writeBool(struct.success);
-        oprot.writeFieldEnd();
+        if (struct.me != null) {
+          oprot.writeFieldBegin(ME_FIELD_DESC);
+          struct.me.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class storeLRUItems_resultTupleSchemeFactory implements SchemeFactory {
-      public storeLRUItems_resultTupleScheme getScheme() {
-        return new storeLRUItems_resultTupleScheme();
+    private static class savePageItems_resultTupleSchemeFactory implements SchemeFactory {
+      public savePageItems_resultTupleScheme getScheme() {
+        return new savePageItems_resultTupleScheme();
       }
     }
 
-    private static class storeLRUItems_resultTupleScheme extends TupleScheme<storeLRUItems_result> {
+    private static class savePageItems_resultTupleScheme extends TupleScheme<savePageItems_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, storeLRUItems_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, savePageItems_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
+        if (struct.isSetMe()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetSuccess()) {
-          oprot.writeBool(struct.success);
+        if (struct.isSetMe()) {
+          struct.me.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, storeLRUItems_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, savePageItems_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.success = iprot.readBool();
-          struct.setSuccessIsSet(true);
+          struct.me = new MemoryStructureException();
+          struct.me.read(iprot);
+          struct.setMeIsSet(true);
         }
       }
     }
 
   }
 
-  public static class storeNodeLinks_args implements org.apache.thrift.TBase<storeNodeLinks_args, storeNodeLinks_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storeNodeLinks_args");
+  public static class saveNodeLinks_args implements org.apache.thrift.TBase<saveNodeLinks_args, saveNodeLinks_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("saveNodeLinks_args");
 
     private static final org.apache.thrift.protocol.TField NODE_LINKS_FIELD_DESC = new org.apache.thrift.protocol.TField("nodeLinks", org.apache.thrift.protocol.TType.LIST, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new storeNodeLinks_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new storeNodeLinks_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new saveNodeLinks_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new saveNodeLinks_argsTupleSchemeFactory());
     }
 
     public List<NodeLink> nodeLinks; // required
@@ -9170,13 +10446,13 @@ public class MemoryStructure {
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NodeLink.class))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storeNodeLinks_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(saveNodeLinks_args.class, metaDataMap);
     }
 
-    public storeNodeLinks_args() {
+    public saveNodeLinks_args() {
     }
 
-    public storeNodeLinks_args(
+    public saveNodeLinks_args(
       List<NodeLink> nodeLinks)
     {
       this();
@@ -9186,7 +10462,7 @@ public class MemoryStructure {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public storeNodeLinks_args(storeNodeLinks_args other) {
+    public saveNodeLinks_args(saveNodeLinks_args other) {
       if (other.isSetNodeLinks()) {
         List<NodeLink> __this__nodeLinks = new ArrayList<NodeLink>();
         for (NodeLink other_element : other.nodeLinks) {
@@ -9196,8 +10472,8 @@ public class MemoryStructure {
       }
     }
 
-    public storeNodeLinks_args deepCopy() {
-      return new storeNodeLinks_args(this);
+    public saveNodeLinks_args deepCopy() {
+      return new saveNodeLinks_args(this);
     }
 
     @Override
@@ -9224,7 +10500,7 @@ public class MemoryStructure {
       return this.nodeLinks;
     }
 
-    public storeNodeLinks_args setNodeLinks(List<NodeLink> nodeLinks) {
+    public saveNodeLinks_args setNodeLinks(List<NodeLink> nodeLinks) {
       this.nodeLinks = nodeLinks;
       return this;
     }
@@ -9283,12 +10559,12 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof storeNodeLinks_args)
-        return this.equals((storeNodeLinks_args)that);
+      if (that instanceof saveNodeLinks_args)
+        return this.equals((saveNodeLinks_args)that);
       return false;
     }
 
-    public boolean equals(storeNodeLinks_args that) {
+    public boolean equals(saveNodeLinks_args that) {
       if (that == null)
         return false;
 
@@ -9309,13 +10585,13 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(storeNodeLinks_args other) {
+    public int compareTo(saveNodeLinks_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      storeNodeLinks_args typedOther = (storeNodeLinks_args)other;
+      saveNodeLinks_args typedOther = (saveNodeLinks_args)other;
 
       lastComparison = Boolean.valueOf(isSetNodeLinks()).compareTo(typedOther.isSetNodeLinks());
       if (lastComparison != 0) {
@@ -9344,7 +10620,7 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("storeNodeLinks_args(");
+      StringBuilder sb = new StringBuilder("saveNodeLinks_args(");
       boolean first = true;
 
       sb.append("nodeLinks:");
@@ -9378,15 +10654,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class storeNodeLinks_argsStandardSchemeFactory implements SchemeFactory {
-      public storeNodeLinks_argsStandardScheme getScheme() {
-        return new storeNodeLinks_argsStandardScheme();
+    private static class saveNodeLinks_argsStandardSchemeFactory implements SchemeFactory {
+      public saveNodeLinks_argsStandardScheme getScheme() {
+        return new saveNodeLinks_argsStandardScheme();
       }
     }
 
-    private static class storeNodeLinks_argsStandardScheme extends StandardScheme<storeNodeLinks_args> {
+    private static class saveNodeLinks_argsStandardScheme extends StandardScheme<saveNodeLinks_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, storeNodeLinks_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, saveNodeLinks_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -9399,14 +10675,14 @@ public class MemoryStructure {
             case 1: // NODE_LINKS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list56 = iprot.readListBegin();
-                  struct.nodeLinks = new ArrayList<NodeLink>(_list56.size);
-                  for (int _i57 = 0; _i57 < _list56.size; ++_i57)
+                  org.apache.thrift.protocol.TList _list58 = iprot.readListBegin();
+                  struct.nodeLinks = new ArrayList<NodeLink>(_list58.size);
+                  for (int _i59 = 0; _i59 < _list58.size; ++_i59)
                   {
-                    NodeLink _elem58; // required
-                    _elem58 = new NodeLink();
-                    _elem58.read(iprot);
-                    struct.nodeLinks.add(_elem58);
+                    NodeLink _elem60; // required
+                    _elem60 = new NodeLink();
+                    _elem60.read(iprot);
+                    struct.nodeLinks.add(_elem60);
                   }
                   iprot.readListEnd();
                 }
@@ -9426,7 +10702,7 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, storeNodeLinks_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, saveNodeLinks_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -9434,9 +10710,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(NODE_LINKS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.nodeLinks.size()));
-            for (NodeLink _iter59 : struct.nodeLinks)
+            for (NodeLink _iter61 : struct.nodeLinks)
             {
-              _iter59.write(oprot);
+              _iter61.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -9448,16 +10724,16 @@ public class MemoryStructure {
 
     }
 
-    private static class storeNodeLinks_argsTupleSchemeFactory implements SchemeFactory {
-      public storeNodeLinks_argsTupleScheme getScheme() {
-        return new storeNodeLinks_argsTupleScheme();
+    private static class saveNodeLinks_argsTupleSchemeFactory implements SchemeFactory {
+      public saveNodeLinks_argsTupleScheme getScheme() {
+        return new saveNodeLinks_argsTupleScheme();
       }
     }
 
-    private static class storeNodeLinks_argsTupleScheme extends TupleScheme<storeNodeLinks_args> {
+    private static class saveNodeLinks_argsTupleScheme extends TupleScheme<saveNodeLinks_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, storeNodeLinks_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, saveNodeLinks_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetNodeLinks()) {
@@ -9467,28 +10743,28 @@ public class MemoryStructure {
         if (struct.isSetNodeLinks()) {
           {
             oprot.writeI32(struct.nodeLinks.size());
-            for (NodeLink _iter60 : struct.nodeLinks)
+            for (NodeLink _iter62 : struct.nodeLinks)
             {
-              _iter60.write(oprot);
+              _iter62.write(oprot);
             }
           }
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, storeNodeLinks_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, saveNodeLinks_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list61 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.nodeLinks = new ArrayList<NodeLink>(_list61.size);
-            for (int _i62 = 0; _i62 < _list61.size; ++_i62)
+            org.apache.thrift.protocol.TList _list63 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.nodeLinks = new ArrayList<NodeLink>(_list63.size);
+            for (int _i64 = 0; _i64 < _list63.size; ++_i64)
             {
-              NodeLink _elem63; // required
-              _elem63 = new NodeLink();
-              _elem63.read(iprot);
-              struct.nodeLinks.add(_elem63);
+              NodeLink _elem65; // required
+              _elem65 = new NodeLink();
+              _elem65.read(iprot);
+              struct.nodeLinks.add(_elem65);
             }
           }
           struct.setNodeLinksIsSet(true);
@@ -9498,22 +10774,22 @@ public class MemoryStructure {
 
   }
 
-  public static class storeNodeLinks_result implements org.apache.thrift.TBase<storeNodeLinks_result, storeNodeLinks_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("storeNodeLinks_result");
+  public static class saveNodeLinks_result implements org.apache.thrift.TBase<saveNodeLinks_result, saveNodeLinks_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("saveNodeLinks_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
+    private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new storeNodeLinks_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new storeNodeLinks_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new saveNodeLinks_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new saveNodeLinks_resultTupleSchemeFactory());
     }
 
-    public boolean success; // required
+    public MemoryStructureException me; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      ME((short)1, "me");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -9528,8 +10804,8 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
+          case 1: // ME
+            return ME;
           default:
             return null;
         }
@@ -9570,77 +10846,74 @@ public class MemoryStructure {
     }
 
     // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private BitSet __isset_bit_vector = new BitSet(1);
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+      tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(storeNodeLinks_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(saveNodeLinks_result.class, metaDataMap);
     }
 
-    public storeNodeLinks_result() {
+    public saveNodeLinks_result() {
     }
 
-    public storeNodeLinks_result(
-      boolean success)
+    public saveNodeLinks_result(
+      MemoryStructureException me)
     {
       this();
-      this.success = success;
-      setSuccessIsSet(true);
+      this.me = me;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public storeNodeLinks_result(storeNodeLinks_result other) {
-      __isset_bit_vector.clear();
-      __isset_bit_vector.or(other.__isset_bit_vector);
-      this.success = other.success;
+    public saveNodeLinks_result(saveNodeLinks_result other) {
+      if (other.isSetMe()) {
+        this.me = new MemoryStructureException(other.me);
+      }
     }
 
-    public storeNodeLinks_result deepCopy() {
-      return new storeNodeLinks_result(this);
+    public saveNodeLinks_result deepCopy() {
+      return new saveNodeLinks_result(this);
     }
 
     @Override
     public void clear() {
-      setSuccessIsSet(false);
-      this.success = false;
+      this.me = null;
     }
 
-    public boolean isSuccess() {
-      return this.success;
+    public MemoryStructureException getMe() {
+      return this.me;
     }
 
-    public storeNodeLinks_result setSuccess(boolean success) {
-      this.success = success;
-      setSuccessIsSet(true);
+    public saveNodeLinks_result setMe(MemoryStructureException me) {
+      this.me = me;
       return this;
     }
 
-    public void unsetSuccess() {
-      __isset_bit_vector.clear(__SUCCESS_ISSET_ID);
+    public void unsetMe() {
+      this.me = null;
     }
 
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return __isset_bit_vector.get(__SUCCESS_ISSET_ID);
+    /** Returns true if field me is set (has been assigned a value) and false otherwise */
+    public boolean isSetMe() {
+      return this.me != null;
     }
 
-    public void setSuccessIsSet(boolean value) {
-      __isset_bit_vector.set(__SUCCESS_ISSET_ID, value);
+    public void setMeIsSet(boolean value) {
+      if (!value) {
+        this.me = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case SUCCESS:
+      case ME:
         if (value == null) {
-          unsetSuccess();
+          unsetMe();
         } else {
-          setSuccess((Boolean)value);
+          setMe((MemoryStructureException)value);
         }
         break;
 
@@ -9649,8 +10922,8 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case SUCCESS:
-        return Boolean.valueOf(isSuccess());
+      case ME:
+        return getMe();
 
       }
       throw new IllegalStateException();
@@ -9663,8 +10936,8 @@ public class MemoryStructure {
       }
 
       switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
+      case ME:
+        return isSetMe();
       }
       throw new IllegalStateException();
     }
@@ -9673,21 +10946,21 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof storeNodeLinks_result)
-        return this.equals((storeNodeLinks_result)that);
+      if (that instanceof saveNodeLinks_result)
+        return this.equals((saveNodeLinks_result)that);
       return false;
     }
 
-    public boolean equals(storeNodeLinks_result that) {
+    public boolean equals(saveNodeLinks_result that) {
       if (that == null)
         return false;
 
-      boolean this_present_success = true;
-      boolean that_present_success = true;
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
+      boolean this_present_me = true && this.isSetMe();
+      boolean that_present_me = true && that.isSetMe();
+      if (this_present_me || that_present_me) {
+        if (!(this_present_me && that_present_me))
           return false;
-        if (this.success != that.success)
+        if (!this.me.equals(that.me))
           return false;
       }
 
@@ -9699,20 +10972,20 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(storeNodeLinks_result other) {
+    public int compareTo(saveNodeLinks_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      storeNodeLinks_result typedOther = (storeNodeLinks_result)other;
+      saveNodeLinks_result typedOther = (saveNodeLinks_result)other;
 
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+      if (isSetMe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -9734,11 +11007,15 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("storeNodeLinks_result(");
+      StringBuilder sb = new StringBuilder("saveNodeLinks_result(");
       boolean first = true;
 
-      sb.append("success:");
-      sb.append(this.success);
+      sb.append("me:");
+      if (this.me == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.me);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -9764,15 +11041,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class storeNodeLinks_resultStandardSchemeFactory implements SchemeFactory {
-      public storeNodeLinks_resultStandardScheme getScheme() {
-        return new storeNodeLinks_resultStandardScheme();
+    private static class saveNodeLinks_resultStandardSchemeFactory implements SchemeFactory {
+      public saveNodeLinks_resultStandardScheme getScheme() {
+        return new saveNodeLinks_resultStandardScheme();
       }
     }
 
-    private static class storeNodeLinks_resultStandardScheme extends StandardScheme<storeNodeLinks_result> {
+    private static class saveNodeLinks_resultStandardScheme extends StandardScheme<saveNodeLinks_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, storeNodeLinks_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, saveNodeLinks_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -9782,10 +11059,11 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.success = iprot.readBool();
-                struct.setSuccessIsSet(true);
+            case 1: // ME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.me = new MemoryStructureException();
+                struct.me.read(iprot);
+                struct.setMeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -9801,47 +11079,50 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, storeNodeLinks_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, saveNodeLinks_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-        oprot.writeBool(struct.success);
-        oprot.writeFieldEnd();
+        if (struct.me != null) {
+          oprot.writeFieldBegin(ME_FIELD_DESC);
+          struct.me.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class storeNodeLinks_resultTupleSchemeFactory implements SchemeFactory {
-      public storeNodeLinks_resultTupleScheme getScheme() {
-        return new storeNodeLinks_resultTupleScheme();
+    private static class saveNodeLinks_resultTupleSchemeFactory implements SchemeFactory {
+      public saveNodeLinks_resultTupleScheme getScheme() {
+        return new saveNodeLinks_resultTupleScheme();
       }
     }
 
-    private static class storeNodeLinks_resultTupleScheme extends TupleScheme<storeNodeLinks_result> {
+    private static class saveNodeLinks_resultTupleScheme extends TupleScheme<saveNodeLinks_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, storeNodeLinks_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, saveNodeLinks_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
+        if (struct.isSetMe()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetSuccess()) {
-          oprot.writeBool(struct.success);
+        if (struct.isSetMe()) {
+          struct.me.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, storeNodeLinks_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, saveNodeLinks_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.success = iprot.readBool();
-          struct.setSuccessIsSet(true);
+          struct.me = new MemoryStructureException();
+          struct.me.read(iprot);
+          struct.setMeIsSet(true);
         }
       }
     }
@@ -9852,7 +11133,7 @@ public class MemoryStructure {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("addLRUtoWebEntity_args");
 
     private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField LRU_ITEM_FIELD_DESC = new org.apache.thrift.protocol.TField("lruItem", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField PAGE_ITEM_FIELD_DESC = new org.apache.thrift.protocol.TField("pageItem", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -9861,12 +11142,12 @@ public class MemoryStructure {
     }
 
     public String id; // required
-    public LRUItem lruItem; // required
+    public PageItem pageItem; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       ID((short)1, "id"),
-      LRU_ITEM((short)2, "lruItem");
+      PAGE_ITEM((short)2, "pageItem");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -9883,8 +11164,8 @@ public class MemoryStructure {
         switch(fieldId) {
           case 1: // ID
             return ID;
-          case 2: // LRU_ITEM
-            return LRU_ITEM;
+          case 2: // PAGE_ITEM
+            return PAGE_ITEM;
           default:
             return null;
         }
@@ -9930,8 +11211,8 @@ public class MemoryStructure {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.LRU_ITEM, new org.apache.thrift.meta_data.FieldMetaData("lruItem", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LRUItem.class)));
+      tmpMap.put(_Fields.PAGE_ITEM, new org.apache.thrift.meta_data.FieldMetaData("pageItem", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PageItem.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(addLRUtoWebEntity_args.class, metaDataMap);
     }
@@ -9941,11 +11222,11 @@ public class MemoryStructure {
 
     public addLRUtoWebEntity_args(
       String id,
-      LRUItem lruItem)
+      PageItem pageItem)
     {
       this();
       this.id = id;
-      this.lruItem = lruItem;
+      this.pageItem = pageItem;
     }
 
     /**
@@ -9955,8 +11236,8 @@ public class MemoryStructure {
       if (other.isSetId()) {
         this.id = other.id;
       }
-      if (other.isSetLruItem()) {
-        this.lruItem = new LRUItem(other.lruItem);
+      if (other.isSetPageItem()) {
+        this.pageItem = new PageItem(other.pageItem);
       }
     }
 
@@ -9967,7 +11248,7 @@ public class MemoryStructure {
     @Override
     public void clear() {
       this.id = null;
-      this.lruItem = null;
+      this.pageItem = null;
     }
 
     public String getId() {
@@ -9994,27 +11275,27 @@ public class MemoryStructure {
       }
     }
 
-    public LRUItem getLruItem() {
-      return this.lruItem;
+    public PageItem getPageItem() {
+      return this.pageItem;
     }
 
-    public addLRUtoWebEntity_args setLruItem(LRUItem lruItem) {
-      this.lruItem = lruItem;
+    public addLRUtoWebEntity_args setPageItem(PageItem pageItem) {
+      this.pageItem = pageItem;
       return this;
     }
 
-    public void unsetLruItem() {
-      this.lruItem = null;
+    public void unsetPageItem() {
+      this.pageItem = null;
     }
 
-    /** Returns true if field lruItem is set (has been assigned a value) and false otherwise */
-    public boolean isSetLruItem() {
-      return this.lruItem != null;
+    /** Returns true if field pageItem is set (has been assigned a value) and false otherwise */
+    public boolean isSetPageItem() {
+      return this.pageItem != null;
     }
 
-    public void setLruItemIsSet(boolean value) {
+    public void setPageItemIsSet(boolean value) {
       if (!value) {
-        this.lruItem = null;
+        this.pageItem = null;
       }
     }
 
@@ -10028,11 +11309,11 @@ public class MemoryStructure {
         }
         break;
 
-      case LRU_ITEM:
+      case PAGE_ITEM:
         if (value == null) {
-          unsetLruItem();
+          unsetPageItem();
         } else {
-          setLruItem((LRUItem)value);
+          setPageItem((PageItem)value);
         }
         break;
 
@@ -10044,8 +11325,8 @@ public class MemoryStructure {
       case ID:
         return getId();
 
-      case LRU_ITEM:
-        return getLruItem();
+      case PAGE_ITEM:
+        return getPageItem();
 
       }
       throw new IllegalStateException();
@@ -10060,8 +11341,8 @@ public class MemoryStructure {
       switch (field) {
       case ID:
         return isSetId();
-      case LRU_ITEM:
-        return isSetLruItem();
+      case PAGE_ITEM:
+        return isSetPageItem();
       }
       throw new IllegalStateException();
     }
@@ -10088,12 +11369,12 @@ public class MemoryStructure {
           return false;
       }
 
-      boolean this_present_lruItem = true && this.isSetLruItem();
-      boolean that_present_lruItem = true && that.isSetLruItem();
-      if (this_present_lruItem || that_present_lruItem) {
-        if (!(this_present_lruItem && that_present_lruItem))
+      boolean this_present_pageItem = true && this.isSetPageItem();
+      boolean that_present_pageItem = true && that.isSetPageItem();
+      if (this_present_pageItem || that_present_pageItem) {
+        if (!(this_present_pageItem && that_present_pageItem))
           return false;
-        if (!this.lruItem.equals(that.lruItem))
+        if (!this.pageItem.equals(that.pageItem))
           return false;
       }
 
@@ -10123,12 +11404,12 @@ public class MemoryStructure {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetLruItem()).compareTo(typedOther.isSetLruItem());
+      lastComparison = Boolean.valueOf(isSetPageItem()).compareTo(typedOther.isSetPageItem());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetLruItem()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lruItem, typedOther.lruItem);
+      if (isSetPageItem()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.pageItem, typedOther.pageItem);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -10161,11 +11442,11 @@ public class MemoryStructure {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("lruItem:");
-      if (this.lruItem == null) {
+      sb.append("pageItem:");
+      if (this.pageItem == null) {
         sb.append("null");
       } else {
-        sb.append(this.lruItem);
+        sb.append(this.pageItem);
       }
       first = false;
       sb.append(")");
@@ -10218,11 +11499,11 @@ public class MemoryStructure {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // LRU_ITEM
+            case 2: // PAGE_ITEM
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.lruItem = new LRUItem();
-                struct.lruItem.read(iprot);
-                struct.setLruItemIsSet(true);
+                struct.pageItem = new PageItem();
+                struct.pageItem.read(iprot);
+                struct.setPageItemIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -10247,9 +11528,9 @@ public class MemoryStructure {
           oprot.writeString(struct.id);
           oprot.writeFieldEnd();
         }
-        if (struct.lruItem != null) {
-          oprot.writeFieldBegin(LRU_ITEM_FIELD_DESC);
-          struct.lruItem.write(oprot);
+        if (struct.pageItem != null) {
+          oprot.writeFieldBegin(PAGE_ITEM_FIELD_DESC);
+          struct.pageItem.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -10273,15 +11554,15 @@ public class MemoryStructure {
         if (struct.isSetId()) {
           optionals.set(0);
         }
-        if (struct.isSetLruItem()) {
+        if (struct.isSetPageItem()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetId()) {
           oprot.writeString(struct.id);
         }
-        if (struct.isSetLruItem()) {
-          struct.lruItem.write(oprot);
+        if (struct.isSetPageItem()) {
+          struct.pageItem.write(oprot);
         }
       }
 
@@ -10294,9 +11575,9 @@ public class MemoryStructure {
           struct.setIdIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.lruItem = new LRUItem();
-          struct.lruItem.read(iprot);
-          struct.setLruItemIsSet(true);
+          struct.pageItem = new PageItem();
+          struct.pageItem.read(iprot);
+          struct.setPageItemIsSet(true);
         }
       }
     }
@@ -10306,7 +11587,7 @@ public class MemoryStructure {
   public static class addLRUtoWebEntity_result implements org.apache.thrift.TBase<addLRUtoWebEntity_result, addLRUtoWebEntity_result._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("addLRUtoWebEntity_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
+    private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -10314,11 +11595,11 @@ public class MemoryStructure {
       schemes.put(TupleScheme.class, new addLRUtoWebEntity_resultTupleSchemeFactory());
     }
 
-    public boolean success; // required
+    public MemoryStructureException me; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      ME((short)1, "me");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -10333,8 +11614,8 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
+          case 1: // ME
+            return ME;
           default:
             return null;
         }
@@ -10375,13 +11656,11 @@ public class MemoryStructure {
     }
 
     // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private BitSet __isset_bit_vector = new BitSet(1);
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+      tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(addLRUtoWebEntity_result.class, metaDataMap);
     }
@@ -10390,20 +11669,19 @@ public class MemoryStructure {
     }
 
     public addLRUtoWebEntity_result(
-      boolean success)
+      MemoryStructureException me)
     {
       this();
-      this.success = success;
-      setSuccessIsSet(true);
+      this.me = me;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public addLRUtoWebEntity_result(addLRUtoWebEntity_result other) {
-      __isset_bit_vector.clear();
-      __isset_bit_vector.or(other.__isset_bit_vector);
-      this.success = other.success;
+      if (other.isSetMe()) {
+        this.me = new MemoryStructureException(other.me);
+      }
     }
 
     public addLRUtoWebEntity_result deepCopy() {
@@ -10412,40 +11690,40 @@ public class MemoryStructure {
 
     @Override
     public void clear() {
-      setSuccessIsSet(false);
-      this.success = false;
+      this.me = null;
     }
 
-    public boolean isSuccess() {
-      return this.success;
+    public MemoryStructureException getMe() {
+      return this.me;
     }
 
-    public addLRUtoWebEntity_result setSuccess(boolean success) {
-      this.success = success;
-      setSuccessIsSet(true);
+    public addLRUtoWebEntity_result setMe(MemoryStructureException me) {
+      this.me = me;
       return this;
     }
 
-    public void unsetSuccess() {
-      __isset_bit_vector.clear(__SUCCESS_ISSET_ID);
+    public void unsetMe() {
+      this.me = null;
     }
 
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return __isset_bit_vector.get(__SUCCESS_ISSET_ID);
+    /** Returns true if field me is set (has been assigned a value) and false otherwise */
+    public boolean isSetMe() {
+      return this.me != null;
     }
 
-    public void setSuccessIsSet(boolean value) {
-      __isset_bit_vector.set(__SUCCESS_ISSET_ID, value);
+    public void setMeIsSet(boolean value) {
+      if (!value) {
+        this.me = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case SUCCESS:
+      case ME:
         if (value == null) {
-          unsetSuccess();
+          unsetMe();
         } else {
-          setSuccess((Boolean)value);
+          setMe((MemoryStructureException)value);
         }
         break;
 
@@ -10454,8 +11732,8 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case SUCCESS:
-        return Boolean.valueOf(isSuccess());
+      case ME:
+        return getMe();
 
       }
       throw new IllegalStateException();
@@ -10468,8 +11746,8 @@ public class MemoryStructure {
       }
 
       switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
+      case ME:
+        return isSetMe();
       }
       throw new IllegalStateException();
     }
@@ -10487,12 +11765,12 @@ public class MemoryStructure {
       if (that == null)
         return false;
 
-      boolean this_present_success = true;
-      boolean that_present_success = true;
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
+      boolean this_present_me = true && this.isSetMe();
+      boolean that_present_me = true && that.isSetMe();
+      if (this_present_me || that_present_me) {
+        if (!(this_present_me && that_present_me))
           return false;
-        if (this.success != that.success)
+        if (!this.me.equals(that.me))
           return false;
       }
 
@@ -10512,12 +11790,12 @@ public class MemoryStructure {
       int lastComparison = 0;
       addLRUtoWebEntity_result typedOther = (addLRUtoWebEntity_result)other;
 
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+      if (isSetMe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -10542,8 +11820,12 @@ public class MemoryStructure {
       StringBuilder sb = new StringBuilder("addLRUtoWebEntity_result(");
       boolean first = true;
 
-      sb.append("success:");
-      sb.append(this.success);
+      sb.append("me:");
+      if (this.me == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.me);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -10587,10 +11869,11 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.success = iprot.readBool();
-                struct.setSuccessIsSet(true);
+            case 1: // ME
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.me = new MemoryStructureException();
+                struct.me.read(iprot);
+                struct.setMeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -10610,9 +11893,11 @@ public class MemoryStructure {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-        oprot.writeBool(struct.success);
-        oprot.writeFieldEnd();
+        if (struct.me != null) {
+          oprot.writeFieldBegin(ME_FIELD_DESC);
+          struct.me.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -10631,12 +11916,12 @@ public class MemoryStructure {
       public void write(org.apache.thrift.protocol.TProtocol prot, addLRUtoWebEntity_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
+        if (struct.isSetMe()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetSuccess()) {
-          oprot.writeBool(struct.success);
+        if (struct.isSetMe()) {
+          struct.me.write(oprot);
         }
       }
 
@@ -10645,8 +11930,9 @@ public class MemoryStructure {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.success = iprot.readBool();
-          struct.setSuccessIsSet(true);
+          struct.me = new MemoryStructureException();
+          struct.me.read(iprot);
+          struct.setMeIsSet(true);
         }
       }
     }

@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * Note: property 'name' is 'alias' in the wiki, but that is a reserved Thrift word
  */
 public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._Fields>, java.io.Serializable, Cloneable {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("WebEntity");
@@ -501,13 +500,13 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
           case 2: // LRULIST
             if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
               {
-                org.apache.thrift.protocol.TSet _set8 = iprot.readSetBegin();
-                struct.LRUlist = new HashSet<String>(2*_set8.size);
-                for (int _i9 = 0; _i9 < _set8.size; ++_i9)
+                org.apache.thrift.protocol.TSet _set18 = iprot.readSetBegin();
+                struct.LRUlist = new HashSet<String>(2*_set18.size);
+                for (int _i19 = 0; _i19 < _set18.size; ++_i19)
                 {
-                  String _elem10; // required
-                  _elem10 = iprot.readString();
-                  struct.LRUlist.add(_elem10);
+                  String _elem20; // required
+                  _elem20 = iprot.readString();
+                  struct.LRUlist.add(_elem20);
                 }
                 iprot.readSetEnd();
               }
@@ -548,9 +547,9 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
         oprot.writeFieldBegin(LRULIST_FIELD_DESC);
         {
           oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, struct.LRUlist.size()));
-          for (String _iter11 : struct.LRUlist)
+          for (String _iter21 : struct.LRUlist)
           {
-            oprot.writeString(_iter11);
+            oprot.writeString(_iter21);
           }
           oprot.writeSetEnd();
         }
@@ -595,9 +594,9 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       if (struct.isSetLRUlist()) {
         {
           oprot.writeI32(struct.LRUlist.size());
-          for (String _iter12 : struct.LRUlist)
+          for (String _iter22 : struct.LRUlist)
           {
-            oprot.writeString(_iter12);
+            oprot.writeString(_iter22);
           }
         }
       }
@@ -616,13 +615,13 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       }
       if (incoming.get(1)) {
         {
-          org.apache.thrift.protocol.TSet _set13 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.LRUlist = new HashSet<String>(2*_set13.size);
-          for (int _i14 = 0; _i14 < _set13.size; ++_i14)
+          org.apache.thrift.protocol.TSet _set23 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.LRUlist = new HashSet<String>(2*_set23.size);
+          for (int _i24 = 0; _i24 < _set23.size; ++_i24)
           {
-            String _elem15; // required
-            _elem15 = iprot.readString();
-            struct.LRUlist.add(_elem15);
+            String _elem25; // required
+            _elem25 = iprot.readString();
+            struct.LRUlist.add(_elem25);
           }
         }
         struct.setLRUlistIsSet(true);

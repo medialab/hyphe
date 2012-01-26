@@ -1,7 +1,15 @@
 package fr.sciencespo.medialab.hci.memorystructure.thrift;
 
+import org.apache.thrift.TProcessorFactory;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TProtocolFactory;
+import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TNonblockingServerTransport;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
 import org.slf4j.Logger;
@@ -90,14 +98,27 @@ public class ThriftServer {
 
             memoryStructureImpl.setLucenePath(luceneDirectoryPath);
 
-            //TNonblockingServerSocket serverTransport = new TNonblockingServerSocket(9090);
-            TServerTransport serverTransport = new TServerSocket(port);
-            MemoryStructure.Processor processor = new MemoryStructure.Processor(memoryStructureImpl);
-            //final TServer server = new THsHaServer(processor, socket, new TFramedTransport.Factory(), new TCompactProtocol.Factory());
-            //final TServer server = new THsHaServer(processor, socket, new TFramedTransport.Factory(), new TCompactProtocol.Factory());
-            TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
+            //TServerTransport serverTransport = new TServerSocket(port);
+            //MemoryStructure.Processor processor = new MemoryStructure.Processor(memoryStructureImpl);
+            //TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
 
-            logger.info("starting Thrift server at port " + port);
+            //
+            // server code provided by Patrick Browne
+            //
+            TProtocolFactory pfactory = new TBinaryProtocol.Factory();
+
+            TNonblockingServerTransport serverTransport = new TNonblockingServerSocket(port);
+            MemoryStructure.Processor processor = new MemoryStructure.Processor(memoryStructureImpl);
+            THsHaServer.Args serverArgs = new THsHaServer.Args(serverTransport);
+            serverArgs.processor(processor);
+            serverArgs.transportFactory(new TFramedTransport.Factory());
+            serverArgs.protocolFactory(new TBinaryProtocol.Factory(true, true));
+            TServer server = new THsHaServer(serverArgs);
+            //
+            // end server code provided by Patrick Browne
+            //
+
+            logger.info("starting Thrift server (TThreadPoolServer) at port " + port);
             server.serve();
 
         }

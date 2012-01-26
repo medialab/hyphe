@@ -1,6 +1,6 @@
 package fr.sciencespo.medialab.hci.memorystruture.thrift.client;
 
-import fr.sciencespo.medialab.hci.memorystructure.thrift.LRUItem;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructure;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -10,7 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Example client for the MemoryStructure server.
@@ -54,20 +56,16 @@ public class MemoryStructureClient {
             //
             // create/retrieve test data
             //
-            List<LRUItem> lruItems = new ArrayList<LRUItem>();
+            Set<PageItem> lruItems = new HashSet<PageItem>();
             for(int i = 0; i < 5; i++) {
-                LRUItem lruItem = new LRUItem();
+                PageItem lruItem = new PageItem();
                 lruItem.setLru("a" + i);
                 lruItems.add(lruItem);
             }
             // store in Memory Structure
-            boolean success = client.storeLRUItems(lruItems);
-            if(success) {
-                logger.debug("Thrift server returned success");
-            }
-            else {
-                logger.debug("Thrift server returned failure");
-            }
+            String cacheId = client.createCache(lruItems);
+            logger.debug("Thrift server returned success (no exception happened)");
+
             logger.debug("fr.sciencespo.medialab.hci.memorystructure.client.MemoryStructureClient storeLRUItems() test finished");
 
         }

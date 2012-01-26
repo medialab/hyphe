@@ -8,15 +8,19 @@
 
 namespace java fr.sciencespo.medialab.hci.memorystructure.thrift
 
-struct MetadataItem {
-  1: string id,
-  2: string name,
-  3: bool multiple,
-  4: string dataType,
-  5: string defaultValue
+exception MemoryStructureException {
+  1: string msg,
+  2: string stacktrace,
+  3: string classname
 }
 
-struct LRUItem {
+exception ObjectNotFoundException {
+  1: string msg,
+  2: string stacktrace,
+  3: string classname
+}
+
+struct PageItem {
   1: string id,
   2: string url,
   3: string lru,
@@ -26,9 +30,7 @@ struct LRUItem {
   7: string errorCode,
   8: bool isFullPrecision = false,
   9: bool isNode,
-  10: bool isPage,
-  11: bool isWebEntity,
-  12: list<MetadataItem> metadataItems
+  10: map<string, list<string>> metadataItems
 }
 
 struct NodeLink {
@@ -40,7 +42,6 @@ struct NodeLink {
 
 /**
  *
- * Note: property 'name' is 'alias' in the wiki, but that is a reserved Thrift word
  */
 struct WebEntity {
   1: string id,
@@ -53,100 +54,81 @@ struct WebEntityCreationRule {
   2: string LRU
 }
 
-struct WebEntityInfo {
-  1: string id,
-  2: string flagType,
-  3: string lruPrefix,
-  4: string regExp
-}
-
 # Services
  
 service MemoryStructure {
 
-// heikki: implementation of the new interface described on http://jiminy.medialab.sciences-po.fr/hci/index.php/Memory_structure_interface
-
  // store webentity
  /**
   * @param 1 webEntity
-  * @return id
+  * @return id of the web entity
   */
-  string storeWebEntity(1:WebEntity webEntity),
-  
+  string saveWebEntity(1:WebEntity webEntity) throws (1:MemoryStructureException x),
+
 // create_pages_cache
 /**
- * @param 1 lruItems : list of LRUItem objects
+ * @param 1 pageItems : list of PageItem objects
  * @return id of the created cache
  */
-string createCache(1:list<LRUItem> lruItems),
+string createCache(1:list<PageItem> pageItems) throws (1:MemoryStructureException x),
 
 // index_pages_from_cache
 /**
  * @param 1 cacheId : id of the cache
- * @return acknowledgement
+ * @return number of indexed PageItems
  */
-string indexCache(1:string cacheId),
+i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
  
  //get_precision_exceptions_from_cache
  /**
   * @param 1 cacheId : id of the cache
   * @return list of lru prefixes
   */
- list<string> getPrecisionExceptionsFromCache(1:string cacheId),
- 
- // get_web_entities_flags_from_cache
+ list<string> getPrecisionExceptionsFromCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+
  /**
   * @param 1 cacheId : id of the cache
-  * @return list of WebEntityInfo
-  */  
- list<WebEntityInfo> getWebEntitiesFromCache(1:string cacheId),
+  */
+ void createWebEntities(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
  
  // delete_page_cache
  /**
   * @param 1 cacheId : id of the cache
-  * @return status
-  */  
- i32 deleteCache(1:string cacheId),
-
- // store precision exception
- /**
-  * @param 1 precisionException : preciosn exception to store
-  * @return status
   */
- i32 storePrecisionException(1:string precisionException),
+ void deleteCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+
+ // mark pageitem as precision exception
+ /**
+  * @param 1 pageItemId : id of the pageItem to be
+  */
+ void markPageWithPrecisionException(1:string pageItemId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
  // store WebEntityCreationRule
  /**
   * @param 1 webEntityCreationRule : webentity creation rule to store
-  * @return status
   */
- i32 storeWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule),
+void saveWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule) throws (1:MemoryStructureException me),
  
-
- 
-// LRUItems
+// PageItems
 /**
  *
- * @param 1 lruItems : list of LRUItem objects
- * @return true if success, false else
-**/
-bool storeLRUItems(1:list<LRUItem> lruItems),
+ * @param 1 pageItems : list of PageItem objects
+ */
+void savePageItems(1:list<PageItem> pageItems) throws (1:MemoryStructureException me),
 
 // NodeLinks
 /**
  *
  * @param 1 nodeLinks : list of NodeLink objects
- * @return true if success, false else
-**/
-bool storeNodeLinks(1:list<NodeLink> nodeLinks),
+ */
+void saveNodeLinks(1:list<NodeLink> nodeLinks) throws (1:MemoryStructureException me),
 
 // WebEntity
 /**
  *
  * @param 1 id : the id of the WebEntity to add this LRU to
  * @param 2 lruItem : the lruItem to be marked as WebEntity
- * @return true if success, false else
 **/
-bool addLRUtoWebEntity(1:string id, 2:LRUItem lruItem),
+void addLRUtoWebEntity(1:string id, 2:PageItem pageItem) throws (1:MemoryStructureException me),
 
 }

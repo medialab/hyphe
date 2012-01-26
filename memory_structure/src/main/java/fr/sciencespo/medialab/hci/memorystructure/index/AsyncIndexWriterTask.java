@@ -1,6 +1,6 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
-import fr.sciencespo.medialab.hci.memorystructure.thrift.LRUItem;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -88,7 +88,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                 return;
             }
             if(logger.isDebugEnabled()) {
-                if(objectsToWrite.get(0) instanceof LRUItem) {
+                if(objectsToWrite.get(0) instanceof PageItem) {
                     logger.debug("AsyncIndexWriterTask run started for LRUItems");
                 }
                 else if(objectsToWrite.get(0) instanceof NodeLink) {
@@ -99,12 +99,12 @@ public class AsyncIndexWriterTask implements RunnableFuture {
             int written = 0;
             for(Object object : objectsToWrite) {
                 boolean wasIndexed = false;
-                if(object instanceof LRUItem) {
-                    LRUItem lruItem = (LRUItem) object;
-                    Document lruDocument = IndexConfiguration.LRUItemDocument(lruItem);
-                    // it may be null if it's rejected (e.g. there is no value for LRU in the LRUItem)
-                    if(lruDocument != null) {
-                        indexWriter.addDocument(lruDocument);
+                if(object instanceof PageItem) {
+                    PageItem pageItem = (PageItem) object;
+                    Document pageDocument = IndexConfiguration.PageItemDocument(pageItem);
+                    // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
+                    if(pageDocument != null) {
+                        indexWriter.addDocument(pageDocument);
                         wasIndexed = true;
                     }
                 }

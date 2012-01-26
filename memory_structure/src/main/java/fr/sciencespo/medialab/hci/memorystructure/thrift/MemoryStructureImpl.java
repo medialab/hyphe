@@ -2,11 +2,12 @@ package fr.sciencespo.medialab.hci.memorystructure.thrift;
 
 import fr.sciencespo.medialab.hci.memorystructure.cache.Cache;
 import fr.sciencespo.medialab.hci.memorystructure.cache.CacheMap;
+import fr.sciencespo.medialab.hci.memorystructure.cache.MaxCacheSizeException;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
+import fr.sciencespo.medialab.hci.memorystructure.util.ExceptionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.search.TimeLimitingCollector;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,15 +32,14 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public String storeWebEntity(WebEntity webEntity) throws TException {
-        logger.debug("storeWebEntity");
+    public String saveWebEntity(WebEntity webEntity) throws TException {
+        logger.debug("saveWebEntity");
         try {
             if(webEntity == null) {
                 throw new TException("WebEntity is null");
             }
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
-            String id = lruIndex.indexWebEntity(webEntity);
-            return id;
+            return lruIndex.indexWebEntity(webEntity);
         }
         catch(Exception x) {
             logger.error(x.getMessage());
@@ -49,8 +49,8 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public WebEntity findWebEntity(String id) throws TException {
-        logger.debug("findWebEntity with id: " + id);
+    public WebEntity getWebEntity(String id) throws TException {
+        logger.debug("getWebEntity with id: " + id);
         if(StringUtils.isEmpty(id)) {
             logger.debug("requested id is null, returning null");
             return null;
@@ -58,8 +58,10 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         try {
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
             WebEntity found = lruIndex.retrieveWebEntity(id);
-            logger.debug("found webentity with id: " + found.getId());
-            logger.debug("webentity has # " + found.getLRUlist().size() + " lrus");
+            if(found != null && logger.isDebugEnabled()) {
+                logger.debug("found webentity with id: " + found.getId());
+                logger.debug("webentity has # " + found.getLRUlist().size() + " lrus");
+            }
             return found;
         }
         catch (IndexException x) {
@@ -71,13 +73,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public Set<WebEntity> findWebEntities() throws TException {
-        logger.debug("findWebEntities");
-        Set<WebEntity> webEntities = new HashSet<WebEntity>();
+    public Set<WebEntity> getWebEntities() throws TException {
+        logger.debug("getWebEntities");
         try {
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
-            webEntities = lruIndex.retrieveWebEntities();
-            return webEntities;
+            return lruIndex.retrieveWebEntities();
         }
         catch (IndexException x) {
             logger.error(x.getMessage());
@@ -87,11 +87,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public String createCache(List<LRUItem> lruItems) throws TException {
-        if(lruItems != null) {
-            logger.debug("MemoryStructure createCache() received " + lruItems.size() + " LRUItems");
+    public String createCache(Set<PageItem> pageItems) throws TException, MemoryStructureException {
+        try {
+        if(pageItems != null) {
+            logger.debug("MemoryStructure createCache() received " + pageItems.size() + " LRUItems");
             Cache cache = new Cache();
-            cache.setLruItems(lruItems);
+            cache.setPageItems(pageItems);
             CacheMap.getInstance().add(cache);
             logger.debug("MemoryStructure createCache() created cache with id " + cache.getId());
             return cache.getId();
@@ -100,61 +101,55 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             logger.warn("MemoryStructure createCache() received null");
             return "WARNING: MemoryStructure createCache() received null. No cache created.";
         }
+        }
+        catch(MaxCacheSizeException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
+        }
     }
 
     @Override
-    public String indexCache(String cacheId) throws TException {
+    public int indexCache(String cacheId) throws TException, MemoryStructureException, ObjectNotFoundException {
         logger.debug("MemoryStructure indexCache() received id: " + cacheId);
         try {
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
             Cache cache = CacheMap.getInstance().get(cacheId);
             if(cache == null) {
-                throw new Exception("Could not find cache with id: " + cacheId);
+                throw new ObjectNotFoundException("Could not find cache with id: " + cacheId, ExceptionUtils.stacktrace2string(Thread.currentThread().getStackTrace()));
             }
-            lruIndex.batchIndex(cache.getLruItems());
+            List pageItems = new ArrayList(cache.getPageItems());
+            int indexedItemsCount = lruIndex.batchIndex(pageItems);
             logger.debug("MemoryStructure indexCache() finished indexing cache with id: " + cacheId);
-            // TODO what acknowledgement to return ?
-            return "ack";
+            return indexedItemsCount;
+        }
+        catch(ObjectNotFoundException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw x;
         }
         catch(Exception x) {
             logger.error(x.getMessage());
             x.printStackTrace();
-            // TODO what acknowledgement to return ?
-            return "ERROR: " + x.getMessage();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
         }
     }
 
-    /**
-     * extract the page (and not the nodes) from the cache. For each page, the memory structure will look for precision
-     * exceptions in the LRU_item index :
-     *
-     * precision_limit_lru_prefixes=Array()
-     * for lru of included_pages which are not node (is_node==false):
-     *    look for precision_limit exception on the LRU branch
-     *    if found one :
-     *       precision_limit_lru_prefixes.append( lru_prefix_of_precision_limit_node)
-     * return precision_limit_lru_prefixes
-     *
-     *
-     * @param cacheId
-     * @return
-     * @throws TException
-     */
     @Override
-    public List<String> getPrecisionExceptionsFromCache(String cacheId) throws TException {
+    public Set<String> getPrecisionExceptionsFromCache(String cacheId) throws TException, ObjectNotFoundException, MemoryStructureException {
         try {
             logger.debug("MemoryStructure getPrecisionExceptionsFromCache() received id: " + cacheId);
-            List<String> results = new ArrayList<String>();
+            Set<String> results = new HashSet<String>();
             // get precisionExceptions from index
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.APPEND);
             List<String> precisionExceptions = lruIndex.retrievePrecisionExceptions();
 
             Cache cache = CacheMap.getInstance().get(cacheId);
             if(cache != null) {
-                for(LRUItem lruItem : cache.getLruItems()) {
-                    if(!lruItem.isNode) {
-                        if(precisionExceptions.contains(lruItem.getLru())) {
-                            results.add(lruItem.getLru());
+                for(PageItem pageItem : cache.getPageItems()) {
+                    if(!pageItem.isNode) {
+                        if(precisionExceptions.contains(pageItem.getLru())) {
+                            results.add(pageItem.getLru());
                         }
                     }
                 }
@@ -162,152 +157,85 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
                 return results;
             }
             else {
-                logger.warn("could not find cache with id " + cacheId);
-                // TODO what to do
-                return null;
+                throw new ObjectNotFoundException("Could not find cache with id: " + cacheId, ExceptionUtils.stacktrace2string(Thread.currentThread().getStackTrace()));
             }
         }
         catch(IndexException x) {
-            // TODO what to do
-            return null;
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
         }
     }
 
-    /**
-     *
-     * This function will be used by the core to make sure the correct web entity exists to hold this page regarding the
-     * web entities creation rules
-     *
-     * The flags are :
-     *    web entity creation rule : this flag indicates that a web entity creation rule is to be tested when inserting
-     *                               new LRU sharing the LRU_prefix of the flag.
-     *    no web entity found      : this flag has to be created by the memory strucutre when there were no Web entity
-     *                               neither web entity creation rules on a LRU to be inserted.
-     *
-     *  To retrieve web entities flags the memory structure should behave as described below :
-     *
-     *
-     *  for page in included_pages
-     *     retrieve the first flag on the page.lru branch which is web_entity or web_entity_creation_rule (i.e. the
-     *             longuest (in term of number of stem) lru_prefixe)
-     *     if flag == web_entity :
-     *        don't do nothing
-     *     else if flag == web_entity_creation_rule :
-     *        add_flag(flag="web_entity_creation_rule",lru_prefixe_of_flag,web_entity_creation_rule_flag)
-     *     else if no flag found :
-     *        add_flag(flag="no_web_entity",page.lru,Null)
-     *
-     *
-     * @param cacheId
-     * @return
-     * @throws TException
-     */
     @Override
-    public List<WebEntityInfo> getWebEntitiesFromCache(String cacheId) throws TException {
-        logger.debug("MemoryStructure getWebEntitiesFromCache() received id: " + cacheId);
-        return null;
+    public void createWebEntities(String cacheId) throws MemoryStructureException, ObjectNotFoundException, TException {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
-    public int deleteCache(String cacheId) throws TException {
+    public void deleteCache(String cacheId) throws TException, ObjectNotFoundException {
         logger.debug("MemoryStructure deleteCache() received id: " + cacheId);
-        try {
-            Cache cache = CacheMap.getInstance().get(cacheId);
-            if(cache == null) {
-                throw new Exception("Could not find cache with id: " + cacheId);
-            }
-            CacheMap.getInstance().get(cacheId).clear();
-            CacheMap.getInstance().remove(cacheId);
-            // TODO what status to return ?
-            return 0;
+        Cache cache = CacheMap.getInstance().get(cacheId);
+        if(cache == null) {
+            throw new ObjectNotFoundException("Could not find cache with id: " + cacheId, ExceptionUtils.stacktrace2string(Thread.currentThread().getStackTrace()));
         }
-        catch(Exception x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            // TODO what status to return ?
-            return -1;
-        }
+        CacheMap.getInstance().get(cacheId).clear();
+        CacheMap.getInstance().remove(cacheId);
     }
 
     @Override
-    public int storePrecisionException(String precisionException) throws TException {
-        logger.debug("MemoryStructure storePrecisionException() received precision exception LRU: " + precisionException);
-        try {
-            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
-            lruIndex.indexPrecisionException(precisionException);
-            logger.debug("MemoryStructure indexPrecisionException() finished indexing precision exception LRU: " + precisionException);
-            // TODO what status to return ?
-            return 0;
-        }
-        catch(Exception x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            // TODO what status to return ?
-            return -1;
-        }
+    public void markPageWithPrecisionException(String pageItemId) throws MemoryStructureException, ObjectNotFoundException, TException {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
-    public int storeWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException {
-        if(webEntityCreationRule != null) {
-            logger.debug("MemoryStructure storeWebEntityCreationRule() received webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
-        }
-        else {
-            logger.warn("MemoryStructure storeWebEntityCreationRule() received NULL webEntityCreationRule");
-            return -1;
-        }
-        try {
-
+    public void saveWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException, MemoryStructureException {
+        try{
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
             lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
             logger.debug("MemoryStructure indexWebEntityCreationRule() finished indexing webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
-            // TODO what status to return ?
-            return 0;
         }
-        catch(Exception x) {
+        catch(IndexException x) {
             logger.error(x.getMessage());
-            //x.printStackTrace();
-            // TODO what status to return ?
-            return -1;
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
         }
+
     }
 
     @Override
-    public boolean storeNodeLinks(List<NodeLink> nodeLinks) throws TException {
+    public void saveNodeLinks(List<NodeLink> nodeLinks) throws TException {
         logger.debug("MemoryStructure storeNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
-        return true;
     }
 
     @Override
-    public boolean addLRUtoWebEntity(String id, LRUItem lruItem) throws TException {
-        logger.debug("MemoryStructure storeWebEntity() received LRUItem: " + lruItem.getLru() + " for WebEntity: " + id);
+    public void addLRUtoWebEntity(String id, PageItem pageItem) throws MemoryStructureException, TException {
+        logger.debug("MemoryStructure storeWebEntity() received LRUItem: " + pageItem.getLru() + " for WebEntity: " + id);
         try {
             LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
-            lruIndex.indexWebEntity(id, lruItem);
-            logger.debug("MemoryStructure storeWebEntity() finished indexing LRUItem: " + lruItem.getLru() + " for WebEntity: " + id);
-            // TODO change to return int
-            return true;
+            lruIndex.indexWebEntity(id, pageItem);
+            logger.debug("MemoryStructure storeWebEntity() finished indexing LRUItem: " + pageItem.getLru() + " for WebEntity: " + id);
         }
-        catch(Exception x) {
+        catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
-            // TODO change to return int
-            return false;
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
         }
     }
 
     @Override
-    public boolean storeLRUItems(List<LRUItem> lruItems) throws TException {
+    public void savePageItems(Set<PageItem> pageItems) throws TException, MemoryStructureException {
+        logger.info("saveLRUItems invocation");
         try {
-            logger.debug("MemoryStructure storeLRUItems() received # " + lruItems.size() + " LRUItems");
+            logger.debug("MemoryStructure saveLRUItems() received # " + pageItems.size() + " PageItems");
             LRUIndex index = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
-            index.batchIndex(lruItems);
-            return true;
+            List pageItemsList = new ArrayList(pageItems);
+            index.batchIndex(pageItemsList);
         }
-        catch(Exception x) {
+        catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
-            return false;
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
         }
     }
 
