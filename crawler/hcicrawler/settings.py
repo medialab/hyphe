@@ -14,6 +14,7 @@ ITEM_PIPELINES = [
 ]
 
 DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
+REDIRECT_ENABLED = False
 
 MONGO_HOST = 'localhost'
 MONGO_DB = 'hci'
