@@ -37,16 +37,36 @@ from thrift.transport import TTwisted
 from thrift.protocol import TBinaryProtocol
 
 @inlineCallbacks
-def main(client):
-      """  
-      pi = ms.PageItem("id","url", "lru", "time", 200, 1, "errorCode", True, True, {"key":"value"})
-      pi2 = ms.PageItem("id2","url2", "lru2", "time2", 400, 2, "errorCode2", False, False, {"key2":"value2"})
-      res = yield client.createCache([pi])
+def test_memory_structure(client):
+      """ 
+      Test the Memory structure thrift connection
       """
-      res = yield client.saveWebEntity(ms.WebEntity("bob", ["ba","bc"]))
-      print "bou"
-      print res
-      print "bou"
+
+      #pi = ms.PageItem("id","url", "lru", "time", 200, 1, "errorCode", True, True, {"key":"value"})
+      #pi2 = ms.PageItem("id2","url2", "lru2", "time2", 400, 2, "errorCode2", False, False, {"key2":"value2"})
+      #res = yield client.createCache([pi])
+      
+      # ping function 
+      print "ping test"
+      res = yield client.ping()
+      print "result  : " + str(res == "pong")
+ 
+      # createWebEntity function 
+      print "createWebEntity function"
+      we = yield client.createWebEntity("test WE",["lru1","lru2"])
+      print "result we id  : " + str(we.id)
+
+      # getWebEntity 
+      print "getWebEntity function"
+      we2 = yield client.getWebEntity(we.id)
+      print "result : " +str(we2.id==we.id and we2.name==we.name)
+
+      # update webentity
+      new_name="new WE"
+      we.name=new_name
+      we2=yield client.updateWebEntity(we)
+      print "result :"+ str(we2.name==new_name)
+
 
   #reactor.stop()
 
