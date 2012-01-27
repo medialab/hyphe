@@ -124,6 +124,7 @@ public class ThriftServer {
             @Override
             public void run() {
                 try {
+                    logger.info("Memory Structure shutdown hook");
                     memoryStructureImpl.shutdown();
                 }
                 catch (TException x) {
@@ -159,7 +160,7 @@ public class ThriftServer {
         // end server code provided by Patrick Browne
         //
 
-        logger.info("starting Thrift server (TThreadPoolServer) at port " + port);
+        logger.info("starting Thrift server (THsHaServer) at port " + port);
         server.serve();
     }
 

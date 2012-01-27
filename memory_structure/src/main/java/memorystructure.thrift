@@ -89,6 +89,12 @@ string ping(),
 **/
 WebEntity getWebEntity(1: string id) throws (1:MemoryStructureException x),
 
+// get all webentities
+/**
+ * @return all webentities in the index
+ */
+set<WebEntity> getWebEntities(),
+
 // create_pages_cache
 /**
  * @param 1 pageItems : set of PageItem objects

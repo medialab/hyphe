@@ -139,7 +139,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
 
-    // TODO: @Override
+    @Override
     public Set<WebEntity> getWebEntities() throws TException {
         logger.debug("getWebEntities");
         try {
@@ -152,7 +152,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
-    // TODO add to interface
+    @Override
     public Set<WebEntityCreationRule> getWebEntityCreationRules() throws TException {
         logger.debug("getWebEntityCreationRules");
         try {
@@ -165,7 +165,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
-    // TODO add to interface
+    @Override
     public void deleteWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException {
         logger.debug("deleteWebEntityCreationRule");
         try {
