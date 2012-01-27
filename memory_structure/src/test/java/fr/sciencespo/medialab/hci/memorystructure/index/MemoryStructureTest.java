@@ -308,7 +308,7 @@ public class MemoryStructureTest extends TestCase {
             fail("Exception was expected, but not thrown: saved WebEntity with id " + id);
         }
         catch (TException x) {
-            assertEquals("Expected exception about empty lrulist", "WebEntity has empty lru list", x.getMessage());
+            assertEquals("Expected exception about empty lrulist", "WebEntity has empty lru set", x.getMessage());
         }
         catch (MemoryStructureException x) {
             fail(x.getMessage());
@@ -331,7 +331,7 @@ public class MemoryStructureTest extends TestCase {
             fail("Exception was expected, but not thrown. Saved WebEntity with id " + id);
         }
         catch (TException x) {
-            assertEquals("Expected exception about empty lrulist", "WebEntity has empty lru list", x.getMessage());
+            assertEquals("Expected exception about empty lrulist", "WebEntity has empty lru set", x.getMessage());
         }
         catch (MemoryStructureException x) {
             fail(x.getMessage());
@@ -347,12 +347,11 @@ public class MemoryStructureTest extends TestCase {
     public void testStoreNullWebEntity() {
         logger.info("testStoreNullWebEntity");
         try {
-            WebEntity webEntity = null;
-            String id = memoryStructure.createWebEntity(webEntity.getName(), webEntity.getLRUSet()).getId();
+            String id = memoryStructure.createWebEntity(null, null).getId();
             fail("Exception was expected, but not thrown. Saved WebEntity with id " + id);
         }
         catch (TException x) {
-            assertEquals("Expected exception about null webentity", "WebEntity is null", x.getMessage());
+            assertEquals("Expected exception about null webentity", "WebEntity has empty lru set", x.getMessage());
         }
         catch (MemoryStructureException x) {
             fail(x.getMessage());
