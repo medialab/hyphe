@@ -55,16 +55,22 @@ def test_memory_structure(client):
       print "createWebEntity function"
       we = yield client.createWebEntity("test WE",["lru1","lru2"])
       print "result we id  : " + str(we.id)
+      print "result we name  : " + str(we.name)
 
       # getWebEntity 
       print "getWebEntity function"
       we2 = yield client.getWebEntity(we.id)
-      print "result : " +str(we2.id==we.id and we2.name==we.name)
+      print "result : " + str(we2.id==we.id and we2.name==we.name)
+      print "old : "+we.id +" new :"+we2.id
+      #print "old : "+we.name +" new :"+we2.name
+      print " new :"+we2.name
+      
 
       # update webentity
       new_name="new WE"
       we.name=new_name
-      we2=yield client.updateWebEntity(we)
+      we_id=yield client.updateWebEntity(we)
+      we2 = yield client.getWebEntity(we_id)
       print "result :"+ str(we2.name==new_name)
 
 
@@ -78,7 +84,7 @@ if __name__ == '__main__':
                       TBinaryProtocol.TBinaryProtocolFactory(),
                       ).connectTCP("10.35.1.152", 9090)
     client.addCallback(lambda conn: conn.client)
-    client.addCallback(main)
+    client.addCallback(test_memory_structure)
     
     
     reactor.run()
