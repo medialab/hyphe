@@ -374,12 +374,16 @@ public class MemoryStructureTest extends TestCase {
             lruList.add("fr|sciencespo|www");
             webEntity.setLRUSet(lruList);
 
-            String id = memoryStructure.createWebEntity(webEntity.getId(), webEntity.getLRUSet()).getId();
+            String id = memoryStructure.createWebEntity(webEntity.getName(), webEntity.getLRUSet()).getId();
             assertNotNull("storeWebEntity returned null id", id);
             logger.debug("storeWebEntity indexed web entity with id: " + id);
 
             WebEntity retrieved = memoryStructure.getWebEntity(id);
             assertNotNull("could not retrieve webentity", retrieved);
+            assertEquals("unexpected webentity name", retrieved.getName(), webEntity.getName());
+            for(String lru : webEntity.getLRUSet()) {
+                assertTrue("WebEntity does not contain expected LRU", retrieved.getLRUSet().contains(lru));
+            }
         }
         catch (TException x) {
             fail(x.getMessage());
@@ -465,7 +469,7 @@ public class MemoryStructureTest extends TestCase {
             lruList.add("fr|sciences-po|www");
             webEntity.setLRUSet(lruList);
 
-            String id = memoryStructure.createWebEntity(webEntity.getId(), webEntity.getLRUSet()).getId();
+            String id = memoryStructure.createWebEntity(webEntity.getName(), webEntity.getLRUSet()).getId();
             assertNotNull("storeWebEntity returned null id", id);
             logger.debug("storeWebEntity indexed web entity with id: " + id);
 

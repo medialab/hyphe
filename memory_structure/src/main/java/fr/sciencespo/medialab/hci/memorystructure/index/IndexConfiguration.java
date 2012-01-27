@@ -33,7 +33,8 @@ public class IndexConfiguration {
         DEPTH,
         ERRORCODE,
         HTTPSTATUSCODE,
-        REGEXP
+        REGEXP,
+        NAME
     }
 
     /**
@@ -167,6 +168,10 @@ public class IndexConfiguration {
         idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(idField);
 
+        Field nameField = new Field(FieldName.NAME.name(), webEntity.getName(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        nameField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        document.add(nameField);
+
         Field typeField = new Field(FieldName.TYPE.name(), DocType.WEBENTITY.name(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
         typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(typeField);
@@ -189,8 +194,13 @@ public class IndexConfiguration {
      */
     protected static WebEntity convertLuceneDocument2WebEntity(Document document) {
         WebEntity webEntity = new WebEntity();
+
         String id = document.get(FieldName.ID.name());
         webEntity.setId(id);
+
+        String name = document.get(FieldName.NAME.name());
+        webEntity.setName(name);
+
         Fieldable[] lruFields = document.getFieldables(FieldName.LRU.name());
         logger.debug("lucene doc for webentity has # " + lruFields.length + " lru fields");
         Set<String> lruList = new HashSet<String>();
