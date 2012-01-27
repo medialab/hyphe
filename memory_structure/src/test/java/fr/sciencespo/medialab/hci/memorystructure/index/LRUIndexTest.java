@@ -57,9 +57,9 @@ public class LRUIndexTest extends TestCase {
      */
     public void testClearNonEmptyIndex() throws Exception {
         List<Object> lruItems = new ArrayList<Object>();
-        PageItem lruItem1 = new PageItem().setLru("1");
-        PageItem lruItem2 = new PageItem().setLru("2");
-        PageItem lruItem3 = new PageItem().setLru("3");
+        PageItem lruItem1 = new PageItem().setLru("fr|sciences-po|www");
+        PageItem lruItem2 = new PageItem().setLru("fr|sciencespo|www");
+        PageItem lruItem3 = new PageItem().setLru("fr|sciences-po|medialab");
         lruItems.add(lruItem1);
         lruItems.add(lruItem2);
         lruItems.add(lruItem3);
@@ -76,9 +76,9 @@ public class LRUIndexTest extends TestCase {
     public void testIndexCount() throws Exception {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
         List<Object> lruItems = new ArrayList<Object>();
-        PageItem lruItem1 = new PageItem().setLru("1");
-        PageItem lruItem2 = new PageItem().setLru("2");
-        PageItem lruItem3 = new PageItem().setLru("3");
+        PageItem lruItem1 = new PageItem().setLru("fr|sciences-po|www");
+        PageItem lruItem2 = new PageItem().setLru("fr|sciencespo|www");
+        PageItem lruItem3 = new PageItem().setLru("fr|sciences-po|medialab");
         lruItems.add(lruItem1);
         lruItems.add(lruItem2);
         lruItems.add(lruItem3);
@@ -104,12 +104,12 @@ public class LRUIndexTest extends TestCase {
         // add 1 PageItem to a new index
         //
         List<Object> lruItems = new ArrayList<Object>();
-        PageItem lruItem1 = new PageItem().setLru("find-me");
+        PageItem lruItem1 = new PageItem().setLru("fr|sciences-po|medialab");
         lruItems.add(lruItem1);
         lruIndex.batchIndex(lruItems);
 
         // test if this PageItem can be found
-        PageItem found = lruIndex.retrieveByLRU("find-me");
+        PageItem found = lruIndex.retrieveByLRU("fr|sciences-po|medialab");
         assertNotNull("Could not retrieve expected object", found);
 
         //lruIndex.close();
@@ -124,10 +124,10 @@ public class LRUIndexTest extends TestCase {
      */
     public void testDonotRetrieveNonExistingPageItem() throws Exception {
         List<Object> lruItems = new ArrayList<Object>();
-        PageItem lruItem1 = new PageItem().setLru("find-me");
+        PageItem lruItem1 = new PageItem().setLru("fr|sciences-po|medialab");
         lruItems.add(lruItem1);
         lruIndex.batchIndex(lruItems);
-        PageItem found = lruIndex.retrieveByLRU("do-not-find-me");
+        PageItem found = lruIndex.retrieveByLRU("fr|sciences-po|medialab|do-not-find-me");
         assertNull("Retrieved unexpected object", found);
         //lruIndex.close();
         logger.info("testDonotRetrieveNonExistingPageItem success");
@@ -140,10 +140,10 @@ public class LRUIndexTest extends TestCase {
      */
     public void testRetrievePageItemByPrefix() throws Exception {
         List<Object> lruItems = new ArrayList<Object>();
-        PageItem lruItem1 = new PageItem().setLru("find-me");
+        PageItem lruItem1 = new PageItem().setLru("fr|sciences-po|medialab");
         lruItems.add(lruItem1);
         lruIndex.batchIndex(lruItems);
-        PageItem found = lruIndex.retrieveByLRU("fin*");
+        PageItem found = lruIndex.retrieveByLRU("fr|sciences-po*");
         assertNotNull("Could not retrieve expected object by wildcard", found);
         //lruIndex.close();
         logger.info("testRetrievePageItemByPrefix success");
@@ -156,10 +156,10 @@ public class LRUIndexTest extends TestCase {
      */
     public void testRetrievePageItemBySingleCharWildCard() throws Exception {
         List<Object> lruItems = new ArrayList<Object>();
-        PageItem lruItem1 = new PageItem().setLru("find-me");
+        PageItem lruItem1 = new PageItem().setLru("fr|sciences-po|medialab");
         lruItems.add(lruItem1);
         lruIndex.batchIndex(lruItems);
-        PageItem found = lruIndex.retrieveByLRU("find-?e");
+        PageItem found = lruIndex.retrieveByLRU("fr|scien?es-po|medialab");
         assertNotNull("Could not retrieve expected object by single character wildcard", found);
         //lruIndex.close();
         logger.info("testRetrievePageItemBySingleCharWildCard success");
@@ -173,9 +173,9 @@ public class LRUIndexTest extends TestCase {
     public void testRetrievePageItemByMultiCharacterWildCard() throws Exception {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
         List<Object> lruItems = new ArrayList<Object>();
-        PageItem lruItem1 = new PageItem().setLru("1");
-        PageItem lruItem2 = new PageItem().setLru("2");
-        PageItem lruItem3 = new PageItem().setLru("3");
+        PageItem lruItem1 = new PageItem().setLru("fr|sciences-po|www");
+        PageItem lruItem2 = new PageItem().setLru("fr|sciencespo|www");
+        PageItem lruItem3 = new PageItem().setLru("fr|sciences-po|medialab");
         lruItems.add(lruItem1);
         lruItems.add(lruItem2);
         lruItems.add(lruItem3);
@@ -193,7 +193,7 @@ public class LRUIndexTest extends TestCase {
      */
     public void testIndexNewWebEntity() throws Exception {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
-        PageItem lruItem1 = new PageItem().setLru("1");
+        PageItem lruItem1 = new PageItem().setLru("fr|sciences-po|medialab");
         String id = lruIndex.indexWebEntity(null, lruItem1);
         logger.debug("indexed webentity with id " + id);
         assertEquals("IndexCount returns unexpected number", 1, lruIndex.indexCount());
@@ -208,11 +208,11 @@ public class LRUIndexTest extends TestCase {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
 
         // create a webentity
-        PageItem lruItem1 = new PageItem().setLru("1");
+        PageItem lruItem1 = new PageItem().setLru("fr|sciences-po|medialab");
         String id = lruIndex.indexWebEntity(null, lruItem1);
 
         // add lru to this webentity
-        PageItem lruItem2 = new PageItem().setLru("2");
+        PageItem lruItem2 = new PageItem().setLru("fr|sciences-po|www");
         String id2 = lruIndex.indexWebEntity(id, lruItem2);
 
         assertEquals("update existing webentity returns unexpected id", id, id2);
@@ -220,7 +220,7 @@ public class LRUIndexTest extends TestCase {
         WebEntity webEntity = lruIndex.retrieveWebEntity(id);
         assertNotNull("failed to retrieve existing webentity", webEntity);
         if(webEntity != null) {
-            int lruListSize = webEntity.getLRUlistSize();
+            int lruListSize = webEntity.getLRUSetSize();
             assertEquals("unexpected webentity lrulist size", 2, lruListSize);
         }
     }
@@ -233,7 +233,7 @@ public class LRUIndexTest extends TestCase {
      */
     public void testAddToExistingWebEntityThatDoesNotActuallyExist() throws Exception {
         assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
-        PageItem lruItem1 = new PageItem().setLru("1");
+        PageItem lruItem1 = new PageItem().setLru("fr|sciences-po|medialab");
         String nonExistingId = "there-is-no-webentity-with-this-id";
         String id = lruIndex.indexWebEntity(nonExistingId, lruItem1);
         assertNotSame("update existing webentity that does not really exist returns unexpected id", id, nonExistingId);

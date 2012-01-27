@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -52,7 +51,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class LRUIndex {
 
-    private Logger logger = LoggerFactory.getLogger(LRUIndex.class);
+    private static Logger logger = LoggerFactory.getLogger(LRUIndex.class);
 
     //
     // Lucene settings
@@ -87,7 +86,11 @@ public class LRUIndex {
     private static LRUIndex instance;
     public synchronized static LRUIndex getInstance(String path, IndexWriterConfig.OpenMode openMode) {
         if(instance == null) {
+            //logger.debug("creating new LRUIndex object");
             instance = new LRUIndex(path, openMode);
+        }
+        else {
+            //logger.debug("returning existing LRUIndex object");
         }
         return instance;
     }
@@ -95,16 +98,30 @@ public class LRUIndex {
     public Object clone() throws CloneNotSupportedException {
         throw new CloneNotSupportedException();
     }
+    //
+    // end singleton-ness
+    //
 
-
+    /**
+     * Clears the index and re-opens indexreader and indexsearcher.
+     *
+     * @throws IndexException hmm
+     */
     public synchronized void clearIndex() throws IndexException {
         try {
             logger.debug("clearing index");
-            indexWriter.deleteAll();
-            indexWriter.commit();
+            this.indexWriter.deleteAll();
+            this.indexWriter.commit();
+            this.indexReader = IndexReader.open(this.indexWriter, false);
+            this.indexSearcher = new IndexSearcher(this.indexReader);
             logger.debug("index now has # " + indexCount() + " documents");
         }
-        catch(Exception x) {
+        catch(CorruptIndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x);
+        }
+        catch(IOException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new IndexException(x);
@@ -117,7 +134,7 @@ public class LRUIndex {
      * @param openMode how to open
      */
 	private LRUIndex(String path, IndexWriterConfig.OpenMode openMode) {
-        logger.info("creating LRUIndex");
+        logger.info("creating LRUIndex, openMode is " + openMode.name() + ", path to Lucene index is " + path);
         try {
             OPEN_MODE = openMode;
             File indexDirectory = new File(path);
@@ -140,28 +157,45 @@ public class LRUIndex {
             this.indexSearcher = new IndexSearcher(this.indexReader);
             logger.info("successfully created LRUIndex");
         }
-        catch(Exception x) {
+        catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new ExceptionInInitializerError("can't create Lucene index, error: " + x.getMessage());
         }
-	}
+        catch(CorruptIndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new ExceptionInInitializerError("can't create Lucene index, error: " + x.getMessage());
+        }
+        catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new ExceptionInInitializerError("can't create Lucene index, error: " + x.getMessage());
+        }
+    }
 
     /**
      * Creates new directory.
      *
      * @param diskDirectory the directory on disk where the Lucene index is located
      * @return indexWriter
-     * @throws Exception hmm
+     * @throws IndexException hmm
      */
-    private IndexWriter createIndexWriter(FSDirectory diskDirectory) throws Exception {
+    private IndexWriter createIndexWriter(FSDirectory diskDirectory) throws IndexException {
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(LUCENE_VERSION, analyzer);
         indexWriterConfig.setOpenMode(OPEN_MODE);
         indexWriterConfig.setRAMBufferSizeMB(RAM_BUFFER_SIZE_MB);
         LogMergePolicy logMergePolicy = new LogByteSizeMergePolicy();
         logMergePolicy.setUseCompoundFile(false);
         indexWriterConfig.setMergePolicy(logMergePolicy);
-        return new IndexWriter(diskDirectory, indexWriterConfig);
+        try {
+            return new IndexWriter(diskDirectory, indexWriterConfig);
+        }
+        catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x);
+        }
     }
 
     /**
@@ -178,21 +212,21 @@ public class LRUIndex {
 			indexWriter.close();
 		}
         executorService.shutdown();
-        /* TODO how to deal with threads taking very long to shutdown
         try {
             // pool didn't terminate after the first try
-            if(!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+            if(!executorService.awaitTermination(30, TimeUnit.SECONDS)) {
+                logger.warn("not all threads terminated after 30s");
                 executorService.shutdownNow();
             }
             // pool didn't terminate after the second try
-            if(!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+            if(!executorService.awaitTermination(30, TimeUnit.SECONDS)) {
+                logger.warn("not all threads terminated after 60s. Not waiting any longer.");
             }
         }
-        catch (InterruptedException ex) {
+        catch (InterruptedException x) {
             executorService.shutdownNow();
             Thread.currentThread().interrupt();
         }
-        */
 	}
 
     /**
@@ -206,8 +240,8 @@ public class LRUIndex {
       */
      public String indexWebEntity(WebEntity webEntity) throws IndexException{
          logger.debug("indexWebEntity");
-        if(CollectionUtils.isEmpty(webEntity.getLRUlist())) {
-            throw new IndexException("WebEntity has empty lru list");
+        if(CollectionUtils.isEmpty(webEntity.getLRUSet())) {
+            throw new IndexException("WebEntity has empty lru set");
         }
 
          try {
@@ -217,7 +251,7 @@ public class LRUIndex {
              if(webEntity == null) {
                  logger.debug("creating new webentity");
                  webEntity = new WebEntity();
-                 webEntity.setLRUlist(new HashSet<String>());
+                 webEntity.setLRUSet(new HashSet<String>());
              }
              else if(StringUtils.isEmpty(webEntity.getId())) {
                  logger.debug("indexing webentity with id null");
@@ -236,7 +270,7 @@ public class LRUIndex {
                  if(toUpdate != null) {
                      logger.debug("webentity found");
                      // 'merge' existing webentity with the one requested for indexing: lrus may be added
-                     webEntity.getLRUlist().addAll(toUpdate.getLRUlist());
+                     webEntity.getLRUSet().addAll(toUpdate.getLRUSet());
                  }
                  else {
                      logger.debug("did not find webentity with id " + id);
@@ -263,11 +297,16 @@ public class LRUIndex {
              return indexedId;
 
          }
-         catch(Exception x) {
-             logger.error(x.getMessage());
-             x.printStackTrace();
-             throw new IndexException(x);
-         }
+        catch(CorruptIndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x);
+        }
+        catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x);
+        }
      }
 
    /**
@@ -293,7 +332,7 @@ public class LRUIndex {
                 if(logger.isDebugEnabled()) {
                     if(webEntity != null) {
                         logger.debug("webentity found");
-                        logger.debug("found webentity has # " + webEntity.getLRUlist().size() + " lrus");
+                        logger.debug("found webentity has # " + webEntity.getLRUSet().size() + " lrus");
                     }
                     else {
                         logger.debug("did not find webentity with id " + id);
@@ -304,13 +343,13 @@ public class LRUIndex {
             if(webEntity == null) {
                 logger.debug("creating new webentity");
                 webEntity = new WebEntity();
-                webEntity.setLRUlist(new HashSet<String>());
+                webEntity.setLRUSet(new HashSet<String>());
             }
             else {
                 logger.debug("updating webentity with id " + id);
                 updating = true;
             }
-            webEntity.addToLRUlist(pageItem.getLru());
+            webEntity.addToLRUSet(pageItem.getLru());
 
             // update: first delete old webentity
             if(updating) {
@@ -332,7 +371,12 @@ public class LRUIndex {
             return indexedId;
 
         }
-        catch(Exception x) {
+        catch(CorruptIndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x);
+        }
+        catch(IOException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new IndexException(x);
@@ -353,7 +397,12 @@ public class LRUIndex {
             this.indexWriter.commit();
             this.indexSearcher = new IndexSearcher(this.indexReader);
         }
-        catch(Exception x) {
+        catch(CorruptIndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x);
+        }
+        catch(IOException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new IndexException(x);
@@ -486,8 +535,15 @@ public class LRUIndex {
             termDocs.close();
             return results;
         }
-        catch(Exception x) {
-            throw new IndexException(x);
+        catch(CorruptIndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+        catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
         }
     }
 
@@ -537,9 +593,13 @@ public class LRUIndex {
             }
             return result;
         }
-        catch(Exception x) {
+        catch(CorruptIndexException x) {
             x.printStackTrace();
-            throw new IndexException(x);
+            throw new IndexException(x.getMessage(), x);
+        }
+        catch (IOException x) {
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
         }
     }
 
@@ -580,10 +640,49 @@ public class LRUIndex {
             logger.debug("retrieved # " + result.size() + " webentities from index");
             return result;
         }
-        catch(Exception x) {
-            throw new IndexException(x);
+        catch(IOException x) {
+            throw new IndexException(x.getMessage(), x);
         }
     }
+
+    public Set<WebEntityCreationRule> retrieveWebEntityCreationRules() throws IndexException {
+        try {
+            Set<WebEntityCreationRule> result = new HashSet<WebEntityCreationRule>();
+            Term isWebEntityCreationRule = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_CREATION_RULE.name());
+            TermQuery q = new TermQuery(isWebEntityCreationRule);
+            final List<Document> hits = new ArrayList<Document>();
+            indexSearcher.search(q, new Collector() {
+                private IndexReader reader;
+                @Override
+                public void setScorer(Scorer scorer) throws IOException {}
+
+                @Override
+                public void collect(int doc) throws IOException {
+                    hits.add(reader.document(doc));
+                }
+
+                @Override
+                public void setNextReader(IndexReader reader, int docBase) throws IOException {
+                    this.reader = reader;
+                }
+
+                @Override
+                public boolean acceptsDocsOutOfOrder() {
+                    return true;
+                }
+            });
+            for(Document hit: hits) {
+                    WebEntityCreationRule webEntityCreationRule = IndexConfiguration.convertLuceneDocument2WebEntityCreationRule(hit);
+                    result.add(webEntityCreationRule);
+            }
+            logger.debug("retrieved # " + result.size() + " WebEntityCreationRules from index");
+            return result;
+        }
+        catch(IOException x) {
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
 
 
     /**
@@ -613,7 +712,7 @@ public class LRUIndex {
             return result;
         }
         catch(Exception x) {
-            throw new IndexException(x);
+            throw new IndexException(x.getMessage(), x);
         }
     }
 
@@ -710,7 +809,7 @@ public class LRUIndex {
         catch(Exception x) {
             logger.error(x.getMessage());
             x.printStackTrace();
-            throw new IndexException(x);
+            throw new IndexException(x.getMessage(), x);
         }
 
     }
@@ -719,21 +818,65 @@ public class LRUIndex {
      * Returns total number of documents in the index.
      *
      * @return total number of docs in index
-     * @throws Exception hmm
+     * @throws IndexException hmm
      */
-    public int indexCount() throws Exception {
+    public int indexCount() throws IndexException {
         try {
-            //MatchAllDocsQuery matchAllDocsQuery = new MatchAllDocsQuery();
-            //TotalHitCountCollector totalHitCountCollector = new TotalHitCountCollector();
-            //this.indexSearcher.search(matchAllDocsQuery, totalHitCountCollector);
-            //return totalHitCountCollector.getTotalHits();
             return indexWriter.numDocs();
         }
-        catch(Exception x) {
+        catch(IOException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
-            throw x;
+            throw new IndexException(x.getMessage(), x);
         }
     }
 
+    /**
+     *
+     * @param webEntityCreationRule
+     * @throws IndexException hmm
+     */
+    public void deleteWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws IndexException {
+        try {
+            logger.debug("deleting webEntityCreationRule with LRU " + webEntityCreationRule.getLRU());
+            Query q = findWebEntityCreationRuleQuery(webEntityCreationRule.getLRU());
+            this.indexWriter.deleteDocuments(q);
+            this.indexWriter.commit();
+            IndexReader maybeChanged = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
+            // if not changed, that returns null
+            if(maybeChanged != null) {
+                this.indexReader = maybeChanged;
+                this.indexSearcher = new IndexSearcher(this.indexReader);
+            }
+        }
+        catch (CorruptIndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     *
+     * @param lru
+     * @return
+     */
+    private Query findWebEntityCreationRuleQuery(String lru) {
+        if(lru == null) {
+            lru = IndexConfiguration.DEFAULT_WEBENTITY_CREATION_RULE;
+        }
+        Term isWebEntityCreationRule = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_CREATION_RULE.name());
+        Term lruTerm = new Term(IndexConfiguration.FieldName.LRU.name(), lru);
+        BooleanQuery q = new BooleanQuery();
+        TermQuery q1 = new TermQuery(isWebEntityCreationRule);
+        TermQuery q2 = new TermQuery(lruTerm);
+        q.add(q1, BooleanClause.Occur.MUST);
+        q.add(q2, BooleanClause.Occur.MUST);
+        return q;
+    }
 }

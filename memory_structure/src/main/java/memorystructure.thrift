@@ -30,7 +30,7 @@ struct PageItem {
   7: string errorCode,
   8: bool isFullPrecision = false,
   9: bool isNode,
-  10: map<string, list<string>> metadataItems
+  10: map<string, set<string>> metadataItems
 }
 
 struct NodeLink {
@@ -45,7 +45,7 @@ struct NodeLink {
  */
 struct WebEntity {
   1: string id,
-  2: list<string> LRUlist,
+  2: set<string> LRUSet,
   3: string name
 }
 
@@ -58,19 +58,43 @@ struct WebEntityCreationRule {
  
 service MemoryStructure {
 
- // store webentity
+// CREATED by PAUL
+// ping
+/*¨replies pong */
+string ping(),
+
+
+// MODIFIED by Paul
+ //update  webentity
  /**
   * @param 1 webEntity
   * @return id of the web entity
   */
-  string saveWebEntity(1:WebEntity webEntity) throws (1:MemoryStructureException x),
+  string updateWebEntity(1:WebEntity webEntity) throws (1:MemoryStructureException x),
+
+// ADDED by Paul
+// create webentity
+/**
+* @param 1 name
+* @param 2 LRUSet
+* @return a WebEntity object
+**/
+  WebEntity createWebEntity(1: string name,2:set<string> LRUSet) throws (1:MemoryStructureException x),
+
+// ADDED by Paul
+// get webentity
+/**
+* @param 1 id
+* @return a WebEntity Object
+**/
+WebEntity getWebEntity(1: string id) throws (1:MemoryStructureException x),
 
 // create_pages_cache
 /**
- * @param 1 pageItems : list of PageItem objects
+ * @param 1 pageItems : set of PageItem objects
  * @return id of the created cache
  */
-string createCache(1:list<PageItem> pageItems) throws (1:MemoryStructureException x),
+string createCache(1:set<PageItem> pageItems) throws (1:MemoryStructureException x),
 
 // index_pages_from_cache
 /**
@@ -82,9 +106,9 @@ i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:Object
  //get_precision_exceptions_from_cache
  /**
   * @param 1 cacheId : id of the cache
-  * @return list of lru prefixes
+  * @return set of lru prefixes
   */
- list<string> getPrecisionExceptionsFromCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+ set<string> getPrecisionExceptionsFromCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
  /**
   * @param 1 cacheId : id of the cache
@@ -108,20 +132,32 @@ i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:Object
   * @param 1 webEntityCreationRule : webentity creation rule to store
   */
 void saveWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule) throws (1:MemoryStructureException me),
+
+// get all WebEntityCreationRules from index
+/**
+ *
+ */
+set<WebEntityCreationRule> getWebEntityCreationRules(),
+
+// delete a WebEntityCreationRule from index
+/**
+ * @param 1 webEntityCreationRule : webentity creation rule to delete
+ */
+void deleteWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule),
  
 // PageItems
 /**
  *
- * @param 1 pageItems : list of PageItem objects
+ * @param 1 pageItems : set of PageItem objects
  */
-void savePageItems(1:list<PageItem> pageItems) throws (1:MemoryStructureException me),
+void savePageItems(1:set<PageItem> pageItems) throws (1:MemoryStructureException me),
 
 // NodeLinks
 /**
  *
- * @param 1 nodeLinks : list of NodeLink objects
+ * @param 1 nodeLinks : set of NodeLink objects
  */
-void saveNodeLinks(1:list<NodeLink> nodeLinks) throws (1:MemoryStructureException me),
+void saveNodeLinks(1:set<NodeLink> nodeLinks) throws (1:MemoryStructureException me),
 
 // WebEntity
 /**

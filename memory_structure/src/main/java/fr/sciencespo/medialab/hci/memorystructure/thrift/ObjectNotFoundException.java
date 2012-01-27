@@ -31,7 +31,8 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ObjectNotFoundException");
 
   private static final org.apache.thrift.protocol.TField MSG_FIELD_DESC = new org.apache.thrift.protocol.TField("msg", org.apache.thrift.protocol.TType.STRING, (short)1);
-  private static final org.apache.thrift.protocol.TField CLASSNAME_FIELD_DESC = new org.apache.thrift.protocol.TField("classname", org.apache.thrift.protocol.TType.STRING, (short)2);
+  private static final org.apache.thrift.protocol.TField STACKTRACE_FIELD_DESC = new org.apache.thrift.protocol.TField("stacktrace", org.apache.thrift.protocol.TType.STRING, (short)2);
+  private static final org.apache.thrift.protocol.TField CLASSNAME_FIELD_DESC = new org.apache.thrift.protocol.TField("classname", org.apache.thrift.protocol.TType.STRING, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -40,12 +41,14 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
   }
 
   public String msg; // required
+  public String stacktrace; // required
   public String classname; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     MSG((short)1, "msg"),
-    CLASSNAME((short)2, "classname");
+    STACKTRACE((short)2, "stacktrace"),
+    CLASSNAME((short)3, "classname");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -62,7 +65,9 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
       switch(fieldId) {
         case 1: // MSG
           return MSG;
-        case 2: // CLASSNAME
+        case 2: // STACKTRACE
+          return STACKTRACE;
+        case 3: // CLASSNAME
           return CLASSNAME;
         default:
           return null;
@@ -109,6 +114,8 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.MSG, new org.apache.thrift.meta_data.FieldMetaData("msg", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.STACKTRACE, new org.apache.thrift.meta_data.FieldMetaData("stacktrace", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.CLASSNAME, new org.apache.thrift.meta_data.FieldMetaData("classname", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -120,10 +127,12 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
 
   public ObjectNotFoundException(
     String msg,
+    String stacktrace,
     String classname)
   {
     this();
     this.msg = msg;
+    this.stacktrace = stacktrace;
     this.classname = classname;
   }
 
@@ -133,6 +142,9 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
   public ObjectNotFoundException(ObjectNotFoundException other) {
     if (other.isSetMsg()) {
       this.msg = other.msg;
+    }
+    if (other.isSetStacktrace()) {
+      this.stacktrace = other.stacktrace;
     }
     if (other.isSetClassname()) {
       this.classname = other.classname;
@@ -146,6 +158,7 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
   @Override
   public void clear() {
     this.msg = null;
+    this.stacktrace = null;
     this.classname = null;
   }
 
@@ -170,6 +183,30 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
   public void setMsgIsSet(boolean value) {
     if (!value) {
       this.msg = null;
+    }
+  }
+
+  public String getStacktrace() {
+    return this.stacktrace;
+  }
+
+  public ObjectNotFoundException setStacktrace(String stacktrace) {
+    this.stacktrace = stacktrace;
+    return this;
+  }
+
+  public void unsetStacktrace() {
+    this.stacktrace = null;
+  }
+
+  /** Returns true if field stacktrace is set (has been assigned a value) and false otherwise */
+  public boolean isSetStacktrace() {
+    return this.stacktrace != null;
+  }
+
+  public void setStacktraceIsSet(boolean value) {
+    if (!value) {
+      this.stacktrace = null;
     }
   }
 
@@ -207,6 +244,14 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
       }
       break;
 
+    case STACKTRACE:
+      if (value == null) {
+        unsetStacktrace();
+      } else {
+        setStacktrace((String)value);
+      }
+      break;
+
     case CLASSNAME:
       if (value == null) {
         unsetClassname();
@@ -222,6 +267,9 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
     switch (field) {
     case MSG:
       return getMsg();
+
+    case STACKTRACE:
+      return getStacktrace();
 
     case CLASSNAME:
       return getClassname();
@@ -239,6 +287,8 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
     switch (field) {
     case MSG:
       return isSetMsg();
+    case STACKTRACE:
+      return isSetStacktrace();
     case CLASSNAME:
       return isSetClassname();
     }
@@ -264,6 +314,15 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
       if (!(this_present_msg && that_present_msg))
         return false;
       if (!this.msg.equals(that.msg))
+        return false;
+    }
+
+    boolean this_present_stacktrace = true && this.isSetStacktrace();
+    boolean that_present_stacktrace = true && that.isSetStacktrace();
+    if (this_present_stacktrace || that_present_stacktrace) {
+      if (!(this_present_stacktrace && that_present_stacktrace))
+        return false;
+      if (!this.stacktrace.equals(that.stacktrace))
         return false;
     }
 
@@ -298,6 +357,16 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
     }
     if (isSetMsg()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.msg, typedOther.msg);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetStacktrace()).compareTo(typedOther.isSetStacktrace());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetStacktrace()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.stacktrace, typedOther.stacktrace);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -337,6 +406,14 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
       sb.append("null");
     } else {
       sb.append(this.msg);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("stacktrace:");
+    if (this.stacktrace == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.stacktrace);
     }
     first = false;
     if (!first) sb.append(", ");
@@ -397,7 +474,15 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // CLASSNAME
+          case 2: // STACKTRACE
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.stacktrace = iprot.readString();
+              struct.setStacktraceIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 3: // CLASSNAME
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.classname = iprot.readString();
               struct.setClassnameIsSet(true);
@@ -423,6 +508,11 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
       if (struct.msg != null) {
         oprot.writeFieldBegin(MSG_FIELD_DESC);
         oprot.writeString(struct.msg);
+        oprot.writeFieldEnd();
+      }
+      if (struct.stacktrace != null) {
+        oprot.writeFieldBegin(STACKTRACE_FIELD_DESC);
+        oprot.writeString(struct.stacktrace);
         oprot.writeFieldEnd();
       }
       if (struct.classname != null) {
@@ -451,12 +541,18 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
       if (struct.isSetMsg()) {
         optionals.set(0);
       }
-      if (struct.isSetClassname()) {
+      if (struct.isSetStacktrace()) {
         optionals.set(1);
       }
-      oprot.writeBitSet(optionals, 2);
+      if (struct.isSetClassname()) {
+        optionals.set(2);
+      }
+      oprot.writeBitSet(optionals, 3);
       if (struct.isSetMsg()) {
         oprot.writeString(struct.msg);
+      }
+      if (struct.isSetStacktrace()) {
+        oprot.writeString(struct.stacktrace);
       }
       if (struct.isSetClassname()) {
         oprot.writeString(struct.classname);
@@ -466,12 +562,16 @@ public class ObjectNotFoundException extends Exception implements org.apache.thr
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ObjectNotFoundException struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(2);
+      BitSet incoming = iprot.readBitSet(3);
       if (incoming.get(0)) {
         struct.msg = iprot.readString();
         struct.setMsgIsSet(true);
       }
       if (incoming.get(1)) {
+        struct.stacktrace = iprot.readString();
+        struct.setStacktraceIsSet(true);
+      }
+      if (incoming.get(2)) {
         struct.classname = iprot.readString();
         struct.setClassnameIsSet(true);
       }

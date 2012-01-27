@@ -12,12 +12,14 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
+ * Implementation of MemeoryStructure interface.
  *
  * @author heikki doeleman
  */
@@ -25,12 +27,36 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     private static Logger logger = LoggerFactory.getLogger(MemoryStructureImpl.class);
 
-    private String lucenePath;
+    private LRUIndex lruIndex;
 
-    public void setLucenePath(String lucenePath) {
-        this.lucenePath = lucenePath;
+    public MemoryStructureImpl(String lucenePath, IndexWriterConfig.OpenMode openMode) {
+        this.lruIndex = LRUIndex.getInstance(lucenePath, openMode);
     }
 
+    public void clearIndex() throws TException {
+        //logger.debug("clearIndex");
+        try {
+            lruIndex.clearIndex();
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+    public void shutdown() throws TException {
+        logger.info("shutting down");
+        try {
+            lruIndex.close();
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+    /*
     @Override
     public String saveWebEntity(WebEntity webEntity) throws TException {
         logger.debug("saveWebEntity");
@@ -38,8 +64,50 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             if(webEntity == null) {
                 throw new TException("WebEntity is null");
             }
-            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
             return lruIndex.indexWebEntity(webEntity);
+        }
+        catch(Exception x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+    */
+
+    @Override
+    public String ping() throws TException {
+        return "pong";
+    }
+
+    @Override
+    public String updateWebEntity(WebEntity webEntity) throws MemoryStructureException, TException {
+        logger.debug("updateWebEntity");
+        try {
+            if(webEntity == null) {
+                throw new TException("WebEntity is null");
+            }
+            return lruIndex.indexWebEntity(webEntity);
+        }
+        catch(Exception x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+    @Override
+    public WebEntity createWebEntity(String name, Set<String> lruSet) throws MemoryStructureException, TException {
+        logger.debug("createWebEntity");
+        WebEntity webEntity = new WebEntity();
+        webEntity.setName(name);
+        webEntity.setLRUSet(lruSet);
+        try {
+            if(webEntity == null) {
+                throw new TException("WebEntity is null");
+            }
+            String id = lruIndex.indexWebEntity(webEntity);
+            webEntity.setId(id);
+            return webEntity;
         }
         catch(Exception x) {
             logger.error(x.getMessage());
@@ -56,11 +124,10 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             return null;
         }
         try {
-            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
             WebEntity found = lruIndex.retrieveWebEntity(id);
             if(found != null && logger.isDebugEnabled()) {
                 logger.debug("found webentity with id: " + found.getId());
-                logger.debug("webentity has # " + found.getLRUlist().size() + " lrus");
+                logger.debug("webentity has # " + found.getLRUSet().size() + " lrus");
             }
             return found;
         }
@@ -69,15 +136,40 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             x.printStackTrace();
             throw new TException(x.getMessage(), x);
         }
-
     }
 
-    @Override
+
+    // TODO: @Override
     public Set<WebEntity> getWebEntities() throws TException {
         logger.debug("getWebEntities");
         try {
-            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
             return lruIndex.retrieveWebEntities();
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+    // TODO add to interface
+    public Set<WebEntityCreationRule> getWebEntityCreationRules() throws TException {
+        logger.debug("getWebEntityCreationRules");
+        try {
+            return lruIndex.retrieveWebEntityCreationRules();
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+    // TODO add to interface
+    public void deleteWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException {
+        logger.debug("deleteWebEntityCreationRule");
+        try {
+            lruIndex.deleteWebEntityCreationRule(webEntityCreationRule);
         }
         catch (IndexException x) {
             logger.error(x.getMessage());
@@ -88,19 +180,21 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     @Override
     public String createCache(Set<PageItem> pageItems) throws TException, MemoryStructureException {
+        if(pageItems != null && logger.isDebugEnabled()) {
+            logger.debug("createCache for # " + pageItems.size() + " pageItems");
+        }
         try {
-        if(pageItems != null) {
-            logger.debug("MemoryStructure createCache() received " + pageItems.size() + " LRUItems");
-            Cache cache = new Cache();
-            cache.setPageItems(pageItems);
-            CacheMap.getInstance().add(cache);
-            logger.debug("MemoryStructure createCache() created cache with id " + cache.getId());
-            return cache.getId();
-        }
-        else {
-            logger.warn("MemoryStructure createCache() received null");
-            return "WARNING: MemoryStructure createCache() received null. No cache created.";
-        }
+            if(pageItems != null) {
+                Cache cache = new Cache();
+                cache.setPageItems(pageItems);
+                CacheMap.getInstance().add(cache);
+                logger.debug("createCache created cache with id " + cache.getId());
+                return cache.getId();
+            }
+            else {
+                logger.warn("createCache received null");
+                return "WARNING: createCache received null pageItems. No cache created.";
+            }
         }
         catch(MaxCacheSizeException x) {
             logger.error(x.getMessage());
@@ -111,16 +205,18 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     @Override
     public int indexCache(String cacheId) throws TException, MemoryStructureException, ObjectNotFoundException {
-        logger.debug("MemoryStructure indexCache() received id: " + cacheId);
+        logger.debug("indexCache with cache id: " + cacheId);
         try {
-            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
             Cache cache = CacheMap.getInstance().get(cacheId);
             if(cache == null) {
-                throw new ObjectNotFoundException("Could not find cache with id: " + cacheId, ExceptionUtils.stacktrace2string(Thread.currentThread().getStackTrace()));
+                ObjectNotFoundException onf =  new ObjectNotFoundException();
+                onf.setMsg("Could not find cache with id: " + cacheId);
+                onf.setStacktrace(ExceptionUtils.stacktrace2string(Thread.currentThread().getStackTrace()));
+                throw onf;
             }
             List pageItems = new ArrayList(cache.getPageItems());
             int indexedItemsCount = lruIndex.batchIndex(pageItems);
-            logger.debug("MemoryStructure indexCache() finished indexing cache with id: " + cacheId);
+            logger.debug("indexCache finished indexing cache with id: " + cacheId);
             return indexedItemsCount;
         }
         catch(ObjectNotFoundException x) {
@@ -137,11 +233,10 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     @Override
     public Set<String> getPrecisionExceptionsFromCache(String cacheId) throws TException, ObjectNotFoundException, MemoryStructureException {
+        logger.debug("getPrecisionExceptionsFromCache with cache id: " + cacheId);
         try {
-            logger.debug("MemoryStructure getPrecisionExceptionsFromCache() received id: " + cacheId);
             Set<String> results = new HashSet<String>();
             // get precisionExceptions from index
-            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.APPEND);
             List<String> precisionExceptions = lruIndex.retrievePrecisionExceptions();
 
             Cache cache = CacheMap.getInstance().get(cacheId);
@@ -153,11 +248,14 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
                         }
                     }
                 }
-                logger.debug("MemoryStructure getPrecisionExceptionsFromCache() returns # " + results.size() + " results");
+                logger.debug("getPrecisionExceptionsFromCache returns # " + results.size() + " results");
                 return results;
             }
             else {
-                throw new ObjectNotFoundException("Could not find cache with id: " + cacheId, ExceptionUtils.stacktrace2string(Thread.currentThread().getStackTrace()));
+                ObjectNotFoundException onf =  new ObjectNotFoundException();
+                onf.setMsg("Could not find cache with id: " + cacheId);
+                onf.setStacktrace(ExceptionUtils.stacktrace2string(Thread.currentThread().getStackTrace()));
+                throw onf;
             }
         }
         catch(IndexException x) {
@@ -169,15 +267,18 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     @Override
     public void createWebEntities(String cacheId) throws MemoryStructureException, ObjectNotFoundException, TException {
-        //To change body of implemented methods use File | Settings | File Templates.
+        //TODO
     }
 
     @Override
     public void deleteCache(String cacheId) throws TException, ObjectNotFoundException {
-        logger.debug("MemoryStructure deleteCache() received id: " + cacheId);
+        logger.debug("deleteCache with cache id: " + cacheId);
         Cache cache = CacheMap.getInstance().get(cacheId);
         if(cache == null) {
-            throw new ObjectNotFoundException("Could not find cache with id: " + cacheId, ExceptionUtils.stacktrace2string(Thread.currentThread().getStackTrace()));
+                ObjectNotFoundException onf =  new ObjectNotFoundException();
+                onf.setMsg("Could not find cache with id: " + cacheId);
+                onf.setStacktrace(ExceptionUtils.stacktrace2string(Thread.currentThread().getStackTrace()));
+                throw onf;
         }
         CacheMap.getInstance().get(cacheId).clear();
         CacheMap.getInstance().remove(cacheId);
@@ -185,15 +286,15 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     @Override
     public void markPageWithPrecisionException(String pageItemId) throws MemoryStructureException, ObjectNotFoundException, TException {
-        //To change body of implemented methods use File | Settings | File Templates.
+        //TODO
     }
 
     @Override
     public void saveWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException, MemoryStructureException {
+        logger.debug("saveWebEntityCreationRule");
         try{
-            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
             lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
-            logger.debug("MemoryStructure indexWebEntityCreationRule() finished indexing webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
+            logger.debug("saveWebEntityCreationRule finished indexing webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
         }
         catch(IndexException x) {
             logger.error(x.getMessage());
@@ -204,17 +305,17 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public void saveNodeLinks(List<NodeLink> nodeLinks) throws TException {
+    public void saveNodeLinks(Set<NodeLink> nodeLinks) throws TException {
         logger.debug("MemoryStructure storeNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
+        // TODO
     }
 
     @Override
     public void addLRUtoWebEntity(String id, PageItem pageItem) throws MemoryStructureException, TException {
-        logger.debug("MemoryStructure storeWebEntity() received LRUItem: " + pageItem.getLru() + " for WebEntity: " + id);
+        logger.debug("addLRUtoWebEntity pageItem: " + pageItem.getLru() + " for WebEntity: " + id);
         try {
-            LRUIndex lruIndex = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
             lruIndex.indexWebEntity(id, pageItem);
-            logger.debug("MemoryStructure storeWebEntity() finished indexing LRUItem: " + pageItem.getLru() + " for WebEntity: " + id);
+            logger.debug("addLRUtoWebEntity finished indexing PageItem: " + pageItem.getLru() + " for WebEntity: " + id);
         }
         catch(IndexException x) {
             logger.error(x.getMessage());
@@ -225,12 +326,10 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     @Override
     public void savePageItems(Set<PageItem> pageItems) throws TException, MemoryStructureException {
-        logger.info("saveLRUItems invocation");
+        logger.debug("savePageItems for # " + pageItems.size() + " pageItems");
         try {
-            logger.debug("MemoryStructure saveLRUItems() received # " + pageItems.size() + " PageItems");
-            LRUIndex index = LRUIndex.getInstance(lucenePath, IndexWriterConfig.OpenMode.CREATE);
             List pageItemsList = new ArrayList(pageItems);
-            index.batchIndex(pageItemsList);
+            lruIndex.batchIndex(pageItemsList);
         }
         catch(IndexException x) {
             logger.error(x.getMessage());

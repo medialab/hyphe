@@ -56,7 +56,7 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
   public String errorCode; // required
   public boolean isFullPrecision; // required
   public boolean isNode; // required
-  public Map<String,List<String>> metadataItems; // required
+  public Map<String,Set<String>> metadataItems; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -173,7 +173,7 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
     tmpMap.put(_Fields.METADATA_ITEMS, new org.apache.thrift.meta_data.FieldMetaData("metadataItems", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
-            new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
                 new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(PageItem.class, metaDataMap);
@@ -194,7 +194,7 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
     String errorCode,
     boolean isFullPrecision,
     boolean isNode,
-    Map<String,List<String>> metadataItems)
+    Map<String,Set<String>> metadataItems)
   {
     this();
     this.id = id;
@@ -239,15 +239,15 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
     this.isFullPrecision = other.isFullPrecision;
     this.isNode = other.isNode;
     if (other.isSetMetadataItems()) {
-      Map<String,List<String>> __this__metadataItems = new HashMap<String,List<String>>();
-      for (Map.Entry<String, List<String>> other_element : other.metadataItems.entrySet()) {
+      Map<String,Set<String>> __this__metadataItems = new HashMap<String,Set<String>>();
+      for (Map.Entry<String, Set<String>> other_element : other.metadataItems.entrySet()) {
 
         String other_element_key = other_element.getKey();
-        List<String> other_element_value = other_element.getValue();
+        Set<String> other_element_value = other_element.getValue();
 
         String __this__metadataItems_copy_key = other_element_key;
 
-        List<String> __this__metadataItems_copy_value = new ArrayList<String>();
+        Set<String> __this__metadataItems_copy_value = new HashSet<String>();
         for (String other_element_value_element : other_element_value) {
           __this__metadataItems_copy_value.add(other_element_value_element);
         }
@@ -496,18 +496,18 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
     return (this.metadataItems == null) ? 0 : this.metadataItems.size();
   }
 
-  public void putToMetadataItems(String key, List<String> val) {
+  public void putToMetadataItems(String key, Set<String> val) {
     if (this.metadataItems == null) {
-      this.metadataItems = new HashMap<String,List<String>>();
+      this.metadataItems = new HashMap<String,Set<String>>();
     }
     this.metadataItems.put(key, val);
   }
 
-  public Map<String,List<String>> getMetadataItems() {
+  public Map<String,Set<String>> getMetadataItems() {
     return this.metadataItems;
   }
 
-  public PageItem setMetadataItems(Map<String,List<String>> metadataItems) {
+  public PageItem setMetadataItems(Map<String,Set<String>> metadataItems) {
     this.metadataItems = metadataItems;
     return this;
   }
@@ -605,7 +605,7 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
       if (value == null) {
         unsetMetadataItems();
       } else {
-        setMetadataItems((Map<String,List<String>>)value);
+        setMetadataItems((Map<String,Set<String>>)value);
       }
       break;
 
@@ -1101,22 +1101,22 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map0 = iprot.readMapBegin();
-                struct.metadataItems = new HashMap<String,List<String>>(2*_map0.size);
+                struct.metadataItems = new HashMap<String,Set<String>>(2*_map0.size);
                 for (int _i1 = 0; _i1 < _map0.size; ++_i1)
                 {
                   String _key2; // required
-                  List<String> _val3; // required
+                  Set<String> _val3; // required
                   _key2 = iprot.readString();
                   {
-                    org.apache.thrift.protocol.TList _list4 = iprot.readListBegin();
-                    _val3 = new ArrayList<String>(_list4.size);
-                    for (int _i5 = 0; _i5 < _list4.size; ++_i5)
+                    org.apache.thrift.protocol.TSet _set4 = iprot.readSetBegin();
+                    _val3 = new HashSet<String>(2*_set4.size);
+                    for (int _i5 = 0; _i5 < _set4.size; ++_i5)
                     {
                       String _elem6; // required
                       _elem6 = iprot.readString();
                       _val3.add(_elem6);
                     }
-                    iprot.readListEnd();
+                    iprot.readSetEnd();
                   }
                   struct.metadataItems.put(_key2, _val3);
                 }
@@ -1182,17 +1182,17 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
       if (struct.metadataItems != null) {
         oprot.writeFieldBegin(METADATA_ITEMS_FIELD_DESC);
         {
-          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.LIST, struct.metadataItems.size()));
-          for (Map.Entry<String, List<String>> _iter7 : struct.metadataItems.entrySet())
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.SET, struct.metadataItems.size()));
+          for (Map.Entry<String, Set<String>> _iter7 : struct.metadataItems.entrySet())
           {
             oprot.writeString(_iter7.getKey());
             {
-              oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, _iter7.getValue().size()));
+              oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, _iter7.getValue().size()));
               for (String _iter8 : _iter7.getValue())
               {
                 oprot.writeString(_iter8);
               }
-              oprot.writeListEnd();
+              oprot.writeSetEnd();
             }
           }
           oprot.writeMapEnd();
@@ -1278,7 +1278,7 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
       if (struct.isSetMetadataItems()) {
         {
           oprot.writeI32(struct.metadataItems.size());
-          for (Map.Entry<String, List<String>> _iter9 : struct.metadataItems.entrySet())
+          for (Map.Entry<String, Set<String>> _iter9 : struct.metadataItems.entrySet())
           {
             oprot.writeString(_iter9.getKey());
             {
@@ -1335,17 +1335,17 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
       }
       if (incoming.get(9)) {
         {
-          org.apache.thrift.protocol.TMap _map11 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.LIST, iprot.readI32());
-          struct.metadataItems = new HashMap<String,List<String>>(2*_map11.size);
+          org.apache.thrift.protocol.TMap _map11 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.SET, iprot.readI32());
+          struct.metadataItems = new HashMap<String,Set<String>>(2*_map11.size);
           for (int _i12 = 0; _i12 < _map11.size; ++_i12)
           {
             String _key13; // required
-            List<String> _val14; // required
+            Set<String> _val14; // required
             _key13 = iprot.readString();
             {
-              org.apache.thrift.protocol.TList _list15 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-              _val14 = new ArrayList<String>(_list15.size);
-              for (int _i16 = 0; _i16 < _list15.size; ++_i16)
+              org.apache.thrift.protocol.TSet _set15 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+              _val14 = new HashSet<String>(2*_set15.size);
+              for (int _i16 = 0; _i16 < _set15.size; ++_i16)
               {
                 String _elem17; // required
                 _elem17 = iprot.readString();

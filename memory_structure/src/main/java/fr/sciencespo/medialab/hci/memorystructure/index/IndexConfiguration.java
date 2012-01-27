@@ -11,9 +11,7 @@ import org.apache.lucene.index.FieldInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -48,7 +46,7 @@ public class IndexConfiguration {
         WEBENTITY_CREATION_RULE
     }
 
-    private static final String DEFAULT_WEBENTITY_CREATION_RULE = "DEFAULT_WEBENTITY_CREATION_RULE";
+    public static final String DEFAULT_WEBENTITY_CREATION_RULE = "DEFAULT_WEBENTITY_CREATION_RULE";
 
     /**
      * Converts a PageItem into a Lucene document.
@@ -173,8 +171,8 @@ public class IndexConfiguration {
         typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(typeField);
 
-        logger.debug("lucene document adding # " + webEntity.getLRUlist().size() + " lrus");
-        for(String lru : webEntity.getLRUlist()) {
+        logger.debug("lucene document adding # " + webEntity.getLRUSet().size() + " lrus");
+        for(String lru : webEntity.getLRUSet()) {
             Field lruField = new Field(FieldName.LRU.name(), lru, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
             lruField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(lruField);
@@ -186,22 +184,40 @@ public class IndexConfiguration {
     /**
      * Returns a WebEntity object from a WebEntity Lucene document.
      *
-     * @param webEntityDocument
+     * @param document
      * @return
      */
-    protected static WebEntity convertLuceneDocument2WebEntity(Document webEntityDocument) {
+    protected static WebEntity convertLuceneDocument2WebEntity(Document document) {
         WebEntity webEntity = new WebEntity();
-        String id = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
+        String id = document.get(FieldName.ID.name());
         webEntity.setId(id);
-        Fieldable[] lruFields = webEntityDocument.getFieldables(IndexConfiguration.FieldName.LRU.name());
+        Fieldable[] lruFields = document.getFieldables(FieldName.LRU.name());
         logger.debug("lucene doc for webentity has # " + lruFields.length + " lru fields");
         Set<String> lruList = new HashSet<String>();
         for(Fieldable lruField : lruFields) {
             lruList.add(lruField.stringValue());
         }
-        webEntity.setLRUlist(lruList);
+        webEntity.setLRUSet(lruList);
         logger.debug("convertLuceneDocument2WebEntity returns webentity with id: " + id);
         return webEntity;
+    }
+
+    /**
+     * Returns a WebEntityCreationRule object from a WebEntityCreationRule Lucene document.
+     *
+     * @param document
+     * @return
+     */
+    protected static WebEntityCreationRule convertLuceneDocument2WebEntityCreationRule(Document document) {
+        WebEntityCreationRule webEntityCreationRule = new WebEntityCreationRule();
+        String lru = document.get(FieldName.LRU.name());
+        String regexp = document.get(FieldName.REGEXP.name());
+
+        webEntityCreationRule.setLRU(lru);
+        webEntityCreationRule.setRegExp(regexp);
+
+        logger.debug("convertLuceneDocument2WebEntity returns webEntityCreationRule with lru: " + lru + " and regexp " + regexp);
+        return webEntityCreationRule;
     }
 
 }

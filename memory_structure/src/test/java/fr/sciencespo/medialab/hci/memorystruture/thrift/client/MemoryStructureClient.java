@@ -9,9 +9,7 @@ import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -64,13 +62,13 @@ public class MemoryStructureClient {
             }
             // store in Memory Structure
             String cacheId = client.createCache(lruItems);
-            logger.debug("Thrift server returned success (no exception happened)");
+            logger.debug("Thrift server successfully created cache with id " + cacheId);
 
-            logger.debug("fr.sciencespo.medialab.hci.memorystructure.client.MemoryStructureClient storeLRUItems() test finished");
+            logger.debug("MemoryStructureClient storeLRUItems() test finished");
 
         }
         catch(Throwable x) {
-            logger.error("Thrift fr.sciencespo.medialab.hci.memorystructure.client.MemoryStructureClient internal error: " + x.getMessage());
+            logger.error("Thrift MemoryStructureClient internal error: " + x.getMessage());
             x.printStackTrace();
         }
         finally {
