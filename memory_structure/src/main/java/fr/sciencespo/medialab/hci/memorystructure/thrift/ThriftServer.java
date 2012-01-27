@@ -30,7 +30,7 @@ public class ThriftServer {
 
     private static String luceneDirectoryPath;
 
-    private static MemoryStructureImpl memoryStructureImpl = new MemoryStructureImpl(luceneDirectoryPath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+    private static MemoryStructureImpl memoryStructureImpl ;
 
     /**
      *
@@ -115,6 +115,10 @@ public class ThriftServer {
         else {
             logger.info("Using existing Lucene path: " + luceneDirectoryPath);
         }
+
+        memoryStructureImpl = new MemoryStructureImpl(luceneDirectoryPath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+
+        logger.info("successfully created Memory Structure");
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
