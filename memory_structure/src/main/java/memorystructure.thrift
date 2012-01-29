@@ -46,7 +46,9 @@ struct NodeLink {
 struct WebEntity {
   1: string id,
   2: set<string> LRUSet,
-  3: string name
+  3: string name,
+  4: string creationDate,
+  5: string lastModificationDate
 }
 
 struct WebEntityCreationRule {
@@ -87,13 +89,32 @@ string ping(),
 * @param 1 id
 * @return a WebEntity Object
 **/
-WebEntity getWebEntity(1: string id) throws (1:MemoryStructureException x),
+WebEntity getWebEntity(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
 // get all webentities
 /**
  * @return all webentities in the index
  */
 set<WebEntity> getWebEntities(),
+
+// get pages belonging to one webentity
+/**
+ * @param 1 id
+ * @return set of pages for this webentity (may be empty)
+ */
+set<PageItem> getPagesFromWebEntity(1:string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+
+// generate webentity links
+/**
+ * Generates WebEntity links.
+ */
+void generateWebEntityLinks(),
+
+// clear complete index
+/**
+ * Clears (empties) the index.
+ */
+void clearIndex() throws (1:MemoryStructureException x),
 
 // create_pages_cache
 /**
@@ -135,7 +156,10 @@ i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:Object
 
  // store WebEntityCreationRule
  /**
-  * @param 1 webEntityCreationRule : webentity creation rule to store
+  * Adds or updates a single WebEntityCreationRule to the index. If the rule's LRU is empty, it is set as the
+  * DEFAULT rule. If there exists already a rule with this rule's LRU, it is updated, otherwise it is created.
+  *
+  * @param 1 webEntityCreationRule : webentity creation rule to save
   */
 void saveWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule) throws (1:MemoryStructureException me),
 
@@ -153,6 +177,7 @@ void deleteWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule),
  
 // PageItems
 /**
+ * Saves pages in the index WITHOUT USING THE CACHE.
  *
  * @param 1 pageItems : set of PageItem objects
  */
@@ -172,5 +197,19 @@ void saveNodeLinks(1:set<NodeLink> nodeLinks) throws (1:MemoryStructureException
  * @param 2 lruItem : the lruItem to be marked as WebEntity
 **/
 void addLRUtoWebEntity(1:string id, 2:PageItem pageItem) throws (1:MemoryStructureException me),
+
+// gefx network
+/**
+ * @param 1 format: must be 'gefx'
+ */
+void getWebEntityNetwork(1:string format) throws (1:MemoryStructureException me),
+
+// gefx egonetwork
+/**
+ * @param 1 webEntityId: id of web entity
+ * @param 2 distance: distance
+ * @param 3 format: must be 'gefx'
+ */
+void getWebEntityEgoNetwork(1:string webEntityId, 2:i32 distance, 3:string format)  throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
 }

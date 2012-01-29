@@ -168,7 +168,11 @@ public class IndexConfiguration {
         idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(idField);
 
-        Field nameField = new Field(FieldName.NAME.name(), webEntity.getName(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        String name = webEntity.getName();
+        if(StringUtils.isEmpty(name)) {
+            name = "auto-generated name" ;
+        }
+        Field nameField = new Field(FieldName.NAME.name(), name, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
         nameField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(nameField);
 

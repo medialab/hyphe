@@ -36,14 +36,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -234,48 +238,44 @@ public class LRUIndex {
       * and this LRU is added to it; if no existing WebEntity with that ID is found, or if ID is empty, a new WebEntity
       * is created.
       *
+      * TODO distinguish adding to LRUs or replacing LRUS in updates
+      *
       * @param webEntity the webentity to index
       * @throws IndexException hmm
      * @return id of indexed webentity
       */
      public String indexWebEntity(WebEntity webEntity) throws IndexException{
          logger.debug("indexWebEntity");
-        if(CollectionUtils.isEmpty(webEntity.getLRUSet())) {
-            throw new IndexException("WebEntity has empty lru set");
-        }
-
+         if(webEntity == null) {
+             throw new IndexException("WebEntity is null");
+         }
+         if(CollectionUtils.isEmpty(webEntity.getLRUSet())) {
+             throw new IndexException("WebEntity has empty lru set");
+         }
          try {
              boolean updating = false;
-
-             // id has no value or no webentity found with that id: create new
-             if(webEntity == null) {
-                 logger.debug("creating new webentity");
-                 webEntity = new WebEntity();
-                 webEntity.setLRUSet(new HashSet<String>());
-             }
-             else if(StringUtils.isEmpty(webEntity.getId())) {
-                 logger.debug("indexing webentity with id null");
-             }
-             else {
-                 logger.debug("updating webentity with id " + webEntity.getId());
-                 updating = true;
-             }
-
              String id = webEntity.getId();
+
+             // id has no value: create new
+            if(StringUtils.isEmpty(id)) {
+                 logger.debug("indexing webentity with id null (new webentity will be created)");
+             }
              // id has a value
-             if(StringUtils.isNotEmpty(id)) {
-                 logger.debug("id is not null, retrieving existing webentity");
+             else {
+                 logger.debug("indexing webentity with id " + id);
                  // retieve webEntity with that id
                  WebEntity toUpdate = retrieveWebEntity(id);
                  if(toUpdate != null) {
                      logger.debug("webentity found");
+                     updating = true;
                      // 'merge' existing webentity with the one requested for indexing: lrus may be added
                      webEntity.getLRUSet().addAll(toUpdate.getLRUSet());
                  }
                  else {
-                     logger.debug("did not find webentity with id " + id);
+                     logger.debug("did not find webentity with id " + id + " (new webentity will be created)");
+                     updating = false;
                  }
-             }
+            }
 
              if(updating) {
                 // delete old webentity before indexing
@@ -283,8 +283,8 @@ public class LRUIndex {
                  Query q = findWebEntityQuery(id);
                  this.indexWriter.deleteDocuments(q);
                  this.indexWriter.commit();
-             }
-             logger.debug("indexing webentity");
+            }
+
              Document webEntityDocument = IndexConfiguration.WebEntityDocument(webEntity);
              this.indexWriter.addDocument(webEntityDocument);
              this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
@@ -293,7 +293,7 @@ public class LRUIndex {
 
              // return id of indexed webentity
              String indexedId = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
-             logger.debug("indexed webentity with id " + id);
+             logger.debug("indexed webentity with id " + indexedId);
              return indexedId;
 
          }
@@ -384,13 +384,41 @@ public class LRUIndex {
     }
 
     /**
-     * Adds a single WebEntityCreationRule to the index.
+     * Adds or updates a single WebEntityCreationRule to the index. If the rule's LRU is empty, it is set as the
+     * default rule. If there exists already a rule with this rule's LRU, it is updated.
      *
      * @param webEntityCreationRule
      * @throws IndexException hmm
      */
     public void indexWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws IndexException{
+        if(webEntityCreationRule == null) {
+            throw new IndexException("webEntityCreationRule is null");
+        }
         try {
+            boolean update = false;
+            WebEntityCreationRule existing = null;
+            TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
+            Query q = findWebEntityCreationRuleQuery(webEntityCreationRule.getLRU());
+            indexSearcher.search(q, collector);
+
+            ScoreDoc[] hits = collector.topDocs().scoreDocs;
+            if(hits != null && hits.length > 0) {
+                logger.debug("found # " + hits.length + " existing webentitycreationrules with lru " + webEntityCreationRule.getLRU());
+                int i = hits[0].doc;
+                Document doc = indexSearcher.doc(i);
+                existing = IndexConfiguration.convertLuceneDocument2WebEntityCreationRule(doc);
+            }
+            if(existing != null) {
+                update = true;
+            }
+
+            // update: first delete old webentitycreationrule
+            if(update) {
+                logger.debug("deleting existing webentitycreationrule with lru " + webEntityCreationRule.getLRU());
+                this.indexWriter.deleteDocuments(q);
+                this.indexWriter.commit();
+            }
+
             Document webEntityCreationRuleDocument = IndexConfiguration.WebEntityCreationRuleDocument(webEntityCreationRule);
             this.indexWriter.addDocument(webEntityCreationRuleDocument);
             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
@@ -878,5 +906,76 @@ public class LRUIndex {
         q.add(q1, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
         return q;
+    }
+
+    /**
+     * Returns a map of matching LRUPrefixes and their WebEntity. If the same LRUPrefix occurs in more than one
+     * WebEntity, they are all mapped.
+     *
+     * @param lru
+     * @return
+     * @throws IndexException
+     */
+    public Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(String lru) throws IndexException {
+        Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
+        if(!StringUtils.isEmpty(lru)) {
+            Set<WebEntity> allWebEntities = retrieveWebEntities();
+            for(WebEntity webEntity : allWebEntities) {
+                Set<String> lruPrefixes = webEntity.getLRUSet();
+                for(String lruPrefix : lruPrefixes) {
+                    // TODO is it inefficient to compile these patterns everytime ? Better to keep them in memory ?
+
+                    // lruPrefixes must escape |
+                    String pipe = "\\|";
+                    Pattern pipePattern = Pattern.compile(pipe);
+                    Matcher pipeMatcher = pipePattern.matcher(lruPrefix);
+                    String escapedPrefix = pipeMatcher.replaceAll("\\\\|");
+
+                    Pattern pattern = Pattern.compile(escapedPrefix);
+                    Matcher matcher = pattern.matcher(lru);
+                    // it's  a match
+                    if(matcher.find()) {
+                        Set<WebEntity> webEntitiesWithPrefix = matches.get(lruPrefix);
+                        if(webEntitiesWithPrefix == null) {
+                            webEntitiesWithPrefix = new HashSet<WebEntity>();
+                        }
+                        webEntitiesWithPrefix.add(webEntity);
+                        matches.put(lruPrefix, webEntitiesWithPrefix);
+                    }
+                }
+            }
+        }
+        return matches;
+    }
+
+    public Map<String, Set<WebEntityCreationRule>> findMatchingWebEntityCreationRuleLRUPrefixes(String lru) throws IndexException {
+        logger.debug("findMatchingWebEntityCreationRuleLRUPrefixes");
+        Map<String, Set<WebEntityCreationRule>> matches = new HashMap<String, Set<WebEntityCreationRule>>();
+        if(!StringUtils.isEmpty(lru)) {
+            Set<WebEntityCreationRule> allWebEntityCreationRules = retrieveWebEntityCreationRules();
+            for(WebEntityCreationRule webEntityCreationRule : allWebEntityCreationRules) {
+                String lruPrefix = webEntityCreationRule.getLRU();
+                // TODO is it inefficient to compile these patterns everytime ? Better to keep them in memory ?
+                // lruPrefix must escape |
+                String pipe = "\\|";
+                Pattern pipePattern = Pattern.compile(pipe);
+                Matcher pipeMatcher = pipePattern.matcher(lruPrefix);
+                String escapedPrefix = pipeMatcher.replaceAll("\\\\|");
+
+                Pattern pattern = Pattern.compile(escapedPrefix);
+                Matcher matcher = pattern.matcher(lru);
+                // it's  a match
+                if(matcher.find()) {
+                    Set<WebEntityCreationRule> webEntityCreationRulesWithPrefix = matches.get(lruPrefix);
+                    if(webEntityCreationRulesWithPrefix == null) {
+                        webEntityCreationRulesWithPrefix = new HashSet<WebEntityCreationRule>();
+                    }
+                    webEntityCreationRulesWithPrefix.add(webEntityCreationRule);
+                    matches.put(lruPrefix, webEntityCreationRulesWithPrefix);
+                }
+            }
+        }
+        logger.debug("findMatchingWebEntityCreationRuleLRUPrefixes returns # " + matches.size() + " matches");
+        return matches;
     }
 }

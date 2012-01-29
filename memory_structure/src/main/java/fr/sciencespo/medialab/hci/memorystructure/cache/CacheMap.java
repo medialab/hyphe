@@ -1,5 +1,7 @@
 package fr.sciencespo.medialab.hci.memorystructure.cache;
 
+import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,8 +36,12 @@ public class CacheMap {
         map.remove(id);
     }
 
-    public Cache get(String id) {
-        return map.get(id);
+    public Cache get(String id) throws ObjectNotFoundException {
+        Cache cache = map.get(id);
+        if(cache == null) {
+            throw new ObjectNotFoundException().setMsg("Failed to find cache with id: " + id);
+        }
+        return cache;
     }
 
 }

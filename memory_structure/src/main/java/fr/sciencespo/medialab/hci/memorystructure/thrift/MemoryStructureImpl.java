@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Implementation of MemeoryStructure interface.
+ * Implementation of MemoryStructure interface.
  *
  * @author heikki doeleman
  */
@@ -33,6 +33,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         this.lruIndex = LRUIndex.getInstance(lucenePath, openMode);
     }
 
+    /**
+     * Clears (empties) the index.
+     *
+     * @throws TException hmm
+     */
+    @Override
     public void clearIndex() throws TException {
         //logger.debug("clearIndex");
         try {
@@ -44,41 +50,25 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             throw new TException(x.getMessage(), x);
         }
     }
-    public void shutdown() throws TException {
-        logger.info("shutting down");
-        try {
-            lruIndex.close();
-        }
-        catch (IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new TException(x.getMessage(), x);
-        }
-    }
 
-    /*
-    @Override
-    public String saveWebEntity(WebEntity webEntity) throws TException {
-        logger.debug("saveWebEntity");
-        try {
-            if(webEntity == null) {
-                throw new TException("WebEntity is null");
-            }
-            return lruIndex.indexWebEntity(webEntity);
-        }
-        catch(Exception x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new TException(x.getMessage(), x);
-        }
-    }
-    */
-
+    /**
+     * Returns 'pong'.
+     * @return 'pong'
+     * @throws TException hmm
+     */
     @Override
     public String ping() throws TException {
         return "pong";
     }
 
+    /**
+     * Updates a WebEntity.
+     *
+     * @param webEntity to update
+     * @return id of indexed webentity
+     * @throws MemoryStructureException hmm
+     * @throws TException hmm
+     */
     @Override
     public String updateWebEntity(WebEntity webEntity) throws MemoryStructureException, TException {
         logger.debug("updateWebEntity");
@@ -95,6 +85,15 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
+    /**
+     * Creates a WebEntity.
+     *
+     * @param name name of web entity
+     * @param lruSet lrus for this web entity
+     * @return created web entity
+     * @throws MemoryStructureException hmm
+     * @throws TException hmm
+     */
     @Override
     public WebEntity createWebEntity(String name, Set<String> lruSet) throws MemoryStructureException, TException {
         logger.debug("createWebEntity");
@@ -102,22 +101,28 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         webEntity.setName(name);
         webEntity.setLRUSet(lruSet);
         try {
-            if(webEntity == null) {
-                throw new TException("WebEntity is null");
-            }
             String id = lruIndex.indexWebEntity(webEntity);
             webEntity.setId(id);
             return webEntity;
         }
-        catch(Exception x) {
+        catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
-            throw new TException(x.getMessage(), x);
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
         }
     }
 
+    /**
+     * Retrieves a WebEntity.
+     *
+     * @param id id of web entity
+     * @return web entity
+     * @throws ObjectNotFoundException hmm
+     * @throws MemoryStructureException hmm
+     * @throws TException hmm
+     */
     @Override
-    public WebEntity getWebEntity(String id) throws TException {
+    public WebEntity getWebEntity(String id) throws ObjectNotFoundException, MemoryStructureException, TException {
         logger.debug("getWebEntity with id: " + id);
         if(StringUtils.isEmpty(id)) {
             logger.debug("requested id is null, returning null");
@@ -129,16 +134,24 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
                 logger.debug("found webentity with id: " + found.getId());
                 logger.debug("webentity has # " + found.getLRUSet().size() + " lrus");
             }
+            if(found == null) {
+                throw new ObjectNotFoundException().setMsg("Could not find WebEntity with id " + id);
+            }
             return found;
         }
         catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
-            throw new TException(x.getMessage(), x);
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
         }
     }
 
-
+    /**
+     * Returns all web entities in the index.
+     *
+     * @return web entities
+     * @throws TException hmm
+     */
     @Override
     public Set<WebEntity> getWebEntities() throws TException {
         logger.debug("getWebEntities");
@@ -152,6 +165,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
+    /**
+     * Returns all web entity creation rules in the index.
+     *
+     * @return web entity creation rules
+     * @throws TException hmm
+     */
     @Override
     public Set<WebEntityCreationRule> getWebEntityCreationRules() throws TException {
         logger.debug("getWebEntityCreationRules");
@@ -165,6 +184,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
+    /**
+     * Deletes a web entity creation rule.
+     *
+     * @param webEntityCreationRule to delete
+     * @throws TException hmm
+     */
     @Override
     public void deleteWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException {
         logger.debug("deleteWebEntityCreationRule");
@@ -178,6 +203,14 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
+    /**
+     * Creates a cache containing pages.
+     *
+     * @param pageItems pages for this cache
+     * @return id of cache
+     * @throws TException hmm
+     * @throws MemoryStructureException hmm
+     */
     @Override
     public String createCache(Set<PageItem> pageItems) throws TException, MemoryStructureException {
         if(pageItems != null && logger.isDebugEnabled()) {
@@ -185,7 +218,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             if(pageItems != null) {
-                Cache cache = new Cache();
+                Cache cache = new Cache(lruIndex);
                 cache.setPageItems(pageItems);
                 CacheMap.getInstance().add(cache);
                 logger.debug("createCache created cache with id " + cache.getId());
@@ -193,7 +226,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             }
             else {
                 logger.warn("createCache received null");
-                return "WARNING: createCache received null pageItems. No cache created.";
+                throw new MemoryStructureException().setMsg("WARNING: createCache received null pageItems. No cache created.");
             }
         }
         catch(MaxCacheSizeException x) {
@@ -203,6 +236,15 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
+    /**
+     * Indexes pages and webentities from a cache.
+     *
+     * @param cacheId id of the cache
+     * @return total number of documents indexed
+     * @throws TException
+     * @throws MemoryStructureException
+     * @throws ObjectNotFoundException
+     */
     @Override
     public int indexCache(String cacheId) throws TException, MemoryStructureException, ObjectNotFoundException {
         logger.debug("indexCache with cache id: " + cacheId);
@@ -214,10 +256,13 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
                 onf.setStacktrace(ExceptionUtils.stacktrace2string(Thread.currentThread().getStackTrace()));
                 throw onf;
             }
+            @SuppressWarnings({"unchecked"})
             List pageItems = new ArrayList(cache.getPageItems());
-            int indexedItemsCount = lruIndex.batchIndex(pageItems);
+            @SuppressWarnings({"unchecked"})
+            int indexedPages = lruIndex.batchIndex(pageItems);
+
             logger.debug("indexCache finished indexing cache with id: " + cacheId);
-            return indexedItemsCount;
+            return indexedPages;
         }
         catch(ObjectNotFoundException x) {
             logger.error(x.getMessage());
@@ -231,6 +276,63 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
+    /**
+     * Retrieves pages belonging to a WebEntity.
+     *
+     * @param id web entity id
+     * @return pages
+     * @throws TException
+     * @throws MemoryStructureException
+     * @throws ObjectNotFoundException
+     */
+    @Override
+    public Set<PageItem> getPagesFromWebEntity(String id) throws TException, MemoryStructureException, ObjectNotFoundException {
+        Set<PageItem> pages = new HashSet<PageItem>();
+        // TODO
+        return pages;
+    }
+
+    @Override
+    public void generateWebEntityLinks() throws TException {
+        // TODO
+    }
+
+    /**
+     * Retrieves representation of whole WebEntity network in gexf.
+     *
+     * @param format must be 'gefx'
+     * @throws TException hmm
+     * @throws MemoryStructureException hmm
+     */
+    @Override
+    public void getWebEntityNetwork(String format) throws TException, MemoryStructureException {
+        logger.debug("getWebEntityNetwork");
+        if(StringUtils.isNotEmpty(format) && !format.equals("gexf")) {
+            throw new MemoryStructureException().setMsg("Unsupported requested WebEntityNetwork format: " + format + ". This program supports only gexf.");
+        }
+        // TODO
+    }
+
+    /**
+     * Retrieves representation of a WebEntity and its neighboors (at a given distance) in gexf.
+     *
+     * @param webEntityId web entity id
+     * @param distance distance
+     * @param format must be 'gexf'
+     * @throws TException hmm
+     * @throws ObjectNotFoundException if web entity is not found
+     * @throws MemoryStructureException hmm
+     */
+    @Override
+    public void getWebEntityEgoNetwork(String webEntityId, int distance, String format) throws TException, ObjectNotFoundException, MemoryStructureException  {
+        logger.debug("getWebEntityEgoNetwork for WebEntity " + webEntityId + " with distance " + distance);
+        if(StringUtils.isNotEmpty(format) && !format.equals("gexf")) {
+            throw new MemoryStructureException().setMsg("Unsupported requested WebEntityNetwork format: " + format + ". This program supports only gexf.");
+        }
+        // TODO
+    }
+
+    // TODO TEST
     @Override
     public Set<String> getPrecisionExceptionsFromCache(String cacheId) throws TException, ObjectNotFoundException, MemoryStructureException {
         logger.debug("getPrecisionExceptionsFromCache with cache id: " + cacheId);
@@ -261,25 +363,50 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
         }
     }
 
+    /**
+     * Creates WebEntities for pages in a cache. Uses the following algorithm:
+     *
+     * for each page in the cache
+     *     retrieve the most precise LRU prefix match from existing Web Entities + Web Entity Creation Rules
+     *     if the most precise prefix is from a Web Entity, do nothing
+     *     if the most precise prefix is from a Web Entity Creation Rule, apply that rule (may be the default rule)
+     *
+     * @param cacheId
+     * @throws MemoryStructureException
+     * @throws ObjectNotFoundException
+     * @throws TException
+     */
     @Override
     public void createWebEntities(String cacheId) throws MemoryStructureException, ObjectNotFoundException, TException {
-        //TODO
+        try {
+            logger.debug("createWebEntities with cache id: " + cacheId);
+            // obtain cache from cachemap
+            CacheMap cacheMap = CacheMap.getInstance();
+            Cache cache = cacheMap.get(cacheId);
+            int newWebEntitiesCount = cache.createWebEntities();
+            logger.debug("# new web entities: " + newWebEntitiesCount);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
     }
 
+    /**
+     * Deletes a cache.
+     *
+     * @param cacheId id of cache
+     * @throws TException hmm
+     * @throws ObjectNotFoundException hmm
+     */
     @Override
     public void deleteCache(String cacheId) throws TException, ObjectNotFoundException {
         logger.debug("deleteCache with cache id: " + cacheId);
-        Cache cache = CacheMap.getInstance().get(cacheId);
-        if(cache == null) {
-                ObjectNotFoundException onf =  new ObjectNotFoundException();
-                onf.setMsg("Could not find cache with id: " + cacheId);
-                onf.setStacktrace(ExceptionUtils.stacktrace2string(Thread.currentThread().getStackTrace()));
-                throw onf;
-        }
         CacheMap.getInstance().get(cacheId).clear();
         CacheMap.getInstance().remove(cacheId);
     }
@@ -289,6 +416,13 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         //TODO
     }
 
+    /**
+     * Stores a web entity creation rule.
+     *
+     * @param webEntityCreationRule rule to store
+     * @throws TException hmm
+     * @throws MemoryStructureException hmm
+     */
     @Override
     public void saveWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException, MemoryStructureException {
         logger.debug("saveWebEntityCreationRule");
@@ -312,6 +446,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     @Override
     public void addLRUtoWebEntity(String id, PageItem pageItem) throws MemoryStructureException, TException {
+        // TODO change : param should be LRU, not Page
         logger.debug("addLRUtoWebEntity pageItem: " + pageItem.getLru() + " for WebEntity: " + id);
         try {
             lruIndex.indexWebEntity(id, pageItem);
@@ -324,11 +459,20 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
+    /**
+     * Saves pageItems to index, bypassing cache.
+     *
+     * @param pageItems pages
+     * @throws TException hmm
+     * @throws MemoryStructureException hmm
+     */
+    // TODO TEST. IS METHOD NECESSARY? NORMAL IS : CREATE CACHE WITH PAGES AND INDEX CACHE
     @Override
     public void savePageItems(Set<PageItem> pageItems) throws TException, MemoryStructureException {
         logger.debug("savePageItems for # " + pageItems.size() + " pageItems");
         try {
-            List pageItemsList = new ArrayList(pageItems);
+            @SuppressWarnings({"unchecked"})
+            List<Object> pageItemsList = new ArrayList(pageItems);
             lruIndex.batchIndex(pageItemsList);
         }
         catch(IndexException x) {
@@ -337,5 +481,24 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
         }
     }
+
+    /**
+     * Shuts down the LRUIndex.
+     *
+     * @throws TException hmm
+     */
+    public void shutdown() throws TException {
+        logger.info("shutting down");
+        try {
+            lruIndex.close();
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+
 
 }

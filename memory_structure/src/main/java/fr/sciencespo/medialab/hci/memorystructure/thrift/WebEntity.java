@@ -36,6 +36,8 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
   private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField LRUSET_FIELD_DESC = new org.apache.thrift.protocol.TField("LRUSet", org.apache.thrift.protocol.TType.SET, (short)2);
   private static final org.apache.thrift.protocol.TField NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("name", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField CREATION_DATE_FIELD_DESC = new org.apache.thrift.protocol.TField("creationDate", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField LAST_MODIFICATION_DATE_FIELD_DESC = new org.apache.thrift.protocol.TField("lastModificationDate", org.apache.thrift.protocol.TType.STRING, (short)5);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -46,12 +48,16 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
   public String id; // required
   public Set<String> LRUSet; // required
   public String name; // required
+  public String creationDate; // required
+  public String lastModificationDate; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     ID((short)1, "id"),
     LRUSET((short)2, "LRUSet"),
-    NAME((short)3, "name");
+    NAME((short)3, "name"),
+    CREATION_DATE((short)4, "creationDate"),
+    LAST_MODIFICATION_DATE((short)5, "lastModificationDate");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -72,6 +78,10 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
           return LRUSET;
         case 3: // NAME
           return NAME;
+        case 4: // CREATION_DATE
+          return CREATION_DATE;
+        case 5: // LAST_MODIFICATION_DATE
+          return LAST_MODIFICATION_DATE;
         default:
           return null;
       }
@@ -122,6 +132,10 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
     tmpMap.put(_Fields.NAME, new org.apache.thrift.meta_data.FieldMetaData("name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.CREATION_DATE, new org.apache.thrift.meta_data.FieldMetaData("creationDate", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.LAST_MODIFICATION_DATE, new org.apache.thrift.meta_data.FieldMetaData("lastModificationDate", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(WebEntity.class, metaDataMap);
   }
@@ -132,12 +146,16 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
   public WebEntity(
     String id,
     Set<String> LRUSet,
-    String name)
+    String name,
+    String creationDate,
+    String lastModificationDate)
   {
     this();
     this.id = id;
     this.LRUSet = LRUSet;
     this.name = name;
+    this.creationDate = creationDate;
+    this.lastModificationDate = lastModificationDate;
   }
 
   /**
@@ -157,6 +175,12 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
     if (other.isSetName()) {
       this.name = other.name;
     }
+    if (other.isSetCreationDate()) {
+      this.creationDate = other.creationDate;
+    }
+    if (other.isSetLastModificationDate()) {
+      this.lastModificationDate = other.lastModificationDate;
+    }
   }
 
   public WebEntity deepCopy() {
@@ -168,6 +192,8 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
     this.id = null;
     this.LRUSet = null;
     this.name = null;
+    this.creationDate = null;
+    this.lastModificationDate = null;
   }
 
   public String getId() {
@@ -257,6 +283,54 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
     }
   }
 
+  public String getCreationDate() {
+    return this.creationDate;
+  }
+
+  public WebEntity setCreationDate(String creationDate) {
+    this.creationDate = creationDate;
+    return this;
+  }
+
+  public void unsetCreationDate() {
+    this.creationDate = null;
+  }
+
+  /** Returns true if field creationDate is set (has been assigned a value) and false otherwise */
+  public boolean isSetCreationDate() {
+    return this.creationDate != null;
+  }
+
+  public void setCreationDateIsSet(boolean value) {
+    if (!value) {
+      this.creationDate = null;
+    }
+  }
+
+  public String getLastModificationDate() {
+    return this.lastModificationDate;
+  }
+
+  public WebEntity setLastModificationDate(String lastModificationDate) {
+    this.lastModificationDate = lastModificationDate;
+    return this;
+  }
+
+  public void unsetLastModificationDate() {
+    this.lastModificationDate = null;
+  }
+
+  /** Returns true if field lastModificationDate is set (has been assigned a value) and false otherwise */
+  public boolean isSetLastModificationDate() {
+    return this.lastModificationDate != null;
+  }
+
+  public void setLastModificationDateIsSet(boolean value) {
+    if (!value) {
+      this.lastModificationDate = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case ID:
@@ -283,6 +357,22 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       }
       break;
 
+    case CREATION_DATE:
+      if (value == null) {
+        unsetCreationDate();
+      } else {
+        setCreationDate((String)value);
+      }
+      break;
+
+    case LAST_MODIFICATION_DATE:
+      if (value == null) {
+        unsetLastModificationDate();
+      } else {
+        setLastModificationDate((String)value);
+      }
+      break;
+
     }
   }
 
@@ -296,6 +386,12 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
 
     case NAME:
       return getName();
+
+    case CREATION_DATE:
+      return getCreationDate();
+
+    case LAST_MODIFICATION_DATE:
+      return getLastModificationDate();
 
     }
     throw new IllegalStateException();
@@ -314,6 +410,10 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       return isSetLRUSet();
     case NAME:
       return isSetName();
+    case CREATION_DATE:
+      return isSetCreationDate();
+    case LAST_MODIFICATION_DATE:
+      return isSetLastModificationDate();
     }
     throw new IllegalStateException();
   }
@@ -355,6 +455,24 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       if (!(this_present_name && that_present_name))
         return false;
       if (!this.name.equals(that.name))
+        return false;
+    }
+
+    boolean this_present_creationDate = true && this.isSetCreationDate();
+    boolean that_present_creationDate = true && that.isSetCreationDate();
+    if (this_present_creationDate || that_present_creationDate) {
+      if (!(this_present_creationDate && that_present_creationDate))
+        return false;
+      if (!this.creationDate.equals(that.creationDate))
+        return false;
+    }
+
+    boolean this_present_lastModificationDate = true && this.isSetLastModificationDate();
+    boolean that_present_lastModificationDate = true && that.isSetLastModificationDate();
+    if (this_present_lastModificationDate || that_present_lastModificationDate) {
+      if (!(this_present_lastModificationDate && that_present_lastModificationDate))
+        return false;
+      if (!this.lastModificationDate.equals(that.lastModificationDate))
         return false;
     }
 
@@ -404,6 +522,26 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetCreationDate()).compareTo(typedOther.isSetCreationDate());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCreationDate()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.creationDate, typedOther.creationDate);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetLastModificationDate()).compareTo(typedOther.isSetLastModificationDate());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetLastModificationDate()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lastModificationDate, typedOther.lastModificationDate);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -445,6 +583,22 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       sb.append("null");
     } else {
       sb.append(this.name);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("creationDate:");
+    if (this.creationDate == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.creationDate);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("lastModificationDate:");
+    if (this.lastModificationDate == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.lastModificationDate);
     }
     first = false;
     sb.append(")");
@@ -523,6 +677,22 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 4: // CREATION_DATE
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.creationDate = iprot.readString();
+              struct.setCreationDateIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 5: // LAST_MODIFICATION_DATE
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.lastModificationDate = iprot.readString();
+              struct.setLastModificationDateIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -560,6 +730,16 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
         oprot.writeString(struct.name);
         oprot.writeFieldEnd();
       }
+      if (struct.creationDate != null) {
+        oprot.writeFieldBegin(CREATION_DATE_FIELD_DESC);
+        oprot.writeString(struct.creationDate);
+        oprot.writeFieldEnd();
+      }
+      if (struct.lastModificationDate != null) {
+        oprot.writeFieldBegin(LAST_MODIFICATION_DATE_FIELD_DESC);
+        oprot.writeString(struct.lastModificationDate);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -587,7 +767,13 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       if (struct.isSetName()) {
         optionals.set(2);
       }
-      oprot.writeBitSet(optionals, 3);
+      if (struct.isSetCreationDate()) {
+        optionals.set(3);
+      }
+      if (struct.isSetLastModificationDate()) {
+        optionals.set(4);
+      }
+      oprot.writeBitSet(optionals, 5);
       if (struct.isSetId()) {
         oprot.writeString(struct.id);
       }
@@ -603,12 +789,18 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       if (struct.isSetName()) {
         oprot.writeString(struct.name);
       }
+      if (struct.isSetCreationDate()) {
+        oprot.writeString(struct.creationDate);
+      }
+      if (struct.isSetLastModificationDate()) {
+        oprot.writeString(struct.lastModificationDate);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, WebEntity struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(5);
       if (incoming.get(0)) {
         struct.id = iprot.readString();
         struct.setIdIsSet(true);
@@ -629,6 +821,14 @@ public class WebEntity implements org.apache.thrift.TBase<WebEntity, WebEntity._
       if (incoming.get(2)) {
         struct.name = iprot.readString();
         struct.setNameIsSet(true);
+      }
+      if (incoming.get(3)) {
+        struct.creationDate = iprot.readString();
+        struct.setCreationDateIsSet(true);
+      }
+      if (incoming.get(4)) {
+        struct.lastModificationDate = iprot.readString();
+        struct.setLastModificationDateIsSet(true);
       }
     }
   }
