@@ -306,17 +306,18 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     /**
      * Retrieves representation of whole WebEntity network in gexf.
      *
-     * @param format must be 'gefx'
+     * @param format must be 'gexf'
      * @throws TException hmm
      * @throws MemoryStructureException hmm
      */
     @Override
-    public void getWebEntityNetwork(String format) throws TException, MemoryStructureException {
+    public String getWebEntityNetwork(String format) throws TException, MemoryStructureException {
         logger.debug("getWebEntityNetwork");
         if(StringUtils.isNotEmpty(format) && !format.equals("gexf")) {
             throw new MemoryStructureException().setMsg("Unsupported requested WebEntityNetwork format: " + format + ". This program supports only gexf.");
         }
         // TODO
+        return "";
     }
 
     /**
@@ -330,12 +331,13 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @throws MemoryStructureException hmm
      */
     @Override
-    public void getWebEntityEgoNetwork(String webEntityId, int distance, String format) throws TException, ObjectNotFoundException, MemoryStructureException  {
+    public String getWebEntityEgoNetwork(String webEntityId, int distance, String format) throws TException, ObjectNotFoundException, MemoryStructureException  {
         logger.debug("getWebEntityEgoNetwork for WebEntity " + webEntityId + " with distance " + distance);
         if(StringUtils.isNotEmpty(format) && !format.equals("gexf")) {
             throw new MemoryStructureException().setMsg("Unsupported requested WebEntityNetwork format: " + format + ". This program supports only gexf.");
         }
         // TODO
+        return "";
     }
 
     // TODO TEST

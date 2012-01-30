@@ -100,6 +100,12 @@ public class LRUIndex {
         }
         return instance;
     }
+    public synchronized static LRUIndex getInstance() throws IndexException {
+        if(instance == null) {
+            throw new IndexException("LRUIndex not initialized");
+        }
+        return instance;
+    }
     @Override
     public Object clone() throws CloneNotSupportedException {
         throw new CloneNotSupportedException();

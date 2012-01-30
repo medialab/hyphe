@@ -181,21 +181,23 @@ public class MemoryStructure {
 
     /**
      * @param 1 format: must be 'gefx'
+     * @return gefx graph
      * 
      * @param format
      */
-    public void getWebEntityNetwork(String format) throws MemoryStructureException, org.apache.thrift.TException;
+    public String getWebEntityNetwork(String format) throws MemoryStructureException, org.apache.thrift.TException;
 
     /**
      * @param 1 webEntityId: id of web entity
      * @param 2 distance: distance
      * @param 3 format: must be 'gefx'
+     * @return gefx graph
      * 
      * @param webEntityId
      * @param distance
      * @param format
      */
-    public void getWebEntityEgoNetwork(String webEntityId, int distance, String format) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException;
+    public String getWebEntityEgoNetwork(String webEntityId, int distance, String format) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException;
 
   }
 
@@ -763,10 +765,10 @@ public class MemoryStructure {
       return;
     }
 
-    public void getWebEntityNetwork(String format) throws MemoryStructureException, org.apache.thrift.TException
+    public String getWebEntityNetwork(String format) throws MemoryStructureException, org.apache.thrift.TException
     {
       send_getWebEntityNetwork(format);
-      recv_getWebEntityNetwork();
+      return recv_getWebEntityNetwork();
     }
 
     public void send_getWebEntityNetwork(String format) throws org.apache.thrift.TException
@@ -776,20 +778,23 @@ public class MemoryStructure {
       sendBase("getWebEntityNetwork", args);
     }
 
-    public void recv_getWebEntityNetwork() throws MemoryStructureException, org.apache.thrift.TException
+    public String recv_getWebEntityNetwork() throws MemoryStructureException, org.apache.thrift.TException
     {
       getWebEntityNetwork_result result = new getWebEntityNetwork_result();
       receiveBase(result, "getWebEntityNetwork");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
       if (result.me != null) {
         throw result.me;
       }
-      return;
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getWebEntityNetwork failed: unknown result");
     }
 
-    public void getWebEntityEgoNetwork(String webEntityId, int distance, String format) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
+    public String getWebEntityEgoNetwork(String webEntityId, int distance, String format) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
       send_getWebEntityEgoNetwork(webEntityId, distance, format);
-      recv_getWebEntityEgoNetwork();
+      return recv_getWebEntityEgoNetwork();
     }
 
     public void send_getWebEntityEgoNetwork(String webEntityId, int distance, String format) throws org.apache.thrift.TException
@@ -801,17 +806,20 @@ public class MemoryStructure {
       sendBase("getWebEntityEgoNetwork", args);
     }
 
-    public void recv_getWebEntityEgoNetwork() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
+    public String recv_getWebEntityEgoNetwork() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
       getWebEntityEgoNetwork_result result = new getWebEntityEgoNetwork_result();
       receiveBase(result, "getWebEntityEgoNetwork");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
       if (result.me != null) {
         throw result.me;
       }
       if (result.x != null) {
         throw result.x;
       }
-      return;
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getWebEntityEgoNetwork failed: unknown result");
     }
 
   }
@@ -1485,13 +1493,13 @@ public class MemoryStructure {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
+      public String getResult() throws MemoryStructureException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_getWebEntityNetwork();
+        return (new Client(prot)).recv_getWebEntityNetwork();
       }
     }
 
@@ -1523,13 +1531,13 @@ public class MemoryStructure {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
+      public String getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_getWebEntityEgoNetwork();
+        return (new Client(prot)).recv_getWebEntityEgoNetwork();
       }
     }
 
@@ -1980,7 +1988,7 @@ public class MemoryStructure {
       protected getWebEntityNetwork_result getResult(I iface, getWebEntityNetwork_args args) throws org.apache.thrift.TException {
         getWebEntityNetwork_result result = new getWebEntityNetwork_result();
         try {
-          iface.getWebEntityNetwork(args.format);
+          result.success = iface.getWebEntityNetwork(args.format);
         } catch (MemoryStructureException me) {
           result.me = me;
         }
@@ -2000,7 +2008,7 @@ public class MemoryStructure {
       protected getWebEntityEgoNetwork_result getResult(I iface, getWebEntityEgoNetwork_args args) throws org.apache.thrift.TException {
         getWebEntityEgoNetwork_result result = new getWebEntityEgoNetwork_result();
         try {
-          iface.getWebEntityEgoNetwork(args.webEntityId, args.distance, args.format);
+          result.success = iface.getWebEntityEgoNetwork(args.webEntityId, args.distance, args.format);
         } catch (MemoryStructureException me) {
           result.me = me;
         } catch (ObjectNotFoundException x) {
@@ -17913,6 +17921,7 @@ public class MemoryStructure {
   public static class getWebEntityNetwork_result implements org.apache.thrift.TBase<getWebEntityNetwork_result, getWebEntityNetwork_result._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getWebEntityNetwork_result");
 
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
     private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -17921,10 +17930,12 @@ public class MemoryStructure {
       schemes.put(TupleScheme.class, new getWebEntityNetwork_resultTupleSchemeFactory());
     }
 
+    public String success; // required
     public MemoryStructureException me; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
       ME((short)1, "me");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -17940,6 +17951,8 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
           case 1: // ME
             return ME;
           default:
@@ -17985,6 +17998,8 @@ public class MemoryStructure {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -17995,9 +18010,11 @@ public class MemoryStructure {
     }
 
     public getWebEntityNetwork_result(
+      String success,
       MemoryStructureException me)
     {
       this();
+      this.success = success;
       this.me = me;
     }
 
@@ -18005,6 +18022,9 @@ public class MemoryStructure {
      * Performs a deep copy on <i>other</i>.
      */
     public getWebEntityNetwork_result(getWebEntityNetwork_result other) {
+      if (other.isSetSuccess()) {
+        this.success = other.success;
+      }
       if (other.isSetMe()) {
         this.me = new MemoryStructureException(other.me);
       }
@@ -18016,7 +18036,32 @@ public class MemoryStructure {
 
     @Override
     public void clear() {
+      this.success = null;
       this.me = null;
+    }
+
+    public String getSuccess() {
+      return this.success;
+    }
+
+    public getWebEntityNetwork_result setSuccess(String success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public MemoryStructureException getMe() {
@@ -18045,6 +18090,14 @@ public class MemoryStructure {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((String)value);
+        }
+        break;
+
       case ME:
         if (value == null) {
           unsetMe();
@@ -18058,6 +18111,9 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
       case ME:
         return getMe();
 
@@ -18072,6 +18128,8 @@ public class MemoryStructure {
       }
 
       switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
       case ME:
         return isSetMe();
       }
@@ -18090,6 +18148,15 @@ public class MemoryStructure {
     public boolean equals(getWebEntityNetwork_result that) {
       if (that == null)
         return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
 
       boolean this_present_me = true && this.isSetMe();
       boolean that_present_me = true && that.isSetMe();
@@ -18116,6 +18183,16 @@ public class MemoryStructure {
       int lastComparison = 0;
       getWebEntityNetwork_result typedOther = (getWebEntityNetwork_result)other;
 
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
       if (lastComparison != 0) {
         return lastComparison;
@@ -18146,6 +18223,14 @@ public class MemoryStructure {
       StringBuilder sb = new StringBuilder("getWebEntityNetwork_result(");
       boolean first = true;
 
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("me:");
       if (this.me == null) {
         sb.append("null");
@@ -18195,6 +18280,14 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.success = iprot.readString();
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             case 1: // ME
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.me = new MemoryStructureException();
@@ -18219,6 +18312,11 @@ public class MemoryStructure {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          oprot.writeString(struct.success);
+          oprot.writeFieldEnd();
+        }
         if (struct.me != null) {
           oprot.writeFieldBegin(ME_FIELD_DESC);
           struct.me.write(oprot);
@@ -18242,10 +18340,16 @@ public class MemoryStructure {
       public void write(org.apache.thrift.protocol.TProtocol prot, getWebEntityNetwork_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetMe()) {
+        if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetMe()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          oprot.writeString(struct.success);
+        }
         if (struct.isSetMe()) {
           struct.me.write(oprot);
         }
@@ -18254,8 +18358,12 @@ public class MemoryStructure {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getWebEntityNetwork_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
+          struct.success = iprot.readString();
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.me = new MemoryStructureException();
           struct.me.read(iprot);
           struct.setMeIsSet(true);
@@ -18820,6 +18928,7 @@ public class MemoryStructure {
   public static class getWebEntityEgoNetwork_result implements org.apache.thrift.TBase<getWebEntityEgoNetwork_result, getWebEntityEgoNetwork_result._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getWebEntityEgoNetwork_result");
 
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
     private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField X_FIELD_DESC = new org.apache.thrift.protocol.TField("x", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
@@ -18829,11 +18938,13 @@ public class MemoryStructure {
       schemes.put(TupleScheme.class, new getWebEntityEgoNetwork_resultTupleSchemeFactory());
     }
 
+    public String success; // required
     public MemoryStructureException me; // required
     public ObjectNotFoundException x; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
       ME((short)1, "me"),
       X((short)2, "x");
 
@@ -18850,6 +18961,8 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
           case 1: // ME
             return ME;
           case 2: // X
@@ -18897,6 +19010,8 @@ public class MemoryStructure {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.X, new org.apache.thrift.meta_data.FieldMetaData("x", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -18909,10 +19024,12 @@ public class MemoryStructure {
     }
 
     public getWebEntityEgoNetwork_result(
+      String success,
       MemoryStructureException me,
       ObjectNotFoundException x)
     {
       this();
+      this.success = success;
       this.me = me;
       this.x = x;
     }
@@ -18921,6 +19038,9 @@ public class MemoryStructure {
      * Performs a deep copy on <i>other</i>.
      */
     public getWebEntityEgoNetwork_result(getWebEntityEgoNetwork_result other) {
+      if (other.isSetSuccess()) {
+        this.success = other.success;
+      }
       if (other.isSetMe()) {
         this.me = new MemoryStructureException(other.me);
       }
@@ -18935,8 +19055,33 @@ public class MemoryStructure {
 
     @Override
     public void clear() {
+      this.success = null;
       this.me = null;
       this.x = null;
+    }
+
+    public String getSuccess() {
+      return this.success;
+    }
+
+    public getWebEntityEgoNetwork_result setSuccess(String success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public MemoryStructureException getMe() {
@@ -18989,6 +19134,14 @@ public class MemoryStructure {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((String)value);
+        }
+        break;
+
       case ME:
         if (value == null) {
           unsetMe();
@@ -19010,6 +19163,9 @@ public class MemoryStructure {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
       case ME:
         return getMe();
 
@@ -19027,6 +19183,8 @@ public class MemoryStructure {
       }
 
       switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
       case ME:
         return isSetMe();
       case X:
@@ -19047,6 +19205,15 @@ public class MemoryStructure {
     public boolean equals(getWebEntityEgoNetwork_result that) {
       if (that == null)
         return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
 
       boolean this_present_me = true && this.isSetMe();
       boolean that_present_me = true && that.isSetMe();
@@ -19082,6 +19249,16 @@ public class MemoryStructure {
       int lastComparison = 0;
       getWebEntityEgoNetwork_result typedOther = (getWebEntityEgoNetwork_result)other;
 
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
       if (lastComparison != 0) {
         return lastComparison;
@@ -19122,6 +19299,14 @@ public class MemoryStructure {
       StringBuilder sb = new StringBuilder("getWebEntityEgoNetwork_result(");
       boolean first = true;
 
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("me:");
       if (this.me == null) {
         sb.append("null");
@@ -19179,6 +19364,14 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.success = iprot.readString();
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             case 1: // ME
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.me = new MemoryStructureException();
@@ -19212,6 +19405,11 @@ public class MemoryStructure {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          oprot.writeString(struct.success);
+          oprot.writeFieldEnd();
+        }
         if (struct.me != null) {
           oprot.writeFieldBegin(ME_FIELD_DESC);
           struct.me.write(oprot);
@@ -19240,13 +19438,19 @@ public class MemoryStructure {
       public void write(org.apache.thrift.protocol.TProtocol prot, getWebEntityEgoNetwork_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetMe()) {
+        if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetX()) {
+        if (struct.isSetMe()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetX()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetSuccess()) {
+          oprot.writeString(struct.success);
+        }
         if (struct.isSetMe()) {
           struct.me.write(oprot);
         }
@@ -19258,13 +19462,17 @@ public class MemoryStructure {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getWebEntityEgoNetwork_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
+          struct.success = iprot.readString();
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.me = new MemoryStructureException();
           struct.me.read(iprot);
           struct.setMeIsSet(true);
         }
-        if (incoming.get(1)) {
+        if (incoming.get(2)) {
           struct.x = new ObjectNotFoundException();
           struct.x.read(iprot);
           struct.setXIsSet(true);

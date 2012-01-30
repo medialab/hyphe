@@ -207,15 +207,17 @@ void addAliastoWebEntity(1:string id, 2:string lru) throws (1:MemoryStructureExc
 // gefx network
 /**
  * @param 1 format: must be 'gefx'
+ * @return gefx graph
  */
-void getWebEntityNetwork(1:string format) throws (1:MemoryStructureException me),
+string getWebEntityNetwork(1:string format) throws (1:MemoryStructureException me),
 
 // gefx egonetwork
 /**
  * @param 1 webEntityId: id of web entity
  * @param 2 distance: distance
  * @param 3 format: must be 'gefx'
+ * @return gefx graph
  */
-void getWebEntityEgoNetwork(1:string webEntityId, 2:i32 distance, 3:string format)  throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+string getWebEntityEgoNetwork(1:string webEntityId, 2:i32 distance, 3:string format) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
 }
