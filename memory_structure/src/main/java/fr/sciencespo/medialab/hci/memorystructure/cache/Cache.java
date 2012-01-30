@@ -12,7 +12,6 @@ import fr.sciencespo.medialab.hci.memorystructure.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,7 +35,6 @@ public class Cache {
 
     private final String id;
     private Map<String, PageItem> pageItems = new HashMap<String, PageItem>();
-    private Set<WebEntity> webEntities ;
     private LRUIndex lruIndex;
 
 
@@ -70,26 +68,6 @@ public class Cache {
             pageItems.add(pageItem);
         }
         return pageItems;
-    }
-
-    /**
-     * Returns webentities in the cache. TODO should they be in the cache ?!
-     * @return web entities
-     */
-    public Set<WebEntity> getWebEntities() {
-        return webEntities;
-    }
-
-    /**
-     * Adds web entity to cache. TODO should they be in the cache ?!
-     *
-     * @param webEntity webentity to add
-     */
-    public void addWebEntity(WebEntity webEntity) {
-        if(webEntities == null) {
-            webEntities = new HashSet<WebEntity>();
-        }
-        webEntities.add(webEntity);
     }
 
     /**
@@ -130,6 +108,7 @@ public class Cache {
      *
      * @param rule web entity creation rule
      * @param page page
+     * @return created web entity or null
      */
     protected WebEntity applyWebEntityCreationRule(WebEntityCreationRule rule, PageItem page) {
         if(rule == null || page == null) {
@@ -147,13 +126,12 @@ public class Cache {
                 String webEntityLRU = matcher.group();
                 WebEntity webEntity = new WebEntity();
                 // TODO name of WE ?
-                webEntity.setName(webEntityLRU);
+                webEntity.setName("AUTO-GENERATED WEBENTITY " + webEntityLRU);
                 webEntity.setLRUSet(new HashSet<String>());
                 webEntity.addToLRUSet(webEntityLRU);
                 Date now = new Date();
-                // TODO
-                //webEntity.setCreationDate(now);
-                //webEntity.setLastModificationDate(now);
+                webEntity.setCreationDate(now.toString());
+                webEntity.setLastModificationDate(now.toString());
                 logger.debug("created new WebEntity");
                 return webEntity;
             }

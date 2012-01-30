@@ -1,5 +1,6 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
+import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
@@ -34,7 +35,10 @@ public class IndexConfiguration {
         ERRORCODE,
         HTTPSTATUSCODE,
         REGEXP,
-        NAME
+        NAME,
+        SOURCE,
+        TARGET,
+        WEIGHT
     }
 
     /**
@@ -42,12 +46,56 @@ public class IndexConfiguration {
      */
     enum DocType {
         PAGE_ITEM,
+        NODE_LINK,
         PRECISION_EXCEPTION,
         WEBENTITY,
         WEBENTITY_CREATION_RULE
     }
 
     public static final String DEFAULT_WEBENTITY_CREATION_RULE = "DEFAULT_WEBENTITY_CREATION_RULE";
+
+
+    protected static Document NodeLinkDocument(NodeLink nodeLink) {
+        if(nodeLink == null) {
+            logger.warn("attempt to create Lucene document for null NodeLink");
+            return null;
+        }
+        Document document = new Document();
+        //
+        // id: generate random UUID
+        //
+        Field idField = new Field(FieldName.ID.name(), UUID.randomUUID().toString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        document.add(idField);
+
+        Field typeField = new Field(FieldName.TYPE.name(), DocType.NODE_LINK.name(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        document.add(typeField);
+
+        //
+        // if the NodeLink has no source and target, don't create a Lucene document for it
+        //
+        if(StringUtils.isEmpty(nodeLink.getSourceLRU()) || StringUtils.isEmpty(nodeLink.getTargetLRU())) {
+            logger.warn("attempt to create Lucene document for NodeLink without LRU");
+            return null;
+        }
+        else {
+            Field sourceLRUField = new Field(FieldName.SOURCE.name(), nodeLink.getSourceLRU(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            sourceLRUField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(sourceLRUField);
+
+            Field targetLRUField = new Field(FieldName.TARGET.name(), nodeLink.getTargetLRU(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            targetLRUField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(targetLRUField);
+
+            String weight = String.valueOf(nodeLink.getWeight());
+            Field weightField = new Field(FieldName.WEIGHT.name(), weight, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            weightField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(weightField);
+
+            return document;
+        }
+    }
 
     /**
      * Converts a PageItem into a Lucene document.

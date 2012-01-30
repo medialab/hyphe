@@ -105,6 +105,15 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                         wasIndexed = true;
                     }
                 }
+                else if(object instanceof NodeLink) {
+                    NodeLink nodeLink = (NodeLink) object;
+                    Document nodelinkDocument = IndexConfiguration.NodeLinkDocument(nodeLink);
+                    // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
+                    if(nodelinkDocument != null) {
+                        indexWriter.addDocument(nodelinkDocument);
+                        wasIndexed = true;
+                    }
+                }
                 if(wasIndexed) {
                     written++;
                 }

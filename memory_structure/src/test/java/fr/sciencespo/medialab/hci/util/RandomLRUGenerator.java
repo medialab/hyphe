@@ -1,6 +1,5 @@
 package fr.sciencespo.medialab.hci.util;
 
-import fr.sciencespo.medialab.hci.memorystructure.domain.Page;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;

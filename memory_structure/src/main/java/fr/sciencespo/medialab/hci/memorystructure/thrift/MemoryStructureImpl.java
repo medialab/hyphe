@@ -444,13 +444,23 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
         }
-
     }
 
     @Override
-    public void saveNodeLinks(Set<NodeLink> nodeLinks) throws TException {
-        logger.debug("MemoryStructure storeNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
-        // TODO
+    // TODO TEST
+    public void saveNodeLinks(Set<NodeLink> nodeLinks) throws TException, MemoryStructureException {
+        logger.debug("MemoryStructure saveNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
+        try{
+            @SuppressWarnings({"unchecked"})
+            List<Object> nodeLinksList = new ArrayList(nodeLinks);
+            lruIndex.batchIndex(nodeLinksList);
+            logger.debug("saveNodeLinks finished indexing nodeLinks");
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
+        }
     }
 
     @Override
