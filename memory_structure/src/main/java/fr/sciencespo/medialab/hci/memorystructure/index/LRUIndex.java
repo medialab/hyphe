@@ -1,5 +1,6 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
+import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
@@ -711,41 +712,61 @@ public class LRUIndex {
         }
     }
 
-
-
-    /**
-     * Retrieves a particular precision exception.
-     * @return
-     */
-    public String retrievePrecisionException(String precisionException) throws IndexException {
+    protected Set<PageItem> retrievePageItemsByLRUPrefix(String prefix) throws IndexException {
+        logger.debug("retrievePageItemsByLRUPrefix: " + prefix);
         try {
-            String result = null;
-            Term isPrecisionException = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.PRECISION_EXCEPTION.name());
-            Term lru = new Term(IndexConfiguration.FieldName.LRU.name(), precisionException);
-            TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
-
-            BooleanQuery q = new BooleanQuery();
-            TermQuery q1 = new TermQuery(isPrecisionException);
-            TermQuery q2 = new TermQuery(lru);
-            q.add(q1, BooleanClause.Occur.MUST);
-            q.add(q2, BooleanClause.Occur.MUST);
-            indexSearcher.search(q, collector);
-
-            ScoreDoc[] hits = collector.topDocs().scoreDocs;
-            if(hits != null && hits.length > 0) {
-                int id = hits[0].doc;
-                Document doc = indexSearcher.doc(id);
-                result = doc.get(IndexConfiguration.FieldName.LRU.name());
+            Set<PageItem> results = new HashSet<PageItem>();
+            if(prefix == null) {
+                logger.warn("attempted to retrieve pageitems with null lruprefix");
+                return results;
             }
-            return result;
+            Term isPageItemTerm = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.PAGE_ITEM.name());
+            Term prefixTerm = new Term(IndexConfiguration.FieldName.LRU.name(), prefix);
+            BooleanQuery q = new BooleanQuery();
+            TermQuery isPageItemQuery = new TermQuery(isPageItemTerm);
+            Query prefixQuery = new WildcardQuery(prefixTerm);
+            q.add(isPageItemQuery, BooleanClause.Occur.MUST);
+            q.add(prefixQuery, BooleanClause.Occur.MUST);
+
+            logger.debug("Lucene query: " + q.toString());
+            logger.debug("Lucene query (rewritten): " + q.rewrite(indexReader).toString());
+
+            final List<Document> hits = new ArrayList<Document>();
+            indexSearcher.search(q, new Collector() {
+                private IndexReader reader;
+                @Override
+                public void setScorer(Scorer scorer) throws IOException {}
+                @Override
+                public void collect(int doc) throws IOException {
+                    hits.add(reader.document(doc));
+                }
+                @Override
+                public void setNextReader(IndexReader reader, int docBase) throws IOException {
+                    this.reader = reader;
+                }
+                @Override
+                public boolean acceptsDocsOutOfOrder() {
+                    return true;
+                }
+            });
+            logger.debug("# hits: " + hits.size());
+            for(Document hit: hits) {
+                PageItem pageItem = IndexConfiguration.convertLuceneDocument2PageItem(hit);
+                results.add(pageItem);
+            }
+            logger.debug("retrieved # " + results.size() + " PageItems with prefix " + prefix);
+            return results;
+
         }
-        catch(Exception x) {
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
             throw new IndexException(x.getMessage(), x);
         }
     }
 
-    public PageItem retrieveByLRU(String lru) throws IndexException {
-        logger.debug("retrieving LRU " + lru);
+    public PageItem retrievePageItemByLRU(String lru) throws IndexException {
+        logger.debug("retrieving PageItem by LRU " + lru);
         try {
             PageItem result = null;
 
@@ -814,7 +835,7 @@ public class LRUIndex {
             float time = (float) end - start;
             logger.debug("method 1 finished in " + time + " ms");
 
-            logger.debug("retrieveByLRU found # " + topDocs.totalHits + " matches");
+            logger.debug("retrievePageItemByLRU found # " + topDocs.totalHits + " matches");
 
             start = System.currentTimeMillis();
 
@@ -977,5 +998,21 @@ public class LRUIndex {
         }
         logger.debug("findMatchingWebEntityCreationRuleLRUPrefixes returns # " + matches.size() + " matches");
         return matches;
+    }
+
+    public Set<PageItem> findPagesForWebEntity(String id) throws IndexException, ObjectNotFoundException {
+        logger.debug("findMatchingWebEntityCreationRuleLRUPrefixes for id: " + id);
+        Set<PageItem> results = new HashSet<PageItem>();
+        if(StringUtils.isEmpty(id)) {
+            return results;
+        }
+        WebEntity webEntity = retrieveWebEntity(id);
+        if(webEntity == null) {
+            throw new ObjectNotFoundException().setMsg("Could not find webentity with id: " + id);
+        }
+        for(String prefix : webEntity.getLRUSet()) {
+            results.addAll(retrievePageItemsByLRUPrefix(prefix + "*"));
+        }
+        return results;
     }
 }

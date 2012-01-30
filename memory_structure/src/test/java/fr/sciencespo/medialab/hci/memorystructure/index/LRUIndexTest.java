@@ -1,5 +1,6 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
+import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.util.LineFileReader;
@@ -124,7 +125,7 @@ public class LRUIndexTest extends TestCase {
             lruIndex.batchIndex(lruItems);
 
             // test if this PageItem can be found
-            PageItem found = lruIndex.retrieveByLRU("s:http|h:fr|h:sciences-po|h:medialab");
+            PageItem found = lruIndex.retrievePageItemByLRU("s:http|h:fr|h:sciences-po|h:medialab");
             assertNotNull("Could not retrieve expected object", found);
 
             //lruIndex.close();
@@ -146,7 +147,7 @@ public class LRUIndexTest extends TestCase {
             PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
             lruItems.add(lruItem1);
             lruIndex.batchIndex(lruItems);
-            PageItem found = lruIndex.retrieveByLRU("s:http|h:fr|h:sciences-po|h:medialab|h:do-not-find-me");
+            PageItem found = lruIndex.retrievePageItemByLRU("s:http|h:fr|h:sciences-po|h:medialab|h:do-not-find-me");
             assertNull("Retrieved unexpected object", found);
             //lruIndex.close();
             logger.info("testDonotRetrieveNonExistingPageItem success");
@@ -166,7 +167,7 @@ public class LRUIndexTest extends TestCase {
             PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
             lruItems.add(lruItem1);
             lruIndex.batchIndex(lruItems);
-            PageItem found = lruIndex.retrieveByLRU("s:http|h:fr|h:sciences-po*");
+            PageItem found = lruIndex.retrievePageItemByLRU("s:http|h:fr|h:sciences-po*");
             assertNotNull("Could not retrieve expected object by wildcard", found);
             //lruIndex.close();
             logger.info("testRetrievePageItemByPrefix success");
@@ -186,7 +187,7 @@ public class LRUIndexTest extends TestCase {
             PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
             lruItems.add(lruItem1);
             lruIndex.batchIndex(lruItems);
-            PageItem found = lruIndex.retrieveByLRU("s:http|h:fr|h:scien?es-po|h:medialab");
+            PageItem found = lruIndex.retrievePageItemByLRU("s:http|h:fr|h:scien?es-po|h:medialab");
             assertNotNull("Could not retrieve expected object by single character wildcard", found);
             //lruIndex.close();
             logger.info("testRetrievePageItemBySingleCharWildCard success");
@@ -212,7 +213,7 @@ public class LRUIndexTest extends TestCase {
             lruItems.add(lruItem2);
             lruItems.add(lruItem3);
             lruIndex.batchIndex(lruItems);
-            PageItem found = lruIndex.retrieveByLRU("*");
+            PageItem found = lruIndex.retrievePageItemByLRU("*");
             assertEquals("IndexCount returns unexpected number", 3, lruIndex.indexCount());
             //lruIndex.close();
             logger.info("testRetrievePageItemByMultiCharacterWildCard success");
@@ -336,6 +337,150 @@ public class LRUIndexTest extends TestCase {
 
     }
 
+    public void testRetrievePageItemsByLRUPrefix() {
+        try {
+            assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+            List<Object> lruItems = new ArrayList<Object>();
+            PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po");
+            PageItem lruItem2 = new PageItem().setLru("s:http|h:fr|h:sciencespo");
+            PageItem lruItem3 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
+            lruItems.add(lruItem1);
+            lruItems.add(lruItem2);
+            lruItems.add(lruItem3);
+            lruIndex.batchIndex(lruItems);
+
+            Set<PageItem> result = lruIndex.retrievePageItemsByLRUPrefix("s:http|h:fr|h:sciences-po*");
+            assertNotNull("retrievePageItemsByLRUPrefix returned null", result);
+            assertEquals("Unexpected # of pageitems", 2, result.size());
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+    }
+
+    public void testRetrievePageItemsByLRUPrefixNullInput() {
+        try {
+            Set<PageItem> result = lruIndex.retrievePageItemsByLRUPrefix(null);
+            assertNotNull("retrievePageItemsByLRUPrefix returned null", result);
+            assertEquals("Unexpected # of pageitems", 0, result.size());
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+    }
+
+    public void testRetrievePageItemsByLRUPrefixEmptyInput() {
+        try {
+            Set<PageItem> result = lruIndex.retrievePageItemsByLRUPrefix("");
+            assertNotNull("retrievePageItemsByLRUPrefix returned null", result);
+            assertEquals("Unexpected # of pageitems", 0, result.size());
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+    }
+
+    public void testFindPagesForWebEntity() {
+        try {
+            assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+            List<Object> lruItems = new ArrayList<Object>();
+            PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po");
+            PageItem lruItem2 = new PageItem().setLru("s:http|h:fr|h:sciencespo");
+            PageItem lruItem3 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
+            lruItems.add(lruItem1);
+            lruItems.add(lruItem2);
+            lruItems.add(lruItem3);
+            lruIndex.batchIndex(lruItems);
+
+            WebEntity webEntity = new WebEntity();
+            webEntity.setName("Sciences Po");
+            webEntity.addToLRUSet("s:http|h:fr|h:sciences-po");
+            String id = lruIndex.indexWebEntity(webEntity);
+
+            Set<PageItem> result = lruIndex.findPagesForWebEntity(id);
+            assertNotNull("findPagesForWebEntity returned null", result);
+            assertEquals("Unexpected # of pageitems", 2, result.size());
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (ObjectNotFoundException x) {
+            logger.error(x.getMsg());
+            x.printStackTrace();
+            fail(x.getMsg());
+        }
+    }
+
+    public void testFindPagesForWebEntityNullInput() {
+        try {
+            assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+            List<Object> lruItems = new ArrayList<Object>();
+            PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po");
+            PageItem lruItem2 = new PageItem().setLru("s:http|h:fr|h:sciencespo");
+            PageItem lruItem3 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
+            lruItems.add(lruItem1);
+            lruItems.add(lruItem2);
+            lruItems.add(lruItem3);
+            lruIndex.batchIndex(lruItems);
+
+            WebEntity webEntity = new WebEntity();
+            webEntity.setName("Sciences Po");
+            webEntity.addToLRUSet("s:http|h:fr|h:sciences-po");
+            String id = lruIndex.indexWebEntity(webEntity);
+
+            Set<PageItem> result = lruIndex.findPagesForWebEntity(null);
+            assertNotNull("findPagesForWebEntity returned null", result);
+            assertEquals("Unexpected # of pageitems", 0, result.size());
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (ObjectNotFoundException x) {
+            logger.error(x.getMsg());
+            x.printStackTrace();
+            fail(x.getMsg());
+        }
+    }
+
+    public void testFindPagesForWebEntityThatDoesntExist() {
+        try {
+            assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+            List<Object> lruItems = new ArrayList<Object>();
+            PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po");
+            PageItem lruItem2 = new PageItem().setLru("s:http|h:fr|h:sciencespo");
+            PageItem lruItem3 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
+            lruItems.add(lruItem1);
+            lruItems.add(lruItem2);
+            lruItems.add(lruItem3);
+            lruIndex.batchIndex(lruItems);
+
+            WebEntity webEntity = new WebEntity();
+            webEntity.setName("Sciences Po");
+            webEntity.addToLRUSet("s:http|h:fr|h:sciences-po");
+            String id = lruIndex.indexWebEntity(webEntity);
+
+            Set<PageItem> result = lruIndex.findPagesForWebEntity(id+id);
+            fail("Expected ObjectNotFoundException but it wasn't thrown");
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (ObjectNotFoundException x) {
+            assertTrue("Unexpected exception message", x.getMsg().startsWith("Could not find webentity with id:"));
+        }
+    }
 
     public void xtestBatchIndexPageItem() throws Exception {
 
@@ -385,7 +530,7 @@ public class LRUIndexTest extends TestCase {
         // process rest
         urldb.batchIndex(lruItems);
 
-        PageItem found = urldb.retrieveByLRU("heikkitest");
+        PageItem found = urldb.retrievePageItemByLRU("heikkitest");
         if(found != null) {
             System.out.println("found it");
         }

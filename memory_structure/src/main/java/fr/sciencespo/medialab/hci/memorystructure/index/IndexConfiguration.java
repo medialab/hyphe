@@ -191,6 +191,41 @@ public class IndexConfiguration {
     }
 
     /**
+     * Returns a PageItem object from a PageItem Lucene document.
+     *
+     * @param document
+     * @return
+     */
+    public static PageItem convertLuceneDocument2PageItem(Document document) {
+        PageItem pageItem = new PageItem();
+
+        String id = document.get(FieldName.ID.name());
+        pageItem.setId(id);
+
+        String lru = document.get(FieldName.LRU.name());
+        pageItem.setLru(lru);
+
+        String crawlerTimestamp = document.get(FieldName.CRAWLERTIMESTAMP.name());
+        pageItem.setCrawlerTimestamp(crawlerTimestamp);
+
+        String depth$ = document.get(FieldName.DEPTH.name());
+        if(StringUtils.isNotEmpty(depth$)) {
+            int depth = Integer.parseInt(depth$);
+            pageItem.setDepth(depth);
+        }
+
+        String errorCode = document.get(FieldName.ERRORCODE.name());
+        pageItem.setErrorCode(errorCode);
+
+        String httpStatusCode$ = document.get(FieldName.HTTPSTATUSCODE.name());
+        if(StringUtils.isNotEmpty(httpStatusCode$)) {
+            int httpStatusCode = Integer.parseInt(httpStatusCode$);
+            pageItem.setHttpStatusCode(httpStatusCode);
+        }
+        return pageItem;
+    }
+
+    /**
      * Returns a WebEntity object from a WebEntity Lucene document.
      *
      * @param document
