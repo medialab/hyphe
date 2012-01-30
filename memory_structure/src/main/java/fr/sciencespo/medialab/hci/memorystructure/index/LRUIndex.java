@@ -235,6 +235,19 @@ public class LRUIndex {
         }
 	}
 
+    private Set<String> alreadyExistingWebEntityLRUs(Set<String> lrus) throws IndexException {
+        Set<String> result = new HashSet<String>();
+        Set<WebEntity> existingWebEntities = retrieveWebEntities();
+        for(WebEntity webEntity : existingWebEntities) {
+            Set<String> existingLRUs = webEntity.getLRUSet();
+            Set intersection = new HashSet(lrus);
+            intersection.retainAll(existingLRUs);
+            result.addAll(intersection);
+        }
+        logger.debug("found # " + result.size() + " already existing webentity lrus");
+        return result;
+    }
+
     /**
       * Adds or updates a WebEntity to the index. If ID is not empty, the existing WebEntity with that ID is retrieved
       * and this LRU is added to it; if no existing WebEntity with that ID is found, or if ID is empty, a new WebEntity
@@ -248,11 +261,19 @@ public class LRUIndex {
       */
      public String indexWebEntity(WebEntity webEntity) throws IndexException{
          logger.debug("indexWebEntity");
+         //
+         // validation
+         //
          if(webEntity == null) {
              throw new IndexException("WebEntity is null");
          }
          if(CollectionUtils.isEmpty(webEntity.getLRUSet())) {
              throw new IndexException("WebEntity has empty lru set");
+         }
+         // Ensure a webEntity lruprefix is unique in the web entity index
+         Set<String> existing = alreadyExistingWebEntityLRUs(webEntity.getLRUSet());
+         if(existing.size() > 0) {
+             throw new IndexException("WebEntity contains already existing LRUs: " + existing);
          }
          try {
              boolean updating = false;

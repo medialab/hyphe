@@ -242,6 +242,42 @@ public class LRUIndexTest extends TestCase {
     }
 
     /**
+     * Tests indexing a new WebEntity that has LRUs that already exist in the index.
+     *
+     */
+    public void testIndexNewWebEntityWithDuplicateLRUs() {
+        try {
+            assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+            //
+            // create pre-existing data
+            //
+            WebEntity preX = new WebEntity();
+            preX.setName("pre-existing");
+            preX.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab-one");
+            preX.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab-two");
+            preX.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab-three");
+
+            lruIndex.indexWebEntity(preX);
+
+            //
+            // new one to add with dupe LRUs
+            //
+            WebEntity newWE = new WebEntity();
+            newWE.setName("new");
+            newWE.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab-one");
+            newWE.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab-2");
+            newWE.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab-three");
+
+            lruIndex.indexWebEntity(newWE);
+
+            fail("Expected InexException wasn't thrown");
+        }
+        catch (IndexException x) {
+            assertTrue("Unexpected exception message", x.getMessage().startsWith("WebEntity contains already existing LRUs:"));
+        }
+    }
+
+    /**
      * Tests adding a LRU to an existing WebEntity.
      *
      */
