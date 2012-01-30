@@ -67,21 +67,20 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @param webEntity to update
      * @return id of indexed webentity
      * @throws MemoryStructureException hmm
-     * @throws TException hmm
      */
     @Override
-    public String updateWebEntity(WebEntity webEntity) throws MemoryStructureException, TException {
+    public String updateWebEntity(WebEntity webEntity) throws MemoryStructureException {
         logger.debug("updateWebEntity");
         try {
             if(webEntity == null) {
-                throw new TException("WebEntity is null");
+                throw new MemoryStructureException().setMsg("WebEntity is null");
             }
             return lruIndex.indexWebEntity(webEntity);
         }
-        catch(Exception x) {
+        catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
-            throw new TException(x.getMessage(), x);
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
         }
     }
 
@@ -92,10 +91,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @param lruSet lrus for this web entity
      * @return created web entity
      * @throws MemoryStructureException hmm
-     * @throws TException hmm
      */
     @Override
-    public WebEntity createWebEntity(String name, Set<String> lruSet) throws MemoryStructureException, TException {
+    public WebEntity createWebEntity(String name, Set<String> lruSet) throws MemoryStructureException {
         logger.debug("createWebEntity");
         WebEntity webEntity = new WebEntity();
         webEntity.setName(name);
@@ -119,10 +117,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @return web entity
      * @throws ObjectNotFoundException hmm
      * @throws MemoryStructureException hmm
-     * @throws TException hmm
      */
     @Override
-    public WebEntity getWebEntity(String id) throws ObjectNotFoundException, MemoryStructureException, TException {
+    public WebEntity getWebEntity(String id) throws ObjectNotFoundException, MemoryStructureException {
         logger.debug("getWebEntity with id: " + id);
         if(StringUtils.isEmpty(id)) {
             logger.debug("requested id is null, returning null");
@@ -463,12 +460,10 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public void addLRUtoWebEntity(String id, PageItem pageItem) throws MemoryStructureException, TException {
-        // TODO change : param should be LRU, not Page
-        logger.debug("addLRUtoWebEntity pageItem: " + pageItem.getLru() + " for WebEntity: " + id);
+    public void addAliastoWebEntity(String id, String lru) throws MemoryStructureException, ObjectNotFoundException, TException {
+        logger.debug("addAliastoWebEntity lru: " + lru + " for WebEntity: " + id);
         try {
-            lruIndex.indexWebEntity(id, pageItem);
-            logger.debug("addLRUtoWebEntity finished indexing PageItem: " + pageItem.getLru() + " for WebEntity: " + id);
+            lruIndex.indexWebEntity(id, lru);
         }
         catch(IndexException x) {
             logger.error(x.getMessage());

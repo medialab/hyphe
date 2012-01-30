@@ -171,13 +171,13 @@ public class MemoryStructure {
     /**
      *  *
      *  * @param 1 id : the id of the WebEntity to add this LRU to
-     *  * @param 2 lruItem : the lruItem to be marked as WebEntity
+     *  * @param 2 lru : the lru to add
      * *
      * 
      * @param id
-     * @param pageItem
+     * @param lru
      */
-    public void addLRUtoWebEntity(String id, PageItem pageItem) throws MemoryStructureException, org.apache.thrift.TException;
+    public void addAliastoWebEntity(String id, String lru) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException;
 
     /**
      * @param 1 format: must be 'gefx'
@@ -239,7 +239,7 @@ public class MemoryStructure {
 
     public void saveNodeLinks(Set<NodeLink> nodeLinks, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.saveNodeLinks_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void addLRUtoWebEntity(String id, PageItem pageItem, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.addLRUtoWebEntity_call> resultHandler) throws org.apache.thrift.TException;
+    public void addAliastoWebEntity(String id, String lru, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.addAliastoWebEntity_call> resultHandler) throws org.apache.thrift.TException;
 
     public void getWebEntityNetwork(String format, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.getWebEntityNetwork_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -736,26 +736,29 @@ public class MemoryStructure {
       return;
     }
 
-    public void addLRUtoWebEntity(String id, PageItem pageItem) throws MemoryStructureException, org.apache.thrift.TException
+    public void addAliastoWebEntity(String id, String lru) throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
-      send_addLRUtoWebEntity(id, pageItem);
-      recv_addLRUtoWebEntity();
+      send_addAliastoWebEntity(id, lru);
+      recv_addAliastoWebEntity();
     }
 
-    public void send_addLRUtoWebEntity(String id, PageItem pageItem) throws org.apache.thrift.TException
+    public void send_addAliastoWebEntity(String id, String lru) throws org.apache.thrift.TException
     {
-      addLRUtoWebEntity_args args = new addLRUtoWebEntity_args();
+      addAliastoWebEntity_args args = new addAliastoWebEntity_args();
       args.setId(id);
-      args.setPageItem(pageItem);
-      sendBase("addLRUtoWebEntity", args);
+      args.setLru(lru);
+      sendBase("addAliastoWebEntity", args);
     }
 
-    public void recv_addLRUtoWebEntity() throws MemoryStructureException, org.apache.thrift.TException
+    public void recv_addAliastoWebEntity() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException
     {
-      addLRUtoWebEntity_result result = new addLRUtoWebEntity_result();
-      receiveBase(result, "addLRUtoWebEntity");
+      addAliastoWebEntity_result result = new addAliastoWebEntity_result();
+      receiveBase(result, "addAliastoWebEntity");
       if (result.me != null) {
         throw result.me;
+      }
+      if (result.x != null) {
+        throw result.x;
       }
       return;
     }
@@ -1425,38 +1428,38 @@ public class MemoryStructure {
       }
     }
 
-    public void addLRUtoWebEntity(String id, PageItem pageItem, org.apache.thrift.async.AsyncMethodCallback<addLRUtoWebEntity_call> resultHandler) throws org.apache.thrift.TException {
+    public void addAliastoWebEntity(String id, String lru, org.apache.thrift.async.AsyncMethodCallback<addAliastoWebEntity_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      addLRUtoWebEntity_call method_call = new addLRUtoWebEntity_call(id, pageItem, resultHandler, this, ___protocolFactory, ___transport);
+      addAliastoWebEntity_call method_call = new addAliastoWebEntity_call(id, lru, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class addLRUtoWebEntity_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class addAliastoWebEntity_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String id;
-      private PageItem pageItem;
-      public addLRUtoWebEntity_call(String id, PageItem pageItem, org.apache.thrift.async.AsyncMethodCallback<addLRUtoWebEntity_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private String lru;
+      public addAliastoWebEntity_call(String id, String lru, org.apache.thrift.async.AsyncMethodCallback<addAliastoWebEntity_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.id = id;
-        this.pageItem = pageItem;
+        this.lru = lru;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("addLRUtoWebEntity", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        addLRUtoWebEntity_args args = new addLRUtoWebEntity_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("addAliastoWebEntity", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        addAliastoWebEntity_args args = new addAliastoWebEntity_args();
         args.setId(id);
-        args.setPageItem(pageItem);
+        args.setLru(lru);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
+      public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_addLRUtoWebEntity();
+        (new Client(prot)).recv_addAliastoWebEntity();
       }
     }
 
@@ -1562,7 +1565,7 @@ public class MemoryStructure {
       processMap.put("deleteWebEntityCreationRule", new deleteWebEntityCreationRule());
       processMap.put("savePageItems", new savePageItems());
       processMap.put("saveNodeLinks", new saveNodeLinks());
-      processMap.put("addLRUtoWebEntity", new addLRUtoWebEntity());
+      processMap.put("addAliastoWebEntity", new addAliastoWebEntity());
       processMap.put("getWebEntityNetwork", new getWebEntityNetwork());
       processMap.put("getWebEntityEgoNetwork", new getWebEntityEgoNetwork());
       return processMap;
@@ -1943,21 +1946,23 @@ public class MemoryStructure {
       }
     }
 
-    private static class addLRUtoWebEntity<I extends Iface> extends org.apache.thrift.ProcessFunction<I, addLRUtoWebEntity_args> {
-      public addLRUtoWebEntity() {
-        super("addLRUtoWebEntity");
+    private static class addAliastoWebEntity<I extends Iface> extends org.apache.thrift.ProcessFunction<I, addAliastoWebEntity_args> {
+      public addAliastoWebEntity() {
+        super("addAliastoWebEntity");
       }
 
-      protected addLRUtoWebEntity_args getEmptyArgsInstance() {
-        return new addLRUtoWebEntity_args();
+      protected addAliastoWebEntity_args getEmptyArgsInstance() {
+        return new addAliastoWebEntity_args();
       }
 
-      protected addLRUtoWebEntity_result getResult(I iface, addLRUtoWebEntity_args args) throws org.apache.thrift.TException {
-        addLRUtoWebEntity_result result = new addLRUtoWebEntity_result();
+      protected addAliastoWebEntity_result getResult(I iface, addAliastoWebEntity_args args) throws org.apache.thrift.TException {
+        addAliastoWebEntity_result result = new addAliastoWebEntity_result();
         try {
-          iface.addLRUtoWebEntity(args.id, args.pageItem);
+          iface.addAliastoWebEntity(args.id, args.lru);
         } catch (MemoryStructureException me) {
           result.me = me;
+        } catch (ObjectNotFoundException x) {
+          result.x = x;
         }
         return result;
       }
@@ -16642,25 +16647,25 @@ public class MemoryStructure {
 
   }
 
-  public static class addLRUtoWebEntity_args implements org.apache.thrift.TBase<addLRUtoWebEntity_args, addLRUtoWebEntity_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("addLRUtoWebEntity_args");
+  public static class addAliastoWebEntity_args implements org.apache.thrift.TBase<addAliastoWebEntity_args, addAliastoWebEntity_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("addAliastoWebEntity_args");
 
     private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField PAGE_ITEM_FIELD_DESC = new org.apache.thrift.protocol.TField("pageItem", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField LRU_FIELD_DESC = new org.apache.thrift.protocol.TField("lru", org.apache.thrift.protocol.TType.STRING, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new addLRUtoWebEntity_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new addLRUtoWebEntity_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new addAliastoWebEntity_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new addAliastoWebEntity_argsTupleSchemeFactory());
     }
 
     public String id; // required
-    public PageItem pageItem; // required
+    public String lru; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       ID((short)1, "id"),
-      PAGE_ITEM((short)2, "pageItem");
+      LRU((short)2, "lru");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -16677,8 +16682,8 @@ public class MemoryStructure {
         switch(fieldId) {
           case 1: // ID
             return ID;
-          case 2: // PAGE_ITEM
-            return PAGE_ITEM;
+          case 2: // LRU
+            return LRU;
           default:
             return null;
         }
@@ -16724,51 +16729,51 @@ public class MemoryStructure {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.PAGE_ITEM, new org.apache.thrift.meta_data.FieldMetaData("pageItem", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PageItem.class)));
+      tmpMap.put(_Fields.LRU, new org.apache.thrift.meta_data.FieldMetaData("lru", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(addLRUtoWebEntity_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(addAliastoWebEntity_args.class, metaDataMap);
     }
 
-    public addLRUtoWebEntity_args() {
+    public addAliastoWebEntity_args() {
     }
 
-    public addLRUtoWebEntity_args(
+    public addAliastoWebEntity_args(
       String id,
-      PageItem pageItem)
+      String lru)
     {
       this();
       this.id = id;
-      this.pageItem = pageItem;
+      this.lru = lru;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public addLRUtoWebEntity_args(addLRUtoWebEntity_args other) {
+    public addAliastoWebEntity_args(addAliastoWebEntity_args other) {
       if (other.isSetId()) {
         this.id = other.id;
       }
-      if (other.isSetPageItem()) {
-        this.pageItem = new PageItem(other.pageItem);
+      if (other.isSetLru()) {
+        this.lru = other.lru;
       }
     }
 
-    public addLRUtoWebEntity_args deepCopy() {
-      return new addLRUtoWebEntity_args(this);
+    public addAliastoWebEntity_args deepCopy() {
+      return new addAliastoWebEntity_args(this);
     }
 
     @Override
     public void clear() {
       this.id = null;
-      this.pageItem = null;
+      this.lru = null;
     }
 
     public String getId() {
       return this.id;
     }
 
-    public addLRUtoWebEntity_args setId(String id) {
+    public addAliastoWebEntity_args setId(String id) {
       this.id = id;
       return this;
     }
@@ -16788,27 +16793,27 @@ public class MemoryStructure {
       }
     }
 
-    public PageItem getPageItem() {
-      return this.pageItem;
+    public String getLru() {
+      return this.lru;
     }
 
-    public addLRUtoWebEntity_args setPageItem(PageItem pageItem) {
-      this.pageItem = pageItem;
+    public addAliastoWebEntity_args setLru(String lru) {
+      this.lru = lru;
       return this;
     }
 
-    public void unsetPageItem() {
-      this.pageItem = null;
+    public void unsetLru() {
+      this.lru = null;
     }
 
-    /** Returns true if field pageItem is set (has been assigned a value) and false otherwise */
-    public boolean isSetPageItem() {
-      return this.pageItem != null;
+    /** Returns true if field lru is set (has been assigned a value) and false otherwise */
+    public boolean isSetLru() {
+      return this.lru != null;
     }
 
-    public void setPageItemIsSet(boolean value) {
+    public void setLruIsSet(boolean value) {
       if (!value) {
-        this.pageItem = null;
+        this.lru = null;
       }
     }
 
@@ -16822,11 +16827,11 @@ public class MemoryStructure {
         }
         break;
 
-      case PAGE_ITEM:
+      case LRU:
         if (value == null) {
-          unsetPageItem();
+          unsetLru();
         } else {
-          setPageItem((PageItem)value);
+          setLru((String)value);
         }
         break;
 
@@ -16838,8 +16843,8 @@ public class MemoryStructure {
       case ID:
         return getId();
 
-      case PAGE_ITEM:
-        return getPageItem();
+      case LRU:
+        return getLru();
 
       }
       throw new IllegalStateException();
@@ -16854,8 +16859,8 @@ public class MemoryStructure {
       switch (field) {
       case ID:
         return isSetId();
-      case PAGE_ITEM:
-        return isSetPageItem();
+      case LRU:
+        return isSetLru();
       }
       throw new IllegalStateException();
     }
@@ -16864,12 +16869,12 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof addLRUtoWebEntity_args)
-        return this.equals((addLRUtoWebEntity_args)that);
+      if (that instanceof addAliastoWebEntity_args)
+        return this.equals((addAliastoWebEntity_args)that);
       return false;
     }
 
-    public boolean equals(addLRUtoWebEntity_args that) {
+    public boolean equals(addAliastoWebEntity_args that) {
       if (that == null)
         return false;
 
@@ -16882,12 +16887,12 @@ public class MemoryStructure {
           return false;
       }
 
-      boolean this_present_pageItem = true && this.isSetPageItem();
-      boolean that_present_pageItem = true && that.isSetPageItem();
-      if (this_present_pageItem || that_present_pageItem) {
-        if (!(this_present_pageItem && that_present_pageItem))
+      boolean this_present_lru = true && this.isSetLru();
+      boolean that_present_lru = true && that.isSetLru();
+      if (this_present_lru || that_present_lru) {
+        if (!(this_present_lru && that_present_lru))
           return false;
-        if (!this.pageItem.equals(that.pageItem))
+        if (!this.lru.equals(that.lru))
           return false;
       }
 
@@ -16899,13 +16904,13 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(addLRUtoWebEntity_args other) {
+    public int compareTo(addAliastoWebEntity_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      addLRUtoWebEntity_args typedOther = (addLRUtoWebEntity_args)other;
+      addAliastoWebEntity_args typedOther = (addAliastoWebEntity_args)other;
 
       lastComparison = Boolean.valueOf(isSetId()).compareTo(typedOther.isSetId());
       if (lastComparison != 0) {
@@ -16917,12 +16922,12 @@ public class MemoryStructure {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetPageItem()).compareTo(typedOther.isSetPageItem());
+      lastComparison = Boolean.valueOf(isSetLru()).compareTo(typedOther.isSetLru());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetPageItem()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.pageItem, typedOther.pageItem);
+      if (isSetLru()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lru, typedOther.lru);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -16944,7 +16949,7 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("addLRUtoWebEntity_args(");
+      StringBuilder sb = new StringBuilder("addAliastoWebEntity_args(");
       boolean first = true;
 
       sb.append("id:");
@@ -16955,11 +16960,11 @@ public class MemoryStructure {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("pageItem:");
-      if (this.pageItem == null) {
+      sb.append("lru:");
+      if (this.lru == null) {
         sb.append("null");
       } else {
-        sb.append(this.pageItem);
+        sb.append(this.lru);
       }
       first = false;
       sb.append(")");
@@ -16986,15 +16991,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class addLRUtoWebEntity_argsStandardSchemeFactory implements SchemeFactory {
-      public addLRUtoWebEntity_argsStandardScheme getScheme() {
-        return new addLRUtoWebEntity_argsStandardScheme();
+    private static class addAliastoWebEntity_argsStandardSchemeFactory implements SchemeFactory {
+      public addAliastoWebEntity_argsStandardScheme getScheme() {
+        return new addAliastoWebEntity_argsStandardScheme();
       }
     }
 
-    private static class addLRUtoWebEntity_argsStandardScheme extends StandardScheme<addLRUtoWebEntity_args> {
+    private static class addAliastoWebEntity_argsStandardScheme extends StandardScheme<addAliastoWebEntity_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, addLRUtoWebEntity_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, addAliastoWebEntity_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -17012,11 +17017,10 @@ public class MemoryStructure {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // PAGE_ITEM
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.pageItem = new PageItem();
-                struct.pageItem.read(iprot);
-                struct.setPageItemIsSet(true);
+            case 2: // LRU
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.lru = iprot.readString();
+                struct.setLruIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -17032,7 +17036,7 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, addLRUtoWebEntity_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, addAliastoWebEntity_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -17041,9 +17045,9 @@ public class MemoryStructure {
           oprot.writeString(struct.id);
           oprot.writeFieldEnd();
         }
-        if (struct.pageItem != null) {
-          oprot.writeFieldBegin(PAGE_ITEM_FIELD_DESC);
-          struct.pageItem.write(oprot);
+        if (struct.lru != null) {
+          oprot.writeFieldBegin(LRU_FIELD_DESC);
+          oprot.writeString(struct.lru);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -17052,35 +17056,35 @@ public class MemoryStructure {
 
     }
 
-    private static class addLRUtoWebEntity_argsTupleSchemeFactory implements SchemeFactory {
-      public addLRUtoWebEntity_argsTupleScheme getScheme() {
-        return new addLRUtoWebEntity_argsTupleScheme();
+    private static class addAliastoWebEntity_argsTupleSchemeFactory implements SchemeFactory {
+      public addAliastoWebEntity_argsTupleScheme getScheme() {
+        return new addAliastoWebEntity_argsTupleScheme();
       }
     }
 
-    private static class addLRUtoWebEntity_argsTupleScheme extends TupleScheme<addLRUtoWebEntity_args> {
+    private static class addAliastoWebEntity_argsTupleScheme extends TupleScheme<addAliastoWebEntity_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, addLRUtoWebEntity_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, addAliastoWebEntity_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetId()) {
           optionals.set(0);
         }
-        if (struct.isSetPageItem()) {
+        if (struct.isSetLru()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetId()) {
           oprot.writeString(struct.id);
         }
-        if (struct.isSetPageItem()) {
-          struct.pageItem.write(oprot);
+        if (struct.isSetLru()) {
+          oprot.writeString(struct.lru);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, addLRUtoWebEntity_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, addAliastoWebEntity_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
@@ -17088,31 +17092,33 @@ public class MemoryStructure {
           struct.setIdIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.pageItem = new PageItem();
-          struct.pageItem.read(iprot);
-          struct.setPageItemIsSet(true);
+          struct.lru = iprot.readString();
+          struct.setLruIsSet(true);
         }
       }
     }
 
   }
 
-  public static class addLRUtoWebEntity_result implements org.apache.thrift.TBase<addLRUtoWebEntity_result, addLRUtoWebEntity_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("addLRUtoWebEntity_result");
+  public static class addAliastoWebEntity_result implements org.apache.thrift.TBase<addAliastoWebEntity_result, addAliastoWebEntity_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("addAliastoWebEntity_result");
 
     private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField X_FIELD_DESC = new org.apache.thrift.protocol.TField("x", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new addLRUtoWebEntity_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new addLRUtoWebEntity_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new addAliastoWebEntity_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new addAliastoWebEntity_resultTupleSchemeFactory());
     }
 
     public MemoryStructureException me; // required
+    public ObjectNotFoundException x; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      ME((short)1, "me");
+      ME((short)1, "me"),
+      X((short)2, "x");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -17129,6 +17135,8 @@ public class MemoryStructure {
         switch(fieldId) {
           case 1: // ME
             return ME;
+          case 2: // X
+            return X;
           default:
             return null;
         }
@@ -17174,43 +17182,51 @@ public class MemoryStructure {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.X, new org.apache.thrift.meta_data.FieldMetaData("x", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(addLRUtoWebEntity_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(addAliastoWebEntity_result.class, metaDataMap);
     }
 
-    public addLRUtoWebEntity_result() {
+    public addAliastoWebEntity_result() {
     }
 
-    public addLRUtoWebEntity_result(
-      MemoryStructureException me)
+    public addAliastoWebEntity_result(
+      MemoryStructureException me,
+      ObjectNotFoundException x)
     {
       this();
       this.me = me;
+      this.x = x;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public addLRUtoWebEntity_result(addLRUtoWebEntity_result other) {
+    public addAliastoWebEntity_result(addAliastoWebEntity_result other) {
       if (other.isSetMe()) {
         this.me = new MemoryStructureException(other.me);
       }
+      if (other.isSetX()) {
+        this.x = new ObjectNotFoundException(other.x);
+      }
     }
 
-    public addLRUtoWebEntity_result deepCopy() {
-      return new addLRUtoWebEntity_result(this);
+    public addAliastoWebEntity_result deepCopy() {
+      return new addAliastoWebEntity_result(this);
     }
 
     @Override
     public void clear() {
       this.me = null;
+      this.x = null;
     }
 
     public MemoryStructureException getMe() {
       return this.me;
     }
 
-    public addLRUtoWebEntity_result setMe(MemoryStructureException me) {
+    public addAliastoWebEntity_result setMe(MemoryStructureException me) {
       this.me = me;
       return this;
     }
@@ -17230,6 +17246,30 @@ public class MemoryStructure {
       }
     }
 
+    public ObjectNotFoundException getX() {
+      return this.x;
+    }
+
+    public addAliastoWebEntity_result setX(ObjectNotFoundException x) {
+      this.x = x;
+      return this;
+    }
+
+    public void unsetX() {
+      this.x = null;
+    }
+
+    /** Returns true if field x is set (has been assigned a value) and false otherwise */
+    public boolean isSetX() {
+      return this.x != null;
+    }
+
+    public void setXIsSet(boolean value) {
+      if (!value) {
+        this.x = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case ME:
@@ -17240,6 +17280,14 @@ public class MemoryStructure {
         }
         break;
 
+      case X:
+        if (value == null) {
+          unsetX();
+        } else {
+          setX((ObjectNotFoundException)value);
+        }
+        break;
+
       }
     }
 
@@ -17247,6 +17295,9 @@ public class MemoryStructure {
       switch (field) {
       case ME:
         return getMe();
+
+      case X:
+        return getX();
 
       }
       throw new IllegalStateException();
@@ -17261,6 +17312,8 @@ public class MemoryStructure {
       switch (field) {
       case ME:
         return isSetMe();
+      case X:
+        return isSetX();
       }
       throw new IllegalStateException();
     }
@@ -17269,12 +17322,12 @@ public class MemoryStructure {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof addLRUtoWebEntity_result)
-        return this.equals((addLRUtoWebEntity_result)that);
+      if (that instanceof addAliastoWebEntity_result)
+        return this.equals((addAliastoWebEntity_result)that);
       return false;
     }
 
-    public boolean equals(addLRUtoWebEntity_result that) {
+    public boolean equals(addAliastoWebEntity_result that) {
       if (that == null)
         return false;
 
@@ -17287,6 +17340,15 @@ public class MemoryStructure {
           return false;
       }
 
+      boolean this_present_x = true && this.isSetX();
+      boolean that_present_x = true && that.isSetX();
+      if (this_present_x || that_present_x) {
+        if (!(this_present_x && that_present_x))
+          return false;
+        if (!this.x.equals(that.x))
+          return false;
+      }
+
       return true;
     }
 
@@ -17295,13 +17357,13 @@ public class MemoryStructure {
       return 0;
     }
 
-    public int compareTo(addLRUtoWebEntity_result other) {
+    public int compareTo(addAliastoWebEntity_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      addLRUtoWebEntity_result typedOther = (addLRUtoWebEntity_result)other;
+      addAliastoWebEntity_result typedOther = (addAliastoWebEntity_result)other;
 
       lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
       if (lastComparison != 0) {
@@ -17309,6 +17371,16 @@ public class MemoryStructure {
       }
       if (isSetMe()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetX()).compareTo(typedOther.isSetX());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetX()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.x, typedOther.x);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -17330,7 +17402,7 @@ public class MemoryStructure {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("addLRUtoWebEntity_result(");
+      StringBuilder sb = new StringBuilder("addAliastoWebEntity_result(");
       boolean first = true;
 
       sb.append("me:");
@@ -17338,6 +17410,14 @@ public class MemoryStructure {
         sb.append("null");
       } else {
         sb.append(this.me);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("x:");
+      if (this.x == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.x);
       }
       first = false;
       sb.append(")");
@@ -17364,15 +17444,15 @@ public class MemoryStructure {
       }
     }
 
-    private static class addLRUtoWebEntity_resultStandardSchemeFactory implements SchemeFactory {
-      public addLRUtoWebEntity_resultStandardScheme getScheme() {
-        return new addLRUtoWebEntity_resultStandardScheme();
+    private static class addAliastoWebEntity_resultStandardSchemeFactory implements SchemeFactory {
+      public addAliastoWebEntity_resultStandardScheme getScheme() {
+        return new addAliastoWebEntity_resultStandardScheme();
       }
     }
 
-    private static class addLRUtoWebEntity_resultStandardScheme extends StandardScheme<addLRUtoWebEntity_result> {
+    private static class addAliastoWebEntity_resultStandardScheme extends StandardScheme<addAliastoWebEntity_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, addLRUtoWebEntity_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, addAliastoWebEntity_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -17391,6 +17471,15 @@ public class MemoryStructure {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // X
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.x = new ObjectNotFoundException();
+                struct.x.read(iprot);
+                struct.setXIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -17402,7 +17491,7 @@ public class MemoryStructure {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, addLRUtoWebEntity_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, addAliastoWebEntity_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -17411,41 +17500,57 @@ public class MemoryStructure {
           struct.me.write(oprot);
           oprot.writeFieldEnd();
         }
+        if (struct.x != null) {
+          oprot.writeFieldBegin(X_FIELD_DESC);
+          struct.x.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class addLRUtoWebEntity_resultTupleSchemeFactory implements SchemeFactory {
-      public addLRUtoWebEntity_resultTupleScheme getScheme() {
-        return new addLRUtoWebEntity_resultTupleScheme();
+    private static class addAliastoWebEntity_resultTupleSchemeFactory implements SchemeFactory {
+      public addAliastoWebEntity_resultTupleScheme getScheme() {
+        return new addAliastoWebEntity_resultTupleScheme();
       }
     }
 
-    private static class addLRUtoWebEntity_resultTupleScheme extends TupleScheme<addLRUtoWebEntity_result> {
+    private static class addAliastoWebEntity_resultTupleScheme extends TupleScheme<addAliastoWebEntity_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, addLRUtoWebEntity_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, addAliastoWebEntity_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetMe()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetX()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetMe()) {
           struct.me.write(oprot);
+        }
+        if (struct.isSetX()) {
+          struct.x.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, addLRUtoWebEntity_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, addAliastoWebEntity_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.me = new MemoryStructureException();
           struct.me.read(iprot);
           struct.setMeIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.x = new ObjectNotFoundException();
+          struct.x.read(iprot);
+          struct.setXIsSet(true);
         }
       }
     }

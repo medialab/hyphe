@@ -200,9 +200,9 @@ void saveNodeLinks(1:set<NodeLink> nodeLinks) throws (1:MemoryStructureException
 /**
  *
  * @param 1 id : the id of the WebEntity to add this LRU to
- * @param 2 lruItem : the lruItem to be marked as WebEntity
+ * @param 2 lru : the lru to add
 **/
-void addLRUtoWebEntity(1:string id, 2:PageItem pageItem) throws (1:MemoryStructureException me),
+void addAliastoWebEntity(1:string id, 2:string lru) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
 // gefx network
 /**

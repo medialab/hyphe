@@ -232,8 +232,10 @@ public class LRUIndexTest extends TestCase {
     public void testIndexNewWebEntity() {
         try {
             assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
-            PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
-            String id = lruIndex.indexWebEntity(null, lruItem1);
+            WebEntity webEntity = new WebEntity();
+            webEntity.setName("new webentity");
+            webEntity.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab");
+            String id = lruIndex.indexWebEntity(webEntity);
             logger.debug("indexed webentity with id " + id);
             assertEquals("IndexCount returns unexpected number", 1, lruIndex.indexCount());
         }
@@ -287,24 +289,30 @@ public class LRUIndexTest extends TestCase {
             assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
 
             // create a webentity
-            PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
-            String id = lruIndex.indexWebEntity(null, lruItem1);
+            WebEntity webEntity = new WebEntity();
+            webEntity.setName("new webentity");
+            webEntity.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab");
+            String id = lruIndex.indexWebEntity(webEntity);
 
             // add lru to this webentity
-            PageItem lruItem2 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:www");
+            String lruItem2 = "s:http|h:fr|h:sciences-po|h:www";
             String id2 = lruIndex.indexWebEntity(id, lruItem2);
 
             assertEquals("update existing webentity returns unexpected id", id, id2);
             assertEquals("IndexCount returns unexpected number", 1, lruIndex.indexCount());
-            WebEntity webEntity = lruIndex.retrieveWebEntity(id);
+
+            WebEntity retrieved = lruIndex.retrieveWebEntity(id);
             assertNotNull("failed to retrieve existing webentity", webEntity);
-            if(webEntity != null) {
-                int lruListSize = webEntity.getLRUSetSize();
+            if(retrieved != null) {
+                int lruListSize = retrieved.getLRUSetSize();
                 assertEquals("unexpected webentity lrulist size", 2, lruListSize);
             }
         }
         catch (IndexException x) {
             fail(x.getMessage());
+        }
+        catch (ObjectNotFoundException x) {
+            fail(x.getMsg());
         }
     }
 
@@ -316,11 +324,11 @@ public class LRUIndexTest extends TestCase {
     public void testAddToExistingWebEntityThatDoesNotActuallyExist() {
         try {
             assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
-            PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
             String nonExistingId = "there-is-no-webentity-with-this-id";
-            String id = lruIndex.indexWebEntity(nonExistingId, lruItem1);
-            assertNotSame("update existing webentity that does not really exist returns unexpected id", id, nonExistingId);
-            assertEquals("IndexCount returns unexpected number", 1, lruIndex.indexCount());
+            String id = lruIndex.indexWebEntity(nonExistingId, "s:http|h:fr|h:sciences-po|h:medialab");
+            fail("Expected ObjectNotFoundException wasn't thrown");
+        }
+        catch (ObjectNotFoundException e) {
         }
         catch (IndexException x) {
             fail(x.getMessage());

@@ -235,10 +235,13 @@ public class LRUIndex {
         }
 	}
 
-    private Set<String> alreadyExistingWebEntityLRUs(Set<String> lrus) throws IndexException {
+    private Set<String> alreadyExistingWebEntityLRUs(String newId, Set<String> lrus) throws IndexException {
         Set<String> result = new HashSet<String>();
         Set<WebEntity> existingWebEntities = retrieveWebEntities();
         for(WebEntity webEntity : existingWebEntities) {
+            if(StringUtils.isNotEmpty(newId) && webEntity.getId().equals(newId)) {
+                continue;
+            }
             Set<String> existingLRUs = webEntity.getLRUSet();
             Set intersection = new HashSet(lrus);
             intersection.retainAll(existingLRUs);
@@ -271,7 +274,7 @@ public class LRUIndex {
              throw new IndexException("WebEntity has empty lru set");
          }
          // Ensure a webEntity lruprefix is unique in the web entity index
-         Set<String> existing = alreadyExistingWebEntityLRUs(webEntity.getLRUSet());
+         Set<String> existing = alreadyExistingWebEntityLRUs(webEntity.getId(), webEntity.getLRUSet());
          if(existing.size() > 0) {
              throw new IndexException("WebEntity contains already existing LRUs: " + existing);
          }
@@ -333,54 +336,48 @@ public class LRUIndex {
      }
 
    /**
-     * Adds or updates a WebEntity to the index. If ID is not empty, the existing WebEntity with that ID is retrieved
-     * and this LRU is added to it; if no existing WebEntity with that ID is found, or if ID is empty, a new WebEntity
-     * is created.
+     * Updates a WebEntity to the index.
      *
      * @param id
-     * @param pageItem
-     * @throws IndexException hmm
+     * @param lru
+    * @throws IndexException hmm
+    * @throws ObjectNotFoundException hmm
+    * @return
      */
-    public String indexWebEntity(String id, PageItem pageItem) throws IndexException{
-        logger.debug("indexWebEntity id: " + id);
+    public String indexWebEntity(String id, String lru) throws IndexException, ObjectNotFoundException {
+        logger.debug("updating indexWebEntity with id: " + id);
         try {
-            WebEntity webEntity = null;
-            boolean updating = false;
+            // validation
+            if(StringUtils.isEmpty(id)) {
+                throw new IndexException("indexWebEntity received empty id");
+            }
+            if(StringUtils.isEmpty(lru)) {
+                throw new IndexException("indexWebEntity received empty lru");
+            }
+             // Ensure a webEntity lruprefix is unique in the web entity index
+             Set<String> newLRU = new HashSet<String>();
+             newLRU.add(lru);
+             Set<String> existing = alreadyExistingWebEntityLRUs(id, newLRU);
+             if(existing.size() > 0) {
+                 throw new IndexException("WebEntity contains already existing LRUs: " + existing);
+             }
 
-            // id has a value
-            if(StringUtils.isNotEmpty(id)) {
-                logger.debug("id is not null, retrieving existing webentity");
-                // retieve webEntity with that id
-                webEntity = retrieveWebEntity(id);
-                if(logger.isDebugEnabled()) {
-                    if(webEntity != null) {
-                        logger.debug("webentity found");
-                        logger.debug("found webentity has # " + webEntity.getLRUSet().size() + " lrus");
-                    }
-                    else {
-                        logger.debug("did not find webentity with id " + id);
-                    }
-                }
-            }
-            // id has no value or no webentity found with that id: create new
+
+            // retieve webEntity with that id
+            WebEntity webEntity = retrieveWebEntity(id);
+
+            // no webentity found with that id
             if(webEntity == null) {
-                logger.debug("creating new webentity");
-                webEntity = new WebEntity();
-                webEntity.setLRUSet(new HashSet<String>());
+                throw new ObjectNotFoundException().setMsg("Could not find WebEntity with id " + id);
             }
-            else {
-                logger.debug("updating webentity with id " + id);
-                updating = true;
-            }
-            webEntity.addToLRUSet(pageItem.getLru());
+            webEntity.addToLRUSet(lru);
 
             // update: first delete old webentity
-            if(updating) {
-                logger.debug("deleting existing webentity with id " + id);
-                Query q = findWebEntityQuery(id);
-                this.indexWriter.deleteDocuments(q);
-                this.indexWriter.commit();
-            }
+            logger.debug("deleting existing webentity with id " + id);
+            Query q = findWebEntityQuery(id);
+            this.indexWriter.deleteDocuments(q);
+            this.indexWriter.commit();
+            // index new webentity
             logger.debug("indexing webentity");
             Document webEntityDocument = IndexConfiguration.WebEntityDocument(webEntity);
             this.indexWriter.addDocument(webEntityDocument);
