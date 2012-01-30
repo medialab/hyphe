@@ -40,6 +40,8 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
   private static final org.apache.thrift.protocol.TField IS_FULL_PRECISION_FIELD_DESC = new org.apache.thrift.protocol.TField("isFullPrecision", org.apache.thrift.protocol.TType.BOOL, (short)8);
   private static final org.apache.thrift.protocol.TField IS_NODE_FIELD_DESC = new org.apache.thrift.protocol.TField("isNode", org.apache.thrift.protocol.TType.BOOL, (short)9);
   private static final org.apache.thrift.protocol.TField METADATA_ITEMS_FIELD_DESC = new org.apache.thrift.protocol.TField("metadataItems", org.apache.thrift.protocol.TType.MAP, (short)10);
+  private static final org.apache.thrift.protocol.TField CREATION_DATE_FIELD_DESC = new org.apache.thrift.protocol.TField("creationDate", org.apache.thrift.protocol.TType.STRING, (short)11);
+  private static final org.apache.thrift.protocol.TField LAST_MODIFICATION_DATE_FIELD_DESC = new org.apache.thrift.protocol.TField("lastModificationDate", org.apache.thrift.protocol.TType.STRING, (short)12);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -57,6 +59,8 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
   public boolean isFullPrecision; // required
   public boolean isNode; // required
   public Map<String,Set<String>> metadataItems; // required
+  public String creationDate; // required
+  public String lastModificationDate; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -69,7 +73,9 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
     ERROR_CODE((short)7, "errorCode"),
     IS_FULL_PRECISION((short)8, "isFullPrecision"),
     IS_NODE((short)9, "isNode"),
-    METADATA_ITEMS((short)10, "metadataItems");
+    METADATA_ITEMS((short)10, "metadataItems"),
+    CREATION_DATE((short)11, "creationDate"),
+    LAST_MODIFICATION_DATE((short)12, "lastModificationDate");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -104,6 +110,10 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
           return IS_NODE;
         case 10: // METADATA_ITEMS
           return METADATA_ITEMS;
+        case 11: // CREATION_DATE
+          return CREATION_DATE;
+        case 12: // LAST_MODIFICATION_DATE
+          return LAST_MODIFICATION_DATE;
         default:
           return null;
       }
@@ -175,6 +185,10 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
             new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
                 new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)))));
+    tmpMap.put(_Fields.CREATION_DATE, new org.apache.thrift.meta_data.FieldMetaData("creationDate", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.LAST_MODIFICATION_DATE, new org.apache.thrift.meta_data.FieldMetaData("lastModificationDate", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(PageItem.class, metaDataMap);
   }
@@ -194,7 +208,9 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
     String errorCode,
     boolean isFullPrecision,
     boolean isNode,
-    Map<String,Set<String>> metadataItems)
+    Map<String,Set<String>> metadataItems,
+    String creationDate,
+    String lastModificationDate)
   {
     this();
     this.id = id;
@@ -211,6 +227,8 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
     this.isNode = isNode;
     setIsNodeIsSet(true);
     this.metadataItems = metadataItems;
+    this.creationDate = creationDate;
+    this.lastModificationDate = lastModificationDate;
   }
 
   /**
@@ -256,6 +274,12 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
       }
       this.metadataItems = __this__metadataItems;
     }
+    if (other.isSetCreationDate()) {
+      this.creationDate = other.creationDate;
+    }
+    if (other.isSetLastModificationDate()) {
+      this.lastModificationDate = other.lastModificationDate;
+    }
   }
 
   public PageItem deepCopy() {
@@ -278,6 +302,8 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
     setIsNodeIsSet(false);
     this.isNode = false;
     this.metadataItems = null;
+    this.creationDate = null;
+    this.lastModificationDate = null;
   }
 
   public String getId() {
@@ -527,6 +553,54 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
     }
   }
 
+  public String getCreationDate() {
+    return this.creationDate;
+  }
+
+  public PageItem setCreationDate(String creationDate) {
+    this.creationDate = creationDate;
+    return this;
+  }
+
+  public void unsetCreationDate() {
+    this.creationDate = null;
+  }
+
+  /** Returns true if field creationDate is set (has been assigned a value) and false otherwise */
+  public boolean isSetCreationDate() {
+    return this.creationDate != null;
+  }
+
+  public void setCreationDateIsSet(boolean value) {
+    if (!value) {
+      this.creationDate = null;
+    }
+  }
+
+  public String getLastModificationDate() {
+    return this.lastModificationDate;
+  }
+
+  public PageItem setLastModificationDate(String lastModificationDate) {
+    this.lastModificationDate = lastModificationDate;
+    return this;
+  }
+
+  public void unsetLastModificationDate() {
+    this.lastModificationDate = null;
+  }
+
+  /** Returns true if field lastModificationDate is set (has been assigned a value) and false otherwise */
+  public boolean isSetLastModificationDate() {
+    return this.lastModificationDate != null;
+  }
+
+  public void setLastModificationDateIsSet(boolean value) {
+    if (!value) {
+      this.lastModificationDate = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case ID:
@@ -609,6 +683,22 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
       }
       break;
 
+    case CREATION_DATE:
+      if (value == null) {
+        unsetCreationDate();
+      } else {
+        setCreationDate((String)value);
+      }
+      break;
+
+    case LAST_MODIFICATION_DATE:
+      if (value == null) {
+        unsetLastModificationDate();
+      } else {
+        setLastModificationDate((String)value);
+      }
+      break;
+
     }
   }
 
@@ -644,6 +734,12 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
     case METADATA_ITEMS:
       return getMetadataItems();
 
+    case CREATION_DATE:
+      return getCreationDate();
+
+    case LAST_MODIFICATION_DATE:
+      return getLastModificationDate();
+
     }
     throw new IllegalStateException();
   }
@@ -675,6 +771,10 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
       return isSetIsNode();
     case METADATA_ITEMS:
       return isSetMetadataItems();
+    case CREATION_DATE:
+      return isSetCreationDate();
+    case LAST_MODIFICATION_DATE:
+      return isSetLastModificationDate();
     }
     throw new IllegalStateException();
   }
@@ -779,6 +879,24 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
       if (!(this_present_metadataItems && that_present_metadataItems))
         return false;
       if (!this.metadataItems.equals(that.metadataItems))
+        return false;
+    }
+
+    boolean this_present_creationDate = true && this.isSetCreationDate();
+    boolean that_present_creationDate = true && that.isSetCreationDate();
+    if (this_present_creationDate || that_present_creationDate) {
+      if (!(this_present_creationDate && that_present_creationDate))
+        return false;
+      if (!this.creationDate.equals(that.creationDate))
+        return false;
+    }
+
+    boolean this_present_lastModificationDate = true && this.isSetLastModificationDate();
+    boolean that_present_lastModificationDate = true && that.isSetLastModificationDate();
+    if (this_present_lastModificationDate || that_present_lastModificationDate) {
+      if (!(this_present_lastModificationDate && that_present_lastModificationDate))
+        return false;
+      if (!this.lastModificationDate.equals(that.lastModificationDate))
         return false;
     }
 
@@ -898,6 +1016,26 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetCreationDate()).compareTo(typedOther.isSetCreationDate());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCreationDate()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.creationDate, typedOther.creationDate);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetLastModificationDate()).compareTo(typedOther.isSetLastModificationDate());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetLastModificationDate()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lastModificationDate, typedOther.lastModificationDate);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -979,6 +1117,22 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
       sb.append("null");
     } else {
       sb.append(this.metadataItems);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("creationDate:");
+    if (this.creationDate == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.creationDate);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("lastModificationDate:");
+    if (this.lastModificationDate == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.lastModificationDate);
     }
     first = false;
     sb.append(")");
@@ -1127,6 +1281,22 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 11: // CREATION_DATE
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.creationDate = iprot.readString();
+              struct.setCreationDateIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 12: // LAST_MODIFICATION_DATE
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.lastModificationDate = iprot.readString();
+              struct.setLastModificationDateIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -1199,6 +1369,16 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
         }
         oprot.writeFieldEnd();
       }
+      if (struct.creationDate != null) {
+        oprot.writeFieldBegin(CREATION_DATE_FIELD_DESC);
+        oprot.writeString(struct.creationDate);
+        oprot.writeFieldEnd();
+      }
+      if (struct.lastModificationDate != null) {
+        oprot.writeFieldBegin(LAST_MODIFICATION_DATE_FIELD_DESC);
+        oprot.writeString(struct.lastModificationDate);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1247,7 +1427,13 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
       if (struct.isSetMetadataItems()) {
         optionals.set(9);
       }
-      oprot.writeBitSet(optionals, 10);
+      if (struct.isSetCreationDate()) {
+        optionals.set(10);
+      }
+      if (struct.isSetLastModificationDate()) {
+        optionals.set(11);
+      }
+      oprot.writeBitSet(optionals, 12);
       if (struct.isSetId()) {
         oprot.writeString(struct.id);
       }
@@ -1291,12 +1477,18 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
           }
         }
       }
+      if (struct.isSetCreationDate()) {
+        oprot.writeString(struct.creationDate);
+      }
+      if (struct.isSetLastModificationDate()) {
+        oprot.writeString(struct.lastModificationDate);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, PageItem struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(10);
+      BitSet incoming = iprot.readBitSet(12);
       if (incoming.get(0)) {
         struct.id = iprot.readString();
         struct.setIdIsSet(true);
@@ -1356,6 +1548,14 @@ public class PageItem implements org.apache.thrift.TBase<PageItem, PageItem._Fie
           }
         }
         struct.setMetadataItemsIsSet(true);
+      }
+      if (incoming.get(10)) {
+        struct.creationDate = iprot.readString();
+        struct.setCreationDateIsSet(true);
+      }
+      if (incoming.get(11)) {
+        struct.lastModificationDate = iprot.readString();
+        struct.setLastModificationDateIsSet(true);
       }
     }
   }

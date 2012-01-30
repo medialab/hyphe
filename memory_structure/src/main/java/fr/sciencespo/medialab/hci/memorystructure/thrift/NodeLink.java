@@ -34,6 +34,8 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
   private static final org.apache.thrift.protocol.TField SOURCE_LRU_FIELD_DESC = new org.apache.thrift.protocol.TField("sourceLRU", org.apache.thrift.protocol.TType.STRING, (short)2);
   private static final org.apache.thrift.protocol.TField TARGET_LRU_FIELD_DESC = new org.apache.thrift.protocol.TField("targetLRU", org.apache.thrift.protocol.TType.STRING, (short)3);
   private static final org.apache.thrift.protocol.TField WEIGHT_FIELD_DESC = new org.apache.thrift.protocol.TField("weight", org.apache.thrift.protocol.TType.I32, (short)4);
+  private static final org.apache.thrift.protocol.TField CREATION_DATE_FIELD_DESC = new org.apache.thrift.protocol.TField("creationDate", org.apache.thrift.protocol.TType.STRING, (short)5);
+  private static final org.apache.thrift.protocol.TField LAST_MODIFICATION_DATE_FIELD_DESC = new org.apache.thrift.protocol.TField("lastModificationDate", org.apache.thrift.protocol.TType.STRING, (short)6);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -45,13 +47,17 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
   public String sourceLRU; // required
   public String targetLRU; // required
   public int weight; // required
+  public String creationDate; // required
+  public String lastModificationDate; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     ID((short)1, "id"),
     SOURCE_LRU((short)2, "sourceLRU"),
     TARGET_LRU((short)3, "targetLRU"),
-    WEIGHT((short)4, "weight");
+    WEIGHT((short)4, "weight"),
+    CREATION_DATE((short)5, "creationDate"),
+    LAST_MODIFICATION_DATE((short)6, "lastModificationDate");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -74,6 +80,10 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
           return TARGET_LRU;
         case 4: // WEIGHT
           return WEIGHT;
+        case 5: // CREATION_DATE
+          return CREATION_DATE;
+        case 6: // LAST_MODIFICATION_DATE
+          return LAST_MODIFICATION_DATE;
         default:
           return null;
       }
@@ -127,6 +137,10 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.WEIGHT, new org.apache.thrift.meta_data.FieldMetaData("weight", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.CREATION_DATE, new org.apache.thrift.meta_data.FieldMetaData("creationDate", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.LAST_MODIFICATION_DATE, new org.apache.thrift.meta_data.FieldMetaData("lastModificationDate", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(NodeLink.class, metaDataMap);
   }
@@ -140,7 +154,9 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
     String id,
     String sourceLRU,
     String targetLRU,
-    int weight)
+    int weight,
+    String creationDate,
+    String lastModificationDate)
   {
     this();
     this.id = id;
@@ -148,6 +164,8 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
     this.targetLRU = targetLRU;
     this.weight = weight;
     setWeightIsSet(true);
+    this.creationDate = creationDate;
+    this.lastModificationDate = lastModificationDate;
   }
 
   /**
@@ -166,6 +184,12 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
       this.targetLRU = other.targetLRU;
     }
     this.weight = other.weight;
+    if (other.isSetCreationDate()) {
+      this.creationDate = other.creationDate;
+    }
+    if (other.isSetLastModificationDate()) {
+      this.lastModificationDate = other.lastModificationDate;
+    }
   }
 
   public NodeLink deepCopy() {
@@ -179,6 +203,8 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
     this.targetLRU = null;
     this.weight = 1;
 
+    this.creationDate = null;
+    this.lastModificationDate = null;
   }
 
   public String getId() {
@@ -276,6 +302,54 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
     __isset_bit_vector.set(__WEIGHT_ISSET_ID, value);
   }
 
+  public String getCreationDate() {
+    return this.creationDate;
+  }
+
+  public NodeLink setCreationDate(String creationDate) {
+    this.creationDate = creationDate;
+    return this;
+  }
+
+  public void unsetCreationDate() {
+    this.creationDate = null;
+  }
+
+  /** Returns true if field creationDate is set (has been assigned a value) and false otherwise */
+  public boolean isSetCreationDate() {
+    return this.creationDate != null;
+  }
+
+  public void setCreationDateIsSet(boolean value) {
+    if (!value) {
+      this.creationDate = null;
+    }
+  }
+
+  public String getLastModificationDate() {
+    return this.lastModificationDate;
+  }
+
+  public NodeLink setLastModificationDate(String lastModificationDate) {
+    this.lastModificationDate = lastModificationDate;
+    return this;
+  }
+
+  public void unsetLastModificationDate() {
+    this.lastModificationDate = null;
+  }
+
+  /** Returns true if field lastModificationDate is set (has been assigned a value) and false otherwise */
+  public boolean isSetLastModificationDate() {
+    return this.lastModificationDate != null;
+  }
+
+  public void setLastModificationDateIsSet(boolean value) {
+    if (!value) {
+      this.lastModificationDate = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case ID:
@@ -310,6 +384,22 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
       }
       break;
 
+    case CREATION_DATE:
+      if (value == null) {
+        unsetCreationDate();
+      } else {
+        setCreationDate((String)value);
+      }
+      break;
+
+    case LAST_MODIFICATION_DATE:
+      if (value == null) {
+        unsetLastModificationDate();
+      } else {
+        setLastModificationDate((String)value);
+      }
+      break;
+
     }
   }
 
@@ -326,6 +416,12 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
 
     case WEIGHT:
       return Integer.valueOf(getWeight());
+
+    case CREATION_DATE:
+      return getCreationDate();
+
+    case LAST_MODIFICATION_DATE:
+      return getLastModificationDate();
 
     }
     throw new IllegalStateException();
@@ -346,6 +442,10 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
       return isSetTargetLRU();
     case WEIGHT:
       return isSetWeight();
+    case CREATION_DATE:
+      return isSetCreationDate();
+    case LAST_MODIFICATION_DATE:
+      return isSetLastModificationDate();
     }
     throw new IllegalStateException();
   }
@@ -396,6 +496,24 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
       if (!(this_present_weight && that_present_weight))
         return false;
       if (this.weight != that.weight)
+        return false;
+    }
+
+    boolean this_present_creationDate = true && this.isSetCreationDate();
+    boolean that_present_creationDate = true && that.isSetCreationDate();
+    if (this_present_creationDate || that_present_creationDate) {
+      if (!(this_present_creationDate && that_present_creationDate))
+        return false;
+      if (!this.creationDate.equals(that.creationDate))
+        return false;
+    }
+
+    boolean this_present_lastModificationDate = true && this.isSetLastModificationDate();
+    boolean that_present_lastModificationDate = true && that.isSetLastModificationDate();
+    if (this_present_lastModificationDate || that_present_lastModificationDate) {
+      if (!(this_present_lastModificationDate && that_present_lastModificationDate))
+        return false;
+      if (!this.lastModificationDate.equals(that.lastModificationDate))
         return false;
     }
 
@@ -455,6 +573,26 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetCreationDate()).compareTo(typedOther.isSetCreationDate());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCreationDate()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.creationDate, typedOther.creationDate);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetLastModificationDate()).compareTo(typedOther.isSetLastModificationDate());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetLastModificationDate()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lastModificationDate, typedOther.lastModificationDate);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -501,6 +639,22 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
     if (!first) sb.append(", ");
     sb.append("weight:");
     sb.append(this.weight);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("creationDate:");
+    if (this.creationDate == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.creationDate);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("lastModificationDate:");
+    if (this.lastModificationDate == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.lastModificationDate);
+    }
     first = false;
     sb.append(")");
     return sb.toString();
@@ -578,6 +732,22 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 5: // CREATION_DATE
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.creationDate = iprot.readString();
+              struct.setCreationDateIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 6: // LAST_MODIFICATION_DATE
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.lastModificationDate = iprot.readString();
+              struct.setLastModificationDateIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -611,6 +781,16 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
       oprot.writeFieldBegin(WEIGHT_FIELD_DESC);
       oprot.writeI32(struct.weight);
       oprot.writeFieldEnd();
+      if (struct.creationDate != null) {
+        oprot.writeFieldBegin(CREATION_DATE_FIELD_DESC);
+        oprot.writeString(struct.creationDate);
+        oprot.writeFieldEnd();
+      }
+      if (struct.lastModificationDate != null) {
+        oprot.writeFieldBegin(LAST_MODIFICATION_DATE_FIELD_DESC);
+        oprot.writeString(struct.lastModificationDate);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -641,7 +821,13 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
       if (struct.isSetWeight()) {
         optionals.set(3);
       }
-      oprot.writeBitSet(optionals, 4);
+      if (struct.isSetCreationDate()) {
+        optionals.set(4);
+      }
+      if (struct.isSetLastModificationDate()) {
+        optionals.set(5);
+      }
+      oprot.writeBitSet(optionals, 6);
       if (struct.isSetId()) {
         oprot.writeString(struct.id);
       }
@@ -654,12 +840,18 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
       if (struct.isSetWeight()) {
         oprot.writeI32(struct.weight);
       }
+      if (struct.isSetCreationDate()) {
+        oprot.writeString(struct.creationDate);
+      }
+      if (struct.isSetLastModificationDate()) {
+        oprot.writeString(struct.lastModificationDate);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, NodeLink struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(4);
+      BitSet incoming = iprot.readBitSet(6);
       if (incoming.get(0)) {
         struct.id = iprot.readString();
         struct.setIdIsSet(true);
@@ -675,6 +867,14 @@ public class NodeLink implements org.apache.thrift.TBase<NodeLink, NodeLink._Fie
       if (incoming.get(3)) {
         struct.weight = iprot.readI32();
         struct.setWeightIsSet(true);
+      }
+      if (incoming.get(4)) {
+        struct.creationDate = iprot.readString();
+        struct.setCreationDateIsSet(true);
+      }
+      if (incoming.get(5)) {
+        struct.lastModificationDate = iprot.readString();
+        struct.setLastModificationDateIsSet(true);
       }
     }
   }

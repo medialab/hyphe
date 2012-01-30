@@ -30,14 +30,18 @@ struct PageItem {
   7: string errorCode,
   8: bool isFullPrecision = false,
   9: bool isNode,
-  10: map<string, set<string>> metadataItems
+  10: map<string, set<string>> metadataItems,
+  11: string creationDate,
+  12: string lastModificationDate
 }
 
 struct NodeLink {
   1: string id,
   2: string sourceLRU,
   3: string targetLRU,
-  4: i32 weight=1
+  4: i32 weight=1,
+  5: string creationDate,
+  6: string lastModificationDate
 }
 
 /**
@@ -53,7 +57,9 @@ struct WebEntity {
 
 struct WebEntityCreationRule {
   1: string regExp,
-  2: string LRU
+  2: string LRU,
+  3: string creationDate,
+  4: string lastModificationDate
 }
 
 # Services
