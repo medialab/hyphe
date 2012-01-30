@@ -4,6 +4,7 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.util.LineFileReader;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -420,6 +421,65 @@ public class LRUIndexTest extends TestCase {
             logger.error(x.getMessage());
             x.printStackTrace();
             fail(x.getMessage());
+        }
+    }
+
+
+    public void testIndexWebEntityCreationRule() {
+        try {
+            WebEntityCreationRule webEntityCreationRule = new WebEntityCreationRule();
+            webEntityCreationRule.setLRU("s:http|h:fr|h:sciences-po");
+            webEntityCreationRule.setRegExp("(s:[a-zA-Z]+\\|(h:www|)?h:[a-zA-Z]+(\\|h:[^|]+)+)");
+            lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
+            assertTrue("Unexpected exception was thrown", true);
+            assertEquals("Unexpected # of web entity creation rules", 1, lruIndex.retrieveWebEntityCreationRules().size());
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+    }
+
+    public void testIndexWebEntityCreationRuleWithExistingPrefix() {
+        try {
+            // create pre-existing data
+            WebEntityCreationRule webEntityCreationRule = new WebEntityCreationRule();
+            webEntityCreationRule.setLRU("s:http|h:fr|h:sciences-po");
+            webEntityCreationRule.setRegExp("(s:[a-zA-Z]+\\|(h:www|)?h:[a-zA-Z]+(\\|h:[^|]+)+)");
+            lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
+
+            // create new data
+            WebEntityCreationRule webEntityCreationRule2 = new WebEntityCreationRule();
+            webEntityCreationRule2.setLRU("s:http|h:fr|h:sciences-po");
+            webEntityCreationRule2.setRegExp("(s:[a-zA-Z]+\\|(h:www|)?h:[a-zA-Z]+(\\|h:[^|]+)+)");
+            lruIndex.indexWebEntityCreationRule(webEntityCreationRule2);
+
+            fail("Expected IndexException wasn't thrown");
+        }
+        catch (IndexException x) {
+            assertEquals("Unexpected exception message", "WebEntityCreationRule has already existing LRU prefix: s:http|h:fr|h:sciences-po", x.getMessage());
+        }
+    }
+
+    public void testIndexWebEntityCreationRuleWithNullInput() {
+        try {
+            lruIndex.indexWebEntityCreationRule(null);
+            fail("Expected IndexException wasn't thrown");
+        }
+        catch (IndexException x) {
+            assertEquals("Unexpected exception message", "webEntityCreationRule is null", x.getMessage());
+        }
+    }
+
+    public void testIndexWebEntityCreationRuleWithEmptyInput() {
+        try {
+            WebEntityCreationRule webEntityCreationRule = new WebEntityCreationRule();
+            lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
+            fail("Expected IndexException wasn't thrown");
+        }
+        catch (IndexException x) {
+            assertEquals("Unexpected exception message", "WebEntityCreationRule has null properties", x.getMessage());
         }
     }
 

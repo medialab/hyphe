@@ -406,6 +406,20 @@ public class LRUIndex {
         }
     }
 
+
+    private String alreadyExistingWebEntityCreationRulePrefixes(String prefix) throws IndexException {
+        Set<String> result = new HashSet<String>();
+        Set<WebEntityCreationRule> existingWebEntityCreationRules = retrieveWebEntityCreationRules();
+        for(WebEntityCreationRule webEntityCreationRule : existingWebEntityCreationRules) {
+            String existingPrefix = webEntityCreationRule.getLRU();
+            if(existingPrefix.equals(prefix)) {
+                logger.debug("found already existing webentity creation rule prefix: " + prefix);
+                return prefix;
+            }
+        }
+        return null;
+    }
+
     /**
      * Adds or updates a single WebEntityCreationRule to the index. If the rule's LRU is empty, it is set as the
      * default rule. If there exists already a rule with this rule's LRU, it is updated.
@@ -414,9 +428,18 @@ public class LRUIndex {
      * @throws IndexException hmm
      */
     public void indexWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws IndexException{
+        //
+        // validation
+        //
         if(webEntityCreationRule == null) {
             throw new IndexException("webEntityCreationRule is null");
         }
+        // Ensure a LRU webEntity creation rule prefix is unique in the web entity creation rule index
+        String existingPrefix = alreadyExistingWebEntityCreationRulePrefixes(webEntityCreationRule.getLRU());
+        if(existingPrefix != null) {
+            throw new IndexException("WebEntityCreationRule has already existing LRU prefix: " + existingPrefix);
+        }
+
         try {
             boolean update = false;
             WebEntityCreationRule existing = null;
