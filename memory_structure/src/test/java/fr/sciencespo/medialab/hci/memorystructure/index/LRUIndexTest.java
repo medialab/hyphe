@@ -1,5 +1,6 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
+import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
@@ -479,6 +480,58 @@ public class LRUIndexTest extends TestCase {
         }
         catch (ObjectNotFoundException x) {
             assertTrue("Unexpected exception message", x.getMsg().startsWith("Could not find webentity with id:"));
+        }
+    }
+
+    public void testSaveNodeLinks() {
+        try {
+            assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+            NodeLink nodeLink1 = new NodeLink();
+            nodeLink1.setSourceLRU("s:http|h:fr|h:sciences-po");
+            nodeLink1.setTargetLRU("s:http|h:fr|h:sciencespo");
+
+            NodeLink nodeLink2 = new NodeLink();
+            nodeLink2.setSourceLRU("s:http|h:fr|h:sciences-po|h:medialab");
+            nodeLink2.setTargetLRU("s:http|h:fr|h:sciences-po");
+
+            NodeLink nodeLink3 = new NodeLink();
+            nodeLink3.setSourceLRU("s:http|h:com|h:blogspot|h:myblog");
+            nodeLink3.setTargetLRU("s:http|h:fr|h:sciences-po");
+
+            List<Object> nodelinks = new ArrayList<Object>();
+            nodelinks.add(nodeLink1);
+            nodelinks.add(nodeLink2);
+            nodelinks.add(nodeLink3);
+
+            int indexed  = lruIndex.batchIndex(nodelinks);
+
+            assertEquals("Unexpected number of indexed nodeLinks", 3, indexed);
+
+            Set<NodeLink> retrieved = lruIndex.retrieveNodeLinks();
+
+            assertNotNull("Retrieved NodeLinks is null", retrieved);
+            assertEquals("Unexpected # of nodelinks retrieved", 3, retrieved.size());
+            for(NodeLink retrievedNL : retrieved) {
+                String source = retrievedNL.getSourceLRU();
+                if(source.equals("s:http|h:fr|h:sciences-po")) {
+                    assertEquals("Retrieved nodelink with unexpected target", "s:http|h:fr|h:sciencespo", retrievedNL.getTargetLRU());
+                }
+                else if(source.equals("s:http|h:fr|h:sciences-po|h:medialab")) {
+                    assertEquals("Retrieved nodelink with unexpected target", "s:http|h:fr|h:sciences-po", retrievedNL.getTargetLRU());
+                }
+                else if(source.equals("s:http|h:com|h:blogspot|h:myblog")) {
+                    assertEquals("Retrieved nodelink with unexpected target", "s:http|h:fr|h:sciences-po", retrievedNL.getTargetLRU());
+                }
+                else {
+                    fail("Retrieved nodelink with unexpected source: " + source);
+                }
+            }
+
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
         }
     }
 

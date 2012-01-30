@@ -300,6 +300,35 @@ public class IndexConfiguration {
     }
 
     /**
+     * Returns a NodeLink object from a NodeLink Lucene document.
+     *
+     * @param document
+     * @return
+     */
+    public static NodeLink convertLuceneDocument2NodeLink(Document document) {
+        NodeLink nodeLink = new NodeLink();
+
+        String id = document.get(FieldName.ID.name());
+        nodeLink.setId(id);
+
+        String source = document.get(FieldName.SOURCE.name());
+        nodeLink.setSourceLRU(source);
+
+        String target = document.get(FieldName.TARGET.name());
+        nodeLink.setTargetLRU(target);
+
+        String weight$ = document.get(FieldName.WEIGHT.name());
+        int weight = 0;
+        if(StringUtils.isNotEmpty(weight$)) {
+            weight = Integer.parseInt(weight$);
+        }
+        nodeLink.setWeight(weight);
+
+        logger.debug("convertLuceneDocument2NodeLink returns nodelink with id: " + id);
+        return nodeLink;
+    }
+
+    /**
      * Returns a WebEntityCreationRule object from a WebEntityCreationRule Lucene document.
      *
      * @param document

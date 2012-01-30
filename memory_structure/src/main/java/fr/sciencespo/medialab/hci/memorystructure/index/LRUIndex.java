@@ -633,6 +633,50 @@ public class LRUIndex {
     }
 
     /**
+     * Retrieves all NodeLinks.
+     *
+     * @return
+     * @throws IndexException
+     */
+   public Set<NodeLink> retrieveNodeLinks() throws IndexException {
+       try {
+            Set<NodeLink> result = new HashSet<NodeLink>();
+            Term isNodeLink = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.NODE_LINK.name());
+            TermQuery q = new TermQuery(isNodeLink);
+            final List<Document> hits2 = new ArrayList<Document>();
+            indexSearcher.search(q, new Collector() {
+                private IndexReader reader;
+                @Override
+                public void setScorer(Scorer scorer) throws IOException {}
+
+                @Override
+                public void collect(int doc) throws IOException {
+                    hits2.add(reader.document(doc));
+                }
+
+                @Override
+                public void setNextReader(IndexReader reader, int docBase) throws IOException {
+                    this.reader = reader;
+                }
+
+                @Override
+                public boolean acceptsDocsOutOfOrder() {
+                    return true;
+                }
+            });
+            for(Document hit: hits2) {
+                    NodeLink nodeLink = IndexConfiguration.convertLuceneDocument2NodeLink(hit);
+                    result.add(nodeLink);
+            }
+            logger.debug("retrieved # " + result.size() + " nodelinks from index");
+            return result;
+        }
+        catch(IOException x) {
+            throw new IndexException(x.getMessage(), x);
+        }
+   }
+
+    /**
      * Retrieves all webentities.
      * @return
      */

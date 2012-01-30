@@ -447,7 +447,6 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    // TODO TEST
     public void saveNodeLinks(Set<NodeLink> nodeLinks) throws TException, MemoryStructureException {
         logger.debug("MemoryStructure saveNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
         try{
