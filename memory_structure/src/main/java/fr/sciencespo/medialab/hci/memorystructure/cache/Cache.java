@@ -164,7 +164,7 @@ public class Cache {
             String mostSpecificWEPrefix = "";
             if(matchingWEPrefixes.size() > 0) {
                 Set<String> mostSpecificWEPrefixes = CollectionUtils.findLongestString(matchingWEPrefixes.keySet());
-                // TODO what to do
+                // should never happen because of validation in lruindex when indexing webentity
                 if(mostSpecificWEPrefixes.size() > 1) {
                     throw new MemoryStructureException().setMsg("Confused: more than one matching WebEntity Prefix with same specificity");
                 }
@@ -186,7 +186,7 @@ public class Cache {
             String mostSpecificWECRPrefix = "";
             if(matchingWECRPrefixes.size() > 0) {
                 Set<String> mostSpecificWECRPrefixes = CollectionUtils.findLongestString(matchingWECRPrefixes.keySet());
-                // TODO what to do
+                // should never happen because of validation in lruindex when indexing web entity creation rule
                 if(matchingWECRPrefixes.size() > 1) {
                     throw new MemoryStructureException().setMsg("Confused: more than one matching WebEntityCreationRule Prefix with same specificity");
                 }
@@ -203,7 +203,7 @@ public class Cache {
                 logger.debug("did not find any matching web entity creation rule lru prefixes");
             }
 
-
+            // apply default rule if no other rule matches
             if(mostSpecificWEPrefix.length() == 0 && mostSpecificWECRPrefix.length() == 0) {
                 logger.debug("did not find match from either WE or WECR: using default WECR");
                 Set<WebEntityCreationRule> allWCRS = lruIndex.retrieveWebEntityCreationRules();
@@ -224,6 +224,7 @@ public class Cache {
                     }
                 }
             }
+
             // if the most precise prefix is from a Web Entity, do nothing
             else if(mostSpecificWEPrefix.length() > mostSpecificWECRPrefix.length()) {
                 logger.debug("most precise prefix is from a Web Entity, doing nothing");
@@ -231,12 +232,20 @@ public class Cache {
             }
             // if the most precise prefix is from a Web Entity Creation Rule, apply that rule (may be the default
             // rule)
-            else if(mostSpecificWECRPrefix.length() > mostSpecificWEPrefix.length()) {
-                logger.debug("most precise prefix is from a Web Entity Creation Rule, applying that rule");
+            // if they are equal length, the most specific LRUPrefix from Rules and most specific LRUPrefix from
+            // entities have same specificity : In such a case, priority to the creation rule
+
+            else if(mostSpecificWECRPrefix.length() >= mostSpecificWEPrefix.length()) {
+                if(mostSpecificWECRPrefix.length() > mostSpecificWEPrefix.length()) {
+                    logger.debug("most precise prefix is from a Web Entity Creation Rule, applying that rule");
+                }
+                else {
+                    logger.debug("most specific LRUPrefix from Rules and most specific LRUPrefix from entities have same specificity : prefer the creation rule");
+                }
                 // apply rule
                 Set<WebEntityCreationRule> matchingRules = matchingWECRPrefixes.get(mostSpecificWECRPrefix);
                 logger.debug("found # " + matchingRules.size() + " matching rules");
-                // TODO what to do
+                // should never happen because of validation in lruindex when indexing web entity creation rule
                 if(matchingRules.size() > 1) {
                     throw new MemoryStructureException().setMsg("Confused: more than one matching Rule with same specificity");
                 }
@@ -254,10 +263,6 @@ public class Cache {
                         logger.debug("rule did not match, did not create new web entity");
                     }
                 }
-            }
-            else {
-                // TODO what to do
-                throw new MemoryStructureException().setMsg("Confused: most specific LRUPrefix from Rules and most specific LRUPrefix from entities have same specificity");
             }
         }
         return createdWebEntitiesCount;
