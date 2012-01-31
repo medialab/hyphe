@@ -301,8 +301,16 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public void generateWebEntityLinks() throws TException {
-        // TODO
+    public void generateWebEntityLinks() throws MemoryStructureException, TException {
+        logger.debug("generateWebEntityLinks");
+        try {
+            lruIndex.generateWebEntityLinks();
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
     }
 
     /**

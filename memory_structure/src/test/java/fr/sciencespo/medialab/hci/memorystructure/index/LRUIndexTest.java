@@ -340,6 +340,7 @@ public class LRUIndexTest extends TestCase {
      */
     public void testFindMatchingWebEntitiesLRUPrefixes() {
         try {
+            logger.debug("\n\n\ntestFindMatchingWebEntitiesLRUPrefixes\n\n");
             String pageLRU = "s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci|p:index.php|q:title=Reverse_URLs|r:bottom";
 
             // these 3 match

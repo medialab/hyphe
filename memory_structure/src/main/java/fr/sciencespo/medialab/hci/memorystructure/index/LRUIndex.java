@@ -5,6 +5,7 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -38,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1021,6 +1023,26 @@ public class LRUIndex {
     }
 
     /**
+     *
+     * @param source
+     * @param target
+     * @return
+     */
+    private Query findWebEntityLinkQuery(WebEntity source, WebEntity target) {
+        Term isWebEntityLink = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_LINK.name());
+        Term sourceTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), source.getId());
+        Term targetTerm = new Term(IndexConfiguration.FieldName.TARGET.name(), target.getId());
+        BooleanQuery q = new BooleanQuery();
+        TermQuery q1 = new TermQuery(isWebEntityLink);
+        TermQuery q2 = new TermQuery(sourceTerm);
+        TermQuery q3 = new TermQuery(targetTerm);
+        q.add(q1, BooleanClause.Occur.MUST);
+        q.add(q2, BooleanClause.Occur.MUST);
+        q.add(q3, BooleanClause.Occur.MUST);
+        return q;
+    }
+
+    /**
      * Returns a map of matching LRUPrefixes and their WebEntity. If the same LRUPrefix occurs in more than one
      * WebEntity, they are all mapped.
      *
@@ -1032,7 +1054,15 @@ public class LRUIndex {
         Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
         if(!StringUtils.isEmpty(lru)) {
             Set<WebEntity> allWebEntities = retrieveWebEntities();
-            for(WebEntity webEntity : allWebEntities) {
+            matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities));
+        }
+        return matches;
+    }
+
+    private Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(String lru, Set<WebEntity> webEntities) throws IndexException {
+        Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
+        if(!StringUtils.isEmpty(lru)) {
+            for(WebEntity webEntity : webEntities) {
                 Set<String> lruPrefixes = webEntity.getLRUSet();
                 for(String lruPrefix : lruPrefixes) {
                     // TODO is it inefficient to compile these patterns everytime ? Better to keep them in memory ?
@@ -1056,6 +1086,23 @@ public class LRUIndex {
                     }
                 }
             }
+        }
+        return matches;
+    }
+
+    /**
+     * Returns a map of matching LRUPrefixes and their WebEntity. If the same LRUPrefix occurs in more than one
+     * WebEntity, they are all mapped.
+     *
+     * @param lrus
+     * @return
+     * @throws IndexException
+     */
+    private Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(Set<String> lrus) throws IndexException {
+        Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
+        Set<WebEntity> allWebEntities = retrieveWebEntities();
+        for(String lru : lrus) {
+            findMatchingWebEntityLRUPrefixes(lru, allWebEntities);
         }
         return matches;
     }
@@ -1107,4 +1154,97 @@ public class LRUIndex {
         return results;
     }
 
+    public void generateWebEntityLinks() throws IndexException {
+        try {
+            logger.debug("generateWebEntityLinks");
+            List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
+            Set<NodeLink> nodeLinks = retrieveNodeLinks();
+            //
+            // map all source and target LRUs in the Nodelinks to their matching WebEntities
+            //
+            Set<String> lrus = new HashSet<String>();
+            for(NodeLink nodeLink : nodeLinks) {
+                lrus.add(nodeLink.getSourceLRU());
+                lrus.add(nodeLink.getTargetLRU());
+            }
+            Map<String, Set<WebEntity>> webEntitiesMap = findMatchingWebEntityLRUPrefixes(lrus);
+
+            //
+            // generate WebEntityLinks from NodeLinks
+            //
+            for(NodeLink nodeLink : nodeLinks) {
+                String source = nodeLink.getSourceLRU();
+                String target = nodeLink.getTargetLRU();
+                Set<WebEntity> sourceWEs = webEntitiesMap.get(source);
+                //
+                // find source WebEntity
+                //
+                WebEntity sourceWE = null;
+                if(sourceWEs != null && sourceWEs.size() == 1) {
+                    sourceWE = sourceWEs.iterator().next();
+                }
+                else {
+                    throw new IndexException("Found more than 1 WebEntity for LRU " + source);
+                }
+                //
+                // find targetWebEntity
+                //
+                Set<WebEntity> targetWEs = webEntitiesMap.get(target);
+                WebEntity targetWE = null;
+                if(targetWEs != null && targetWEs.size() == 1) {
+                    targetWE = targetWEs.iterator().next();
+                }
+                else {
+                    throw new IndexException("Found more than 1 WebEntity for LRU " + source);
+                }
+
+                //
+                // if already exists a link between them, increase weight
+                //
+                WebEntityLink webEntityLink = null;
+                TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
+                Query q = findWebEntityLinkQuery(sourceWE, targetWE);
+                indexSearcher.search(q, collector);
+                ScoreDoc[] hits = collector.topDocs().scoreDocs;
+                if(hits != null && hits.length > 0) {
+                    logger.debug("found # " + hits.length + " existing webentitylinks from source " + sourceWE.getId() + " to " + targetWE.getId());
+                    int i = hits[0].doc;
+                    Document doc = indexSearcher.doc(i);
+                    webEntityLink = IndexConfiguration.convertLuceneDocument2WebEntityLink(doc);
+                }
+                int weight = nodeLink.getWeight();
+                Date now = new Date();
+                if(webEntityLink != null) {
+                    weight += webEntityLink.getWeight();
+                    // update: first delete old webentitylink
+                    logger.debug("deleting existing webentitylink from source " + sourceWE.getId() + " to " + targetWE.getId());
+                    this.indexWriter.deleteDocuments(q);
+                    this.indexWriter.commit();
+                }
+                else {
+                    webEntityLink = new WebEntityLink();
+                    webEntityLink.setCreationDate(now.toString());
+                    webEntityLink.setLastModificationDate(now.toString());
+                    webEntityLink.setSourceId(sourceWE.getId());
+                    webEntityLink.setTargetId(targetWE.getId());
+                }
+                webEntityLink.setLastModificationDate(now.toString());
+                webEntityLink.setWeight(weight);
+
+                Document webEntityLinkDocument = IndexConfiguration.WebEntityLinkDocument(webEntityLink);
+
+                // TODO index in memory and flush after loop
+
+                this.indexWriter.addDocument(webEntityLinkDocument);
+                this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
+                this.indexWriter.commit();
+                this.indexSearcher = new IndexSearcher(this.indexReader);
+            }
+        }
+        catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
 }

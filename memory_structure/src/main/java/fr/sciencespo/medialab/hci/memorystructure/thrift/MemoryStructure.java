@@ -77,7 +77,7 @@ public class MemoryStructure {
     /**
      * Generates WebEntity links.
      */
-    public void generateWebEntityLinks() throws org.apache.thrift.TException;
+    public void generateWebEntityLinks() throws MemoryStructureException, org.apache.thrift.TException;
 
     /**
      * Clears (empties) the index.
@@ -424,7 +424,7 @@ public class MemoryStructure {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getPagesFromWebEntity failed: unknown result");
     }
 
-    public void generateWebEntityLinks() throws org.apache.thrift.TException
+    public void generateWebEntityLinks() throws MemoryStructureException, org.apache.thrift.TException
     {
       send_generateWebEntityLinks();
       recv_generateWebEntityLinks();
@@ -436,10 +436,13 @@ public class MemoryStructure {
       sendBase("generateWebEntityLinks", args);
     }
 
-    public void recv_generateWebEntityLinks() throws org.apache.thrift.TException
+    public void recv_generateWebEntityLinks() throws MemoryStructureException, org.apache.thrift.TException
     {
       generateWebEntityLinks_result result = new generateWebEntityLinks_result();
       receiveBase(result, "generateWebEntityLinks");
+      if (result.x != null) {
+        throw result.x;
+      }
       return;
     }
 
@@ -1048,7 +1051,7 @@ public class MemoryStructure {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws org.apache.thrift.TException {
+      public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
         if (getState() != State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1706,7 +1709,11 @@ public class MemoryStructure {
 
       protected generateWebEntityLinks_result getResult(I iface, generateWebEntityLinks_args args) throws org.apache.thrift.TException {
         generateWebEntityLinks_result result = new generateWebEntityLinks_result();
-        iface.generateWebEntityLinks();
+        try {
+          iface.generateWebEntityLinks();
+        } catch (MemoryStructureException x) {
+          result.x = x;
+        }
         return result;
       }
     }
@@ -7166,6 +7173,7 @@ public class MemoryStructure {
   public static class generateWebEntityLinks_result implements org.apache.thrift.TBase<generateWebEntityLinks_result, generateWebEntityLinks_result._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("generateWebEntityLinks_result");
 
+    private static final org.apache.thrift.protocol.TField X_FIELD_DESC = new org.apache.thrift.protocol.TField("x", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -7173,10 +7181,11 @@ public class MemoryStructure {
       schemes.put(TupleScheme.class, new generateWebEntityLinks_resultTupleSchemeFactory());
     }
 
+    public MemoryStructureException x; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+      X((short)1, "x");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -7191,6 +7200,8 @@ public class MemoryStructure {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 1: // X
+            return X;
           default:
             return null;
         }
@@ -7229,9 +7240,13 @@ public class MemoryStructure {
         return _fieldName;
       }
     }
+
+    // isset id assignments
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.X, new org.apache.thrift.meta_data.FieldMetaData("x", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(generateWebEntityLinks_result.class, metaDataMap);
     }
@@ -7239,10 +7254,20 @@ public class MemoryStructure {
     public generateWebEntityLinks_result() {
     }
 
+    public generateWebEntityLinks_result(
+      MemoryStructureException x)
+    {
+      this();
+      this.x = x;
+    }
+
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public generateWebEntityLinks_result(generateWebEntityLinks_result other) {
+      if (other.isSetX()) {
+        this.x = new MemoryStructureException(other.x);
+      }
     }
 
     public generateWebEntityLinks_result deepCopy() {
@@ -7251,15 +7276,51 @@ public class MemoryStructure {
 
     @Override
     public void clear() {
+      this.x = null;
+    }
+
+    public MemoryStructureException getX() {
+      return this.x;
+    }
+
+    public generateWebEntityLinks_result setX(MemoryStructureException x) {
+      this.x = x;
+      return this;
+    }
+
+    public void unsetX() {
+      this.x = null;
+    }
+
+    /** Returns true if field x is set (has been assigned a value) and false otherwise */
+    public boolean isSetX() {
+      return this.x != null;
+    }
+
+    public void setXIsSet(boolean value) {
+      if (!value) {
+        this.x = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case X:
+        if (value == null) {
+          unsetX();
+        } else {
+          setX((MemoryStructureException)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case X:
+        return getX();
+
       }
       throw new IllegalStateException();
     }
@@ -7271,6 +7332,8 @@ public class MemoryStructure {
       }
 
       switch (field) {
+      case X:
+        return isSetX();
       }
       throw new IllegalStateException();
     }
@@ -7288,6 +7351,15 @@ public class MemoryStructure {
       if (that == null)
         return false;
 
+      boolean this_present_x = true && this.isSetX();
+      boolean that_present_x = true && that.isSetX();
+      if (this_present_x || that_present_x) {
+        if (!(this_present_x && that_present_x))
+          return false;
+        if (!this.x.equals(that.x))
+          return false;
+      }
+
       return true;
     }
 
@@ -7304,6 +7376,16 @@ public class MemoryStructure {
       int lastComparison = 0;
       generateWebEntityLinks_result typedOther = (generateWebEntityLinks_result)other;
 
+      lastComparison = Boolean.valueOf(isSetX()).compareTo(typedOther.isSetX());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetX()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.x, typedOther.x);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -7324,6 +7406,13 @@ public class MemoryStructure {
       StringBuilder sb = new StringBuilder("generateWebEntityLinks_result(");
       boolean first = true;
 
+      sb.append("x:");
+      if (this.x == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.x);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -7366,6 +7455,15 @@ public class MemoryStructure {
             break;
           }
           switch (schemeField.id) {
+            case 1: // X
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.x = new MemoryStructureException();
+                struct.x.read(iprot);
+                struct.setXIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -7381,6 +7479,11 @@ public class MemoryStructure {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.x != null) {
+          oprot.writeFieldBegin(X_FIELD_DESC);
+          struct.x.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -7398,11 +7501,25 @@ public class MemoryStructure {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, generateWebEntityLinks_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetX()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetX()) {
+          struct.x.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, generateWebEntityLinks_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.x = new MemoryStructureException();
+          struct.x.read(iprot);
+          struct.setXIsSet(true);
+        }
       }
     }
 

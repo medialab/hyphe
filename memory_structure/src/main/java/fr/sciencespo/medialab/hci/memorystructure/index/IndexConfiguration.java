@@ -4,6 +4,7 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -49,11 +50,55 @@ public class IndexConfiguration {
         NODE_LINK,
         PRECISION_EXCEPTION,
         WEBENTITY,
+        WEBENTITY_LINK,
         WEBENTITY_CREATION_RULE
     }
 
     public static final String DEFAULT_WEBENTITY_CREATION_RULE = "DEFAULT_WEBENTITY_CREATION_RULE";
 
+    protected static Document WebEntityLinkDocument(WebEntityLink webEntityLink) {
+        if(webEntityLink == null) {
+            logger.warn("attempt to create Lucene document for null WebEntityLink");
+            return null;
+        }
+        Document document = new Document();
+        //
+        // id: generate random UUID
+        //
+        if(StringUtils.isEmpty(webEntityLink.getId())) {
+            Field idField = new Field(FieldName.ID.name(), UUID.randomUUID().toString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(idField);
+        }
+
+        Field typeField = new Field(FieldName.TYPE.name(), DocType.WEBENTITY_LINK.name(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        document.add(typeField);
+
+        //
+        // if the WebEntityLink has no source and target, don't create a Lucene document for it
+        //
+        if(StringUtils.isEmpty(webEntityLink.getSourceId()) || StringUtils.isEmpty(webEntityLink.getTargetId())) {
+            logger.warn("attempt to create Lucene document for WebEntityLink without source or target");
+            return null;
+        }
+        else {
+            Field sourceLRUField = new Field(FieldName.SOURCE.name(), webEntityLink.getSourceId(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            sourceLRUField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(sourceLRUField);
+
+            Field targetLRUField = new Field(FieldName.TARGET.name(), webEntityLink.getTargetId(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            targetLRUField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(targetLRUField);
+
+            String weight = String.valueOf(webEntityLink.getWeight());
+            Field weightField = new Field(FieldName.WEIGHT.name(), weight, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            weightField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(weightField);
+
+            return document;
+        }
+    }
 
     protected static Document NodeLinkDocument(NodeLink nodeLink) {
         if(nodeLink == null) {
@@ -326,6 +371,35 @@ public class IndexConfiguration {
 
         logger.debug("convertLuceneDocument2NodeLink returns nodelink with id: " + id);
         return nodeLink;
+    }
+
+    /**
+     * Returns a WebEntityLink object from a WebEntityLink Lucene document.
+     *
+     * @param document
+     * @return
+     */
+    public static WebEntityLink convertLuceneDocument2WebEntityLink(Document document) {
+        WebEntityLink webEntityLink = new WebEntityLink();
+
+        String id = document.get(FieldName.ID.name());
+        webEntityLink.setId(id);
+
+        String source = document.get(FieldName.SOURCE.name());
+        webEntityLink.setSourceId(source);
+
+        String target = document.get(FieldName.TARGET.name());
+        webEntityLink.setTargetId(target);
+
+        String weight$ = document.get(FieldName.WEIGHT.name());
+        int weight = 0;
+        if(StringUtils.isNotEmpty(weight$)) {
+            weight = Integer.parseInt(weight$);
+        }
+        webEntityLink.setWeight(weight);
+
+        logger.debug("convertLuceneDocument2WebEntityLink returns webEntityLink with id: " + id);
+        return webEntityLink;
     }
 
     /**

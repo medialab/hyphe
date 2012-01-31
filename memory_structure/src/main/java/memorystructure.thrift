@@ -123,7 +123,7 @@ set<PageItem> getPagesFromWebEntity(1:string id) throws (1:MemoryStructureExcept
 /**
  * Generates WebEntity links.
  */
-void generateWebEntityLinks(),
+void generateWebEntityLinks() throws (1:MemoryStructureException x),
 
 // clear complete index
 /**
