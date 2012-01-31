@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite failures="0" time="1.576" errors="0" skipped="0" tests="15" name="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest">
+<testsuite failures="0" time="1.351" errors="0" skipped="0" tests="15" name="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk1.6.0_18\jre\bin"/>
@@ -19,7 +19,7 @@
     <property name="basedir" value="C:\source\MemoryStructure"/>
     <property name="java.endorsed.dirs" value="C:\Program Files\Java\jdk1.6.0_18\jre\lib\endorsed"/>
     <property name="os.arch" value="x86"/>
-    <property name="surefire.real.class.path" value="C:\Users\heikki\AppData\Local\Temp\surefirebooter190105380210168065.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\heikki\AppData\Local\Temp\surefirebooter3041779579672614525.jar"/>
     <property name="java.io.tmpdir" value="C:\Users\heikki\AppData\Local\Temp\"/>
     <property name="line.separator" value="
 "/>
@@ -59,19 +59,19 @@
     <property name="sun.desktop" value="windows"/>
     <property name="sun.cpu.isalist" value="pentium_pro+mmx pentium_pro pentium+mmx pentium i486 i386 i86"/>
   </properties>
-  <testcase time="0.232" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testapplyWebEntityCreationRuleNullRule"/>
-  <testcase time="0.013" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testapplyWebEntityCreationRuleNullPage"/>
-  <testcase time="0.038" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testApplyDefaultWebEntityCreationRuleDomainLevel"/>
+  <testcase time="0.319" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testapplyWebEntityCreationRuleNullRule"/>
+  <testcase time="0.01" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testapplyWebEntityCreationRuleNullPage"/>
+  <testcase time="0.023" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testApplyDefaultWebEntityCreationRuleDomainLevel"/>
   <testcase time="0.009" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testApplyDefaultWebEntityCreationRuleSubDomainLevel"/>
-  <testcase time="0.009" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testApplyDefaultWebEntityCreationRulePageLevel"/>
+  <testcase time="0.008" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testApplyDefaultWebEntityCreationRulePageLevel"/>
   <testcase time="0.008" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testApplyDefaultWebEntityCreationRuleRegExpDoesntMatch"/>
   <testcase time="0.009" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testApplyWebEntityCreationRuleDomainLevel"/>
-  <testcase time="0.009" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testApplyWebEntityCreationRuleSubDomainLevel"/>
-  <testcase time="0.026" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testApplyWebEntityCreationRulePageLevel"/>
+  <testcase time="0.014" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testApplyWebEntityCreationRuleSubDomainLevel"/>
+  <testcase time="0.008" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testApplyWebEntityCreationRulePageLevel"/>
   <testcase time="0.008" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testApplyWebEntityCreationRuleRegExpDoesntMatch"/>
-  <testcase time="0.19" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testCreateWebEntitiesWebEntityMatch"/>
-  <testcase time="0.317" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testCreateWebEntitiesWebEntityCreationRuleMatch"/>
-  <testcase time="0.188" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testCreateWebEntitiesWebEntityCreationRuleAndWebEntityBothMatch"/>
-  <testcase time="0.447" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testCreateWebEntitiesDefaultWebEntityCreationRuleMatch"/>
-  <testcase time="0.065" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testRevertLRU"/>
+  <testcase time="0.182" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testCreateWebEntitiesWebEntityMatch"/>
+  <testcase time="0.135" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testCreateWebEntitiesWebEntityCreationRuleMatch"/>
+  <testcase time="0.162" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testCreateWebEntitiesWebEntityCreationRuleAndWebEntityBothMatch"/>
+  <testcase time="0.392" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testCreateWebEntitiesDefaultWebEntityCreationRuleMatch"/>
+  <testcase time="0.056" classname="fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest" name="testRevertLRU"/>
 </testsuite>

@@ -38,9 +38,10 @@ public class AsyncIndexWriterTask implements RunnableFuture {
     private boolean isDone;
     private String name;
     private IndexWriter indexWriter;
+    private LRUIndex lruIndex;
 
     AsyncIndexWriterTask(String name, List<?> objectsToWrite, RAMDirectory directory, Version LuceneVersion,
-                         IndexWriterConfig.OpenMode openMode, int ramBufferSize, Analyzer analyzer) {
+                         IndexWriterConfig.OpenMode openMode, int ramBufferSize, Analyzer analyzer, LRUIndex lruIndex) {
         try {
             System.out.println("creating new AsyncIndexWriterTask indexing # " + objectsToWrite.size() + " objects with OPEN_MODE " + openMode.name() + " RAM_BUFFER_SIZE_MB " + ramBufferSize);
             LUCENE_VERSION = LuceneVersion;
@@ -48,6 +49,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
             RAM_BUFFER_SIZE_MB = ramBufferSize;
             ANALYZER = analyzer;
 
+            this.lruIndex = lruIndex;
             this.name = name;
             this.objectsToWrite = objectsToWrite;
             this.indexWriter = newRAMWriter(directory);
@@ -107,6 +109,14 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                 }
                 else if(object instanceof NodeLink) {
                     NodeLink nodeLink = (NodeLink) object;
+
+                    NodeLink existing = lruIndex.retrieveNodeLink(nodeLink);
+                    int weight = 1;
+                    if(existing != null) {
+                        weight = existing.getWeight() + 1;
+                        lruIndex.deleteNodeLink(nodeLink);
+                    }
+                    nodeLink.setWeight(weight);
                     Document nodelinkDocument = IndexConfiguration.NodeLinkDocument(nodeLink);
                     // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
                     if(nodelinkDocument != null) {

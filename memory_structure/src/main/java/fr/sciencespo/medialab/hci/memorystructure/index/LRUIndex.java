@@ -542,7 +542,7 @@ public class LRUIndex {
                 logger.debug("before creating there are now # " + indexTasks.size() + " index tasks");
                 ScheduledFuture indexTask = executorService.schedule(
                         new AsyncIndexWriterTask(UUID.randomUUID().toString(), batch, ramDirectory, LUCENE_VERSION,
-                                OPEN_MODE, RAM_BUFFER_SIZE_MB, analyzer),
+                                OPEN_MODE, RAM_BUFFER_SIZE_MB, analyzer, LRUIndex.getInstance()),
                         delay, TimeUnit.SECONDS);
                 indexTasks.add(indexTask);
                 logger.debug("there are now # " + indexTasks.size() + " index tasks");
@@ -668,6 +668,44 @@ public class LRUIndex {
             }
             else {
                 logger.debug("failed to retrieve webentity with id " + id);
+            }
+            return result;
+        }
+        catch(CorruptIndexException x) {
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+        catch (IOException x) {
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     * Retrieves a particular NodeLink.
+     *
+     * @param nodeLink
+     * @return
+     */
+    public NodeLink retrieveNodeLink(NodeLink nodeLink) throws IndexException {
+        try {
+            NodeLink result = null;
+            TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
+            Query q = findNodeLinkQuery(nodeLink);
+            indexSearcher.search(q, collector);
+
+            ScoreDoc[] hits = collector.topDocs().scoreDocs;
+            if(hits != null && hits.length > 0) {
+                logger.debug("found # " + hits.length + " nodeLinks");
+                int i = hits[0].doc;
+                Document doc = indexSearcher.doc(i);
+                result = IndexConfiguration.convertLuceneDocument2NodeLink(doc);
+            }
+            if(result != null) {
+                logger.debug("retrieved NodeLink with source " + nodeLink.getSourceLRU() + " and target " + nodeLink.getTargetLRU());
+            }
+            else {
+                logger.debug("failed to retrieve NodeLink with source " + nodeLink.getSourceLRU() + " and target " + nodeLink.getTargetLRU());
             }
             return result;
         }
@@ -1048,6 +1086,36 @@ public class LRUIndex {
 
     /**
      *
+     * @param nodeLink
+     * @throws IndexException hmm
+     */
+    public void deleteNodeLink(NodeLink nodeLink) throws IndexException {
+        try {
+            logger.debug("deleting nodeLink with source " + nodeLink.getSourceLRU() + " and target " + nodeLink.getTargetLRU());
+            Query q = findNodeLinkQuery(nodeLink);
+            this.indexWriter.deleteDocuments(q);
+            this.indexWriter.commit();
+            IndexReader maybeChanged = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
+            // if not changed, that returns null
+            if(maybeChanged != null) {
+                this.indexReader = maybeChanged;
+                this.indexSearcher = new IndexSearcher(this.indexReader);
+            }
+        }
+        catch (CorruptIndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     *
      * @param lru
      * @return
      */
@@ -1062,6 +1130,28 @@ public class LRUIndex {
         TermQuery q2 = new TermQuery(lruTerm);
         q.add(q1, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
+        return q;
+    }
+
+    /**
+     *
+     * @param nodeLink
+     * @return
+     */
+    private Query findNodeLinkQuery(NodeLink nodeLink) throws IndexException {
+        if(nodeLink == null) {
+            throw new IndexException("nodeLink is null");
+        }
+        Term isWebEntityCreationRule = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.NODE_LINK.name());
+        Term sourceTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), nodeLink.getSourceLRU());
+        Term targetTerm = new Term(IndexConfiguration.FieldName.TARGET.name(), nodeLink.getTargetLRU());
+        BooleanQuery q = new BooleanQuery();
+        TermQuery q1 = new TermQuery(isWebEntityCreationRule);
+        TermQuery q2 = new TermQuery(sourceTerm);
+        TermQuery q3 = new TermQuery(targetTerm);
+        q.add(q1, BooleanClause.Occur.MUST);
+        q.add(q2, BooleanClause.Occur.MUST);
+        q.add(q3, BooleanClause.Occur.MUST);
         return q;
     }
 
@@ -1106,13 +1196,13 @@ public class LRUIndex {
         Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
         if(!StringUtils.isEmpty(lru)) {
             Set<WebEntity> allWebEntities = retrieveWebEntities();
-            matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities));
+            matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities, "lruPrefix"));
         }
         return matches;
     }
 
-    private Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(String lru, Set<WebEntity> webEntities) throws IndexException {
-        logger.debug("findMatchingWebEntityLRUPrefixes for lru " + lru + " in # " + webEntities.size() + " webEntities");
+    private Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(String lru, Set<WebEntity> webEntities, String mode) throws IndexException {
+        logger.debug("findMatchingWebEntityLRUs for lru " + lru + " in # " + webEntities.size() + " webEntities");
         Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
         if(!StringUtils.isEmpty(lru)) {
             for(WebEntity webEntity : webEntities) {
@@ -1136,7 +1226,13 @@ public class LRUIndex {
                             webEntitiesWithPrefix = new HashSet<WebEntity>();
                         }
                         webEntitiesWithPrefix.add(webEntity);
-                        matches.put(lruPrefix, webEntitiesWithPrefix);
+                        if(mode.equals("lruPrefix")) {
+                            matches.put(lruPrefix, webEntitiesWithPrefix);
+                        }
+                        else if(mode.equals("lru")) {
+                            matches.put(lru, webEntitiesWithPrefix);
+                        }
+
                     }
                 }
             }
@@ -1152,12 +1248,12 @@ public class LRUIndex {
      * @return
      * @throws IndexException
      */
-    private Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(Set<String> lrus) throws IndexException {
+    private Map<String, Set<WebEntity>> findMatchingWebEntityLRUs(Set<String> lrus) throws IndexException {
         logger.debug("finding webentities for # " + lrus.size() + " lrus");
         Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
         Set<WebEntity> allWebEntities = retrieveWebEntities();
         for(String lru : lrus) {
-            matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities));
+            matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities, "lru"));
         }
         return matches;
     }
@@ -1228,8 +1324,11 @@ public class LRUIndex {
             }
             logger.debug("total # of source and target LRUs in index is " + lrus.size());
 
-            Map<String, Set<WebEntity>> webEntitiesMap = findMatchingWebEntityLRUPrefixes(lrus);
+            Map<String, Set<WebEntity>> webEntitiesMap = findMatchingWebEntityLRUs(lrus);
             logger.debug("webEntitiesMap size is # " + webEntitiesMap.size());
+            for(String key : webEntitiesMap.keySet()) {
+                logger.debug("webEntitiesMap key: " + key);
+            }
 
             //
             // generate WebEntityLinks from NodeLinks
@@ -1290,7 +1389,7 @@ public class LRUIndex {
                 indexSearcher.search(q, collector);
                 ScoreDoc[] hits = collector.topDocs().scoreDocs;
                 if(hits != null && hits.length > 0) {
-                    logger.debug("found # " + hits.length + " existing webentitylinks from source " + sourceWE.getId() + " to " + targetWE.getId());
+                    logger.debug("\n\n\nfound # " + hits.length + " existing webentitylinks from source " + sourceWE.getId() + " to " + targetWE.getId());
                     int i = hits[0].doc;
                     Document doc = indexSearcher.doc(i);
                     webEntityLink = IndexConfiguration.convertLuceneDocument2WebEntityLink(doc);
