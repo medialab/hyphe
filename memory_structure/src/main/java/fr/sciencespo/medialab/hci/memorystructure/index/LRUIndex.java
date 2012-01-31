@@ -726,6 +726,49 @@ public class LRUIndex {
    }
 
     /**
+     * Retrieves all WebEntityLinks.
+     *
+     * @return
+     * @throws IndexException
+     */
+   public Set<WebEntityLink> retrieveWebEntityLinks() throws IndexException {
+       try {
+            Set<WebEntityLink> result = new HashSet<WebEntityLink>();
+            Query q = findAllWEntityLinksQuery();
+            final List<Document> hits2 = new ArrayList<Document>();
+            indexSearcher.search(q, new Collector() {
+                private IndexReader reader;
+                @Override
+                public void setScorer(Scorer scorer) throws IOException {}
+
+                @Override
+                public void collect(int doc) throws IOException {
+                    hits2.add(reader.document(doc));
+                }
+
+                @Override
+                public void setNextReader(IndexReader reader, int docBase) throws IOException {
+                    this.reader = reader;
+                }
+
+                @Override
+                public boolean acceptsDocsOutOfOrder() {
+                    return true;
+                }
+            });
+            for(Document hit: hits2) {
+                    WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocument2WebEntityLink(hit);
+                    result.add(webEntityLink);
+            }
+            logger.debug("retrieved # " + result.size() + " webentitylinks from index");
+            return result;
+        }
+        catch(IOException x) {
+            throw new IndexException(x.getMessage(), x);
+        }
+   }
+
+    /**
      * Retrieves all webentities.
      * @return
      */
@@ -759,7 +802,7 @@ public class LRUIndex {
                     WebEntity webEntity = IndexConfiguration.convertLuceneDocument2WebEntity(hit);
                     result.add(webEntity);
             }
-            logger.debug("retrieved # " + result.size() + " webentities from index");
+            logger.debug("total webentities retrieved from index is  # " + result.size());
             return result;
         }
         catch(IOException x) {
@@ -1043,6 +1086,15 @@ public class LRUIndex {
     }
 
     /**
+     *
+     * @return
+     */
+    private Query findAllWEntityLinksQuery() {
+        Term isWebEntityLink = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_LINK.name());
+        return new TermQuery(isWebEntityLink);
+    }
+
+    /**
      * Returns a map of matching LRUPrefixes and their WebEntity. If the same LRUPrefix occurs in more than one
      * WebEntity, they are all mapped.
      *
@@ -1060,6 +1112,7 @@ public class LRUIndex {
     }
 
     private Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(String lru, Set<WebEntity> webEntities) throws IndexException {
+        logger.debug("findMatchingWebEntityLRUPrefixes for lru " + lru + " in # " + webEntities.size() + " webEntities");
         Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
         if(!StringUtils.isEmpty(lru)) {
             for(WebEntity webEntity : webEntities) {
@@ -1077,6 +1130,7 @@ public class LRUIndex {
                     Matcher matcher = pattern.matcher(lru);
                     // it's  a match
                     if(matcher.find()) {
+                        logger.debug("found match for lru " + lru + " and regexp " + escapedPrefix);
                         Set<WebEntity> webEntitiesWithPrefix = matches.get(lruPrefix);
                         if(webEntitiesWithPrefix == null) {
                             webEntitiesWithPrefix = new HashSet<WebEntity>();
@@ -1099,10 +1153,11 @@ public class LRUIndex {
      * @throws IndexException
      */
     private Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(Set<String> lrus) throws IndexException {
+        logger.debug("finding webentities for # " + lrus.size() + " lrus");
         Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
         Set<WebEntity> allWebEntities = retrieveWebEntities();
         for(String lru : lrus) {
-            findMatchingWebEntityLRUPrefixes(lru, allWebEntities);
+            matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities));
         }
         return matches;
     }
@@ -1159,43 +1214,71 @@ public class LRUIndex {
             logger.debug("generateWebEntityLinks");
             List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
             Set<NodeLink> nodeLinks = retrieveNodeLinks();
+            logger.debug("total # of nodelinks in index is " + nodeLinks.size());
+
             //
             // map all source and target LRUs in the Nodelinks to their matching WebEntities
             //
             Set<String> lrus = new HashSet<String>();
             for(NodeLink nodeLink : nodeLinks) {
+                logger.debug("nodelink source " + nodeLink.getSourceLRU());
                 lrus.add(nodeLink.getSourceLRU());
+                logger.debug("nodelink target " + nodeLink.getTargetLRU());
                 lrus.add(nodeLink.getTargetLRU());
             }
+            logger.debug("total # of source and target LRUs in index is " + lrus.size());
+
             Map<String, Set<WebEntity>> webEntitiesMap = findMatchingWebEntityLRUPrefixes(lrus);
+            logger.debug("webEntitiesMap size is # " + webEntitiesMap.size());
 
             //
             // generate WebEntityLinks from NodeLinks
             //
             for(NodeLink nodeLink : nodeLinks) {
+                logger.debug("generating webentitylinks for nodelink from " + nodeLink.getSourceLRU() + " to " + nodeLink.getTargetLRU());
                 String source = nodeLink.getSourceLRU();
                 String target = nodeLink.getTargetLRU();
                 Set<WebEntity> sourceWEs = webEntitiesMap.get(source);
                 //
                 // find source WebEntity
                 //
-                WebEntity sourceWE = null;
+                WebEntity sourceWE;
                 if(sourceWEs != null && sourceWEs.size() == 1) {
                     sourceWE = sourceWEs.iterator().next();
                 }
                 else {
-                    throw new IndexException("Found more than 1 WebEntity for LRU " + source);
+                    if(sourceWEs == null) {
+                        logger.error("sourceWEs is null for source " + source);
+                        continue;
+                    }
+                    else {
+                        logger.error("# sourceWEs: " + sourceWEs.size());
+                        for(WebEntity webEntity : sourceWEs) {
+                            logger.error("sourceWebentity: " + webEntity.getName());
+                        }
+                        throw new IndexException("Found more than 1 WebEntity for source LRU " + source);
+                    }
                 }
                 //
                 // find targetWebEntity
                 //
                 Set<WebEntity> targetWEs = webEntitiesMap.get(target);
-                WebEntity targetWE = null;
+                WebEntity targetWE;
                 if(targetWEs != null && targetWEs.size() == 1) {
                     targetWE = targetWEs.iterator().next();
                 }
                 else {
-                    throw new IndexException("Found more than 1 WebEntity for LRU " + source);
+                    if(targetWEs == null) {
+                        logger.error("sourceWEs is null for target " + target);
+                        continue;
+                    }
+                    else {
+                        logger.error("# targetWEs: " + targetWEs.size());
+                        for(WebEntity webEntity : targetWEs) {
+                            logger.error("targetWebentity: " + webEntity.getName());
+                        }
+                        throw new IndexException("Found more than 1 WebEntity for target LRU " + target);
+                    }
                 }
 
                 //
@@ -1235,6 +1318,7 @@ public class LRUIndex {
 
                 // TODO index in memory and flush after loop
 
+                logger.debug("@ adding webEntityLinkDocument");
                 this.indexWriter.addDocument(webEntityLinkDocument);
                 this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
                 this.indexWriter.commit();

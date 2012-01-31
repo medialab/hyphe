@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite failures="0" time="12.526" errors="0" skipped="0" tests="24" name="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest">
+<testsuite failures="0" time="15.485" errors="0" skipped="0" tests="25" name="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk1.6.0_18\jre\bin"/>
@@ -19,7 +19,7 @@
     <property name="basedir" value="C:\source\MemoryStructure"/>
     <property name="java.endorsed.dirs" value="C:\Program Files\Java\jdk1.6.0_18\jre\lib\endorsed"/>
     <property name="os.arch" value="x86"/>
-    <property name="surefire.real.class.path" value="C:\Users\heikki\AppData\Local\Temp\surefirebooter7031801014576309758.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\heikki\AppData\Local\Temp\surefirebooter190105380210168065.jar"/>
     <property name="java.io.tmpdir" value="C:\Users\heikki\AppData\Local\Temp\"/>
     <property name="line.separator" value="
 "/>
@@ -59,28 +59,29 @@
     <property name="sun.desktop" value="windows"/>
     <property name="sun.cpu.isalist" value="pentium_pro+mmx pentium_pro pentium+mmx pentium i486 i386 i86"/>
   </properties>
-  <testcase time="0.109" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testClearEmptyIndex"/>
-  <testcase time="0.686" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testClearNonEmptyIndex"/>
-  <testcase time="0.622" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexCount"/>
-  <testcase time="0.791" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItem"/>
-  <testcase time="0.786" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testDonotRetrieveNonExistingPageItem"/>
-  <testcase time="0.713" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItemByPrefix"/>
-  <testcase time="0.658" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItemBySingleCharWildCard"/>
-  <testcase time="0.662" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItemByMultiCharacterWildCard"/>
-  <testcase time="0.164" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexNewWebEntity"/>
-  <testcase time="0.209" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexNewWebEntityWithDuplicateLRUs"/>
-  <testcase time="0.403" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testAddToExistingWebEntity"/>
-  <testcase time="0.106" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testAddToExistingWebEntityThatDoesNotActuallyExist"/>
-  <testcase time="0.728" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testFindMatchingWebEntitiesLRUPrefixes"/>
-  <testcase time="0.77" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItemsByLRUPrefix"/>
-  <testcase time="0.154" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItemsByLRUPrefixNullInput"/>
-  <testcase time="0.132" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItemsByLRUPrefixEmptyInput"/>
-  <testcase time="0.248" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexWebEntityCreationRule"/>
-  <testcase time="0.249" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexWebEntityCreationRuleWithExistingPrefix"/>
-  <testcase time="0.222" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexWebEntityCreationRuleWithNullInput"/>
-  <testcase time="0.184" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexWebEntityCreationRuleWithEmptyInput"/>
-  <testcase time="0.865" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testFindPagesForWebEntity"/>
-  <testcase time="1.005" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testFindPagesForWebEntityNullInput"/>
-  <testcase time="1.034" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testFindPagesForWebEntityThatDoesntExist"/>
-  <testcase time="1.02" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testSaveNodeLinks"/>
+  <testcase time="0.149" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testClearEmptyIndex"/>
+  <testcase time="0.766" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testClearNonEmptyIndex"/>
+  <testcase time="1.758" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexCount"/>
+  <testcase time="0.917" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItem"/>
+  <testcase time="0.647" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testDonotRetrieveNonExistingPageItem"/>
+  <testcase time="0.666" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItemByPrefix"/>
+  <testcase time="0.677" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItemBySingleCharWildCard"/>
+  <testcase time="0.663" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItemByMultiCharacterWildCard"/>
+  <testcase time="0.241" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexNewWebEntity"/>
+  <testcase time="0.166" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexNewWebEntityWithDuplicateLRUs"/>
+  <testcase time="0.767" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testAddToExistingWebEntity"/>
+  <testcase time="0.104" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testAddToExistingWebEntityThatDoesNotActuallyExist"/>
+  <testcase time="0.666" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testFindMatchingWebEntitiesLRUPrefixes"/>
+  <testcase time="0.773" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItemsByLRUPrefix"/>
+  <testcase time="0.183" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItemsByLRUPrefixNullInput"/>
+  <testcase time="0.16" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testRetrievePageItemsByLRUPrefixEmptyInput"/>
+  <testcase time="0.228" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexWebEntityCreationRule"/>
+  <testcase time="0.237" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexWebEntityCreationRuleWithExistingPrefix"/>
+  <testcase time="0.136" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexWebEntityCreationRuleWithNullInput"/>
+  <testcase time="0.142" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testIndexWebEntityCreationRuleWithEmptyInput"/>
+  <testcase time="0.867" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testFindPagesForWebEntity"/>
+  <testcase time="0.922" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testFindPagesForWebEntityNullInput"/>
+  <testcase time="0.904" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testFindPagesForWebEntityThatDoesntExist"/>
+  <testcase time="0.806" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testSaveNodeLinks"/>
+  <testcase time="1.934" classname="fr.sciencespo.medialab.hci.memorystructure.index.LRUIndexTest" name="testGeneratingWebEntityLinks"/>
 </testsuite>

@@ -1,5 +1,8 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
+import fr.sciencespo.medialab.hci.memorystructure.cache.Cache;
+import fr.sciencespo.medialab.hci.memorystructure.cache.MaxCacheSizeException;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
@@ -15,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -381,7 +385,6 @@ public class LRUIndexTest extends TestCase {
         catch (IndexException x) {
             fail(x.getMessage());
         }
-
     }
 
     public void testRetrievePageItemsByLRUPrefix() {
@@ -634,6 +637,87 @@ public class LRUIndexTest extends TestCase {
 
         }
         catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+    }
+
+    public void testGeneratingWebEntityLinks() {
+        logger.debug("testGeneratingWebEntityLinks");
+        try {
+            assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+            //
+            // create some PageItems in cache
+            //
+            Cache cache = new Cache(lruIndex);
+            Set<PageItem> pages = new HashSet<PageItem>();
+
+            PageItem page1 = new PageItem().setLru("s:http|h:com|h:megaupload");
+            PageItem page2 = new PageItem().setLru("s:http|h:com|h:napster");
+            PageItem page3 = new PageItem().setLru("s:http|h:fr|h:google");
+            pages.add(page1);
+            pages.add(page2);
+            pages.add(page3);
+            cache.setPageItems(pages);
+            //
+            // create default webEntityCreationRule
+            //
+            WebEntityCreationRule webEntityCreationRule = new WebEntityCreationRule();
+            webEntityCreationRule.setLRU(IndexConfiguration.DEFAULT_WEBENTITY_CREATION_RULE);
+            // regexp to match all sub domains
+            webEntityCreationRule.setRegExp("(s:[a-zA-Z]+\\|(h:www|)?h:[a-zA-Z]+(\\|h:[^|]+)+)");
+            lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
+
+
+            //
+            // generate WebEntities from the PageItems
+            //
+            int created = cache.createWebEntities();
+            logger.debug("created # " + created + " web entities");
+
+            //
+            // create some NodeLinks
+            //
+            NodeLink nodeLink1 = new NodeLink();
+            nodeLink1.setSourceLRU("s:http|h:fr|h:google");
+            nodeLink1.setTargetLRU("s:http|h:com|h:megaupload");
+
+            NodeLink nodeLink2 = new NodeLink();
+            nodeLink2.setSourceLRU("s:http|h:fr|h:google");
+            nodeLink2.setTargetLRU("s:http|h:com|h:napster");
+
+            NodeLink nodeLink3 = new NodeLink();
+            nodeLink3.setSourceLRU("s:http|h:com|h:napster");
+            nodeLink3.setTargetLRU("s:http|h:com|h:megaupload");
+
+            List<Object> nodelinks = new ArrayList<Object>();
+            nodelinks.add(nodeLink1);
+            nodelinks.add(nodeLink2);
+            nodelinks.add(nodeLink3);
+
+            int indexed  = lruIndex.batchIndex(nodelinks);
+            logger.debug("indexed # " + indexed + " node links");
+
+            //
+            // generate WebEntityLinks
+            //
+            lruIndex.generateWebEntityLinks();
+
+            assertEquals("Unexpected # of webentitylinks", 3, lruIndex.retrieveWebEntityLinks().size());
+
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (MaxCacheSizeException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (MemoryStructureException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             fail(x.getMessage());

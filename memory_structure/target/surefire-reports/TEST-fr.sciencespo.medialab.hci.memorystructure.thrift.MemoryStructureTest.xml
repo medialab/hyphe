@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite failures="0" time="20.073" errors="0" skipped="0" tests="27" name="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest">
+<testsuite failures="0" time="23.203" errors="0" skipped="0" tests="27" name="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk1.6.0_18\jre\bin"/>
@@ -19,7 +19,7 @@
     <property name="basedir" value="C:\source\MemoryStructure"/>
     <property name="java.endorsed.dirs" value="C:\Program Files\Java\jdk1.6.0_18\jre\lib\endorsed"/>
     <property name="os.arch" value="x86"/>
-    <property name="surefire.real.class.path" value="C:\Users\heikki\AppData\Local\Temp\surefirebooter7031801014576309758.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\heikki\AppData\Local\Temp\surefirebooter190105380210168065.jar"/>
     <property name="java.io.tmpdir" value="C:\Users\heikki\AppData\Local\Temp\"/>
     <property name="line.separator" value="
 "/>
@@ -59,31 +59,31 @@
     <property name="sun.desktop" value="windows"/>
     <property name="sun.cpu.isalist" value="pentium_pro+mmx pentium_pro pentium+mmx pentium i486 i386 i86"/>
   </properties>
-  <testcase time="2.703" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testBasicUserScenario"/>
-  <testcase time="0.46" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testCreateCache"/>
-  <testcase time="0.514" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testCreateCacheNullInput"/>
-  <testcase time="1.097" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testIndexCache"/>
-  <testcase time="0.436" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testDeleteCache"/>
-  <testcase time="0.462" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testDeleteNonExistingCache"/>
-  <testcase time="0.599" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreNewWebEntity"/>
-  <testcase time="0.512" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreWebEntityNullProperties"/>
-  <testcase time="0.492" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreWebEntityEmptyLRUList"/>
-  <testcase time="0.482" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreNullWebEntity"/>
-  <testcase time="0.649" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRetrieveWebEntityById"/>
-  <testcase time="0.452" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRetrieveNonExistingWebEntity"/>
-  <testcase time="1.06" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testAddLRUtoWebEntity"/>
-  <testcase time="0.916" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testAddLRUtoWebEntity2"/>
-  <testcase time="0.474" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRetrievingAllWebEntitiesWhenThereAreNone"/>
-  <testcase time="0.734" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRetrievingAllWebEntities"/>
-  <testcase time="0.603" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreWebEntityCreationRule"/>
-  <testcase time="0.596" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreDefaultWebEntityCreationRule"/>
-  <testcase time="1.074" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreDefaultWebEntityCreationRuleUnicity"/>
-  <testcase time="0.488" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreWebEntityCreationRuleNullProperties"/>
-  <testcase time="0.514" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreWebEntityCreationRuleNull"/>
-  <testcase time="0.804" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRetrieveWebEntityCreationRules"/>
-  <testcase time="1.967" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRemoveWebEntityCreationRules"/>
-  <testcase time="0.485" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRemoveNonExistingWebEntityCreationRule"/>
-  <testcase time="0.476" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testGetPrecisionExceptionsFromCache"/>
-  <testcase time="0.531" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testGetPrecisionExceptionsNodeFromCache"/>
-  <testcase time="0.485" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testGetPrecisionExceptionsFromCacheNullInput"/>
+  <testcase time="2.613" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testBasicUserScenario"/>
+  <testcase time="0.519" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testCreateCache"/>
+  <testcase time="0.529" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testCreateCacheNullInput"/>
+  <testcase time="1.203" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testIndexCache"/>
+  <testcase time="0.519" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testDeleteCache"/>
+  <testcase time="0.506" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testDeleteNonExistingCache"/>
+  <testcase time="0.678" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreNewWebEntity"/>
+  <testcase time="0.59" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreWebEntityNullProperties"/>
+  <testcase time="0.54" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreWebEntityEmptyLRUList"/>
+  <testcase time="0.58" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreNullWebEntity"/>
+  <testcase time="0.709" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRetrieveWebEntityById"/>
+  <testcase time="0.513" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRetrieveNonExistingWebEntity"/>
+  <testcase time="1.192" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testAddLRUtoWebEntity"/>
+  <testcase time="1.193" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testAddLRUtoWebEntity2"/>
+  <testcase time="0.545" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRetrievingAllWebEntitiesWhenThereAreNone"/>
+  <testcase time="1.04" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRetrievingAllWebEntities"/>
+  <testcase time="0.805" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreWebEntityCreationRule"/>
+  <testcase time="0.82" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreDefaultWebEntityCreationRule"/>
+  <testcase time="1.328" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreDefaultWebEntityCreationRuleUnicity"/>
+  <testcase time="0.647" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreWebEntityCreationRuleNullProperties"/>
+  <testcase time="0.642" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testStoreWebEntityCreationRuleNull"/>
+  <testcase time="1.08" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRetrieveWebEntityCreationRules"/>
+  <testcase time="1.814" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRemoveWebEntityCreationRules"/>
+  <testcase time="0.627" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testRemoveNonExistingWebEntityCreationRule"/>
+  <testcase time="0.654" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testGetPrecisionExceptionsFromCache"/>
+  <testcase time="0.636" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testGetPrecisionExceptionsNodeFromCache"/>
+  <testcase time="0.671" classname="fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureTest" name="testGetPrecisionExceptionsFromCacheNullInput"/>
 </testsuite>
