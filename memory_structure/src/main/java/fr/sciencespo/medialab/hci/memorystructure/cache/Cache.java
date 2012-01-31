@@ -12,6 +12,7 @@ import fr.sciencespo.medialab.hci.memorystructure.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.transform.sax.SAXTransformerFactory;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -102,6 +103,17 @@ public class Cache {
     }
 
     /**
+     * Reverts an lru to an url.
+     *
+     * @param lru
+     * @return
+     */
+    protected String revertLRU(String lru) {
+       // tatatatata
+        return "TODO";
+    }
+
+    /**
      * Applies web entity creation rule to a page. If the rule is the default rule, or if the page lru matches the rule
      * lruprefix, a match is attempted between page lru and rule regular expression. If there is a match, a web entity
      * is created.
@@ -125,8 +137,8 @@ public class Cache {
                 logger.debug("rule matches page " + page.getLru());
                 String webEntityLRU = matcher.group();
                 WebEntity webEntity = new WebEntity();
-                // TODO name of WE ?
-                webEntity.setName("AUTO-GENERATED WEBENTITY " + webEntityLRU);
+                String name = revertLRU(webEntityLRU);
+                webEntity.setName(name);
                 webEntity.setLRUSet(new HashSet<String>());
                 webEntity.addToLRUSet(webEntityLRU);
                 Date now = new Date();

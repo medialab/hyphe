@@ -3,6 +3,8 @@ package fr.sciencespo.medialab.hci.memorystructure.thrift;
 import fr.sciencespo.medialab.hci.memorystructure.cache.Cache;
 import fr.sciencespo.medialab.hci.memorystructure.cache.CacheMap;
 import fr.sciencespo.medialab.hci.memorystructure.cache.MaxCacheSizeException;
+import fr.sciencespo.medialab.hci.memorystructure.gexf.GEXFWriter;
+import fr.sciencespo.medialab.hci.memorystructure.gexf.GEXFWriterException;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
 import fr.sciencespo.medialab.hci.memorystructure.util.ExceptionUtils;
@@ -316,8 +318,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         if(StringUtils.isNotEmpty(format) && !format.equals("gexf")) {
             throw new MemoryStructureException().setMsg("Unsupported requested WebEntityNetwork format: " + format + ". This program supports only gexf.");
         }
-        // TODO
-        return "";
+        try {
+            return GEXFWriter.writeGEXF();
+        }
+        catch (GEXFWriterException x) {
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), GEXFWriterException.class.getName());
+        }
     }
 
     /**

@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>fr.sciencespo.medialab.hci.memorystructure</groupId>
@@ -21,7 +20,32 @@
 		<artifactId>lucene-core</artifactId>
 		<version>3.5.0</version>
 	</dependency>
-  
+
+      <!-- this dependency doesn't seem to work. Jar included in /lib
+    <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>11.0.1</version>
+    </dependency>
+	-->
+	
+	<dependency>
+		<groupId>com.google.guava</groupId>
+		<artifactId>guava</artifactId>
+		<version>11.0.1</version>
+		<scope>system</scope>
+		<systemPath>${project.basedir}/src/lib/guava-11.0.1.jar</systemPath>
+	</dependency>	
+	
+	<!-- gexf4j is not in a maven repository !? -->
+	<dependency>
+		<groupId>gexf4j</groupId>
+		<artifactId>gexf4j</artifactId>
+		<version>0.2.0-ALPHA</version>
+		<scope>system</scope>
+		<systemPath>${project.basedir}/src/lib/gexf4j-core-0.2.0-ALPHA.jar</systemPath>
+	</dependency>	
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -64,14 +88,46 @@
 
     <build>
         <plugins>
-          <plugin>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <source>1.6</source>
-              <target>1.6</target>
-            </configuration>
-          </plugin>
-        </plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.2</version>
+				<!-- nothing here -->
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2-beta-4</version>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<finalName>MemoryStructureExecutable</finalName>
+					<appendAssemblyId>false</appendAssemblyId>
+					<archive>
+						<manifest>
+							<mainClass>fr.sciencespo.medialab.hci.memorystructure.thrift.ThriftServer</mainClass>
+							<addClasspath>true</addClasspath>							
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+					<phase>package</phase>
+					<goals>
+						<goal>single</goal>
+					</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
     </build>
 
 </project>

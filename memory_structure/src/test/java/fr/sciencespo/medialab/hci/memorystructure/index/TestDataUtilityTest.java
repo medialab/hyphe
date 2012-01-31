@@ -22,6 +22,14 @@ import java.util.Set;
 public class TestDataUtilityTest extends TestCase {
 
     /**
+     * If a test class contains no tests, the maven test suite fails because of that. Here's a dummy test to prevent
+     * that.
+     */
+    public void testTrue() {
+        assertTrue(true);
+    }
+
+    /**
      *
      */
     public void xtestGenerateUrls() {
