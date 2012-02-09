@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: fr.sciencespo.medialab.hci.memorystructure.cache.CacheTest
--------------------------------------------------------------------------------
-Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.357 sec

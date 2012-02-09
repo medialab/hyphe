@@ -59,8 +59,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @throws TException hmm
      */
     @Override
-    public String ping() throws TException {
-        return "pong";
+    public Set<String> ping() throws TException {
+        Set<String> pingpong = new HashSet<String>();
+        pingpong.add("ping");
+        pingpong.add("pong");
+        return pingpong;
     }
 
     /**

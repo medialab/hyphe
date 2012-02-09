@@ -78,7 +78,7 @@ service MemoryStructure {
 // CREATED by PAUL
 // ping
 /*¨replies pong */
-string ping(),
+set<string> ping(),
 
 
 // MODIFIED by Paul

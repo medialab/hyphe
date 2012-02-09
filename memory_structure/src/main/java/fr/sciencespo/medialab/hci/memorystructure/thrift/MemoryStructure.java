@@ -31,7 +31,7 @@ public class MemoryStructure {
 
   public interface Iface {
 
-    public String ping() throws org.apache.thrift.TException;
+    public Set<String> ping() throws org.apache.thrift.TException;
 
     /**
      * @param 1 webEntity
@@ -269,7 +269,7 @@ public class MemoryStructure {
       super(iprot, oprot);
     }
 
-    public String ping() throws org.apache.thrift.TException
+    public Set<String> ping() throws org.apache.thrift.TException
     {
       send_ping();
       return recv_ping();
@@ -281,7 +281,7 @@ public class MemoryStructure {
       sendBase("ping", args);
     }
 
-    public String recv_ping() throws org.apache.thrift.TException
+    public Set<String> recv_ping() throws org.apache.thrift.TException
     {
       ping_result result = new ping_result();
       receiveBase(result, "ping");
@@ -862,8 +862,8 @@ public class MemoryStructure {
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+      public Set<String> getResult() throws org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -895,7 +895,7 @@ public class MemoryStructure {
       }
 
       public String getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -930,7 +930,7 @@ public class MemoryStructure {
       }
 
       public WebEntity getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -962,7 +962,7 @@ public class MemoryStructure {
       }
 
       public WebEntity getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -991,7 +991,7 @@ public class MemoryStructure {
       }
 
       public Set<WebEntity> getResult() throws org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1023,7 +1023,7 @@ public class MemoryStructure {
       }
 
       public Set<PageItem> getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1052,7 +1052,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1081,7 +1081,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1113,7 +1113,7 @@ public class MemoryStructure {
       }
 
       public String getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1145,7 +1145,7 @@ public class MemoryStructure {
       }
 
       public int getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1177,7 +1177,7 @@ public class MemoryStructure {
       }
 
       public Set<String> getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1209,7 +1209,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1241,7 +1241,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1273,7 +1273,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1305,7 +1305,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1334,7 +1334,7 @@ public class MemoryStructure {
       }
 
       public Set<WebEntityCreationRule> getResult() throws org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1366,7 +1366,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1398,7 +1398,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1430,7 +1430,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1465,7 +1465,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1497,7 +1497,7 @@ public class MemoryStructure {
       }
 
       public String getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1535,7 +1535,7 @@ public class MemoryStructure {
       }
 
       public String getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -2275,7 +2275,7 @@ public class MemoryStructure {
   public static class ping_result implements org.apache.thrift.TBase<ping_result, ping_result._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ping_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.SET, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2283,7 +2283,7 @@ public class MemoryStructure {
       schemes.put(TupleScheme.class, new ping_resultTupleSchemeFactory());
     }
 
-    public String success; // required
+    public Set<String> success; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -2348,7 +2348,8 @@ public class MemoryStructure {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+          new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ping_result.class, metaDataMap);
     }
@@ -2357,7 +2358,7 @@ public class MemoryStructure {
     }
 
     public ping_result(
-      String success)
+      Set<String> success)
     {
       this();
       this.success = success;
@@ -2368,7 +2369,11 @@ public class MemoryStructure {
      */
     public ping_result(ping_result other) {
       if (other.isSetSuccess()) {
-        this.success = other.success;
+        Set<String> __this__success = new HashSet<String>();
+        for (String other_element : other.success) {
+          __this__success.add(other_element);
+        }
+        this.success = __this__success;
       }
     }
 
@@ -2381,11 +2386,26 @@ public class MemoryStructure {
       this.success = null;
     }
 
-    public String getSuccess() {
+    public int getSuccessSize() {
+      return (this.success == null) ? 0 : this.success.size();
+    }
+
+    public java.util.Iterator<String> getSuccessIterator() {
+      return (this.success == null) ? null : this.success.iterator();
+    }
+
+    public void addToSuccess(String elem) {
+      if (this.success == null) {
+        this.success = new HashSet<String>();
+      }
+      this.success.add(elem);
+    }
+
+    public Set<String> getSuccess() {
       return this.success;
     }
 
-    public ping_result setSuccess(String success) {
+    public ping_result setSuccess(Set<String> success) {
       this.success = success;
       return this;
     }
@@ -2411,7 +2431,7 @@ public class MemoryStructure {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((String)value);
+          setSuccess((Set<String>)value);
         }
         break;
 
@@ -2558,8 +2578,18 @@ public class MemoryStructure {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.success = iprot.readString();
+              if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
+                {
+                  org.apache.thrift.protocol.TSet _set26 = iprot.readSetBegin();
+                  struct.success = new HashSet<String>(2*_set26.size);
+                  for (int _i27 = 0; _i27 < _set26.size; ++_i27)
+                  {
+                    String _elem28; // required
+                    _elem28 = iprot.readString();
+                    struct.success.add(_elem28);
+                  }
+                  iprot.readSetEnd();
+                }
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -2582,7 +2612,14 @@ public class MemoryStructure {
         oprot.writeStructBegin(STRUCT_DESC);
         if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeString(struct.success);
+          {
+            oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, struct.success.size()));
+            for (String _iter29 : struct.success)
+            {
+              oprot.writeString(_iter29);
+            }
+            oprot.writeSetEnd();
+          }
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -2608,7 +2645,13 @@ public class MemoryStructure {
         }
         oprot.writeBitSet(optionals, 1);
         if (struct.isSetSuccess()) {
-          oprot.writeString(struct.success);
+          {
+            oprot.writeI32(struct.success.size());
+            for (String _iter30 : struct.success)
+            {
+              oprot.writeString(_iter30);
+            }
+          }
         }
       }
 
@@ -2617,7 +2660,16 @@ public class MemoryStructure {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.success = iprot.readString();
+          {
+            org.apache.thrift.protocol.TSet _set31 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.success = new HashSet<String>(2*_set31.size);
+            for (int _i32 = 0; _i32 < _set31.size; ++_i32)
+            {
+              String _elem33; // required
+              _elem33 = iprot.readString();
+              struct.success.add(_elem33);
+            }
+          }
           struct.setSuccessIsSet(true);
         }
       }
@@ -3828,13 +3880,13 @@ public class MemoryStructure {
             case 2: // LRUSET
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set26 = iprot.readSetBegin();
-                  struct.LRUSet = new HashSet<String>(2*_set26.size);
-                  for (int _i27 = 0; _i27 < _set26.size; ++_i27)
+                  org.apache.thrift.protocol.TSet _set34 = iprot.readSetBegin();
+                  struct.LRUSet = new HashSet<String>(2*_set34.size);
+                  for (int _i35 = 0; _i35 < _set34.size; ++_i35)
                   {
-                    String _elem28; // required
-                    _elem28 = iprot.readString();
-                    struct.LRUSet.add(_elem28);
+                    String _elem36; // required
+                    _elem36 = iprot.readString();
+                    struct.LRUSet.add(_elem36);
                   }
                   iprot.readSetEnd();
                 }
@@ -3867,9 +3919,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(LRUSET_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, struct.LRUSet.size()));
-            for (String _iter29 : struct.LRUSet)
+            for (String _iter37 : struct.LRUSet)
             {
-              oprot.writeString(_iter29);
+              oprot.writeString(_iter37);
             }
             oprot.writeSetEnd();
           }
@@ -3906,9 +3958,9 @@ public class MemoryStructure {
         if (struct.isSetLRUSet()) {
           {
             oprot.writeI32(struct.LRUSet.size());
-            for (String _iter30 : struct.LRUSet)
+            for (String _iter38 : struct.LRUSet)
             {
-              oprot.writeString(_iter30);
+              oprot.writeString(_iter38);
             }
           }
         }
@@ -3924,13 +3976,13 @@ public class MemoryStructure {
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TSet _set31 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.LRUSet = new HashSet<String>(2*_set31.size);
-            for (int _i32 = 0; _i32 < _set31.size; ++_i32)
+            org.apache.thrift.protocol.TSet _set39 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.LRUSet = new HashSet<String>(2*_set39.size);
+            for (int _i40 = 0; _i40 < _set39.size; ++_i40)
             {
-              String _elem33; // required
-              _elem33 = iprot.readString();
-              struct.LRUSet.add(_elem33);
+              String _elem41; // required
+              _elem41 = iprot.readString();
+              struct.LRUSet.add(_elem41);
             }
           }
           struct.setLRUSetIsSet(true);
@@ -5862,14 +5914,14 @@ public class MemoryStructure {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set34 = iprot.readSetBegin();
-                  struct.success = new HashSet<WebEntity>(2*_set34.size);
-                  for (int _i35 = 0; _i35 < _set34.size; ++_i35)
+                  org.apache.thrift.protocol.TSet _set42 = iprot.readSetBegin();
+                  struct.success = new HashSet<WebEntity>(2*_set42.size);
+                  for (int _i43 = 0; _i43 < _set42.size; ++_i43)
                   {
-                    WebEntity _elem36; // required
-                    _elem36 = new WebEntity();
-                    _elem36.read(iprot);
-                    struct.success.add(_elem36);
+                    WebEntity _elem44; // required
+                    _elem44 = new WebEntity();
+                    _elem44.read(iprot);
+                    struct.success.add(_elem44);
                   }
                   iprot.readSetEnd();
                 }
@@ -5897,9 +5949,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (WebEntity _iter37 : struct.success)
+            for (WebEntity _iter45 : struct.success)
             {
-              _iter37.write(oprot);
+              _iter45.write(oprot);
             }
             oprot.writeSetEnd();
           }
@@ -5930,9 +5982,9 @@ public class MemoryStructure {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (WebEntity _iter38 : struct.success)
+            for (WebEntity _iter46 : struct.success)
             {
-              _iter38.write(oprot);
+              _iter46.write(oprot);
             }
           }
         }
@@ -5944,14 +5996,14 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TSet _set39 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new HashSet<WebEntity>(2*_set39.size);
-            for (int _i40 = 0; _i40 < _set39.size; ++_i40)
+            org.apache.thrift.protocol.TSet _set47 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new HashSet<WebEntity>(2*_set47.size);
+            for (int _i48 = 0; _i48 < _set47.size; ++_i48)
             {
-              WebEntity _elem41; // required
-              _elem41 = new WebEntity();
-              _elem41.read(iprot);
-              struct.success.add(_elem41);
+              WebEntity _elem49; // required
+              _elem49 = new WebEntity();
+              _elem49.read(iprot);
+              struct.success.add(_elem49);
             }
           }
           struct.setSuccessIsSet(true);
@@ -6776,14 +6828,14 @@ public class MemoryStructure {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set42 = iprot.readSetBegin();
-                  struct.success = new HashSet<PageItem>(2*_set42.size);
-                  for (int _i43 = 0; _i43 < _set42.size; ++_i43)
+                  org.apache.thrift.protocol.TSet _set50 = iprot.readSetBegin();
+                  struct.success = new HashSet<PageItem>(2*_set50.size);
+                  for (int _i51 = 0; _i51 < _set50.size; ++_i51)
                   {
-                    PageItem _elem44; // required
-                    _elem44 = new PageItem();
-                    _elem44.read(iprot);
-                    struct.success.add(_elem44);
+                    PageItem _elem52; // required
+                    _elem52 = new PageItem();
+                    _elem52.read(iprot);
+                    struct.success.add(_elem52);
                   }
                   iprot.readSetEnd();
                 }
@@ -6829,9 +6881,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (PageItem _iter45 : struct.success)
+            for (PageItem _iter53 : struct.success)
             {
-              _iter45.write(oprot);
+              _iter53.write(oprot);
             }
             oprot.writeSetEnd();
           }
@@ -6878,9 +6930,9 @@ public class MemoryStructure {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (PageItem _iter46 : struct.success)
+            for (PageItem _iter54 : struct.success)
             {
-              _iter46.write(oprot);
+              _iter54.write(oprot);
             }
           }
         }
@@ -6898,14 +6950,14 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TSet _set47 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new HashSet<PageItem>(2*_set47.size);
-            for (int _i48 = 0; _i48 < _set47.size; ++_i48)
+            org.apache.thrift.protocol.TSet _set55 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new HashSet<PageItem>(2*_set55.size);
+            for (int _i56 = 0; _i56 < _set55.size; ++_i56)
             {
-              PageItem _elem49; // required
-              _elem49 = new PageItem();
-              _elem49.read(iprot);
-              struct.success.add(_elem49);
+              PageItem _elem57; // required
+              _elem57 = new PageItem();
+              _elem57.read(iprot);
+              struct.success.add(_elem57);
             }
           }
           struct.setSuccessIsSet(true);
@@ -8433,14 +8485,14 @@ public class MemoryStructure {
             case 1: // PAGE_ITEMS
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set50 = iprot.readSetBegin();
-                  struct.pageItems = new HashSet<PageItem>(2*_set50.size);
-                  for (int _i51 = 0; _i51 < _set50.size; ++_i51)
+                  org.apache.thrift.protocol.TSet _set58 = iprot.readSetBegin();
+                  struct.pageItems = new HashSet<PageItem>(2*_set58.size);
+                  for (int _i59 = 0; _i59 < _set58.size; ++_i59)
                   {
-                    PageItem _elem52; // required
-                    _elem52 = new PageItem();
-                    _elem52.read(iprot);
-                    struct.pageItems.add(_elem52);
+                    PageItem _elem60; // required
+                    _elem60 = new PageItem();
+                    _elem60.read(iprot);
+                    struct.pageItems.add(_elem60);
                   }
                   iprot.readSetEnd();
                 }
@@ -8468,9 +8520,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(PAGE_ITEMS_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, struct.pageItems.size()));
-            for (PageItem _iter53 : struct.pageItems)
+            for (PageItem _iter61 : struct.pageItems)
             {
-              _iter53.write(oprot);
+              _iter61.write(oprot);
             }
             oprot.writeSetEnd();
           }
@@ -8501,9 +8553,9 @@ public class MemoryStructure {
         if (struct.isSetPageItems()) {
           {
             oprot.writeI32(struct.pageItems.size());
-            for (PageItem _iter54 : struct.pageItems)
+            for (PageItem _iter62 : struct.pageItems)
             {
-              _iter54.write(oprot);
+              _iter62.write(oprot);
             }
           }
         }
@@ -8515,14 +8567,14 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TSet _set55 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.pageItems = new HashSet<PageItem>(2*_set55.size);
-            for (int _i56 = 0; _i56 < _set55.size; ++_i56)
+            org.apache.thrift.protocol.TSet _set63 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.pageItems = new HashSet<PageItem>(2*_set63.size);
+            for (int _i64 = 0; _i64 < _set63.size; ++_i64)
             {
-              PageItem _elem57; // required
-              _elem57 = new PageItem();
-              _elem57.read(iprot);
-              struct.pageItems.add(_elem57);
+              PageItem _elem65; // required
+              _elem65 = new PageItem();
+              _elem65.read(iprot);
+              struct.pageItems.add(_elem65);
             }
           }
           struct.setPageItemsIsSet(true);
@@ -10709,13 +10761,13 @@ public class MemoryStructure {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set58 = iprot.readSetBegin();
-                  struct.success = new HashSet<String>(2*_set58.size);
-                  for (int _i59 = 0; _i59 < _set58.size; ++_i59)
+                  org.apache.thrift.protocol.TSet _set66 = iprot.readSetBegin();
+                  struct.success = new HashSet<String>(2*_set66.size);
+                  for (int _i67 = 0; _i67 < _set66.size; ++_i67)
                   {
-                    String _elem60; // required
-                    _elem60 = iprot.readString();
-                    struct.success.add(_elem60);
+                    String _elem68; // required
+                    _elem68 = iprot.readString();
+                    struct.success.add(_elem68);
                   }
                   iprot.readSetEnd();
                 }
@@ -10761,9 +10813,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, struct.success.size()));
-            for (String _iter61 : struct.success)
+            for (String _iter69 : struct.success)
             {
-              oprot.writeString(_iter61);
+              oprot.writeString(_iter69);
             }
             oprot.writeSetEnd();
           }
@@ -10810,9 +10862,9 @@ public class MemoryStructure {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (String _iter62 : struct.success)
+            for (String _iter70 : struct.success)
             {
-              oprot.writeString(_iter62);
+              oprot.writeString(_iter70);
             }
           }
         }
@@ -10830,13 +10882,13 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TSet _set63 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.success = new HashSet<String>(2*_set63.size);
-            for (int _i64 = 0; _i64 < _set63.size; ++_i64)
+            org.apache.thrift.protocol.TSet _set71 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.success = new HashSet<String>(2*_set71.size);
+            for (int _i72 = 0; _i72 < _set71.size; ++_i72)
             {
-              String _elem65; // required
-              _elem65 = iprot.readString();
-              struct.success.add(_elem65);
+              String _elem73; // required
+              _elem73 = iprot.readString();
+              struct.success.add(_elem73);
             }
           }
           struct.setSuccessIsSet(true);
@@ -14549,14 +14601,14 @@ public class MemoryStructure {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set66 = iprot.readSetBegin();
-                  struct.success = new HashSet<WebEntityCreationRule>(2*_set66.size);
-                  for (int _i67 = 0; _i67 < _set66.size; ++_i67)
+                  org.apache.thrift.protocol.TSet _set74 = iprot.readSetBegin();
+                  struct.success = new HashSet<WebEntityCreationRule>(2*_set74.size);
+                  for (int _i75 = 0; _i75 < _set74.size; ++_i75)
                   {
-                    WebEntityCreationRule _elem68; // required
-                    _elem68 = new WebEntityCreationRule();
-                    _elem68.read(iprot);
-                    struct.success.add(_elem68);
+                    WebEntityCreationRule _elem76; // required
+                    _elem76 = new WebEntityCreationRule();
+                    _elem76.read(iprot);
+                    struct.success.add(_elem76);
                   }
                   iprot.readSetEnd();
                 }
@@ -14584,9 +14636,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (WebEntityCreationRule _iter69 : struct.success)
+            for (WebEntityCreationRule _iter77 : struct.success)
             {
-              _iter69.write(oprot);
+              _iter77.write(oprot);
             }
             oprot.writeSetEnd();
           }
@@ -14617,9 +14669,9 @@ public class MemoryStructure {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (WebEntityCreationRule _iter70 : struct.success)
+            for (WebEntityCreationRule _iter78 : struct.success)
             {
-              _iter70.write(oprot);
+              _iter78.write(oprot);
             }
           }
         }
@@ -14631,14 +14683,14 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TSet _set71 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new HashSet<WebEntityCreationRule>(2*_set71.size);
-            for (int _i72 = 0; _i72 < _set71.size; ++_i72)
+            org.apache.thrift.protocol.TSet _set79 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new HashSet<WebEntityCreationRule>(2*_set79.size);
+            for (int _i80 = 0; _i80 < _set79.size; ++_i80)
             {
-              WebEntityCreationRule _elem73; // required
-              _elem73 = new WebEntityCreationRule();
-              _elem73.read(iprot);
-              struct.success.add(_elem73);
+              WebEntityCreationRule _elem81; // required
+              _elem81 = new WebEntityCreationRule();
+              _elem81.read(iprot);
+              struct.success.add(_elem81);
             }
           }
           struct.setSuccessIsSet(true);
@@ -15556,14 +15608,14 @@ public class MemoryStructure {
             case 1: // PAGE_ITEMS
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set74 = iprot.readSetBegin();
-                  struct.pageItems = new HashSet<PageItem>(2*_set74.size);
-                  for (int _i75 = 0; _i75 < _set74.size; ++_i75)
+                  org.apache.thrift.protocol.TSet _set82 = iprot.readSetBegin();
+                  struct.pageItems = new HashSet<PageItem>(2*_set82.size);
+                  for (int _i83 = 0; _i83 < _set82.size; ++_i83)
                   {
-                    PageItem _elem76; // required
-                    _elem76 = new PageItem();
-                    _elem76.read(iprot);
-                    struct.pageItems.add(_elem76);
+                    PageItem _elem84; // required
+                    _elem84 = new PageItem();
+                    _elem84.read(iprot);
+                    struct.pageItems.add(_elem84);
                   }
                   iprot.readSetEnd();
                 }
@@ -15591,9 +15643,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(PAGE_ITEMS_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, struct.pageItems.size()));
-            for (PageItem _iter77 : struct.pageItems)
+            for (PageItem _iter85 : struct.pageItems)
             {
-              _iter77.write(oprot);
+              _iter85.write(oprot);
             }
             oprot.writeSetEnd();
           }
@@ -15624,9 +15676,9 @@ public class MemoryStructure {
         if (struct.isSetPageItems()) {
           {
             oprot.writeI32(struct.pageItems.size());
-            for (PageItem _iter78 : struct.pageItems)
+            for (PageItem _iter86 : struct.pageItems)
             {
-              _iter78.write(oprot);
+              _iter86.write(oprot);
             }
           }
         }
@@ -15638,14 +15690,14 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TSet _set79 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.pageItems = new HashSet<PageItem>(2*_set79.size);
-            for (int _i80 = 0; _i80 < _set79.size; ++_i80)
+            org.apache.thrift.protocol.TSet _set87 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.pageItems = new HashSet<PageItem>(2*_set87.size);
+            for (int _i88 = 0; _i88 < _set87.size; ++_i88)
             {
-              PageItem _elem81; // required
-              _elem81 = new PageItem();
-              _elem81.read(iprot);
-              struct.pageItems.add(_elem81);
+              PageItem _elem89; // required
+              _elem89 = new PageItem();
+              _elem89.read(iprot);
+              struct.pageItems.add(_elem89);
             }
           }
           struct.setPageItemsIsSet(true);
@@ -16318,14 +16370,14 @@ public class MemoryStructure {
             case 1: // NODE_LINKS
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set82 = iprot.readSetBegin();
-                  struct.nodeLinks = new HashSet<NodeLink>(2*_set82.size);
-                  for (int _i83 = 0; _i83 < _set82.size; ++_i83)
+                  org.apache.thrift.protocol.TSet _set90 = iprot.readSetBegin();
+                  struct.nodeLinks = new HashSet<NodeLink>(2*_set90.size);
+                  for (int _i91 = 0; _i91 < _set90.size; ++_i91)
                   {
-                    NodeLink _elem84; // required
-                    _elem84 = new NodeLink();
-                    _elem84.read(iprot);
-                    struct.nodeLinks.add(_elem84);
+                    NodeLink _elem92; // required
+                    _elem92 = new NodeLink();
+                    _elem92.read(iprot);
+                    struct.nodeLinks.add(_elem92);
                   }
                   iprot.readSetEnd();
                 }
@@ -16353,9 +16405,9 @@ public class MemoryStructure {
           oprot.writeFieldBegin(NODE_LINKS_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, struct.nodeLinks.size()));
-            for (NodeLink _iter85 : struct.nodeLinks)
+            for (NodeLink _iter93 : struct.nodeLinks)
             {
-              _iter85.write(oprot);
+              _iter93.write(oprot);
             }
             oprot.writeSetEnd();
           }
@@ -16386,9 +16438,9 @@ public class MemoryStructure {
         if (struct.isSetNodeLinks()) {
           {
             oprot.writeI32(struct.nodeLinks.size());
-            for (NodeLink _iter86 : struct.nodeLinks)
+            for (NodeLink _iter94 : struct.nodeLinks)
             {
-              _iter86.write(oprot);
+              _iter94.write(oprot);
             }
           }
         }
@@ -16400,14 +16452,14 @@ public class MemoryStructure {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TSet _set87 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.nodeLinks = new HashSet<NodeLink>(2*_set87.size);
-            for (int _i88 = 0; _i88 < _set87.size; ++_i88)
+            org.apache.thrift.protocol.TSet _set95 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.nodeLinks = new HashSet<NodeLink>(2*_set95.size);
+            for (int _i96 = 0; _i96 < _set95.size; ++_i96)
             {
-              NodeLink _elem89; // required
-              _elem89 = new NodeLink();
-              _elem89.read(iprot);
-              struct.nodeLinks.add(_elem89);
+              NodeLink _elem97; // required
+              _elem97 = new NodeLink();
+              _elem97.read(iprot);
+              struct.nodeLinks.add(_elem97);
             }
           }
           struct.setNodeLinksIsSet(true);
@@ -18904,8 +18956,6 @@ public class MemoryStructure {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
