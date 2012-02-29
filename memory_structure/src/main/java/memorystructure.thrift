@@ -71,6 +71,12 @@ struct WebEntityCreationRule {
   4: string lastModificationDate
 }
 
+struct PingPong {
+  1: string ping,
+  2: string pong
+}
+
+
 # Services
  
 service MemoryStructure {
@@ -78,7 +84,7 @@ service MemoryStructure {
 // CREATED by PAUL
 // ping
 /*¨replies pong */
-set<string> ping(),
+list<PingPong> ping(),
 
 
 // MODIFIED by Paul
@@ -110,14 +116,14 @@ WebEntity getWebEntity(1: string id) throws (1:MemoryStructureException me, 2:Ob
 /**
  * @return all webentities in the index
  */
-set<WebEntity> getWebEntities(),
+list<WebEntity> getWebEntities(),
 
 // get pages belonging to one webentity
 /**
  * @param 1 id
  * @return set of pages for this webentity (may be empty)
  */
-set<PageItem> getPagesFromWebEntity(1:string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+list<PageItem> getPagesFromWebEntity(1:string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
 // generate webentity links
 /**
@@ -136,7 +142,7 @@ void clearIndex() throws (1:MemoryStructureException x),
  * @param 1 pageItems : set of PageItem objects
  * @return id of the created cache
  */
-string createCache(1:set<PageItem> pageItems) throws (1:MemoryStructureException x),
+string createCache(1:list<PageItem> pageItems) throws (1:MemoryStructureException x),
 
 // index_pages_from_cache
 /**
@@ -150,7 +156,7 @@ i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:Object
   * @param 1 cacheId : id of the cache
   * @return set of lru prefixes
   */
- set<string> getPrecisionExceptionsFromCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+ list<string> getPrecisionExceptionsFromCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
  /**
   * @param 1 cacheId : id of the cache
@@ -182,7 +188,7 @@ void saveWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule) th
 /**
  *
  */
-set<WebEntityCreationRule> getWebEntityCreationRules(),
+list<WebEntityCreationRule> getWebEntityCreationRules(),
 
 // delete a WebEntityCreationRule from index
 /**
@@ -196,14 +202,14 @@ void deleteWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule),
  *
  * @param 1 pageItems : set of PageItem objects
  */
-void savePageItems(1:set<PageItem> pageItems) throws (1:MemoryStructureException me),
+void savePageItems(1:list<PageItem> pageItems) throws (1:MemoryStructureException me),
 
 // NodeLinks
 /**
  *
  * @param 1 nodeLinks : set of NodeLink objects
  */
-void saveNodeLinks(1:set<NodeLink> nodeLinks) throws (1:MemoryStructureException me),
+void saveNodeLinks(1:list<NodeLink> nodeLinks) throws (1:MemoryStructureException me),
 
 // WebEntity
 /**

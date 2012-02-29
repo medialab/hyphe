@@ -1289,9 +1289,9 @@ public class LRUIndex {
         return matches;
     }
 
-    public Set<PageItem> findPagesForWebEntity(String id) throws IndexException, ObjectNotFoundException {
+    public List<PageItem> findPagesForWebEntity(String id) throws IndexException, ObjectNotFoundException {
         logger.debug("findMatchingWebEntityCreationRuleLRUPrefixes for id: " + id);
-        Set<PageItem> results = new HashSet<PageItem>();
+        List<PageItem> results = new ArrayList<PageItem>();
         if(StringUtils.isEmpty(id)) {
             return results;
         }

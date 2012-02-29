@@ -1714,7 +1714,7 @@ class ping_result:
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.STRING,None), None, ), # 0
+    (0, TType.LIST, 'success', (TType.STRUCT,(PingPong, PingPong.thrift_spec)), None, ), # 0
   )
 
   def __init__(self, success=None,):
@@ -1730,13 +1730,14 @@ class ping_result:
       if ftype == TType.STOP:
         break
       if fid == 0:
-        if ftype == TType.SET:
-          self.success = set()
-          (_etype26, _size23) = iprot.readSetBegin()
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype26, _size23) = iprot.readListBegin()
           for _i27 in xrange(_size23):
-            _elem28 = iprot.readString();
-            self.success.add(_elem28)
-          iprot.readSetEnd()
+            _elem28 = PingPong()
+            _elem28.read(iprot)
+            self.success.append(_elem28)
+          iprot.readListEnd()
         else:
           iprot.skip(ftype)
       else:
@@ -1750,11 +1751,11 @@ class ping_result:
       return
     oprot.writeStructBegin('ping_result')
     if self.success is not None:
-      oprot.writeFieldBegin('success', TType.SET, 0)
-      oprot.writeSetBegin(TType.STRING, len(self.success))
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
       for iter29 in self.success:
-        oprot.writeString(iter29)
-      oprot.writeSetEnd()
+        iter29.write(oprot)
+      oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -2255,7 +2256,7 @@ class getWebEntities_result:
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.STRUCT,(WebEntity, WebEntity.thrift_spec)), None, ), # 0
+    (0, TType.LIST, 'success', (TType.STRUCT,(WebEntity, WebEntity.thrift_spec)), None, ), # 0
   )
 
   def __init__(self, success=None,):
@@ -2271,14 +2272,14 @@ class getWebEntities_result:
       if ftype == TType.STOP:
         break
       if fid == 0:
-        if ftype == TType.SET:
-          self.success = set()
-          (_etype40, _size37) = iprot.readSetBegin()
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype40, _size37) = iprot.readListBegin()
           for _i41 in xrange(_size37):
             _elem42 = WebEntity()
             _elem42.read(iprot)
-            self.success.add(_elem42)
-          iprot.readSetEnd()
+            self.success.append(_elem42)
+          iprot.readListEnd()
         else:
           iprot.skip(ftype)
       else:
@@ -2292,11 +2293,11 @@ class getWebEntities_result:
       return
     oprot.writeStructBegin('getWebEntities_result')
     if self.success is not None:
-      oprot.writeFieldBegin('success', TType.SET, 0)
-      oprot.writeSetBegin(TType.STRUCT, len(self.success))
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
       for iter43 in self.success:
         iter43.write(oprot)
-      oprot.writeSetEnd()
+      oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -2385,7 +2386,7 @@ class getPagesFromWebEntity_result:
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.STRUCT,(PageItem, PageItem.thrift_spec)), None, ), # 0
+    (0, TType.LIST, 'success', (TType.STRUCT,(PageItem, PageItem.thrift_spec)), None, ), # 0
     (1, TType.STRUCT, 'me', (MemoryStructureException, MemoryStructureException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'x', (ObjectNotFoundException, ObjectNotFoundException.thrift_spec), None, ), # 2
   )
@@ -2405,14 +2406,14 @@ class getPagesFromWebEntity_result:
       if ftype == TType.STOP:
         break
       if fid == 0:
-        if ftype == TType.SET:
-          self.success = set()
-          (_etype47, _size44) = iprot.readSetBegin()
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype47, _size44) = iprot.readListBegin()
           for _i48 in xrange(_size44):
             _elem49 = PageItem()
             _elem49.read(iprot)
-            self.success.add(_elem49)
-          iprot.readSetEnd()
+            self.success.append(_elem49)
+          iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 1:
@@ -2438,11 +2439,11 @@ class getPagesFromWebEntity_result:
       return
     oprot.writeStructBegin('getPagesFromWebEntity_result')
     if self.success is not None:
-      oprot.writeFieldBegin('success', TType.SET, 0)
-      oprot.writeSetBegin(TType.STRUCT, len(self.success))
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
       for iter50 in self.success:
         iter50.write(oprot)
-      oprot.writeSetEnd()
+      oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.me is not None:
       oprot.writeFieldBegin('me', TType.STRUCT, 1)
@@ -2684,7 +2685,7 @@ class createCache_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.SET, 'pageItems', (TType.STRUCT,(PageItem, PageItem.thrift_spec)), None, ), # 1
+    (1, TType.LIST, 'pageItems', (TType.STRUCT,(PageItem, PageItem.thrift_spec)), None, ), # 1
   )
 
   def __init__(self, pageItems=None,):
@@ -2700,14 +2701,14 @@ class createCache_args:
       if ftype == TType.STOP:
         break
       if fid == 1:
-        if ftype == TType.SET:
-          self.pageItems = set()
-          (_etype54, _size51) = iprot.readSetBegin()
+        if ftype == TType.LIST:
+          self.pageItems = []
+          (_etype54, _size51) = iprot.readListBegin()
           for _i55 in xrange(_size51):
             _elem56 = PageItem()
             _elem56.read(iprot)
-            self.pageItems.add(_elem56)
-          iprot.readSetEnd()
+            self.pageItems.append(_elem56)
+          iprot.readListEnd()
         else:
           iprot.skip(ftype)
       else:
@@ -2721,11 +2722,11 @@ class createCache_args:
       return
     oprot.writeStructBegin('createCache_args')
     if self.pageItems is not None:
-      oprot.writeFieldBegin('pageItems', TType.SET, 1)
-      oprot.writeSetBegin(TType.STRUCT, len(self.pageItems))
+      oprot.writeFieldBegin('pageItems', TType.LIST, 1)
+      oprot.writeListBegin(TType.STRUCT, len(self.pageItems))
       for iter57 in self.pageItems:
         iter57.write(oprot)
-      oprot.writeSetEnd()
+      oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -3031,7 +3032,7 @@ class getPrecisionExceptionsFromCache_result:
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.STRING,None), None, ), # 0
+    (0, TType.LIST, 'success', (TType.STRING,None), None, ), # 0
     (1, TType.STRUCT, 'me', (MemoryStructureException, MemoryStructureException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'x', (ObjectNotFoundException, ObjectNotFoundException.thrift_spec), None, ), # 2
   )
@@ -3051,13 +3052,13 @@ class getPrecisionExceptionsFromCache_result:
       if ftype == TType.STOP:
         break
       if fid == 0:
-        if ftype == TType.SET:
-          self.success = set()
-          (_etype61, _size58) = iprot.readSetBegin()
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype61, _size58) = iprot.readListBegin()
           for _i62 in xrange(_size58):
             _elem63 = iprot.readString();
-            self.success.add(_elem63)
-          iprot.readSetEnd()
+            self.success.append(_elem63)
+          iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 1:
@@ -3083,11 +3084,11 @@ class getPrecisionExceptionsFromCache_result:
       return
     oprot.writeStructBegin('getPrecisionExceptionsFromCache_result')
     if self.success is not None:
-      oprot.writeFieldBegin('success', TType.SET, 0)
-      oprot.writeSetBegin(TType.STRING, len(self.success))
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRING, len(self.success))
       for iter64 in self.success:
         oprot.writeString(iter64)
-      oprot.writeSetEnd()
+      oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.me is not None:
       oprot.writeFieldBegin('me', TType.STRUCT, 1)
@@ -3688,7 +3689,7 @@ class getWebEntityCreationRules_result:
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.STRUCT,(WebEntityCreationRule, WebEntityCreationRule.thrift_spec)), None, ), # 0
+    (0, TType.LIST, 'success', (TType.STRUCT,(WebEntityCreationRule, WebEntityCreationRule.thrift_spec)), None, ), # 0
   )
 
   def __init__(self, success=None,):
@@ -3704,14 +3705,14 @@ class getWebEntityCreationRules_result:
       if ftype == TType.STOP:
         break
       if fid == 0:
-        if ftype == TType.SET:
-          self.success = set()
-          (_etype68, _size65) = iprot.readSetBegin()
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype68, _size65) = iprot.readListBegin()
           for _i69 in xrange(_size65):
             _elem70 = WebEntityCreationRule()
             _elem70.read(iprot)
-            self.success.add(_elem70)
-          iprot.readSetEnd()
+            self.success.append(_elem70)
+          iprot.readListEnd()
         else:
           iprot.skip(ftype)
       else:
@@ -3725,11 +3726,11 @@ class getWebEntityCreationRules_result:
       return
     oprot.writeStructBegin('getWebEntityCreationRules_result')
     if self.success is not None:
-      oprot.writeFieldBegin('success', TType.SET, 0)
-      oprot.writeSetBegin(TType.STRUCT, len(self.success))
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
       for iter71 in self.success:
         iter71.write(oprot)
-      oprot.writeSetEnd()
+      oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -3860,7 +3861,7 @@ class savePageItems_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.SET, 'pageItems', (TType.STRUCT,(PageItem, PageItem.thrift_spec)), None, ), # 1
+    (1, TType.LIST, 'pageItems', (TType.STRUCT,(PageItem, PageItem.thrift_spec)), None, ), # 1
   )
 
   def __init__(self, pageItems=None,):
@@ -3876,14 +3877,14 @@ class savePageItems_args:
       if ftype == TType.STOP:
         break
       if fid == 1:
-        if ftype == TType.SET:
-          self.pageItems = set()
-          (_etype75, _size72) = iprot.readSetBegin()
+        if ftype == TType.LIST:
+          self.pageItems = []
+          (_etype75, _size72) = iprot.readListBegin()
           for _i76 in xrange(_size72):
             _elem77 = PageItem()
             _elem77.read(iprot)
-            self.pageItems.add(_elem77)
-          iprot.readSetEnd()
+            self.pageItems.append(_elem77)
+          iprot.readListEnd()
         else:
           iprot.skip(ftype)
       else:
@@ -3897,11 +3898,11 @@ class savePageItems_args:
       return
     oprot.writeStructBegin('savePageItems_args')
     if self.pageItems is not None:
-      oprot.writeFieldBegin('pageItems', TType.SET, 1)
-      oprot.writeSetBegin(TType.STRUCT, len(self.pageItems))
+      oprot.writeFieldBegin('pageItems', TType.LIST, 1)
+      oprot.writeListBegin(TType.STRUCT, len(self.pageItems))
       for iter78 in self.pageItems:
         iter78.write(oprot)
-      oprot.writeSetEnd()
+      oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
@@ -3990,7 +3991,7 @@ class saveNodeLinks_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.SET, 'nodeLinks', (TType.STRUCT,(NodeLink, NodeLink.thrift_spec)), None, ), # 1
+    (1, TType.LIST, 'nodeLinks', (TType.STRUCT,(NodeLink, NodeLink.thrift_spec)), None, ), # 1
   )
 
   def __init__(self, nodeLinks=None,):
@@ -4006,14 +4007,14 @@ class saveNodeLinks_args:
       if ftype == TType.STOP:
         break
       if fid == 1:
-        if ftype == TType.SET:
-          self.nodeLinks = set()
-          (_etype82, _size79) = iprot.readSetBegin()
+        if ftype == TType.LIST:
+          self.nodeLinks = []
+          (_etype82, _size79) = iprot.readListBegin()
           for _i83 in xrange(_size79):
             _elem84 = NodeLink()
             _elem84.read(iprot)
-            self.nodeLinks.add(_elem84)
-          iprot.readSetEnd()
+            self.nodeLinks.append(_elem84)
+          iprot.readListEnd()
         else:
           iprot.skip(ftype)
       else:
@@ -4027,11 +4028,11 @@ class saveNodeLinks_args:
       return
     oprot.writeStructBegin('saveNodeLinks_args')
     if self.nodeLinks is not None:
-      oprot.writeFieldBegin('nodeLinks', TType.SET, 1)
-      oprot.writeSetBegin(TType.STRUCT, len(self.nodeLinks))
+      oprot.writeFieldBegin('nodeLinks', TType.LIST, 1)
+      oprot.writeListBegin(TType.STRUCT, len(self.nodeLinks))
       for iter85 in self.nodeLinks:
         iter85.write(oprot)
-      oprot.writeSetEnd()
+      oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

@@ -59,11 +59,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @throws TException hmm
      */
     @Override
-    public Set<String> ping() throws TException {
-        Set<String> pingpong = new HashSet<String>();
-        pingpong.add("ping");
-        pingpong.add("pong");
-        return pingpong;
+    public List<PingPong> ping() throws TException {
+        logger.debug("ping");
+        List<PingPong> pingpongset = new ArrayList<PingPong>();
+        pingpongset.add(new PingPong("ping 1","pong 1"));
+        pingpongset.add(new PingPong("ping 2","pong 2"));
+        return pingpongset;
     }
 
     /**
@@ -155,10 +156,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @throws TException hmm
      */
     @Override
-    public Set<WebEntity> getWebEntities() throws TException {
+    public List<WebEntity> getWebEntities() throws TException {
         logger.debug("getWebEntities");
         try {
-            return lruIndex.retrieveWebEntities();
+            List<WebEntity> webEntities = new ArrayList<WebEntity>(lruIndex.retrieveWebEntities());
+            return webEntities;
         }
         catch (IndexException x) {
             logger.error(x.getMessage());
@@ -174,10 +176,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @throws TException hmm
      */
     @Override
-    public Set<WebEntityCreationRule> getWebEntityCreationRules() throws TException {
+    public List<WebEntityCreationRule> getWebEntityCreationRules() throws TException {
         logger.debug("getWebEntityCreationRules");
         try {
-            return lruIndex.retrieveWebEntityCreationRules();
+            List<WebEntityCreationRule> results= new ArrayList<WebEntityCreationRule>(lruIndex.retrieveWebEntityCreationRules());
+            return (results);
         }
         catch (IndexException x) {
             logger.error(x.getMessage());
@@ -214,7 +217,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @throws MemoryStructureException hmm
      */
     @Override
-    public String createCache(Set<PageItem> pageItems) throws TException, MemoryStructureException {
+    public String createCache(List<PageItem> pageItems) throws TException, MemoryStructureException {
         if(pageItems != null && logger.isDebugEnabled()) {
             logger.debug("createCache for # " + pageItems.size() + " pageItems");
         }
@@ -288,9 +291,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @throws ObjectNotFoundException
      */
     @Override
-    public Set<PageItem> getPagesFromWebEntity(String id) throws TException, MemoryStructureException, ObjectNotFoundException {
+    public List<PageItem> getPagesFromWebEntity(String id) throws TException, MemoryStructureException, ObjectNotFoundException {
         logger.debug("getPagesFromWebEntity with id: " + id);
-        Set<PageItem> pages;
+        List<PageItem> pages;
         try {
             pages = lruIndex.findPagesForWebEntity(id);
             logger.debug("found # " + pages.size() + " pages");
@@ -359,10 +362,10 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     // TODO TEST
     @Override
-    public Set<String> getPrecisionExceptionsFromCache(String cacheId) throws TException, ObjectNotFoundException, MemoryStructureException {
+    public List<String> getPrecisionExceptionsFromCache(String cacheId) throws TException, ObjectNotFoundException, MemoryStructureException {
         logger.debug("getPrecisionExceptionsFromCache with cache id: " + cacheId);
         try {
-            Set<String> results = new HashSet<String>();
+            List<String> results = new ArrayList<String>();
             // get precisionExceptions from index
             List<String> precisionExceptions = lruIndex.retrievePrecisionExceptions();
 
@@ -463,7 +466,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public void saveNodeLinks(Set<NodeLink> nodeLinks) throws TException, MemoryStructureException {
+    public void saveNodeLinks(List<NodeLink> nodeLinks) throws TException, MemoryStructureException {
         logger.debug("MemoryStructure saveNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
         try{
             @SuppressWarnings({"unchecked"})
@@ -500,7 +503,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      */
     // TODO TEST. IS METHOD NECESSARY? NORMAL IS : CREATE CACHE WITH PAGES AND INDEX CACHE
     @Override
-    public void savePageItems(Set<PageItem> pageItems) throws TException, MemoryStructureException {
+    public void savePageItems(List<PageItem> pageItems) throws TException, MemoryStructureException {
         logger.debug("savePageItems for # " + pageItems.size() + " pageItems");
         try {
             @SuppressWarnings({"unchecked"})

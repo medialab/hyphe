@@ -19,6 +19,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,8 +66,8 @@ public class Cache {
      *
      * @return pageItems
      */
-    public Set<PageItem> getPageItems() {
-        Set<PageItem> pageItems = new HashSet<PageItem>();
+    public List<PageItem> getPageItems() {
+        List<PageItem> pageItems = new ArrayList<PageItem>();
         for(PageItem pageItem : this.pageItems.values()) {
             pageItems.add(pageItem);
         }
@@ -78,7 +80,7 @@ public class Cache {
      * @param pageItems pageItems
      * @throws MaxCacheSizeException if resulting cache would exceed max cache size
      */
-    public void setPageItems(Set<PageItem> pageItems) throws MaxCacheSizeException {
+    public void setPageItems(List<PageItem> pageItems) throws MaxCacheSizeException {
         logger.debug("adding PageItems to cache");
         if(this.pageItems.size() + pageItems.size() > MAX_CACHE_SIZE) {
             String msg = "attempt to add # " + pageItems.size() + " pageItems to cache with id: " + id + ". Cache already contains " + this.pageItems.size() + "pageItems. Allowed max is " + MAX_CACHE_SIZE;
