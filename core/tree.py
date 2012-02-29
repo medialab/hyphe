@@ -59,6 +59,8 @@ tree = {}
 
 lrus = [
 	"fr|google|bob|thomas",
+	"fr|google|bob|jean|mpa",
+	"fr|google|bob|jean|mdazda",
 	"com|twitter",
 	"com|facebook",
 ]
@@ -68,3 +70,8 @@ for lru in lrus	:
 	add_page(tree, lru)
 			
 g = flatten(tree)
+for e in g : 
+    print e 
+    
+for e in children(tree,"fr|google") :
+    print e
