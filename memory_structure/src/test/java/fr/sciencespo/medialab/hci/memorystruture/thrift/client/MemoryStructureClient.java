@@ -1,7 +1,7 @@
 package fr.sciencespo.medialab.hci.memorystruture.thrift.client;
 
-import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructure;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
@@ -9,8 +9,8 @@ import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Example client for the MemoryStructure server.
@@ -54,7 +54,7 @@ public class MemoryStructureClient {
             //
             // create/retrieve test data
             //
-            Set<PageItem> lruItems = new HashSet<PageItem>();
+            List<PageItem> lruItems = new ArrayList<PageItem>();
             for(int i = 0; i < 5; i++) {
                 PageItem lruItem = new PageItem();
                 lruItem.setLru("a" + i);

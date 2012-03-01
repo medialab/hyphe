@@ -1,15 +1,16 @@
 package fr.sciencespo.medialab.hci.memorystructure.thrift;
 
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexConfiguration;
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -19,7 +20,8 @@ import java.util.Set;
  * @author heikki doeleman
  */
 public class MemoryStructureTest extends TestCase {
-    private static Logger logger = LoggerFactory.getLogger(MemoryStructureTest.class);
+
+    private static DynamicLogger logger = new DynamicLogger(MemoryStructureTest.class, DynamicLogger.LogLevel.DEBUG);
 
     private MemoryStructureImpl memoryStructure ;
 
@@ -67,7 +69,7 @@ public class MemoryStructureTest extends TestCase {
             PageItem p4 = new PageItem();
             p4.setLru("s:http|h:www|h:fr|h:sciences-po|p:this-page-should-not-trigger-new-web-entity.php");
 
-            Set<PageItem> pages = new HashSet<PageItem>();
+            List<PageItem> pages = new ArrayList<PageItem>();
             pages.add(p1);
             pages.add(p2);
             pages.add(p3);
@@ -83,7 +85,7 @@ public class MemoryStructureTest extends TestCase {
 
             // create WebEntities from pages in cache
             memoryStructure.createWebEntities(cacheId);
-            Set<WebEntity> indexedWEs = memoryStructure.getWebEntities();
+            List<WebEntity> indexedWEs = memoryStructure.getWebEntities();
             assertEquals("Unexpected # of web entities", 3, indexedWEs.size());
 
             // create web entities from cache again: should not create any more WEs
@@ -106,7 +108,7 @@ public class MemoryStructureTest extends TestCase {
             l4.setSourceLRU("s:http|h:www|h:fr|h:sciencespo|h:medialab|h:jiminy|p:hci|p:contact.html");
             l4.setTargetLRU("s:http|h:www|h:fr|h:sciences-po");
 
-            Set<NodeLink> nodeLinks = new HashSet<NodeLink>();
+            List<NodeLink> nodeLinks = new ArrayList<NodeLink>();
             nodeLinks.add(l1);
             nodeLinks.add(l2);
             nodeLinks.add(l3);
@@ -154,7 +156,7 @@ public class MemoryStructureTest extends TestCase {
     public void testCreateCache() {
         logger.info("testCreateCache");
         try {
-            Set<PageItem> lruItems = new HashSet<PageItem>();
+            List<PageItem> lruItems = new ArrayList<PageItem>();
             PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po");
             PageItem lruItem2 = new PageItem().setLru("s:http|h:fr|h:sciencespo");
             PageItem lruItem3 = new PageItem().setLru("s:http|h:fr|h:sciencespo|h:medialab");
@@ -187,7 +189,7 @@ public class MemoryStructureTest extends TestCase {
     public void testCreateCacheNullInput() {
         logger.info("testCreateCacheNullInput");
         try {
-            Set<PageItem> lruItems = null;
+            List<PageItem> lruItems = null;
             String id = memoryStructure.createCache(lruItems);
             fail("Expected MemoryStructureException that was not thrown");
         }
@@ -214,7 +216,7 @@ public class MemoryStructureTest extends TestCase {
             //
             // first, create and populate a cache
             //
-            Set<PageItem> lruItems = new HashSet<PageItem>();
+            List<PageItem> lruItems = new ArrayList<PageItem>();
             PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po");
             PageItem lruItem2 = new PageItem().setLru("s:http|h:fr|h:sciencespo");
             PageItem lruItem3 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
@@ -259,7 +261,7 @@ public class MemoryStructureTest extends TestCase {
             //
             // first, create and populate a cache
             //
-            Set<PageItem> lruItems = new HashSet<PageItem>();
+            List<PageItem> lruItems = new ArrayList<PageItem>();
             PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po");
             PageItem lruItem2 = new PageItem().setLru("s:http|h:fr|h:sciencespo");
             PageItem lruItem3 = new PageItem().setLru("s:http|h:fr|h:sciencespo|h:medialab");
@@ -555,7 +557,7 @@ public class MemoryStructureTest extends TestCase {
         logger.info("testRetrievingAllWebEntitiesWhenThereAreNone");
         try {
              // retrieve them
-            Set<WebEntity> webEntities = memoryStructure.getWebEntities();
+            List<WebEntity> webEntities = memoryStructure.getWebEntities();
             assertEquals("Unexpected number of retrieved webentities", 0, webEntities.size());
         }
         catch (TException x) {
@@ -598,7 +600,7 @@ public class MemoryStructureTest extends TestCase {
             logger.debug("storeWebEntity indexed web entity with id: " + id2);
 
              // retrieve them
-            Set<WebEntity> webEntities = memoryStructure.getWebEntities();
+            List<WebEntity> webEntities = memoryStructure.getWebEntities();
             assertEquals("Unexpected number of retrieved webentities", 2, webEntities.size());
         }
         catch (TException x) {
@@ -611,6 +613,67 @@ public class MemoryStructureTest extends TestCase {
             logger.info("end testRetrievingAllWebEntities");
         }
     }
+
+    public void testGetPagesFromWebEntity() {
+        logger.info("testGetPagesFromWebEntity");
+        try {
+            // store 1 webentity
+            WebEntity webEntity = new WebEntity();
+            webEntity.setName("medialab.sciences-po.fr");
+            Set<String> lruList = new HashSet<String>();
+            lruList.add("s:http|h:fr|h:sciences-po|h:medialab");
+            webEntity.setLRUSet(lruList);
+
+            String id = memoryStructure.createWebEntity(webEntity.getName(), webEntity.getLRUSet()).getId();
+            assertNotNull("storeWebEntity returned null id", id);
+            logger.debug("storeWebEntity indexed web entity with id: " + id);
+
+            // store 2nd webentity
+            WebEntity webEntity2 = new WebEntity();
+            webEntity2.setName("jiminy.medialab.sciences-po.fr");
+            Set<String> lruList2 = new HashSet<String>();
+            lruList2.add(" s:http|h:fr|h:sciences-po|h:medialab|h:jiminy");
+            webEntity2.setLRUSet(lruList2);
+
+            String id2 = memoryStructure.createWebEntity(webEntity2.getName(), webEntity2.getLRUSet()).getId();
+            assertNotNull("storeWebEntity returned null id", id2);
+            logger.debug("storeWebEntity indexed web entity with id: " + id2);
+
+            // store 3rd webentity
+            WebEntity webEntity3 = new WebEntity();
+            webEntity3.setName("hci wiki");
+            Set<String> lruList3 = new HashSet<String>();
+            lruList3.add("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci");
+            lruList3.add("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci|p:index.php");
+            webEntity3.setLRUSet(lruList3);
+
+            String id3 = memoryStructure.createWebEntity(webEntity3.getName(), webEntity3.getLRUSet()).getId();
+            assertNotNull("storeWebEntity returned null id", id3);
+            logger.debug("storeWebEntity indexed web entity with id: " + id3);
+
+            // retrieve them
+            List<WebEntity> webEntities = memoryStructure.getWebEntities();
+            assertEquals("Unexpected number of retrieved webentities", 3, webEntities.size());
+
+            List<PageItem> pages1 = memoryStructure.getPagesFromWebEntity(id3);
+            for(PageItem pageItem : pages1) {
+                System.out.println(pages1.toString());
+            }
+        }
+        catch (TException x) {
+            fail(x.getMessage());
+        }
+        catch (MemoryStructureException x) {
+            fail(x.getMessage());
+        }
+        catch (ObjectNotFoundException x) {
+            fail(x.getMessage());
+        }
+        finally {
+            logger.info("end testGetPagesFromWebEntity");
+        }
+    }
+
 
     //
     // WebEntity Creation Rule tests
@@ -652,7 +715,7 @@ public class MemoryStructureTest extends TestCase {
             webEntityCreationRule.setRegExp("(s:http|h:fr|h:sciences-po|(h:www|)?p:.*?\\|).*");
             memoryStructure.saveWebEntityCreationRule(webEntityCreationRule);
 
-            Set<WebEntityCreationRule> results = memoryStructure.getWebEntityCreationRules();
+            List<WebEntityCreationRule> results = memoryStructure.getWebEntityCreationRules();
             assertEquals("Unexpected # of WebEntityCreationRules", 1, results.size());
 
             WebEntityCreationRule retrieved = results.iterator().next();
@@ -689,7 +752,7 @@ public class MemoryStructureTest extends TestCase {
             webEntityCreationRule2.setRegExp("(s:http|h:com|h:megaupload|(h:www|)?p:.*?\\|).*");
             memoryStructure.saveWebEntityCreationRule(webEntityCreationRule2);
 
-            Set<WebEntityCreationRule> results = memoryStructure.getWebEntityCreationRules();
+            List<WebEntityCreationRule> results = memoryStructure.getWebEntityCreationRules();
             assertEquals("Unexpected # of WebEntityCreationRules", 1, results.size());
 
             WebEntityCreationRule retrieved = results.iterator().next();
@@ -778,7 +841,7 @@ public class MemoryStructureTest extends TestCase {
             webEntityCreationRule.setRegExp("(s:http|h:fr|h:sciences-po|(h:www|)?p:.*?\\|).*");
             memoryStructure.saveWebEntityCreationRule(webEntityCreationRule);
 
-            Set<WebEntityCreationRule> results = memoryStructure.getWebEntityCreationRules();
+            List<WebEntityCreationRule> results = memoryStructure.getWebEntityCreationRules();
             assertEquals("Unexpected # of WebEntityCreationRules", 2, results.size());
 
             for(WebEntityCreationRule result : results) {
@@ -825,7 +888,7 @@ public class MemoryStructureTest extends TestCase {
             webEntityCreationRule.setRegExp("(s:http|h:fr|h:sciences-po|(h:www|)?p:.*?\\|).*");
             memoryStructure.saveWebEntityCreationRule(webEntityCreationRule);
 
-            Set<WebEntityCreationRule> results = memoryStructure.getWebEntityCreationRules();
+            List<WebEntityCreationRule> results = memoryStructure.getWebEntityCreationRules();
             assertEquals("Unexpected # of WebEntityCreationRules", 2, results.size());
 
             memoryStructure.deleteWebEntityCreationRule(webEntityCreationRule);
@@ -873,7 +936,7 @@ public class MemoryStructureTest extends TestCase {
 
             memoryStructure.deleteWebEntityCreationRule(webEntityCreationRule);
 
-            Set<WebEntityCreationRule> results = memoryStructure.getWebEntityCreationRules();
+            List<WebEntityCreationRule> results = memoryStructure.getWebEntityCreationRules();
             assertEquals("Unexpected # of WebEntityCreationRules", 0, results.size());
         }
         catch (TException x) {

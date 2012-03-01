@@ -2,6 +2,7 @@ package fr.sciencespo.medialab.hci.memorystructure.index;
 
 import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -11,8 +12,6 @@ import org.apache.lucene.index.LogByteSizeMergePolicy;
 import org.apache.lucene.index.LogMergePolicy;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,7 +26,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class AsyncIndexWriterTask implements RunnableFuture {
 
-    private Logger logger = LoggerFactory.getLogger(AsyncIndexWriterTask.class);
+    private static DynamicLogger logger = new DynamicLogger(AsyncIndexWriterTask.class);
 
     private static Version LUCENE_VERSION;
     private static IndexWriterConfig.OpenMode OPEN_MODE;

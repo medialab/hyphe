@@ -6,6 +6,7 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -32,8 +33,6 @@ import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,7 +58,7 @@ import java.util.regex.Pattern;
  */
 public class LRUIndex {
 
-    private static Logger logger = LoggerFactory.getLogger(LRUIndex.class);
+    private static DynamicLogger logger = new DynamicLogger(LRUIndex.class);
 
     //
     // Lucene settings
@@ -1290,7 +1289,8 @@ public class LRUIndex {
     }
 
     public List<PageItem> findPagesForWebEntity(String id) throws IndexException, ObjectNotFoundException {
-        logger.debug("findMatchingWebEntityCreationRuleLRUPrefixes for id: " + id);
+        logger.debug("findPagesForWebEntity for id: " + id);
+        System.out.println("\n\n\nxxxxx " + id);
         List<PageItem> results = new ArrayList<PageItem>();
         if(StringUtils.isEmpty(id)) {
             return results;
@@ -1299,9 +1299,62 @@ public class LRUIndex {
         if(webEntity == null) {
             throw new ObjectNotFoundException().setMsg("Could not find webentity with id: " + id);
         }
-        for(String prefix : webEntity.getLRUSet()) {
-            results.addAll(retrievePageItemsByLRUPrefix(prefix + "*"));
+        System.out.println("finding pages for web entity " + webEntity.getName());
+        Set<WebEntity> allWebEntities = retrieveWebEntities();
+        
+        for(String prefixFromRequestedWebEntity : webEntity.getLRUSet()) {
+            //TODO remove
+            //results.addAll(retrievePageItemsByLRUPrefix(prefix + "*"));
+
+            System.out.println("checking prefixFromRequestedWebEntity " + prefixFromRequestedWebEntity + " size " + prefixFromRequestedWebEntity.length());
+            Set<PageItem> matches = retrievePageItemsByLRUPrefix(prefixFromRequestedWebEntity + "*");
+
+            for(PageItem match : matches) {
+                System.out.println("\nchecking matching page " + match.getLru());
+                boolean keepMatch = false;
+                boolean stop = false;
+                for(WebEntity we : allWebEntities ) {
+                    if(stop) break;
+                    System.out.println("does it belong to we " + we.getName());
+                    for(String lruPrefix : we.getLRUSet()) {
+                        if(lruPrefix.length() >= prefixFromRequestedWebEntity.length()) {
+                            lruPrefix = lruPrefix + "*";
+                            System.out.println("checking we prefix " + lruPrefix);
+                            // lruPrefix must escape |
+                            String pipe = "\\|";
+                            Pattern pipePattern = Pattern.compile(pipe);
+                            Matcher pipeMatcher = pipePattern.matcher(lruPrefix);
+                            String escapedPrefix = pipeMatcher.replaceAll("\\\\|");
+
+                            Pattern pattern = Pattern.compile(escapedPrefix);
+                            Matcher matcher = pattern.matcher(match.getLru());
+                            if(matcher.find()) {
+                                System.out.println("## " + we.getName() + " " + lruPrefix + " size " + lruPrefix.length() + " " + prefixFromRequestedWebEntity.length() );
+                                if(prefixFromRequestedWebEntity.length() < (lruPrefix.length()-1)) {
+                                    System.out.println("remote we is longer, don't keep");
+                                    stop=true;
+                                    break;
+                                }
+                                else {
+                                    System.out.println("remote we is shorter: keep patch");
+                                    keepMatch = true;
+                                }
+                            }
+                            else {
+                                System.out.println("no match");
+                            }
+                        }
+                        else {
+                            System.out.println("lruprefix too short, not checking " + lruPrefix);
+                        }
+                    }
+                }
+                if(keepMatch) {
+                    results.add(match);
+                }
+            }
         }
+
         return results;
     }
 

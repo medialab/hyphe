@@ -9,18 +9,17 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.util.CollectionUtils;
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,7 +31,7 @@ import java.util.regex.Pattern;
  */
 public class Cache {
 
-    private Logger logger = LoggerFactory.getLogger(Cache.class);
+    private static DynamicLogger logger = new DynamicLogger(Cache.class);
 
     // TODO make configurable
     private final int MAX_CACHE_SIZE = Integer.MAX_VALUE;

@@ -1,11 +1,7 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
 /**
- * Created by IntelliJ IDEA.
- * User: heikki
- * Date: 12/26/11
- * Time: 2:09 PM
- * To change this template use File | Settings | File Templates.
+ * @author heikki doeleman
  */
 public class IndexException extends Exception {
     public IndexException() {

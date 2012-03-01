@@ -1,8 +1,5 @@
 package fr.sciencespo.medialab.hci.memorystructure.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,7 +10,7 @@ import java.util.Set;
  */
 public class CollectionUtils {
 
-    private static Logger logger = LoggerFactory.getLogger(CollectionUtils.class);
+    private static DynamicLogger logger = new DynamicLogger(CollectionUtils.class);
     /**
      * Returns a set of the longest strings in a set. If the input is empty, returns a set containing the empty string.
      *

@@ -9,17 +9,15 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import fr.sciencespo.medialab.hci.util.LineFileReader;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +30,7 @@ import java.util.Set;
  */
 public class LRUIndexTest extends TestCase {
 
-    private static Logger logger = LoggerFactory.getLogger(LRUIndexTest.class);
+    private static DynamicLogger logger = new DynamicLogger(LRUIndexTest.class, DynamicLogger.LogLevel.DEBUG);
 
     LRUIndex lruIndex;
 
@@ -47,7 +45,7 @@ public class LRUIndexTest extends TestCase {
      * Invoked after each test* method. Empties the index between tests.
      */
     public void tearDown() throws Exception {
-            lruIndex.clearIndex();
+        lruIndex.clearIndex();
     }
 
     /**
@@ -513,7 +511,7 @@ public class LRUIndexTest extends TestCase {
             webEntity.addToLRUSet("s:http|h:fr|h:sciences-po");
             String id = lruIndex.indexWebEntity(webEntity);
 
-            Set<PageItem> result = lruIndex.findPagesForWebEntity(id);
+            List<PageItem> result = lruIndex.findPagesForWebEntity(id);
             assertNotNull("findPagesForWebEntity returned null", result);
             assertEquals("Unexpected # of pageitems", 2, result.size());
         }
@@ -528,6 +526,58 @@ public class LRUIndexTest extends TestCase {
             fail(x.getMsg());
         }
     }
+
+    public void testFindPagesForSubWebEntity() {
+        try {
+            assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+            List<Object> lruItems = new ArrayList<Object>();
+            PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
+            PageItem lruItem2 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy");
+            PageItem lruItem3 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci|p:index.php");
+            lruItems.add(lruItem1);
+            lruItems.add(lruItem2);
+            lruItems.add(lruItem3);
+            lruIndex.batchIndex(lruItems);
+
+            WebEntity webEntity1 = new WebEntity();
+            webEntity1.setName("medialab.sciences-po.fr");
+            webEntity1.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab");
+            String id1 = lruIndex.indexWebEntity(webEntity1);
+
+            WebEntity webEntity2 = new WebEntity();
+            webEntity2.setName("jiminy.medialab.sciences-po.fr");
+            webEntity2.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy");
+            String id2 = lruIndex.indexWebEntity(webEntity2);
+
+            WebEntity webEntity3 = new WebEntity();
+            webEntity3.setName("hci wiki");
+            webEntity3.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci");
+            String id3 = lruIndex.indexWebEntity(webEntity3);
+
+            List<PageItem> result1 = lruIndex.findPagesForWebEntity(id1);
+            assertNotNull("findPagesForWebEntity returned null", result1);
+            assertEquals("Unexpected # of pageitems", 1, result1.size());
+
+            List<PageItem> result2 = lruIndex.findPagesForWebEntity(id2);
+            assertNotNull("findPagesForWebEntity returned null", result2);
+            assertEquals("Unexpected # of pageitems", 1, result2.size());
+
+            List<PageItem> result3 = lruIndex.findPagesForWebEntity(id3);
+            assertNotNull("findPagesForWebEntity returned null", result3);
+            assertEquals("Unexpected # of pageitems", 1, result3.size());
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (ObjectNotFoundException x) {
+            logger.error(x.getMsg());
+            x.printStackTrace();
+            fail(x.getMsg());
+        }
+    }
+
 
     public void testFindPagesForWebEntityNullInput() {
         try {
@@ -546,7 +596,7 @@ public class LRUIndexTest extends TestCase {
             webEntity.addToLRUSet("s:http|h:fr|h:sciences-po");
             String id = lruIndex.indexWebEntity(webEntity);
 
-            Set<PageItem> result = lruIndex.findPagesForWebEntity(null);
+            List<PageItem> result = lruIndex.findPagesForWebEntity(null);
             assertNotNull("findPagesForWebEntity returned null", result);
             assertEquals("Unexpected # of pageitems", 0, result.size());
         }
@@ -579,7 +629,7 @@ public class LRUIndexTest extends TestCase {
             webEntity.addToLRUSet("s:http|h:fr|h:sciences-po");
             String id = lruIndex.indexWebEntity(webEntity);
 
-            Set<PageItem> result = lruIndex.findPagesForWebEntity(id+id);
+            List<PageItem> result = lruIndex.findPagesForWebEntity(id+id);
             fail("Expected ObjectNotFoundException but it wasn't thrown");
         }
         catch (IndexException x) {
@@ -709,7 +759,7 @@ public class LRUIndexTest extends TestCase {
             // create some PageItems in cache
             //
             Cache cache = new Cache(lruIndex);
-            Set<PageItem> pages = new HashSet<PageItem>();
+            List<PageItem> pages = new ArrayList<PageItem>();
 
             PageItem page1 = new PageItem().setLru("s:http|h:com|h:megaupload");
             PageItem page2 = new PageItem().setLru("s:http|h:com|h:napster");
@@ -823,7 +873,7 @@ public class LRUIndexTest extends TestCase {
             // create some PageItems in cache
             //
             Cache cache = new Cache(lruIndex);
-            Set<PageItem> pages = new HashSet<PageItem>();
+            List<PageItem> pages = new ArrayList<PageItem>();
 
             PageItem page1 = new PageItem().setLru("s:http|h:com|h:megaupload");
             PageItem page2 = new PageItem().setLru("s:http|h:com|h:napster");
@@ -904,7 +954,7 @@ public class LRUIndexTest extends TestCase {
             // create some PageItems in cache
             //
             Cache cache = new Cache(lruIndex);
-            Set<PageItem> pages = new HashSet<PageItem>();
+            List<PageItem> pages = new ArrayList<PageItem>();
 
             PageItem page1 = new PageItem().setLru("s:http|h:com|h:megaupload");
             PageItem page2 = new PageItem().setLru("s:http|h:com|h:napster");

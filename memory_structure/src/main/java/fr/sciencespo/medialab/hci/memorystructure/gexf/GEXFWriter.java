@@ -13,8 +13,7 @@ import com.ojn.gexf4j.core.impl.data.AttributeListImpl;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,7 +27,7 @@ import java.util.Set;
  */
 public class GEXFWriter {
 
-    private static Logger logger = LoggerFactory.getLogger(GEXFWriter.class);
+    private static DynamicLogger logger = new DynamicLogger(GEXFWriter.class);
 
     public static String writeGEXF() throws GEXFWriterException {
         try {

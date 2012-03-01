@@ -5,13 +5,12 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.index.FieldInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -22,7 +21,7 @@ import java.util.UUID;
  */
 public class IndexConfiguration {
 
-    private static Logger logger = LoggerFactory.getLogger(IndexConfiguration.class);
+    private static DynamicLogger logger = new DynamicLogger(IndexConfiguration.class);
 
     /**
      * Names of fields in the index. Not every doc needs to have all of these fields.

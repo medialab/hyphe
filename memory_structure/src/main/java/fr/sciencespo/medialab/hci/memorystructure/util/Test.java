@@ -1,10 +1,9 @@
 package fr.sciencespo.medialab.hci.memorystructure.util;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.apache.commons.collections.CollectionUtils;
 
 
 /**

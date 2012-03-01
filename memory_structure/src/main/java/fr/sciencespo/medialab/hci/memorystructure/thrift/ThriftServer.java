@@ -1,5 +1,6 @@
 package fr.sciencespo.medialab.hci.memorystructure.thrift;
 
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -10,8 +11,6 @@ import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TNonblockingServerTransport;
 import org.apache.thrift.transport.TTransportException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,7 +23,7 @@ import java.util.Properties;
  */
 public class ThriftServer {
 
-    private static Logger logger = LoggerFactory.getLogger(ThriftServer.class);
+    private static DynamicLogger logger = new DynamicLogger(ThriftServer.class);
 
     private final static int port = 9090;
 
@@ -67,9 +66,12 @@ public class ThriftServer {
         //
         try {
             properties.load(new FileInputStream("memorystructure.properties"));
-            logger.debug("properties file found");
-            logger.debug("lucene.path: " + properties.getProperty("lucene.path"));
+            System.out.println("properties file found");
             luceneDirectoryPath = properties.getProperty("lucene.path");
+            System.out.println("lucene.path: " + luceneDirectoryPath);
+            String logLevel = properties.getProperty("log.level");
+            System.out.println("log.level: " + logLevel);            
+            DynamicLogger.setLogLevel(logLevel);
             propertiesFileFound = true;
             lucenePathProvided = true;
         }
@@ -80,17 +82,21 @@ public class ThriftServer {
         //
         // if no properties file provided and no command line arguments, show usage
         //
-        if(!propertiesFileFound && args == null || args.length != 1) {
-            logger.info("usage: java -jar MemoryStructure.jar lucene.path=[path to Lucene directory, if it does not exist yet this program will attempt to create it]");
+        if(!propertiesFileFound && args == null || args.length != 2) {
+            System.out.println("usage: java -jar MemoryStructure.jar lucene.path=[path to Lucene directory] log.level=[TRACE|DEBUG|INFO|WARNING|ERROR]");
             System.exit(0);
         }
         //
         // if command line arguments provided use them (overriding values from properties file, if any)
         //
-        else if(args.length > 0) {
+        else {
             if(args[0].startsWith("lucene.path")) {
                 luceneDirectoryPath = args[0].substring(args[0].indexOf('=')+1);
                 lucenePathProvided = true;
+            }
+            if(args[1].startsWith("log.level")) {
+                String logLevel = args[1].substring(args[1].indexOf('=')+1);
+                DynamicLogger.setLogLevel(logLevel);
             }
         }
 

@@ -3,12 +3,11 @@ package fr.sciencespo.medialab.hci.memorystructure.gexf;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Test GEXFWriter.
@@ -17,7 +16,7 @@ import org.slf4j.LoggerFactory;
  */
 public class GEXFWriterTest extends TestCase {
 
-    private static Logger logger = LoggerFactory.getLogger(GEXFWriterTest.class);
+    private static DynamicLogger logger = new DynamicLogger(GEXFWriterTest.class, DynamicLogger.LogLevel.DEBUG);
     private LRUIndex lruIndex;
 
     public void testGEXFWriter() {

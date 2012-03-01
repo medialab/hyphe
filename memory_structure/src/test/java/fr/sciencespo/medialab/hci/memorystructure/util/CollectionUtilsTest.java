@@ -3,8 +3,6 @@ package fr.sciencespo.medialab.hci.memorystructure.util;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +14,7 @@ import java.util.Set;
  */
 public class CollectionUtilsTest extends TestCase {
 
-    private static Logger logger = LoggerFactory.getLogger(CollectionUtilsTest.class);
+    private static DynamicLogger logger = new DynamicLogger(CollectionUtilsTest.class, DynamicLogger.LogLevel.DEBUG);
 
     /**
      * Tests findLongestString() with null input.

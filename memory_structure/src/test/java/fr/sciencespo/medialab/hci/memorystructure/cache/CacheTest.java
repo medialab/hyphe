@@ -7,15 +7,14 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureExceptio
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Test Cache.
@@ -24,7 +23,7 @@ import java.util.Set;
  */
 public class CacheTest extends TestCase {
 
-    private static Logger logger = LoggerFactory.getLogger(CacheTest.class);
+    private static DynamicLogger logger = new DynamicLogger(CacheTest.class, DynamicLogger.LogLevel.DEBUG);
     private LRUIndex lruIndex;
 
 
@@ -223,7 +222,7 @@ public class CacheTest extends TestCase {
             lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
 
             Cache cache = new Cache(lruIndex);
-            Set<PageItem> pages = new HashSet<PageItem>();
+            List<PageItem> pages = new ArrayList<PageItem>();
             PageItem pageItem = new PageItem();
             pageItem.setLru("s:http|h:www|h:com|h:napster|h:contact.do");
             pages.add(pageItem);
@@ -269,7 +268,7 @@ public class CacheTest extends TestCase {
             lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
 
             Cache cache = new Cache(lruIndex);
-            Set<PageItem> pages = new HashSet<PageItem>();
+            List<PageItem> pages = new ArrayList<PageItem>();
             PageItem pageItem = new PageItem();
             pageItem.setLru("s:http|h:www|h:com|h:napster|h:contact.do");
             pages.add(pageItem);
@@ -315,7 +314,7 @@ public class CacheTest extends TestCase {
             lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
 
             Cache cache = new Cache(lruIndex);
-            Set<PageItem> pages = new HashSet<PageItem>();
+            List<PageItem> pages = new ArrayList<PageItem>();
             PageItem pageItem = new PageItem();
             pageItem.setLru("s:http|h:www|h:com|h:megaupload|h:contact.asp");
             pages.add(pageItem);
@@ -362,7 +361,7 @@ public class CacheTest extends TestCase {
             lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
 
             Cache cache = new Cache(lruIndex);
-            Set<PageItem> pages = new HashSet<PageItem>();
+            List<PageItem> pages = new ArrayList<PageItem>();
             PageItem pageItem = new PageItem();
             pageItem.setLru("s:http|h:www|h:com|h:napster|h:contact.do");
             pages.add(pageItem);
