@@ -1290,7 +1290,6 @@ public class LRUIndex {
 
     public List<PageItem> findPagesForWebEntity(String id) throws IndexException, ObjectNotFoundException {
         logger.debug("findPagesForWebEntity for id: " + id);
-        System.out.println("\n\n\nxxxxx " + id);
         List<PageItem> results = new ArrayList<PageItem>();
         if(StringUtils.isEmpty(id)) {
             return results;
@@ -1299,27 +1298,27 @@ public class LRUIndex {
         if(webEntity == null) {
             throw new ObjectNotFoundException().setMsg("Could not find webentity with id: " + id);
         }
-        System.out.println("finding pages for web entity " + webEntity.getName());
+        logger.trace("finding pages for web entity " + webEntity.getName());
         Set<WebEntity> allWebEntities = retrieveWebEntities();
         
         for(String prefixFromRequestedWebEntity : webEntity.getLRUSet()) {
             //TODO remove
             //results.addAll(retrievePageItemsByLRUPrefix(prefix + "*"));
 
-            System.out.println("checking prefixFromRequestedWebEntity " + prefixFromRequestedWebEntity + " size " + prefixFromRequestedWebEntity.length());
+            logger.trace("checking prefixFromRequestedWebEntity " + prefixFromRequestedWebEntity + " size " + prefixFromRequestedWebEntity.length());
             Set<PageItem> matches = retrievePageItemsByLRUPrefix(prefixFromRequestedWebEntity + "*");
 
             for(PageItem match : matches) {
-                System.out.println("\nchecking matching page " + match.getLru());
+                logger.trace("\nchecking matching page " + match.getLru());
                 boolean keepMatch = false;
                 boolean stop = false;
                 for(WebEntity we : allWebEntities ) {
                     if(stop) break;
-                    System.out.println("does it belong to we " + we.getName());
+                    logger.trace("does it belong to we " + we.getName());
                     for(String lruPrefix : we.getLRUSet()) {
                         if(lruPrefix.length() >= prefixFromRequestedWebEntity.length()) {
                             lruPrefix = lruPrefix + "*";
-                            System.out.println("checking we prefix " + lruPrefix);
+                            logger.trace("checking we prefix " + lruPrefix);
                             // lruPrefix must escape |
                             String pipe = "\\|";
                             Pattern pipePattern = Pattern.compile(pipe);
@@ -1329,23 +1328,23 @@ public class LRUIndex {
                             Pattern pattern = Pattern.compile(escapedPrefix);
                             Matcher matcher = pattern.matcher(match.getLru());
                             if(matcher.find()) {
-                                System.out.println("## " + we.getName() + " " + lruPrefix + " size " + lruPrefix.length() + " " + prefixFromRequestedWebEntity.length() );
+                                logger.trace("## " + we.getName() + " " + lruPrefix + " size " + lruPrefix.length() + " " + prefixFromRequestedWebEntity.length() );
                                 if(prefixFromRequestedWebEntity.length() < (lruPrefix.length()-1)) {
-                                    System.out.println("remote we is longer, don't keep");
+                                    logger.trace("remote we is longer, don't keep");
                                     stop=true;
                                     break;
                                 }
                                 else {
-                                    System.out.println("remote we is shorter: keep patch");
+                                    logger.trace("remote we is shorter: keep patch");
                                     keepMatch = true;
                                 }
                             }
                             else {
-                                System.out.println("no match");
+                                logger.trace("no match");
                             }
                         }
                         else {
-                            System.out.println("lruprefix too short, not checking " + lruPrefix);
+                            logger.trace("lruprefix too short, not checking " + lruPrefix);
                         }
                     }
                 }
@@ -1354,7 +1353,6 @@ public class LRUIndex {
                 }
             }
         }
-
         return results;
     }
 
