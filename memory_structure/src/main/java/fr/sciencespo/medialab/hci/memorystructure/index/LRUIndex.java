@@ -33,6 +33,8 @@ import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,7 +61,7 @@ import java.util.regex.Pattern;
 public class LRUIndex {
 
     private static DynamicLogger logger = new DynamicLogger(LRUIndex.class);
-
+    //private static Logger logger = LoggerFactory.getLogger(LRUIndex.class);
     //
     // Lucene settings
     //
@@ -124,7 +126,7 @@ public class LRUIndex {
         try {
             logger.debug("clearing index");
             this.indexWriter.deleteAll();
-            this.indexWriter.commit();
+            //xx this.indexWriter.commit();
             this.indexReader = IndexReader.open(this.indexWriter, false);
             this.indexSearcher = new IndexSearcher(this.indexReader);
             logger.debug("index now has # " + indexCount() + " documents");
@@ -296,7 +298,7 @@ public class LRUIndex {
              // id has a value
              else {
                  logger.debug("indexing webentity with id " + id);
-                 // retieve webEntity with that id
+                 // retrieve webEntity with that id
                  WebEntity toUpdate = retrieveWebEntity(id);
                  if(toUpdate != null) {
                      logger.debug("webentity found");
@@ -318,17 +320,19 @@ public class LRUIndex {
                  this.indexWriter.commit();
             }
 
+             long le = System.currentTimeMillis();
+
              Document webEntityDocument = IndexConfiguration.WebEntityDocument(webEntity);
              this.indexWriter.addDocument(webEntityDocument);
              this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-             this.indexWriter.commit();
+             //xx this.indexWriter.commit();
              this.indexSearcher = new IndexSearcher(this.indexReader);
 
              // return id of indexed webentity
              String indexedId = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
              logger.debug("indexed webentity with id " + indexedId);
-             return indexedId;
 
+             return indexedId;
          }
         catch(CorruptIndexException x) {
             logger.error(x.getMessage());
@@ -389,7 +393,7 @@ public class LRUIndex {
             Document webEntityDocument = IndexConfiguration.WebEntityDocument(webEntity);
             this.indexWriter.addDocument(webEntityDocument);
             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-            this.indexWriter.commit();
+            //xx this.indexWriter.commit();
             this.indexSearcher = new IndexSearcher(this.indexReader);
 
             // return id of indexed webentity
@@ -472,7 +476,7 @@ public class LRUIndex {
             Document webEntityCreationRuleDocument = IndexConfiguration.WebEntityCreationRuleDocument(webEntityCreationRule);
             this.indexWriter.addDocument(webEntityCreationRuleDocument);
             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-            this.indexWriter.commit();
+            //xxthis.indexWriter.commit();
             this.indexSearcher = new IndexSearcher(this.indexReader);
         }
         catch(CorruptIndexException x) {
@@ -573,7 +577,7 @@ public class LRUIndex {
             logger.debug("# docs in filesystem index after adding the newly indexed objects: " + this.indexWriter.numDocs());
 
             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-            this.indexWriter.commit();
+            //xx this.indexWriter.commit();
             this.indexSearcher = new IndexSearcher(this.indexReader);
 
             if(logger.isDebugEnabled()) {
@@ -885,6 +889,43 @@ public class LRUIndex {
         }
     }
 
+    /**
+     * Retrieves the default Web Entity Creation Rule.
+     *
+     * @return
+     */
+    public WebEntityCreationRule retrieveDefaultWECR() throws IndexException {
+        try {
+            WebEntityCreationRule result = null;
+            TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
+            Query q = findDefaultWECRQuery();
+            indexSearcher.search(q, collector);
+
+            ScoreDoc[] hits = collector.topDocs().scoreDocs;
+            if(hits != null && hits.length > 0) {
+                logger.debug("found # " + hits.length + " nodeLinks");
+                int i = hits[0].doc;
+                Document doc = indexSearcher.doc(i);
+                result = IndexConfiguration.convertLuceneDocument2WebEntityCreationRule(doc);
+            }
+            if(result != null) {
+                logger.debug("retrieved default Web Entity Creation Rule");
+            }
+            else {
+                logger.debug("failed to retrieve default Web Entity Creation Rule");
+            }
+            return result;
+        }
+        catch(CorruptIndexException x) {
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+        catch (IOException x) {
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
     protected Set<PageItem> retrievePageItemsByLRUPrefix(String prefix) throws IndexException {
         logger.debug("retrievePageItemsByLRUPrefix: " + prefix);
         try {
@@ -1093,7 +1134,7 @@ public class LRUIndex {
             logger.debug("deleting nodeLink with source " + nodeLink.getSourceLRU() + " and target " + nodeLink.getTargetLRU());
             Query q = findNodeLinkQuery(nodeLink);
             this.indexWriter.deleteDocuments(q);
-            this.indexWriter.commit();
+            //xx this.indexWriter.commit();
             IndexReader maybeChanged = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
             // if not changed, that returns null
             if(maybeChanged != null) {
@@ -1151,6 +1192,21 @@ public class LRUIndex {
         q.add(q1, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
         q.add(q3, BooleanClause.Occur.MUST);
+        return q;
+    }
+
+    /**
+     *
+     * @return
+     */
+    private Query findDefaultWECRQuery() throws IndexException {
+        Term isWebEntityCreationRule = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_CREATION_RULE.name());
+        Term sourceTerm = new Term(IndexConfiguration.FieldName.LRU.name(), IndexConfiguration.DEFAULT_WEBENTITY_CREATION_RULE);
+        BooleanQuery q = new BooleanQuery();
+        TermQuery q1 = new TermQuery(isWebEntityCreationRule);
+        TermQuery q2 = new TermQuery(sourceTerm);
+        q.add(q1, BooleanClause.Occur.MUST);
+        q.add(q2, BooleanClause.Occur.MUST);
         return q;
     }
 
@@ -1328,7 +1384,7 @@ public class LRUIndex {
                             Pattern pattern = Pattern.compile(escapedPrefix);
                             Matcher matcher = pattern.matcher(match.getLru());
                             if(matcher.find()) {
-                                logger.trace("## " + we.getName() + " " + lruPrefix + " size " + lruPrefix.length() + " " + prefixFromRequestedWebEntity.length() );
+                                logger.trace("## " + we.getName() + " " + lruPrefix + " size " + lruPrefix.length() + " " + prefixFromRequestedWebEntity.length());
                                 if(prefixFromRequestedWebEntity.length() < (lruPrefix.length()-1)) {
                                     logger.trace("remote we is longer, don't keep");
                                     stop=true;
@@ -1471,7 +1527,7 @@ public class LRUIndex {
                 logger.debug("@ adding webEntityLinkDocument");
                 this.indexWriter.addDocument(webEntityLinkDocument);
                 this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-                this.indexWriter.commit();
+                //xx this.indexWriter.commit();
                 this.indexSearcher = new IndexSearcher(this.indexReader);
             }
         }

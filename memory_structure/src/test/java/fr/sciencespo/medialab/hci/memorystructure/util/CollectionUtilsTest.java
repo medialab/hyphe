@@ -14,7 +14,7 @@ import java.util.Set;
  */
 public class CollectionUtilsTest extends TestCase {
 
-    private static DynamicLogger logger = new DynamicLogger(CollectionUtilsTest.class, DynamicLogger.LogLevel.DEBUG);
+    private static DynamicLogger logger = new DynamicLogger(CollectionUtilsTest.class, DynamicLogger.LogLevel.ERROR);
 
     /**
      * Tests findLongestString() with null input.

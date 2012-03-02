@@ -42,7 +42,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
     AsyncIndexWriterTask(String name, List<?> objectsToWrite, RAMDirectory directory, Version LuceneVersion,
                          IndexWriterConfig.OpenMode openMode, int ramBufferSize, Analyzer analyzer, LRUIndex lruIndex) {
         try {
-            System.out.println("creating new AsyncIndexWriterTask indexing # " + objectsToWrite.size() + " objects with OPEN_MODE " + openMode.name() + " RAM_BUFFER_SIZE_MB " + ramBufferSize);
+            logger.debug("creating new AsyncIndexWriterTask indexing # " + objectsToWrite.size() + " objects with OPEN_MODE " + openMode.name() + " RAM_BUFFER_SIZE_MB " + ramBufferSize);
             LUCENE_VERSION = LuceneVersion;
             OPEN_MODE = openMode;
             RAM_BUFFER_SIZE_MB = ramBufferSize;
@@ -68,7 +68,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
      * @throws java.io.IOException
      */
     private IndexWriter newRAMWriter(RAMDirectory ramDirectory) throws IOException {
-        System.out.println("creating new RAM writer");
+        logger.debug("creating new RAM writer");
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(LUCENE_VERSION, ANALYZER);
         indexWriterConfig.setOpenMode(OPEN_MODE);
         indexWriterConfig.setRAMBufferSizeMB(RAM_BUFFER_SIZE_MB);

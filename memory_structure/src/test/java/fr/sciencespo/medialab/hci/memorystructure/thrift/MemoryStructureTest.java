@@ -21,7 +21,7 @@ import java.util.Set;
  */
 public class MemoryStructureTest extends TestCase {
 
-    private static DynamicLogger logger = new DynamicLogger(MemoryStructureTest.class, DynamicLogger.LogLevel.DEBUG);
+    private static DynamicLogger logger = new DynamicLogger(MemoryStructureTest.class, DynamicLogger.LogLevel.ERROR);
 
     private MemoryStructureImpl memoryStructure ;
 
@@ -657,7 +657,7 @@ public class MemoryStructureTest extends TestCase {
 
             List<PageItem> pages1 = memoryStructure.getPagesFromWebEntity(id3);
             for(PageItem pageItem : pages1) {
-                System.out.println(pages1.toString());
+                logger.debug(pages1.toString());
             }
         }
         catch (TException x) {

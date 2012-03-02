@@ -16,7 +16,7 @@ import org.apache.lucene.index.IndexWriterConfig;
  */
 public class GEXFWriterTest extends TestCase {
 
-    private static DynamicLogger logger = new DynamicLogger(GEXFWriterTest.class, DynamicLogger.LogLevel.DEBUG);
+    private static DynamicLogger logger = new DynamicLogger(GEXFWriterTest.class, DynamicLogger.LogLevel.ERROR);
     private LRUIndex lruIndex;
 
     public void testGEXFWriter() {

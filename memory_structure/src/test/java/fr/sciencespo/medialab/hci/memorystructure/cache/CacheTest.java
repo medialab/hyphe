@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class CacheTest extends TestCase {
 
-    private static DynamicLogger logger = new DynamicLogger(CacheTest.class, DynamicLogger.LogLevel.DEBUG);
+    private static DynamicLogger logger = new DynamicLogger(CacheTest.class, DynamicLogger.LogLevel.ERROR);
     private LRUIndex lruIndex;
 
 

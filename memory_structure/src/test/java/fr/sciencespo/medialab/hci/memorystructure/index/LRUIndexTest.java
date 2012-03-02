@@ -15,6 +15,8 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,8 +32,7 @@ import java.util.Set;
  */
 public class LRUIndexTest extends TestCase {
 
-    private static DynamicLogger logger = new DynamicLogger(LRUIndexTest.class, DynamicLogger.LogLevel.DEBUG);
-
+    private static DynamicLogger logger = new DynamicLogger(LRUIndexTest.class, DynamicLogger.LogLevel.ERROR);
     LRUIndex lruIndex;
 
     /**
@@ -944,6 +945,33 @@ public class LRUIndexTest extends TestCase {
             x.printStackTrace();
             fail(x.getMessage());
         }
+    }
+
+    public void testFindDefaultWECR() {
+        logger.debug("testFindDefaultWECR");
+        try {
+            assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+            //
+            // create default webEntityCreationRule
+            //
+            WebEntityCreationRule webEntityCreationRule = new WebEntityCreationRule();
+            webEntityCreationRule.setLRU(IndexConfiguration.DEFAULT_WEBENTITY_CREATION_RULE);
+            // regexp to match all sub domains
+            webEntityCreationRule.setRegExp("(s:[a-zA-Z]+\\|(h:www|)?h:[a-zA-Z]+(\\|h:[^|]+)+)");
+            lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
+
+            WebEntityCreationRule retrieved = lruIndex.retrieveDefaultWECR();
+            assertNotNull("Failed to retrieve default WECR", retrieved);
+
+
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+
+
     }
 
     public void testGeneratingWebEntityLinksWhenThereAreNoNodeLinks() {
