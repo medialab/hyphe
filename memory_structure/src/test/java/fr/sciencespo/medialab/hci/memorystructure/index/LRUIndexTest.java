@@ -15,8 +15,6 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +30,7 @@ import java.util.Set;
  */
 public class LRUIndexTest extends TestCase {
 
-    private static DynamicLogger logger = new DynamicLogger(LRUIndexTest.class, DynamicLogger.LogLevel.ERROR);
+    private static DynamicLogger logger = new DynamicLogger(LRUIndexTest.class, DynamicLogger.LogLevel.DEBUG);
     LRUIndex lruIndex;
 
     /**
@@ -1065,13 +1063,12 @@ public class LRUIndexTest extends TestCase {
             //
             lruIndex.generateWebEntityLinks();
 
-            assertEquals("Unexpected # of webentitylinks", 0, lruIndex.retrieveWebEntityLinks().size());
+            //assertEquals("Unexpected # of webentitylinks", 0, lruIndex.retrieveWebEntityLinks().size());
+            fail("Expected exception not thrown");
 
         }
         catch(IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            fail(x.getMessage());
+            assertTrue("Unexpected exception message", x.getMessage().startsWith("Could not find web entity for lru"));
         }
     }
 
@@ -1115,10 +1112,10 @@ public class LRUIndexTest extends TestCase {
                 lruItems.clear();
             }
 
-            //totalDuration = Math.max(System.currentTimeMillis() - totalStart, 1);
-            //if(totalDocCount % 10000 == 0) {
-            //	System.out.println((totalDuration/1000)+" s\t docs="+totalDocCount+"\t added="+addedDocCount+"\tdocs/s="+(1000L*totalDocCount)/(totalDuration));
-            //}
+            totalDuration = Math.max(System.currentTimeMillis() - totalStart, 1);
+            if(totalDocCount % 10000 == 0) {
+            	System.out.println((totalDuration/1000)+" s\t docs="+totalDocCount+"\t added="+addedDocCount+"\tdocs/s="+(1000L*totalDocCount)/(totalDuration));
+            }
         }
         System.out.println("finished reading");
         // process rest

@@ -33,8 +33,6 @@ import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +59,7 @@ import java.util.regex.Pattern;
 public class LRUIndex {
 
     private static DynamicLogger logger = new DynamicLogger(LRUIndex.class);
-    //private static Logger logger = LoggerFactory.getLogger(LRUIndex.class);
+
     //
     // Lucene settings
     //
@@ -86,9 +84,7 @@ public class LRUIndex {
      * Executor service used for asynchronous batch index tasks.
      */
     private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
-    //        private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(50);
 
- //TODO   private static ScheduledExecutorService executorService2 = new ThreadPoolExecutor();
     //
     // singleton-ness
     //
@@ -244,6 +240,13 @@ public class LRUIndex {
         }
 	}
 
+    /**
+     *
+     * @param newId
+     * @param lrus
+     * @return
+     * @throws IndexException hmm
+     */
     private Set<String> alreadyExistingWebEntityLRUs(String newId, Set<String> lrus) throws IndexException {
         Set<String> result = new HashSet<String>();
         Set<WebEntity> existingWebEntities = retrieveWebEntities();
@@ -319,8 +322,6 @@ public class LRUIndex {
                  this.indexWriter.deleteDocuments(q);
                  this.indexWriter.commit();
             }
-
-             long le = System.currentTimeMillis();
 
              Document webEntityDocument = IndexConfiguration.WebEntityDocument(webEntity);
              this.indexWriter.addDocument(webEntityDocument);
@@ -414,9 +415,13 @@ public class LRUIndex {
         }
     }
 
-
+    /**
+     *
+     * @param prefix prefix to test
+     * @return existing prefix or null
+     * @throws IndexException hmm
+     */
     private String alreadyExistingWebEntityCreationRulePrefixes(String prefix) throws IndexException {
-        Set<String> result = new HashSet<String>();
         Set<WebEntityCreationRule> existingWebEntityCreationRules = retrieveWebEntityCreationRules();
         for(WebEntityCreationRule webEntityCreationRule : existingWebEntityCreationRules) {
             String existingPrefix = webEntityCreationRule.getLRU();
@@ -513,7 +518,7 @@ public class LRUIndex {
      *
      * @param objects
      * @return number of indexed objects
-     * @throws Exception
+     * @throws IndexException hmm
      */
     public int batchIndex(List<Object> objects) throws IndexException {
         try {
@@ -523,6 +528,15 @@ public class LRUIndex {
             }
             int batchSize = objects.size();
             logger.debug("batchIndex processing # " + batchSize + " objects");
+            
+            Set<Object> objectsSet = new HashSet<Object>(objects);
+            
+            if(objectsSet.size() != objects.size()) {
+                logger.warn("there were # " + (objects.size() - objectsSet.size()) + " duplicates");
+                objects = new ArrayList<Object>(objectsSet);
+                batchSize = objects.size();
+            }
+
 
             long startRAMIndexing = System.currentTimeMillis();
 
@@ -531,7 +545,7 @@ public class LRUIndex {
             long delay = 0;
             int processedSoFar = 0;
             while(processedSoFar < batchSize) {
-                List<Object> batch = new ArrayList<Object>();
+                List<Object> batch;
                 int INDEXWRITER_MAX = 250000;
                 if(batchSize >= processedSoFar + INDEXWRITER_MAX) {
                     batch = objects.subList(processedSoFar, processedSoFar + INDEXWRITER_MAX);
@@ -602,6 +616,7 @@ public class LRUIndex {
     /**
      * Retrieves all precision exceptions.
      * @return
+     * @throws IndexException hmm
      */
     public List<String> retrievePrecisionExceptions() throws IndexException {
         try {
@@ -651,6 +666,7 @@ public class LRUIndex {
      * Retrieves a particular WebEntity.
      * @param id
      * @return
+     * @throws IndexException hmm
      */
     public WebEntity retrieveWebEntity(String id) throws IndexException {
         try {
@@ -689,12 +705,14 @@ public class LRUIndex {
      *
      * @param nodeLink
      * @return
+     * @throws IndexException hmm
      */
     public NodeLink retrieveNodeLink(NodeLink nodeLink) throws IndexException {
         try {
             NodeLink result = null;
             TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
             Query q = findNodeLinkQuery(nodeLink);
+            logger.debug("query to find nodeLink: " + q.toString());
             indexSearcher.search(q, collector);
 
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
@@ -726,7 +744,7 @@ public class LRUIndex {
      * Retrieves all NodeLinks.
      *
      * @return
-     * @throws IndexException
+     * @throws IndexException hmm
      */
    public Set<NodeLink> retrieveNodeLinks() throws IndexException {
        try {
@@ -770,7 +788,7 @@ public class LRUIndex {
      * Retrieves all WebEntityLinks.
      *
      * @return
-     * @throws IndexException
+     * @throws IndexException hmm
      */
    public Set<WebEntityLink> retrieveWebEntityLinks() throws IndexException {
        try {
@@ -812,6 +830,7 @@ public class LRUIndex {
     /**
      * Retrieves all webentities.
      * @return
+     * @throws IndexException hmm
      */
     public Set<WebEntity> retrieveWebEntities() throws IndexException {
         try {
@@ -843,7 +862,12 @@ public class LRUIndex {
                     WebEntity webEntity = IndexConfiguration.convertLuceneDocument2WebEntity(hit);
                     result.add(webEntity);
             }
-            logger.debug("total webentities retrieved from index is  # " + result.size());
+            if(logger.isDebugEnabled()) {
+                logger.debug("total webentities retrieved from index is  # " + result.size());
+                for(WebEntity we : result) {
+                    logger.debug("retrieved web entity: " + we.getName());
+                }
+            }
             return result;
         }
         catch(IOException x) {
@@ -851,6 +875,11 @@ public class LRUIndex {
         }
     }
 
+    /**
+     *
+     * @return
+     * @throws IndexException hmm
+     */
     public Set<WebEntityCreationRule> retrieveWebEntityCreationRules() throws IndexException {
         try {
             Set<WebEntityCreationRule> result = new HashSet<WebEntityCreationRule>();
@@ -893,6 +922,7 @@ public class LRUIndex {
      * Retrieves the default Web Entity Creation Rule.
      *
      * @return
+     * @throws IndexException hmm
      */
     public WebEntityCreationRule retrieveDefaultWECR() throws IndexException {
         try {
@@ -926,6 +956,12 @@ public class LRUIndex {
         }
     }
 
+    /**
+     *
+     * @param prefix
+     * @return
+     * @throws IndexException hmm
+     */
     protected Set<PageItem> retrievePageItemsByLRUPrefix(String prefix) throws IndexException {
         logger.debug("retrievePageItemsByLRUPrefix: " + prefix);
         try {
@@ -979,6 +1015,12 @@ public class LRUIndex {
         }
     }
 
+    /**
+     *
+     * @param lru
+     * @return
+     * @throws IndexException hmm
+     */
     public PageItem retrievePageItemByLRU(String lru) throws IndexException {
         logger.debug("retrieving PageItem by LRU " + lru);
         try {
@@ -1177,6 +1219,7 @@ public class LRUIndex {
      *
      * @param nodeLink
      * @return
+     * @throws IndexException hmm
      */
     private Query findNodeLinkQuery(NodeLink nodeLink) throws IndexException {
         if(nodeLink == null) {
@@ -1198,6 +1241,7 @@ public class LRUIndex {
     /**
      *
      * @return
+     * @throws IndexException hmm
      */
     private Query findDefaultWECRQuery() throws IndexException {
         Term isWebEntityCreationRule = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_CREATION_RULE.name());
@@ -1245,19 +1289,29 @@ public class LRUIndex {
      *
      * @param lru
      * @return
-     * @throws IndexException
+     * @throws IndexException hmm
      */
     public Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(String lru) throws IndexException {
+        logger.debug("findMatchingWebEntityLRUPrefixes");
         Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
         if(!StringUtils.isEmpty(lru)) {
             Set<WebEntity> allWebEntities = retrieveWebEntities();
-            matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities, "lruPrefix"));
+            matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities, MatchMode.LRUPREFIX));
         }
+        logger.debug("findMatchingWebEntityLRUPrefixes returns " + matches.size() + " matches");
         return matches;
     }
 
-    private Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(String lru, Set<WebEntity> webEntities, String mode) throws IndexException {
-        logger.debug("findMatchingWebEntityLRUs for lru " + lru + " in # " + webEntities.size() + " webEntities");
+    /**
+     *
+     * @param lru
+     * @param webEntities
+     * @param mode
+     * @return
+     * @throws IndexException hmm
+     */
+    private Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(String lru, Set<WebEntity> webEntities, MatchMode mode) throws IndexException {
+        logger.debug("findMatchingWebEntityLRUs for lru " + lru + " in # " + webEntities.size() + " webEntities, matchmode is " + mode );
         Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
         if(!StringUtils.isEmpty(lru)) {
             for(WebEntity webEntity : webEntities) {
@@ -1281,10 +1335,10 @@ public class LRUIndex {
                             webEntitiesWithPrefix = new HashSet<WebEntity>();
                         }
                         webEntitiesWithPrefix.add(webEntity);
-                        if(mode.equals("lruPrefix")) {
+                        if(mode.equals(MatchMode.LRUPREFIX)) {
                             matches.put(lruPrefix, webEntitiesWithPrefix);
                         }
-                        else if(mode.equals("lru")) {
+                        else if(mode.equals(MatchMode.LRU)) {
                             matches.put(lru, webEntitiesWithPrefix);
                         }
 
@@ -1295,24 +1349,95 @@ public class LRUIndex {
         return matches;
     }
 
+    private WebEntity findMatchingWebEntityForLRU(String lru, Set<WebEntity> webEntities) throws IndexException {
+        logger.debug("findMatchingWebEntityLRU for lru " + lru + " in # " + webEntities.size());
+        WebEntity match = null;
+        Map<String, WebEntity> possibleMatches = new HashMap<String, WebEntity>();
+        if(!StringUtils.isEmpty(lru)) {
+            for(WebEntity webEntity : webEntities) {
+                Set<String> lruPrefixes = webEntity.getLRUSet();
+                for(String lruPrefix : lruPrefixes) {
+                    // TODO is it inefficient to compile these patterns everytime ? Better to keep them in memory ?
+
+                    // lruPrefixes must escape |
+                    String pipe = "\\|";
+                    Pattern pipePattern = Pattern.compile(pipe);
+                    Matcher pipeMatcher = pipePattern.matcher(lruPrefix);
+                    String escapedPrefix = pipeMatcher.replaceAll("\\\\|");
+
+                    Pattern pattern = Pattern.compile(escapedPrefix);
+                    Matcher matcher = pattern.matcher(lru);
+                    // it's  a match
+                    if(matcher.find()) {
+                        logger.debug("found possible webentity match for lru " + lru + " and regexp " + escapedPrefix);
+                        possibleMatches.put(lruPrefix, webEntity);
+                    }
+                }
+            }
+            // the longest prefix is the best match
+            String longest = "";
+            for(String prefix : possibleMatches.keySet()) {
+                if(prefix.length() > longest.length()) {
+                    longest = prefix;
+                }
+            }
+            match = possibleMatches.get(longest);
+        }
+        if(match == null) {
+            throw new IndexException("Could not find web entity for lru " + lru);
+        }
+        if(logger.isDebugEnabled()) {
+            logger.debug("found webentity with name " + match.getName() + " for lru " + lru);
+        }
+        return match;
+    }    
+
     /**
      * Returns a map of matching LRUPrefixes and their WebEntity. If the same LRUPrefix occurs in more than one
      * WebEntity, they are all mapped.
      *
      * @param lrus
      * @return
-     * @throws IndexException
+     * @throws IndexException hmm
      */
     private Map<String, Set<WebEntity>> findMatchingWebEntityLRUs(Set<String> lrus) throws IndexException {
-        logger.debug("finding webentities for # " + lrus.size() + " lrus");
+        logger.debug("findMatchingWebEntityLRUs for # " + lrus.size() + " lrus");
         Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
         Set<WebEntity> allWebEntities = retrieveWebEntities();
         for(String lru : lrus) {
-            matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities, "lru"));
+            matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities, MatchMode.LRU));
+        }
+        logger.debug("findMatchingWebEntityLRUs returns " + matches.size() + " matches");
+        return matches;
+    }
+
+    /**
+     * Returns a map of matching LRUPrefixes and their WebEntity.
+     *
+     * @param lrus
+     * @return
+     * @throws IndexException hmm
+     */
+    private Map<String, WebEntity> mapWebEntityForLRUs(Set<String> lrus) throws IndexException {
+        logger.debug("mapWebEntityForLRUs for # " + lrus.size() + " lrus");
+        Map<String, WebEntity> matches = new HashMap<String, WebEntity>();
+        Set<WebEntity> allWebEntities = retrieveWebEntities();
+        for(String lru : lrus) {
+            matches.put(lru, findMatchingWebEntityForLRU(lru, allWebEntities));
         }
         return matches;
     }
 
+    private enum MatchMode {
+        LRUPREFIX, LRU
+    }
+
+    /**
+     *
+     * @param lru
+     * @return
+     * @throws IndexException hmm
+     */
     public Map<String, Set<WebEntityCreationRule>> findMatchingWebEntityCreationRuleLRUPrefixes(String lru) throws IndexException {
         logger.debug("findMatchingWebEntityCreationRuleLRUPrefixes");
         Map<String, Set<WebEntityCreationRule>> matches = new HashMap<String, Set<WebEntityCreationRule>>();
@@ -1344,6 +1469,13 @@ public class LRUIndex {
         return matches;
     }
 
+    /**
+     *
+     * @param id
+     * @return
+     * @throws IndexException hmm
+     * @throws ObjectNotFoundException hmm
+     */
     public List<PageItem> findPagesForWebEntity(String id) throws IndexException, ObjectNotFoundException {
         logger.debug("findPagesForWebEntity for id: " + id);
         List<PageItem> results = new ArrayList<PageItem>();
@@ -1358,9 +1490,6 @@ public class LRUIndex {
         Set<WebEntity> allWebEntities = retrieveWebEntities();
         
         for(String prefixFromRequestedWebEntity : webEntity.getLRUSet()) {
-            //TODO remove
-            //results.addAll(retrievePageItemsByLRUPrefix(prefix + "*"));
-
             logger.trace("checking prefixFromRequestedWebEntity " + prefixFromRequestedWebEntity + " size " + prefixFromRequestedWebEntity.length());
             Set<PageItem> matches = retrievePageItemsByLRUPrefix(prefixFromRequestedWebEntity + "*");
 
@@ -1386,12 +1515,13 @@ public class LRUIndex {
                             if(matcher.find()) {
                                 logger.trace("## " + we.getName() + " " + lruPrefix + " size " + lruPrefix.length() + " " + prefixFromRequestedWebEntity.length());
                                 if(prefixFromRequestedWebEntity.length() < (lruPrefix.length()-1)) {
-                                    logger.trace("remote we is longer, don't keep");
+                                    logger.trace("no, does not belong: remote we is longer");
+                                    keepMatch = false;
                                     stop=true;
                                     break;
                                 }
                                 else {
-                                    logger.trace("remote we is shorter: keep patch");
+                                    logger.trace("yes, belongs: remote we is shorter");
                                     keepMatch = true;
                                 }
                             }
@@ -1409,13 +1539,22 @@ public class LRUIndex {
                 }
             }
         }
+        if(logger.isDebugEnabled()) {
+            logger.debug("found " + results.size() + " pages for web entity " + webEntity.getName() + ":");
+            for(PageItem p : results) {
+                logger.debug(p.getLru());
+            }
+        }
         return results;
     }
 
+    /**
+     *
+     * @throws IndexException hmm
+     */
     public void generateWebEntityLinks() throws IndexException {
         try {
             logger.debug("generateWebEntityLinks");
-            List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
             Set<NodeLink> nodeLinks = retrieveNodeLinks();
             logger.debug("total # of nodelinks in index is " + nodeLinks.size());
 
@@ -1429,13 +1568,14 @@ public class LRUIndex {
                 logger.debug("nodelink target " + nodeLink.getTargetLRU());
                 lrus.add(nodeLink.getTargetLRU());
             }
-            logger.debug("total # of source and target LRUs in index is " + lrus.size());
-
-            Map<String, Set<WebEntity>> webEntitiesMap = findMatchingWebEntityLRUs(lrus);
-            logger.debug("webEntitiesMap size is # " + webEntitiesMap.size());
-            for(String key : webEntitiesMap.keySet()) {
-                logger.debug("webEntitiesMap key: " + key);
+            if(logger.isDebugEnabled()) {
+                logger.debug("total # of both source and target LRUs in index is " + lrus.size());
+                for(String lru : lrus) {
+                    logger.debug("LRU in index: " + lru);
+                }
             }
+            
+            Map<String, WebEntity> lruToWebEntityMap = mapWebEntityForLRUs(lrus);
 
             //
             // generate WebEntityLinks from NodeLinks
@@ -1444,49 +1584,8 @@ public class LRUIndex {
                 logger.debug("generating webentitylinks for nodelink from " + nodeLink.getSourceLRU() + " to " + nodeLink.getTargetLRU());
                 String source = nodeLink.getSourceLRU();
                 String target = nodeLink.getTargetLRU();
-                Set<WebEntity> sourceWEs = webEntitiesMap.get(source);
-                //
-                // find source WebEntity
-                //
-                WebEntity sourceWE;
-                if(sourceWEs != null && sourceWEs.size() == 1) {
-                    sourceWE = sourceWEs.iterator().next();
-                }
-                else {
-                    if(sourceWEs == null) {
-                        logger.error("sourceWEs is null for source " + source);
-                        continue;
-                    }
-                    else {
-                        logger.error("# sourceWEs: " + sourceWEs.size());
-                        for(WebEntity webEntity : sourceWEs) {
-                            logger.error("sourceWebentity: " + webEntity.getName());
-                        }
-                        throw new IndexException("Found more than 1 WebEntity for source LRU " + source);
-                    }
-                }
-                //
-                // find targetWebEntity
-                //
-                Set<WebEntity> targetWEs = webEntitiesMap.get(target);
-                WebEntity targetWE;
-                if(targetWEs != null && targetWEs.size() == 1) {
-                    targetWE = targetWEs.iterator().next();
-                }
-                else {
-                    if(targetWEs == null) {
-                        logger.error("sourceWEs is null for target " + target);
-                        continue;
-                    }
-                    else {
-                        logger.error("# targetWEs: " + targetWEs.size());
-                        for(WebEntity webEntity : targetWEs) {
-                            logger.error("targetWebentity: " + webEntity.getName());
-                        }
-                        throw new IndexException("Found more than 1 WebEntity for target LRU " + target);
-                    }
-                }
-
+                WebEntity sourceWE = lruToWebEntityMap.get(source);
+                WebEntity targetWE = lruToWebEntityMap.get(target);
                 //
                 // if already exists a link between them, increase weight
                 //

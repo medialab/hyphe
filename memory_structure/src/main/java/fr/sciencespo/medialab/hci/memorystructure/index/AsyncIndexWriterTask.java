@@ -99,15 +99,25 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                 boolean wasIndexed = false;
                 if(object instanceof PageItem) {
                     PageItem pageItem = (PageItem) object;
-                    Document pageDocument = IndexConfiguration.PageItemDocument(pageItem);
-                    // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
-                    if(pageDocument != null) {
-                        indexWriter.addDocument(pageDocument);
-                        wasIndexed = true;
+
+                    PageItem existing = lruIndex.retrievePageItemByLRU(pageItem.getLru());
+                    if(existing == null) {
+                        Document pageDocument = IndexConfiguration.PageItemDocument(pageItem);
+                        // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
+                        if(pageDocument != null) {
+                            indexWriter.addDocument(pageDocument);
+                            wasIndexed = true;
+                        }
+                    }
+                    else {
+                        // TODO should it be updated instead of skipped ?
+                        logger.warn("PageItem " + pageItem.getLru() + " already exists in index - not indexing again");
                     }
                 }
                 else if(object instanceof NodeLink) {
                     NodeLink nodeLink = (NodeLink) object;
+                    
+                    logger.debug("nodelink to be indexed: source: " + nodeLink.getSourceLRU() + " target: " + nodeLink.getTargetLRU());
 
                     NodeLink existing = lruIndex.retrieveNodeLink(nodeLink);
                     int weight = 1;

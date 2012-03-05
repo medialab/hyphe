@@ -2,12 +2,11 @@ package fr.sciencespo.medialab.hci.memorystruture.thrift.client;
 
 import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructure;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +18,7 @@ import java.util.List;
  */
 public class MemoryStructureClient {
 
-    private static Logger logger = LoggerFactory.getLogger(MemoryStructureClient.class);
+    private static DynamicLogger logger = new DynamicLogger(MemoryStructureClient.class, DynamicLogger.LogLevel.DEBUG);
 
     private final static int port = 9090;
     private final static String server = "localhost";

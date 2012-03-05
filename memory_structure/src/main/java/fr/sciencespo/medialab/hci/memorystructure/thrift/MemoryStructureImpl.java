@@ -7,12 +7,11 @@ import fr.sciencespo.medialab.hci.memorystructure.gexf.GEXFWriter;
 import fr.sciencespo.medialab.hci.memorystructure.gexf.GEXFWriterException;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import fr.sciencespo.medialab.hci.memorystructure.util.ExceptionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,7 +25,8 @@ import java.util.Set;
  */
 public class MemoryStructureImpl implements MemoryStructure.Iface {
 
-    private static Logger logger = LoggerFactory.getLogger(MemoryStructureImpl.class);
+    private static DynamicLogger logger = new DynamicLogger(MemoryStructureImpl.class);
+
 
     private LRUIndex lruIndex;
 

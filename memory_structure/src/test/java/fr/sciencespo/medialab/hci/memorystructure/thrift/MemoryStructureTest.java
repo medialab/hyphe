@@ -21,7 +21,7 @@ import java.util.Set;
  */
 public class MemoryStructureTest extends TestCase {
 
-    private static DynamicLogger logger = new DynamicLogger(MemoryStructureTest.class, DynamicLogger.LogLevel.ERROR);
+    private static DynamicLogger logger = new DynamicLogger(MemoryStructureTest.class, DynamicLogger.LogLevel.DEBUG);
 
     private MemoryStructureImpl memoryStructure ;
 

@@ -287,8 +287,9 @@ public class Cache {
         logger.debug("createWebEntities");
         int createdWebEntitiesCount = 0;
         Set<String> pageLRUs = this.pageItems.keySet();
+        logger.debug("cache contains # " + pageLRUs.size() + " pages");
         for(String pageLRU : pageLRUs) {
-
+            logger.debug("createWebEntities for page " + pageLRU);
             //
             // retrieve the most precise LRU prefix match from existing Web Entities + Web Entity Creation Rules
             //
