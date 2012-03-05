@@ -27,7 +27,14 @@ MONGO_PAGESTORE_COL = 'crawler.pages'
 PRECISION_LIMIT=4
 
 
-    
+#  curl http://scrapyd.host:6800/schedule.json \
+#   -d start_urls=http://www.mongodb.org/,http://blog.mongodb.org/ \
+#   -d maxdepth=2 \
+#   -d follow_prefixes=s:http|t:80|h:org|h:mongodb \
+#   -d nofollow_prefixes=s:http|t:80|h:org|h:mongodb|p:support \
+#   -d discover_prefixes=s:http|t:80|h:ly|h:bit,s:http|t:80|h:ly|h:bit \
+#   -d "user_agent=Mozilla/5.0 (compatible; hcibot/0.1)"
+
 
 
 @inlineCallbacks
@@ -108,12 +115,22 @@ def test_memory_structure(client,crawler_page_queue):
     print "web entities created in "+str(time.time()-s)    
     
     print "### getWebEntities + getPagesFromWebEntities"
-    s=time.time()
+    s=time.time()    
     wes=yield client.getWebEntities()
-    for we in wes : 
-        pages = yield client.getPagesFromWebEntity(we.id)
-        print we.name+" "+ ",".join(we.LRUSet)+" "+str(len(pages))+" pages"
-    print "listing done in "+str(time.time()-s)
+    with open("webentities_pages.csv","w") as we_pages_file :
+        we_pages_file.write("web entity name, page lru,web entity aliases"\n")
+        for we in wes : 
+            pages = yield client.getPagesFromWebEntity(we.id)
+            for page in pages :
+                 we_pages_file.write(we.name+","+page.lru+","+",".join(we.LRUSet)+"\n")
+        we_pages_file.close()
+    print "export done in "+str(time.time()-s)
+    
+    # generate Web Entity Links
+    print "### generate Web Entity Links"
+    s=time.time()
+    yield client.generateWebEntityLinks()
+    print "processed webentity links in "+str(time.time()-s) 
     
     # get webentitynetwork
     print "### getWebEntityNetwork gexf"
