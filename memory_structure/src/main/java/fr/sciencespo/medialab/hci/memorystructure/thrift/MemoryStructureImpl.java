@@ -359,6 +359,114 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         return "";
     }
 
+    /**
+     * @param prefix prefix to search for
+     * @return web entities one of whose aliases contains this prefix
+     */
+    @Override
+    public List<WebEntity> findWebEntitiesByPrefix(String prefix) throws TException, MemoryStructureException {
+        logger.debug("findWebEntitiesByPrefix");
+        try {
+            return new ArrayList<WebEntity>(lruIndex.retrieveWebEntitiesByLRUPrefix(prefix));
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            logger.debug("findWebEntitiesByPrefix end");
+        }    }
+
+    /**
+     * @param prefix prefix to search for
+     * @return pageitems whose lru matches this prefix
+     */
+    @Override
+    public List<PageItem> findPagesByPrefix(String prefix) throws TException, MemoryStructureException {
+        logger.debug("findPagesByPrefix");
+        try {
+            return new ArrayList<PageItem>(lruIndex.retrievePageItemsByLRUPrefix(prefix));
+        } 
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            logger.debug("findPagesByPrefix end");
+        }
+    }
+
+    /**
+     * @param prefix prefix to search for
+     * @return nodelinks whose source matches this prefix
+     */
+    @Override
+    public List<NodeLink> findNodeLinksBySource(String prefix) throws TException, MemoryStructureException {
+        logger.debug("findNodeLinksBySource");
+        try {
+            return new ArrayList<NodeLink>(lruIndex.retrieveNodeLinksBySourcePrefix(prefix));
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            logger.debug("findNodeLinksBySource end");
+        }
+    }
+
+    /**
+     * @param prefix prefix to search for
+     * @return nodelinks whose target matches this prefix
+     */
+    @Override
+    public List<NodeLink> findNodeLinksByTarget(String prefix) throws TException, MemoryStructureException {
+        logger.debug("findNodeLinksByTarget");
+        try {
+            return new ArrayList<NodeLink>(lruIndex.retrieveNodeLinksByTargetPrefix(prefix));
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            logger.debug("findNodeLinksByTarget end");
+        }
+    }
+
+    /**
+     * @param id id of web entity
+     * @return webentities whose source id are this
+     */
+    @Override
+    public List<WebEntityLink> findWebEntityLinksBySource(String id) throws TException, MemoryStructureException {
+        logger.debug("findWebEntityLinksBySource");
+        try {
+            return new ArrayList<WebEntityLink>(lruIndex.retrieveWebEntityLinksBySource(id));
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            logger.debug("findWebEntityLinksBySource end");
+        }
+    }
+
+    /**
+     * @param id id of web entity
+     * @return webentities whose target id are this
+     */
+    @Override
+    public List<WebEntityLink> findWebEntityLinksByTarget(String id) throws TException {
+        return null;
+    }
+
     // TODO TEST
     @Override
     public List<String> getPrecisionExceptionsFromCache(String cacheId) throws TException, ObjectNotFoundException, MemoryStructureException {
@@ -514,6 +622,14 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
         }
+    }
+
+    /**
+     * Shortcut method only to be used in unit tests, not part of MemoryStructure interface.
+     * @return
+     */
+    public LRUIndex getLruIndex() {
+        return this.lruIndex;
     }
 
     /**

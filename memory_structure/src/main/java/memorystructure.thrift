@@ -2,7 +2,7 @@
 #   HCI memory structure - core interface
 #
 #
- 
+
 
 ## Objects as structures
 
@@ -78,7 +78,7 @@ struct PingPong {
 
 
 # Services
- 
+
 service MemoryStructure {
 
 // CREATED by PAUL
@@ -150,7 +150,7 @@ string createCache(1:list<PageItem> pageItems) throws (1:MemoryStructureExceptio
  * @return number of indexed PageItems
  */
 i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
- 
+
  //get_precision_exceptions_from_cache
  /**
   * @param 1 cacheId : id of the cache
@@ -162,7 +162,7 @@ i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:Object
   * @param 1 cacheId : id of the cache
   */
  void createWebEntities(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
- 
+
  // delete_page_cache
  /**
   * @param 1 cacheId : id of the cache
@@ -195,7 +195,7 @@ list<WebEntityCreationRule> getWebEntityCreationRules(),
  * @param 1 webEntityCreationRule : webentity creation rule to delete
  */
 void deleteWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule),
- 
+
 // PageItems
 /**
  * Saves pages in the index WITHOUT USING THE CACHE.
@@ -234,5 +234,41 @@ string getWebEntityNetwork(1:string format) throws (1:MemoryStructureException m
  * @return gefx graph
  */
 string getWebEntityEgoNetwork(1:string webEntityId, 2:i32 distance, 3:string format) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+
+/**
+ * @param 1 prefix to search for
+ * @return web entities one of whose aliases contains this prefix
+ */
+list<WebEntity> findWebEntitiesByPrefix(1:string prefix),
+
+/**
+ * @param 1 prefix to search for
+ * @return pageitems whose lru matches this prefix
+ */
+list<PageItem> findPagesByPrefix(1:string prefix),
+
+/**
+ * @param 1 prefix to search for
+ * @return nodelinks whose source matches this prefix
+ */
+list<NodeLink> findNodeLinksBySource(1:string prefix),
+
+/**
+ * @param 1 prefix to search for
+ * @return nodelinks whose target matches this prefix
+ */
+list<NodeLink> findNodeLinksByTarget(1:string prefix),
+
+/**
+ * @param 1 id: id of web entity
+ * @return webentities whose source id are this
+ */
+list<WebEntityLink> findWebEntityLinksBySource(1:string id),
+
+/**
+ * @param 1 id: id of web entity
+ * @return webentities whose target id are this
+ */
+list<WebEntityLink> findWebEntityLinksByTarget(1:string id),
 
 }

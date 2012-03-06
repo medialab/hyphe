@@ -1,6 +1,7 @@
 package fr.sciencespo.medialab.hci.memorystructure.thrift;
 
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexConfiguration;
+import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import junit.framework.Assert;
 import junit.framework.TestCase;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  *
@@ -948,6 +950,293 @@ public class MemoryStructureTest extends TestCase {
             logger.info("end testRemoveWebEntityCreationRules");
         }
     }
+
+    /**
+     * Tests finding pageitems by lru prefix.
+     */
+    public void testFindPagesByPrefix() {
+        logger.info("testFindPagesByPrefix");
+        try {
+            // store some pageitems
+
+            PageItem p1 = new PageItem();
+            p1.setLru("s:http|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Indexes");
+
+            PageItem p2 = new PageItem();
+            p2.setLru("s:http|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Replication");
+
+            PageItem p3 = new PageItem();
+            p3.setLru("s:http|h:org|h:mongodb|h:www|p:downloads");
+
+            PageItem p4 = new PageItem();
+            p4.setLru("s:http|h:org|h:google");
+
+            List<PageItem> pages = new ArrayList<PageItem>();
+            pages.add(p1);
+            pages.add(p2);
+            pages.add(p3);
+            pages.add(p4);
+
+            memoryStructure.savePageItems(pages);
+
+            // test finding them by prefix
+
+            List<PageItem> results = memoryStructure.findPagesByPrefix("non-existing prefix");
+            assertEquals("Unexpected # of pageitems found for nonexisting prefix", 0, results.size());
+
+            results = memoryStructure.findPagesByPrefix("s:http|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Replication");
+            assertEquals("Unexpected # of pageitems found for existing prefix matching 1", 1, results.size());
+
+            results = memoryStructure.findPagesByPrefix("s:http|h:org|h:mongodb");
+            assertEquals("Unexpected # of pageitems found for existing prefix matching 3", 3, results.size());
+
+            results = memoryStructure.findPagesByPrefix("s:");
+            assertEquals("Unexpected # of pageitems found for universal lru prefix", 4, results.size());
+
+        }
+        catch (MemoryStructureException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (TException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        finally {
+            logger.info("end testFindPagesByPrefix");
+        }
+    }
+
+    /**
+     * Tests finding webentities by lru prefix.
+     */
+    public void testFindWebEntitiesByPrefix() {
+        logger.info("testFindWebEntitiesByPrefix");
+        try {
+
+            // store some web entities
+            
+            Set<String> lruset = new HashSet<String>();
+            lruset.add("s:http|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Indexes");
+            lruset.add("s:http|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Replication");
+            lruset.add("s:http|h:org|h:mongodb|h:www|p:downloads");
+            memoryStructure.createWebEntity("MongoDB", lruset);
+
+            lruset = new HashSet<String>();
+            lruset.add("s:http|h:org|h:mongodb|h:www|p:display|p:DOCS|p:MapReduce");
+            memoryStructure.createWebEntity("MongoDB2", lruset);
+
+            lruset = new HashSet<String>();
+            lruset.add("s:http|h:org|h:google");
+            memoryStructure.createWebEntity("GOOG", lruset);
+
+            // test finding them by prefix
+
+            List<WebEntity> results = memoryStructure.findWebEntitiesByPrefix("non-existing prefix");
+            assertEquals("Unexpected # of webentities found for nonexisting prefix", 0, results.size());
+
+            results = memoryStructure.findWebEntitiesByPrefix("s:http|h:org|h:mongodb");
+            assertEquals("Unexpected # of webentities found for existing prefix matching 2", 2, results.size());
+
+            results = memoryStructure.findWebEntitiesByPrefix("s:http|h:org|h:mongodb|h:www|p:display|p:DOCS|p:MapReduce");
+            assertEquals("Unexpected # of webentities found for existing prefix matching 1", 1, results.size());
+
+            results = memoryStructure.findWebEntitiesByPrefix("s:");
+            assertEquals("Unexpected # of webentities found for universal lru prefix", 3, results.size());
+
+        }
+        catch (MemoryStructureException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (TException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        finally {
+            logger.info("end testFindWebEntitiesByPrefix");
+        }
+    }
+
+    /**
+     * Tests finding nodelinks by source lru prefix.
+     */
+    public void testFindNodeLinksBySourcePrefix() {
+        logger.info("testFindNodeLinksBySourcePrefix");
+        try {
+            // store some nodelinks
+
+            NodeLink n1 = new NodeLink();
+            n1.setSourceLRU("s:http|h:org|h:mongodb");
+            n1.setTargetLRU("s:http|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Indexes");
+
+            NodeLink n2 = new NodeLink();
+            n2.setSourceLRU("s:http|h:org|h:mongodb");
+            n2.setTargetLRU("s:http|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Replication");
+
+            NodeLink n3 = new NodeLink();
+            n3.setSourceLRU("s:http|h:org|h:google");
+            n3.setTargetLRU("s:http|h:org|h:mongodb|h:www|p:downloads");
+
+            NodeLink n4 = new NodeLink();
+            n4.setSourceLRU("s:http|h:org|h:google");
+            n4.setTargetLRU("s:http|h:org|h:mongodb");
+
+            List<NodeLink> nodelinks = new ArrayList<NodeLink>();
+            nodelinks.add(n1);
+            nodelinks.add(n2);
+            nodelinks.add(n3);
+            nodelinks.add(n4);
+
+            memoryStructure.saveNodeLinks(nodelinks);
+
+            // test finding them by source prefix
+
+            List<NodeLink> results = memoryStructure.findNodeLinksBySource("non-existing prefix");
+            assertEquals("Unexpected # of nodelinks found for nonexisting prefix", 0, results.size());
+
+            results = memoryStructure.findNodeLinksBySource("s:http|h:org|h:mongodb");
+            assertEquals("Unexpected # of nodelinks found for existing prefix matching 2", 2, results.size());
+
+            results = memoryStructure.findNodeLinksBySource("s:http|h:org|h:mongodb|h:www|p:downloads");
+            assertEquals("Unexpected # of nodelinks found for prefix existing as target, not source", 0, results.size());
+
+            results = memoryStructure.findNodeLinksBySource("s:");
+            assertEquals("Unexpected # of nodelinks found for universal lru prefix", 4, results.size());
+
+        }
+        catch (MemoryStructureException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (TException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        finally {
+            logger.info("end testFindNodeLinksBySourcePrefix");
+        }
+    }
+
+    /**
+     * Tests finding nodelinks by target lru prefix.
+     */
+    public void testFindNodeLinksByTargetPrefix() {
+        logger.info("testFindNodeLinksByTargetPrefix");
+        try {
+            // store some nodelinks
+
+            NodeLink n1 = new NodeLink();
+            n1.setSourceLRU("s:http|h:org|h:mongodb");
+            n1.setTargetLRU("s:http|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Indexes");
+
+            NodeLink n2 = new NodeLink();
+            n2.setSourceLRU("s:http|h:org|h:mongodb");
+            n2.setTargetLRU("s:http|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Replication");
+
+            NodeLink n3 = new NodeLink();
+            n3.setSourceLRU("s:http|h:org|h:google");
+            n3.setTargetLRU("s:http|h:org|h:mongodb|h:www|p:downloads");
+
+            NodeLink n4 = new NodeLink();
+            n4.setSourceLRU("s:http|h:org|h:google");
+            n4.setTargetLRU("s:http|h:org|h:mongodb");
+
+            List<NodeLink> nodelinks = new ArrayList<NodeLink>();
+            nodelinks.add(n1);
+            nodelinks.add(n2);
+            nodelinks.add(n3);
+            nodelinks.add(n4);
+
+            memoryStructure.saveNodeLinks(nodelinks);
+
+            // test finding them by target prefix
+
+            List<NodeLink> results = memoryStructure.findNodeLinksByTarget("non-existing prefix");
+            assertEquals("Unexpected # of nodelinks found for nonexisting prefix", 0, results.size());
+
+            results = memoryStructure.findNodeLinksByTarget("s:http|h:org|h:mongodb");
+            assertEquals("Unexpected # of nodelinks found for existing prefix matching 4", 4, results.size());
+
+            results = memoryStructure.findNodeLinksByTarget("s:http|h:org|h:mongodb|h:www|p:downloads");
+            assertEquals("Unexpected # of nodelinks found for prefix matching 1", 1, results.size());
+
+            results = memoryStructure.findNodeLinksByTarget("s:");
+            assertEquals("Unexpected # of nodelinks found for universal lru prefix", 4, results.size());
+
+        }
+        catch (MemoryStructureException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (TException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        finally {
+            logger.info("end testFindNodeLinksByTargetPrefix");
+        }
+    }
+
+    /**
+     * Tests finding webentitylinks by source id.
+     */
+    public void testFindWebEntityLinksBySource() {
+        logger.info("testFindWebEntityLinksBySource");
+        try {
+            // store some webentitylinks
+
+            WebEntityLink w1 = new WebEntityLink();
+            String sourceId = UUID.randomUUID().toString();
+            String targetId = UUID.randomUUID().toString();
+
+            w1.setSourceId(sourceId);
+            w1.setTargetId(targetId);
+
+            // shortcut to get to lruindex; not part of memeorystructure interface
+            MemoryStructureImpl memoryStructureimpl = memoryStructure;
+            memoryStructureimpl.getLruIndex().indexWebEntityLink(w1);
+
+            // test finding them by source id
+
+            List<WebEntityLink> results = memoryStructure.findWebEntityLinksBySource(UUID.randomUUID().toString());
+            assertEquals("Unexpected # of webentitylinks found for nonexisting source id", 0, results.size());
+
+            results = memoryStructure.findWebEntityLinksBySource(sourceId);
+            assertEquals("Unexpected # of webentitylinks found for existing source id", 1, results.size());
+
+            results = memoryStructure.findWebEntityLinksBySource(targetId);
+            assertEquals("Unexpected # of webentitylinks found for sourceid that only exists as target id", 0, results.size());
+
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (MemoryStructureException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (TException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        finally {
+            logger.info("end testFindWebEntityLinksBySource");
+        }
+    }
+
 
     /**
      * Tests retrieving PrecisionException from cache.

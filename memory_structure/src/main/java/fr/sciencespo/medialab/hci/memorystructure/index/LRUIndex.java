@@ -701,6 +701,44 @@ public class LRUIndex {
     }
 
     /**
+     * Retrieves a particular WebEntityLink.
+     * @param id
+     * @return
+     * @throws IndexException hmm
+     */
+    public WebEntityLink retrieveWebEntityLink(String id) throws IndexException {
+        try {
+            WebEntityLink result = null;
+            TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
+            Query q = findWebEntityLinkByIdQuery(id);
+            indexSearcher.search(q, collector);
+
+            ScoreDoc[] hits = collector.topDocs().scoreDocs;
+            if(hits != null && hits.length > 0) {
+                logger.debug("found # " + hits.length + " webentitylinks");
+                int i = hits[0].doc;
+                Document doc = indexSearcher.doc(i);
+                result = IndexConfiguration.convertLuceneDocument2WebEntityLink(doc);
+            }
+            if(result != null) {
+                logger.debug("retrieved webentitylink with id " + result.getId());
+            }
+            else {
+                logger.debug("failed to retrieve webentitylink with id " + id);
+            }
+            return result;
+        }
+        catch(CorruptIndexException x) {
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+        catch (IOException x) {
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
      * Retrieves a particular NodeLink.
      *
      * @param nodeLink
@@ -962,7 +1000,251 @@ public class LRUIndex {
      * @return
      * @throws IndexException hmm
      */
-    protected Set<PageItem> retrievePageItemsByLRUPrefix(String prefix) throws IndexException {
+    public Set<WebEntity> retrieveWebEntitiesByLRUPrefix(String prefix) throws IndexException {
+        logger.debug("retrieveWebEntitiesByLRUPrefix: " + prefix);
+        try {
+            Set<WebEntity> results = new HashSet<WebEntity>();
+            if(prefix == null) {
+                logger.warn("attempted to retrieve web entities with null lruprefix");
+                return results;
+            }
+            prefix = prefix + "*";
+
+            Term isWebEntityTerm = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY.name());
+            Term prefixTerm = new Term(IndexConfiguration.FieldName.LRU.name(), prefix);
+            BooleanQuery q = new BooleanQuery();
+            TermQuery isWebEntityQuery = new TermQuery(isWebEntityTerm);
+            Query prefixQuery = new WildcardQuery(prefixTerm);
+            q.add(isWebEntityQuery, BooleanClause.Occur.MUST);
+            q.add(prefixQuery, BooleanClause.Occur.MUST);
+
+            logger.debug("Lucene query: " + q.toString());
+            logger.debug("Lucene query (rewritten): " + q.rewrite(indexReader).toString());
+
+            final List<Document> hits = new ArrayList<Document>();
+            indexSearcher.search(q, new Collector() {
+                private IndexReader reader;
+                @Override
+                public void setScorer(Scorer scorer) throws IOException {}
+                @Override
+                public void collect(int doc) throws IOException {
+                    hits.add(reader.document(doc));
+                }
+                @Override
+                public void setNextReader(IndexReader reader, int docBase) throws IOException {
+                    this.reader = reader;
+                }
+                @Override
+                public boolean acceptsDocsOutOfOrder() {
+                    return true;
+                }
+            });
+            logger.debug("# hits: " + hits.size());
+            for(Document hit: hits) {
+                WebEntity webEntity = IndexConfiguration.convertLuceneDocument2WebEntity(hit);
+                results.add(webEntity);
+            }
+            logger.debug("retrieved # " + results.size() + " WebEntities with prefix " + prefix);
+            return results;
+
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     *
+     * @param prefix
+     * @return
+     * @throws IndexException hmm
+     */
+    public Set<NodeLink> retrieveNodeLinksBySourcePrefix(String prefix) throws IndexException {
+        logger.debug("retrieveNodeLinksBySourcePrefix: " + prefix);
+        try {
+            Set<NodeLink> results = new HashSet<NodeLink>();
+            if(prefix == null) {
+                logger.warn("attempted to retrieve node links with null source prefix");
+                return results;
+            }
+            prefix = prefix + "*";
+
+            Term isNodeLinkTerm = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.NODE_LINK.name());
+            Term prefixTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), prefix);
+            BooleanQuery q = new BooleanQuery();
+            TermQuery isNodeLinkQuery = new TermQuery(isNodeLinkTerm);
+            Query prefixQuery = new WildcardQuery(prefixTerm);
+            q.add(isNodeLinkQuery, BooleanClause.Occur.MUST);
+            q.add(prefixQuery, BooleanClause.Occur.MUST);
+
+            logger.debug("Lucene query: " + q.toString());
+            logger.debug("Lucene query (rewritten): " + q.rewrite(indexReader).toString());
+
+            final List<Document> hits = new ArrayList<Document>();
+            indexSearcher.search(q, new Collector() {
+                private IndexReader reader;
+                @Override
+                public void setScorer(Scorer scorer) throws IOException {}
+                @Override
+                public void collect(int doc) throws IOException {
+                    hits.add(reader.document(doc));
+                }
+                @Override
+                public void setNextReader(IndexReader reader, int docBase) throws IOException {
+                    this.reader = reader;
+                }
+                @Override
+                public boolean acceptsDocsOutOfOrder() {
+                    return true;
+                }
+            });
+            logger.debug("# hits: " + hits.size());
+            for(Document hit: hits) {
+                NodeLink nodeLink = IndexConfiguration.convertLuceneDocument2NodeLink(hit);
+                results.add(nodeLink);
+            }
+            logger.debug("retrieved # " + results.size() + " NodeLinks with source prefix " + prefix);
+            return results;
+
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     *
+     * @param prefix
+     * @return
+     * @throws IndexException hmm
+     */
+    public Set<NodeLink> retrieveNodeLinksByTargetPrefix(String prefix) throws IndexException {
+        logger.debug("retrieveNodeLinksByTargetPrefix: " + prefix);
+        try {
+            Set<NodeLink> results = new HashSet<NodeLink>();
+            if(prefix == null) {
+                logger.warn("attempted to retrieve node links with null target prefix");
+                return results;
+            }
+            prefix = prefix + "*";
+
+            Term isNodeLinkTerm = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.NODE_LINK.name());
+            Term prefixTerm = new Term(IndexConfiguration.FieldName.TARGET.name(), prefix);
+            BooleanQuery q = new BooleanQuery();
+            TermQuery isNodeLinkQuery = new TermQuery(isNodeLinkTerm);
+            Query prefixQuery = new WildcardQuery(prefixTerm);
+            q.add(isNodeLinkQuery, BooleanClause.Occur.MUST);
+            q.add(prefixQuery, BooleanClause.Occur.MUST);
+
+            logger.debug("Lucene query: " + q.toString());
+            logger.debug("Lucene query (rewritten): " + q.rewrite(indexReader).toString());
+
+            final List<Document> hits = new ArrayList<Document>();
+            indexSearcher.search(q, new Collector() {
+                private IndexReader reader;
+                @Override
+                public void setScorer(Scorer scorer) throws IOException {}
+                @Override
+                public void collect(int doc) throws IOException {
+                    hits.add(reader.document(doc));
+                }
+                @Override
+                public void setNextReader(IndexReader reader, int docBase) throws IOException {
+                    this.reader = reader;
+                }
+                @Override
+                public boolean acceptsDocsOutOfOrder() {
+                    return true;
+                }
+            });
+            logger.debug("# hits: " + hits.size());
+            for(Document hit: hits) {
+                NodeLink nodeLink = IndexConfiguration.convertLuceneDocument2NodeLink(hit);
+                results.add(nodeLink);
+            }
+            logger.debug("retrieved # " + results.size() + " NodeLinks with target prefix " + prefix);
+            return results;
+
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     *
+     * @param id
+     * @return
+     * @throws IndexException hmm
+     */
+    public Set<WebEntityLink> retrieveWebEntityLinksBySource(String id) throws IndexException {
+        logger.debug("retrieveWebEntityLinksBySource: " + id);
+        try {
+            Set<WebEntityLink> results = new HashSet<WebEntityLink>();
+            if(id == null) {
+                logger.warn("attempted to retrieve node links with null source id");
+                return results;
+            }
+
+            Term isWebEntityLinkTerm = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_LINK.name());
+            Term sourceTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), id);
+            BooleanQuery q = new BooleanQuery();
+            TermQuery isWebEntityLinkQuery = new TermQuery(isWebEntityLinkTerm);
+            Query sourceQuery = new WildcardQuery(sourceTerm);
+            q.add(isWebEntityLinkQuery, BooleanClause.Occur.MUST);
+            q.add(sourceQuery, BooleanClause.Occur.MUST);
+
+            logger.debug("Lucene query: " + q.toString());
+            logger.debug("Lucene query (rewritten): " + q.rewrite(indexReader).toString());
+
+            final List<Document> hits = new ArrayList<Document>();
+            indexSearcher.search(q, new Collector() {
+                private IndexReader reader;
+                @Override
+                public void setScorer(Scorer scorer) throws IOException {}
+                @Override
+                public void collect(int doc) throws IOException {
+                    hits.add(reader.document(doc));
+                }
+                @Override
+                public void setNextReader(IndexReader reader, int docBase) throws IOException {
+                    this.reader = reader;
+                }
+                @Override
+                public boolean acceptsDocsOutOfOrder() {
+                    return true;
+                }
+            });
+            logger.debug("# hits: " + hits.size());
+            for(Document hit: hits) {
+                WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocument2WebEntityLink(hit);
+                results.add(webEntityLink);
+            }
+            logger.debug("retrieved # " + results.size() + " WebEntityLinks with source id " + id);
+            return results;
+
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+
+    /**
+     *
+     * @param prefix
+     * @return
+     * @throws IndexException hmm
+     */
+    public Set<PageItem> retrievePageItemsByLRUPrefix(String prefix) throws IndexException {
         logger.debug("retrievePageItemsByLRUPrefix: " + prefix);
         try {
             Set<PageItem> results = new HashSet<PageItem>();
@@ -970,6 +1252,8 @@ public class LRUIndex {
                 logger.warn("attempted to retrieve pageitems with null lruprefix");
                 return results;
             }
+            prefix = prefix + "*";
+
             Term isPageItemTerm = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.PAGE_ITEM.name());
             Term prefixTerm = new Term(IndexConfiguration.FieldName.LRU.name(), prefix);
             BooleanQuery q = new BooleanQuery();
@@ -1271,6 +1555,39 @@ public class LRUIndex {
         q.add(q1, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
         q.add(q3, BooleanClause.Occur.MUST);
+        return q;
+    }
+
+    private Query findWebEntityLinkBySourceIdQuery(String id) {
+        Term isWebEntityLink = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_LINK.name());
+        Term sourceTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), id);
+        BooleanQuery q = new BooleanQuery();
+        TermQuery q1 = new TermQuery(isWebEntityLink);
+        TermQuery q2 = new TermQuery(sourceTerm);
+        q.add(q1, BooleanClause.Occur.MUST);
+        q.add(q2, BooleanClause.Occur.MUST);
+        return q;
+    }
+
+    private Query findWebEntityLinkByTargetIdQuery(String id) {
+        Term isWebEntityLink = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_LINK.name());
+        Term targetTerm = new Term(IndexConfiguration.FieldName.TARGET.name(), id);
+        BooleanQuery q = new BooleanQuery();
+        TermQuery q1 = new TermQuery(isWebEntityLink);
+        TermQuery q2 = new TermQuery(targetTerm);
+        q.add(q1, BooleanClause.Occur.MUST);
+        q.add(q2, BooleanClause.Occur.MUST);
+        return q;
+    }
+
+    private Query findWebEntityLinkByIdQuery(String id) {
+        Term isWebEntityLink = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_LINK.name());
+        Term idTerm = new Term(IndexConfiguration.FieldName.ID.name(), id);
+        BooleanQuery q = new BooleanQuery();
+        TermQuery q1 = new TermQuery(isWebEntityLink);
+        TermQuery q2 = new TermQuery(idTerm);
+        q.add(q1, BooleanClause.Occur.MUST);
+        q.add(q2, BooleanClause.Occur.MUST);
         return q;
     }
 
@@ -1636,4 +1953,82 @@ public class LRUIndex {
             throw new IndexException(x.getMessage(), x);
         }
     }
+    
+    /**
+     * 
+     * @param webEntityLink the webentitylink to index
+     * @return id of indexed webentitylink
+     * @throws IndexException hmm
+     */
+     public String indexWebEntityLink(WebEntityLink webEntityLink) throws IndexException {
+        logger.debug("indexWebEntityLink");
+        //
+        // validation
+        //
+        if(webEntityLink == null) {
+            throw new IndexException("WebEntityLink is null");
+        }
+        if(StringUtils.isEmpty(webEntityLink.getSourceId())) {
+            throw new IndexException("WebEntity has empty source id");
+        }
+        if(StringUtils.isEmpty(webEntityLink.getTargetId())) {
+            throw new IndexException("WebEntity has empty target id");
+        }        
+
+        try {
+            boolean updating = false;
+            String id = webEntityLink.getId();
+
+            // id has no value: create new
+            if(StringUtils.isEmpty(id)) {
+                logger.debug("indexing webentitylink with id null (new webentitylink will be created)");
+            }
+            // id has a value
+            else {
+                logger.debug("indexing webentitylink with id " + id);
+                // retrieve webEntityLink with that id
+                WebEntityLink toUpdate = retrieveWebEntityLink(id);
+                if(toUpdate != null) {
+                    logger.debug("webentitylink found");
+                    updating = true;
+                }
+                else {
+                    logger.debug("did not find webentitylink with id " + id + " (new webentitylink will be created)");
+                    updating = false;
+                }
+            }
+
+            if(updating) {
+                // delete old webentitylink before indexing
+                logger.debug("deleting existing webentitylink with id " + id);
+                Query q = findWebEntityLinkByIdQuery(id);
+                this.indexWriter.deleteDocuments(q);
+                this.indexWriter.commit();
+            }
+
+            Document webEntityLinkDocument = IndexConfiguration.WebEntityLinkDocument(webEntityLink);
+            this.indexWriter.addDocument(webEntityLinkDocument);
+            this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
+            //xx this.indexWriter.commit();
+            this.indexSearcher = new IndexSearcher(this.indexReader);
+
+            // return id of indexed webentitylink
+            String indexedId = webEntityLinkDocument.get(IndexConfiguration.FieldName.ID.name());
+            logger.debug("indexed webentitylink with id " + indexedId);
+
+            return indexedId;
+        }
+        catch(CorruptIndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x);
+        }
+        catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x);
+        }
+        
+    }
+    
 }
