@@ -1,6 +1,7 @@
 package fr.sciencespo.medialab.hci.memorystructure.thrift;
 
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
+import fr.sciencespo.medialab.hci.memorystructure.util.ImplementationChoice;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -30,6 +31,8 @@ public class ThriftServer {
     private static String luceneDirectoryPath;
 
     private static MemoryStructureImpl memoryStructureImpl ;
+
+    private static String implementationChoice = null;
 
     /**
      *
@@ -72,6 +75,8 @@ public class ThriftServer {
             String logLevel = properties.getProperty("log.level");
             System.out.println("log.level: " + logLevel);            
             DynamicLogger.setLogLevel(logLevel);
+            implementationChoice = properties.getProperty("impl.choice");
+            System.out.println("impl.choice: " + implementationChoice);
             propertiesFileFound = true;
             lucenePathProvided = true;
         }
@@ -82,8 +87,8 @@ public class ThriftServer {
         //
         // if no properties file provided and no command line arguments, show usage
         //
-        if(!propertiesFileFound && args == null || args.length != 2) {
-            System.out.println("usage: java -jar MemoryStructure.jar lucene.path=[path to Lucene directory] log.level=[TRACE|DEBUG|INFO|WARNING|ERROR]");
+        if(!propertiesFileFound && args == null) {
+            System.out.println("usage: java -jar MemoryStructure.jar lucene.path=[path to Lucene directory] log.level=[TRACE|DEBUG|INFO|WARNING|ERROR] [impl.choice=[HEIKKI|PAUL]]");
             System.exit(0);
         }
         //
@@ -98,7 +103,15 @@ public class ThriftServer {
                 String logLevel = args[1].substring(args[1].indexOf('=')+1);
                 DynamicLogger.setLogLevel(logLevel);
             }
+            if(args[1].startsWith("impl.choice")) {
+                implementationChoice = args[2].substring(args[2].indexOf('=')+1);
+            }
         }
+
+        if(implementationChoice == null) {
+            implementationChoice = "HEIKKI";
+        }
+        ImplementationChoice.set(implementationChoice);
 
         //
         // verify necessary parameters have been received, if no use defaults

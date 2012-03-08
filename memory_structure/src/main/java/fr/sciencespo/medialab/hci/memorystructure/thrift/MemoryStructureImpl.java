@@ -125,7 +125,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      */
     @Override
     public WebEntity getWebEntity(String id) throws ObjectNotFoundException, MemoryStructureException {
-        logger.debug("getWebEntity with id: " + id);
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntity with id: " + id);
+        }
         if(StringUtils.isEmpty(id)) {
             logger.debug("requested id is null, returning null");
             return null;
@@ -225,7 +227,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
                 Cache cache = new Cache(lruIndex);
                 cache.setPageItems(pageItems);
                 CacheMap.getInstance().add(cache);
-                logger.debug("createCache created cache with id " + cache.getId());
+                if(logger.isDebugEnabled()) {
+                    logger.debug("createCache created cache with id " + cache.getId());
+                }
                 return cache.getId();
             }
             else {
@@ -251,7 +255,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      */
     @Override
     public int indexCache(String cacheId) throws TException, MemoryStructureException, ObjectNotFoundException {
-        logger.debug("indexCache with cache id: " + cacheId);
+        if(logger.isDebugEnabled()) {
+            logger.debug("indexCache with cache id: " + cacheId);
+        }
         try {
             Cache cache = CacheMap.getInstance().get(cacheId);
             if(cache == null) {
@@ -265,7 +271,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             @SuppressWarnings({"unchecked"})
             int indexedPages = lruIndex.batchIndex(pageItems);
 
-            logger.debug("indexCache finished indexing cache with id: " + cacheId);
+            if(logger.isDebugEnabled()) {
+                logger.debug("indexCache finished indexing cache with id: " + cacheId);
+            }
             return indexedPages;
         }
         catch(ObjectNotFoundException x) {
@@ -291,11 +299,15 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      */
     @Override
     public List<PageItem> getPagesFromWebEntity(String id) throws TException, MemoryStructureException, ObjectNotFoundException {
-        logger.debug("getPagesFromWebEntity with id: " + id);
+        if(logger.isDebugEnabled()) {
+            logger.debug("getPagesFromWebEntity with id: " + id);
+        }
         List<PageItem> pages;
         try {
             pages = lruIndex.findPagesForWebEntity(id);
-            logger.debug("found # " + pages.size() + " pages");
+            if(logger.isDebugEnabled()) {
+                logger.debug("found # " + pages.size() + " pages");
+            }
         }
         catch (IndexException x) {
             logger.error(x.getMessage());
@@ -351,7 +363,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      */
     @Override
     public String getWebEntityEgoNetwork(String webEntityId, int distance, String format) throws TException, ObjectNotFoundException, MemoryStructureException  {
-        logger.debug("getWebEntityEgoNetwork for WebEntity " + webEntityId + " with distance " + distance);
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntityEgoNetwork for WebEntity " + webEntityId + " with distance " + distance);
+        }
         if(StringUtils.isNotEmpty(format) && !format.equals("gexf")) {
             throw new MemoryStructureException().setMsg("Unsupported requested WebEntityNetwork format: " + format + ". This program supports only gexf.");
         }
@@ -376,7 +390,8 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         finally {
             logger.debug("findWebEntitiesByPrefix end");
-        }    }
+        }
+    }
 
     /**
      * @param prefix prefix to search for
@@ -470,7 +485,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     // TODO TEST
     @Override
     public List<String> getPrecisionExceptionsFromCache(String cacheId) throws TException, ObjectNotFoundException, MemoryStructureException {
-        logger.debug("getPrecisionExceptionsFromCache with cache id: " + cacheId);
+        if(logger.isDebugEnabled()) {
+            logger.debug("getPrecisionExceptionsFromCache with cache id: " + cacheId);
+        }
         try {
             List<String> results = new ArrayList<String>();
             // get precisionExceptions from index
@@ -485,7 +502,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
                         }
                     }
                 }
-                logger.debug("getPrecisionExceptionsFromCache returns # " + results.size() + " results");
+                if(logger.isDebugEnabled()) {
+                    logger.debug("getPrecisionExceptionsFromCache returns # " + results.size() + " results");
+                }
                 return results;
             }
             else {
@@ -518,12 +537,16 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     @Override
     public void createWebEntities(String cacheId) throws MemoryStructureException, ObjectNotFoundException, TException {
         try {
-            logger.debug("createWebEntities with cache id: " + cacheId);
+            if(logger.isDebugEnabled()) {
+                logger.debug("createWebEntities with cache id: " + cacheId);
+            }
             // obtain cache from cachemap
             CacheMap cacheMap = CacheMap.getInstance();
             Cache cache = cacheMap.get(cacheId);
             int newWebEntitiesCount = cache.createWebEntities();
-            logger.debug("# new web entities: " + newWebEntitiesCount);
+            if(logger.isDebugEnabled()) {
+                logger.debug("# new web entities: " + newWebEntitiesCount);
+            }
         }
         catch (IndexException x) {
             logger.error(x.getMessage());
@@ -541,7 +564,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      */
     @Override
     public void deleteCache(String cacheId) throws TException, ObjectNotFoundException {
-        logger.debug("deleteCache with cache id: " + cacheId);
+        if(logger.isDebugEnabled()) {
+            logger.debug("deleteCache with cache id: " + cacheId);
+        }
         CacheMap.getInstance().get(cacheId).clear();
         CacheMap.getInstance().remove(cacheId);
     }
@@ -563,7 +588,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         logger.debug("saveWebEntityCreationRule");
         try{
             lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
-            logger.debug("saveWebEntityCreationRule finished indexing webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
+            if(logger.isDebugEnabled()) {
+                logger.debug("saveWebEntityCreationRule finished indexing webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
+            }
         }
         catch(IndexException x) {
             logger.error(x.getMessage());
@@ -574,7 +601,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     @Override
     public void saveNodeLinks(List<NodeLink> nodeLinks) throws TException, MemoryStructureException {
-        logger.debug("MemoryStructure saveNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
+        if(logger.isDebugEnabled()) {
+            logger.debug("MemoryStructure saveNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
+        }
         try{
             @SuppressWarnings({"unchecked"})
             List<Object> nodeLinksList = new ArrayList(nodeLinks);
@@ -590,7 +619,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     @Override
     public void addAliastoWebEntity(String id, String lru) throws MemoryStructureException, ObjectNotFoundException, TException {
-        logger.debug("addAliastoWebEntity lru: " + lru + " for WebEntity: " + id);
+        if(logger.isDebugEnabled()) {
+            logger.debug("addAliastoWebEntity lru: " + lru + " for WebEntity: " + id);
+        }
         try {
             lruIndex.indexWebEntity(id, lru);
         }
@@ -611,7 +642,9 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     // TODO TEST. IS METHOD NECESSARY? NORMAL IS : CREATE CACHE WITH PAGES AND INDEX CACHE
     @Override
     public void savePageItems(List<PageItem> pageItems) throws TException, MemoryStructureException {
-        logger.debug("savePageItems for # " + pageItems.size() + " pageItems");
+        if(logger.isDebugEnabled()) {
+            logger.debug("savePageItems for # " + pageItems.size() + " pageItems");
+        }
         try {
             @SuppressWarnings({"unchecked"})
             List<Object> pageItemsList = new ArrayList(pageItems);
@@ -648,7 +681,4 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             throw new TException(x.getMessage(), x);
         }
     }
-
-
-
 }

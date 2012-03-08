@@ -40,7 +40,9 @@ public class GEXFWriter {
 
             LRUIndex lruIndex = LRUIndex.getInstance();
             Set<WebEntity> webEntities = lruIndex.retrieveWebEntities();
-            logger.debug("retrieved # " + webEntities.size() + " web entities for GEXF graph");
+            if(logger.isDebugEnabled()) {
+                logger.debug("retrieved # " + webEntities.size() + " web entities for GEXF graph");
+            }
 
             AttributeList attrList = new AttributeListImpl(AttributeClass.NODE);
 

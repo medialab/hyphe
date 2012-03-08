@@ -255,7 +255,9 @@ public class IndexConfiguration {
         if(StringUtils.isEmpty(webEntity.getId())) {
             id = UUID.randomUUID().toString();
         }
-        logger.trace("lucene document for webentity with id " + id);
+        if(logger.isDebugEnabled()) {
+            logger.trace("lucene document for webentity with id " + id);
+        }
         Field idField = new Field(FieldName.ID.name(), id, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
         idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(idField);
@@ -272,13 +274,17 @@ public class IndexConfiguration {
         typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(typeField);
 
-        logger.trace("lucene document adding # " + webEntity.getLRUSet().size() + " lrus");
+        if(logger.isDebugEnabled()) {
+            logger.trace("lucene document adding # " + webEntity.getLRUSet().size() + " lrus");
+        }
         for(String lru : webEntity.getLRUSet()) {
             Field lruField = new Field(FieldName.LRU.name(), lru, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
             lruField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(lruField);
         }
-        logger.trace("lucene document has # " + document.getFieldables(FieldName.LRU.name()).length + " lrufields in webentity " + id);
+        if(logger.isDebugEnabled()) {
+            logger.trace("lucene document has # " + document.getFieldables(FieldName.LRU.name()).length + " lrufields in webentity " + id);
+        }
         return document;
     }
 
@@ -333,13 +339,17 @@ public class IndexConfiguration {
         webEntity.setName(name);
 
         Fieldable[] lruFields = document.getFieldables(FieldName.LRU.name());
-        logger.trace("lucene doc for webentity has # " + lruFields.length + " lru fields");
+        if(logger.isDebugEnabled()) {
+            logger.trace("lucene doc for webentity has # " + lruFields.length + " lru fields");
+        }
         Set<String> lruList = new HashSet<String>();
         for(Fieldable lruField : lruFields) {
             lruList.add(lruField.stringValue());
         }
         webEntity.setLRUSet(lruList);
-        logger.trace("convertLuceneDocument2WebEntity returns webentity with id: " + id);
+        if(logger.isDebugEnabled()) {
+            logger.trace("convertLuceneDocument2WebEntity returns webentity with id: " + id);
+        }
         return webEntity;
     }
 
@@ -368,7 +378,9 @@ public class IndexConfiguration {
         }
         nodeLink.setWeight(weight);
 
-        logger.trace("convertLuceneDocument2NodeLink returns nodelink with id: " + id);
+        if(logger.isDebugEnabled()) {
+            logger.trace("convertLuceneDocument2NodeLink returns nodelink with id: " + id);
+        }
         return nodeLink;
     }
 
@@ -397,7 +409,9 @@ public class IndexConfiguration {
         }
         webEntityLink.setWeight(weight);
 
-        logger.trace("convertLuceneDocument2WebEntityLink returns webEntityLink with id: " + id);
+        if(logger.isDebugEnabled()) {
+            logger.trace("convertLuceneDocument2WebEntityLink returns webEntityLink with id: " + id);
+        }
         return webEntityLink;
     }
 
@@ -415,7 +429,9 @@ public class IndexConfiguration {
         webEntityCreationRule.setLRU(lru);
         webEntityCreationRule.setRegExp(regexp);
 
-        logger.trace("convertLuceneDocument2WebEntity returns webEntityCreationRule with lru: " + lru + " and regexp " + regexp);
+        if(logger.isDebugEnabled()) {
+            logger.trace("convertLuceneDocument2WebEntity returns webEntityCreationRule with lru: " + lru + " and regexp " + regexp);
+        }
         return webEntityCreationRule;
     }
 

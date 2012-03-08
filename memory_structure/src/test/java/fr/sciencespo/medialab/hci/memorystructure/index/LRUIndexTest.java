@@ -16,6 +16,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.lucene.index.IndexWriterConfig;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -408,6 +409,40 @@ public class LRUIndexTest extends TestCase {
         }
     }
 
+    public void testReIndexingExistingPage() {
+        try {
+            assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+            List<Object> lruItems = new ArrayList<Object>();
+            PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po");
+            lruItem1.setDepth(5);
+            lruItems.add(lruItem1);
+            lruIndex.batchIndex(lruItems);
+
+            Set<PageItem> result = lruIndex.retrievePageItemsByLRUPrefix("s:http|h:fr|h:sciences-po");
+            assertNotNull("retrievePageItemsByLRUPrefix returned null", result);
+            assertEquals("Unexpected # of pageitems", 1, result.size());
+            PageItem result1 = result.iterator().next();
+            assertEquals("Unexpected depth", 5, result1.getDepth());
+
+            lruItems.clear();
+            lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po");
+            lruItem1.setDepth(6);
+            lruItems.add(lruItem1);
+            lruIndex.batchIndex(lruItems);
+
+            result = lruIndex.retrievePageItemsByLRUPrefix("s:http|h:fr|h:sciences-po");
+            assertNotNull("retrievePageItemsByLRUPrefix returned null", result);
+            assertEquals("Unexpected # of pageitems", 1, result.size());
+            result1 = result.iterator().next();
+            assertEquals("Unexpected depth", 6, result1.getDepth());
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+    }
+
     public void testRetrievePageItemsByLRUPrefixNullInput() {
         try {
             Set<PageItem> result = lruIndex.retrievePageItemsByLRUPrefix(null);
@@ -523,6 +558,103 @@ public class LRUIndexTest extends TestCase {
             logger.error(x.getMsg());
             x.printStackTrace();
             fail(x.getMsg());
+        }
+    }
+
+    public void testFindPagesForWebEntityButNotForSubWebEntities() {
+        try {
+            assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+            List<Object> lruItems = new ArrayList<Object>();
+            PageItem lruItem1 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab");
+            PageItem lruItem2 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy");
+            PageItem lruItem3 = new PageItem().setLru("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci");
+            lruItems.add(lruItem1);
+            lruItems.add(lruItem2);
+            lruItems.add(lruItem3);
+            lruIndex.batchIndex(lruItems);
+
+            WebEntity webEntity1 = new WebEntity();
+            webEntity1.setName("medialab.sciences-po.fr");
+            webEntity1.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab");
+            String id1 = lruIndex.indexWebEntity(webEntity1);
+
+            WebEntity webEntity2 = new WebEntity();
+            webEntity2.setName("jiminy.medialab.sciences-po.fr");
+            webEntity2.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy");
+            String id2 = lruIndex.indexWebEntity(webEntity2);
+
+            WebEntity webEntity3 = new WebEntity();
+            webEntity3.setName("hci wiki");
+            webEntity3.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci");
+            String id3 = lruIndex.indexWebEntity(webEntity3);
+
+            List<PageItem> result = lruIndex.findPagesForWebEntity(id1);
+            assertNotNull("findPagesForWebEntity returned null", result);
+            assertEquals("Unexpected # of pageitems", 1, result.size());
+
+           // long s = System.currentTimeMillis();
+           // for(int i = 0; i < 10000; i++) {
+                result = lruIndex.findPagesForWebEntity(id2);
+           // }
+           // long s2 = System.currentTimeMillis();
+            
+           // logger.error("time: " + (s2-s) + " ms");
+            
+            assertNotNull("findPagesForWebEntity returned null", result);
+            assertEquals("Unexpected # of pageitems", 1, result.size());
+
+            result = lruIndex.findPagesForWebEntity(id3);
+            assertNotNull("findPagesForWebEntity returned null", result);
+            assertEquals("Unexpected # of pageitems", 1, result.size());
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (ObjectNotFoundException x) {
+            logger.error(x.getMsg());
+            x.printStackTrace();
+            fail(x.getMsg());
+        }
+    }
+
+    public void testFindSubWebEntities() {
+        try {
+            assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
+            WebEntity webEntity1 = new WebEntity();
+            webEntity1.setName("medialab.sciences-po.fr");
+            webEntity1.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab");
+            String id1 = lruIndex.indexWebEntity(webEntity1);
+
+            WebEntity webEntity2 = new WebEntity();
+            webEntity2.setName("jiminy.medialab.sciences-po.fr");
+            webEntity2.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy");
+            String id2 = lruIndex.indexWebEntity(webEntity2);
+
+            WebEntity webEntity3 = new WebEntity();
+            webEntity3.setName("hci wiki");
+            webEntity3.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci");
+            String id3 = lruIndex.indexWebEntity(webEntity3);
+
+            List<WebEntity> subWebEntities = lruIndex.findSubWebEntities(webEntity1);
+            assertEquals("Unexpected # of sub web entities", 2, subWebEntities.size());
+
+            subWebEntities = lruIndex.findSubWebEntities(webEntity2);
+            assertEquals("Unexpected # of sub web entities", 1, subWebEntities.size());
+
+            subWebEntities = lruIndex.findSubWebEntities(webEntity3);
+            assertEquals("Unexpected # of sub web entities", 0, subWebEntities.size());
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            fail(x.getMessage());
         }
     }
 

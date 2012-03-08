@@ -42,7 +42,9 @@ public class AsyncIndexWriterTask implements RunnableFuture {
     AsyncIndexWriterTask(String name, List<?> objectsToWrite, RAMDirectory directory, Version LuceneVersion,
                          IndexWriterConfig.OpenMode openMode, int ramBufferSize, Analyzer analyzer, LRUIndex lruIndex) {
         try {
-            logger.debug("creating new AsyncIndexWriterTask indexing # " + objectsToWrite.size() + " objects with OPEN_MODE " + openMode.name() + " RAM_BUFFER_SIZE_MB " + ramBufferSize);
+            if(logger.isDebugEnabled()) {
+                logger.debug("creating new AsyncIndexWriterTask indexing # " + objectsToWrite.size() + " objects with OPEN_MODE " + openMode.name() + " RAM_BUFFER_SIZE_MB " + ramBufferSize);
+            }
             LUCENE_VERSION = LuceneVersion;
             OPEN_MODE = openMode;
             RAM_BUFFER_SIZE_MB = ramBufferSize;
@@ -101,27 +103,32 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                     PageItem pageItem = (PageItem) object;
 
                     PageItem existing = lruIndex.retrievePageItemByLRU(pageItem.getLru());
-                    if(existing == null) {
-                        Document pageDocument = IndexConfiguration.PageItemDocument(pageItem);
-                        // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
-                        if(pageDocument != null) {
-                            indexWriter.addDocument(pageDocument);
-                            wasIndexed = true;
+                    if(existing != null) {
+                        if(logger.isDebugEnabled()) {
+                            logger.debug("PageItem " + pageItem.getLru() + " already exists in index - updating\n");
                         }
+                        lruIndex.deletePageItem(pageItem);
                     }
-                    else {
-                        // TODO should it be updated instead of skipped ?
-                        logger.warn("PageItem " + pageItem.getLru() + " already exists in index - not indexing again");
+                    Document pageDocument = IndexConfiguration.PageItemDocument(pageItem);
+                    // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
+                    if(pageDocument != null) {
+                        indexWriter.addDocument(pageDocument);
+                        wasIndexed = true;
                     }
                 }
                 else if(object instanceof NodeLink) {
                     NodeLink nodeLink = (NodeLink) object;
                     
-                    logger.debug("nodelink to be indexed: source: " + nodeLink.getSourceLRU() + " target: " + nodeLink.getTargetLRU());
+                    if(logger.isDebugEnabled()) {
+                        logger.debug("nodelink to be indexed: source: " + nodeLink.getSourceLRU() + " target: " + nodeLink.getTargetLRU());
+                    }
 
                     NodeLink existing = lruIndex.retrieveNodeLink(nodeLink);
                     int weight = 1;
                     if(existing != null) {
+                        if(logger.isDebugEnabled()) {
+                            logger.debug("NodeLink already existed - increasing weight");
+                        }
                         weight = existing.getWeight() + 1;
                         lruIndex.deleteNodeLink(nodeLink);
                     }
@@ -138,7 +145,9 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                 }
             }
             this.isDone = true;
-            logger.debug("AsyncIndexWriterTask " + name + " run finished, wrote # " + written + " documents to Lucene index");
+            if(logger.isDebugEnabled()) {
+                logger.debug("AsyncIndexWriterTask " + name + " run finished, wrote # " + written + " documents to Lucene index");
+            }
         }
         catch(Exception x) {
             logger.error(x.getMessage());
@@ -152,7 +161,11 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                 logger.error(x.getMessage());
                 x.printStackTrace();
             }
-            logger.debug("finished run");
+            if(logger.isDebugEnabled()) {
+                if(logger.isDebugEnabled()) {
+                    logger.debug("finished run");
+                }
+            }
         }
     }
 
