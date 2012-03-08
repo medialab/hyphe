@@ -24,22 +24,22 @@ public class LuceneQueryFactory {
     private static DynamicLogger logger = new DynamicLogger(LuceneQueryFactory.class);
 
     private static Term isWebEntityLink = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_LINK.name());
-    private static TermQuery isWebEntityLinkQuery = new TermQuery(isWebEntityLink);
+    private static Query isWebEntityLinkQuery = new TermQuery(isWebEntityLink);
 
     private static Term isWebEntityCreationRule = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_CREATION_RULE.name());
-    private static TermQuery isWebEntityCreationRuleQuery = new TermQuery(isWebEntityCreationRule);
+    private static Query isWebEntityCreationRuleQuery = new TermQuery(isWebEntityCreationRule);
     
     private static Term isDefaultWebEntityCreationRule = new Term(IndexConfiguration.FieldName.LRU.name(), IndexConfiguration.DEFAULT_WEBENTITY_CREATION_RULE);
-    private static TermQuery isDefaultWebEntityCreationRuleQuery = new TermQuery(isDefaultWebEntityCreationRule); 
+    private static Query isDefaultWebEntityCreationRuleQuery = new TermQuery(isDefaultWebEntityCreationRule);
     
     private static Term isNodeLink = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.NODE_LINK.name());
-    private static TermQuery isNodeLinkQuery = new TermQuery(isNodeLink);
+    private static Query isNodeLinkQuery = new TermQuery(isNodeLink);
 
     private static Term isWebEntity = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY.name());
-    private static TermQuery isWebEntityQuery = new TermQuery(isWebEntity);
+    private static Query isWebEntityQuery = new TermQuery(isWebEntity);
 
     private static Term isPageItem = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.PAGE_ITEM.name());
-    private static TermQuery isPageItemQuery = new TermQuery(isPageItem);
+    private static Query isPageItemQuery = new TermQuery(isPageItem);
     
     /**
      *
@@ -49,7 +49,7 @@ public class LuceneQueryFactory {
     protected static Query getWebEntityLinkByIdQuery(String id) {
         Term idTerm = new Term(IndexConfiguration.FieldName.ID.name(), id);
         BooleanQuery q = new BooleanQuery();
-        TermQuery idQuery = new TermQuery(idTerm);
+        Query idQuery = new TermQuery(idTerm);
         q.add(isWebEntityLinkQuery, BooleanClause.Occur.MUST);
         q.add(idQuery, BooleanClause.Occur.MUST);
         if(logger.isDebugEnabled()) {
@@ -94,9 +94,9 @@ public class LuceneQueryFactory {
         Term sourceTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), source.getId());
         Term targetTerm = new Term(IndexConfiguration.FieldName.TARGET.name(), target.getId());
         BooleanQuery q = new BooleanQuery();
-        TermQuery q1 = new TermQuery(isWebEntityLink);
-        TermQuery q2 = new TermQuery(sourceTerm);
-        TermQuery q3 = new TermQuery(targetTerm);
+        Query q1 = new TermQuery(isWebEntityLink);
+        Query q2 = new TermQuery(sourceTerm);
+        Query q3 = new TermQuery(targetTerm);
         q.add(q1, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
         q.add(q3, BooleanClause.Occur.MUST);
@@ -148,8 +148,8 @@ public class LuceneQueryFactory {
     protected static Query getWebEntityLinkByTargetIdQuery(String id) {
         Term targetTerm = new Term(IndexConfiguration.FieldName.TARGET.name(), id);
         BooleanQuery q = new BooleanQuery();
-        TermQuery q1 = new TermQuery(isWebEntityLink);
-        TermQuery q2 = new TermQuery(targetTerm);
+        Query q1 = new TermQuery(isWebEntityLink);
+        Query q2 = new TermQuery(targetTerm);
         q.add(q1, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
         if(logger.isDebugEnabled()) {
@@ -169,8 +169,8 @@ public class LuceneQueryFactory {
         }
         Term lruTerm = new Term(IndexConfiguration.FieldName.LRU.name(), lru);
         BooleanQuery q = new BooleanQuery();
-        TermQuery q1 = new TermQuery(isWebEntityCreationRule);
-        TermQuery q2 = new TermQuery(lruTerm);
+        Query q1 = new TermQuery(isWebEntityCreationRule);
+        Query q2 = new TermQuery(lruTerm);
         q.add(q1, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
         if(logger.isDebugEnabled()) {
@@ -192,8 +192,8 @@ public class LuceneQueryFactory {
         Term sourceTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), nodeLink.getSourceLRU());
         Term targetTerm = new Term(IndexConfiguration.FieldName.TARGET.name(), nodeLink.getTargetLRU());
         BooleanQuery q = new BooleanQuery();
-        TermQuery q2 = new TermQuery(sourceTerm);
-        TermQuery q3 = new TermQuery(targetTerm);
+        Query q2 = new TermQuery(sourceTerm);
+        Query q3 = new TermQuery(targetTerm);
         q.add(isNodeLinkQuery, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
         q.add(q3, BooleanClause.Occur.MUST);
@@ -212,7 +212,7 @@ public class LuceneQueryFactory {
     protected static Query getWebEntityByIdQuery(String id) {
         Term idTerm = new Term(IndexConfiguration.FieldName.ID.name(), id);
         BooleanQuery q = new BooleanQuery();
-        TermQuery q2 = new TermQuery(idTerm);
+        Query q2 = new TermQuery(idTerm);
         q.add(isWebEntityQuery, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
         if(logger.isDebugEnabled()) {
@@ -235,12 +235,12 @@ public class LuceneQueryFactory {
         q.add(isWebEntityQuery, BooleanClause.Occur.MUST);
         for(String prefix : prefixes) {
             Term forbiddenPrefixTerm = new Term(IndexConfiguration.FieldName.LRU.name(), prefix);
-            TermQuery forbiddenPrefixQuery = new TermQuery(forbiddenPrefixTerm);
+            Query forbiddenPrefixQuery = new TermQuery(forbiddenPrefixTerm);
             q.add(forbiddenPrefixQuery, BooleanClause.Occur.MUST_NOT);
 
             prefix = prefix + "?*";
             Term prefixTerm = new Term(IndexConfiguration.FieldName.LRU.name(), prefix);
-            WildcardQuery prefixQuery = new WildcardQuery(prefixTerm);
+            Query prefixQuery = new WildcardQuery(prefixTerm);
             q.add(prefixQuery, BooleanClause.Occur.MUST);
         }
         if(logger.isDebugEnabled()) {
@@ -276,7 +276,7 @@ public class LuceneQueryFactory {
     protected static Query getNodeLinksBySourceLRUQuery(String prefix) {
         Term prefixTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), prefix);
         BooleanQuery q = new BooleanQuery();
-        TermQuery isNodeLinkQuery = new TermQuery(isNodeLink);
+        Query isNodeLinkQuery = new TermQuery(isNodeLink);
         Query prefixQuery;
         // wildcard query
         if(prefix.endsWith("*")) {
@@ -301,7 +301,7 @@ public class LuceneQueryFactory {
     protected static Query getNodeLinksByTargetLRUQuery(String prefix) {
         Term prefixTerm = new Term(IndexConfiguration.FieldName.TARGET.name(), prefix);
         BooleanQuery q = new BooleanQuery();
-        TermQuery isNodeLinkQuery = new TermQuery(isNodeLink);
+        Query isNodeLinkQuery = new TermQuery(isNodeLink);
         Query prefixQuery;
         // wildcard query
         if(prefix.endsWith("*")) {
@@ -326,7 +326,7 @@ public class LuceneQueryFactory {
     protected static Query getWebEntityLinksBySourceId(String id) {
         Term sourceTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), id);
         BooleanQuery q = new BooleanQuery();
-        TermQuery isWebEntityLinkQuery = new TermQuery(isWebEntityLink);
+        Query isWebEntityLinkQuery = new TermQuery(isWebEntityLink);
         Query sourceQuery = new TermQuery(sourceTerm);
         q.add(isWebEntityLinkQuery, BooleanClause.Occur.MUST);
         q.add(sourceQuery, BooleanClause.Occur.MUST);
