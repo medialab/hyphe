@@ -60,6 +60,13 @@ def test_memory_structure(client):
     we = yield client.createWebEntity("hci wiki",["s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci"])
     print str(we.name=="hci wiki") + " webentity "+str(we.id)+" created"
     
+#     print "### createWebEntity"
+#     we = yield client.createWebEntity("jiminy",["s:http|h:fr|h:sciences-po|h:medialab|h:jiminy"])
+#     print str(we.name=="hci wiki") + " webentity "+str(we.id)+" created"
+#     print "### createWebEntity"
+#     we = yield client.createWebEntity("medialab",["s:http|h:fr|h:sciences-po|h:medialab"])
+#     print str(we.name=="hci wiki") + " webentity "+str(we.id)+" created"
+    
     # add page with cache
     print "### createCache"
     page=ms.PageItem("id","http://jiminy.medialab.sciences-po.fr/hci/index.php", "s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci|p:index.php", "time", 200, 1, "errorCode", True, True, {"key":"value"})
@@ -82,14 +89,27 @@ def test_memory_structure(client):
     # create web entities from cache
     print "### createWebEntities from cache"
     yield client.createWebEntities(cache_id)
+    
+    
     print "### getWebEntities + getPagesFromWebEntities"
     wes=yield client.getWebEntities()
     for we in wes : 
         print we.name+" "+ ",".join(we.LRUSet)
         pages = yield client.getPagesFromWebEntity(we.id)
         for page in pages :
-            print "\t"+page.lru#+" "+str(page.id)      
-    
+            print "\t"+page.lru#+" "+str(page.id)   
+    print "### getWebEntities + getPagesFromWebEntities"
+      
+    wes=yield client.getWebEntities()
+    with open("webentities_pages.csv","w") as we_pages_file :
+        we_pages_file.write("web entity name, page lru,web entity aliases\n")
+        for we in wes : 
+            pages = yield client.getPagesFromWebEntity(we.id)
+            for page in pages :
+                 we_pages_file.write(we.name+","+page.lru+","+",".join(we.LRUSet)+"\n")
+        we_pages_file.close()
+    print "export done in "
+        
     # getWebEntity 
 #     print "getWebEntity function"
 #     we2 = yield client.getWebEntity(we.id)

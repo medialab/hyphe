@@ -24,7 +24,7 @@ MONGO_DB = 'hci'
 MONGO_QUEUE_COL = 'crawler.queue'
 MONGO_PAGESTORE_COL = 'crawler.pages'
 
-PRECISION_LIMIT=4
+PRECISION_LIMIT=30
 
 
 #  curl http://scrapyd.host:6800/schedule.json \
@@ -58,6 +58,7 @@ def test_memory_structure(client,crawler_page_queue):
     links={}
     original_link_number=0
     strip_lru_port = lambda lru : "|".join([stem for stem in lru.split("|") if stem!="t:80" ])
+    strip_lru_www = lambda lru : "|".join([stem for stem in lru.split("|") if stem!="h:www" ])
     lru_is_node = lambda lru : (len(lru.split("|"))<=PRECISION_LIMIT)
     # for get node, we should check exceptions
     get_node_lru = lambda lru : "|".join([stem for stem in lru.split("|")[:PRECISION_LIMIT] ])
@@ -66,7 +67,7 @@ def test_memory_structure(client,crawler_page_queue):
   
     for page_item in page_items : 
         # removing port if 80 :
-        page_item["lru"]=strip_lru_port(page_item["lru"])
+        page_item["lru"]=strip_lru_www(strip_lru_port(page_item["lru"]))
         is_node=lru_is_node(page_item["lru"])
         node_lru=page_item["lru"] if is_node else get_node_lru(page_item["lru"])
         
@@ -75,7 +76,7 @@ def test_memory_structure(client,crawler_page_queue):
 
         if "lrulinks" in page_item :
             for index,lrulink in enumerate(page_item["lrulinks"]):
-                lrulink=strip_lru_port(lrulink)
+                lrulink=strip_lru_www(strip_lru_port(lrulink))
                 target_node=lrulink if lru_is_node(lrulink) else get_node_lru(lrulink)
                 original_link_number+=1
                 if lrulink not in pages :
@@ -118,7 +119,7 @@ def test_memory_structure(client,crawler_page_queue):
     s=time.time()    
     wes=yield client.getWebEntities()
     with open("webentities_pages.csv","w") as we_pages_file :
-        we_pages_file.write("web entity name, page lru,web entity aliases"\n")
+        we_pages_file.write("web entity name, page lru,web entity aliases\n")
         for we in wes : 
             pages = yield client.getPagesFromWebEntity(we.id)
             for page in pages :
