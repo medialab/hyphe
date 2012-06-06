@@ -2,6 +2,7 @@ package fr.sciencespo.medialab.hci.memorystructure.thrift;
 
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import fr.sciencespo.medialab.hci.memorystructure.util.ImplementationChoice;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -15,7 +16,10 @@ import org.apache.thrift.transport.TTransportException;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * MemoryStructure server.
@@ -28,18 +32,21 @@ public class ThriftServer {
 
     private final static int port = 9090;
 
-    private static String luceneDirectoryPath;
+    private static String luceneDirectoryPath = null;
+    private static String implementationChoice = null;
+    private static String logLevel = null;
 
     private static MemoryStructureImpl memoryStructureImpl ;
 
-    private static String implementationChoice = null;
 
     /**
+     * Starts the thrift server.
      *
-     * @param args
+     * @param args command line arguments
      */
     public static void main(String[]args) {
         try {
+            DynamicLogger.setLogLevel("INFO");
             logger.info("starting Thrift server");
             initializeMemoryStructure(args);
             initializeThriftServer();
@@ -57,70 +64,94 @@ public class ThriftServer {
     }
 
     /**
+     * Reads properties from file.
      *
-     * @param args
+     * @return map of property names and values
      */
-    private static void initializeMemoryStructure(String[] args) {
-        Properties properties = new Properties();
-        boolean propertiesFileFound = false;
-        boolean lucenePathProvided = false;
-        //
-        // load all properties from property file (if found)
-        //
+    private static Map<String, String> readProperties() {
+        Map<String, String> propertiesMap = new HashMap<String, String>();
         try {
+            Properties properties = new Properties();
             properties.load(new FileInputStream("memorystructure.properties"));
-            System.out.println("properties file found");
-            luceneDirectoryPath = properties.getProperty("lucene.path");
-            System.out.println("lucene.path: " + luceneDirectoryPath);
-            String logLevel = properties.getProperty("log.level");
-            System.out.println("log.level: " + logLevel);            
-            DynamicLogger.setLogLevel(logLevel);
-            implementationChoice = properties.getProperty("impl.choice");
-            System.out.println("impl.choice: " + implementationChoice);
-            propertiesFileFound = true;
-            lucenePathProvided = true;
+            logger.info("properties file found");
+            Set<String> propertyNames = properties.stringPropertyNames();
+            for(String key : propertyNames) {
+                propertiesMap.put(key, properties.getProperty(key)); 
+            }
         }
         catch(Exception x) {
-            logger.warn("no properties file found");
+            logger.info("no properties file found");
+        }
+        for(String key : propertiesMap.keySet()) {
+            logger.info("read property from properties file: " + key + " = " + propertiesMap.get(key));
+        }
+        return propertiesMap;
+    }
+
+    /**
+     * Reads properties from command line.
+     *
+     * @param args command line arguments
+     * @return map of property names and values
+     */
+    private static Map<String, String> readCL(String[] args) {
+        Map<String, String> propertiesMap = new HashMap<String, String>();
+        for(String parameter : args) {
+            String property = parameter.substring(0, parameter.indexOf('='));
+            String value = parameter.substring(parameter.indexOf('=')+1);
+            propertiesMap.put(property, value);
+        }
+        for(String key : propertiesMap.keySet()) {
+            logger.info("read property from command line: " + key + " = " + propertiesMap.get(key));
+        }
+        return propertiesMap;        
+    }
+    
+    /**
+     *
+     * @param args command line arguments
+     */
+    private static void initializeMemoryStructure(String[] args) {
+
+        Map<String, String> propertiesFromFile = readProperties();
+        Map<String, String> propertiesFromCL = readCL(args);
+
+        // properties from command line take precedence
+        Map<String, String> resolvedProperties = new HashMap<String, String>(propertiesFromFile);
+        for(String key : propertiesFromCL.keySet()) {
+            resolvedProperties.put(key, propertiesFromCL.get(key));
         }
 
-        //
-        // if no properties file provided and no command line arguments, show usage
-        //
-        if(!propertiesFileFound && args == null) {
-            System.out.println("usage: java -jar MemoryStructure.jar lucene.path=[path to Lucene directory] log.level=[TRACE|DEBUG|INFO|WARNING|ERROR] [impl.choice=[HEIKKI|PAUL]]");
-            System.exit(0);
-        }
-        //
-        // if command line arguments provided use them (overriding values from properties file, if any)
-        //
-        else {
-            if(args[0].startsWith("lucene.path")) {
-                luceneDirectoryPath = args[0].substring(args[0].indexOf('=')+1);
-                lucenePathProvided = true;
-            }
-            if(args[1].startsWith("log.level")) {
-                String logLevel = args[1].substring(args[1].indexOf('=')+1);
-                DynamicLogger.setLogLevel(logLevel);
-            }
-            if(args[1].startsWith("impl.choice")) {
-                implementationChoice = args[2].substring(args[2].indexOf('=')+1);
-            }
+        logger.info("command line properties take precedence; result is:");
+        for(String key : resolvedProperties.keySet()) {
+            logger.info("using property " + key + " = " + resolvedProperties.get(key));
         }
 
-        if(implementationChoice == null) {
-            implementationChoice = "HEIKKI";
-        }
-        ImplementationChoice.set(implementationChoice);
+        luceneDirectoryPath = resolvedProperties.get("lucene.path");
+        logLevel = resolvedProperties.get("log.level");
+        implementationChoice = resolvedProperties.get("impl.choice");
 
         //
-        // verify necessary parameters have been received, if no use defaults
+        // defaults
         //
-        if(lucenePathProvided == false) {
+        if(StringUtils.isEmpty(luceneDirectoryPath)) {
             logger.warn("Could not find lucene.path either from memorystructure.properties or from command line arguments.");
             luceneDirectoryPath = System.getProperty("user.home") + File.separator + "memorystructure.lucene";
             logger.warn("Using default: lucene.path is " + luceneDirectoryPath);
         }
+        if(StringUtils.isEmpty(logLevel)) {
+            logger.warn("Could not find log.level either from memorystructure.properties or from command line arguments.");
+            logLevel = "INFO";
+            logger.warn("Using default: log.level is " + logLevel);
+        }
+        if(StringUtils.isEmpty(implementationChoice)) {
+            logger.warn("Could not find impl.choice either from memorystructure.properties or from command line arguments.");
+            implementationChoice = "HEIKKI";
+            logger.warn("Using default: impl.choice is " + implementationChoice);
+        }
+
+        DynamicLogger.setLogLevel(logLevel);
+        ImplementationChoice.set(implementationChoice);
 
         File luceneDir = new File(luceneDirectoryPath);
         if(luceneDir.exists() && !luceneDir.isDirectory()) {
