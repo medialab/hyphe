@@ -239,31 +239,31 @@ string getWebEntityEgoNetwork(1:string webEntityId, 2:i32 distance, 3:string for
  * @param 1 prefix to search for
  * @return web entities one of whose aliases contains this prefix
  */
-list<WebEntity> findWebEntitiesByPrefix(1:string prefix),
+list<WebEntity> findWebEntitiesByPrefix(1:string prefix) throws (1:MemoryStructureException me),
 
 /**
  * @param 1 prefix to search for
  * @return pageitems whose lru matches this prefix
  */
-list<PageItem> findPagesByPrefix(1:string prefix),
+list<PageItem> findPagesByPrefix(1:string prefix) throws (1:MemoryStructureException me),
 
 /**
  * @param 1 prefix to search for
  * @return nodelinks whose source matches this prefix
  */
-list<NodeLink> findNodeLinksBySource(1:string prefix),
+list<NodeLink> findNodeLinksBySource(1:string prefix) throws (1:MemoryStructureException me),
 
 /**
  * @param 1 prefix to search for
  * @return nodelinks whose target matches this prefix
  */
-list<NodeLink> findNodeLinksByTarget(1:string prefix),
+list<NodeLink> findNodeLinksByTarget(1:string prefix) throws (1:MemoryStructureException me),
 
 /**
  * @param 1 id: id of web entity
  * @return webentities whose source id are this
  */
-list<WebEntityLink> findWebEntityLinksBySource(1:string id),
+list<WebEntityLink> findWebEntityLinksBySource(1:string id) throws (1:MemoryStructureException me),
 
 /**
  * @param 1 id: id of web entity
