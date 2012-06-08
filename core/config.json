@@ -1,0 +1,17 @@
+{
+  "precisionLimit": 30,
+  "mongoDB": {
+    "host": "localhost",
+    "db": "hci",
+    "queueCol": "crawler.queue",
+    "pageStoreCol": "crawler.pages"
+  },
+  "memoryStructure": {
+    "IP": "10.35.1.152",
+    "port": 9090
+  },
+  "defaultWebEntityCreationRule": {
+    "regexp": "(s:[a-zA-Z]+\\|(h:www|)?h:[a-zA-Z]+(\\|h:[^|]+)+)",
+    "prefix": ""
+  }
+}

@@ -18,14 +18,9 @@ from thrift.protocol import TBinaryProtocol
 
 import pymongo
 import time
+import json, re
 
-MONGO_HOST = 'localhost'
-MONGO_DB = 'hci'
-MONGO_QUEUE_COL = 'crawler.queue'
-MONGO_PAGESTORE_COL = 'crawler.pages'
-
-PRECISION_LIMIT=30
-
+config = json.load(open('config.json', 'r'))
 
 #  curl http://scrapyd.host:6800/schedule.json \
 #   -d start_urls=http://www.mongodb.org/,http://blog.mongodb.org/ \
@@ -34,7 +29,6 @@ PRECISION_LIMIT=30
 #   -d nofollow_prefixes=s:http|t:80|h:org|h:mongodb|p:support \
 #   -d discover_prefixes=s:http|t:80|h:ly|h:bit,s:http|t:80|h:ly|h:bit \
 #   -d "user_agent=Mozilla/5.0 (compatible; hcibot/0.1)"
-
 
 
 @inlineCallbacks
@@ -57,17 +51,37 @@ def test_memory_structure(client,crawler_page_queue):
     pages={}
     links={}
     original_link_number=0
+    # removing port if 80 :
     strip_lru_port = lambda lru : "|".join([stem for stem in lru.split("|") if stem!="t:80" ])
+    # Removing subdomain if www :
     strip_lru_www = lambda lru : "|".join([stem for stem in lru.split("|") if stem!="h:www" ])
-    lru_is_node = lambda lru : (len(lru.split("|"))<=PRECISION_LIMIT)
+    # Removing anchors :
+    anchor_regexp = re.compile(r"[rf]")
+    strip_lru_anchors = lambda lru : "|".join([stem for stem in lru.split("|") if not anchor_regexp.match(stem) ])
+    # Order query parameters alphabetically
+    query_regexp = re.compile(r"\|q:([^\|]*)")
+    def order_lru_query (lru):
+        match = query_regexp.search(lru)
+	if match is not None and match.group(1) is not None:
+            res = match.group(1).split("&")
+            res.sort()
+            return lru.replace(match.group(1), "&".join(res))
+        return lru
+    # Identify links which are nodes
+    lru_is_node = lambda lru : (len(lru.split("|")) <= config['precisionLimit'])
     # for get node, we should check exceptions
-    get_node_lru = lambda lru : "|".join([stem for stem in lru.split("|")[:PRECISION_LIMIT] ])
-    
+    get_node_lru = lambda lru : "|".join([stem for stem in lru.split("|")[:config['precisionLimit']] ])
+
+    testlru = "s:http|t:80|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Verifying+Propagation+of+Writes+with+getLastError|q:f=1&sg=3&a=3&b=34&_675=5&loiyy=hdsjk|f:HGYT"
+    print testlru + "\n" + order_lru_query(strip_lru_anchors(strip_lru_www(strip_lru_port(testlru))))
+
     s=time.time()  
-  
+ 
     for page_item in page_items : 
-        # removing port if 80 :
-        page_item["lru"]=strip_lru_www(strip_lru_port(page_item["lru"]))
+        # clean LRUs
+        print "ORIG : " + page_item["lru"]
+        page_item["lru"]=order_lru_query(strip_lru_anchors(strip_lru_www(strip_lru_port(page_item["lru"]))))
+        print "RESU : " + page_item["lru"]
         is_node=lru_is_node(page_item["lru"])
         node_lru=page_item["lru"] if is_node else get_node_lru(page_item["lru"])
         
@@ -99,9 +113,9 @@ def test_memory_structure(client,crawler_page_queue):
     
     # add web entity creation rule by default
     print "### saveWebEntityCreationRule default"
-    yield client.saveWebEntityCreationRule(WebEntityCreationRule("(s:[a-zA-Z]+\\|(h:www|)?h:[a-zA-Z]+(\\|h:[^|]+)+)",""))
+    yield client.saveWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
     wecrs=yield client.getWebEntityCreationRules()
-    print "result : "+str(len(wecrs)==1 and wecrs[0].regExp=="(s:[a-zA-Z]+\\|(h:www|)?h:[a-zA-Z]+(\\|h:[^|]+)+)")
+    print "result : "+str(len(wecrs)==1 and wecrs[0].regExp==config['defaultWebEntityCreationRule']['regexp'])
     
     # save node links
     print "### saveNodeLinks"
@@ -134,12 +148,12 @@ def test_memory_structure(client,crawler_page_queue):
     print "processed webentity links in "+str(time.time()-s) 
     
     # get webentitynetwork
-    print "### getWebEntityNetwork gexf"
-    s=time.time()
-    network=yield client.getWebEntityNetwork("gexf")
-    print "got the network in "+str(time.time()-s) 
-    with open("hci_web_entities_network.gexf","w") as f : 
-        f.write(network)
+#    print "### getWebEntityNetwork gexf"
+#    s=time.time()
+#    network=yield client.getWebEntityNetwork("gexf")
+#    print "got the network in "+str(time.time()-s) 
+#    with open("hci_web_entities_network.gexf","w") as f : 
+#        f.write(network)
     
     
     # createWebEntity function 
@@ -168,13 +182,13 @@ def test_memory_structure(client,crawler_page_queue):
 
 if __name__ == '__main__':
 
-    crawler_queue = pymongo.Connection(MONGO_HOST)[MONGO_DB][MONGO_QUEUE_COL]
+    crawler_queue = pymongo.Connection(config['mongoDB']['host'])[config['mongoDB']['db']][config['mongoDB']['queueCol']]
 
     client = ClientCreator(reactor,
                       TTwisted.ThriftClientProtocol,
                       ms.Client,
                       TBinaryProtocol.TBinaryProtocolFactory(),
-                      ).connectTCP("10.35.1.152", 9090)
+                      ).connectTCP(config['memoryStructure']['IP'], config['memoryStructure']['port'])
     client.addCallback(lambda conn: conn.client)
     client.addCallback(test_memory_structure,crawler_queue)
     
