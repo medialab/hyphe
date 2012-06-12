@@ -1561,9 +1561,9 @@ public class LRUIndex {
             throw new ObjectNotFoundException().setMsg("Could not find webentity with id: " + id);
         }
 
-        
+        ImplementationChoice.set("PAUL");
         if(ImplementationChoice.get().equals("PAUL")) {
-            logger.error("findPagesForWebEntity: Paul's algorithm");
+            logger.info("findPagesForWebEntity: Paul's algorithm");
             /*
     
             Paul Girard's solution: in my test 30% slower than the implementation below
@@ -1577,7 +1577,7 @@ public class LRUIndex {
             }            
         }
         else {
-            logger.error("findPagesForWebEntity: Heikki's algorithm");
+            logger.info("findPagesForWebEntity: Heikki's algorithm");
             /*
                Heikki's solution start
             */
