@@ -16,9 +16,7 @@ from thrift import Thrift
 from thrift.transport import TTwisted
 from thrift.protocol import TBinaryProtocol
 
-import pymongo
-import time
-import json, re
+import pymongo, time, json, re
 
 config = json.load(open('config.json', 'r'))
 
@@ -32,17 +30,17 @@ config = json.load(open('config.json', 'r'))
 
 
 @inlineCallbacks
-def test_memory_structure(client,crawler_page_queue):
+def test_memory_structure(conn,crawler_page_queue):
     """ 
     Test the Memory structure thrift connection
     """
-    
+    client = conn.client
+
     #pi = ms.PageItem("id","url", "lru", "time", 200, 1, "errorCode", True, True, {"key":"value"})
     #pi2 = ms.PageItem("id2","url2", "lru2", "time2", 400, 2, "errorCode2", False, False, {"key2":"value2"})
     print "### clearIndex"
     yield client.clearIndex()
     print True
-    
     
     page_items=crawler_page_queue.find()
     
@@ -67,21 +65,20 @@ def test_memory_structure(client,crawler_page_queue):
             res.sort()
             return lru.replace(match.group(1), "&".join(res))
         return lru
+    clean_lru = lambda lru : order_lru_query(strip_lru_anchors(strip_lru_www(strip_lru_port(lru))))
     # Identify links which are nodes
     lru_is_node = lambda lru : (len(lru.split("|")) <= config['precisionLimit'])
     # for get node, we should check exceptions
     get_node_lru = lambda lru : "|".join([stem for stem in lru.split("|")[:config['precisionLimit']] ])
 
-    testlru = "s:http|t:80|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Verifying+Propagation+of+Writes+with+getLastError|q:f=1&sg=3&a=3&b=34&_675=5&loiyy=hdsjk|f:HGYT"
-    print testlru + "\n" + order_lru_query(strip_lru_anchors(strip_lru_www(strip_lru_port(testlru))))
+#    testlru = "s:http|t:80|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Verifying+Propagation+of+Writes+with+getLastError|q:f=1&sg=3&a=3&b=34&_675=5&loiyy=hdsjk|f:HGYT"
+#    print "TEST : " + testlru + "\nTEST : " + clean_lru(testlru)
 
     s=time.time()  
  
     for page_item in page_items : 
         # clean LRUs
-        print "ORIG : " + page_item["lru"]
-        page_item["lru"]=order_lru_query(strip_lru_anchors(strip_lru_www(strip_lru_port(page_item["lru"]))))
-        print "RESU : " + page_item["lru"]
+        page_item["lru"] = clean_lru(page_item["lru"])
         is_node=lru_is_node(page_item["lru"])
         node_lru=page_item["lru"] if is_node else get_node_lru(page_item["lru"])
         
@@ -90,7 +87,7 @@ def test_memory_structure(client,crawler_page_queue):
 
         if "lrulinks" in page_item :
             for index,lrulink in enumerate(page_item["lrulinks"]):
-                lrulink=strip_lru_www(strip_lru_port(lrulink))
+                lrulink = clean_lru(lrulink)
                 target_node=lrulink if lru_is_node(lrulink) else get_node_lru(lrulink)
                 original_link_number+=1
                 if lrulink not in pages :
@@ -148,12 +145,12 @@ def test_memory_structure(client,crawler_page_queue):
     print "processed webentity links in "+str(time.time()-s) 
     
     # get webentitynetwork
-#    print "### getWebEntityNetwork gexf"
-#    s=time.time()
-#    network=yield client.getWebEntityNetwork("gexf")
-#    print "got the network in "+str(time.time()-s) 
-#    with open("hci_web_entities_network.gexf","w") as f : 
-#        f.write(network)
+#     print "### getWebEntityNetwork gexf"
+#     s=time.time()
+#     network=yield client.getWebEntityNetwork("gexf")
+#     print "got the network in "+str(time.time()-s) 
+#     with open("hci_web_entities_network.gexf","w") as f : 
+#         f.write(network)
     
     
     # createWebEntity function 
@@ -171,14 +168,18 @@ def test_memory_structure(client,crawler_page_queue):
 #     print " new :"+we2.name
 #     
 #     
-#     # update webentity
+    # update webentity
 #     new_name="new WE"
 #     we.name=new_name
 #     we_id=yield client.updateWebEntity(we)
 #     we2 = yield client.getWebEntity(we_id)
 #     print "result :"+ str(we2.name==new_name)
+
     reactor.stop()
-  
+
+def errorHandler(failure):
+    print failure
+    failure.trap(Exception)
 
 if __name__ == '__main__':
 
@@ -189,8 +190,10 @@ if __name__ == '__main__':
                       ms.Client,
                       TBinaryProtocol.TBinaryProtocolFactory(),
                       ).connectTCP(config['memoryStructure']['IP'], config['memoryStructure']['port'])
-    client.addCallback(lambda conn: conn.client)
+# moved this in test_memory_struct
+#    client.addCallback(lambda conn: conn.client)
     client.addCallback(test_memory_structure,crawler_queue)
-    
-    
+    client.addErrback(errorHandler)
+
     reactor.run()
+
