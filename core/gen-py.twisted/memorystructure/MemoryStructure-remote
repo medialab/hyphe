@@ -45,6 +45,12 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print '  void addAliastoWebEntity(string id, string lru)'
   print '  string getWebEntityNetwork(string format)'
   print '  string getWebEntityEgoNetwork(string webEntityId, i32 distance, string format)'
+  print '   findWebEntitiesByPrefix(string prefix)'
+  print '   findPagesByPrefix(string prefix)'
+  print '   findNodeLinksBySource(string prefix)'
+  print '   findNodeLinksByTarget(string prefix)'
+  print '   findWebEntityLinksBySource(string id)'
+  print '   findWebEntityLinksByTarget(string id)'
   print ''
   sys.exit(0)
 
@@ -227,6 +233,42 @@ elif cmd == 'getWebEntityEgoNetwork':
     print 'getWebEntityEgoNetwork requires 3 args'
     sys.exit(1)
   pp.pprint(client.getWebEntityEgoNetwork(args[0],eval(args[1]),args[2],))
+
+elif cmd == 'findWebEntitiesByPrefix':
+  if len(args) != 1:
+    print 'findWebEntitiesByPrefix requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.findWebEntitiesByPrefix(args[0],))
+
+elif cmd == 'findPagesByPrefix':
+  if len(args) != 1:
+    print 'findPagesByPrefix requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.findPagesByPrefix(args[0],))
+
+elif cmd == 'findNodeLinksBySource':
+  if len(args) != 1:
+    print 'findNodeLinksBySource requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.findNodeLinksBySource(args[0],))
+
+elif cmd == 'findNodeLinksByTarget':
+  if len(args) != 1:
+    print 'findNodeLinksByTarget requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.findNodeLinksByTarget(args[0],))
+
+elif cmd == 'findWebEntityLinksBySource':
+  if len(args) != 1:
+    print 'findWebEntityLinksBySource requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.findWebEntityLinksBySource(args[0],))
+
+elif cmd == 'findWebEntityLinksByTarget':
+  if len(args) != 1:
+    print 'findWebEntityLinksByTarget requires 1 args'
+    sys.exit(1)
+  pp.pprint(client.findWebEntityLinksByTarget(args[0],))
 
 else:
   print 'Unrecognized method %s' % cmd

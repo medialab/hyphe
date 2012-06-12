@@ -1,0 +1,4 @@
+core/gen-py.twisted/*
+memory_structure/src/main/java/fr/sciencespo/medialab/hci/memorystructure/thrift/*
+memory_structure/target/*
+

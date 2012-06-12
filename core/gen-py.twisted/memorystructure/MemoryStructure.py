@@ -228,6 +228,66 @@ class Iface(Interface):
     """
     pass
 
+  def findWebEntitiesByPrefix(prefix):
+    """
+    @param 1 prefix to search for
+    @return web entities one of whose aliases contains this prefix
+
+    Parameters:
+     - prefix
+    """
+    pass
+
+  def findPagesByPrefix(prefix):
+    """
+    @param 1 prefix to search for
+    @return pageitems whose lru matches this prefix
+
+    Parameters:
+     - prefix
+    """
+    pass
+
+  def findNodeLinksBySource(prefix):
+    """
+    @param 1 prefix to search for
+    @return nodelinks whose source matches this prefix
+
+    Parameters:
+     - prefix
+    """
+    pass
+
+  def findNodeLinksByTarget(prefix):
+    """
+    @param 1 prefix to search for
+    @return nodelinks whose target matches this prefix
+
+    Parameters:
+     - prefix
+    """
+    pass
+
+  def findWebEntityLinksBySource(id):
+    """
+    @param 1 id: id of web entity
+    @return webentities whose source id are this
+
+    Parameters:
+     - id
+    """
+    pass
+
+  def findWebEntityLinksByTarget(id):
+    """
+    @param 1 id: id of web entity
+    @return webentities whose target id are this
+
+    Parameters:
+     - id
+    """
+    pass
+
 
 class Client:
   implements(Iface)
@@ -1050,6 +1110,232 @@ class Client:
       return d.errback(result.x)
     return d.errback(TApplicationException(TApplicationException.MISSING_RESULT, "getWebEntityEgoNetwork failed: unknown result"))
 
+  def findWebEntitiesByPrefix(self, prefix):
+    """
+    @param 1 prefix to search for
+    @return web entities one of whose aliases contains this prefix
+
+    Parameters:
+     - prefix
+    """
+    self._seqid += 1
+    d = self._reqs[self._seqid] = defer.Deferred()
+    self.send_findWebEntitiesByPrefix(prefix)
+    return d
+
+  def send_findWebEntitiesByPrefix(self, prefix):
+    oprot = self._oprot_factory.getProtocol(self._transport)
+    oprot.writeMessageBegin('findWebEntitiesByPrefix', TMessageType.CALL, self._seqid)
+    args = findWebEntitiesByPrefix_args()
+    args.prefix = prefix
+    args.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def recv_findWebEntitiesByPrefix(self, iprot, mtype, rseqid):
+    d = self._reqs.pop(rseqid)
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      return d.errback(x)
+    result = findWebEntitiesByPrefix_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return d.callback(result.success)
+    if result.me is not None:
+      return d.errback(result.me)
+    return d.errback(TApplicationException(TApplicationException.MISSING_RESULT, "findWebEntitiesByPrefix failed: unknown result"))
+
+  def findPagesByPrefix(self, prefix):
+    """
+    @param 1 prefix to search for
+    @return pageitems whose lru matches this prefix
+
+    Parameters:
+     - prefix
+    """
+    self._seqid += 1
+    d = self._reqs[self._seqid] = defer.Deferred()
+    self.send_findPagesByPrefix(prefix)
+    return d
+
+  def send_findPagesByPrefix(self, prefix):
+    oprot = self._oprot_factory.getProtocol(self._transport)
+    oprot.writeMessageBegin('findPagesByPrefix', TMessageType.CALL, self._seqid)
+    args = findPagesByPrefix_args()
+    args.prefix = prefix
+    args.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def recv_findPagesByPrefix(self, iprot, mtype, rseqid):
+    d = self._reqs.pop(rseqid)
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      return d.errback(x)
+    result = findPagesByPrefix_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return d.callback(result.success)
+    if result.me is not None:
+      return d.errback(result.me)
+    return d.errback(TApplicationException(TApplicationException.MISSING_RESULT, "findPagesByPrefix failed: unknown result"))
+
+  def findNodeLinksBySource(self, prefix):
+    """
+    @param 1 prefix to search for
+    @return nodelinks whose source matches this prefix
+
+    Parameters:
+     - prefix
+    """
+    self._seqid += 1
+    d = self._reqs[self._seqid] = defer.Deferred()
+    self.send_findNodeLinksBySource(prefix)
+    return d
+
+  def send_findNodeLinksBySource(self, prefix):
+    oprot = self._oprot_factory.getProtocol(self._transport)
+    oprot.writeMessageBegin('findNodeLinksBySource', TMessageType.CALL, self._seqid)
+    args = findNodeLinksBySource_args()
+    args.prefix = prefix
+    args.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def recv_findNodeLinksBySource(self, iprot, mtype, rseqid):
+    d = self._reqs.pop(rseqid)
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      return d.errback(x)
+    result = findNodeLinksBySource_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return d.callback(result.success)
+    if result.me is not None:
+      return d.errback(result.me)
+    return d.errback(TApplicationException(TApplicationException.MISSING_RESULT, "findNodeLinksBySource failed: unknown result"))
+
+  def findNodeLinksByTarget(self, prefix):
+    """
+    @param 1 prefix to search for
+    @return nodelinks whose target matches this prefix
+
+    Parameters:
+     - prefix
+    """
+    self._seqid += 1
+    d = self._reqs[self._seqid] = defer.Deferred()
+    self.send_findNodeLinksByTarget(prefix)
+    return d
+
+  def send_findNodeLinksByTarget(self, prefix):
+    oprot = self._oprot_factory.getProtocol(self._transport)
+    oprot.writeMessageBegin('findNodeLinksByTarget', TMessageType.CALL, self._seqid)
+    args = findNodeLinksByTarget_args()
+    args.prefix = prefix
+    args.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def recv_findNodeLinksByTarget(self, iprot, mtype, rseqid):
+    d = self._reqs.pop(rseqid)
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      return d.errback(x)
+    result = findNodeLinksByTarget_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return d.callback(result.success)
+    if result.me is not None:
+      return d.errback(result.me)
+    return d.errback(TApplicationException(TApplicationException.MISSING_RESULT, "findNodeLinksByTarget failed: unknown result"))
+
+  def findWebEntityLinksBySource(self, id):
+    """
+    @param 1 id: id of web entity
+    @return webentities whose source id are this
+
+    Parameters:
+     - id
+    """
+    self._seqid += 1
+    d = self._reqs[self._seqid] = defer.Deferred()
+    self.send_findWebEntityLinksBySource(id)
+    return d
+
+  def send_findWebEntityLinksBySource(self, id):
+    oprot = self._oprot_factory.getProtocol(self._transport)
+    oprot.writeMessageBegin('findWebEntityLinksBySource', TMessageType.CALL, self._seqid)
+    args = findWebEntityLinksBySource_args()
+    args.id = id
+    args.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def recv_findWebEntityLinksBySource(self, iprot, mtype, rseqid):
+    d = self._reqs.pop(rseqid)
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      return d.errback(x)
+    result = findWebEntityLinksBySource_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return d.callback(result.success)
+    if result.me is not None:
+      return d.errback(result.me)
+    return d.errback(TApplicationException(TApplicationException.MISSING_RESULT, "findWebEntityLinksBySource failed: unknown result"))
+
+  def findWebEntityLinksByTarget(self, id):
+    """
+    @param 1 id: id of web entity
+    @return webentities whose target id are this
+
+    Parameters:
+     - id
+    """
+    self._seqid += 1
+    d = self._reqs[self._seqid] = defer.Deferred()
+    self.send_findWebEntityLinksByTarget(id)
+    return d
+
+  def send_findWebEntityLinksByTarget(self, id):
+    oprot = self._oprot_factory.getProtocol(self._transport)
+    oprot.writeMessageBegin('findWebEntityLinksByTarget', TMessageType.CALL, self._seqid)
+    args = findWebEntityLinksByTarget_args()
+    args.id = id
+    args.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def recv_findWebEntityLinksByTarget(self, iprot, mtype, rseqid):
+    d = self._reqs.pop(rseqid)
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      return d.errback(x)
+    result = findWebEntityLinksByTarget_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return d.callback(result.success)
+    return d.errback(TApplicationException(TApplicationException.MISSING_RESULT, "findWebEntityLinksByTarget failed: unknown result"))
+
 
 class Processor(TProcessor):
   implements(Iface)
@@ -1079,6 +1365,12 @@ class Processor(TProcessor):
     self._processMap["addAliastoWebEntity"] = Processor.process_addAliastoWebEntity
     self._processMap["getWebEntityNetwork"] = Processor.process_getWebEntityNetwork
     self._processMap["getWebEntityEgoNetwork"] = Processor.process_getWebEntityEgoNetwork
+    self._processMap["findWebEntitiesByPrefix"] = Processor.process_findWebEntitiesByPrefix
+    self._processMap["findPagesByPrefix"] = Processor.process_findPagesByPrefix
+    self._processMap["findNodeLinksBySource"] = Processor.process_findNodeLinksBySource
+    self._processMap["findNodeLinksByTarget"] = Processor.process_findNodeLinksByTarget
+    self._processMap["findWebEntityLinksBySource"] = Processor.process_findWebEntityLinksBySource
+    self._processMap["findWebEntityLinksByTarget"] = Processor.process_findWebEntityLinksByTarget
 
   def process(self, iprot, oprot):
     (name, type, seqid) = iprot.readMessageBegin()
@@ -1658,6 +1950,157 @@ class Processor(TProcessor):
     except ObjectNotFoundException, x:
       result.x = x
     oprot.writeMessageBegin("getWebEntityEgoNetwork", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_findWebEntitiesByPrefix(self, seqid, iprot, oprot):
+    args = findWebEntitiesByPrefix_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = findWebEntitiesByPrefix_result()
+    d = defer.maybeDeferred(self._handler.findWebEntitiesByPrefix, args.prefix)
+    d.addCallback(self.write_results_success_findWebEntitiesByPrefix, result, seqid, oprot)
+    d.addErrback(self.write_results_exception_findWebEntitiesByPrefix, result, seqid, oprot)
+    return d
+
+  def write_results_success_findWebEntitiesByPrefix(self, success, result, seqid, oprot):
+    result.success = success
+    oprot.writeMessageBegin("findWebEntitiesByPrefix", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def write_results_exception_findWebEntitiesByPrefix(self, error, result, seqid, oprot):
+    try:
+      error.raiseException()
+    except MemoryStructureException, me:
+      result.me = me
+    oprot.writeMessageBegin("findWebEntitiesByPrefix", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_findPagesByPrefix(self, seqid, iprot, oprot):
+    args = findPagesByPrefix_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = findPagesByPrefix_result()
+    d = defer.maybeDeferred(self._handler.findPagesByPrefix, args.prefix)
+    d.addCallback(self.write_results_success_findPagesByPrefix, result, seqid, oprot)
+    d.addErrback(self.write_results_exception_findPagesByPrefix, result, seqid, oprot)
+    return d
+
+  def write_results_success_findPagesByPrefix(self, success, result, seqid, oprot):
+    result.success = success
+    oprot.writeMessageBegin("findPagesByPrefix", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def write_results_exception_findPagesByPrefix(self, error, result, seqid, oprot):
+    try:
+      error.raiseException()
+    except MemoryStructureException, me:
+      result.me = me
+    oprot.writeMessageBegin("findPagesByPrefix", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_findNodeLinksBySource(self, seqid, iprot, oprot):
+    args = findNodeLinksBySource_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = findNodeLinksBySource_result()
+    d = defer.maybeDeferred(self._handler.findNodeLinksBySource, args.prefix)
+    d.addCallback(self.write_results_success_findNodeLinksBySource, result, seqid, oprot)
+    d.addErrback(self.write_results_exception_findNodeLinksBySource, result, seqid, oprot)
+    return d
+
+  def write_results_success_findNodeLinksBySource(self, success, result, seqid, oprot):
+    result.success = success
+    oprot.writeMessageBegin("findNodeLinksBySource", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def write_results_exception_findNodeLinksBySource(self, error, result, seqid, oprot):
+    try:
+      error.raiseException()
+    except MemoryStructureException, me:
+      result.me = me
+    oprot.writeMessageBegin("findNodeLinksBySource", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_findNodeLinksByTarget(self, seqid, iprot, oprot):
+    args = findNodeLinksByTarget_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = findNodeLinksByTarget_result()
+    d = defer.maybeDeferred(self._handler.findNodeLinksByTarget, args.prefix)
+    d.addCallback(self.write_results_success_findNodeLinksByTarget, result, seqid, oprot)
+    d.addErrback(self.write_results_exception_findNodeLinksByTarget, result, seqid, oprot)
+    return d
+
+  def write_results_success_findNodeLinksByTarget(self, success, result, seqid, oprot):
+    result.success = success
+    oprot.writeMessageBegin("findNodeLinksByTarget", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def write_results_exception_findNodeLinksByTarget(self, error, result, seqid, oprot):
+    try:
+      error.raiseException()
+    except MemoryStructureException, me:
+      result.me = me
+    oprot.writeMessageBegin("findNodeLinksByTarget", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_findWebEntityLinksBySource(self, seqid, iprot, oprot):
+    args = findWebEntityLinksBySource_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = findWebEntityLinksBySource_result()
+    d = defer.maybeDeferred(self._handler.findWebEntityLinksBySource, args.id)
+    d.addCallback(self.write_results_success_findWebEntityLinksBySource, result, seqid, oprot)
+    d.addErrback(self.write_results_exception_findWebEntityLinksBySource, result, seqid, oprot)
+    return d
+
+  def write_results_success_findWebEntityLinksBySource(self, success, result, seqid, oprot):
+    result.success = success
+    oprot.writeMessageBegin("findWebEntityLinksBySource", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def write_results_exception_findWebEntityLinksBySource(self, error, result, seqid, oprot):
+    try:
+      error.raiseException()
+    except MemoryStructureException, me:
+      result.me = me
+    oprot.writeMessageBegin("findWebEntityLinksBySource", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_findWebEntityLinksByTarget(self, seqid, iprot, oprot):
+    args = findWebEntityLinksByTarget_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = findWebEntityLinksByTarget_result()
+    d = defer.maybeDeferred(self._handler.findWebEntityLinksByTarget, args.id)
+    d.addCallback(self.write_results_success_findWebEntityLinksByTarget, result, seqid, oprot)
+    return d
+
+  def write_results_success_findWebEntityLinksByTarget(self, success, result, seqid, oprot):
+    result.success = success
+    oprot.writeMessageBegin("findWebEntityLinksByTarget", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -4541,6 +4984,839 @@ class getWebEntityEgoNetwork_result:
     if self.x is not None:
       oprot.writeFieldBegin('x', TType.STRUCT, 2)
       self.x.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findWebEntitiesByPrefix_args:
+  """
+  Attributes:
+   - prefix
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'prefix', None, None, ), # 1
+  )
+
+  def __init__(self, prefix=None,):
+    self.prefix = prefix
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.prefix = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findWebEntitiesByPrefix_args')
+    if self.prefix is not None:
+      oprot.writeFieldBegin('prefix', TType.STRING, 1)
+      oprot.writeString(self.prefix)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findWebEntitiesByPrefix_result:
+  """
+  Attributes:
+   - success
+   - me
+  """
+
+  thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRUCT,(WebEntity, WebEntity.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'me', (MemoryStructureException, MemoryStructureException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, me=None,):
+    self.success = success
+    self.me = me
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype89, _size86) = iprot.readListBegin()
+          for _i90 in xrange(_size86):
+            _elem91 = WebEntity()
+            _elem91.read(iprot)
+            self.success.append(_elem91)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.me = MemoryStructureException()
+          self.me.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findWebEntitiesByPrefix_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
+      for iter92 in self.success:
+        iter92.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.me is not None:
+      oprot.writeFieldBegin('me', TType.STRUCT, 1)
+      self.me.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findPagesByPrefix_args:
+  """
+  Attributes:
+   - prefix
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'prefix', None, None, ), # 1
+  )
+
+  def __init__(self, prefix=None,):
+    self.prefix = prefix
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.prefix = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findPagesByPrefix_args')
+    if self.prefix is not None:
+      oprot.writeFieldBegin('prefix', TType.STRING, 1)
+      oprot.writeString(self.prefix)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findPagesByPrefix_result:
+  """
+  Attributes:
+   - success
+   - me
+  """
+
+  thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRUCT,(PageItem, PageItem.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'me', (MemoryStructureException, MemoryStructureException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, me=None,):
+    self.success = success
+    self.me = me
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype96, _size93) = iprot.readListBegin()
+          for _i97 in xrange(_size93):
+            _elem98 = PageItem()
+            _elem98.read(iprot)
+            self.success.append(_elem98)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.me = MemoryStructureException()
+          self.me.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findPagesByPrefix_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
+      for iter99 in self.success:
+        iter99.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.me is not None:
+      oprot.writeFieldBegin('me', TType.STRUCT, 1)
+      self.me.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findNodeLinksBySource_args:
+  """
+  Attributes:
+   - prefix
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'prefix', None, None, ), # 1
+  )
+
+  def __init__(self, prefix=None,):
+    self.prefix = prefix
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.prefix = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findNodeLinksBySource_args')
+    if self.prefix is not None:
+      oprot.writeFieldBegin('prefix', TType.STRING, 1)
+      oprot.writeString(self.prefix)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findNodeLinksBySource_result:
+  """
+  Attributes:
+   - success
+   - me
+  """
+
+  thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRUCT,(NodeLink, NodeLink.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'me', (MemoryStructureException, MemoryStructureException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, me=None,):
+    self.success = success
+    self.me = me
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype103, _size100) = iprot.readListBegin()
+          for _i104 in xrange(_size100):
+            _elem105 = NodeLink()
+            _elem105.read(iprot)
+            self.success.append(_elem105)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.me = MemoryStructureException()
+          self.me.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findNodeLinksBySource_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
+      for iter106 in self.success:
+        iter106.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.me is not None:
+      oprot.writeFieldBegin('me', TType.STRUCT, 1)
+      self.me.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findNodeLinksByTarget_args:
+  """
+  Attributes:
+   - prefix
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'prefix', None, None, ), # 1
+  )
+
+  def __init__(self, prefix=None,):
+    self.prefix = prefix
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.prefix = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findNodeLinksByTarget_args')
+    if self.prefix is not None:
+      oprot.writeFieldBegin('prefix', TType.STRING, 1)
+      oprot.writeString(self.prefix)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findNodeLinksByTarget_result:
+  """
+  Attributes:
+   - success
+   - me
+  """
+
+  thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRUCT,(NodeLink, NodeLink.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'me', (MemoryStructureException, MemoryStructureException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, me=None,):
+    self.success = success
+    self.me = me
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype110, _size107) = iprot.readListBegin()
+          for _i111 in xrange(_size107):
+            _elem112 = NodeLink()
+            _elem112.read(iprot)
+            self.success.append(_elem112)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.me = MemoryStructureException()
+          self.me.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findNodeLinksByTarget_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
+      for iter113 in self.success:
+        iter113.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.me is not None:
+      oprot.writeFieldBegin('me', TType.STRUCT, 1)
+      self.me.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findWebEntityLinksBySource_args:
+  """
+  Attributes:
+   - id
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'id', None, None, ), # 1
+  )
+
+  def __init__(self, id=None,):
+    self.id = id
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.id = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findWebEntityLinksBySource_args')
+    if self.id is not None:
+      oprot.writeFieldBegin('id', TType.STRING, 1)
+      oprot.writeString(self.id)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findWebEntityLinksBySource_result:
+  """
+  Attributes:
+   - success
+   - me
+  """
+
+  thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRUCT,(WebEntityLink, WebEntityLink.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'me', (MemoryStructureException, MemoryStructureException.thrift_spec), None, ), # 1
+  )
+
+  def __init__(self, success=None, me=None,):
+    self.success = success
+    self.me = me
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype117, _size114) = iprot.readListBegin()
+          for _i118 in xrange(_size114):
+            _elem119 = WebEntityLink()
+            _elem119.read(iprot)
+            self.success.append(_elem119)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.me = MemoryStructureException()
+          self.me.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findWebEntityLinksBySource_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
+      for iter120 in self.success:
+        iter120.write(oprot)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.me is not None:
+      oprot.writeFieldBegin('me', TType.STRUCT, 1)
+      self.me.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findWebEntityLinksByTarget_args:
+  """
+  Attributes:
+   - id
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'id', None, None, ), # 1
+  )
+
+  def __init__(self, id=None,):
+    self.id = id
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.id = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findWebEntityLinksByTarget_args')
+    if self.id is not None:
+      oprot.writeFieldBegin('id', TType.STRING, 1)
+      oprot.writeString(self.id)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findWebEntityLinksByTarget_result:
+  """
+  Attributes:
+   - success
+  """
+
+  thrift_spec = (
+    (0, TType.LIST, 'success', (TType.STRUCT,(WebEntityLink, WebEntityLink.thrift_spec)), None, ), # 0
+  )
+
+  def __init__(self, success=None,):
+    self.success = success
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.LIST:
+          self.success = []
+          (_etype124, _size121) = iprot.readListBegin()
+          for _i125 in xrange(_size121):
+            _elem126 = WebEntityLink()
+            _elem126.read(iprot)
+            self.success.append(_elem126)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findWebEntityLinksByTarget_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.LIST, 0)
+      oprot.writeListBegin(TType.STRUCT, len(self.success))
+      for iter127 in self.success:
+        iter127.write(oprot)
+      oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

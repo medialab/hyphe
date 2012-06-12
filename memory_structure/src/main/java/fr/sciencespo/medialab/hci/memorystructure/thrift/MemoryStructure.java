@@ -6,24 +6,26 @@
  */
 package fr.sciencespo.medialab.hci.memorystructure.thrift;
 
-import org.apache.thrift.protocol.TTupleProtocol;
 import org.apache.thrift.scheme.IScheme;
 import org.apache.thrift.scheme.SchemeFactory;
 import org.apache.thrift.scheme.StandardScheme;
+
 import org.apache.thrift.scheme.TupleScheme;
+import org.apache.thrift.protocol.TTupleProtocol;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.EnumSet;
+import java.util.Collections;
+import java.util.BitSet;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class MemoryStructure {
 
@@ -243,7 +245,7 @@ public class MemoryStructure {
      * 
      * @param id
      */
-    public List<WebEntityLink> findWebEntityLinksByTarget(String id) throws MemoryStructureException, org.apache.thrift.TException;
+    public List<WebEntityLink> findWebEntityLinksByTarget(String id) throws org.apache.thrift.TException;
 
   }
 
@@ -1013,7 +1015,7 @@ public class MemoryStructure {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "findWebEntityLinksBySource failed: unknown result");
     }
 
-    public List<WebEntityLink> findWebEntityLinksByTarget(String id) throws MemoryStructureException, org.apache.thrift.TException
+    public List<WebEntityLink> findWebEntityLinksByTarget(String id) throws org.apache.thrift.TException
     {
       send_findWebEntityLinksByTarget(id);
       return recv_findWebEntityLinksByTarget();
@@ -1026,15 +1028,12 @@ public class MemoryStructure {
       sendBase("findWebEntityLinksByTarget", args);
     }
 
-    public List<WebEntityLink> recv_findWebEntityLinksByTarget() throws MemoryStructureException, org.apache.thrift.TException
+    public List<WebEntityLink> recv_findWebEntityLinksByTarget() throws org.apache.thrift.TException
     {
       findWebEntityLinksByTarget_result result = new findWebEntityLinksByTarget_result();
       receiveBase(result, "findWebEntityLinksByTarget");
       if (result.isSetSuccess()) {
         return result.success;
-      }
-      if (result.me != null) {
-        throw result.me;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "findWebEntityLinksByTarget failed: unknown result");
     }
@@ -1077,7 +1076,7 @@ public class MemoryStructure {
       }
 
       public List<PingPong> getResult() throws org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1109,7 +1108,7 @@ public class MemoryStructure {
       }
 
       public String getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1144,7 +1143,7 @@ public class MemoryStructure {
       }
 
       public WebEntity getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1176,7 +1175,7 @@ public class MemoryStructure {
       }
 
       public WebEntity getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1205,7 +1204,7 @@ public class MemoryStructure {
       }
 
       public List<WebEntity> getResult() throws org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1237,7 +1236,7 @@ public class MemoryStructure {
       }
 
       public List<PageItem> getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1266,7 +1265,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1295,7 +1294,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1327,7 +1326,7 @@ public class MemoryStructure {
       }
 
       public String getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1359,7 +1358,7 @@ public class MemoryStructure {
       }
 
       public int getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1391,7 +1390,7 @@ public class MemoryStructure {
       }
 
       public List<String> getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1423,7 +1422,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1455,7 +1454,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1487,7 +1486,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1519,7 +1518,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1548,7 +1547,7 @@ public class MemoryStructure {
       }
 
       public List<WebEntityCreationRule> getResult() throws org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1580,7 +1579,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1612,7 +1611,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1644,7 +1643,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1679,7 +1678,7 @@ public class MemoryStructure {
       }
 
       public void getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1711,7 +1710,7 @@ public class MemoryStructure {
       }
 
       public String getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1749,7 +1748,7 @@ public class MemoryStructure {
       }
 
       public String getResult() throws MemoryStructureException, ObjectNotFoundException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1781,7 +1780,7 @@ public class MemoryStructure {
       }
 
       public List<WebEntity> getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1813,7 +1812,7 @@ public class MemoryStructure {
       }
 
       public List<PageItem> getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1845,7 +1844,7 @@ public class MemoryStructure {
       }
 
       public List<NodeLink> getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1877,7 +1876,7 @@ public class MemoryStructure {
       }
 
       public List<NodeLink> getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1909,7 +1908,7 @@ public class MemoryStructure {
       }
 
       public List<WebEntityLink> getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -1940,8 +1939,8 @@ public class MemoryStructure {
         prot.writeMessageEnd();
       }
 
-      public List<WebEntityLink> getResult() throws MemoryStructureException, org.apache.thrift.TException {
-        if (getState() != State.RESPONSE_READ) {
+      public List<WebEntityLink> getResult() throws org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
@@ -2548,11 +2547,7 @@ public class MemoryStructure {
 
       protected findWebEntityLinksByTarget_result getResult(I iface, findWebEntityLinksByTarget_args args) throws org.apache.thrift.TException {
         findWebEntityLinksByTarget_result result = new findWebEntityLinksByTarget_result();
-        try {
-          result.success = iface.findWebEntityLinksByTarget(args.id);
-        } catch (MemoryStructureException me) {
-          result.me = me;
-        }
+        result.success = iface.findWebEntityLinksByTarget(args.id);
         return result;
       }
     }
@@ -19490,8 +19485,6 @@ public class MemoryStructure {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -24852,7 +24845,6 @@ public class MemoryStructure {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("findWebEntityLinksByTarget_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
-    private static final org.apache.thrift.protocol.TField ME_FIELD_DESC = new org.apache.thrift.protocol.TField("me", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -24861,12 +24853,10 @@ public class MemoryStructure {
     }
 
     public List<WebEntityLink> success; // required
-    public MemoryStructureException me; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      ME((short)1, "me");
+      SUCCESS((short)0, "success");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -24883,8 +24873,6 @@ public class MemoryStructure {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // ME
-            return ME;
           default:
             return null;
         }
@@ -24931,8 +24919,6 @@ public class MemoryStructure {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, WebEntityLink.class))));
-      tmpMap.put(_Fields.ME, new org.apache.thrift.meta_data.FieldMetaData("me", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(findWebEntityLinksByTarget_result.class, metaDataMap);
     }
@@ -24941,12 +24927,10 @@ public class MemoryStructure {
     }
 
     public findWebEntityLinksByTarget_result(
-      List<WebEntityLink> success,
-      MemoryStructureException me)
+      List<WebEntityLink> success)
     {
       this();
       this.success = success;
-      this.me = me;
     }
 
     /**
@@ -24960,9 +24944,6 @@ public class MemoryStructure {
         }
         this.success = __this__success;
       }
-      if (other.isSetMe()) {
-        this.me = new MemoryStructureException(other.me);
-      }
     }
 
     public findWebEntityLinksByTarget_result deepCopy() {
@@ -24972,7 +24953,6 @@ public class MemoryStructure {
     @Override
     public void clear() {
       this.success = null;
-      this.me = null;
     }
 
     public int getSuccessSize() {
@@ -25014,30 +24994,6 @@ public class MemoryStructure {
       }
     }
 
-    public MemoryStructureException getMe() {
-      return this.me;
-    }
-
-    public findWebEntityLinksByTarget_result setMe(MemoryStructureException me) {
-      this.me = me;
-      return this;
-    }
-
-    public void unsetMe() {
-      this.me = null;
-    }
-
-    /** Returns true if field me is set (has been assigned a value) and false otherwise */
-    public boolean isSetMe() {
-      return this.me != null;
-    }
-
-    public void setMeIsSet(boolean value) {
-      if (!value) {
-        this.me = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -25048,14 +25004,6 @@ public class MemoryStructure {
         }
         break;
 
-      case ME:
-        if (value == null) {
-          unsetMe();
-        } else {
-          setMe((MemoryStructureException)value);
-        }
-        break;
-
       }
     }
 
@@ -25063,9 +25011,6 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return getSuccess();
-
-      case ME:
-        return getMe();
 
       }
       throw new IllegalStateException();
@@ -25080,8 +25025,6 @@ public class MemoryStructure {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case ME:
-        return isSetMe();
       }
       throw new IllegalStateException();
     }
@@ -25105,15 +25048,6 @@ public class MemoryStructure {
         if (!(this_present_success && that_present_success))
           return false;
         if (!this.success.equals(that.success))
-          return false;
-      }
-
-      boolean this_present_me = true && this.isSetMe();
-      boolean that_present_me = true && that.isSetMe();
-      if (this_present_me || that_present_me) {
-        if (!(this_present_me && that_present_me))
-          return false;
-        if (!this.me.equals(that.me))
           return false;
       }
 
@@ -25143,16 +25077,6 @@ public class MemoryStructure {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetMe()).compareTo(typedOther.isSetMe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetMe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.me, typedOther.me);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       return 0;
     }
 
@@ -25178,14 +25102,6 @@ public class MemoryStructure {
         sb.append("null");
       } else {
         sb.append(this.success);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("me:");
-      if (this.me == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.me);
       }
       first = false;
       sb.append(")");
@@ -25249,15 +25165,6 @@ public class MemoryStructure {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // ME
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.me = new MemoryStructureException();
-                struct.me.read(iprot);
-                struct.setMeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -25285,11 +25192,6 @@ public class MemoryStructure {
           }
           oprot.writeFieldEnd();
         }
-        if (struct.me != null) {
-          oprot.writeFieldBegin(ME_FIELD_DESC);
-          struct.me.write(oprot);
-          oprot.writeFieldEnd();
-        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -25311,10 +25213,7 @@ public class MemoryStructure {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetMe()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
+        oprot.writeBitSet(optionals, 1);
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
@@ -25324,15 +25223,12 @@ public class MemoryStructure {
             }
           }
         }
-        if (struct.isSetMe()) {
-          struct.me.write(oprot);
-        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, findWebEntityLinksByTarget_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TList _list143 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
@@ -25346,11 +25242,6 @@ public class MemoryStructure {
             }
           }
           struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.me = new MemoryStructureException();
-          struct.me.read(iprot);
-          struct.setMeIsSet(true);
         }
       }
     }
