@@ -1,4 +1,9 @@
-core/gen-py.twisted/*
+crawler/build
+crawler/hcicrawler.egg-info
+crawler/hcicrawler/*.pyc
+core/*.pyc
+core/gen-py.twisted
+lib/*.pyc
 memory_structure/src/main/java/fr/sciencespo/medialab/hci/memorystructure/thrift/*
 memory_structure/target/*
 
