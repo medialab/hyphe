@@ -13,5 +13,5 @@ cd ../core/
 thrift -gen py:twisted ../memory_structure/src/main/java/memorystructure.thrift
 cd ..
 
-bash start_lucene.sh
+bash bin/start_lucene.sh
 
