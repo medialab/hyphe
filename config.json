@@ -8,7 +8,7 @@
     "jobListCol": "crawler.jobs"
   },
   "memoryStructure": {
-    "IP": "10.35.1.152",
+    "IP": "localhost",
     "port": 9090
   },
   "defaultWebEntityCreationRule": {
@@ -17,7 +17,7 @@
   },
   "scrapyd" : {
     "host2" : "scrapyd.host",
-    "host" : "lrrr.medialab.sciences-po.fr",
+    "host" : "localhost",
     "port" : 6800,
     "project" : "hci",
     "maxdepth" : 2,
