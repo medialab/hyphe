@@ -90,8 +90,8 @@ class PagesCrawler(BaseSpider):
         # http://jiminy.medialab.sciences-po.fr/hci/index.php/Crawler#Link_following
         c1 = depth < self.maxdepth
         c2 = has_prefix(tolru,   self.follow_prefixes + self.discover_prefixes)
-        c3 = has_prefix(tolru,   self.nofollow_prefixes)
-        c4 = has_prefix(fromlru, self.discover_prefixes)
+        c3 = not(has_prefix(tolru,   self.nofollow_prefixes))
+        c4 = not(has_prefix(fromlru, self.discover_prefixes))
         #print depth, c1, c2, c3, c4, tolru # DEBUG
         return c1 and c2 and c3 and c4
 
