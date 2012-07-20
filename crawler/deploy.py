@@ -1,11 +1,34 @@
 #!/bin/python
 
-import subprocess, json, sys
+import subprocess, json, sys, pystache
 sys.path.append('../lib')
 import config_hci
+from shutil import copyfile
+from contextlib import nested
 
 config = config_hci.load_config()
 if not config:
+    exit()
+
+# Copy LRU library from HCI lib/
+print "Importing lru.py library from HCI /lib to hcicrawler..."
+try :
+    copyfile("../lib/lru.py", "hcicrawler/lru.py")
+except IOError as e:
+    print "Could not open either source or destination lru.py file"
+    print "lib/lru.py", "crawler/hcicrawler/lru.py"
+    print e
+    exit()
+ 
+# Render the scrapy cfg
+print "Rendering scrapy.cfg with values from config.json..."
+try :
+    with nested(open("scrapy-template.cfg", "r"), open("scrapy.cfg", "w")) as (template, generated):
+        generated.write(pystache.render(template.read(), config['scrapyd']))
+except IOError as e:
+    print "Could not open either scrapy.cfg template file or scrapy.cfg"
+    print "crawler/scrapy-template.cfg", "crawler/scrapy.cfg"
+    print e
     exit()
 
 # Deploy the egg
