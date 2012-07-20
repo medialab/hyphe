@@ -4,7 +4,9 @@ from twisted.web.client import getPage
 from twisted.application import service, internet
 from txjsonrpc.web import jsonrpc
 import re
-from urllru import urlTokenizer,lruRebuild,cleanUrl
+import sys
+sys.path.append('../lib')
+import lru
 
 
 linksHarvester=re.compile("<\s*a\s+[^>]*href\s*=\s*[\"']?([^\"' >]+)[\"' >]")
@@ -36,7 +38,7 @@ class Crawler():
 	    links=linksHarvester.findall(pageContent)
 	    for link in links :
 	    	# clean url
-	    	link=cleanUrl(link,self.currentCrawlingUrl)
+	    	link=lru.cleanUrl(link,self.currentCrawlingUrl)
 	    	if link :
 		    	#detect insideWebEntity/oustide Links
 		    	if self.webEntity["url"] in link :
@@ -45,9 +47,9 @@ class Crawler():
 		    		# new intern link
 			    		self.insiderUrlSeen[link]=[self.depthLevel,False]
 		    	else :
-		    		self.webEntity.weLinked.append(self.corpus.addWebEntity(urlTokenizer(link),5,"next"))
+		    		self.webEntity.weLinked.append(self.corpus.addWebEntity(lru.url_to_lru(link),5,"next"))
 	    		
-	    self.webEntity.pages.append(urlTokenizer(self.currentCrawlingUrl))
+	    self.webEntity.pages.append(lru.url_to_lru(self.currentCrawlingUrl))
 	    self.depthLevel+=1
 	    self.crawlNext()
 
@@ -80,7 +82,7 @@ class WebEntity(dict):
 	def __init__(self,lru,status):
 		self["lru"]=lru
 		self["status"]=status
-		self["url"]=lruRebuild(lru)
+		self["url"]=lru.lru_to_url(lru)
 		self.pages=[]
 		self.weLinked=[]
 
@@ -89,8 +91,8 @@ class WebEntity(dict):
 class Corpus(dict) :
 
 	def __init__(self):
-		self.addWebEntity(urlTokenizer("http://www.sciencespo.fr"),5,"undefined")
-		self.addWebEntity(urlTokenizer("http://medialab.sciences-po.fr"),5,"included")
+		self.addWebEntity(lru.url_to_lru("http://www.sciencespo.fr"),5,"undefined")
+		self.addWebEntity(lru.url_to_lru("http://medialab.sciences-po.fr"),5,"included")
 	
 	def addWebEntity(self,lru,weDepth,statut="undefined") :
 		page=lru
