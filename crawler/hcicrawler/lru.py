@@ -54,7 +54,7 @@ def lru_to_url(lru):
     
     """         
     # TODO: naive algorithm (to be updated)
-    lru_list = [stem.split(":") for stem in lru.split("|")]
+    lru_list = [stem.split(":", 1) for stem in lru.split("|")]
     url = [x[1] for x in filter(lambda (k, stem): k =="s", lru_list)][0] + "://"
     h = [x[1] for x in filter(lambda (k, stem): k =="h", lru_list)]
     h.reverse() 

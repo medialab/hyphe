@@ -20,6 +20,7 @@ class PagesCrawler(BaseSpider):
         # TODO: use spider arguments
         args = DEFAULT_INPUT.copy()
         args.update(kw)
+        self.args = args
         self.start_urls = to_list(args['start_urls'])
         self.maxdepth = int(args['maxdepth'])
         self.follow_prefixes = to_list(args['follow_prefixes'])
@@ -31,6 +32,7 @@ class PagesCrawler(BaseSpider):
 
     def start_requests(self):
         self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'])
+        self.log("ARGUMENTS : "+str(self.args))
         for url in self.start_urls:
             yield self._request(url)
 
@@ -42,7 +44,7 @@ class PagesCrawler(BaseSpider):
             return self._make_raw_page(response, lru)
 
     def handle_error(self, failure):
-        p = self._new_page(failure.request.url)
+        p = self._make_raw_page(failure.request.url)
         p['error'] = error_name(failure.value)
         return p
 
@@ -74,6 +76,7 @@ class PagesCrawler(BaseSpider):
         p['encoding'] = response.encoding
         p['depth'] = response.meta['depth']
         p['content_type'] = response.headers.get('content-type').partition(';')[0]
+        p['error'] = None;
         return p
 
     def _new_page(self, url, lru=None):
