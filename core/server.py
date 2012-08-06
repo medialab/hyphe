@@ -71,7 +71,7 @@ class Core(jsonrpc.JSONRPC):
         # collect list of crawling jobs whose outputs is not fully indexed yet
         jobs_in_queue = self.db[config['mongoDB']['queueCol']].distinct('_job')
         # set index finished for jobs with crawling finished and no page left in queue
-        self.db[config['mongoDB']['jobListCol']].update({'_id': {'$in': list(set(finished_ids)-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_statuses': {'$ne': indexing_statuses.FINISHED}}, {'$set': {'indexing_status': indexing_statuses.FINISHED}, '$push': {'log': jobslog("INDEX_"+indexing_statuses.FINISHED)}}, multi=True)
+        self.db[config['mongoDB']['jobListCol']].update({'_id': {'$in': list(set(finished_ids)-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$ne': indexing_statuses.FINISHED}}, {'$set': {'indexing_status': indexing_statuses.FINISHED}, '$push': {'log': jobslog("INDEX_"+indexing_statuses.FINISHED)}}, multi=True)
         return dict(code='success', jobs = self.jsonrpc_listjobs())
 
     def jsonrpc_listjobs(self) :
