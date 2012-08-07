@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys, time, pymongo, bson, urllib, urllib2, random, types
 import simplejson as json
 from datetime import datetime
@@ -130,7 +131,7 @@ class Crawler(jsonrpc.JSONRPC):
         res = self.send_scrappy_query('schedule', values)
         if 'jobid' in res :
             ts = time.time()
-            self.db[config['mongoDB']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'label': assemble_urls(starts), 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts, 'log': [jobslog("CRAWL_ADDED", ts)]}}, upsert=True)
+            self.db[config['mongoDB']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'label': assemble_urls(starts), 'crawl_arguments':str(values), 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts, 'log': [jobslog("CRAWL_ADDED", ts)]}}, upsert=True)
         return res
 
     def jsonrpc_cancel(self, job_id) :
@@ -250,16 +251,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         print failure
         return dict(code = 'fail', message = failure)
 
-    @inlineCallbacks
-    def update_webentities_links(self, conn):                   
-        s=time.time()                   
-        print "Generating links between web entites ..."        
-        yield client.generateWebEntityLinks()
-        print "... processed webentity links in "+str(time.time()-s)+" ..."
-        s=time.time()
-        yield self.get_gexf_network(conn)
-        print "... GEXF network generated in "+str(time.time()-s)
-
     def get_webentities(self, conn):
         client = conn.client
         return client.getWebEntities()
@@ -274,33 +265,35 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_get_webentity_pages(self, webentity, corpus='') :
         return True
 
-    def jsonrpc_get_webentity_network(self) :
-        self.mem_struct_conn.addCallback(self.update_webentities_links)
-        self.mem_struct_conn.addCallback(self.get_gexf_network)
+    def jsonrpc_get_webentities_network(self) :
+        d = self.mem_struct_conn.addCallback(self.get_gexf_network)
         return dict(code = 'success', mssg = 'GEXF graph generation started...')
 
     @inlineCallbacks
-    def update_webentities_links(self, conn):                   
+    def update_webentities_links(self, conn):
         client = conn.client
-        s=time.time()                   
-        print "Generating links between web entities ..."        
+        s = time.time()
+        print "Generating links between web entities ..."
         yield client.generateWebEntityLinks()
         print "... processed webentity links in "+str(time.time()-s)+" ..."
-        s=time.time()
-        #yield self.get_gexf_network(client)
-        #print "... GEXF network generated in "+str(time.time()-s)
 
     @inlineCallbacks
-    def get_gexf_network(self, client) :
+    def get_gexf_network(self, conn):
+        client = conn.client
+        s = time.time()     
+        print "Generating links between web entities ..." 
+        yield client.generateWebEntityLinks()                             
+        print "... processed webentity links in "+str(time.time()-s)+" ..."
+        s = time.time()
+        print "... generating GEXF entities network ..."
         WEs = yield client.getWebEntities()
         WEs_metadata = dict()
         for WE in WEs :
+            date = ''
             if WE.lastModificationDate is not None :
                 date = WE.lastModificationDate
             elif WE.creationDate is not None :
                 date = WE.creationDate
-            else :
-                date = ''
             pages = yield client.getPagesFromWebEntityFromImplementation(WE.id, "PAUL")
             WEs_metadata[WE.id] = {"name": WE.name, "date": date, "LRUset": ",".join(WE.LRUSet), "nb_pages": len(pages), "nb_intern_links": 0}
             links = yield client.findWebEntityLinksBySource(WE.id)
@@ -308,10 +301,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 if link.targetId == WE.id:
                     WEs_metadata[WE.id]['nb_intern_links'] = link.weight
         links = yield client.getWebEntityLinks()
-        s=time.time()
         gexf.write_WEs_network_from_MS(links, WEs_metadata, 'test_welinks.gexf')
-        print "Graph saved in test_welinks.gexf in "+str(time.time()-s)
-
+        print "... GEXF network generated in test_welinks.gexf in "+str(time.time()-s)
 
 # JSON-RPC interface
 factory = jsonrpc.RPCFactory(Core)
@@ -324,10 +315,11 @@ server = internet.TCPServer(config['twisted']['port'], factory)
 application = service.Application("Example JSON-RPC Server")
 server.setServiceParent(application)
 defer.setDebugging(True)
+
 run = Core()
 # clean possible crash
 run.db[config['mongoDB']['jobListCol']].update({'indexing_status': indexing_statuses.BATCH_RUNNING}, {'$set': {'indexing_status': indexing_statuses.BATCH_CRASHED}, '$push': {'log': jobslog("INDEX_"+indexing_statuses.BATCH_CRASHED)}}, multi=True)
 # launch daemon loops to monitor jobs and index them
-monitor_loop = task.LoopingCall(run.jsonrpc_refreshjobs).start(2,False)
+monitor_loop = task.LoopingCall(run.jsonrpc_refreshjobs).start(1,False)
 index_loop = task.LoopingCall(run.store.index_batch_loop).start(5,False)
 
