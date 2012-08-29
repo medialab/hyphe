@@ -38,7 +38,9 @@ public class IndexConfiguration {
         NAME,
         SOURCE,
         TARGET,
-        WEIGHT
+        WEIGHT,
+        CREATIONDATE,
+        LASTMODIFICATIONDATE
     }
 
     /**
@@ -54,6 +56,20 @@ public class IndexConfiguration {
     }
 
     public static final String DEFAULT_WEBENTITY_CREATION_RULE = "DEFAULT_WEBENTITY_CREATION_RULE";
+
+    protected static Document SetDates(Document document, String creationDate, String lastModificationDate) {
+        if (creationDate != null) {
+            Field creationDateField = new Field(FieldName.LASTMODIFICATIONDATE.name(), creationDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            creationDateField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(creationDateField);
+        }
+        if (lastModificationDate != null) {
+            Field lastModificationDateField = new Field(FieldName.CREATIONDATE.name(), lastModificationDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            lastModificationDateField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(lastModificationDateField);
+        }
+        return document;
+    }
 
     protected static Document WebEntityLinkDocument(WebEntityLink webEntityLink) {
         if(webEntityLink == null) {
@@ -94,6 +110,8 @@ public class IndexConfiguration {
             Field weightField = new Field(FieldName.WEIGHT.name(), weight, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
             weightField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(weightField);
+
+            document = SetDates(document, webEntityLink.getCreationDate(), webEntityLink.getLastModificationDate());
 
             return document;
         }
@@ -136,6 +154,8 @@ public class IndexConfiguration {
             Field weightField = new Field(FieldName.WEIGHT.name(), weight, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
             weightField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(weightField);
+
+            document = SetDates(document, nodeLink.getCreationDate(), nodeLink.getLastModificationDate());
 
             return document;
         }
@@ -196,6 +216,8 @@ public class IndexConfiguration {
             httpStatusCodeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(httpStatusCodeField);
         }
+
+        document = SetDates(document, pageItem.getCreationDate(), pageItem.getLastModificationDate());
 
         return document;
     }
@@ -282,6 +304,9 @@ public class IndexConfiguration {
             lruField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(lruField);
         }
+
+        document = SetDates(document, webEntity.getCreationDate(), webEntity.getLastModificationDate());
+
         if(logger.isDebugEnabled()) {
             logger.trace("lucene document has # " + document.getFieldables(FieldName.LRU.name()).length + " lrufields in webentity " + id);
         }
@@ -314,6 +339,8 @@ public class IndexConfiguration {
 
         String errorCode = document.get(FieldName.ERRORCODE.name());
         pageItem.setErrorCode(errorCode);
+        pageItem.setCreationDate(document.get(FieldName.CREATIONDATE.name()));
+        pageItem.setLastModificationDate(document.get(FieldName.LASTMODIFICATIONDATE.name()));
 
         String httpStatusCode$ = document.get(FieldName.HTTPSTATUSCODE.name());
         if(StringUtils.isNotEmpty(httpStatusCode$)) {
@@ -347,6 +374,9 @@ public class IndexConfiguration {
             lruList.add(lruField.stringValue());
         }
         webEntity.setLRUSet(lruList);
+        webEntity.setCreationDate(document.get(FieldName.CREATIONDATE.name()));
+        webEntity.setLastModificationDate(document.get(FieldName.LASTMODIFICATIONDATE.name()));
+
         if(logger.isDebugEnabled()) {
             logger.trace("convertLuceneDocument2WebEntity returns webentity with id: " + id);
         }
@@ -377,6 +407,8 @@ public class IndexConfiguration {
             weight = Integer.parseInt(weight$);
         }
         nodeLink.setWeight(weight);
+        nodeLink.setCreationDate(document.get(FieldName.CREATIONDATE.name()));
+        nodeLink.setLastModificationDate(document.get(FieldName.LASTMODIFICATIONDATE.name()));
 
         if(logger.isDebugEnabled()) {
             logger.trace("convertLuceneDocument2NodeLink returns nodelink with id: " + id);
@@ -408,6 +440,8 @@ public class IndexConfiguration {
             weight = Integer.parseInt(weight$);
         }
         webEntityLink.setWeight(weight);
+	webEntityLink.setCreationDate(document.get(FieldName.CREATIONDATE.name()));
+	webEntityLink.setLastModificationDate(document.get(FieldName.LASTMODIFICATIONDATE.name()));
 
         if(logger.isDebugEnabled()) {
             logger.trace("convertLuceneDocument2WebEntityLink returns webEntityLink with id: " + id);
