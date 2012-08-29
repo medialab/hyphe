@@ -27,7 +27,7 @@ public class DynamicLogger {
     }
 
     public static void setLogLevel(String logLevel) {
-        DynamicLogger.logLevel = DynamicLogger.LogLevel.valueOf(logLevel);
+        DynamicLogger.logLevel = DynamicLogger.LogLevel.valueOf(logLevel.toUpperCase());
     }
 
     public boolean isDebugEnabled() {
