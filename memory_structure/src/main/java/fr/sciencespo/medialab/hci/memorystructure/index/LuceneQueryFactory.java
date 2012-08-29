@@ -28,10 +28,10 @@ public class LuceneQueryFactory {
 
     private static Term isWebEntityCreationRule = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_CREATION_RULE.name());
     private static Query isWebEntityCreationRuleQuery = new TermQuery(isWebEntityCreationRule);
-    
+
     private static Term isDefaultWebEntityCreationRule = new Term(IndexConfiguration.FieldName.LRU.name(), IndexConfiguration.DEFAULT_WEBENTITY_CREATION_RULE);
     private static Query isDefaultWebEntityCreationRuleQuery = new TermQuery(isDefaultWebEntityCreationRule);
-    
+
     private static Term isNodeLink = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.NODE_LINK.name());
     private static Query isNodeLinkQuery = new TermQuery(isNodeLink);
 
@@ -40,7 +40,7 @@ public class LuceneQueryFactory {
 
     private static Term isPageItem = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.PAGE_ITEM.name());
     private static Query isPageItemQuery = new TermQuery(isPageItem);
-    
+
     /**
      *
      * @param id
@@ -123,19 +123,19 @@ public class LuceneQueryFactory {
         }
         return q;
     }
-    
+
     protected static Query getNodeLinksQuery() {
-        return isNodeLinkQuery;      
+        return isNodeLinkQuery;
     }
-    
+
     protected static Query getWebEntitiesQuery() {
         return isWebEntityQuery;
-    }   
-    
+    }
+
     protected static Query getWebEntityCreationRuleQuery() {
         return isWebEntityCreationRuleQuery;
     }
-    
+
     protected static Query getPageItemQuery() {
         return isPageItemQuery;
     }
@@ -248,11 +248,11 @@ public class LuceneQueryFactory {
         }
         return q;
     }
-    
-    protected static Query getWebEntitiesByLRUQuery(String prefix) {
+
+    protected static Query getIndexObjectsByLRUQuery(String queriedField, String prefix) {
         BooleanQuery q = new BooleanQuery();
-        Term prefixTerm = new Term(IndexConfiguration.FieldName.LRU.name(), prefix);        
-        Query prefixQuery;
+        Term prefixTerm = new Term(queriedField, prefix);
+        Query prefixQuery, isObjectQuery;
         // wildcard query
         if(prefix.endsWith("*")) {
            prefixQuery = new PrefixQuery(prefixTerm);
@@ -263,8 +263,14 @@ public class LuceneQueryFactory {
         // no-wildcard query (faster)
         else {
             prefixQuery = new TermQuery(prefixTerm);
-        }        
-        q.add(isWebEntityQuery, BooleanClause.Occur.MUST);
+        }
+
+        if (queriedField == IndexConfiguration.FieldName.LRU.name()) {
+            isObjectQuery = (Query) new TermQuery(isWebEntity);
+        } else {
+            isObjectQuery = (Query) new TermQuery(isNodeLink);
+        }
+        q.add(isObjectQuery, BooleanClause.Occur.MUST);
         q.add(prefixQuery, BooleanClause.Occur.MUST);
 
         if(logger.isDebugEnabled()) {
@@ -272,57 +278,19 @@ public class LuceneQueryFactory {
         }
         return q;
     }
-    
-    protected static Query getNodeLinksBySourceLRUQuery(String prefix) {
-        Term prefixTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), prefix);
-        BooleanQuery q = new BooleanQuery();
-        Query isNodeLinkQuery = new TermQuery(isNodeLink);
-        Query prefixQuery;
-        // wildcard query
-        if(prefix.endsWith("*")) {
-            prefixQuery = new PrefixQuery(prefixTerm);
-        }
-        if(prefix.contains("*") || prefix.contains("?")) {
-            prefixQuery = new WildcardQuery(prefixTerm);
-        }
-        // no-wildcard query (faster)
-        else {
-            prefixQuery = new TermQuery(prefixTerm);
-        }
-        q.add(isNodeLinkQuery, BooleanClause.Occur.MUST);
-        q.add(prefixQuery, BooleanClause.Occur.MUST);
 
-        if(logger.isDebugEnabled()) {
-            logger.debug("Lucene query: " + q.toString());
-        }
-        return q;
+    protected static Query getWebEntitiesByLRUQuery(String prefix) {
+        return getIndexObjectsByLRUQuery(IndexConfiguration.FieldName.LRU.name(), prefix);
+    }
+
+    protected static Query getNodeLinksBySourceLRUQuery(String prefix) {
+        return getIndexObjectsByLRUQuery(IndexConfiguration.FieldName.SOURCE.name(), prefix);
     }
 
     protected static Query getNodeLinksByTargetLRUQuery(String prefix) {
-        Term prefixTerm = new Term(IndexConfiguration.FieldName.TARGET.name(), prefix);
-        BooleanQuery q = new BooleanQuery();
-        Query isNodeLinkQuery = new TermQuery(isNodeLink);
-        Query prefixQuery;
-        // wildcard query
-        if(prefix.endsWith("*")) {
-            prefixQuery = new PrefixQuery(prefixTerm);
-        }
-        if(prefix.contains("*") || prefix.contains("?")) {
-            prefixQuery = new WildcardQuery(prefixTerm);
-        }
-        // no-wildcard query (faster)
-        else {
-            prefixQuery = new TermQuery(prefixTerm);
-        }
-        q.add(isNodeLinkQuery, BooleanClause.Occur.MUST);
-        q.add(prefixQuery, BooleanClause.Occur.MUST);
+        return getIndexObjectsByLRUQuery(IndexConfiguration.FieldName.TARGET.name(), prefix);
+    }
 
-        if(logger.isDebugEnabled()) {
-            logger.debug("Lucene query: " + q.toString());
-        }
-        return q;
-    } 
-    
     protected static Query getWebEntityLinksBySourceId(String id) {
         Term sourceTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), id);
         BooleanQuery q = new BooleanQuery();
@@ -334,9 +302,23 @@ public class LuceneQueryFactory {
         if(logger.isDebugEnabled()) {
             logger.debug("Lucene query: " + q.toString());
         }
-        return q;       
+        return q;
     }
-    
+
+    protected static Query getWebEntityLinksByTargetId(String id) {
+        Term sourceTerm = new Term(IndexConfiguration.FieldName.TARGET.name(), id);
+        BooleanQuery q = new BooleanQuery();
+        Query isWebEntityLinkQuery = new TermQuery(isWebEntityLink);
+        Query sourceQuery = new TermQuery(sourceTerm);
+        q.add(isWebEntityLinkQuery, BooleanClause.Occur.MUST);
+        q.add(sourceQuery, BooleanClause.Occur.MUST);
+
+        if(logger.isDebugEnabled()) {
+            logger.debug("Lucene query: " + q.toString());
+        }
+        return q;
+    }
+
     protected static Query getPageItemByLRUQuery(String lru) {
         BooleanQuery q = new BooleanQuery();
         Term lruTerm = new Term(IndexConfiguration.FieldName.LRU.name(), lru);
@@ -365,7 +347,7 @@ public class LuceneQueryFactory {
         Set<String> webEntityPrefixes = webEntity.getLRUSet();
         for(String webEntityPrefix : webEntityPrefixes) {
             webEntityPrefix = webEntityPrefix + "*";
-            Term prefixTerm = new Term(IndexConfiguration.FieldName.LRU.name(), webEntityPrefix);            
+            Term prefixTerm = new Term(IndexConfiguration.FieldName.LRU.name(), webEntityPrefix);
             Query prefixQuery = new WildcardQuery(prefixTerm);
             q.add(prefixQuery, BooleanClause.Occur.MUST);
         }
