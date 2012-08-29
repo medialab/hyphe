@@ -1,0 +1,29 @@
+{
+  "precisionLimit": 10,
+  "mongoDB": {
+    "host": "localhost",
+    "db": "hci",
+    "queueCol": "crawler.queue",
+    "pageStoreCol": "crawler.pages",
+    "jobListCol": "crawler.jobs"
+  },
+  "memoryStructure": {
+    "IP": "localhost",
+    "port": 9090
+  },
+  "defaultWebEntityCreationRule": {
+    "regexp": "(s:[a-zA-Z]+(\\|t:[0-9]+)?(\\|h:[^\\|]+)+)",
+    "prefix": ""
+  },
+  "scrapyd" : {
+    "host2" : "scrapyd.host",
+    "host" : "localhost",
+    "port" : 6800,
+    "project" : "hci",
+    "maxdepth" : 2,
+    "download_delay" : 0.5
+  },
+  "twisted" : {
+    "port" : 6978
+  }
+}

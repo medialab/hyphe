@@ -1,3 +1,4 @@
+config.json
 crawler/build
 crawler/hcicrawler.egg-info
 crawler/hcicrawler/*.pyc
