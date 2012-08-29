@@ -112,11 +112,32 @@ list<PingPong> ping(),
 **/
 WebEntity getWebEntity(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
+// get subwebentities
+/**
+* @param 1 id
+* @return a List of WebEntity Objects
+**/
+list<WebEntity> getSubWebEntities(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+
+// get all nodelinks
+/**
+ * @return all nodelinks in the index
+ */
+list<NodeLink> getNodeLinks() throws (1:MemoryStructureException me),
+
 // get all webentities
 /**
  * @return all webentities in the index
  */
-list<WebEntity> getWebEntities(),
+list<WebEntity> getWebEntities() throws (1:MemoryStructureException me),
+
+// get pages belonging to one webentity with implementation choice ("PAUL" or "other")
+/**
+ * @param 1 id
+ * @param 2 implementation
+ * @return set of pages for this webentity (may be empty)
+ */
+list<PageItem> getPagesFromWebEntityFromImplementation(1:string id, 2:string implementation) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
 // get pages belonging to one webentity
 /**
@@ -130,6 +151,12 @@ list<PageItem> getPagesFromWebEntity(1:string id) throws (1:MemoryStructureExcep
  * Generates WebEntity links.
  */
 void generateWebEntityLinks() throws (1:MemoryStructureException x),
+
+// get all webentity links
+/**
+ * @return all WebEntity links from the index.
+ */
+list<WebEntityLink> getWebEntityLinks() throws (1:MemoryStructureException x),
 
 // clear complete index
 /**
@@ -269,6 +296,5 @@ list<WebEntityLink> findWebEntityLinksBySource(1:string id) throws (1:MemoryStru
  * @param 1 id: id of web entity
  * @return webentities whose target id are this
  */
-list<WebEntityLink> findWebEntityLinksByTarget(1:string id),
-
+list<WebEntityLink> findWebEntityLinksByTarget(1:string id) throws (1:MemoryStructureException me)
 }

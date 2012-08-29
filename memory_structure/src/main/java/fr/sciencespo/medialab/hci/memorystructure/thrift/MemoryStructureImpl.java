@@ -27,7 +27,6 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     private static DynamicLogger logger = new DynamicLogger(MemoryStructureImpl.class);
 
-
     private LRUIndex lruIndex;
 
     public MemoryStructureImpl(String lucenePath, IndexWriterConfig.OpenMode openMode) {
@@ -147,6 +146,33 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
+        }
+    }
+
+    /**
+     * Returns all web entities thinner than a master web entity
+     *
+     * @param id id of web entity
+     * @return web entities
+     * @throws TException hmm
+     */
+    @Override
+    public List<WebEntity> getSubWebEntities(String id) throws ObjectNotFoundException, MemoryStructureException, TException {
+        logger.debug("getSubWebEntities");
+        try {
+            WebEntity WE = lruIndex.retrieveWebEntity(id);
+            List<WebEntity> webEntities = new ArrayList<WebEntity>(lruIndex.findSubWebEntities(WE));
+            return webEntities;
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
         }
     }
 
@@ -299,12 +325,27 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      */
     @Override
     public List<PageItem> getPagesFromWebEntity(String id) throws TException, MemoryStructureException, ObjectNotFoundException {
+      return getPagesFromWebEntityFromImplementation(id, "PAUL");
+    }
+
+    /**
+     * Retrieves pages belonging to a WebEntity.
+     *
+     * @param id web entity id
+     * @param implementation "Paul" or anything else for Heiki
+     * @return pages
+     * @throws TException
+     * @throws MemoryStructureException
+     * @throws ObjectNotFoundException
+     */
+    @Override
+    public List<PageItem> getPagesFromWebEntityFromImplementation(String id, String implementation) throws TException, MemoryStructureException, ObjectNotFoundException {
         if(logger.isDebugEnabled()) {
             logger.debug("getPagesFromWebEntity with id: " + id);
         }
         List<PageItem> pages;
         try {
-            pages = lruIndex.findPagesForWebEntity(id);
+            pages = lruIndex.findPagesForWebEntity(id, implementation);
             if(logger.isDebugEnabled()) {
                 logger.debug("found # " + pages.size() + " pages");
             }
@@ -322,6 +363,46 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         logger.debug("generateWebEntityLinks");
         try {
             lruIndex.generateWebEntityLinks();
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
+    /**
+     * Returns all web entity links in the index.
+     *
+     * @return web entity links
+     * @throws TException hmm
+     */
+    @Override
+    public List<WebEntityLink> getWebEntityLinks() throws MemoryStructureException, TException {
+        logger.debug("getWebEntityLinks");
+        try {
+            List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>(lruIndex.retrieveWebEntityLinks());
+            return webEntityLinks;
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
+    /**
+     * Returns all nodelinks in the index.
+     *
+     * @return nodelinks
+     * @throws TException hmm
+     */
+    @Override
+    public List<NodeLink> getNodeLinks() throws MemoryStructureException, TException {
+        logger.debug("getNodeLinks");
+        try {
+            List<NodeLink> nodeLinks = new ArrayList<NodeLink>(lruIndex.retrieveNodeLinks());
+            return nodeLinks;
         }
         catch (IndexException x) {
             logger.error(x.getMessage());
@@ -402,7 +483,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         logger.debug("findPagesByPrefix");
         try {
             return new ArrayList<PageItem>(lruIndex.retrievePageItemsByLRUPrefix(prefix));
-        } 
+        }
         catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
@@ -478,8 +559,19 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @return webentities whose target id are this
      */
     @Override
-    public List<WebEntityLink> findWebEntityLinksByTarget(String id) throws TException {
-        return null;
+    public List<WebEntityLink> findWebEntityLinksByTarget(String id) throws TException, MemoryStructureException {
+        logger.debug("findWebEntityLinksByTarget");
+        try {
+            return new ArrayList<WebEntityLink>(lruIndex.retrieveWebEntityLinksByTarget(id));
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            logger.debug("findWebEntityLinksByTarget end");
+        }
     }
 
     // TODO TEST
@@ -572,8 +664,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public void markPageWithPrecisionException(String pageItemId) throws MemoryStructureException, ObjectNotFoundException, TException {
-        //TODO
+    public void markPageWithPrecisionException(String pageItemLRU) throws MemoryStructureException, ObjectNotFoundException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("markPageWithPrecisionException with page LRU: " + pageItemLRU);
+        }
+        return;
     }
 
     /**

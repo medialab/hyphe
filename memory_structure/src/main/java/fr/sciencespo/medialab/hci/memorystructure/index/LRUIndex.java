@@ -145,7 +145,7 @@ public class LRUIndex {
      * @param path path to the index
      * @param openMode how to open
      */
-	private LRUIndex(String path, IndexWriterConfig.OpenMode openMode) {
+    private LRUIndex(String path, IndexWriterConfig.OpenMode openMode) {
         logger.info("creating LRUIndex, openMode is " + openMode.name() + ", path to Lucene index is " + path);
         try {
             OPEN_MODE = openMode;
@@ -215,14 +215,14 @@ public class LRUIndex {
      *
      * @throws IOException hmm
      */
-	public void close() throws IOException {
+    public void close() throws IOException {
         logger.info("close: closing IndexReader and IndexWriter");
-		if(indexReader != null) {
-			indexReader.close();
-		}
-		if(indexWriter != null) {
-			indexWriter.close();
-		}
+        if(indexReader != null) {
+            indexReader.close();
+        }
+        if(indexWriter != null) {
+            indexWriter.close();
+        }
         executorService.shutdown();
         try {
             // pool didn't terminate after the first try
@@ -239,7 +239,7 @@ public class LRUIndex {
             executorService.shutdownNow();
             Thread.currentThread().interrupt();
         }
-	}
+    }
 
     /**
      *
@@ -324,7 +324,7 @@ public class LRUIndex {
                  }
             }
 
-             if(updating) {
+            if(updating) {
                 // delete old webentity before indexing
                  if(logger.isDebugEnabled()) {
                      logger.debug("deleting existing webentity with id " + id);
@@ -403,7 +403,7 @@ public class LRUIndex {
             if(logger.isDebugEnabled()) {
                 logger.debug("deleting existing webentity with id " + id);
             }
-                
+
             Query q = LuceneQueryFactory.getWebEntityByIdQuery(id);
             this.indexWriter.deleteDocuments(q);
             this.indexWriter.commit();
@@ -521,7 +521,7 @@ public class LRUIndex {
             throw new IndexException(x);
         }
     }
-    
+
     public void deletePageItem(PageItem pageItem) throws IndexException {
         if(logger.isDebugEnabled()) {
             if(logger.isDebugEnabled()) {
@@ -583,9 +583,9 @@ public class LRUIndex {
             if(logger.isDebugEnabled()) {
                 logger.debug("batchIndex processing # " + batchSize + " objects");
             }
-            
+
             Set<Object> objectsSet = new HashSet<Object>(objects);
-            
+
             if(objectsSet.size() != objects.size()) {
                 logger.warn("There were # " + (objects.size() - objectsSet.size()) + " duplicates in the batch to index. These were removed.");
                 objects = new ArrayList<Object>(objectsSet);
@@ -653,7 +653,7 @@ public class LRUIndex {
             if(logger.isDebugEnabled()) {
                 logger.debug("# docs in filesystem index after adding the newly indexed objects: " + this.indexWriter.numDocs());
             }
-                
+
 
             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
             //xx this.indexWriter.commit();
@@ -674,6 +674,38 @@ public class LRUIndex {
             throw new IndexException(x.getMessage(), x);
         }
         catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     * Add precision exceptions.
+     * @return
+     * @throws IndexException hmm
+     */
+    public List<String> addPrecisionExceptions(List<String> precisionExceptions) throws IndexException {
+        logger.debug("adding precisionexceptions");
+        try {
+
+            List<String> results = new ArrayList<String>();
+            Term term = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.PRECISION_EXCEPTION.name());
+            TermDocs termDocs = this.indexReader.termDocs(term);
+            while(termDocs.next()) {
+                Document precisionExceptionDoc = indexReader.document(termDocs.doc());
+                String precisionExceptionFound = precisionExceptionDoc.get(IndexConfiguration.FieldName.LRU.name());
+                results.add(precisionExceptionFound);
+            }
+            termDocs.close();
+            return results;
+        }
+        catch(CorruptIndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+        catch(IOException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new IndexException(x.getMessage(), x);
@@ -742,7 +774,7 @@ public class LRUIndex {
                 }
                 else {
                     logger.debug("failed to retrieve webentity with id " + id);
-                }                
+                }
             }
             return result;
         }
@@ -863,12 +895,12 @@ public class LRUIndex {
             if(logger.isDebugEnabled()) {
                 logger.debug("retrieved # " + result.size() + " nodelinks from index");
             }
-                
+
             return result;
         }
         catch(IOException x) {
             logger.error(x.getMessage());
-            x.printStackTrace();            
+            x.printStackTrace();
             throw new IndexException(x.getMessage(), x);
         }
    }
@@ -926,7 +958,7 @@ public class LRUIndex {
         }
         catch(IOException x) {
             logger.error(x.getMessage());
-            x.printStackTrace();            
+            x.printStackTrace();
             throw new IndexException(x.getMessage(), x);
         }
     }
@@ -1120,7 +1152,7 @@ public class LRUIndex {
         try {
             Set<WebEntityLink> results = new HashSet<WebEntityLink>();
             if(id == null) {
-                logger.warn("attempted to retrieve node links with null source id");
+                logger.warn("attempted to retrieve web entity links with null source id");
                 return results;
             }
             Query q = LuceneQueryFactory.getWebEntityLinksBySourceId(id);
@@ -1140,6 +1172,41 @@ public class LRUIndex {
             throw new IndexException(x.getMessage(), x);
         }
     }
+
+    /**
+     *
+     * @param id
+     * @return
+     * @throws IndexException hmm
+     */
+    public Set<WebEntityLink> retrieveWebEntityLinksByTarget(String id) throws IndexException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("retrieveWebEntityLinksByTarget: " + id);
+        }
+        try {
+            Set<WebEntityLink> results = new HashSet<WebEntityLink>();
+            if(id == null) {
+                logger.warn("attempted to retrieve web entity links with null target id");
+                return results;
+            }
+            Query q = LuceneQueryFactory.getWebEntityLinksByTargetId(id);
+            final List<Document> hits = executeMultipleResultsQuery(q);
+            for(Document hit: hits) {
+                WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocument2WebEntityLink(hit);
+                results.add(webEntityLink);
+            }
+            if(logger.isDebugEnabled()) {
+                logger.debug("retrieved # " + results.size() + " WebEntityLinks with target id " + id);
+            }
+            return results;
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
 
 
     /**
@@ -1191,14 +1258,14 @@ public class LRUIndex {
             PageItem result = null;
 
             Query q = LuceneQueryFactory.getPageItemByLRUQuery(lru);
-            TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);           
+            TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
             indexSearcher.search(q, collector);
 
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
             if(logger.isDebugEnabled()) {
                 logger.debug("retrieved # " + hits.length + " pageitems");
             }
-                
+
             if(hits != null && hits.length > 0) {
                 int id = hits[0].doc;
                 Document doc = indexSearcher.doc(id);
@@ -1410,7 +1477,7 @@ public class LRUIndex {
             logger.debug("found webentity with name " + match.getName() + " for lru " + lru);
         }
         return match;
-    }    
+    }
 
     /**
      * Returns a map of matching LRUPrefixes and their WebEntity. If the same LRUPrefix occurs in more than one
@@ -1513,7 +1580,7 @@ public class LRUIndex {
         }
         return matches;
     }
-    
+
     private List<PageItem> findPagesMatchingWebEntityButNotMatchingSubWebEntities(WebEntity webEntity, List<WebEntity> subWebEntities) throws IndexException {
         if(logger.isDebugEnabled()) {
             logger.debug("findPagesMatchingWebEntityButNotMatchingSubWebEntities for webEntity " + webEntity.getName());
@@ -1540,7 +1607,7 @@ public class LRUIndex {
             throw new IndexException(x.getMessage(), x);
         }
     }
-    
+
     /**
      *
      * @param id
@@ -1549,6 +1616,18 @@ public class LRUIndex {
      * @throws ObjectNotFoundException hmm
      */
     public List<PageItem> findPagesForWebEntity(String id) throws IndexException, ObjectNotFoundException {
+      return findPagesForWebEntity(id, "PAUL");
+    }
+
+    /**
+     *
+     * @param id
+     * @param implementation ("PAUL" or anything else for HEIKI)
+     * @return
+     * @throws IndexException hmm
+     * @throws ObjectNotFoundException hmm
+     */
+    public List<PageItem> findPagesForWebEntity(String id, String implementation) throws IndexException, ObjectNotFoundException {
         if(logger.isDebugEnabled()) {
             logger.debug("findPagesForWebEntity for id: " + id);
         }
@@ -1561,11 +1640,11 @@ public class LRUIndex {
             throw new ObjectNotFoundException().setMsg("Could not find webentity with id: " + id);
         }
 
-        ImplementationChoice.set("PAUL");
+        ImplementationChoice.set(implementation);
         if(ImplementationChoice.get().equals("PAUL")) {
             logger.info("findPagesForWebEntity: Paul's algorithm");
             /*
-    
+
             Paul Girard's solution: in my test 30% slower than the implementation below
             */
             try {
@@ -1574,7 +1653,7 @@ public class LRUIndex {
             }
             catch(IOException x) {
                 throw new IndexException(x.getMessage(), x);
-            }            
+            }
         }
         else {
             logger.info("findPagesForWebEntity: Heikki's algorithm");
@@ -1655,7 +1734,7 @@ public class LRUIndex {
             }
             /*
             end of Heikki's solution
-            */            
+            */
         }
 
 
@@ -1672,7 +1751,7 @@ public class LRUIndex {
     }
 
     /**
-     * 
+     *
      * @param q
      * @return
      * @throws IOException
@@ -1697,7 +1776,7 @@ public class LRUIndex {
             }
         });
         if(logger.isDebugEnabled()) {
-            logger.debug("# hits: " + hits.size());            
+            logger.debug("# hits: " + hits.size());
         }
         return hits;
     }
@@ -1705,12 +1784,12 @@ public class LRUIndex {
     /**
      * Returns a list of a web-entity's sub-webentities (i.e. those web entities that have at least one prefix which
      * matches one of this web entity's prefixes).
-     * 
+     *
      * @param webEntity
      * @return
      * @throws IOException
      */
-    protected List<WebEntity> findSubWebEntities(WebEntity webEntity) throws IOException {
+    public List<WebEntity> findSubWebEntities(WebEntity webEntity) throws IOException {
         if(logger.isDebugEnabled()) {
             logger.debug("findSubWebEntities for webEntity with name " + webEntity.getName());
         }
@@ -1762,7 +1841,7 @@ public class LRUIndex {
                     logger.debug("LRU in index: " + lru);
                 }
             }
-            
+
             Map<String, WebEntity> lruToWebEntityMap = mapWebEntityForLRUs(lrus);
 
             //
@@ -1830,9 +1909,9 @@ public class LRUIndex {
             throw new IndexException(x.getMessage(), x);
         }
     }
-    
+
     /**
-     * 
+     *
      * @param webEntityLink the webentitylink to index
      * @return id of indexed webentitylink
      * @throws IndexException hmm
@@ -1850,7 +1929,7 @@ public class LRUIndex {
         }
         if(StringUtils.isEmpty(webEntityLink.getTargetId())) {
             throw new IndexException("WebEntity has empty target id");
-        }        
+        }
 
         try {
             boolean updating = false;
@@ -1913,7 +1992,7 @@ public class LRUIndex {
             x.printStackTrace();
             throw new IndexException(x);
         }
-        
+
     }
-    
+
 }
