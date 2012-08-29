@@ -131,7 +131,9 @@ public class Cache {
             String lruElement = scanner.next();
             if(!lruElement.startsWith("s:")) {
                 if(lruElement.startsWith("h:")) {
-                    if(!lruElement.equals("h:www")) {
+                    if(lruElement.equals("h:localhost")) {
+                        tldDone = true;
+                    } else if(!lruElement.equals("h:www")) {
                         lruElement = lruElement.substring(lruElement.indexOf(':')+1);
                         lruElement = lruElement.trim();
                         if(StringUtils.isNotEmpty(lruElement)) {
@@ -146,9 +148,10 @@ public class Cache {
                             }
                         }
                     }
-                }
-                else {
-                    if(!removedTrailingDot) {
+                } else if(lruElement.startsWith("t:")) {
+                    url += ":"+lruElement.substring(lruElement.indexOf(':')+1).trim();
+                } else {
+                    if(!removedTrailingDot && url.endsWith(".")) {
                         url = url.substring(0, url.length() - 1);
                         removedTrailingDot = true;
                     }
@@ -182,7 +185,7 @@ public class Cache {
                 }
             }
         }
-        if(!removedTrailingDot) {
+        if(!removedTrailingDot && url.endsWith(".")) {
             url = url.substring(0, url.length() - 1);
         }
         return url;
