@@ -1,10 +1,11 @@
 config.json
 crawler/build
+crawler/scrapy.cfg
 crawler/hcicrawler.egg-info
 crawler/hcicrawler/*.pyc
-core/*.pyc
+*.pyc
 core/gen-py.twisted
-lib/*.pyc
+core/twistd.pid
 memory_structure/src/main/java/fr/sciencespo/medialab/hci/memorystructure/thrift/*
 memory_structure/target/*
 

@@ -54,21 +54,26 @@ class Core(jsonrpc.JSONRPC):
         self.store = Memory_Structure(self.db)
 
     def jsonrpc_reinitialize(self):
+        """Reinitializes both crawl jobs and memory structure."""
         self.db[config['mongoDB']['jobListCol']].insert({'_id': 0})
         self.db[config['mongoDB']['jobListCol']].remove({'_id': 0})
         self.crawler.jsonrpc_reinitialize()
         self.store.jsonrpc_reinitialize()
-        return dict(code = 'success', mssg = 'Memory structure and crawling database contents emptied')
+        return {'code': 'success', 'mssg': 'Memory structure and crawling database contents emptied'}
 
-    @inlineCallbacks
     def jsonrpc_crawl_webentity(self, webentity_id):
-        WE = yield self.store.mem_struct_conn.addCallback(self.store.get_webentity_with_pages_and_subWEs, webentity_id).addErrback(self.store.handle_error)
-        defer.returnValue(self.crawler.jsonrpc_start(WE['pages'], WE['lrus'], WE['subWEs']))
+        """Tells scrappy to run crawl on a webentity defined by its id from memory structure."""
+        d = defer.succeed(self.store.mem_struct_conn)
+        d.addCallback(self.store.get_webentity_with_pages_and_subWEs, webentity_id)
+        d.addErrback(self.store.handle_error)
+        return self.crawler.jsonrpc_start(WE['pages'], WE['lrus'], WE['subWEs'])
 
     def jsonrpc_refreshjobs(self):
+        """Runs a monitoring task on the list of jobs in the database to update their status from scrappy API and indexing tasks."""
         scrappyjobs = self.crawler.jsonrpc_list()
-        if 'code' in scrappyjobs:
+        if scrappyjobs['code'] == 'fail':
             return scrappyjobs
+        scrappyjobs = scrappyjobs['result']
         # update jobs crawling status accordingly to crawler's statuses
         running_ids = [job['id'] for job in scrappyjobs['running']]
         self.db[config['mongoDB']['jobListCol']].update({'_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, {'$set': {'crawling_status': crawling_statuses.RUNNING}, '$push': {'log': jobslog("CRAWL_"+crawling_statuses.RUNNING)}}, multi=True)
@@ -78,16 +83,13 @@ class Core(jsonrpc.JSONRPC):
         jobs_in_queue = self.db[config['mongoDB']['queueCol']].distinct('_job')
         # set index finished for jobs with crawling finished and no page left in queue
         self.db[config['mongoDB']['jobListCol']].update({'_id': {'$in': list(set(finished_ids)-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$ne': indexing_statuses.FINISHED}}, {'$set': {'indexing_status': indexing_statuses.FINISHED}, '$push': {'log': jobslog("INDEX_"+indexing_statuses.FINISHED)}}, multi=True)
-        return dict(code='success', jobs = self.jsonrpc_listjobs())
+        return self.jsonrpc_listjobs()
 
     def jsonrpc_listjobs(self):
-        return list(self.db[config['mongoDB']['jobListCol']].find(sort=[('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)]))
+        return {'code': 'success', 'result': list(self.db[config['mongoDB']['jobListCol']].find(sort=[('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)]))}
 
 
 class Crawler(jsonrpc.JSONRPC):
-    """
-    An example object to be published.
-    """
 
     scrappy_url = 'http://%s:%s/' % (config['scrapyd']['host'], config['scrapyd']['port'])
 
@@ -99,77 +101,82 @@ class Crawler(jsonrpc.JSONRPC):
             db = pymongo.Connection(config['mongoDB']['host'])[config['mongoDB']['db']]
         self.db = db
 
-    def send_scrappy_query(self, action, arguments):
+    def send_scrappy_query(self, action, arguments, tryout=0):
         url = self.scrappy_url+action+".json"
         if action == 'listjobs':
-            url += '?'+'&'.join([par+'='+val for (par,val) in arguments])
+            url += '?'+'&'.join([par+'='+val for (par,val) in arguments.iteritems()])
             req = urllib2.Request(url)
         else:
             data = urllib.urlencode(arguments)
             req = urllib2.Request(url, data)
-        #print "Crawler API call : ", url, " / ", arguments
         try:
             response = urllib2.urlopen(req)
             result = json.loads(response.read())
-            return result
+            return {'code': 'success', 'result': result}
         except urllib2.URLError as e:
-            return dict(code = 'fail', message = 'Could not contact scrapyd server, maybe it\'s not started...')
+            return {'code': 'fail', 'message': 'Could not contact scrapyd server, maybe it\'s not started...'}
         except Exception as e:
-            return dict(code = 'fail', message = e)
+            return {'code': 'fail', 'message': e}
 
     def jsonrpc_starturls(self, starts, follow_prefixes, nofollow_prefixes, discover_prefixes, maxdepth=config['scrapyd']['maxdepth'], download_delay=config['scrapyd']['download_delay'], corpus=''):
+        """Starts a crawl with Scrappy from arguments using only urls."""
         return self.jsonrpc_start(starts, convert_urls_to_lrus(follow_prefixes), convert_urls_to_lrus(nofollow_prefixes), convert_urls_to_lrus(discover_prefixes), maxdepth, download_delay, corpus)
 
     def jsonrpc_start(self, starts, follow_prefixes, nofollow_prefixes, discover_prefixes, maxdepth=config['scrapyd']['maxdepth'], download_delay=config['scrapyd']['download_delay'], corpus=''):
-        # Choose random user agent for each crawl
+        """Starts a crawl with scrappy from arguments using a list of urls and of lrus for prefixes."""
         print starts, follow_prefixes, discover_prefixes
+        # Choose random user agent for each crawl
         agents = ["Mozilla/2.0 (compatible; MSIE 3.0B; Win32)","Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9b5) Gecko/2008032619 Firefox/3.0b5","Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; bgft)","Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; iOpus-I-M)","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.2.153.1 Safari/525.19","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.2.153.1 Safari/525.19"]
         # preparation of the request to scrapyd
-        values = [('project', config['scrapyd']['project']),
-                  ('spider', 'pages'),
-                  ('setting' , 'DOWNLOAD_DELAY=' + str(download_delay)),
-                  ('maxdepth', maxdepth),
-                  ('start_urls', assemble_urls(starts)),
-                  ('follow_prefixes', assemble_urls(follow_prefixes)),
-                  ('nofollow_prefixes', assemble_urls(nofollow_prefixes)),
-                  ('discover_prefixes', assemble_urls(discover_prefixes)),
-                  ('user_agent', agents[random.randint(0, len(agents) - 1)])]
-        res = self.send_scrappy_query('schedule', values)
+        args = {'project': config['scrapyd']['project'],
+                  'spider': 'pages',
+                  'setting': 'DOWNLOAD_DELAY=' + str(download_delay),
+                  'maxdepth': maxdepth,
+                  'start_urls': assemble_urls(starts),
+                  'follow_prefixes': assemble_urls(follow_prefixes),
+                  'nofollow_prefixes': assemble_urls(nofollow_prefixes),
+                  'discover_prefixes': assemble_urls(discover_prefixes),
+                  'user_agent': agents[random.randint(0, len(agents) - 1)]}
+        res = self.send_scrappy_query('schedule', args)
+        if res['code'] == 'fail':
+            return res
+        res = res['result']
         if 'jobid' in res:
             ts = time.time()
-            self.db[config['mongoDB']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'label': assemble_urls(starts), 'crawl_arguments':str(values), 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts, 'log': [jobslog("CRAWL_ADDED", ts)]}}, upsert=True)
+            self.db[config['mongoDB']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'label': assemble_urls(starts), 'crawl_arguments':str(args), 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts, 'log': [jobslog("CRAWL_ADDED", ts)]}}, upsert=True)
         return res
 
     def jsonrpc_cancel(self, job_id):
+        """Cancels a scrappy job with id job_id."""
         print "Cancel crawl : ", job_id
-        values = [('project' , config['scrapyd']['project']),
-                  ('job' , job_id),]
-        res = self.send_scrappy_query('cancel', values)
+        args = {'project': config['scrapyd']['project'],
+                  'job': job_id}
+        res = self.send_scrappy_query('cancel', args)
+        if res['code'] == 'fail':
+            return res
+        res = res['result']
         if 'prevstate' in res:
             self.db[config['mongoDB']['jobListCol']].update({'_id': job_id}, {'$set': {'crawling_status': crawling_statuses.CANCELED}, '$push': {'log': jobslog("CRAWL_".crawling_statuses.CANCELED)}})
         return res
 
     def jsonrpc_list(self):
-        values = [('project', config['scrapyd']['project'])]
-        return self.send_scrappy_query('listjobs', values)
-
-    #TODO
-    def jsonrpc_list_corpus(self, corpus=''):
-        return self.jsonrpc_list()
+        """Calls Scrappy monitoring API, returns list of scrappy jobs."""
+        return self.send_scrappy_query('listjobs', {'project': config['scrapyd']['project']})
 
     def jsonrpc_reinitialize(self, corpus=''):
+        """Cancels all current crawl jobs running or planned and empty mongodbs."""
         print "Empty crawl list + mongodb queue"
         list_jobs = self.jsonrpc_list()
+        if list_jobs['code'] == 'fail':
+            return list_jobs
+        list_jobs = list_jobs['result']
         for item in list_jobs['running'] + list_jobs['pending']:
             print self.jsonrpc_cancel(item['id'])
         self.db[config['mongoDB']['queueCol']].remove(safe=True)
         self.db[config['mongoDB']['pageStoreCol']].remove(safe=True)
         self.db[config['mongoDB']['jobListCol']].remove(safe=True)
-        return dict(code = 'success', message = 'Crawling database reset')
+        return {'code': 'success', 'message': 'Crawling database reset'}
 
-    def jsonrpc_monitor(self):
-        list_jobs = self.jsonrpc_list()
-        return dict(code = 'success', running = len(list_jobs['running']), pending = len(list_jobs['pending']), finished = len(list_jobs['finished']))
 
 class Memory_Structure(jsonrpc.JSONRPC):
 
@@ -182,51 +189,71 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def handle_results(self, results):
         print results
-        return dict(code = 'success', message = results)
+        return {'code': 'success', 'result': results}
 
     def handle_error(self, failure):
-        failure.trap(Exception)
         print failure
-        return dict(code = 'fail', message = failure)
+        return {'code': 'fail', 'message': failure.getErrorMessage()}
 
-    @inlineCallbacks
     def reset(self, conn):
         print "Empty memory structure content"
         client = conn.client
-        yield client.clearIndex()
-        yield client.saveWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
+        client.clearIndex()
+        client.saveWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
 
     @inlineCallbacks
     def jsonrpc_reinitialize(self):
-        yield self.mem_struct_conn.addCallback(self.reset).addErrback(self.handle_error)
-        defer.returnValue(dict(code = 'success', mssg = 'Memory structure content emptied'))
+        res = yield self.mem_struct_conn.addCallback(self.reset).addErrback(self.handle_error)
+        defer.returnValue(res)
 
     @inlineCallbacks
     def add_pages(self, conn, list_urls):
         client = conn.client
+        res = []
         for url in list_urls:
-            print lru.url_to_lru(url)
-            we = yield client.createWebEntity(url, [lru.url_to_lru(url)])
-            print url+" added as webentity "+we.name
+            l = lru.url_to_lru_clean(url)
+            try:
+                urllib.urlopen(url)
+                we = yield client.createWebEntity(lru.lru_to_url(l), [l])
+                msg = "%s added as webentity %s" % (url, we.name)
+            except MemoryStructureException as e:
+                msg = "ERROR adding %s: %s" % (url, e.msg)
+            except Exception as e:
+                msg = "ERROR adding %s: %s" % (url, e)
+            res.append(msg)
+        defer.returnValue(self.handle_results(res))
 
     @inlineCallbacks
     def jsonrpc_add_pages(self, list_urls_pages, corpus=''):
         list_urls = list_urls_pages.split(',')
         print list_urls
-        yield self.mem_struct_conn.addCallback(self.add_pages, list_urls).addErrback(self.handle_error)
-        defer.returnValue(dict(code = 'success', mssg = str(len(list_urls))+" pages added as webentities"))
+        res = yield self.mem_struct_conn.addCallback(self.add_pages, list_urls).addErrback(self.handle_error)
+        defer.returnValue(res)
 
     @inlineCallbacks
     def rename_webentity(self, conn, webentity_id, new_name):
         client = conn.client
         WE = yield client.getWebEntity(webentity_id)
         WE.name = new_name
-        yield client.updateWebEntity(WE)
+        res = yield client.updateWebEntity(WE)
+        defer.returnValue("Webentity %s renamed as %s" % (res, new_name))
 
     @inlineCallbacks
     def jsonrpc_rename_webentity(self, webentity_id, new_name):
-        yield self.mem_struct_conn.addCallback(self.rename_webentity, webentity_id, new_name).addErrback(self.handle_error)
-        defer.returnValue(dict(code = 'success', mssg = 'Webentity renamed'))
+        res = yield self.mem_struct_conn.addCallback(self.rename_webentity, webentity_id, new_name).addErrback(self.handle_error)
+        defer.returnValue(self.handle_results(res))
+
+    @inlineCallbacks
+    def setalias(self, old_webentity_id, gd_webentity_id):
+        #WE = yield client.addAliadtoWebEntity(webentity_id)
+        #WE = yield client.getWebEntity(webentity_id)
+        pass
+
+    @inlineCallbacks
+    def jsonrpc_setalias(self, old_webentity_id, gd_webentity_id):
+        res = yield self.setalias(old_webentity_id, gd_webentity_id)
+        defer.returnValue(self.handle+results(res))
+
 
     @inlineCallbacks
     def index_batch(self, conn, page_items, jobid):
