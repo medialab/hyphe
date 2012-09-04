@@ -40,8 +40,10 @@ def assemble_urls(urls):
         return urls
     return ','.join([url for url in filter(lambda x : x, urls)])
 
-def convert_urls_to_lrus(urls):
-    return [lru.url_to_lru(url) for url in urls.split(',')]
+def convert_urls_to_lrus_array(urls):
+    if not isinstance(urls, types.ListType):
+        return [lru.url_to_lru_clean(url) for url in urls.split(',')]
+    return [lru.url_to_lru_clean(url) for url in urls]
 
 class Core(jsonrpc.JSONRPC):
 
@@ -61,12 +63,11 @@ class Core(jsonrpc.JSONRPC):
         self.store.jsonrpc_reinitialize()
         return {'code': 'success', 'mssg': 'Memory structure and crawling database contents emptied'}
 
+    @inlineCallbacks
     def jsonrpc_crawl_webentity(self, webentity_id):
         """Tells scrappy to run crawl on a webentity defined by its id from memory structure."""
-        d = defer.succeed(self.store.mem_struct_conn)
-        d.addCallback(self.store.get_webentity_with_pages_and_subWEs, webentity_id)
-        d.addErrback(self.store.handle_error)
-        return self.crawler.jsonrpc_start(WE['pages'], WE['lrus'], WE['subWEs'])
+        WE = yield self.store.mem_struct_conn.addCallback(self.store.get_webentity_with_pages_and_subWEs, webentity_id)
+        defer.returnValue(self.crawler.jsonrpc_start(WE['pages'], WE['lrus'], WE['subWEs']))
 
     def jsonrpc_refreshjobs(self):
         """Runs a monitoring task on the list of jobs in the database to update their status from scrappy API and indexing tasks."""
@@ -120,11 +121,10 @@ class Crawler(jsonrpc.JSONRPC):
 
     def jsonrpc_starturls(self, starts, follow_prefixes, nofollow_prefixes, discover_prefixes, maxdepth=config['scrapyd']['maxdepth'], download_delay=config['scrapyd']['download_delay'], corpus=''):
         """Starts a crawl with Scrappy from arguments using only urls."""
-        return self.jsonrpc_start(starts, convert_urls_to_lrus(follow_prefixes), convert_urls_to_lrus(nofollow_prefixes), convert_urls_to_lrus(discover_prefixes), maxdepth, download_delay, corpus)
+        return self.jsonrpc_start(starts, convert_urls_to_lrus_array(follow_prefixes), convert_urls_to_lrus_array(nofollow_prefixes), convert_urls_to_lrus_array(discover_prefixes), maxdepth, download_delay, corpus)
 
-    def jsonrpc_start(self, starts, follow_prefixes, nofollow_prefixes, discover_prefixes, maxdepth=config['scrapyd']['maxdepth'], download_delay=config['scrapyd']['download_delay'], corpus=''):
+    def jsonrpc_start(self, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth=config['scrapyd']['maxdepth'], download_delay=config['scrapyd']['download_delay'], corpus=''):
         """Starts a crawl with scrappy from arguments using a list of urls and of lrus for prefixes."""
-        print starts, follow_prefixes, discover_prefixes
         # Choose random user agent for each crawl
         agents = ["Mozilla/2.0 (compatible; MSIE 3.0B; Win32)","Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9b5) Gecko/2008032619 Firefox/3.0b5","Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; bgft)","Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; iOpus-I-M)","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.2.153.1 Safari/525.19","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.2.153.1 Safari/525.19"]
         # preparation of the request to scrapyd
@@ -156,7 +156,7 @@ class Crawler(jsonrpc.JSONRPC):
             return res
         res = res['result']
         if 'prevstate' in res:
-            self.db[config['mongoDB']['jobListCol']].update({'_id': job_id}, {'$set': {'crawling_status': crawling_statuses.CANCELED}, '$push': {'log': jobslog("CRAWL_".crawling_statuses.CANCELED)}})
+            self.db[config['mongoDB']['jobListCol']].update({'_id': job_id}, {'$set': {'crawling_status': crawling_statuses.CANCELED}, '$push': {'log': jobslog("CRAWL_"+crawling_statuses.CANCELED)}})
         return res
 
     def jsonrpc_list(self):
@@ -214,7 +214,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             l = lru.url_to_lru_clean(url)
             try:
                 urllib.urlopen(url)
-                we = yield client.createWebEntity(lru.lru_to_url(l), [l])
+                we = yield client.createWebEntity(lru.lru_to_url_short(l), [l])
                 msg = "%s added as webentity %s" % (url, we.name)
             except MemoryStructureException as e:
                 msg = "ERROR adding %s: %s" % (url, e.msg)
@@ -226,7 +226,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_add_pages(self, list_urls_pages, corpus=''):
         list_urls = list_urls_pages.split(',')
-        print list_urls
         res = yield self.mem_struct_conn.addCallback(self.add_pages, list_urls).addErrback(self.handle_error)
         defer.returnValue(res)
 
@@ -250,7 +249,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         pass
 
     @inlineCallbacks
-    def jsonrpc_setalias(self, old_webentity_id, gd_webentity_id):
+    def jsonrpc_setalias(self, old_webentity_id, good_webentity_id):
         res = yield self.setalias(old_webentity_id, gd_webentity_id)
         defer.returnValue(self.handle+results(res))
 
@@ -334,13 +333,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def get_webentity_with_pages_and_subWEs(self, conn, webentity_id):
         client = conn.client
         WE = yield client.getWebEntity(webentity_id)
-        res = {'lrus': list(WE.LRUSet), 'pages': [WE.name], 'subWEs': []}
+        if not WE:
+            raise Exception("No webentity with id %s found" % webentity_id)
+        res = {'lrus': list(WE.LRUSet), 'pages': [lru.lru_to_url(lr) for lr in WE.LRUSet], 'subWEs': []}
         pages = yield client.getPagesFromWebEntityFromImplementation(WE.id, "PAUL")
         if pages:
             res['pages'] = [lru.lru_to_url(p.lru) for p in pages]
         subs = yield client.getSubWebEntities(WE.id)
         if subs:
-            res['subWEs'] = [lru for lru in WE.LRUSet for WE in subs]
+            res['subWEs'] = [lr for lr in WE.LRUSet for WE in subs]
         defer.returnValue(res)
 
     @inlineCallbacks
