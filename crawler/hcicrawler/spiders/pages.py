@@ -54,11 +54,9 @@ class PagesCrawler(BaseSpider):
         # handle redirects
         if response.status == 301:
             links = response.headers['Location']
-            self.log("redirects to %s" % links)
         else:
             links = self.link_extractor.extract_links(response)
         for link in links:
-            self.log(link)
             try:
                 lrulink = url_to_lru_clean(link.url)
             except ValueError, e:
