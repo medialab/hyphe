@@ -55,8 +55,8 @@ def lru_to_url(lru):
     """         
     # TODO: naive algorithm (to be updated)
     lru_list = [stem.split(":", 1) for stem in lru.split("|")]
-    url = [x[1] for x in filter(lambda (k, stem): k =="s", lru_list)][0] + "://"
-    h = [x[1] for x in filter(lambda (k, stem): k =="h", lru_list)]
+    url = [x[1] for x in filter(lambda (k, stem): k == "s", lru_list)][0] + "://"
+    h = [x[1] for x in filter(lambda (k, stem): k == "h", lru_list)]
     h.reverse() 
     url += ".".join(h)
     path = "/".join([x[1] for x in filter(lambda (k, stem): k=="p", lru_list)])
@@ -64,6 +64,9 @@ def lru_to_url(lru):
         path = "/" + path
         url += path 
     return url  
+
+def lru_to_url_short(lru):
+    return lru_to_url(lru).lstrip('http://').lstrip('https://')
  
 # Clean a URL
 def cleanUrl(url, currentUrl) :
@@ -103,9 +106,9 @@ def orderQueryParameters(lru) :
 
 #Clean LRU by applying selection of previous filters
 def cleanLRU(lru) :
-#	return orderQueryParameters(stripAnchors(stripWWW(stripHttpPort(lru))))
-	return stripWWW(stripHttpPort(lru))
-        
+#   return orderQueryParameters(stripAnchors(stripWWW(stripHttpPort(lru))))
+    return stripWWW(stripHttpPort(lru))
+       
 # Identify links which are nodes
 def isLRUNode(lru, precisionLimit = 3) :
 	return (len(lru.split("|")) <= precisionLimit)
