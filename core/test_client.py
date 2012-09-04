@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from twisted.internet import reactor, defer
 from txjsonrpc.netstring.jsonrpc import Proxy
 import sys, pprint
