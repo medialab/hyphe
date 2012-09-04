@@ -91,14 +91,9 @@ public class LuceneQueryFactory {
      * @return
      */
     protected static Query getWebEntityLinkBySourceAndTargetQuery(WebEntity source, WebEntity target) {
-        Term sourceTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), source.getId());
+        BooleanQuery q = getWebEntityLinkBySourceIdQuery(source.getId())
         Term targetTerm = new Term(IndexConfiguration.FieldName.TARGET.name(), target.getId());
-        BooleanQuery q = new BooleanQuery();
-        Query q1 = new TermQuery(isWebEntityLink);
-        Query q2 = new TermQuery(sourceTerm);
         Query q3 = new TermQuery(targetTerm);
-        q.add(q1, BooleanClause.Occur.MUST);
-        q.add(q2, BooleanClause.Occur.MUST);
         q.add(q3, BooleanClause.Occur.MUST);
         if(logger.isDebugEnabled()) {
             logger.debug("Lucene query: " + q.toString());
