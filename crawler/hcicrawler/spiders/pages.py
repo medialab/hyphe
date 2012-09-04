@@ -7,7 +7,7 @@ from scrapy.utils.url import url_has_any_extension
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy import log
 
-from hcicrawler.lru import url_to_lru
+from hcicrawler.lru import url_to_lru_clean
 from hcicrawler.items import Page
 from hcicrawler.samples import DEFAULT_INPUT
 from hcicrawler.errors import error_name
@@ -37,23 +37,30 @@ class PagesCrawler(BaseSpider):
             yield self._request(url)
 
     def handle_response(self, response):
-        lru = url_to_lru(response.url)
+        lru = url_to_lru_clean(response.url)
         if isinstance(response, HtmlResponse):
             return self.parse_html(response, lru)
         else:
             return self._make_raw_page(response, lru)
 
-    def handle_error(self, failure):
-        p = self._make_raw_page(failure.request.url)
+    def handle_error(self, failure, response):
+        p = self._make_raw_page(response, failure.request.url)
         p['error'] = error_name(failure.value)
         return p
 
     def parse_html(self, response, lru):
         depth = response.meta['depth']
         lrulinks = []
-        for link in self.link_extractor.extract_links(response):
+        # handle redirects
+        if response.status == 301:
+            links = response.headers['Location']
+            self.log("redirects to %s" % links)
+        else:
+            links = self.link_extractor.extract_links(response)
+        for link in links:
+            self.log(link)
             try:
-                lrulink = url_to_lru(link.url)
+                lrulink = url_to_lru_clean(link.url)
             except ValueError, e:
                 self.log("Error converting URL to LRU: %s" % e, log.ERROR)
                 continue
@@ -81,7 +88,7 @@ class PagesCrawler(BaseSpider):
 
     def _new_page(self, url, lru=None):
         if lru is None:
-            lru = url_to_lru(url)
+            lru = url_to_lru_clean(url)
         p = Page()
         p['url'] = url
         p['lru'] = lru
@@ -92,10 +99,10 @@ class PagesCrawler(BaseSpider):
         # this condition is documented here (please keep updated)
         # http://jiminy.medialab.sciences-po.fr/hci/index.php/Crawler#Link_following
         c1 = depth < self.maxdepth
-        c2 = has_prefix(tolru,   self.follow_prefixes + self.discover_prefixes)
-        c3 = not(has_prefix(tolru,   self.nofollow_prefixes))
-        c4 = not(has_prefix(fromlru, self.discover_prefixes))
-        #print depth, c1, c2, c3, c4, tolru # DEBUG
+        c2 = self.has_prefix(tolru, self.follow_prefixes + self.discover_prefixes)
+        c3 = not(self.has_prefix(tolru, self.nofollow_prefixes))
+        c4 = not(self.has_prefix(fromlru, self.discover_prefixes))
+        #self.log("%s %s %s %s %s %s" % (depth, c1, c2, c3, c4, tolru)) # DEBUG
         return c1 and c2 and c3 and c4
 
     def _request(self, url, **kw):
@@ -104,11 +111,14 @@ class PagesCrawler(BaseSpider):
         kw['errback'] = self.handle_error
         return Request(url, **kw)
 
-def has_prefix(string, prefixes):
-    return any((string.startswith(p) for p in prefixes))
+    def has_prefix(self, string, prefixes):
+        if prefixes:
+            return any((string.startswith(p) for p in prefixes))
+        return False
 
 def to_list(obj):
     if isinstance(obj, basestring):
-        return obj.split(',')
-    else:
-        return list(obj)
+        if obj:
+            return obj.split(',')
+        return []
+    return list(obj)
