@@ -143,7 +143,7 @@ class Crawler(jsonrpc.JSONRPC):
         res = res['result']
         if 'jobid' in res:
             ts = time.time()
-            self.db[config['mongoDB']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'label': assemble_urls(starts), 'crawl_arguments':str(args), 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts, 'log': [jobslog("CRAWL_ADDED", ts)]}}, upsert=True)
+            self.db[config['mongoDB']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts, 'log': [jobslog("CRAWL_ADDED", ts)]}}, upsert=True)
         return res
 
     def jsonrpc_cancel(self, job_id):
