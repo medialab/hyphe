@@ -43,10 +43,13 @@ class PagesCrawler(BaseSpider):
         else:
             return self._make_raw_page(response, lru)
 
-    def handle_error(self, failure, response):
-        p = self._make_raw_page(response, failure.request.url)
-        p['error'] = error_name(failure.value)
-        return p
+    def handle_error(self, failure, response=None):
+        if response:
+            p = self._make_raw_page(response, failure.request.url)
+            p['error'] = error_name(failure.value)
+            return p
+        self.log("ERROR : %s" % failure.getErrorMessage())
+        return
 
     def parse_html(self, response, lru):
         depth = response.meta['depth']
