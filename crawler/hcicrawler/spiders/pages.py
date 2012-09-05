@@ -52,20 +52,25 @@ class PagesCrawler(BaseSpider):
         depth = response.meta['depth']
         lrulinks = []
         # handle redirects
-        if response.status == 301:
-            links = response.headers['Location']
+        if response.status > 300 and response.status < 400:
+            links = [{'url': response.headers['Location']}]
+            response.meta['depth'] -= 1
         else:
             links = self.link_extractor.extract_links(response)
         for link in links:
             try:
-                lrulink = url_to_lru_clean(link.url)
+                url = link.url
+            except AttributeError:
+                url = link['url']
+            try:
+                lrulink = url_to_lru_clean(url)
             except ValueError, e:
                 self.log("Error converting URL to LRU: %s" % e, log.ERROR)
                 continue
             lrulinks.append(lrulink)
             if self._should_follow(depth, lru, lrulink) and \
-                    not url_has_any_extension(link.url, self.ignored_exts):
-                yield self._request(link.url)
+                    not url_has_any_extension(url, self.ignored_exts):
+                yield self._request(url)
         yield self._make_html_page(response, lru, lrulinks)
 
     def _make_html_page(self, response, lru, lrulinks):
