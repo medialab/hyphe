@@ -89,6 +89,12 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_listjobs(self):
         return {'code': 'success', 'result': list(self.db[config['mongoDB']['jobListCol']].find(sort=[('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)]))}
 
+    @inlineCallbacks
+    def jsonrpc_add_pages(self, list_urls_pages, corpus=''):
+        list_urls = list_urls_pages.split(',')
+        res = yield self.store.mem_struct_conn.addCallback(self.store.add_pages, list_urls).addErrback(self.store.handle_error)
+        defer.returnValue(res)
+
 
 class Crawler(jsonrpc.JSONRPC):
 
@@ -213,7 +219,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         for url in list_urls:
             l = lru.url_to_lru_clean(url)
             try:
-                urllib.urlopen(url)
+                #urllib.urlopen(url)
+                page = PageItem(lru=l)
+                yield client.savePageItems([page])
                 we = yield client.createWebEntity(lru.lru_to_url_short(l), [l])
                 msg = "%s added as webentity %s" % (url, we.name)
             except MemoryStructureException as e:
@@ -222,12 +230,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 msg = "ERROR adding %s: %s" % (url, e)
             res.append(msg)
         defer.returnValue(self.handle_results(res))
-
-    @inlineCallbacks
-    def jsonrpc_add_pages(self, list_urls_pages, corpus=''):
-        list_urls = list_urls_pages.split(',')
-        res = yield self.mem_struct_conn.addCallback(self.add_pages, list_urls).addErrback(self.handle_error)
-        defer.returnValue(res)
 
     @inlineCallbacks
     def rename_webentity(self, conn, webentity_id, new_name):
@@ -341,7 +343,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             res['pages'] = [lru.lru_to_url(p.lru) for p in pages]
         subs = yield client.getSubWebEntities(WE.id)
         if subs:
-            res['subWEs'] = [lr for lr in WE.LRUSet for WE in subs]
+            res['subWEs'] = [lr for subwe in subs for lr in subwe.LRUSet]
         defer.returnValue(res)
 
     @inlineCallbacks
