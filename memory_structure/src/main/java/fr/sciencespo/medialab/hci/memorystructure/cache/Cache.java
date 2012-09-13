@@ -9,6 +9,7 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.util.CollectionUtils;
+import fr.sciencespo.medialab.hci.memorystructure.util.StringUtil;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import org.apache.commons.lang.StringUtils;
 
@@ -221,7 +222,7 @@ public class Cache {
                     logger.debug("rule matches page " + page.getLru());
                 }
                 String webEntityLRU = matcher.group();
-                String name = revertLRU(webEntityLRU);
+                String name = StringUtil.toTitle(revertLRU(webEntityLRU));
                 webEntity = new WebEntity();
                 webEntity.setName(name);
                 webEntity.setLRUSet(new HashSet<String>());
@@ -324,7 +325,7 @@ public class Cache {
                 long l4 = System.currentTimeMillis();
                 logger.debug("did not find match from either WE or WECR: using default WECR");
                 WebEntityCreationRule defaultRule = lruIndex.retrieveDefaultWECR();
-                 WebEntity webEntity = applyWebEntityCreationRule(defaultRule, this.pageItems.get(pageLRU));
+                WebEntity webEntity = applyWebEntityCreationRule(defaultRule, this.pageItems.get(pageLRU));
                 // rule matched, successfully created new web entity
                 if(webEntity != null) {
                     logger.debug("rule matched, successfully created new web entity");

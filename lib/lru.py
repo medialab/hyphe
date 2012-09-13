@@ -66,7 +66,7 @@ def lru_to_url(lru):
     return url  
 
 def lru_to_url_short(lru):
-    return lru_to_url(lru).lstrip('http://').lstrip('https://')
+    return lru_to_url(lru).lstrip('http://').lstrip('https://').replace('.', ' ').title()
  
 # Clean a URL
 def cleanUrl(url, currentUrl) :
