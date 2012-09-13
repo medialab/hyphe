@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from twisted.internet import reactor, defer
-from txjsonrpc.netstring.jsonrpc import Proxy
+from txjsonrpc.web.jsonrpc import Proxy
 import sys, pprint
 sys.path.append('../lib')
 import config_hci, lru
@@ -20,7 +20,8 @@ def shutDown(data):
 #    print " -> Shutting down reactor..."
     reactor.stop()
 
-proxy = Proxy('127.0.0.1', config['twisted']['port'])
+proxy = Proxy('http://127.0.0.1:%d' % config['twisted']['port'])
+print sys.argv[1], sys.argv[2:]
 d = proxy.callRemote(sys.argv[1], *sys.argv[2:])
 d.addCallback(printValue).addErrback(printError)
 d.addCallback(shutDown)
