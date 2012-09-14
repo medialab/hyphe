@@ -27,7 +27,7 @@
     "host" : "lrrr.medialab.sciences-po.fr",
     "port" : 6800,
     "project" : "hci",
-    "maxdepth" : 2,
+    "maxdepth" : 1,
     "download_delay" : 0.5
   },
   "twisted" : {
