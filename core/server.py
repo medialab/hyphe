@@ -107,7 +107,7 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_add_pages(self, list_urls_pages, corpus=''):
         list_urls = list_urls_pages.split(',')
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.store.add_pages, list_urls).addErrback(self.handle_error)
+        res = yield mem_struct_conn.addCallback(self.store.add_pages, list_urls).addErrback(self.store.handle_error)
         defer.returnValue(res)
 
 
