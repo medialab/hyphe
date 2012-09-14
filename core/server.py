@@ -224,7 +224,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_reinitialize(self):
         mem_struct_conn = getThriftConn()
-        res = yield self.mem_struct_conn.addCallback(self.reset).addErrback(self.handle_error)
+        res = yield mem_struct_conn.addCallback(self.reset).addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
@@ -257,7 +257,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_rename_webentity(self, webentity_id, new_name):
         mem_struct_conn = getThriftConn()
-        res = yield self.mem_struct_conn.addCallback(self.rename_webentity, webentity_id, new_name).addErrback(self.handle_error)
+        res = yield mem_struct_conn.addCallback(self.rename_webentity, webentity_id, new_name).addErrback(self.handle_error)
         defer.returnValue(self.handle_results(res))
 
     @inlineCallbacks
@@ -347,7 +347,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_get_webentities_network(self):
         mem_struct_conn = getThriftConn()
-        mem_struct_conn.addCallback(self.update_WE_links_and_generate_gexf).addErrback(self.handle_error)
+        yield mem_struct_conn.addCallback(self.update_WE_links_and_generate_gexf).addErrback(self.handle_error)
         return {'code': 'success', 'result': 'GEXF graph generation started...'}
 
     @inlineCallbacks
