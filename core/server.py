@@ -345,10 +345,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         client = conn.client
         return client.getPagesFromWebEntityFromImplementation(webentity_id, "PAUL")
 
+    @inlineCallbacks
     def jsonrpc_get_webentities_network(self):
         mem_struct_conn = getThriftConn()
         yield mem_struct_conn.addCallback(self.update_WE_links_and_generate_gexf).addErrback(self.handle_error)
-        return {'code': 'success', 'result': 'GEXF graph generation started...'}
+        defer.returnValue({'code': 'success', 'result': 'GEXF graph generation started...'})
 
     @inlineCallbacks
     def get_webentity_with_pages_and_subWEs(self, conn, webentity_id):
