@@ -80,8 +80,8 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_crawl_webentity(self, webentity_id):
         """Tells scrapy to run crawl on a webentity defined by its id from memory structure."""
         mem_struct_conn = getThriftConn()
-        WE = yield mem_struct_conn.addCallback(self.get_webentity_with_pages_and_subWEs, webentity_id)
-        defer.returnValue(self.jsonrpc_start(WE['pages'], WE['lrus'], WE['subWEs']))
+        WE = yield mem_struct_conn.addCallback(self.store.get_webentity_with_pages_and_subWEs, webentity_id)
+        defer.returnValue(self.crawler.jsonrpc_start(WE['pages'], WE['lrus'], WE['subWEs']))
 
     def jsonrpc_refreshjobs(self):
         """Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks."""
