@@ -2,7 +2,7 @@
 URL/LRU library to manage, build and clean original URLs and corresponding URLs
 """
 
-import re
+import re, urllib
 from urlparse import urljoin
 
 lruFullPattern = re.compile("^([^:/?#]+):(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$")
@@ -20,6 +20,12 @@ def url_to_lru(url):
     lru = lruFullPattern.match(url)
     if lru:
         scheme, authority, path, query, fragment = lru.groups()
+        if path:
+            path = urllib.quote_plus(path).replace("%2F", "/")
+        if query:
+            query = urllib.quote_plus(query)
+        if fragment:
+            fragment = urllib.quote_plus(fragment)
         if lruSchemePattern.match(scheme):
             hostAndPast = lruAuthorityPattern.match(authority)
             if hostAndPast:
