@@ -48,6 +48,8 @@ class PagesCrawler(BaseSpider):
             p = self._make_raw_page(response, failure.request.url)
             p['error'] = error_name(failure.value)
             return p
+        elif not "://www" in failure.request.url:
+            return self._request(failure.request.url.replace('://', '://www.'))
         self.log("ERROR : %s" % failure.getErrorMessage())
         return
 
