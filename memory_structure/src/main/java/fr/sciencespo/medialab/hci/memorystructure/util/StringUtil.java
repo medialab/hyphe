@@ -12,17 +12,17 @@ public class StringUtil {
 
     public static String toProperCase(String text) {
         text = text.toLowerCase();
-        text = text.substring(0, 1).toUpperCase();
+        text = text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
         return text;
     }
 
     public static String toTitle(String text) {
         StringBuffer output = new StringBuffer();
-        String[] tokens = text.split(" ");
+        String[] tokens = text.replace(".", " ").split(" ");
         for (int i=0; i<tokens.length; i++) {
-            output.append(toProperCase(tokens[i]));
+            output.append(" "+toProperCase(tokens[i]));
         }
-        return output.toString();
+        return output.toString().trim();
     }
 
 }
