@@ -23,7 +23,6 @@
                        "http://ur1.ca",
                        "http://ow.ly"],
   "scrapyd" : {
-    "host2" : "scrapyd.host",
     "host" : "localhost",
     "port" : 6800,
     "project" : "hci",
