@@ -336,6 +336,18 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue({'code': 'success', 'result': res})
 
     @inlineCallbacks
+    def jsonrpc_get_nodelinks(self, corpus=''):
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.get_nodelinks).addErrback(self.handle_error)
+        defer.returnValue(res)
+
+    @inlineCallbacks
+    def get_nodelinks(self, conn):
+        client = conn.client
+        WEs = yield client.getNodeLinks()
+        defer.returnValue({'code': 'success', 'result': [{'source': l.sourceLRU, 'target': l.targetLRU} for l in WEs]})
+
+    @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, corpus=''):
         mem_struct_conn = getThriftConn()
         pages = yield mem_struct_conn.addCallback(self.get_webentity_pages, webentity_id).addErrback(self.handle_error)
@@ -345,11 +357,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         client = conn.client
         return client.getPagesFromWebEntityFromImplementation(webentity_id, "PAUL")
 
-    @inlineCallbacks
     def jsonrpc_get_webentities_network(self):
         mem_struct_conn = getThriftConn()
-        yield mem_struct_conn.addCallback(self.update_WE_links_and_generate_gexf).addErrback(self.handle_error)
-        defer.returnValue({'code': 'success', 'result': 'GEXF graph generation started...'})
+        mem_struct_conn.addCallback(self.update_WE_links_and_generate_gexf).addErrback(self.handle_error)
+        return {'code': 'success', 'result': 'GEXF graph generation started...'}
 
     @inlineCallbacks
     def get_webentity_with_pages_and_subWEs(self, conn, webentity_id):
