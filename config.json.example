@@ -1,5 +1,5 @@
 {
-  "precisionLimit": 5,
+  "precisionLimit": 2,
   "mongoDB": {
     "host": "localhost",
     "db": "hci",

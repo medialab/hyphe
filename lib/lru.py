@@ -8,14 +8,14 @@ from urlparse import urljoin
 lruFullPattern = re.compile("^([^:/?#]+):(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$")
 lruSchemePattern = re.compile("https?")
 lruAuthorityPattern = re.compile("^(?:([^:]+)(?::([^@]+))?\@)?([^\s:]+)(?::(\d+))?$")
- 
+
 def url_to_lru(url):
     """
     Convert a URL to a LRU
- 
+
     >>> url_to_lru("http://www.google.com/search?q=text&p=2")
     's:http|t:80|h:com|h:google|h:www|p:search|q:q=text&p=2'
- 
+
     """
     lru = lruFullPattern.match(url)
     if lru:
@@ -47,82 +47,88 @@ def url_to_lru(url):
 def url_to_lru_clean(url):
     return cleanLRU(url_to_lru(url))
 
-def lru_to_url(lru):                                                                                                                      
-    """         
+def lru_to_url(lru):
+    """
     Convert a LRU to a URL
-    
+
     >>> lru_to_url('s:http|t:80|h:com|h:google|h:www|p:search')
     'http://www.google.com/search'
-    
+
     # FIXME: urls with queries are not supported yet
     #>>> lru_to_url('s:http|t:80|h:com|h:google|h:www|p:search|q:q=text&p=2')
     #'http://www.google.com/search?q=text&p=2'
-    
-    """         
+
+    """
     # TODO: naive algorithm (to be updated)
     lru_list = [stem.split(":", 1) for stem in lru.split("|")]
     url = [x[1] for x in filter(lambda (k, stem): k == "s", lru_list)][0] + "://"
     h = [x[1] for x in filter(lambda (k, stem): k == "h", lru_list)]
-    h.reverse() 
+    h.reverse()
     url += ".".join(h)
     path = "/".join([x[1] for x in filter(lambda (k, stem): k=="p", lru_list)])
-    if path:    
+    if path:
         path = "/" + path
-        url += path 
-    return url  
+        url += path
+    return url
 
 def lru_to_url_short(lru):
     return lru_to_url(lru).lstrip('http://').lstrip('https://').replace('.', ' ').title()
- 
+
 # Clean a URL
 def cleanUrl(url, currentUrl) :
-	# relative path
-	url = urljoin(currentUrl, url)
-	
-	lru = lruFullPattern.match(url)
-	if lru :
-		(scheme, authority, path, query, fragment) = lru.groups()
-		# mailto
-		if not "mailto" in scheme :
-			return url
-	return None
+    # relative path
+    url = urljoin(currentUrl, url)
+
+    lru = lruFullPattern.match(url)
+    if lru :
+        (scheme, authority, path, query, fragment) = lru.groups()
+        # mailto
+        if not "mailto" in scheme :
+            return url
+    return None
 
 # removing port if 80 :
 def stripHttpPort(lru) :
-	return "|".join([stem for stem in lru.split("|") if stem!="t:80" ])
+    return "|".join([stem for stem in lru.split("|") if stem!="t:80" ])
 
 # Removing subdomain if www :
 def stripWWW(lru) :
-	return "|".join([stem for stem in lru.split("|") if stem!="h:www" ])
+    return "|".join([stem for stem in lru.split("|") if stem!="h:www" ])
 
 # Removing anchors :
 anchorRegexp = re.compile(r"f")
 def stripAnchors(lru) :
-	return "|".join([stem for stem in lru.split("|") if not anchorRegexp.match(stem) ])
+    return "|".join([stem for stem in lru.split("|") if not anchorRegexp.match(stem) ])
 
 # Order query parameters alphabetically
-queryRegexp = re.compile(r"\|q:([^\|]*)")
+queryRegexp = re.compile(r"\|q:([^|]*)")
 def orderQueryParameters(lru) :
-	match = queryRegexp.search(lru)
-        if match is not None and match.group(1) is not None :
-            res = match.group(1).split("&")
-            res.sort()
-            return lru.replace(match.group(1), "&".join(res))
-        return lru
+    match = queryRegexp.search(lru)
+    if match is not None and match.group(1) is not None :
+        res = match.group(1).split("&")
+        res.sort()
+        return lru.replace(match.group(1), "&".join(res))
+    return lru
 
 #Clean LRU by applying selection of previous filters
 def cleanLRU(lru) :
 #   return orderQueryParameters(stripAnchors(stripWWW(stripHttpPort(lru))))
     return stripWWW(stripHttpPort(lru))
-       
+
+re_head_lru = re.compile(r'(([sth]:[^|]*(\||$))+)', re.I)
+def getLRUHead(lru):
+    return re_head_lru.match(lru).group(1)
+
 # Identify links which are nodes
-def isLRUNode(lru, precisionLimit = 3) :
-	return (len(lru.split("|")) <= precisionLimit)
+def isLRUNode(lru, precisionLimit = 1):
+    head = getLRUHead(lru)
+    return (len(lru.replace(head, '').split("|")) <= precisionLimit)
 
 # Get a LRU's node
-def getLRUNode(lru, precisionLimit = 3) :
+def getLRUNode(lru, precisionLimit = 1) :
 # need to add check for exceptions
-	return "|".join([stem for stem in lru.split("|")[:precisionLimit] ])
+    head = getLRUHead(lru)
+    return head+"|".join([stem for stem in lru.replace(head, '').split("|")[:precisionLimit]])
 
 
 # TESTS
@@ -131,9 +137,9 @@ def getLRUNode(lru, precisionLimit = 3) :
 #print lru
 #print lru.split("|")[0:5]
 #print lruRebuild(lru)
-		
-#print getUrl("s:http|h:fr|h:sciences-po|h:www")	
-#print getUrl("s:http|h:fr|h:sciences-po|h:medialab")		
+
+#print getUrl("s:http|h:fr|h:sciences-po|h:www")
+#print getUrl("s:http|h:fr|h:sciences-po|h:medialab")
 #print getUrl("s:http|h:fr|h:sciences-po|h:www|p:dans|p:ton|p:cul.html")
 
 #    testlru = "s:http|t:80|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Verifying+Propagation+of+Writes+with+getLastError|q:f=1&sg=3&a=3&b=34&_675=5&loiyy=hdsjk|f:HGYT"
