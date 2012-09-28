@@ -1,6 +1,7 @@
 {
   "mongoDB": {
     "host": "localhost",
+    "port": 27017,
     "db": "hci",
     "queueCol": "crawler.queue",
     "pageStoreCol": "crawler.pages",

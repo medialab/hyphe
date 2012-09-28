@@ -10,7 +10,7 @@ from twisted.internet import reactor, defer, task
 from twisted.internet.protocol import ClientCreator
 from twisted.internet.defer import inlineCallbacks
 from thrift import Thrift
-from thrift.transport import TTwisted
+from thrift.transport import TTwisted, TSocket
 from thrift.protocol import TBinaryProtocol
 sys.path.append('gen-py.twisted')
 from memorystructure import MemoryStructure as ms
@@ -54,7 +54,6 @@ def getThriftConn():
 class Core(jsonrpc.JSONRPC):
 
     addSlash = True
-    db = pymongo.Connection(config['mongoDB']['host'])[config['mongoDB']['db']]
 
     def render(self, request):
         request.setHeader("Access-Control-Allow-Origin", "*")
@@ -62,6 +61,7 @@ class Core(jsonrpc.JSONRPC):
 
     def __init__(self):
         jsonrpc.JSONRPC.__init__(self)
+        self.db = pymongo.Connection(config['mongoDB']['host'],config['mongoDB']['port'])[config['mongoDB']['db']]
         self.crawler = Crawler(self.db)
         self.store = Memory_Structure(self.db)
 
@@ -120,7 +120,7 @@ class Crawler(jsonrpc.JSONRPC):
     def __init__(self, db=None):
         jsonrpc.JSONRPC.__init__(self)
         if db is None:
-            db = pymongo.Connection(config['mongoDB']['host'])[config['mongoDB']['db']]
+            db = pymongo.Connection(config['mongoDB']['host'],config['mongoDB']['port'])[config['mongoDB']['db']]
         self.db = db
 
     def send_scrapy_query(self, action, arguments, tryout=0):
@@ -204,7 +204,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def __init__(self, db=None):
         jsonrpc.JSONRPC.__init__(self)
         if db is None:
-            db = pymongo.Connection(config['mongoDB']['host'])[config['mongoDB']['db']]
+            db = pymongo.Connection(config['mongoDB']['host'], config['mongoDB']['port'])[config['mongoDB']['db']]
         self.db = db
 
     def handle_results(self, results):
@@ -403,6 +403,32 @@ class Memory_Structure(jsonrpc.JSONRPC):
         links = yield client.getWebEntityLinks()
         gexf.write_WEs_network_from_MS(links, WEs_metadata, 'test_welinks.gexf')
         print "... GEXF network generated in test_welinks.gexf in "+str(time.time()-s)
+
+def test_connexions():
+    try:
+        run = Core()
+    except pymongo.errors.AutoReconnect:
+        print "ERROR: Cannot connect to mongoDB, please check your server and the configuration in config.json."
+        return False
+    try:
+        transport = TSocket.TSocket(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port']).open()
+    except Thrift.TException:
+        print "ERROR: Cannot connect to lucene memory structure through thrift, please check your server and the configuration in config.json."
+        return False
+    try:
+        res = json.loads(urllib.urlopen("%slistprojects.json" % run.crawler.scrapy_url).read())
+    except:
+        print "ERROR: Cannot connect to scrapyd server, please check your server and the configuration in config.json."
+        return False
+    if "projects" not in res or config['scrapyd']['project'] not in res['projects']:
+        print "ERROR: Project's spider does not exist in scrapyd server, please run bin/deploy_scrapy_spider.sh."
+        print res
+        return False
+    return True
+
+res = test_connexions()
+if not res:
+    exit()
 
 # JSON-RPC interface
 core = Core()
