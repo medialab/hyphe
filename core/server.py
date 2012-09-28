@@ -49,7 +49,7 @@ def convert_urls_to_lrus_array(urls):
     return [lru.url_to_lru_clean(url) for url in urls]
 
 def getThriftConn():
-    return ClientCreator(reactor, TTwisted.ThriftClientProtocol, ms.Client, TBinaryProtocol.TBinaryProtocolFactory()).connectTCP(config['memoryStructure']['IP'], config['memoryStructure']['port'])
+    return ClientCreator(reactor, TTwisted.ThriftClientProtocol, ms.Client, TBinaryProtocol.TBinaryProtocolFactory()).connectTCP(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port'])
 
 class Core(jsonrpc.JSONRPC):
 
@@ -309,7 +309,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             print "Indexing : "+job['_id']
             page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']})
             if page_items.count() > 0:
-                conn = ClientCreator(reactor, TTwisted.ThriftClientProtocol, ms.Client, TBinaryProtocol.TBinaryProtocolFactory()).connectTCP(config['memoryStructure']['IP'], config['memoryStructure']['port'])
+                conn = ClientCreator(reactor, TTwisted.ThriftClientProtocol, ms.Client, TBinaryProtocol.TBinaryProtocolFactory()).connectTCP(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port'])
                 yield conn.addCallback(self.index_batch, page_items, job['_id']).addErrback(self.handle_index_error)
 
     def handle_index_error(self, failure):
