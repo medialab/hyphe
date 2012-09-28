@@ -1,5 +1,4 @@
 {
-  "precisionLimit": 2,
   "mongoDB": {
     "host": "localhost",
     "db": "hci",
@@ -7,21 +6,6 @@
     "pageStoreCol": "crawler.pages",
     "jobListCol": "crawler.jobs"
   },
-  "memoryStructure": {
-    "IP": "localhost",
-    "port": 9090
-  },
-  "defaultWebEntityCreationRule": {
-    "regexp": "(s:[a-zA-Z]+(\\|t:[0-9]+)?(\\|h:[^\\|]+)+)",
-    "prefix": ""
-  },
-  "discoverPrefixes": ["http://bit.ly",
-                       "http://tinyurl.com",
-                       "http://goo.gl",
-                       "http://fb.me",
-                       "http://on.fb.me",
-                       "http://ur1.ca",
-                       "http://ow.ly"],
   "scrapyd" : {
     "host" : "localhost",
     "port" : 6800,
@@ -29,7 +13,26 @@
     "maxdepth" : 1,
     "download_delay" : 0.5
   },
+  "memoryStructure": {
+    "thrift.IP": "localhost",
+    "thrift.port": 9090,
+    "lucene.path": "/home/hci/lucene",
+    "log.level": "INFO"
+  },
   "twisted" : {
     "port" : 6978
-  }
+  },
+  "precisionLimit": 2,
+  "defaultWebEntityCreationRule": {
+    "regexp": "(s:[a-zA-Z]+(\\|t:[0-9]+)?(\\|h:[^\\|]+)+)",
+    "prefix": ""
+  },
+  "discoverPrefixes": ["http://bit.ly",
+                       "http://t.co",
+                       "http://tinyurl.com",
+                       "http://goo.gl",
+                       "http://fb.me",
+                       "http://on.fb.me",
+                       "http://ur1.ca",
+                       "http://ow.ly"]
 }

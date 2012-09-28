@@ -2,6 +2,7 @@ package fr.sciencespo.medialab.hci.memorystructure.thrift;
 
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import fr.sciencespo.medialab.hci.memorystructure.util.ImplementationChoice;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.thrift.TException;
@@ -13,13 +14,14 @@ import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TNonblockingServerTransport;
 import org.apache.thrift.transport.TTransportException;
-
-import java.io.File;
+import org.json.JSONObject;
+import org.json.JSONException;
 import java.io.FileInputStream;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
+import java.lang.Integer;
 
 /**
  * MemoryStructure server.
@@ -30,13 +32,13 @@ public class ThriftServer {
 
     private static DynamicLogger logger = new DynamicLogger(ThriftServer.class);
 
-    private final static int port = 9090;
+    private static int port = 0;
 
     private static String luceneDirectoryPath = null;
     private static String implementationChoice = null;
     private static String logLevel = null;
 
-    private static MemoryStructureImpl memoryStructureImpl ;
+    private static MemoryStructureImpl memoryStructureImpl;
 
 
     /**
@@ -71,19 +73,24 @@ public class ThriftServer {
     private static Map<String, String> readProperties() {
         Map<String, String> propertiesMap = new HashMap<String, String>();
         try {
-            Properties properties = new Properties();
-            properties.load(new FileInputStream("memorystructure.properties"));
+            String jsonTxt = IOUtils.toString(new FileInputStream("config.json"));
+            JSONObject json = new JSONObject(jsonTxt);
+            JSONObject properties = json.getJSONObject("memoryStructure");
+            String[] propertyNames = JSONObject.getNames(properties);
             logger.info("properties file found");
-            Set<String> propertyNames = properties.stringPropertyNames();
             for(String key : propertyNames) {
-                propertiesMap.put(key, properties.getProperty(key)); 
+                propertiesMap.put(key, properties.getString(key)); 
             }
         }
+        catch(JSONException x) {
+            logger.info("ERROR while parsing json in config.json");
+        }
         catch(Exception x) {
-            logger.info("no properties file found");
+            logger.info("no config.json file found");
+            x.printStackTrace();
         }
         for(String key : propertiesMap.keySet()) {
-            logger.info("read property from properties file: " + key + " = " + propertiesMap.get(key));
+            logger.info("read property from config.json: " + key + " = " + propertiesMap.get(key));
         }
         return propertiesMap;
     }
@@ -127,6 +134,7 @@ public class ThriftServer {
             logger.info("using property " + key + " = " + resolvedProperties.get(key));
         }
 
+        port = Integer.parseInt(resolvedProperties.get("thrift.port"));
         luceneDirectoryPath = resolvedProperties.get("lucene.path");
         logLevel = resolvedProperties.get("log.level");
         implementationChoice = resolvedProperties.get("impl.choice");
@@ -134,6 +142,11 @@ public class ThriftServer {
         //
         // defaults
         //
+        if(port == 0) {
+            logger.warn("Could not find thrift.port either from memorystructure config.json or from command line arguments.");
+            port = 9090;
+            logger.warn("Using default: thrift.port is " + port);
+        }
         if(StringUtils.isEmpty(luceneDirectoryPath)) {
             logger.warn("Could not find lucene.path either from memorystructure.properties or from command line arguments.");
             luceneDirectoryPath = System.getProperty("user.home") + File.separator + "memorystructure.lucene";
