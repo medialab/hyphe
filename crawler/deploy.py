@@ -20,8 +20,19 @@ except IOError as e:
     print e
     exit()
  
-# Render the scrapy cfg
-print "Rendering scrapy.cfg with values from config.json..."
+# Render the settings py from template with mongo config from config.json
+print "Rendering settings.py with mongo config values from config.json..."
+try :
+    with nested(open("hcicrawler/settings.py.template", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
+        generated.write(pystache.render(template.read(), config['mongoDB']))
+except IOError as e:
+    print "Could not open either hcicrawler/settings.py template file or hcicrawler/settings.py"
+    print "crawler/hcicrawler/settings.py.template", "crawler/hcicrawler/settings.py"
+    print e
+    exit()
+
+# Render the scrapy cfg from template with  scrapy config from config.json
+print "Rendering scrapy.cfg with scrapy config values from config.json..."
 try :
     with nested(open("scrapy-template.cfg", "r"), open("scrapy.cfg", "w")) as (template, generated):
         generated.write(pystache.render(template.read(), config['scrapyd']))
