@@ -17,7 +17,7 @@ def myprint(dico, indent=0):
 	for k,v in dico.iteritems():
 		print "\t"*indent, k
 		myprint(v, indent+1)
-		
+
 
 def add_page(tree, page):
 	lru = page
@@ -38,7 +38,7 @@ def add_page(tree, page):
 				stem = Stem(stem, False)
 				current[stem] = {}
 			current = current[stem]
-				
+
 def flatten(dico, prefix="http"):
 	for k, v in dico.iteritems():
 		if k.page:
@@ -68,10 +68,10 @@ lrus = [
 
 for lru in lrus	:
 	add_page(tree, lru)
-			
+
 g = flatten(tree)
 for e in g : 
-    print e 
-    
+	print e
+
 for e in children(tree,"fr|google") :
-    print e
+	print e
