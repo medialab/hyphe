@@ -57,7 +57,7 @@ class PagesCrawler(BaseSpider):
         depth = response.meta['depth']
         lrulinks = []
         # handle redirects
-        if response.status > 300 and response.status < 400:
+        if 300 < response.status < 400:
             links = [{'url': response.headers['Location']}]
             response.meta['depth'] -= 1
         else:
