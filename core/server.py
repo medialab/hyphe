@@ -81,7 +81,7 @@ class Core(jsonrpc.JSONRPC):
         """Tells scrapy to run crawl on a webentity defined by its id from memory structure."""
         mem_struct_conn = getThriftConn()
         WE = yield mem_struct_conn.addCallback(self.store.get_webentity_with_pages_and_subWEs, webentity_id)
-        defer.returnValue(self.crawler.jsonrpc_start(WE['pages'], WE['lrus'], WE['subWEs']))
+        defer.returnValue(self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs']))
 
     def jsonrpc_refreshjobs(self):
         """Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks."""
@@ -140,11 +140,11 @@ class Crawler(jsonrpc.JSONRPC):
         except Exception as e:
             return {'code': 'fail', 'message': e}
 
-    def jsonrpc_starturls(self, starts, follow_prefixes, nofollow_prefixes, discover_prefixes, maxdepth=config['scrapyd']['maxdepth'], download_delay=config['scrapyd']['download_delay'], corpus=''):
+    def jsonrpc_starturls(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes, maxdepth=config['scrapyd']['maxdepth'], download_delay=config['scrapyd']['download_delay'], corpus=''):
         """Starts a crawl with Scrappy from arguments using only urls."""
-        return self.jsonrpc_start(starts, convert_urls_to_lrus_array(follow_prefixes), convert_urls_to_lrus_array(nofollow_prefixes), convert_urls_to_lrus_array(discover_prefixes), maxdepth, download_delay, corpus)
+        return self.jsonrpc_start(webentity_id, starts, convert_urls_to_lrus_array(follow_prefixes), convert_urls_to_lrus_array(nofollow_prefixes), convert_urls_to_lrus_array(discover_prefixes), maxdepth, download_delay, corpus)
 
-    def jsonrpc_start(self, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth=config['scrapyd']['maxdepth'], download_delay=config['scrapyd']['download_delay'], corpus=''):
+    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth=config['scrapyd']['maxdepth'], download_delay=config['scrapyd']['download_delay'], corpus=''):
         """Starts a crawl with scrapy from arguments using a list of urls and of lrus for prefixes."""
         # Choose random user agent for each crawl
         agents = ["Mozilla/2.0 (compatible; MSIE 3.0B; Win32)","Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9b5) Gecko/2008032619 Firefox/3.0b5","Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; bgft)","Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; iOpus-I-M)","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.2.153.1 Safari/525.19","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.2.153.1 Safari/525.19"]
@@ -164,7 +164,7 @@ class Crawler(jsonrpc.JSONRPC):
         res = res['result']
         if 'jobid' in res:
             ts = time.time()
-            self.db[config['mongoDB']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts, 'log': [jobslog("CRAWL_ADDED", ts)]}}, upsert=True)
+            self.db[config['mongoDB']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'webentity_id': webentity_id, 'nb_pages': 0, 'nb_links': 0, 'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts, 'log': [jobslog("CRAWL_ADDED", ts)]}}, upsert=True)
         return res
 
     def jsonrpc_cancel(self, job_id):
@@ -286,12 +286,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
             print "... "+str(nb_pages)+" pages indexed in "+str(time.time()-s)+" ..."
             s=time.time()
             yield client.saveNodeLinks([NodeLink("id",source,target,weight) for (source,target),weight in links.iteritems()])
-            print "... "+str(len(links))+" links indexed in "+str(time.time()-s)+" ..."
+            nb_links = len(links)
+            print "... "+str(nb_links)+" links indexed in "+str(time.time()-s)+" ..."
             s=time.time()
-            yield client.createWebEntities(cache_id)
-            print "... web entities created in "+str(time.time()-s)
+            n_WE = yield client.createWebEntities(cache_id)
+            print "... %s web entities created in %s" % (n_WE, str(time.time()-s))
             self.db[config['mongoDB']['queueCol']].remove({'_id': {'$in': ids}}, safe=True)
-            self.db[config['mongoDB']['jobListCol']].find_and_modify({'_id': jobid}, update={'$set': {'indexing_status': indexing_statuses.BATCH_FINISHED}, '$push': {'log': jobslog("INDEX_"+indexing_statuses.BATCH_FINISHED)}})
+            self.db[config['mongoDB']['jobListCol']].find_and_modify({'_id': jobid}, update={'$inc': {'nb_pages': nb_pages, 'nb_links': nb_links}, '$set': {'indexing_status': indexing_statuses.BATCH_FINISHED}, '$push': {'log': jobslog("INDEX_"+indexing_statuses.BATCH_FINISHED)}})
 
     def find_next_index_batch(self):
         job = None
@@ -307,7 +308,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         job = self.find_next_index_batch()
         if job:
             print "Indexing : "+job['_id']
-            page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']})
+            page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']}, limit=100)
             if page_items.count() > 0:
                 conn = ClientCreator(reactor, TTwisted.ThriftClientProtocol, ms.Client, TBinaryProtocol.TBinaryProtocolFactory()).connectTCP(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port'])
                 yield conn.addCallback(self.index_batch, page_items, job['_id']).addErrback(self.handle_index_error)
