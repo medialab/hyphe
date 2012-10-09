@@ -188,7 +188,7 @@ i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:Object
  /**
   * @param 1 cacheId : id of the cache
   */
- void createWebEntities(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+i32 createWebEntities(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
  // delete_page_cache
  /**

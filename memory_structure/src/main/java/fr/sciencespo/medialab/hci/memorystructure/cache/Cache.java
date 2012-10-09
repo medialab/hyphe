@@ -294,6 +294,46 @@ public class Cache {
         }
         return mostSpecificWECRPrefix;
     }
+
+    /**
+     * Creates web entities for the pages in the cache.
+     *
+     * @return number of new web entities
+     * @throws MemoryStructureException hmm
+     * @throws IndexException hmm
+     */
+    public int createWebEntitiesNew() throws MemoryStructureException, IndexException {
+        logger.debug("createWebEntities");
+        int createdWebEntitiesCount = 0;
+        WebEntityCreationRule defaultRule = lruIndex.retrieveDefaultWECR();
+        Set<WebEntityCreationRule> webEntityCreationRules = lruIndex.retrieveWebEntityCreationRules();
+        Set<String> pageLRUs = this.pageItems.keySet();
+        logger.debug("cache contains # " + pageLRUs.size() + " pages");
+        for(String pageLRU : pageLRUs) {
+            if(logger.isDebugEnabled()) {
+                logger.debug("createWebEntities for page " + pageLRU);
+            }
+            WebEntity webEntityDefault = applyWebEntityCreationRule(defaultRule, this.pageItems.get(pageLRU));
+            Set<String> LRUPrefixesCandidates = new HashSet<String>();
+            List<String> LRUList = (List<String>) webEntityDefault.getLRUSet();
+            LRUPrefixesCandidates.add(LRUList.get(0));
+            for(WebEntityCreationRule wecr : webEntityCreationRules) {
+                String ruleLRUPrefix = wecr.getLRU();
+                if (pageLRU.startsWith(ruleLRUPrefix)) {
+                    LRUPrefixesCandidates.add(ruleLRUPrefix);
+                }
+            }
+            List<String> LRUPrefixCandidate = (List<String>) CollectionUtils.findLongestString(LRUPrefixesCandidates);
+            Set<WebEntity> WEcandidates = lruIndex.retrieveWebEntitiesByLRUPrefix(LRUPrefixCandidate.get(0));
+            if (WEcandidates == null && WEcandidates.size() == 0) {
+                createdWebEntitiesCount++;
+                logger.debug("indexing new webentity");
+                // store new webentity in index
+                lruIndex.indexWebEntity(webEntityDefault);
+            }
+        }
+        return createdWebEntitiesCount;
+    }
     
     /**
      * Creates web entities for the pages in the cache.
@@ -322,7 +362,6 @@ public class Cache {
 
             // apply default rule if no other rule matches
             if(mostSpecificWEPrefix.length() == 0 && mostSpecificWECRPrefix.length() == 0) {
-                long l4 = System.currentTimeMillis();
                 logger.debug("did not find match from either WE or WECR: using default WECR");
                 WebEntityCreationRule defaultRule = lruIndex.retrieveDefaultWECR();
                 WebEntity webEntity = applyWebEntityCreationRule(defaultRule, this.pageItems.get(pageLRU));

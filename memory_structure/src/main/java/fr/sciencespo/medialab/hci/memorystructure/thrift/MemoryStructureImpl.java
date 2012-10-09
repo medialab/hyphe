@@ -625,9 +625,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @throws MemoryStructureException
      * @throws ObjectNotFoundException
      * @throws TException
+     * @return Number of webentities created
      */
     @Override
-    public void createWebEntities(String cacheId) throws MemoryStructureException, ObjectNotFoundException, TException {
+    public int createWebEntities(String cacheId) throws MemoryStructureException, ObjectNotFoundException, TException {
+        int newWebEntitiesCount = 0;
         try {
             if(logger.isDebugEnabled()) {
                 logger.debug("createWebEntities with cache id: " + cacheId);
@@ -635,7 +637,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             // obtain cache from cachemap
             CacheMap cacheMap = CacheMap.getInstance();
             Cache cache = cacheMap.get(cacheId);
-            int newWebEntitiesCount = cache.createWebEntities();
+            newWebEntitiesCount = cache.createWebEntitiesNew();
             if(logger.isDebugEnabled()) {
                 logger.debug("# new web entities: " + newWebEntitiesCount);
             }
@@ -645,6 +647,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
         }
+        return newWebEntitiesCount;
     }
 
     /**
