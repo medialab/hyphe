@@ -326,7 +326,7 @@ public class LuceneQueryFactory {
     	Term prefixTerm = new Term(field, value);
     	// prefix query
         if(value.endsWith("*")) {
-           return new PrefixQuery(prefixTerm);
+            return new PrefixQuery(new Term(field, value.substring(0, value.length() - 1)));
         }
         // wildcard query
         if(value.contains("*") || value.contains("?")) {
