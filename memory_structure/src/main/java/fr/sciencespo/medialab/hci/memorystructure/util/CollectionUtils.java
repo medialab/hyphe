@@ -13,7 +13,7 @@ public class CollectionUtils {
     private static DynamicLogger logger = new DynamicLogger(CollectionUtils.class);
     /**
      * Returns a set of the longest strings in a set. If the input is empty, returns a set containing the empty string.
-     *
+     * TODO the longest token not string lenght
      * @param strings strings
      * @return the longest string(s)
      */

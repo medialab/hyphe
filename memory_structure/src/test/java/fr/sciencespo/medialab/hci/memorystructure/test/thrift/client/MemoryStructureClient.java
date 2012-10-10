@@ -1,4 +1,4 @@
-package fr.sciencespo.medialab.hci.memorystructure.thrift.client;
+package fr.sciencespo.medialab.hci.memorystructure.test.thrift.client;
 
 import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructure;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
@@ -10,7 +10,10 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.json.JSONException;
+
+import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -33,6 +36,7 @@ public class MemoryStructureClient {
             JSONObject properties = json.getJSONObject("memoryStructure");
             String[] propertyNames = JSONObject.getNames(properties);
             logger.info("properties file found");
+            HashMap propertiesMap = new HashMap();
             for(String key : propertyNames) {
                 propertiesMap.put(key, properties.getString(key)); 
             }
@@ -44,7 +48,7 @@ public class MemoryStructureClient {
             logger.info("no config.json file found, using default localhost:9090");
             x.printStackTrace();
             server = "localhost";
-            port = 9090
+            port = 9090;
         }
         try {
             /* Code example to connect through thrift to the memory structure

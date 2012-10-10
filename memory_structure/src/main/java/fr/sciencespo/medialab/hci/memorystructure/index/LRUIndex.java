@@ -56,11 +56,9 @@ import java.util.regex.Pattern;
 public class LRUIndex {
 
     private static DynamicLogger logger = new DynamicLogger(LRUIndex.class);
-
-    //
+    
     // Lucene settings
     //
-
     private static final Version LUCENE_VERSION = Version.LUCENE_35;
 
     // CREATE - creates a new index or overwrites an existing one.
@@ -256,7 +254,7 @@ public class LRUIndex {
                 continue;
             }
             Set<String> existingLRUs = webEntity.getLRUSet();
-            Set intersection = new HashSet(lrus);
+            Set<String> intersection = new HashSet<String>(lrus);
             intersection.retainAll(existingLRUs);
             result.addAll(intersection);
         }
@@ -279,15 +277,15 @@ public class LRUIndex {
       */
      public String indexWebEntity(WebEntity webEntity) throws IndexException{
          logger.debug("indexWebEntity");
-         //
+         
          // validation
-         //
          if(webEntity == null) {
              throw new IndexException("WebEntity is null");
          }
          if(CollectionUtils.isEmpty(webEntity.getLRUSet())) {
              throw new IndexException("WebEntity has empty lru set");
          }
+         
          // Ensure a webEntity lruprefix is unique in the web entity index
          Set<String> existing = alreadyExistingWebEntityLRUs(webEntity.getId(), webEntity.getLRUSet());
          if(existing.size() > 0) {
@@ -479,7 +477,7 @@ public class LRUIndex {
             boolean update = false;
             WebEntityCreationRule existing = null;
             TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
-            Query q = LuceneQueryFactory.getWebEntityCreationRuleByPrefixQuery(webEntityCreationRule.getLRU());
+            Query q = LuceneQueryFactory.getWebEntityCreationRuleByLRUQuery(webEntityCreationRule.getLRU());
             indexSearcher.search(q, collector);
 
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
@@ -690,8 +688,7 @@ public class LRUIndex {
         try {
 
             List<String> results = new ArrayList<String>();
-            Term term = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.PRECISION_EXCEPTION.name());
-            TermDocs termDocs = this.indexReader.termDocs(term);
+            TermDocs termDocs = this.indexReader.termDocs(LuceneQueryFactory.typeEqualPrecisionException);
             while(termDocs.next()) {
                 Document precisionExceptionDoc = indexReader.document(termDocs.doc());
                 String precisionExceptionFound = precisionExceptionDoc.get(IndexConfiguration.FieldName.LRU.name());
@@ -721,8 +718,8 @@ public class LRUIndex {
         logger.debug("retrieving precisionexceptions");
         try {
             List<String> results = new ArrayList<String>();
-            Term term = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.PRECISION_EXCEPTION.name());
-            TermDocs termDocs = this.indexReader.termDocs(term);
+            Query q = LuceneQueryFactory.getPrecisionExceptionsQuery();
+            TermDocs termDocs = this.indexReader.termDocs(LuceneQueryFactory.typeEqualPrecisionException);
             while(termDocs.next()) {
                 Document precisionExceptionDoc = indexReader.document(termDocs.doc());
                 String precisionExceptionFound = precisionExceptionDoc.get(IndexConfiguration.FieldName.LRU.name());
@@ -844,7 +841,7 @@ public class LRUIndex {
         try {
             NodeLink result = null;
             TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
-            Query q = LuceneQueryFactory.getNodeLinkQuery(nodeLink);
+            Query q = LuceneQueryFactory.getNodeLinkBySourceAndTargetQuery(nodeLink.getSourceLRU(), nodeLink.getTargetLRU());
             indexSearcher.search(q, collector);
 
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
@@ -915,7 +912,7 @@ public class LRUIndex {
        logger.debug("retrieveWebEntityLinks");
        try {
             Set<WebEntityLink> result = new HashSet<WebEntityLink>();
-            Query q = LuceneQueryFactory.getAllWEntityLinksQuery();
+            Query q = LuceneQueryFactory.getWebEntityLinksQuery();
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
                     WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocument2WebEntityLink(hit);
@@ -972,7 +969,7 @@ public class LRUIndex {
         logger.debug("retrieveWebEntityCreationRules");
         try {
             Set<WebEntityCreationRule> result = new HashSet<WebEntityCreationRule>();
-            Query q = LuceneQueryFactory.getWebEntityCreationRuleQuery();
+            Query q = LuceneQueryFactory.getWebEntityCreationRulesQuery();
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
                     WebEntityCreationRule webEntityCreationRule = IndexConfiguration.convertLuceneDocument2WebEntityCreationRule(hit);
@@ -989,7 +986,7 @@ public class LRUIndex {
             throw new IndexException(x.getMessage(), x);
         }
     }
-
+    
     /**
      * Retrieves the default Web Entity Creation Rule.
      *
@@ -1001,7 +998,7 @@ public class LRUIndex {
         try {
             WebEntityCreationRule result = null;
             TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
-            Query q = LuceneQueryFactory.getDefaultWECRQuery();
+            Query q = LuceneQueryFactory.getDefaultWebEntityCreationRuleQuery();
             indexSearcher.search(q, collector);
 
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
@@ -1155,7 +1152,7 @@ public class LRUIndex {
                 logger.warn("attempted to retrieve web entity links with null source id");
                 return results;
             }
-            Query q = LuceneQueryFactory.getWebEntityLinksBySourceId(id);
+            Query q = LuceneQueryFactory.getWebEntityLinksBySourceQuery(id);
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
                 WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocument2WebEntityLink(hit);
@@ -1189,7 +1186,7 @@ public class LRUIndex {
                 logger.warn("attempted to retrieve web entity links with null target id");
                 return results;
             }
-            Query q = LuceneQueryFactory.getWebEntityLinksByTargetId(id);
+            Query q = LuceneQueryFactory.getWebEntityLinksByTargetQuery(id);
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
                 WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocument2WebEntityLink(hit);
@@ -1311,7 +1308,7 @@ public class LRUIndex {
             logger.debug("deleting webEntityCreationRule with LRU " + webEntityCreationRule.getLRU());
         }
         try {
-            Query q = LuceneQueryFactory.getWebEntityCreationRuleByPrefixQuery(webEntityCreationRule.getLRU());
+            Query q = LuceneQueryFactory.getWebEntityCreationRuleByLRUQuery(webEntityCreationRule.getLRU());
             this.indexWriter.deleteDocuments(q);
             this.indexWriter.commit();
             IndexReader maybeChanged = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
@@ -1343,7 +1340,7 @@ public class LRUIndex {
             logger.debug("deleting nodeLink with source " + nodeLink.getSourceLRU() + " and target " + nodeLink.getTargetLRU());
         }
         try {
-            Query q = LuceneQueryFactory.getNodeLinkQuery(nodeLink);
+            Query q = LuceneQueryFactory.getNodeLinkBySourceAndTargetQuery(nodeLink.getSourceLRU(), nodeLink.getTargetLRU());
             this.indexWriter.deleteDocuments(q);
             //xx this.indexWriter.commit();
             IndexReader maybeChanged = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
@@ -1377,6 +1374,7 @@ public class LRUIndex {
         logger.debug("findMatchingWebEntityLRUPrefixes");
         Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
         if(!StringUtils.isEmpty(lru)) {
+        	// lucene search webentities where 
             Set<WebEntity> allWebEntities = retrieveWebEntities();
             matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities, MatchMode.LRUPREFIX));
         }
@@ -1415,7 +1413,9 @@ public class LRUIndex {
                     Matcher matcher = pattern.matcher(lru);
                     // it's  a match
                     if(matcher.find()) {
-                        logger.debug("found match for lru " + lru + " and regexp " + escapedPrefix);
+                    	if(logger.isDebugEnabled()) {
+                    		logger.debug("found match for lru " + lru + " and regexp " + escapedPrefix);
+                    	}
                         Set<WebEntity> webEntitiesWithPrefix = matches.get(lruPrefix);
                         if(webEntitiesWithPrefix == null) {
                             webEntitiesWithPrefix = new HashSet<WebEntity>();
@@ -1525,7 +1525,7 @@ public class LRUIndex {
         logger.debug("retrievePageItems");
         try {
             List<PageItem> results = new ArrayList<PageItem>();
-            Query q = LuceneQueryFactory.getPageItemQuery();
+            Query q = LuceneQueryFactory.getPageItemsQuery();
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
                 PageItem page = IndexConfiguration.convertLuceneDocument2PageItem(hit);
@@ -1860,7 +1860,7 @@ public class LRUIndex {
                 //
                 WebEntityLink webEntityLink = null;
                 TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
-                Query q = LuceneQueryFactory.getWebEntityLinkBySourceAndTargetQuery(sourceWE, targetWE);
+                Query q = LuceneQueryFactory.getWebEntityLinkBySourceAndTargetQuery(sourceWE.getId(), targetWE.getId());
                 indexSearcher.search(q, collector);
                 ScoreDoc[] hits = collector.topDocs().scoreDocs;
                 if(hits != null && hits.length > 0) {

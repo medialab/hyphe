@@ -110,6 +110,12 @@ class Core(jsonrpc.JSONRPC):
         res = yield mem_struct_conn.addCallback(self.store.add_pages, list_urls).addErrback(self.store.handle_error)
         defer.returnValue(res)
 
+    @inlineCallbacks
+    def jsonrpc_index_pages(self, list_urls_pages, corpus=''):
+        list_urls = list_urls_pages.split(',')
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.store.index_pages, list_urls).addErrback(self.store.handle_error)
+        defer.returnValue(res)
 
 class Crawler(jsonrpc.JSONRPC):
 
@@ -245,6 +251,22 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 msg = "ERROR adding %s: %s" % (url, e)
             res.append(msg)
         defer.returnValue(self.handle_results(res))
+
+    @inlineCallbacks
+    def index_pages(self, conn, list_urls):
+        client = conn.client
+        pages = []
+        for url in list_urls:
+            l = lru.url_to_lru_clean(url)
+            #urllib.urlopen(url)
+            pages.append(PageItem(lru=l))
+            
+        cache_id = yield client.createCache(pages)
+        print "Indexing pages, links and webentities from cache "+cache_id+" ..."
+        nb_pages = yield client.indexCache(cache_id)
+        n_WE = yield client.createWebEntities(cache_id)
+        print "... "+str(n_WE)+" webentity created  ..."
+        defer.returnValue(self.handle_results(nb_pages))
 
     @inlineCallbacks
     def rename_webentity(self, conn, webentity_id, new_name):

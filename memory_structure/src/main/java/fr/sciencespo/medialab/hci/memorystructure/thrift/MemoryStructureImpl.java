@@ -3,8 +3,6 @@ package fr.sciencespo.medialab.hci.memorystructure.thrift;
 import fr.sciencespo.medialab.hci.memorystructure.cache.Cache;
 import fr.sciencespo.medialab.hci.memorystructure.cache.CacheMap;
 import fr.sciencespo.medialab.hci.memorystructure.cache.MaxCacheSizeException;
-import fr.sciencespo.medialab.hci.memorystructure.gexf.GEXFWriter;
-import fr.sciencespo.medialab.hci.memorystructure.gexf.GEXFWriterException;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
@@ -89,7 +87,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
-     * Creates a WebEntity.
+     * Creates an index a WebEntity.
      *
      * @param name name of web entity
      * @param lruSet lrus for this web entity
@@ -412,27 +410,6 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
-     * Retrieves representation of whole WebEntity network in gexf.
-     *
-     * @param format must be 'gexf'
-     * @throws TException hmm
-     * @throws MemoryStructureException hmm
-     */
-    @Override
-    public String getWebEntityNetwork(String format) throws TException, MemoryStructureException {
-        logger.debug("getWebEntityNetwork");
-        if(StringUtils.isNotEmpty(format) && !format.equals("gexf")) {
-            throw new MemoryStructureException().setMsg("Unsupported requested WebEntityNetwork format: " + format + ". This program supports only gexf.");
-        }
-        try {
-            return GEXFWriter.writeGEXF();
-        }
-        catch (GEXFWriterException x) {
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), GEXFWriterException.class.getName());
-        }
-    }
-
-    /**
      * Retrieves representation of a WebEntity and its neighboors (at a given distance) in gexf.
      *
      * @param webEntityId web entity id
@@ -631,16 +608,15 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     public int createWebEntities(String cacheId) throws MemoryStructureException, ObjectNotFoundException, TException {
         int newWebEntitiesCount = 0;
         try {
-            if(logger.isDebugEnabled()) {
-                logger.debug("createWebEntities with cache id: " + cacheId);
-            }
+                logger.info("createWebEntities with cache id: " + cacheId);
+            
             // obtain cache from cachemap
             CacheMap cacheMap = CacheMap.getInstance();
             Cache cache = cacheMap.get(cacheId);
-            newWebEntitiesCount = cache.createWebEntities();
-            if(logger.isDebugEnabled()) {
-                logger.debug("# new web entities: " + newWebEntitiesCount);
-            }
+            newWebEntitiesCount = cache.createWebEntitiesNew();
+            //if(logger.isDebugEnabled()) {
+                logger.info("# new web entities: " + newWebEntitiesCount);
+            //}
         }
         catch (IndexException x) {
             logger.error(x.getMessage());

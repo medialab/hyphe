@@ -1,7 +1,15 @@
-package fr.sciencespo.medialab.hci.memorystructure.thrift;
+package fr.sciencespo.medialab.hci.memorystructure.test.thrift;
 
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexConfiguration;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureException;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureImpl;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import junit.framework.Assert;
 import junit.framework.TestCase;

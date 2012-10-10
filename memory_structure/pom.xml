@@ -27,15 +27,6 @@
         <version>11.0.1</version>
     </dependency>
 
-    <!-- gexf4j is not in a maven repository -->
-    <dependency>
-        <groupId>gexf4j</groupId>
-        <artifactId>gexf4j</artifactId>
-        <version>0.2.0-ALPHA</version>
-        <scope>system</scope>
-        <systemPath>${project.basedir}/src/lib/gexf4j-core-0.2.0-ALPHA.jar</systemPath>
-    </dependency>
-
     <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>

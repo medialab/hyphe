@@ -1,4 +1,4 @@
-package fr.sciencespo.medialab.hci.util;
+package fr.sciencespo.medialab.hci.memorystructure.test.util;
 
 import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import org.apache.commons.lang.RandomStringUtils;

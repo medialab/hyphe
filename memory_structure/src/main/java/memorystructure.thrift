@@ -187,9 +187,8 @@ i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:Object
 
  /**
   * @param 1 cacheId : id of the cache
-  * @return number of webentities created
   */
- i32 createWebEntities(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+i32 createWebEntities(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
  // delete_page_cache
  /**
@@ -246,13 +245,6 @@ void saveNodeLinks(1:list<NodeLink> nodeLinks) throws (1:MemoryStructureExceptio
  * @param 2 lru : the lru to add
 **/
 void addAliastoWebEntity(1:string id, 2:string lru) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
-
-// gefx network
-/**
- * @param 1 format: must be 'gefx'
- * @return gefx graph
- */
-string getWebEntityNetwork(1:string format) throws (1:MemoryStructureException me),
 
 // gefx egonetwork
 /**
