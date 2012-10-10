@@ -5,7 +5,12 @@ package fr.sciencespo.medialab.hci.memorystructure.cache;
  */
 public class MaxCacheSizeException extends Exception {
 
-    public MaxCacheSizeException() {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -5200167524495905973L;
+
+	public MaxCacheSizeException() {
     }
 
     public MaxCacheSizeException(String message) {

@@ -1,5 +1,7 @@
-package fr.sciencespo.medialab.hci.memorystructure.cache;
+package fr.sciencespo.medialab.hci.memorystructure.test.cache;
 
+import fr.sciencespo.medialab.hci.memorystructure.cache.Cache;
+import fr.sciencespo.medialab.hci.memorystructure.cache.MaxCacheSizeException;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexConfiguration;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;

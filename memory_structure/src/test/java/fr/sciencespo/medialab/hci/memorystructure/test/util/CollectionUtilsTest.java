@@ -1,4 +1,4 @@
-package fr.sciencespo.medialab.hci.memorystructure.util;
+package fr.sciencespo.medialab.hci.memorystructure.test.util;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -6,6 +6,9 @@ import junit.framework.TestSuite;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import fr.sciencespo.medialab.hci.memorystructure.util.CollectionUtils;
+import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 
 /**
  * Test CollectionUtils.

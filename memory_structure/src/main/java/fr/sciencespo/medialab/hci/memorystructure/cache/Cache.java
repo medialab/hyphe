@@ -9,8 +9,8 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.util.CollectionUtils;
-import fr.sciencespo.medialab.hci.memorystructure.util.StringUtil;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
+import fr.sciencespo.medialab.hci.memorystructure.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -31,8 +31,8 @@ import java.util.regex.Pattern;
  * @author heikki doeleman
  */
 public class Cache {
-
-    private static DynamicLogger logger = new DynamicLogger(Cache.class);
+	
+	private static DynamicLogger logger = new DynamicLogger(Cache.class);
 
     // TODO make configurable
     private final int MAX_CACHE_SIZE = Integer.MAX_VALUE;
@@ -114,7 +114,7 @@ public class Cache {
      * @param lru to revert
      * @return url
      */
-    protected String revertLRU(String lru) {
+    public String revertLRU(String lru) {
         if(lru == null) {
             return null;
         }
@@ -201,7 +201,7 @@ public class Cache {
      * @param page page
      * @return created web entity or null
      */
-    protected WebEntity applyWebEntityCreationRule(WebEntityCreationRule rule, PageItem page) {
+    public WebEntity applyWebEntityCreationRule(WebEntityCreationRule rule, PageItem page) {
         if(rule == null || page == null) {
             return null;
         }
@@ -303,7 +303,7 @@ public class Cache {
      * @throws IndexException hmm
      */
     public int createWebEntitiesNew() throws MemoryStructureException, IndexException {
-        logger.debug("createWebEntities");
+        logger.debug("createWebEntitiesNew");
         int createdWebEntitiesCount = 0;
         WebEntityCreationRule defaultRule = lruIndex.retrieveDefaultWECR();
         Set<WebEntityCreationRule> webEntityCreationRules = lruIndex.retrieveWebEntityCreationRules();
@@ -315,16 +315,14 @@ public class Cache {
             }
             WebEntity webEntityDefault = applyWebEntityCreationRule(defaultRule, this.pageItems.get(pageLRU));
             Set<String> LRUPrefixesCandidates = new HashSet<String>();
-            List<String> LRUList = (List<String>) webEntityDefault.getLRUSet();
-            LRUPrefixesCandidates.add(LRUList.get(0));
+            LRUPrefixesCandidates.add((String)(webEntityDefault.getLRUSet().toArray())[0]);
             for(WebEntityCreationRule wecr : webEntityCreationRules) {
                 String ruleLRUPrefix = wecr.getLRU();
                 if (pageLRU.startsWith(ruleLRUPrefix)) {
                     LRUPrefixesCandidates.add(ruleLRUPrefix);
                 }
             }
-            List<String> LRUPrefixCandidate = (List<String>) CollectionUtils.findLongestString(LRUPrefixesCandidates);
-            Set<WebEntity> WEcandidates = lruIndex.retrieveWebEntitiesByLRUPrefix(LRUPrefixCandidate.get(0));
+            Set<WebEntity> WEcandidates = lruIndex.retrieveWebEntitiesByLRUPrefix((String)(CollectionUtils.findLongestString(LRUPrefixesCandidates)).toArray()[0]);
             if (WEcandidates == null && WEcandidates.size() == 0) {
                 createdWebEntitiesCount++;
                 logger.debug("indexing new webentity");

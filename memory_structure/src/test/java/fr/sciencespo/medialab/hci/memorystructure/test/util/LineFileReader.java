@@ -1,4 +1,4 @@
-package fr.sciencespo.medialab.hci.util;
+package fr.sciencespo.medialab.hci.memorystructure.test.util;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

@@ -16,10 +16,11 @@ ITEM_PIPELINES = [
 DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
 REDIRECT_ENABLED = False
 
-MONGO_HOST = 'localhost'
-MONGO_DB = 'hci'
-MONGO_QUEUE_COL = 'crawler.queue'
-MONGO_PAGESTORE_COL = 'crawler.pages'
+MONGO_HOST = '{{host}}'
+MONGO_PORT = {{port}}
+MONGO_DB = '{{db}}'
+MONGO_QUEUE_COL = '{{queueCol}}'
+MONGO_PAGESTORE_COL = '{{pageStoreCol}}'
 
 if 'SCRAPY_JOB' in os.environ:
     JOBID = os.environ['SCRAPY_JOB']

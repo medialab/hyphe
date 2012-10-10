@@ -1,6 +1,6 @@
-package fr.sciencespo.medialab.hci.memorystructure.index;
+package fr.sciencespo.medialab.hci.memorystructure.test.index;
 
-import fr.sciencespo.medialab.hci.util.RandomLRUGenerator;
+import fr.sciencespo.medialab.hci.memorystructure.test.util.RandomLRUGenerator;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;

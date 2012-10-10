@@ -6,6 +6,7 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -25,6 +26,12 @@ public class IndexConfiguration {
 
     /**
      * Names of fields in the index. Not every doc needs to have all of these fields.
+     * TODO : shorter fieldname
+     * CRAWLERTIMESTAMP : CRAWLTS
+     * ERRORCODE : ERROR
+     * HTTPSTATUSCODE : HTTPSTATUS
+     * CREATIONDATE : DATECREA
+     * LASTMODIFICATIONDATE : DATEMODIF
      */
     enum FieldName {
         ID,

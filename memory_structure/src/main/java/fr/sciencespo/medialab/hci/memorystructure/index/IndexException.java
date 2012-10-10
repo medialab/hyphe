@@ -4,7 +4,13 @@ package fr.sciencespo.medialab.hci.memorystructure.index;
  * @author heikki doeleman
  */
 public class IndexException extends Exception {
-    public IndexException() {
+	
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -200951043795227203L;
+
+	public IndexException() {
     }
 
     public IndexException(String message) {

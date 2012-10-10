@@ -3,8 +3,6 @@ package fr.sciencespo.medialab.hci.memorystructure.thrift;
 import fr.sciencespo.medialab.hci.memorystructure.cache.Cache;
 import fr.sciencespo.medialab.hci.memorystructure.cache.CacheMap;
 import fr.sciencespo.medialab.hci.memorystructure.cache.MaxCacheSizeException;
-import fr.sciencespo.medialab.hci.memorystructure.gexf.GEXFWriter;
-import fr.sciencespo.medialab.hci.memorystructure.gexf.GEXFWriterException;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
@@ -89,7 +87,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
-     * Creates a WebEntity.
+     * Creates an index a WebEntity.
      *
      * @param name name of web entity
      * @param lruSet lrus for this web entity
@@ -408,27 +406,6 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-    }
-
-    /**
-     * Retrieves representation of whole WebEntity network in gexf.
-     *
-     * @param format must be 'gexf'
-     * @throws TException hmm
-     * @throws MemoryStructureException hmm
-     */
-    @Override
-    public String getWebEntityNetwork(String format) throws TException, MemoryStructureException {
-        logger.debug("getWebEntityNetwork");
-        if(StringUtils.isNotEmpty(format) && !format.equals("gexf")) {
-            throw new MemoryStructureException().setMsg("Unsupported requested WebEntityNetwork format: " + format + ". This program supports only gexf.");
-        }
-        try {
-            return GEXFWriter.writeGEXF();
-        }
-        catch (GEXFWriterException x) {
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), GEXFWriterException.class.getName());
         }
     }
 

@@ -1,7 +1,11 @@
-package fr.sciencespo.medialab.hci.memorystructure.index;
+package fr.sciencespo.medialab.hci.memorystructure.test.index;
 
 import fr.sciencespo.medialab.hci.memorystructure.cache.Cache;
 import fr.sciencespo.medialab.hci.memorystructure.cache.MaxCacheSizeException;
+import fr.sciencespo.medialab.hci.memorystructure.index.IndexConfiguration;
+import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
+import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
+import fr.sciencespo.medialab.hci.memorystructure.test.util.LineFileReader;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException;
@@ -10,7 +14,6 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
-import fr.sciencespo.medialab.hci.util.LineFileReader;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
