@@ -62,6 +62,9 @@ class Core(jsonrpc.JSONRPC):
     def __init__(self):
         jsonrpc.JSONRPC.__init__(self)
         self.db = pymongo.Connection(config['mongoDB']['host'],config['mongoDB']['port'])[config['mongoDB']['db']]
+        self.db[config['mongoDB']['queueCol']].ensure_index([('timestamp', pymongo.ASCENDING)], background=True)
+        self.db[config['mongoDB']['queueCol']].ensure_index([('_job', pymongo.ASCENDING), ('lru', pymongo.ASCENDING), ('timestamp', pymongo.DESCENDING)], background=True)
+        self.db[config['mongoDB']['jobListCol']].ensure_index([('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], background=True)
         self.crawler = Crawler(self.db)
         self.store = Memory_Structure(self.db)
 
@@ -240,7 +243,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         for url in list_urls:
             l = lru.url_to_lru_clean(url)
             try:
-                #urllib.urlopen(url)
                 page = PageItem(lru=l)
                 yield client.savePageItems([page])
                 we = yield client.createWebEntity(lru.lru_to_url_short(l), [l])
@@ -330,7 +332,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         job = self.find_next_index_batch()
         if job:
             print "Indexing : "+job['_id']
-            page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']}, limit=100)
+            page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']}, limit=200, sort=[('lru', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])
             if page_items.count() > 0:
                 conn = ClientCreator(reactor, TTwisted.ThriftClientProtocol, ms.Client, TBinaryProtocol.TBinaryProtocolFactory()).connectTCP(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port'])
                 yield conn.addCallback(self.index_batch, page_items, job['_id']).addErrback(self.handle_index_error)
