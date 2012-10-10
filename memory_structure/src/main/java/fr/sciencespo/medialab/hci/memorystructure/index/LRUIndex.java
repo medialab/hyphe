@@ -56,9 +56,10 @@ import java.util.regex.Pattern;
 public class LRUIndex {
 
     private static DynamicLogger logger = new DynamicLogger(LRUIndex.class);
-    
+
     // Lucene settings
     //
+
     private static final Version LUCENE_VERSION = Version.LUCENE_35;
 
     // CREATE - creates a new index or overwrites an existing one.
@@ -264,6 +265,10 @@ public class LRUIndex {
         return result;
     }
 
+    public String indexWebEntity(WebEntity webEntity) throws IndexException{
+        return indexWebEntity(webEntity, true);
+    }
+
     /**
       * Adds or updates a WebEntity to the index. If ID is not empty, the existing WebEntity with that ID is retrieved
       * and this LRU is added to it; if no existing WebEntity with that ID is found, or if ID is empty, a new WebEntity
@@ -272,80 +277,82 @@ public class LRUIndex {
       * TODO distinguish adding to LRUs or replacing LRUS in updates
       *
       * @param webEntity the webentity to index
+      * @param checkExisting activates checking whether a webEntity with the same LRUprefix already exists
       * @throws IndexException hmm
-     * @return id of indexed webentity
+      * @return id of indexed webentity
       */
-     public String indexWebEntity(WebEntity webEntity) throws IndexException{
-         logger.debug("indexWebEntity");
-         
-         // validation
-         if(webEntity == null) {
-             throw new IndexException("WebEntity is null");
-         }
-         if(CollectionUtils.isEmpty(webEntity.getLRUSet())) {
-             throw new IndexException("WebEntity has empty lru set");
-         }
-         
-         // Ensure a webEntity lruprefix is unique in the web entity index
-         Set<String> existing = alreadyExistingWebEntityLRUs(webEntity.getId(), webEntity.getLRUSet());
-         if(existing.size() > 0) {
-             throw new IndexException("WebEntity contains already existing LRUs: " + existing);
-         }
-         try {
-             boolean updating = false;
-             String id = webEntity.getId();
+    public String indexWebEntity(WebEntity webEntity, boolean checkExisting) throws IndexException{
+        logger.debug("indexWebEntity");
+        // validation
+        if(webEntity == null) {
+            throw new IndexException("WebEntity is null");
+        }
+        if(CollectionUtils.isEmpty(webEntity.getLRUSet())) {
+            throw new IndexException("WebEntity has empty lru set");
+        }
 
-             // id has no value: create new
+        // Ensure a webEntity lruprefix is unique in the web entity index
+        if (checkExisting == true) {
+            Set<String> existing = alreadyExistingWebEntityLRUs(webEntity.getId(), webEntity.getLRUSet());
+            if(existing.size() > 0) {
+                logger.error("ERROR / WARNING : WebEntity contains already existing LRUs: " + existing);
+//              throw new IndexException("WebEntity contains already existing LRUs: " + existing);
+            }
+        }
+        try {
+            boolean updating = false;
+            String id = webEntity.getId();
+
+            // id has no value: create new
             if(StringUtils.isEmpty(id)) {
-                 if(logger.isDebugEnabled()) {
-                     logger.debug("indexing webentity with id null (new webentity will be created)");
-                 }
-             }
-             // id has a value
-             else {
-                 if(logger.isDebugEnabled()) {
-                     logger.debug("indexing webentity with id " + id);
-                 }
-                 // retrieve webEntity with that id
-                 WebEntity toUpdate = retrieveWebEntity(id);
-                 if(toUpdate != null) {
-                     logger.debug("webentity found");
-                     updating = true;
-                     // 'merge' existing webentity with the one requested for indexing: lrus may be added
-                     webEntity.getLRUSet().addAll(toUpdate.getLRUSet());
-                 }
-                 else {
-                     if(logger.isDebugEnabled()) {
-                         logger.debug("did not find webentity with id " + id + " (new webentity will be created)");
-                     }
-                     updating = false;
-                 }
+                if(logger.isDebugEnabled()) {
+                    logger.debug("indexing webentity with id null (new webentity will be created)");
+                }
+            }
+            // id has a value
+            else {
+                if(logger.isDebugEnabled()) {
+                    logger.debug("indexing webentity with id " + id);
+                }
+                // retrieve webEntity with that id
+                WebEntity toUpdate = retrieveWebEntity(id);
+                if(toUpdate != null) {
+                    logger.debug("webentity found");
+                    updating = true;
+                    // 'merge' existing webentity with the one requested for indexing: lrus may be added
+                    webEntity.getLRUSet().addAll(toUpdate.getLRUSet());
+                } else {
+                    if(logger.isDebugEnabled()) {
+                        logger.debug("did not find webentity with id " + id + " (new webentity will be created)");
+                    }
+                    updating = false;
+                }
             }
 
             if(updating) {
-                // delete old webentity before indexing
-                 if(logger.isDebugEnabled()) {
-                     logger.debug("deleting existing webentity with id " + id);
-                 }
-                 Query q = LuceneQueryFactory.getWebEntityByIdQuery(id);
-                 this.indexWriter.deleteDocuments(q);
-                 this.indexWriter.commit();
+               // delete old webentity before indexing
+                if(logger.isDebugEnabled()) {
+                    logger.debug("deleting existing webentity with id " + id);
+                }
+                Query q = LuceneQueryFactory.getWebEntityByIdQuery(id);
+                this.indexWriter.deleteDocuments(q);
+                this.indexWriter.commit();
             }
 
-             Document webEntityDocument = IndexConfiguration.WebEntityDocument(webEntity);
-             this.indexWriter.addDocument(webEntityDocument);
-             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-             //xx this.indexWriter.commit();
-             this.indexSearcher = new IndexSearcher(this.indexReader);
+            Document webEntityDocument = IndexConfiguration.WebEntityDocument(webEntity);
+            this.indexWriter.addDocument(webEntityDocument);
+            this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
+            //xx this.indexWriter.commit();
+            this.indexSearcher = new IndexSearcher(this.indexReader);
 
-             // return id of indexed webentity
-             String indexedId = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
-             if(logger.isDebugEnabled()){
-                 logger.debug("indexed webentity with id " + indexedId);
-             }
+            // return id of indexed webentity
+            String indexedId = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
+            if(logger.isDebugEnabled()){
+                logger.debug("indexed webentity with id " + indexedId);
+            }
 
-             return indexedId;
-         }
+            return indexedId;
+        }
         catch(CorruptIndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
@@ -363,9 +370,9 @@ public class LRUIndex {
      *
      * @param id
      * @param lru
-    * @throws IndexException hmm
-    * @throws ObjectNotFoundException hmm
-    * @return
+     * @throws IndexException hmm
+     * @throws ObjectNotFoundException hmm
+     * @return
      */
     public String indexWebEntity(String id, String lru) throws IndexException, ObjectNotFoundException {
         if(logger.isDebugEnabled()) {
@@ -379,13 +386,13 @@ public class LRUIndex {
             if(StringUtils.isEmpty(lru)) {
                 throw new IndexException("indexWebEntity received empty lru");
             }
-             // Ensure a webEntity lruprefix is unique in the web entity index
-             Set<String> newLRU = new HashSet<String>();
-             newLRU.add(lru);
-             Set<String> existing = alreadyExistingWebEntityLRUs(id, newLRU);
-             if(existing.size() > 0) {
-                 throw new IndexException("WebEntity contains already existing LRUs: " + existing);
-             }
+            // Ensure a webEntity lruprefix is unique in the web entity index
+            Set<String> newLRU = new HashSet<String>();
+            newLRU.add(lru);
+            Set<String> existing = alreadyExistingWebEntityLRUs(id, newLRU);
+            if(existing.size() > 0) {
+                throw new IndexException("WebEntity contains already existing LRUs: " + existing);
+            }
 
 
             // retieve webEntity with that id
@@ -718,7 +725,6 @@ public class LRUIndex {
         logger.debug("retrieving precisionexceptions");
         try {
             List<String> results = new ArrayList<String>();
-            Query q = LuceneQueryFactory.getPrecisionExceptionsQuery();
             TermDocs termDocs = this.indexReader.termDocs(LuceneQueryFactory.typeEqualPrecisionException);
             while(termDocs.next()) {
                 Document precisionExceptionDoc = indexReader.document(termDocs.doc());
@@ -986,7 +992,7 @@ public class LRUIndex {
             throw new IndexException(x.getMessage(), x);
         }
     }
-    
+
     /**
      * Retrieves the default Web Entity Creation Rule.
      *
@@ -1374,7 +1380,7 @@ public class LRUIndex {
         logger.debug("findMatchingWebEntityLRUPrefixes");
         Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
         if(!StringUtils.isEmpty(lru)) {
-        	// lucene search webentities where 
+            // lucene search webentities where
             Set<WebEntity> allWebEntities = retrieveWebEntities();
             matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities, MatchMode.LRUPREFIX));
         }
@@ -1408,14 +1414,22 @@ public class LRUIndex {
                     Pattern pipePattern = Pattern.compile(pipe);
                     Matcher pipeMatcher = pipePattern.matcher(lruPrefix);
                     String escapedPrefix = pipeMatcher.replaceAll("\\\\|");
+                    String lpar = "\\(";
+                    pipePattern = Pattern.compile(lpar);
+                    pipeMatcher = pipePattern.matcher(escapedPrefix);
+                    escapedPrefix = pipeMatcher.replaceAll("\\\\(");
+                    String rpar = "\\)";
+                    pipePattern = Pattern.compile(rpar);
+                    pipeMatcher = pipePattern.matcher(escapedPrefix);
+                    escapedPrefix = pipeMatcher.replaceAll("\\\\)");
 
                     Pattern pattern = Pattern.compile(escapedPrefix);
                     Matcher matcher = pattern.matcher(lru);
                     // it's  a match
                     if(matcher.find()) {
-                    	if(logger.isDebugEnabled()) {
-                    		logger.debug("found match for lru " + lru + " and regexp " + escapedPrefix);
-                    	}
+                        if(logger.isDebugEnabled()) {
+                            logger.debug("found match for lru " + lru + " and regexp " + escapedPrefix);
+                        }
                         Set<WebEntity> webEntitiesWithPrefix = matches.get(lruPrefix);
                         if(webEntitiesWithPrefix == null) {
                             webEntitiesWithPrefix = new HashSet<WebEntity>();
@@ -1916,7 +1930,7 @@ public class LRUIndex {
      * @return id of indexed webentitylink
      * @throws IndexException hmm
      */
-     public String indexWebEntityLink(WebEntityLink webEntityLink) throws IndexException {
+    public String indexWebEntityLink(WebEntityLink webEntityLink) throws IndexException {
         logger.debug("indexWebEntityLink");
         //
         // validation
