@@ -331,6 +331,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             print "Indexing : "+job['_id']
             page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']}, limit=500, sort=[('lru', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])
             if len(list(page_items)) > 0:
+                page_items.rewind()
                 conn = ClientCreator(reactor, TTwisted.ThriftClientProtocol, ms.Client, TBinaryProtocol.TBinaryProtocolFactory()).connectTCP(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port'])
                 yield conn.addCallback(self.index_batch, page_items, job['_id']).addErrback(self.handle_index_error)
             else:
