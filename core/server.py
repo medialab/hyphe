@@ -260,15 +260,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
         pages = []
         for url in list_urls:
             l = lru.url_to_lru_clean(url)
-            #urllib.urlopen(url)
             pages.append(PageItem(lru=l))
-            
         cache_id = yield client.createCache(pages)
         print "Indexing pages, links and webentities from cache "+cache_id+" ..."
         nb_pages = yield client.indexCache(cache_id)
         n_WE = yield client.createWebEntities(cache_id)
-        print "... "+str(n_WE)+" webentity created  ..."
-        defer.returnValue(self.handle_results(nb_pages))
+        defer.returnValue(self.handle_results("%s webentity created" % n_WE))
 
     @inlineCallbacks
     def rename_webentity(self, conn, webentity_id, new_name):
@@ -332,7 +329,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         job = self.find_next_index_batch()
         if job:
             print "Indexing : "+job['_id']
-            page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']}, limit=200, sort=[('lru', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])
+            page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']}, limit=500, sort=[('lru', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])
             if page_items.count() > 0:
                 conn = ClientCreator(reactor, TTwisted.ThriftClientProtocol, ms.Client, TBinaryProtocol.TBinaryProtocolFactory()).connectTCP(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port'])
                 yield conn.addCallback(self.index_batch, page_items, job['_id']).addErrback(self.handle_index_error)

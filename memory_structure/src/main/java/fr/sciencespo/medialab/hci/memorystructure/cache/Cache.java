@@ -308,26 +308,37 @@ public class Cache {
         WebEntityCreationRule defaultRule = lruIndex.retrieveDefaultWECR();
         Set<WebEntityCreationRule> webEntityCreationRules = lruIndex.retrieveWebEntityCreationRules();
         Set<String> pageLRUs = this.pageItems.keySet();
+        Set<String> doneLRUPrefixes = new HashSet<String>();
+        WebEntity webEntityDefault;
+        String ruleLRUPrefix, LRUPrefix;
+        Set<String> LRUPrefixesCandidates;
+        Set<WebEntity> WEcandidates;
         logger.debug("cache contains # " + pageLRUs.size() + " pages");
         for(String pageLRU : pageLRUs) {
             if(logger.isDebugEnabled()) {
                 logger.debug("createWebEntities for page " + pageLRU);
             }
-            WebEntity webEntityDefault = applyWebEntityCreationRule(defaultRule, this.pageItems.get(pageLRU));
-            Set<String> LRUPrefixesCandidates = new HashSet<String>();
-            LRUPrefixesCandidates.add((String)(webEntityDefault.getLRUSet().toArray())[0]);
+            webEntityDefault = applyWebEntityCreationRule(defaultRule, this.pageItems.get(pageLRU));
+            LRUPrefixesCandidates = new HashSet<String>();
+            if (webEntityDefault != null && webEntityDefault.getLRUSet().size() > 0) {
+                LRUPrefixesCandidates.add((String)(webEntityDefault.getLRUSet().toArray())[0]);
+            }
             for(WebEntityCreationRule wecr : webEntityCreationRules) {
-                String ruleLRUPrefix = wecr.getLRU();
+                ruleLRUPrefix = wecr.getLRU();
                 if (pageLRU.startsWith(ruleLRUPrefix)) {
                     LRUPrefixesCandidates.add(ruleLRUPrefix);
                 }
             }
-            Set<WebEntity> WEcandidates = lruIndex.retrieveWebEntitiesByLRUPrefix((String)(CollectionUtils.findLongestString(LRUPrefixesCandidates)).toArray()[0]);
-            if (WEcandidates == null && WEcandidates.size() == 0) {
-                createdWebEntitiesCount++;
-                logger.debug("indexing new webentity");
-                // store new webentity in index
-                lruIndex.indexWebEntity(webEntityDefault, false);
+            LRUPrefix = (String) (CollectionUtils.findLongestString(LRUPrefixesCandidates)).toArray()[0];
+            if (!doneLRUPrefixes.contains(LRUPrefix)) {
+                WEcandidates = lruIndex.retrieveWebEntitiesByLRUPrefix(LRUPrefix);
+                if ((WEcandidates == null || WEcandidates.size() == 0) && webEntityDefault != null) {
+                    createdWebEntitiesCount++;
+                    logger.debug("indexing new webentity");
+                    // store new webentity in index
+                    lruIndex.indexWebEntity(webEntityDefault, false);
+                }
+                doneLRUPrefixes.add(LRUPrefix);
             }
         }
         return createdWebEntitiesCount;
