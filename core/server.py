@@ -330,9 +330,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if job:
             print "Indexing : "+job['_id']
             page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']}, limit=500, sort=[('lru', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])
-            if page_items.count() > 0:
+            if len(list(page_items)) > 0:
                 conn = ClientCreator(reactor, TTwisted.ThriftClientProtocol, ms.Client, TBinaryProtocol.TBinaryProtocolFactory()).connectTCP(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port'])
                 yield conn.addCallback(self.index_batch, page_items, job['_id']).addErrback(self.handle_index_error)
+            else:
+                self.db[config['mongoDB']['queueCol']].remove({'_job': job['_id']})
+                self.db[config['mongoDB']['jobListCol']].update({'_id': job['_id']}, {'$set': {'indexing_status': indexing_statuses.BATCH_FINISHED}, '$push': {'log': jobslog("INDEX_"+indexing_statuses.BATCH_FINISHED)}})
 
     def handle_index_error(self, failure):
         self.db[config['mongoDB']['jobListCol']].update({'indexing_status': indexing_statuses.BATCH_RUNNING}, {'$set': {'indexing_status': indexing_statuses.BATCH_CRASHED}, '$push': {'log': jobslog("INDEX_"+indexing_statuses.BATCH_CRASHED)}}, multi=True)
