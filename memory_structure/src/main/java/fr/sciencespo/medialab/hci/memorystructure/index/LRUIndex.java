@@ -21,6 +21,7 @@ import org.apache.lucene.index.LogByteSizeMergePolicy;
 import org.apache.lucene.index.LogMergePolicy;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
+import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -196,9 +197,15 @@ public class LRUIndex {
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(LUCENE_VERSION, analyzer);
         indexWriterConfig.setOpenMode(OPEN_MODE);
         indexWriterConfig.setRAMBufferSizeMB(RAM_BUFFER_SIZE_MB);
-        LogMergePolicy logMergePolicy = new LogByteSizeMergePolicy();
-        logMergePolicy.setUseCompoundFile(false);
-        indexWriterConfig.setMergePolicy(logMergePolicy);
+        
+        //LogMergePolicy logMergePolicy = new LogByteSizeMergePolicy();
+        //logMergePolicy.setUseCompoundFile(false);
+        //indexWriterConfig.setMergePolicy(logMergePolicy);
+        
+        TieredMergePolicy tieredMergePolicy = new TieredMergePolicy();
+        tieredMergePolicy.setUseCompoundFile(true);
+        indexWriterConfig.setMergePolicy(tieredMergePolicy);
+        
         try {
             return new IndexWriter(diskDirectory, indexWriterConfig);
         }
