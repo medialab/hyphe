@@ -313,17 +313,18 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def index_batch(self, conn, page_items, jobid):
         client = conn.client
         ids = [bson.ObjectId(str(record['_id'])) for record in page_items]
-        page_items.rewind()
-        pages, links = processor.generate_cache_from_pages_list(page_items, config["precisionLimit"])
-        if (len(pages) > 0):
+        if (len(ids) > 0):
+            page_items.rewind()
+            pages, links = processor.generate_cache_from_pages_list(page_items, config["precisionLimit"])
             s=time.time()
             cache_id = yield client.createCache(pages.values())
             print "Indexing pages, links and webentities from cache "+cache_id+" ..."
             nb_pages = yield client.indexCache(cache_id)
             print "... "+str(nb_pages)+" pages indexed in "+str(time.time()-s)+" ..."
             s=time.time()
-            yield client.saveNodeLinks([NodeLink("id",source,target,weight) for (source,target),weight in links.iteritems()])
             nb_links = len(links)
+            for link_list in [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]:
+                yield client.saveNodeLinks([NodeLink("id",source,target,weight) for source,target,weight in link_list])
             print "... "+str(nb_links)+" links indexed in "+str(time.time()-s)+" ..."
             s=time.time()
             n_WE = yield client.createWebEntities(cache_id)
@@ -345,7 +346,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         job = self.find_next_index_batch()
         if job:
             print "Indexing : "+job['_id']
-            page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']}, limit=100, sort=[('lru', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])
+            page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']}, limit=config['memoryStructure']['max_simul_pages_indexing'], sort=[('lru', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])
             if len(list(page_items)) > 0:
                 page_items.rewind()
                 conn = ClientCreator(reactor, TTwisted.ThriftClientProtocol, ms.Client, TBinaryProtocol.TBinaryProtocolFactory()).connectTCP(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port'])

@@ -12,20 +12,24 @@
     "port" : 6800,
     "project" : "hci",
     "maxdepth" : 1,
-    "download_delay" : 0.5
+    "download_delay" : 0.5,
+    "max_simul_requests" : 36,
+    "max_simul_requests_per_host" : 12
   },
   "memoryStructure": {
     "thrift.IP": "localhost",
     "thrift.port": 9090,
     "lucene.path": "/home/hci/lucene",
-    "log.level": "INFO"
+    "log.level": "INFO",
+    "max_simul_pages_indexing": 250,
+    "max_simul_links_indexing": 5000
   },
   "twisted" : {
     "port" : 6978
   },
   "precisionLimit": 2,
   "defaultWebEntityCreationRule": {
-    "regexp": "(s:[a-zA-Z]+(\\|t:[0-9]+)?(\\|h:[^\\|]+)+)",
+    "regexp": "(s:[a-zA-Z]+(\\|t:[0-9]+)?(\\|h:[^\\|]+)(\\|h:[^\\|]+)+)",
     "prefix": ""
   },
   "discoverPrefixes": ["http://bit.ly",

@@ -13,6 +13,9 @@ ITEM_PIPELINES = [
     'hcicrawler.pipelines.OutputQueue',
 ]
 
+CONCURRENT_REQUESTS = {{max_simul_requests}}
+CONCURRENT_REQUESTS_PER_DOMAIN = {{max_simul_requests_per_host}}
+
 DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
 REDIRECT_ENABLED = False
 
