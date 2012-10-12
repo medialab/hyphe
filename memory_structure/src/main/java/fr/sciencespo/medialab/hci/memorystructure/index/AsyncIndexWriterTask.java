@@ -10,6 +10,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.LogByteSizeMergePolicy;
 import org.apache.lucene.index.LogMergePolicy;
+import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
@@ -74,9 +75,12 @@ public class AsyncIndexWriterTask implements RunnableFuture {
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(LUCENE_VERSION, ANALYZER);
         indexWriterConfig.setOpenMode(OPEN_MODE);
         indexWriterConfig.setRAMBufferSizeMB(RAM_BUFFER_SIZE_MB);
-        LogMergePolicy logMergePolicy = new LogByteSizeMergePolicy();
-        logMergePolicy.setUseCompoundFile(false);
-        indexWriterConfig.setMergePolicy(logMergePolicy);
+        //LogMergePolicy logMergePolicy = new LogByteSizeMergePolicy();
+        //logMergePolicy.setUseCompoundFile(false);
+        //indexWriterConfig.setMergePolicy(logMergePolicy);
+        TieredMergePolicy tieredMergePolicy = new TieredMergePolicy();
+        tieredMergePolicy.setUseCompoundFile(true);
+        indexWriterConfig.setMergePolicy(tieredMergePolicy);
         return new IndexWriter(ramDirectory, indexWriterConfig);
     }
 
