@@ -7,6 +7,8 @@ from scrapy.utils.url import url_has_any_extension
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy import log
 
+from pymongo.binary import Binary
+
 from hcicrawler.lru import url_to_lru_clean
 from hcicrawler.items import Page
 from hcicrawler.samples import DEFAULT_INPUT
@@ -80,7 +82,7 @@ class PagesCrawler(BaseSpider):
 
     def _make_html_page(self, response, lru, lrulinks):
         p = self._make_raw_page(response, lru)
-        p['body'] = response.body_as_unicode()
+        p['body'] = Binary(response.body.encode('zip'))
         p['lrulinks'] = lrulinks
         return p
 
