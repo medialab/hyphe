@@ -73,8 +73,6 @@ class Core(jsonrpc.JSONRPC):
 
     def jsonrpc_reinitialize(self):
         """Reinitializes both crawl jobs and memory structure."""
-        self.db[config['mongoDB']['jobListCol']].insert({'_id': 0})
-        self.db[config['mongoDB']['jobListCol']].remove({'_id': 0})
         self.crawler.jsonrpc_reinitialize()
         self.store.jsonrpc_reinitialize()
         return {'code': 'success', 'result': 'Memory structure and crawling database contents emptied'}
@@ -202,9 +200,12 @@ class Crawler(jsonrpc.JSONRPC):
         list_jobs = list_jobs['result']
         for item in list_jobs['running'] + list_jobs['pending']:
             print self.jsonrpc_cancel(item['id'])
-        self.db[config['mongoDB']['queueCol']].remove(safe=True)
-        self.db[config['mongoDB']['pageStoreCol']].remove(safe=True)
-        self.db[config['mongoDB']['jobListCol']].remove(safe=True)
+        self.db[config['mongoDB']['queueCol']].drop()
+        self.db[config['mongoDB']['pageStoreCol']].drop()
+        self.db[config['mongoDB']['jobListCol']].drop()
+        self.db.create_collection(config['mongoDB']['queueCol'])
+        self.db.create_collection(config['mongoDB']['pageStoreCol'])
+        self.db.create_collection(config['mongoDB']['jobListCol'])
         return {'code': 'success', 'result': 'Crawling database reset'}
 
 
@@ -215,6 +216,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if db is None:
             db = pymongo.Connection(config['mongoDB']['host'], config['mongoDB']['port'])[config['mongoDB']['db']]
         self.db = db
+        self.ensureDefaultCreationRuleExists()
 
     def handle_results(self, results):
         print results
@@ -229,6 +231,19 @@ class Memory_Structure(jsonrpc.JSONRPC):
         client = conn.client
         client.clearIndex()
         client.saveWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
+
+    @inlineCallbacks
+    def ensureDefaultCreationRuleExists(self):
+        mem_struct_conn = getThriftConn()
+        yield mem_struct_conn.addCallback(self._ensureDefaultCreationRuleExists).addErrback(self.handle_error)
+
+    @inlineCallbacks
+    def _ensureDefaultCreationRuleExists(self, conn):
+        client = conn.client
+        rules = yield client.getWebEntityCreationRules()
+        if (len(rules) == 0):
+            print "Saves default WE creation rule"
+            client.saveWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
 
     @inlineCallbacks
     def jsonrpc_reinitialize(self):
@@ -319,9 +334,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         job = None
         # check whether indexing is already running or not
         if self.db[config['mongoDB']['jobListCol']].find_one({'indexing_status': indexing_statuses.BATCH_RUNNING}) is None:
-            toindex = self.db[config['mongoDB']['queueCol']].distinct('_job')
+            oldest_page_in_queue = self.db[config['mongoDB']['queueCol']].find_one(sort=[('timestamp', pymongo.ASCENDING)])
             # find next job to be indexed and set its indexing status to batch_running
-            job = self.db[config['mongoDB']['jobListCol']].find_and_modify(query={'_id': {'$in': toindex}, 'crawling_status': {'$ne': crawling_statuses.PENDING}, 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, update={'$set': {'indexing_status': indexing_statuses.BATCH_RUNNING}, '$push': {'log': jobslog("INDEX_"+indexing_statuses.BATCH_RUNNING)}}, sort={'timestamp': pymongo.ASCENDING})
+            job = self.db[config['mongoDB']['jobListCol']].find_and_modify(query={'_id': oldest_page_in_queue['_job'], 'crawling_status': {'$ne': crawling_statuses.PENDING}, 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, update={'$set': {'indexing_status': indexing_statuses.BATCH_RUNNING}, '$push': {'log': jobslog("INDEX_"+indexing_statuses.BATCH_RUNNING)}}, sort=[('timestamp', pymongo.ASCENDING)])
         return job
 
     @inlineCallbacks
@@ -329,7 +344,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         job = self.find_next_index_batch()
         if job:
             print "Indexing : "+job['_id']
-            page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']}, limit=500, sort=[('lru', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])
+            page_items = self.db[config['mongoDB']['queueCol']].find({'_job': job['_id']}, limit=100, sort=[('lru', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])
             if len(list(page_items)) > 0:
                 page_items.rewind()
                 conn = ClientCreator(reactor, TTwisted.ThriftClientProtocol, ms.Client, TBinaryProtocol.TBinaryProtocolFactory()).connectTCP(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port'])
