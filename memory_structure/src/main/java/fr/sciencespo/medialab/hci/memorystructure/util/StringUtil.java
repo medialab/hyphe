@@ -12,7 +12,11 @@ public class StringUtil {
 
     public static String toProperCase(String text) {
         text = text.toLowerCase();
-        text = text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
+        if (text.length() > 2) {
+            text = text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
+        } else {
+            text = text.toUpperCase();
+        }
         return text;
     }
 
