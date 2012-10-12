@@ -62,11 +62,9 @@ class Core(jsonrpc.JSONRPC):
     def __init__(self):
         jsonrpc.JSONRPC.__init__(self)
         self.db = pymongo.Connection(config['mongoDB']['host'],config['mongoDB']['port'])[config['mongoDB']['db']]
-        self.db[config['mongoDB']['queueCol']].ensure_index([('timestamp', pymongo.ASCENDING)], background=True)
-        self.db[config['mongoDB']['queueCol']].ensure_index([('_job', pymongo.ASCENDING), ('lru', pymongo.ASCENDING), ('timestamp', pymongo.DESCENDING)], background=True)
-        self.db[config['mongoDB']['jobListCol']].ensure_index([('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], background=True)
         self.crawler = Crawler(self.db)
         self.store = Memory_Structure(self.db)
+        self.crawler.initDBindexes()
 
     def jsonrpc_ping(self):
         return {'code': 'success', 'result': 'pong'}
@@ -191,6 +189,12 @@ class Crawler(jsonrpc.JSONRPC):
         """Calls Scrappy monitoring API, returns list of scrapy jobs."""
         return self.send_scrapy_query('listjobs', {'project': config['scrapyd']['project']})
 
+    def initDBindexes(self):
+        self.db[config['mongoDB']['pageStoreCol']].ensure_index([('timestamp', pymongo.ASCENDING)], background=True)
+        self.db[config['mongoDB']['queueCol']].ensure_index([('timestamp', pymongo.ASCENDING)], background=True)
+        self.db[config['mongoDB']['queueCol']].ensure_index([('_job', pymongo.ASCENDING), ('lru', pymongo.ASCENDING), ('timestamp', pymongo.DESCENDING)], background=True)
+        self.db[config['mongoDB']['jobListCol']].ensure_index([('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], background=True)
+
     def jsonrpc_reinitialize(self, corpus=''):
         """Cancels all current crawl jobs running or planned and empty mongodbs."""
         print "Empty crawl list + mongodb queue"
@@ -203,9 +207,7 @@ class Crawler(jsonrpc.JSONRPC):
         self.db[config['mongoDB']['queueCol']].drop()
         self.db[config['mongoDB']['pageStoreCol']].drop()
         self.db[config['mongoDB']['jobListCol']].drop()
-        self.db.create_collection(config['mongoDB']['queueCol'])
-        self.db.create_collection(config['mongoDB']['pageStoreCol'])
-        self.db.create_collection(config['mongoDB']['jobListCol'])
+        self.initDBindexes()
         return {'code': 'success', 'result': 'Crawling database reset'}
 
 
@@ -216,7 +218,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if db is None:
             db = pymongo.Connection(config['mongoDB']['host'], config['mongoDB']['port'])[config['mongoDB']['db']]
         self.db = db
-        self.ensureDefaultCreationRuleExists()
 
     def handle_results(self, results):
         print results
@@ -243,7 +244,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         rules = yield client.getWebEntityCreationRules()
         if (len(rules) == 0):
             print "Saves default WE creation rule"
-            client.saveWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
+            yield client.saveWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
 
     @inlineCallbacks
     def jsonrpc_reinitialize(self):
@@ -333,7 +334,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def find_next_index_batch(self):
         job = None
         # check whether indexing is already running or not
-        if self.db[config['mongoDB']['jobListCol']].find_one({'indexing_status': indexing_statuses.BATCH_RUNNING}) is None:
+        if self.db[config['mongoDB']['queueCol']].find_one() and not self.db[config['mongoDB']['jobListCol']].find_one({'indexing_status': indexing_statuses.BATCH_RUNNING}):
             oldest_page_in_queue = self.db[config['mongoDB']['queueCol']].find_one(sort=[('timestamp', pymongo.ASCENDING)])
             # find next job to be indexed and set its indexing status to batch_running
             job = self.db[config['mongoDB']['jobListCol']].find_and_modify(query={'_id': oldest_page_in_queue['_job'], 'crawling_status': {'$ne': crawling_statuses.PENDING}, 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, update={'$set': {'indexing_status': indexing_statuses.BATCH_RUNNING}, '$push': {'log': jobslog("INDEX_"+indexing_statuses.BATCH_RUNNING)}}, sort=[('timestamp', pymongo.ASCENDING)])
@@ -450,31 +451,34 @@ def test_connexions():
         run = Core()
     except pymongo.errors.AutoReconnect:
         print "ERROR: Cannot connect to mongoDB, please check your server and the configuration in config.json."
-        return False
+        return None
     try:
         transport = TSocket.TSocket(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port']).open()
     except Thrift.TException:
         print "ERROR: Cannot connect to lucene memory structure through thrift, please check your server and the configuration in config.json."
-        return False
+        return None
+    try:
+        run.store.ensureDefaultCreationRuleExists()
+    except:
+        print "ERROR: Cannot save default web entity into memory structure."
     try:
         res = json.loads(urllib.urlopen("%slistprojects.json" % run.crawler.scrapy_url).read())
     except:
         print "ERROR: Cannot connect to scrapyd server, please check your server and the configuration in config.json."
-        return False
+        return None
     if "projects" not in res or config['scrapyd']['project'] not in res['projects']:
         print "ERROR: Project's spider does not exist in scrapyd server, please run bin/deploy_scrapy_spider.sh."
         print res
-        return False
-    return True
+        return None
+    return run
 
-res = test_connexions()
-if not res:
+core = test_connexions()
+if not core:
     exit()
 
 # JSON-RPC interface
-core = Core()
-core.putSubHandler('crawl', Crawler(core.db))
-core.putSubHandler('store', Memory_Structure(core.db))
+core.putSubHandler('crawl', core.crawler)
+core.putSubHandler('store', core.store)
 core.putSubHandler('system', Introspection(core))
 
 # start JSON-RPC server with twisted
@@ -488,5 +492,5 @@ run = Core()
 run.db[config['mongoDB']['jobListCol']].update({'indexing_status': indexing_statuses.BATCH_RUNNING}, {'$set': {'indexing_status': indexing_statuses.BATCH_CRASHED}, '$push': {'log': jobslog("INDEX_"+indexing_statuses.BATCH_CRASHED)}}, multi=True)
 # launch daemon loops to monitor jobs and index them
 monitor_loop = task.LoopingCall(run.jsonrpc_refreshjobs).start(1,False)
-index_loop = task.LoopingCall(run.store.index_batch_loop).start(5,False)
+index_loop = task.LoopingCall(run.store.index_batch_loop).start(1,False)
 
