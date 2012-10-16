@@ -20,11 +20,11 @@ except IOError as e:
     print e
     exit()
  
-# Render the settings py from template with mongo config from config.json
-print "Rendering settings.py with mongo config values from config.json..."
+# Render the settings py from template with mongo/scrapy config from config.json
+print "Rendering settings.py with mongo-scrapy config values from config.json..."
 try :
     with nested(open("hcicrawler/settings.py.template", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
-        generated.write(pystache.render(template.read(), config['mongoDB']))
+        generated.write(pystache.render(template.read(), config['mongo-scrapy']))
 except IOError as e:
     print "Could not open either hcicrawler/settings.py template file or hcicrawler/settings.py"
     print "crawler/hcicrawler/settings.py.template", "crawler/hcicrawler/settings.py"
@@ -35,7 +35,7 @@ except IOError as e:
 print "Rendering scrapy.cfg with scrapy config values from config.json..."
 try :
     with nested(open("scrapy-template.cfg", "r"), open("scrapy.cfg", "w")) as (template, generated):
-        generated.write(pystache.render(template.read(), config['scrapyd']))
+        generated.write(pystache.render(template.read(), config['mongo-scrapy']))
 except IOError as e:
     print "Could not open either scrapy.cfg template file or scrapy.cfg"
     print "crawler/scrapy-template.cfg", "crawler/scrapy.cfg"
@@ -57,5 +57,5 @@ except ValueError:
     print "There was a problem sending the scrapy egg."
     print output, errors
     exit()
-print "The egg was successfully sent to scrapyd server", config['scrapyd']['host'], "on port", config['scrapyd']['port']
+print "The egg was successfully sent to scrapyd server", config['mongo-scrapy']['host'], "on port", config['mongo-scrapy']['scrapy_port']
  

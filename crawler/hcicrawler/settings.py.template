@@ -20,8 +20,8 @@ DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
 REDIRECT_ENABLED = False
 
 MONGO_HOST = '{{host}}'
-MONGO_PORT = {{port}}
-MONGO_DB = '{{db}}'
+MONGO_PORT = {{mongo_port}}
+MONGO_DB = '{{project}}'
 MONGO_QUEUE_COL = '{{queueCol}}'
 MONGO_PAGESTORE_COL = '{{pageStoreCol}}'
 

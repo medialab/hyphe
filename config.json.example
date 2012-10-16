@@ -1,16 +1,13 @@
 {
-  "mongoDB": {
+  "mongo-scrapy": {
     "host": "localhost",
-    "port": 27017,
-    "db": "hci",
+    "mongo_port": 27017,
+    "project": "hci",
     "queueCol": "crawler.queue",
     "pageStoreCol": "crawler.pages",
-    "jobListCol": "crawler.jobs"
-  },
-  "scrapyd" : {
-    "host" : "localhost",
-    "port" : 6800,
-    "project" : "hci",
+    "jobListCol": "crawler.jobs",
+    "jobLogsCol": "logs",
+    "scrapy_port" : 6800,
     "maxdepth" : 1,
     "download_delay" : 0.5,
     "max_simul_requests" : 36,
@@ -21,8 +18,7 @@
     "thrift.port": 9090,
     "lucene.path": "/home/hci/lucene",
     "log.level": "INFO",
-    "max_simul_pages_indexing": 250,
-    "max_simul_links_indexing": 5000
+    "max_simul_pages_indexing": 250
   },
   "twisted" : {
     "port" : 6978
