@@ -37,7 +37,7 @@ class MongoPageStore(object):
         d = dict(page)
         d['_id'] = key
         d['_job'] = self._jobid
-        self._col.save(d)
+        self._col.update({'_id': key}, d, upsert=True)
 
     def load(self, key):
         d = self._col.find_one(key)

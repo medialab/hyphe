@@ -45,5 +45,5 @@ class OutputStore(object):
         return cls(mongo_host, mongo_port, mongo_db, mongo_col, jobid)
 
     def process_item(self, item, spider):
-        self.store.store(item['lru'], dict(item))
+        self.store.store("%s/%s" % (item['lru'], item['size']), dict(item))
         return item
