@@ -79,11 +79,14 @@ class Core(jsonrpc.JSONRPC):
         return {'code': 'success', 'result': 'Memory structure and crawling database contents emptied'}
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id):
+    def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None):
         """Tells scrapy to run crawl on a webentity defined by its id from memory structure."""
+        if not maxdepth:
+            maxdepth = config['mongo-scrapy']['maxdepth']
         mem_struct_conn = getThriftConn()
+convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth=config['mongo-scrapy']['maxdepth']
         WE = yield mem_struct_conn.addCallback(self.store.get_webentity_with_pages_and_subWEs, webentity_id)
-        defer.returnValue(self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs']))
+        defer.returnValue(self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs']), convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth)
 
     def jsonrpc_refreshjobs(self):
         """Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks."""
@@ -167,7 +170,7 @@ class Crawler(jsonrpc.JSONRPC):
         except Exception as e:
             return {'code': 'fail', 'message': e}
 
-    def jsonrpc_starturls(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes, maxdepth=config['mongo-scrapy']['maxdepth'], download_delay=config['mongo-scrapy']['download_delay'], corpus=''):
+    def jsonrpc_starturls(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=config['discoverPrefixes'], maxdepth=config['mongo-scrapy']['maxdepth'], download_delay=config['mongo-scrapy']['download_delay'], corpus=''):
         """Starts a crawl with Scrappy from arguments using only urls."""
         return self.jsonrpc_start(webentity_id, starts, convert_urls_to_lrus_array(follow_prefixes), convert_urls_to_lrus_array(nofollow_prefixes), convert_urls_to_lrus_array(discover_prefixes), maxdepth, download_delay, corpus)
 
@@ -357,7 +360,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_setalias(self, old_webentity_id, good_webentity_id):
         res = yield self.setalias(old_webentity_id, gd_webentity_id)
         defer.returnValue(self.handle+results(res))
-
 
     @inlineCallbacks
     def index_batch(self, conn, page_items, jobid):
