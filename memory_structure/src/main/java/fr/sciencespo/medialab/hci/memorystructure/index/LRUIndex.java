@@ -612,7 +612,7 @@ public class LRUIndex {
             int processedSoFar = 0;
             while(processedSoFar < batchSize) {
                 List<Object> batch;
-                int INDEXWRITER_MAX = 250000;
+                int INDEXWRITER_MAX = 2500;
                 if(batchSize >= processedSoFar + INDEXWRITER_MAX) {
                     batch = objects.subList(processedSoFar, processedSoFar + INDEXWRITER_MAX);
                 }
@@ -639,7 +639,7 @@ public class LRUIndex {
             while(! allDone(indexTasks)) {
                 // wait a bit
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(100);
                 }
                 catch (InterruptedException x) {
                     x.printStackTrace();
