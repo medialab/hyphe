@@ -84,7 +84,6 @@ class Core(jsonrpc.JSONRPC):
         if not maxdepth:
             maxdepth = config['mongo-scrapy']['maxdepth']
         mem_struct_conn = getThriftConn()
-convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth=config['mongo-scrapy']['maxdepth']
         WE = yield mem_struct_conn.addCallback(self.store.get_webentity_with_pages_and_subWEs, webentity_id)
         defer.returnValue(self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs']), convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth)
 
