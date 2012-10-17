@@ -6,7 +6,11 @@ mv gen-java/fr/sciencespo/medialab/hci/memorystructure/thrift/* fr/sciencespo/me
 rm -rf gen-java
 cd ../../../
 mvn -Dmaven.test.skip=true clean install
-mvn javadoc:javadoc
+
+# Create javadoc on build_trift.sh 1
+if [ ! -z $1 ]; then
+  mvn javadoc:javadoc
+fi
 
 # edit fr/sciencespo/medialab/hci/memorystructure/MemoryStructureImpl.java
 
