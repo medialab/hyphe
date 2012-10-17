@@ -112,7 +112,7 @@ class Core(jsonrpc.JSONRPC):
         # collect list of crawling jobs whose outputs is not fully indexed yet
         jobs_in_queue = self.db[config['mongo-scrapy']['queueCol']].distinct('_job')
         # set index finished for jobs with crawling finished and no page left in queue
-        update_ids = [job['_id'] for job in self.db[config['mongo-scrapy']['jobListCol']].find({'_id': {'$in': list(set(finished_ids)-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': indexing_statuses.BATCH_FINISHED}, fields=['_id'])]
+        update_ids = [job['_id'] for job in self.db[config['mongo-scrapy']['jobListCol']].find({'_id': {'$in': list(set(finished_ids)-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id'])]
         if len(update_ids):
             resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': {'$in': update_ids}}, {'$set': {'indexing_status': indexing_statuses.FINISHED}}, multi=True, safe=True)
             if (resdb['err']):
@@ -191,7 +191,7 @@ class Crawler(jsonrpc.JSONRPC):
         res = res['result']
         if 'jobid' in res:
             ts = time.time()
-            jobslog(res['jobid'], "CRAWL_ADDED", self.db, ts)
+            jobslog(res['jobid'], "CRAWL_ADDED", self.db, datetime.fromtimestamp(ts))
             resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'webentity_id': webentity_id, 'nb_pages': 0, 'nb_links': 0, 'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts}}, upsert=True, safe=True)
             if (resdb['err']):
                 print "ERROR saving crawling job %s in database for webentity %s with arguments %s" % (res['jobid'], webentity_id, args), resdb
@@ -219,16 +219,8 @@ class Crawler(jsonrpc.JSONRPC):
         """Calls Scrappy monitoring API, returns list of scrapy jobs."""
         return self.send_scrapy_query('listjobs', {'project': config['mongo-scrapy']['project']})
 
-    def initDBindexes(self):
-        self.db[config['mongo-scrapy']['pageStoreCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
-        self.db[config['mongo-scrapy']['queueCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
-        self.db[config['mongo-scrapy']['queueCol']].ensure_index([('_job', pymongo.ASCENDING), ('timestamp', pymongo.DESCENDING)], safe=True)
-        self.db[config['mongo-scrapy']['jobLogsCol']].ensure_index([('_job', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], safe=True)
-        self.db[config['mongo-scrapy']['jobListCol']].ensure_index([('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], safe=True)
-
-    def jsonrpc_reinitialize(self, corpus=''):
-        """Cancels all current crawl jobs running or planned and empty mongodbs."""
-        print "Empty crawl list + mongodb queue"
+    def jsonrpc_cancel_all(self):
+        """Stops all current crawls."""
         list_jobs = self.jsonrpc_list()
         if list_jobs['code'] == 'fail':
             return list_jobs
@@ -239,12 +231,33 @@ class Crawler(jsonrpc.JSONRPC):
             list_jobs = self.jsonrpc_list()
             if list_jobs['code'] != 'fail':
                 list_jobs = list_jobs['result']
+        return {'code': 'success', 'result': 'All crawling jobs canceled.'}
+
+    def initDBindexes(self):
+        self.db[config['mongo-scrapy']['pageStoreCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
+        self.db[config['mongo-scrapy']['queueCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
+        self.db[config['mongo-scrapy']['queueCol']].ensure_index([('_job', pymongo.ASCENDING), ('timestamp', pymongo.DESCENDING)], safe=True)
+        self.db[config['mongo-scrapy']['jobLogsCol']].ensure_index([('_job', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], safe=True)
+        self.db[config['mongo-scrapy']['jobListCol']].ensure_index([('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], safe=True)
+
+    def emptyDB(self):
         self.db[config['mongo-scrapy']['queueCol']].drop()
         self.db[config['mongo-scrapy']['pageStoreCol']].drop()
         self.db[config['mongo-scrapy']['jobListCol']].drop()
         self.db[config['mongo-scrapy']['jobLogsCol']].drop()
         self.initDBindexes()
-        return {'code': 'success', 'result': 'Crawling database reset'}
+
+    def jsonrpc_reinitialize(self, corpus=''):
+        """Cancels all current crawl jobs running or planned and empty mongodbs."""
+        print "Empty crawl list + mongodb queue"
+        canceljobs = self.jsonrpc_cancel_all()
+        if canceljobs['code'] == 'fail':
+            return canceljobs
+        try:
+            self.emptyDB()
+        except:
+            return {'code': 'fail', 'result': 'Error while resetting mongoDB.'}
+        return {'code': 'success', 'result': 'Crawling database reset.'}
 
 
 class Memory_Structure(jsonrpc.JSONRPC):
@@ -359,8 +372,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
             nb_pages = yield client.indexCache(cache_id)
             print "... "+str(nb_pages)+" pages indexed in "+str(time.time()-s)+" ..."
             s=time.time()
-            yield client.saveNodeLinks([NodeLink("id",source,target,weight) for (source,target),weight in links.iteritems()])
             nb_links = len(links)
+            for link_list in [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]:
+                s2=time.time()
+                yield client.saveNodeLinks([NodeLink("id",source,target,weight) for source,target,weight in link_list])
+                print "%s done in %s" % (len(link_list), str(time.time()-s2))
             print "... "+str(nb_links)+" links indexed in "+str(time.time()-s)+" ..."
             s=time.time()
             n_WE = yield client.createWebEntities(cache_id)

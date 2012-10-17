@@ -18,7 +18,8 @@
     "thrift.port": 9090,
     "lucene.path": "/home/hci/lucene",
     "log.level": "INFO",
-    "max_simul_pages_indexing": 250
+    "max_simul_pages_indexing": 100,
+    "max_simul_links_indexing": 10000
   },
   "twisted" : {
     "port" : 6978

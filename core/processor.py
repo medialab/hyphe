@@ -42,5 +42,5 @@ def generate_cache_from_pages_list(pageList, precisionLimit = 1, verbose = False
                 links[(node_lru,target_node)] = links[(node_lru,target_node)] + 1 if (node_lru,target_node) in links else 1
     if verbose:
         print str(len(pages))+" unique pages ; "+str(original_link_number)+" links ; "+str(len(links.values()))+" unique links / identified "+str(len(nodes))+" nodes"
-    return (pages, links)
+    return (pages, [(source, target, weight) for (source,target),weight in links.iteritems()])
 
