@@ -107,7 +107,7 @@
 <?php include("includes/codebottom.php"); ?>
 
         <!-- Page-specific js package -->
-        <script src="js/page_index.js"></script>
+        <script src="js/_page_index.js"></script>
 
     </body>
 </html>

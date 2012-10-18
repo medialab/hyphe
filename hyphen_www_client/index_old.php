@@ -189,7 +189,7 @@
         <?php include("includes/codebottom.php"); ?>
 
         <!-- Page-specific js package -->
-        <script src="js/page_index_old.js"></script>
+        <script src="js/_page_index_old.js"></script>
 
     </body>
 </html>
