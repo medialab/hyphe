@@ -19,7 +19,6 @@ class PagesCrawler(BaseSpider):
     name = 'pages'
 
     def __init__(self, **kw):
-        # TODO: use spider arguments
         args = DEFAULT_INPUT.copy()
         args.update(kw)
         self.args = args
@@ -128,7 +127,7 @@ class PagesCrawler(BaseSpider):
 
 def to_list(obj):
     if isinstance(obj, basestring):
-        if obj:
-            return obj.split(',')
+        if obj.startswith("['") and obj.endswith("']"):
+            return obj[2:-2].split("', '")
         return []
     return list(obj)
