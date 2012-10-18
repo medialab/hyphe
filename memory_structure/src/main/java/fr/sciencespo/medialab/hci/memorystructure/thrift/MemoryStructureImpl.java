@@ -278,7 +278,6 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @throws ObjectNotFoundException
      */
     @Override
-    public int indexCache(String cacheId) throws TException, MemoryStructureException, ObjectNotFoundException {
         if(logger.isDebugEnabled()) {
             logger.debug("indexCache with cache id: " + cacheId);
         }
@@ -410,25 +409,48 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
-     * Retrieves representation of a WebEntity and its neighboors (at a given distance) in gexf.
-     *
-     * @param webEntityId web entity id
-     * @param distance distance
-     * @param format must be 'gexf'
-     * @throws TException hmm
-     * @throws ObjectNotFoundException if web entity is not found
-     * @throws MemoryStructureException hmm
+     * @param lru to search for
+     * @return web entity associated to this lru
      */
     @Override
-    public String getWebEntityEgoNetwork(String webEntityId, int distance, String format) throws TException, ObjectNotFoundException, MemoryStructureException  {
-        if(logger.isDebugEnabled()) {
-            logger.debug("getWebEntityEgoNetwork for WebEntity " + webEntityId + " with distance " + distance);
+    public WebEntity findWebEntityByLRU(String lru) throws TException, MemoryStructureException {
+        logger.debug("findWebEntityByLRU");
+        try {
+            WebEntity webentity = lruIndex.retrieveWebEntityMatchingLRU(lru);
+            if(webentity == null) {
+                throw new MemoryStructureException().setMsg("No matching webEntity found.");
+            }
+            return webentity;
         }
-        if(StringUtils.isNotEmpty(format) && !format.equals("gexf")) {
-            throw new MemoryStructureException().setMsg("Unsupported requested WebEntityNetwork format: " + format + ". This program supports only gexf.");
+        catch (Exception x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
         }
-        // TODO
-        return "";
+        finally {
+            logger.debug("findWebEntityByPrefix end");
+        }
+    }
+
+
+    /**
+     * @param prefix prefix to search for
+     * @return web entity whose aliases has this prefix
+     */
+    @Override
+    public WebEntity findWebEntityByPrefix(String prefix) throws TException, MemoryStructureException {
+        logger.debug("findWebEntityByPrefix");
+        try {
+            return lruIndex.retrieveWebEntityByLRUPrefix(prefix);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            logger.debug("findWebEntityByPrefix end");
+        }
     }
 
     /**
@@ -439,7 +461,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     public List<WebEntity> findWebEntitiesByPrefix(String prefix) throws TException, MemoryStructureException {
         logger.debug("findWebEntitiesByPrefix");
         try {
-            return new ArrayList<WebEntity>(lruIndex.retrieveWebEntitiesByLRUPrefix(prefix));
+            return new ArrayList<WebEntity>(lruIndex.retrieveWebEntitiesStartingByLRUPrefix(prefix));
         }
         catch (IndexException x) {
             logger.error(x.getMessage());
@@ -614,7 +636,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             // obtain cache from cachemap
             CacheMap cacheMap = CacheMap.getInstance();
             Cache cache = cacheMap.get(cacheId);
-            newWebEntitiesCount = cache.createWebEntitiesNew();
+            newWebEntitiesCount = cache.createWebEntities();
             if(logger.isDebugEnabled()) {
                 logger.debug("# new web entities: " + newWebEntitiesCount);
             }

@@ -1043,11 +1043,81 @@ public class LRUIndex {
 
     /**
      *
+     * @param lru
+     * @return web entity having prefix in its list of lru prefixes
+     * @throws IndexException hmm
+     */
+    public WebEntity retrieveWebEntityMatchingLRU(String lru) throws IndexException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("retrieveWebEntityMatchingLRU: " + lru);
+        }
+        try {
+            int lastIndex;
+            String prefixLRU = lru;
+            WebEntity webentity = null;
+            final Pattern pattern = Pattern.compile("\\|[shpqft]:");
+            while (webentity == null && prefixLRU.length() > 0) {
+                webentity = retrieveWebEntityByLRUPrefix(prefixLRU);
+                if (webentity == null) {
+                    lastIndex = -1;
+                    Matcher matcher = pattern.matcher(prefixLRU);
+                    while (matcher.find()) {
+                        lastIndex = matcher.start();
+                    }
+                    logger.info(prefixLRU);
+                    if (lastIndex != -1) {
+                        prefixLRU = prefixLRU.substring(0, lastIndex);
+                    } else {
+                        prefixLRU = "";
+                    }
+                }
+            }
+            return webentity;
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     *
+     * @param prefix
+     * @return web entity having prefix in its list of lru prefixes
+     * @throws IndexException hmm
+     */
+    public WebEntity retrieveWebEntityByLRUPrefix(String prefix) throws IndexException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("retrieveWebEntityByLRUPrefix: " + prefix);
+        }
+        try {
+            if(prefix == null) {
+                logger.warn("attempted to retrieve web entity with null lruprefix");
+                return null;
+            }
+            Query q = LuceneQueryFactory.getWebEntitiesByLRUQuery(prefix);
+            final List<Document> hits = executeMultipleResultsQuery(q);
+            if (hits.size() != 1) {
+                return null;
+            }
+            WebEntity webEntity = IndexConfiguration.convertLuceneDocument2WebEntity(hits.get(0));
+            return webEntity;
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     *
      * @param prefix
      * @return
      * @throws IndexException hmm
      */
-    public Set<WebEntity> retrieveWebEntitiesByLRUPrefix(String prefix) throws IndexException {
+    public Set<WebEntity> retrieveWebEntitiesStartingByLRUPrefix(String prefix) throws IndexException {
         if(logger.isDebugEnabled()) {
             logger.debug("retrieveWebEntitiesByLRUPrefix: " + prefix);
         }
@@ -1068,7 +1138,6 @@ public class LRUIndex {
                 logger.debug("retrieved # " + results.size() + " WebEntities with prefix " + prefix);
             }
             return results;
-
         }
         catch (IOException x) {
             logger.error(x.getMessage());
@@ -1376,154 +1445,6 @@ public class LRUIndex {
     }
 
     /**
-     * Returns a map of matching LRUPrefixes and their WebEntity. If the same LRUPrefix occurs in more than one
-     * WebEntity, they are all mapped.
-     *
-     * @param lru
-     * @return
-     * @throws IndexException hmm
-     */
-    public Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(String lru) throws IndexException {
-        logger.debug("findMatchingWebEntityLRUPrefixes");
-        Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
-        if(!StringUtils.isEmpty(lru)) {
-            // lucene search webentities where
-            Set<WebEntity> allWebEntities = retrieveWebEntities();
-            matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities, MatchMode.LRUPREFIX));
-        }
-        if(logger.isDebugEnabled()) {
-            logger.debug("findMatchingWebEntityLRUPrefixes returns " + matches.size() + " matches");
-        }
-        return matches;
-    }
-
-    /**
-     *
-     * @param lru
-     * @param webEntities
-     * @param mode
-     * @return
-     * @throws IndexException hmm
-     */
-    private Map<String, Set<WebEntity>> findMatchingWebEntityLRUPrefixes(String lru, Set<WebEntity> webEntities, MatchMode mode) throws IndexException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("findMatchingWebEntityLRUs for lru " + lru + " in # " + webEntities.size() + " webEntities, matchmode is " + mode );
-        }
-        Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
-        if(!StringUtils.isEmpty(lru)) {
-            for(WebEntity webEntity : webEntities) {
-                Set<String> lruPrefixes = webEntity.getLRUSet();
-                for(String lruPrefix : lruPrefixes) {
-                    // TODO is it inefficient to compile these patterns everytime ? Better to keep them in memory ?
-
-                    // lruPrefixes must escape |
-                    String pipe = "\\|";
-                    Pattern pipePattern = Pattern.compile(pipe);
-                    Matcher pipeMatcher = pipePattern.matcher(lruPrefix);
-                    String escapedPrefix = pipeMatcher.replaceAll("\\\\|");
-                    String lpar = "\\(";
-                    pipePattern = Pattern.compile(lpar);
-                    pipeMatcher = pipePattern.matcher(escapedPrefix);
-                    escapedPrefix = pipeMatcher.replaceAll("\\\\(");
-                    String rpar = "\\)";
-                    pipePattern = Pattern.compile(rpar);
-                    pipeMatcher = pipePattern.matcher(escapedPrefix);
-                    escapedPrefix = pipeMatcher.replaceAll("\\\\)");
-
-                    Pattern pattern = Pattern.compile(escapedPrefix);
-                    Matcher matcher = pattern.matcher(lru);
-                    // it's  a match
-                    if(matcher.find()) {
-                        if(logger.isDebugEnabled()) {
-                            logger.debug("found match for lru " + lru + " and regexp " + escapedPrefix);
-                        }
-                        Set<WebEntity> webEntitiesWithPrefix = matches.get(lruPrefix);
-                        if(webEntitiesWithPrefix == null) {
-                            webEntitiesWithPrefix = new HashSet<WebEntity>();
-                        }
-                        webEntitiesWithPrefix.add(webEntity);
-                        if(mode.equals(MatchMode.LRUPREFIX)) {
-                            matches.put(lruPrefix, webEntitiesWithPrefix);
-                        }
-                        else if(mode.equals(MatchMode.LRU)) {
-                            matches.put(lru, webEntitiesWithPrefix);
-                        }
-
-                    }
-                }
-            }
-        }
-        return matches;
-    }
-
-    private WebEntity findMatchingWebEntityForLRU(String lru, Set<WebEntity> webEntities) throws IndexException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("findMatchingWebEntityLRU for lru " + lru + " in # " + webEntities.size());
-        }
-        WebEntity match = null;
-        Map<String, WebEntity> possibleMatches = new HashMap<String, WebEntity>();
-        if(!StringUtils.isEmpty(lru)) {
-            for(WebEntity webEntity : webEntities) {
-                Set<String> lruPrefixes = webEntity.getLRUSet();
-                for(String lruPrefix : lruPrefixes) {
-                    // TODO is it inefficient to compile these patterns everytime ? Better to keep them in memory ?
-                    // lruPrefixes must escape |
-                    String pipe = "\\|";
-                    Pattern pipePattern = Pattern.compile(pipe);
-                    Matcher pipeMatcher = pipePattern.matcher(lruPrefix);
-                    String escapedPrefix = pipeMatcher.replaceAll("\\\\|");
-
-                    Pattern pattern = Pattern.compile(escapedPrefix);
-                    Matcher matcher = pattern.matcher(lru);
-                    // it's  a match
-                    if(matcher.find()) {
-                        logger.debug("found possible webentity match for lru " + lru + " and regexp " + escapedPrefix);
-                        possibleMatches.put(lruPrefix, webEntity);
-                    }
-                }
-            }
-            // the longest prefix is the best match
-            String longest = "";
-            for(String prefix : possibleMatches.keySet()) {
-                if(prefix.length() > longest.length()) {
-                    longest = prefix;
-                }
-            }
-            match = possibleMatches.get(longest);
-        }
-        if(match == null) {
-            throw new IndexException("Could not find web entity for lru " + lru);
-        }
-        if(logger.isDebugEnabled()) {
-            logger.debug("found webentity with name " + match.getName() + " for lru " + lru);
-        }
-        return match;
-    }
-
-    /**
-     * Returns a map of matching LRUPrefixes and their WebEntity. If the same LRUPrefix occurs in more than one
-     * WebEntity, they are all mapped.
-     *
-     * @param lrus
-     * @return
-     * @throws IndexException hmm
-     */
-    private Map<String, Set<WebEntity>> findMatchingWebEntityLRUs(Set<String> lrus) throws IndexException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("findMatchingWebEntityLRUs for # " + lrus.size() + " lrus");
-        }
-        Map<String, Set<WebEntity>> matches = new HashMap<String, Set<WebEntity>>();
-        Set<WebEntity> allWebEntities = retrieveWebEntities();
-        for(String lru : lrus) {
-            matches.putAll(findMatchingWebEntityLRUPrefixes(lru, allWebEntities, MatchMode.LRU));
-        }
-        if(logger.isDebugEnabled()) {
-            logger.debug("findMatchingWebEntityLRUs returns " + matches.size() + " matches");
-        }
-        return matches;
-    }
-
-    /**
      * Returns a map of matching LRUPrefixes and their WebEntity.
      *
      * @param lrus
@@ -1535,9 +1456,8 @@ public class LRUIndex {
             logger.debug("mapWebEntityForLRUs for # " + lrus.size() + " lrus");
         }
         Map<String, WebEntity> matches = new HashMap<String, WebEntity>();
-        Set<WebEntity> allWebEntities = retrieveWebEntities();
         for(String lru : lrus) {
-            matches.put(lru, findMatchingWebEntityForLRU(lru, allWebEntities));
+            matches.put(lru, retrieveWebEntityMatchingLRU(lru));
         }
         return matches;
     }

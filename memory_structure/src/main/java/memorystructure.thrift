@@ -246,14 +246,17 @@ void saveNodeLinks(1:list<NodeLink> nodeLinks) throws (1:MemoryStructureExceptio
 **/
 void addAliastoWebEntity(1:string id, 2:string lru) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
-// gefx egonetwork
 /**
- * @param 1 webEntityId: id of web entity
- * @param 2 distance: distance
- * @param 3 format: must be 'gefx'
- * @return gefx graph
+ * @param 1 lru to search for
+ * @return web entity whose aliases contains this lru
  */
-string getWebEntityEgoNetwork(1:string webEntityId, 2:i32 distance, 3:string format) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+WebEntity findWebEntityByLRU(1:string lru) throws (1:MemoryStructureException me),
+
+/**
+ * @param 1 prefix to search for
+ * @return web entity whose aliases contains this prefix
+ */
+WebEntity findWebEntityByPrefix(1:string prefix) throws (1:MemoryStructureException me),
 
 /**
  * @param 1 prefix to search for

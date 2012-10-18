@@ -1,4 +1,4 @@
 Manifest-Version: 1.0
 Main-Class: fr.sciencespo.medialab.hci.memorystructure.thrift.ThriftServer
-Class-Path: lib/commons-collections-3.2.1.jar lib/commons-lang-2.6.jar lib/libthrift-0.8.0.jar lib/lucene-core-3.5.0.jar lib/slf4j-api-1.6.4.jar lib/slf4j-log4j12-1.6.4.jar lib/gexf4j-core-0.2.0-ALPHA.jar lib/guava-11.0.1.jar
+Class-Path: lib/commons-collections-3.2.1.jar lib/commons-lang-2.6.jar lib/libthrift-0.8.0.jar lib/lucene-core-3.5.0.jar lib/slf4j-api-1.6.4.jar lib/slf4j-log4j12-1.6.4.jar
 

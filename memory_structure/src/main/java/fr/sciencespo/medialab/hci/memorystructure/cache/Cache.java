@@ -176,7 +176,7 @@ public class Cache {
                             }
                         }
                     }
-                    else if(lruElement.startsWith("r:")) {
+                    else if(lruElement.startsWith("f:")) {
                         lruElement = lruElement.substring(lruElement.indexOf(':')+1);
                         lruElement = lruElement.trim();
                         if(StringUtils.isNotEmpty(lruElement)) {
@@ -209,90 +209,49 @@ public class Cache {
         if(logger.isDebugEnabled()) {
             logger.debug("applyWebEntityCreationRule " + rule.getRegExp());
         }
-        // only apply rule to page with lru that match the rule lruprefix (or if this is the default rule)
-        if(page.getLru().startsWith(rule.getLRU()) || rule.getLRU().equals(IndexConfiguration.DEFAULT_WEBENTITY_CREATION_RULE)) {
-            if(logger.isDebugEnabled()) {
-                logger.debug("page " + page.getLru() + " matches rule prefix " + rule.getLRU());
-            }
-            String regexp = rule.getRegExp();
-            Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
-            Matcher matcher = pattern.matcher(page.getLru());
-            if(matcher.find()) {
-                if(logger.isDebugEnabled()) {
-                    logger.debug("rule matches page " + page.getLru());
-                }
-                String webEntityLRU = matcher.group();
-                String name = StringUtil.toTitle(revertLRU(webEntityLRU));
-                webEntity = new WebEntity();
-                webEntity.setName(name);
-                webEntity.setLRUSet(new HashSet<String>());
-                webEntity.addToLRUSet(webEntityLRU);
-                Date now = new Date();
-                webEntity.setCreationDate(now.toString());
-                webEntity.setLastModificationDate(now.toString());
-                logger.debug("created new WebEntity");
-            }
-            else {
-                if(logger.isDebugEnabled()) {
-                    logger.debug("rule does not match page " + page.getLru());
-                }
-            }
-        }
-        else {
-            if(logger.isDebugEnabled()) {
-                logger.debug("page " + page.getLru() + " does not match rule prefix " + rule.getLRU());
-            }
+        String LRUPrefix = getLRUPrefixAccordingToRule(rule, page.getLru());
+        if(LRUPrefix != null) {
+            String name = StringUtil.toTitle(revertLRU(LRUPrefix));
+            webEntity = new WebEntity();
+            webEntity.setName(name);
+            webEntity.setLRUSet(new HashSet<String>());
+            webEntity.addToLRUSet(LRUPrefix);
+            Date now = new Date();
+            webEntity.setCreationDate(now.toString());
+            webEntity.setLastModificationDate(now.toString());
+            logger.debug("created new WebEntity");
         }
         return webEntity;
     }
 
-    private String findMostSpecificWEPrefix(Map<String, Set<WebEntity>> matchingWEPrefixes) throws MemoryStructureException {
-        String mostSpecificWEPrefix = "";
-        if(matchingWEPrefixes.size() > 0) {
-            Set<String> mostSpecificWEPrefixes = CollectionUtils.findLongestString(matchingWEPrefixes.keySet());
-            // should never happen because of validation in lruindex when indexing webentity
-            if(mostSpecificWEPrefixes.size() > 1) {
-                throw new MemoryStructureException().setMsg("Confused: more than one matching WebEntity Prefix with same specificity");
-            }
-            mostSpecificWEPrefix = mostSpecificWEPrefixes.iterator().next();
+    private String getLRUPrefixAccordingToRule(WebEntityCreationRule rule, String pageLRU) {
+        String LRUPrefix = null;
+        // only apply rule to page with lru that match the rule lruprefix (or if this is the default rule)
+        if(pageLRU.startsWith(rule.getLRU()) || rule.getLRU().equals(IndexConfiguration.DEFAULT_WEBENTITY_CREATION_RULE)) {
             if(logger.isDebugEnabled()) {
-                if(mostSpecificWEPrefixes.size() > 0) {
-                    logger.debug("found most specific matching web entity prefix: " + mostSpecificWEPrefixes.iterator().next());
+                logger.debug("page " + pageLRU + " matches rule prefix " + rule.getLRU());
+            }
+            String regexp = rule.getRegExp();
+            Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(pageLRU);
+            if(matcher.find()) {
+                if(logger.isDebugEnabled()) {
+                    logger.debug("rule matches page " + pageLRU);
                 }
-                else {
-                    logger.debug("did not find any most specific matching web entity prefix");
+                LRUPrefix = matcher.group();
+            }
+            else {
+                if(logger.isDebugEnabled()) {
+                    logger.debug("rule does not match page " + pageLRU);
                 }
             }
         }
         else {
-            logger.debug("did not find any matching web entity lru prefixes");
-        }
-        return mostSpecificWEPrefix;
-    }
-    
-    private String findMostSpecificWECRPrefix(Map<String, Set<WebEntityCreationRule>> matchingWECRPrefixes) throws MemoryStructureException {
-        String mostSpecificWECRPrefix = "";
-        if(matchingWECRPrefixes.size() > 0) {
-            Set<String> mostSpecificWECRPrefixes = CollectionUtils.findLongestString(matchingWECRPrefixes.keySet());
-            // should never happen because of validation in lruindex when indexing web entity creation rule
-            if(matchingWECRPrefixes.size() > 1) {
-                throw new MemoryStructureException().setMsg("Confused: more than one matching WebEntityCreationRule Prefix with same specificity");
-            }
-            mostSpecificWECRPrefix = mostSpecificWECRPrefixes.iterator().next();
-
             if(logger.isDebugEnabled()) {
-                if(mostSpecificWECRPrefixes.size() > 0) {
-                    logger.debug("found most specific matching web entity creation rule prefix: " + mostSpecificWECRPrefixes.iterator().next());
-                }
-                else {
-                    logger.debug("did not find any most specific matching web entity creation rule prefix");
-                }
+                logger.debug("page " + pageLRU + " does not match rule prefix " + rule.getLRU());
             }
         }
-        else {
-            logger.debug("did not find any matching web entity creation rule lru prefixes");
-        }
-        return mostSpecificWECRPrefix;
+        return LRUPrefix;
     }
 
     /**
@@ -302,8 +261,8 @@ public class Cache {
      * @throws MemoryStructureException hmm
      * @throws IndexException hmm
      */
-    public int createWebEntitiesNew() throws MemoryStructureException, IndexException {
-        logger.debug("createWebEntitiesNew");
+    public int createWebEntities() throws MemoryStructureException, IndexException {
+        logger.debug("createWebEntities");
         int createdWebEntitiesCount = 0;
         WebEntityCreationRule defaultRule = lruIndex.retrieveDefaultWECR();
         Set<WebEntityCreationRule> webEntityCreationRules = lruIndex.retrieveWebEntityCreationRules();
@@ -312,7 +271,7 @@ public class Cache {
         WebEntity webEntityDefault;
         String ruleLRUPrefix, LRUPrefix;
         Set<String> LRUPrefixesCandidates;
-        Set<WebEntity> WEcandidates;
+        WebEntity WEcandidate;
         logger.debug("cache contains # " + pageLRUs.size() + " pages");
         for(String pageLRU : pageLRUs) {
             if(logger.isDebugEnabled()) {
@@ -331,105 +290,14 @@ public class Cache {
             }
             LRUPrefix = (String) (CollectionUtils.findLongestString(LRUPrefixesCandidates)).toArray()[0];
             if (!doneLRUPrefixes.contains(LRUPrefix)) {
-                WEcandidates = lruIndex.retrieveWebEntitiesByLRUPrefix(LRUPrefix);
-                if ((WEcandidates == null || WEcandidates.size() == 0) && webEntityDefault != null) {
+                WEcandidate = lruIndex.retrieveWebEntityByLRUPrefix(LRUPrefix);
+                if (WEcandidate == null && webEntityDefault != null) {
                     createdWebEntitiesCount++;
                     logger.debug("indexing new webentity");
                     // store new webentity in index
                     lruIndex.indexWebEntity(webEntityDefault, false);
                 }
                 doneLRUPrefixes.add(LRUPrefix);
-            }
-        }
-        return createdWebEntitiesCount;
-    }
-    
-    /**
-     * Creates web entities for the pages in the cache.
-     *
-     * @return number of new web entities
-     * @throws MemoryStructureException hmm
-     * @throws IndexException hmm
-     */
-    public int createWebEntities() throws MemoryStructureException, IndexException {
-        logger.debug("createWebEntities");
-        int createdWebEntitiesCount = 0;
-        Set<String> pageLRUs = this.pageItems.keySet();
-        logger.debug("cache contains # " + pageLRUs.size() + " pages");
-        for(String pageLRU : pageLRUs) {
-            if(logger.isDebugEnabled()) {
-                logger.debug("createWebEntities for page " + pageLRU);
-            }
-            //
-            // retrieve the most precise LRU prefix match from existing Web Entities + Web Entity Creation Rules
-            //
-            Map<String, Set<WebEntity>> matchingWEPrefixes = lruIndex.findMatchingWebEntityLRUPrefixes(pageLRU);
-            String mostSpecificWEPrefix = findMostSpecificWEPrefix(matchingWEPrefixes);
-
-            Map<String, Set<WebEntityCreationRule>> matchingWECRPrefixes = lruIndex.findMatchingWebEntityCreationRuleLRUPrefixes(pageLRU);
-            String mostSpecificWECRPrefix = findMostSpecificWECRPrefix(matchingWECRPrefixes);
-
-            // apply default rule if no other rule matches
-            if(mostSpecificWEPrefix.length() == 0 && mostSpecificWECRPrefix.length() == 0) {
-                logger.debug("did not find match from either WE or WECR: using default WECR");
-                WebEntityCreationRule defaultRule = lruIndex.retrieveDefaultWECR();
-                WebEntity webEntity = applyWebEntityCreationRule(defaultRule, this.pageItems.get(pageLRU));
-                // rule matched, successfully created new web entity
-                if(webEntity != null) {
-                    logger.debug("rule matched, successfully created new web entity");
-                    createdWebEntitiesCount++;
-                    logger.debug("indexing new webentity");
-                    // store new webentity in index
-                    lruIndex.indexWebEntity(webEntity);
-                }
-                else {
-                    logger.debug("rule did not match, did not create new web entity");
-                }
-            }
-
-            // if the most precise prefix is from a Web Entity, do nothing
-            else if(mostSpecificWEPrefix.length() > mostSpecificWECRPrefix.length()) {
-                logger.debug("most precise prefix is from a Web Entity, doing nothing");
-                // do nothing
-            }
-            
-            // if the most precise prefix is from a Web Entity Creation Rule, apply that rule (may be the default
-            // rule)
-            // if they are equal length, the most specific LRUPrefix from Rules and most specific LRUPrefix from
-            // entities have same specificity : In such a case, priority to the creation rule
-            
-            else if(mostSpecificWECRPrefix.length() >= mostSpecificWEPrefix.length()) {
-                if(logger.isDebugEnabled()) {
-                    if(mostSpecificWECRPrefix.length() > mostSpecificWEPrefix.length()) {
-                        logger.debug("most precise prefix is from a Web Entity Creation Rule, applying that rule");
-                    }
-                    else {
-                        logger.debug("most specific LRUPrefix from Rules and most specific LRUPrefix from entities have same specificity : prefer the creation rule");
-                    }
-                }
-                // apply rule
-                Set<WebEntityCreationRule> matchingRules = matchingWECRPrefixes.get(mostSpecificWECRPrefix);
-                if(logger.isDebugEnabled()) {
-                    logger.debug("found # " + matchingRules.size() + " matching rules");
-                }
-                // should never happen because of validation in lruindex when indexing web entity creation rule
-                if(matchingRules.size() > 1) {
-                    throw new MemoryStructureException().setMsg("Confused: more than one matching Rule with same specificity");
-                }
-                else {
-                    WebEntity webEntity = applyWebEntityCreationRule(matchingRules.iterator().next(), this.pageItems.get(pageLRU));
-                    // rule matched, successfully created new web entity
-                    if(webEntity != null) {
-                        logger.debug("rule matched, successfully created new web entity");
-                        createdWebEntitiesCount++;
-                        logger.debug("indexing new webentity");
-                        // store new webentity in index
-                        lruIndex.indexWebEntity(webEntity);
-                    }
-                    else {
-                        logger.debug("rule did not match, did not create new web entity");
-                    }
-                }
             }
         }
         return createdWebEntitiesCount;
