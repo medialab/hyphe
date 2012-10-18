@@ -1,0 +1,112 @@
+
+
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+
+/* --------------------------
+   Mini-logos on the top-right of the navbar
+   -------------------------- */
+.navbar .minilogo{
+  margin-top: 8px;
+}
+.navbar .minilogo img{
+  margin-left: 12px;
+}
+
+/* --------------------------
+   The header space for title and abstract of each tool
+   -------------------------- */
+.splash-unit{
+	margin-bottom: 30px;
+	min-height: 90px;
+}
+
+.splash-unit .image{
+  margin-top: 25px;
+	display: inline-block;
+	margin-right: 10px;
+}
+
+.splash-unit .title{
+	margin-bottom: 0;
+	font-size: 60px;
+	font-weight: 300;
+  	line-height: 1;
+  	letter-spacing: -1px;
+  	color: inherit;
+	
+	display: inline-block;
+	padding-bottom: 10px;
+  	vertical-align: bottom;
+}
+
+.splash-unit .abstract {
+  font-size: 18px;
+  font-weight: 200;
+  line-height: 30px;
+  color: #999999;
+
+  margin-top: 32px;
+}
+
+
+
+
+/* --------------------------
+   Footer
+   -------------------------- */
+footer{
+  margin-top: 120px;
+}
+
+
+/* --------------------------
+   Web Entities Browser
+   -------------------------- */
+
+.btn-weBrowser-prefix, .btn-weBrowser-folder, .btn-weBrowser-page{
+  margin-right:15px;
+  margin-bottom:15px;
+  word-wrap:break-word;
+  vertical-align: top;
+}
+.btn-weBrowser-prefix{
+  width: 275px;  
+}
+.btn-weBrowser-folder{
+  width: 175px;  
+}
+.btn-weBrowser-page{
+  width: 175px;  
+}
+
+.webentities_selector_container{
+    padding: 4px 4px;
+    margin: 0 0 20px;
+    list-style: none;
+    background-color: #f5f5f5;
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+}
+
+
+
+
+/* --------------------------
+   Info tooltips
+   -------------------------- */
+.info_tooltip{
+  border-bottom: 1px dotted #9999bb;
+  cursor: help;
+}
+
+
+/* --------------------------
+   MISC
+   -------------------------- */
+small.select2_small{
+  font-size: 0.5 em;
+  background-color: #F00;
+}

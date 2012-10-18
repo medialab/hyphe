@@ -1,0 +1,108 @@
+;(function($, undefined){
+
+	Hyphen.model = {};	// The model keeps a memory of "what we know" from the data sent by the Core (server side)
+
+	
+	// Various settings of graphic component
+	Hyphen.model.uxSettings = {
+		_private:{
+			focusedWebEntityId: ''
+			,browserPath: ''
+		}
+
+		// Generic getters and setters
+		,get: function(property){
+			return Hyphen.model.uxSettings._private[property]
+		}
+		,set: function(property, value){
+			Hyphen.model.uxSettings._private[property] = value
+		}
+	}
+
+
+	// Manage unitary variables
+	Hyphen.model.vars = {
+		_private:{
+			index:{}
+		}
+
+		// Getters and setters
+		,get: function(key){
+			return Hyphen.model.vars._private.index[key]
+		}
+		,set: function(key, value){
+			Hyphen.model.vars._private.index[key] = value
+		}
+	}
+
+	// Manage web entities
+	Hyphen.model.webEntities = {
+		_private:{
+			list:[]
+			,index:{}
+		}
+
+		// Getters and setters
+		,get: function(id){
+			return Hyphen.model.webEntities._private.index[id]
+		}
+		,getAll: function(){
+			return Hyphen.model.webEntities._private.list.slice(0)
+		}
+		,setAll: function(we_list){
+			Hyphen.model.webEntities._private.list = we_list.slice(0)
+
+			// Consolidate
+			Hyphen.model.webEntities._private.list.forEach(function(we){
+				// Add url_prefixes
+				we.url_prefixes = we.lru_prefixes.map(function(lru){
+					return Hyphen.utils.LRU_to_URL(lru)
+				})
+
+				// Add a "searchable" field concatenating url prefixes, name...
+				we.searchable = we.name + " " + we.url_prefixes.join(" ")
+			})
+
+
+			// Index
+			Hyphen.model.webEntities._private.index = {}
+			Hyphen.model.webEntities._private.list.forEach(function(we){
+				if(we.id){
+					Hyphen.model.webEntities._private.index[we.id] = we
+				}
+			})
+		},setPages: function(we_id, pages){
+			Hyphen.model.webEntities._private.index[we_id].pages = pages
+		},getPages: function(we_id){
+			return Hyphen.model.webEntities._private.index[we_id].pages
+		}
+	}
+
+	// Manage crawl jobs
+	Hyphen.model.crawlJobs = {
+		_private:{
+			list:[]
+			,index:{}
+		}
+
+		// Getters and setters
+		,get: function(id){
+			return Hyphen.model.webEntities._private.index[id]
+		}
+		,getAll: function(){
+			return Hyphen.model.webEntities._private.list.splice(0)
+		}
+		,setAll: function(jobs_list){
+			Hyphen.model.crawlJobs._private.list = jobs_list
+			Hyphen.model.crawlJobs._private.index = {}
+			jobs_list.forEach(function(crawlJob){
+				if(crawlJob.id){
+					Hyphen.model.crawlJobs._private.index[crawlJob.id] = crawlJob
+				}
+			})
+		}
+	}
+
+
+
+})(jQuery)
