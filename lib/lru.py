@@ -17,6 +17,10 @@ def url_to_lru(url):
     's:http|t:80|h:com|h:google|h:www|p:search|q:q=text&p=2'
 
     """
+    try:
+        url = url.encode('utf8')
+    except:
+        pass
     lru = lruFullPattern.match(url)
     if lru:
         scheme, authority, path, query, fragment = lru.groups()
