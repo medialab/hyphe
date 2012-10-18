@@ -34,19 +34,69 @@
 
     /// View
 
+    // Declare web entity by URL
+    $('#webEntityByURL_button').click(function(){
+        var url = $('#urlField').val()
+        Hyphen.controller.core.declareWebEntityByURL(url, function(webEntity){
+            // TODO
+            Hyphen.model.webEntities.update(webEntity)
+        })
+    })
+
     // Choosing an existing web entity with the select2
     $("#webentities_selector").on("change", function(e){
         Hyphen.controller.core.selectWebEntity( $("#webentities_selector").val() )
     })
 
-    
+    // Updating the 'start pages' table
+    $(document).on( "/webentity_focus", function(event, eventData){
+        switch(eventData.what){
+            case "updated":
+                var we_id = Hyphen.model.vars.get('focused_webentity_id')
+                $('#startPagesTable').html('')
+                if(we_id != ''){
+                    var we = Hyphen.model.webEntities.get(we_id)
+                        // ,startPages = we.startPages
+                        ,startPages = ['http://www.google.com', 'http://www.fromhell.com']
+                    startPages.forEach(function(sp){
+                        $('#startPagesTable').append(
+                            $('<tr/>')
+                            .append(
+                                $('<td/>').append($('<small/>').append($('<a target="_blank"/>').attr('href',sp).text(sp)))
+                                )
+                            .append($('<td/>').append($((startPages.length>1)?('<button class="close">&times;</button>'):(''))))
+                        )
+                    })
+                } else {
+                    $('#startPagesTable').html('<tr><td><span class="muted">Choose a web entity</span></td></tr>')
+                }
+
+                break
+        }
+    })
+
+    // Launch button (and its title)
+    $(document).on( "/webentity_focus", function(event, eventData){
+        switch(eventData.what){
+            case "updated":
+                var we_id = Hyphen.model.vars.get('focused_webentity_id')
+                if(we_id != '')
+                    $('#launchButton').attr('title', '')
+                else
+                    $('#launchButton').attr('title', 'Please choose a web entity')
+                break
+        }
+    })
+
 
     /// Controller
     
     Hyphen.controller.core.selectWebEntity = function(we_id){
-        Hyphen.model.vars.set('focused_webentity_id', we_id)
+        Hyphen.model.vars.set('focused_webentity_id', we_id)    
         $(document).trigger( "/webentity_focus", [{what:'updated'}])
     }
+
+
 
 
 })(window.Hyphen = window.Hyphen || {}, jQuery)

@@ -71,6 +71,23 @@
 					Hyphen.model.webEntities._private.index[we.id] = we
 				}
 			})
+		},update: function(web_entity){
+			if(Hyphen.model.webEntities.get(web_entity.id)){
+				// update list
+				for(var i=0; i<Hyphen.model.webEntities._private.list.length; i++){
+					if(Hyphen.model.webEntities._private.list[i].id == web_entity.id){
+						Hyphen.model.webEntities._private.list[i] = web_entity
+						i = Hyphen.model.webEntities._private.list.length
+					}
+				}
+				// update index
+				Hyphen.model.webEntities._private.index[web_entity.id] = web_entity
+			} else {
+				// push in the list
+				Hyphen.model.webEntities._private.list.push(web_entity)
+				// index
+				Hyphen.model.webEntities._private.index[web_entity.id] = web_entity
+			}
 		},setPages: function(we_id, pages){
 			Hyphen.model.webEntities._private.index[we_id].pages = pages
 		},getPages: function(we_id){

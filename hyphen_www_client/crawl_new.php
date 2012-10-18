@@ -87,8 +87,8 @@
                     </p>
                     <p>or</p>
                     <div class="input-append">
-                        <input style="width:278px;" type="text" placeholder="Paste URL to declare web entity">
-                        <button class="btn" type="button">Declare</button>
+                        <input style="width:278px;" type="text" id="urlField" placeholder="Paste URL to declare web entity">
+                        <button class="btn" id="webEntityByURL_button" type="button">Declare</button>
                     </div>
                 </div>
                 <div class="span4">
@@ -97,23 +97,13 @@
                         Check that the start pages are valid
                     </p>
                     <div id="startPagesContainer">
-                        <table class="table table-hover table-condensed">
-                            <tr>
-                                <td><small>http://x.com</small></td>
-                                <td><button class="close">&times;</button></td>
-                            </tr>
-<!--                             <tr>
-                                <td><small>http://www.medialab.sciences-po.fr/2012/index.html</small></td>
-                                <td><button class="close">&times;</button></td>
-                            </tr>
- -->                        </table>
-                        <!-- <p>
-                            <span class="muted">Choose a web entity</span>
-                        </p> -->
+                        <table id="startPagesTable" class="table table-hover table-condensed">
+                            <tr><td><span class="muted">Choose a web entity</span></td></tr>
+                        </table>
                     </div>
                     <p>
                         <div class="input-append">
-                            <input style="width:232px;" type="text" placeholder="Paste URL to declare start page">
+                            <input style="width:232px;" type="text" placeholder="Paste URL to declare a new one">
                             <button class="btn" type="button">New start page</button>
                         </div>
                     </p>
@@ -127,7 +117,7 @@
                         <label>Maximum depth</label>
                         <input type="text" id="depth" placeholder="Depth" value="2"/>
                     </p><p>
-                        <button class="btn btn-primary disabled">Launch crawl</button>
+                        <button class="btn btn-primary disabled" id="launchButton" title="Please choose a web entity">Launch crawl</button>
                     </p>
                 </div>
             </div>

@@ -239,13 +239,14 @@
 
 	Hyphen.controller.io.webEntity_getPages = function(we_id, callback){
 		Hyphen.controller.io.call('store.get_webentity_pages', [we_id], callback)
-
-		// Just for test
-		//callback(["http://www.warincontext.com", "http://www.warincontext.com/blog/page1", "http://www.warincontext.com/blog/page2", "http://www.warincontext.com/archive/2010", "http://www.warincontext.com/archive/2011"]);
 	}
 
 	Hyphen.controller.io.webEntity_rename = function(we_id, new_name, callback){
 		Hyphen.controller.io.call('store.rename_webentity', JSON.stringify([we_id, new_name]), callback)
 	}
-	
+
+	Hyphen.controller.io.declarePages = function(urls_array, callback){
+		// TODO
+	}
+
 })(jQuery)
