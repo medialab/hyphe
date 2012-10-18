@@ -138,16 +138,13 @@ class Core(jsonrpc.JSONRPC):
         print "Indexing pages and creating webentities from list of urls %s ..." % list_urls
         for url in list_urls:
             WE = yield self.jsonrpc_declare_page(url)
-            print WE
             res.append(WE['result'])
-        print res
         defer.returnValue({'code': 'success', 'result': res})
 
     @inlineCallbacks
     def jsonrpc_declare_page(self, url, corpus=''):
         mem_struct_conn = getThriftConn()
         res = yield mem_struct_conn.addCallback(self.store.declare_page, url).addErrback(self.store.handle_error)
-        print res
         defer.returnValue({'code': 'success', 'result': res})
 
 class Crawler(jsonrpc.JSONRPC):
@@ -467,9 +464,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = yield mem_struct_conn.addCallback(self.get_nodelinks).addErrback(self.handle_error)
         defer.returnValue(res)
 
+    @inlineCallbacks
     def get_nodelinks(self, conn):
         client = conn.client
-        WEs = client.getNodeLinks()
+        WEs = yield client.getNodeLinks()
         defer.returnValue({'code': 'success', 'result': [{'source': l.sourceLRU, 'target': l.targetLRU} for l in WEs]})
 
     @inlineCallbacks
