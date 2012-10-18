@@ -278,6 +278,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @throws ObjectNotFoundException
      */
     @Override
+    public int indexCache(String cacheId) throws TException, MemoryStructureException, ObjectNotFoundException {
         if(logger.isDebugEnabled()) {
             logger.debug("indexCache with cache id: " + cacheId);
         }
