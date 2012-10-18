@@ -27,8 +27,26 @@
             formatSelection: webentity_format
         })
 
-
-
 	})
+
+
+    /// Model
+
+    /// View
+
+    // Choosing an existing web entity with the select2
+    $("#webentities_selector").on("change", function(e){
+        Hyphen.controller.core.selectWebEntity( $("#webentities_selector").val() )
+    })
+
+    
+
+    /// Controller
+    
+    Hyphen.controller.core.selectWebEntity = function(we_id){
+        Hyphen.model.vars.set('focused_webentity_id', we_id)
+        $(document).trigger( "/webentity_focus", [{what:'updated'}])
+    }
+
 
 })(window.Hyphen = window.Hyphen || {}, jQuery)

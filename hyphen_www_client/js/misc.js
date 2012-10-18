@@ -126,12 +126,24 @@
 
 
 	Hyphen.utils.htmlEncode = function(value){
-		return $('<div/>').text(value).html();
+		return $('<div/>').text(value).html()
 	}
 
 	Hyphen.utils.htmlDecode = function(value){
-  		return $('<div/>').html(value).text();
+  		return $('<div/>').html(value).text()
 	}
+
+	Hyphen.utils.checkforInteger = function(value) {
+		if (parseInt(value) != value)
+			return false
+		else return true
+    }
+
+    Hyphen.utils.checkforPrice = function(value) {
+    	if (isNaN(parseFloat(value)))
+		    return false
+        else return true
+    }
 
 
 
@@ -141,7 +153,7 @@
 	// Debug
 	Hyphen.debug = {}
 
-	Hyphen.debug.level = 0	// 0: no debug, 1: track activated functions, 2: process tracking, 3: full details (unbearable)
+	Hyphen.debug.level = Hyphen.config.DEBUG_LEVEL || 0	// 0: no debug, 1: track activated functions, 2: process tracking, 3: full details (unbearable)
 
 	Hyphen.debug.log = function(messageOrMessages, level){
 		level = level || 1

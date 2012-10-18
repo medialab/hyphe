@@ -21,8 +21,9 @@
 
 <script src="js/libs/select2.min.js"></script>
 
-<script src="js/hyphen_init.js"></script>
+<script src="js/init.js"></script>
 <script src="_config/config.js"></script>
+<script src="js/misc.js"></script>
 <script src="js/checkconfig.js"></script>
 <script src="js/model.js"></script>
 <script src="js/view.js"></script>

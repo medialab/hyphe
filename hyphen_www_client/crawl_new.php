@@ -123,7 +123,12 @@
                     <p class="text-info">
                         The maximum depth sets the quantity of pages to harvest
                     </p>
-                    <button class="btn btn-primary disabled">Launch</button>
+                    <p>
+                        <label>Maximum depth</label>
+                        <input type="text" id="depth" placeholder="Depth" value="2"/>
+                    </p><p>
+                        <button class="btn btn-primary disabled">Launch crawl</button>
+                    </p>
                 </div>
             </div>
         </div>
