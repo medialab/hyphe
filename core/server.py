@@ -284,16 +284,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def format_webentity(self, WE, jobs=None):
         if WE:
+            res = {'id': WE.id, 'name': WE.name, 'lru_prefixes': list(WE.LRUSet), 'creation_date': WE.creationDate, 'last_modification_date': WE.lastModificationDate}
             #pages = yield client.getPagesFromWebEntityFromImplementation(WE.id, "PAUL")
             # nb_pages = len(pages)
             # nb_links, tags, WEstatus
-            crawl = None
-            index = None
-            job = self.db[config['mongo-scrapy']['jobLogsCol']].find_one({'webentity_id': WE.id}, sort=[('timestamp', pymongo.DESCENDING)])
+            job = self.db[config['mongo-scrapy']['jobListCol']].find_one({'webentity_id': WE.id}, sort=[('timestamp', pymongo.DESCENDING)])
             if job:
-                crawl = job['crawling_status']
-                index = job['indexing_status']
-            return {'id': WE.id, 'name': WE.name, 'lru_prefixes': list(WE.LRUSet), 'creation_date': WE.creationDate, 'last_modification_date': WE.lastModificationDate, 'crawling_status': crawl, 'indexing_status': index} #, 'pages_count': len(pages), list([p.lru for p in pages])}
+                res['crawling_status'] = job['crawling_status']
+                res['indexing_status'] = job['indexing_status']
+            return res
         return None
 
     def reset(self, conn):
