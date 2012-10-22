@@ -8,8 +8,6 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.LogByteSizeMergePolicy;
-import org.apache.lucene.index.LogMergePolicy;
 import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;

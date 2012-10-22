@@ -43,15 +43,15 @@ public class Test {
         Set<String> i1 = new HashSet<String>(big);
         i1.retainAll(small);
         long t2 = System.currentTimeMillis();
-        System.out.println("1: " + i1);
+        System.out.println("1: " + i1 + " in " + String.valueOf(t2-t1) + " ms");
 
         long t3 = System.currentTimeMillis();
         Set<String> i2 = new HashSet<String>(small);
         i2.retainAll(big);
         long t4 = System.currentTimeMillis();
-        System.out.println("2: " + i2);
+        System.out.println("2: " + i2 + " in " + String.valueOf(t4-t3) + " ms");
 
-        Set<String> i3 = (Set)CollectionUtils.intersection(big, small);
+        Set<String> i3 = (Set) CollectionUtils.intersection(big, small);
         System.out.println("3: " + i3);
         System.out.println("4: " + CollectionUtils.intersection(small, big));
 

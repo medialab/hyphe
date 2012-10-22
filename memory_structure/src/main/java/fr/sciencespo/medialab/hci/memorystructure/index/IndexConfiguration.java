@@ -208,7 +208,6 @@ public class IndexConfiguration {
         //
         // if the PageItem has no URL, recreate it from LRU
         //
-        String url;
         if(StringUtils.isEmpty(pageItem.getUrl())) {
             pageItem.setUrl(LRUUtil.revertLRU(pageItem.getLru()));
         }

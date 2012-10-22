@@ -17,9 +17,6 @@ import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.LogByteSizeMergePolicy;
-import org.apache.lucene.index.LogMergePolicy;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.search.Collector;
@@ -1477,10 +1474,6 @@ public class LRUIndex {
         catch(IOException x)  {
             throw new IndexException(x.getMessage(), x);
         }
-    }
-
-    private enum MatchMode {
-        LRUPREFIX, LRU
     }
 
     /**
