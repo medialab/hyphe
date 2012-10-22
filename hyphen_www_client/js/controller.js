@@ -122,6 +122,19 @@
 		$(document).trigger( "/weBrowser", [{what:'pathUpdated'}])
 	}
 
+	Hyphen.controller.core.declareWebEntityByURL = function(url, callback){
+        Hyphen.controller.io.declarePage(url, function(json){
+            if(json){
+            	if(json.result && json.result.id){
+            		var we = json.result
+            		Hyphen.model.webEntities.update(we)
+					$(document).trigger( "/webentity", [{what:'updated', webEntity_id:we.id}])
+		            callback(we)
+            	}
+			}
+        })
+    }
+
 
 
 
@@ -245,8 +258,8 @@
 		Hyphen.controller.io.call('store.rename_webentity', JSON.stringify([we_id, new_name]), callback)
 	}
 
-	Hyphen.controller.io.declarePages = function(urls_array, callback){
-		// TODO
+	Hyphen.controller.io.declarePage = function(url, callback){
+		Hyphen.controller.io.call('declare_page', [url], callback)
 	}
 
 })(jQuery)

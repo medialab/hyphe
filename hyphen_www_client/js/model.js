@@ -40,6 +40,15 @@
 		_private:{
 			list:[]
 			,index:{}
+			,consolidate: function(we){
+				// Add url_prefixes
+				we.url_prefixes = we.lru_prefixes.map(function(lru){
+					return Hyphen.utils.LRU_to_URL(lru)
+				})
+
+				// Add a "searchable" field concatenating url prefixes, name...
+				we.searchable = we.name + " " + we.url_prefixes.join(" ")
+			}
 		}
 
 		// Getters and setters
@@ -53,16 +62,7 @@
 			Hyphen.model.webEntities._private.list = we_list.slice(0)
 
 			// Consolidate
-			Hyphen.model.webEntities._private.list.forEach(function(we){
-				// Add url_prefixes
-				we.url_prefixes = we.lru_prefixes.map(function(lru){
-					return Hyphen.utils.LRU_to_URL(lru)
-				})
-
-				// Add a "searchable" field concatenating url prefixes, name...
-				we.searchable = we.name + " " + we.url_prefixes.join(" ")
-			})
-
+			Hyphen.model.webEntities._private.list.forEach(Hyphen.model.webEntities._private.consolidate)
 
 			// Index
 			Hyphen.model.webEntities._private.index = {}
@@ -72,6 +72,9 @@
 				}
 			})
 		},update: function(web_entity){
+			// consolidate web entity
+			Hyphen.model.webEntities._private.consolidate(web_entity)
+			
 			if(Hyphen.model.webEntities.get(web_entity.id)){
 				// update list
 				for(var i=0; i<Hyphen.model.webEntities._private.list.length; i++){
