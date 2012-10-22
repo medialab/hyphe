@@ -1,11 +1,13 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
+import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
+import fr.sciencespo.medialab.hci.memorystructure.util.LRUUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.Document;
@@ -26,28 +28,26 @@ public class IndexConfiguration {
 
     /**
      * Names of fields in the index. Not every doc needs to have all of these fields.
-     * TODO : shorter fieldname
-     * CRAWLERTIMESTAMP : CRAWLTS
-     * ERRORCODE : ERROR
-     * HTTPSTATUSCODE : HTTPSTATUS
-     * CREATIONDATE : DATECREA
-     * LASTMODIFICATIONDATE : DATEMODIF
      */
     enum FieldName {
         ID,
         TYPE,
         LRU,
-        CRAWLERTIMESTAMP,
+        URL,
+        CRAWLERTS,
         DEPTH,
-        ERRORCODE,
-        HTTPSTATUSCODE,
+        ERROR,
+        HTTPSTATUS,
+        FULLPREC,
+        IS_NODE,
+        TAG,
         REGEXP,
         NAME,
         SOURCE,
         TARGET,
         WEIGHT,
-        CREATIONDATE,
-        LASTMODIFICATIONDATE
+        DATECREA,
+        DATEMODIF
     }
 
     /**
@@ -65,13 +65,18 @@ public class IndexConfiguration {
     public static final String DEFAULT_WEBENTITY_CREATION_RULE = "DEFAULT_WEBENTITY_CREATION_RULE";
 
     protected static Document SetDates(Document document, String creationDate, String lastModificationDate) {
-        if (creationDate != null) {
-            Field creationDateField = new Field(FieldName.LASTMODIFICATIONDATE.name(), creationDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            creationDateField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(creationDateField);
+        String currentDate = String.valueOf(System.currentTimeMillis());
+        if (creationDate == null) {
+            creationDate = currentDate;
         }
+        if (lastModificationDate == null) {
+            lastModificationDate = currentDate;
+        }
+        Field creationDateField = new Field(FieldName.DATEMODIF.name(), creationDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        creationDateField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        document.add(creationDateField);
         if (lastModificationDate != null) {
-            Field lastModificationDateField = new Field(FieldName.CREATIONDATE.name(), lastModificationDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            Field lastModificationDateField = new Field(FieldName.DATECREA.name(), lastModificationDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
             lastModificationDateField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(lastModificationDateField);
         }
@@ -200,8 +205,19 @@ public class IndexConfiguration {
             return null;
         }
 
+        //
+        // if the PageItem has no URL, recreate it from LRU
+        //
+        String url;
+        if(StringUtils.isEmpty(pageItem.getUrl())) {
+            pageItem.setUrl(LRUUtil.revertLRU(pageItem.getLru()));
+        }
+        Field urlField = new Field(FieldName.URL.name(), pageItem.getUrl(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        urlField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        document.add(urlField);
+
         if(StringUtils.isNotEmpty(pageItem.getCrawlerTimestamp())) {
-            Field crawlerTimestampField = new Field(FieldName.CRAWLERTIMESTAMP.name(), pageItem.getCrawlerTimestamp(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            Field crawlerTimestampField = new Field(FieldName.CRAWLERTS.name(), pageItem.getCrawlerTimestamp(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
             crawlerTimestampField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(crawlerTimestampField);
         }
@@ -213,15 +229,35 @@ public class IndexConfiguration {
         }
 
         if(StringUtils.isNotEmpty(pageItem.getErrorCode())) {
-            Field errorCodeField = new Field(FieldName.ERRORCODE.name(), pageItem.getErrorCode(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            Field errorCodeField = new Field(FieldName.ERROR.name(), pageItem.getErrorCode(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
             errorCodeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(errorCodeField);
         }
 
         if(StringUtils.isNotEmpty(Integer.toString(pageItem.getHttpStatusCode()))) {
-            Field httpStatusCodeField = new Field(FieldName.HTTPSTATUSCODE.name(), Integer.toString(pageItem.getHttpStatusCode()), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            Field httpStatusCodeField = new Field(FieldName.HTTPSTATUS.name(), Integer.toString(pageItem.getHttpStatusCode()), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
             httpStatusCodeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(httpStatusCodeField);
+        }
+
+        if(StringUtils.isNotEmpty(Boolean.toString(pageItem.isNode))) {
+            Field isNodeField = new Field(FieldName.IS_NODE.name(), Boolean.toString(pageItem.isNode), Field.Store.NO, Field.Index.NOT_ANALYZED_NO_NORMS);
+            isNodeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(isNodeField);
+        }
+
+        if(StringUtils.isNotEmpty(Boolean.toString(pageItem.isFullPrecision))) {
+            Field isFullPrecision = new Field(FieldName.FULLPREC.name(), Boolean.toString(pageItem.isFullPrecision), Field.Store.NO, Field.Index.NOT_ANALYZED_NO_NORMS);
+            isFullPrecision.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(isFullPrecision);
+        }
+
+        if (pageItem.getSourceSet().size() > 0) {
+	        for(String source : pageItem.getSourceSet()) {
+	            Field sourceField = new Field(FieldName.SOURCE.name(), source, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+	            sourceField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+	            document.add(sourceField);
+	        }
         }
 
         document = SetDates(document, pageItem.getCreationDate(), pageItem.getLastModificationDate());
@@ -335,7 +371,10 @@ public class IndexConfiguration {
         String lru = document.get(FieldName.LRU.name());
         pageItem.setLru(lru);
 
-        String crawlerTimestamp = document.get(FieldName.CRAWLERTIMESTAMP.name());
+        String url = document.get(FieldName.URL.name());
+        pageItem.setUrl(url);
+
+        String crawlerTimestamp = document.get(FieldName.CRAWLERTS.name());
         pageItem.setCrawlerTimestamp(crawlerTimestamp);
 
         String depth$ = document.get(FieldName.DEPTH.name());
@@ -344,12 +383,25 @@ public class IndexConfiguration {
             pageItem.setDepth(depth);
         }
 
-        String errorCode = document.get(FieldName.ERRORCODE.name());
-        pageItem.setErrorCode(errorCode);
-        pageItem.setCreationDate(document.get(FieldName.CREATIONDATE.name()));
-        pageItem.setLastModificationDate(document.get(FieldName.LASTMODIFICATIONDATE.name()));
+        Fieldable[] sourceFields = document.getFieldables(FieldName.SOURCE.name());
+        Set<String> sourceList = new HashSet<String>();
+        for(Fieldable sourceField : sourceFields) {
+            sourceList.add(sourceField.stringValue());
+        }
+        pageItem.setSourceSet(sourceList);
 
-        String httpStatusCode$ = document.get(FieldName.HTTPSTATUSCODE.name());
+        String errorCode = document.get(FieldName.ERROR.name());
+        pageItem.setErrorCode(errorCode);
+
+        Boolean isFullPrec = Boolean.valueOf(document.get(FieldName.FULLPREC.name()));
+        pageItem.setIsFullPrecision(isFullPrec);
+        Boolean isNode = Boolean.valueOf(document.get(FieldName.IS_NODE.name()));
+        pageItem.setIsNode(isNode);
+        
+        pageItem.setCreationDate(document.get(FieldName.DATECREA.name()));
+        pageItem.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
+
+        String httpStatusCode$ = document.get(FieldName.HTTPSTATUS.name());
         if(StringUtils.isNotEmpty(httpStatusCode$)) {
             int httpStatusCode = Integer.parseInt(httpStatusCode$);
             pageItem.setHttpStatusCode(httpStatusCode);
@@ -381,8 +433,8 @@ public class IndexConfiguration {
             lruList.add(lruField.stringValue());
         }
         webEntity.setLRUSet(lruList);
-        webEntity.setCreationDate(document.get(FieldName.CREATIONDATE.name()));
-        webEntity.setLastModificationDate(document.get(FieldName.LASTMODIFICATIONDATE.name()));
+        webEntity.setCreationDate(document.get(FieldName.DATECREA.name()));
+        webEntity.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
 
         if(logger.isDebugEnabled()) {
             logger.trace("convertLuceneDocument2WebEntity returns webentity with id: " + id);
@@ -414,8 +466,8 @@ public class IndexConfiguration {
             weight = Integer.parseInt(weight$);
         }
         nodeLink.setWeight(weight);
-        nodeLink.setCreationDate(document.get(FieldName.CREATIONDATE.name()));
-        nodeLink.setLastModificationDate(document.get(FieldName.LASTMODIFICATIONDATE.name()));
+        nodeLink.setCreationDate(document.get(FieldName.DATECREA.name()));
+        nodeLink.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
 
         if(logger.isDebugEnabled()) {
             logger.trace("convertLuceneDocument2NodeLink returns nodelink with id: " + id);
@@ -447,8 +499,8 @@ public class IndexConfiguration {
             weight = Integer.parseInt(weight$);
         }
         webEntityLink.setWeight(weight);
-	webEntityLink.setCreationDate(document.get(FieldName.CREATIONDATE.name()));
-	webEntityLink.setLastModificationDate(document.get(FieldName.LASTMODIFICATIONDATE.name()));
+	webEntityLink.setCreationDate(document.get(FieldName.DATECREA.name()));
+	webEntityLink.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
 
         if(logger.isDebugEnabled()) {
             logger.trace("convertLuceneDocument2WebEntityLink returns webEntityLink with id: " + id);

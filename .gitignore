@@ -9,4 +9,4 @@ core/gen-py.twisted
 core/twistd.pid
 memory_structure/src/main/java/fr/sciencespo/medialab/hci/memorystructure/thrift/*
 memory_structure/target/*
-
+memory_structure/.*

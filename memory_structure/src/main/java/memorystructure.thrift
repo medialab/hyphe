@@ -28,11 +28,12 @@ struct PageItem {
   5: i32 httpStatusCode,
   6: i32 depth,
   7: string errorCode,
-  8: bool isFullPrecision = false,
-  9: bool isNode,
-  10: map<string, set<string>> metadataItems,
-  11: string creationDate,
-  12: string lastModificationDate
+  8: set<string> SourceSet,
+  9: bool isFullPrecision = false,
+  10: bool isNode,
+  11: map<string, set<string>> metadataItems,
+  12: string creationDate,
+  13: string lastModificationDate
 }
 
 struct NodeLink {

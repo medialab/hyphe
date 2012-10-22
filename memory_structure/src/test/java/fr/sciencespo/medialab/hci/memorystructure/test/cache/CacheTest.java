@@ -12,6 +12,7 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
+import fr.sciencespo.medialab.hci.memorystructure.util.LRUUtil;
 import fr.sciencespo.medialab.hci.memorystructure.util.PrecisionLimit;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -2488,13 +2489,12 @@ public class CacheTest extends TestCase {
     }
 
     public void testRevertLRU() {
-        Cache cache = new Cache(lruIndex);
-        assertEquals("Unexpected URL", "megaupload.com", cache.revertLRU("s:http|h:www|h:com|h:megaupload"));
-        assertEquals("Unexpected URL", "jiminy.medialab.sciences-po.fr/hci/index.php?title=Reverse_URLs&secondparameter=there#bottom", cache.revertLRU("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci|p:index.php|q:title=Reverse_URLs|q:secondparameter=there|r:bottom"));
-        assertEquals("Unexpected URL", "bbc.co.uk", cache.revertLRU("s:http|h:www|h:uk|h:co|h:bbc"));
-        assertNull("Null input should return null", cache.revertLRU(null));
-        assertNull("Empty input should return null", cache.revertLRU(""));
-        assertNull("Blank input should return null", cache.revertLRU(" "));
+        assertEquals("Unexpected URL", "megaupload.com", LRUUtil.revertLRU("s:http|h:www|h:com|h:megaupload"));
+        assertEquals("Unexpected URL", "jiminy.medialab.sciences-po.fr/hci/index.php?title=Reverse_URLs&secondparameter=there#bottom", LRUUtil.revertLRU("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci|p:index.php|q:title=Reverse_URLs|q:secondparameter=there|r:bottom"));
+        assertEquals("Unexpected URL", "bbc.co.uk", LRUUtil.revertLRU("s:http|h:www|h:uk|h:co|h:bbc"));
+        assertNull("Null input should return null", LRUUtil.revertLRU(null));
+        assertNull("Empty input should return null", LRUUtil.revertLRU(""));
+        assertNull("Blank input should return null", LRUUtil.revertLRU(" "));
     }
 
     /**

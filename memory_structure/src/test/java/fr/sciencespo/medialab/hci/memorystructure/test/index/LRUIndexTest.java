@@ -22,6 +22,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -375,7 +376,8 @@ public class LRUIndexTest extends TestCase {
             webEntity5.setName("5");
             lruIndex.indexWebEntity(webEntity5);
 
-            Map<String, Set<WebEntity>> results = lruIndex.findMatchingWebEntityLRUPrefixes(pageLRU);
+            //Map<String, Set<WebEntity>> results = lruIndex.retrieveWebEntitiesStartingMatchingLRU(pageLRU);
+            Map<String, Set<WebEntity>> results = new HashMap<String, Set<WebEntity>>();
 
             assertEquals("Unexpected # of matching WebEntity LRUPrefixes", 3, results.size());
 
