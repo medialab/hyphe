@@ -16,41 +16,41 @@
 
     // Selector
     Hyphen.view.weSelector_init = function(){
-            // Web entities selector (select2)
-            var webentity_format = function(state){
-                if (!state.id)
-                    return state.text // optgroup
-                return "<img src='res/icon-we-16.png'/> " + state.text
-            }
-            $("#webentities_selector").select2({
-                query: Hyphen.view.weSelector_getQueryFunction(),
-                placeholder: "Select an existing web entity",
-                allowClear: true,
-                formatResult: webentity_format,
-                formatSelection: webentity_format,
-                initSelection: function (element, callback) {
-                    var we_id = element.val()
-                    var matches = []
-                    Hyphen.model.webEntities.getAll().forEach(function(we){
-                        if(we.id == we_id)
-                            matches.push({id: we.id, text: we.name})
-                    })
-                    callback(matches[0])
-                }
-            })
+        // Web entities selector (select2)
+        var webentity_format = function(state){
+            if (!state.id)
+                return state.text // optgroup
+            return "<img src='res/icon-we-16.png'/> " + state.text
         }
-
-       Hyphen.view.weSelector_getQueryFunction = function(){
-            return function (query) {
-                var data = {results: []}, i, j, s
-                
+        $("#webentities_selector").select2({
+            query: Hyphen.view.weSelector_getQueryFunction(),
+            placeholder: "Select an existing web entity",
+            allowClear: true,
+            formatResult: webentity_format,
+            formatSelection: webentity_format,
+            initSelection: function (element, callback) {
+                var we_id = element.val()
+                var matches = []
                 Hyphen.model.webEntities.getAll().forEach(function(we){
-                    if(we.searchable.match(query.term))
-                        data.results.push({id: we.id, text: we.name})
+                    if(we.id == we_id)
+                        matches.push({id: we.id, text: we.name})
                 })
-                query.callback(data)
+                callback(matches[0])
             }
+        })
+    }
+
+   Hyphen.view.weSelector_getQueryFunction = function(){
+        return function (query) {
+            var data = {results: []}, i, j, s
+            
+            Hyphen.model.webEntities.getAll().forEach(function(we){
+                if(we.searchable.match(query.term))
+                    data.results.push({id: we.id, text: we.name})
+            })
+            query.callback(data)
         }
+    }
 
     // Declare web entity by URL
     $('#webEntityByURL_button').click(function(){
@@ -112,6 +112,7 @@
     /// Controller
     
     Hyphen.controller.core.selectWebEntity = function(we_id){
+        Hyphen.debug.log(["Hyphen.controller.core.selectWebEntity: " + we_id], 1)
         Hyphen.model.vars.set('focused_webentity_id', we_id)    
         $(document).trigger( "/webentity_focus", [{what:'updated'}])
     }

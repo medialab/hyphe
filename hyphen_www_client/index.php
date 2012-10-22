@@ -83,7 +83,7 @@
                     <p>
                         <ul>
                             <li>Corpus dashboard</li>
-                            <li>List of web entities</li>
+                            <li><a href="webentities_list.php">List of web entities</a></li>
                             <li>Network</li>
                             <li>...</li>
                         </ul>
