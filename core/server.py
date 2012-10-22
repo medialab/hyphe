@@ -341,7 +341,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         l = lru.url_to_lru_clean(url)
         t = str(time.time())
         is_node = lru.isLRUNode(l, config["precisionLimit"])
-        page = PageItem("%s/%s" % (l, t), url, l, t, None, -1, None, ['USER'], False, is_node, {}) 
+        page = PageItem("%s/%s" % (l, t), url, l, t, None, -1, None, ['USER'], False, is_node, {})
         cache_id = yield client.createCache([page])
         yield client.indexCache(cache_id)
         new = yield client.createWebEntities(cache_id)
@@ -476,7 +476,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_get_webentity_pages(self, webentity_id, corpus=''):
         mem_struct_conn = getThriftConn()
         pages = yield mem_struct_conn.addCallback(self.get_webentity_pages, webentity_id).addErrback(self.handle_error)
-        defer.returnValue({"code": 'success', "result": [{'lru': p.lru, 'sources': list(p.SourceSet), 'crawlTimestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'HTTPstatus': p.httpStatusCode} for p in pages]})
+        defer.returnValue({"code": 'success', "result": [p.lru for p in pages]})
+#        defer.returnValue({"code": 'success', "result": [{'lru': p.lru, 'sources': list(p.SourceSet), 'crawlTimestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'HTTPstatus': p.httpStatusCode} for p in pages]})
 
     def get_webentity_pages(self, conn, webentity_id):
         client = conn.client
