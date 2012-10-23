@@ -1,7 +1,6 @@
 import os, uuid
 
 BOT_NAME = 'hcicrawler'
-BOT_VERSION = '0.1'
 
 SPIDER_MODULES = ['hcicrawler.spiders']
 NEWSPIDER_MODULE = 'hcicrawler.spiders'
