@@ -372,10 +372,12 @@ public class IndexConfiguration {
         if(logger.isDebugEnabled()) {
             logger.trace("lucene document adding # " + webEntity.getLRUSet().size() + " lrus");
         }
-        for(String lru : webEntity.getLRUSet()) {
-            Field lruField = new Field(FieldName.LRU.name(), lru, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            lruField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(lruField);
+        if (webEntity.getLRUSet().size() > 0) {
+            for(String lru : webEntity.getLRUSet()) {
+                Field lruField = new Field(FieldName.LRU.name(), lru, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+                lruField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+                document.add(lruField);
+            }
         }
         if(logger.isDebugEnabled()) {
             logger.trace("lucene document has # " + document.getFieldables(FieldName.LRU.name()).length + " lrufields in webentity " + id);
@@ -394,18 +396,22 @@ public class IndexConfiguration {
         }
 
         Set<String> startPages = webEntity.getStartpages();
-        for (String page : startPages) {
-            Field pagesField = new Field(FieldName.STARTPAGE.name(), page, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            pagesField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(pagesField);
+        if (startPages.size() > 0) {
+            for (String page : startPages) {
+                Field pagesField = new Field(FieldName.STARTPAGE.name(), page, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+                pagesField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+                document.add(pagesField);
+            }
         }
 
         Map<String, Set<String>> tags = webEntity.getMetadataItems();
-        for (String tagKey : tags.keySet()) {
-            for (String tagValue: tags.get(tagKey)) {
-                Field tagField = new Field(FieldName.TAG.name(), tagKey+"="+tagValue, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-                tagField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-                document.add(tagField);
+        if (! tags.isEmpty()) {
+            for (String tagKey : tags.keySet()) {
+                for (String tagValue: tags.get(tagKey)) {
+                    Field tagField = new Field(FieldName.TAG.name(), tagKey+"="+tagValue, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+                    tagField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+                    document.add(tagField);
+                }
             }
         }
 
@@ -423,14 +429,16 @@ public class IndexConfiguration {
      */
     private static Map<String, Set<String>> convertTagFieldsToTagsSet(Fieldable[] tagFields) {
         Map<String, Set<String>> tags = new HashMap<String, Set<String>>();
-        for(Fieldable tagField : tagFields) {
-            String tag = tagField.stringValue();
-            String key = tag.substring(0, tag.indexOf("="));
-            String value = tag.replace(key + "=", "");
-            if (! tags.containsKey(key)) {
-                tags.put(key, new HashSet<String>());
+        if (tagFields.length != 0) {
+            for(Fieldable tagField : tagFields) {
+                String tag = tagField.stringValue();
+                String key = tag.substring(0, tag.indexOf("="));
+                String value = tag.replace(key + "=", "");
+                if (! tags.containsKey(key)) {
+                    tags.put(key, new HashSet<String>());
+                }
+                tags.get(key).add(value);
             }
-            tags.get(key).add(value);
         }
         return tags;
     }
@@ -464,8 +472,10 @@ public class IndexConfiguration {
 
         Fieldable[] sourceFields = document.getFieldables(FieldName.SOURCE.name());
         Set<String> sourceList = new HashSet<String>();
-        for(Fieldable sourceField : sourceFields) {
-            sourceList.add(sourceField.stringValue());
+        if (sourceList.size() != 0) {
+            for(Fieldable sourceField : sourceFields) {
+                sourceList.add(sourceField.stringValue());
+            }
         }
         pageItem.setSourceSet(sourceList);
 
@@ -525,8 +535,10 @@ public class IndexConfiguration {
 
         Fieldable[] startPageFields = document.getFieldables(FieldName.STARTPAGE.name());;
         Set<String> startPages = new HashSet<String>();
-        for(Fieldable startPageField : startPageFields) {
-            startPages.add(startPageField.stringValue());
+        if (startPageFields.length > 0) {
+            for(Fieldable startPageField : startPageFields) {
+                startPages.add(startPageField.stringValue());
+            }
         }
         webEntity.setStartpages(startPages);
 
