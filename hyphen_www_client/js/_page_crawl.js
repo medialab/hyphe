@@ -19,7 +19,7 @@
             ,webEntitites_idDisplayed = []
         if(!showFinished){
             jobs = jobs.filter(function(job, i){
-                return i<=5 || (job.crawling_status.toLowerCase() != "finished" && job.crawling_status.toLowerCase() != "canceled") || job.indexing_status.toLowerCase() != "finished" 
+                return i<5 || (job.crawling_status.toLowerCase() != "finished" && job.crawling_status.toLowerCase() != "canceled") || job.indexing_status.toLowerCase() != "finished" 
             })
         }
         if(!showPending){

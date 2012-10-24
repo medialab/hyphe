@@ -15,6 +15,7 @@
         		"sInfoEmpty": '<span class="text-warning">Showing 0 to 0 of 0 records</span>',
         		"sInfoFiltered": '<span class="text-info">(filtered from _MAX_ total records)</span>'
 			}
+            ,"aaSorting": [[ 3, "asc" ]]
             ,"aoColumnDefs": [
                 {
                     // `data` refers to the data for the cell (defined by `mData`, which
@@ -57,7 +58,9 @@
                     },
                     "aTargets": [ 2, 3 ]
                 }
-                ,{ "bVisible": false,  "aTargets": [ 5 ] }
+                ,{ "iDataSort": 6, "aTargets": [ 2 ] }
+                ,{ "iDataSort": 7, "aTargets": [ 3 ] }
+                ,{ "bVisible": false,  "aTargets": [ 5, 6, 7 ] }
                 ,{ "sClass": "center", "aTargets": [ 4 ] }
                 ,{ "bSearchable": false, "aTargets": [ 1, 2, 3, 4 ] }
                 ,{ "bSortable": false, "aTargets": [ 1, 4, 5 ] }
@@ -85,6 +88,8 @@
                 		,we.last_modification_date
                 		,''
                         ,we.searchable
+                        ,-we.creation_date
+                        ,-we.last_modification_date
                 	]
                 }))
 				

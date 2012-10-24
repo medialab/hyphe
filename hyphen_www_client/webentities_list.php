@@ -78,6 +78,8 @@
                                 <th>Last modification</th>
                                 <th>Actions</th>
                                 <th>Searchable (hidden)</th>
+                                <th>Creation unformatted (hidden)</th>
+                                <th>Last modification unformatted (hidden)</th>
                             </tr>
                         </thead>
                         <tbody>
