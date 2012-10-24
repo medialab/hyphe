@@ -218,7 +218,7 @@ class Crawler(jsonrpc.JSONRPC):
                  print "ERROR updating job %s in database" % job_id, resdb
                  return {'code': 'fail', 'message': resdb}
             jobslog(job_id, "CRAWL_"+crawling_statuses.CANCELED, self.db)
-        return res
+        return {'code': 'success', 'message': res}
 
     def jsonrpc_list(self):
         """Calls Scrappy monitoring API, returns list of scrapy jobs."""
