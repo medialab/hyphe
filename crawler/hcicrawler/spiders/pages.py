@@ -39,7 +39,7 @@ class PagesCrawler(BaseSpider):
 
     def handle_response(self, response):
         lru = url_to_lru_clean(response.url)
-        if isinstance(response, HtmlResponse):
+        if 300 < response.status < 400 or isinstance(response, HtmlResponse):
             return self.parse_html(response, lru)
         else:
             return self._make_raw_page(response, lru)
@@ -55,7 +55,6 @@ class PagesCrawler(BaseSpider):
         return
 
     def parse_html(self, response, lru):
-        depth = response.meta['depth']
         lrulinks = []
         # handle redirects
         if 300 < response.status < 400:
@@ -74,7 +73,7 @@ class PagesCrawler(BaseSpider):
                 self.log("Error converting URL to LRU: %s" % e, log.ERROR)
                 continue
             lrulinks.append(lrulink)
-            if self._should_follow(depth, lru, lrulink) and \
+            if self._should_follow(response.meta['depth'], lru, lrulink) and \
                     not url_has_any_extension(url, self.ignored_exts):
                 yield self._request(url)
         yield self._make_html_page(response, lru, lrulinks)
@@ -89,9 +88,11 @@ class PagesCrawler(BaseSpider):
         p = self._new_page(response.url, lru)
         p['status'] = response.status
         p['size'] = len(response.body)
-        p['encoding'] = response.encoding
+        if isinstance(response, HtmlResponse):
+            p['encoding'] = response.encoding
         p['depth'] = response.meta['depth']
-        p['content_type'] = response.headers.get('content-type').partition(';')[0]
+        if response.headers.get('content-type'):
+            p['content_type'] = response.headers.get('content-type').partition(';')[0]
         p['error'] = None;
         return p
 
