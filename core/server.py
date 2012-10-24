@@ -477,7 +477,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         mem_struct_conn = getThriftConn()
         pages = yield mem_struct_conn.addCallback(self.get_webentity_pages, webentity_id).addErrback(self.handle_error)
         defer.returnValue({"code": 'success', "result": [p.lru for p in pages]})
-#        defer.returnValue({"code": 'success', "result": [{'lru': p.lru, 'sources': list(p.SourceSet), 'crawlTimestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'HTTPstatus': p.httpStatusCode} for p in pages]})
+#        defer.returnValue({"code": 'success', "result": [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawlTimestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'HTTPstatus': p.httpStatusCode} for p in pages]})
 
     def get_webentity_pages(self, conn, webentity_id):
         client = conn.client
