@@ -18,13 +18,15 @@
             }
 
             /* Specific styles */
-            #crawlJobsContainer{
-                width: 100%;
-                border: 1px solid #DDD;
-                height: 200px;
-                padding: 5px;
-                overflow-y: scroll;
+            .crawlJob_log{
+                font-size:10px;
             }
+            .crawlJob_log p{
+                line-height: 12px;
+                margin: 0px;
+            }
+
+
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/select2.css">
@@ -83,10 +85,29 @@
                     <p>
                         <a class="btn btn-primary" href="crawl_new.php"><i class="icon-plus icon-white"></i> New crawl</a>
                     </p>
-                    <div id="crawlJobsContainer">
-                        <p>
-                            <span class="muted">No crawl jobs</span>
-                        </p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="span8">
+                    <div id="jobsMessage"><span class="muted">Loading...</span></div>
+                    <table class="table table-hover" style="display:none;" id="jobsTable">
+                        <thead>
+                            <tr>
+                                <th>Web entity</th>
+                                <th>Harvesting</th>
+                                <th>Indexing</th>
+                                <th>Data</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobsTableBody">
+                        </tbody>
+                    </table>
+                    </ul>
+                </div>
+                <div class="span4">
+                    <div class="well" id="jobFrame" style="display:none">
                     </div>
                 </div>
             </div>

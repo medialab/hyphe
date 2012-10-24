@@ -103,19 +103,24 @@
 		_private:{
 			list:[]
 			,index:{}
+			,consolidate: function(job){
+				// Proper id
+				job.id = job._id
+			}
 		}
 
 		// Getters and setters
 		,get: function(id){
-			return Hyphen.model.webEntities._private.index[id]
+			return Hyphen.model.crawlJobs._private.index[id]
 		}
 		,getAll: function(){
-			return Hyphen.model.webEntities._private.list.splice(0)
+			return Hyphen.model.crawlJobs._private.list.splice(0)
 		}
 		,setAll: function(jobs_list){
 			Hyphen.model.crawlJobs._private.list = jobs_list
 			Hyphen.model.crawlJobs._private.index = {}
 			jobs_list.forEach(function(crawlJob){
+				Hyphen.model.crawlJobs._private.consolidate(crawlJob)
 				if(crawlJob.id){
 					Hyphen.model.crawlJobs._private.index[crawlJob.id] = crawlJob
 				}
