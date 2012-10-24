@@ -284,7 +284,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def format_webentity(self, WE, jobs=None):
         if WE:
-            res = {'id': WE.id, 'name': WE.name, 'lru_prefixes': list(WE.LRUSet), 'creation_date': WE.creationDate, 'last_modification_date': WE.lastModificationDate}
+            res = {'id': WE.id, 'name': WE.name, 'lru_prefixes': list(WE.LRUSet), 'status': WE.status, 'homepage': WE.homepage, 'startpages': list(WE.startpages), 'creation_date': WE.creationDate, 'last_modification_date': WE.lastModificationDate}
+            tags = WE.metadataItems
+            for tag in tags.keys():
+                res[tag] = list(tags[tag])
             #pages = yield client.getPagesFromWebEntityFromImplementation(WE.id, "PAUL")
             # nb_pages = len(pages)
             # nb_links, tags, WEstatus
@@ -445,15 +448,18 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return {'code': 'fail', 'message': failure}
 
     @inlineCallbacks
-    def jsonrpc_get_webentities(self, corpus=''):
+    def jsonrpc_get_webentities(self, list_ids=None, corpus=''):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.get_webentities).addErrback(self.handle_error)
+        res = yield mem_struct_conn.addCallback(self.get_webentities, list_ids).addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
-    def get_webentities(self, conn):
+    def get_webentities(self, conn, list_ids=None):
         client = conn.client
-        WEs = yield client.getWebEntities()
+        if list_ids:
+            WEs = yield client.getWebEntitiesByIDs(list_ids)
+        else:
+            WEs = yield client.getWebEntities()
         res = []
         if WEs:
             for WE in WEs:

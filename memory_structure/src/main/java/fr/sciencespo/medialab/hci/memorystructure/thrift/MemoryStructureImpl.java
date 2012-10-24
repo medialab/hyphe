@@ -193,6 +193,26 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             throw new TException(x.getMessage(), x);
         }
     }
+    
+    /**
+     * Returns web entities having ids in the given list.
+     * @param list of webentities ids
+     * @return web entities
+     * @throws TException hmm
+     */
+    @Override
+    public List<WebEntity> getWebEntitiesByIDs(List<String> listIDs) throws TException {
+        logger.debug("getWebEntitiesByIDs");
+        try {
+            List<WebEntity> webEntities = new ArrayList<WebEntity>(lruIndex.retrieveWebEntitiesByIDs(listIDs));
+            return webEntities;
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
 
     /**
      * Returns all web entity creation rules in the index.

@@ -136,6 +136,13 @@ list<NodeLink> getNodeLinks() throws (1:MemoryStructureException me),
  */
 list<WebEntity> getWebEntities() throws (1:MemoryStructureException me),
 
+// get webentities by ids
+/**
+ * @param 1 listIDs
+ * @return webentities having ids
+ */
+list<WebEntity> getWebEntitiesByIDs(1: list<string> listIDs) throws (1:MemoryStructureException me),
+
 // get pages belonging to one webentity with implementation choice ("PAUL" or "other")
 /**
  * @param 1 id

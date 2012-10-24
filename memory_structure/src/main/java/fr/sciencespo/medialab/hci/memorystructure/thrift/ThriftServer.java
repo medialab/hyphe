@@ -2,6 +2,7 @@ package fr.sciencespo.medialab.hci.memorystructure.thrift;
 
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import fr.sciencespo.medialab.hci.memorystructure.util.ImplementationChoice;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -20,7 +21,6 @@ import java.io.FileInputStream;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.lang.Integer;
 
 /**

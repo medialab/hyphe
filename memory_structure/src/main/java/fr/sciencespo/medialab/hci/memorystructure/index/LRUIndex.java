@@ -971,6 +971,37 @@ public class LRUIndex {
     }
 
     /**
+     * Retrieves all webentities.
+     * @param listIDs
+     * @return webentities
+     * @throws IndexException hmm
+     */
+    public Set<WebEntity> retrieveWebEntitiesByIDs(List<String> listIDs) throws IndexException {
+        logger.debug("retrieveWebEntitiesByIDs");
+        try {
+            Set<WebEntity> result = new HashSet<WebEntity>();
+            Query q = LuceneQueryFactory.getWebEntitiesByIdsQuery(listIDs);
+            final List<Document> hits = executeMultipleResultsQuery(q);
+            for(Document hit: hits) {
+                    WebEntity webEntity = IndexConfiguration.convertLuceneDocument2WebEntity(hit);
+                    result.add(webEntity);
+            }
+            if(logger.isDebugEnabled()) {
+                logger.debug("total webentities retrieved is  # " + result.size());
+                for(WebEntity we : result) {
+                    logger.debug("retrieved web entity: " + we.getName());
+                }
+            }
+            return result;
+        }
+        catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
      *
      * @return
      * @throws IndexException hmm

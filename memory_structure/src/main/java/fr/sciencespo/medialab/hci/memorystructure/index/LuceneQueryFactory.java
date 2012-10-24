@@ -138,9 +138,9 @@ public class LuceneQueryFactory {
     protected static Query getWebEntitiesQuery() {
         return new TermQuery(typeEqualWebEntity);
     }
-    
+
     /**
-     * Query to search for WebEntity by ID.
+     * Query to search for WebEntity by IDs.
      *
      * @param id
      * @return
@@ -157,6 +157,31 @@ public class LuceneQueryFactory {
         return q;
     }
     
+    /**
+     * Query to search for WebEntity by ID.
+     *
+     * @param id
+     * @return
+     */
+    protected static Query getWebEntitiesByIdsQuery(List<String> ids) {
+        BooleanQuery q = new BooleanQuery();
+        Query q1 = new TermQuery(typeEqualWebEntity);
+        q.add(q1, BooleanClause.Occur.MUST);
+        Query qId;
+        BooleanQuery qIds = new BooleanQuery();
+        if (ids != null) {
+            for (String id : ids) {
+                qId = new TermQuery(new Term(IndexConfiguration.FieldName.ID.name(), id));
+                qIds.add(qId, BooleanClause.Occur.SHOULD);
+            }
+        }
+        q.add(qIds, BooleanClause.Occur.MUST);
+        if(logger.isDebugEnabled()) {
+            logger.debug("Lucene query: " + q.toString());
+        }
+        return q;
+    }
+
     protected static Query getWebEntitiesByLRUQuery(String lru) {
     	BooleanQuery q = new BooleanQuery();
         Query q1 = new TermQuery(typeEqualWebEntity);
