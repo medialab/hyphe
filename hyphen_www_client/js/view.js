@@ -15,6 +15,18 @@
         }
     })
 
+    $(document).on( "/crawls", function(event, eventData){
+        switch(eventData.what){
+            case "updated":
+            
+            var l = Hyphen.model.crawlJobs.getAll().length
+            $('.content_crawlJobsCount').text(l)
+            $('.content_crawlJobsCount_text').text((l>1)?('crawl jobs'):('crawl job'))
+
+            break
+        }
+    })
+
 
 
     // Glossary & Tooltip informations

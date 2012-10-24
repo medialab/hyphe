@@ -85,8 +85,8 @@
                 <div class="span8">
                     <a class="btn btn-primary" href="crawl_new.php"><i class="icon-plus icon-white"></i> New crawl</a>
                     <form class="form-inline pull-right">
-                        <label class="checkbox">
-                            <input type="checkbox" id="crawlJobs_showFinished"> Show finished
+                        <label class="checkbox" title="The five last crawls are always showed">
+                            <input type="checkbox" id="crawlJobs_showFinished"> Show all finished
                         </label>
                         &nbsp;
                         <label class="checkbox">
