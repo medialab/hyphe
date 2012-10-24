@@ -354,18 +354,53 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(WE)
 
     @inlineCallbacks
-    def rename_webentity(self, conn, webentity_id, new_name):
+    def update_webentity(self, conn, webentity_id, field_name, value, array_behavior=None):
         client = conn.client
         WE = yield client.getWebEntity(webentity_id)
-        WE.name = new_name
-        res = yield client.updateWebEntity(WE)
-        defer.returnValue("Webentity %s renamed as %s" % (res, new_name))
+        try:
+            if array_behavior:
+                arr = getattr(WE, field_name, [])
+                if array_behavior == "push":
+                    arr.add(value)
+                elif array_behavior == "pop":
+                    arr.remove(value)
+                setattr(WE, field_name, arr)
+            else:
+                setattr(WE, field_name, value)
+            res = yield client.updateWebEntity(WE)
+        except Exception as x:
+            defer.returnValue({"code": "fail", "message": "ERROR while updating webentity : %s" % x})
+        defer.returnValue({"code": "success", "result": "%s field of webentity %s updated." % (field_name, res)})
 
     @inlineCallbacks
     def jsonrpc_rename_webentity(self, webentity_id, new_name):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.rename_webentity, webentity_id, new_name).addErrback(self.handle_error)
-        defer.returnValue(self.handle_results(res))
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "name", new_name)
+        defer.returnValue(res)
+
+    @inlineCallbacks
+    def jsonrpc_set_webentity_homepage(self, webentity_id, homepage):
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "homepage", homepage)
+        defer.returnValue(res)
+
+    @inlineCallbacks
+    def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url):
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "startpages", startpage_url, "push")
+        defer.returnValue(res)
+
+    @inlineCallbacks
+    def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url):
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "startpages", startpage_url, "pop")
+        defer.returnValue(res)
+
+    @inlineCallbacks
+    def jsonrpc_set_webentity_status(self, webentity_id, status):
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "status", status)
+        defer.returnValue(res)
 
     @inlineCallbacks
     def setalias(self, conn, old_webentity_id, gd_webentity_id):
