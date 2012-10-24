@@ -72,9 +72,7 @@
                     <p>
                         <ul>
                             <li><span class="content_webEntityCount"><span class="muted">n</span></span>  <span class="content_webEntityCount_text"><span class="muted">web entities</span></span></li>
-                            <li>XXX tags</li>
-                            <li>Maybe some crawls running</li>
-                            <li>...</li>
+                            <li><span class="content_crawlJobsCount"><span class="muted">n</span></span>  <span class="content_crawlJobsCount_text"><span class="muted">crawl jobs</span></span></li>
                         </ul>
                     </p>
                 </div>
@@ -82,10 +80,7 @@
                     <h2>Explore</h2>
                     <p>
                         <ul>
-                            <li>Corpus dashboard</li>
                             <li><a href="webentities_list.php">List of web entities</a></li>
-                            <li>Network</li>
-                            <li>...</li>
                         </ul>
                     </p>
                 </div>
@@ -94,8 +89,6 @@
                     <p>
                         <ul>
                             <li><a href="crawl.php">Crawl</a></li>
-                            <li>Tagging</li>
-                            <li>...</li>
                         </ul>
                     </p>
                 </div>

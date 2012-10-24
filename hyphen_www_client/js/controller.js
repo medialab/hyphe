@@ -43,7 +43,17 @@
 				$(document).trigger( "/crawls", [{what:'updated'}])
 			}
 		})
-		$(document).trigger( "/crawls", [{what:'updated'}])
+	}
+
+	Hyphen.controller.core.crawlJobs_cancel = function(crawlJob_id){
+		$(document).trigger( "/crawl", [{what:'updating', crawlJob_id:crawlJob_id}])
+		Hyphen.debug.log(["Hyphen.controller.core.crawlJobs_cancel: "+crawlJob_id], 1)
+		Hyphen.controller.io.jobs_cancel(crawlJob_id, function(json){
+			if(json){
+				Hyphen.controller.core.crawlJobs_update()
+				$(document).trigger( "/crawl", [{what:'updated', crawlJob_id:crawlJob_id}])
+			}
+		})
 	}
 
 
@@ -63,10 +73,11 @@
 		})
 	}
 
-	Hyphen.controller.core.webEntities_update = function(){
+	Hyphen.controller.core.webEntities_update = function(we_ids){
+		we_ids = we_ids || []
 		$(document).trigger( "/webentities", [{what:'updating'}])
 		Hyphen.debug.log(["Hyphen.controller.core.webEntities_update"], 1)
-		Hyphen.controller.io.webEntities_getAll(function(json){
+		Hyphen.controller.io.webEntities_getAll(we_ids, function(json){
 			if(json){
 				
 				// Store in the model
@@ -250,8 +261,12 @@
 		Hyphen.controller.io.call('listjobs', '', callback)
 	}
 
-	Hyphen.controller.io.webEntities_getAll = function(callback){
-		Hyphen.controller.io.call('store.get_webentities', '', callback)
+	Hyphen.controller.io.jobs_cancel = function(crawlJob_id, callback){
+		Hyphen.controller.io.call('crawl.cancel', [crawlJob_id], callback)
+	}
+
+	Hyphen.controller.io.webEntities_getAll = function(we_ids, callback){
+		Hyphen.controller.io.call('store.get_webentities', [we_ids], callback)
 	}
 
 	Hyphen.controller.io.webEntity_getPages = function(we_id, callback){
