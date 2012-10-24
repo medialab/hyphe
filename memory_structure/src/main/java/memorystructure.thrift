@@ -28,7 +28,7 @@ struct PageItem {
   5: i32 httpStatusCode,
   6: i32 depth,
   7: string errorCode,
-  8: set<string> SourceSet,
+  8: set<string> sourceSet,
   9: bool isFullPrecision = false,
   10: bool isNode,
   11: map<string, set<string>> metadataItems,
@@ -61,8 +61,12 @@ struct WebEntity {
   1: string id,
   2: set<string> LRUSet,
   3: string name,
-  4: string creationDate,
-  5: string lastModificationDate
+  4: string status,
+  5: string homepage,
+  6: set<string> startpages,
+  7: map<string, set<string>> metadataItems,
+  8: string creationDate,
+  9: string lastModificationDate
 }
 
 struct WebEntityCreationRule {

@@ -15,7 +15,9 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.index.FieldInfo;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -38,11 +40,14 @@ public class IndexConfiguration {
         DEPTH,
         ERROR,
         HTTPSTATUS,
+        STATUS,
         FULLPREC,
         IS_NODE,
         TAG,
         REGEXP,
         NAME,
+        HOMEPAGE,
+        STARTPAGE,
         SOURCE,
         TARGET,
         WEIGHT,
@@ -60,6 +65,21 @@ public class IndexConfiguration {
         WEBENTITY,
         WEBENTITY_LINK,
         WEBENTITY_CREATION_RULE
+    }
+    enum WEStatus {
+        UNDECIDED,
+        IN,
+        OUT,
+        DISCOVERED
+    }
+
+    public static String getWEStatusValue(final String status) {
+        for (WEStatus good : WEStatus.values()) {
+            if (status == good.toString()) {
+                return good.name();
+            }
+        }
+        return WEStatus.DISCOVERED.name();
     }
 
     public static final String DEFAULT_WEBENTITY_CREATION_RULE = "DEFAULT_WEBENTITY_CREATION_RULE";
@@ -259,6 +279,15 @@ public class IndexConfiguration {
 	        }
         }
 
+        Map<String, Set<String>> tags = pageItem.getMetadataItems();
+        for (String tagKey : tags.keySet()) {
+            for (String tagValue: tags.get(tagKey)) {
+                Field tagField = new Field(FieldName.TAG.name(), tagKey+"="+tagValue, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+                tagField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+                document.add(tagField);
+            }
+        }
+
         document = SetDates(document, pageItem.getCreationDate(), pageItem.getLastModificationDate());
 
         return document;
@@ -302,6 +331,8 @@ public class IndexConfiguration {
         regExpField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(regExpField);
 
+        document = SetDates(document, webEntityCreationRule.getCreationDate(), webEntityCreationRule.getLastModificationDate());
+
         return document;
     }
 
@@ -325,7 +356,7 @@ public class IndexConfiguration {
         Field idField = new Field(FieldName.ID.name(), id, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
         idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(idField);
-
+ 
         String name = webEntity.getName();
         if(StringUtils.isEmpty(name)) {
             name = "auto-generated name" ;
@@ -346,13 +377,62 @@ public class IndexConfiguration {
             lruField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(lruField);
         }
-
-        document = SetDates(document, webEntity.getCreationDate(), webEntity.getLastModificationDate());
-
         if(logger.isDebugEnabled()) {
             logger.trace("lucene document has # " + document.getFieldables(FieldName.LRU.name()).length + " lrufields in webentity " + id);
         }
+
+        String status = getWEStatusValue(webEntity.getStatus());
+        Field statusField = new Field(FieldName.STATUS.name(), status, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        statusField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        document.add(statusField);
+
+        String homePage = webEntity.getHomepage();
+        if(StringUtils.isNotEmpty(homePage)) {
+            Field homeField = new Field(FieldName.HOMEPAGE.name(), homePage, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            homeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(homeField);
+        }
+
+        Set<String> startPages = webEntity.getStartpages();
+        for (String page : startPages) {
+            Field pagesField = new Field(FieldName.STARTPAGE.name(), page, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            pagesField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(pagesField);
+        }
+
+        Map<String, Set<String>> tags = webEntity.getMetadataItems();
+        for (String tagKey : tags.keySet()) {
+            for (String tagValue: tags.get(tagKey)) {
+                Field tagField = new Field(FieldName.TAG.name(), tagKey+"="+tagValue, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+                tagField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+                document.add(tagField);
+            }
+        }
+
+        document = SetDates(document, webEntity.getCreationDate(), webEntity.getLastModificationDate());
+
         return document;
+    }
+
+
+    /**
+     * Returns a HashMap of tags from the corresponding fields of a Lucene document.
+     *
+     * @param tagFields
+     * @return
+     */
+    private static Map<String, Set<String>> convertTagFieldsToTagsSet(Fieldable[] tagFields) {
+        Map<String, Set<String>> tags = new HashMap<String, Set<String>>();
+        for(Fieldable tagField : tagFields) {
+            String tag = tagField.stringValue();
+            String key = tag.substring(0, tag.indexOf("="));
+            String value = tag.replace(key + "=", "");
+            if (! tags.containsKey(key)) {
+                tags.put(key, new HashSet<String>());
+            }
+            tags.get(key).add(value);
+        }
+        return tags;
     }
 
     /**
@@ -397,14 +477,18 @@ public class IndexConfiguration {
         Boolean isNode = Boolean.valueOf(document.get(FieldName.IS_NODE.name()));
         pageItem.setIsNode(isNode);
         
-        pageItem.setCreationDate(document.get(FieldName.DATECREA.name()));
-        pageItem.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
-
         String httpStatusCode$ = document.get(FieldName.HTTPSTATUS.name());
         if(StringUtils.isNotEmpty(httpStatusCode$)) {
             int httpStatusCode = Integer.parseInt(httpStatusCode$);
             pageItem.setHttpStatusCode(httpStatusCode);
         }
+
+        Fieldable[] tagFields = document.getFieldables(FieldName.TAG.name());
+        pageItem.setMetadataItems(convertTagFieldsToTagsSet(tagFields));
+
+        pageItem.setCreationDate(document.get(FieldName.DATECREA.name()));
+        pageItem.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
+        
         return pageItem;
     }
 
@@ -432,6 +516,23 @@ public class IndexConfiguration {
             lruList.add(lruField.stringValue());
         }
         webEntity.setLRUSet(lruList);
+
+        String status = getWEStatusValue(document.get(FieldName.STATUS.name()));
+        webEntity.setStatus(status);
+
+        String homePage = document.get(FieldName.HOMEPAGE.name());
+        webEntity.setHomepage(homePage);
+
+        Fieldable[] startPageFields = document.getFieldables(FieldName.STARTPAGE.name());;
+        Set<String> startPages = new HashSet<String>();
+        for(Fieldable startPageField : startPageFields) {
+            startPages.add(startPageField.stringValue());
+        }
+        webEntity.setStartpages(startPages);
+
+        Fieldable[] tagFields = document.getFieldables(FieldName.TAG.name());
+        webEntity.setMetadataItems(convertTagFieldsToTagsSet(tagFields));
+
         webEntity.setCreationDate(document.get(FieldName.DATECREA.name()));
         webEntity.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
 
@@ -498,8 +599,8 @@ public class IndexConfiguration {
             weight = Integer.parseInt(weight$);
         }
         webEntityLink.setWeight(weight);
-	webEntityLink.setCreationDate(document.get(FieldName.DATECREA.name()));
-	webEntityLink.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
+        webEntityLink.setCreationDate(document.get(FieldName.DATECREA.name()));
+        webEntityLink.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
 
         if(logger.isDebugEnabled()) {
             logger.trace("convertLuceneDocument2WebEntityLink returns webEntityLink with id: " + id);
@@ -520,6 +621,8 @@ public class IndexConfiguration {
 
         webEntityCreationRule.setLRU(lru);
         webEntityCreationRule.setRegExp(regexp);
+        webEntityCreationRule.setCreationDate(document.get(FieldName.DATECREA.name()));
+        webEntityCreationRule.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
 
         if(logger.isDebugEnabled()) {
             logger.trace("convertLuceneDocument2WebEntity returns webEntityCreationRule with lru: " + lru + " and regexp " + regexp);
