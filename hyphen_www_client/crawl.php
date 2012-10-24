@@ -18,15 +18,18 @@
             }
 
             /* Specific styles */
-            #crawlJobsContainer{
-                width: 100%;
-                border: 1px solid #DDD;
-                height: 200px;
-                padding: 5px;
-                overflow-y: scroll;
+            .crawlJob_log{
+                font-size:10px;
             }
+            .crawlJob_log p{
+                line-height: 12px;
+                margin: 0px;
+            }
+
+
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="css/jquery.dataTables.css">
         <link rel="stylesheet" href="css/select2.css">
         <link rel="stylesheet" href="css/main.css">
 
@@ -79,14 +82,43 @@
             </div>
 
             <div class="row">
-                <div class="span12">
-                    <p>
-                        <a class="btn btn-primary" href="crawl_new.php"><i class="icon-plus icon-white"></i> New crawl</a>
-                    </p>
-                    <div id="crawlJobsContainer">
-                        <p>
-                            <span class="muted">No crawl jobs</span>
-                        </p>
+                <div class="span8">
+                    <a class="btn btn-primary" href="crawl_new.php"><i class="icon-plus icon-white"></i> New crawl</a>
+                    <form class="form-inline pull-right">
+                        <label class="checkbox">
+                            <input type="checkbox" id="crawlJobs_showFinished"> Show finished
+                        </label>
+                        &nbsp;
+                        <label class="checkbox">
+                            <input type="checkbox" id="crawlJobs_showPending" checked="true"> Show pending
+                        </label>
+                        &nbsp;
+                        <a class="btn" id="crawlJobs_refresh"><i class="icon-refresh"></i> Refresh</a>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="span8">
+                    <div id="jobsMessage"><span class="muted">Loading...</span></div>
+                    <!-- <table class="table table-hover dataTable" style="display:none;" id="jobsTable"> -->
+                    <table class="table table-hover" style="display:none;" id="jobsTable">
+                        <thead>
+                            <tr>
+                                <th>Web entity</th>
+                                <th>Harvesting</th>
+                                <th>Indexing</th>
+                                <th>Data</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobsTableBody">
+                        </tbody>
+                    </table>
+                    </ul>
+                </div>
+                <div class="span4">
+                    <div class="well" id="jobFrame" style="display:none">
                     </div>
                 </div>
             </div>

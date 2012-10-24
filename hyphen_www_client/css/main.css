@@ -104,9 +104,69 @@ footer{
 
 
 /* --------------------------
+   Data tables
+   -------------------------- */
+table.table thead .sorting,
+table.table thead .sorting_asc,
+table.table thead .sorting_desc,
+table.table thead .sorting_asc_disabled,
+table.table thead .sorting_desc_disabled {
+    cursor: pointer;
+    *cursor: hand;
+}
+ 
+table.table thead .sorting { background: url('../res/datatables/sort_both.png') no-repeat center right; }
+table.table thead .sorting_asc { background: url('../res/datatables/sort_asc.png') no-repeat center right; }
+table.table thead .sorting_desc { background: url('../res/datatables/sort_desc.png') no-repeat center right; }
+ 
+table.table thead .sorting_asc_disabled { background: url('../res/datatables/sort_asc_disabled.png') no-repeat center right; }
+table.table thead .sorting_desc_disabled { background: url('../res/datatables/sort_desc_disabled.png') no-repeat center right; }
+
+.dataTables_length select{
+  width: 80px;
+}
+
+/* --------------------------
+   Table (selected rows)
+   -------------------------- */
+table.table tr.selected td{
+  background-color: #dddddd;
+}
+
+table.table tr.success.selected td{
+  background-color: #c0d9b6;
+}
+table.table tr.error.selected td{
+  background-color: #dbbcbc;
+}
+table.table tr.warning.selected td{
+  background-color: #eae2bc;
+}
+table.table tr.info.selected td{
+  background-color: #b4d3e3;
+}
+
+table.table tr td i.decorating-chevron{
+  opacity: 0;
+}
+
+table.table tr:hover td i.decorating-chevron, table.table tr.selected td i.decorating-chevron{
+  opacity: 1;
+}
+
+
+
+
+
+
+   /* --------------------------
    MISC
    -------------------------- */
 small.select2_small{
   font-size: 0.5 em;
   background-color: #F00;
+}
+
+.hover{
+  cursor:pointer;
 }

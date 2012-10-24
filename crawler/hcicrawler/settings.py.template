@@ -1,11 +1,10 @@
 import os, uuid
 
 BOT_NAME = 'hcicrawler'
-BOT_VERSION = '0.1'
 
 SPIDER_MODULES = ['hcicrawler.spiders']
 NEWSPIDER_MODULE = 'hcicrawler.spiders'
-USER_AGENT = '%s/%s' % (BOT_NAME, BOT_VERSION)
+#USER_AGENT = '%s/%s' % (BOT_NAME, BOT_VERSION)
 
 ITEM_PIPELINES = [
     'hcicrawler.pipelines.OutputStore',

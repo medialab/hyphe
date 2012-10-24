@@ -1,7 +1,8 @@
 ;(function($, undefined){
 
-	// Generic quantities
+    Hyphen.view = {}
 
+	// Generic quantities
 	$(document).on( "/webentities", function(event, eventData){
         switch(eventData.what){
             case "updated":
