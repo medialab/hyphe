@@ -201,7 +201,7 @@ class Crawler(jsonrpc.JSONRPC):
             if (resdb['err']):
                 print "ERROR saving crawling job %s in database for webentity %s with arguments %s" % (res['jobid'], webentity_id, args), resdb
                 return {'code': 'fail', 'message': resdb}
-        return res
+        return {'code': 'success', 'message': res}
 
     def jsonrpc_cancel(self, job_id):
         """Cancels a scrapy job with id job_id."""
