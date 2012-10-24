@@ -129,6 +129,7 @@ public class Cache {
             webEntity.setName(name);
             webEntity.setLRUSet(new HashSet<String>());
             webEntity.addToLRUSet(LRUPrefix);
+            webEntity.setStatus(IndexConfiguration.WEStatus.DISCOVERED.name());
             String now = String.valueOf(System.currentTimeMillis());
             webEntity.setCreationDate(now);
             webEntity.setLastModificationDate(now);

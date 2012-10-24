@@ -66,7 +66,7 @@ public class IndexConfiguration {
         WEBENTITY_LINK,
         WEBENTITY_CREATION_RULE
     }
-    enum WEStatus {
+    public enum WEStatus {
         UNDECIDED,
         IN,
         OUT,
@@ -75,7 +75,7 @@ public class IndexConfiguration {
 
     public static String getWEStatusValue(final String status) {
         for (WEStatus good : WEStatus.values()) {
-            if (status == good.toString()) {
+            if (status.toLowerCase() == good.toString().toLowerCase()) {
                 return good.name();
             }
         }
@@ -524,7 +524,7 @@ public class IndexConfiguration {
         }
         webEntity.setLRUSet(lruList);
 
-        String status = getWEStatusValue(document.get(FieldName.STATUS.name()));
+        String status = getWEStatusValue((String) document.get(FieldName.STATUS.name()));
         webEntity.setStatus(status);
 
         String homePage = document.get(FieldName.HOMEPAGE.name());
