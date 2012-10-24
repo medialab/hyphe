@@ -16,14 +16,14 @@
         var jobs = Hyphen.model.crawlJobs.getAll()
             ,showPending = $('#crawlJobs_showPending').is(':checked')
             ,showFinished = $('#crawlJobs_showFinished').is(':checked')
+        if(!showFinished){
+            jobs = jobs.filter(function(job, i){
+                return i<=5 || job.crawling_status.toLowerCase() != "finished" || job.indexing_status.toLowerCase() != "finished" 
+            })
+        }
         if(!showPending){
             jobs = jobs.filter(function(job){
                 return job.crawling_status.toLowerCase() != "pending"
-            })
-        }
-        if(!showFinished){
-            jobs = jobs.filter(function(job){
-                return job.crawling_status.toLowerCase() != "finished" || job.indexing_status.toLowerCase() != "finished" 
             })
         }
         jobs.sort(function(a,b){

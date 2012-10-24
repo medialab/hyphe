@@ -9,9 +9,6 @@
 
 	})
 
-
-    /// Model
-
     /// View
 
     // Selector
@@ -78,6 +75,11 @@
                     var we = Hyphen.model.webEntities.get(we_id)
                         // ,startPages = we.startPages
                         ,startPages = ['http://www.google.com', 'http://www.fromhell.com']
+                    if(startPages.length>0){
+                        $('#launchButton').removeClass('disabled')
+                    } else {
+                        $('#launchButton').addClass('disabled')
+                    }
                     startPages.forEach(function(sp){
                         $('#startPagesTable').append(
                             $('<tr/>')
@@ -96,6 +98,14 @@
     })
 
     // Launch button (and its title)
+    $('#launchButton').click(function(){
+        var maxdepth = $('#depth').val()
+            ,we_id = Hyphen.model.vars.get('focused_webentity_id')
+        if(we_id && maxdepth && Hyphen.utils.checkforInteger(maxdepth)){
+            $('#launchButton').addClass('disabled')
+            Hyphen.controller.core.webEntity_crawl(we_id, maxdepth)
+        }
+    })
     $(document).on( "/webentity_focus", function(event, eventData){
         switch(eventData.what){
             case "updated":
@@ -104,6 +114,15 @@
                     $('#launchButton').attr('title', '')
                 else
                     $('#launchButton').attr('title', 'Please choose a web entity')
+                break
+        }
+    })
+
+    // Redirection on crawl launched
+    $(document).on( "/crawl", function(event, eventData){
+        switch(eventData.what){
+            case "launched":
+                window.location = "crawl.php"
                 break
         }
     })
