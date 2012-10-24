@@ -114,7 +114,7 @@
 			return Hyphen.model.crawlJobs._private.index[id]
 		}
 		,getAll: function(){
-			return Hyphen.model.crawlJobs._private.list.splice(0)
+			return Hyphen.model.crawlJobs._private.list.slice(0)
 		}
 		,setAll: function(jobs_list){
 			Hyphen.model.crawlJobs._private.list = jobs_list

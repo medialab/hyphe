@@ -29,6 +29,7 @@
 
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="css/jquery.dataTables.css">
         <link rel="stylesheet" href="css/select2.css">
         <link rel="stylesheet" href="css/main.css">
 
@@ -81,16 +82,26 @@
             </div>
 
             <div class="row">
-                <div class="span12">
-                    <p>
-                        <a class="btn btn-primary" href="crawl_new.php"><i class="icon-plus icon-white"></i> New crawl</a>
-                    </p>
+                <div class="span8">
+                    <a class="btn btn-primary" href="crawl_new.php"><i class="icon-plus icon-white"></i> New crawl</a>
+                    <form class="form-inline pull-right">
+                        <label class="checkbox">
+                            <input type="checkbox" id="crawlJobs_showFinished"> Show finished
+                        </label>
+                        &nbsp;
+                        <label class="checkbox">
+                            <input type="checkbox" id="crawlJobs_showPending" checked="true"> Show pending
+                        </label>
+                        &nbsp;
+                        <a class="btn" id="crawlJobs_refresh"><i class="icon-refresh"></i> Refresh</a>
+                    </form>
                 </div>
             </div>
 
             <div class="row">
                 <div class="span8">
                     <div id="jobsMessage"><span class="muted">Loading...</span></div>
+                    <!-- <table class="table table-hover dataTable" style="display:none;" id="jobsTable"> -->
                     <table class="table table-hover" style="display:none;" id="jobsTable">
                         <thead>
                             <tr>

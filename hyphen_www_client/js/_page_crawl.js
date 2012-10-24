@@ -5,78 +5,100 @@
 
         Hyphen.controller.core.crawlJobs_update()
 
+        $('#crawlJobs_refresh').click(Hyphen.controller.core.crawlJobs_update)
+        $('#crawlJobs_showFinished').change(Hyphen.view.crawlJobs_drawTable)
+        $('#crawlJobs_showPending').change(Hyphen.view.crawlJobs_drawTable)
 	})
 
     // View
+
+    Hyphen.view.crawlJobs_drawTable = function(){
+        var jobs = Hyphen.model.crawlJobs.getAll()
+            ,showPending = $('#crawlJobs_showPending').is(':checked')
+            ,showFinished = $('#crawlJobs_showFinished').is(':checked')
+        if(!showPending){
+            jobs = jobs.filter(function(job){
+                return job.crawling_status.toLowerCase() != "pending"
+            })
+        }
+        if(!showFinished){
+            jobs = jobs.filter(function(job){
+                return job.crawling_status.toLowerCase() != "finished" || job.indexing_status.toLowerCase() != "finished" 
+            })
+        }
+        jobs.sort(function(a,b){
+            return b.timestamp - a.timestamp
+        })
+        if(jobs.length > 0){
+            $('#jobsMessage').html('')
+            $('#jobsTable').show()
+            $('#jobsTableBody').html('')
+            jobs.forEach(function(job){
+                var crawling_colorClass = ''
+                    ,indexing_colorClass = ''
+                    ,row_colorClass = ''
+                
+                // Colors
+                if(job.crawling_status.toLowerCase() == "finished")
+                    crawling_colorClass = 'label-success'
+                else if(job.crawling_status.toLowerCase() == "crashed")
+                    crawling_colorClass = 'label-important'
+                else if(job.crawling_status.toLowerCase() == "pending")
+                    crawling_colorClass = 'label-warning'
+                else
+                    crawling_colorClass = 'label-info'
+
+                if(job.indexing_status.toLowerCase() == "finished")
+                    indexing_colorClass = 'label-success'
+                else if(job.indexing_status.toLowerCase() == "crashed")
+                    indexing_colorClass = 'label-important'
+                else if(job.indexing_status.toLowerCase() == "pending")
+                    indexing_colorClass = 'label-warning'
+                else
+                    indexing_colorClass = 'label-info'
+                
+                if(job.crawling_status.toLowerCase() == "crashed" || job.indexing_status.toLowerCase() == "crashed")
+                    row_colorClass = 'error'
+                else if(job.crawling_status.toLowerCase() == "finished" && job.indexing_status.toLowerCase() == "finished")
+                    row_colorClass = 'success'
+                else if(job.crawling_status.toLowerCase() == "pending")
+                    row_colorClass = 'warning'
+                else 
+                    row_colorClass = 'info'
+
+                // DOM
+                $('#jobsTableBody').append(
+                    $('<tr class="'+row_colorClass+' hover" crawljobid="'+job.id+'"/>').append(
+                        $('<td/>').text(job.webentity_id)
+                    ).append(
+                        $('<td/>').append(
+                            $('<span class="label '+crawling_colorClass+'"/>').text(job.crawling_status.replace('_', ' ').toLowerCase())
+                        )
+                    ).append(
+                        $('<td/>').append(
+                            $('<span class="label '+indexing_colorClass+'"/>').text(job.indexing_status.replace('_', ' ').toLowerCase())
+                        )
+                    ).append(
+                        $('<td><small>'+job.nb_pages+' pages<br/>'+job.nb_links+' links</small></td>')
+                    ).append(
+                        $('<td style="vertical-align:middle;"><i class="icon-chevron-right icon-white decorating-chevron"/></td>')
+                    ).click(function(){
+                        Hyphen.controller.core.selectCrawlJob(job.id)
+                    })
+                )
+            })
+        } else {
+            $('#jobsMessage').html('<span class="text-info">No crawl job</span>')
+            $('#jobsTable').hide()
+            $('#jobsTableBody').html('')
+        }
+    }
 
     $(document).on( "/crawls", function(event, eventData){
         switch(eventData.what){
             case "updated":
             
-            var jobs = Hyphen.model.crawlJobs.getAll()
-            if(jobs.length > 0){
-                $('#jobsMessage').html('')
-                $('#jobsTable').show()
-                $('#jobsTableBody').html('')
-                jobs.forEach(function(job){
-                    var crawling_colorClass = ''
-                        ,indexing_colorClass = ''
-                        ,row_colorClass = ''
-                    
-                    // Colors
-                    if(job.crawling_status.toLowerCase() == "finished")
-                        crawling_colorClass = 'label-success'
-                    else if(job.crawling_status.toLowerCase() == "crashed")
-                        crawling_colorClass = 'label-important'
-                    else if(job.crawling_status.toLowerCase() == "pending")
-                        crawling_colorClass = 'label-warning'
-                    else
-                        crawling_colorClass = 'label-info'
-
-                    if(job.indexing_status.toLowerCase() == "finished")
-                        indexing_colorClass = 'label-success'
-                    else if(job.indexing_status.toLowerCase() == "crashed")
-                        indexing_colorClass = 'label-important'
-                    else if(job.indexing_status.toLowerCase() == "pending")
-                        indexing_colorClass = 'label-warning'
-                    else
-                        indexing_colorClass = 'label-info'
-                    
-                    if(job.crawling_status.toLowerCase() == "crashed" || job.indexing_status.toLowerCase() == "crashed")
-                        row_colorClass = 'error'
-                    else if(job.crawling_status.toLowerCase() == "finished" && job.indexing_status.toLowerCase() == "finished")
-                        row_colorClass = 'success'
-                    else if(job.crawling_status.toLowerCase() == "pending")
-                        row_colorClass = 'warning'
-                    else 
-                        row_colorClass = 'info'
-
-                    // DOM
-                    $('#jobsTableBody').append(
-                        $('<tr class="'+row_colorClass+' hover" crawljobid="'+job.id+'"/>').append(
-                            $('<td/>').text(job.webentity_id)
-                        ).append(
-                            $('<td/>').append(
-                                $('<span class="label '+crawling_colorClass+'"/>').text(job.crawling_status.replace('_', ' ').toLowerCase())
-                            )
-                        ).append(
-                            $('<td/>').append(
-                                $('<span class="label '+indexing_colorClass+'"/>').text(job.indexing_status.replace('_', ' ').toLowerCase())
-                            )
-                        ).append(
-                            $('<td><small>'+job.nb_pages+' pages<br/>'+job.nb_links+' links</small></td>')
-                        ).append(
-                            $('<td style="vertical-align:middle;"><i class="icon-chevron-right icon-white decorating-chevron"/></td>')
-                        ).click(function(){
-                            Hyphen.controller.core.selectCrawlJob(job.id)
-                        })
-                    )
-                })
-            } else {
-                $('#jobsMessage').html('<span class="text-info">No crawl jobs running at the moment</span>')
-                $('#jobsTable').hide()
-                $('#jobsTableBody').html('')
-            }
+            Hyphen.view.crawlJobs_drawTable()
 
             break
         }
@@ -140,16 +162,6 @@
                 )
             ).append(
                 $('<p/>').append(
-                    $('<small class="muted"/>').text('Crawl job id: '+crawlJob.id)
-                ).append(
-                    $('<br/>')
-                ).append(
-                    $('<small class="muted"/>').text('Timestamp: '+crawlJob.timestamp)
-                ).append(
-                    $('<span/>').text(' ')
-                )
-            ).append(
-                $('<p/>').append(
                     $('<strong/>').text("Pages: ")
                 ).append(
                     $('<span/>').text(crawlJob.nb_pages)
@@ -163,15 +175,27 @@
                     $('<span/>').text(' ')
                 )
             ).append(
-                $('<a class="btn btn-danger disabled"/>').html('<i class="icon-remove-sign icon-white"/> Abort crawl').click(function(){
-                    // Todo
-                })
+                $('<p/>').append(
+                    $('<a class="btn btn-danger disabled"/>').html('<i class="icon-remove-sign icon-white"/> Abort crawl').click(function(){
+                        // Todo
+                    })
+                ).append(
+                    $('<span/>').text(' ')
+                ).append(
+                    $('<a class="btn"/>').text('Show in console').click(function(){
+                        console.log(crawlJob)
+                    })
+                )
             ).append(
-                $('<span/>').text(' ')
-            ).append(
-                $('<a class="btn"/>').text('Show in console').click(function(){
-                    console.log(crawlJob)
-                })
+                $('<p/>').append(
+                    $('<small class="muted"/>').text('Crawl job id: '+crawlJob.id)
+                ).append(
+                    $('<br/>')
+                ).append(
+                    $('<small class="muted"/>').text('Timestamp: '+crawlJob.timestamp)
+                ).append(
+                    $('<span/>').text(' ')
+                )
             ).append(
                 $('<hr/>')
             ).append(
@@ -186,25 +210,20 @@
                 $('<p/>').append(
                     $('<strong/>').text("Starting URLs:")
                 ).append(
-                    $('<ul class="unstyled"/>').html(crawlJob.crawl_arguments.start_urls.split(',').map(function(d){return '<li>'+$('<div/>').append($('<small/>').text(d)).html()+'</li>'}))
+                    $('<ul class="unstyled"/>').append(
+                        crawlJob.crawl_arguments.start_urls.map(function(d){
+                            return $('<li/>').append(
+                                $('<a/>').append(
+                                    $('<small/>').text(d)
+                                ).attr('href', d)
+                                .attr('target', '_blank')
+                            )
+                        })
+                    )
                 ).append(
                     $('<strong/>').text("Options: ")
                 ).append(
                     $('<span/>').text(crawlJob.crawl_arguments.setting)
-                )
-            ).append(
-                $('<hr/>')
-            ).append(
-                $('<h4/>').text('Log')
-            ).append(
-                $('<div class="crawlJob_log"/>').append(
-                    d3.keys(crawlJob.log).map(function(key){
-                        return $('<p/>').append(
-                            $('<span class="muted"/>').text(crawlJob.log[key].substring(0,29))
-                        ).append(
-                            $('<span/>').text(crawlJob.log[key].substring(29,crawlJob.log[key].length+1))
-                        )
-                    })
                 )
             )
 

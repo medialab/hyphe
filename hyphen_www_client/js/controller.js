@@ -33,86 +33,86 @@
 	Hyphen.controller.core.crawlJobs_update = function(){
 		$(document).trigger( "/crawls", [{what:'updating'}])
 		Hyphen.debug.log(["Hyphen.controller.core.crawlJobs_update"], 1)
-		// Hyphen.controller.io.jobs_getAll(function(json){
-		// 	if(json){
+		Hyphen.controller.io.jobs_getAll(function(json){
+			if(json){
 
-		// 		// Store in the model
-		// 		var jobs_list = json.result
-		// 		Hyphen.model.crawlJobs.setAll(jobs_list)
+				// Store in the model
+				var jobs_list = json.result
+				Hyphen.model.crawlJobs.setAll(jobs_list)
 
-		// 		$(document).trigger( "/crawls", [{what:'updated'}])
-		// 	}
-		// })
+				$(document).trigger( "/crawls", [{what:'updated'}])
+			}
+		})
 		
 		// FAKE BEHAVIOR
-		Hyphen.model.crawlJobs.setAll([{
-			   "_id": "43d1f4b00d5911e2943c00163e22b2db",
-			   "crawl_arguments": {
-			     "project": "hci-dev",
-			     "follow_prefixes": "s: http|h: fr|h: blogspot|h: informationpreneur",
-			     "setting": "DOWNLOAD_DELAY=0.5",
-			     "maxdepth": 3,
-			     "discover_prefixes": "s: http|h: ly|h: bit,s: http|h: co|h: t,s: http|h: com|h: tinyurl,s: http|h: gl|h: goo,s: http|h: me|h: fb,s: http|h: me|h: fb|h: on,s: http|h: ca|h: ur1,s: http|h: ly|h: ow",
-			     "nofollow_prefixes": "",
-			     "start_urls": "http: \/\/informationpreneur.blogspot.fr",
-			     "spider": "pages",
-			     "user_agent": "Mozilla\/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit\/525.19 (KHTML, like Gecko) Chrome\/0.2.153.1 Safari\/525.19" 
-			  },
-			   "crawling_status": "FINISHED",
-			   "indexing_status": "BATCH_FINISHED",
-			   "log": {
-			     "0": "2012-10-03 14: 53: 01.565295: CRAWL_ADDED",
-			     "1": "2012-10-04 04: 29: 07.440874: CRAWL_RUNNING",
-			     "2": "2012-10-04 04: 38: 05.438264: CRAWL_FINISHED",
-			     "3": "2012-10-09 06: 25: 57.753555: INDEX_BATCH_RUNNING",
-			     "4": "2012-10-09 07: 31: 29.542201: INDEX_BATCH_FINISHED",
-			     "5": "2012-10-09 07: 31: 32.755192: INDEX_BATCH_RUNNING",
-			     "6": "2012-10-09 10: 26: 40.122168: INDEX_BATCH_CRASHED",
-			     "7": "2012-10-09 10: 26: 45.143327: INDEX_BATCH_RUNNING",
-			     "8": "2012-10-09 11: 09: 33.669391: INDEX_BATCH_FINISHED",
-			     "9": "2012-10-09 11: 09: 35.146540: INDEX_BATCH_RUNNING",
-			     "10": "2012-10-09 11: 56: 33.098484: INDEX_BATCH_FINISHED",
-			     "11": "2012-10-09 11: 56: 35.147096: INDEX_BATCH_RUNNING",
-			     "12": "2012-10-09 13: 00: 38.354539: INDEX_BATCH_FINISHED",
-			     "13": "2012-10-09 13: 00: 40.143949: INDEX_BATCH_RUNNING",
-			     "14": "2012-10-09 13: 32: 29.372957: INDEX_BATCH_FINISHED" 
-			  },
-			   "nb_links": 40925,
-			   "nb_pages": 12923,
-			   "timestamp": 1349268781.5653,
-			   "webentity_id": "907ee235-4b88-4542-9714-61351796dc7c" 
-			},
-			{
-			   "_id": "43a38f120d5911e2943c00163e22b2db",
-			   "crawl_arguments": {
-			     "project": "hci-dev",
-			     "follow_prefixes": "s: http|h: fr|h: blogspot|h: alzheimerscaregiver",
-			     "setting": "DOWNLOAD_DELAY=0.5",
-			     "maxdepth": 3,
-			     "discover_prefixes": "s: http|h: ly|h: bit,s: http|h: co|h: t,s: http|h: com|h: tinyurl,s: http|h: gl|h: goo,s: http|h: me|h: fb,s: http|h: me|h: fb|h: on,s: http|h: ca|h: ur1,s: http|h: ly|h: ow",
-			     "nofollow_prefixes": "",
-			     "start_urls": "http: \/\/alzheimerscaregiver.blogspot.fr",
-			     "spider": "pages",
-			     "user_agent": "Mozilla\/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit\/525.19 (KHTML, like Gecko) Chrome\/0.2.153.1 Safari\/525.19" 
-			  },
-			   "crawling_status": "FINISHED",
-			   "indexing_status": "BATCH_FINISHED",
-			   "log": {
-			     "0": "2012-10-03 14: 53: 01.291868: CRAWL_ADDED",
-			     "1": "2012-10-04 04: 24: 21.447763: CRAWL_RUNNING",
-			     "2": "2012-10-04 04: 29: 07.441113: CRAWL_FINISHED",
-			     "3": "2012-10-09 05: 31: 32.757739: INDEX_BATCH_RUNNING",
-			     "4": "2012-10-09 05: 51: 12.745961: INDEX_BATCH_FINISHED",
-			     "5": "2012-10-09 05: 51: 17.756762: INDEX_BATCH_RUNNING",
-			     "6": "2012-10-09 06: 10: 10.873500: INDEX_BATCH_FINISHED",
-			     "7": "2012-10-09 06: 10: 12.758871: INDEX_BATCH_RUNNING",
-			     "8": "2012-10-09 06: 25: 52.814966: INDEX_BATCH_FINISHED" 
-			  },
-			   "nb_links": 30056,
-			   "nb_pages": 2768,
-			   "timestamp": 1349268781.2919,
-			   "webentity_id": "39694346-c6d7-4a9a-94fa-ea97b35935b0" 
-			}])
+		// Hyphen.model.crawlJobs.setAll([{
+		// 	   "_id": "43d1f4b00d5911e2943c00163e22b2db",
+		// 	   "crawl_arguments": {
+		// 	     "project": "hci-dev",
+		// 	     "follow_prefixes": "s: http|h: fr|h: blogspot|h: informationpreneur",
+		// 	     "setting": "DOWNLOAD_DELAY=0.5",
+		// 	     "maxdepth": 3,
+		// 	     "discover_prefixes": "s: http|h: ly|h: bit,s: http|h: co|h: t,s: http|h: com|h: tinyurl,s: http|h: gl|h: goo,s: http|h: me|h: fb,s: http|h: me|h: fb|h: on,s: http|h: ca|h: ur1,s: http|h: ly|h: ow",
+		// 	     "nofollow_prefixes": "",
+		// 	     "start_urls": "http: \/\/informationpreneur.blogspot.fr",
+		// 	     "spider": "pages",
+		// 	     "user_agent": "Mozilla\/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit\/525.19 (KHTML, like Gecko) Chrome\/0.2.153.1 Safari\/525.19" 
+		// 	  },
+		// 	   "crawling_status": "FINISHED",
+		// 	   "indexing_status": "BATCH_FINISHED",
+		// 	   "log": {
+		// 	     "0": "2012-10-03 14: 53: 01.565295: CRAWL_ADDED",
+		// 	     "1": "2012-10-04 04: 29: 07.440874: CRAWL_RUNNING",
+		// 	     "2": "2012-10-04 04: 38: 05.438264: CRAWL_FINISHED",
+		// 	     "3": "2012-10-09 06: 25: 57.753555: INDEX_BATCH_RUNNING",
+		// 	     "4": "2012-10-09 07: 31: 29.542201: INDEX_BATCH_FINISHED",
+		// 	     "5": "2012-10-09 07: 31: 32.755192: INDEX_BATCH_RUNNING",
+		// 	     "6": "2012-10-09 10: 26: 40.122168: INDEX_BATCH_CRASHED",
+		// 	     "7": "2012-10-09 10: 26: 45.143327: INDEX_BATCH_RUNNING",
+		// 	     "8": "2012-10-09 11: 09: 33.669391: INDEX_BATCH_FINISHED",
+		// 	     "9": "2012-10-09 11: 09: 35.146540: INDEX_BATCH_RUNNING",
+		// 	     "10": "2012-10-09 11: 56: 33.098484: INDEX_BATCH_FINISHED",
+		// 	     "11": "2012-10-09 11: 56: 35.147096: INDEX_BATCH_RUNNING",
+		// 	     "12": "2012-10-09 13: 00: 38.354539: INDEX_BATCH_FINISHED",
+		// 	     "13": "2012-10-09 13: 00: 40.143949: INDEX_BATCH_RUNNING",
+		// 	     "14": "2012-10-09 13: 32: 29.372957: INDEX_BATCH_FINISHED" 
+		// 	  },
+		// 	   "nb_links": 40925,
+		// 	   "nb_pages": 12923,
+		// 	   "timestamp": 1349268781.5653,
+		// 	   "webentity_id": "907ee235-4b88-4542-9714-61351796dc7c" 
+		// 	},
+		// 	{
+		// 	   "_id": "43a38f120d5911e2943c00163e22b2db",
+		// 	   "crawl_arguments": {
+		// 	     "project": "hci-dev",
+		// 	     "follow_prefixes": "s: http|h: fr|h: blogspot|h: alzheimerscaregiver",
+		// 	     "setting": "DOWNLOAD_DELAY=0.5",
+		// 	     "maxdepth": 3,
+		// 	     "discover_prefixes": "s: http|h: ly|h: bit,s: http|h: co|h: t,s: http|h: com|h: tinyurl,s: http|h: gl|h: goo,s: http|h: me|h: fb,s: http|h: me|h: fb|h: on,s: http|h: ca|h: ur1,s: http|h: ly|h: ow",
+		// 	     "nofollow_prefixes": "",
+		// 	     "start_urls": "http: \/\/alzheimerscaregiver.blogspot.fr",
+		// 	     "spider": "pages",
+		// 	     "user_agent": "Mozilla\/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit\/525.19 (KHTML, like Gecko) Chrome\/0.2.153.1 Safari\/525.19" 
+		// 	  },
+		// 	   "crawling_status": "FINISHED",
+		// 	   "indexing_status": "BATCH_FINISHED",
+		// 	   "log": {
+		// 	     "0": "2012-10-03 14: 53: 01.291868: CRAWL_ADDED",
+		// 	     "1": "2012-10-04 04: 24: 21.447763: CRAWL_RUNNING",
+		// 	     "2": "2012-10-04 04: 29: 07.441113: CRAWL_FINISHED",
+		// 	     "3": "2012-10-09 05: 31: 32.757739: INDEX_BATCH_RUNNING",
+		// 	     "4": "2012-10-09 05: 51: 12.745961: INDEX_BATCH_FINISHED",
+		// 	     "5": "2012-10-09 05: 51: 17.756762: INDEX_BATCH_RUNNING",
+		// 	     "6": "2012-10-09 06: 10: 10.873500: INDEX_BATCH_FINISHED",
+		// 	     "7": "2012-10-09 06: 10: 12.758871: INDEX_BATCH_RUNNING",
+		// 	     "8": "2012-10-09 06: 25: 52.814966: INDEX_BATCH_FINISHED" 
+		// 	  },
+		// 	   "nb_links": 30056,
+		// 	   "nb_pages": 2768,
+		// 	   "timestamp": 1349268781.2919,
+		// 	   "webentity_id": "39694346-c6d7-4a9a-94fa-ea97b35935b0" 
+		// 	}])
 		$(document).trigger( "/crawls", [{what:'updated'}])
 	}
 
