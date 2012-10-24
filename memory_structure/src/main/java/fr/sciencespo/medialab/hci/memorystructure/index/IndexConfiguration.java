@@ -402,7 +402,7 @@ public class IndexConfiguration {
         }
 
         Map<String, Set<String>> tags = webEntity.getMetadataItems();
-        if (! tags.isEmpty()) {
+        if (tags != null) {
             for (String tagKey : tags.keySet()) {
                 for (String tagValue: tags.get(tagKey)) {
                     Field tagField = new Field(FieldName.TAG.name(), tagKey+"="+tagValue, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
