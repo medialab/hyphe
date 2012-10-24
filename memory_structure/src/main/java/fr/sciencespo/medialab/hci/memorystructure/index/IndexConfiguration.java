@@ -271,7 +271,7 @@ public class IndexConfiguration {
             document.add(isFullPrecision);
         }
 
-        if (pageItem.getSourceSet().size() > 0) {
+        if (pageItem.getSourceSet() != null) {
 	        for(String source : pageItem.getSourceSet()) {
 	            Field sourceField = new Field(FieldName.SOURCE.name(), source, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
 	            sourceField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
@@ -369,10 +369,7 @@ public class IndexConfiguration {
         typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(typeField);
 
-        if(logger.isDebugEnabled()) {
-            logger.trace("lucene document adding # " + webEntity.getLRUSet().size() + " lrus");
-        }
-        if (webEntity.getLRUSet().size() > 0) {
+        if (webEntity.getLRUSet() != null) {
             for(String lru : webEntity.getLRUSet()) {
                 Field lruField = new Field(FieldName.LRU.name(), lru, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
                 lruField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
@@ -396,7 +393,7 @@ public class IndexConfiguration {
         }
 
         Set<String> startPages = webEntity.getStartpages();
-        if (startPages.size() > 0) {
+        if (startPages != null) {
             for (String page : startPages) {
                 Field pagesField = new Field(FieldName.STARTPAGE.name(), page, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
                 pagesField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
@@ -472,7 +469,7 @@ public class IndexConfiguration {
 
         Fieldable[] sourceFields = document.getFieldables(FieldName.SOURCE.name());
         Set<String> sourceList = new HashSet<String>();
-        if (sourceList.size() != 0) {
+        if (sourceList != null) {
             for(Fieldable sourceField : sourceFields) {
                 sourceList.add(sourceField.stringValue());
             }
