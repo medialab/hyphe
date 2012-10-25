@@ -9,4 +9,10 @@
 
 	})
 
+	// View
+
+	$('#reinitialize_all').click(function(){
+		Hyphen.controller.core.reinitialize_all()
+	})
+
 })(window.Hyphen = window.Hyphen || {}, jQuery)

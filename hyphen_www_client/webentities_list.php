@@ -87,6 +87,9 @@
                         <tbody>
                         </tbody>
                     </table>
+                    <p>
+                        <button class="btn" id="webEntities_download"><i class="icon-download"></i> Download as JSON</button>
+                    </p>
                 </div>
             </div>
         </div>

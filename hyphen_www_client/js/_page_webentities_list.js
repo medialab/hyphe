@@ -130,4 +130,20 @@
         }
     })
 
+    // Download json
+    $('#webEntities_download').click(function(){
+        // Blob Builder
+        window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
+        var bb = new BlobBuilder
+        bb.append('[')
+        Hyphen.model.webEntities.getAll().forEach(function(we,i){
+            if(i!=0)
+                bb.append(',')
+            bb.append(JSON.stringify(we))
+        })
+        bb.append(']')
+        saveAs(bb.getBlob("text/json;charset=utf-8"), "WebEntities.json")
+    })
+    
+
 })(window.Hyphen = window.Hyphen || {}, jQuery)
