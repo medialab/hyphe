@@ -30,14 +30,14 @@ class Enum(set):
         if name in self:
             return name
         raise AttributeError
-crawling_statuses = Enum(['PENDING', 'RUNNING', 'FINISHED', 'CANCELED'])
-indexing_statuses = Enum(['PENDING', 'BATCH_RUNNING', 'BATCH_FINISHED', 'BATCH_CRASHED', 'FINISHED'])
+crawling_statuses = Enum(['UNCRAWLED', 'PENDING', 'RUNNING', 'FINISHED', 'CANCELED'])
+indexing_statuses = Enum(['UNINDEXED', 'PENDING', 'BATCH_RUNNING', 'BATCH_FINISHED', 'BATCH_CRASHED', 'FINISHED'])
 
 def jobslog(jobid, msg, db, timestamp=None):
     if timestamp is None:
-        timestamp = datetime.fromtimestamp(time.time())
+        timestamp = time.time()*1000
     if isinstance(jobid, types.ListType):
-        return db[config['mongo-scrapy']['jobLogsCol']].insert([{'_job': id, 'timestamp': timestamp, 'log': msg} for id in jobid])
+        return db[config['mongo-scrapy']['jobLogsCol']].insert([{'_job': _id, 'timestamp': timestamp, 'log': msg} for _id in jobid])
     return db[config['mongo-scrapy']['jobLogsCol']].insert({'_job': jobid, 'timestamp': timestamp, 'log': msg})
 
 def assemble_urls(urls):
@@ -195,13 +195,13 @@ class Crawler(jsonrpc.JSONRPC):
             return res
         res = res['result']
         if 'jobid' in res:
-            ts = time.time()
+            ts = time.time()*1000
             jobslog(res['jobid'], "CRAWL_ADDED", self.db, datetime.fromtimestamp(ts))
             resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'webentity_id': webentity_id, 'nb_pages': 0, 'nb_links': 0, 'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts}}, upsert=True, safe=True)
             if (resdb['err']):
                 print "ERROR saving crawling job %s in database for webentity %s with arguments %s" % (res['jobid'], webentity_id, args), resdb
                 return {'code': 'fail', 'message': resdb}
-        return {'code': 'success', 'message': res}
+        return {'code': 'success', 'result': res}
 
     def jsonrpc_cancel(self, job_id):
         """Cancels a scrapy job with id job_id."""
@@ -218,11 +218,17 @@ class Crawler(jsonrpc.JSONRPC):
                  print "ERROR updating job %s in database" % job_id, resdb
                  return {'code': 'fail', 'message': resdb}
             jobslog(job_id, "CRAWL_"+crawling_statuses.CANCELED, self.db)
-        return {'code': 'success', 'message': res}
+        return {'code': 'success', 'result': res}
 
     def jsonrpc_list(self):
         """Calls Scrappy monitoring API, returns list of scrapy jobs."""
         return self.send_scrapy_query('listjobs', {'project': config['mongo-scrapy']['project']})
+
+    def jsonrpc_get_job_logs(self, job_id):
+        res = self.db[config['mongo-scrapy']['jobLogsCol']].find({'_job': job_id}, fields=['timestamp', 'log'], order=[('timestamp', pymongo.ASCENDING)])
+        if not res.count():
+            return {'code': 'fail', 'message': 'No log found for job %s.' % job_id}
+        return {'code': 'success', 'result': [{'timestamp': log['timestamp'], 'log': log['log']} for log in res]}
 
     def jsonrpc_cancel_all(self):
         """Stops all current crawls."""
@@ -261,7 +267,7 @@ class Crawler(jsonrpc.JSONRPC):
         try:
             self.emptyDB()
         except:
-            return {'code': 'fail', 'result': 'Error while resetting mongoDB.'}
+            return {'code': 'fail', 'message': 'Error while resetting mongoDB.'}
         return {'code': 'success', 'result': 'Crawling database reset.'}
 
 
@@ -295,6 +301,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if job:
                 res['crawling_status'] = job['crawling_status']
                 res['indexing_status'] = job['indexing_status']
+            else:
+                res['crawling_status'] = crawling_statuses.UNCRAWLED
+                res['indexing_status'] = crawling_statuses.UNINDEXED
             return res
         return None
 
@@ -517,8 +526,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_get_webentity_pages(self, webentity_id, corpus=''):
         mem_struct_conn = getThriftConn()
         pages = yield mem_struct_conn.addCallback(self.get_webentity_pages, webentity_id).addErrback(self.handle_error)
-        defer.returnValue({"code": 'success', "result": [p.lru for p in pages]})
-#        defer.returnValue({"code": 'success', "result": [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawlTimestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'HTTPstatus': p.httpStatusCode} for p in pages]})
+        defer.returnValue({"code": 'success', "result": [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawlTimestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'HTTPstatus': p.httpStatusCode} for p in pages]})
 
     def get_webentity_pages(self, conn, webentity_id):
         client = conn.client
