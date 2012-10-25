@@ -12,10 +12,6 @@
 
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <style>
-            body {
-                padding-top: 60px;
-                padding-bottom: 40px;
-            }
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/select2.css">
@@ -60,9 +56,9 @@
             <div class="row">
                 <div class="span12">
                     <h1>Web entities: list</h1>
-                    <p><strong>
+                    <p class="text-info">
                         Manage and edit web entities as a data table
-                    </strong></p>
+                    </p>
                     <hr>
                 </div>
             </div>

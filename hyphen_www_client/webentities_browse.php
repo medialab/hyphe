@@ -12,19 +12,8 @@
 
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <style>
-            /* Specific styles */
-            .crawlJob_log{
-                font-size:10px;
-            }
-            .crawlJob_log p{
-                line-height: 12px;
-                margin: 0px;
-            }
-
-
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
-        <link rel="stylesheet" href="css/jquery.dataTables.css">
         <link rel="stylesheet" href="css/select2.css">
         <link rel="stylesheet" href="css/main.css">
 
@@ -65,56 +54,28 @@
 
             <div class="row">
                 <div class="span12">
-                    <h1>Crawl</h1>
+                    <h1>Web entities: hierarchy</h1>
                     <p class="text-info">
-                        The crawler gathers pages on the web up to a settable depth.
-                        Their links are extracted in order to know the outbound links of the crawled web entities.
-                        <br/>
-                        Each crawl job is dedicated to a different web entity.
+                        Explore the structures of web entities as a hierarchy of folders and pages
                     </p>
                     <hr>
                 </div>
             </div>
 
             <div class="row">
-                <div class="span8">
-                    <a class="btn btn-primary" href="crawl_new.php"><i class="icon-plus icon-white"></i> New crawl</a>
-                    <form class="form-inline pull-right">
-                        <label class="checkbox" title="The five last crawls are always showed">
-                            <input type="checkbox" id="crawlJobs_showFinished"> Show all finished
-                        </label>
-                        &nbsp;
-                        <label class="checkbox">
-                            <input type="checkbox" id="crawlJobs_showPending" checked="true"> Show pending
-                        </label>
-                        &nbsp;
-                        <a class="btn" id="crawlJobs_refresh"><i class="icon-refresh"></i> Refresh</a>
-                    </form>
+                <div class="span4">
+                    <div class="webentities_selector_container">
+                        <a style="width:100%;" id="webentities_selector"> </a>
+                    </div>
                 </div>
-            </div>
-
-            <div class="row">
                 <div class="span8">
-                    <div id="jobsMessage"><span class="muted">Loading...</span></div>
-                    <!-- <table class="table table-hover dataTable" style="display:none;" id="jobsTable"> -->
-                    <table class="table table-hover" style="display:none;" id="jobsTable">
-                        <thead>
-                            <tr>
-                                <th>Web entity</th>
-                                <th>Harvesting</th>
-                                <th>Indexing</th>
-                                <th>Data</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="jobsTableBody">
-                        </tbody>
-                    </table>
+                    <ul class="weBrowserPath breadcrumb">
+                        <li><span class="divider">/</span></li>
                     </ul>
                 </div>
-                <div class="span4">
-                    <div class="well" id="jobFrame" style="display:none">
-                    </div>
+            </div>
+            <div class="row">
+                <div class="span12 weBrowser">
                 </div>
             </div>
         </div>
@@ -124,7 +85,7 @@
 <?php include("includes/codebottom.php"); ?>
 
         <!-- Page-specific js package -->
-        <script src="js/_page_crawl.js"></script>
+        <script src="js/_page_webentities_browse.js"></script>
 
     </body>
 </html>

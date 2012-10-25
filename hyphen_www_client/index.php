@@ -12,10 +12,6 @@
 
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <style>
-            body {
-                padding-top: 60px;
-                padding-bottom: 40px;
-            }
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/select2.css">
@@ -84,6 +80,7 @@
                     <p>
                         <ul>
                             <li><a href="webentities_list.php">List of web entities</a></li>
+                            <li><a href="webentities_browse.php">Hierarchy of a web entity</a> <span class="muted">(proof of concept)</span></li>
                         </ul>
                     </p>
                 </div>
