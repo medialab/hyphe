@@ -126,13 +126,13 @@
             )
         ).append(
             $('<p/>').append(
-            /*    $('<strong/>').text("Launched: ")
+                $('<strong/>').text("Launched: ")
             ).append(
-                $('<span/>').text(Hyphen.utils.prettyDate((new Date()).setMilliseconds(crawlJob.timestamp)))
+                $('<span/>').text(Hyphen.utils.prettyDate((new Date()).setTime(1000*crawlJob.timestamp)))
             ).append(
                 $('<br/>')
             ).append(
-            */     $('<strong/>').text("Pages: ")
+                 $('<strong/>').text("Pages: ")
             ).append(
                 $('<span/>').text(crawlJob.nb_pages)
             ).append(
@@ -159,22 +159,20 @@
         ).append(
             $('<p/>').append(
                 $('<small class="muted"/>').text('Crawl job id: '+crawlJob.id)
-            ).append(
-                $('<br/>')
-            ).append(
-                $('<small class="muted"/>').text('Timestamp: '+crawlJob.timestamp)
-            ).append(
-                $('<span/>').text(' ')
             )
         ).append(
-            $('<hr/>')
-        ).append(
-            $('<h4/>').html('Crawler settings')
+            $('<h4/>').html('Settings')
         ).append(
             $('<p/>').append(
                 $('<strong/>').text("Maximum depth: ")
             ).append(
                 $('<span class="badge badge-info"/>').text(crawlJob.crawl_arguments.maxdepth)
+            )
+        ).append(
+            $('<p/>').append(
+                $('<strong/>').text("Options: ")
+            ).append(
+                $('<span/>').text(crawlJob.crawl_arguments.setting)
             )
         ).append(
             $('<p/>').append(
@@ -190,10 +188,6 @@
                         )
                     })
                 )
-            ).append(
-                $('<strong/>').text("Options: ")
-            ).append(
-                $('<span/>').text(crawlJob.crawl_arguments.setting)
             )
         )
         // Update the web entity proxy
