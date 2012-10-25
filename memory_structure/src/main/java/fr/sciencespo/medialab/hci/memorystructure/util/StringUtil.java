@@ -12,7 +12,7 @@ public class StringUtil {
 
     public static String toProperCase(String text) {
         text = text.toLowerCase();
-        if (text.length() > 2) {
+        if (text.length() > 1) {
             text = text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
         } else {
             text = text.toUpperCase();
@@ -22,11 +22,11 @@ public class StringUtil {
 
     public static String toTitle(String text) {
         StringBuffer output = new StringBuffer();
-        String[] tokens = text.replace(".", " ").split(" ");
+        String[] tokens = text.replace(".", " ").replace("-", "- ").split(" ");
         for (int i=0; i<tokens.length; i++) {
             output.append(" "+toProperCase(tokens[i]));
         }
-        return output.toString().trim();
+        return output.toString().replace("- ", "-").trim();
     }
 
 }
