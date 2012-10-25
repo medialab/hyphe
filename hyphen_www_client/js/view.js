@@ -38,60 +38,65 @@
     Hyphen.view.webEntities = {}
     Hyphen.view.webEntities.proxiesUpdate = function(onlyOutdated){
         $('.webEntity_proxy').each(function(i,proxy){
-            var we_id = $(proxy).attr('webEntity_id')
-                ,we = Hyphen.model.webEntities.get(we_id)
-            if(!(onlyOutdated && $(proxy).hasClass('webEntity_proxy_updated'))){
-                var creationDate = new Date()
-                    ,lastModificationDate = new Date()
-                creationDate.setTime(we.creation_date)
-                lastModificationDate.setTime(we.last_modification_date)
-                $(proxy).html('')
-                $(proxy).addClass('webEntity_proxy_updated')
-                $(proxy).append(
-                    $('<span/>').text(we.name)
-                        .addClass('info_tooltip')
-                        .popover({
-                            trigger:'hover'
-                            ,title: $('<img src="res/icon-we-16.png"/>').after($('<span/>').text(' '+we.name))
-                            ,content:
-                                $('</p>').append(
-                                    $('<strong/>').text('Status: ')
-                                ).append(
-                                    $('<span class="label"/>').text(we.status)
-                                        .addClass(Hyphen.view.webEntities_status_getLabelColor(we.status))
-                                ).after($('</p>').append(
-                                        $('<strong/>').text('Last crawl: ')
-                                    ).append(
-                                        $('<br/>')
-                                    ).append(
-                                        $('<span class="label"/>').text('Harvesting: '+we.crawling_status.replace('_', ' ').toLowerCase())
-                                            .addClass(Hyphen.view.crawlJobs_crawling_getLabelColor(we.crawling_status))
-                                    ).append(
-                                        $('<span/>').text(' ')
-                                    ).append(
-                                        $('<span class="label"/>').text('Indexing: '+we.indexing_status.replace('_', ' ').toLowerCase())
-                                            .addClass(Hyphen.view.crawlJobs_indexing_getLabelColor(we.indexing_status))
-                                    ).append(
-                                        $('<span/>').text(' ')
-                                    )
-                                ).after($('</p>').append(
-                                        $('<strong/>').text('Created: ')
-                                    ).append(
-                                        $('<span/>').text(Hyphen.utils.prettyDate(creationDate))
-                                            .attr('title', creationDate)
-                                    ).append(
-                                        $('<br/>')
-                                    ).append(
-                                        $('<strong/>').text('Modified: ')
-                                    ).append(
-                                        $('<span/>').text(Hyphen.utils.prettyDate(lastModificationDate))
-                                            .attr('title', lastModificationDate)
-                                    )
-                                )
-                        })
-                )
-            }
+            Hyphen.view.webEntities.replaceProxyElement($(proxy), onlyOutdated)
+            
         })
+    }
+    Hyphen.view.webEntities.replaceProxyElement = function(proxyElement, onlyOutdated){
+        var we_id = proxyElement.attr('webEntity_id')
+            ,we = Hyphen.model.webEntities.get(we_id)
+        if(!(onlyOutdated && proxyElement.hasClass('webEntity_proxy_updated'))){
+            var creationDate = new Date()
+                ,lastModificationDate = new Date()
+            creationDate.setTime(we.creation_date)
+            lastModificationDate.setTime(we.last_modification_date)
+            proxyElement.html('')
+            proxyElement.addClass('webEntity_proxy_updated')
+            proxyElement.append(
+                $('<span/>').text(we.name)
+                    .addClass('info_tooltip')
+                    .popover({
+                        trigger:'hover'
+                        ,title: $('<img src="res/icon-we-16.png"/>').after($('<span/>').text(' '+we.name))
+                        ,content:
+                            $('</p>').append(
+                                $('<strong/>').text('Status: ')
+                            ).append(
+                                $('<span class="label"/>').text(we.status)
+                                    .addClass(Hyphen.view.webEntities_status_getLabelColor(we.status))
+                            ).after($('</p>').append(
+                                    $('<strong/>').text('Last crawl: ')
+                                ).append(
+                                    $('<br/>')
+                                ).append(
+                                    $('<span class="label"/>').text('Harvesting: '+we.crawling_status.replace('_', ' ').toLowerCase())
+                                        .addClass(Hyphen.view.crawlJobs_crawling_getLabelColor(we.crawling_status))
+                                ).append(
+                                    $('<span/>').text(' ')
+                                ).append(
+                                    $('<span class="label"/>').text('Indexing: '+we.indexing_status.replace('_', ' ').toLowerCase())
+                                        .addClass(Hyphen.view.crawlJobs_indexing_getLabelColor(we.indexing_status))
+                                ).append(
+                                    $('<span/>').text(' ')
+                                )
+                            ).after($('</p>').append(
+                                    $('<strong/>').text('Created: ')
+                                ).append(
+                                    $('<span/>').text(Hyphen.utils.prettyDate(creationDate))
+                                        .attr('title', creationDate)
+                                ).append(
+                                    $('<br/>')
+                                ).append(
+                                    $('<strong/>').text('Modified: ')
+                                ).append(
+                                    $('<span/>').text(Hyphen.utils.prettyDate(lastModificationDate))
+                                        .attr('title', lastModificationDate)
+                                )
+                            )
+                    })
+            )
+        }
+        return proxyElement
     }
 
     // Glossary & Tooltip informations
@@ -113,7 +118,7 @@
         else if(status.toLowerCase() == "canceled")
             crawling_colorClass = 'label-inverse'
         else
-            crawling_colorClass = 'label-info'
+            crawling_colorClass = ''
         return crawling_colorClass
     }
     Hyphen.view.crawlJobs_indexing_getLabelColor = function(status){
@@ -125,7 +130,7 @@
         else if(status.toLowerCase() == "pending")
             indexing_colorClass = 'label-warning'
         else
-            indexing_colorClass = 'label-info'
+            indexing_colorClass = ''
         return indexing_colorClass
     }
     Hyphen.view.webEntities_status_getLabelColor = function(status){

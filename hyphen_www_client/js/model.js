@@ -48,6 +48,10 @@
 
 				// Add a "searchable" field concatenating url prefixes, name...
 				we.searchable = we.name + " " + we.url_prefixes.join(" ")
+
+				// Fix some missing keys
+				we.crawling_status = we.crawling_status || 'uncrawled'
+				we.indexing_status = we.crawling_status || 'unindexed'
 			}
 		}
 

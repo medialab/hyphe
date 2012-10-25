@@ -3,8 +3,23 @@
     // On load
 	$(document).ready(function(){
 
-		Hyphen.integration.initDataTables()
 		/* Table initialisation */
+        // Changing the columns is painful with this config, so we have an object allowing us to deal with that
+        var columns = {
+            name:0
+            ,status:1
+            ,prefixes:2
+            ,creation_date_formatted:3
+            ,last_modification_date_formatted:4
+            ,actions:5
+            ,id:6
+            ,creation_date_unformatted:7
+            ,last_modification_date_unformatted:8
+            ,searchable:9
+        }
+        console.log(columns)
+        
+        Hyphen.integration.initDataTables()
 		$('.dataTable').dataTable( {
 			"sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>"
 			,"sPaginationType": "bootstrap"
@@ -15,13 +30,32 @@
         		"sInfoEmpty": '<span class="text-warning">Showing 0 to 0 of 0 records</span>',
         		"sInfoFiltered": '<span class="text-info">(filtered from _MAX_ total records)</span>'
 			}
-            ,"aaSorting": [[ 3, "asc" ]]
+            ,"fnDrawCallback": function( oSettings ) {
+                // Update the web entities proxies
+                Hyphen.view.webEntities.proxiesUpdate(true)
+            }
+            ,"aaSorting": [[ columns.last_modification_date_formatted, "asc" ]]
             ,"aoColumnDefs": [
                 {
                     "mRender": function ( data, type, row ) {
-                        return $('<div/>').text(data).html()
+
+                        return $('<div/>').append(
+                            $('<span/>').text(data)
+                                .addClass('webEntity_proxy')
+                                .attr('webEntity_id', row[columns.id])
+                        ).html()
                     },
-                    "aTargets": [ 0 ]
+                    "aTargets": [ columns.name ]
+                }
+                ,{
+                    "mRender": function ( data, type, row ) {
+
+                        return $('<div/>').append(
+                            $('<span class="label"/>').text(data)
+                                .addClass(Hyphen.view.webEntities_status_getLabelColor(data))
+                        ).html()
+                    },
+                    "aTargets": [ columns.status ]
                 }
                 ,{
                     "mRender": function ( data, type, row ) {
@@ -41,27 +75,28 @@
                             )
                         ).html()
                     },
-                    "aTargets": [ 1 ]
+                    "aTargets": [ columns.prefixes ]
                 }
                 ,{
                     "mRender": function ( data, type, row ) {
                         var date = new Date()
                         date.setTime(data)
                         return $('<div/>').append(
-                            $('<span/>').text(Hyphen.utils.prettyDate(date))
+                            $('<small/>').text(Hyphen.utils.prettyDate(date))
                                 .attr('title', date)
                         ).html()
                     },
-                    "aTargets": [ 2, 3 ]
+                    "aTargets": [ columns.creation_date_formatted, columns.last_modification_date_formatted ]
                 }
-                ,{ "iDataSort": 6, "aTargets": [ 2 ] }
-                ,{ "iDataSort": 7, "aTargets": [ 3 ] }
-                ,{ "bVisible": false,  "aTargets": [ 5, 6, 7 ] }
-                ,{ "sClass": "center", "aTargets": [ 4 ] }
-                ,{ "bSearchable": false, "aTargets": [ 1, 2, 3, 4 ] }
-                ,{ "bSortable": false, "aTargets": [ 1, 4, 5 ] }
-                ,{ "sWidth": "20px", "aTargets": [ 4 ] }
-                ,{ "sWidth": "100px", "aTargets": [ 2, 3 ] }
+                ,{ "iDataSort": columns.creation_date_unformatted, "aTargets": [ columns.creation_date_formatted ] }
+                ,{ "iDataSort": columns.last_modification_date_unformatted, "aTargets": [ columns.last_modification_date_formatted ] }
+                ,{ "bVisible": false,  "aTargets": [ columns.searchable, columns.creation_date_unformatted, columns.last_modification_date_unformatted, columns.id ] }
+                ,{ "sClass": "center", "aTargets": [ columns.actions ] }
+                ,{ "bSearchable": false, "aTargets": [ columns.prefixes, columns.creation_date_formatted, columns.last_modification_date_formatted, columns.actions ] }
+                ,{ "bSortable": false, "aTargets": [ columns.prefixes, columns.actions, columns.searchable ] }
+                ,{ "sWidth": "20px", "aTargets": [ columns.actions ] }
+                ,{ "sWidth": "80px", "aTargets": [ columns.status ] }
+                ,{ "sWidth": "80px", "aTargets": [ columns.creation_date_formatted, columns.last_modification_date_formatted ] }
             ]
 		} )
 		Hyphen.controller.core.webEntities_update()
@@ -78,15 +113,17 @@
             case "updated":
                 $('#webEntities_table').dataTable().fnAddData(Hyphen.model.webEntities.getAll().map(function(we){
                 	return [
-                		we.name
-                		,we.lru_prefixes
-                		,we.creation_date
-                		,we.last_modification_date
-                		,''
-                        ,we.searchable
+                        we.name
+                        ,we.status
+                        ,we.lru_prefixes
+                        ,we.creation_date
+                        ,we.last_modification_date
+                        ,''
+                        ,we.id
                         ,-we.creation_date
                         ,-we.last_modification_date
-                	]
+                        ,we.searchable
+                    ]
                 }))
 				
                 break

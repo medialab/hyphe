@@ -73,13 +73,15 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>Status</th>
                                 <th>Prefixes</th>
-                                <th>Creation</th>
-                                <th>Last modification</th>
+                                <th>Created</th>
+                                <th>Modified</th>
                                 <th>Actions</th>
-                                <th>Searchable (hidden)</th>
+                                <th>id (hidden)</th>
                                 <th>Creation unformatted (hidden)</th>
                                 <th>Last modification unformatted (hidden)</th>
+                                <th>Searchable (hidden)</th>
                             </tr>
                         </thead>
                         <tbody>
