@@ -126,7 +126,13 @@
             )
         ).append(
             $('<p/>').append(
-                $('<strong/>').text("Pages: ")
+            /*    $('<strong/>').text("Launched: ")
+            ).append(
+                $('<span/>').text(Hyphen.utils.prettyDate((new Date()).setMilliseconds(crawlJob.timestamp)))
+            ).append(
+                $('<br/>')
+            ).append(
+            */     $('<strong/>').text("Pages: ")
             ).append(
                 $('<span/>').text(crawlJob.nb_pages)
             ).append(
