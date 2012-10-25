@@ -12,7 +12,7 @@
 <script src="js/libs/chroma.js"></script>
 <!-- <script src="js/libs/chroma.palette-gen.js"></script> -->
 
-<!-- <script src="js/libs/FileSaver.js"></script> -->
+<script src="js/libs/FileSaver.js"></script>
 
 <!-- <script src="js/libs/loadbar.js"></script>
 <script src="js/libs/sigma.min.js"></script>

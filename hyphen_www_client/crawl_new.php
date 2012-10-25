@@ -12,11 +12,6 @@
 
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <style>
-            body {
-                padding-top: 60px;
-                padding-bottom: 40px;
-            }
-
             /* Specific styles */
             #startPagesContainer{
                 border: 1px solid #DDD;

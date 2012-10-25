@@ -12,10 +12,6 @@
 
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <style>
-            body {
-                padding-top: 60px;
-                padding-bottom: 40px;
-            }
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/select2.css">
@@ -60,9 +56,9 @@
             <div class="row">
                 <div class="span12">
                     <h1>Web entities: list</h1>
-                    <p><strong>
+                    <p class="text-info">
                         Manage and edit web entities as a data table
-                    </strong></p>
+                    </p>
                     <hr>
                 </div>
             </div>
@@ -73,18 +69,23 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>Status</th>
                                 <th>Prefixes</th>
-                                <th>Creation</th>
-                                <th>Last modification</th>
+                                <th>Created</th>
+                                <th>Modified</th>
                                 <th>Actions</th>
-                                <th>Searchable (hidden)</th>
+                                <th>id (hidden)</th>
                                 <th>Creation unformatted (hidden)</th>
                                 <th>Last modification unformatted (hidden)</th>
+                                <th>Searchable (hidden)</th>
                             </tr>
                         </thead>
                         <tbody>
                         </tbody>
                     </table>
+                    <p>
+                        <button class="btn" id="webEntities_download"><i class="icon-download"></i> Download as JSON</button>
+                    </p>
                 </div>
             </div>
         </div>

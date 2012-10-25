@@ -12,10 +12,6 @@
 
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <style>
-            body {
-                padding-top: 60px;
-                padding-bottom: 40px;
-            }
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/select2.css">
@@ -60,7 +56,7 @@
                 <div class="span12">
                     <h1>Hardcoded test corpus</h1>
                     <p><strong>
-                        Description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eget leo sem, quis condimentum massa. Aliquam erat volutpat. Nulla congue neque vitae tortor lobortis ultricies.
+                        We do not manage different corpuses (yet). When it will be the case this area will be dedicated to a description of the corpus.
                     </strong></p>
                     <hr>
                 </div>
@@ -75,12 +71,16 @@
                             <li><span class="content_crawlJobsCount"><span class="muted">n</span></span>  <span class="content_crawlJobsCount_text"><span class="muted">crawl jobs</span></span></li>
                         </ul>
                     </p>
+                    <p>
+                        <a id="reinitialize_all" class="btn btn-danger"><i class="icon-off icon-white"></i> Reset all</a>
+                    </p>
                 </div>
                 <div class="span4">
                     <h2>Explore</h2>
                     <p>
                         <ul>
                             <li><a href="webentities_list.php">List of web entities</a></li>
+                            <li><a href="webentities_browse.php">Hierarchy of a web entity</a> <span class="muted">(proof of concept)</span></li>
                         </ul>
                     </p>
                 </div>

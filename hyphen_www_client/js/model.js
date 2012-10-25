@@ -46,8 +46,17 @@
 					return Hyphen.utils.LRU_to_URL(lru)
 				})
 
+				// Fix some missing keys
+				we.crawling_status = we.crawling_status || 'uncrawled'
+				we.indexing_status = we.crawling_status || 'unindexed'
+
 				// Add a "searchable" field concatenating url prefixes, name...
-				we.searchable = we.name + " " + we.url_prefixes.join(" ")
+				we.searchable = we.name
+					+ " " + we.url_prefixes.join(" ")
+					+ " " + we.homepage
+					+ " " + we.startpages.join(" ")
+					+ " " + we.indexing_status
+					+ " " + we.crawling_status
 			}
 		}
 
