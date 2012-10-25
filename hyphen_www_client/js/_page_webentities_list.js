@@ -18,12 +18,8 @@
             ,"aaSorting": [[ 3, "asc" ]]
             ,"aoColumnDefs": [
                 {
-                    // `data` refers to the data for the cell (defined by `mData`, which
-                    // defaults to the column being worked with, in this case is the first
-                    // Using `row[0]` is equivalent.
                     "mRender": function ( data, type, row ) {
                         return $('<div/>').text(data).html()
-                        //return data +' '+ row[3];
                     },
                     "aTargets": [ 0 ]
                 }

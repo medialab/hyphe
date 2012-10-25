@@ -6,8 +6,12 @@
         Hyphen.controller.core.crawlJobs_update()
 
         $('#crawlJobs_refresh').click(Hyphen.controller.core.crawlJobs_update)
-        $('#crawlJobs_showFinished').change(Hyphen.view.crawlJobs_drawTable)
-        $('#crawlJobs_showPending').change(Hyphen.view.crawlJobs_drawTable)
+        $('#crawlJobs_showFinished').change(function(){
+            Hyphen.view.crawlJobs_drawTable()
+        })
+        $('#crawlJobs_showPending').change(function(){
+            Hyphen.view.crawlJobs_drawTable()
+        })
 	})
 
     // View
@@ -35,31 +39,10 @@
             $('#jobsTable').show()
             $('#jobsTableBody').html('')
             jobs.forEach(function(crawlJob){
-                var crawling_colorClass = ''
-                    ,indexing_colorClass = ''
+                var crawling_colorClass = Hyphen.view.crawlJobs_crawling_getLabelColor(crawlJob.crawling_status)
+                    ,indexing_colorClass = Hyphen.view.crawlJobs_indexing_getLabelColor(crawlJob.indexing_status)
                     ,row_colorClass = ''
                 webEntitites_idDisplayed.push(crawlJob.webentity_id)
-
-                // Colors
-                if(crawlJob.crawling_status.toLowerCase() == "finished")
-                    crawling_colorClass = 'label-success'
-                else if(crawlJob.crawling_status.toLowerCase().indexOf("crashed") >= 0)
-                    crawling_colorClass = 'label-important'
-                else if(crawlJob.crawling_status.toLowerCase() == "pending")
-                    crawling_colorClass = 'label-warning'
-                else if(crawlJob.crawling_status.toLowerCase() == "canceled")
-                    crawling_colorClass = 'label-inverse'
-                else
-                    crawling_colorClass = 'label-info'
-
-                if(crawlJob.indexing_status.toLowerCase() == "finished")
-                    indexing_colorClass = 'label-success'
-                else if(crawlJob.indexing_status.toLowerCase().indexOf("crashed") >= 0)
-                    indexing_colorClass = 'label-important'
-                else if(crawlJob.indexing_status.toLowerCase() == "pending")
-                    indexing_colorClass = 'label-warning'
-                else
-                    indexing_colorClass = 'label-info'
                 
                 if(crawlJob.crawling_status.toLowerCase().indexOf("crashed") >= 0 || crawlJob.indexing_status.toLowerCase().indexOf("crashed") >= 0 || crawlJob.crawling_status.toLowerCase() == "canceled")
                     row_colorClass = 'error'
@@ -73,7 +56,13 @@
                 // DOM
                 $('#jobsTableBody').append(
                     $('<tr class="'+row_colorClass+' hover" crawljobid="'+crawlJob.id+'"/>').append(
-                        $('<td/>').text(crawlJob.webentity_id)
+                        $('<td/>').append(
+                            $('<span/>').append(
+                                $('<small class="muted"/>').text(crawlJob.webentity_id)
+                            )
+                                .addClass('webEntity_proxy')
+                                .attr('webEntity_id', crawlJob.webentity_id)
+                        )
                     ).append(
                         $('<td/>').append(
                             $('<span class="label '+crawling_colorClass+'"/>').text(crawlJob.crawling_status.replace('_', ' ').toLowerCase())
@@ -96,6 +85,8 @@
             $('#jobsTable').hide()
             $('#jobsTableBody').html('')
         }
+        // Store web entities displayed
+        Hyphen.controller.core.webEntities_update(webEntitites_idDisplayed)
     }
 
     Hyphen.view.crawlJob_drawFrame = function(crawlJob){
@@ -106,37 +97,20 @@
             else
                 $(tr).removeClass("selected")
         })
-        var crawling_colorClass = ''
-            ,indexing_colorClass = ''
-        
-        if(crawlJob.crawling_status.toLowerCase() == "finished")
-            crawling_colorClass = 'label-success'
-        else if(crawlJob.crawling_status.toLowerCase().indexOf("crashed") >= 0)
-            crawling_colorClass = 'label-important'
-        else if(crawlJob.crawling_status.toLowerCase() == "pending")
-            crawling_colorClass = 'label-warning'
-        else if(crawlJob.crawling_status.toLowerCase() == "canceled")
-            crawling_colorClass = 'label-inverse'
-        else
-            crawling_colorClass = 'label-info'
-
-        if(crawlJob.indexing_status.toLowerCase() == "finished")
-            indexing_colorClass = 'label-success'
-        else if(crawlJob.indexing_status.toLowerCase().indexOf("crashed") >= 0)
-            indexing_colorClass = 'label-important'
-        else if(crawlJob.indexing_status.toLowerCase() == "pending")
-            indexing_colorClass = 'label-warning'
-        else
-            indexing_colorClass = 'label-info'
-        
-        var noCancel = crawlJob.crawling_status.toLowerCase() == "finished" || crawlJob.crawling_status.toLowerCase() == "crashed" || crawlJob.crawling_status.toLowerCase() == "canceled"
+        var crawling_colorClass = Hyphen.view.crawlJobs_crawling_getLabelColor(crawlJob.crawling_status)
+            ,indexing_colorClass = Hyphen.view.crawlJobs_indexing_getLabelColor(crawlJob.indexing_status)
+            ,noCancel = crawlJob.crawling_status.toLowerCase() == "finished" || crawlJob.crawling_status.toLowerCase() == "crashed" || crawlJob.crawling_status.toLowerCase() == "canceled"
         $('#jobFrame').show()
         $('#jobFrame').html('')
         $('#jobFrame').append(
             $('<h4/>').append(
                 $('<span/>').text('Crawling "')
             ).append(
-                $('<span/>').text(crawlJob.webentity_id)
+                $('<span/>').append(
+                    $('<small class="muted"/>').text(crawlJob.webentity_id)
+                )
+                    .addClass('webEntity_proxy')
+                    .attr('webEntity_id', crawlJob.webentity_id)
             ).append(
                 $('<span/>').text('"')
             )
@@ -216,6 +190,8 @@
                 $('<span/>').text(crawlJob.crawl_arguments.setting)
             )
         )
+        // Update the web entity proxy
+        Hyphen.view.webEntities.proxiesUpdate(true)
     }
 
     $(document).on( "/crawls", function(event, eventData){
