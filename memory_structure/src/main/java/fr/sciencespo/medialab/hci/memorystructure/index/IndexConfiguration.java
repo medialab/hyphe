@@ -75,7 +75,7 @@ public class IndexConfiguration {
 
     public static String getWEStatusValue(final String status) {
         for (WEStatus good : WEStatus.values()) {
-            if (status.toLowerCase() == good.toString().toLowerCase()) {
+            if (status != null && status.toLowerCase() == good.toString().toLowerCase()) {
                 return good.name();
             }
         }
