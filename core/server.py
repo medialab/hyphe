@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys, time, pymongo, bson, urllib, urllib2, random, types
 import json
-from datetime import datetime
 from txjsonrpc.jsonrpc import Introspection
 from txjsonrpc.web import jsonrpc
 from twisted.web import server
@@ -196,7 +195,7 @@ class Crawler(jsonrpc.JSONRPC):
         res = res['result']
         if 'jobid' in res:
             ts = time.time()*1000
-            jobslog(res['jobid'], "CRAWL_ADDED", self.db, datetime.fromtimestamp(ts))
+            jobslog(res['jobid'], "CRAWL_ADDED", self.db, ts)
             resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'webentity_id': webentity_id, 'nb_pages': 0, 'nb_links': 0, 'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts}}, upsert=True, safe=True)
             if (resdb['err']):
                 print "ERROR saving crawling job %s in database for webentity %s with arguments %s" % (res['jobid'], webentity_id, args), resdb
@@ -303,7 +302,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 res['indexing_status'] = job['indexing_status']
             else:
                 res['crawling_status'] = crawling_statuses.UNCRAWLED
-                res['indexing_status'] = crawling_statuses.UNINDEXED
+                res['indexing_status'] = indexing_statuses.UNINDEXED
             return res
         return None
 
