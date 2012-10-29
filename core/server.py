@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, time, pymongo, bson, urllib, urllib2, random, types
+import sys, time, pymongo, bson, urllib, urllib2, httplib, urlparse, random, types
 import json
 from txjsonrpc.jsonrpc import Introspection
 from txjsonrpc.web import jsonrpc
@@ -145,6 +145,26 @@ class Core(jsonrpc.JSONRPC):
         mem_struct_conn = getThriftConn()
         res = yield mem_struct_conn.addCallback(self.store.declare_page, url).addErrback(self.store.handle_error)
         defer.returnValue({'code': 'success', 'result': res})
+
+    def jsonrpc_lookup_httpstatus(self, url, timeout=2):
+        try:
+            prot, host, path = urlparse.urlparse(url)[0:3]
+            if prot.endswith("s"):
+                conn = httplib.HTTPSConnection(host, timeout=timeout)
+            else:
+                conn = httplib.HTTPConnection(host, timeout=timeout)
+            conn.request('HEAD', path)
+            response = conn.getresponse()
+            return {"code": "success", "result": response.status}
+        except:
+            return {"code": "fail", "message": "Cannot process url %s" % url}
+
+    def jsonrpc_lookup(self, url, timeout=2):
+        res = self.jsonrpc_lookup_httpstatus(url, timeout)
+        if res['code'] == 'success' and (res['result'] == 200 or 300 < res['result'] < 400):
+            return {"code": "success", "result": "true"}
+        return {"code": "success", "result": "false"}
+
 
 class Crawler(jsonrpc.JSONRPC):
 
