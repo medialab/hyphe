@@ -43,7 +43,7 @@ def generate_cache_from_pages_list(pageList, precisionLimit = 1, verbose = False
                 if lrulink not in pages:
                     pages[lrulink] = ms.PageItem(str(page_item["_id"])+"_"+str(index), lru.lru_to_url(lrulink), lrulink, str(page_item["timestamp"]), None, int(page_item["depth"])+1, None, ['LINK'], False, is_node, {})
                 elif 'LINK' not in pages[lrulink].sourceSet:
-                        pages[lrulink].sourceSet.append('LINK')
+                    pages[lrulink].sourceSet.append('LINK')
                 links[(node_lru,target_node)] = links[(node_lru,target_node)] + 1 if (node_lru,target_node) in links else 1
     if verbose:
         print str(len(pages))+" unique pages ; "+str(original_link_number)+" links ; "+str(len(links.values()))+" unique links / identified "+str(len(nodes))+" nodes"

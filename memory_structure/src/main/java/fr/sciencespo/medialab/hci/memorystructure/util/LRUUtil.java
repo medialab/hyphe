@@ -90,6 +90,7 @@ public class LRUUtil {
                 }
             }
         }
+        scanner.close();
         if(!removedTrailingDot && url.endsWith(".")) {
             url = url.substring(0, url.length() - 1);
         }

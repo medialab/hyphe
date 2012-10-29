@@ -143,14 +143,6 @@ list<WebEntity> getWebEntities() throws (1:MemoryStructureException me),
  */
 list<WebEntity> getWebEntitiesByIDs(1: list<string> listIDs) throws (1:MemoryStructureException me),
 
-// get pages belonging to one webentity with implementation choice ("PAUL" or "other")
-/**
- * @param 1 id
- * @param 2 implementation
- * @return set of pages for this webentity (may be empty)
- */
-list<PageItem> getPagesFromWebEntityFromImplementation(1:string id, 2:string implementation) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
-
 // get pages belonging to one webentity
 /**
  * @param 1 id

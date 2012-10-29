@@ -7,7 +7,6 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
-import fr.sciencespo.medialab.hci.memorystructure.util.ImplementationChoice;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -535,11 +534,11 @@ public class LRUIndex {
     public void deletePageItem(PageItem pageItem) throws IndexException {
         if(logger.isDebugEnabled()) {
             if(logger.isDebugEnabled()) {
-                logger.debug("deleting pageitem with lru " + pageItem.getLru());
+                logger.debug("deleting pageitem with url " + pageItem.getUrl());
             }
         }
         try {
-            Query q = LuceneQueryFactory.getPageItemByLRUQuery(pageItem.getLru());
+            Query q = LuceneQueryFactory.getPageItemByURLQuery(pageItem.getUrl());
             this.indexWriter.deleteDocuments(q);
             this.indexWriter.commit();
         }
@@ -1353,6 +1352,46 @@ public class LRUIndex {
 
     /**
      *
+     * @param url
+     * @return
+     * @throws IndexException hmm
+     */
+    public PageItem retrievePageItemByURL(String url) throws IndexException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("retrieving PageItem by URL " + url);
+        }
+        try {
+            PageItem result = null;
+
+            Query q = LuceneQueryFactory.getPageItemByURLQuery(url);
+            TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
+            indexSearcher.search(q, collector);
+
+            ScoreDoc[] hits = collector.topDocs().scoreDocs;
+            if(logger.isDebugEnabled()) {
+                logger.debug("retrieved # " + hits.length + " pageitems");
+            }
+
+            if(hits != null && hits.length > 0) {
+                int id = hits[0].doc;
+                Document doc = indexSearcher.doc(id);
+                String foundURL= doc.get(IndexConfiguration.FieldName.URL.name());
+                if(StringUtils.isNotEmpty(foundURL)) {
+                    result = new PageItem().setUrl(foundURL);
+                }
+            }
+            return result;
+        }
+        catch(Exception x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+
+    }
+
+    /**
+     *
      * @param lru
      * @return
      * @throws IndexException hmm
@@ -1583,18 +1622,6 @@ public class LRUIndex {
      * @throws ObjectNotFoundException hmm
      */
     public List<PageItem> findPagesForWebEntity(String id) throws IndexException, ObjectNotFoundException {
-      return findPagesForWebEntity(id, "PAUL");
-    }
-
-    /**
-     *
-     * @param id
-     * @param implementation ("PAUL" or anything else for HEIKI)
-     * @return
-     * @throws IndexException hmm
-     * @throws ObjectNotFoundException hmm
-     */
-    public List<PageItem> findPagesForWebEntity(String id, String implementation) throws IndexException, ObjectNotFoundException {
         if(logger.isDebugEnabled()) {
             logger.debug("findPagesForWebEntity for id: " + id);
         }
@@ -1607,104 +1634,13 @@ public class LRUIndex {
             throw new ObjectNotFoundException().setMsg("Could not find webentity with id: " + id);
         }
 
-        ImplementationChoice.set(implementation);
-        if(ImplementationChoice.get().equals("PAUL")) {
-            /*
-
-            Paul Girard's solution: in my test 30% slower than the implementation below
-            */
-            try {
-                List<WebEntity> subWebEntities = findSubWebEntities(webEntity);
-                results = findPagesMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities);
-            }
-            catch(IOException x) {
-                throw new IndexException(x.getMessage(), x);
-            }
+        try {
+            List<WebEntity> subWebEntities = findSubWebEntities(webEntity);
+            results = findPagesMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities);
         }
-        else {
-            /*
-               Heikki's solution start
-            */
-
-            if(logger.isDebugEnabled()) {
-                logger.trace("finding pages for web entity " + webEntity.getName());
-            }
-            Set<WebEntity> allWebEntities = retrieveWebEntities();
-
-            for(String prefixFromRequestedWebEntity : webEntity.getLRUSet()) {
-                if(logger.isDebugEnabled()) {
-                    logger.trace("checking prefixFromRequestedWebEntity " + prefixFromRequestedWebEntity + " size " + prefixFromRequestedWebEntity.length());
-                }
-                Set<PageItem> matches = retrievePageItemsByLRUPrefix(prefixFromRequestedWebEntity + "*");
-
-                for(PageItem match : matches) {
-                    if(logger.isDebugEnabled()) {
-                        logger.trace("checking matching page " + match.getLru());
-                    }
-                    boolean keepMatch = false;
-                    boolean stop = false;
-                    for(WebEntity we : allWebEntities ) {
-                        if(stop) break;
-                        if(logger.isDebugEnabled()) {
-                            logger.trace("does it belong to we " + we.getName());
-                        }
-                        for(String lruPrefix : we.getLRUSet()) {
-                            if(lruPrefix.length() >= prefixFromRequestedWebEntity.length()) {
-                                lruPrefix = lruPrefix + "*";
-                                if(logger.isDebugEnabled()) {
-                                    logger.trace("checking we prefix " + lruPrefix);
-                                }
-                                // lruPrefix must escape |
-                                String pipe = "\\|";
-                                Pattern pipePattern = Pattern.compile(pipe);
-                                Matcher pipeMatcher = pipePattern.matcher(lruPrefix);
-                                String escapedPrefix = pipeMatcher.replaceAll("\\\\|");
-
-                                Pattern pattern = Pattern.compile(escapedPrefix);
-                                Matcher matcher = pattern.matcher(match.getLru());
-                                if(matcher.find()) {
-                                    if(logger.isDebugEnabled()) {
-                                        logger.trace("## " + we.getName() + " " + lruPrefix + " size " + lruPrefix.length() + " " + prefixFromRequestedWebEntity.length());
-                                    }
-                                    if(prefixFromRequestedWebEntity.length() < (lruPrefix.length()-1)) {
-                                        if(logger.isDebugEnabled()) {
-                                            logger.trace("no, does not belong: remote we is longer");
-                                        }
-                                        keepMatch = false;
-                                        stop=true;
-                                        break;
-                                    }
-                                    else {
-                                        if(logger.isDebugEnabled()) {
-                                            logger.trace("yes, belongs: remote we is shorter");
-                                        }
-                                        keepMatch = true;
-                                    }
-                                }
-                                else {
-                                    logger.trace("no match");
-                                }
-                            }
-                            else {
-                                if(logger.isDebugEnabled()) {
-                                    logger.trace("lruprefix too short, not checking " + lruPrefix);
-                                }
-                            }
-                        }
-                    }
-                    if(keepMatch) {
-                        results.add(match);
-                    }
-                }
-            }
-            /*
-            end of Heikki's solution
-            */
+        catch(IOException x) {
+            throw new IndexException(x.getMessage(), x);
         }
-
-
-
-
 
         if(logger.isDebugEnabled()) {
             logger.debug("found " + results.size() + " pages for web entity " + webEntity.getName() + ":");

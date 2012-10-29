@@ -1,7 +1,6 @@
 package fr.sciencespo.medialab.hci.memorystructure.thrift;
 
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
-import fr.sciencespo.medialab.hci.memorystructure.util.ImplementationChoice;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -164,7 +163,6 @@ public class ThriftServer {
         }
 
         DynamicLogger.setLogLevel(logLevel);
-        ImplementationChoice.set(implementationChoice);
 
         File luceneDir = new File(luceneDirectoryPath);
         if(luceneDir.exists() && !luceneDir.isDirectory()) {

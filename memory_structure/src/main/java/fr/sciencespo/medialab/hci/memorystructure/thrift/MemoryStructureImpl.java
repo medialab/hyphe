@@ -343,27 +343,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      */
     @Override
     public List<PageItem> getPagesFromWebEntity(String id) throws TException, MemoryStructureException, ObjectNotFoundException {
-      return getPagesFromWebEntityFromImplementation(id, "PAUL");
-    }
-
-    /**
-     * Retrieves pages belonging to a WebEntity.
-     *
-     * @param id web entity id
-     * @param implementation "Paul" or anything else for Heiki
-     * @return pages
-     * @throws TException
-     * @throws MemoryStructureException
-     * @throws ObjectNotFoundException
-     */
-    @Override
-    public List<PageItem> getPagesFromWebEntityFromImplementation(String id, String implementation) throws TException, MemoryStructureException, ObjectNotFoundException {
         if(logger.isDebugEnabled()) {
             logger.debug("getPagesFromWebEntity with id: " + id);
         }
         List<PageItem> pages;
         try {
-            pages = lruIndex.findPagesForWebEntity(id, implementation);
+            pages = lruIndex.findPagesForWebEntity(id);
             if(logger.isDebugEnabled()) {
                 logger.debug("found # " + pages.size() + " pages");
             }

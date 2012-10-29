@@ -105,12 +105,14 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                 if(object instanceof PageItem) {
                     PageItem pageItem = (PageItem) object;
 
-                    PageItem existing = lruIndex.retrievePageItemByLRU(pageItem.getLru());
+                    PageItem existing = lruIndex.retrievePageItemByURL(pageItem.getUrl());
                     if(existing != null) {
                         if(logger.isDebugEnabled()) {
-                            logger.debug("PageItem " + pageItem.getLru() + " already exists in index - updating\n");
+                            logger.debug("PageItem " + pageItem.getUrl() + " already exists in index - updating\n");
                         }
                         lruIndex.deletePageItem(pageItem);
+                        pageItem.getSourceSet().addAll(existing.getSourceSet());
+// TODO Replicate existing tags on pageitem
                     }
                     Document pageDocument = IndexConfiguration.PageItemDocument(pageItem);
                     // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
