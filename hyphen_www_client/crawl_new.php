@@ -89,7 +89,7 @@
                 <div class="span4">
                     <h3>2. Start pages</h3>
                     <p class="text-info">
-                        Check that the start pages are valid
+                        Check that the <span class="info_tooltip info_start_pages_explanations">start pages are valid</span>
                     </p>
                     <div id="startPagesContainer">
                         <table id="startPagesTable" class="table table-hover table-condensed">
@@ -98,10 +98,11 @@
                     </div>
                     <p>
                         <div class="input-append">
-                            <input style="width:232px;" type="text" placeholder="Paste URL to declare a new one">
-                            <button class="btn" type="button">New start page</button>
+                            <input style="width:232px;" disabled type="text" id="startPages_urlInput" placeholder="Paste URL to declare a new one">
+                            <button class="btn disabled" id="startPages_add" type="button">New start page</button>
                         </div>
                     </p>
+                    <div id="startPages_messages"></div>
                 </div>
                 <div class="span4">
                     <h3>3. Settings</h3>
@@ -114,6 +115,7 @@
                     </p><p>
                         <button class="btn btn-primary disabled" id="launchButton" title="Please choose a web entity">Launch crawl</button>
                     </p>
+                    <div id="crawlLaunch_messages"></div>
                 </div>
             </div>
         </div>

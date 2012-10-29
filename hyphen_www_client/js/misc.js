@@ -10,10 +10,15 @@
 		return Hyphen.utils.JSON_LRU_to_LRU(Hyphen.utils.URL_to_JSON_LRU(url));
 	}
 	Hyphen.utils.JSON_LRU_to_LRU = function(json_lru){
-		var lru = "s:" + json_lru.scheme + "|t:" + json_lru.port
+		var lru = "s:" + json_lru.scheme
+		if(json_lru.port)
+			lru += "|t:" + json_lru.port
 		json_lru.host.forEach(function(h){lru += "|h:"+h;})
 		json_lru["path"].forEach(function(p){lru += "|p:"+p;})
-		lru += "|q:" + json_lru.query + "|f:" + json_lru.fragment
+		if(json_lru.query)
+			lru += "|q:" + json_lru.query
+		if(json_lru.fragment)
+			lru += "|f:" + json_lru.fragment
 		return lru
 	}
 	Hyphen.utils.URL_to_JSON_LRU = function(URL){
@@ -39,12 +44,15 @@
 				
 				LRU = {
 					"scheme": scheme,
-					"port": (port) ? port : "80",
 					"host": host.reverse(),
 					"path": path.split(/\//).filter(function(pathToken){return pathToken.length}),   
-					"query": query,
-					"fragment": fragment
 				}
+				if(port)
+					LRU.port = port
+				if(query)
+					LRU.query = query
+				if(fragment)
+					LRU.fragment = fragment
 			}
 		}
 		return LRU;
@@ -54,7 +62,7 @@
 	}
 	Hyphen.utils.LRU_to_JSON_LRU = function(lru){
 		var lru_array = lru.split("|"),
-			json_lru = {host:[], path:[], query:"", fragment:""}
+			json_lru = {host:[], path:[]}
 		lru_array.forEach(function(stem){
 			var type = stem.substr(0, 1)
 				name = stem.substr(2, stem.length - 2)
@@ -124,6 +132,10 @@
 		return split.join('|')
 	}
 
+	Hyphen.utils.URL_validate = function(url){
+	    var urlregex = /^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/
+	    return urlregex.test(url)
+	}
 
 	Hyphen.utils.htmlEncode = function(value){
 		return $('<div/>').text(value).html()
@@ -181,8 +193,7 @@
 					return Math.floor(seconds / format[2]) + ' ' + format[1] + ' ' + token
 				}
 			}
-		console.log('c')
-		return time
+		return date
 	}
 
 

@@ -112,6 +112,26 @@
 		})
 	}
 
+	Hyphen.controller.core.webEntity_addStartPage = function(we_id, url){
+		$(document).trigger( "/webentity", [{what:'startpage_adding', webEntity_id:we_id, startPage_url:url}])
+		Hyphen.debug.log(["Hyphen.controller.core.webEntity_addStartPage: Add " + url + " as a start page of " + we_id ], 1)
+		Hyphen.controller.io.webEntity_addStartPage(we_id, url, function(json){
+			if(json){
+				$(document).trigger( "/webentity", [{what:'startpage_added', webEntity_id:we_id, startPage_url:url}])
+			}
+		})
+	}
+
+	Hyphen.controller.core.webEntity_removeStartPage = function(we_id, url){
+		$(document).trigger( "/webentity", [{what:'startpage_removing', webEntity_id:we_id, startPage_url:url}])
+		Hyphen.debug.log(["Hyphen.controller.core.webEntity_removeStartPage: Add " + url + " as a start page of " + we_id ], 1)
+		Hyphen.controller.io.webEntity_removeStartPage(we_id, url, function(json){
+			if(json){
+				$(document).trigger( "/webentity", [{what:'startpage_removed', webEntity_id:we_id, startPage_url:url}])
+			}
+		})
+	}
+
 	Hyphen.controller.core.weBrowser_setWebEntityFocus = function(we_id){
 		Hyphen.debug.log(["Hyphen.controller.core.weBrowser_setWebEntityFocus: " + we_id], 1)
 		if(we_id == ""){
@@ -153,6 +173,20 @@
 			}
         })
     }
+
+    Hyphen.controller.core.ping = function(url){
+    	$(document).trigger( "/ping", [{what:'pinging', url:url}])
+		Hyphen.debug.log(["Hyphen.controller.core.ping: " + url], 1)
+		Hyphen.controller.io.ping(url, function(success){
+			if(success){
+				$(document).trigger( "/ping", [{what:'pinged', url:url, success:true}])
+			} else {
+				$(document).trigger( "/ping", [{what:'pinged', url:url, success:false}])
+			}
+		})
+    	
+    }
+    
 
 
 
@@ -241,9 +275,23 @@
 		rpc_xhr.send(query)
 	}
 
-	Hyphen.controller.io.ping = function(callback){
+	Hyphen.controller.io.serverPing = function(callback){
 		Hyphen.controller.io.call('ping', '', callback)
 	}
+
+	Hyphen.controller.io.ping = function(url, callback){
+    	$.ajax({
+        	url: url,
+          	success: function(result){
+             	Hyphen.debug.log(["Hyphen.controller.io.ping: Success", result], 2)
+    			callback(true)
+          	},     
+          	error: function(result){
+             	Hyphen.debug.log(["Hyphen.controller.io.ping: Error", result], 2)
+             	callback(false)
+          	}
+       	})
+    }
 
 	Hyphen.controller.io.reinitialize_all = function(callback){
 		Hyphen.controller.io.call('reinitialize', '', callback)
@@ -271,6 +319,18 @@
 
 	Hyphen.controller.io.webEntity_getPages = function(we_id, callback){
 		Hyphen.controller.io.call('store.get_webentity_pages', [we_id], callback)
+	}
+
+	Hyphen.controller.io.webEntity_addStartPage = function(we_id, startpage_url, callback){
+		Hyphen.controller.io.call('store.add_webentity_startpage', [we_id, startpage_url], callback)
+	}
+
+	Hyphen.controller.io.webEntity_removeStartPage = function(we_id, startpage_url, callback){
+		Hyphen.controller.io.call('store.rm_webentity_startpage', [we_id, startpage_url], callback)
+	}
+
+	Hyphen.controller.io.webEntity_setHomePage = function(we_id, homepage_url, callback){
+		Hyphen.controller.io.call('store.set_webentity_homepage', [we_id, homepage_url], callback)
 	}
 
 	Hyphen.controller.io.webEntity_rename = function(we_id, new_name, callback){
