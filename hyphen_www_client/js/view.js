@@ -100,7 +100,8 @@
     }
 
     // Glossary & Tooltip informations
-    $('.info_start_pages').attr('title', "The <strong>start pages</strong> define where the crawler starts. They are used to compute the depth of other pages.")
+    $('.info_start_pages').attr('title', 'The <strong>start pages</strong> define where the crawler starts. They are used to compute the depth of other pages.')
+    $('.info_start_pages_explanations').attr('title', 'Browse the start pages and check that they are working and not redirected')
 
 	$(document).ready(function () {
 	    $(".info_tooltip").tooltip()

@@ -144,6 +144,8 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_declare_page(self, url, corpus=''):
         mem_struct_conn = getThriftConn()
         res = yield mem_struct_conn.addCallback(self.store.declare_page, url).addErrback(self.store.handle_error)
+        if "code" in res:
+            defer.returnValue(res)
         defer.returnValue({'code': 'success', 'result': res})
 
     def jsonrpc_lookup_httpstatus(self, url, timeout=2):
@@ -403,31 +405,31 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_rename_webentity(self, webentity_id, new_name):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "name", new_name)
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "name", new_name).addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
     def jsonrpc_set_webentity_homepage(self, webentity_id, homepage):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "homepage", homepage)
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "homepage", homepage).addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
     def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "startpages", startpage_url, "push")
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "startpages", startpage_url, "push").addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
     def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "startpages", startpage_url, "pop")
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "startpages", startpage_url, "pop").addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
     def jsonrpc_set_webentity_status(self, webentity_id, status):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "status", status)
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "status", status).addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
@@ -545,6 +547,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_get_webentity_pages(self, webentity_id, corpus=''):
         mem_struct_conn = getThriftConn()
         pages = yield mem_struct_conn.addCallback(self.get_webentity_pages, webentity_id).addErrback(self.handle_error)
+        if "code" in pages:
+            defer.returnValue(pages)
         defer.returnValue({"code": 'success', "result": [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawlTimestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'HTTPstatus': p.httpStatusCode} for p in pages]})
 
     def get_webentity_pages(self, conn, webentity_id):
@@ -566,7 +570,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_get_webentities_network(self):
         mem_struct_conn = getThriftConn()
-        mem_struct_conn.addCallback(self.update_WE_links_and_generate_gexf).addErrback(self.handle_error)
+        res = mem_struct_conn.addCallback(self.update_WE_links_and_generate_gexf).addErrback(self.handle_error)
+        if "code" in res:
+            defer.returnValue(res)
         return {'code': 'success', 'result': 'GEXF graph generation started...'}
 
     @inlineCallbacks

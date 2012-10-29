@@ -128,7 +128,7 @@
             $('<p/>').append(
                 $('<strong/>').text("Launched: ")
             ).append(
-                $('<span/>').text(Hyphen.utils.prettyDate((new Date()).setTime(1000*crawlJob.timestamp)))
+                $('<span/>').text(Hyphen.utils.prettyDate((new Date()).setTime(crawlJob.timestamp)))
             ).append(
                 $('<br/>')
             ).append(
