@@ -166,28 +166,50 @@
         if(we_id != '' && we_id !== undefined){
             var we = Hyphen.model.webEntities.get(we_id)
                 ,startPages = we.startpages
-            startPages.forEach(function(sp){
-                var tr = $('<tr class="startPage_tr"/>')
-                $('#startPagesTable').append(tr)
-                tr.append(
-                    $('<td/>').append($('<small/>').append($('<a target="_blank" class="unchecked"/>').attr('href',sp).text(sp+'  ')))
-                )
-                if(startPages.length>1){
+            if(startPages.length>0){
+                startPages.forEach(function(sp){
+                    var tr = $('<tr class="startPage_tr"/>')
+                    $('#startPagesTable').append(tr)
                     tr.append(
+                        $('<td/>').append($('<small/>').append($('<a target="_blank" class="unchecked"/>').attr('href',sp).text(sp+'  ')))
+                    )
+                    if(startPages.length>1){
+                        tr.append(
+                            $('<td/>').append(
+                                $('<button class="close">&times;</button>').click(function(){
+                                    $('#startPages_messages').html('')
+                                        .append(
+                                            $('<div class="alert alert-warning"/>').html('Removing server-side...')
+                                        )
+                                    Hyphen.controller.core.webEntity_removeStartPage(we_id, sp)
+                                })
+                            )
+                        )
+                    } else {
+                        tr.append($('<td/>'))
+                    }
+                })
+            } else {
+                // No start page: propose to import from LRU_prefixes
+                $('#startPagesTable').append(
+                    $('<tr class="startPage_tr"/>').append(
+                        $('<td/>').text('No start page')
+                    ).append(
                         $('<td/>').append(
-                            $('<button class="close">&times;</button>').click(function(){
+                            $('<button class="btn btn-small pull-right">Use prefixes as start pages</button>').click(function(){
                                 $('#startPages_messages').html('')
                                     .append(
-                                        $('<div class="alert alert-warning"/>').html('Removing server-side...')
+                                        $('<div class="alert alert-info"/>').html('Use prefixes as start pages...')
                                     )
-                                Hyphen.controller.core.webEntity_removeStartPage(we_id, sp)
+                                we.lru_prefixes.forEach(function(lru_prefix){
+                                    Hyphen.controller.core.webEntity_addStartPage(we.id, Hyphen.utils.LRU_to_URL(lru_prefix))
+                                })
                             })
                         )
                     )
-                } else {
-                    tr.append($('<td/>'))
-                }
-            })
+                )
+                    
+            }
             $('#startPages_add').removeClass('disabled')
             $('#startPages_urlInput').removeAttr('disabled')
         } else {
