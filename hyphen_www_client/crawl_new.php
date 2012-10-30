@@ -82,7 +82,7 @@
                     </p>
                     <p>or</p>
                     <div class="input-append">
-                        <input style="width:278px;" type="text" id="urlField" placeholder="Paste URL to declare web entity">
+                        <input type="text" id="urlField" placeholder="Paste URL to declare web entity">
                         <button class="btn" id="webEntityByURL_button" type="button">Declare</button>
                     </div>
                 </div>
@@ -98,7 +98,7 @@
                     </div>
                     <p>
                         <div class="input-append">
-                            <input style="width:232px;" disabled type="text" id="startPages_urlInput" placeholder="Paste URL to declare a new one">
+                            <input disabled type="text" id="startPages_urlInput" placeholder="Paste URL">
                             <button class="btn disabled" id="startPages_add" type="button">Add start page</button>
                         </div>
                     </p>
