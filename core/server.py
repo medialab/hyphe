@@ -315,7 +315,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             tags = WE.metadataItems
             for tag in tags.keys():
                 res[tag] = list(tags[tag])
-            #pages = yield client.getPagesFromWebEntityFromImplementation(WE.id, "PAUL")
+            #pages = yield client.getPagesFromWebEntity(WE.id)
             # nb_pages = len(pages)
             # nb_links, tags, WEstatus
             job = self.db[config['mongo-scrapy']['jobListCol']].find_one({'webentity_id': WE.id}, sort=[('timestamp', pymongo.DESCENDING)])
@@ -372,7 +372,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def declare_page(self, conn, url):
         client = conn.client
         l = lru.url_to_lru_clean(url)
-        t = str(time.time())
+        t = str(int(time.time()*1000))
         is_node = lru.isLRUNode(l, config["precisionLimit"])
         page = PageItem("%s/%s" % (l, t), url, l, t, None, -1, None, ['USER'], False, is_node, {})
         cache_id = yield client.createCache([page])
@@ -549,11 +549,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         pages = yield mem_struct_conn.addCallback(self.get_webentity_pages, webentity_id).addErrback(self.handle_error)
         if "code" in pages:
             defer.returnValue(pages)
-        defer.returnValue({"code": 'success', "result": [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawlTimestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'HTTPstatus': p.httpStatusCode} for p in pages]})
+        defer.returnValue({"code": 'success', "result": [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawlTimestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'HTTPstatus': p.httpStatusCode, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages if "USER" in p.sourceSet]})
 
     def get_webentity_pages(self, conn, webentity_id):
         client = conn.client
-        return client.getPagesFromWebEntityFromImplementation(webentity_id, "PAUL")
+        return client.getPagesFromWebEntity(webentity_id)
 
     @inlineCallbacks
     def jsonrpc_get_webentity_by_url(self, url):
@@ -582,7 +582,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not WE:
             raise Exception("No webentity with id %s found" % webentity_id)
         res = {'lrus': list(WE.LRUSet), 'pages': [lru.lru_to_url(lr) for lr in WE.LRUSet], 'subWEs': []}
-        pages = yield client.getPagesFromWebEntityFromImplementation(WE.id, "PAUL")
+        pages = yield client.getPagesFromWebEntity(WE.id)
         if pages:
             res['pages'] = [lru.lru_to_url(p.lru) for p in pages]
         subs = yield client.getSubWebEntities(WE.id)
@@ -607,7 +607,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 date = WE.lastModificationDate
             elif WE.creationDate:
                 date = WE.creationDate
-            pages = yield client.getPagesFromWebEntityFromImplementation(WE.id, "PAUL")
+            pages = yield client.getPagesFromWebEntity(WE.id)
             WEs_metadata[WE.id] = {"name": WE.name, "date": date, "LRUset": ",".join(WE.LRUSet), "nb_pages": len(pages), "nb_intern_links": 0}
             links = yield client.findWebEntityLinksBySource(WE.id)
             for link in links:

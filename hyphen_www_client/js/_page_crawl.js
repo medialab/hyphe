@@ -74,7 +74,7 @@
                     ).append(
                         $('<td><small>'+crawlJob.nb_pages+' pages<br/>'+crawlJob.nb_links+' links</small></td>')
                     ).append(
-                        $('<td style="vertical-align:middle;"><i class="icon-chevron-right icon-white decorating-chevron"/></td>')
+                        $('<td style="vertical-align:middle;"><i class="icon-chevron-right icon-white decorating-chevron pull-right"/></td>')
                     ).click(function(){
                         Hyphen.controller.core.selectCrawlJob(crawlJob.id)
                     })

@@ -59,12 +59,22 @@
                         trigger:'hover'
                         ,title: $('<img src="res/icon-we-16.png"/>').after($('<span/>').text(' '+we.name))
                         ,content:
-                            $('</p>').append(
-                                $('<strong/>').text('Status: ')
-                            ).append(
-                                $('<span class="label"/>').text(we.status)
-                                    .addClass(Hyphen.view.webEntities_status_getLabelColor(we.status))
-                            ).after($('</p>').append(
+                            $('<p/>').append(
+                                $('<ul class="unstyled"/>').append(
+                                    we.lru_prefixes.map(function(lru){
+                                        return $('<li/>').append($('<small/>').text(Hyphen.utils.URL_simplify(Hyphen.utils.LRU_to_URL(lru))))
+                                        // return $('<li/>').append($('<a target="_blank"/>').attr('href', Hyphen.utils.LRU_to_URL(lru)).text(Hyphen.utils.URL_simplify(Hyphen.utils.LRU_to_URL(lru))))
+                                    })
+                                )
+                            ).css('padding-bottom', '10px')
+                            .after(
+                                $('<p/>').append(
+                                    $('<strong/>').text('Status: ')
+                                ).append(
+                                    $('<span class="label"/>').text(we.status)
+                                        .addClass(Hyphen.view.webEntities_status_getLabelColor(we.status))
+                                )
+                            )/*.after($('<p/>').append(
                                     $('<strong/>').text('Last crawl: ')
                                 ).append(
                                     $('<br/>')
@@ -79,14 +89,7 @@
                                 ).append(
                                     $('<span/>').text(' ')
                                 )
-                            ).after($('</p>').append(
-                                    $('<strong/>').text('Created: ')
-                                ).append(
-                                    $('<span/>').text(Hyphen.utils.prettyDate(creationDate))
-                                        .attr('title', creationDate)
-                                ).append(
-                                    $('<br/>')
-                                ).append(
+                            )*/.after($('</p>').append(
                                     $('<strong/>').text('Modified: ')
                                 ).append(
                                     $('<span/>').text(Hyphen.utils.prettyDate(lastModificationDate))

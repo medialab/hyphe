@@ -102,7 +102,7 @@ class PagesCrawler(BaseSpider):
         p = Page()
         p['url'] = url
         p['lru'] = lru
-        p['timestamp'] = int(time.time())
+        p['timestamp'] = int(time.time()*1000)
         return p
 
     def _should_follow(self, depth, fromlru, tolru):

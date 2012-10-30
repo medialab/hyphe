@@ -65,24 +65,31 @@
 
             <div class="row">
                 <div class="span12">
-                    <table id="webEntities_table" cellpadding="0" cellspacing="0" border="0" class="table table-striped dataTable">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Status</th>
-                                <th>Prefixes</th>
-                                <th>Created</th>
-                                <th>Modified</th>
-                                <th>Actions</th>
-                                <th>id (hidden)</th>
-                                <th>Creation unformatted (hidden)</th>
-                                <th>Last modification unformatted (hidden)</th>
-                                <th>Searchable (hidden)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
+                    <div id="loading_proxy">
+                        <div class="progress progress-striped active">
+                            <div class="bar" style="width: 100%;">Loading...</div>
+                        </div>
+                    </div>
+                    <div id="loading_achieved" style="display:none">
+                        <table id="webEntities_table" cellpadding="0" cellspacing="0" border="0" class="table table-striped dataTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Prefixes</th>
+                                    <th>Created</th>
+                                    <th>Modified</th>
+                                    <th>Actions</th>
+                                    <th>id (hidden)</th>
+                                    <th>Creation unformatted (hidden)</th>
+                                    <th>Last modification unformatted (hidden)</th>
+                                    <th>Searchable (hidden)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
                     <p>
                         <button class="btn" id="webEntities_download"><i class="icon-download"></i> Download as JSON</button>
                     </p>
