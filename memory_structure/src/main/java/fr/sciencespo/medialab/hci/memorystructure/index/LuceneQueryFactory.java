@@ -303,11 +303,11 @@ public class LuceneQueryFactory {
     protected static Query getLRUWildcardManagedQuery(String field, String value) {
     	Term prefixTerm = new Term(field, value);
     	// prefix query
-        if(value.endsWith("*")) {
+        if(value != null && value.endsWith("*")) {
             return new PrefixQuery(new Term(field, value.substring(0, value.length() - 1)));
         }
         // wildcard query
-        if(value.contains("*") || value.contains("?")) {
+        if(value != null && (value.contains("*") || value.contains("?"))) {
         	return new WildcardQuery(prefixTerm);
         }
         // no-wildcard query (faster)

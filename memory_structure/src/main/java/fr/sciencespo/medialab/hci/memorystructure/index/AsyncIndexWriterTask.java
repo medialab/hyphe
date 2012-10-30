@@ -15,6 +15,7 @@ import org.apache.lucene.util.Version;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
@@ -111,8 +112,11 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                             logger.debug("PageItem " + pageItem.getUrl() + " already exists in index - updating\n");
                         }
                         lruIndex.deletePageItem(pageItem);
-                        pageItem.getSourceSet().addAll(existing.getSourceSet());
-// TODO Replicate existing tags on pageitem
+                        Set<String> sources = existing.getSourceSet();
+                        if (sources != null) {
+                            pageItem.getSourceSet().addAll(existing.getSourceSet());
+                        }
+                        // TODO Replicate existing tags on pageitem
                     }
                     Document pageDocument = IndexConfiguration.PageItemDocument(pageItem);
                     // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)

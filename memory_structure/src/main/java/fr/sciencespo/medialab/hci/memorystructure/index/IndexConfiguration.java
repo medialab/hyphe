@@ -84,22 +84,17 @@ public class IndexConfiguration {
 
     public static final String DEFAULT_WEBENTITY_CREATION_RULE = "DEFAULT_WEBENTITY_CREATION_RULE";
 
-    protected static Document SetDates(Document document, String creationDate, String lastModificationDate) {
+    protected static Document SetDates(Document document, String creationDate) {
         String currentDate = String.valueOf(System.currentTimeMillis());
         if (creationDate == null) {
             creationDate = currentDate;
         }
-        if (lastModificationDate == null) {
-            lastModificationDate = currentDate;
-        }
         Field creationDateField = new Field(FieldName.DATEMODIF.name(), creationDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
         creationDateField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(creationDateField);
-        if (lastModificationDate != null) {
-            Field lastModificationDateField = new Field(FieldName.DATECREA.name(), lastModificationDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            lastModificationDateField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(lastModificationDateField);
-        }
+        Field lastModificationDateField = new Field(FieldName.DATECREA.name(), currentDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        lastModificationDateField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        document.add(lastModificationDateField);
         return document;
     }
 
@@ -143,7 +138,7 @@ public class IndexConfiguration {
             weightField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(weightField);
 
-            document = SetDates(document, webEntityLink.getCreationDate(), webEntityLink.getLastModificationDate());
+            document = SetDates(document, webEntityLink.getCreationDate());
 
             return document;
         }
@@ -187,7 +182,7 @@ public class IndexConfiguration {
             weightField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(weightField);
 
-            document = SetDates(document, nodeLink.getCreationDate(), nodeLink.getLastModificationDate());
+            document = SetDates(document, nodeLink.getCreationDate());
 
             return document;
         }
@@ -288,7 +283,7 @@ public class IndexConfiguration {
             }
         }
 
-        document = SetDates(document, pageItem.getCreationDate(), pageItem.getLastModificationDate());
+        document = SetDates(document, pageItem.getCreationDate());
 
         return document;
     }
@@ -331,7 +326,7 @@ public class IndexConfiguration {
         regExpField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(regExpField);
 
-        document = SetDates(document, webEntityCreationRule.getCreationDate(), webEntityCreationRule.getLastModificationDate());
+        document = SetDates(document, webEntityCreationRule.getCreationDate());
 
         return document;
     }
@@ -412,7 +407,7 @@ public class IndexConfiguration {
             }
         }
 
-        document = SetDates(document, webEntity.getCreationDate(), webEntity.getLastModificationDate());
+        document = SetDates(document, webEntity.getCreationDate());
 
         return document;
     }
