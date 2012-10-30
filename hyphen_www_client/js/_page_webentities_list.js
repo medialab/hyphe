@@ -125,7 +125,8 @@
                         ,we.searchable
                     ]
                 }))
-				
+                $('#loading_proxy').hide()
+				$('#loading_achieved').show()
                 break
         }
     })
