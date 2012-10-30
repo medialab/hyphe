@@ -53,14 +53,30 @@
     // Declare web entity by URL
     $('#webEntityByURL_button').click(function(){
         var url = $('#urlField').val()
-        Hyphen.controller.core.declareWebEntityByURL(url, function(webEntity){
-            
-            $("#webentities_selector").select2("val", webEntity.id)
-
-            Hyphen.controller.core.selectWebEntity(webEntity.id)
-        })
+        Hyphen.controller.core.declareWebEntityByURL(url)
     })
+    // On web entity declared
+    $(document).on( "/webentity", function(event, eventData){
+        switch(eventData.what){
+            case "declared":
+                var we_id = eventData.webEntity_id
+                    ,url = eventData.source_url
+                    ,we = Hyphen.model.webEntities.get(we_id)
 
+                // Hack: add the asked URL to the web entity as a start page
+                console.log("we_id: "+we_id+" url: "+url)
+                Hyphen.controller.core.webEntity_addStartPage(we_id, url)
+                $('#startPages_messages').html('')
+                    .append(
+                        $('<div class="alert alert-warning"/>').html('Sending page to the server...')
+                    )
+
+                $("#webentities_selector").select2("val", we.id)
+                Hyphen.controller.core.selectWebEntity(we.id)
+
+                break
+        }
+    })
     // Choosing an existing web entity with the select2
     $("#webentities_selector").on("change", function(e){
         Hyphen.controller.core.selectWebEntity( $("#webentities_selector").val() )
@@ -151,10 +167,10 @@
             var we = Hyphen.model.webEntities.get(we_id)
                 ,startPages = we.startpages
             startPages.forEach(function(sp){
-                var tr = $('<tr/>')
+                var tr = $('<tr class="startPage_tr"/>')
                 $('#startPagesTable').append(tr)
                 tr.append(
-                    $('<td/>').append($('<small/>').append($('<a target="_blank"/>').attr('href',sp).text(sp)))
+                    $('<td/>').append($('<small/>').append($('<a target="_blank" class="unchecked"/>').attr('href',sp).text(sp+'  ')))
                 )
                 if(startPages.length>1){
                     tr.append(
@@ -179,9 +195,59 @@
             $('#startPages_add').addClass('disabled')
             $('#startPages_urlInput').attr('disabled', true)
         }
+        Hyphen.view.startPages_cascadeCheck()
         Hyphen.view.launchButton_updateState()
     }
 
+    Hyphen.view.startPages_cascadeCheck = function(){
+        var uncheckedElements = $('.startPage_tr td a.unchecked')
+        if(uncheckedElements.length > 0){
+            var a = $(uncheckedElements[0])
+                ,url = a.attr('href')
+            Hyphen.controller.core.lookup(url)
+        } else {
+            Hyphen.view.launchButton_updateState()
+        }
+    }
+    Hyphen.view.startPages_cascadeUpdate = function(url, status){
+        var candidate = ''
+
+        $('.startPage_tr td a.unchecked').each(function(i,el){
+            if(candidate == '' && $(el).attr('href') == url){
+                candidate = $(el)
+            }
+        })
+
+        if(candidate != ''){
+            // We have a valid target for the update
+            candidate.removeClass('unchecked')
+            if(status==200){
+                // We have a valid URL
+                candidate.parent().parent().parent().addClass('success')
+                candidate.append($('<i class="icon-ok info_tooltip"/>').attr('title', 'Valid start page').tooltip())
+            } else if([300, 301, 302].some(function(test){return status==test})){
+                // Redirection
+                candidate.addClass('invalid')
+                candidate.parent().parent().parent().addClass('warning')
+                candidate.append($('<i class="icon-warning-sign info_tooltip"/>').attr('title', 'This page has a <strong>redirection</strong>. Please click on the link and use the right URL.').tooltip())
+            } else {
+                // Fail
+                candidate.addClass('invalid')
+                candidate.parent().parent().parent().addClass('error')
+                candidate.append($('<i class="icon-warning-sign info_tooltip"/>').attr('title', '<strong>Invalid page.</strong> This URL has no proper page associated. You must use other start pages.').tooltip())
+            }
+            Hyphen.view.startPages_cascadeCheck()
+        }
+        
+    }
+    // On lookup result: update table and keep looking up
+    $(document).on( "/lookup", function(event, eventData){
+        switch(eventData.what){
+            case "looked":
+                Hyphen.view.startPages_cascadeUpdate(eventData.url, eventData.status)
+                break
+        }
+    })
 
 
 
@@ -231,23 +297,40 @@
                         $('<div class="alert alert-error"/>').html('<strong>No start page.</strong> You must define on which page the crawler will start')
                     )
             } else {
-                // There is a web entity and it has start pages
-                var maxdepth = $('#depth').val()
-                if(!Hyphen.utils.checkforInteger(maxdepth)){
-                    // The depth is not an integer
+                if($('.startPage_tr td a.unchecked').length > 0){
+                    // Waiting for start pages validation
                     $('#launchButton').addClass('disabled')
-                    $('#launchButton').attr('title', 'Max depth must be an integer')
+                    $('#launchButton').attr('title', 'Wait for start pages validation')
                     $('#crawlLaunch_messages').html('')
                         .append(
-                            $('<div class="alert alert-error"/>').html('<strong>Wrong depth.</strong> The maximum depth must be an integer')
+                            $('<div class="alert alert-info"/>').html('Waiting for start pages validation...')
+                        )
+                } else if($('.startPage_tr td a.invalid').length > 0){
+                    // There are some invalid start pages
+                    $('#launchButton').addClass('disabled')
+                    $('#launchButton').attr('title', 'Invalid start pages')
+                    $('#crawlLaunch_messages').html('')
+                        .append(
+                            $('<div class="alert alert-warning"/>').html('<strong>Invalid start pages.</strong> Please check that start pages are not redirected and are actually working.')
                         )
                 } else {
-                    // Everything's OK !
-                    $('#launchButton').removeClass('disabled')
-                    $('#launchButton').attr('title', '')
-                    $('#crawlLaunch_messages').html('')
+                    // There is a web entity and it has valid start pages
+                    var maxdepth = $('#depth').val()
+                    if(!Hyphen.utils.checkforInteger(maxdepth)){
+                        // The depth is not an integer
+                        $('#launchButton').addClass('disabled')
+                        $('#launchButton').attr('title', 'Max depth must be an integer')
+                        $('#crawlLaunch_messages').html('')
+                            .append(
+                                $('<div class="alert alert-error"/>').html('<strong>Wrong depth.</strong> The maximum depth must be an integer')
+                            )
+                    } else {
+                        // Everything's OK !
+                        $('#launchButton').removeClass('disabled')
+                        $('#launchButton').attr('title', '')
+                        $('#crawlLaunch_messages').html('')
+                    }
                 }
-
             }
             $('#launchButton').attr('title', '')
         }

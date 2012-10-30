@@ -99,7 +99,7 @@
                     <p>
                         <div class="input-append">
                             <input style="width:232px;" disabled type="text" id="startPages_urlInput" placeholder="Paste URL to declare a new one">
-                            <button class="btn disabled" id="startPages_add" type="button">New start page</button>
+                            <button class="btn disabled" id="startPages_add" type="button">Add start page</button>
                         </div>
                     </p>
                     <div id="startPages_messages"></div>

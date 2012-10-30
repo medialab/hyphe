@@ -160,29 +160,30 @@
 		$(document).trigger( "/weBrowser", [{what:'pathUpdated'}])
 	}
 
-	Hyphen.controller.core.declareWebEntityByURL = function(url, callback){
+	Hyphen.controller.core.declareWebEntityByURL = function(url){
         Hyphen.debug.log(["Hyphen.controller.core.declareWebEntityByURL: " + url], 1)
+		$(document).trigger( "/webentity", [{what:'declaring', source_url:url}])
 		Hyphen.controller.io.declarePage(url, function(json){
             if(json){
             	if(json.result && json.result.id){
             		var we = json.result
             		Hyphen.model.webEntities.update(we)
 					$(document).trigger( "/webentity", [{what:'updated', webEntity_id:we.id}])
-		            callback(we)
+					$(document).trigger( "/webentity", [{what:'declared', webEntity_id:we.id, source_url:url}])
             	}
 			}
         })
     }
 
-    Hyphen.controller.core.ping = function(url){
-    	$(document).trigger( "/ping", [{what:'pinging', url:url}])
+    Hyphen.controller.core.lookup = function(url, timeout){
+    	var timeout = timeout || 5
+    	$(document).trigger( "/lookup", [{what:'looking', url:url, timeout:timeout}])
 		Hyphen.debug.log(["Hyphen.controller.core.ping: " + url], 1)
-		// Hyphen.controller.io.ping(url, function(json){
-		// 	if(json){
-		// 		alert(json)
-		// 		$(document).trigger( "/ping", [{what:'pinged', url:url, success:true}])
-		// 	}
-		// })
+		Hyphen.controller.io.lookup_httpstatus(url, timeout, function(json){
+			if(json){
+				$(document).trigger( "/lookup", [{what:'looked', url:url, status:json.result}])
+			}
+		})
     	
     }
     
@@ -324,6 +325,10 @@
 
 	Hyphen.controller.io.declarePage = function(url, callback){
 		Hyphen.controller.io.call('declare_page', [url], callback)
+	}
+	
+	Hyphen.controller.io.lookup_httpstatus = function(url, timeout, callback){
+		Hyphen.controller.io.call('lookup_httpstatus', [url, timeout], callback)
 	}
 
 })(jQuery)
