@@ -177,13 +177,12 @@
     Hyphen.controller.core.ping = function(url){
     	$(document).trigger( "/ping", [{what:'pinging', url:url}])
 		Hyphen.debug.log(["Hyphen.controller.core.ping: " + url], 1)
-		Hyphen.controller.io.ping(url, function(success){
-			if(success){
-				$(document).trigger( "/ping", [{what:'pinged', url:url, success:true}])
-			} else {
-				$(document).trigger( "/ping", [{what:'pinged', url:url, success:false}])
-			}
-		})
+		// Hyphen.controller.io.ping(url, function(json){
+		// 	if(json){
+		// 		alert(json)
+		// 		$(document).trigger( "/ping", [{what:'pinged', url:url, success:true}])
+		// 	}
+		// })
     	
     }
     
@@ -275,23 +274,9 @@
 		rpc_xhr.send(query)
 	}
 
-	Hyphen.controller.io.serverPing = function(callback){
+	Hyphen.controller.io.ping = function(callback){
 		Hyphen.controller.io.call('ping', '', callback)
 	}
-
-	Hyphen.controller.io.ping = function(url, callback){
-    	$.ajax({
-        	url: url,
-          	success: function(result){
-             	Hyphen.debug.log(["Hyphen.controller.io.ping: Success", result], 2)
-    			callback(true)
-          	},     
-          	error: function(result){
-             	Hyphen.debug.log(["Hyphen.controller.io.ping: Error", result], 2)
-             	callback(false)
-          	}
-       	})
-    }
 
 	Hyphen.controller.io.reinitialize_all = function(callback){
 		Hyphen.controller.io.call('reinitialize', '', callback)
