@@ -553,7 +553,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def get_webentity_pages(self, conn, webentity_id):
         client = conn.client
-        return client.getPagesFromWebEntityFromImplementation(webentity_id, "PAUL")
+        return client.getPagesFromWebEntity(webentity_id)
 
     @inlineCallbacks
     def jsonrpc_get_webentity_by_url(self, url):
