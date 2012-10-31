@@ -34,7 +34,7 @@ indexing_statuses = Enum(['UNINDEXED', 'PENDING', 'BATCH_RUNNING', 'BATCH_FINISH
 
 def jobslog(jobid, msg, db, timestamp=None):
     if timestamp is None:
-        timestamp = time.time()*1000
+        timestamp = int(time.time()*1000)
     if isinstance(jobid, types.ListType):
         return db[config['mongo-scrapy']['jobLogsCol']].insert([{'_job': _id, 'timestamp': timestamp, 'log': msg} for _id in jobid])
     return db[config['mongo-scrapy']['jobLogsCol']].insert({'_job': jobid, 'timestamp': timestamp, 'log': msg})
@@ -216,7 +216,7 @@ class Crawler(jsonrpc.JSONRPC):
             return res
         res = res['result']
         if 'jobid' in res:
-            ts = time.time()*1000
+            ts = int(time.time()*1000)
             jobslog(res['jobid'], "CRAWL_ADDED", self.db, ts)
             resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'webentity_id': webentity_id, 'nb_pages': 0, 'nb_links': 0, 'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts}}, upsert=True, safe=True)
             if (resdb['err']):
@@ -301,8 +301,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.db = db
         self.recent_index = False
         self.links_running = False
-        self.index_loop = task.LoopingCall(self.index_batch_loop).start(1, False)
-        self.links_loop = task.LoopingCall(self.links_batch_loop).start(1, False)
+        self.index_loop = task.LoopingCall(self.index_batch_loop)
+        self.index_loop.start(1, False)
+        self.links_loop = task.LoopingCall(self.links_batch_loop)
+        self.links_loop.start(1, False)
 
     def handle_results(self, results):
         print results
@@ -353,7 +355,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_reinitialize(self):
         mem_struct_conn = getThriftConn()
+        self.index_loop.stop()
+        self.links_loop.stop()
+        self.recent_index = False
+        self.links_running = False
         res = yield mem_struct_conn.addCallback(self.reset).addErrback(self.handle_error)
+        self.index_loop.start(5, False)
+        self.links_loop.start(5, False)
         defer.returnValue(res)
 
     @inlineCallbacks
@@ -609,8 +617,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if self.recent_index and not self.links_running:
             self.links_running = True
             self.recent_index = False
+            jobslog("WE_LINKS", "Starting WebEntity links generation...", self.db)
             conn = getThriftConn()
             yield conn.addCallback(self.generate_WEs_links).addErrback(self.handle_index_error)
+            jobslog("WE_LINKS", "...finished WebEntity links generation.", self.db)
             self.links_running = False
 
     @inlineCallbacks
@@ -655,23 +665,32 @@ def test_connexions():
         if len(update_ids):
             run.db[config['mongo-scrapy']['jobListCol']].update({'_id' : {'$in': update_ids}}, {'$set': {'indexing_status': indexing_statuses.BATCH_CRASHED}}, multi=True)
             jobslog(update_ids, "INDEX_"+indexing_statuses.BATCH_CRASHED, run.db)
-    except:
-        print "ERROR: Cannot connect to mongoDB, please check your server and the configuration in config.json."
+    except Exception as x:
+        if config['DEBUG']:
+            print x
+        else:
+            print "ERROR: Cannot connect to mongoDB, please check your server and the configuration in config.json."
         return None
     try:
         transport = TSocket.TSocket(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port']).open()
 # TODO: run via core ping on mem struct
-    except Thrift.TException:
+    except Thrift.TException as x:
         print "ERROR: Cannot connect to lucene memory structure through thrift, please check your server and the configuration in config.json."
+        if config['DEBUG']:
+            print x
         return None
     try:
         run.store.ensureDefaultCreationRuleExists()
-    except:
+    except Exception as x:
         print "ERROR: Cannot save default web entity into memory structure."
+        if config['DEBUG']:
+            print x
     try:
         res = json.loads(urllib.urlopen("%slistprojects.json" % run.crawler.scrapy_url).read())
-    except:
+    except Exception as x:
         print "ERROR: Cannot connect to scrapyd server, please check your server and the configuration in config.json."
+        if config['DEBUG']:
+            print x
         return None
     if "projects" not in res or config['mongo-scrapy']['project'] not in res['projects']:
         print "ERROR: Project's spider does not exist in scrapyd server, please run bin/deploy_scrapy_spider.sh."

@@ -36,5 +36,6 @@
                        "http://fb.me",
                        "http://on.fb.me",
                        "http://ur1.ca",
-                       "http://ow.ly"]
+                       "http://ow.ly"],
+  "DEBUG": 0
 }
