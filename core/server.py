@@ -78,12 +78,12 @@ class Core(jsonrpc.JSONRPC):
         return {'code': 'success', 'result': 'Memory structure and crawling database contents emptied'}
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None):
+    def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None, all_pages_as_startpoints=False):
         """Tells scrapy to run crawl on a webentity defined by its id from memory structure."""
         if not maxdepth:
             maxdepth = config['mongo-scrapy']['maxdepth']
         mem_struct_conn = getThriftConn()
-        WE = yield mem_struct_conn.addCallback(self.store.get_webentity_with_pages_and_subWEs, webentity_id)
+        WE = yield mem_struct_conn.addCallback(self.store.get_webentity_with_pages_and_subWEs, webentity_id, all_pages_as_startpoints)
         defer.returnValue(self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth))
 
     def jsonrpc_refreshjobs(self):
@@ -301,8 +301,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.db = db
         self.recent_index = False
         self.links_running = False
-        self.index_loop = task.LoopingCall(self.index_batch_loop).start(1,False)
-        self.links_loop = task.LoopingCall(self.links_batch_loop).start(30, False)
+        self.index_loop = task.LoopingCall(self.index_batch_loop).start(1, False)
+        self.links_loop = task.LoopingCall(self.links_batch_loop).start(1, False)
 
     def handle_results(self, results):
         print results
@@ -587,15 +587,18 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return {'code': 'success', 'result': 'GEXF graph generation started...'}
 
     @inlineCallbacks
-    def get_webentity_with_pages_and_subWEs(self, conn, webentity_id):
+    def get_webentity_with_pages_and_subWEs(self, conn, webentity_id, all_pages_as_startpoints=False):
         client = conn.client
         WE = yield client.getWebEntity(webentity_id)
         if not WE:
             raise Exception("No webentity with id %s found" % webentity_id)
         res = {'lrus': list(WE.LRUSet), 'pages': [lru.lru_to_url(lr) for lr in WE.LRUSet], 'subWEs': []}
-        pages = yield client.getPagesFromWebEntity(WE.id)
-        if pages:
-            res['pages'] = [lru.lru_to_url(p.lru) for p in pages]
+        if all_pages_as_startpoints:
+            pages = yield client.getPagesFromWebEntity(WE.id)
+            if pages:
+                res['pages'] = [p.url for p in pages]
+        else:
+            res['pages'] = list(WE.startpages)
         subs = yield client.getSubWebEntities(WE.id)
         if subs:
             res['subWEs'] = [lr for subwe in subs for lr in subwe.LRUSet]
