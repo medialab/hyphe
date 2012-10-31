@@ -83,6 +83,10 @@
                             <li><a href="webentities_browse.php">Hierarchy of a web entity</a> <span class="muted">(proof of concept)</span></li>
                         </ul>
                     </p>
+                    <p>
+                        <a id="downloadNetwork" class="btn"><i class="icon-download"></i> Download network</a>
+                    </p>
+                    <div id="downloadNetwork_loadbar"></div>
                 </div>
                 <div class="span4">
                     <h2>Work</h2>
