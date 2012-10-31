@@ -1680,7 +1680,9 @@ public class LRUIndex {
         List<WebEntity> results = new ArrayList<WebEntity>(hits.size());
         for(Document hit: hits) {
             WebEntity subWebEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
-            results.add(subWebEntity);
+            if (subWebEntity.getId() != webEntity.getId()) {
+                results.add(subWebEntity);
+            }
         }
         if(logger.isDebugEnabled()) {
             logger.debug("findSubWebEntities for webEntity with name " + webEntity.getName() + " returns # " + results.size() + " subWebEntities:");
