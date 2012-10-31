@@ -570,7 +570,7 @@ public class IndexConfiguration {
         webEntity.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
 
         if(logger.isDebugEnabled()) {
-            logger.trace("convertLuceneDocument2WebEntity returns webentity with id: " + id);
+            logger.trace("convertLuceneDocumentToWebEntity returns webentity with id: " + id);
         }
         return webEntity;
     }
@@ -603,7 +603,7 @@ public class IndexConfiguration {
         nodeLink.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
 
         if(logger.isDebugEnabled()) {
-            logger.trace("convertLuceneDocument2NodeLink returns nodelink with id: " + id);
+            logger.trace("convertLuceneDocumentToNodeLink returns nodelink with id: " + id);
         }
         return nodeLink;
     }
@@ -636,7 +636,7 @@ public class IndexConfiguration {
         webEntityLink.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
 
         if(logger.isDebugEnabled()) {
-            logger.trace("convertLuceneDocument2WebEntityLink returns webEntityLink with id: " + id);
+            logger.trace("convertLuceneDocumentToWebEntityLink returns webEntityLink with id: " + id);
         }
         return webEntityLink;
     }
@@ -658,7 +658,7 @@ public class IndexConfiguration {
         webEntityCreationRule.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
 
         if(logger.isDebugEnabled()) {
-            logger.trace("convertLuceneDocument2WebEntity returns webEntityCreationRule with lru: " + lru + " and regexp " + regexp);
+            logger.trace("convertLuceneDocumentToWebEntity returns webEntityCreationRule with lru: " + lru + " and regexp " + regexp);
         }
         return webEntityCreationRule;
     }

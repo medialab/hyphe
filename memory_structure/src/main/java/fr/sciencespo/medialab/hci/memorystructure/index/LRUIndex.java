@@ -1397,7 +1397,7 @@ public class LRUIndex {
             if(hits != null && hits.length > 0) {
                 int id = hits[0].doc;
                 Document doc = indexSearcher.doc(id);
-                result = IndexConfiguration.convertLuceneDocument2PageItem(doc);
+                result = IndexConfiguration.convertLuceneDocumentToPageItem(doc);
             }
             return result;
         }
