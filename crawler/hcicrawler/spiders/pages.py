@@ -57,6 +57,7 @@ class PagesCrawler(BaseSpider):
     def parse_html(self, response, lru):
         lrulinks = []
         # handle redirects
+        realdepth = response.meta['depth']
         if 300 < response.status < 400:
             links = [{'url': response.headers['Location']}]
             response.meta['depth'] -= 1
@@ -76,6 +77,7 @@ class PagesCrawler(BaseSpider):
             if self._should_follow(response.meta['depth'], lru, lrulink) and \
                     not url_has_any_extension(url, self.ignored_exts):
                 yield self._request(url)
+        response.meta['depth'] = realdepth
         yield self._make_html_page(response, lru, lrulinks)
 
     def _make_html_page(self, response, lru, lrulinks):
