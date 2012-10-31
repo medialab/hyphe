@@ -183,8 +183,16 @@
 			if(json){
 				$(document).trigger( "/lookup", [{what:'looked', url:url, status:json.result}])
 			}
-		})
-    	
+		})	
+    }
+
+    Hyphen.controller.core.downloadNetwork = function(){
+    	Hyphen.controller.io.getLinks_json(function(json){
+    		if(json){
+    			var links = json.result
+    			// TODO
+    		}
+    	})
     }
     
 
@@ -329,6 +337,10 @@
 	
 	Hyphen.controller.io.lookup_httpstatus = function(url, timeout, callback){
 		Hyphen.controller.io.call('lookup_httpstatus', [url, timeout], callback)
+	}
+
+	Hyphen.controller.io.getLinks_json = function(callback){
+		Hyphen.controller.io.call('store.get_webentities_network_json', '', callback)
 	}
 
 })(jQuery)

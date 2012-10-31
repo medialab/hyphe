@@ -17,7 +17,6 @@
             ,last_modification_date_unformatted:8
             ,searchable:9
         }
-        console.log(columns)
         
         Hyphen.integration.initDataTables()
 		$('.dataTable').dataTable( {
@@ -88,13 +87,19 @@
                     },
                     "aTargets": [ columns.creation_date_formatted, columns.last_modification_date_formatted ]
                 }
+                ,{
+                    "mRender": function ( data, type, row ) {
+                        return '<div class="actions" we_id="'+data+'"></div>'
+                    },
+                    "aTargets": [ columns.actions ]
+                }
                 ,{ "iDataSort": columns.creation_date_unformatted, "aTargets": [ columns.creation_date_formatted ] }
                 ,{ "iDataSort": columns.last_modification_date_unformatted, "aTargets": [ columns.last_modification_date_formatted ] }
                 ,{ "bVisible": false,  "aTargets": [ columns.searchable, columns.creation_date_unformatted, columns.last_modification_date_unformatted, columns.id ] }
                 ,{ "sClass": "center", "aTargets": [ columns.actions ] }
                 ,{ "bSearchable": false, "aTargets": [ columns.prefixes, columns.creation_date_formatted, columns.last_modification_date_formatted, columns.actions ] }
                 ,{ "bSortable": false, "aTargets": [ columns.prefixes, columns.actions, columns.searchable ] }
-                ,{ "sWidth": "20px", "aTargets": [ columns.actions ] }
+                ,{ "sWidth": "80px", "aTargets": [ columns.actions ] }
                 ,{ "sWidth": "80px", "aTargets": [ columns.status ] }
                 ,{ "sWidth": "80px", "aTargets": [ columns.creation_date_formatted, columns.last_modification_date_formatted ] }
             ]
@@ -118,7 +123,7 @@
                         ,we.lru_prefixes
                         ,we.creation_date
                         ,we.last_modification_date
-                        ,''
+                        ,we.id
                         ,we.id
                         ,-we.creation_date
                         ,-we.last_modification_date
@@ -127,9 +132,35 @@
                 }))
                 $('#loading_proxy').hide()
 				$('#loading_achieved').show()
+                Hyphen.view.table_updateInteractions()
                 break
         }
     })
+
+    Hyphen.view.table_updateInteractions = function(){
+        $('#webEntities_table tbody tr').mouseenter(function(event){
+            var tr = event.currentTarget
+                actionsDiv = $(tr).find('div.actions')[0]
+            $(actionsDiv).html('').show()
+                .append(
+                    $('<div class="btn-group"/>')
+                        .append(
+                            $('<a class="btn btn-primary"/>').html('<i class="icon-edit icon-white"/>')
+                                .attr('title', 'Edit')
+                                .attr('href', 'webEntity_edit.php#we_id='+$(actionsDiv).attr('we_id'))
+                        ).append(
+                            $('<a class="btn"/>').html('<i class="icon-download-alt"/>')
+                                .attr('title', 'Crawl')
+                                .attr('href', 'crawl_new.php#we_id='+$(actionsDiv).attr('we_id'))
+                        )
+                )
+        })
+        $('#webEntities_table tbody tr').mouseleave(function(event){
+            var tr = event.currentTarget
+                actionsDiv = $(tr).find('div.actions')[0]
+            $(actionsDiv).hide()
+        })
+    }
 
     // Download json
     $('#webEntities_download').click(function(){

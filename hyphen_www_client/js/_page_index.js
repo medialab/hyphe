@@ -15,4 +15,8 @@
 		Hyphen.controller.core.reinitialize_all()
 	})
 
+	$('#downloadNetwork').click(function(){
+		Hyphen.controller.core.downloadNetwork()
+	})
+
 })(window.Hyphen = window.Hyphen || {}, jQuery)

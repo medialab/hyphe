@@ -71,7 +71,7 @@
                         </div>
                     </div>
                     <div id="loading_achieved" style="display:none">
-                        <table id="webEntities_table" cellpadding="0" cellspacing="0" border="0" class="table table-striped dataTable">
+                        <table id="webEntities_table" cellpadding="0" cellspacing="0" border="0" class="table table-striped table-hover dataTable">
                             <thead>
                                 <tr>
                                     <th>Name</th>
