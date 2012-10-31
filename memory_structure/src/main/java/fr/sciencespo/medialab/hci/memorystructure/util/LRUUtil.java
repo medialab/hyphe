@@ -31,7 +31,6 @@ public class LRUUtil {
         scanner.useDelimiter("\\|");
         boolean tldDone = false;
         boolean removedTrailingDot = false;
-        boolean questionMarkAdded = false;
         while(scanner.hasNext()) {
             String lruElement = scanner.next();
             if(!lruElement.startsWith("s:")) {
@@ -53,7 +52,7 @@ public class LRUUtil {
                             }
                         }
                     }
-                } else if(lruElement.startsWith("t:")) {
+                } else if(lruElement.startsWith("t:") && ! (lruElement.endsWith(":80") || lruElement.endsWith(":443"))) {
                     url += ":"+lruElement.substring(lruElement.indexOf(':')+1).trim();
                 } else {
                     if(!removedTrailingDot && url.endsWith(".")) {
@@ -63,29 +62,17 @@ public class LRUUtil {
                     if(lruElement.startsWith("p:")) {
                         lruElement = lruElement.substring(lruElement.indexOf(':')+1);
                         lruElement = lruElement.trim();
-                        if(StringUtils.isNotEmpty(lruElement)) {
-                            url = url + "/" + lruElement;
-                        }
+                        url = url + "/" + lruElement;
                     }
                     else if(lruElement.startsWith("q:")) {
                         lruElement = lruElement.substring(lruElement.indexOf(':')+1);
                         lruElement = lruElement.trim();
-                        if(StringUtils.isNotEmpty(lruElement)) {
-                            if(!questionMarkAdded) {
-                                url = url + "?" + lruElement;
-                                questionMarkAdded = true;
-                            }
-                            else {
-                                url = url + "&" + lruElement;
-                            }
-                        }
+                        url = url + "?" + lruElement;
                     }
                     else if(lruElement.startsWith("f:")) {
                         lruElement = lruElement.substring(lruElement.indexOf(':')+1);
                         lruElement = lruElement.trim();
-                        if(StringUtils.isNotEmpty(lruElement)) {
-                            url = url + "#" + lruElement;
-                        }
+                        url = url + "#" + lruElement;
                     }
                 }
             }
