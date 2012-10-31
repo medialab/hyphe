@@ -84,7 +84,7 @@
                         </ul>
                     </p>
                     <p>
-                        <a id="downloadNetwork" class="btn"><i class="icon-download"></i> Download network</a>
+                        <button id="downloadNetwork" class="btn"><i class="icon-download"></i> Download network</button>
                     </p>
                     <div id="downloadNetwork_loadbar"></div>
                 </div>
