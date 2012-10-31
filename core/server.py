@@ -299,7 +299,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if db is None:
             db = pymongo.Connection(config['mongo-scrapy']['host'], config['mongo-scrapy']['mongo_port'])[config['mongo-scrapy']['project']]
         self.db = db
+        self.recent_index = False
+        self.links_running = False
         self.index_loop = task.LoopingCall(self.index_batch_loop).start(1,False)
+        self.links_loop = task.LoopingCall(self.links_batch_loop).start(30, False)
 
     def handle_results(self, results):
         print results
@@ -459,7 +462,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
             s=time.time()
             nb_links = len(links)
             for link_list in [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]:
-                s2=time.time()
                 yield client.saveNodeLinks([NodeLink("id",source,target,weight) for source,target,weight in link_list])
             print "... "+str(nb_links)+" links indexed in "+str(time.time()-s)+" ..."
             s=time.time()
@@ -474,6 +476,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 print "ERROR updating job %s" % jobid
                 return
             jobslog(jobid, "INDEX_"+indexing_statuses.BATCH_FINISHED, self.db)
+            self.recent_index = True
 
     def find_next_index_batch(self):
         jobid = None
@@ -549,7 +552,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         pages = yield mem_struct_conn.addCallback(self.get_webentity_pages, webentity_id).addErrback(self.handle_error)
         if "code" in pages:
             defer.returnValue(pages)
-        defer.returnValue({"code": 'success', "result": [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawlTimestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'HTTPstatus': p.httpStatusCode, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages if "USER" in p.sourceSet]})
+        defer.returnValue({"code": 'success', "result": [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawlTimestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'HTTPstatus': p.httpStatusCode, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]})
 
     def get_webentity_pages(self, conn, webentity_id):
         client = conn.client
@@ -570,7 +573,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_get_webentities_network(self):
         mem_struct_conn = getThriftConn()
-        res = mem_struct_conn.addCallback(self.update_WE_links_and_generate_gexf).addErrback(self.handle_error)
+        res = mem_struct_conn.addCallback(self.generate_WEs_GEXF).addErrback(self.handle_error)
         if "code" in res:
             defer.returnValue(res)
         return {'code': 'success', 'result': 'GEXF graph generation started...'}
@@ -591,14 +594,27 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(res)
 
     @inlineCallbacks
-    def update_WE_links_and_generate_gexf(self, conn):
+    def links_batch_loop(self):
+        if self.recent_index and not self.links_running:
+            self.links_running = True
+            self.recent_index = False
+            conn = getThriftConn()
+            yield conn.addCallback(self.generate_WEs_links).addErrback(self.handle_index_error)
+            self.links_running = False
+
+    @inlineCallbacks
+    def generate_WEs_links(self, conn):
         client = conn.client
         s = time.time()
         print "Generating links between web entities ..."
         yield client.generateWebEntityLinks()
         print "... processed webentity links in "+str(time.time()-s)+" ..."
+
+    @inlineCallbacks
+    def generate_WEs_GEXF(self, conn):
+        client = conn.client
         s = time.time()
-        print "... generating GEXF entities network ..."
+        print "Generating GEXF entities network ..."
         WEs = yield client.getWebEntities()
         WEs_metadata = {}
         for WE in WEs:
