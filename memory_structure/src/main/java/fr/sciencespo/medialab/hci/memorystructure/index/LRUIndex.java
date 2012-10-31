@@ -803,11 +803,11 @@ public class LRUIndex {
      * @return
      * @throws IndexException hmm
      */
-    public WebEntityLink retrieveWebEntityLink(String id) throws IndexException {
+    public WebEntityLink retrieveWebEntityLink(WebEntityLink webEntityLink) throws IndexException {
         try {
             WebEntityLink result = null;
             TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
-            Query q = LuceneQueryFactory.getWebEntityLinkByIdQuery(id);
+            Query q = LuceneQueryFactory.getWebEntityLinkBySourceAndTargetQuery(webEntityLink.getSourceId(), webEntityLink.getTargetId());
             indexSearcher.search(q, collector);
 
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
@@ -823,7 +823,7 @@ public class LRUIndex {
                 logger.debug("retrieved webentitylink with id " + result.getId());
             }
             else {
-                logger.debug("failed to retrieve webentitylink with id " + id);
+                logger.debug("failed to retrieve webentitylink");
             }
             return result;
         }
@@ -1360,39 +1360,13 @@ public class LRUIndex {
         if(logger.isDebugEnabled()) {
             logger.debug("retrieving PageItem by URL " + url);
         }
-        try {
-            PageItem result = null;
-
-            Query q = LuceneQueryFactory.getPageItemByURLQuery(url);
-            TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
-            indexSearcher.search(q, collector);
-
-            ScoreDoc[] hits = collector.topDocs().scoreDocs;
-            if(logger.isDebugEnabled()) {
-                logger.debug("retrieved # " + hits.length + " pageitems");
-            }
-
-            if(hits != null && hits.length > 0) {
-                int id = hits[0].doc;
-                Document doc = indexSearcher.doc(id);
-                String foundURL= doc.get(IndexConfiguration.FieldName.URL.name());
-                if(StringUtils.isNotEmpty(foundURL)) {
-                    result = new PageItem().setUrl(foundURL);
-                }
-            }
-            return result;
-        }
-        catch(Exception x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x.getMessage(), x);
-        }
-
+        Query q = LuceneQueryFactory.getPageItemByURLQuery(url);
+        return retrievePageItemByFieldQuery(q);
     }
 
     /**
      *
-     * @param lru
+     * @param url
      * @return
      * @throws IndexException hmm
      */
@@ -1400,25 +1374,30 @@ public class LRUIndex {
         if(logger.isDebugEnabled()) {
             logger.debug("retrieving PageItem by LRU " + lru);
         }
+        Query q = LuceneQueryFactory.getPageItemByLRUQuery(lru);
+        return retrievePageItemByFieldQuery(q);
+    }
+    
+    /**
+     *
+     * @param fieldQuery
+     * @param fieldValue
+     * @return
+     * @throws IndexException hmm
+     */
+    public PageItem retrievePageItemByFieldQuery(Query fieldQuery) throws IndexException {
         try {
             PageItem result = null;
-
-            Query q = LuceneQueryFactory.getPageItemByLRUQuery(lru);
             TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
-            indexSearcher.search(q, collector);
-
+            indexSearcher.search(fieldQuery, collector);
             ScoreDoc[] hits = collector.topDocs().scoreDocs;
             if(logger.isDebugEnabled()) {
                 logger.debug("retrieved # " + hits.length + " pageitems");
             }
-
             if(hits != null && hits.length > 0) {
                 int id = hits[0].doc;
                 Document doc = indexSearcher.doc(id);
-                String foundLRU = doc.get(IndexConfiguration.FieldName.LRU.name());
-                if(StringUtils.isNotEmpty(foundLRU)) {
-                    result = new PageItem().setLru(foundLRU);
-                }
+                result = IndexConfiguration.convertLuceneDocument2PageItem(doc);
             }
             return result;
         }
@@ -1848,8 +1827,8 @@ public class LRUIndex {
                 if(logger.isDebugEnabled()) {
                     logger.debug("indexing webentitylink with id " + id);
                 }
-                // retrieve webEntityLink with that id
-                WebEntityLink toUpdate = retrieveWebEntityLink(id);
+                // retrieve webEntityLink with that source and target ids
+                WebEntityLink toUpdate = retrieveWebEntityLink(webEntityLink);
                 if(toUpdate != null) {
                     logger.debug("webentitylink found");
                     updating = true;

@@ -106,10 +106,10 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                 if(object instanceof PageItem) {
                     PageItem pageItem = (PageItem) object;
 
-                    PageItem existing = lruIndex.retrievePageItemByURL(pageItem.getUrl());
+                    PageItem existing = lruIndex.retrievePageItemByLRU(pageItem.getLru());
                     if(existing != null) {
                         if(logger.isDebugEnabled()) {
-                            logger.debug("PageItem " + pageItem.getUrl() + " already exists in index - updating\n");
+                            logger.debug("PageItem " + pageItem.getLru() + " already exists in index - updating\n");
                         }
                         lruIndex.deletePageItem(pageItem);
                         Set<String> sources = existing.getSourceSet();
@@ -155,7 +155,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                         logger.debug("nodelink to be indexed: source: " + webEntityLink.getSourceId() + " target: " + webEntityLink.getTargetId());
                     }
 
-                    WebEntityLink existing = lruIndex.retrieveWebEntityLink(webEntityLink.getId());
+                    WebEntityLink existing = lruIndex.retrieveWebEntityLink(webEntityLink);
                     int weight = webEntityLink.getWeight();
                     if(existing != null) {
                         if(logger.isDebugEnabled()) {
