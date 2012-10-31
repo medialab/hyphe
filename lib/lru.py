@@ -62,8 +62,8 @@ def lru_to_url(lru):
     stem_types = []
     lru_list = [stem.split(":", 1) for stem in lru.split("|")]
     for stem in lru_list:
-        if stem[1] not in stem_types:
-            stem_types.append(stem[1])
+        if stem[0] not in stem_types:
+            stem_types.append(stem[0])
     url = [x[1] for x in filter(lambda (k, stem): k == "s", lru_list)][0] + "://"
     h = [x[1] for x in filter(lambda (k, stem): k == "h", lru_list)]
     h.reverse()
