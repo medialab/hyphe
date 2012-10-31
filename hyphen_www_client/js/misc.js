@@ -200,7 +200,7 @@
 	Hyphen.utils.hash = {
 		// Adapted and extended from https://github.com/javve/hash.js ; hi jonnystromberg :) !
 		fromHash: function() {
-        	return Hyphen.utils.hash.fromUrlObject(window.location.href)
+        	return Hyphen.utils.hash.fromUrlObject(window.location)
     	}
 	    
 		,fromUrl: function(url_string) {
