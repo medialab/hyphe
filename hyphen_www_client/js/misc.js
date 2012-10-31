@@ -196,6 +196,106 @@
 		return date
 	}
 
+	// Manipulate variables in urls
+	Hyphen.utils.hash = {
+		// Adapted and extended from https://github.com/javve/hash.js ; hi jonnystromberg :) !
+		fromHash: function() {
+        	return Hyphen.utils.hash.fromUrlObject(window.location.href)
+    	}
+	    
+		,fromUrl: function(url_string) {
+        	var url = document.createElement('a')
+        	url.href=url_string
+        	return Hyphen.utils.hash.fromUrlObject(url)
+    	}
+
+    	,fromUrlObject: function(urlObject){
+    		var params = urlObject.hash ? urlObject.hash.substr(1).split("&") : []
+	            ,paramsObject = {}
+	        
+	        for(var i = 0; i < params.length; i++) {
+            	var a = params[i].split("=")
+	            paramsObject[a[0]] =  decodeURIComponent(a[1])
+	        }
+	        return paramsObject
+    	}
+
+    	,toHash: function(params) {
+	        var str = []
+	        for(var p in params) {
+	            str.push(p + "=" + encodeURIComponent(params[p]))
+	        }
+	        window.location.hash = str.join("&")
+	    }
+
+	    ,toUrl: function(url_string, params) {
+	        var str = []
+	        for(var p in params) {
+	            str.push(p + "=" + encodeURIComponent(params[p]))
+	        }
+	        var url = document.createElement('a')
+        	url.href=url_string
+	        url.hash = str.join("&")
+	        return url.href
+	    }
+		
+		,get: function(param) {
+            var params = Hyphen.utils.hash.fromHash()
+            if (param) {
+                return params[param]
+            } else {
+                return params
+            }
+        }
+
+        ,add: function(newParams, updateHistory) {
+            var params = Hyphen.utils.hash.fromHash()
+            for (var p in newParams) {
+                params[p] = newParams[p]
+            }
+            if(updateHistory && history){
+				history.pushState(params, document.title, Hyphen.utils.hash.toUrl(window.location.href, params));
+            } else {
+	            Hyphen.utils.hash.toHash(params)
+            }
+        }
+
+        ,remove: function(removeParams) {
+            removeParams = (typeof(removeParams)=='string') ? [removeParams] : removeParams
+            var params = Hyphen.utils.hash.fromHash()
+            for (var i = 0; i < removeParams.length; i++) {
+                delete params[removeParams[i]]
+            }
+            Hyphen.utils.hash.toHash(params)
+        }
+
+        ,clear: function() {
+            Hyphen.utils.hash.toHash({})
+        }
+
+        ,addToUrl: function(url, newParams){
+        	var params = Hyphen.utils.hash.fromUrl(url)
+            for (var p in newParams) {
+                params[p] = newParams[p]
+            }
+            return Hyphen.utils.hash.toUrl(url, params)
+        }
+        
+        ,removeFromUrl: function(url, removeParams) {
+            removeParams = (typeof(removeParams)=='string') ? [removeParams] : removeParams
+            var params = Hyphen.utils.hash.fromUrl(url)
+            for (var i = 0; i < removeParams.length; i++) {
+                delete params[removeParams[i]]
+            }
+            return Hyphen.utils.hash.toUrl(url, params)
+        }
+
+        ,clearUrl: function(url) {
+            Hyphen.utils.hash.toUrl({})
+        }
+
+	}
+
 
 
 
