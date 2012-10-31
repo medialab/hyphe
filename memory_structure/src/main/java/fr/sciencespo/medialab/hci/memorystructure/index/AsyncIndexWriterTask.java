@@ -118,7 +118,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                         }
                         // TODO Replicate existing tags on pageitem
                     }
-                    Document pageDocument = IndexConfiguration.PageItemDocument(pageItem);
+                    Document pageDocument = IndexConfiguration.convertPageItemToLuceneDocument(pageItem);
                     // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
                     if(pageDocument != null) {
                         indexWriter.addDocument(pageDocument);
@@ -142,7 +142,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                         lruIndex.deleteNodeLink(nodeLink);
                     }
                     nodeLink.setWeight(weight);
-                    Document nodelinkDocument = IndexConfiguration.NodeLinkDocument(nodeLink);
+                    Document nodelinkDocument = IndexConfiguration.convertNodeLinkToLuceneDocument(nodeLink);
                     // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
                     if(nodelinkDocument != null) {
                         indexWriter.addDocument(nodelinkDocument);
@@ -165,7 +165,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                         lruIndex.deleteWebEntityLink(webEntityLink);
                     }
                     webEntityLink.setWeight(weight);
-                    Document webEntityLinkDocument = IndexConfiguration.WebEntityLinkDocument(webEntityLink);
+                    Document webEntityLinkDocument = IndexConfiguration.convertWebEntityLinkToLuceneDocument(webEntityLink);
                     // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
                     if(webEntityLinkDocument != null) {
                         indexWriter.addDocument(webEntityLinkDocument);

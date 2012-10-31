@@ -85,11 +85,11 @@ public class LRUIndex {
     private static LRUIndex instance;
     public synchronized static LRUIndex getInstance(String path, IndexWriterConfig.OpenMode openMode) {
         if(instance == null) {
-            //logger.debug("creating new LRUIndex object");
+            //logger.trace("creating new LRUIndex object");
             instance = new LRUIndex(path, openMode);
         }
         else {
-            //logger.debug("returning existing LRUIndex object");
+            //logger.trace("returning existing LRUIndex object");
         }
         return instance;
     }
@@ -115,7 +115,7 @@ public class LRUIndex {
     public synchronized void clearIndex() throws IndexException {
         try {
             if(logger.isDebugEnabled()) {
-                logger.debug("clearing index");
+            	logger.trace("clearing index");
             }
             this.indexWriter.deleteAll();
             //xx this.indexWriter.commit();
@@ -158,11 +158,11 @@ public class LRUIndex {
             }
             logger.info("opening Lucene FileSytemDirectory: " + indexDirectory.getAbsolutePath());
             FSDirectory diskDirectory = FSDirectory.open(indexDirectory);
-            logger.debug("creating IndexWriter");
+            logger.trace("creating IndexWriter");
             this.indexWriter = createIndexWriter(diskDirectory);
-            logger.debug("creating IndexReader");
+            logger.trace("creating IndexReader");
             this.indexReader = IndexReader.open(this.indexWriter, false);
-            logger.debug("creating IndexSearcher");
+            logger.trace("creating IndexSearcher");
             this.indexSearcher = new IndexSearcher(this.indexReader);
             logger.info("successfully created LRUIndex");
         }
@@ -264,7 +264,7 @@ public class LRUIndex {
             result.addAll(intersection);
         }
         if(logger.isDebugEnabled()) {
-            logger.debug("found # " + result.size() + " already existing webentity lrus");
+        	logger.trace("found # " + result.size() + " already existing webentity lrus");
         }
         return result;
     }
@@ -286,7 +286,7 @@ public class LRUIndex {
       * @return id of indexed webentity
       */
     public String indexWebEntity(WebEntity webEntity, boolean checkExisting) throws IndexException{
-        logger.debug("indexWebEntity");
+        logger.trace("indexWebEntity");
         // validation
         if(webEntity == null) {
             throw new IndexException("WebEntity is null");
@@ -310,24 +310,24 @@ public class LRUIndex {
             // id has no value: create new
             if(StringUtils.isEmpty(id)) {
                 if(logger.isDebugEnabled()) {
-                    logger.debug("indexing webentity with id null (new webentity will be created)");
+                	logger.trace("indexing webentity with id null (new webentity will be created)");
                 }
             }
             // id has a value
             else {
                 if(logger.isDebugEnabled()) {
-                    logger.debug("indexing webentity with id " + id);
+                	logger.trace("indexing webentity with id " + id);
                 }
                 // retrieve webEntity with that id
                 WebEntity toUpdate = retrieveWebEntity(id);
                 if(toUpdate != null) {
-                    logger.debug("webentity found");
+                	logger.trace("webentity found");
                     updating = true;
                     // 'merge' existing webentity with the one requested for indexing: lrus may be added
                     webEntity.getLRUSet().addAll(toUpdate.getLRUSet());
                 } else {
                     if(logger.isDebugEnabled()) {
-                        logger.debug("did not find webentity with id " + id + " (new webentity will be created)");
+                    	logger.trace("did not find webentity with id " + id + " (new webentity will be created)");
                     }
                     updating = false;
                 }
@@ -336,14 +336,14 @@ public class LRUIndex {
             if(updating) {
                // delete old webentity before indexing
                 if(logger.isDebugEnabled()) {
-                    logger.debug("deleting existing webentity with id " + id);
+                	logger.trace("deleting existing webentity with id " + id);
                 }
                 Query q = LuceneQueryFactory.getWebEntityByIdQuery(id);
                 this.indexWriter.deleteDocuments(q);
                 this.indexWriter.commit();
             }
 
-            Document webEntityDocument = IndexConfiguration.WebEntityDocument(webEntity);
+            Document webEntityDocument = IndexConfiguration.convertWebEntityToLuceneDocument(webEntity);
             this.indexWriter.addDocument(webEntityDocument);
             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
             //xx this.indexWriter.commit();
@@ -352,7 +352,7 @@ public class LRUIndex {
             // return id of indexed webentity
             String indexedId = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
             if(logger.isDebugEnabled()){
-                logger.debug("indexed webentity with id " + indexedId);
+            	logger.trace("indexed webentity with id " + indexedId);
             }
 
             return indexedId;
@@ -380,7 +380,7 @@ public class LRUIndex {
      */
     public String indexWebEntity(String id, String lru) throws IndexException, ObjectNotFoundException {
         if(logger.isDebugEnabled()) {
-            logger.debug("updating indexWebEntity with id: " + id);
+        	logger.trace("updating indexWebEntity with id: " + id);
         }
         try {
             // validation
@@ -410,15 +410,15 @@ public class LRUIndex {
 
             // update: first delete old webentity
             if(logger.isDebugEnabled()) {
-                logger.debug("deleting existing webentity with id " + id);
+            	logger.trace("deleting existing webentity with id " + id);
             }
 
             Query q = LuceneQueryFactory.getWebEntityByIdQuery(id);
             this.indexWriter.deleteDocuments(q);
             this.indexWriter.commit();
             // index new webentity
-            logger.debug("indexing new webentity");
-            Document webEntityDocument = IndexConfiguration.WebEntityDocument(webEntity);
+            logger.trace("indexing new webentity");
+            Document webEntityDocument = IndexConfiguration.convertWebEntityToLuceneDocument(webEntity);
             this.indexWriter.addDocument(webEntityDocument);
             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
             //xx this.indexWriter.commit();
@@ -427,7 +427,7 @@ public class LRUIndex {
             // return id of indexed webentity
             String indexedId = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
             if(logger.isDebugEnabled()) {
-                logger.debug("indexed webentity with id " + indexedId);
+                logger.trace("indexed webentity with id " + indexedId);
             }
             return indexedId;
 
@@ -456,7 +456,7 @@ public class LRUIndex {
             String existingPrefix = webEntityCreationRule.getLRU();
             if(existingPrefix.equals(prefix)) {
                 if(logger.isDebugEnabled()) {
-                    logger.debug("found already existing webentity creation rule prefix: " + prefix);
+                	logger.trace("found already existing webentity creation rule prefix: " + prefix);
                 }
                 return prefix;
             }
@@ -498,7 +498,7 @@ public class LRUIndex {
                 }
                 int i = hits[0].doc;
                 Document doc = indexSearcher.doc(i);
-                existing = IndexConfiguration.convertLuceneDocument2WebEntityCreationRule(doc);
+                existing = IndexConfiguration.convertLuceneDocumentToWebEntityCreationRule(doc);
             }
             if(existing != null) {
                 update = true;
@@ -513,7 +513,7 @@ public class LRUIndex {
                 this.indexWriter.commit();
             }
 
-            Document webEntityCreationRuleDocument = IndexConfiguration.WebEntityCreationRuleDocument(webEntityCreationRule);
+            Document webEntityCreationRuleDocument = IndexConfiguration.convertWebEntityCreationRuleToLuceneDocument(webEntityCreationRule);
             this.indexWriter.addDocument(webEntityCreationRuleDocument);
             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
             //xxthis.indexWriter.commit();
@@ -773,7 +773,7 @@ public class LRUIndex {
                 }
                 int i = hits[0].doc;
                 Document doc = indexSearcher.doc(i);
-                result = IndexConfiguration.convertLuceneDocument2WebEntity(doc);
+                result = IndexConfiguration.convertLuceneDocumentToWebEntity(doc);
             }
             if(logger.isDebugEnabled()) {
                 if(result != null) {
@@ -817,7 +817,7 @@ public class LRUIndex {
                 }
                 int i = hits[0].doc;
                 Document doc = indexSearcher.doc(i);
-                result = IndexConfiguration.convertLuceneDocument2WebEntityLink(doc);
+                result = IndexConfiguration.convertLuceneDocumentToWebEntityLink(doc);
             }
             if(result != null && logger.isDebugEnabled()) {
                 logger.debug("retrieved webentitylink with id " + result.getId());
@@ -861,7 +861,7 @@ public class LRUIndex {
                 }
                 int i = hits[0].doc;
                 Document doc = indexSearcher.doc(i);
-                result = IndexConfiguration.convertLuceneDocument2NodeLink(doc);
+                result = IndexConfiguration.convertLuceneDocumentToNodeLink(doc);
             }
             if(result != null && logger.isDebugEnabled()) {
                 logger.debug("retrieved NodeLink with source " + nodeLink.getSourceLRU() + " and target " + nodeLink.getTargetLRU());
@@ -896,7 +896,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getNodeLinksQuery();
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                    NodeLink nodeLink = IndexConfiguration.convertLuceneDocument2NodeLink(hit);
+                    NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(hit);
                     result.add(nodeLink);
             }
             if(logger.isDebugEnabled()) {
@@ -925,7 +925,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getWebEntityLinksQuery();
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                    WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocument2WebEntityLink(hit);
+                    WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocumentToWebEntityLink(hit);
                     result.add(webEntityLink);
             }
             if(logger.isDebugEnabled()) {
@@ -952,7 +952,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getWebEntitiesQuery();
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                    WebEntity webEntity = IndexConfiguration.convertLuceneDocument2WebEntity(hit);
+                    WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
                     result.add(webEntity);
             }
             if(logger.isDebugEnabled()) {
@@ -983,7 +983,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getWebEntitiesByIdsQuery(listIDs);
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                    WebEntity webEntity = IndexConfiguration.convertLuceneDocument2WebEntity(hit);
+                    WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
                     result.add(webEntity);
             }
             if(logger.isDebugEnabled()) {
@@ -1013,7 +1013,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getWebEntityCreationRulesQuery();
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                    WebEntityCreationRule webEntityCreationRule = IndexConfiguration.convertLuceneDocument2WebEntityCreationRule(hit);
+                    WebEntityCreationRule webEntityCreationRule = IndexConfiguration.convertLuceneDocumentToWebEntityCreationRule(hit);
                     result.add(webEntityCreationRule);
             }
             if(logger.isDebugEnabled()) {
@@ -1047,7 +1047,7 @@ public class LRUIndex {
                 logger.debug("found # " + hits.length + " default webentity creation rules");
                 int i = hits[0].doc;
                 Document doc = indexSearcher.doc(i);
-                result = IndexConfiguration.convertLuceneDocument2WebEntityCreationRule(doc);
+                result = IndexConfiguration.convertLuceneDocumentToWebEntityCreationRule(doc);
             }
             if(result != null && logger.isDebugEnabled()) {
                 logger.debug("retrieved default Web Entity Creation Rule");
@@ -1128,7 +1128,7 @@ public class LRUIndex {
             if (hits.size() != 1) {
                 return null;
             }
-            WebEntity webEntity = IndexConfiguration.convertLuceneDocument2WebEntity(hits.get(0));
+            WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hits.get(0));
             return webEntity;
         }
         catch (IOException x) {
@@ -1158,7 +1158,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getWebEntitiesByLRUQuery(prefix);
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                WebEntity webEntity = IndexConfiguration.convertLuceneDocument2WebEntity(hit);
+                WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
                 results.add(webEntity);
             }
             if(logger.isDebugEnabled()) {
@@ -1194,7 +1194,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getNodeLinksBySourceLRUQuery(prefix);
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                NodeLink nodeLink = IndexConfiguration.convertLuceneDocument2NodeLink(hit);
+                NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(hit);
                 results.add(nodeLink);
             }
             if(logger.isDebugEnabled()) {
@@ -1230,7 +1230,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getNodeLinksByTargetLRUQuery(prefix);
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                NodeLink nodeLink = IndexConfiguration.convertLuceneDocument2NodeLink(hit);
+                NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(hit);
                 results.add(nodeLink);
             }
             if(logger.isDebugEnabled()) {
@@ -1264,7 +1264,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getWebEntityLinksBySourceQuery(id);
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocument2WebEntityLink(hit);
+                WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocumentToWebEntityLink(hit);
                 results.add(webEntityLink);
             }
             if(logger.isDebugEnabled()) {
@@ -1298,7 +1298,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getWebEntityLinksByTargetQuery(id);
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocument2WebEntityLink(hit);
+                WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocumentToWebEntityLink(hit);
                 results.add(webEntityLink);
             }
             if(logger.isDebugEnabled()) {
@@ -1335,7 +1335,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getPageItemByLRUQuery(prefix);
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                PageItem pageItem = IndexConfiguration.convertLuceneDocument2PageItem(hit);
+                PageItem pageItem = IndexConfiguration.convertLuceneDocumentToPageItem(hit);
                 results.add(pageItem);
             }
             if(logger.isDebugEnabled()) {
@@ -1517,7 +1517,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getPageItemsQuery();
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                PageItem page = IndexConfiguration.convertLuceneDocument2PageItem(hit);
+                PageItem page = IndexConfiguration.convertLuceneDocumentToPageItem(hit);
                 results.add(page);
             }
             return results;
@@ -1533,6 +1533,7 @@ public class LRUIndex {
      * @return
      * @throws IndexException hmm
      */
+    /*
     public Map<String, Set<WebEntityCreationRule>> findMatchingWebEntityCreationRuleLRUPrefixes(String lru) throws IndexException {
         logger.debug("findMatchingWebEntityCreationRuleLRUPrefixes");
         Map<String, Set<WebEntityCreationRule>> matches = new HashMap<String, Set<WebEntityCreationRule>>();
@@ -1565,6 +1566,7 @@ public class LRUIndex {
         }
         return matches;
     }
+    */
 
     private List<PageItem> findPagesMatchingWebEntityButNotMatchingSubWebEntities(WebEntity webEntity, List<WebEntity> subWebEntities) throws IndexException {
         if(logger.isDebugEnabled()) {
@@ -1575,7 +1577,7 @@ public class LRUIndex {
             Query q = LuceneQueryFactory.getPageItemMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities);
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                PageItem pageItem = IndexConfiguration.convertLuceneDocument2PageItem(hit);
+                PageItem pageItem = IndexConfiguration.convertLuceneDocumentToPageItem(hit);
                 results.add(pageItem);
             }
             if(logger.isDebugEnabled()) {
@@ -1677,7 +1679,7 @@ public class LRUIndex {
         List<Document> hits = executeMultipleResultsQuery(q);
         List<WebEntity> results = new ArrayList<WebEntity>(hits.size());
         for(Document hit: hits) {
-            WebEntity subWebEntity = IndexConfiguration.convertLuceneDocument2WebEntity(hit);
+            WebEntity subWebEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
             results.add(subWebEntity);
         }
         if(logger.isDebugEnabled()) {
@@ -1709,7 +1711,7 @@ public class LRUIndex {
                 results = indexSearcher.search(nodeLinksQuery, null, doneDocs+batchSize);
                 ScoreDoc[] scoreDocs = results.scoreDocs;
                 for (int i = doneDocs ; i < doneDocs + batchSize && i < totalResults ; i++) {
-                    NodeLink nodeLink = IndexConfiguration.convertLuceneDocument2NodeLink(indexSearcher.doc(scoreDocs[i].doc));
+                    NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(scoreDocs[i].doc));
                     if(logger.isDebugEnabled()) {
 	                    logger.debug("generating webentitylinks for nodelink from " + nodeLink.getSourceLRU() + " to " + nodeLink.getTargetLRU());
 	                }
@@ -1761,7 +1763,7 @@ public class LRUIndex {
 		                    }
 		                    int j = hits[0].doc;
 		                    Document doc = indexSearcher.doc(j);
-		                    webEntityLink = IndexConfiguration.convertLuceneDocument2WebEntityLink(doc);
+		                    webEntityLink = IndexConfiguration.convertLuceneDocumentToWebEntityLink(doc);
 		                }
 		                if(webEntityLink != null) {
 		                    weight += webEntityLink.getWeight();
@@ -1851,7 +1853,7 @@ public class LRUIndex {
                 this.indexWriter.commit();
             }
 
-            Document webEntityLinkDocument = IndexConfiguration.WebEntityLinkDocument(webEntityLink);
+            Document webEntityLinkDocument = IndexConfiguration.convertWebEntityLinkToLuceneDocument(webEntityLink);
             this.indexWriter.addDocument(webEntityLinkDocument);
             this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
             //xx this.indexWriter.commit();

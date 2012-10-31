@@ -100,6 +100,42 @@
         }
     })
 
+    // Updating the prefixes info
+    $(document).on( "/webentity_focus", function(event, eventData){
+        switch(eventData.what){
+            case "updated":
+                $('#webEntities_info').html('')
+                var we_id = Hyphen.model.vars.get('focused_webentity_id')
+                if( we_id != '' && we_id !== undefined ) {
+                    var we = Hyphen.model.webEntities.get(we_id)
+                    if(we){
+                        $('#webEntities_info').append(
+                            $('<p/>').append(
+                                $('<span/>').append(
+                                    $('<small/>').text(we.name)
+                                )
+                                    .addClass('webEntity_proxy')
+                                    .attr('webEntity_id', we_id)
+                            ).append(
+                                $('<span/>').text(' is defined by these ')
+                                    .after( $('<span class="info_tooltip info_prefixes_explanations"/>').text('prefixes') )
+                                    .after( $('<span/>').text(':') )
+                            ).append(
+                                $('<ul/>').append(
+                                    we.lru_prefixes.map(function(lru_prefix){
+                                        return $('<li/>').text( Hyphen.utils.URL_simplify( Hyphen.utils.LRU_to_URL( lru_prefix ) ) )
+                                    })
+                                )
+                            ).css('margin-top', '20px')
+                        )
+                        Hyphen.view.webEntities.proxiesUpdate()
+                        Hyphen.view.updateInfoTooltips()
+                    }
+                }
+                break
+        }
+    })
+
     // Start pages
     // Add start page
     $('#startPages_add').click(function(){
@@ -366,6 +402,65 @@
                 break
         }
     })
+
+
+
+
+    // Hash and history
+
+    // Update hash on web entity selection
+    $(document).on( "/webentity_focus", function(event, eventData){
+        switch(eventData.what){
+            case "updated":
+                var we_id = Hyphen.model.vars.get('focused_webentity_id')
+                if(we_id=='')
+                    Hyphen.utils.hash.remove('we_id')
+                else
+                    Hyphen.utils.hash.add({we_id:we_id})
+                break
+        }
+    })
+
+    // Update web entity selection by hash, on web entity update
+    $(document).on( "/webentities", function(event, eventData){
+        switch(eventData.what){
+            case "updated":
+                var we_id = Hyphen.utils.hash.get('we_id')
+                if(we_id && we_id!=''){
+                    var we = Hyphen.model.webEntities.get(we_id)
+                    if(we){
+                        $("#webentities_selector").select2("val", we_id)
+                        Hyphen.controller.core.selectWebEntity(we_id)
+                    }
+                }
+                break
+        }
+    })
+
+    // Updating web entity selection on history change
+    window.onpopstate = function(event) {
+        var we_id = Hyphen.utils.hash.get('we_id')
+        if(we_id && we_id!=''){
+            var we = Hyphen.model.webEntities.get(we_id)
+            if(we){
+                $("#webentities_selector").select2("val", we_id)
+                Hyphen.controller.core.selectWebEntity(we_id)
+            }
+        } else {
+            $("#webentities_selector").select2("val", '')
+            Hyphen.controller.core.selectWebEntity('')
+        }
+    }
+
+
+
+
+
+
+
+
+
+
 
     /// Controller
     

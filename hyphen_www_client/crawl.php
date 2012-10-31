@@ -22,6 +22,7 @@
             }
 
 
+
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/jquery.dataTables.css">
@@ -101,10 +102,10 @@
                         <thead>
                             <tr>
                                 <th>Web entity</th>
-                                <th>Harvesting</th>
-                                <th>Indexing</th>
-                                <th>Data</th>
-                                <th></th>
+                                <th style="width:80px">Harvesting</th>
+                                <th style="width:80px">Indexing</th>
+                                <th style="width:70px">Data</th>
+                                <th style="width:10px"></th>
                             </tr>
                         </thead>
                         <tbody id="jobsTableBody">

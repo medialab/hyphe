@@ -66,6 +66,10 @@ public class IndexConfiguration {
         WEBENTITY_LINK,
         WEBENTITY_CREATION_RULE
     }
+    
+    /**
+     * WebEntity status
+     */
     public enum WEStatus {
         UNDECIDED,
         IN,
@@ -73,6 +77,12 @@ public class IndexConfiguration {
         DISCOVERED
     }
 
+    /** 
+     * Return the correctly formatted status defined in WEStatus corresponding to this status or DISCOVERED by default
+     * 
+     * @param status
+     * @return
+     */
     public static String getWEStatusValue(final String status) {
         for (WEStatus good : WEStatus.values()) {
             if (status != null && status.toLowerCase() == good.toString().toLowerCase()) {
@@ -84,7 +94,14 @@ public class IndexConfiguration {
 
     public static final String DEFAULT_WEBENTITY_CREATION_RULE = "DEFAULT_WEBENTITY_CREATION_RULE";
 
-    protected static Document SetDates(Document document, String creationDate) {
+    /**
+     * Set the creation and the modification date of the document
+     * 
+     * @param document
+     * @param creationDate The creation date
+     * @return
+     */
+    protected static Document setDocumentDates(Document document, String creationDate) {
         String currentDate = String.valueOf(System.currentTimeMillis());
         if (creationDate == null) {
             creationDate = currentDate;
@@ -98,7 +115,13 @@ public class IndexConfiguration {
         return document;
     }
 
-    protected static Document WebEntityLinkDocument(WebEntityLink webEntityLink) {
+    /**
+     * Converts a WebEntityLink into a Lucene Document
+     * 
+     * @param webEntityLink WebEntityLink to convert into Lucene Document
+     * @return The Lucene Document
+     */
+    protected static Document convertWebEntityLinkToLuceneDocument(WebEntityLink webEntityLink) {
         if(webEntityLink == null) {
             logger.warn("attempt to create Lucene document for null WebEntityLink");
             return null;
@@ -138,13 +161,19 @@ public class IndexConfiguration {
             weightField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(weightField);
 
-            document = SetDates(document, webEntityLink.getCreationDate());
+            document = setDocumentDates(document, webEntityLink.getCreationDate());
 
             return document;
         }
     }
 
-    protected static Document NodeLinkDocument(NodeLink nodeLink) {
+    /**
+     * Converts a NodeLink into a Lucene Document
+     * 
+     * @param nodeLink NodeLink to convert into a Lucene Document
+     * @return
+     */
+    protected static Document convertNodeLinkToLuceneDocument(NodeLink nodeLink) {
         if(nodeLink == null) {
             logger.warn("attempt to create Lucene document for null NodeLink");
             return null;
@@ -182,7 +211,7 @@ public class IndexConfiguration {
             weightField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
             document.add(weightField);
 
-            document = SetDates(document, nodeLink.getCreationDate());
+            document = setDocumentDates(document, nodeLink.getCreationDate());
 
             return document;
         }
@@ -191,10 +220,10 @@ public class IndexConfiguration {
     /**
      * Converts a PageItem into a Lucene document.
      *
-     * @param pageItem
+     * @param pageItem PageItem to convert to a Lucene document
      * @return
      */
-    protected static Document PageItemDocument(PageItem pageItem) {
+    protected static Document convertPageItemToLuceneDocument(PageItem pageItem) {
         Document document = new Document();
         //
         // id: generate random UUID
@@ -283,7 +312,7 @@ public class IndexConfiguration {
             }
         }
 
-        document = SetDates(document, pageItem.getCreationDate());
+        document = setDocumentDates(document, pageItem.getCreationDate());
 
         return document;
     }
@@ -295,7 +324,7 @@ public class IndexConfiguration {
      * @param webEntityCreationRule
      * @return
      */
-    protected static Document WebEntityCreationRuleDocument(WebEntityCreationRule webEntityCreationRule) throws IndexException {
+    protected static Document convertWebEntityCreationRuleToLuceneDocument(WebEntityCreationRule webEntityCreationRule) throws IndexException {
 
         if(webEntityCreationRule == null) {
             throw new IndexException("WebEntityCreationRule is null");
@@ -326,7 +355,7 @@ public class IndexConfiguration {
         regExpField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(regExpField);
 
-        document = SetDates(document, webEntityCreationRule.getCreationDate());
+        document = setDocumentDates(document, webEntityCreationRule.getCreationDate());
 
         return document;
     }
@@ -338,7 +367,7 @@ public class IndexConfiguration {
      * @param webEntity
      * @return
      */
-    protected static Document WebEntityDocument(WebEntity webEntity) {
+    protected static Document convertWebEntityToLuceneDocument(WebEntity webEntity) {
         Document document = new Document();
 
         String id = webEntity.getId();
@@ -407,7 +436,7 @@ public class IndexConfiguration {
             }
         }
 
-        document = SetDates(document, webEntity.getCreationDate());
+        document = setDocumentDates(document, webEntity.getCreationDate());
 
         return document;
     }
@@ -441,7 +470,7 @@ public class IndexConfiguration {
      * @param document
      * @return
      */
-    public static PageItem convertLuceneDocument2PageItem(Document document) {
+    public static PageItem convertLuceneDocumentToPageItem(Document document) {
         PageItem pageItem = new PageItem();
 
         String id = document.get(FieldName.ID.name());
@@ -500,7 +529,7 @@ public class IndexConfiguration {
      * @param document
      * @return
      */
-    protected static WebEntity convertLuceneDocument2WebEntity(Document document) {
+    protected static WebEntity convertLuceneDocumentToWebEntity(Document document) {
         WebEntity webEntity = new WebEntity();
 
         String id = document.get(FieldName.ID.name());
@@ -552,7 +581,7 @@ public class IndexConfiguration {
      * @param document
      * @return
      */
-    public static NodeLink convertLuceneDocument2NodeLink(Document document) {
+    public static NodeLink convertLuceneDocumentToNodeLink(Document document) {
         NodeLink nodeLink = new NodeLink();
 
         String id = document.get(FieldName.ID.name());
@@ -585,7 +614,7 @@ public class IndexConfiguration {
      * @param document
      * @return
      */
-    public static WebEntityLink convertLuceneDocument2WebEntityLink(Document document) {
+    public static WebEntityLink convertLuceneDocumentToWebEntityLink(Document document) {
         WebEntityLink webEntityLink = new WebEntityLink();
 
         String id = document.get(FieldName.ID.name());
@@ -618,7 +647,7 @@ public class IndexConfiguration {
      * @param document
      * @return
      */
-    protected static WebEntityCreationRule convertLuceneDocument2WebEntityCreationRule(Document document) {
+    protected static WebEntityCreationRule convertLuceneDocumentToWebEntityCreationRule(Document document) {
         WebEntityCreationRule webEntityCreationRule = new WebEntityCreationRule();
         String lru = document.get(FieldName.LRU.name());
         String regexp = document.get(FieldName.REGEXP.name());
