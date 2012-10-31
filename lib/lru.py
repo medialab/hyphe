@@ -36,7 +36,6 @@ def url_to_lru(url):
                 if path:
                     path = urllib.quote_plus(path).replace("%2F", "/")
                     tokens += ["p:"+stem for stem in path.strip("/").split("/")]
-                print "TEST"+query
                 if query is not None:
                     query = urllib.quote_plus(query)
                     tokens.append("q:"+query)
@@ -60,25 +59,33 @@ def lru_to_url(lru):
 
     """
     # TODO: naive algorithm (to be updated)
+    stem_types = []
     lru_list = [stem.split(":", 1) for stem in lru.split("|")]
+    for stem in lru_list:
+        if stem[1] not in stem_types:
+            stem_types.append(stem[1])
     url = [x[1] for x in filter(lambda (k, stem): k == "s", lru_list)][0] + "://"
     h = [x[1] for x in filter(lambda (k, stem): k == "h", lru_list)]
     h.reverse()
     url += ".".join(h)
-    port = [x[1] for x in filter(lambda (k, stem): k == "t", lru_list)][0]
-    if port and port != '80' and port != '443':
-        url += ":" + port
-    path = "/".join([x[1] for x in filter(lambda (k, stem): k=="p", lru_list)])
-    if path:
-        url += "/" + urllib.unquote_plus(path)
-    if ['p', ''] in lru_list:
-        url += "/"
-    query = [x[1] for x in filter(lambda (k, stem): k == "q", lru_list)][0]
-    if query or ['q', ''] in lru_list:
-        url += "?" + urllib.unquote_plus(query)
-    fragment = [x[1] for x in filter(lambda (k, stem): k == "f", lru_list)][0]
-    if fragment or ['f', ''] in lru_list:
-        url += "#" + urllib.unquote_plus(fragment)
+    if "t" in stem_types:
+        port = [x[1] for x in filter(lambda (k, stem): k == "t", lru_list)][0]
+        if port and port != '80' and port != '443':
+            url += ":" + port
+    if "p" in stem_types:
+        path = "/".join([x[1] for x in filter(lambda (k, stem): k=="p", lru_list)])
+        if path:
+            url += "/" + urllib.unquote_plus(path)
+        if ['p', ''] in lru_list:
+            url += "/"
+    if "q" in stem_types:
+        query = [x[1] for x in filter(lambda (k, stem): k == "q", lru_list)][0]
+        if query or ['q', ''] in lru_list:
+            url += "?" + urllib.unquote_plus(query)
+    if "f" in stem_types:
+        fragment = [x[1] for x in filter(lambda (k, stem): k == "f", lru_list)][0]
+        if fragment or ['f', ''] in lru_list:
+            url += "#" + urllib.unquote_plus(fragment)
     return url
 
 def lru_to_url_short(lru):
