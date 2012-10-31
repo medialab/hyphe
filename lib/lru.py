@@ -35,7 +35,9 @@ def url_to_lru(url):
                     tokens += ["h:"+stem for stem in host]
                 if path:
                     path = urllib.quote_plus(path).replace("%2F", "/")
-                    tokens += ["p:"+stem for stem in path.strip("/").split("/")]
+                    if len(path) and path.startswith("/"):
+                        path = path[1:]
+                    tokens += ["p:"+stem for stem in path.split("/")]
                 if query is not None:
                     query = urllib.quote_plus(query)
                     tokens.append("q:"+query)
