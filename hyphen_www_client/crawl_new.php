@@ -85,6 +85,7 @@
                         <input type="text" id="urlField" placeholder="Paste URL to declare web entity">
                         <button class="btn" id="webEntityByURL_button" type="button">Declare</button>
                     </div>
+                    <div id="webEntities_info"></div>
                 </div>
                 <div class="span4">
                     <h3>2. Start pages</h3>

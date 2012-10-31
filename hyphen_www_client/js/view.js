@@ -102,12 +102,17 @@
         return proxyElement
     }
 
-    // Glossary & Tooltip informations
-    $('.info_start_pages').attr('title', 'The <strong>start pages</strong> define where the crawler starts. They are used to compute the depth of other pages.')
-    $('.info_start_pages_explanations').attr('title', 'Browse the start pages and check that they are working and not redirected')
+    Hyphen.view.updateInfoTooltips = function(){
+        // Glossary & Tooltip informations
+        $('.info_start_pages').attr('title', 'The <strong>start pages</strong> define where the crawler starts. They are used to compute the depth of other pages.')
+        $('.info_start_pages_explanations').attr('title', 'Browse the start pages and check that they are working and not redirected')
+        $('.info_prefixes_explanations').attr('title', 'The <strong>prefixes</strong> define which URLs belong to a web entity. Different prefixes for the same web entity represent its aliases.')
+        $(".info_tooltip").tooltip()
+    }
+    
 
 	$(document).ready(function () {
-	    $(".info_tooltip").tooltip()
+	    Hyphen.view.updateInfoTooltips()
   	})
 
     // Color codes
