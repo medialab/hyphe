@@ -123,18 +123,19 @@ public class Cache {
         	logger.trace("applyWebEntityCreationRule " + rule.getRegExp());
         }
         String LRUPrefix = getLRUPrefixAccordingToRule(rule, page.getLru());
-        if(LRUPrefix != null) {
-            String name = StringUtil.toTitle(LRUUtil.revertLRU(LRUPrefix));
-            webEntity = new WebEntity();
-            webEntity.setName(name);
-            webEntity.setLRUSet(new HashSet<String>());
-            webEntity.addToLRUSet(LRUPrefix);
-            webEntity.setStatus(IndexConfiguration.WEStatus.DISCOVERED.name());
-            String now = String.valueOf(System.currentTimeMillis());
-            webEntity.setCreationDate(now);
-            webEntity.setLastModificationDate(now);
-            logger.trace("created new WebEntity");
+        if(LRUPrefix == null) {
+            LRUPrefix = page.getLru().substring(0, page.getLru().indexOf('|'));
         }
+        String name = StringUtil.toTitle(LRUUtil.revertLRU(LRUPrefix));
+        webEntity = new WebEntity();
+        webEntity.setName(name);
+        webEntity.setLRUSet(new HashSet<String>());
+        webEntity.addToLRUSet(LRUPrefix);
+        webEntity.setStatus(IndexConfiguration.WEStatus.DISCOVERED.name());
+        String now = String.valueOf(System.currentTimeMillis());
+        webEntity.setCreationDate(now);
+        webEntity.setLastModificationDate(now);
+        logger.trace("created new WebEntity");
         return webEntity;
     }
 

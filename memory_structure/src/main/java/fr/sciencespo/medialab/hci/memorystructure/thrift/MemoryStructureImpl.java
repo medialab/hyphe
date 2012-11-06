@@ -87,7 +87,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
-     * Creates an index a WebEntity.
+     * Creates and index a WebEntity.
      *
      * @param name name of web entity
      * @param lruSet lrus for this web entity
