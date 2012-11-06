@@ -102,7 +102,7 @@
 
         } else {
             var we = Hyphen.model.webEntities.get(we_id)
-            ,pages = Hyphen.model.webEntities.getPages(we_id)
+            ,pages = Hyphen.model.webEntities.getPages(we_id).map(function(p){return p.lru})
             ,path = Hyphen.model.uxSettings.get('browserPath')
             
             $('.weBrowserPath').append(

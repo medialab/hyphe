@@ -58,6 +58,9 @@
 					+ " " + we.indexing_status
 					+ " " + we.crawling_status
 			}
+			,consolidatePage: function(page){
+				page.id = page.lru
+			}
 		}
 
 		// Getters and setters
@@ -101,9 +104,18 @@
 				Hyphen.model.webEntities._private.index[web_entity.id] = web_entity
 			}
 		},setPages: function(we_id, pages){
+			pages.forEach(function(page){
+				Hyphen.model.webEntities._private.consolidatePage(page)
+			})
 			Hyphen.model.webEntities._private.index[we_id].pages = pages
+			Hyphen.model.webEntities._private.index[we_id].pages_byId = {}
+			pages.forEach(function(page){
+				Hyphen.model.webEntities._private.index[we_id].pages_byId[page.id] = page
+			})
 		},getPages: function(we_id){
 			return Hyphen.model.webEntities._private.index[we_id].pages
+		},getPage_byId: function(we_id, page_id){
+			return Hyphen.model.webEntities._private.index[we_id].pages_byId[page_id]
 		}
 	}
 

@@ -597,9 +597,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_generate_webentities_network_gexf(self):
         mem_struct_conn = getThriftConn()
-        res = mem_struct_conn.addCallback(self.generate_network_WEs, "gexf").addErrback(self.handle_error)
-        if "code" in res:
-            defer.returnValue(res)
+        mem_struct_conn.addCallback(self.generate_network_WEs, "gexf").addErrback(self.handle_error)
         return {'code': 'success', 'result': 'GEXF graph generation started...'}
 
     @inlineCallbacks
@@ -648,12 +646,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     date = WE.creationDate
                 pages = yield client.getPagesFromWebEntity(WE.id)
                 WEs_metadata[WE.id] = {"name": WE.name, "date": date, "LRUset": ",".join(WE.LRUSet), "nb_pages": len(pages), "nb_intern_links": 0}
-                links = yield client.findWebEntityLinksBySource(WE.id)
-                for link in links:
+                WE_links = yield client.findWebEntityLinksBySource(WE.id)
+                for link in WE_links:
                     if link.targetId == WE.id:
                         WEs_metadata[WE.id]['nb_intern_links'] = link.weight
             gexf.write_WEs_network_from_MS(links, WEs_metadata, 'test_welinks.gexf')
             print "... GEXF network generated in test_welinks.gexf in "+str(time.time()-s)
+            defer.returnValue({})
         elif outformat == "json":
             defer.returnValue([[link.sourceId, link.targetId, link.weight] for link in links])
 
