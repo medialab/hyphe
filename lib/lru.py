@@ -78,7 +78,7 @@ def lru_to_url(lru):
         path = "/".join([x[1] for x in filter(lambda (k, stem): k=="p", lru_list)])
         if path:
             url += "/" + urllib.unquote_plus(path)
-        if ['p', ''] in lru_list:
+        if not path and ['p', ''] in lru_list:
             url += "/"
     if "q" in stem_types:
         query = [x[1] for x in filter(lambda (k, stem): k == "q", lru_list)][0]
