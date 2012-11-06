@@ -39,14 +39,9 @@ def jobslog(jobid, msg, db, timestamp=None):
         return db[config['mongo-scrapy']['jobLogsCol']].insert([{'_job': _id, 'timestamp': timestamp, 'log': msg} for _id in jobid])
     return db[config['mongo-scrapy']['jobLogsCol']].insert({'_job': jobid, 'timestamp': timestamp, 'log': msg})
 
-def assemble_urls(urls):
-    if not isinstance(urls, types.ListType):
-        return urls
-    return ','.join([url for url in filter(lambda x : x, urls)])
-
 def convert_urls_to_lrus_array(urls):
     if not isinstance(urls, types.ListType):
-        return [lru.url_to_lru_clean(url) for url in urls.split(',')]
+        urls = urls.split(",")
     return [lru.url_to_lru_clean(url) for url in urls]
 
 def getThriftConn():
@@ -386,6 +381,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def declare_page(self, conn, url):
+        url = lru.fix_missing_http(url)
         client = conn.client
         l = lru.url_to_lru_clean(url)
         t = str(int(time.time()*1000))
@@ -427,18 +423,21 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_set_webentity_homepage(self, webentity_id, homepage):
         mem_struct_conn = getThriftConn()
+        homepage = lru.fix_missing_http(homepage)
         res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "homepage", homepage).addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
     def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url):
         mem_struct_conn = getThriftConn()
+        startpage_url = lru.fix_missing_http(startpage_url)
         res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "startpages", startpage_url, "push").addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
     def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url):
         mem_struct_conn = getThriftConn()
+        startpage_url = lru.fix_missing_http(startpage_url)
         res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "startpages", startpage_url, "pop").addErrback(self.handle_error)
         defer.returnValue(res)
 
