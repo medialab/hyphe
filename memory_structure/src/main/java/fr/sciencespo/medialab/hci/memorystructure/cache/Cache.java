@@ -123,10 +123,11 @@ public class Cache {
         	logger.trace("applyWebEntityCreationRule " + rule.getRegExp());
         }
         String LRUPrefix = getLRUPrefixAccordingToRule(rule, page.getLru());
+        String name = StringUtil.toTitle(LRUUtil.revertLRU(LRUPrefix));
         if(LRUPrefix == null) {
             LRUPrefix = page.getLru().substring(0, page.getLru().indexOf('|'));
+            name = "OUTSIDE WEB";
         }
-        String name = StringUtil.toTitle(LRUUtil.revertLRU(LRUPrefix));
         webEntity = new WebEntity();
         webEntity.setName(name);
         webEntity.setLRUSet(new HashSet<String>());
