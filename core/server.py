@@ -251,6 +251,13 @@ class Crawler(jsonrpc.JSONRPC):
             return {'code': 'fail', 'message': 'No log found for job %s.' % job_id}
         return {'code': 'success', 'result': [{'timestamp': log['timestamp'], 'log': log['log']} for log in res]}
 
+    def jsonrpc_get_webentity_logs(self, webentity_id):
+        jobs = self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': webentity_id}, fields=['_id'], order=[('timestamp', pymongo.ASCENDING)])
+        if not jobs.count():
+            return {'code': 'fail', 'message': 'No job found for webentity %s.' % webentity_id}
+        res = self.db[config['mongo-scrapy']['jobLogsCol']].find({'_job': {'$in': [a['_id'] for a in list(jobs)]}}, order=[('timestamp', pymongo.ASCENDING)])
+        return {'code': 'success', 'result': [{'timestamp': log['timestamp'], 'job': log['_job'], 'log': log['log']} for log in list(res)]}
+
     def jsonrpc_cancel_all(self):
         """Stops all current crawls."""
         list_jobs = self.jsonrpc_list()
@@ -269,7 +276,7 @@ class Crawler(jsonrpc.JSONRPC):
         self.db[config['mongo-scrapy']['pageStoreCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
         self.db[config['mongo-scrapy']['queueCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
         self.db[config['mongo-scrapy']['queueCol']].ensure_index([('_job', pymongo.ASCENDING), ('timestamp', pymongo.DESCENDING)], safe=True)
-        self.db[config['mongo-scrapy']['jobLogsCol']].ensure_index([('_job', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], safe=True)
+        self.db[config['mongo-scrapy']['jobLogsCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
         self.db[config['mongo-scrapy']['jobListCol']].ensure_index([('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], safe=True)
 
     def emptyDB(self):
