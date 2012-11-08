@@ -333,13 +333,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def format_webentity(self, WE, jobs=None):
         if WE:
-            res = {'id': WE.id, 'name': WE.name, 'lru_prefixes': list(WE.LRUSet), 'status': WE.status, 'homepage': WE.homepage, 'startpages': list(WE.startpages), 'creation_date': WE.creationDate, 'last_modification_date': WE.lastModificationDate}
-            tags = WE.metadataItems
-            for tag in tags.keys():
-                res[tag] = list(tags[tag])
+            res = {'id': WE.id, 'name': WE.name, 'lru_prefixes': list(WE.LRUSet), 'status': WE.status, 'homepage': WE.homepage, 'startpages': list(WE.startpages), 'creation_date': WE.creationDate, 'last_modification_date': WE.lastModificationDate, 'tags': {}}
+            for tag in WE.metadataItems.keys():
+                res["tags"][tag] = list(WE.metadataItems[tag])
             #pages = yield client.getPagesFromWebEntity(WE.id)
             # nb_pages = len(pages)
-            # nb_links, tags, WEstatus
+            # nb_links 
             job = self.db[config['mongo-scrapy']['jobListCol']].find_one({'webentity_id': WE.id}, sort=[('timestamp', pymongo.DESCENDING)])
             if job:
                 res['crawling_status'] = job['crawling_status']
@@ -409,16 +408,23 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(WE)
 
     @inlineCallbacks
-    def update_webentity(self, conn, webentity_id, field_name, value, array_behavior=None):
+    def update_webentity(self, conn, webentity_id, field_name, value, array_behavior=None, array_key=None):
         client = conn.client
         WE = yield client.getWebEntity(webentity_id)
         try:
             if array_behavior:
-                arr = getattr(WE, field_name, [])
+                if array_key:
+                    tmparr = getattr(WE, field_name, {})
+                    arr = tmparr[array_key] if array_key in tmparr else set()
+                else:
+                    arr = getattr(WE, field_name, set())
                 if array_behavior == "push":
                     arr.add(value)
                 elif array_behavior == "pop":
                     arr.remove(value)
+                if array_key:
+                    tmparr[array_key] = arr
+                    arr = tmparr
                 setattr(WE, field_name, arr)
             else:
                 setattr(WE, field_name, value)
@@ -431,6 +437,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_rename_webentity(self, webentity_id, new_name):
         mem_struct_conn = getThriftConn()
         res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "name", new_name).addErrback(self.handle_error)
+        defer.returnValue(res)
+
+    @inlineCallbacks
+    def jsonrpc_set_webentity_status(self, webentity_id, status):
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "status", status).addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
@@ -455,9 +467,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(res)
 
     @inlineCallbacks
-    def jsonrpc_set_webentity_status(self, webentity_id, status):
+    def jsonrpc_add_webentity_tag(self, webentity_id, tag_key, tag_value):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "status", status).addErrback(self.handle_error)
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_value, "push", tag_key).addErrback(self.handle_error)
+        defer.returnValue(res)
+
+    @inlineCallbacks
+    def jsonrpc_rm_webentity_tag(self, webentity_id, tag_key, tag_value):
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_value, "pop", tag_key).addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
