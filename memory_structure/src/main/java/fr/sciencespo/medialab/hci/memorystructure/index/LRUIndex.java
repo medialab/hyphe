@@ -1527,47 +1527,6 @@ public class LRUIndex {
         }
     }
 
-    /**
-     *
-     * @param lru
-     * @return
-     * @throws IndexException hmm
-     */
-    /*
-    public Map<String, Set<WebEntityCreationRule>> findMatchingWebEntityCreationRuleLRUPrefixes(String lru) throws IndexException {
-        logger.debug("findMatchingWebEntityCreationRuleLRUPrefixes");
-        Map<String, Set<WebEntityCreationRule>> matches = new HashMap<String, Set<WebEntityCreationRule>>();
-        if(!StringUtils.isEmpty(lru)) {
-            Set<WebEntityCreationRule> allWebEntityCreationRules = retrieveWebEntityCreationRules();
-            for(WebEntityCreationRule webEntityCreationRule : allWebEntityCreationRules) {
-                String lruPrefix = webEntityCreationRule.getLRU();
-                // TODO is it inefficient to compile these patterns everytime ? Better to keep them in memory ?
-                // lruPrefix must escape |
-                String pipe = "\\|";
-                Pattern pipePattern = Pattern.compile(pipe);
-                Matcher pipeMatcher = pipePattern.matcher(lruPrefix);
-                String escapedPrefix = pipeMatcher.replaceAll("\\\\|");
-
-                Pattern pattern = Pattern.compile(escapedPrefix);
-                Matcher matcher = pattern.matcher(lru);
-                // it's  a match
-                if(matcher.find()) {
-                    Set<WebEntityCreationRule> webEntityCreationRulesWithPrefix = matches.get(lruPrefix);
-                    if(webEntityCreationRulesWithPrefix == null) {
-                        webEntityCreationRulesWithPrefix = new HashSet<WebEntityCreationRule>();
-                    }
-                    webEntityCreationRulesWithPrefix.add(webEntityCreationRule);
-                    matches.put(lruPrefix, webEntityCreationRulesWithPrefix);
-                }
-            }
-        }
-        if(logger.isDebugEnabled()) {
-            logger.debug("findMatchingWebEntityCreationRuleLRUPrefixes returns # " + matches.size() + " matches");
-        }
-        return matches;
-    }
-    */
-
     private List<PageItem> findPagesMatchingWebEntityButNotMatchingSubWebEntities(WebEntity webEntity, List<WebEntity> subWebEntities) throws IndexException {
         if(logger.isDebugEnabled()) {
             logger.debug("findPagesMatchingWebEntityButNotMatchingSubWebEntities for webEntity " + webEntity.getName());
@@ -1708,6 +1667,10 @@ public class LRUIndex {
             int doneDocs = 0;
             Map<String, WebEntityLink> webEntityLinksMap = new HashMap<String, WebEntityLink>();
             Map<String, WebEntity> lruToWebEntityMap = new HashMap<String, WebEntity>();
+            this.indexWriter.deleteDocuments(LuceneQueryFactory.getWebEntityLinksQuery());
+            this.indexWriter.commit();
+            this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
+            this.indexSearcher = new IndexSearcher(this.indexReader);
             while (doneDocs < totalResults) {
                 logger.info("Browsing links " + doneDocs + " to " + doneDocs+batchSize);
                 results = indexSearcher.search(nodeLinksQuery, null, doneDocs+batchSize);
@@ -1795,91 +1758,6 @@ public class LRUIndex {
             x.printStackTrace();
             throw new IndexException(x.getMessage(), x);
         }
-    }
-
-    /**
-     *
-     * @param webEntityLink the webentitylink to index
-     * @return id of indexed webentitylink
-     * @throws IndexException hmm
-     */
-    public String indexWebEntityLink(WebEntityLink webEntityLink) throws IndexException {
-        logger.debug("indexWebEntityLink");
-        //
-        // validation
-        //
-        if(webEntityLink == null) {
-            throw new IndexException("WebEntityLink is null");
-        }
-        if(StringUtils.isEmpty(webEntityLink.getSourceId())) {
-            throw new IndexException("WebEntity has empty source id");
-        }
-        if(StringUtils.isEmpty(webEntityLink.getTargetId())) {
-            throw new IndexException("WebEntity has empty target id");
-        }
-
-        try {
-            boolean updating = false;
-            String id = webEntityLink.getId();
-
-            // id has no value: create new
-            if(StringUtils.isEmpty(id)) {
-                logger.debug("indexing webentitylink with id null (new webentitylink will be created)");
-            }
-            // id has a value
-            else {
-                if(logger.isDebugEnabled()) {
-                    logger.debug("indexing webentitylink with id " + id);
-                }
-                // retrieve webEntityLink with that source and target ids
-                WebEntityLink toUpdate = retrieveWebEntityLink(webEntityLink);
-                if(toUpdate != null) {
-                    logger.debug("webentitylink found");
-                    updating = true;
-                }
-                else {
-                    if(logger.isDebugEnabled()) {
-                        logger.debug("did not find webentitylink with id " + id + " (new webentitylink will be created)");
-                    }
-                    updating = false;
-                }
-            }
-
-            if(updating) {
-                // delete old webentitylink before indexing
-                if(logger.isDebugEnabled()) {
-                    logger.debug("deleting existing webentitylink with id " + id);
-                }
-                Query q = LuceneQueryFactory.getWebEntityLinkByIdQuery(id);
-                this.indexWriter.deleteDocuments(q);
-                this.indexWriter.commit();
-            }
-
-            Document webEntityLinkDocument = IndexConfiguration.convertWebEntityLinkToLuceneDocument(webEntityLink);
-            this.indexWriter.addDocument(webEntityLinkDocument);
-            this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-            //xx this.indexWriter.commit();
-            this.indexSearcher = new IndexSearcher(this.indexReader);
-
-            // return id of indexed webentitylink
-            String indexedId = webEntityLinkDocument.get(IndexConfiguration.FieldName.ID.name());
-            if(logger.isDebugEnabled()) {
-                logger.debug("indexed webentitylink with id " + indexedId);
-            }
-
-            return indexedId;
-        }
-        catch(CorruptIndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x);
-        }
-        catch(IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x);
-        }
-
     }
 
 }

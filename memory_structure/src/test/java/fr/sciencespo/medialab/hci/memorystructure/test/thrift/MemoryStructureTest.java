@@ -2,6 +2,7 @@ package fr.sciencespo.medialab.hci.memorystructure.test.thrift;
 
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexConfiguration;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
+import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureImpl;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
@@ -1210,9 +1211,11 @@ public class MemoryStructureTest extends TestCase {
             w1.setTargetId(targetId);
 
             // shortcut to get to lruindex; not part of memeorystructure interface
+            @SuppressWarnings({"unchecked"})
+            List<Object> webEntityLinksList = new ArrayList();
+            webEntityLinksList.add(w1);
             MemoryStructureImpl memoryStructureimpl = memoryStructure;
-            memoryStructureimpl.getLruIndex().indexWebEntityLink(w1);
-
+            memoryStructureimpl.getLruIndex().batchIndex(webEntityLinksList);
             // test finding them by source id
 
             List<WebEntityLink> results = memoryStructure.findWebEntityLinksBySource(UUID.randomUUID().toString());
