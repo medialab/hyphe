@@ -162,6 +162,16 @@ class Core(jsonrpc.JSONRPC):
             return {"code": "success", "result": "true"}
         return {"code": "success", "result": "false"}
 
+    def jsonrpc_get_status(self):
+        crawls = self.crawler.jsonrpc_list()
+        pages = self.db[config['mongo-scrapy']['queueCol']].count()
+        crawled = self.db[config['mongo-scrapy']['pageStoreCol']].count()
+        res = {'crawler': {'jobs_pending': len(crawls['result']['pending']), 'jobs_running': len(crawls['result']['running']), 'pages_crawled': crawled},
+               'memory_structure': {'job_running': self.store.loop_running, 'job_running_since': self.store.loop_running_since,
+                                    'last_index': self.store.last_index_loop, 'last_links_generation': self.store.last_links_loop,
+                                    'pages_to_index': pages, 'webentities': self.store.total_webentities}}
+        return {'code': 'success', 'result': res}
+
 
 class Crawler(jsonrpc.JSONRPC):
 
@@ -301,12 +311,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if db is None:
             db = pymongo.Connection(config['mongo-scrapy']['host'], config['mongo-scrapy']['mongo_port'])[config['mongo-scrapy']['project']]
         self.db = db
+        self.total_webentities = 0
         self.index_loop = task.LoopingCall(self.index_batch_loop)
         self._start_loop()
 
     def _start_loop(self):
-        self.last_links_loop = time.time()
-        self.links_running = False
+        self.loop_running = False
+        self.loop_running_since = 0
+        self.last_links_loop = 0
+        self.last_index_loop = 0
         self.recent_indexes = 0
         self.index_loop.start(1, False)
 
@@ -487,20 +500,23 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 print "ERROR updating job %s" % jobid
                 return
             jobslog(jobid, "INDEX_"+indexing_statuses.BATCH_FINISHED, self.db)
-            self.recent_indexes += 1
 
     @inlineCallbacks
     def index_batch_loop(self):
-        if self.db[config['mongo-scrapy']['jobListCol']].find_one({'indexing_status': indexing_statuses.BATCH_RUNNING}) or self.links_running:
+        if self.loop_running:
+            defer.returnValue(False)
+        self.loop_running = True
+        if self.db[config['mongo-scrapy']['jobListCol']].find_one({'indexing_status': indexing_statuses.BATCH_RUNNING}):
+            print "WARNING : indexing job declared as running but probably crashed."
             defer.returnValue(False)
         oldest_page_in_queue = self.db[config['mongo-scrapy']['queueCol']].find_one(sort=[('timestamp', pymongo.ASCENDING)], fields=['_job'])
         # Run linking webentities on a regular basis when needed
-        if self.recent_indexes > 10 or (self.recent_indexes and (not oldest_page_in_queue or time.time() - self.last_links_loop > 600)):
-            self.recent_indexes = 0
-            self.links_running = True
+        if self.recent_indexes > 10 or (self.recent_indexes and (not oldest_page_in_queue or time.time() - self.last_links_loop > 300)):
+            self.loop_running = "generating links"
+            self.loop_running_since = time.time()
             conn = getThriftConn()
             yield conn.addCallback(self.generate_WEs_links).addErrback(self.handle_index_error)
-            self.links_running = False
+            self.recent_indexes = 0
             self.last_links_loop = time.time()
         elif oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
@@ -516,10 +532,18 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     print "ERROR updating job %s's indexing status" % jobid, resdb
                     defer.returnValue(False)
                 jobslog(jobid, "INDEX_"+indexing_statuses.BATCH_RUNNING, self.db)
+                self.loop_running = "indexing"
+                self.loop_running_since = time.time()
                 conn = getThriftConn()
                 yield conn.addCallback(self.index_batch, page_items, jobid).addErrback(self.handle_index_error)
+                self.recent_indexes += 1
+                self.last_index_loop = time.time()
             else:
                 print "WARNING : job %s found for index but no page corresponding found in queue."
+        elif not self.total_webentities or self.recent_indexes:
+            print "Updating webentities count"
+            self.jsonrpc_get_webentities()
+        self.loop_running = None
 
     def handle_index_error(self, failure):
         update_ids = [job['_id'] for job in self.db[config['mongo-scrapy']['jobListCol']].find({'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'])]
@@ -543,6 +567,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             WEs = yield client.getWebEntitiesByIDs(list_ids)
         else:
             WEs = yield client.getWebEntities()
+            self.total_webentities = len(WEs)
         res = []
         if WEs:
             for WE in WEs:
