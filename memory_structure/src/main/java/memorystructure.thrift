@@ -130,6 +130,14 @@ list<WebEntity> getSubWebEntities(1: string id) throws (1:MemoryStructureExcepti
  */
 list<NodeLink> getNodeLinks() throws (1:MemoryStructureException me),
 
+// get nodelinks of a specific webentity
+/**
+ * @param 1 webEntityId
+ * @param 2 includeFrontier
+ * @return nodelinks for webEntity
+ */
+list<NodeLink> getWebentityNodeLinks(1: string webEntityId, 2: bool includeFrontier) throws (1:MemoryStructureException me),
+
 // get all webentities
 /**
  * @return all webentities in the index

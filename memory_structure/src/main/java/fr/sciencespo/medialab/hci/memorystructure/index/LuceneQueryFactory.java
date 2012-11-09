@@ -154,6 +154,48 @@ public class LuceneQueryFactory {
 		return q;
 	}
 
+    protected static Query getNodeLinksMatchingWebEntityButNotMatchingSubWebEntities(WebEntity webEntity, List<WebEntity> subWebEntities, Boolean includeFrontier) {
+        BooleanQuery q = new BooleanQuery();
+        Query q1 = new TermQuery(typeEqualNodeLink);
+        q.add(q1, BooleanClause.Occur.MUST);
+
+        BooleanQuery qLinks = new BooleanQuery();
+        BooleanQuery qSources = new BooleanQuery();
+        BooleanQuery qTargets = new BooleanQuery();
+        for(String webEntityPrefix : webEntity.getLRUSet()) {
+            webEntityPrefix = webEntityPrefix + "*";
+            Term prefix = new Term(IndexConfiguration.FieldName.SOURCE.name(), webEntityPrefix);
+            Query prefixQuery = new WildcardQuery(prefix);
+            qSources.add(prefixQuery, BooleanClause.Occur.SHOULD);
+            qLinks.add(prefixQuery, BooleanClause.Occur.SHOULD);
+            prefix = new Term(IndexConfiguration.FieldName.TARGET.name(), webEntityPrefix);
+            prefixQuery = new WildcardQuery(prefix);
+            qTargets.add(prefixQuery, BooleanClause.Occur.SHOULD);
+            qLinks.add(prefixQuery, BooleanClause.Occur.SHOULD);
+        }
+        if (includeFrontier != null && includeFrontier) {
+            q.add(qLinks, BooleanClause.Occur.MUST);
+        } else {
+            q.add(qSources, BooleanClause.Occur.MUST);
+            q.add(qTargets, BooleanClause.Occur.MUST);
+        }
+        for(WebEntity sub : subWebEntities) {
+            for(String subPrefix : sub.getLRUSet()) {
+                subPrefix = subPrefix + "*";
+                Term prefixTerm = new Term(IndexConfiguration.FieldName.SOURCE.name(), subPrefix);
+                Query prefixQuery = new WildcardQuery(prefixTerm);
+                q.add(prefixQuery, BooleanClause.Occur.MUST_NOT);
+                prefixTerm = new Term(IndexConfiguration.FieldName.TARGET.name(), subPrefix);
+                prefixQuery = new WildcardQuery(prefixTerm);
+                q.add(prefixQuery, BooleanClause.Occur.MUST_NOT);
+            }
+        }
+        if(logger.isDebugEnabled()) {
+            logger.debug("Lucene query: " + q.toString());
+        }
+        return q;
+    }
+
     //
     // PrecisionException
     //

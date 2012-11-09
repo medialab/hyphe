@@ -912,6 +912,40 @@ public class LRUIndex {
         }
    }
 
+   /**
+    * Retrieves nodelinks corresponding to a specific webentity.
+    *
+    * @param webEntityId
+    * @param includeFrontier
+    * @return
+    * @throws IndexException hmm
+    */
+   public Set<NodeLink> retrieveWebentityNodeLinks(String webEntityId, Boolean includeFrontier) throws IndexException {
+       logger.debug("retrieveNodeLinks");
+       try {
+           WebEntity webEntity = retrieveWebEntity(webEntityId);
+           List<WebEntity> subWebEntities = findSubWebEntities(webEntity);
+           Set<NodeLink> result = new HashSet<NodeLink>();
+           Query q;
+           q = LuceneQueryFactory.getNodeLinksMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities, includeFrontier);
+           final List<Document> hits = executeMultipleResultsQuery(q);
+           for(Document hit: hits) {
+               NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(hit);
+               result.add(nodeLink);
+           }
+           if(logger.isDebugEnabled()) {
+               logger.debug("retrieved # " + result.size() + " nodelinks from index");
+           }
+
+           return result;
+       }
+       catch(IOException x) {
+           logger.error(x.getMessage());
+           x.printStackTrace();
+           throw new IndexException(x.getMessage(), x);
+       }
+   }
+
     /**
      * Retrieves all WebEntityLinks.
      *

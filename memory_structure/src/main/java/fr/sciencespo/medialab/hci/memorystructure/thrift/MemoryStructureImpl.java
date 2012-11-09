@@ -415,6 +415,31 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
+     * Returns all nodelinks within a webentity.
+     *
+     * @param webEntityId
+     * @param includeFrontier
+     * @return nodelinks
+     * @throws TException hmm
+     */
+    @Override
+    public List<NodeLink> getWebentityNodeLinks(String webEntityId, boolean includeFrontier) throws MemoryStructureException, TException {
+        logger.debug("getWebentityNodeLinks");
+        if (webEntityId == null) {
+            return getNodeLinks();
+        }
+        try {
+            List<NodeLink> nodeLinks = new ArrayList<NodeLink>(lruIndex.retrieveWebentityNodeLinks(webEntityId, includeFrontier));
+            return nodeLinks;
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
+    /**
      * @param lru to search for
      * @return web entity associated to this lru
      */
