@@ -167,8 +167,8 @@ class Core(jsonrpc.JSONRPC):
         pages = self.db[config['mongo-scrapy']['queueCol']].count()
         crawled = self.db[config['mongo-scrapy']['pageStoreCol']].count()
         res = {'crawler': {'jobs_pending': len(crawls['result']['pending']), 'jobs_running': len(crawls['result']['running']), 'pages_crawled': crawled},
-               'memory_structure': {'job_running': self.store.loop_running, 'job_running_since': self.store.loop_running_since,
-                                    'last_index': self.store.last_index_loop, 'last_links_generation': self.store.last_links_loop,
+               'memory_structure': {'job_running': self.store.loop_running, 'job_running_since': self.store.loop_running_since*1000,
+                                    'last_index': self.store.last_index_loop*1000, 'last_links_generation': self.store.last_links_loop*1000,
                                     'pages_to_index': pages, 'webentities': self.store.total_webentities}}
         return {'code': 'success', 'result': res}
 
@@ -312,6 +312,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             db = pymongo.Connection(config['mongo-scrapy']['host'], config['mongo-scrapy']['mongo_port'])[config['mongo-scrapy']['project']]
         self.db = db
         self.total_webentities = 0
+        self.jsonrpc_get_webentities()
         self.index_loop = task.LoopingCall(self.index_batch_loop)
         self._start_loop()
 
@@ -373,6 +374,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         mem_struct_conn = getThriftConn()
         self.index_loop.stop()
         res = yield mem_struct_conn.addCallback(self.reset).addErrback(self.handle_error)
+        self.total_webentities = 0
         self._start_loop()
         defer.returnValue(res)
 
@@ -509,6 +511,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
             s=time.time()
             n_WE = yield client.createWebEntities(cache_id)
             print "... %s web entities created in %s" % (n_WE, str(time.time()-s))+"s"
+            self.total_webentities += n_WE
+            yield client.deleteCache(cache_id)
             resdb = self.db[config['mongo-scrapy']['queueCol']].remove({'_id': {'$in': ids}}, safe=True)
             if (resdb['err']):
                 print "ERROR cleaning queue in database for job %s" % jobid, resdb
