@@ -564,7 +564,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 print "WARNING : job %s found for index but no page corresponding found in queue."
         elif not self.total_webentities or self.recent_indexes:
             print "Updating webentities count"
-            self.jsonrpc_get_webentities()
+            yield self.jsonrpc_get_webentities()
         self.loop_running = None
 
     def handle_index_error(self, failure):
