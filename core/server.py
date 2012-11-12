@@ -322,7 +322,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.last_links_loop = 0
         self.last_index_loop = 0
         self.recent_indexes = 0
-        self.index_loop.start(1, False)
+        reactor.callLater(10, self.index_loop.start, 1, True)
 
     def handle_results(self, results):
         print results
