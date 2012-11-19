@@ -34,7 +34,6 @@ public class ThriftServer {
     private static int port = 0;
 
     private static String luceneDirectoryPath = null;
-    private static String implementationChoice = null;
     private static String logLevel = null;
 
     private static MemoryStructureImpl memoryStructureImpl;
@@ -78,7 +77,7 @@ public class ThriftServer {
             String[] propertyNames = JSONObject.getNames(properties);
             logger.info("properties file found");
             for(String key : propertyNames) {
-                propertiesMap.put(key, properties.getString(key)); 
+                propertiesMap.put(key, properties.getString(key));
             }
         }
         catch(JSONException x) {
@@ -110,9 +109,9 @@ public class ThriftServer {
         for(String key : propertiesMap.keySet()) {
             logger.info("read property from command line: " + key + " = " + propertiesMap.get(key));
         }
-        return propertiesMap;        
+        return propertiesMap;
     }
-    
+
     /**
      *
      * @param args command line arguments
@@ -136,7 +135,6 @@ public class ThriftServer {
         port = Integer.parseInt(resolvedProperties.get("thrift.port"));
         luceneDirectoryPath = resolvedProperties.get("lucene.path");
         logLevel = resolvedProperties.get("log.level");
-        implementationChoice = resolvedProperties.get("impl.choice");
 
         //
         // defaults
@@ -155,11 +153,6 @@ public class ThriftServer {
             logger.warn("Could not find log.level either from memorystructure.properties or from command line arguments.");
             logLevel = "INFO";
             logger.warn("Using default: log.level is " + logLevel);
-        }
-        if(StringUtils.isEmpty(implementationChoice)) {
-            logger.warn("Could not find impl.choice either from memorystructure.properties or from command line arguments.");
-            implementationChoice = "HEIKKI";
-            logger.warn("Using default: impl.choice is " + implementationChoice);
         }
 
         DynamicLogger.setLogLevel(logLevel);

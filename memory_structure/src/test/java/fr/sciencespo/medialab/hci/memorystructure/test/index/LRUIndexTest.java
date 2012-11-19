@@ -303,7 +303,8 @@ public class LRUIndexTest extends TestCase {
 
             // add lru to this webentity
             String lruItem2 = "s:http|h:fr|h:sciences-po|h:www";
-            String id2 = lruIndex.indexWebEntity(id, lruItem2);
+            webEntity.addToLRUSet(lruItem2);
+            String id2 = lruIndex.indexWebEntity(webEntity);
 
             assertEquals("update existing webentity returns unexpected id", id, id2);
             assertEquals("IndexCount returns unexpected number", 1, lruIndex.indexCount());
@@ -318,9 +319,6 @@ public class LRUIndexTest extends TestCase {
         catch (IndexException x) {
             fail(x.getMessage());
         }
-        catch (ObjectNotFoundException x) {
-            fail(x.getMsg());
-        }
     }
 
     /**
@@ -332,10 +330,11 @@ public class LRUIndexTest extends TestCase {
         try {
             assertEquals("IndexCount returns unexpected number", 0, lruIndex.indexCount());
             String nonExistingId = "there-is-no-webentity-with-this-id";
-            String id = lruIndex.indexWebEntity(nonExistingId, "s:http|h:fr|h:sciences-po|h:medialab");
+            WebEntity we = new WebEntity();
+            we.setId(nonExistingId);
+            we.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab");
+            String id = lruIndex.indexWebEntity(we);
             fail("Expected ObjectNotFoundException wasn't thrown");
-        }
-        catch (ObjectNotFoundException e) {
         }
         catch (IndexException x) {
             fail(x.getMessage());

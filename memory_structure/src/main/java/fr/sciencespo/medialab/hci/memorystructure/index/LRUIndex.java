@@ -300,7 +300,7 @@ public class LRUIndex {
             Set<String> existing = alreadyExistingWebEntityLRUs(webEntity.getId(), webEntity.getLRUSet());
             if(existing.size() > 0) {
                 logger.error("ERROR / WARNING : WebEntity contains already existing LRUs: " + existing);
-//              throw new IndexException("WebEntity contains already existing LRUs: " + existing);
+                throw new IndexException("WebEntity contains already existing LRUs: " + existing);
             }
         }
         try {
@@ -323,8 +323,6 @@ public class LRUIndex {
                 if(toUpdate != null) {
                 	logger.trace("webentity found");
                     updating = true;
-                    // 'merge' existing webentity with the one requested for indexing: lrus may be added
-                    webEntity.getLRUSet().addAll(toUpdate.getLRUSet());
                 } else {
                     if(logger.isDebugEnabled()) {
                     	logger.trace("did not find webentity with id " + id + " (new webentity will be created)");
@@ -368,81 +366,6 @@ public class LRUIndex {
             throw new IndexException(x);
         }
      }
-
-   /**
-     * Updates a WebEntity to the index.
-     *
-     * @param id
-     * @param lru
-     * @throws IndexException hmm
-     * @throws ObjectNotFoundException hmm
-     * @return
-     */
-    public String indexWebEntity(String id, String lru) throws IndexException, ObjectNotFoundException {
-        if(logger.isDebugEnabled()) {
-        	logger.trace("updating indexWebEntity with id: " + id);
-        }
-        try {
-            // validation
-            if(StringUtils.isEmpty(id)) {
-                throw new IndexException("indexWebEntity received empty id");
-            }
-            if(StringUtils.isEmpty(lru)) {
-                throw new IndexException("indexWebEntity received empty lru");
-            }
-            // Ensure a webEntity lruprefix is unique in the web entity index
-            Set<String> newLRU = new HashSet<String>();
-            newLRU.add(lru);
-            Set<String> existing = alreadyExistingWebEntityLRUs(id, newLRU);
-            if(existing.size() > 0) {
-                throw new IndexException("WebEntity contains already existing LRUs: " + existing);
-            }
-
-
-            // retieve webEntity with that id
-            WebEntity webEntity = retrieveWebEntity(id);
-
-            // no webentity found with that id
-            if(webEntity == null) {
-                throw new ObjectNotFoundException().setMsg("Could not find WebEntity with id " + id);
-            }
-            webEntity.addToLRUSet(lru);
-
-            // update: first delete old webentity
-            if(logger.isDebugEnabled()) {
-            	logger.trace("deleting existing webentity with id " + id);
-            }
-
-            Query q = LuceneQueryFactory.getWebEntityByIdQuery(id);
-            this.indexWriter.deleteDocuments(q);
-            this.indexWriter.commit();
-            // index new webentity
-            logger.trace("indexing new webentity");
-            Document webEntityDocument = IndexConfiguration.convertWebEntityToLuceneDocument(webEntity);
-            this.indexWriter.addDocument(webEntityDocument);
-            this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-            //xx this.indexWriter.commit();
-            this.indexSearcher = new IndexSearcher(this.indexReader);
-
-            // return id of indexed webentity
-            String indexedId = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
-            if(logger.isDebugEnabled()) {
-                logger.trace("indexed webentity with id " + indexedId);
-            }
-            return indexedId;
-
-        }
-        catch(CorruptIndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x);
-        }
-        catch(IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x);
-        }
-    }
 
     /**
      *
@@ -1503,6 +1426,18 @@ public class LRUIndex {
         }
         deleteObject(LuceneQueryFactory.getNodeLinkBySourceAndTargetQuery(nodeLink.getSourceLRU(), nodeLink.getTargetLRU()));
     }
+
+    /**
+     *
+     * @param webEntity
+     * @throws IndexException hmm
+     */
+     public void deleteWebEntity(WebEntity webEntity) throws IndexException {
+         if(logger.isDebugEnabled()) {
+             logger.debug("deleting webEntity with id " + webEntity.getId());
+         }
+         deleteObject(LuceneQueryFactory.getWebEntityByIdQuery(webEntity.getId()));
+     }
 
    /**
     *

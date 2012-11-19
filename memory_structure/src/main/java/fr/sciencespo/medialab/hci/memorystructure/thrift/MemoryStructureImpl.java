@@ -14,7 +14,6 @@ import org.apache.thrift.TException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Implementation of MemoryStructure interface.
@@ -64,7 +63,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
-     * Updates a WebEntity.
+     * Updates (or creates) a WebEntity .
      *
      * @param webEntity to update
      * @return id of indexed webentity
@@ -83,32 +82,6 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-    }
-
-    /**
-     * Creates and index a WebEntity.
-     *
-     * @param name name of web entity
-     * @param lruSet lrus for this web entity
-     * @return created web entity
-     * @throws MemoryStructureException hmm
-     */
-    @Override
-    public WebEntity createWebEntity(String name, Set<String> lruSet) throws MemoryStructureException {
-        logger.debug("createWebEntity");
-        WebEntity webEntity = new WebEntity();
-        webEntity.setName(name);
-        webEntity.setLRUSet(lruSet);
-        try {
-            String id = lruIndex.indexWebEntity(webEntity);
-            webEntity.setId(id);
-            return webEntity;
-        }
-        catch(IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
         }
     }
 
@@ -206,6 +179,25 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         try {
             List<WebEntity> webEntities = new ArrayList<WebEntity>(lruIndex.retrieveWebEntitiesByIDs(listIDs));
             return webEntities;
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     * Deletes a web entity.
+     *
+     * @param webEntity to delete
+     * @throws TException hmm
+     */
+    @Override
+    public void deleteWebEntity(WebEntity webEntity) throws TException {
+        logger.debug("deleteWebEntity");
+        try {
+            lruIndex.deleteWebEntity(webEntity);
         }
         catch (IndexException x) {
             logger.error(x.getMessage());
@@ -444,7 +436,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @return web entity associated to this lru
      */
     @Override
-    public WebEntity findWebEntityByLRU(String lru) throws TException, MemoryStructureException {
+    public WebEntity findWebEntityMatchingLRU(String lru) throws TException, MemoryStructureException {
         logger.debug("findWebEntityByLRU");
         try {
             WebEntity webentity = lruIndex.retrieveWebEntityMatchingLRU(lru);
@@ -469,10 +461,14 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @return web entity whose aliases has this prefix
      */
     @Override
-    public WebEntity findWebEntityByPrefix(String prefix) throws TException, MemoryStructureException {
+    public WebEntity findWebEntityByLRUPrefix(String prefix) throws TException, MemoryStructureException {
         logger.debug("findWebEntityByPrefix");
         try {
-            return lruIndex.retrieveWebEntityByLRUPrefix(prefix);
+            WebEntity webentity = lruIndex.retrieveWebEntityByLRUPrefix(prefix);
+            if(webentity == null) {
+                throw new MemoryStructureException().setMsg("No matching webEntity found.");
+            }
+            return webentity;
         }
         catch (IndexException x) {
             logger.error(x.getMessage());
@@ -489,7 +485,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @return web entities one of whose aliases contains this prefix
      */
     @Override
-    public List<WebEntity> findWebEntitiesByPrefix(String prefix) throws TException, MemoryStructureException {
+    public List<WebEntity> findWebEntitiesByLRUPrefix(String prefix) throws TException, MemoryStructureException {
         logger.debug("findWebEntitiesByPrefix");
         try {
             return new ArrayList<WebEntity>(lruIndex.retrieveWebEntitiesStartingByLRUPrefix(prefix));
@@ -737,21 +733,6 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             List<Object> nodeLinksList = new ArrayList(nodeLinks);
             lruIndex.batchIndex(nodeLinksList);
             logger.debug("saveNodeLinks finished indexing nodeLinks");
-        }
-        catch(IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
-        }
-    }
-
-    @Override
-    public void addAliastoWebEntity(String id, String lru) throws MemoryStructureException, ObjectNotFoundException, TException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("addAliastoWebEntity lru: " + lru + " for WebEntity: " + id);
-        }
-        try {
-            lruIndex.indexWebEntity(id, lru);
         }
         catch(IndexException x) {
             logger.error(x.getMessage());

@@ -101,15 +101,6 @@ list<PingPong> ping(),
   string updateWebEntity(1:WebEntity webEntity) throws (1:MemoryStructureException x),
 
 // ADDED by Paul
-// create webentity
-/**
-* @param 1 name
-* @param 2 LRUSet
-* @return a WebEntity object
-**/
-  WebEntity createWebEntity(1: string name,2:set<string> LRUSet) throws (1:MemoryStructureException x),
-
-// ADDED by Paul
 // get webentity
 /**
 * @param 1 id
@@ -157,6 +148,12 @@ list<WebEntity> getWebEntitiesByIDs(1: list<string> listIDs) throws (1:MemoryStr
  * @return set of pages for this webentity (may be empty)
  */
 list<PageItem> getPagesFromWebEntity(1:string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+
+// deletes a webentity
+/**
+ * @param 1 webEntity
+ */
+void deleteWebEntity(1: WebEntity webEntity) throws (1:MemoryStructureException me),
 
 // generate webentity links
 /**
@@ -250,31 +247,23 @@ void savePageItems(1:list<PageItem> pageItems) throws (1:MemoryStructureExceptio
  */
 void saveNodeLinks(1:list<NodeLink> nodeLinks) throws (1:MemoryStructureException me),
 
-// WebEntity
-/**
- *
- * @param 1 id : the id of the WebEntity to add this LRU to
- * @param 2 lru : the lru to add
-**/
-void addAliastoWebEntity(1:string id, 2:string lru) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
-
 /**
  * @param 1 lru to search for
- * @return web entity whose aliases contains this lru
+ * @return web entity whose lruprefixes contain this LRU and not contained in any wubwebentity
  */
-WebEntity findWebEntityByLRU(1:string lru) throws (1:MemoryStructureException me),
+WebEntity findWebEntityMatchingLRU(1:string lru) throws (1:MemoryStructureException me),
 
 /**
  * @param 1 prefix to search for
  * @return web entity whose aliases contains this prefix
  */
-WebEntity findWebEntityByPrefix(1:string prefix) throws (1:MemoryStructureException me),
+WebEntity findWebEntityByLRUPrefix(1:string prefix) throws (1:MemoryStructureException me),
 
 /**
  * @param 1 prefix to search for
  * @return web entities one of whose aliases contains this prefix
  */
-list<WebEntity> findWebEntitiesByPrefix(1:string prefix) throws (1:MemoryStructureException me),
+list<WebEntity> findWebEntitiesByLRUPrefix(1:string prefix) throws (1:MemoryStructureException me),
 
 /**
  * @param 1 prefix to search for
