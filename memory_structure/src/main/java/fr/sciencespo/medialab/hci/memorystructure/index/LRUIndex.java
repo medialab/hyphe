@@ -1459,7 +1459,7 @@ public class LRUIndex {
     public void deleteObject(Query q) throws IndexException {
         try {
             this.indexWriter.deleteDocuments(q);
-            //xx this.indexWriter.commit();
+            this.indexWriter.commit();
             IndexReader maybeChanged = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
             // if not changed, that returns null
             if(maybeChanged != null) {

@@ -529,6 +529,22 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(self.handle_results(res))
 
     @inlineCallbacks
+    def jsonrpc_delete_webentity(self, webentity_id):
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.delete_webentity, webentity_id)
+        defer.returnValue(res)
+
+    @inlineCallbacks
+    def delete_webentity(self, conn, webentity_id):
+        client = conn.client
+        try:
+            WE = yield client.getWebEntity(webentity_id)
+            yield client.deleteWebEntity(WE)
+            defer.returnValue(self.handle_results("Webentity %s (%s) was removed" % (webentity_id, WE.name)))
+        except Exception as x:
+            defer.returnValue(self.handle_error(x))
+
+    @inlineCallbacks
     def index_batch(self, conn, page_items, jobid):
         client = conn.client
         ids = [bson.ObjectId(str(record['_id'])) for record in page_items]
@@ -671,6 +687,25 @@ class Memory_Structure(jsonrpc.JSONRPC):
         client = conn.client
         res = yield client.findWebEntityByLRUPrefix(l)
         defer.returnValue(res)
+
+    @inlineCallbacks
+    def jsonrpc_get_webentity_subwebentities(self, webentity_id):
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.get_webentity_subwebentities, webentity_id)
+        defer.returnValue(res)
+
+    @inlineCallbacks
+    def get_webentity_subwebentities(self, conn, webentity_id):
+        client = conn.client
+        try:
+            WEs = yield client.getSubWebEntities(webentity_id)
+            res = []
+            if WEs:
+                for WE in WEs:
+                    res.append(self.format_webentity(WE))
+            defer.returnValue(self.handle_results(res))
+        except Exception as x:
+            defer.returnValue(self.handle_error(x))
 
     @inlineCallbacks
     def jsonrpc_get_webentities_network_json(self):
