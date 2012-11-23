@@ -1,6 +1,8 @@
 package fr.sciencespo.medialab.hci.memorystructure.util;
 
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -11,6 +13,22 @@ import org.apache.commons.lang.StringUtils;
  */
 public class LRUUtil {
 
+	public static int PRECISION_LIMIT = 4;
+
+	public static String getPrecisionLimitNode(String lru) {
+	    String[] ps = lru.split("\\|");
+	    String n = "";
+	    for(int i = 0; i < ps.length && i <LRUUtil.PRECISION_LIMIT; i++) {
+	        n += ps[i] + "|";
+	    }
+	    n = n.substring(0, n.length()-1);
+	    return n;
+	}
+
+	public static boolean isPrecisionLimitNode(String lru) {
+	    return lru.split("\\|").length <= LRUUtil.PRECISION_LIMIT;
+	}
+	
     /**
      * Reverts an lru to an url. Scheme is stripped; a "www" host is also stripped; returns null when input is null,
      * empty or blank.
@@ -83,5 +101,37 @@ public class LRUUtil {
         }
         return url;
     }
+
+	/**
+	 * Returns a set of the longest strings in a set. If the input is empty, returns a set containing the empty string.
+	 * TODO the longest token not string length
+	 * @param strings strings
+	 * @return the longest string(s)
+	 */
+	public static Set<String> findLongestString(Set<String> strings) {
+	    Set<String> longests = new HashSet<String>();
+	    String longest = "";
+	    longests.add(longest);
+	    if(strings != null) {
+	        // for each string
+	        for(String s : strings) {
+	            // if longer than longest seen before
+	            if(s.length() > longest.length()) {
+	                // clear previous results
+	                longests.clear();
+	                // now this is the longest
+	                longest = s;
+	                // add to results
+	                longests.add(longest);
+	            }
+	            // if equal length to longest seen before
+	            else if(s.length() == longest.length()) {
+	                // add to results
+	                longests.add(s);
+	            }
+	        }
+	    }
+	    return longests;
+	}
 
 }

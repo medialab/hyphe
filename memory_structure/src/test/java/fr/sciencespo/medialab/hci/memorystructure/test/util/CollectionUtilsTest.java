@@ -7,8 +7,8 @@ import junit.framework.TestSuite;
 import java.util.HashSet;
 import java.util.Set;
 
-import fr.sciencespo.medialab.hci.memorystructure.util.CollectionUtils;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
+import fr.sciencespo.medialab.hci.memorystructure.util.LRUUtil;
 
 /**
  * Test CollectionUtils.
@@ -25,7 +25,7 @@ public class CollectionUtilsTest extends TestCase {
     public void testFindLongestStringNullInput() {
         logger.debug("testFindLongestStringNullInput");
         Set<String> strings = null;
-        Set<String> longest = CollectionUtils.findLongestString(strings);
+        Set<String> longest = LRUUtil.findLongestString(strings);
         assertNotNull("Unexpected null set", longest);
         assertEquals("Unexpected result for null input", "", longest.iterator().next());
     }
@@ -36,7 +36,7 @@ public class CollectionUtilsTest extends TestCase {
     public void testFindLongestStringEmptyInput() {
         logger.debug("testFindLongestStringEmptyInput");
         Set<String> strings = new HashSet<String>();
-        Set<String> longest = CollectionUtils.findLongestString(strings);
+        Set<String> longest = LRUUtil.findLongestString(strings);
         assertNotNull("Unexpected null set", longest);
         assertEquals("Unexpected result for empty input", "", longest.iterator().next());
     }
@@ -48,7 +48,7 @@ public class CollectionUtilsTest extends TestCase {
         logger.debug("testFindLongestStringSingleStringInput");
         Set<String> strings = new HashSet<String>();
         strings.add("one");
-        Set<String> longest = CollectionUtils.findLongestString(strings);
+        Set<String> longest = LRUUtil.findLongestString(strings);
         assertNotNull("Unexpected null set", longest);
         assertEquals("Unexpected result set size", 1, longest.size());
         assertEquals("Unexpected result for single string input", "one", longest.iterator().next());
@@ -63,7 +63,7 @@ public class CollectionUtilsTest extends TestCase {
         strings.add("one");
         strings.add("onemore");
         strings.add("yetanotherone");
-        Set<String> longest = CollectionUtils.findLongestString(strings);
+        Set<String> longest = LRUUtil.findLongestString(strings);
         assertNotNull("Unexpected null set", longest);
         assertEquals("Unexpected result set size", 1, longest.size());
         assertEquals("Unexpected result for single string input", "yetanotherone", longest.iterator().next());
@@ -79,7 +79,7 @@ public class CollectionUtilsTest extends TestCase {
         strings.add("ane");
         strings.add("ine");
         strings.add("x");
-        Set<String> longest = CollectionUtils.findLongestString(strings);
+        Set<String> longest = LRUUtil.findLongestString(strings);
         assertNotNull("Unexpected null set", longest);
         assertEquals("Unexpected result set size", 3, longest.size());
     }

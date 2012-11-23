@@ -8,7 +8,6 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
-import fr.sciencespo.medialab.hci.memorystructure.util.CollectionUtils;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import fr.sciencespo.medialab.hci.memorystructure.util.StringUtil;
 import fr.sciencespo.medialab.hci.memorystructure.util.LRUUtil;
@@ -205,7 +204,7 @@ public class Cache {
                     LRUPrefixesCandidates.add(ruleLRUPrefix);
                 }
             }
-            LRUPrefix = (String) (CollectionUtils.findLongestString(LRUPrefixesCandidates)).toArray()[0];
+            LRUPrefix = (String) (LRUUtil.findLongestString(LRUPrefixesCandidates)).toArray()[0];
             if (!doneLRUPrefixes.contains(LRUPrefix)) {
                 WEcandidate = lruIndex.retrieveWebEntityByLRUPrefix(LRUPrefix);
                 if (WEcandidate == null && webEntityDefault != null) {

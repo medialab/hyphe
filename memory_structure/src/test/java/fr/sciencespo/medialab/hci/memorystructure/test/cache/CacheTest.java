@@ -13,7 +13,6 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import fr.sciencespo.medialab.hci.memorystructure.util.LRUUtil;
-import fr.sciencespo.medialab.hci.memorystructure.util.PrecisionLimit;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -197,13 +196,13 @@ public class CacheTest extends TestCase {
 
     
     public void testIsNode() {
-        assertTrue("Unexpected isNode", PrecisionLimit.isNode("s:http|h:com|h:google"));
-        assertFalse("Unexpected isNode", PrecisionLimit.isNode("s:http|h:com|h:doodle|h:blog|p:english|p:2011|p:09|p:16|p:an-introduction-to-mongodb"));
+        assertTrue("Unexpected isNode", LRUUtil.isPrecisionLimitNode("s:http|h:com|h:google"));
+        assertFalse("Unexpected isNode", LRUUtil.isPrecisionLimitNode("s:http|h:com|h:doodle|h:blog|p:english|p:2011|p:09|p:16|p:an-introduction-to-mongodb"));
     }
 
     public void testGetNode() {
-        assertEquals("Unexpected getNode", "s:http|h:com|h:google", PrecisionLimit.getNode("s:http|h:com|h:google"));
-        assertEquals("Unexpected getNode", "s:http|h:com|h:doodle|h:blog", PrecisionLimit.getNode("s:http|h:com|h:doodle|h:blog|p:english|p:2011|p:09|p:16|p:an-introduction-to-mongodb"));
+        assertEquals("Unexpected getNode", "s:http|h:com|h:google", LRUUtil.getPrecisionLimitNode("s:http|h:com|h:google"));
+        assertEquals("Unexpected getNode", "s:http|h:com|h:doodle|h:blog", LRUUtil.getPrecisionLimitNode("s:http|h:com|h:doodle|h:blog|p:english|p:2011|p:09|p:16|p:an-introduction-to-mongodb"));
     }
 
         /**
@@ -244,11 +243,11 @@ public class CacheTest extends TestCase {
                 }
                 if(notYetInList) {
                     PageItem page = new PageItem();
-                    if(PrecisionLimit.isNode(pi.getLru())) {
+                    if(LRUUtil.isPrecisionLimitNode(pi.getLru())) {
                         page.setLru(pi.getLru());
                     }
                     else {
-                        page.setLru(PrecisionLimit.getNode(pi.getLru()));
+                        page.setLru(LRUUtil.getPrecisionLimitNode(pi.getLru()));
                     }
                     pages.add(page);
                 }
@@ -268,8 +267,8 @@ public class CacheTest extends TestCase {
 
             for(Object o : links) {
                 NodeLink n = (NodeLink)o;
-                if(!PrecisionLimit.isNode(n.getTargetLRU())) {
-                    n.setTargetLRU(PrecisionLimit.getNode(n.getTargetLRU()));
+                if(!LRUUtil.isPrecisionLimitNode(n.getTargetLRU())) {
+                    n.setTargetLRU(LRUUtil.getPrecisionLimitNode(n.getTargetLRU()));
                 }
                 // check not yet in list -- todo better with map
                 boolean notYetInList = true;
@@ -282,7 +281,7 @@ public class CacheTest extends TestCase {
                 }
                 if(notYetInList) {
                     PageItem page = new PageItem();
-                    page.setLru(PrecisionLimit.getNode(n.getSourceLRU()));
+                    page.setLru(LRUUtil.getPrecisionLimitNode(n.getSourceLRU()));
                     pages.add(page);
                 }
             }

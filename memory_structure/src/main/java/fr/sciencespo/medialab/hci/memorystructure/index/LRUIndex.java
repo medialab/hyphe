@@ -336,16 +336,16 @@ public class LRUIndex {
                 if(logger.isDebugEnabled()) {
                 	logger.trace("deleting existing webentity with id " + id);
                 }
-                Query q = LuceneQueryFactory.getWebEntityByIdQuery(id);
-                this.indexWriter.deleteDocuments(q);
-                this.indexWriter.commit();
+                // Delete and commit
+                deleteObject(LuceneQueryFactory.getWebEntityByIdQuery(id), true);
             }
 
             Document webEntityDocument = IndexConfiguration.convertWebEntityToLuceneDocument(webEntity);
             this.indexWriter.addDocument(webEntityDocument);
-            this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-            //xx this.indexWriter.commit();
-            this.indexSearcher = new IndexSearcher(this.indexReader);
+            
+            // Commit the addDocument ?
+            // this.indexWriter.commit();
+            reloadIndexIfChange();
 
             // return id of indexed webentity
             String indexedId = webEntityDocument.get(IndexConfiguration.FieldName.ID.name());
@@ -432,15 +432,16 @@ public class LRUIndex {
                 if(logger.isDebugEnabled()) {
                     logger.debug("deleting existing webentitycreationrule with lru " + webEntityCreationRule.getLRU());
                 }
-                this.indexWriter.deleteDocuments(q);
-                this.indexWriter.commit();
+                // Delete and commit
+                deleteObject(q, true);
             }
 
-            Document webEntityCreationRuleDocument = IndexConfiguration.convertWebEntityCreationRuleToLuceneDocument(webEntityCreationRule);
-            this.indexWriter.addDocument(webEntityCreationRuleDocument);
-            this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-            //xxthis.indexWriter.commit();
-            this.indexSearcher = new IndexSearcher(this.indexReader);
+            this.indexWriter.addDocument(IndexConfiguration.convertWebEntityCreationRuleToLuceneDocument(webEntityCreationRule));
+            
+            // Commit the addDocument ?
+            // this.indexWriter.commit();
+            
+            reloadIndexIfChange();
         }
         catch(CorruptIndexException x) {
             logger.error(x.getMessage());
@@ -456,25 +457,10 @@ public class LRUIndex {
 
     public void deletePageItem(PageItem pageItem) throws IndexException {
         if(logger.isDebugEnabled()) {
-            if(logger.isDebugEnabled()) {
-                logger.debug("deleting pageitem with url " + pageItem.getUrl());
-            }
+        	logger.debug("deleting pageitem with url " + pageItem.getUrl());
         }
-        try {
-            Query q = LuceneQueryFactory.getPageItemByURLQuery(pageItem.getUrl());
-            this.indexWriter.deleteDocuments(q);
-            this.indexWriter.commit();
-        }
-        catch (CorruptIndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x);
-        }
-        catch (IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x);
-        }
+        // The IndexWriter is closed and so committed at the end of the AsyncIndexWriterTask.run method
+        deleteObject(LuceneQueryFactory.getPageItemByURLQuery(pageItem.getUrl()), false);
     }
 
         /**
@@ -586,10 +572,10 @@ public class LRUIndex {
                 logger.debug("# docs in filesystem index after adding the newly indexed objects: " + this.indexWriter.numDocs());
             }
 
-
-            this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-            //xx this.indexWriter.commit();
-            this.indexSearcher = new IndexSearcher(this.indexReader);
+            // Commit the addDocument ?
+            // this.indexWriter.commit();
+            
+            reloadIndexIfChange();
 
             if(logger.isDebugEnabled()) {
                 long end2 = System.currentTimeMillis();
@@ -1392,27 +1378,8 @@ public class LRUIndex {
         if(logger.isDebugEnabled()) {
             logger.debug("deleting webEntityCreationRule with LRU " + webEntityCreationRule.getLRU());
         }
-        try {
-            Query q = LuceneQueryFactory.getWebEntityCreationRuleByLRUQuery(webEntityCreationRule.getLRU());
-            this.indexWriter.deleteDocuments(q);
-            this.indexWriter.commit();
-            IndexReader maybeChanged = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-            // if not changed, that returns null
-            if(maybeChanged != null) {
-                this.indexReader = maybeChanged;
-                this.indexSearcher = new IndexSearcher(this.indexReader);
-            }
-        }
-        catch (CorruptIndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x.getMessage(), x);
-        }
-        catch (IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x.getMessage(), x);
-        }
+        // Commit the IndexWriter
+        deleteObject(LuceneQueryFactory.getWebEntityCreationRuleByLRUQuery(webEntityCreationRule.getLRU()), true);
     }
 
     /**
@@ -1424,7 +1391,8 @@ public class LRUIndex {
         if(logger.isDebugEnabled()) {
             logger.debug("deleting nodeLink with source " + nodeLink.getSourceLRU() + " and target " + nodeLink.getTargetLRU());
         }
-        deleteObject(LuceneQueryFactory.getNodeLinkBySourceAndTargetQuery(nodeLink.getSourceLRU(), nodeLink.getTargetLRU()));
+        // The IndexWriter is closed and so committed at the end of the AsyncIndexWriterTask.run method
+        deleteObject(LuceneQueryFactory.getNodeLinkBySourceAndTargetQuery(nodeLink.getSourceLRU(), nodeLink.getTargetLRU()), false);
     }
 
     /**
@@ -1436,7 +1404,7 @@ public class LRUIndex {
          if(logger.isDebugEnabled()) {
              logger.debug("deleting webEntity with id " + webEntity.getId());
          }
-         deleteObject(LuceneQueryFactory.getWebEntityByIdQuery(webEntity.getId()));
+         deleteObject(LuceneQueryFactory.getWebEntityByIdQuery(webEntity.getId()), true);
      }
 
    /**
@@ -1448,7 +1416,8 @@ public class LRUIndex {
         if(logger.isDebugEnabled()) {
             logger.debug("deleting webEntityLink with source " + webEntityLink.getSourceId() + " and target " + webEntityLink.getTargetId());
         }
-        deleteObject(LuceneQueryFactory.getWebEntityLinkBySourceAndTargetQuery(webEntityLink.getSourceId(), webEntityLink.getTargetId()));
+        // The IndexWriter is closed and do committed at the end of the AsyncIndexWriterTask.run method
+        deleteObject(LuceneQueryFactory.getWebEntityLinkBySourceAndTargetQuery(webEntityLink.getSourceId(), webEntityLink.getTargetId()), false);
     }
 
     /**
@@ -1456,16 +1425,13 @@ public class LRUIndex {
     * @param nodeLink
     * @throws IndexException hmm
     */
-    public void deleteObject(Query q) throws IndexException {
+    public void deleteObject(Query q, boolean commit) throws IndexException {
         try {
             this.indexWriter.deleteDocuments(q);
-            this.indexWriter.commit();
-            IndexReader maybeChanged = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-            // if not changed, that returns null
-            if(maybeChanged != null) {
-                this.indexReader = maybeChanged;
-                this.indexSearcher = new IndexSearcher(this.indexReader);
+            if (commit) {
+            	this.indexWriter.commit();
             }
+            reloadIndexIfChange();
         }
         catch (CorruptIndexException x) {
             logger.error(x.getMessage());
@@ -1636,10 +1602,8 @@ public class LRUIndex {
             int doneDocs = 0;
             Map<String, WebEntityLink> webEntityLinksMap = new HashMap<String, WebEntityLink>();
             Map<String, WebEntity> lruToWebEntityMap = new HashMap<String, WebEntity>();
-            this.indexWriter.deleteDocuments(LuceneQueryFactory.getWebEntityLinksQuery());
-            this.indexWriter.commit();
-            this.indexReader = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
-            this.indexSearcher = new IndexSearcher(this.indexReader);
+            deleteObject(LuceneQueryFactory.getWebEntityLinksQuery(), true);
+            reloadIndexIfChange();
             while (doneDocs < totalResults) {
                 logger.info("Browsing links " + doneDocs + " to " + doneDocs+batchSize);
                 results = indexSearcher.search(nodeLinksQuery, null, doneDocs+batchSize);
@@ -1729,4 +1693,12 @@ public class LRUIndex {
         }
     }
 
+    private void reloadIndexIfChange() throws IOException {
+    	 IndexReader maybeChanged = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
+         // if not changed, that returns null
+         if(maybeChanged != null) {
+             this.indexReader = maybeChanged;
+             this.indexSearcher = new IndexSearcher(this.indexReader);
+         }
+    }
 }
