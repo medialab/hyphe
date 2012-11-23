@@ -31,7 +31,7 @@ struct PageItem {
   8: set<string> sourceSet,
   9: bool isFullPrecision = false,
   10: bool isNode,
-  11: map<string, set<string>> metadataItems,
+  11: map<string, map<string, set<string>>> metadataItems,
   12: string creationDate,
   13: string lastModificationDate
 }
@@ -64,7 +64,7 @@ struct WebEntity {
   4: string status,
   5: string homepage,
   6: set<string> startpages,
-  7: map<string, set<string>> metadataItems,
+  7: map<string, map<string, set<string>>> metadataItems,
   8: string creationDate,
   9: string lastModificationDate
 }

@@ -327,7 +327,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if WE:
             res = {'id': WE.id, 'name': WE.name, 'lru_prefixes': list(WE.LRUSet), 'status': WE.status, 'homepage': WE.homepage, 'startpages': list(WE.startpages), 'creation_date': WE.creationDate, 'last_modification_date': WE.lastModificationDate, 'tags': {}}
             for tag in WE.metadataItems.keys():
-                res["tags"][tag] = list(WE.metadataItems[tag])
+                res["tags"][tag] = {}
+                for key in WE.metadataItems[tag].keys():
+                    res["tags"][tag][key] = list(WE.metadataItems[tag][key])
             #pages = yield client.getPagesFromWebEntity(WE.id)
             # nb_pages = len(pages)
             # nb_links 
@@ -407,13 +409,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(new_WE)
 
     @inlineCallbacks
-    def update_webentity(self, conn, webentity_id, field_name, value, array_behavior=None, array_key=None):
+    def update_webentity(self, conn, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None):
         client = conn.client
         WE = yield client.getWebEntity(webentity_id)
         try:
             if array_behavior:
                 if array_key:
                     tmparr = getattr(WE, field_name, {})
+                    if array_namespace:
+                        tmparr = tmparr[array_namespace] if array_namespace in tmparr else {}
                     arr = tmparr[array_key] if array_key in tmparr else set()
                 else:
                     arr = getattr(WE, field_name, set())
@@ -423,6 +427,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     arr.remove(value)
                 if array_key:
                     tmparr[array_key] = arr
+                    if array_namespace:
+                        tmparr2 = getattr(WE, field_name, {})
+                        tmparr2[array_namespace] = tmparr
+                        tmparr = tmparr2
                     arr = tmparr
                 setattr(WE, field_name, arr)
             else:
@@ -492,15 +500,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(res)
 
     @inlineCallbacks
-    def jsonrpc_add_webentity_tag(self, webentity_id, tag_key, tag_value):
+    def jsonrpc_add_webentity_tag(self, webentity_id, tag_namespace, tag_key, tag_value):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_value, "push", tag_key).addErrback(self.handle_error)
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_value, "push", tag_key, tag_namespace).addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
-    def jsonrpc_rm_webentity_tag(self, webentity_id, tag_key, tag_value):
+    def jsonrpc_rm_webentity_tag(self, webentity_id, tag_namespace, tag_key, tag_value):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_value, "pop", tag_key).addErrback(self.handle_error)
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_value, "pop", tag_key, tag_namespace).addErrback(self.handle_error)
         defer.returnValue(res) 
 
     @inlineCallbacks
@@ -517,10 +525,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, page)
                 res.append(a)
         if include_tags:
-            for tag_key in old_WE.metadataItems.keys():
-                for tag_val in old_WE.metadataItems[tag_key]:
-                    a = yield self.jsonrpc_add_webentity_tag(good_webentity_id, tag_key, tag_val)
-                    res.append(a)
+            for tag_namespace in old_WE.metadataItems.keys():
+                for tag_key in old_WE.metadataItems[tag_namespace].keys():
+                    for tag_val in old_WE.metadataItems[tag_namespace][tag_key]:
+                        a = yield self.jsonrpc_add_webentity_tag(good_webentity_id, tag_namespace, tag_key, tag_val)
+                        res.append(a)
         for lru in old_WE.LRUSet:
             a = yield self.jsonrpc_rm_webentity_lruprefix(old_webentity_id, lru)
             res.append(a)

@@ -303,12 +303,17 @@ public class IndexConfiguration {
 	        }
         }
 
-        Map<String, Set<String>> tags = pageItem.getMetadataItems();
-        for (String tagKey : tags.keySet()) {
-            for (String tagValue: tags.get(tagKey)) {
-                Field tagField = new Field(FieldName.TAG.name(), tagKey+"="+tagValue, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-                tagField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-                document.add(tagField);
+
+        Map<String, Map<String, Set<String>>> tags = pageItem.getMetadataItems();
+        if (tags != null) {
+            for (String tagNameSpace : tags.keySet()) {
+                for (String tagKey : tags.get(tagNameSpace).keySet()) {
+                    for (String tagValue: tags.get(tagNameSpace).get(tagKey)) {
+                        Field tagField = new Field(FieldName.TAG.name(), tagNameSpace+":"+tagKey+"="+tagValue, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+                        tagField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+                        document.add(tagField);
+                    }
+                }
             }
         }
 
@@ -425,13 +430,15 @@ public class IndexConfiguration {
             }
         }
 
-        Map<String, Set<String>> tags = webEntity.getMetadataItems();
+        Map<String, Map<String, Set<String>>> tags = webEntity.getMetadataItems();
         if (tags != null) {
-            for (String tagKey : tags.keySet()) {
-                for (String tagValue: tags.get(tagKey)) {
-                    Field tagField = new Field(FieldName.TAG.name(), tagKey+"="+tagValue, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-                    tagField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-                    document.add(tagField);
+            for (String tagNameSpace : tags.keySet()) {
+                for (String tagKey : tags.get(tagNameSpace).keySet()) {
+                    for (String tagValue: tags.get(tagNameSpace).get(tagKey)) {
+                        Field tagField = new Field(FieldName.TAG.name(), tagNameSpace+":"+tagKey+"="+tagValue, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+                        tagField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+                        document.add(tagField);
+                    }
                 }
             }
         }
@@ -448,17 +455,22 @@ public class IndexConfiguration {
      * @param tagFields
      * @return
      */
-    private static Map<String, Set<String>> convertTagFieldsToTagsSet(Fieldable[] tagFields) {
-        Map<String, Set<String>> tags = new HashMap<String, Set<String>>();
+    private static Map<String, Map<String, Set<String>>> convertTagFieldsToTagsSet(Fieldable[] tagFields) {
+        Map<String, Map<String, Set<String>>> tags = new HashMap<String, Map<String, Set<String>>>();
         if (tagFields.length != 0) {
             for(Fieldable tagField : tagFields) {
                 String tag = tagField.stringValue();
-                String key = tag.substring(0, tag.indexOf("="));
-                String value = tag.replace(key + "=", "");
-                if (! tags.containsKey(key)) {
-                    tags.put(key, new HashSet<String>());
+                String nameSpace = tag.substring(0, tag.indexOf(":"));
+                String keyValue = tag.replace(nameSpace + ":", "");
+                String key = keyValue.substring(0, keyValue.indexOf("="));
+                String value = keyValue.replace(key + "=", "");
+                if (! tags.containsKey(nameSpace)) {
+                    tags.put(nameSpace, new HashMap<String, Set<String>>());
                 }
-                tags.get(key).add(value);
+                if (! tags.get(nameSpace).containsKey(key)) {
+                    tags.get(nameSpace).put(key, new HashSet<String>());
+                }
+                tags.get(nameSpace).get(key).add(value);
             }
         }
         return tags;
