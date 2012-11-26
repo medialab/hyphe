@@ -57,7 +57,7 @@ class Core(jsonrpc.JSONRPC):
         self.crawler = Crawler(self.db)
         self.store = Memory_Structure(self.db)
         self.crawler.initDBindexes()
-        self.monitor_loop = task.LoopingCall(self.jsonrpc_refreshjobs).start(1,False)
+        self.monitor_loop = task.LoopingCall(self.jsonrpc_refreshjobs).start(1, False)
 
     def render(self, request):
         request.setHeader("Access-Control-Allow-Origin", "*")
@@ -371,8 +371,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(res)
 
     @inlineCallbacks
-    def return_new_webentity(self, client, lru_prefix, new=False):
+    def return_new_webentity(self, client, lru_prefix, new=False, source=None):
         WE = yield client.findWebEntityMatchingLRU(lru_prefix)
+        self.recent_indexes += 1
+        if new:
+            self.total_webentities += 1
+            if source:
+                yield self.jsonrpc_add_webentity_tag(WE.id, 'CORE', 'user_created_via', source)
         WE = self.format_webentity(WE)
         WE['created'] = True if new else False
         defer.returnValue(WE)
@@ -388,7 +393,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         cache_id = yield client.createCache([page])
         yield client.indexCache(cache_id)
         new = yield client.createWebEntities(cache_id)
-        defer.returnValue(self.return_new_webentity(client, l, new))
+        new_WE = yield self.return_new_webentity(client, l, new, 'page')
+        defer.returnValue(new_WE)
 
     @inlineCallbacks
     def jsonrpc_declare_webentity_by_lru(self, lru_prefix):
@@ -398,14 +404,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
             defer.returnValue({'code': 'fail', 'message': 'LRU prefix "%s" is already set to an existing webentity : %s' % (lru_prefix, existing)})
         WE = WebEntity(None, [lru_prefix], lru.lru_to_url_short(lru_prefix))
         mem_struct_conn = getThriftConn()
-        new_WE = yield mem_struct_conn.addCallback(self.create_webentity, WE)
+        new_WE = yield mem_struct_conn.addCallback(self.create_webentity, WE, 'lru')
         defer.returnValue(self.handle_results(new_WE))
 
     @inlineCallbacks
-    def create_webentity(self, conn, webentity):
+    def create_webentity(self, conn, webentity, source=None):
         client = conn.client
         res = yield client.updateWebEntity(webentity)
-        new_WE = yield self.return_new_webentity(client, webentity.LRUSet[0], True)
+        new_WE = yield self.return_new_webentity(client, webentity.LRUSet[0], True, source)
         defer.returnValue(new_WE)
 
     @inlineCallbacks
@@ -440,6 +446,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 defer.returnValue(self.handle_results("%s field of webentity %s updated." % (field_name, res)))
             else:
                 yield client.deleteWebEntity(WE)
+                self.total_webentities -= 1
                 defer.returnValue(self.handle_results("webentity %s had no LRUprefix left and was removed." % webentity_id))
         except Exception as x:
             defer.returnValue({"code": "fail", "message": "ERROR while updating webentity : %s" % x})
@@ -535,6 +542,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             res.append(a)
             b = yield self.jsonrpc_add_webentity_lruprefix(good_webentity_id, lru)
             res.append(b)
+        yield self.jsonrpc_add_webentity_tag(good_webentity_id, "CORE", "user_modified", "alias")
+        self.total_webentities -= 1
+        self.recent_indexes += 1
         defer.returnValue(self.handle_results(res))
 
     @inlineCallbacks
@@ -550,6 +560,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
             WE = yield client.getWebEntity(webentity_id)
             yield client.deleteWebEntity(WE)
             defer.returnValue(self.handle_results("Webentity %s (%s) was removed" % (webentity_id, WE.name)))
+            self.total_webentities -= 1
+            self.recent_indexes += 1
         except Exception as x:
             defer.returnValue(self.handle_error(x))
 
