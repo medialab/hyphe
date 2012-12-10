@@ -54,8 +54,8 @@ class Core(jsonrpc.JSONRPC):
     def __init__(self):
         jsonrpc.JSONRPC.__init__(self)
         self.db = pymongo.Connection(config['mongo-scrapy']['host'],config['mongo-scrapy']['mongo_port'])[config['mongo-scrapy']['project']]
-        self.crawler = Crawler(self.db)
-        self.store = Memory_Structure(self.db)
+        self.crawler = Crawler(self.db, self)
+        self.store = Memory_Structure(self.db, self)
         self.crawler.initDBindexes()
         self.monitor_loop = task.LoopingCall(self.jsonrpc_refreshjobs).start(1, False)
 
@@ -173,9 +173,10 @@ class Crawler(jsonrpc.JSONRPC):
 
 # TODO : handle corpuses with local db listing per corpus jobs/statuses
 
-    def __init__(self, db=None):
+    def __init__(self, db=None, parent=None):
         jsonrpc.JSONRPC.__init__(self)
         self.db = db
+        self.parent = parent
 
     def send_scrapy_query(self, action, arguments, tryout=0):
         url = self.scrapy_url+action+".json"
@@ -196,6 +197,8 @@ class Crawler(jsonrpc.JSONRPC):
 
     def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=config['discoverPrefixes'], maxdepth=config['mongo-scrapy']['maxdepth'], download_delay=config['mongo-scrapy']['download_delay'], corpus=''):
         """Starts a crawl with scrapy from arguments using a list of urls and of lrus for prefixes."""
+        if len(starts) < 1:
+            return {'code': 'fail', 'message': 'No startpage defined for crawling webentity %s.' % webentity_id}
         # Choose random user agent for each crawl
         agents = ["Mozilla/2.0 (compatible; MSIE 3.0B; Win32)","Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9b5) Gecko/2008032619 Firefox/3.0b5","Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; bgft)","Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; iOpus-I-M)","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.2.153.1 Safari/525.19","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.2.153.1 Safari/525.19"]
         # preparation of the request to scrapyd
@@ -219,6 +222,7 @@ class Crawler(jsonrpc.JSONRPC):
             if (resdb['err']):
                 print "ERROR saving crawling job %s in database for webentity %s with arguments %s" % (res['jobid'], webentity_id, args), resdb
                 return {'code': 'fail', 'message': resdb}
+            self.parent.store.jsonrpc_rm_webentity_tag(webentity_id, "CORE", "recrawl_needed", "true")
         return {'code': 'success', 'result': res}
 
     def jsonrpc_cancel(self, job_id):
@@ -298,9 +302,10 @@ class Crawler(jsonrpc.JSONRPC):
 
 class Memory_Structure(jsonrpc.JSONRPC):
 
-    def __init__(self, db=None):
+    def __init__(self, db=None, parent=None):
         jsonrpc.JSONRPC.__init__(self)
         self.db = db
+        self.parent = parent
         self.index_loop = task.LoopingCall(self.index_batch_loop)
         self._start_loop()
 
@@ -471,6 +476,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(res)
 
     @inlineCallbacks
+    def add_backend_tags(self, webentity_id, key, value):
+        yield self.jsonrpc_add_webentity_tag(webentity_id, "CORE", key, value)
+        yield self.jsonrpc_add_webentity_tag(webentity_id, "CORE", "recrawl_needed", "true")
+
+    @inlineCallbacks
     def jsonrpc_add_webentity_lruprefix(self, webentity_id, lru_prefix):
         mem_struct_conn = getThriftConn()
         lru_prefix = lru.cleanLRU(lru_prefix)
@@ -479,6 +489,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             print "Removing LRUPrefix %s from webentity %s" % (lru_prefix, old_WE.name)
             yield self.jsonrpc_rm_webentity_lruprefix(old_WE.id, lru_prefix)
         mem_struct_conn = getThriftConn()
+        yield self.add_backend_tags(webentity_id, "lruprefixes_modified", "added %s" % lru_prefix)
         res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "LRUSet", lru_prefix, "push").addErrback(self.handle_error)
         self.recent_indexes += 1
         defer.returnValue(res)
@@ -488,6 +499,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         """ Will delete webentity if no LRUprefix left"""
         mem_struct_conn = getThriftConn()
         lru_prefix = lru.cleanLRU(lru_prefix)
+        yield self.add_backend_tags(webentity_id, "lruprefixes_modified", "removed %s" % lru_prefix)
         res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "LRUSet", lru_prefix, "pop").addErrback(self.handle_error)
         self.recent_indexes += 1
         defer.returnValue(res)
@@ -496,6 +508,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url):
         mem_struct_conn = getThriftConn()
         startpage_url = lru.fix_missing_http(startpage_url)
+        yield self.add_backend_tags(webentity_id, "startpages_modified", "added %s" % startpage_url)
         res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "startpages", startpage_url, "push").addErrback(self.handle_error)
         defer.returnValue(res)
 
@@ -503,6 +516,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url):
         mem_struct_conn = getThriftConn()
         startpage_url = lru.fix_missing_http(startpage_url)
+        yield self.add_backend_tags(webentity_id, "startpages_modified", "removed %s" % startpage_url)
         res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "startpages", startpage_url, "pop").addErrback(self.handle_error)
         defer.returnValue(res)
 
@@ -542,7 +556,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             res.append(a)
             b = yield self.jsonrpc_add_webentity_lruprefix(good_webentity_id, lru)
             res.append(b)
-        yield self.jsonrpc_add_webentity_tag(good_webentity_id, "CORE", "user_modified", "alias")
+        yield self.add_backend_tags(webentity_id, "alias_added", old_WE.name)
         self.total_webentities -= 1
         self.recent_indexes += 1
         defer.returnValue(self.handle_results(res))
