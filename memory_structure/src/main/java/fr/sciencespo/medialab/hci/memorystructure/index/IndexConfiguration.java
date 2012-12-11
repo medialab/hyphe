@@ -106,10 +106,10 @@ public class IndexConfiguration {
         if (creationDate == null) {
             creationDate = currentDate;
         }
-        Field creationDateField = new Field(FieldName.DATEMODIF.name(), creationDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        Field creationDateField = new Field(FieldName.DATECREA.name(), creationDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
         creationDateField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(creationDateField);
-        Field lastModificationDateField = new Field(FieldName.DATECREA.name(), currentDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        Field lastModificationDateField = new Field(FieldName.DATEMODIF.name(), currentDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
         lastModificationDateField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
         document.add(lastModificationDateField);
         return document;
