@@ -55,7 +55,7 @@ public class LRUUtil {
                 if(lruElement.startsWith("h:")) {
                     if(lruElement.equals("h:localhost")) {
                         tldDone = true;
-                    } else if(!lruElement.equals("h:www")) {
+                    } else {
                         lruElement = lruElement.substring(lruElement.indexOf(':')+1);
                         lruElement = lruElement.trim();
                         if(StringUtils.isNotEmpty(lruElement)) {
@@ -70,7 +70,7 @@ public class LRUUtil {
                             }
                         }
                     }
-                } else if(lruElement.startsWith("t:") && ! (lruElement.endsWith(":80") || lruElement.endsWith(":443"))) {
+                } else if(lruElement.startsWith("t:") && ! (lruElement.endsWith(":80"))) {
                     url += ":"+lruElement.substring(lruElement.indexOf(':')+1).trim();
                 } else {
                     if(!removedTrailingDot && url.endsWith(".")) {
