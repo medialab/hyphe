@@ -163,7 +163,9 @@ def getLRUNode(lru, precision_limit = 1, precision_exceptions = [], lru_head = N
 # need to add check for exceptions
     if not lru_head:
         lru_head = getLRUHead(lru, precision_exceptions)
-    return "|".join([stem for stem in lru.replace(lru_head, '').strip('|').split("|")[:precision_limit]].insert(0, lru_head))
+    stems = [stem for stem in lru.replace(lru_head, '').strip('|').split("|")[:precision_limit]]
+    stems.insert(0, lru_head)
+    return "|".join(stems)
 
 
 # TESTS
