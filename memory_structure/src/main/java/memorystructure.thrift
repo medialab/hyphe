@@ -187,12 +187,11 @@ string createCache(1:list<PageItem> pageItems) throws (1:MemoryStructureExceptio
  */
 i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
- //get_precision_exceptions_from_cache
+ //get_precision_exceptions
  /**
-  * @param 1 cacheId : id of the cache
   * @return set of lru prefixes
   */
- list<string> getPrecisionExceptionsFromCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+ list<string> getPrecisionExceptions() throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
  /**
   * @param 1 cacheId : id of the cache
@@ -205,11 +204,17 @@ i32 createWebEntities(1:string cacheId) throws (1:MemoryStructureException me, 2
   */
  void deleteCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
- // mark pageitem as precision exception
+ // mark lrus as precision exception
  /**
-  * @param 1 pageItemId : id of the pageItem to be
+  * @param 1 LRUs : list of lrus to add as precision exceptions
   */
- void markPageWithPrecisionException(1:string pageItemId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+ void markPrecisionExceptions(1:list<string> listLRUs) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+
+ // remove lrus as precision exception
+ /**
+  * @param 1 LRUs : list of lrus to remove from precision exceptions
+  */
+ void removePrecisionExceptions(1:list<string> listLRUs) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
  // store WebEntityCreationRule
  /**

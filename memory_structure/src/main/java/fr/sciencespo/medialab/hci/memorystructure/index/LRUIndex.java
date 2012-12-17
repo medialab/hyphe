@@ -600,22 +600,62 @@ public class LRUIndex {
 
     /**
      * Add precision exceptions.
+     * @param List of precision exceptions as string LRUs
      * @return
      * @throws IndexException hmm
      */
     public List<String> addPrecisionExceptions(List<String> precisionExceptions) throws IndexException {
         logger.debug("adding precisionexceptions");
         try {
-
-            List<String> results = new ArrayList<String>();
-            TermDocs termDocs = this.indexReader.termDocs(LuceneQueryFactory.typeEqualPrecisionException);
-            while(termDocs.next()) {
-                Document precisionExceptionDoc = indexReader.document(termDocs.doc());
-                String precisionExceptionFound = precisionExceptionDoc.get(IndexConfiguration.FieldName.LRU.name());
-                results.add(precisionExceptionFound);
+            boolean isUpdated = false;
+            List<String> existing = retrievePrecisionExceptions();
+            for (String lru : precisionExceptions) {
+                if (!existing.contains(lru)) {
+                    logger.info("adding precision exception for " + lru);
+                    this.indexWriter.addDocument(IndexConfiguration.convertPrecisionExceptionToLuceneDocument(lru));
+                    existing.add(lru);
+                    isUpdated = true;
+                }
             }
-            termDocs.close();
-            return results;
+            if (isUpdated) {
+                this.indexWriter.commit();
+                reloadIndexIfChange();
+            }
+            return existing;
+        }
+        catch(CorruptIndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+        catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     * Remove precision exceptions.
+     * @param List of precision exceptions as string LRUs
+     * @return
+     * @throws IndexException hmm
+     */
+    public void deletePrecisionExceptions(List<String> precisionExceptions) throws IndexException {
+        logger.debug("deleting precisionexceptions");
+        try {
+            List<String> existing = retrievePrecisionExceptions();
+            boolean updated = false;
+            for (String lru : precisionExceptions) {
+                if (existing.contains(lru)) {
+                    deleteObject(LuceneQueryFactory.getPrecisionExceptionByLRUQuery(lru), false);
+                    updated = true;
+                }
+            }
+            if (updated) {
+                this.indexWriter.commit();
+                reloadIndexIfChange();
+            }
         }
         catch(CorruptIndexException x) {
             logger.error(x.getMessage());
@@ -1680,7 +1720,7 @@ public class LRUIndex {
                 }
                 doneDocs += batchSize;
             }
-            logger.info("Saving " + webEntityLinksMap.size() + "WebEntityLinks");
+            logger.info("Saving " + webEntityLinksMap.size() + " WebEntityLinks");
             @SuppressWarnings({"unchecked"})
             List<Object> webEntityLinksList = new ArrayList(webEntityLinksMap.values());
             batchIndex(webEntityLinksList);

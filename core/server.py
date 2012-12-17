@@ -66,11 +66,16 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_ping(self):
         return {'code': 'success', 'result': 'pong'}
 
+    @inlineCallbacks
     def jsonrpc_reinitialize(self):
         """Reinitializes both crawl jobs and memory structure."""
-        self.crawler.jsonrpc_reinitialize()
-        self.store.jsonrpc_reinitialize()
-        return {'code': 'success', 'result': 'Memory structure and crawling database contents emptied'}
+        res = yield self.crawler.jsonrpc_reinitialize()
+        if res['code'] == 'fail':
+            defer.returnValue(res)
+        res = yield self.store.jsonrpc_reinitialize()
+        if res['code'] == 'fail':
+            defer.returnValue(res)
+        defer.returnValue({'code': 'success', 'result': 'Memory structure and crawling database contents emptied'})
 
     @inlineCallbacks
     def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None, all_pages_as_startpoints=False):
@@ -312,12 +317,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def _start_loop(self):
         self.total_webentities = -1
         self.jsonrpc_get_webentities()
+        self.jsonrpc_get_precision_exceptions()
         self.loop_running = False
         self.loop_running_since = 0
         self.last_links_loop = 0
         self.last_index_loop = 0
         self.recent_indexes = 0
-        reactor.callLater(10, self.index_loop.start, 1, True)
+        reactor.callLater(5, self.index_loop.start, 1, True)
 
     def handle_results(self, results):
         if config['DEBUG']:
@@ -370,10 +376,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_reinitialize(self):
         mem_struct_conn = getThriftConn()
-        self.index_loop.stop()
-        res = yield mem_struct_conn.addCallback(self.reset).addErrback(self.handle_error)
-        self._start_loop()
-        defer.returnValue(res)
+        try:
+            self.index_loop.stop()
+            yield mem_struct_conn.addCallback(self.reset).addErrback(self.handle_error)
+            self._start_loop()
+            defer.returnValue(self.handle_results("Memory structure reinitialized."))
+        except Exception as e:
+            defer.returnValue({'code': 'fail', 'message': "Service initialization not finished. Please retry in a second."})
 
     @inlineCallbacks
     def return_new_webentity(self, client, lru_prefix, new=False, source=None):
@@ -388,13 +397,28 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(WE)
 
     @inlineCallbacks
+    def handle_url_precision_exceptions(self, client, url):
+        l = lru.url_to_lru_clean(url)
+        yield self.handle_lru_precision_exceptions(client, l)
+
+    @inlineCallbacks
+    def handle_lru_precision_exceptions(self, client, lru_prefix):
+        lru_head = lru.getLRUHead(lru_prefix, self.precision_exceptions)
+        print lru_head, lru.isLRUNode(lru_prefix, config["precisionLimit"], lru_head=lru_head), lru_prefix.strip('|')
+        if not lru.isLRUNode(lru_prefix, config["precisionLimit"], lru_head=lru_head) and lru_prefix.strip('|') != lru_head:
+            yield client.markPrecisionExceptions([lru_prefix])
+            self.precision_exceptions.append(lru_prefix)
+
+    @inlineCallbacks
     def declare_page(self, conn, url):
         url = lru.fix_missing_http(url)
         client = conn.client
         l = lru.url_to_lru_clean(url)
+        yield self.handle_lru_precision_exceptions(client, l)
+        is_node = lru.isLRUNode(l, config["precisionLimit"], self.precision_exceptions)
+        is_full_precision = lru.isFullPrecision(l, self.precision_exceptions)
         t = str(int(time.time()*1000))
-        is_node = lru.isLRUNode(l, config["precisionLimit"])
-        page = PageItem("%s/%s" % (l, t), url, l, t, None, -1, None, ['USER'], False, is_node, {})
+        page = PageItem("%s/%s" % (l, t), url, l, t, None, -1, None, ['USER'], is_full_precision, is_node, {})
         cache_id = yield client.createCache([page])
         yield client.indexCache(cache_id)
         new = yield client.createWebEntities(cache_id)
@@ -417,6 +441,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         client = conn.client
         res = yield client.updateWebEntity(webentity)
         new_WE = yield self.return_new_webentity(client, webentity.LRUSet[0], True, source)
+        l = new_WE['lru_prefixes'][0]
+        yield self.handle_lru_precision_exceptions(client, l)
         defer.returnValue(new_WE)
 
     @inlineCallbacks
@@ -434,6 +460,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     arr = getattr(WE, field_name, set())
                 if array_behavior == "push":
                     arr.add(value)
+                    if field_name == 'LRUSet':
+                        yield self.handle_lru_precision_exceptions(client, value)
+                    elif field_name == 'startpages':
+                        yield self.handle_url_precision_exceptions(client, value)
                 elif array_behavior == "pop":
                     arr.remove(value)
                 if array_key:
@@ -556,7 +586,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             res.append(a)
             b = yield self.jsonrpc_add_webentity_lruprefix(good_webentity_id, lru)
             res.append(b)
-        yield self.add_backend_tags(webentity_id, "alias_added", old_WE.name)
+        yield self.add_backend_tags(good_webentity_id, "alias_added", old_WE.name)
         self.total_webentities -= 1
         self.recent_indexes += 1
         defer.returnValue(self.handle_results(res))
@@ -585,7 +615,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         ids = [bson.ObjectId(str(record['_id'])) for record in page_items]
         if (len(ids) > 0):
             page_items.rewind()
-            pages, links = processor.generate_cache_from_pages_list(page_items, config["precisionLimit"])
+            pages, links = processor.generate_cache_from_pages_list(page_items, config["precisionLimit"], self.precision_exceptions)
             s=time.time()
             cache_id = yield client.createCache(pages.values())
             nb_pages = yield client.indexCache(cache_id)
@@ -648,7 +678,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 self.recent_indexes += 1
                 self.last_index_loop = time.time()
             else:
-                print "WARNING : job %s found for index but no page corresponding found in queue."
+                print "WARNING: job %s found for index but no page corresponding found in queue."
         elif self.total_webentities == -1 or self.recent_indexes:
             print "Updating webentities count"
             yield self.jsonrpc_get_webentities()
@@ -662,6 +692,33 @@ class Memory_Structure(jsonrpc.JSONRPC):
         failure.trap(Exception)
         print failure
         return {'code': 'fail', 'message': failure}
+
+    @inlineCallbacks
+    def jsonrpc_get_precision_exceptions(self, corpus=''):
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.get_precision_exceptions, corpus).addErrback(self.handle_error)
+        defer.returnValue(res)
+
+    @inlineCallbacks
+    def get_precision_exceptions(self, conn, corpus=''):
+        client = conn.client
+        exceptions = yield client.getPrecisionExceptions()
+        self.precision_exceptions = exceptions
+        defer.returnValue(self.handle_results(exceptions))
+
+    @inlineCallbacks
+    def jsonrpc_remove_precision_exceptions(self, list_exceptions, corpus=''):
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.remove_precision_exceptions, corpus).addErrback(self.handle_error)
+        defer.returnValue(res)
+
+    @inlineCallbacks
+    def remove_precision_exceptions(self, conn, list_exceptions, corpus=''):
+        client = conn.client
+        yield client.removePrecisionExceptions(list_exceptions)
+        for e in list_exceptions:
+            self.precision_exceptions.remove(e)
+        defer.returnValue(self.handle_results("Precision Exceptions %s removed." % list_exceptions))
 
     @inlineCallbacks
     def jsonrpc_get_webentities(self, list_ids=None, corpus=''):
@@ -695,7 +752,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         pages = yield mem_struct_conn.addCallback(self.get_webentity_pages, webentity_id).addErrback(self.handle_error)
         if "code" in pages:
             defer.returnValue(pages)
-        formatted_pages = [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
+        formatted_pages = [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
         defer.returnValue(self.handle_results(formatted_pages))
 
     def get_webentity_pages(self, conn, webentity_id):
@@ -808,7 +865,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 elif WE.creationDate:
                     date = WE.creationDate
                 pages = yield client.getPagesFromWebEntity(WE.id)
-                WEs_metadata[WE.id] = {"name": WE.name, "date": date, "LRUset": ",".join(WE.LRUSet), "nb_pages": len(pages), "nb_intern_links": 0}
+                WEs_metadata[WE.id] = {"name": WE.name, "date": date, "LRUSet": ",".join(WE.LRUSet), "nb_pages": len(pages), "nb_intern_links": 0}
                 WE_links = yield client.findWebEntityLinksBySource(WE.id)
                 for link in WE_links:
                     if link.targetId == WE.id:

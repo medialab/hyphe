@@ -10,9 +10,8 @@ from memorystructure import MemoryStructure as ms
 
 # TODO:
 # - handle errorcode
-# - isFUllPrecision always false at this level?
 # - metadataItems -> parsing later ?
-def generate_cache_from_pages_list(pageList, precisionLimit = 1, verbose = False) :
+def generate_cache_from_pages_list(pageList, precision_limit = 1, precision_exceptions = [], verbose = False) :
     if verbose :
         print "### createCache"
     pages = {}
@@ -21,12 +20,14 @@ def generate_cache_from_pages_list(pageList, precisionLimit = 1, verbose = False
     nodes = {}
     for page_item in pageList : 
         page_item["lru"] = lru.cleanLRU(page_item["lru"])
-        is_node = lru.isLRUNode(page_item["lru"], precisionLimit)
-        node_lru = page_item["lru"] if is_node else lru.getLRUNode(page_item["lru"], precisionLimit)
+        is_full_precision = lru.isFullPrecision(page_item["lru"], precision_exceptions)
+        lru_head = lru.getLRUHead(page_item["lru"], precision_exceptions)
+        is_node = lru.isLRUNode(page_item["lru"], precision_limit, lru_head=lru_head)
+        node_lru = page_item["lru"] if is_node else lru.getLRUNode(page_item["lru"], precision_limit, lru_head=lru_head)
         nodes[node_lru] = 1
         # Create index of crawled pages from queue
         if page_item["lru"] not in pages:
-            pages[page_item["lru"]] = ms.PageItem(str(page_item["_id"]), page_item["url"], page_item["lru"], str(page_item["timestamp"]), int(page_item["status"]), int(page_item["depth"]), str(page_item["error"]), ['CRAWL'], False, is_node, {})
+            pages[page_item["lru"]] = ms.PageItem(str(page_item["_id"]), page_item["url"], page_item["lru"], str(page_item["timestamp"]), int(page_item["status"]), int(page_item["depth"]), str(page_item["error"]), ['CRAWL'], is_full_precision, is_node, {})
         else:
             if 'CRAWL' not in pages[page_item["lru"]].sourceSet:
                 pages[page_item["lru"]].sourceSet.append('CRAWL')
@@ -35,13 +36,15 @@ def generate_cache_from_pages_list(pageList, precisionLimit = 1, verbose = False
         if "lrulinks" in page_item:
             for index,lrulink in enumerate(page_item["lrulinks"]) :
                 lrulink = lru.cleanLRU(lrulink)
-                is_node = lru.isLRUNode(lrulink, precisionLimit)
-                target_node = lrulink if is_node else lru.getLRUNode(lrulink, precisionLimit)
+                is_full_precision = lru.isFullPrecision(lrulink, precision_exceptions)
+                lru_head = lru.getLRUHead(lrulink, precision_exceptions)
+                is_node = lru.isLRUNode(lrulink, precision_limit, lru_head=lru_head)
+                target_node = lrulink if is_node else lru.getLRUNode(lrulink, precision_limit, lru_head=lru_head)
                 nodes[target_node] = 1
                 original_link_number += 1
 # check False {} errorcode
                 if lrulink not in pages:
-                    pages[lrulink] = ms.PageItem(str(page_item["_id"])+"_"+str(index), lru.lru_to_url(lrulink), lrulink, str(page_item["timestamp"]), None, int(page_item["depth"])+1, None, ['LINK'], False, is_node, {})
+                    pages[lrulink] = ms.PageItem(str(page_item["_id"])+"_"+str(index), lru.lru_to_url(lrulink), lrulink, str(page_item["timestamp"]), None, int(page_item["depth"])+1, None, ['LINK'], is_full_precision, is_node, {})
                 elif 'LINK' not in pages[lrulink].sourceSet:
                     pages[lrulink].sourceSet.append('LINK')
                 links[(node_lru,target_node)] = links[(node_lru,target_node)] + 1 if (node_lru,target_node) in links else 1

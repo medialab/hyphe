@@ -95,8 +95,9 @@ def lru_to_url(lru):
             url += "#" + urllib.unquote_plus(fragment)
     return url
 
+titlize_url_regexp = re.compile(r'(https?://|[./#])', re.I)
 def lru_to_url_short(lru):
-    return lru_to_url(lru).replace('http://', '').replace('https://', '').replace('.', ' ').title()
+    return titlize_url_regexp.sub(' ', lru_to_url(lru)).strip().title()
 
 # Clean a URL
 def cleanUrl(url, currentUrl) :
@@ -138,20 +139,31 @@ def cleanLRU(lru) :
 #   return orderQueryParameters(stripAnchors(stripWWW(stripHttpPort(lru))))
     return stripHttpPort(lru)
 
+def isFullPrecision(lru, precision_exceptions = []):
+    return (lru in precision_exceptions)
+
 re_head_lru = re.compile(r'(([sth]:[^|]*(\||$))+)', re.I)
-def getLRUHead(lru):
-    return re_head_lru.match(lru).group(1)
+def getLRUHead(lru, precision_exceptions = []):
+    possible_result = ""
+    for precision_exception in precision_exceptions:
+        if lru.startswith(precision_exception) and len(precision_exception) > len(possible_result):
+            possible_result = precision_exception
+    if possible_result:
+        return possible_result
+    return re_head_lru.match(lru).group(1).strip('|')
 
 # Identify links which are nodes
-def isLRUNode(lru, precisionLimit = 1):
-    head = getLRUHead(lru)
-    return (len(lru.replace(head, '').split("|")) <= precisionLimit)
+def isLRUNode(lru, precision_limit = 1, precision_exceptions = [], lru_head = None):
+    if not lru_head:
+        lru_head = getLRUHead(lru, precision_exceptions)
+    return (len(lru.replace(lru_head, '').strip('|').split("|")) <= precision_limit)
 
 # Get a LRU's node
-def getLRUNode(lru, precisionLimit = 1) :
+def getLRUNode(lru, precision_limit = 1, precision_exceptions = [], lru_head = None) :
 # need to add check for exceptions
-    head = getLRUHead(lru)
-    return head+"|".join([stem for stem in lru.replace(head, '').split("|")[:precisionLimit]])
+    if not lru_head:
+        lru_head = getLRUHead(lru, precision_exceptions)
+    return "|".join([stem for stem in lru.replace(lru_head, '').strip('|').split("|")[:precision_limit]].insert(0, lru_head))
 
 
 # TESTS

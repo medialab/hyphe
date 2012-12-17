@@ -95,6 +95,10 @@ public class LuceneQueryFactory {
         return getWebEntityLinkByFieldQuery(IndexConfiguration.FieldName.SOURCE, lru);
     }
 
+    protected static Query getPrecisionExceptionByLRUQuery(String lru) {
+        return getObjectItemByFieldQuery(typeEqualPrecisionException, IndexConfiguration.FieldName.LRU, lru);
+    }
+
     //
     // PageItem
     //

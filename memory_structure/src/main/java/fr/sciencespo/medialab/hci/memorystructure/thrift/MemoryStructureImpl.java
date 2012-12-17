@@ -600,37 +600,45 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
-    // TODO TEST
     @Override
-    public List<String> getPrecisionExceptionsFromCache(String cacheId) throws TException, ObjectNotFoundException, MemoryStructureException {
+    public List<String> getPrecisionExceptions() throws TException, ObjectNotFoundException, MemoryStructureException {
         if(logger.isDebugEnabled()) {
-            logger.debug("getPrecisionExceptionsFromCache with cache id: " + cacheId);
+            logger.debug("getPrecisionExceptions");
         }
         try {
-            List<String> results = new ArrayList<String>();
             // get precisionExceptions from index
             List<String> precisionExceptions = lruIndex.retrievePrecisionExceptions();
+            return precisionExceptions;
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
 
-            Cache cache = CacheMap.getInstance().get(cacheId);
-            if(cache != null) {
-                for(PageItem pageItem : cache.getPageItems()) {
-                    if(!pageItem.isNode) {
-                        if(precisionExceptions.contains(pageItem.getLru())) {
-                            results.add(pageItem.getLru());
-                        }
-                    }
-                }
-                if(logger.isDebugEnabled()) {
-                    logger.debug("getPrecisionExceptionsFromCache returns # " + results.size() + " results");
-                }
-                return results;
-            }
-            else {
-                ObjectNotFoundException onf =  new ObjectNotFoundException();
-                onf.setMsg("Could not find cache with id: " + cacheId);
-                onf.setStacktrace(ExceptionUtils.stacktrace2string(Thread.currentThread().getStackTrace()));
-                throw onf;
-            }
+    @Override
+    public void markPrecisionExceptions(List<String> listLRUs) throws MemoryStructureException, ObjectNotFoundException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("markPrecisionExceptions (" + listLRUs.size() +")");
+        }
+        try {
+            lruIndex.addPrecisionExceptions(listLRUs);
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
+    @Override
+    public void removePrecisionExceptions(List<String> listLRUs) throws MemoryStructureException, ObjectNotFoundException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("removePrecisionExceptions (" + listLRUs.size() +")");
+        }
+        try {
+            lruIndex.deletePrecisionExceptions(listLRUs);
         }
         catch(IndexException x) {
             logger.error(x.getMessage());
@@ -690,14 +698,6 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         CacheMap.getInstance().get(cacheId).clear();
         CacheMap.getInstance().remove(cacheId);
-    }
-
-    @Override
-    public void markPageWithPrecisionException(String pageItemLRU) throws MemoryStructureException, ObjectNotFoundException, TException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("markPageWithPrecisionException with page LRU: " + pageItemLRU);
-        }
-        return;
     }
 
     /**

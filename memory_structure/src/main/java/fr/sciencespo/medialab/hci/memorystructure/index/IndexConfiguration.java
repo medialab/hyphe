@@ -116,6 +116,31 @@ public class IndexConfiguration {
     }
 
     /**
+     * Converts a PrecisionException into a Lucene Document
+     *
+     * @param lru to add to precision exceptions
+     * @return The Lucene Document
+     */
+    protected static Document convertPrecisionExceptionToLuceneDocument(String lru) {
+        if(lru == null) {
+            logger.warn("attempt to create Lucene document for null PrecisionException");
+            return null;
+        }
+        Document document = new Document();
+
+        Field typeField = new Field(FieldName.TYPE.name(), DocType.PRECISION_EXCEPTION.name(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        document.add(typeField);
+
+        Field lruField = new Field(FieldName.LRU.name(), lru, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        lruField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        document.add(lruField);
+
+        return document;
+    }
+
+
+    /**
      * Converts a WebEntityLink into a Lucene Document
      * 
      * @param webEntityLink WebEntityLink to convert into Lucene Document
@@ -302,7 +327,6 @@ public class IndexConfiguration {
 	            document.add(sourceField);
 	        }
         }
-
 
         Map<String, Map<String, Set<String>>> tags = pageItem.getMetadataItems();
         if (tags != null) {
