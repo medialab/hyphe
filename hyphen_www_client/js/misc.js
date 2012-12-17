@@ -38,9 +38,6 @@
 					port = RegExp.$4
 				
 				host = host.split(/\./)
-				if (host[0].toLowerCase().match(/w{3}/)){
-					host.shift()
-				}
 				
 				LRU = {
 					"scheme": scheme,
