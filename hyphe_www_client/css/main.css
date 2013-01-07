@@ -1,0 +1,183 @@
+
+
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+
+
+
+/* --------------------------
+   Body padding
+   -------------------------- */
+body{
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+
+
+/* --------------------------
+   Mini-logos on the top-right of the navbar
+   -------------------------- */
+.navbar .minilogo{
+  margin-top: 8px;
+}
+.navbar .minilogo img{
+  margin-left: 12px;
+}
+
+/* --------------------------
+   The header space for title and abstract of each tool
+   -------------------------- */
+.splash-unit{
+	margin-bottom: 30px;
+	min-height: 90px;
+}
+
+.splash-unit .image{
+  margin-top: 25px;
+	display: inline-block;
+	margin-right: 10px;
+}
+
+.splash-unit .title{
+	margin-bottom: 0;
+	font-size: 60px;
+	font-weight: 300;
+  	line-height: 1;
+  	letter-spacing: -1px;
+  	color: inherit;
+	
+	display: inline-block;
+	padding-bottom: 10px;
+  	vertical-align: bottom;
+}
+
+.splash-unit .abstract {
+  font-size: 18px;
+  font-weight: 200;
+  line-height: 30px;
+  color: #999999;
+
+  margin-top: 32px;
+}
+
+
+
+
+/* --------------------------
+   Footer
+   -------------------------- */
+footer{
+  margin-top: 120px;
+}
+
+
+/* --------------------------
+   Web Entities Browser
+   -------------------------- */
+
+.btn-weBrowser-prefix, .btn-weBrowser-folder, .btn-weBrowser-page{
+  margin-right:15px;
+  margin-bottom:15px;
+  word-wrap:break-word;
+  vertical-align: top;
+}
+.btn-weBrowser-prefix{
+  width: 175px;  
+}
+.btn-weBrowser-folder{
+  width: 175px;  
+}
+.btn-weBrowser-page{
+  width: 175px;  
+}
+
+.webentities_selector_container{
+    padding: 4px 4px;
+    margin: 0 0 20px;
+    list-style: none;
+    background-color: #f5f5f5;
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+}
+
+
+
+
+/* --------------------------
+   Info tooltips
+   -------------------------- */
+.info_tooltip{
+  border-bottom: 1px dotted #9999bb;
+  cursor: help;
+}
+
+
+/* --------------------------
+   Data tables
+   -------------------------- */
+table.table thead .sorting,
+table.table thead .sorting_asc,
+table.table thead .sorting_desc,
+table.table thead .sorting_asc_disabled,
+table.table thead .sorting_desc_disabled {
+    cursor: pointer;
+    *cursor: hand;
+}
+ 
+table.table thead .sorting { background: url('../res/datatables/sort_both.png') no-repeat center right; }
+table.table thead .sorting_asc { background: url('../res/datatables/sort_asc.png') no-repeat center right; }
+table.table thead .sorting_desc { background: url('../res/datatables/sort_desc.png') no-repeat center right; }
+ 
+table.table thead .sorting_asc_disabled { background: url('../res/datatables/sort_asc_disabled.png') no-repeat center right; }
+table.table thead .sorting_desc_disabled { background: url('../res/datatables/sort_desc_disabled.png') no-repeat center right; }
+
+.dataTables_length select{
+  width: 80px;
+}
+
+/* --------------------------
+   Table (selected rows)
+   -------------------------- */
+table.table tr.selected td{
+  background-color: #dddddd;
+}
+
+table.table tr.success.selected td{
+  background-color: #c0d9b6;
+}
+table.table tr.error.selected td{
+  background-color: #dbbcbc;
+}
+table.table tr.warning.selected td{
+  background-color: #eae2bc;
+}
+table.table tr.info.selected td{
+  background-color: #b4d3e3;
+}
+
+table.table tr td i.decorating-chevron{
+  opacity: 0;
+}
+
+table.table tr:hover td i.decorating-chevron, table.table tr.selected td i.decorating-chevron{
+  opacity: 1;
+}
+
+
+
+
+
+
+   /* --------------------------
+   MISC
+   -------------------------- */
+small.select2_small{
+  font-size: 0.5 em;
+  background-color: #F00;
+}
+
+.hover{
+  cursor:pointer;
+}
