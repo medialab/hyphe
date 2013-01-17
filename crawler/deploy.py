@@ -12,7 +12,7 @@ if not config:
 
 # Copy LRU library from HCI lib/
 print "Importing lru.py library from HCI /lib to hcicrawler..."
-try :
+try:
     copyfile("../lib/lru.py", "hcicrawler/lru.py")
 except IOError as e:
     print "Could not open either source or destination lru.py file"
@@ -20,25 +20,38 @@ except IOError as e:
     print e
     exit()
  
-# Render the settings py from template with mongo/scrapy config from config.json
-print "Rendering settings.py with mongo-scrapy config values from config.json..."
-try :
-    with nested(open("hcicrawler/settings.py.template", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
-        generated.write(pystache.render(template.read(), config['mongo-scrapy']))
+# Render the proxy middleware settings (hcicrawler/middlewares.py) from template with mongo/scrapy proxy config from config.json when defined
+print "Rendering hcicrawler/middlewares.py with proxy config values from config.json..."
+proxyconf = {'host': '', 'port': 3128}
+if "proxy_host" in config['mongo-scrapy']:
+    proxyconf['host'] = config['mongo-scrapy']['proxy_host']
+if "proxy_port" in config['mongo-scrapy']:
+    proxyconf['port'] = config['mongo-scrapy']['proxy_port']
+try:
+    with nested(open("hcicrawler/middlewares-template.py", "r"), open("hcicrawler/middlewares.py", "w")) as (template, generated):
+        generated.write(pystache.render(template.read(), proxyconf))
 except IOError as e:
-    print "Could not open either hcicrawler/settings.py template file or hcicrawler/settings.py"
-    print "crawler/hcicrawler/settings.py.template", "crawler/hcicrawler/settings.py"
+    print "Could not open either crawler/hcicrawler/middlewares-template.py file or crawler/hcicrawler/middlewares.py"
     print e
     exit()
 
-# Render the scrapy cfg from template with  scrapy config from config.json
+# Render the settings py from template with mongo/scrapy config from config.json
+print "Rendering settings.py with mongo-scrapy config values from config.json..."
+try:
+    with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
+        generated.write(pystache.render(template.read(), config['mongo-scrapy']))
+except IOError as e:
+    print "Could not open either crawler/hcicrawler/settings-template.py file or crawler/hcicrawler/settings.py"
+    print e
+    exit()
+
+# Render the scrapy cfg from template with scrapy config from config.json
 print "Rendering scrapy.cfg with scrapy config values from config.json..."
-try :
+try:
     with nested(open("scrapy-template.cfg", "r"), open("scrapy.cfg", "w")) as (template, generated):
         generated.write(pystache.render(template.read(), config['mongo-scrapy']))
 except IOError as e:
-    print "Could not open either scrapy.cfg template file or scrapy.cfg"
-    print "crawler/scrapy-template.cfg", "crawler/scrapy.cfg"
+    print "Could not open either crawler/scrapy-template.cfg template file or crawler/scrapy.cfg"
     print e
     exit()
 

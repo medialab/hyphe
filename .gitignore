@@ -3,6 +3,7 @@ crawler/build
 crawler/scrapy.cfg
 crawler/hcicrawler.egg-info
 crawler/hcicrawler/settings.py
+crawler/hcicrawler/middlewares.py
 crawler/hcicrawler/lru.py
 *.pyc
 core/gen-py.twisted

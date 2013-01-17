@@ -18,6 +18,11 @@ CONCURRENT_REQUESTS_PER_DOMAIN = {{max_simul_requests_per_host}}
 DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
 REDIRECT_ENABLED = False
 
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 110,
+    'hcicrawler.middlewares.ProxyMiddleware': 100,
+}
+
 MONGO_HOST = '{{host}}'
 MONGO_PORT = {{mongo_port}}
 MONGO_DB = '{{project}}'
