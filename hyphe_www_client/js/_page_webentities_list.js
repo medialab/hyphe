@@ -147,7 +147,7 @@
                         .append(
                             $('<a class="btn btn-primary"/>').html('<i class="icon-edit icon-white"/>')
                                 .attr('title', 'Edit')
-                                .attr('href', 'webEntity_edit.php#we_id='+$(actionsDiv).attr('we_id'))
+                                .attr('href', 'webentity_edit.php#we_id='+$(actionsDiv).attr('we_id'))
                         ).append(
                             $('<a class="btn"/>').html('<i class="icon-download-alt"/>')
                                 .attr('title', 'Crawl')
