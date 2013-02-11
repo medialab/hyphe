@@ -6,7 +6,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </a>
-                    <a class="brand" href="#">Hyphen</a>
+                    <a class="brand" href="#">Hyphe</a>
                     <div class="nav-collapse collapse">
                         <ul class="nav">
                             <!--<li class="active"><a href="#">Gaga</a></li>-->
