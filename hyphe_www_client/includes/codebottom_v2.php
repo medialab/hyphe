@@ -9,6 +9,11 @@
 
 <script src="js/libs/FileSaver.js"></script>
 
+<script src="js/libs/domino.js"></script>
+<script src="js/libs/domino.modules.js"></script>
+
+<script src="_config/config.js"></script>
+
 <!--[if lt IE 7 ]>
 	<script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.2/CFInstall.min.js"></script>
 	<script>window.attachEvent("onload",function(){CFInstall.check({mode:"overlay"})})</script>

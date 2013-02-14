@@ -54,7 +54,7 @@
 
             <div class="row">
                 <div class="span12">
-                    <h1>Web entity</h1>
+                    <h1 id="pageTitle">Web entity</h1>
                     <p class="text-info">
                         Manage and edit a given web entity
                     </p>
