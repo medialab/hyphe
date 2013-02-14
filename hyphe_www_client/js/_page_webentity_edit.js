@@ -1,8 +1,10 @@
 // Use jQuery ajax
 domino.utils.ajax = $.ajax
 // Hack: preventing a bug related to a port in a URL for Ajax
-domino.settings('shortcutPrefix', "::")
-domino.settings('verbose', true)
+domino.settings({
+    shortcutPrefix: "::"
+    ,verbose: true
+})
 
 
 ;(function($, domino, undefined){
@@ -11,7 +13,7 @@ domino.settings('verbose', true)
     if(HYPHE_CONFIG === undefined)
         alert('Your installation of Hyphe has no configuration.\nCreate a file at "_config/config.js" in the same directory than index.php, with at least this content:\n\nHYPHE_CONFIG = {\n"SERVER_ADDRESS":"http://YOUR_RPC_ENDPOINT_URL"\n}')
 
-    var d = new domino({
+    var D = new domino({
         properties: [
             {
                 id:'currentWebEntity'
@@ -20,9 +22,9 @@ domino.settings('verbose', true)
             }
         ],services: [
             {
-                id: 'getWebEntity'
+                id: 'getCurrentWebEntity'
                 ,setter: 'currentWebEntity'
-                ,data: function(settings){  return JSON.stringify({// It's JSON RPC
+                ,data: function(settings){  return JSON.stringify({ //JSON RPC
                         'method' : 'store.get_webentities',
                         'params' : [[settings.shortcuts.webEntityId]],
                     })}
@@ -33,21 +35,33 @@ domino.settings('verbose', true)
     })
 
     //// Modules
-    // Page title
-    d.addModule(function(){
+
+    // Log the web entity in the console
+    D.addModule(function(){
         domino.module.call(this)
 
-        this.triggers.events['currentWebEntity_updated'] = function(dominoInstance) {
-            var webEntity = dominoInstance.get('currentWebEntity')
-            $('#pageTitle').text('WebEntity: '+webEntity.name)
-            console.log('webEntity:')
-            console.log(webEntity)
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            console.log('Current web entity', webEntity)
         }
     })
 
-    // Get the web entity
+    // Page title
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            $('#pageTitle').text('Edit: '+webEntity.name)
+        }
+    })
+
+
+
+
+    //// On load, get the web entity
     $(document).ready(function(e){
-        d.request('getWebEntity', {shortcuts:{
+        D.request('getCurrentWebEntity', {shortcuts:{
             webEntityId: Utils.hash.get('we_id')
         }})
     })
