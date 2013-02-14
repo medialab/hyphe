@@ -32,8 +32,9 @@ domino.settings('verbose', true)
         ]
     })
 
-    // Module: page title
-    function pageTitle(){
+    //// Modules
+    // Page title
+    d.addModule(function(){
         domino.module.call(this)
 
         this.triggers.events['currentWebEntity_updated'] = function(dominoInstance) {
@@ -42,14 +43,12 @@ domino.settings('verbose', true)
             console.log('webEntity:')
             console.log(webEntity)
         }
-    }
-
-    d.addModule(pageTitle)
+    })
 
     // Get the web entity
     $(document).ready(function(e){
         d.request('getWebEntity', {shortcuts:{
-            webEntityId: '1c9f0e3a-c52e-45cf-8911-97ea4c68bedd'
+            webEntityId: Utils.hash.get('we_id')
         }})
     })
 
