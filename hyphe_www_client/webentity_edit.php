@@ -67,12 +67,8 @@
             </div>
 
             <div class="row">
-                <div class="span12">
-                    <h3>Identity</h3>
-                </div>
-            </div>
-            <div class="row">
                 <div class="span8">
+                    <h3>Identity</h3>
                     <table class="table table-editable">
                         <tr>
                             <th>Name</th>
@@ -96,7 +92,12 @@
                     </table>
                 </div>
                 <div class="span4">
-                    <p>lru_prefixes</p>
+                    <h3>Definition</h3>
+                    <p class="text-info">
+                        The web entity is defined by these prefixes
+                    </p>
+                    <table id="lru_prefixes" class="table">
+                    </table>
                 </div>
                 
             </div>

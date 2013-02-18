@@ -105,7 +105,7 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Page ID
+    // Identity table: ID
     D.addModule(function(){
         domino.module.call(this)
 
@@ -115,7 +115,7 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Page Dates
+    // Identity table: Dates
     D.addModule(function(){
         domino.module.call(this)
 
@@ -126,7 +126,32 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Page editable name
+    // LRU_prefixes
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            $('#lru_prefixes').html('')
+            webEntity.lru_prefixes.forEach(function(lru_prefix){
+                $('#lru_prefixes').append(
+                    $('<tr/>').append(
+                        $('<td/>').text(Utils.LRU_to_URL(lru_prefix))
+                    ).append(
+                        $('<td>').append(
+                            $('<a class="btn btn-mini pull-right"/>')
+                                .attr('href', Utils.LRU_to_URL(lru_prefix))
+                                .attr('target', 'blank')
+                                .append($('<i class="icon-share-alt"/>'))
+                        )
+                    )
+                )
+            })
+            
+        }
+    })
+
+    // Identity table: editable name
     D.addModule(function(){
         domino.module.call(this)
         $('#name').editable({
@@ -150,7 +175,7 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Page editable status
+    // Identity table: editable status
     D.addModule(function(){
         domino.module.call(this)
         $('#status').editable({
