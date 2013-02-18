@@ -4,4 +4,7 @@ HYPHE_API = {
 	WEBENTITIES:{
 		GET: 'store.get_webentities'
 	}
+	,WEBENTITY:{
+		SET_NAME:'store.rename_webentity'
+	}
 }

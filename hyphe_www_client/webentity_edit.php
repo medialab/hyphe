@@ -69,19 +69,30 @@
                 </div>
             </div>
             <div class="row">
-                <div class="span3">
-                    <p>Name</p>
-                    <p>Home page</p>
+                <div class="span8">
+                    <table class="table">
+                        <tr>
+                            <td>Name</td>
+                            <td><a id="name">...</a></td>
+                        </tr><tr>
+                            <td>Status</td>
+                            <td><a id="status">...</a></td>
+                        </tr><tr>
+                            <td>Home page</td>
+                            <td><a id="homepage">...</a></td>
+                        </tr><tr>
+                            <td>ID</td>
+                            <td><span class="muted" id="id">...</span></td>
+                        </tr><tr>
+                            <td>Creation Date</td>
+                            <td><span class="muted" id="creation_date">...</span></td>
+                        </tr><tr>
+                            <td>Last modified</td>
+                            <td><span class="muted" id="last_modification_date">...</span></td>
+                        </tr>
+                    </table>
                 </div>
-                <div class="span3">
-                    <p class="muted">creation_date</p>
-                    <p class="muted">last_modification_date</p>
-                    <p class="muted">identifier</p>
-                </div>
-                <div class="span3">
-                    <p>Status (discovered/blabla/blabla)</p>
-                </div>
-                <div class="span3">
+                <div class="span4">
                     <p>lru_prefixes</p>
                 </div>
                 

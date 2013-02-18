@@ -1,11 +1,14 @@
 // Use jQuery ajax
 domino.utils.ajax = $.ajax
+
 // Hack: preventing a bug related to a port in a URL for Ajax
 domino.settings({
     shortcutPrefix: "::"
     ,verbose: true
 })
 
+// X-Editable: inline mode
+$.fn.editable.defaults.mode = 'inline';
 
 ;(function($, domino, undefined){
     
@@ -19,6 +22,11 @@ domino.settings({
                 id:'currentWebEntity'
                 ,dispatch: 'currentWebEntity_updated'
                 ,triggers: 'update_currentWebEntity'
+            },
+            {
+                id:'nameValidation'
+                ,dispatch: 'nameValidation_updated'
+                ,triggers: 'update_nameValidation'
             }
         ],services: [
             {
@@ -26,23 +34,43 @@ domino.settings({
                 ,setter: 'currentWebEntity'
                 ,data: function(settings){  return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
-                        'params' : [[settings.shortcuts.webEntityId]],
+                        'params' : [
+                            [settings.shortcuts.webEntityId]    // List of web entities ids
+                        ],
                     })}
                 ,path:'0.result.0'
                 ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
+            },{
+                id: 'setCurrentWebEntityName'
+                ,setter: 'nameValidation'
+                ,data: function(settings){  return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.SET_NAME,
+                        'params' : [
+                            settings.shortcuts.webEntityId      // web entity id
+                            ,settings.shortcuts.name     // new name
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
             }
+        ],hacks:[
         ]
     })
 
     //// Modules
 
-    // Log the web entity in the console
+    // Log stuff in the console
     D.addModule(function(){
         domino.module.call(this)
 
         this.triggers.events['currentWebEntity_updated'] = function(d) {
             var webEntity = d.get('currentWebEntity')
             console.log('Current web entity', webEntity)
+        }
+
+        this.triggers.events['nameValidation_updated'] = function(d) {
+            var nameValidation = d.get('nameValidation')
+            console.log('nameValidation', nameValidation)
         }
     })
 
@@ -54,6 +82,52 @@ domino.settings({
             var webEntity = d.get('currentWebEntity')
             $('#pageTitle').text('Edit: '+webEntity.name)
         }
+    })
+
+    // Page ID
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            $('#id').text(webEntity.id)
+        }
+    })
+
+    // Page Dates
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            $('#creation_date').text(Utils.prettyDate(webEntity.creation_date))
+            $('#last_modification_date').text(Utils.prettyDate(webEntity.last_modification_date))
+        }
+    })
+
+    // Page name
+    D.addModule(function(){
+        domino.module.call(this)
+        $('#name').editable({
+            type: 'text'
+            ,title: 'Enter name'
+            ,disabled: true
+            ,validate: function(name){
+                $('.editable').editable('disable')
+                var webEntity = D.get('currentWebEntity')
+                D.request('setCurrentWebEntityName', {shortcuts:{
+                    webEntityId: webEntity.id
+                    ,name: name
+                }})
+            }
+        })
+        
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            $('#name').editable('option', 'value', webEntity.name)
+            $('#name').editable('enable')
+        }
+
     })
 
     // Tags
@@ -87,7 +161,16 @@ domino.settings({
         }
     })
 
+    // Reload all current web entity on property update
+    D.addModule(function(){
+        domino.module.call(this)
 
+        this.triggers.events['nameValidation_updated'] = function() {
+            D.request('getCurrentWebEntity', {shortcuts:{
+                webEntityId: D.get('currentWebEntity').id
+            }})
+        }
+    })
 
 
     //// On load, get the web entity
