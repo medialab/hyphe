@@ -16,6 +16,13 @@ $.fn.editable.defaults.mode = 'inline';
     if(HYPHE_CONFIG === undefined)
         alert('Your installation of Hyphe has no configuration.\nCreate a file at "_config/config.js" in the same directory than index.php, with at least this content:\n\nHYPHE_CONFIG = {\n"SERVER_ADDRESS":"http://YOUR_RPC_ENDPOINT_URL"\n}')
 
+    // Stuff we reuse often when we initialize Domino
+    var rpc_url = HYPHE_CONFIG.SERVER_ADDRESS
+        ,rpc_contentType = 'application/x-www-form-urlencoded'
+        ,rpc_type = 'POST'
+        ,rpc_expect = function(data){return data[0].code == 'success'}
+        ,rpc_error = function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
+
     var D = new domino({
         properties: [
             {
@@ -30,6 +37,10 @@ $.fn.editable.defaults.mode = 'inline';
                 id:'statusValidation'
                 ,dispatch: 'statusValidation_updated'
                 ,triggers: 'update_statusValidation'
+            },{
+                id:'homepageValidation'
+                ,dispatch: 'homepageValidation_updated'
+                ,triggers: 'update_homepageValidation'
             }
         ],services: [
             {
@@ -42,9 +53,7 @@ $.fn.editable.defaults.mode = 'inline';
                         ],
                     })}
                 ,path:'0.result.0'
-                ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
-                ,expect: function(data){return data[0].code == 'success'}
-                ,error: function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'setCurrentWebEntityName'
                 ,setter: 'nameValidation'
@@ -56,9 +65,7 @@ $.fn.editable.defaults.mode = 'inline';
                         ],
                     })}
                 ,path:'0.result'
-                ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
-                ,expect: function(data){return data[0].code == 'success'}
-                ,error: function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'setCurrentWebEntityStatus'
                 ,setter: 'statusValidation'
@@ -70,9 +77,19 @@ $.fn.editable.defaults.mode = 'inline';
                         ],
                     })}
                 ,path:'0.result'
-                ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
-                ,expect: function(data){return data[0].code == 'success'}
-                ,error: function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'setCurrentWebEntityHomepage'
+                ,setter: 'homepageValidation'
+                ,data: function(settings){  return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.SET_HOMEPAGE,
+                        'params' : [
+                            settings.shortcuts.webEntityId      // web entity id
+                            ,settings.shortcuts.homepage        // new homepage
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             }
         ],hacks:[
         ]
@@ -126,7 +143,7 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // LRU_prefixes
+    // Prefixes
     D.addModule(function(){
         domino.module.call(this)
 
@@ -139,7 +156,7 @@ $.fn.editable.defaults.mode = 'inline';
                         $('<td/>').text(Utils.LRU_to_URL(lru_prefix))
                     ).append(
                         $('<td>').append(
-                            $('<a class="btn btn-mini pull-right"/>')
+                            $('<a class="btn btn-link pull-right"/>')
                                 .attr('href', Utils.LRU_to_URL(lru_prefix))
                                 .attr('target', 'blank')
                                 .append($('<i class="icon-share-alt"/>'))
@@ -151,13 +168,14 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Identity table: editable name
+    // Editable name
     D.addModule(function(){
         domino.module.call(this)
         $('#name').editable({
             type: 'text'
             ,title: 'Enter name'
             ,disabled: true
+            ,unsavedclass: null
             ,validate: function(name){
                 $('.editable').editable('disable')
                 var webEntity = D.get('currentWebEntity')
@@ -175,22 +193,61 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Identity table: editable status
+    // Editable home page
+    D.addModule(function(){
+        domino.module.call(this)
+        $('#homepage').editable({
+            type: 'text'
+            ,title: 'Enter home page URL'
+            ,disabled: true
+            ,unsavedclass: null
+            ,validate: function(homepage){
+                var webEntity = D.get('currentWebEntity')
+                if(homepage != ''){
+                    if(!Utils.URL_validate(homepage))
+                        return 'URL is invalid'
+
+                    // Check that the homepage is in one of the LRU prefixes
+                    var homepage_lru = Utils.URL_to_LRU(homepage)
+                        ,lru_valid = false
+                    webEntity.lru_prefixes.forEach(function(lru_prefix){
+                        if(homepage_lru.indexOf(lru_prefix) == 0)
+                            lru_valid = true
+                    })
+                    if(!lru_valid)
+                        return 'URL does not belong to this web entity (see the prefixes)'
+                }
+
+                $('.editable').editable('disable')
+                D.request('setCurrentWebEntityHomepage', {shortcuts:{
+                    webEntityId: webEntity.id
+                    ,homepage: homepage
+                }})
+            }
+        })
+        
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            $('#homepage').editable('option', 'value', webEntity.homepage || '')
+            $('#homepage').editable('enable')
+        }
+    })
+
+    // Editable status
     D.addModule(function(){
         domino.module.call(this)
         $('#status').editable({
             type: 'select'
             ,title: 'Select status'
+            ,disabled: true
+            ,unsavedclass: null
             ,source: [
                 {value: 'UNDECIDED', text: "Undecided"}
                 ,{value: 'IN', text: "In"}
                 ,{value: 'OUT', text: "Out"}
                 ,{value: 'DISCOVERED', text: "Discovered"}
             ]
-            ,disabled: true
             ,validate: function(status){
-                if(['UNDECIDED', 'IN', 'OUT', 'DISCOVERED'].indexOf(status)<0)
-                    return false
                 $('.editable').editable('disable')
                 var webEntity = D.get('currentWebEntity')
                 D.request('setCurrentWebEntityStatus', {shortcuts:{
@@ -242,7 +299,7 @@ $.fn.editable.defaults.mode = 'inline';
     D.addModule(function(){
         domino.module.call(this)
 
-        this.triggers.events['nameValidation_updated', 'statusValidation_updated'] = function() {
+        this.triggers.events['nameValidation_updated', 'statusValidation_updated', 'homepageValidation_updated'] = function() {
             D.request('getCurrentWebEntity', {shortcuts:{
                 webEntityId: D.get('currentWebEntity').id
             }})
