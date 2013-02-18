@@ -16,6 +16,7 @@
 <script src="_config/config.js"></script>
 
 <script src="js/utils.js"></script>
+<script src="js/hyphe_api.js"></script>
 
 <!--[if lt IE 7 ]>
 	<script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.2/CFInstall.min.js"></script>

@@ -25,7 +25,7 @@ domino.settings({
                 id: 'getCurrentWebEntity'
                 ,setter: 'currentWebEntity'
                 ,data: function(settings){  return JSON.stringify({ //JSON RPC
-                        'method' : 'store.get_webentities',
+                        'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [[settings.shortcuts.webEntityId]],
                     })}
                 ,path:'0.result.0'
