@@ -61,7 +61,7 @@ class Core(jsonrpc.JSONRPC):
 
     def render(self, request):
         request.setHeader("Access-Control-Allow-Origin", "*")
-        if config.DEBUG:
+        if config['DEBUG']:
             print "QUERY: %s" % request.content.read()
         return jsonrpc.JSONRPC.render(self, request)
 
