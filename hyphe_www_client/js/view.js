@@ -146,7 +146,7 @@
         return (status=='DISCOVERED')?('label-warning'):(
                 (status=='UNDECIDED')?('label-info'):(
                     (status=='OUT')?('label-important'):(
-                        (status=='OUT')?('label-success'):('')
+                        (status=='IN')?('label-success'):('')
                     )
                 )
             )
