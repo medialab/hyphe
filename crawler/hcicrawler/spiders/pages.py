@@ -7,7 +7,7 @@ from scrapy.utils.url import url_has_any_extension
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy import log
 
-from pymongo.binary import Binary
+from bson.binary import Binary
 
 from hcicrawler.lru import url_to_lru_clean
 from hcicrawler.items import Page
