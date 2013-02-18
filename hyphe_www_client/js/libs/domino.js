@@ -162,10 +162,11 @@
      *
      * Here is the list of options that are interpreted:
      *
-     *   {?boolean} full     If true, then the full scope will be returned.
-     *   {?boolean} interact If true, then the returned scope will have the
-     *                       possibility to interact, but will not have direct
-     *                       references to domino methods.
+     *   {?boolean} full          If true, then the full scope will be returned
+     *   {?boolean} request       If true, then the scope will be able to use
+     *                            the "request" method
+     *   {?boolean} dispatchEvent If true, then the scope will be able to use
+     *                            the "dispatchEvent" method
      */
     function _getScope(options) {
       var o = options || {},
@@ -486,6 +487,16 @@
      *                                  AJAX.
      *   {?function}       success+     A function to execute if AJAX
      *                                  successed.
+     *   {?function}       expect+      A function to execute before the
+     *                                  success. If returns true, the "success"
+     *                                  callback will be triggered. Else, the
+     *                                  "error" callback will be triggered.
+     *                                  This value can be set as well from the
+     *                                  instance settings or the global
+     *                                  settings.
+     *                                  This function takes as arguments the
+     *                                  data returned by the service, the input
+     *                                  object and the service configuration.
      *   {?string}         setter+*     The name of a property. If the setter
      *                                  exists, then it will be called with the
      *                                  received data as parameter, or the
@@ -623,7 +634,19 @@
               reiterate = false,
               path = p['path'] || o['path'],
               setter = p['setter'] || o['setter'],
-              success = p['success'] || o['success'];
+              success = p['success'] || o['success'],
+              expect = p['expect'] || o['expect'] || _settings('expect');
+
+          // Check "expect" test:
+          if (
+            _struct.get(expect) === 'function' &&
+            // If expect returns "falsy", then the error callback is called
+            // instead of the success:
+            !expect.call(_getScope(), data, p, o)
+          ) {
+            ajaxObj.error.call(this, 'Unexpected data received.', this);
+            return;
+          }
 
           // Expand different string params:
           if (

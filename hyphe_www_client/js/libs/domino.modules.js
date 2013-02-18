@@ -265,6 +265,9 @@
    *                                 label of the property)
    *   {?string}         cssId       The HTML id of the HTML element
    *   {?string}         buttonLabel The HTML id of the HTML element
+   *   {?boolean}        validate    Indicates wether or not the property must
+   *                                 be updated on "Validate" being clicked or
+   *                                 at any change (default: true)
    *   {?(array|string)} dispatch    The events to dispatch when clicked
    *   {string}          property    The name of the flag to represent
    *   {?(array|string)} triggers    The events to listen from domino
@@ -284,25 +287,31 @@
               d.getEvents(o['property'])[0] :
               null),
         html = o['element'] || $('<fieldset>' +
-                   '<label for="' + (o['cssId'] || o['property']) + '">' +
-                     (o['label'] || d.getLabel(o['property'])) +
-                   '</label>' +
-                   '<input type="text" id="' +
-                     (o['cssId'] || o['property']) +
-                   '" />' +
-                   '<button>' +
+                 '<label for="' + (o['cssId'] || o['property']) + '">' +
+                   (o['label'] || d.getLabel(o['property'])) +
+                 '</label>' +
+                 '<input type="text" id="' +
+                   (o['cssId'] || o['property']) +
+                 '" />' +
+                 '<button>' +
                    (o['buttonLabel'] || 'Validate') +
-                   '</button>' +
-                 '</fieldset>');
+                 '</button>' +
+               '</fieldset>');
 
     o['cssId'] && html.attr('id', o['cssId']);
 
-    html.find('button').click(function() {
+    function dispatchUpdate() {
       var data = {};
       data[o['property']] = html.find('input').val();
 
       // Dispatch the event
       dispatch && self.dispatchEvent(dispatch, data);
+    };
+
+    html.find('button').click(dispatchUpdate);
+    html.find('input').keyup(function(e) {
+      if (e.keyCode === 13)
+        dispatchUpdate.call(this, e);
     });
 
     function update(domino) {
@@ -332,6 +341,9 @@
    *   {?string}         element     The HTML element
    *   {?string}         label       The label of the module (default: the
    *                                 label of the property)
+   *   {?boolean}        validate    Indicates wether or not the property must
+   *                                 be updated on "Validate" being clicked or
+   *                                 at any change (default: true)
    *   {?string}         cssId       The HTML id of the HTML element
    *   {?string}         sep         The separator for the splits/joins
    *   {?string}         buttonLabel The HTML id of the HTML element
@@ -353,6 +365,7 @@
             (d.getEvents(o['property']).length === 1 ?
               d.getEvents(o['property'])[0] :
               null),
+        values = [],
         html = o['element'] || $('<fieldset>' +
                    '<label for="' + (o['cssId'] || o['property']) + '">' +
                      (o['label'] || d.getLabel(o['property'])) +
@@ -361,13 +374,13 @@
                      (o['cssId'] || o['property']) +
                    '" />' +
                    '<button>' +
-                   (o['buttonLabel'] || 'Validate') +
+                     (o['buttonLabel'] || 'Validate') +
                    '</button>' +
                  '</fieldset>');
 
     o['cssId'] && html.attr('id', o['cssId']);
 
-    html.find('button').click(function() {
+    function dispatchUpdate() {
       var data = {};
       data[o['property']] =
         html.find('input').val().split(',' || o['sep']).map(function(s) {
@@ -378,12 +391,28 @@
 
       // Dispatch the event
       dispatch && self.dispatchEvent(dispatch, data);
+    }
+
+    html.find('button').click(dispatchUpdate);
+    html.find('input').keyup(function(e) {
+      if (e.keyCode === 13)
+        dispatchUpdate.call(this, e);
     });
 
     function update(domino) {
-      html.find('input').val(
-        domino.get(o['property']).join(', ' || o['sep'])
-      );
+      var newValues = domino.get(o['property'])
+
+      if (
+        values.length !== newValues.length ||
+        values.some(function(v, i) {
+          return v !== newValues[i];
+        })
+      ) {
+        values = newValues;
+        html.find('input').val(
+          domino.get(o['property']).join(', ' || o['sep'])
+        );
+      }
     }
 
     if (o['triggers'])
@@ -437,18 +466,24 @@
                      (o['cssId'] || o['property']) +
                    '" />' +
                    '<button>' +
-                   (o['buttonLabel'] || 'Validate') +
+                     (o['buttonLabel'] || 'Validate') +
                    '</button>' +
                  '</fieldset>');
 
     o['cssId'] && html.attr('id', o['cssId']);
 
-    html.find('button').click(function() {
+    function dispatchUpdate() {
       var data = {};
       data[o['property']] = +html.find('input').val();
 
       // Dispatch the event
       dispatch && self.dispatchEvent(dispatch, data);
+    }
+
+    html.find('button').click(dispatchUpdate);
+    html.find('input').keyup(function(e) {
+      if (e.keyCode === 13)
+        dispatchUpdate.call(this, e);
     });
 
     function update(domino) {
@@ -501,7 +536,7 @@
               d.getEvents(o['property'])[0] :
               null),
         selected,
-        values,
+        values = [],
         html = o['element'] || $('<select></select>');
 
     o['cssClass'] && html.addClass(o['cssClass']);
@@ -533,12 +568,21 @@
       if (typeof o['values'] !== 'string')
         return;
 
-      values = domino.get(o['values']);
-      html.empty().append(values.map(function(v) {
-        return typeof v === 'string' ?
-          '<option value="' + v + '">' + v + '</option>' :
-          '<option value="' + v.id + '">' + (v.label || v.id) + '</option>';
-      })).val(selected);
+      var newValues = domino.get(o['values'])
+
+      if (
+        values.length !== newValues.length ||
+        values.some(function(v, i) {
+          return v !== newValues[i];
+        })
+      ) {
+        values = newValues;
+        html.empty().append(values.map(function(v) {
+          return typeof v === 'string' ?
+            '<option value="' + v + '">' + v + '</option>' :
+            '<option value="' + v.id + '">' + (v.label || v.id) + '</option>';
+        })).val(selected);
+      }
     }
 
     if (o['triggers'])
