@@ -22,11 +22,14 @@ $.fn.editable.defaults.mode = 'inline';
                 id:'currentWebEntity'
                 ,dispatch: 'currentWebEntity_updated'
                 ,triggers: 'update_currentWebEntity'
-            },
-            {
+            },{
                 id:'nameValidation'
                 ,dispatch: 'nameValidation_updated'
                 ,triggers: 'update_nameValidation'
+            },{
+                id:'statusValidation'
+                ,dispatch: 'statusValidation_updated'
+                ,triggers: 'update_statusValidation'
             }
         ],services: [
             {
@@ -40,6 +43,8 @@ $.fn.editable.defaults.mode = 'inline';
                     })}
                 ,path:'0.result.0'
                 ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
+                ,expect: function(data){return data[0].code == 'success'}
+                ,error: function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
             },{
                 id: 'setCurrentWebEntityName'
                 ,setter: 'nameValidation'
@@ -52,6 +57,8 @@ $.fn.editable.defaults.mode = 'inline';
                     })}
                 ,path:'0.result'
                 ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
+                ,expect: function(data){return data[0].code == 'success'}
+                ,error: function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
             },{
                 id: 'setCurrentWebEntityStatus'
                 ,setter: 'statusValidation'
@@ -64,6 +71,8 @@ $.fn.editable.defaults.mode = 'inline';
                     })}
                 ,path:'0.result'
                 ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
+                ,expect: function(data){return data[0].code == 'success'}
+                ,error: function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
             }
         ],hacks:[
         ]
@@ -208,7 +217,7 @@ $.fn.editable.defaults.mode = 'inline';
     D.addModule(function(){
         domino.module.call(this)
 
-        this.triggers.events['nameValidation_updated'] = function() {
+        this.triggers.events['nameValidation_updated', 'statusValidation_updated'] = function() {
             D.request('getCurrentWebEntity', {shortcuts:{
                 webEntityId: D.get('currentWebEntity').id
             }})
