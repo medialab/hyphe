@@ -55,7 +55,7 @@ public class RandomLRUGenerator {
         }
 
         // either create another host element or create a path element
-        if(lastElement == 'h') {
+        if(lastElement.equals('h')) {
             // host element
             if(r.nextBoolean()) {
                 randomNextElement = "h:" + randomNextElement;
@@ -79,7 +79,7 @@ public class RandomLRUGenerator {
             }
         }
         // either create another path element, or not
-        else if(lastElement == 'p') {
+        else if(lastElement.equals('p')) {
             // path element
             if(r.nextBoolean() && pcount < 6) {
                 randomNextElement = "p:" + randomNextElement;
