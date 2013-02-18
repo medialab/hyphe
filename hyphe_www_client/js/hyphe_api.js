@@ -6,5 +6,6 @@ HYPHE_API = {
 	}
 	,WEBENTITY:{
 		SET_NAME:'store.rename_webentity'
+		,SET_STATUS: 'set_webentity_status'
 	}
 }

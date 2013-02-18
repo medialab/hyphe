@@ -47,7 +47,19 @@ $.fn.editable.defaults.mode = 'inline';
                         'method' : HYPHE_API.WEBENTITY.SET_NAME,
                         'params' : [
                             settings.shortcuts.webEntityId      // web entity id
-                            ,settings.shortcuts.name     // new name
+                            ,settings.shortcuts.name            // new name
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
+            },{
+                id: 'setCurrentWebEntityStatus'
+                ,setter: 'statusValidation'
+                ,data: function(settings){  return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.SET_STATUS,
+                        'params' : [
+                            settings.shortcuts.webEntityId      // web entity id
+                            ,settings.shortcuts.status          // new status
                         ],
                     })}
                 ,path:'0.result'
@@ -105,7 +117,7 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Page name
+    // Page editable name
     D.addModule(function(){
         domino.module.call(this)
         $('#name').editable({
@@ -127,7 +139,38 @@ $.fn.editable.defaults.mode = 'inline';
             $('#name').editable('option', 'value', webEntity.name)
             $('#name').editable('enable')
         }
+    })
 
+    // Page editable status
+    D.addModule(function(){
+        domino.module.call(this)
+        $('#status').editable({
+            type: 'select'
+            ,title: 'Select status'
+            ,source: [
+                {value: 'UNDECIDED', text: "Undecided"}
+                ,{value: 'IN', text: "In"}
+                ,{value: 'OUT', text: "Out"}
+                ,{value: 'DISCOVERED', text: "Discovered"}
+            ]
+            ,disabled: true
+            ,validate: function(status){
+                if(['UNDECIDED', 'IN', 'OUT', 'DISCOVERED'].indexOf(status)<0)
+                    return false
+                $('.editable').editable('disable')
+                var webEntity = D.get('currentWebEntity')
+                D.request('setCurrentWebEntityStatus', {shortcuts:{
+                    webEntityId: webEntity.id
+                    ,status: status
+                }})
+            }
+        })
+        
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            $('#status').editable('option', 'value', webEntity.status)
+            $('#status').editable('enable')
+        }
     })
 
     // Tags
