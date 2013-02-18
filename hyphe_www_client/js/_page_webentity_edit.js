@@ -56,6 +56,37 @@ domino.settings({
         }
     })
 
+    // Tags
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+                ,userTagCategories = webEntity.tags.USER || {}
+                ,coreTagCategories = webEntity.tags.CORE || {}
+            
+            $('#tags_USER').html('')
+            for(var cat in userTagCategories){
+                $('#tags_USER').append($('<br/>'))
+                    .append($('<h6/>').text(cat))
+                var taglist = $('<div/>')
+                        .addClass('tag-list')
+                        .attr('tagns', 'user')
+                        .attr('cat', cat)
+                        .append(
+                            $('<div class="tags"></div>')
+                        )
+                $('#tags_USER').append(taglist)
+
+                /*taglist.tags({
+                    tagData:[userTagCategories[cat]]
+                    ,suggestions:[]
+                    ,excludeList:[]
+                })*/
+            }
+        }
+    })
+
 
 
 

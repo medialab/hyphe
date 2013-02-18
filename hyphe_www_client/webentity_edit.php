@@ -14,6 +14,7 @@
         <style>
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="css/bootstrap-editable.css">
         <link rel="stylesheet" href="css/select2.css">
         <link rel="stylesheet" href="css/jquery.dataTables.css">
         <link rel="stylesheet" href="css/main.css">
@@ -64,7 +65,50 @@
 
             <div class="row">
                 <div class="span12">
+                    <h3>Identity</h3>
+                </div>
+            </div>
+            <div class="row">
+                <div class="span3">
+                    <p>Name</p>
+                    <p>Home page</p>
+                </div>
+                <div class="span3">
+                    <p class="muted">creation_date</p>
+                    <p class="muted">last_modification_date</p>
+                    <p class="muted">identifier</p>
+                </div>
+                <div class="span3">
+                    <p>Status (discovered/blabla/blabla)</p>
+                </div>
+                <div class="span3">
+                    <p>lru_prefixes</p>
+                </div>
+                
+            </div>
 
+            <div class="row">
+                <div class="span8">
+                    <h3>Tags</h3>
+                    <!-- <div id="tags_user"></div> -->
+                    <div id="tags_USER"></div>
+                </div>
+                <div class="span4">
+                    <h3>Technical tags</h3>
+                    <div id="tags_technical"></div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="span12">
+                    <h3>Crawl</h3>
+                </div>
+            </div>
+            <div class="row">
+                <div class="span6">
+                    <p>Crawl status</p>
+                    <p>Indexing status</p>
+                    <p>startpages</p>
                 </div>
             </div>
         </div>
