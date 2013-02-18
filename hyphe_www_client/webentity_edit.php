@@ -12,6 +12,9 @@
 
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <style>
+.table.table-editable tr th{
+    width: 120px;
+}
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/bootstrap-editable.css">
@@ -57,7 +60,7 @@
                 <div class="span12">
                     <h1 id="pageTitle">Edit web entity <span class="muted">(loading)</span></h1>
                     <p class="text-info">
-                        Manage and edit a given web entity
+                        Edit this web entity. Click on the underlined fields to edit them.
                     </p>
                     <hr>
                 </div>
@@ -70,24 +73,24 @@
             </div>
             <div class="row">
                 <div class="span8">
-                    <table class="table">
+                    <table class="table table-editable">
                         <tr>
-                            <td>Name</td>
+                            <th>Name</th>
                             <td><a id="name">...</a></td>
                         </tr><tr>
-                            <td>Status</td>
+                            <th>Status</th>
                             <td><a id="status">...</a></td>
                         </tr><tr>
-                            <td>Home page</td>
+                            <th>Home page</th>
                             <td><a id="homepage">...</a></td>
                         </tr><tr>
-                            <td>ID</td>
+                            <th>ID</th>
                             <td><span class="muted" id="id">...</span></td>
                         </tr><tr>
-                            <td>Creation Date</td>
+                            <th>Creation Date</th>
                             <td><span class="muted" id="creation_date">...</span></td>
                         </tr><tr>
-                            <td>Last modified</td>
+                            <th>Last modified</th>
                             <td><span class="muted" id="last_modification_date">...</span></td>
                         </tr>
                     </table>
