@@ -15,6 +15,12 @@
 .table.table-editable tr th{
     width: 120px;
 }
+.table.table-tags tr th{
+    width: 250px;
+}
+.occasionalSpacer{  /* We just need to add some air to this page*/
+    margin-top: 50px;
+}
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/bootstrap-editable.css">
@@ -67,19 +73,12 @@
             </div>
 
             <div class="row">
-                <div class="span12">
+                <div class="span7">
                     <h3>Identity</h3>
-                </div>
-            </div>
-            <div class="row">
-                <div class="span8">
                     <table class="table table-editable">
                         <tr>
                             <th>Name</th>
                             <td><a id="name">...</a></td>
-                        </tr><tr>
-                            <th>Status</th>
-                            <td><a id="status">...</a></td>
                         </tr><tr>
                             <th>Home page</th>
                             <td><a id="homepage">...</a></td>
@@ -87,42 +86,47 @@
                             <th>ID</th>
                             <td><span class="muted" id="id">...</span></td>
                         </tr><tr>
-                            <th>Creation Date</th>
-                            <td><span class="muted" id="creation_date">...</span></td>
+                            <th></th>
+                            <td><span id="dates">...</span></td>
+                        </tr>
+                    </table>
+                    <div class="occasionalSpacer"></div>
+                    <h3>Status in the corpus</h3>
+                    <table class="table table-editable">
+                        <tr>
+                            <th>Status</th>
+                            <td><a id="status">...</a></td>
                         </tr><tr>
-                            <th>Last modified</th>
-                            <td><span class="muted" id="last_modification_date">...</span></td>
+                            <th>Last crawl</th>
+                            <td><span id="crawl">...</span></td>
                         </tr>
                     </table>
                 </div>
-                <div class="span4">
-                    <p>lru_prefixes</p>
+                <div class="span5">
+                    <h3>URL Prefixes</h3>
+                    <p class="text-info">
+                        The web entity is defined by these prefixes
+                    </p>
+                    <table id="lru_prefixes" class="table">
+                    </table>
                 </div>
-                
-            </div>
 
-            <div class="row">
-                <div class="span8">
-                    <h3>Tags</h3>
-                    <!-- <div id="tags_user"></div> -->
-                    <div id="tags_USER"></div>
-                </div>
-                <div class="span4">
-                    <h3>Technical tags</h3>
-                    <div id="tags_technical"></div>
-                </div>
             </div>
-
             <div class="row">
                 <div class="span12">
-                    <h3>Crawl</h3>
+                    <div class="occasionalSpacer"></div>
+                    <h3>Description</h3>
+                    <table class="table table-editable table-tags">
+                        <thead><tr><th>Category</th><td>Tags</td></tr></thead>
+                        <tbody id="tags_User"></tbody>
+                    </table>
                 </div>
             </div>
             <div class="row">
-                <div class="span6">
-                    <p>Crawl status</p>
-                    <p>Indexing status</p>
-                    <p>startpages</p>
+                <div class="span12">
+                    <div class="occasionalSpacer"></div>
+                    <h3 class="muted">Technical information</h3>
+                    <div class="muted" id="tags_Other"></div>
                 </div>
             </div>
         </div>

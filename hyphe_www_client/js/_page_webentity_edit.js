@@ -16,6 +16,13 @@ $.fn.editable.defaults.mode = 'inline';
     if(HYPHE_CONFIG === undefined)
         alert('Your installation of Hyphe has no configuration.\nCreate a file at "_config/config.js" in the same directory than index.php, with at least this content:\n\nHYPHE_CONFIG = {\n"SERVER_ADDRESS":"http://YOUR_RPC_ENDPOINT_URL"\n}')
 
+    // Stuff we reuse often when we initialize Domino
+    var rpc_url = HYPHE_CONFIG.SERVER_ADDRESS
+        ,rpc_contentType = 'application/x-www-form-urlencoded'
+        ,rpc_type = 'POST'
+        ,rpc_expect = function(data){return data[0].code == 'success'}
+        ,rpc_error = function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
+
     var D = new domino({
         properties: [
             {
@@ -30,25 +37,27 @@ $.fn.editable.defaults.mode = 'inline';
                 id:'statusValidation'
                 ,dispatch: 'statusValidation_updated'
                 ,triggers: 'update_statusValidation'
+            },{
+                id:'homepageValidation'
+                ,dispatch: 'homepageValidation_updated'
+                ,triggers: 'update_homepageValidation'
             }
         ],services: [
             {
                 id: 'getCurrentWebEntity'
                 ,setter: 'currentWebEntity'
-                ,data: function(settings){  return JSON.stringify({ //JSON RPC
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
                             [settings.shortcuts.webEntityId]    // List of web entities ids
                         ],
                     })}
                 ,path:'0.result.0'
-                ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
-                ,expect: function(data){return data[0].code == 'success'}
-                ,error: function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'setCurrentWebEntityName'
                 ,setter: 'nameValidation'
-                ,data: function(settings){  return JSON.stringify({ //JSON RPC
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.SET_NAME,
                         'params' : [
                             settings.shortcuts.webEntityId      // web entity id
@@ -56,13 +65,11 @@ $.fn.editable.defaults.mode = 'inline';
                         ],
                     })}
                 ,path:'0.result'
-                ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
-                ,expect: function(data){return data[0].code == 'success'}
-                ,error: function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'setCurrentWebEntityStatus'
                 ,setter: 'statusValidation'
-                ,data: function(settings){  return JSON.stringify({ //JSON RPC
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.SET_STATUS,
                         'params' : [
                             settings.shortcuts.webEntityId      // web entity id
@@ -70,9 +77,19 @@ $.fn.editable.defaults.mode = 'inline';
                         ],
                     })}
                 ,path:'0.result'
-                ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
-                ,expect: function(data){return data[0].code == 'success'}
-                ,error: function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'setCurrentWebEntityHomepage'
+                ,setter: 'homepageValidation'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.SET_HOMEPAGE,
+                        'params' : [
+                            settings.shortcuts.webEntityId      // web entity id
+                            ,settings.shortcuts.homepage        // new homepage
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             }
         ],hacks:[
         ]
@@ -105,7 +122,7 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Page ID
+    // Identity table: ID
     D.addModule(function(){
         domino.module.call(this)
 
@@ -115,24 +132,66 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Page Dates
+    // Identity table: Dates
     D.addModule(function(){
         domino.module.call(this)
 
         this.triggers.events['currentWebEntity_updated'] = function(d) {
             var webEntity = d.get('currentWebEntity')
-            $('#creation_date').text(Utils.prettyDate(webEntity.creation_date))
-            $('#last_modification_date').text(Utils.prettyDate(webEntity.last_modification_date))
+            $('#dates').text('Created '+Utils.prettyDate(webEntity.creation_date).toLowerCase()+', modified '+Utils.prettyDate(webEntity.last_modification_date).toLowerCase())
         }
     })
 
-    // Page editable name
+    // Crawl status
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            $('#crawl').html('')
+            $('#crawl').append(
+                $('<span/>').text(webEntity.crawling_status+' ')
+            ).append(
+                $('<span class="muted"/>').text('(Indexing: '+webEntity.indexing_status.toLowerCase()+') - ')
+            ).append($('<a href="crawl_new.php#we_id='+webEntity.id+'">new crawl</a>'))
+            
+        }
+    })
+
+    // Prefixes
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            $('#lru_prefixes').html('')
+            webEntity.lru_prefixes.forEach(function(lru_prefix){
+                $('#lru_prefixes').append(
+                    $('<tr/>').append(
+                        $('<td/>').text(Utils.LRU_to_URL(lru_prefix))
+                    ).append(
+                        $('<td>').append(
+                            $('<a class="btn btn-link pull-right"/>')
+                                .attr('href', Utils.LRU_to_URL(lru_prefix))
+                                .attr('target', 'blank')
+                                .append($('<i class="icon-share-alt"/>'))
+                        )
+                    )
+                )
+            })
+            
+        }
+    })
+
+    // Editable name
     D.addModule(function(){
         domino.module.call(this)
         $('#name').editable({
             type: 'text'
+            ,inputclass: 'input-xlarge'
             ,title: 'Enter name'
             ,disabled: true
+            ,unsavedclass: null
             ,validate: function(name){
                 $('.editable').editable('disable')
                 var webEntity = D.get('currentWebEntity')
@@ -150,22 +209,62 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Page editable status
+    // Editable home page
+    D.addModule(function(){
+        domino.module.call(this)
+        $('#homepage').editable({
+            type: 'text'
+            ,inputclass: 'input-xlarge'
+            ,title: 'Enter home page URL'
+            ,disabled: true
+            ,unsavedclass: null
+            ,validate: function(homepage){
+                var webEntity = D.get('currentWebEntity')
+                if(homepage != ''){
+                    if(!Utils.URL_validate(homepage))
+                        return 'URL is invalid'
+
+                    // Check that the homepage is in one of the LRU prefixes
+                    var homepage_lru = Utils.URL_to_LRU(homepage)
+                        ,lru_valid = false
+                    webEntity.lru_prefixes.forEach(function(lru_prefix){
+                        if(homepage_lru.indexOf(lru_prefix) == 0)
+                            lru_valid = true
+                    })
+                    if(!lru_valid)
+                        return 'URL does not belong to this web entity (see the prefixes)'
+                }
+
+                $('.editable').editable('disable')
+                D.request('setCurrentWebEntityHomepage', {shortcuts:{
+                    webEntityId: webEntity.id
+                    ,homepage: homepage
+                }})
+            }
+        })
+        
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            $('#homepage').editable('option', 'value', webEntity.homepage || '')
+            $('#homepage').editable('enable')
+        }
+    })
+
+    // Editable status
     D.addModule(function(){
         domino.module.call(this)
         $('#status').editable({
             type: 'select'
             ,title: 'Select status'
-            ,source: [
-                {value: 'UNDECIDED', text: "Undecided"}
-                ,{value: 'IN', text: "In"}
-                ,{value: 'OUT', text: "Out"}
-                ,{value: 'DISCOVERED', text: "Discovered"}
-            ]
             ,disabled: true
+            ,unsavedclass: null
+            ,source: [
+                {value: 'UNDECIDED', text: "UNDECIDED"}
+                ,{value: 'IN', text: "IN"}
+                ,{value: 'OUT', text: "OUT"}
+                ,{value: 'DISCOVERED', text: "DISCOVERED"}
+            ]
             ,validate: function(status){
-                if(['UNDECIDED', 'IN', 'OUT', 'DISCOVERED'].indexOf(status)<0)
-                    return false
                 $('.editable').editable('disable')
                 var webEntity = D.get('currentWebEntity')
                 D.request('setCurrentWebEntityStatus', {shortcuts:{
@@ -182,33 +281,101 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Tags
+    // User Tags
     D.addModule(function(){
         domino.module.call(this)
 
         this.triggers.events['currentWebEntity_updated'] = function(d) {
             var webEntity = d.get('currentWebEntity')
                 ,userTagCategories = webEntity.tags.USER || {}
-                ,coreTagCategories = webEntity.tags.CORE || {}
             
-            $('#tags_USER').html('')
+            $('#tags_User').html('')
             for(var cat in userTagCategories){
-                $('#tags_USER').append($('<br/>'))
-                    .append($('<h6/>').text(cat))
-                var taglist = $('<div/>')
-                        .addClass('tag-list')
-                        .attr('tagns', 'user')
-                        .attr('cat', cat)
-                        .append(
-                            $('<div class="tags"></div>')
+                $('#tags_User').append(
+                    $('<tr/>').append(
+                        $('<th/>').append(
+                            $('<a></a>').editable({
+                                type: 'text'
+                                ,inputclass: 'input-small'
+                                ,value: cat
+                                ,title: 'Select category name'
+                                ,unsavedclass: null
+                                /*,validate: function(status){
+                                    $('.editable').editable('disable')
+                                    var webEntity = D.get('currentWebEntity')
+                                    D.request('setCurrentWebEntityStatus', {shortcuts:{
+                                        webEntityId: webEntity.id
+                                        ,status: status
+                                    }})
+                                }*/
+                            })
                         )
-                $('#tags_USER').append(taglist)
+                    ).append(
+                        $('<td/>').append(
+                            $('<a></a>').editable({
+                                type: 'select2'
+                                ,inputclass: 'input-xxlarge'
+                                ,value: userTagCategories[cat]
+                                ,select2: {
+                                    multiple: true
+                                    ,tags: userTagCategories[cat]
+                                }
+                                // ,value: userTagCategories[cat]
+                                ,title: 'Select tags'
+                                // ,disabled: true
+                                ,unsavedclass: null
+                                /*,validate: function(status){
+                                    $('.editable').editable('disable')
+                                    var webEntity = D.get('currentWebEntity')
+                                    D.request('setCurrentWebEntityStatus', {shortcuts:{
+                                        webEntityId: webEntity.id
+                                        ,status: status
+                                    }})
+                                }*/
+                            })
+                        )
+                    )
+                )
+            }
+        }
+    })
 
-                /*taglist.tags({
-                    tagData:[userTagCategories[cat]]
-                    ,suggestions:[]
-                    ,excludeList:[]
-                })*/
+    // Other Tags
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            
+            $('#tags_Other').html('')
+            for(var namespace in webEntity.tags){
+                if(namespace != "USER"){
+                    $('#tags_Other').append(
+                        $('<table class="table table-tags"></table>').append(
+                            Object.keys(webEntity.tags[namespace]).map(function(cat, i){
+                                var columns = []
+                                if(i==0){
+                                    columns.push(
+                                        $('<th/>')
+                                            .text(namespace)
+                                            .attr('rowspan', Object.keys(webEntity.tags[namespace]).length)
+                                    )
+                                }
+                                columns.push(
+                                    $('<th/>').text(cat)
+                                )
+                                columns.push(
+                                    $('<td/>').append(
+                                        webEntity.tags[namespace][cat].map(function(tag){
+                                            return $('<p/>').text(tag)
+                                        })
+                                    )
+                                )
+                                return $('<tr/>').append(columns)
+                            })
+                        )
+                    )
+                }
             }
         }
     })
@@ -217,7 +384,7 @@ $.fn.editable.defaults.mode = 'inline';
     D.addModule(function(){
         domino.module.call(this)
 
-        this.triggers.events['nameValidation_updated', 'statusValidation_updated'] = function() {
+        this.triggers.events['nameValidation_updated', 'statusValidation_updated', 'homepageValidation_updated'] = function() {
             D.request('getCurrentWebEntity', {shortcuts:{
                 webEntityId: D.get('currentWebEntity').id
             }})

@@ -7,7 +7,7 @@
 /* --------------------------
    Table for x-editable contents
    -------------------------- */
-.table.table-editable tr td{
+.table.table-editable tr td, .table.table-editable tr th{
   height: 30px;
   vertical-align: middle;
 }
