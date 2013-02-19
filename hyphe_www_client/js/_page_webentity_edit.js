@@ -142,6 +142,16 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
+    // Crawl status
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            $('#crawl').text(webEntity.crawling_status+' (Indexing '+webEntity.indexing_status.toLowerCase()+')')
+        }
+    })
+
     // Prefixes
     D.addModule(function(){
         domino.module.call(this)

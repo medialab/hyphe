@@ -89,6 +89,9 @@
                         <tr>
                             <th>Status</th>
                             <td><a id="status">...</a></td>
+                        </tr><tr>
+                            <th>Last crawl</th>
+                            <td><span id="crawl">...</span></td>
                         </tr>
                     </table>
                 </div>
@@ -105,25 +108,11 @@
             <div class="row">
                 <div class="span7">
                     <h3>Tags</h3>
-                    <!-- <div id="tags_user"></div> -->
-                    <div id="tags_USER"></div>
+                    <div id="tags_User"></div>
                 </div>
                 <div class="span5">
                     <h3>Technical information</h3>
-                    <div id="tags_technical"></div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="span12">
-                    <h3>Crawl</h3>
-                </div>
-            </div>
-            <div class="row">
-                <div class="span6">
-                    <p>Crawl status</p>
-                    <p>Indexing status</p>
-                    <p>startpages</p>
+                    <div id="tags_Other"></div>
                 </div>
             </div>
         </div>
