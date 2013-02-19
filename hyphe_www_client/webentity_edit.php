@@ -15,7 +15,7 @@
 .table.table-editable tr th{
     width: 120px;
 }
-.table.table-editable.table-tags tr th{
+.table.table-tags tr th{
     width: 250px;
 }
 .occasionalSpacer{  /* We just need to add some air to this page*/

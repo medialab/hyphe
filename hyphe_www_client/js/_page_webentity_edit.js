@@ -351,7 +351,7 @@ $.fn.editable.defaults.mode = 'inline';
             for(var namespace in webEntity.tags){
                 if(namespace != "USER"){
                     $('#tags_Other').append(
-                        $('<table class="table"></table>').append(
+                        $('<table class="table table-tags"></table>').append(
                             Object.keys(webEntity.tags[namespace]).map(function(cat, i){
                                 var columns = []
                                 if(i==0){
