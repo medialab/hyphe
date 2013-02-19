@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys, time, pymongo, bson, urllib, urllib2, httplib, urlparse, random, types
 import json
+from txjsonrpc import jsonrpclib
 from txjsonrpc.jsonrpc import Introspection
 from txjsonrpc.web import jsonrpc
 from twisted.web import server
@@ -64,6 +65,11 @@ class Core(jsonrpc.JSONRPC):
         if config['DEBUG']:
             print "QUERY: %s" % request.content.read()
         return jsonrpc.JSONRPC.render(self, request)
+
+    def _cbRender(self, result, request, id, version):
+        if config['DEBUG']:
+            print "RESULT: %s" % jsonrpclib.dumps(result, id=id, version=2.0)
+        return jsonrpc.JSONRPC._cbRender(self, result, request, id, version)
 
     def jsonrpc_ping(self):
         return {'code': 'success', 'result': 'pong'}
@@ -328,8 +334,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         reactor.callLater(5, self.index_loop.start, 1, True)
 
     def handle_results(self, results):
-        if config['DEBUG']:
-            print results
         return {'code': 'success', 'result': results}
 
     def handle_error(self, failure):
