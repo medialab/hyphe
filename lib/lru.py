@@ -10,6 +10,8 @@ lruSchemePattern = re.compile("https?")
 lruAuthorityPattern = re.compile("^(?:([^:]+)(?::([^@]+))?\@)?([^\s:]+)(?::(\d+))?$")
 
 def fix_missing_http(url):
+    if not url or url.strip() == "": 
+        return None
     if not url.startswith('http'):
         url = "http://%s" % url.lstrip('/')
     return url
