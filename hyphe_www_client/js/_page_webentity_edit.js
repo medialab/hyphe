@@ -46,7 +46,7 @@ $.fn.editable.defaults.mode = 'inline';
             {
                 id: 'getCurrentWebEntity'
                 ,setter: 'currentWebEntity'
-                ,data: function(settings){  return JSON.stringify({ //JSON RPC
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
                             [settings.shortcuts.webEntityId]    // List of web entities ids
@@ -57,7 +57,7 @@ $.fn.editable.defaults.mode = 'inline';
             },{
                 id: 'setCurrentWebEntityName'
                 ,setter: 'nameValidation'
-                ,data: function(settings){  return JSON.stringify({ //JSON RPC
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.SET_NAME,
                         'params' : [
                             settings.shortcuts.webEntityId      // web entity id
@@ -69,7 +69,7 @@ $.fn.editable.defaults.mode = 'inline';
             },{
                 id: 'setCurrentWebEntityStatus'
                 ,setter: 'statusValidation'
-                ,data: function(settings){  return JSON.stringify({ //JSON RPC
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.SET_STATUS,
                         'params' : [
                             settings.shortcuts.webEntityId      // web entity id
@@ -81,7 +81,7 @@ $.fn.editable.defaults.mode = 'inline';
             },{
                 id: 'setCurrentWebEntityHomepage'
                 ,setter: 'homepageValidation'
-                ,data: function(settings){  return JSON.stringify({ //JSON RPC
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.SET_HOMEPAGE,
                         'params' : [
                             settings.shortcuts.webEntityId      // web entity id
@@ -138,8 +138,7 @@ $.fn.editable.defaults.mode = 'inline';
 
         this.triggers.events['currentWebEntity_updated'] = function(d) {
             var webEntity = d.get('currentWebEntity')
-            $('#creation_date').text(Utils.prettyDate(webEntity.creation_date))
-            $('#last_modification_date').text(Utils.prettyDate(webEntity.last_modification_date))
+            $('#dates').text('Created '+Utils.prettyDate(webEntity.creation_date).toLowerCase()+', modified '+Utils.prettyDate(webEntity.last_modification_date).toLowerCase())
         }
     })
 
@@ -242,10 +241,10 @@ $.fn.editable.defaults.mode = 'inline';
             ,disabled: true
             ,unsavedclass: null
             ,source: [
-                {value: 'UNDECIDED', text: "Undecided"}
-                ,{value: 'IN', text: "In"}
-                ,{value: 'OUT', text: "Out"}
-                ,{value: 'DISCOVERED', text: "Discovered"}
+                {value: 'UNDECIDED', text: "UNDECIDED"}
+                ,{value: 'IN', text: "IN"}
+                ,{value: 'OUT', text: "OUT"}
+                ,{value: 'DISCOVERED', text: "DISCOVERED"}
             ]
             ,validate: function(status){
                 $('.editable').editable('disable')

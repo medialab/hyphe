@@ -67,15 +67,12 @@
             </div>
 
             <div class="row">
-                <div class="span8">
+                <div class="span7">
                     <h3>Identity</h3>
                     <table class="table table-editable">
                         <tr>
                             <th>Name</th>
                             <td><a id="name">...</a></td>
-                        </tr><tr>
-                            <th>Status</th>
-                            <td><a id="status">...</a></td>
                         </tr><tr>
                             <th>Home page</th>
                             <td><a id="homepage">...</a></td>
@@ -83,33 +80,36 @@
                             <th>ID</th>
                             <td><span class="muted" id="id">...</span></td>
                         </tr><tr>
-                            <th>Creation Date</th>
-                            <td><span class="muted" id="creation_date">...</span></td>
-                        </tr><tr>
-                            <th>Last modified</th>
-                            <td><span class="muted" id="last_modification_date">...</span></td>
+                            <th></th>
+                            <td><span id="dates">...</span></td>
+                        </tr>
+                    </table>
+                    <h3>Status in the corpus</h3>
+                    <table class="table table-editable">
+                        <tr>
+                            <th>Status</th>
+                            <td><a id="status">...</a></td>
                         </tr>
                     </table>
                 </div>
-                <div class="span4">
-                    <h3>Definition</h3>
+                <div class="span5">
+                    <h3>URL Prefixes</h3>
                     <p class="text-info">
                         The web entity is defined by these prefixes
                     </p>
                     <table id="lru_prefixes" class="table">
                     </table>
                 </div>
-                
-            </div>
 
+            </div>
             <div class="row">
-                <div class="span8">
+                <div class="span7">
                     <h3>Tags</h3>
                     <!-- <div id="tags_user"></div> -->
                     <div id="tags_USER"></div>
                 </div>
-                <div class="span4">
-                    <h3>Technical tags</h3>
+                <div class="span5">
+                    <h3>Technical information</h3>
                     <div id="tags_technical"></div>
                 </div>
             </div>
