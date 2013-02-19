@@ -468,6 +468,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
                         yield self.handle_url_precision_exceptions(client, value)
                 elif array_behavior == "pop":
                     arr.remove(value)
+                elif array_behavior == "update":
+                    arr = value
                 if array_key:
                     tmparr[array_key] = arr
                     if array_namespace:
@@ -562,6 +564,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_rm_webentity_tag(self, webentity_id, tag_namespace, tag_key, tag_value):
         mem_struct_conn = getThriftConn()
         res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_value, "pop", tag_key, tag_namespace).addErrback(self.handle_error)
+        defer.returnValue(res) 
+
+    @inlineCallbacks
+    def jsonrpc_set_webentity_tag_values(self, webentity_id, tag_namespace, tag_key, tag_values):
+        mem_struct_conn = getThriftConn()
+        if not isinstance(tag_values, list):
+            tag_values = list(tag_values)
+        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_values, "update", tag_key, tag_namespace).addErrback(self.handle_error)
         defer.returnValue(res) 
 
     @inlineCallbacks
