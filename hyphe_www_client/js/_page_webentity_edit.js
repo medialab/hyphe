@@ -22,11 +22,14 @@ $.fn.editable.defaults.mode = 'inline';
                 id:'currentWebEntity'
                 ,dispatch: 'currentWebEntity_updated'
                 ,triggers: 'update_currentWebEntity'
-            },
-            {
+            },{
                 id:'nameValidation'
                 ,dispatch: 'nameValidation_updated'
                 ,triggers: 'update_nameValidation'
+            },{
+                id:'statusValidation'
+                ,dispatch: 'statusValidation_updated'
+                ,triggers: 'update_statusValidation'
             }
         ],services: [
             {
@@ -40,6 +43,8 @@ $.fn.editable.defaults.mode = 'inline';
                     })}
                 ,path:'0.result.0'
                 ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
+                ,expect: function(data){return data[0].code == 'success'}
+                ,error: function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
             },{
                 id: 'setCurrentWebEntityName'
                 ,setter: 'nameValidation'
@@ -47,11 +52,27 @@ $.fn.editable.defaults.mode = 'inline';
                         'method' : HYPHE_API.WEBENTITY.SET_NAME,
                         'params' : [
                             settings.shortcuts.webEntityId      // web entity id
-                            ,settings.shortcuts.name     // new name
+                            ,settings.shortcuts.name            // new name
                         ],
                     })}
                 ,path:'0.result'
                 ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
+                ,expect: function(data){return data[0].code == 'success'}
+                ,error: function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
+            },{
+                id: 'setCurrentWebEntityStatus'
+                ,setter: 'statusValidation'
+                ,data: function(settings){  return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.SET_STATUS,
+                        'params' : [
+                            settings.shortcuts.webEntityId      // web entity id
+                            ,settings.shortcuts.status          // new status
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: HYPHE_CONFIG.SERVER_ADDRESS, contentType: 'application/x-www-form-urlencoded', type: 'POST'
+                ,expect: function(data){return data[0].code == 'success'}
+                ,error: function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
             }
         ],hacks:[
         ]
@@ -105,7 +126,7 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Page name
+    // Page editable name
     D.addModule(function(){
         domino.module.call(this)
         $('#name').editable({
@@ -127,7 +148,38 @@ $.fn.editable.defaults.mode = 'inline';
             $('#name').editable('option', 'value', webEntity.name)
             $('#name').editable('enable')
         }
+    })
 
+    // Page editable status
+    D.addModule(function(){
+        domino.module.call(this)
+        $('#status').editable({
+            type: 'select'
+            ,title: 'Select status'
+            ,source: [
+                {value: 'UNDECIDED', text: "Undecided"}
+                ,{value: 'IN', text: "In"}
+                ,{value: 'OUT', text: "Out"}
+                ,{value: 'DISCOVERED', text: "Discovered"}
+            ]
+            ,disabled: true
+            ,validate: function(status){
+                if(['UNDECIDED', 'IN', 'OUT', 'DISCOVERED'].indexOf(status)<0)
+                    return false
+                $('.editable').editable('disable')
+                var webEntity = D.get('currentWebEntity')
+                D.request('setCurrentWebEntityStatus', {shortcuts:{
+                    webEntityId: webEntity.id
+                    ,status: status
+                }})
+            }
+        })
+        
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            $('#status').editable('option', 'value', webEntity.status)
+            $('#status').editable('enable')
+        }
     })
 
     // Tags
@@ -165,7 +217,7 @@ $.fn.editable.defaults.mode = 'inline';
     D.addModule(function(){
         domino.module.call(this)
 
-        this.triggers.events['nameValidation_updated'] = function() {
+        this.triggers.events['nameValidation_updated', 'statusValidation_updated'] = function() {
             D.request('getCurrentWebEntity', {shortcuts:{
                 webEntityId: D.get('currentWebEntity').id
             }})
