@@ -15,6 +15,12 @@
 .table.table-editable tr th{
     width: 120px;
 }
+.table.table-editable.table-tags tr th{
+    width: 250px;
+}
+.occasionalSpacer{  /* We just need to add some air to this page*/
+    margin-top: 50px;
+}
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/bootstrap-editable.css">
@@ -84,6 +90,7 @@
                             <td><span id="dates">...</span></td>
                         </tr>
                     </table>
+                    <div class="occasionalSpacer"></div>
                     <h3>Status in the corpus</h3>
                     <table class="table table-editable">
                         <tr>
@@ -106,13 +113,20 @@
 
             </div>
             <div class="row">
-                <div class="span7">
-                    <h3>Tags</h3>
-                    <div id="tags_User"></div>
+                <div class="span12">
+                    <div class="occasionalSpacer"></div>
+                    <h3>Description</h3>
+                    <table class="table table-editable table-tags">
+                        <thead><tr><th>Category</th><td>Tags</td></tr></thead>
+                        <tbody id="tags_User"></tbody>
+                    </table>
                 </div>
-                <div class="span5">
-                    <h3>Technical information</h3>
-                    <div id="tags_Other"></div>
+            </div>
+            <div class="row">
+                <div class="span12">
+                    <div class="occasionalSpacer"></div>
+                    <h3 class="muted">Technical information</h3>
+                    <div class="muted" id="tags_Other"></div>
                 </div>
             </div>
         </div>

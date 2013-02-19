@@ -148,7 +148,13 @@ $.fn.editable.defaults.mode = 'inline';
 
         this.triggers.events['currentWebEntity_updated'] = function(d) {
             var webEntity = d.get('currentWebEntity')
-            $('#crawl').text(webEntity.crawling_status+' (Indexing '+webEntity.indexing_status.toLowerCase()+')')
+            $('#crawl').html('')
+            $('#crawl').append(
+                $('<span/>').text(webEntity.crawling_status+' ')
+            ).append(
+                $('<span class="muted"/>').text('(Indexing: '+webEntity.indexing_status.toLowerCase()+') - ')
+            ).append($('<a href="crawl_new.php#we_id='+webEntity.id+'">new crawl</a>'))
+            
         }
     })
 
@@ -182,6 +188,7 @@ $.fn.editable.defaults.mode = 'inline';
         domino.module.call(this)
         $('#name').editable({
             type: 'text'
+            ,inputclass: 'input-xlarge'
             ,title: 'Enter name'
             ,disabled: true
             ,unsavedclass: null
@@ -207,6 +214,7 @@ $.fn.editable.defaults.mode = 'inline';
         domino.module.call(this)
         $('#homepage').editable({
             type: 'text'
+            ,inputclass: 'input-xlarge'
             ,title: 'Enter home page URL'
             ,disabled: true
             ,unsavedclass: null
@@ -273,33 +281,101 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Tags
+    // User Tags
     D.addModule(function(){
         domino.module.call(this)
 
         this.triggers.events['currentWebEntity_updated'] = function(d) {
             var webEntity = d.get('currentWebEntity')
                 ,userTagCategories = webEntity.tags.USER || {}
-                ,coreTagCategories = webEntity.tags.CORE || {}
             
-            $('#tags_USER').html('')
+            $('#tags_User').html('')
             for(var cat in userTagCategories){
-                $('#tags_USER').append($('<br/>'))
-                    .append($('<h6/>').text(cat))
-                var taglist = $('<div/>')
-                        .addClass('tag-list')
-                        .attr('tagns', 'user')
-                        .attr('cat', cat)
-                        .append(
-                            $('<div class="tags"></div>')
+                $('#tags_User').append(
+                    $('<tr/>').append(
+                        $('<th/>').append(
+                            $('<a></a>').editable({
+                                type: 'text'
+                                ,inputclass: 'input-small'
+                                ,value: cat
+                                ,title: 'Select category name'
+                                ,unsavedclass: null
+                                /*,validate: function(status){
+                                    $('.editable').editable('disable')
+                                    var webEntity = D.get('currentWebEntity')
+                                    D.request('setCurrentWebEntityStatus', {shortcuts:{
+                                        webEntityId: webEntity.id
+                                        ,status: status
+                                    }})
+                                }*/
+                            })
                         )
-                $('#tags_USER').append(taglist)
+                    ).append(
+                        $('<td/>').append(
+                            $('<a></a>').editable({
+                                type: 'select2'
+                                ,inputclass: 'input-xxlarge'
+                                ,value: userTagCategories[cat]
+                                ,select2: {
+                                    multiple: true
+                                    ,tags: userTagCategories[cat]
+                                }
+                                // ,value: userTagCategories[cat]
+                                ,title: 'Select tags'
+                                // ,disabled: true
+                                ,unsavedclass: null
+                                /*,validate: function(status){
+                                    $('.editable').editable('disable')
+                                    var webEntity = D.get('currentWebEntity')
+                                    D.request('setCurrentWebEntityStatus', {shortcuts:{
+                                        webEntityId: webEntity.id
+                                        ,status: status
+                                    }})
+                                }*/
+                            })
+                        )
+                    )
+                )
+            }
+        }
+    })
 
-                /*taglist.tags({
-                    tagData:[userTagCategories[cat]]
-                    ,suggestions:[]
-                    ,excludeList:[]
-                })*/
+    // Other Tags
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+            
+            $('#tags_Other').html('')
+            for(var namespace in webEntity.tags){
+                if(namespace != "USER"){
+                    $('#tags_Other').append(
+                        $('<table class="table"></table>').append(
+                            Object.keys(webEntity.tags[namespace]).map(function(cat, i){
+                                var columns = []
+                                if(i==0){
+                                    columns.push(
+                                        $('<th/>')
+                                            .text(namespace)
+                                            .attr('rowspan', Object.keys(webEntity.tags[namespace]).length)
+                                    )
+                                }
+                                columns.push(
+                                    $('<th/>').text(cat)
+                                )
+                                columns.push(
+                                    $('<td/>').append(
+                                        webEntity.tags[namespace][cat].map(function(tag){
+                                            return $('<p/>').text(tag)
+                                        })
+                                    )
+                                )
+                                return $('<tr/>').append(columns)
+                            })
+                        )
+                    )
+                }
             }
         }
     })
