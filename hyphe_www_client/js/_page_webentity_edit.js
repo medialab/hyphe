@@ -4,6 +4,7 @@ domino.utils.ajax = $.ajax
 // Hack: preventing a bug related to a port in a URL for Ajax
 domino.settings({
     shortcutPrefix: "::"
+    ,name: "d"
     ,verbose: true
 })
 
@@ -29,6 +30,11 @@ $.fn.editable.defaults.mode = 'inline';
                 id:'currentWebEntity'
                 ,dispatch: 'currentWebEntity_updated'
                 ,triggers: 'update_currentWebEntity'
+            },{
+                id:'syncPending'    // flag
+                ,dispatch: 'syncPending_updated'
+                ,triggers: 'update_syncPending'
+                ,value: false
             },{
                 id:'nameValidation'
                 ,dispatch: 'nameValidation_updated'
@@ -91,8 +97,7 @@ $.fn.editable.defaults.mode = 'inline';
                 ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             }
-        ],hacks:[
-        ]
+        ],hacks:[]
     })
 
     //// Modules
@@ -120,6 +125,27 @@ $.fn.editable.defaults.mode = 'inline';
             var webEntity = d.get('currentWebEntity')
             $('#pageTitle').text('Edit: '+webEntity.name)
         }
+
+    })
+
+    // Editable enable / disable
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['syncPending_updated'] = function(d) {
+            if(d.get('syncPending')){
+                $('.editable').editable('disable')
+            } else {
+                $('.editable').editable('enable')
+            }
+        }
+
+        this.triggers.events['currentWebEntity_updated'] = function(d) {
+            D.dispatchEvent('update_syncPending', {
+                syncPending: false
+            })
+        }
+
     })
 
     // Identity table: ID
@@ -193,7 +219,10 @@ $.fn.editable.defaults.mode = 'inline';
             ,disabled: true
             ,unsavedclass: null
             ,validate: function(name){
-                $('.editable').editable('disable')
+                D.dispatchEvent('update_syncPending', {
+                    syncPending: true
+                })
+                // $('.editable').editable('disable')
                 var webEntity = D.get('currentWebEntity')
                 D.request('setCurrentWebEntityName', {shortcuts:{
                     webEntityId: webEntity.id
@@ -205,7 +234,6 @@ $.fn.editable.defaults.mode = 'inline';
         this.triggers.events['currentWebEntity_updated'] = function(d) {
             var webEntity = d.get('currentWebEntity')
             $('#name').editable('option', 'value', webEntity.name)
-            $('#name').editable('enable')
         }
     })
 
@@ -219,6 +247,10 @@ $.fn.editable.defaults.mode = 'inline';
             ,disabled: true
             ,unsavedclass: null
             ,validate: function(homepage){
+                D.dispatchEvent('update_syncPending', {
+                    syncPending: true
+                })
+                // $('.editable').editable('disable')
                 var webEntity = D.get('currentWebEntity')
                 if(homepage != ''){
                     if(!Utils.URL_validate(homepage))
@@ -235,7 +267,6 @@ $.fn.editable.defaults.mode = 'inline';
                         return 'URL does not belong to this web entity (see the prefixes)'
                 }
 
-                $('.editable').editable('disable')
                 D.request('setCurrentWebEntityHomepage', {shortcuts:{
                     webEntityId: webEntity.id
                     ,homepage: homepage
@@ -246,7 +277,6 @@ $.fn.editable.defaults.mode = 'inline';
         this.triggers.events['currentWebEntity_updated'] = function(d) {
             var webEntity = d.get('currentWebEntity')
             $('#homepage').editable('option', 'value', webEntity.homepage || '')
-            $('#homepage').editable('enable')
         }
     })
 
@@ -265,7 +295,9 @@ $.fn.editable.defaults.mode = 'inline';
                 ,{value: 'DISCOVERED', text: "DISCOVERED"}
             ]
             ,validate: function(status){
-                $('.editable').editable('disable')
+                D.dispatchEvent('update_syncPending', {
+                    syncPending: true
+                })
                 var webEntity = D.get('currentWebEntity')
                 D.request('setCurrentWebEntityStatus', {shortcuts:{
                     webEntityId: webEntity.id
@@ -277,7 +309,6 @@ $.fn.editable.defaults.mode = 'inline';
         this.triggers.events['currentWebEntity_updated'] = function(d) {
             var webEntity = d.get('currentWebEntity')
             $('#status').editable('option', 'value', webEntity.status)
-            $('#status').editable('enable')
         }
     })
 
@@ -301,7 +332,10 @@ $.fn.editable.defaults.mode = 'inline';
                                 ,title: 'Select category name'
                                 ,unsavedclass: null
                                 /*,validate: function(status){
-                                    $('.editable').editable('disable')
+                                    this.dispatchEvent('update_syncPending', {
+                                        syncPending: true
+                                    })
+                                    // $('.editable').editable('disable')
                                     var webEntity = D.get('currentWebEntity')
                                     D.request('setCurrentWebEntityStatus', {shortcuts:{
                                         webEntityId: webEntity.id
@@ -325,7 +359,10 @@ $.fn.editable.defaults.mode = 'inline';
                                 // ,disabled: true
                                 ,unsavedclass: null
                                 /*,validate: function(status){
-                                    $('.editable').editable('disable')
+                                    this.dispatchEvent('update_syncPending', {
+                                        syncPending: true
+                                    })
+                                    // $('.editable').editable('disable')
                                     var webEntity = D.get('currentWebEntity')
                                     D.request('setCurrentWebEntityStatus', {shortcuts:{
                                         webEntityId: webEntity.id
@@ -384,11 +421,15 @@ $.fn.editable.defaults.mode = 'inline';
     D.addModule(function(){
         domino.module.call(this)
 
-        this.triggers.events['nameValidation_updated', 'statusValidation_updated', 'homepageValidation_updated'] = function() {
+        var reload = function() {
             D.request('getCurrentWebEntity', {shortcuts:{
                 webEntityId: D.get('currentWebEntity').id
             }})
         }
+
+        this.triggers.events['nameValidation_updated'] = reload
+        this.triggers.events['statusValidation_updated'] = reload
+        this.triggers.events['homepageValidation_updated'] = reload
     })
 
 
