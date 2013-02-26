@@ -259,10 +259,6 @@ $.fn.editable.defaults.mode = 'inline';
             ,disabled: true
             ,unsavedclass: null
             ,validate: function(homepage){
-                D.dispatchEvent('update_syncPending', {
-                    syncPending: true
-                })
-                // $('.editable').editable('disable')
                 var webEntity = D.get('currentWebEntity')
                 if(homepage != ''){
                     if(!Utils.URL_validate(homepage))
@@ -279,6 +275,9 @@ $.fn.editable.defaults.mode = 'inline';
                         return 'URL does not belong to this web entity (see the prefixes)'
                 }
 
+                D.dispatchEvent('update_syncPending', {
+                    syncPending: true
+                })
                 D.request('setCurrentWebEntityHomepage', {shortcuts:{
                     webEntityId: webEntity.id
                     ,homepage: homepage
@@ -388,24 +387,41 @@ $.fn.editable.defaults.mode = 'inline';
                         $('<a>New category</a>').editable({
                             type: 'text'
                             ,inputclass: 'input-small'
-                            ,placeholder: 'Enter new category'
                             ,title: 'Enter new category'
                             ,disabled: false
                             ,unsavedclass: null
-                            ,validate: function(name){
-                                D.dispatchEvent('update_syncPending', {
-                                    syncPending: true
-                                })
-                                /*var webEntity = D.get('currentWebEntity')
-                                D.request('setCurrentWebEntityName', {shortcuts:{
-                                    webEntityId: webEntity.id
-                                    ,name: name
-                                }})*/
+                            ,validate: function(cat){
+                                // Step 2: create an editable for the values
+                                $('#newTagValues').html('').append(
+                                    $('<a></a>').editable({
+                                        type: 'select2'
+                                        ,inputclass: 'input-xxlarge'
+                                        ,value: userTagCategories[cat]
+                                        ,select2: {
+                                            multiple: true
+                                            ,tags: []
+                                        }
+                                        ,title: 'Select tags'
+                                        ,unsavedclass: null
+                                        ,validate: function(values){
+                                            D.dispatchEvent('update_syncPending', {
+                                                syncPending: true
+                                            })
+                                            var webEntity = D.get('currentWebEntity')
+                                            D.request('setCurrentWebEntityTagValues', {shortcuts:{
+                                                webEntityId: webEntity.id
+                                                ,namespace: 'USER'
+                                                ,key: cat
+                                                ,values: values
+                                            }})
+                                        }
+                                    })
+                                )
                             }
                         })
                     )
                 ).append(
-                    $('<td/>')
+                    $('<td id="newTagValues"></td>')
                 )
             )
         }
