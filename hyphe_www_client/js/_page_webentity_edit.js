@@ -338,18 +338,29 @@ $.fn.editable.defaults.mode = 'inline';
                         $('<th/>').append(
                             $('<span/>').text(cat+"  ")
                         ).append(
-                            $('<a class="btn btn-mini btn-link" title="remove"><i class="icon-remove-sign"/></a>').click(function(){
-                                // TODO
-                            }).mouseenter(function(){
-                                $(this).removeClass('btn-link')
-                                $(this).addClass('btn-warning')
-                                $(this).find('i').addClass('icon-white')
-                            }).mouseleave(function(){
-                                $(this).addClass('btn-link')
-                                $(this).removeClass('btn-warning')
-                                $(this).find('i').removeClass('icon-white')
-                            })
-                        )
+                            $('<a class="btn btn-mini btn-link" title="remove"><i class="icon-remove-sign"/></a>')
+                                .attr('cat', cat)
+                                .click(function(){
+                                    D.dispatchEvent('update_syncPending', {
+                                        syncPending: true
+                                    })
+                                    var webEntity = D.get('currentWebEntity')
+                                    D.request('setCurrentWebEntityTagValues', {shortcuts:{
+                                        webEntityId: webEntity.id
+                                        ,namespace: 'USER'
+                                        ,key: $(this).attr('cat')
+                                        ,values: []
+                                    }})
+                                }).mouseenter(function(){
+                                    $(this).removeClass('btn-link')
+                                    $(this).addClass('btn-warning')
+                                    $(this).find('i').addClass('icon-white')
+                                }).mouseleave(function(){
+                                    $(this).addClass('btn-link')
+                                    $(this).removeClass('btn-warning')
+                                    $(this).find('i').removeClass('icon-white')
+                                })
+                            )
                     ).append(
                         $('<td/>').append(
                             $('<a></a>').editable({
