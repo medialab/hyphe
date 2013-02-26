@@ -259,10 +259,6 @@ $.fn.editable.defaults.mode = 'inline';
             ,disabled: true
             ,unsavedclass: null
             ,validate: function(homepage){
-                D.dispatchEvent('update_syncPending', {
-                    syncPending: true
-                })
-                // $('.editable').editable('disable')
                 var webEntity = D.get('currentWebEntity')
                 if(homepage != ''){
                     if(!Utils.URL_validate(homepage))
@@ -279,6 +275,9 @@ $.fn.editable.defaults.mode = 'inline';
                         return 'URL does not belong to this web entity (see the prefixes)'
                 }
 
+                D.dispatchEvent('update_syncPending', {
+                    syncPending: true
+                })
                 D.request('setCurrentWebEntityHomepage', {shortcuts:{
                     webEntityId: webEntity.id
                     ,homepage: homepage
@@ -339,18 +338,29 @@ $.fn.editable.defaults.mode = 'inline';
                         $('<th/>').append(
                             $('<span/>').text(cat+"  ")
                         ).append(
-                            $('<a class="btn btn-mini btn-link" title="remove"><i class="icon-remove-sign"/></a>').click(function(){
-                                // TODO
-                            }).mouseenter(function(){
-                                $(this).removeClass('btn-link')
-                                $(this).addClass('btn-warning')
-                                $(this).find('i').addClass('icon-white')
-                            }).mouseleave(function(){
-                                $(this).addClass('btn-link')
-                                $(this).removeClass('btn-warning')
-                                $(this).find('i').removeClass('icon-white')
-                            })
-                        )
+                            $('<a class="btn btn-mini btn-link" title="remove"><i class="icon-remove-sign"/></a>')
+                                .attr('cat', cat)
+                                .click(function(){
+                                    D.dispatchEvent('update_syncPending', {
+                                        syncPending: true
+                                    })
+                                    var webEntity = D.get('currentWebEntity')
+                                    D.request('setCurrentWebEntityTagValues', {shortcuts:{
+                                        webEntityId: webEntity.id
+                                        ,namespace: 'USER'
+                                        ,key: $(this).attr('cat')
+                                        ,values: []
+                                    }})
+                                }).mouseenter(function(){
+                                    $(this).removeClass('btn-link')
+                                    $(this).addClass('btn-warning')
+                                    $(this).find('i').addClass('icon-white')
+                                }).mouseleave(function(){
+                                    $(this).addClass('btn-link')
+                                    $(this).removeClass('btn-warning')
+                                    $(this).find('i').removeClass('icon-white')
+                                })
+                            )
                     ).append(
                         $('<td/>').append(
                             $('<a></a>').editable({
@@ -361,9 +371,7 @@ $.fn.editable.defaults.mode = 'inline';
                                     multiple: true
                                     ,tags: userTagCategories[cat]
                                 }
-                                // ,value: userTagCategories[cat]
                                 ,title: 'Select tags'
-                                // ,disabled: true
                                 ,unsavedclass: null
                                 ,validate: function(values){
                                     D.dispatchEvent('update_syncPending', {
@@ -385,27 +393,51 @@ $.fn.editable.defaults.mode = 'inline';
             $('#tags_User').append(
                 $('<tr/>').append(
                     $('<th/>').append(
-                        $('<a>New category</a>').editable({
+                        $('<a></a>').editable({
                             type: 'text'
+                            ,emptyclass: 'editable'
+                            ,emptytext: 'New category'
                             ,inputclass: 'input-small'
-                            ,placeholder: 'Enter new category'
                             ,title: 'Enter new category'
                             ,disabled: false
                             ,unsavedclass: null
-                            ,validate: function(name){
-                                D.dispatchEvent('update_syncPending', {
-                                    syncPending: true
-                                })
-                                /*var webEntity = D.get('currentWebEntity')
-                                D.request('setCurrentWebEntityName', {shortcuts:{
-                                    webEntityId: webEntity.id
-                                    ,name: name
-                                }})*/
+                            ,validate: function(cat){
+                                if(cat.length==0)
+                                    return 'No void category allowed'
+                                if(cat.indexOf(':')>=0 || cat.indexOf('=')>=0)
+                                    return 'The \':\' and \'=\' characters are forbidden'
+                                // Step 2: create an editable for the values
+                                $('#newTagValues').html('').append(
+                                    $('<a></a>').editable({
+                                        type: 'select2'
+                                        ,inputclass: 'input-xxlarge'
+                                        ,emptytext: 'You must add tags'
+                                        ,value: userTagCategories[cat]
+                                        ,select2: {
+                                            multiple: true
+                                            ,tags: []
+                                        }
+                                        ,title: 'Select tags'
+                                        ,unsavedclass: null
+                                        ,validate: function(values){
+                                            D.dispatchEvent('update_syncPending', {
+                                                syncPending: true
+                                            })
+                                            var webEntity = D.get('currentWebEntity')
+                                            D.request('setCurrentWebEntityTagValues', {shortcuts:{
+                                                webEntityId: webEntity.id
+                                                ,namespace: 'USER'
+                                                ,key: cat
+                                                ,values: values
+                                            }})
+                                        }
+                                    }).editable('activate', '')
+                                )
                             }
                         })
                     )
                 ).append(
-                    $('<td/>')
+                    $('<td id="newTagValues"></td>')
                 )
             )
         }
