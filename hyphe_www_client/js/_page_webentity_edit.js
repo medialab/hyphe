@@ -371,9 +371,7 @@ $.fn.editable.defaults.mode = 'inline';
                                     multiple: true
                                     ,tags: userTagCategories[cat]
                                 }
-                                // ,value: userTagCategories[cat]
                                 ,title: 'Select tags'
-                                // ,disabled: true
                                 ,unsavedclass: null
                                 ,validate: function(values){
                                     D.dispatchEvent('update_syncPending', {
@@ -395,18 +393,25 @@ $.fn.editable.defaults.mode = 'inline';
             $('#tags_User').append(
                 $('<tr/>').append(
                     $('<th/>').append(
-                        $('<a>New category</a>').editable({
+                        $('<a></a>').editable({
                             type: 'text'
+                            ,emptyclass: 'editable'
+                            ,emptytext: 'New category'
                             ,inputclass: 'input-small'
                             ,title: 'Enter new category'
                             ,disabled: false
                             ,unsavedclass: null
                             ,validate: function(cat){
+                                if(cat.length==0)
+                                    return 'No void category allowed'
+                                if(cat.indexOf(':')>=0 || cat.indexOf('=')>=0)
+                                    return 'The \':\' and \'=\' characters are forbidden'
                                 // Step 2: create an editable for the values
                                 $('#newTagValues').html('').append(
                                     $('<a></a>').editable({
                                         type: 'select2'
                                         ,inputclass: 'input-xxlarge'
+                                        ,emptytext: 'You must add tags'
                                         ,value: userTagCategories[cat]
                                         ,select2: {
                                             multiple: true
@@ -426,7 +431,7 @@ $.fn.editable.defaults.mode = 'inline';
                                                 ,values: values
                                             }})
                                         }
-                                    })
+                                    }).editable('activate', '')
                                 )
                             }
                         })
