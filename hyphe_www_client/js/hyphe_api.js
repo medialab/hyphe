@@ -8,5 +8,6 @@ HYPHE_API = {
 		SET_NAME:'store.rename_webentity'
 		,SET_STATUS: 'store.set_webentity_status'
 		,SET_HOMEPAGE: 'store.set_webentity_homepage'
+		,SET_TAG_VALUES: 'store.set_webentity_tag_values'
 	}
 }

@@ -47,6 +47,10 @@ $.fn.editable.defaults.mode = 'inline';
                 id:'homepageValidation'
                 ,dispatch: 'homepageValidation_updated'
                 ,triggers: 'update_homepageValidation'
+            },{
+                id:'tagValuesValidation'
+                ,dispatch: 'tagValuesValidation_updated'
+                ,triggers: 'update_tagValuesValidation'
             }
         ],services: [
             {
@@ -96,6 +100,20 @@ $.fn.editable.defaults.mode = 'inline';
                     })}
                 ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'setCurrentWebEntityTagValues'
+                ,setter: 'tagValuesValidation'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.SET_TAG_VALUES,
+                        'params' : [
+                            settings.shortcuts.webEntityId      // web entity id
+                            ,settings.shortcuts.namespace
+                            ,settings.shortcuts.key
+                            ,settings.shortcuts.values
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             }
         ],hacks:[]
     })
@@ -109,11 +127,6 @@ $.fn.editable.defaults.mode = 'inline';
         this.triggers.events['currentWebEntity_updated'] = function(d) {
             var webEntity = d.get('currentWebEntity')
             console.log('Current web entity', webEntity)
-        }
-
-        this.triggers.events['nameValidation_updated'] = function(d) {
-            var nameValidation = d.get('nameValidation')
-            console.log('nameValidation', nameValidation)
         }
     })
 
@@ -222,7 +235,6 @@ $.fn.editable.defaults.mode = 'inline';
                 D.dispatchEvent('update_syncPending', {
                     syncPending: true
                 })
-                // $('.editable').editable('disable')
                 var webEntity = D.get('currentWebEntity')
                 D.request('setCurrentWebEntityName', {shortcuts:{
                     webEntityId: webEntity.id
@@ -325,23 +337,18 @@ $.fn.editable.defaults.mode = 'inline';
                 $('#tags_User').append(
                     $('<tr/>').append(
                         $('<th/>').append(
-                            $('<a></a>').editable({
-                                type: 'text'
-                                ,inputclass: 'input-small'
-                                ,value: cat
-                                ,title: 'Select category name'
-                                ,unsavedclass: null
-                                /*,validate: function(status){
-                                    this.dispatchEvent('update_syncPending', {
-                                        syncPending: true
-                                    })
-                                    // $('.editable').editable('disable')
-                                    var webEntity = D.get('currentWebEntity')
-                                    D.request('setCurrentWebEntityStatus', {shortcuts:{
-                                        webEntityId: webEntity.id
-                                        ,status: status
-                                    }})
-                                }*/
+                            $('<span/>').text(cat+"  ")
+                        ).append(
+                            $('<a class="btn btn-mini btn-link" title="remove"><i class="icon-remove-sign"/></a>').click(function(){
+                                // TODO
+                            }).mouseenter(function(){
+                                $(this).removeClass('btn-link')
+                                $(this).addClass('btn-warning')
+                                $(this).find('i').addClass('icon-white')
+                            }).mouseleave(function(){
+                                $(this).addClass('btn-link')
+                                $(this).removeClass('btn-warning')
+                                $(this).find('i').removeClass('icon-white')
                             })
                         )
                     ).append(
@@ -358,22 +365,49 @@ $.fn.editable.defaults.mode = 'inline';
                                 ,title: 'Select tags'
                                 // ,disabled: true
                                 ,unsavedclass: null
-                                /*,validate: function(status){
-                                    this.dispatchEvent('update_syncPending', {
+                                ,validate: function(values){
+                                    D.dispatchEvent('update_syncPending', {
                                         syncPending: true
                                     })
-                                    // $('.editable').editable('disable')
                                     var webEntity = D.get('currentWebEntity')
-                                    D.request('setCurrentWebEntityStatus', {shortcuts:{
+                                    D.request('setCurrentWebEntityTagValues', {shortcuts:{
                                         webEntityId: webEntity.id
-                                        ,status: status
+                                        ,namespace: 'USER'
+                                        ,key: cat
+                                        ,values: values
                                     }})
-                                }*/
+                                }
                             })
                         )
                     )
                 )
             }
+            $('#tags_User').append(
+                $('<tr/>').append(
+                    $('<th/>').append(
+                        $('<a>New category</a>').editable({
+                            type: 'text'
+                            ,inputclass: 'input-small'
+                            ,placeholder: 'Enter new category'
+                            ,title: 'Enter new category'
+                            ,disabled: false
+                            ,unsavedclass: null
+                            ,validate: function(name){
+                                D.dispatchEvent('update_syncPending', {
+                                    syncPending: true
+                                })
+                                /*var webEntity = D.get('currentWebEntity')
+                                D.request('setCurrentWebEntityName', {shortcuts:{
+                                    webEntityId: webEntity.id
+                                    ,name: name
+                                }})*/
+                            }
+                        })
+                    )
+                ).append(
+                    $('<td/>')
+                )
+            )
         }
     })
 
@@ -430,6 +464,7 @@ $.fn.editable.defaults.mode = 'inline';
         this.triggers.events['nameValidation_updated'] = reload
         this.triggers.events['statusValidation_updated'] = reload
         this.triggers.events['homepageValidation_updated'] = reload
+        this.triggers.events['tagValuesValidation_updated'] = reload
     })
 
 
