@@ -235,7 +235,7 @@ class Crawler(jsonrpc.JSONRPC):
             if (resdb['err']):
                 print "ERROR saving crawling job %s in database for webentity %s with arguments %s" % (res['jobid'], webentity_id, args), resdb
                 return {'code': 'fail', 'message': resdb}
-            self.parent.store.jsonrpc_rm_webentity_tag(webentity_id, "CORE", "recrawl_needed", "true")
+            self.parent.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
         return {'code': 'success', 'result': res}
 
     def jsonrpc_cancel(self, job_id):
@@ -397,7 +397,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if new:
             self.total_webentities += 1
             if source:
-                yield self.jsonrpc_add_webentity_tag(WE.id, 'CORE', 'user_created_via', source)
+                yield self.jsonrpc_add_webentity_tag_value(WE.id, 'CORE', 'user_created_via', source)
         WE = self.format_webentity(WE)
         WE['created'] = True if new else False
         defer.returnValue(WE)
@@ -515,8 +515,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def add_backend_tags(self, webentity_id, key, value):
-        yield self.jsonrpc_add_webentity_tag(webentity_id, "CORE", key, value)
-        yield self.jsonrpc_add_webentity_tag(webentity_id, "CORE", "recrawl_needed", "true")
+        yield self.jsonrpc_add_webentity_tag_value(webentity_id, "CORE", key, value)
+        yield self.jsonrpc_add_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
 
     @inlineCallbacks
     def jsonrpc_add_webentity_lruprefix(self, webentity_id, lru_prefix):
@@ -559,13 +559,16 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(res)
 
     @inlineCallbacks
-    def jsonrpc_add_webentity_tag(self, webentity_id, tag_namespace, tag_key, tag_value):
+    def jsonrpc_add_webentity_tag_value(self, webentity_id, tag_namespace, tag_key, tag_value):
         mem_struct_conn = getThriftConn()
         res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_value, "push", tag_key, tag_namespace).addErrback(self.handle_error)
         defer.returnValue(res)
 
+    def jsonrpc_rm_webentity_tag_key(self, webentity_id, tag_namespace, tag_key):
+        return self.jsonrpc_set_webentity_tag_values(webentity_id, tag_namespace, tag_key, [])
+
     @inlineCallbacks
-    def jsonrpc_rm_webentity_tag(self, webentity_id, tag_namespace, tag_key, tag_value):
+    def jsonrpc_rm_webentity_tag_value(self, webentity_id, tag_namespace, tag_key, tag_value):
         mem_struct_conn = getThriftConn()
         res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_value, "pop", tag_key, tag_namespace).addErrback(self.handle_error)
         defer.returnValue(res) 
@@ -595,7 +598,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             for tag_namespace in old_WE.metadataItems.keys():
                 for tag_key in old_WE.metadataItems[tag_namespace].keys():
                     for tag_val in old_WE.metadataItems[tag_namespace][tag_key]:
-                        a = yield self.jsonrpc_add_webentity_tag(good_webentity_id, tag_namespace, tag_key, tag_val)
+                        a = yield self.jsonrpc_add_webentity_tag_value(good_webentity_id, tag_namespace, tag_key, tag_val)
                         res.append(a)
         for lru in old_WE.LRUSet:
             a = yield self.jsonrpc_rm_webentity_lruprefix(old_webentity_id, lru)
