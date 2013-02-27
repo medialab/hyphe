@@ -140,7 +140,7 @@
             <div class="row">
                 <div class="span12">
                     <div class="occasionalSpacer"></div>
-                    <h3>Description</h3>
+                    <h3>Tags</h3>
                     <table class="table table-editable table-tags">
                         <thead><tr><th>Category</th><td>Tags</td></tr></thead>
                         <tbody id="tags_User"></tbody>
@@ -151,7 +151,7 @@
                 <div class="span12">
                     <div class="occasionalSpacer"></div>
                     <h3>Content</h3>
-                    <div id="contentTreeContainer" style="overflow: scroll">
+                    <div id="contentTreeContainer">
                         <div id="contentTree">
 
                         </div>

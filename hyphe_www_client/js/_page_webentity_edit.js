@@ -154,6 +154,10 @@ $.fn.editable.defaults.mode = 'inline';
             var webEntity = d.get('currentWebEntity')
             console.log('Current web entity', webEntity)
         }
+
+        this.triggers.events['currentWebEntityPages_updated'] = function(d) {
+            console.log('pages', d.get('currentWebEntityPages'))
+        }
     })
 
     // Page title
@@ -258,6 +262,8 @@ $.fn.editable.defaults.mode = 'inline';
             ,disabled: true
             ,unsavedclass: null
             ,validate: function(name){
+                if(name.trim() == '')
+                    return 'Must not be empty'
                 D.dispatchEvent('update_syncPending', {
                     syncPending: true
                 })
@@ -556,10 +562,14 @@ $.fn.editable.defaults.mode = 'inline';
                 }
 
             webEntity.lru_prefixes.forEach(function(lru_prefix){
-                pushBranch(tree, lru_prefix, {prefix:true})
+                pushBranch(tree, lru_prefix, {prefix:lru_prefix})
             })
             webEntityPages.forEach(function(page){
                 pushBranch(tree, page.lru, {page:page})
+            })
+            webEntitySubwebentities.forEach(function(swe){
+                console.log('Sub web entity', swe)
+                // pushBranch(tree, page.lru, {page:page})
             })
 
             // Display the tree
@@ -570,22 +580,38 @@ $.fn.editable.defaults.mode = 'inline';
                         Object.keys(branch.children).map(function(name){
                             var subBranch = branch.children[name]
                                 ,cleanName = name.substring(2, name.length).trim()
+                                ,item = $('<div class="item"/>')
+
+                            // Build item
+                            if(subBranch.prefix !== undefined)
+                                item.append(
+                                    $('<i class="icon-map-marker"/>').tooltip({
+                                        // title:Utils.LRU_to_URL(subBranch.prefix)+'<br/> is a <strong>prefix</strong>'
+                                        title:'It is a <strong>prefix</strong>'
+                                    })
+                                )
+                            if(subBranch.page !== undefined)
+                                item.append(
+                                    $('<i class="icon-file"/>').tooltip({
+                                        // title:subBranch.page.url+'<br/> is a <strong>page</strong>'
+                                        title:'It is a <strong>page</strong>'
+                                    })
+                                )
+                            if(cleanName == "")
+                                item.append($('<em class="muted"/>').text('(blank)'))
+                            else
+                                item.append($('<span/>').text(cleanName))
+
+                            // Display item
                             return $('<table/>').append(
                                 $('<tr/>').append(
                                     $('<td class="spacer"/>').append($('<div/>'))
                                 )
                             ).append(
                                 $('<tr/>').append(
-                                    $('<td class="itemContainer"/>').append(
-                                        $('<div class="item"/>').append(
-                                            (cleanName=='')?(
-                                                $('<em class="muted"/>').text('(blank)')
-                                            ):(
-                                                $('<span/>').text(cleanName)
-                                            )
-                                            
-                                        )
-                                    )
+                                    $('<td class="itemContainer"/>')
+                                        // .attr('title', cleanName)
+                                        .append(item)
                                 ).append(
                                     $('<td/>').append(displayBranch(subBranch))
                                 )
