@@ -40,6 +40,10 @@ $.fn.editable.defaults.mode = 'inline';
                 ,triggers: 'update_syncPending'
                 ,value: false
             },{
+                id:'treeItemPopover'
+                ,dispatch: 'treeItemPopover_updated'
+                ,triggers: 'update_treeItemPopover'
+            },{
                 id:'nameValidation'
                 ,dispatch: 'nameValidation_updated'
                 ,triggers: 'update_nameValidation'
@@ -572,6 +576,7 @@ $.fn.editable.defaults.mode = 'inline';
                 // pushBranch(tree, page.lru, {page:page})
             })
 
+            var itemCount = 0
             // Display the tree
             var displayBranch = function(branch){
                 var stack = $('<div class="stack"/>')
@@ -581,8 +586,10 @@ $.fn.editable.defaults.mode = 'inline';
                             var subBranch = branch.children[name]
                                 ,cleanName = name.substring(2, name.length).trim()
                                 ,item = $('<div class="item"/>')
+                                ,popoverContent = $('<div/>')
 
                             // Build item
+                            item.attr('id', 'treeItem-'+ ++itemCount)
                             if(subBranch.prefix !== undefined)
                                 item.append(
                                     $('<i class="icon-map-marker"/>').tooltip({
@@ -597,10 +604,35 @@ $.fn.editable.defaults.mode = 'inline';
                                         title:'It is a <strong>page</strong>'
                                     })
                                 )
-                            if(cleanName == "")
-                                item.append($('<em class="muted"/>').text('(blank)'))
-                            else
-                                item.append($('<span/>').text(cleanName))
+                            if(subBranch.page !== undefined)
+                                popoverContent.append(
+                                    $('<a class="btn btn-link" target="_blank"><i class="icon-share-alt"/> Browse page</a>')
+                                        .attr('href', subBranch.page.url)
+                                )
+                            item.append(
+                                $('<a class="overable"/>').append(
+                                    (cleanName == "")?(
+                                        $('<em class="muted"/>').text('(blank) ')
+                                    ):(
+                                        $('<span/>').text(cleanName+' ')
+                                    )
+                                ).popover({
+                                    trigger: 'manual'
+                                    ,placement:'top'
+                                    ,title:'Actions'
+                                    ,content:popoverContent
+                                }).attr('id', 'treeItem_a-'+itemCount).click(function(){
+                                    if($(this).attr('id') == D.get('treeItemPopover')){
+                                        D.dispatchEvent('update_treeItemPopover', {
+                                            treeItemPopover: ''
+                                        })
+                                    } else {
+                                        D.dispatchEvent('update_treeItemPopover', {
+                                            treeItemPopover: $(this).attr('id')
+                                        })
+                                    }
+                                })
+                            )
 
                             // Display item
                             return $('<table/>').append(
@@ -624,7 +656,24 @@ $.fn.editable.defaults.mode = 'inline';
             }
             $('#contentTree').append(displayBranch(tree))
             $('#contentTreeContainer').overscroll({direction:'horizontal', scrollLeft:315, captureWheel:false})
+                /*.on('overscroll:dragstart', function(){
+                    D.dispatchEvent('update_treeItemPopover', {
+                        treeItemPopover: null
+                    })
+                });*/
 
+
+        }
+        // Deal with popovers
+        this.triggers.events['update_treeItemPopover'] = function(d){
+            var item = D.get('treeItemPopover')
+            if(item !== undefined && item!='')
+                $('#'+item).popover('hide')
+        }
+        this.triggers.events['treeItemPopover_updated'] = function(d){
+            var item = D.get('treeItemPopover')
+            if(item !== undefined && item!='')
+                $('#'+item).popover('show')
         }
     })
 
