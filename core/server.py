@@ -496,6 +496,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_rename_webentity(self, webentity_id, new_name):
+        if not new_name or new_name == "":
+            defer.returnValue({"code": "fail", "message": "ERROR: please specify a value for the webentity's name"})
         mem_struct_conn = getThriftConn()
         res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "name", new_name).addErrback(self.handle_error)
         defer.returnValue(res)
