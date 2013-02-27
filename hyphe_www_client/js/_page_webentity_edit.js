@@ -568,19 +568,25 @@ $.fn.editable.defaults.mode = 'inline';
 
             // Display the tree
             var displayBranch = function(branch){
-                var ul = $('<ul/>')
+                var stack = $('<div class="stack"/>')
                 if(branch.children !== undefined && Object.keys(branch.children).length>0){
-                    ul.append(
+                    stack.append(
                         Object.keys(branch.children).map(function(name){
                             var subBranch = branch.children[name]
-                            return $('<li/>').append(
-                                $('<span/>').text(name)
-                            ).append(displayBranch(subBranch))
+                            return $('<table/>').append(
+                                $('<tr/>').append(
+                                    $('<td class="itemContainer"/>').append(
+                                        $('<div class="item"/>').text(name)
+                                    )
+                                ).append(
+                                    $('<td/>').append(displayBranch(subBranch))
+                                )
+                            )
                         })
                     )
 
                 }
-                return ul
+                return stack
             }
             $('#contentTree').append(displayBranch(tree))
 

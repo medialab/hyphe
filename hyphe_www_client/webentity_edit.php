@@ -21,6 +21,29 @@
 .occasionalSpacer{  /* We just need to add some air to this page*/
     margin-top: 50px;
 }
+
+/*Content tree*/
+#contentTreeContainer{
+    height: 300px;
+}
+#contentTree{
+    width: 10000px;
+}
+#contentTree td{
+    padding: 0px;
+    vertical-align: top;
+}
+#contentTree .itemContainer{
+    border-right: 1px solid #EEE;
+    /*background-color: #F3F3F3;*/
+}
+#contentTree .item{
+    padding-left: 2px;
+    padding-right: 3px;
+    margin-left: 2px;
+    margin-bottom: 1px;
+    background-color: #EEE;
+}
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/bootstrap-editable.css">
@@ -125,8 +148,10 @@
                 <div class="span12">
                     <div class="occasionalSpacer"></div>
                     <h3>Content</h3>
-                    <div id="contentTree">
+                    <div id="contentTreeContainer" style="overflow: scroll">
+                        <div id="contentTree">
 
+                        </div>
                     </div>
                 </div>
             </div>
