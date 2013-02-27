@@ -24,25 +24,26 @@
 
 /*Content tree*/
 #contentTreeContainer{
-    height: 300px;
     border: 1px solid #DDD;
 }
-#contentTree{
+#contentTree td.spacer div{
+    height: 4px;
 }
 #contentTree td{
     padding: 0px;
     vertical-align: top;
 }
-#contentTree .itemContainer{
-    border-right: 1px solid #EEE;
-    /*background-color: #F3F3F3;*/
+#contentTree .stack{
+    margin-top: -4px;
+}
+#contentTree td.itemContainer{
+    border-right: 3px solid #EEE;
 }
 #contentTree .item{
     word-wrap:break-word;
-    padding-left: 2px;
-    padding-right: 3px;
-    margin-left: 2px;
-    margin-bottom: 1px;
+    padding-left: 4px;
+    padding-right: 2px;
+    margin-left: 4px;
     background-color: #EEE;
     width: 150px;
 }

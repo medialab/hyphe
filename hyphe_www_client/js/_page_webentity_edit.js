@@ -1,9 +1,5 @@
-// Use jQuery ajax
-domino.utils.ajax = $.ajax
-
-// Hack: preventing a bug related to a port in a URL for Ajax
 domino.settings({
-    shortcutPrefix: "::"
+    shortcutPrefix: "::" // Hack: preventing a bug related to a port in a URL for Ajax
     ,name: "d"
     ,verbose: true
 })
@@ -573,10 +569,22 @@ $.fn.editable.defaults.mode = 'inline';
                     stack.append(
                         Object.keys(branch.children).map(function(name){
                             var subBranch = branch.children[name]
+                                ,cleanName = name.substring(2, name.length).trim()
                             return $('<table/>').append(
                                 $('<tr/>').append(
+                                    $('<td class="spacer"/>').append($('<div/>'))
+                                )
+                            ).append(
+                                $('<tr/>').append(
                                     $('<td class="itemContainer"/>').append(
-                                        $('<div class="item"/>').text(name)
+                                        $('<div class="item"/>').append(
+                                            (cleanName=='')?(
+                                                $('<em class="muted"/>').text('(blank)')
+                                            ):(
+                                                $('<span/>').text(cleanName)
+                                            )
+                                            
+                                        )
                                     )
                                 ).append(
                                     $('<td/>').append(displayBranch(subBranch))
@@ -589,7 +597,7 @@ $.fn.editable.defaults.mode = 'inline';
                 return stack
             }
             $('#contentTree').append(displayBranch(tree))
-            $('#contentTreeContainer').overscroll()
+            $('#contentTreeContainer').overscroll({direction:'horizontal', scrollLeft:315, captureWheel:false})
 
         }
     })
