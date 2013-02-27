@@ -31,6 +31,10 @@ $.fn.editable.defaults.mode = 'inline';
                 ,dispatch: 'currentWebEntity_updated'
                 ,triggers: 'update_currentWebEntity'
             },{
+                id:'currentWebEntityPages'
+                ,dispatch: 'currentWebEntityPages_updated'
+                ,triggers: 'update_currentWebEntityPages'
+            },{
                 id:'syncPending'    // flag
                 ,dispatch: 'syncPending_updated'
                 ,triggers: 'update_syncPending'
@@ -63,6 +67,17 @@ $.fn.editable.defaults.mode = 'inline';
                         ],
                     })}
                 ,path:'0.result.0'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'getCurrentWebEntityPages'
+                ,setter: 'currentWebEntityPages'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.GET_PAGES,
+                        'params' : [
+                            settings.shortcuts.webEntityId    // Web entity id
+                        ],
+                    })}
+                ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'setCurrentWebEntityName'
@@ -256,6 +271,7 @@ $.fn.editable.defaults.mode = 'inline';
             type: 'text'
             ,inputclass: 'input-xlarge'
             ,title: 'Enter home page URL'
+            ,emptytext: 'No home page'
             ,disabled: true
             ,unsavedclass: null
             ,validate: function(homepage){
@@ -397,6 +413,7 @@ $.fn.editable.defaults.mode = 'inline';
                             type: 'text'
                             ,emptyclass: 'editable'
                             ,emptytext: 'New category'
+                            ,placeholder: 'Type category'
                             ,inputclass: 'input-small'
                             ,title: 'Enter new category'
                             ,disabled: false
@@ -411,7 +428,7 @@ $.fn.editable.defaults.mode = 'inline';
                                     $('<a></a>').editable({
                                         type: 'select2'
                                         ,inputclass: 'input-xxlarge'
-                                        ,emptytext: 'You must add tags'
+                                        ,emptytext: 'Add tag(s) to complete'
                                         ,value: userTagCategories[cat]
                                         ,select2: {
                                             multiple: true
@@ -482,6 +499,56 @@ $.fn.editable.defaults.mode = 'inline';
             }
         }
     })
+    
+
+    // Tree
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['currentWebEntity_updated'] = function() {
+            var webEntity = D.get('currentWebEntity')
+            D.request('getCurrentWebEntityPages', {shortcuts:{
+                webEntityId: D.get('currentWebEntity').id
+            }})
+        }
+
+        this.triggers.events['currentWebEntityPages_updated'] = function(d) {
+            var webEntity = d.get('currentWebEntity')
+                ,webEntityPages = d.get('currentWebEntityPages')
+
+            // Build web entity tree
+            var tree = {children:{}}
+                ,pushBranch = function(tree, lru, properties){
+                    var path = tree
+                        ,target = lru.split('|')
+
+                    while(target.length>=1){
+                        var stem = target.shift()
+                        if(undefined === path.children[stem]){
+                            // No branch for the stem: edit the tree
+                            path.children[stem] = {}
+                            path.children[stem].children = {}
+                        }
+                        path = path.children[stem]
+                        
+                        if(target.length==0) // Copy the properties
+                            Object.keys(properties).forEach(function(k){
+                                path[k] = properties[k]
+                            })
+                    }
+                }
+
+            webEntity.lru_prefixes.forEach(function(lru_prefix){
+                pushBranch(tree, lru_prefix, {prefix:true})
+            })
+            webEntityPages.forEach(function(page){
+                pushBranch(tree, page.lru, {page:page})
+            })
+
+            console.log('tree: ', tree)
+        }
+    })
+
 
     // Reload all current web entity on property update
     D.addModule(function(){

@@ -110,7 +110,6 @@
                     <table id="lru_prefixes" class="table">
                     </table>
                 </div>
-
             </div>
             <div class="row">
                 <div class="span12">
@@ -120,6 +119,15 @@
                         <thead><tr><th>Category</th><td>Tags</td></tr></thead>
                         <tbody id="tags_User"></tbody>
                     </table>
+                </div>
+            </div>
+            <div class="row">
+                <div class="span12">
+                    <div class="occasionalSpacer"></div>
+                    <h3>Content</h3>
+                    <ul id="contentTree">
+
+                    </ul>
                 </div>
             </div>
             <div class="row">
