@@ -589,6 +589,7 @@ $.fn.editable.defaults.mode = 'inline';
                 return stack
             }
             $('#contentTree').append(displayBranch(tree))
+            $('#contentTreeContainer').overscroll()
 
         }
     })

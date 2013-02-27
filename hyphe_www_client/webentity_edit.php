@@ -25,9 +25,9 @@
 /*Content tree*/
 #contentTreeContainer{
     height: 300px;
+    border: 1px solid #DDD;
 }
 #contentTree{
-    /*width: 10000px;*/
 }
 #contentTree td{
     padding: 0px;
