@@ -125,9 +125,9 @@
                 <div class="span12">
                     <div class="occasionalSpacer"></div>
                     <h3>Content</h3>
-                    <ul id="contentTree">
+                    <div id="contentTree">
 
-                    </ul>
+                    </div>
                 </div>
             </div>
             <div class="row">

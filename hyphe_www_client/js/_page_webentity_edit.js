@@ -35,6 +35,10 @@ $.fn.editable.defaults.mode = 'inline';
                 ,dispatch: 'currentWebEntityPages_updated'
                 ,triggers: 'update_currentWebEntityPages'
             },{
+                id:'currentWebEntitySubwebentities'
+                ,dispatch: 'currentWebEntitySubwebentities_updated'
+                ,triggers: 'update_currentWebEntitySubwebentities'
+            },{
                 id:'syncPending'    // flag
                 ,dispatch: 'syncPending_updated'
                 ,triggers: 'update_syncPending'
@@ -73,6 +77,17 @@ $.fn.editable.defaults.mode = 'inline';
                 ,setter: 'currentWebEntityPages'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.GET_PAGES,
+                        'params' : [
+                            settings.shortcuts.webEntityId    // Web entity id
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'getCurrentWebEntitySubwebentities'
+                ,setter: 'currentWebEntitySubwebentities'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.GET_SUBWEBENTITIES,
                         'params' : [
                             settings.shortcuts.webEntityId    // Web entity id
                         ],
@@ -506,15 +521,21 @@ $.fn.editable.defaults.mode = 'inline';
         domino.module.call(this)
 
         this.triggers.events['currentWebEntity_updated'] = function() {
-            var webEntity = D.get('currentWebEntity')
             D.request('getCurrentWebEntityPages', {shortcuts:{
                 webEntityId: D.get('currentWebEntity').id
             }})
         }
 
-        this.triggers.events['currentWebEntityPages_updated'] = function(d) {
+        this.triggers.events['currentWebEntityPages_updated'] = function() {
+            D.request('getCurrentWebEntitySubwebentities', {shortcuts:{
+                webEntityId: D.get('currentWebEntity').id
+            }})
+        }
+
+        this.triggers.events['currentWebEntitySubwebentities_updated'] = function(d) {
             var webEntity = d.get('currentWebEntity')
                 ,webEntityPages = d.get('currentWebEntityPages')
+                ,webEntitySubwebentities = d.get('currentWebEntitySubwebentities')
 
             // Build web entity tree
             var tree = {children:{}}
@@ -545,7 +566,24 @@ $.fn.editable.defaults.mode = 'inline';
                 pushBranch(tree, page.lru, {page:page})
             })
 
-            console.log('tree: ', tree)
+            // Display the tree
+            var displayBranch = function(branch){
+                var ul = $('<ul/>')
+                if(branch.children !== undefined && Object.keys(branch.children).length>0){
+                    ul.append(
+                        Object.keys(branch.children).map(function(name){
+                            var subBranch = branch.children[name]
+                            return $('<li/>').append(
+                                $('<span/>').text(name)
+                            ).append(displayBranch(subBranch))
+                        })
+                    )
+
+                }
+                return ul
+            }
+            $('#contentTree').append(displayBranch(tree))
+
         }
     })
 
