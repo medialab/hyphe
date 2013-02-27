@@ -27,7 +27,7 @@
     height: 300px;
 }
 #contentTree{
-    width: 10000px;
+    /*width: 10000px;*/
 }
 #contentTree td{
     padding: 0px;
@@ -38,11 +38,13 @@
     /*background-color: #F3F3F3;*/
 }
 #contentTree .item{
+    word-wrap:break-word;
     padding-left: 2px;
     padding-right: 3px;
     margin-left: 2px;
     margin-bottom: 1px;
     background-color: #EEE;
+    width: 150px;
 }
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
