@@ -32,6 +32,7 @@
             ,"fnDrawCallback": function( oSettings ) {
                 // Update the web entities proxies
                 Hyphen.view.webEntities.proxiesUpdate(true)
+                Hyphen.view.table_updateInteractions()
             }
             ,"aaSorting": [[ columns.last_modification_date_formatted, "asc" ]]
             ,"aoColumnDefs": [
