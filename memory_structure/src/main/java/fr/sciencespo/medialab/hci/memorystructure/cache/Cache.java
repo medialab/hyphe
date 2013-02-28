@@ -99,7 +99,7 @@ public class Cache {
         if(logger.isDebugEnabled()) {
         	logger.trace("removePageItem " + pageItem.getLru());
         }
-        if(this.pageItems.remove(pageItem.getLru()) == false) {
+        if(this.pageItems.remove(pageItem.getLru()) == null) {
             throw new ObjectNotFoundException().setMsg("Could not find pageItem " + pageItem.getLru() + " in cache with id " + this.id);
         }
     }

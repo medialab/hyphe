@@ -85,8 +85,10 @@ public class IndexConfiguration {
      */
     public static String getWEStatusValue(final String status) {
         for (WEStatus good : WEStatus.values()) {
-            if (status != null && status.equalsIgnoreCase(good.name())) {
-                return good.name();
+            if (StringUtils.isNotEmpty(status)) {
+                if (status.equalsIgnoreCase(good.name())) {
+                    return good.name();
+                }
             }
         }
         return WEStatus.DISCOVERED.name();
