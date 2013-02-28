@@ -54,10 +54,13 @@
     background-color:#EEEEFF;
 }
 #contentTree .treeItem-subWebEntity{
-    background-color:#666666;
+    background-color:#999;
 }
 #contentTree .treeItem-subWebEntity a{
     color:#FFFFFF;
+}
+#contentTree .treeItem-subWebEntity a em.muted{
+    color: #DDD;
 }
 p.webEntityReminder{
     padding-left: 20px;
