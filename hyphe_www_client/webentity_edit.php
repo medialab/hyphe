@@ -148,7 +148,7 @@ p.webEntityReminder{
                     <p class="text-info">
                         The web entity is defined by these prefixes
                     </p>
-                    <table id="lru_prefixes" class="table">
+                    <table id="lru_prefixes" class="table table-condensed">
                     </table>
                 </div>
             </div>
