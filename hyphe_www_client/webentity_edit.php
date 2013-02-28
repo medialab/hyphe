@@ -24,7 +24,10 @@
 
 /*Content tree*/
 #contentTreeContainer{
-    border: 1px solid #DDD;
+    padding-top: 10px;
+    padding-bottom: 5px;
+    border-left: 1px solid #CCC;
+    border-right: 1px solid #CCC;
 }
 #contentTree td.spacer div{
     height: 4px;
@@ -52,7 +55,6 @@
 }
 #contentTree .treeItem-subWebEntity a{
     color:#FFFFFF;
-    /*color:#77CCFF;*/
 }
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">

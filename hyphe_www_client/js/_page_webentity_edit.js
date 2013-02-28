@@ -615,7 +615,7 @@ $.fn.editable.defaults.mode = 'inline';
                             item.attr('id', 'treeItem-'+ ++itemCount)
                             if(subBranch.subWebEntity !== undefined)
                                 item.addClass('treeItem-subWebEntity')
-
+                            
                             // icons
                             if(subBranch.prefix !== undefined)
                                 item.append(
@@ -632,11 +632,34 @@ $.fn.editable.defaults.mode = 'inline';
                             if(subBranch.subWebEntity !== undefined)
                                 item.append(
                                     $('<i class="icon-book icon-white"/>').tooltip({
-                                        title:'It defines <strong>another web entity</strong>'
+                                        title:'This prefix defines <strong>another web entity</strong>'
                                     })
                                 )
 
                             // Popover
+                            if(subBranch.subWebEntity !== undefined){
+                                popoverContent.append(
+                                    $('<p/>').append(
+                                        $('<strong/>').text('Web entity:')
+                                    ).append(
+                                        $('<span/>').text(' '+subBranch.subWebEntity.name)
+                                    )
+                                ).append(
+                                    $('<br/>')
+                                ).append(
+                                    $('<p/>').append(
+                                        $('<a class="btn btn-link"><i class="icon-pencil"/> Edit web entity</a>')
+                                            .attr('href', 'webentity_edit.php?dummy='+Math.round(Math.random()*100)+'#we_id='+subBranch.subWebEntity.id)
+                                    )
+                                )
+                                if(subBranch.subWebEntity.homepage != undefined)
+                                    popoverContent.append(
+                                        $('<p/>').append(
+                                            $('<a class="btn btn-link" target="_blank"><i class="icon-share-alt"/> Browse web entity</a>')
+                                                .attr('href', subBranch.subWebEntity.homepage)
+                                        )
+                                    )
+                            }
                             if(subBranch.page !== undefined)
                                 popoverContent.append(
                                     $('<p/>').append(
@@ -644,7 +667,7 @@ $.fn.editable.defaults.mode = 'inline';
                                             .attr('href', subBranch.page.url)
                                     )
                                 )
-                            if(subBranch.subWebEntity === undefined)
+                            if(subBranch.subWebEntity === undefined && subBranch.prefix === undefined)
                                 popoverContent.append(
                                     $('<p/>').append(
                                         $('<a class="btn btn-link newwebentity-button"><i class="icon-plus"/> Declare new web entity</a>')
@@ -697,7 +720,7 @@ $.fn.editable.defaults.mode = 'inline';
                 }
                 return stack
             }
-            $('#contentTree').append(displayBranch(tree))
+            $('#contentTree').html('').append(displayBranch(tree))
             $('#contentTreeContainer').overscroll({direction:'horizontal', scrollLeft:315, captureWheel:false})
                 .on('overscroll:dragstart', function(){
                     D.dispatchEvent('update_treeItemPopover', {
@@ -729,7 +752,7 @@ $.fn.editable.defaults.mode = 'inline';
                         D.request('createWebEntityByLru', {shortcuts:{
                             lru_prefix: $(this).attr('data-lru-prefix')
                         }})
-                    }).mouseenter(function(){
+                    })/*.mouseenter(function(){
                         $(this).removeClass('btn-link')
                         $(this).addClass('btn-warning')
                         $(this).find('i').addClass('icon-white')
@@ -737,7 +760,7 @@ $.fn.editable.defaults.mode = 'inline';
                         $(this).addClass('btn-link')
                         $(this).removeClass('btn-warning')
                         $(this).find('i').removeClass('icon-white')
-                    })
+                    })*/
         }
         this.triggers.events['update_currentWebEntity'] = function(d){
             D.dispatchEvent('update_treeItemPopover', {
