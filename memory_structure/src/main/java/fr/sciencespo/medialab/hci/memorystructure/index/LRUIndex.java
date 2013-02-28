@@ -1121,7 +1121,7 @@ public class LRUIndex {
                         prefixLRU = "";
                     }
                     parent = retrieveWebEntityByLRUPrefix(prefixLRU);
-                    if (parent != null) {
+                    if (parent != null && parent.getId() != webEntity.getId()) {
                         parents.add(parent);
                     }
                 }
