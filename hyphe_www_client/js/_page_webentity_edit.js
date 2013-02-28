@@ -17,8 +17,8 @@ $.fn.editable.defaults.mode = 'inline';
     var rpc_url = HYPHE_CONFIG.SERVER_ADDRESS
         ,rpc_contentType = 'application/x-www-form-urlencoded'
         ,rpc_type = 'POST'
-        ,rpc_expect = function(data){return data[0].code == 'success'}
-        ,rpc_error = function(data){alert('Oops, an error occurred... \n\nThe server says:\n'+data)}
+        ,rpc_expect = function(data){return data[0] !== undefined && data[0].code !== undefined && data[0].code == 'success'}
+        ,rpc_error = function(data){alert('Oops, an error occurred... \n'+data)}
 
     var D = new domino({
         properties: [
@@ -59,6 +59,10 @@ $.fn.editable.defaults.mode = 'inline';
                 id:'tagValuesValidation'
                 ,dispatch: 'tagValuesValidation_updated'
                 ,triggers: 'update_tagValuesValidation'
+            },{
+                id:'createWebEntityByLruValidation'
+                ,dispatch: 'createWebEntityByLruValidation_updated'
+                ,triggers: 'update_createWebEntityByLruValidation'
             }
         ],services: [
             {
@@ -140,6 +144,17 @@ $.fn.editable.defaults.mode = 'inline';
                             ,settings.shortcuts.namespace
                             ,settings.shortcuts.key
                             ,settings.shortcuts.values
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'createWebEntityByLru'
+                ,setter: 'createWebEntityByLruValidation'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.CREATE_BY_LRU,
+                        'params' : [
+                            settings.shortcuts.lru_prefix
                         ],
                     })}
                 ,path:'0.result'
@@ -553,15 +568,15 @@ $.fn.editable.defaults.mode = 'inline';
                         var stem = target.shift()
                         if(undefined === path.children[stem]){
                             // No branch for the stem: edit the tree
-                            path.children[stem] = {}
+                            path.children[stem] = {lru_prefix: ( path.lru_prefix === undefined ) ? ( stem ) : ( path.lru_prefix + '|' + stem )}
                             path.children[stem].children = {}
                         }
                         path = path.children[stem]
                         
                         if(target.length==0) // Copy the properties
-                            Object.keys(properties).forEach(function(k){
+                            for(k in properties){
                                 path[k] = properties[k]
-                            })
+                            }
                     }
                 }
 
@@ -576,9 +591,9 @@ $.fn.editable.defaults.mode = 'inline';
                 // pushBranch(tree, page.lru, {page:page})
             })
 
-            var itemCount = 0
             // Display the tree
-            var displayBranch = function(branch){
+            var itemCount = 0
+                ,displayBranch = function(branch){
                 var stack = $('<div class="stack"/>')
                 if(branch.children !== undefined && Object.keys(branch.children).length>0){
                     stack.append(
@@ -606,9 +621,23 @@ $.fn.editable.defaults.mode = 'inline';
                                 )
                             if(subBranch.page !== undefined)
                                 popoverContent.append(
-                                    $('<a class="btn btn-link" target="_blank"><i class="icon-share-alt"/> Browse page</a>')
-                                        .attr('href', subBranch.page.url)
+                                    $('<p/>').append(
+                                        $('<a class="btn btn-link" target="_blank"><i class="icon-share-alt"/> Browse page</a>')
+                                            .attr('href', subBranch.page.url)
+                                    )
                                 )
+                            /*if(subBranch.prefix !== undefined)
+                                popoverContent.append(
+                                    $('<p/>').append(
+                                        $('<a class="btn btn-warning"><i class="icon-map-marker icon-white"/> Remove prefix</a>')
+                                    )
+                                )*/
+                            popoverContent.append(
+                                $('<p/>').append(
+                                    $('<a class="btn btn-link newwebentity-button"><i class="icon-plus"/> Declare new web entity</a>')
+                                        .attr('data-lru-prefix', subBranch.lru_prefix)
+                                )
+                            )
                             item.append(
                                 $('<a class="overable"/>').append(
                                     (cleanName == "")?(
@@ -619,7 +648,7 @@ $.fn.editable.defaults.mode = 'inline';
                                 ).popover({
                                     trigger: 'manual'
                                     ,placement:'top'
-                                    ,title:'Actions'
+                                    ,title: 'Actions <a class="btn pull-right btn-mini btn-link close-button"><i class="icon-remove"/></a>'
                                     ,content:popoverContent
                                 }).attr('id', 'treeItem_a-'+itemCount).click(function(){
                                     if($(this).attr('id') == D.get('treeItemPopover')){
@@ -656,11 +685,11 @@ $.fn.editable.defaults.mode = 'inline';
             }
             $('#contentTree').append(displayBranch(tree))
             $('#contentTreeContainer').overscroll({direction:'horizontal', scrollLeft:315, captureWheel:false})
-                /*.on('overscroll:dragstart', function(){
+                .on('overscroll:dragstart', function(){
                     D.dispatchEvent('update_treeItemPopover', {
-                        treeItemPopover: null
+                        treeItemPopover: ''
                     })
-                });*/
+                });
 
 
         }
@@ -674,7 +703,34 @@ $.fn.editable.defaults.mode = 'inline';
             var item = D.get('treeItemPopover')
             if(item !== undefined && item!='')
                 $('#'+item).popover('show')
+
+                // Initialize actions
+                $('.popover a.close-button').click(function(){
+                    D.dispatchEvent('update_treeItemPopover', {
+                        treeItemPopover: ''
+                    })
+                })
+                $('.popover a.newwebentity-button')
+                    .click(function(){
+                        D.request('createWebEntityByLru', {shortcuts:{
+                            lru_prefix: $(this).attr('data-lru-prefix')
+                        }})
+                    }).mouseenter(function(){
+                        $(this).removeClass('btn-link')
+                        $(this).addClass('btn-warning')
+                        $(this).find('i').addClass('icon-white')
+                    }).mouseleave(function(){
+                        $(this).addClass('btn-link')
+                        $(this).removeClass('btn-warning')
+                        $(this).find('i').removeClass('icon-white')
+                    })
         }
+        this.triggers.events['update_currentWebEntity'] = function(d){
+            D.dispatchEvent('update_treeItemPopover', {
+                treeItemPopover: ''
+            })
+        }
+        
     })
 
 
@@ -692,6 +748,7 @@ $.fn.editable.defaults.mode = 'inline';
         this.triggers.events['statusValidation_updated'] = reload
         this.triggers.events['homepageValidation_updated'] = reload
         this.triggers.events['tagValuesValidation_updated'] = reload
+        this.triggers.events['createWebEntityByLruValidation_updated'] = reload
     })
 
 

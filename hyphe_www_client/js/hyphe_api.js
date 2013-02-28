@@ -3,6 +3,7 @@
 HYPHE_API = {
 	WEBENTITIES:{
 		GET: 'store.get_webentities'
+		,CREATE_BY_LRU: 'store.declare_webentity_by_lru'
 	}
 	,WEBENTITY:{
 		GET_PAGES:'store.get_webentity_pages'
