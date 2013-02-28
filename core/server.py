@@ -804,14 +804,25 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentity_subwebentities(self, webentity_id):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.get_webentity_subwebentities, webentity_id)
+        res = yield mem_struct_conn.addCallback(self.get_webentity_relative_webentities, webentity_id, "children")
         defer.returnValue(res)
 
     @inlineCallbacks
-    def get_webentity_subwebentities(self, conn, webentity_id):
+    def jsonrpc_get_webentity_parentwebentities(self, webentity_id):
+        mem_struct_conn = getThriftConn()
+        res = yield mem_struct_conn.addCallback(self.get_webentity_relative_webentities, webentity_id, "parents")
+        defer.returnValue(res)
+
+    @inlineCallbacks
+    def get_webentity_relative_webentities(self, conn, webentity_id, relative_type="children"):
+        if relative_type != "children" and relative_type != "parents":
+            defer.returnValue(self.handle_error("ERROR: must set relative type as children or parents"))
         client = conn.client
         try:
-            WEs = yield client.getSubWebEntities(webentity_id)
+            if relative_type == "children":
+                WEs = yield client.getSubWebEntities(webentity_id)
+            else:
+                WEs = yield client.getParentWebEntities(webentity_id)
             res = []
             if WEs:
                 for WE in WEs:

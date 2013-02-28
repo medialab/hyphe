@@ -115,6 +115,13 @@ WebEntity getWebEntity(1: string id) throws (1:MemoryStructureException me, 2:Ob
 **/
 list<WebEntity> getSubWebEntities(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
 
+// get parentwebentities
+/**
+* @param 1 id
+* @return a List of WebEntity Objects
+**/
+list<WebEntity> getParentWebEntities(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+
 // get all nodelinks
 /**
  * @return all nodelinks in the index

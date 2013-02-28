@@ -148,6 +148,28 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
+     * Returns all web entities with LRU prefixes included into a child webentity's lru prefixes
+     * 
+     * @param id id of web entity
+     * @return web entities
+     * @throws TException hmm
+     */
+    @Override
+    public List<WebEntity> getParentWebEntities(String id) throws ObjectNotFoundException, MemoryStructureException, TException {
+        logger.debug("getParentWebEntities");
+        try {
+            WebEntity WE = lruIndex.retrieveWebEntity(id);
+            List<WebEntity> webEntities = new ArrayList<WebEntity>(lruIndex.findParentWebEntities(WE));
+            return webEntities;
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+    /**
      * Returns all web entities in the index.
      *
      * @return web entities

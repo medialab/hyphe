@@ -1092,6 +1092,50 @@ public class LRUIndex {
     }
 
     /**
+     * Returns all web entities with LRU prefixes included into a child webentity's lru prefixes
+     *
+     * @param lru
+     * @return web entity having prefix in its list of lru prefixes
+     * @throws IndexException hmm
+     */
+    public List<WebEntity> findParentWebEntities(WebEntity webEntity) throws IndexException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("findParentWebEntities: " + webEntity);
+        }
+        try {
+            int lastIndex;
+            WebEntity parent = null;
+            Set<WebEntity> parents = new HashSet<WebEntity>();
+
+            final Pattern pattern = Pattern.compile("\\|[shpqft]:");
+            for (String prefixLRU : webEntity.LRUSet) {
+                while (prefixLRU.length() > 0) {
+                    lastIndex = -1;
+                    Matcher matcher = pattern.matcher(prefixLRU);
+                    while (matcher.find()) {
+                        lastIndex = matcher.start();
+                    }
+                    if (lastIndex != -1) {
+                        prefixLRU = prefixLRU.substring(0, lastIndex);
+                    } else {
+                        prefixLRU = "";
+                    }
+                    parent = retrieveWebEntityByLRUPrefix(prefixLRU);
+                    if (parent != null) {
+                        parents.add(parent);
+                    }
+                }
+            }
+            return new ArrayList<WebEntity>(parents);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
      *
      * @param prefix
      * @return web entity having prefix in its list of lru prefixes
@@ -1240,7 +1284,7 @@ public class LRUIndex {
         }
         try {
             Set<WebEntityLink> results = new HashSet<WebEntityLink>();
-            if(id == null) {
+            if(StringUtils.isEmpty(id)) {
                 logger.warn("attempted to retrieve web entity links with null source id");
                 return results;
             }
@@ -1274,7 +1318,7 @@ public class LRUIndex {
         }
         try {
             Set<WebEntityLink> results = new HashSet<WebEntityLink>();
-            if(id == null) {
+            if(StringUtils.isEmpty(id)) {
                 logger.warn("attempted to retrieve web entity links with null target id");
                 return results;
             }
