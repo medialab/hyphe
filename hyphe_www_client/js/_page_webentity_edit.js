@@ -35,6 +35,10 @@ $.fn.editable.defaults.mode = 'inline';
                 ,dispatch: 'currentWebEntitySubwebentities_updated'
                 ,triggers: 'update_currentWebEntitySubwebentities'
             },{
+                id:'currentWebEntityParentwebentities'
+                ,dispatch: 'currentWebEntityParentwebentities_updated'
+                ,triggers: 'update_currentWebEntityParentwebentities'
+            },{
                 id:'syncPending'    // flag
                 ,dispatch: 'syncPending_updated'
                 ,triggers: 'update_syncPending'
@@ -63,6 +67,10 @@ $.fn.editable.defaults.mode = 'inline';
                 id:'createWebEntityByLruValidation'
                 ,dispatch: 'createWebEntityByLruValidation_updated'
                 ,triggers: 'update_createWebEntityByLruValidation'
+            },{
+                id:'mergeIntoCurrentWebEntityValidation'
+                ,dispatch: 'mergeIntoCurrentWebEntityValidation_updated'
+                ,triggers: 'update_mergeIntoCurrentWebEntityValidation'
             }
         ],services: [
             {
@@ -92,6 +100,17 @@ $.fn.editable.defaults.mode = 'inline';
                 ,setter: 'currentWebEntitySubwebentities'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.GET_SUBWEBENTITIES,
+                        'params' : [
+                            settings.shortcuts.webEntityId    // Web entity id
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'getCurrentWebEntityParentwebentities'
+                ,setter: 'currentWebEntityParentwebentities'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.GET_PARENTWEBENTITIES,
                         'params' : [
                             settings.shortcuts.webEntityId    // Web entity id
                         ],
@@ -155,6 +174,20 @@ $.fn.editable.defaults.mode = 'inline';
                         'method' : HYPHE_API.WEBENTITIES.CREATE_BY_LRU,
                         'params' : [
                             settings.shortcuts.lru_prefix
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'mergeIntoCurrentWebEntity'
+                ,setter: 'mergeIntoCurrentWebEntityValidation'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.MERGE,
+                        'params' : [
+                            settings.shortcuts.old_webentity_id
+                            ,settings.shortcuts.good_webentity_id
+                            ,settings.shortcuts.include_tags
+                            ,settings.shortcuts.include_home_and_startpages_as_startpages
                         ],
                     })}
                 ,path:'0.result'
@@ -553,10 +586,17 @@ $.fn.editable.defaults.mode = 'inline';
             }})
         }
 
-        this.triggers.events['currentWebEntitySubwebentities_updated'] = function(d) {
+        this.triggers.events['currentWebEntitySubwebentities_updated'] = function() {
+            D.request('getCurrentWebEntityParentwebentities', {shortcuts:{
+                webEntityId: D.get('currentWebEntity').id
+            }})
+        }
+
+        this.triggers.events['currentWebEntityParentwebentities_updated'] = function(d) {
             var webEntity = d.get('currentWebEntity')
                 ,webEntityPages = d.get('currentWebEntityPages')
                 ,webEntitySubwebentities = d.get('currentWebEntitySubwebentities')
+                ,webEntityParentwebentities = d.get('currentWebEntityParentwebentities')
 
             // Build web entity tree
             var tree = {children:{}}
@@ -580,6 +620,15 @@ $.fn.editable.defaults.mode = 'inline';
                     }
                 }
 
+            webEntityParentwebentities.forEach(function(pwe){
+                pwe.lru_prefixes.filter(function(pwe_prefix){
+                    return webEntity.lru_prefixes.some(function(source_prefix){
+                        return source_prefix.indexOf(pwe_prefix) == 0
+                    })
+                }).forEach(function(pwe_prefix){
+                    pushBranch(tree, pwe_prefix, {parentWebEntity_prefix:pwe_prefix, parentWebEntity:pwe})
+                })
+            })
             webEntitySubwebentities.forEach(function(swe){
                 // console.log('Sub web entity', swe)
                 swe.lru_prefixes.filter(function(swe_prefix){
@@ -617,6 +666,8 @@ $.fn.editable.defaults.mode = 'inline';
                             item.attr('id', 'treeItem-'+ ++itemCount)
                             if(subBranch.subWebEntity !== undefined)
                                 item.addClass('treeItem-subWebEntity')
+                            if(subBranch.prefix !== undefined)
+                                item.addClass('treeItem-currentWebEntity')
                             
                             // icons
                             if(subBranch.prefix !== undefined)
@@ -650,8 +701,42 @@ $.fn.editable.defaults.mode = 'inline';
                                         title:'This prefix defines <strong>another web entity</strong>'
                                     })
                                 )
+                            if(subBranch.parentWebEntity !== undefined)
+                                item.append(
+                                    $('<i class="icon-book"/>').tooltip({
+                                        title:'This prefix defines <strong>another web entity</strong>'
+                                    })
+                                )
 
                             // Popover
+                            if(subBranch.parentWebEntity !== undefined){
+                                popoverContent.append(
+                                    $('<p/>').append(
+                                        $('<strong/>').text('Web entity:')
+                                    ).append(
+                                        $('<span/>').text(' '+subBranch.parentWebEntity.name)
+                                    )
+                                ).append(
+                                    $('<br/>')
+                                ).append(
+                                    $('<p/>').append(
+                                        $('<a class="btn btn-link"><i class="icon-pencil"/> Edit web entity</a>')
+                                            .attr('href', 'webentity_edit.php?dummy='+Math.round(Math.random()*100)+'#we_id='+subBranch.parentWebEntity.id)
+                                    )
+                                ).append(
+                                    $('<p/>').append(
+                                        $('<a class="btn btn-link merge-button"><i class="icon-resize-small"/> Merge into current web entity</a>')
+                                            .attr('data-webEntityId', subBranch.parentWebEntity.id)
+                                    )
+                                )
+                                if(subBranch.parentWebEntity.homepage != undefined)
+                                    popoverContent.append(
+                                        $('<p/>').append(
+                                            $('<a class="btn btn-link" target="_blank"><i class="icon-share-alt"/> Browse web entity</a>')
+                                                .attr('href', subBranch.parentWebEntity.homepage)
+                                        )
+                                    )
+                            }
                             if(subBranch.subWebEntity !== undefined){
                                 popoverContent.append(
                                     $('<p/>').append(
@@ -665,6 +750,15 @@ $.fn.editable.defaults.mode = 'inline';
                                     $('<p/>').append(
                                         $('<a class="btn btn-link"><i class="icon-pencil"/> Edit web entity</a>')
                                             .attr('href', 'webentity_edit.php?dummy='+Math.round(Math.random()*100)+'#we_id='+subBranch.subWebEntity.id)
+                                    )
+                                ).append(
+                                    $('<p/>').append(
+                                        $('<a class="btn btn-link merge-button"><i class="icon-resize-small"/> Merge into current</a>')
+                                            .attr('data-webEntityId', subBranch.subWebEntity.id)
+                                    )
+                                ).append(
+                                    $('<p class="webEntityReminder"/>').append(
+                                        $('<small class="muted"/>').text('(merge into '+webEntity.name+')')
                                     )
                                 )
                                 if(subBranch.subWebEntity.homepage != undefined)
@@ -682,7 +776,7 @@ $.fn.editable.defaults.mode = 'inline';
                                             .attr('href', subBranch.page.url)
                                     )
                                 )
-                            if(subBranch.subWebEntity === undefined && subBranch.prefix === undefined)
+                            if(subBranch.subWebEntity === undefined && subBranch.parentWebEntity === undefined && subBranch.prefix === undefined)
                                 popoverContent.append(
                                     $('<p/>').append(
                                         $('<a class="btn btn-link newwebentity-button"><i class="icon-plus"/> Declare new web entity</a>')
@@ -776,6 +870,16 @@ $.fn.editable.defaults.mode = 'inline';
                         $(this).removeClass('btn-warning')
                         $(this).find('i').removeClass('icon-white')
                     })*/
+                $('.popover a.merge-button').click(function(){
+                    var webEntity = D.get('currentWebEntity')
+                    D.request('mergeIntoCurrentWebEntity', {shortcuts:{
+                        old_webentity_id: $(this).attr('data-webEntityId')
+                        ,good_webentity_id: webEntity.id
+                        ,include_tags: false
+                        ,include_home_and_startpages_as_startpages: false
+                    }})
+                })
+                
         }
         this.triggers.events['update_currentWebEntity'] = function(d){
             D.dispatchEvent('update_treeItemPopover', {
@@ -801,6 +905,7 @@ $.fn.editable.defaults.mode = 'inline';
         this.triggers.events['homepageValidation_updated'] = reload
         this.triggers.events['tagValuesValidation_updated'] = reload
         this.triggers.events['createWebEntityByLruValidation_updated'] = reload
+        this.triggers.events['mergeIntoCurrentWebEntityValidation_updated'] = reload
     })
 
 

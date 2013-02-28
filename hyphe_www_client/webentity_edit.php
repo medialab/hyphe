@@ -50,11 +50,17 @@
     background-color: #EEE;
     width: 150px;
 }
+#contentTree .treeItem-currentWebEntity{
+    background-color:#EEEEFF;
+}
 #contentTree .treeItem-subWebEntity{
     background-color:#666666;
 }
 #contentTree .treeItem-subWebEntity a{
     color:#FFFFFF;
+}
+p.webEntityReminder{
+    padding-left: 20px;
 }
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
