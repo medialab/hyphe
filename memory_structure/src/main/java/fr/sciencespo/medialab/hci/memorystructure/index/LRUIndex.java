@@ -1108,7 +1108,7 @@ public class LRUIndex {
             Set<WebEntity> parents = new HashSet<WebEntity>();
 
             final Pattern pattern = Pattern.compile("\\|[shpqft]:");
-            for (String prefixLRU : webEntity.LRUSet) {
+            for (String prefixLRU : webEntity.getLRUSet()) {
                 while (prefixLRU.length() > 0) {
                     lastIndex = -1;
                     Matcher matcher = pattern.matcher(prefixLRU);
@@ -1121,8 +1121,10 @@ public class LRUIndex {
                         prefixLRU = "";
                     }
                     parent = retrieveWebEntityByLRUPrefix(prefixLRU);
-                    if (parent != null && parent.getId() != webEntity.getId()) {
-                        parents.add(parent);
+                    if (parent != null) {
+                        if (!parent.getId().equals(webEntity.getId())) {
+                            parents.add(parent);
+                        }
                     }
                 }
             }
