@@ -210,6 +210,10 @@ $.fn.editable.defaults.mode = 'inline';
         this.triggers.events['currentWebEntityPages_updated'] = function(d) {
             console.log('pages', d.get('currentWebEntityPages'))
         }
+
+        this.triggers.events['currentWebEntityParentwebentities_updated'] = function(d) {
+            console.log('parentWebentities', d.get('currentWebEntityParentwebentities'))
+        }
     })
 
     // Page title
@@ -292,7 +296,7 @@ $.fn.editable.defaults.mode = 'inline';
                         $('<td/>').text(Utils.LRU_to_URL(lru_prefix))
                     ).append(
                         $('<td>').append(
-                            $('<a class="btn btn-link pull-right"/>')
+                            $('<a class="btn btn-link btn-mini pull-right"/>')
                                 .attr('href', Utils.LRU_to_URL(lru_prefix))
                                 .attr('target', 'blank')
                                 .append($('<i class="icon-share-alt"/>'))
@@ -540,7 +544,7 @@ $.fn.editable.defaults.mode = 'inline';
             for(var namespace in webEntity.tags){
                 if(namespace != "USER"){
                     $('#tags_Other').append(
-                        $('<table class="table table-tags"></table>').append(
+                        $('<table class="table table-tags table-condensed"></table>').append(
                             Object.keys(webEntity.tags[namespace]).map(function(cat, i){
                                 var columns = []
                                 if(i==0){
@@ -556,7 +560,7 @@ $.fn.editable.defaults.mode = 'inline';
                                 columns.push(
                                     $('<td/>').append(
                                         webEntity.tags[namespace][cat].map(function(tag){
-                                            return $('<p/>').text(tag)
+                                            return $('<span/>').text(tag)
                                         })
                                     )
                                 )
@@ -722,11 +726,6 @@ $.fn.editable.defaults.mode = 'inline';
                                     $('<p/>').append(
                                         $('<a class="btn btn-link"><i class="icon-pencil"/> Edit web entity</a>')
                                             .attr('href', 'webentity_edit.php?dummy='+Math.round(Math.random()*100)+'#we_id='+subBranch.parentWebEntity.id)
-                                    )
-                                ).append(
-                                    $('<p/>').append(
-                                        $('<a class="btn btn-link merge-button"><i class="icon-resize-small"/> Merge into current web entity</a>')
-                                            .attr('data-webEntityId', subBranch.parentWebEntity.id)
                                     )
                                 )
                                 if(subBranch.parentWebEntity.homepage != undefined)

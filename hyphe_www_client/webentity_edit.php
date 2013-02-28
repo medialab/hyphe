@@ -54,10 +54,13 @@
     background-color:#EEEEFF;
 }
 #contentTree .treeItem-subWebEntity{
-    background-color:#666666;
+    background-color:#999;
 }
 #contentTree .treeItem-subWebEntity a{
     color:#FFFFFF;
+}
+#contentTree .treeItem-subWebEntity a em.muted{
+    color: #DDD;
 }
 p.webEntityReminder{
     padding-left: 20px;
@@ -148,7 +151,7 @@ p.webEntityReminder{
                     <p class="text-info">
                         The web entity is defined by these prefixes
                     </p>
-                    <table id="lru_prefixes" class="table">
+                    <table id="lru_prefixes" class="table table-condensed">
                     </table>
                 </div>
             </div>
