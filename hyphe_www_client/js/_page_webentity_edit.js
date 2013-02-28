@@ -596,6 +596,8 @@ $.fn.editable.defaults.mode = 'inline';
             webEntityPages.forEach(function(page){
                 pushBranch(tree, page.lru, {page:page})
             })
+            if(webEntity.homepage != undefined)
+                pushBranch(tree, Utils.URL_to_LRU(webEntity.homepage), {homepage:webEntity.homepage})
             
             
 
@@ -620,15 +622,28 @@ $.fn.editable.defaults.mode = 'inline';
                             if(subBranch.prefix !== undefined)
                                 item.append(
                                     $('<i class="icon-map-marker"/>').tooltip({
-                                        title:'It is a <strong>prefix</strong>'
+                                        title:'It is a <strong>prefix</strong> of this web entity'
+                                    })
+                                )
+                            if(subBranch.homepage !== undefined)
+                                item.append(
+                                    $('<i class="icon-home"/>').tooltip({
+                                        title:'It is the <strong>home page</strong>'
                                     })
                                 )
                             if(subBranch.page !== undefined)
-                                item.append(
-                                    $('<i class="icon-file"/>').tooltip({
-                                        title:'It is a <strong>page</strong>'
-                                    })
-                                )
+                                if(subBranch.page.sources.some(function(tag){return tag=="CRAWL"}))
+                                    item.append(
+                                        $('<i class="icon-file"/>').tooltip({
+                                            title:'It is a <strong>crawled page</strong>'
+                                        })
+                                    )
+                                else
+                                    item.append(
+                                        $('<i class="icon-file icon-white"/>').tooltip({
+                                            title:'It is a <strong>page</strong> (not crawled)'
+                                        })
+                                    )
                             if(subBranch.subWebEntity !== undefined)
                                 item.append(
                                     $('<i class="icon-book icon-white"/>').tooltip({
