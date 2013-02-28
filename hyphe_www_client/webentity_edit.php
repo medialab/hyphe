@@ -47,6 +47,13 @@
     background-color: #EEE;
     width: 150px;
 }
+#contentTree .treeItem-subWebEntity{
+    background-color:#666666;
+}
+#contentTree .treeItem-subWebEntity a{
+    color:#FFFFFF;
+    /*color:#77CCFF;*/
+}
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/bootstrap-editable.css">

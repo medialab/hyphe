@@ -580,16 +580,24 @@ $.fn.editable.defaults.mode = 'inline';
                     }
                 }
 
+            webEntitySubwebentities.forEach(function(swe){
+                // console.log('Sub web entity', swe)
+                swe.lru_prefixes.filter(function(swe_prefix){
+                    return webEntity.lru_prefixes.some(function(source_prefix){
+                        return swe_prefix.indexOf(source_prefix) == 0
+                    })
+                }).forEach(function(swe_prefix){
+                    pushBranch(tree, swe_prefix, {subWebEntity_prefix:swe_prefix, subWebEntity:swe})
+                })
+            })
             webEntity.lru_prefixes.forEach(function(lru_prefix){
                 pushBranch(tree, lru_prefix, {prefix:lru_prefix})
             })
             webEntityPages.forEach(function(page){
                 pushBranch(tree, page.lru, {page:page})
             })
-            webEntitySubwebentities.forEach(function(swe){
-                console.log('Sub web entity', swe)
-                // pushBranch(tree, page.lru, {page:page})
-            })
+            
+            
 
             // Display the tree
             var itemCount = 0
@@ -605,20 +613,30 @@ $.fn.editable.defaults.mode = 'inline';
 
                             // Build item
                             item.attr('id', 'treeItem-'+ ++itemCount)
+                            if(subBranch.subWebEntity !== undefined)
+                                item.addClass('treeItem-subWebEntity')
+
+                            // icons
                             if(subBranch.prefix !== undefined)
                                 item.append(
                                     $('<i class="icon-map-marker"/>').tooltip({
-                                        // title:Utils.LRU_to_URL(subBranch.prefix)+'<br/> is a <strong>prefix</strong>'
                                         title:'It is a <strong>prefix</strong>'
                                     })
                                 )
                             if(subBranch.page !== undefined)
                                 item.append(
                                     $('<i class="icon-file"/>').tooltip({
-                                        // title:subBranch.page.url+'<br/> is a <strong>page</strong>'
                                         title:'It is a <strong>page</strong>'
                                     })
                                 )
+                            if(subBranch.subWebEntity !== undefined)
+                                item.append(
+                                    $('<i class="icon-book icon-white"/>').tooltip({
+                                        title:'It defines <strong>another web entity</strong>'
+                                    })
+                                )
+
+                            // Popover
                             if(subBranch.page !== undefined)
                                 popoverContent.append(
                                     $('<p/>').append(
@@ -626,24 +644,20 @@ $.fn.editable.defaults.mode = 'inline';
                                             .attr('href', subBranch.page.url)
                                     )
                                 )
-                            /*if(subBranch.prefix !== undefined)
+                            if(subBranch.subWebEntity === undefined)
                                 popoverContent.append(
                                     $('<p/>').append(
-                                        $('<a class="btn btn-warning"><i class="icon-map-marker icon-white"/> Remove prefix</a>')
+                                        $('<a class="btn btn-link newwebentity-button"><i class="icon-plus"/> Declare new web entity</a>')
+                                            .attr('data-lru-prefix', subBranch.lru_prefix)
                                     )
-                                )*/
-                            popoverContent.append(
-                                $('<p/>').append(
-                                    $('<a class="btn btn-link newwebentity-button"><i class="icon-plus"/> Declare new web entity</a>')
-                                        .attr('data-lru-prefix', subBranch.lru_prefix)
                                 )
-                            )
+
                             item.append(
                                 $('<a class="overable"/>').append(
                                     (cleanName == "")?(
-                                        $('<em class="muted"/>').text('(blank) ')
+                                        $('<em class="muted"/>').text(' (blank) ')
                                     ):(
-                                        $('<span/>').text(cleanName+' ')
+                                        $('<span/>').text(' '+cleanName+' ')
                                     )
                                 ).popover({
                                     trigger: 'manual'
