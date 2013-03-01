@@ -111,12 +111,15 @@ public class LuceneQueryFactory {
         Query q1 = new TermQuery(typeEqualPageItem);
         q.add(q1, BooleanClause.Occur.MUST);
         
+        BooleanQuery prefixesMatchQuery = new BooleanQuery();
         for(String webEntityPrefix : webEntity.getLRUSet()) {
             webEntityPrefix = webEntityPrefix + "*";
             Term prefixTerm = new Term(IndexConfiguration.FieldName.LRU.name(), webEntityPrefix);
             Query prefixQuery = new WildcardQuery(prefixTerm);
-            q.add(prefixQuery, BooleanClause.Occur.MUST);
+            prefixesMatchQuery.add(prefixQuery, BooleanClause.Occur.SHOULD);
         }
+        q.add(prefixesMatchQuery, BooleanClause.Occur.MUST);
+
         for(WebEntity sub : subWebEntities) {
             for(String subPrefix : sub.getLRUSet()) {
                 subPrefix = subPrefix + "*";
