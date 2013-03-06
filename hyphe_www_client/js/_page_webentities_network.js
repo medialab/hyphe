@@ -218,7 +218,6 @@ domino.settings({
         ,disabled: true
         ,triggers_enable: 'networkJson_updated'
         ,dispatch: 'downloadNetwork'
-
     }]).html.appendTo($('#download'))
     
     
