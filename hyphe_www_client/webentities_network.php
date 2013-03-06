@@ -36,7 +36,7 @@
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
 
     margin-bottom: 20px;
-    height: 500px;
+    height: 400px;
 }
 
 .sigma-expand {

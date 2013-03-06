@@ -66,14 +66,7 @@ domino.settings({
             {
                 // Download network
                 triggers: ['downloadNetwork']
-                ,method: function() {
-                    var json = D.get('networkJson')
-                        ,blob = new Blob(json_graph_api.buildGEXF(json), {'type':'text/gexf+xml;charset=utf-8'})
-                        ,filename = "Web Entities.gexf"
-                    if(navigator.userAgent.match(/firefox/i))
-                       alert('Note:\nFirefox does not handle file names, so you will have to rename this file to\n\"'+filename+'\""\nor some equivalent.')
-                    saveAs(blob, filename)
-                }
+                ,method: downloadNetwork
             },{
                 // When web entities and links are loaded, build the json network
                 triggers: ['webentities_updated', 'webentitiesLinks_updated']
@@ -255,6 +248,17 @@ domino.settings({
         ,dispatch: 'downloadNetwork'
     }]).html.appendTo($('#download'))
     
+    //// Processing
+    var downloadNetwork = function() {
+        var json = D.get('networkJson')
+            ,blob = new Blob(json_graph_api.buildGEXF(json), {'type':'text/gexf+xml;charset=utf-8'})
+            ,filename = "Web Entities.gexf"
+        if(navigator.userAgent.match(/firefox/i))
+           alert('Note:\nFirefox does not handle file names, so you will have to rename this file to\n\"'+filename+'\""\nor some equivalent.')
+        saveAs(blob, filename)
+    }
+
+
     //// On load, get the web entity
     $(document).ready(function(e){
         D.request('getWebentitiesLinks', {})
