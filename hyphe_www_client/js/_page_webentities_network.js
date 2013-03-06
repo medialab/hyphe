@@ -66,43 +66,13 @@ domino.settings({
             {
                 // Download network
                 triggers: ['downloadNetwork']
-                ,method: downloadNetwork
+                ,method: function(){downloadNetwork()}
             },{
                 // When web entities and links are loaded, build the json network
                 triggers: ['webentities_updated', 'webentitiesLinks_updated']
                 ,method: function() {
                     if( D.get('webentities') !== undefined && D.get('webentitiesLinks') !== undefined ){
-                        var webentities = D.get('webentities')
-                            ,links = D.get('webentitiesLinks')
-                            ,net = {}
-
-                        net.attributes = []
-
-                        net.nodesAttributes = []
-                        
-                        net.nodes = webentities.map(function(we){
-                            return {
-                                id: we.id
-                                ,label: we.name
-                                ,attributes: []
-                            }
-                        })
-                        
-                        net.edgesAttributes = []
-
-                        net.edges = links.map(function(link){
-                            return {
-                                sourceID: link[0]
-                                ,targetID: link[1]
-                                ,attributes: []
-                            }
-                        })
-
-                        json_graph_api.buildIndexes(net)
-
-                        D.dispatchEvent('update_networkJson', {
-                            networkJson: net
-                        })
+                        buildNetworkJson()
                     }
                 }
             }
@@ -248,6 +218,14 @@ domino.settings({
         ,dispatch: 'downloadNetwork'
     }]).html.appendTo($('#download'))
     
+    
+    //// On load, get the web entity
+    $(document).ready(function(e){
+        D.request('getWebentitiesLinks', {})
+        D.request('getWebentities', {})
+    })
+
+
     //// Processing
     var downloadNetwork = function() {
         var json = D.get('networkJson')
@@ -258,11 +236,38 @@ domino.settings({
         saveAs(blob, filename)
     }
 
+    var buildNetworkJson = function(){
+        var webentities = D.get('webentities')
+            ,links = D.get('webentitiesLinks')
+            ,net = {}
 
-    //// On load, get the web entity
-    $(document).ready(function(e){
-        D.request('getWebentitiesLinks', {})
-        D.request('getWebentities', {})
-    })
+        net.attributes = []
+
+        net.nodesAttributes = []
+        
+        net.nodes = webentities.map(function(we){
+            return {
+                id: we.id
+                ,label: we.name
+                ,attributes: []
+            }
+        })
+        
+        net.edgesAttributes = []
+
+        net.edges = links.map(function(link){
+            return {
+                sourceID: link[0]
+                ,targetID: link[1]
+                ,attributes: []
+            }
+        })
+
+        json_graph_api.buildIndexes(net)
+
+        D.dispatchEvent('update_networkJson', {
+            networkJson: net
+        })
+    }
 
 })(jQuery, domino, (window.dmod = window.dmod || {}))
