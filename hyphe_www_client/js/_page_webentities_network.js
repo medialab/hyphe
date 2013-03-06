@@ -6,7 +6,7 @@ domino.settings({
 // X-Editable: inline mode
 $.fn.editable.defaults.mode = 'inline';
 
-;(function($, domino, undefined){
+;(function($, domino, dmod, undefined){
     
     // Check that config is OK
     if(HYPHE_CONFIG === undefined)
@@ -20,7 +20,8 @@ $.fn.editable.defaults.mode = 'inline';
         ,rpc_error = function(data){alert('Oops, an error occurred... \n'+data)}
 
     var D = new domino({
-        properties: [
+        name: 'main'
+        ,properties: [
             /*{
                 id:'currentWebEntity'
                 ,dispatch: 'currentWebEntity_updated'
@@ -67,6 +68,13 @@ $.fn.editable.defaults.mode = 'inline';
 
     })
 
+    // Download button
+    D.addModule(dmod.Button, [{
+        label: 'Download network'
+        ,bsIcon: 'icon-download'
+        ,bsColor: 'btn-primary'
+    }]).html.appendTo($('#download'))
+
     /*
     //// On load, get the web entity
     $(document).ready(function(e){
@@ -75,4 +83,4 @@ $.fn.editable.defaults.mode = 'inline';
         }})
     })*/
 
-})(jQuery, domino)
+})(jQuery, domino, (window.dmod = window.dmod || {}))

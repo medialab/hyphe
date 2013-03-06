@@ -13,6 +13,35 @@
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <style>
 
+/* sigma */
+.sigma-parent {
+    position: relative;
+
+    background-color: #f8f8f8;
+    border: 1px solid #e3e3e3;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+    -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+
+    margin-bottom: 20px;
+    height: 300px;
+}
+
+.sigma-expand {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+#sigmaButtons{
+    padding-bottom: 4px;
+    padding-top: 4px;
+}
 
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
@@ -55,14 +84,22 @@
                 <div class="span12">
                     <h1>Network of webentities</h1>
                     <p class="text-info">
-                        Do shit n stuff
+                        Do shit n' stuff
                     </p>
                     <hr>
                 </div>
             </div>
 
             <div class="row">
-                
+                <div class="span9">
+                    <h3>Preview</h3>
+                    <div id="sigmaButtons"><span class="muted">[sigma buttons loading]</span></div>
+                    <div id="sigmaContainer"><span class="muted">[sigma loading]</span></div>
+                </div>
+                <div class="span3">
+                    <h3>Download</h3>
+                    <div id='download'/>
+                </div>
             </div>
             
         </div>
@@ -72,7 +109,8 @@
 <?php include("includes/codebottom_v2.php"); ?>
 
         <!-- Page-specific js package -->
-        <script src="js/_page_webentity_network.js"></script>
+        <script src="js/_page_webentities_network_modules.js"></script>
+        <script src="js/_page_webentities_network.js"></script>
 
     </body>
 </html>
