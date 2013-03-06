@@ -156,6 +156,7 @@ domino.settings({
                     ,'y': Math.random()
                     ,label: node.label
                     ,size: 1 + Math.log(1 + 0.1 * ( node.inEdges.length + node.outEdges.length ) )
+                    ,'color': chroma.rgb(node.color.r, node.color.g, node.color.b).hex()
                 })
             })
             json.edges.forEach(function(link, i){
@@ -230,6 +231,12 @@ domino.settings({
         var webentities = D.get('webentities')
             ,links = D.get('webentitiesLinks')
             ,net = {}
+            ,statusColors = {
+                IN:             chroma.hex("#68B25D")
+                ,OUT:           chroma.hex("#D75C5E")
+                ,DISCOVERED:    chroma.hex("#C19E42")
+                ,UNDECIDED:     chroma.hex("#A18DAF")
+            }
 
         net.attributes = []
 
@@ -243,9 +250,11 @@ domino.settings({
         ]
         
         net.nodes = webentities.map(function(we){
+            var color = statusColors[we.status] || chroma.hex('#FF0000')
             return {
                 id: we.id
                 ,label: we.name
+                ,color: {r:color.rgb[0], g:color.rgb[1], b:color.rgb[2]}
                 ,attributes: [
                     {attr:'attr_status', val: we.status || 'error' }
                     ,{attr:'attr_crawling', val: we.crawling_status || '' }
