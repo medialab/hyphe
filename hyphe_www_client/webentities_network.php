@@ -36,7 +36,7 @@
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
 
     margin-bottom: 20px;
-    height: 300px;
+    height: 500px;
 }
 
 .sigma-expand {
@@ -85,10 +85,6 @@
                 </div>
             </div>
 
-
-
-
-
             <div class="row">
                 <div class="span12">
                     <h1>Network of webentities</h1>
@@ -100,12 +96,12 @@
             </div>
 
             <div class="row">
-                <div class="span9">
+                <div class="span8">
                     <h3>Preview</h3>
                     <div id="sigmaButtons"><span class="muted">[sigma buttons loading]</span></div>
                     <div id="sigmaContainer"><span class="muted">[sigma loading]</span></div>
                 </div>
-                <div class="span3">
+                <div class="span4">
                     <h3>Download</h3>
                     <div id='download'/>
                 </div>
