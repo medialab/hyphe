@@ -220,7 +220,25 @@ domino.settings({
     //// Processing
     var downloadNetwork = function() {
         var json = D.get('networkJson')
-            ,blob = new Blob(json_graph_api.buildGEXF(json), {'type':'text/gexf+xml;charset=utf-8'})
+
+        // Get layout properties from sigma
+        var sigmaInstance = D.get('sigmaInstance')
+        sigmaInstance.iterNodes(function(sigmaNode){
+            var node = json.nodes_byId[sigmaNode.id]
+            if(node === undefined){
+                console.log('Cannot find node '+sigmaNode.id)
+                sigmaNode.color = '#FF0000'
+            } else {
+                // console.log('Can find node '+sigmaNode.id)
+                node.x = sigmaNode.x
+                node.y = sigmaNode.y
+                node.size = sigmaNode.size
+                var rgb = chroma.hex(sigmaNode.color).rgb
+                node.color = {r:rgb[0], g:rgb[1], b:rgb[2]}
+            }
+        })
+
+        var blob = new Blob(json_graph_api.buildGEXF(json), {'type':'text/gexf+xml;charset=utf-8'})
             ,filename = "Web Entities.gexf"
         if(navigator.userAgent.match(/firefox/i))
            alert('Note:\nFirefox does not handle file names, so you will have to rename this file to\n\"'+filename+'\""\nor some equivalent.')
@@ -232,10 +250,10 @@ domino.settings({
             ,links = D.get('webentitiesLinks')
             ,net = {}
             ,statusColors = {
-                IN:             chroma.hex("#68B25D")
-                ,OUT:           chroma.hex("#D75C5E")
-                ,DISCOVERED:    chroma.hex("#C19E42")
-                ,UNDECIDED:     chroma.hex("#A18DAF")
+                IN:             chroma.hex("#5AA04A")
+                ,OUT:           chroma.hex("#CF5365")
+                ,DISCOVERED:    chroma.hex("#D0A536")
+                ,UNDECIDED:     chroma.hex("#8B80BC")
             }
 
         net.attributes = []
