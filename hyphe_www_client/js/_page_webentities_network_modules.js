@@ -8,14 +8,17 @@
    *
    * Here is the list of options that are interpreted:
    *
-   *   {?string}         element     The HTML element (jQuery)
-   *   {?string}         label       The text
-   *   {?string}         id          The DOM id
-   *   {?string}         bsIcon      Bootstrap glyphicon class
-   *   {?string}         bsSize      Bootstrap size class
-   *   {?string}         bsColor     Bootstrap color class
-   *   {?string}         cssClass    Additional css class(es) (bootstrap already managed)
-   *   {?(array|string)} dispatch    The events to dispatch when clicked
+   *   {?string}         element            The HTML element (jQuery)
+   *   {?string}         label              The text
+   *   {?string}         id                 The DOM id
+   *   {?string}         bsIcon             Bootstrap glyphicon class
+   *   {?string}         bsSize             Bootstrap size class
+   *   {?string}         bsColor            Bootstrap color class
+   *   {?boolean}        disabled           Disabled at initialization
+   *   {?string}         cssClass           Additional css class(es) (bootstrap already managed)
+   *   {?(array|string)} triggers_enable    The events that enable the button
+   *   {?(array|string)} triggers_disable   The events that disable the button
+   *   {?(array|string)} dispatch           The events to dispatch when clicked
    */
   ns.Button = function(options, d) {
     domino.module.call(this)
@@ -43,13 +46,25 @@
     o['bsColor'] && el.addClass(o['bsColor'])
     o['bsSize'] && el.addClass(o['bsSize'])
 
+    o['disabled'] && el.addClass('disabled')
+
     o['cssClass'] && el.addClass(o['cssClass'])
     o['id'] && el.attr('id', o['id'])
 
+    if(o['triggers_enable'])
+      self.triggers.events[o['triggers_enable']] = function(){
+        el.removeClass('disabled')
+      }
+    if(o['triggers_disable'])
+      self.triggers.events[o['triggers_disable']] = function(){
+        el.addClass('disabled')
+      }
+
     el.click(function() {
-      o['dispatch'] && self.dispatchEvent(domino.utils.array(o['dispatch']))
+      if(!el.hasClass('disabled'))
+        o['dispatch'] && self.dispatchEvent(domino.utils.array(o['dispatch']))
     })
 
     this.html = el
-  };
+  }
 })(jQuery, (window.dmod = window.dmod || {}), domino);

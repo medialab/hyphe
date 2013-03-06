@@ -215,7 +215,10 @@ domino.settings({
     D.addModule(dmod.Button, [{
         label: 'Download network'
         ,bsIcon: 'icon-download'
+        ,disabled: true
+        ,triggers_enable: 'networkJson_updated'
         ,dispatch: 'downloadNetwork'
+
     }]).html.appendTo($('#download'))
     
     
