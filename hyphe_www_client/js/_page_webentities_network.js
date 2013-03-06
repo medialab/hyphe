@@ -234,13 +234,26 @@ domino.settings({
         net.attributes = []
 
         net.nodesAttributes = [
+            {id:'attr_status', title:'Status', type:'string'}
+            ,{id:'attr_crawling', title:'Crawling status', type:'string'}
+            ,{id:'attr_indexing', title:'Indexing status', type:'string'}
+            ,{id:'attr_creation', title:'Creation', type:'integer'}
+            ,{id:'attr_modification', title:'Last modification', type:'integer'}
+            ,{id:'attr_home', title:'Home page', type:'string'}
         ]
         
         net.nodes = webentities.map(function(we){
             return {
                 id: we.id
                 ,label: we.name
-                ,attributes: []
+                ,attributes: [
+                    {attr:'attr_status', val: we.status || 'error' }
+                    ,{attr:'attr_crawling', val: we.crawling_status || '' }
+                    ,{attr:'attr_indexing', val: we.indexing_status || '' }
+                    ,{attr:'attr_creation', val: we.creation_date || 'unknown' }
+                    ,{attr:'attr_modification', val: we.last_modification_date || 'unknown' }
+                    ,{attr:'attr_home', val: we.homepage || '' }
+                ]
             }
         })
         
