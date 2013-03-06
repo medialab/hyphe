@@ -3,9 +3,6 @@ domino.settings({
     ,verbose: true
 })
 
-// X-Editable: inline mode
-$.fn.editable.defaults.mode = 'inline';
-
 ;(function($, domino, dmod, undefined){
     
     // Check that config is OK
@@ -22,65 +19,234 @@ $.fn.editable.defaults.mode = 'inline';
     var D = new domino({
         name: 'main'
         ,properties: [
-            /*{
-                id:'currentWebEntity'
-                ,dispatch: 'currentWebEntity_updated'
-                ,triggers: 'update_currentWebEntity'
-            }*/
+            {
+                id:'webentities'
+                ,dispatch: 'webentities_updated'
+                ,triggers: 'update_webentities'
+            },{
+                id:'webentitiesLinks'
+                ,dispatch: 'webentitiesLinks_updated'
+                ,triggers: 'update_webentitiesLinks'
+            },{
+                id:'networkJson'
+                ,dispatch: 'networkJson_updated'
+                ,triggers: 'update_networkJson'
+            },{
+                id:'sigmaInstance'
+                ,dispatch: 'sigmaInstance_updated'
+                ,triggers: 'update_sigmaInstance'
+            },{
+                id:'layoutRunning'
+                ,type: 'boolean'
+                ,value: false
+                ,dispatch: 'layoutRunning_updated'
+                ,triggers: 'update_layoutRunning'
+            }
         ],services: [
-            /*{
-                id: 'getCurrentWebEntity'
-                ,setter: 'currentWebEntity'
+            {
+                id: 'getWebentitiesLinks'
+                ,setter: 'webentitiesLinks'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET_LINKS,
+                        'params' : [],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'getWebentities'
+                ,setter: 'webentities'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
-                        'params' : [
-                            [settings.shortcuts.webEntityId]    // List of web entities ids
-                        ],
+                        'params' : [],
                     })}
-                ,path:'0.result.0'
+                ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
-            }*/
-        ],hacks:[]
+            }
+        ],hacks:[
+            {
+                // When web entities and links are loaded, build the json network
+                triggers: ['webentities_updated', 'webentitiesLinks_updated']
+                ,method: function() {
+                    if( D.get('webentities') !== undefined && D.get('webentitiesLinks') !== undefined ){
+                        var webentities = D.get('webentities')
+                            ,links = D.get('webentitiesLinks')
+                            ,net = {}
+
+                        net.attributes = []
+
+                        net.nodesAttributes = []
+                        
+                        net.nodes = webentities.map(function(we){
+                            return {
+                                id: we.id
+                                ,label: we.name
+                                ,attributes: []
+                            }
+                        })
+                        
+                        net.edgesAttributes = []
+
+                        net.edges = links.map(function(link){
+                            return {
+                                sourceID: link[0]
+                                ,targetID: link[1]
+                                ,attributes: []
+                            }
+                        })
+
+                        json_graph_api.buildIndexes(net)
+
+                        D.dispatchEvent('update_networkJson', {
+                            networkJson: net
+                        })
+                    }
+                }
+            }
+        ]
     })
 
     //// Modules
 
-    // Log stuff in the console
+    // Sigma
     D.addModule(function(){
         domino.module.call(this)
 
-        /*this.triggers.events['currentWebEntity_updated'] = function(d) {
-            var webEntity = d.get('currentWebEntity')
-            console.log('Current web entity', webEntity)
-        }*/
+        var container = $('#sigmaContainer')
 
+        $(document).ready(function(e){
+            container.html('<div class="sigma-parent"><div class="sigma-expand" id="sigma-example"></div></div>')
+        })
+
+        this.triggers.events['networkJson_updated'] = function(){
+            var json = D.get('networkJson')
+
+            // Kill old sigma if needed
+            var oldSigmaInstance = D.get('sigmaInstance')
+            if(oldSigmaInstance !== undefined){
+                D.dispatchEvent('update_layoutRunning', {
+                    layoutRunning: !D.get('layoutRunning')
+                })
+                oldSigmaInstance.emptyGraph() // .kill() is not currently implemented
+                container.find('#sigma-example').html('')
+            }
+
+            // Instanciate sigma.js and customize it
+            var sigmaInstance = sigma.init(document.getElementById('sigma-example')).drawingProperties({
+                defaultLabelColor: '#666'
+                ,edgeColor: 'default'
+                ,defaultEdgeType: 'curve'
+                ,defaultEdgeColor: '#ccc'
+                ,defaultNodeColor: '#999'
+            })
+
+            // Populate
+            json.nodes.forEach(function(node){
+                sigmaInstance.addNode(node.id,{
+                    'x': Math.random()
+                    ,'y': Math.random()
+                    ,label: node.label
+                    ,size: 1 + Math.log(1 + 0.1 * ( node.inEdges.length + node.outEdges.length ) )
+                })
+            })
+            json.edges.forEach(function(link, i){
+                sigmaInstance.addEdge(i,link.sourceID,link.targetID)
+            })
+
+            D.dispatchEvent('update_sigmaInstance', {
+                sigmaInstance: sigmaInstance
+            })
+
+            // Start the ForceAtlas2 algorithm
+            D.dispatchEvent('update_layoutRunning', {
+                layoutRunning: true
+            })
+        }
+    })
+    
+    // ForceAtlas
+    D.addModule(function(){
+        domino.module.call(this)
+
+        this.triggers.events['layoutRunning_updated'] = function(){
+            var sigmaInstance = D.get('sigmaInstance')
+                ,layoutRunning = D.get('layoutRunning')
+            if(layoutRunning){
+                sigmaInstance.startForceAtlas2()
+            } else {
+                sigmaInstance.stopForceAtlas2()
+            }
+        }
     })
 
-    // Editable enable / disable
+    // Sigma buttons
     D.addModule(function(){
         domino.module.call(this)
 
-        /*this.triggers.events['currentWebEntity_updated'] = function() {
-            D.dispatchEvent('update_syncPending', {
-                syncPending: false
-            })
-        }*/
+        var container = $('#sigmaButtons')
 
+        $(document).ready(function(e){
+            container.html('<div class="btn-group"><button class="btn btn-small" id="layoutSwitch">Stop Layout</button> <button class="btn btn-small" id="rescaleGraph"><i class="icon-resize-full"/> Rescale Graph</button></div>')
+            updateLayoutSwitch()
+            container.find('#layoutSwitch').click(function(){
+                D.dispatchEvent('update_layoutRunning', {
+                    layoutRunning: !D.get('layoutRunning')
+                })
+            })
+            updateRescaleGraph()
+            container.find('#rescaleGraph').click(function(){
+                var sigmaInstance = D.get('sigmaInstance')
+                if(sigmaInstance !== undefined)
+                    sigmaInstance.position(0,0,1).draw()
+            })
+        })
+
+        function updateLayoutSwitch(){
+            var button = container.find('#layoutSwitch')
+                ,layoutRunning = D.get('layoutRunning')
+                ,sigmaInstance = D.get('sigmaInstance')
+            if(sigmaInstance === undefined){
+                button.html('<i class="icon-play"/> Start layout')
+                button.addClass('disabled')
+            } else {
+                button.removeClass('disabled')
+                if(layoutRunning){
+                    button.html('<i class="icon-stop"/> Stop layout')
+                } else {
+                    button.html('<i class="icon-play"/> Start layout')
+                }
+            }
+        }
+
+        function updateRescaleGraph(){
+            var button = container.find('#rescaleGraph')
+                ,sigmaInstance = D.get('sigmaInstance')
+            if(sigmaInstance === undefined){
+                button.addClass('disabled')
+            } else {
+                button.removeClass('disabled')
+            }
+        }
+
+        this.triggers.events['sigmaInstance_updated'] = function(){
+            updateLayoutSwitch()
+            updateRescaleGraph()
+        }
+
+        this.triggers.events['layoutRunning_updated'] = function(){
+            updateLayoutSwitch()
+        }
     })
 
     // Download button
     D.addModule(dmod.Button, [{
         label: 'Download network'
         ,bsIcon: 'icon-download'
-        ,bsColor: 'btn-primary'
     }]).html.appendTo($('#download'))
-
-    /*
+    
     //// On load, get the web entity
     $(document).ready(function(e){
-        D.request('getCurrentWebEntity', {shortcuts:{
-            webEntityId: Utils.hash.get('we_id')
-        }})
-    })*/
+        D.request('getWebentitiesLinks', {})
+        D.request('getWebentities', {})
+    })
 
 })(jQuery, domino, (window.dmod = window.dmod || {}))

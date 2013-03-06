@@ -11,13 +11,12 @@ sigma.forceatlas2.ForceAtlas2 = function(graph) {
     outboundAttractionDistribution: false,
     adjustSizes: false,
     edgeWeightInfluence: 0,
-    scalingRatio: 10,
-    strongGravityMode: true,
-    gravity: 0.03,
-    jitterTolerance: 2,
-    barnesHutOptimize: true,
-    barnesHutTheta: 1.8,
-	
+    scalingRatio: 1,
+    strongGravityMode: false,
+    gravity: 1,
+    jitterTolerance: 1,
+    barnesHutOptimize: false,
+    barnesHutTheta: 1.2,
     speed: 1,
     outboundAttCompensation: 1,
     totalSwinging: 0,
@@ -324,8 +323,7 @@ sigma.forceatlas2.ForceAtlas2 = function(graph) {
 
   // Auto Settings
   this.setAutoSettings = function() {
-    /*
-	var graph = this.graph;
+    var graph = this.graph;
 
     // Tuning
     if (graph.nodes.length >= 100) {
@@ -356,7 +354,7 @@ sigma.forceatlas2.ForceAtlas2 = function(graph) {
       this.p.barnesHutOptimize = false;
     }
     this.p.barnesHutTheta = 1.2;
-	*/
+
     return this;
   }
 
@@ -870,7 +868,7 @@ sigma.forceatlas2.Region.prototype.buildSubRegions = function() {
 sigma.forceatlas2.Region.prototype.applyForce = function(n, Force, theta) {
   if (this.nodes.length < 2) {
     var regionNode = this.nodes[0];
-	Force.apply_nn(n, regionNode);
+    Force.apply_nn(n, regionNode);
   } else {
     var distance = Math.sqrt(
       (n.x - this.p.massCenterX) *

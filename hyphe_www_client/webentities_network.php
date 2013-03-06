@@ -17,7 +17,16 @@
 .sigma-parent {
     position: relative;
 
-    background-color: #f8f8f8;
+    /* from http://www.colorzilla.com/gradient-editor/ */
+    background: rgb(248,248,248); /* Old browsers */
+    background: -moz-linear-gradient(top, rgba(248,248,248,1) 0%, rgba(255,255,255,1) 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(248,248,248,1)), color-stop(100%,rgba(255,255,255,1))); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, rgba(248,248,248,1) 0%,rgba(255,255,255,1) 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, rgba(248,248,248,1) 0%,rgba(255,255,255,1) 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, rgba(248,248,248,1) 0%,rgba(255,255,255,1) 100%); /* IE10+ */
+    background: linear-gradient(to bottom, rgba(248,248,248,1) 0%,rgba(255,255,255,1) 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f8f8f8', endColorstr='#ffffff',GradientType=0 ); /* IE6-9 */
+
     border: 1px solid #e3e3e3;
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
@@ -108,7 +117,12 @@
 
 <?php include("includes/codebottom_v2.php"); ?>
 
-        <!-- Page-specific js package -->
+        <!-- libs specifically needed here -->
+        <script src="js/libs/sigma.min.js"></script>
+        <script src="js/libs/sigma.forceatlas2.js"></script>
+        <script src="js/libs/json_graph_api.js"></script>
+
+        <!-- Page-specific js packages -->
         <script src="js/_page_webentities_network_modules.js"></script>
         <script src="js/_page_webentities_network.js"></script>
 
