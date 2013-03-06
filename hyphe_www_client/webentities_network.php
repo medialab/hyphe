@@ -98,7 +98,7 @@
             <div class="row">
                 <div class="span8">
                     <h3>Preview</h3>
-                    <div id="sigmaButtons"><span class="muted">[sigma buttons loading]</span></div>
+                    <div id="sigmaButtons"></div>
                     <div id="sigmaContainer"><span class="muted">[sigma loading]</span></div>
                 </div>
                 <div class="span4">

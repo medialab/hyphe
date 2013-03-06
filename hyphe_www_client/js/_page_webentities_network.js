@@ -68,6 +68,30 @@ domino.settings({
                 triggers: ['downloadNetwork']
                 ,method: function(){downloadNetwork()}
             },{
+                // Layout: start
+                triggers: ['layoutStart']
+                ,method: function(){
+                    D.dispatchEvent('update_layoutRunning', {
+                        layoutRunning: true
+                    })
+                }
+            },{
+                // Layout: stop
+                triggers: ['layoutStop']
+                ,method: function(){
+                    D.dispatchEvent('update_layoutRunning', {
+                        layoutRunning: false
+                    })
+                }
+            },{
+                // Layout: rescale
+                triggers: ['layoutRescale']
+                ,method: function(){
+                    var sigmaInstance = D.get('sigmaInstance')
+                    if(sigmaInstance !== undefined)
+                        sigmaInstance.position(0,0,1).draw()
+                }
+            },{
                 // When web entities and links are loaded, build the json network
                 triggers: ['webentities_updated', 'webentitiesLinks_updated']
                 ,method: function() {
@@ -151,65 +175,32 @@ domino.settings({
             }
         }
     })
+    
+    // Layout start/stop button
+    D.addModule(dmod.Button_twoStates, [{
+        label_A: 'Start layout'
+        ,label_B: 'Stop layout'
+        ,bsIcon_A: 'icon-play'
+        ,bsIcon_B: 'icon-stop'
+        ,triggers_stateA: 'layoutStop'
+        ,triggers_stateB: 'layoutStart'
+        ,triggers_enable: 'sigmaInstance_updated'
+        ,dispatch_A: 'layoutStart'
+        ,dispatch_B: 'layoutStop'
+        ,disabled: true
+        ,stateB_init: true
+        ,bsSize: 'btn-mini'
+    }]).html.appendTo($('#sigmaButtons'))
 
-    // Sigma buttons
-    D.addModule(function(){
-        domino.module.call(this)
-
-        var container = $('#sigmaButtons')
-
-        $(document).ready(function(e){
-            container.html('<div class="btn-group"><button class="btn btn-small" id="layoutSwitch">Stop Layout</button> <button class="btn btn-small" id="rescaleGraph"><i class="icon-resize-full"/> Rescale Graph</button></div>')
-            updateLayoutSwitch()
-            container.find('#layoutSwitch').click(function(){
-                D.dispatchEvent('update_layoutRunning', {
-                    layoutRunning: !D.get('layoutRunning')
-                })
-            })
-            updateRescaleGraph()
-            container.find('#rescaleGraph').click(function(){
-                var sigmaInstance = D.get('sigmaInstance')
-                if(sigmaInstance !== undefined)
-                    sigmaInstance.position(0,0,1).draw()
-            })
-        })
-
-        function updateLayoutSwitch(){
-            var button = container.find('#layoutSwitch')
-                ,layoutRunning = D.get('layoutRunning')
-                ,sigmaInstance = D.get('sigmaInstance')
-            if(sigmaInstance === undefined){
-                button.html('<i class="icon-play"/> Start layout')
-                button.addClass('disabled')
-            } else {
-                button.removeClass('disabled')
-                if(layoutRunning){
-                    button.html('<i class="icon-stop"/> Stop layout')
-                } else {
-                    button.html('<i class="icon-play"/> Start layout')
-                }
-            }
-        }
-
-        function updateRescaleGraph(){
-            var button = container.find('#rescaleGraph')
-                ,sigmaInstance = D.get('sigmaInstance')
-            if(sigmaInstance === undefined){
-                button.addClass('disabled')
-            } else {
-                button.removeClass('disabled')
-            }
-        }
-
-        this.triggers.events['sigmaInstance_updated'] = function(){
-            updateLayoutSwitch()
-            updateRescaleGraph()
-        }
-
-        this.triggers.events['layoutRunning_updated'] = function(){
-            updateLayoutSwitch()
-        }
-    })
+    // Rescale button
+    D.addModule(dmod.Button, [{
+        label: 'Reset zoom'
+        ,bsIcon: 'icon-resize-full'
+        ,bsSize: 'btn-mini'
+        ,disabled: true
+        ,triggers_enable: 'sigmaInstance_updated'
+        ,dispatch: 'layoutRescale'
+    }]).html.appendTo($('#sigmaButtons'))
 
     // Download button
     D.addModule(dmod.Button, [{
