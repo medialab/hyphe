@@ -1,4 +1,3 @@
-Utils = {}
 ;(function(ns /* namespace */, $, undefined){
 
 	// Utils
