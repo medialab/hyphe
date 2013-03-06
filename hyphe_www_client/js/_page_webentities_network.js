@@ -92,6 +92,18 @@ domino.settings({
                         sigmaInstance.position(0,0,1).draw()
                 }
             },{
+                // Force Atlas 2 binding
+                triggers: ['layoutRunning_updated']
+                ,method: function(){
+                    var sigmaInstance = D.get('sigmaInstance')
+                        ,layoutRunning = D.get('layoutRunning')
+                    if(layoutRunning){
+                        sigmaInstance.startForceAtlas2()
+                    } else {
+                        sigmaInstance.stopForceAtlas2()
+                    }
+                }
+            },{
                 // When web entities and links are loaded, build the json network
                 triggers: ['webentities_updated', 'webentitiesLinks_updated']
                 ,method: function() {
@@ -105,7 +117,7 @@ domino.settings({
 
     //// Modules
 
-    // Sigma
+    // Sigma (custom module just for here)
     D.addModule(function(){
         domino.module.call(this)
 
@@ -158,21 +170,6 @@ domino.settings({
             D.dispatchEvent('update_layoutRunning', {
                 layoutRunning: true
             })
-        }
-    })
-    
-    // ForceAtlas
-    D.addModule(function(){
-        domino.module.call(this)
-
-        this.triggers.events['layoutRunning_updated'] = function(){
-            var sigmaInstance = D.get('sigmaInstance')
-                ,layoutRunning = D.get('layoutRunning')
-            if(layoutRunning){
-                sigmaInstance.startForceAtlas2()
-            } else {
-                sigmaInstance.stopForceAtlas2()
-            }
         }
     })
     
@@ -236,7 +233,8 @@ domino.settings({
 
         net.attributes = []
 
-        net.nodesAttributes = []
+        net.nodesAttributes = [
+        ]
         
         net.nodes = webentities.map(function(we){
             return {
@@ -246,13 +244,17 @@ domino.settings({
             }
         })
         
-        net.edgesAttributes = []
+        net.edgesAttributes = [
+            {id:'attr_count', title:'Hyperlinks Count', type:'integer'}
+        ]
 
         net.edges = links.map(function(link){
             return {
                 sourceID: link[0]
                 ,targetID: link[1]
-                ,attributes: []
+                ,attributes: [
+                    {attr:'attr_count', val:link[2]}
+                ]
             }
         })
 
@@ -261,6 +263,10 @@ domino.settings({
         D.dispatchEvent('update_networkJson', {
             networkJson: net
         })
+
+        console.log('Web entities', webentities)
+        console.log('Links', net)
+        console.log('Network', net)
     }
 
 })(jQuery, domino, (window.dmod = window.dmod || {}))
