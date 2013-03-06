@@ -64,6 +64,17 @@ domino.settings({
             }
         ],hacks:[
             {
+                // Download network
+                triggers: ['downloadNetwork']
+                ,method: function() {
+                    var json = D.get('networkJson')
+                        ,blob = new Blob(json_graph_api.buildGEXF(json), {'type':'text/gexf+xml;charset=utf-8'})
+                        ,filename = "Web Entities.gexf"
+                    if(navigator.userAgent.match(/firefox/i))
+                       alert('Note:\nFirefox does not handle file names, so you will have to rename this file to\n\"'+filename+'\""\nor some equivalent.')
+                    saveAs(blob, filename)
+                }
+            },{
                 // When web entities and links are loaded, build the json network
                 triggers: ['webentities_updated', 'webentitiesLinks_updated']
                 ,method: function() {
@@ -241,6 +252,7 @@ domino.settings({
     D.addModule(dmod.Button, [{
         label: 'Download network'
         ,bsIcon: 'icon-download'
+        ,dispatch: 'downloadNetwork'
     }]).html.appendTo($('#download'))
     
     //// On load, get the web entity
