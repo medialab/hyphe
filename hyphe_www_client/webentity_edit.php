@@ -190,6 +190,7 @@ p.webEntityReminder{
 <?php include("includes/codebottom_v2.php"); ?>
 
         <!-- Page-specific js package -->
+        <script src="js/_page_webentity_edit_modules.js"></script>
         <script src="js/_page_webentity_edit.js"></script>
 
     </body>
