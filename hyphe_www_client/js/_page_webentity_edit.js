@@ -1,6 +1,5 @@
 domino.settings({
     shortcutPrefix: "::" // Hack: preventing a bug related to a port in a URL for Ajax
-    ,name: "d"
     ,verbose: true
 })
 
@@ -21,7 +20,8 @@ $.fn.editable.defaults.mode = 'inline';
         ,rpc_error = function(data){alert('Oops, an error occurred... \n'+data)}
 
     var D = new domino({
-        properties: [
+        name: 'main'
+        ,properties: [
             {
                 id:'currentWebEntity'
                 ,dispatch: 'currentWebEntity_updated'
@@ -573,7 +573,6 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
     
-
     // Tree
     D.addModule(function(){
         domino.module.call(this)
@@ -582,6 +581,10 @@ $.fn.editable.defaults.mode = 'inline';
             D.request('getCurrentWebEntityPages', {shortcuts:{
                 webEntityId: D.get('currentWebEntity').id
             }})
+            // Popover
+            D.dispatchEvent('update_treeItemPopover', {
+                treeItemPopover: ''
+            })
         }
 
         this.triggers.events['currentWebEntityPages_updated'] = function() {
@@ -880,12 +883,7 @@ $.fn.editable.defaults.mode = 'inline';
                 })
                 
         }
-        this.triggers.events['update_currentWebEntity'] = function(d){
-            D.dispatchEvent('update_treeItemPopover', {
-                treeItemPopover: ''
-            })
-        }
-        
+
     })
 
 
