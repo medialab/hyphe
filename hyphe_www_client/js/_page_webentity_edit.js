@@ -220,22 +220,11 @@ $.fn.editable.defaults.mode = 'inline';
     D.addModule(dmod.Span, [{
         element: $('span[data-text-content="webentity_name"]')
         ,text: 'web entity'
-        ,triggers_unmute: 'currentWebEntity_updated'
         ,property: 'currentWebEntity'
-        ,property_access: function(p){return p.name}
+        ,property_access: function(we){return we.name}
         ,triggers: 'currentWebEntity_updated'
     }])
-
-    D.addModule(function(){
-        domino.module.call(this)
-
-        this.triggers.events['currentWebEntity_updated'] = function(d) {
-            var webEntity = d.get('currentWebEntity')
-            $('#pageTitle').text('Edit: '+webEntity.name)
-        }
-
-    })
-
+    
     // Editable enable / disable
     D.addModule(function(){
         domino.module.call(this)
