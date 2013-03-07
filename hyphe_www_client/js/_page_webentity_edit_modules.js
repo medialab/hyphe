@@ -37,7 +37,7 @@
     if(o['text'])
       el.text( o['text'] )
     else
-      update()
+      update(d)
 
     o['cssClass'] && el.addClass(o['cssClass'])
     o['id'] && el.attr('id', o['id'])
@@ -46,7 +46,8 @@
       self.triggers.events[o['triggers']] = update
 
     function update(domino) {
-      var text = (o['property_access']) ? (o['property_access'](domino.get(o['property']))) : (domino.get(o['property']))
+      var prop = domino.get(o['property'])
+        ,text = (prop) ? ( (o['property_access']) ? (o['property_access'](prop)) : (prop) ) : ('')
       el.text( text || '' )
     }
 

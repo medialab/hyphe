@@ -216,7 +216,7 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Page title
+    // Web entity names
     D.addModule(dmod.Span, [{
         element: $('span[data-text-content="webentity_name"]')
         ,text: 'web entity'
@@ -225,6 +225,15 @@ $.fn.editable.defaults.mode = 'inline';
         ,triggers: 'currentWebEntity_updated'
     }])
     
+    // Web entity ID
+    D.addModule(dmod.Span, [{
+        element: $('span[data-text-content="webentity_id"]')
+        ,property: 'currentWebEntity'
+        ,property_access: function(we){return we.id}
+        ,triggers: 'currentWebEntity_updated'
+    }])
+    
+
     // Editable enable / disable
     D.addModule(function(){
         domino.module.call(this)

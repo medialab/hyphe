@@ -128,7 +128,7 @@ p.webEntityReminder{
                             <td><a id="homepage">...</a></td>
                         </tr><tr>
                             <th>ID</th>
-                            <td><span class="muted" id="id">...</span></td>
+                            <td><span class="muted" data-text-content="webentity_id"/></td>
                         </tr><tr>
                             <th></th>
                             <td><span id="dates">...</span></td>
