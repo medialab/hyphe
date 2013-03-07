@@ -108,7 +108,7 @@ p.webEntityReminder{
 
             <div class="row">
                 <div class="span12">
-                    <h1 id="pageTitle">Edit web entity <span class="muted">(loading)</span></h1>
+                    <h1>Edit <span data-text-content="webentity_name"/></h1>
                     <p class="text-info">
                         Edit this web entity. Click on the underlined fields to edit them.
                     </p>

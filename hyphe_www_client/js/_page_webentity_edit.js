@@ -217,6 +217,15 @@ $.fn.editable.defaults.mode = 'inline';
     })
 
     // Page title
+    D.addModule(dmod.Span, [{
+        element: $('span[data-text-content="webentity_name"]')
+        ,text: 'web entity'
+        ,triggers_unmute: 'currentWebEntity_updated'
+        ,property: 'currentWebEntity'
+        ,property_access: function(p){return p.name}
+        ,triggers: 'currentWebEntity_updated'
+    }])
+
     D.addModule(function(){
         domino.module.call(this)
 

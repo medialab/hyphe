@@ -10,6 +10,50 @@
   ]
 
   /**
+   * Dynamic span (just shows a property)
+   *
+   * @param   {?Object} options An object containing the specifications of the
+   *                            module.
+   * @param   {?Object} d       The instance of domino.
+   *
+   * Here is the list of options that are interpreted:
+   *
+   *   {?string}         element            The DOM element (jQuery)
+   *   {?string}         text               The text
+   *   {?string}         property           The name of the property containing the text
+   *                                        (it is updated on triggers)
+   *   {?function}       property_access    A function to access the text inside the 'property' listened
+   *   {?string}         id                 The DOM id
+   *   {?string}         cssClass           Additional css class(es) (bootstrap already managed)
+   *   {?(array|string)} triggers           The events that disable the button
+   */
+  ns.Span = function(options, d) {
+    domino.module.call(this)
+
+    var self = this
+        ,o = options || {}
+        ,el = o['element'] || $('<span/>')
+
+    if(o['text'])
+      el.text( o['text'] )
+    else
+      update()
+
+    o['cssClass'] && el.addClass(o['cssClass'])
+    o['id'] && el.attr('id', o['id'])
+    
+    if(o['property'] && o['triggers'])
+      self.triggers.events[o['triggers']] = update
+
+    function update(domino) {
+      var text = (o['property_access']) ? (o['property_access'](domino.get(o['property']))) : (domino.get(o['property']))
+      el.text( text || '' )
+    }
+
+    this.html = el
+  }
+
+  /**
    * A button dispatching an event.
    *
    * @param   {?Object} options An object containing the specifications of the
