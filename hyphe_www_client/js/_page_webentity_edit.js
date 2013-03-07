@@ -216,24 +216,6 @@ $.fn.editable.defaults.mode = 'inline';
         }
     })
 
-    // Web entity names
-    D.addModule(dmod.Span, [{
-        element: $('span[data-text-content="webentity_name"]')
-        ,text: 'web entity'
-        ,property: 'currentWebEntity'
-        ,property_access: function(we){return we.name}
-        ,triggers: 'currentWebEntity_updated'
-    }])
-    
-    // Web entity ID
-    D.addModule(dmod.Span, [{
-        element: $('span[data-text-content="webentity_id"]')
-        ,property: 'currentWebEntity'
-        ,property_access: function(we){return we.id}
-        ,triggers: 'currentWebEntity_updated'
-    }])
-    
-
     // Editable enable / disable
     D.addModule(function(){
         domino.module.call(this)
@@ -251,29 +233,47 @@ $.fn.editable.defaults.mode = 'inline';
                 syncPending: false
             })
         }
-
     })
 
-    // Identity table: ID
-    D.addModule(function(){
-        domino.module.call(this)
+    
 
-        this.triggers.events['currentWebEntity_updated'] = function(d) {
-            var webEntity = d.get('currentWebEntity')
-            $('#id').text(webEntity.id)
+    // Web entity names
+    D.addModule(dmod.TextBind, [{
+        element: $('span[data-text-content="webentity_name"]')
+        ,text: 'web entity'
+        ,property: 'currentWebEntity'
+        ,property_wrap: function(we){return we.name}
+        ,triggers: 'currentWebEntity_updated'
+    }])
+    
+    // Web entity ID
+    D.addModule(dmod.TextBind, [{
+        element: $('span[data-text-content="webentity_id"]')
+        ,property: 'currentWebEntity'
+        ,property_wrap: function(we){return we.id}
+        ,triggers: 'currentWebEntity_updated'
+    }])
+
+    // Web entity dates
+    D.addModule(dmod.TextBind, [{
+        element: $('span[data-text-content="webentity_dates"]')
+        ,property: 'currentWebEntity'
+        ,property_wrap: function(we){return 'Created '+Utils.prettyDate(we.creation_date).toLowerCase()+', modified '+Utils.prettyDate(we.last_modification_date).toLowerCase()}
+        ,triggers: 'currentWebEntity_updated'
+    }])
+    
+    // Web entity crawl status
+    D.addModule(dmod.ElementBind, [{
+        element: $('span[data-text-content="webentity_crawl"]')
+        ,property: 'currentWebEntity'
+        ,property_wrap: function(we){
+            return $('<span/>').text(we.crawling_status+' ')
+                .after($('<span class="muted"/>').text('(Indexing: '+we.indexing_status.toLowerCase()+') - '))
+                .after($('<a href="crawl_new.php#we_id='+we.id+'">new crawl</a>'))
         }
-    })
-
-    // Identity table: Dates
-    D.addModule(function(){
-        domino.module.call(this)
-
-        this.triggers.events['currentWebEntity_updated'] = function(d) {
-            var webEntity = d.get('currentWebEntity')
-            $('#dates').text('Created '+Utils.prettyDate(webEntity.creation_date).toLowerCase()+', modified '+Utils.prettyDate(webEntity.last_modification_date).toLowerCase())
-        }
-    })
-
+        ,triggers: 'currentWebEntity_updated'
+    }])
+    
     // Crawl status
     D.addModule(function(){
         domino.module.call(this)

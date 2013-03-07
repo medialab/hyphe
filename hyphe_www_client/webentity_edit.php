@@ -131,7 +131,7 @@ p.webEntityReminder{
                             <td><span class="muted" data-text-content="webentity_id"/></td>
                         </tr><tr>
                             <th></th>
-                            <td><span id="dates">...</span></td>
+                            <td><span data-text-content="webentity_dates"/></td>
                         </tr>
                     </table>
                     <div class="occasionalSpacer"></div>
@@ -142,7 +142,7 @@ p.webEntityReminder{
                             <td><a id="status">...</a></td>
                         </tr><tr>
                             <th>Last crawl</th>
-                            <td><span id="crawl">...</span></td>
+                            <td><span data-text-content="webentity_crawl"/></td>
                         </tr>
                     </table>
                 </div>

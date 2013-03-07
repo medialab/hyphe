@@ -10,7 +10,7 @@
   ]
 
   /**
-   * Dynamic span (just shows a property)
+   * Dynamic TextBind (just shows a property)
    *
    * @param   {?Object} options An object containing the specifications of the
    *                            module.
@@ -22,12 +22,11 @@
    *   {?string}         text               The text
    *   {?string}         property           The name of the property containing the text
    *                                        (it is updated on triggers)
-   *   {?function}       property_access    A function to access the text inside the 'property' listened
+   *   {?function}       property_wrap      A function to access the text inside the 'property' listened
    *   {?string}         id                 The DOM id
-   *   {?string}         cssClass           Additional css class(es) (bootstrap already managed)
    *   {?(array|string)} triggers           The events that disable the button
    */
-  ns.Span = function(options, d) {
+  ns.TextBind = function(options, d) {
     domino.module.call(this)
 
     var self = this
@@ -39,7 +38,6 @@
     else
       update(d)
 
-    o['cssClass'] && el.addClass(o['cssClass'])
     o['id'] && el.attr('id', o['id'])
     
     if(o['property'] && o['triggers'])
@@ -47,8 +45,51 @@
 
     function update(domino) {
       var prop = domino.get(o['property'])
-        ,text = (prop) ? ( (o['property_access']) ? (o['property_access'](prop)) : (prop) ) : ('')
+        ,text = (prop) ? ( (o['property_wrap']) ? (o['property_wrap'](prop)) : (prop) ) : ('')
       el.text( text || '' )
+    }
+
+    this.html = el
+  }
+
+  /**
+   * Dynamic ElementBind (just shows a property)
+   *
+   * @param   {?Object} options An object containing the specifications of the
+   *                            module.
+   * @param   {?Object} d       The instance of domino.
+   *
+   * Here is the list of options that are interpreted:
+   *
+   *   {?string}         element            The DOM element (jQuery)
+   *   {?string}         content            The content (HTML allowed)
+   *   {?string}         property           The name of the property containing the text
+   *                                        (it is updated on triggers)
+   *   {?function}       property_wrap      A function to access the text inside the 'property' listened
+   *   {?string}         id                 The DOM id
+   *   {?(array|string)} triggers           The events that disable the button
+   */
+  ns.ElementBind = function(options, d) {
+    domino.module.call(this)
+
+    var self = this
+        ,o = options || {}
+        ,el = o['element'] || $('<div/>')
+
+    if(o['content'])
+      el.html( o['content'] )
+    else
+      update(d)
+
+    o['id'] && el.attr('id', o['id'])
+    
+    if(o['property'] && o['triggers'])
+      self.triggers.events[o['triggers']] = update
+
+    function update(domino) {
+      var prop = domino.get(o['property'])
+        ,content = (prop) ? ( (o['property_wrap']) ? (o['property_wrap'](prop)) : (prop) ) : ('')
+      el.html( content || '' )
     }
 
     this.html = el
