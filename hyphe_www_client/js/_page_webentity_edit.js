@@ -238,7 +238,7 @@ $.fn.editable.defaults.mode = 'inline';
     
 
     // Web entity names
-    D.addModule(dmod.TextBind, [{
+    D.addModule(dmod.Span, [{
         element: $('span[data-text-content="webentity_name"]')
         ,text: 'web entity'
         ,property: 'currentWebEntity'
@@ -247,7 +247,7 @@ $.fn.editable.defaults.mode = 'inline';
     }])
     
     // Web entity ID
-    D.addModule(dmod.TextBind, [{
+    D.addModule(dmod.TextContent, [{
         element: $('span[data-text-content="webentity_id"]')
         ,property: 'currentWebEntity'
         ,property_wrap: function(we){return we.id}
@@ -255,7 +255,7 @@ $.fn.editable.defaults.mode = 'inline';
     }])
 
     // Web entity dates
-    D.addModule(dmod.TextBind, [{
+    D.addModule(dmod.TextContent, [{
         element: $('span[data-text-content="webentity_dates"]')
         ,property: 'currentWebEntity'
         ,property_wrap: function(we){return 'Created '+Utils.prettyDate(we.creation_date).toLowerCase()+', modified '+Utils.prettyDate(we.last_modification_date).toLowerCase()}
@@ -263,7 +263,7 @@ $.fn.editable.defaults.mode = 'inline';
     }])
     
     // Web entity crawl status
-    D.addModule(dmod.ElementBind, [{
+    D.addModule(dmod.HtmlContent, [{
         element: $('span[data-text-content="webentity_crawl"]')
         ,property: 'currentWebEntity'
         ,property_wrap: function(we){
@@ -274,22 +274,6 @@ $.fn.editable.defaults.mode = 'inline';
         ,triggers: 'currentWebEntity_updated'
     }])
     
-    // Crawl status
-    D.addModule(function(){
-        domino.module.call(this)
-
-        this.triggers.events['currentWebEntity_updated'] = function(d) {
-            var webEntity = d.get('currentWebEntity')
-            $('#crawl').html('')
-            $('#crawl').append(
-                $('<span/>').text(webEntity.crawling_status+' ')
-            ).append(
-                $('<span class="muted"/>').text('(Indexing: '+webEntity.indexing_status.toLowerCase()+') - ')
-            ).append($('<a href="crawl_new.php#we_id='+webEntity.id+'">new crawl</a>'))
-            
-        }
-    })
-
     // Prefixes
     D.addModule(function(){
         domino.module.call(this)

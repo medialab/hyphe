@@ -10,7 +10,7 @@
   ]
 
   /**
-   * Dynamic TextBind (just shows a property)
+   * TextContent (alias Span ) dynamically shows a property (text). You can wrap it in a function.
    *
    * @param   {?Object} options An object containing the specifications of the
    *                            module.
@@ -22,11 +22,11 @@
    *   {?string}         text               The text
    *   {?string}         property           The name of the property containing the text
    *                                        (it is updated on triggers)
-   *   {?function}       property_wrap      A function to access the text inside the 'property' listened
+   *   {?function}       property_wrap      A function to modify the property listened
    *   {?string}         id                 The DOM id
    *   {?(array|string)} triggers           The events that disable the button
    */
-  ns.TextBind = function(options, d) {
+  ns.TextContent = function(options, d) {
     domino.module.call(this)
 
     var self = this
@@ -51,9 +51,10 @@
 
     this.html = el
   }
+  ns.Span = ns.TextContent  // Alias
 
   /**
-   * Dynamic ElementBind (just shows a property)
+   * HtmlContent (alias Div ) dynamically shows a property (html allowed). You can wrap it in a function.
    *
    * @param   {?Object} options An object containing the specifications of the
    *                            module.
@@ -65,11 +66,11 @@
    *   {?string}         content            The content (HTML allowed)
    *   {?string}         property           The name of the property containing the text
    *                                        (it is updated on triggers)
-   *   {?function}       property_wrap      A function to access the text inside the 'property' listened
+   *   {?function}       property_wrap      A function to modify the property listened
    *   {?string}         id                 The DOM id
    *   {?(array|string)} triggers           The events that disable the button
    */
-  ns.ElementBind = function(options, d) {
+  ns.HtmlContent = function(options, d) {
     domino.module.call(this)
 
     var self = this
@@ -94,6 +95,7 @@
 
     this.html = el
   }
+  ns.Div = ns.HtmlContent
 
   /**
    * A button dispatching an event.
