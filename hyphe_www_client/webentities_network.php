@@ -114,6 +114,7 @@
 <?php include("includes/codebottom_v2.php"); ?>
 
         <!-- libs specifically needed here -->
+        <script src="js/libs/jquery.md5.js"></script>
         <script src="js/libs/chroma.js"></script>
         <script src="js/libs/sigma.min.js"></script>
         <script src="js/libs/sigma.forceatlas2.js"></script>

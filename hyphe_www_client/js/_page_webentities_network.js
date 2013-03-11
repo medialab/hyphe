@@ -267,8 +267,35 @@ domino.settings({
             ,{id:'attr_home', title:'Home page', type:'string'}
         ]
         
+        // Extract categories from nodes
+        var categories = []
+        webentities.forEach(function(we){
+            for(namespace in we.tags){
+                if(namespace == 'CORPUS' || namespace == 'USER'){
+                    var tagging = we.tags[namespace]
+                    for(category in tagging){
+                        var values = tagging[category]
+                        categories.push(namespace+': '+category)
+                    }
+                }
+            }
+        })
+        categories = Utils.extractCases(categories)
+        categories.forEach(function(cat){
+            net.nodesAttributes.push({id:'attr_'+$.md5(cat), title:cat, type:'string'})
+        })
+
         net.nodes = webentities.map(function(we){
             var color = statusColors[we.status] || chroma.hex('#FF0000')
+                ,tagging = []
+            for(namespace in we.tags){
+                if(namespace == 'CORPUS' || namespace == 'USER'){
+                    for(category in we.tags[namespace]){
+                        var values = we.tags[namespace][category]
+                        tagging.push({cat:namespace+': '+category, values:values})
+                    }
+                }
+            }
             return {
                 id: we.id
                 ,label: we.name
@@ -280,7 +307,9 @@ domino.settings({
                     ,{attr:'attr_creation', val: we.creation_date || 'unknown' }
                     ,{attr:'attr_modification', val: we.last_modification_date || 'unknown' }
                     ,{attr:'attr_home', val: we.homepage || '' }
-                ]
+                ].concat(tagging.map(function(catvalues){
+                    return {attr:'attr_'+$.md5(catvalues.cat), val:catvalues.values.join(' | ')}
+                }))
             }
         })
         

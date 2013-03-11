@@ -287,4 +287,26 @@
         }
 
 	}
+
+	// Sorts the array and removes the doubles
+	ns.extractCases = function(data_array, elementAccessor){
+		if(elementAccessor === undefined)
+			elementAccessor = function(x){return x}
+		
+		var temp_result = data_array.map(function(d){
+			return {id:elementAccessor(d), content:d}
+		}).sort(function(a, b) {
+            return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+        });
+        
+        // Merge Doubles
+        var result = []
+        for (var i = 0; i < temp_result.length; i++) {
+            if (i==0 || temp_result[i - 1].id != temp_result[i].id) {
+                result.push(temp_result[i].content)
+            }
+        }
+        
+        return result
+	}
 })(window.Utils = window.Utils || {}, jQuery)
