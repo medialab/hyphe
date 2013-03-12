@@ -10,6 +10,7 @@ HYPHE_API = {
 	,WEBENTITY:{
 		STARTPAGE:{
 			ADD:'store.add_webentity_startpage'
+			,REMOVE:'store.rm_webentity_startpage'
 		}
 		
 		,GET_PAGES:'store.get_webentity_pages'

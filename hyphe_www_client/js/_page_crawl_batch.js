@@ -56,6 +56,11 @@ domino.settings({
                 ,triggers: 'update_addstartpageValidation'
                 
             },{
+                id:'removestartpageValidation'
+                ,dispatch: 'removestartpageValidation_updated'
+                ,triggers: 'update_removestartpageValidation'
+                
+            },{
                 id:'lookedupUrl'
                 ,dispatch: 'lookedupUrl_updated'
                 ,triggers: 'update_lookedupUrl'
@@ -101,6 +106,18 @@ domino.settings({
                 ,setter: 'addstartpageValidation'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.STARTPAGE.ADD,
+                        'params' : [
+                            settings.webentityId
+                            ,settings.url
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'removeStartPage'
+                ,setter: 'removestartpageValidation'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.STARTPAGE.REMOVE,
                         'params' : [
                             settings.webentityId
                             ,settings.url
@@ -184,7 +201,15 @@ domino.settings({
                 triggers: ['addstartpageValidation_updated']
                 ,method: function(){
                     D.dispatchEvent('update_startpagesMessageObject', {
-                        startpagesMessageObject: {text:'One or more start pages added', display:true, bsClass:'alert-success', }
+                        startpagesMessageObject: {text:'Start page(s) added', display:true, bsClass:'alert-success', }
+                    })
+                }
+            },{
+                // Start page message displayed when pages removed
+                triggers: ['removestartpageValidation_updated']
+                ,method: function(){
+                    D.dispatchEvent('update_startpagesMessageObject', {
+                        startpagesMessageObject: {text:'Start page removed', display:true, bsClass:'alert-success', }
                     })
                 }
             },{
@@ -203,22 +228,68 @@ domino.settings({
                 }
             },{
                 // If the start pages are modified, reload the current web entity
-                triggers:['addstartpageValidation_updated']
-                ,method:function(){
+                triggers: ['addstartpageValidation_updated', 'removestartpageValidation_updated']
+                ,method: function(){
                     var we = D.get('currentWebentity')
                     if(we !== undefined)
                         D.request('getCurrentWebentity', {currentWebentityId: we.id})
                 }
             },{
                 // On URL lookup demanded, store the URL and do the lookup
-                triggers:['lookupUrl']
-                ,method:function(d){
+                triggers: ['lookupUrl']
+                ,method: function(d){
                     D.dispatchEvent('update_lookedupUrl', {
                         lookedupUrl: d.data.url
                     })
                     D.request('urlLookup', {
                         url: d.data.url
                         ,timeout: 5
+                    })
+                }
+            },{
+                // On 'add start page' button clicked, validate
+                triggers: ['ui_addStartpage']
+                ,method: function(){
+                    var url = $('#startPages_urlInput').val()
+                    if(url=='' || url === undefined){                           // No start page: do nothing
+                    } else if(!Utils.URL_validate(url)){                        // The URL is invalid: display a message
+                        D.dispatchEvent('update_startpagesMessageObject', {
+                            startpagesMessageObject: {html:'<strong>Invalid URL.</strong> This string is not recognized as an URL. Check that it begins with "http://".', display:true, bsClass:'alert-error', }
+                        })
+                    } else {                                                    // Check that the start page is in one of the LRU prefixes
+                        var lru = Utils.URL_to_LRU(url)
+                            ,lru_valid = false
+                            ,we = D.get('currentWebentity')
+                        we.lru_prefixes.forEach(function(lru_prefix){
+                            if(lru.indexOf(lru_prefix) == 0)
+                                lru_valid = true
+                        })
+                        if(!lru_valid){                                         // The start page does not belong to any LRU_prefix: display message
+                            D.dispatchEvent('update_startpagesMessageObject', {
+                                startpagesMessageObject: {html:'<strong>Invalid start page.</strong> This page does not belong to the web entity (check the prefixes).', display:true, bsClass:'alert-error', }
+                            })
+                        } else {                                                // It's OK: display a message and request the service
+                            D.dispatchEvent('update_startpagesMessageObject', {
+                                startpagesMessageObject: {text:'Adding the start page...', display:true, bsClass:'alert-info', }
+                            })
+                            D.request('addStartPage', {
+                                webentityId: we.id
+                                ,url: url
+                            })
+                        }
+                    }
+                }
+            },{
+                // On 'remove start page' clicked, display message and request the service
+                triggers: ['ui_removeStartPage']
+                ,method: function (d) {
+                    D.dispatchEvent('update_startpagesMessageObject', {
+                        startpagesMessageObject: {text:'Removing the start page...', display:true, bsClass:'alert-info', }
+                    })
+                    we = D.get('currentWebentity')
+                    D.request('removeStartPage', {
+                        webentityId: we.id
+                        ,url: d.data.url
                     })
                 }
             }
@@ -361,11 +432,9 @@ domino.settings({
                     tr.append(
                         $('<td/>').append(
                             $('<button class="close">&times;</button>').click(function(){
-                                messagesElement.html('')
-                                    .append(
-                                        $('<div class="alert alert-warning"/>').html('Removing server-side...')
-                                    )
-                                // TODO: Hyphen.controller.core.webEntity_removeStartPage(we_id, sp)
+                                D.dispatchEvent('ui_removeStartPage', {
+                                    url: sp
+                                })
                             })
                         )
                     )
@@ -422,12 +491,33 @@ domino.settings({
         }
     })
 
-    // Start pages modules
+    // Start pages info messages
     D.addModule(dmod.TextAlert, [{
         element: $('#startPages_messages')
         ,property: 'startpagesMessageObject'
     }])
 
+    // Input for adding a start page
+    D.addModule(function(){
+        domino.module.call(this)
+        var element = $('#startPages_urlInput')
+        element.on('keyup', function(e){
+            if(e.keyCode == 13){ // Enter key pressed
+                D.dispatchEvent('ui_addStartpage', {})
+                element.blur()
+            }
+        })
+        // It has to be cleaned up at some points
+        this.triggers.events['addstartpageValidation_updated', 'currentWebentity_updated'] = function(){
+            element.val('')
+        }
+    })
+
+    // Button to add a start page
+    D.addModule(dmod.Button, [{
+        element: $('#startPages_add')
+        ,dispatch: 'ui_addStartpage'
+    }])
         
 
 
