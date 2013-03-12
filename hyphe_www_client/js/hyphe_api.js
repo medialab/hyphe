@@ -16,4 +16,10 @@ HYPHE_API = {
 		,SET_HOMEPAGE: 'store.set_webentity_homepage'
 		,SET_TAG_VALUES: 'store.set_webentity_tag_values'
 	}
+	,PAGES:{
+		DECLARE:'declare_pages'
+	}
+	,PAGE:{
+		DECLARE:'declare_page'
+	}
 }
