@@ -39,6 +39,17 @@ domino.settings({
                 ,triggers: 'update_urldeclarationInvalid'
                 ,type:'boolean'
                 ,value:true
+            },{
+                id:'hidePrefixes'
+                ,dispatch: 'hidePrefixes_updated'
+                ,triggers: 'update_hidePrefixes'
+                ,type:'boolean'
+                ,value:true
+            },{
+                id:'startpagesMessageObject'
+                ,dispatch: 'startpagesMessageObject_updated'
+                ,triggers: 'update_startpagesMessageObject'
+                ,value: {display: false}
             }
         ],services: [
             {
@@ -70,7 +81,7 @@ domino.settings({
                     })
                 }
             },{
-                // Web entity selected
+                // On web entity selected
                 triggers: ['ui_webentitySelected']
                 ,method: function(){
                     var current_we_id = $('#webentities_selector').val()
@@ -85,7 +96,7 @@ domino.settings({
                     })
                 }
             },{
-                // Web entity declared (by URL pasted)
+                // On web entity declared (by URL pasted)
                 triggers: ['ui_webentityDeclared']
                 ,method: function(){
                     if(!D.get('urldeclarationInvalid')){
@@ -93,6 +104,31 @@ domino.settings({
                             url: $('#urlField').val()
                         })
                     }
+                }
+            },{
+                // Selecting a web entity show the prefixes
+                triggers: ['currentWebentity_updated']
+                ,method: function(){
+                    D.dispatchEvent('update_hidePrefixes', {
+                        hidePrefixes: false
+                    })
+                }
+            },{
+                // Start page message displayed when clicking on "Use prefixes as start pages"
+                triggers: ['ui_usePrefixesAsStartPages']
+                ,method: function(){
+                    D.dispatchEvent('update_startpagesMessageObject', {
+                        startpagesMessageObject: {text:'Use prefixes as start pages...', display:true, bsClass:'alert-info', }
+                    })
+                }
+            },{
+                // Clicking on "Use prefixes as start pages" triggers a remote action
+                triggers: ['ui_usePrefixesAsStartPages']
+                ,method: function(){
+                    // TODO
+                    /*we.lru_prefixes.forEach(function(lru_prefix){
+                        // TODO: Hyphen.controller.core.webEntity_addStartPage(we.id, Hyphen.utils.LRU_to_URL(lru_prefix))
+                    })*/
                 }
             }
         ]
@@ -129,9 +165,9 @@ domino.settings({
         element.on('keyup', function(e){
             if(e.keyCode == 13){
                 // Enter key pressed
-                if(D.get('urldeclarationInvalid')){
+                if(!D.get('urldeclarationInvalid')){
+                    D.dispatchEvent('ui_webentityDeclared', {})
                     element.blur()
-                    D.dispatchEvent('declarePage', {})
                 }
             } else {
                 var url = element.val()
@@ -142,6 +178,47 @@ domino.settings({
             }
         })
     })
+
+    // Web entity names
+    D.addModule(dmod.TextContent, [{
+        element: $('span[data-text-content="webentity_name"]')
+        ,property: 'currentWebentity'
+        ,property_wrap: function(we){return we.name}
+        ,triggers: 'currentWebentity_updated'
+    }])
+
+    // LRU prefixes
+    D.addModule(function(){
+        domino.module.call(this)
+
+        var element = $('#webEntities_prefixes')
+
+        this.triggers.events['currentWebentity_updated'] = function(d) {
+            var webEntity = d.get('currentWebentity')
+            element.html('')
+            webEntity.lru_prefixes.forEach(function(lru_prefix){
+                element.append(
+                    $('<tr/>').append(
+                        $('<td/>').text(Utils.LRU_to_URL(lru_prefix))
+                    ).append(
+                        $('<td>').append(
+                            $('<a class="btn btn-link btn-mini pull-right"/>')
+                                .attr('href', Utils.LRU_to_URL(lru_prefix))
+                                .attr('target', 'blank')
+                                .append($('<i class="icon-share-alt"/>'))
+                        )
+                    )
+                )
+            })
+            
+        }
+    })
+
+    // LRU prefixes info
+    D.addModule(dmod.HideElement, [{
+        element: $('#webEntities_prefixes_info')
+        ,property: 'hidePrefixes'
+    }])
 
     // Table of start pages
     D.addModule(function(){
@@ -155,28 +232,7 @@ domino.settings({
             if(we !== undefined){
                 element.html('')
                 if(we.startpages.length>0){
-                    startpages.forEach(function(sp){
-                        var tr = $('<tr class="startPage_tr"/>')
-                        element.append(tr)
-                        tr.append(
-                            $('<td/>').append($('<small/>').append($('<a target="_blank" class="unchecked"/>').attr('href',sp).text(sp+'  ')))
-                        )
-                        if(startpages.length>1){
-                            tr.append(
-                                $('<td/>').append(
-                                    $('<button class="close">&times;</button>').click(function(){
-                                        messagesElement.html('')
-                                            .append(
-                                                $('<div class="alert alert-warning"/>').html('Removing server-side...')
-                                            )
-                                        // TODO: Hyphen.controller.core.webEntity_removeStartPage(we_id, sp)
-                                    })
-                                )
-                            )
-                        } else {
-                            tr.append($('<td/>'))
-                        }
-                    })
+                    displayStartpagesList(we.startpages)
                 } else {
                     // No start page: propose to import from LRU_prefixes
                     element.append(
@@ -185,13 +241,7 @@ domino.settings({
                         ).append(
                             $('<td/>').append(
                                 $('<button class="btn btn-small pull-right">Use prefixes as start pages</button>').click(function(){
-                                    messagesElement.html('')
-                                        .append(
-                                            $('<div class="alert alert-info"/>').html('Use prefixes as start pages...')
-                                        )
-                                    we.lru_prefixes.forEach(function(lru_prefix){
-                                        // TODO: Hyphen.controller.core.webEntity_addStartPage(we.id, Hyphen.utils.LRU_to_URL(lru_prefix))
-                                    })
+                                    D.dispatchEvent('ui_usePrefixesAsStartPages', {})
                                 })
                             )
                         )
@@ -208,8 +258,40 @@ domino.settings({
             // TODO: Hyphen.view.startPages_cascadeCheck()
             // TODO: Hyphen.view.launchButton_updateState()
         }
+
+        var displayStartpagesList = function(startpages){
+            startpages.forEach(function(sp){
+                var tr = $('<tr class="startPage_tr"/>')
+                element.append(tr)
+                tr.append(
+                    $('<td/>').append($('<small/>').append($('<a target="_blank" class="unchecked"/>').attr('href',sp).text(sp+'  ')))
+                )
+                if(startpages.length>1){
+                    tr.append(
+                        $('<td/>').append(
+                            $('<button class="close">&times;</button>').click(function(){
+                                messagesElement.html('')
+                                    .append(
+                                        $('<div class="alert alert-warning"/>').html('Removing server-side...')
+                                    )
+                                // TODO: Hyphen.controller.core.webEntity_removeStartPage(we_id, sp)
+                            })
+                        )
+                    )
+                } else {
+                    tr.append($('<td/>'))
+                }
+            })
+        }
     })
 
+    // Start pages modules
+    D.addModule(dmod.TextAlert, [{
+        element: $('#startPages_messages')
+        ,property: 'startpagesMessageObject'
+    }])
+
+        
 
 
 

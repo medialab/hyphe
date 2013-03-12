@@ -18,7 +18,8 @@
         var webentity_format = function(state){
             if (!state.id)
                 return state.text // optgroup
-            return "<img src='res/icon-we-16.png'/> " + state.text
+            return state.text
+            // return "<img src='res/icon-we-16.png'/> " + state.text
         }
         $("#webentities_selector").select2({
             query: Hyphen.view.weSelector_getQueryFunction(),

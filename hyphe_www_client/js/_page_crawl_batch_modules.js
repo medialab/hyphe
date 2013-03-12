@@ -30,21 +30,157 @@
 
     o['id'] && el.attr('id', o['id'])
     
-    if(o['property'] && o['triggers'])
-      self.triggers.events[o['triggers']] = update
+    if(o['property']){
+      if (o['triggers']){
+        domino.utils.array(o['triggers']).forEach(function(eventName) {
+          self.triggers.events[eventName] = update
+        })
+      }else{
+        self.triggers.properties[o['property']] = update
+      }
+    }
 
     function update(domino) {
-      var prop = domino.get(o['property'])
-        ,text = (prop) ? ( (o['property_wrap']) ? (o['property_wrap'](prop)) : (prop) ) : ('')
-      el.text( text || '' )
+      if(o['property'] !== undefined){
+        var prop = domino.get(o['property'])
+        if(prop){
+          var text = (o['property_wrap']) ? (o['property_wrap'](prop)) : (prop)
+          el.text( text || '' )
+        } // No property does not mean empty text
+      }
     }
 
     this.html = el
   }
   ns.Span = ns.TextContent  // Alias
 
+
   /**
-   * Selector_bigList is a select2 selector adapted to big lists
+   * HideElement listens to a property to hide or show a DOM element
+   *
+   * @param   {?Object} options An object containing the specifications of the
+   *                            module.
+   * @param   {?Object} d       The instance of domino.
+   *
+   * Here is the list of options that are interpreted:
+   *
+   *   {?string}         element            The DOM element (jQuery)
+   *   {?string}         property           The name of the property containing the text
+   *                                        (it is updated on triggers)
+   *   {?function}       property_wrap      A function to modify the property listened
+   *   {?(array|string)} triggers           The events that trigger the property (optional)
+   */
+  ns.HideElement = function(options, d) {
+    domino.module.call(this)
+
+    var self = this
+        ,o = options || {}
+        ,el = o['element']
+
+    if(o['property']){
+      if (o['triggers']){
+        domino.utils.array(o['triggers']).forEach(function(eventName) {
+          self.triggers.events[eventName] = update
+        })
+      }else{
+        self.triggers.properties[o['property']] = update
+      }
+    }
+
+    function update(domino) {
+      if(o['property'] !== undefined){
+        var prop = domino.get(o['property'])
+        if(prop !== undefined){
+          var hide = (o['property_wrap']) ? (o['property_wrap'](prop)) : (prop)
+          if(hide){
+            el.hide()
+          } else {
+            el.show()
+          }
+        }
+      }
+    }
+
+    update(d)
+
+    this.html = el
+  }
+  
+  /**
+   * TextAlert listens to a property to set its content. The property must contain an object
+   * whose parameters can be these:
+   *      - text: the text content, parsed as text (string)
+   *      - html: the html content or a jQuery element (overrides text)
+   *      - display: if false, the alert is hidden
+   *      - bsClass: the class(es) of bootstrap (ie: 'alert-info')
+   *
+   * @param   {?Object} options     An object containing the specifications of the
+   *                                module.
+   * @param   {?Object} d           The instance of domino.
+   *
+   * Here is the list of options that are interpreted:
+   * 
+   *   {?string}         element            The DOM element (jQuery)
+   *   {?string}         property           The name of the property containing the object
+   *                                        (it is updated on triggers)
+   *   {?function}       property_wrap      A function to modify the property listened
+   *   {?(array|string)} triggers           Events to listen to (optional)
+   */
+  ns.TextAlert = function(options, d) {
+    domino.module.call(this)
+
+    var self = this
+        ,o = options || {}
+        ,el = o['element'] || $('<div/>')
+
+    el.addClass('alert')
+
+    if(o['property']){
+      if(o['triggers']){
+        domino.utils.array(o['triggers']).forEach(function(eventName) {
+          self.triggers.events[eventName] = update
+        })
+      }else{
+        self.triggers.properties[o['property']] = update
+      }
+    }
+
+    function update(domino) {
+      if(o['property'] !== undefined){
+        var prop = domino.get(o['property'])
+        if(prop !== undefined){
+          // Text Alert Options
+          var tao = (o['property_wrap']) ? (o['property_wrap'](prop)) : (prop)
+          if(tao.text !== undefined)
+            el.text(tao.text)
+          if(tao.html !== undefined)
+            el.html(tao.html)
+          if(tao.bsClass !== undefined){
+            el.removeClass('alert-error')
+              .removeClass('alert-success')
+              .removeClass('alert-info')
+            el.addClass(tao.bsClass)
+          }
+          if(tao.display !== undefined){
+            if(tao.display)
+              el.show()
+            else
+              el.hide()
+          }
+        }
+      }
+    }
+
+    update(d)
+
+    this.html = el
+  }
+
+  /**
+   * Selector_bigList is a select2 selector adapted to big lists.
+   * The list may be a list of objects, since you can set the item_wrap function to retrive id and text from
+   * these objects.
+   * The list must be stored in a property, but note that it is not listened.
    *
    * @param   {?Object} options An object containing the specifications of the
    *                            module.
@@ -56,8 +192,9 @@
    *   {string}          data_property              The data. Not listened.
    *   {?string}         disabled_property          The disabled state. Listened.
    *   {?string}         selected_property          The selected element. item_wrap will be applied. Listened.
-   *   {?function}       item_wrap
-   *   {?string}         placeholder        
+   *   {?function}       item_wrap                  A function returning {id:, text:} from a given item
+   *                                                from the list passed through data_property
+   *   {?string}         placeholder                Text to display when nothing selected
    *   {?string}         id                         The DOM id
    *   {?(array|string)} triggers                   The events that disable the button
    */
@@ -150,7 +287,10 @@
   }
 
   /**
-   * A button dispatching an event.
+   * A button dispatching an event on click. Bootstrap attributes can be set.
+   * A property can be listened for enabling/disabling the button. An alternate label is possible for
+   * the disabled button.
+   * The ghost mode allows the button to look like a link unless in case of mouse over.
    *
    * @param   {?Object} options An object containing the specifications of the
    *                            module.
@@ -165,7 +305,7 @@
    *   {?string}         bsIcon             Bootstrap glyphicon class
    *   {?string}         bsSize             Bootstrap size class
    *   {?string}         bsColor            Bootstrap color class
-   *   {?string}         disabled_property  The property that will be tracked for the disabled status
+   *   {?string}         disabled_property  The property that will be listened for the disabled status
    *   {?string}         cssClass           Additional css class(es) (bootstrap already managed)
    *   {?boolean}        ghost              A mode that makes the button frame appear only on mouseover
    *   {?(array|string)} dispatch           The events to dispatch when clicked
@@ -231,121 +371,5 @@
 
     this.html = el
   }
-
-  /**
-   * A button with two states: stateA and stateB
-   *
-   * @param   {?Object} options An object containing the specifications of the
-   *                            module.
-   * @param   {?Object} d       The instance of domino.
-   *
-   * Here is the list of options that are interpreted:
-   *
-   *   {?string}         element                The HTML element (jQuery)
-   *   {?string}         id                     The DOM id
-   *   {?string}         bsSize                 Bootstrap size class
-   *   {?string}         cssClass               Additional css class(es) (bootstrap already managed)
-   *   {?boolean}        ghost                  A mode that makes the button frame appear only on mouseover
-   *   {?boolean}        stateB_init            State B at initialization
-   *   {?string}         label_A                The text on state A
-   *   {?string}         label_B                The text on state B
-   *   {?string}         bsIcon_A               Bootstrap glyphicon class on state A
-   *   {?string}         bsIcon_B               Bootstrap glyphicon class on state B
-   *   {?string}         bsColor_A              Bootstrap color class on state A
-   *   {?string}         bsColor_B              Bootstrap color class on state B
-   *   {?(array|string)} triggers_stateA        The events that sets state A
-   *   {?(array|string)} triggers_stateB        The events that sets state B
-   *   {?(array|string)} triggers_stateToggle   The events that toggle the state
-   *   {?boolean}        disabled               Disabled at initialization
-   *   {?(array|string)} triggers_enable        The events that enable the button
-   *   {?(array|string)} triggers_disable       The events that disable the button
-   *   {?(array|string)} dispatch               The events to dispatch when clicked
-   *   {?(array|string)} dispatch_A             The events to dispatch when clicked on state A
-   *   {?(array|string)} dispatch_B             The events to dispatch when clicked on state B
-   */
-  ns.Button_twoStates = function(options, d) {
-    domino.module.call(this)
-
-    var self = this
-        ,o = options || {}
-        ,el = o['element'] || $('<button class="btn" state="A"><i/><span/></button>')
-        ,setState = function(s){
-          var alt_s = (s == 'A') ? 'B' : 'A'
-
-          el.attr('state', s)
-          if(o['bsIcon_'+s]){
-            o['bsIcon_'+alt_s] && el.find('i').removeClass(o['bsIcon_'+alt_s])
-            el.find('i').addClass(o['bsIcon_'+s])
-            if(!o['ghost'] && o['bsColor_'+s] && ns.bsDarkBackgroundStyles.indexOf(o['bsColor_'+s]) >= 0)
-              el.find('i').addClass('icon-white')
-          }
-
-          el.find('span').text(((o['bsIcon_'+s])?(' '):('')) + o['label_'+s] || '')
-        }
-
-    if(o['stateB_init'])
-      setState('B')
-    else
-      setState('A')
-
-    o['bsSize'] && el.addClass(o['bsSize'])
-
-    o['disabled'] && el.addClass('disabled')
-
-    o['cssClass'] && el.addClass(o['cssClass'])
-    o['id'] && el.attr('id', o['id'])
-
-    if(o['ghost']){
-      var s = el.attr('state')
-      el.addClass('btn-link')
-        .mouseenter(function(){
-          el.removeClass('btn-link')
-          o['bsColor_'+s] && el.addClass(o['bsColor_'+s])
-          if(o['bsColor_'+s] && ns.bsDarkBackgroundStyles.indexOf(o['bsColor_'+s]) >= 0)
-            el.find('i').addClass('icon-white')
-        }).mouseleave(function(){
-          el.addClass('btn-link')
-          o['bsColor_'+s] && el.removeClass(o['bsColor_'+s])
-          if(o['bsColor_'+s] && ns.bsDarkBackgroundStyles.indexOf(o['bsColor_'+s]) >= 0)
-            el.find('i').removeClass('icon-white')
-        })
-    } else {
-      o['bsColor_'+s] && el.addClass(o['bsColor_'+s])
-    }
-
-    if(o['triggers_enable'])
-      self.triggers.events[o['triggers_enable']] = function(){
-        el.removeClass('disabled')
-      }
-    if(o['triggers_disable'])
-      self.triggers.events[o['triggers_disable']] = function(){
-        el.addClass('disabled')
-      }
-
-    if(o['triggers_stateA'])
-      self.triggers.events[o['triggers_stateA']] = function(){
-        setState('A')
-      }
-
-    if(o['triggers_stateB'])
-      self.triggers.events[o['triggers_stateB']] = function(){
-        setState('B')
-      }
-    
-    if(o['triggers_stateToggle'])
-      self.triggers.events[o['triggers_stateToggle']] = function(){
-        setState((el.attr('state') == 'A') ? 'B' : 'A')
-      }
-
-    el.click(function() {
-      if(!el.hasClass('disabled'))
-        o['dispatch'] && self.dispatchEvent(domino.utils.array(o['dispatch']))
-        o['dispatch_'+el.attr('state')] && self.dispatchEvent(domino.utils.array(o['dispatch_'+el.attr('state')]))
-    })
-
-    this.html = el
-  }
-
-
 
 })(jQuery, (window.dmod = window.dmod || {}), domino);

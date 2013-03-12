@@ -19,6 +19,10 @@
                 overflow-y: scroll;
             }
 
+            #webEntities_prefixes_info{
+                margin-top: 30px;
+            }
+
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/select2.css">
@@ -61,7 +65,7 @@
 
             <div class="row">
                 <div class="span12">
-                    <h1>New crawl</h1>
+                    <h1>Crawl <span data-text-content="webentity_name">a new web entity</span></h1>
                     <p class="text-info">
                         Create a crawl job dedicated to a web entity. You can crawl an existing or a new web entity.
                         <br/>
@@ -85,7 +89,11 @@
                         <input type="text" id="urlField" placeholder="Paste URL to declare web entity">
                         <button class="btn" id="webEntityByURL_button" type="button">Declare</button>
                     </div>
-                    <div id="webEntities_info"></div>
+                    <div id="webEntities_prefixes_info">
+                        <p><strong>Prefixes - </strong><span data-text-content="webentity_name">This web entity</span> is defined by these URLs:</p>
+                        <table id="webEntities_prefixes" class="table table-condensed">
+                        </table>
+                    </div>
                 </div>
                 <div class="span4">
                     <h3>2. Start pages</h3>
