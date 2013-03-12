@@ -1067,7 +1067,7 @@ public class LRUIndex {
             String prefixLRU = lru;
             WebEntity webentity = null;
             final Pattern pattern = Pattern.compile("\\|[shpqft]:");
-            while (webentity == null && prefixLRU.length() > 0) {
+            while (webentity == null && prefixLRU != null && prefixLRU.length() > 0) {
                 webentity = retrieveWebEntityByLRUPrefix(prefixLRU);
                 if (webentity == null) {
                     lastIndex = -1;
@@ -1144,14 +1144,14 @@ public class LRUIndex {
      * @throws IndexException hmm
      */
     public WebEntity retrieveWebEntityByLRUPrefix(String prefix) throws IndexException {
+        if(prefix == null) {
+            logger.warn("attempted to retrieve web entity with null lruprefix");
+            return null;
+        }
         if(logger.isDebugEnabled()) {
             logger.debug("retrieveWebEntityByLRUPrefix: " + prefix);
         }
         try {
-            if(prefix == null) {
-                logger.warn("attempted to retrieve web entity with null lruprefix");
-                return null;
-            }
             Query q = LuceneQueryFactory.getWebEntitiesByLRUQuery(prefix);
             final List<Document> hits = executeMultipleResultsQuery(q);
             if (hits.size() != 1) {
