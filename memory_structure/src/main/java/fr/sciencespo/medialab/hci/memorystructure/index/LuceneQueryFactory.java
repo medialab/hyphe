@@ -333,6 +333,7 @@ public class LuceneQueryFactory {
         BooleanQuery q = new BooleanQuery();
         Query q1 = new TermQuery(typeEqualWebEntity);
         q.add(q1, BooleanClause.Occur.MUST);
+        BooleanQuery q2 = new BooleanQuery();
         
         Set<String> prefixes = webEntity.getLRUSet();
         for(String prefix : prefixes) {
@@ -341,8 +342,9 @@ public class LuceneQueryFactory {
 
             prefix = prefix + "?*";
             Query qPrefixWildcard = new WildcardQuery(new Term(IndexConfiguration.FieldName.LRU.name(), prefix));
-            q.add(qPrefixWildcard, BooleanClause.Occur.MUST);
+            q2.add(qPrefixWildcard, BooleanClause.Occur.SHOULD);
         }
+        q.add(q2, BooleanClause.Occur.MUST);
         if(logger.isDebugEnabled()) {
             logger.debug("Lucene query: " + q.toString());
         }
