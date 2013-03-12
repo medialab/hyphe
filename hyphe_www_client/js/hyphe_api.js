@@ -8,9 +8,14 @@ HYPHE_API = {
 		,MERGE: 'store.merge_webentity_into_another'
 	}
 	,WEBENTITY:{
-		GET_PAGES:'store.get_webentity_pages'
+		STARTPAGE:{
+			ADD:'store.add_webentity_startpage'
+		}
+		
+		,GET_PAGES:'store.get_webentity_pages'
 		,GET_SUBWEBENTITIES:'store.get_webentity_subwebentities'
 		,GET_PARENTWEBENTITIES:'store.get_webentity_parentwebentities'
+
 		,SET_NAME:'store.rename_webentity'
 		,SET_STATUS: 'store.set_webentity_status'
 		,SET_HOMEPAGE: 'store.set_webentity_homepage'
@@ -22,4 +27,6 @@ HYPHE_API = {
 	,PAGE:{
 		DECLARE:'declare_page'
 	}
+
+	,URL_LOOKUP:'lookup_httpstatus'
 }

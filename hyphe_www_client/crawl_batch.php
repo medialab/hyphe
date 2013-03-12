@@ -23,6 +23,10 @@
                 margin-top: 30px;
             }
 
+            .startPage_tr i{
+                margin-left: 5px;
+            }
+
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/select2.css">

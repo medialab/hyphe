@@ -50,6 +50,21 @@ domino.settings({
                 ,dispatch: 'startpagesMessageObject_updated'
                 ,triggers: 'update_startpagesMessageObject'
                 ,value: {display: false}
+            },{
+                id:'addstartpageValidation'
+                ,dispatch: 'addstartpageValidation_updated'
+                ,triggers: 'update_addstartpageValidation'
+                
+            },{
+                id:'lookedupUrl'
+                ,dispatch: 'lookedupUrl_updated'
+                ,triggers: 'update_lookedupUrl'
+                
+            },{
+                id:'urllookupValidation'
+                ,dispatch: 'urllookupValidation_updated'
+                ,triggers: 'update_urllookupValidation'
+                
             }
         ],services: [
             {
@@ -62,11 +77,46 @@ domino.settings({
                 ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
+                id: 'getCurrentWebentity'
+                ,setter: 'currentWebentity'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET,
+                        'params' : [
+                            [settings.currentWebentityId]    // List of web entities ids
+                        ],
+                    })}
+                ,path:'0.result.0'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
                 id: 'declarePage'
                 ,setter: 'currentWebentity'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.PAGE.DECLARE,
                         'params' : [settings.url],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'addStartPage'
+                ,setter: 'addstartpageValidation'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.STARTPAGE.ADD,
+                        'params' : [
+                            settings.webentityId
+                            ,settings.url
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'urlLookup'
+                ,setter: 'urllookupValidation'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.URL_LOOKUP,
+                        'params' : [
+                            settings.url
+                            ,settings.timeout
+                        ],
                     })}
                 ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
@@ -81,7 +131,7 @@ domino.settings({
                     })
                 }
             },{
-                // On web entity selected
+                // On web entity selected in UI, update current web entity
                 triggers: ['ui_webentitySelected']
                 ,method: function(){
                     var current_we_id = $('#webentities_selector').val()
@@ -96,7 +146,7 @@ domino.settings({
                     })
                 }
             },{
-                // On web entity declared (by URL pasted)
+                // On web entity declared in UI (by URL pasted), declare a page
                 triggers: ['ui_webentityDeclared']
                 ,method: function(){
                     if(!D.get('urldeclarationInvalid')){
@@ -114,6 +164,14 @@ domino.settings({
                     })
                 }
             },{
+                // Start page message hidden when a new web entity is selected or declared
+                triggers: ['ui_webentitySelected', 'ui_webentityDeclared']
+                ,method: function(){
+                    D.dispatchEvent('update_startpagesMessageObject', {
+                        startpagesMessageObject: {text:'', display:false, bsClass:'', }
+                    })
+                }
+            },{
                 // Start page message displayed when clicking on "Use prefixes as start pages"
                 triggers: ['ui_usePrefixesAsStartPages']
                 ,method: function(){
@@ -122,13 +180,46 @@ domino.settings({
                     })
                 }
             },{
+                // Start page message displayed when one or more start pages added
+                triggers: ['addstartpageValidation_updated']
+                ,method: function(){
+                    D.dispatchEvent('update_startpagesMessageObject', {
+                        startpagesMessageObject: {text:'One or more start pages added', display:true, bsClass:'alert-success', }
+                    })
+                }
+            },{
                 // Clicking on "Use prefixes as start pages" triggers a remote action
                 triggers: ['ui_usePrefixesAsStartPages']
                 ,method: function(){
-                    // TODO
-                    /*we.lru_prefixes.forEach(function(lru_prefix){
-                        // TODO: Hyphen.controller.core.webEntity_addStartPage(we.id, Hyphen.utils.LRU_to_URL(lru_prefix))
-                    })*/
+                    var we = D.get('currentWebentity')
+                    if(we !== undefined){
+                        we.lru_prefixes.forEach(function(lru_prefix){
+                            D.request('addStartPage', {
+                                webentityId: we.id
+                                ,url: Utils.LRU_to_URL(lru_prefix)
+                            })
+                        })
+                    }
+                }
+            },{
+                // If the start pages are modified, reload the current web entity
+                triggers:['addstartpageValidation_updated']
+                ,method:function(){
+                    var we = D.get('currentWebentity')
+                    if(we !== undefined)
+                        D.request('getCurrentWebentity', {currentWebentityId: we.id})
+                }
+            },{
+                // On URL lookup demanded, store the URL and do the lookup
+                triggers:['lookupUrl']
+                ,method:function(d){
+                    D.dispatchEvent('update_lookedupUrl', {
+                        lookedupUrl: d.data.url
+                    })
+                    D.request('urlLookup', {
+                        url: d.data.url
+                        ,timeout: 5
+                    })
                 }
             }
         ]
@@ -255,7 +346,7 @@ domino.settings({
                 $('#startPages_add').addClass('disabled')
                 $('#startPages_urlInput').attr('disabled', true)
             }
-            // TODO: Hyphen.view.startPages_cascadeCheck()
+            startPages_cascadeCheck()
             // TODO: Hyphen.view.launchButton_updateState()
         }
 
@@ -264,7 +355,7 @@ domino.settings({
                 var tr = $('<tr class="startPage_tr"/>')
                 element.append(tr)
                 tr.append(
-                    $('<td/>').append($('<small/>').append($('<a target="_blank" class="unchecked"/>').attr('href',sp).text(sp+'  ')))
+                    $('<td/>').append($('<small/>').append($('<a target="_blank" class="unchecked"/>').attr('href',sp).attr('title',sp).text(Utils.URL_simplify(sp)+' ')))
                 )
                 if(startpages.length>1){
                     tr.append(
@@ -282,6 +373,52 @@ domino.settings({
                     tr.append($('<td/>'))
                 }
             })
+        }
+
+        var startPages_cascadeCheck = function(){
+            var uncheckedElements = $('.startPage_tr td a.unchecked')
+            if(uncheckedElements.length > 0){
+                var a = $(uncheckedElements[0])
+                    ,url = a.attr('href')
+                D.dispatchEvent('lookupUrl', {url: url})
+            } else {
+                // TODO: Hyphen.view.launchButton_updateState()
+            }
+        }
+
+        // Lookup result
+        this.triggers.events['urllookupValidation_updated'] = function(){
+            var status = D.get('urllookupValidation')
+                ,url = D.get('lookedupUrl')
+                ,candidate = ''
+
+            $('.startPage_tr td a.unchecked').each(function(i,el){
+                if(candidate == '' && $(el).attr('href') == url){
+                    candidate = $(el)
+                }
+            })
+
+            if(candidate != ''){
+                // We have a valid target for the update
+                candidate.removeClass('unchecked')
+                if(status==200){
+                    // We have a valid URL
+                    candidate.parent().parent().parent().addClass('success')
+                    candidate.append($('<i class="icon-ok info_tooltip"/>').attr('title', 'Valid start page').tooltip())
+                } else if([300, 301, 302].some(function(test){return status==test})){
+                    // Redirection
+                    candidate.addClass('invalid')
+                    candidate.parent().parent().parent().addClass('warning')
+                    candidate.append($('<i class="icon-warning-sign info_tooltip"/>').attr('title', 'This page has a <strong>redirection</strong>. Please click on the link and use the right URL.').tooltip())
+                } else {
+                    // Fail
+                    candidate.addClass('invalid')
+                    candidate.parent().parent().parent().addClass('error')
+                    candidate.append($('<i class="icon-warning-sign info_tooltip"/>').attr('title', '<strong>Invalid page.</strong> This URL has no proper page associated. You must use other start pages.').tooltip())
+                }
+                startPages_cascadeCheck()
+            }
+            
         }
     })
 
