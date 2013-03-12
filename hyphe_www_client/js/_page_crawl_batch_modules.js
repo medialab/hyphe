@@ -52,13 +52,14 @@
    *
    * Here is the list of options that are interpreted:
    *
-   *   {?string}         element                The DOM element (jQuery)
-   *   {?string}         disabled_property
-   *   {string}          data_property
+   *   {?string}         element                    The DOM element (jQuery)
+   *   {string}          data_property              The data. Not listened.
+   *   {?string}         disabled_property          The disabled state. Listened.
+   *   {?string}         selected_property          The selected element. item_wrap will be applied. Listened.
    *   {?function}       item_wrap
    *   {?string}         placeholder        
-   *   {?string}         id                     The DOM id
-   *   {?(array|string)} triggers               The events that disable the button
+   *   {?string}         id                         The DOM id
+   *   {?(array|string)} triggers                   The events that disable the button
    */
   ns.Selector_bigList = function(options, d) {
     domino.module.call(this)
@@ -78,7 +79,7 @@
       if(o['data_property'] === undefined){
         query.callback([])
       } else {
-        var data = {results: []}, i, j, s
+        var data = {results: []}
           ,regexp = new RegExp(query.term,'gi')
         d.get(o['data_property']).forEach(function(item){
             var wrap = itemWrap(item)
@@ -86,6 +87,23 @@
               data.results.push(wrap)
         })
         query.callback(data)
+      }
+    }
+
+    s2o.initSelection = function (element, callback) {
+      if(o['data_property'] === undefined){
+        callback()
+      } else {
+        var ids = element.val()
+          ,data = d.get(o['data_property']).map(function(item){
+            return itemWrap(item)
+          }).filter(function(wrap){
+            return ids.indexOf(wrap.id) >= 0
+          })
+        if(data.length>0)
+          callback(data[0])
+        else
+          callback()
       }
     }
 
@@ -99,6 +117,16 @@
           el.select2('enable')
         }
       }
+      if(o['selected_property'] !== undefined){
+        var item = d.get(o['selected_property'])
+        if(item !== undefined){
+          var wrap = itemWrap(item)
+            ,current_id = el.val()
+          if(wrap.id != current_id){
+            el.select2('val', wrap.id)
+          }
+        }
+      }
     }
 
     if (o['triggers']){
@@ -106,11 +134,11 @@
         self.triggers.events[eventName] = update
       });
     }else{
-      self.triggers.properties[o['data_property']] = update
       self.triggers.properties[o['disabled_property']] = update
+      self.triggers.properties[o['selected_property']] = update
     }
 
-    if(o['disabled_property'] !== undefined || o['data_property'] !== undefined){
+    if(o['disabled_property'] !== undefined || o['selected_property'] !== undefined){
       update()
     }
 
@@ -185,7 +213,6 @@
     })
 
     function update(){
-      console.log('disabled: ', d.get(o['disabled_property']))
       if(o['disabled_property'] !== undefined){
         if(d.get(o['disabled_property'])){
           el.addClass('disabled')
