@@ -463,7 +463,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         try {
             WebEntity webentity = lruIndex.retrieveWebEntityMatchingLRU(lru);
             if(webentity == null) {
-                throw new MemoryStructureException().setMsg("No matching webEntity found.");
+                throw new MemoryStructureException().setMsg("No matching webEntity found for " + lru);
             }
             return webentity;
         }
