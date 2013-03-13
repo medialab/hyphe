@@ -21,6 +21,8 @@ HYPHE_API = {
 		,SET_STATUS: 'store.set_webentity_status'
 		,SET_HOMEPAGE: 'store.set_webentity_homepage'
 		,SET_TAG_VALUES: 'store.set_webentity_tag_values'
+
+		,CRAWL:'crawl_webentity'
 	}
 	,PAGES:{
 		DECLARE:'declare_pages'
