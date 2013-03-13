@@ -25,8 +25,11 @@ domino.settings({
                 ,value: true
                 ,dispatch: 'cannotFindWebentities_updated'
                 ,triggers: 'update_cannotFindWebentities'
+            },{
+                id:'urlslistText'
+                ,dispatch: 'urlslistText_updated'
+                ,triggers: 'update_urlslistText'
             }
-            
         ]
 
 
@@ -90,12 +93,37 @@ domino.settings({
 
 
         ,hacks:[
+            {
+                //
+                triggers: ['urlslistText_updated']
+                ,method: function(){
+                    var urlslistText = D.get('urlslistText')
+                    if(urlslistText !== undefined && urlslistText.length>0){
+                        D.dispatchEvent(['update_cannotFindWebentities'], {
+                            cannotFindWebentities: false
+                        })
+                    } else {
+                        D.dispatchEvent(['update_cannotFindWebentities'], {
+                            cannotFindWebentities: true
+                        })
+                    }
+                }
+            }
         ]
     })
 
 
 
     //// Modules
+
+    // Text area: paste URLs list
+    D.addModule(dmod.TextArea, [{
+        element: $('#urlsList')
+        ,content_property: 'urlslistText'
+        ,content_dispatch: 'update_urlslistText'
+    }])
+
+    // Button: Find web entities
     D.addModule(dmod.Button, [{
         element: $('#button_findWebentities')
         ,label: "Find the web entities"

@@ -76,7 +76,7 @@
 
             <div class="row">
                 <div class="span4">
-                    <textarea rows="10" class="span4" placeholder="Paste a list of URLs"></textarea>
+                    <textarea rows="10" class="span4" id="urlsList" placeholder="Paste a list of URLs"></textarea>
                 </div>
                 <div class="span8">
                     <h4>How to start ?</h4>
