@@ -81,6 +81,10 @@ domino.settings({
                 ,dispatch: 'launchcrawlMessageObject_updated'
                 ,triggers: ['update_launchcrawlMessageObject', 'update_crawlLaunchState']
                 ,value: {html:'You must <strong>pick a web entity</strong> or declare a new one', bsClass:'alert-info', display: true}
+            },{
+                id:'crawlValidation'
+                ,dispatch: 'crawlValidation_updated'
+                ,triggers: 'update_crawlValidation'
             }
         ]
 
@@ -147,6 +151,18 @@ domino.settings({
                         'params' : [
                             settings.url
                             ,settings.timeout
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'crawl'
+                ,setter: 'crawlValidation'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.CRAWL,
+                        'params' : [
+                            settings.webentityId
+                            ,settings.maxDepth
                         ],
                     })}
                 ,path:'0.result'
@@ -360,6 +376,25 @@ domino.settings({
                             }
                         }
                     }
+                }
+            },{
+                // Launch crawl on event
+                triggers:['ui_launchCrawl']
+                ,method: function(){
+                    var we = D.get('currentWebentity')
+                        ,maxdepth = $('#depth').val()
+                    if(we !== undefined && Utils.checkforInteger(maxdepth)){
+                        D.request('crawl', {
+                            webentityId: we.id
+                            ,maxdepth: maxdepth
+                        })
+                    }
+                }
+            },{
+                // Redirection on crawl launched
+                triggers:['crawlValidation_updated']
+                ,method:function(){
+                    window.location = "crawl.php"
                 }
             }
         ]
@@ -620,15 +655,15 @@ domino.settings({
         domino.module.call(this)
 
         // Update hash on web entity selection
-        this.triggers.events['currentWebentity_updated'] = function(){
+        /*this.triggers.events['currentWebentity_updated'] = function(){
             var we = D.get('currentWebentity')
             if(we === undefined)
                 Utils.hash.remove('we_id')
             else
                 Utils.hash.add({we_id:we.id})
-        }
+        }*/
 
-        // Update web entity selection by hash, on web entity update
+        // Update web entity selection by hash, on web entities update (ie. on load)
         this.triggers.events['webentities_updated'] = function(){
             var we_id = Utils.hash.get('we_id')
                 ,we = D.get('currentWebentity')
@@ -655,9 +690,9 @@ domino.settings({
                     })
                 }
             } else {
-                /*D.dispatchEvent('update_currentWebentity', {
-                    currentWebentity: ''
-                })*/
+                // D.dispatchEvent('update_currentWebentity', {
+                //     currentWebentity: ''
+                // })
             }
         }
     })

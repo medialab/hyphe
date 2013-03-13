@@ -52,13 +52,10 @@
                     <div class="image">
                         <a href="index.php"><img title="Hyphe" src="res/header.png"/></a>
                     </div>
-                    <!-- <div class="title">
-                        hyphen
-                    </div> -->
                 </div>
                 <div class="span5">
                     <div class="abstract">
-                        <p><strong>Prototype monitoring.</strong> A test user experience and client-side monitoring application for Hyphen alpha.</p>
+                        <p><strong>Prototype monitoring.</strong> A test user experience and client-side monitoring application for Hyphe alpha.</p>
                     </div>
                 </div>
             </div>
@@ -69,7 +66,7 @@
 
             <div class="row">
                 <div class="span12">
-                    <h1>Crawl <span data-text-content="webentity_name">a new web entity</span></h1>
+                    <h1>Crawl from a list of URLs</h1>
                     <p class="text-info">
                         Create a crawl job dedicated to a web entity. You can crawl an existing or a new web entity.
                         <br/>
