@@ -67,7 +67,7 @@ class Core(jsonrpc.JSONRPC):
         return jsonrpc.JSONRPC.render(self, request)
 
     def _cbRender(self, result, request, id, version):
-        if config['DEBUG']:
+        if config['DEBUG'] == 2:
             print "RESULT: %s" % jsonrpclib.dumps(result, id=id, version=2.0)
         return jsonrpc.JSONRPC._cbRender(self, result, request, id, version)
 
