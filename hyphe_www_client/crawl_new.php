@@ -19,6 +19,14 @@
                 overflow-y: scroll;
             }
 
+            #webEntities_prefixes_info{
+                margin-top: 30px;
+            }
+
+            .startPage_tr i{
+                margin-left: 5px;
+            }
+
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
         <link rel="stylesheet" href="css/select2.css">
@@ -42,7 +50,7 @@
             <div class="splash-unit row">
                 <div class="span7">
                     <div class="image">
-                        <a href="index.php"><img title="Hyphen" src="res/header.png"/></a>
+                        <a href="index.php"><img title="Hyphe" src="res/header.png"/></a>
                     </div>
                     <!-- <div class="title">
                         hyphen
@@ -61,11 +69,11 @@
 
             <div class="row">
                 <div class="span12">
-                    <h1>New crawl</h1>
+                    <h1>Crawl <span data-text-content="webentity_name">a new web entity</span></h1>
                     <p class="text-info">
                         Create a crawl job dedicated to a web entity. You can crawl an existing or a new web entity.
                         <br/>
-                        It is necessary to specify one or more <span class="info_tooltip info_start_pages">start pages</span> 
+                        It is necessary to specify one or more start pages
                     </p>
                     <hr>
                 </div>
@@ -85,12 +93,16 @@
                         <input type="text" id="urlField" placeholder="Paste URL to declare web entity">
                         <button class="btn" id="webEntityByURL_button" type="button">Declare</button>
                     </div>
-                    <div id="webEntities_info"></div>
+                    <div id="webEntities_prefixes_info">
+                        <p><strong>Prefixes - </strong><span data-text-content="webentity_name">This web entity</span> is defined by these URLs:</p>
+                        <table id="webEntities_prefixes" class="table table-condensed">
+                        </table>
+                    </div>
                 </div>
                 <div class="span4">
                     <h3>2. Start pages</h3>
                     <p class="text-info">
-                        Check that the <span class="info_tooltip info_start_pages_explanations">start pages are valid</span>
+                        Check that the start pages are valid
                     </p>
                     <div id="startPagesContainer">
                         <table id="startPagesTable" class="table table-hover table-condensed">
@@ -113,8 +125,10 @@
                     <p>
                         <label>Maximum depth</label>
                         <input type="text" id="depth" placeholder="Depth" value="2"/>
-                    </p><p>
-                        <button class="btn btn-primary disabled" id="launchButton" title="Please choose a web entity">Launch crawl</button>
+                    </p>
+                    <hr/>
+                    <p>
+                        <button class="btn btn-block" id="launchButton"></button>
                     </p>
                     <div id="crawlLaunch_messages"></div>
                 </div>
@@ -123,9 +137,10 @@
 
 <?php include("includes/footer.php"); ?>
 
-<?php include("includes/codebottom.php"); ?>
+<?php include("includes/codebottom_v2.php"); ?>
 
         <!-- Page-specific js package -->
+        <script src="js/_page_crawl_new_modules.js"></script>
         <script src="js/_page_crawl_new.js"></script>
 
     </body>
