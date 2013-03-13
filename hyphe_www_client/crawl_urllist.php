@@ -94,8 +94,8 @@
 <?php include("includes/codebottom_v2.php"); ?>
 
         <!-- Page-specific js package -->
-        <script src="js/_page_crawl_batch_modules.js"></script>
-        <script src="js/_page_crawl_batch.js"></script>
+        <script src="js/_page_crawl_urllist_modules.js"></script>
+        <script src="js/_page_crawl_urllist.js"></script>
 
     </body>
 </html>
