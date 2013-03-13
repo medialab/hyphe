@@ -125,8 +125,10 @@
                     <p>
                         <label>Maximum depth</label>
                         <input type="text" id="depth" placeholder="Depth" value="2"/>
-                    </p><p>
-                        <button class="btn btn-primary disabled" id="launchButton" title="Please choose a web entity">Launch crawl</button>
+                    </p>
+                    <hr/>
+                    <p>
+                        <button class="btn btn-block" id="launchButton"></button>
                     </p>
                     <div id="crawlLaunch_messages"></div>
                 </div>

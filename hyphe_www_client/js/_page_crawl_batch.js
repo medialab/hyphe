@@ -70,8 +70,22 @@ domino.settings({
                 ,dispatch: 'urllookupValidation_updated'
                 ,triggers: 'update_urllookupValidation'
                 
+            },{
+                id:'crawlsettingsInvalid'
+                ,dispatch: 'crawlsettingsInvalid_updated'
+                ,triggers: ['update_crawlsettingsInvalid', 'update_crawlLaunchState']
+                ,type:'boolean'
+                ,value:true
+            },{
+                id:'launchcrawlMessageObject'
+                ,dispatch: 'launchcrawlMessageObject_updated'
+                ,triggers: ['update_launchcrawlMessageObject', 'update_crawlLaunchState']
+                ,value: {html:'You must <strong>pick a web entity</strong> or declare a new one', bsClass:'alert-info', display: true}
             }
-        ],services: [
+        ]
+
+
+        ,services: [
             {
                 id: 'getWebentities'
                 ,setter: 'webentities'
@@ -138,7 +152,10 @@ domino.settings({
                 ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             }
-        ],hacks:[
+        ]
+
+
+        ,hacks:[
             {
                 // Enable the selector when the web entities are updated
                 triggers: ['webentities_updated']
@@ -292,9 +309,63 @@ domino.settings({
                         ,url: d.data.url
                     })
                 }
+            },{
+                // Each time the settings change, test if the crawl can ben launched or not.
+                // We dispatch the state of the launch button and the message.
+                triggers: ['currentWebentity_updated', 'startpagesChecked', 'ui_depthChange']
+                ,method: function(){
+                    var we = D.get('currentWebentity')
+                    if(we === undefined){
+                        // No web entity selected
+                        D.dispatchEvent('update_crawlLaunchState', {
+                            launchcrawlMessageObject: {html:'You must <strong>pick a web entity</strong> or declare a new one', bsClass:'alert-info', display: true}
+                            ,crawlsettingsInvalid: true
+                        })
+                    } else {
+                        if(we.startpages === undefined || we.startpages.length == 0){
+                            // There is a web entity but there are no starting pages
+                            D.dispatchEvent('update_crawlLaunchState', {
+                                launchcrawlMessageObject: {html:'<strong>No start page.</strong> You must define on which page the crawler will start', bsClass:'alert-error', display: true}
+                                ,crawlsettingsInvalid: true
+                            })
+                        } else {
+                            if($('.startPage_tr td a.unchecked').length > 0){
+                                // Waiting for start pages validation
+                                D.dispatchEvent('update_crawlLaunchState', {
+                                    launchcrawlMessageObject: {text:'Waiting for start pages validation...', bsClass:'alert-info', display: true}
+                                    ,crawlsettingsInvalid: true
+                                })
+                            } else if($('.startPage_tr td a.invalid').length > 0){
+                                // There are some invalid start pages
+                                D.dispatchEvent('update_crawlLaunchState', {
+                                    launchcrawlMessageObject: {html:'<strong>Invalid start pages.</strong> Please check that start pages are not redirected and are actually working.', bsClass:'alert-warning', display: true}
+                                    ,crawlsettingsInvalid: true
+                                })
+                            } else {
+                                // There is a web entity and it has valid start pages
+                                var maxdepth = $('#depth').val()
+                                if(!Utils.checkforInteger(maxdepth)){
+                                    // The depth is not an integer
+                                    D.dispatchEvent('update_crawlLaunchState', {
+                                        launchcrawlMessageObject: {html:'<strong>Wrong depth.</strong> The maximum depth must be an integer', bsClass:'alert-error', display: true}
+                                        ,crawlsettingsInvalid: true
+                                    })
+                                } else {
+                                    // Everything's OK !
+                                    D.dispatchEvent('update_crawlLaunchState', {
+                                        launchcrawlMessageObject: {display: false}
+                                        ,crawlsettingsInvalid: false
+                                    })
+                                }
+                            }
+                        }
+                    }
+                }
             }
         ]
     })
+
+
 
     //// Modules
 
@@ -451,7 +522,7 @@ domino.settings({
                     ,url = a.attr('href')
                 D.dispatchEvent('lookupUrl', {url: url})
             } else {
-                // TODO: Hyphen.view.launchButton_updateState()
+                D.dispatchEvent('startpagesChecked', {})
             }
         }
 
@@ -518,9 +589,31 @@ domino.settings({
         element: $('#startPages_add')
         ,dispatch: 'ui_addStartpage'
     }])
-        
 
+    // Launch button
+    D.addModule(dmod.Button, [{
+        element: $('#launchButton')
+        ,disabled_property: 'crawlsettingsInvalid'
+        ,label: 'Launch crawl'
+        ,label_disabled: 'Launch crawl (not ready)'
+        ,bsColor: 'btn-primary'
+        ,dispatch: 'ui_launchCrawl'
+    }])
 
+    // Launch crawl info messages
+    D.addModule(dmod.TextAlert, [{
+        element: $('#crawlLaunch_messages')
+        ,property: 'launchcrawlMessageObject'
+    }])
+
+    // Input for the depth
+    D.addModule(function(){
+        domino.module.call(this)
+        var element = $('#depth')
+        element.on('keyup', function(e){
+            D.dispatchEvent('ui_depthChange', {})
+        })
+    })
 
     //// On load
     $(document).ready(function(){
