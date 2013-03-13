@@ -386,7 +386,7 @@ domino.settings({
                     if(we !== undefined && Utils.checkforInteger(maxdepth)){
                         D.request('crawl', {
                             webentityId: we.id
-                            ,maxdepth: maxdepth
+                            ,maxDepth: maxdepth
                         })
                     }
                 }

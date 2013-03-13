@@ -19,6 +19,13 @@ domino.settings({
     var D = new domino({
         name: 'main'
         ,properties: [
+            {
+                id:'cannotFindWebentities'
+                ,type: 'boolean'
+                ,value: true
+                ,dispatch: 'cannotFindWebentities_updated'
+                ,triggers: 'update_cannotFindWebentities'
+            }
             
         ]
 
@@ -89,7 +96,11 @@ domino.settings({
 
 
     //// Modules
-
+    D.addModule(dmod.Button, [{
+        element: $('#button_findWebentities')
+        ,label: "Find the web entities"
+        ,disabled_property: 'cannotFindWebentities'
+    }])
     
 
     //// On load

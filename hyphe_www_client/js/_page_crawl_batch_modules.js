@@ -298,24 +298,26 @@
    *
    * Here is the list of options that are interpreted:
    *
-   *   {?string}         element            The HTML element (jQuery)
-   *   {?string}         label              The text
-   *   {?string}         label_disabled     The text when the button is disabled
-   *   {?string}         id                 The DOM id
-   *   {?string}         bsIcon             Bootstrap glyphicon class
-   *   {?string}         bsSize             Bootstrap size class
-   *   {?string}         bsColor            Bootstrap color class
-   *   {?string}         disabled_property  The property that will be listened for the disabled status
-   *   {?string}         cssClass           Additional css class(es) (bootstrap already managed)
-   *   {?boolean}        ghost              A mode that makes the button frame appear only on mouseover
-   *   {?(array|string)} dispatch           The events to dispatch when clicked
+   *   {?string}         element              The HTML element (jQuery)
+   *   {?string}         label                The text
+   *   {?string}         label_disabled       The text when the button is disabled
+   *   {?string}         id                   The DOM id
+   *   {?string}         bsIcon               Bootstrap glyphicon class
+   *   {?string}         bsSize               Bootstrap size class
+   *   {?string}         bsColor              Bootstrap color class
+   *   {?string}         disabled_property    The property that will be listened for the disabled status
+   *   {?string}         cssClass             Additional css class(es) (bootstrap already managed)
+   *   {?boolean}        ghost                A mode that makes the button frame appear only on mouseover
+   *   {?(array|string)} dispatch             The events to dispatch when clicked
    */
   ns.Button = function(options, d) {
     domino.module.call(this)
 
     var self = this
         ,o = options || {}
-        ,el = o['element'] || $('<button class="btn"/>')
+        ,el = o['element'] || $('<button/>')
+
+    el.addClass('btn')
 
     if(o['bsIcon']){
       el.append($('<i class="'+o['bsIcon']+'"/>'))

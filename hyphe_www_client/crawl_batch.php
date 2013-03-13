@@ -68,9 +68,7 @@
                 <div class="span12">
                     <h1>Crawl from a list of URLs</h1>
                     <p class="text-info">
-                        Create a crawl job dedicated to a web entity. You can crawl an existing or a new web entity.
-                        <br/>
-                        It is necessary to specify one or more start pages
+                        Doubi doubi dou baaa
                     </p>
                     <hr>
                 </div>
@@ -78,56 +76,15 @@
 
             <div class="row">
                 <div class="span4">
-                    <h3>1. Web entity</h3>
-                    <p class="text-info">
-                        Pick or declare the web entity to crawl
-                    </p>
-                    <p>
-                        <a style="width:100%;" id="webentities_selector"></a>
-                    </p>
-                    <p>or</p>
-                    <div class="input-append">
-                        <input type="text" id="urlField" placeholder="Paste URL to declare web entity">
-                        <button class="btn" id="webEntityByURL_button" type="button">Declare</button>
-                    </div>
-                    <div id="webEntities_prefixes_info">
-                        <p><strong>Prefixes - </strong><span data-text-content="webentity_name">This web entity</span> is defined by these URLs:</p>
-                        <table id="webEntities_prefixes" class="table table-condensed">
-                        </table>
-                    </div>
+                    <textarea rows="10" class="span4" placeholder="Paste a list of URLs"></textarea>
                 </div>
-                <div class="span4">
-                    <h3>2. Start pages</h3>
+                <div class="span8">
+                    <h4>How to start ?</h4>
                     <p class="text-info">
-                        Check that the start pages are valid
+                        <i class="icon-hand-left"></i>
+                        Paste a list of URLs and push the button to <strong>find the web entities</strong>.
                     </p>
-                    <div id="startPagesContainer">
-                        <table id="startPagesTable" class="table table-hover table-condensed">
-                            <tr><td><span class="muted">Choose a web entity</span></td></tr>
-                        </table>
-                    </div>
-                    <p>
-                        <div class="input-append">
-                            <input disabled type="text" id="startPages_urlInput" placeholder="Paste URL">
-                            <button class="btn disabled" id="startPages_add" type="button">Add start page</button>
-                        </div>
-                    </p>
-                    <div id="startPages_messages"></div>
-                </div>
-                <div class="span4">
-                    <h3>3. Settings</h3>
-                    <p class="text-info">
-                        The maximum depth sets the quantity of pages to harvest
-                    </p>
-                    <p>
-                        <label>Maximum depth</label>
-                        <input type="text" id="depth" placeholder="Depth" value="2"/>
-                    </p>
-                    <hr/>
-                    <p>
-                        <button class="btn btn-block" id="launchButton"></button>
-                    </p>
-                    <div id="crawlLaunch_messages"></div>
+                    <a id="button_findWebentities"/>
                 </div>
             </div>
         </div>
