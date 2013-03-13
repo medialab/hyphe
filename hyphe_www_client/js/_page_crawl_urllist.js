@@ -94,7 +94,7 @@ domino.settings({
 
         ,hacks:[
             {
-                //
+                // When the text area is typed in, if it is not empty, enable the button 'find web entities'
                 triggers: ['urlslistText_updated']
                 ,method: function(){
                     var urlslistText = D.get('urlslistText')
@@ -107,6 +107,13 @@ domino.settings({
                             cannotFindWebentities: true
                         })
                     }
+                }
+            },{
+                // When the button 'find web entities' is pushed, do it
+                triggers: ['ui_findWebentities']
+                ,method: function(){
+                    var urls = extractWebentities(D.get('urlslistText'))
+                    // TODO
                 }
             }
         ]
@@ -128,12 +135,29 @@ domino.settings({
         element: $('#button_findWebentities')
         ,label: "Find the web entities"
         ,disabled_property: 'cannotFindWebentities'
+        ,dispatch: 'ui_findWebentities'
     }])
     
+
+
 
     //// On load
     $(document).ready(function(){
         
     })
+
+
+
+    //// Processing
+    var extractWebentities = function(text){
+        var raw_urls = text.split(/[ \n\r\t]+/gi).filter(function(expression){
+            return Utils.URL_validate(expression)
+        }).map(function(url){
+            if(url.indexOf('http')!=0)
+                return 'http://'+url
+            return url
+        })
+        return Utils.extractCases(raw_urls)
+    }
 
 })(jQuery, domino, (window.dmod = window.dmod || {}))
