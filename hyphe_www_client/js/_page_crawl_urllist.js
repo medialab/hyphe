@@ -152,6 +152,34 @@ domino.settings({
         ,dispatch: 'ui_findWebentities'
     }])
     
+    // The block containing the start urls (show when ready) 
+    D.addModule(dmod.HideElement, [{
+        element: $('#panel_urllist')
+        ,property: 'startUrls'
+        ,property_wrap: function(startUrls){return !(startUrls && startUrls.length>0)}
+    }])
+
+    // URL list custom module
+    D.addModule(function(){
+        domino.module.call(this)
+
+        var el = $('#urllist')
+
+        this.triggers.events['startUrls_updated'] = function(d) {
+            var urls = D.get('startUrls')
+            urls.forEach(function(url){
+                console.log('url', url)
+                el.append($('<div class="row"/>').append(
+                    $('<div class="span4"/>').append(
+                        $('<span class="startUrl"/>').text(Utils.URL_simplify(url)+' ')
+                    ).append(
+                        $('<a target="_blank" title="Visit this link"><i class="icon-share-alt"></a>').attr('href', url)
+                    )
+                ))
+            })
+        }
+        
+    })
 
 
 

@@ -478,7 +478,6 @@ domino.settings({
                     )
                 )
             })
-            
         }
     })
 

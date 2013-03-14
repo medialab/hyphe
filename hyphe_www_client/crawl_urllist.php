@@ -76,7 +76,20 @@
                             <br/>
                             You can also paste a bunch of text, we will try to get the URLs from it.
                         </p>
-                        <a id="button_findWebentities"/>
+                        <a id="button_findWebentities"></a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span12" id="panel_urllist" style="display:none;">
+                        <div class="row">
+                            <div class="span4">
+                                <h4>URLs extracted</h4>
+                            </div>
+                            <div class="span4">
+                                <h4>Web entities</h4>
+                            </div>
+                        </div>
+                        <div id="urllist"></div>
                     </div>
                 </div>
             </div>
