@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, time, pymongo, bson, urllib, urllib2, httplib, urlparse, random, types
+import sys, time, pymongo, bson, urllib, urllib2, httplib, socket, urlparse, random, types
 import json
 from txjsonrpc import jsonrpclib
 from txjsonrpc.jsonrpc import Introspection
@@ -160,8 +160,10 @@ class Core(jsonrpc.JSONRPC):
             conn.request('HEAD', path)
             response = conn.getresponse()
             return {"code": "success", "result": response.status}
+        except socket.gaierror as e:
+            return {"code": "success", "result": -1}
         except:
-            return {"code": "fail", "message": "Cannot process url %s" % url}
+            return {"code": "fail", "message": "Cannot process url %s : %s" % (url, e)}
 
     def jsonrpc_lookup(self, url, timeout=2):
         res = self.jsonrpc_lookup_httpstatus(url, timeout)
