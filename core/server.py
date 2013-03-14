@@ -67,7 +67,7 @@ class Core(jsonrpc.JSONRPC):
         return jsonrpc.JSONRPC.render(self, request)
 
     def _cbRender(self, result, request, id, version):
-        if config['DEBUG']:
+        if config['DEBUG'] == 2:
             print "RESULT: %s" % jsonrpclib.dumps(result, id=id, version=2.0)
         return jsonrpc.JSONRPC._cbRender(self, result, request, id, version)
 
@@ -436,6 +436,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_declare_webentity_by_lru(self, lru_prefix):
         mem_struct_conn = getThriftConn()
+        lru_prefix = lru.cleanLRU(lru_prefix)
         existing = yield mem_struct_conn.addCallback(self.get_webentity_by_lruprefix, lru_prefix).addErrback(self.handle_error)
         if not isinstance(existing, dict):
             defer.returnValue({'code': 'fail', 'message': 'LRU prefix "%s" is already set to an existing webentity : %s' % (lru_prefix, existing)})

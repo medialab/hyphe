@@ -209,7 +209,7 @@ public class Cache {
                 WEcandidate = lruIndex.retrieveWebEntityByLRUPrefix(LRUPrefix);
                 if (WEcandidate == null && webEntityDefault != null) {
                     createdWebEntitiesCount++;
-                    logger.trace("indexing new webentity");
+                    logger.info("indexing new webentity");
                     // store new webentity in index
                     lruIndex.indexWebEntity(webEntityDefault, false);
                 }
@@ -220,7 +220,7 @@ public class Cache {
     }
 
     public void clear() {
-        logger.info("clearing cache with id: " + id);
+        logger.trace("clearing cache with id: " + id);
         this.pageItems.clear();
     }
 }

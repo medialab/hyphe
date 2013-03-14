@@ -923,66 +923,58 @@ public class LRUIndex {
         }
    }
 
-    /**
-     * Retrieves all webentities.
-     * @return
-     * @throws IndexException hmm
-     */
-    public Set<WebEntity> retrieveWebEntities() throws IndexException {
-        logger.debug("retrieveWebEntities");
-        try {
-            Set<WebEntity> result = new HashSet<WebEntity>();
-            Query q = LuceneQueryFactory.getWebEntitiesQuery();
-            final List<Document> hits = executeMultipleResultsQuery(q);
-            for(Document hit: hits) {
-                    WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
-                    result.add(webEntity);
-            }
-            if(logger.isDebugEnabled()) {
-                logger.debug("total webentities retrieved from index is  # " + result.size());
-                for(WebEntity we : result) {
-                    logger.debug("retrieved web entity: " + we.getName());
-                }
-            }
-            return result;
-        }
-        catch(IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x.getMessage(), x);
-        }
-    }
+   /**
+    * Retrieves all webentities.
+    * @return
+    * @throws IndexException hmm
+    */
+   public HashSet<WebEntity> retrieveWebEntities() throws IndexException {
+       logger.debug("retrieveWebEntities");
+       return retrieveWebEntitiesByQuery(LuceneQueryFactory.getWebEntitiesQuery());
+   }
 
-    /**
-     * Retrieves all webentities.
-     * @param listIDs
-     * @return webentities
-     * @throws IndexException hmm
-     */
-    public Set<WebEntity> retrieveWebEntitiesByIDs(List<String> listIDs) throws IndexException {
-        logger.debug("retrieveWebEntitiesByIDs");
-        try {
-            Set<WebEntity> result = new HashSet<WebEntity>();
-            Query q = LuceneQueryFactory.getWebEntitiesByIdsQuery(listIDs);
-            final List<Document> hits = executeMultipleResultsQuery(q);
-            for(Document hit: hits) {
-                    WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
-                    result.add(webEntity);
-            }
-            if(logger.isDebugEnabled()) {
-                logger.debug("total webentities retrieved is  # " + result.size());
-                for(WebEntity we : result) {
-                    logger.debug("retrieved web entity: " + we.getName());
-                }
-            }
-            return result;
-        }
-        catch(IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x.getMessage(), x);
-        }
-    }
+   /**
+    * Retrieves all webentities.
+    * @param listIDs
+    * @return webentities
+    * @throws IndexException hmm
+    */
+   public HashSet<WebEntity> retrieveWebEntitiesByIDs(List<String> listIDs) throws IndexException {
+       logger.debug("retrieveWebEntitiesByIDs");
+       return retrieveWebEntitiesByQuery(LuceneQueryFactory.getWebEntitiesByIdsQuery(listIDs));
+   }
+
+   /**
+    * Retrieves webentities matching a specific Lucene Query.
+    * @return
+    * @throws IndexException hmm
+    */
+   public HashSet<WebEntity> retrieveWebEntitiesByQuery(Query query) throws IndexException {
+       try {
+           HashSet<WebEntity> result = new HashSet<WebEntity>();
+           final List<Document> hits = executeMultipleResultsQuery(query);
+           HashSet<String> ids = new HashSet<String>();
+           for(Document hit: hits) {
+                   WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
+                   if (!ids.contains(webEntity.getId())) {
+                       result.add(webEntity);
+                       ids.add(webEntity.getId());
+                   }
+           }
+           if(logger.isDebugEnabled()) {
+               logger.debug("total webentities retrieved from index is  # " + result.size());
+               for(WebEntity we : result) {
+                   logger.debug("retrieved web entity: " + we.getName());
+               }
+           }
+           return result;
+       }
+       catch(IOException x) {
+           logger.error(x.getMessage());
+           x.printStackTrace();
+           throw new IndexException(x.getMessage(), x);
+       }
+   }
 
     /**
      *

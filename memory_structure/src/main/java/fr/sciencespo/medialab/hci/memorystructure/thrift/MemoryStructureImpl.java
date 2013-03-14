@@ -13,6 +13,7 @@ import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -463,7 +464,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         try {
             WebEntity webentity = lruIndex.retrieveWebEntityMatchingLRU(lru);
             if(webentity == null) {
-                throw new MemoryStructureException().setMsg("No matching webEntity found.");
+                throw new MemoryStructureException().setMsg("No matching webEntity found for " + lru);
             }
             return webentity;
         }

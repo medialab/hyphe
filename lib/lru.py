@@ -121,6 +121,10 @@ def stripHttpPort(lru) :
 def stripWWW(lru) :
     return "|".join([stem for stem in lru.split("|") if stem!="h:www" ])
 
+re_trailing_slash = re.compile(r'(h:[^\|]*)\|p:\|?$')
+def stripTrailingSlash(lru):
+    return re_trailing_slash.sub(r'\1', lru)
+
 # Removing anchors :
 anchorRegexp = re.compile(r"f")
 def stripAnchors(lru) :
@@ -139,7 +143,7 @@ def orderQueryParameters(lru) :
 #Clean LRU by applying selection of previous filters
 def cleanLRU(lru) :
 #   return orderQueryParameters(stripAnchors(stripWWW(stripHttpPort(lru))))
-    return stripHttpPort(lru)
+    return stripTrailingSlash(stripHttpPort(lru))
 
 def isFullPrecision(lru, precision_exceptions = []):
     return (lru in precision_exceptions)
