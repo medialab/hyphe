@@ -160,10 +160,10 @@ class Core(jsonrpc.JSONRPC):
             conn.request('HEAD', path)
             response = conn.getresponse()
             return {"code": "success", "result": response.status}
-        except socket.gaierror as e:
-            return {"code": "success", "result": -1}
-        except:
-            return {"code": "fail", "message": "Cannot process url %s : %s" % (url, e)}
+        except socket.gaierror:
+            return {"code": "success", "result": 0}
+        except Exception as e:
+            return {"code": "success", "result": -1, "message": "Cannot process url %s : %s" % (url, e)}
 
     def jsonrpc_lookup(self, url, timeout=2):
         res = self.jsonrpc_lookup_httpstatus(url, timeout)
