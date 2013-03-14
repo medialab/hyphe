@@ -12,20 +12,9 @@
 
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <style>
-            /* Specific styles */
-            #startPagesContainer{
-                border: 1px solid #DDD;
-                height: 150px;
-                overflow-y: scroll;
-            }
+/* Specific styles */
 
-            #webEntities_prefixes_info{
-                margin-top: 30px;
-            }
 
-            .startPage_tr i{
-                margin-left: 5px;
-            }
 
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
@@ -74,17 +63,21 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="span4">
-                    <textarea rows="10" class="span4" id="urlsList" placeholder="Paste a list of URLs"></textarea>
-                </div>
-                <div class="span8">
-                    <h4>How to start ?</h4>
-                    <p class="text-info">
-                        <i class="icon-hand-left"></i>
-                        Paste a list of URLs and push the button to <strong>find the web entities</strong>.
-                    </p>
-                    <a id="button_findWebentities"/>
+            <div style="min-height: 400px">
+                <div class="row" id="panel_howtostart">
+                    <div class="span4">
+                        <textarea rows="10" class="span4" id="urlsList" placeholder="Paste a list of URLs"></textarea>
+                    </div>
+                    <div class="span8">
+                        <h4>How to start ?</h4>
+                        <p class="text-info">
+                            <i class="icon-hand-left"></i>
+                            Paste a list of URLs and push the button to <strong>find the web entities</strong>.
+                            <br/>
+                            You can also paste a bunch of text, we will try to get the URLs from it.
+                        </p>
+                        <a id="button_findWebentities"/>
+                    </div>
                 </div>
             </div>
         </div>

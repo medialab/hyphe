@@ -29,6 +29,10 @@ domino.settings({
                 id:'urlslistText'
                 ,dispatch: 'urlslistText_updated'
                 ,triggers: 'update_urlslistText'
+            },{
+                id:'startUrls'
+                ,dispatch: 'startUrls_updated'
+                ,triggers: 'update_startUrls'
             }
         ]
 
@@ -109,11 +113,13 @@ domino.settings({
                     }
                 }
             },{
-                // When the button 'find web entities' is pushed, do it
+                // When the button 'find web entities' is pushed, extract the URLs and dispatch
                 triggers: ['ui_findWebentities']
                 ,method: function(){
                     var urls = extractWebentities(D.get('urlslistText'))
-                    // TODO
+                    D.dispatchEvent('update_startUrls', {
+                        startUrls: urls
+                    })
                 }
             }
         ]
@@ -122,6 +128,14 @@ domino.settings({
 
 
     //// Modules
+
+    // The block containing the 'how to start' stuff 
+    D.addModule(dmod.CollapseElement, [{
+        element: $('#panel_howtostart')
+        ,property: 'startUrls'
+        ,property_wrap: function(startUrls){return startUrls && startUrls.length>0}
+        ,timing: '0.5s'
+    }])
 
     // Text area: paste URLs list
     D.addModule(dmod.TextArea, [{
