@@ -13,8 +13,8 @@ domino.settings({
     var rpc_url = HYPHE_CONFIG.SERVER_ADDRESS
         ,rpc_contentType = 'application/x-www-form-urlencoded'
         ,rpc_type = 'POST'
-        ,rpc_expect = function(data){return data[0] !== undefined && data[0].code !== undefined && data[0].code == 'success'}
-        ,rpc_error = function(data){alert('Oops, an error occurred... \n'+data)}
+        ,rpc_expect = function(data){if(data[0] !== undefined && data[0].code !== undefined && data[0].code == 'success'){return true}else{console.log('[RPC] Unexpected result: ',data)}  }
+        ,rpc_error = function(data){alert('Oops, the server answered something unexpected...\nSorry for the crash.')}
 
     var D = new domino({
         name: 'main'
@@ -33,6 +33,15 @@ domino.settings({
                 id:'startUrls'
                 ,dispatch: 'startUrls_updated'
                 ,triggers: 'update_startUrls'
+            },{
+                id:'lookedupUrl'
+                ,dispatch: 'lookedupUrl_updated'
+                ,triggers: 'update_lookedupUrl'
+                
+            },{
+                id:'urllookupValidation'
+                ,dispatch: 'urllookupValidation_updated'
+                ,triggers: 'update_urllookupValidation'   
             }
         ]
 
@@ -83,7 +92,10 @@ domino.settings({
             },{
                 id: 'urlLookup'
                 ,setter: 'urllookupValidation'
-                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                ,data: function(settings){ console.log([
+                            settings.url
+                            ,settings.timeout
+                        ]);return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.URL_LOOKUP,
                         'params' : [
                             settings.url
@@ -119,6 +131,18 @@ domino.settings({
                     var urls = extractWebentities(D.get('urlslistText'))
                     D.dispatchEvent('update_startUrls', {
                         startUrls: urls
+                    })
+                }
+            },{
+                // On URL lookup demanded, store the URL and do the lookup
+                triggers: ['lookupUrl']
+                ,method: function(d){
+                    D.dispatchEvent('update_lookedupUrl', {
+                        lookedupUrl: d.data.url
+                    })
+                    D.request('urlLookup', {
+                        url: d.data.url
+                        ,timeout: 5
                     })
                 }
             }
@@ -165,21 +189,65 @@ domino.settings({
 
         var el = $('#urllist')
 
-        this.triggers.events['startUrls_updated'] = function(d) {
+        this.triggers.events['startUrls_updated'] = function() {
             var urls = D.get('startUrls')
             urls.forEach(function(url){
-                console.log('url', url)
                 el.append($('<div class="row"/>').append(
                     $('<div class="span4"/>').append(
                         $('<span class="startUrl"/>').text(Utils.URL_simplify(url)+' ')
                     ).append(
                         $('<a target="_blank" title="Visit this link"><i class="icon-share-alt"></a>').attr('href', url)
                     )
+                ).append(
+                    $('<div class="span2"/>').append(
+                        $('<span class="lookup-info muted"/>').text('Waiting for lookup')
+                            .attr('data-url', url)
+                            .attr('data-lookup-status', 'wait')
+                    )
                 ))
             })
+            cascadeLookup()
         }
         
+        this.triggers.events['urllookupValidation_updated'] = function() {
+            var status = D.get('urllookupValidation')
+                ,url = D.get('lookedupUrl')
+                ,pendings = $('span.lookup-info[data-lookup-status=pending]')
+
+            if(pendings.length>0 && $(pendings[0]).attr('data-url') == url){
+                var pending = $(pendings[0])
+                // We have a valid target for the update
+                pending.removeClass('muted')
+                if(status==200){
+                    // We have a valid URL
+                    pending.text('OK').addClass('text-success')
+                        .attr('data-lookup-status', 'valid')
+                } else if([300, 301, 302].some(function(test){return status==test})){
+                    // Redirection
+                    pending.text('Redirection').addClass('text-warning')
+                        .attr('data-lookup-status', 'redirect')
+                        .attr('title', 'You may want to check that the corresponding web entity is the right one')
+                } else {
+                    // Fail
+                    pending.text('Dead link').addClass('text-error')
+                        .attr('data-lookup-status', 'invalid')
+                        .attr('title', 'The link is dead ; we will ignore it for web entity search')
+                }
+                cascadeLookup()
+            }
+        }
+
+        var cascadeLookup = function(){
+            var waiting = $('span.lookup-info[data-lookup-status=wait]')
+            if(waiting.length>0){
+                var span = $(waiting[0])
+                    ,url = span.attr('data-url')
+                span.text('Looking up...').attr('data-lookup-status', 'pending')
+                D.dispatchEvent('lookupUrl', {url: url})
+            }
+        }
     })
+
 
 
 
