@@ -45,7 +45,7 @@
     Hyphen.view.webEntities.replaceProxyElement = function(proxyElement, onlyOutdated){
         var we_id = proxyElement.attr('webEntity_id')
             ,we = Hyphen.model.webEntities.get(we_id)
-        if(!(onlyOutdated && proxyElement.hasClass('webEntity_proxy_updated'))){
+        if(we && !(onlyOutdated && proxyElement.hasClass('webEntity_proxy_updated'))){
             var creationDate = new Date()
                 ,lastModificationDate = new Date()
             creationDate.setTime(we.creation_date)

@@ -172,6 +172,132 @@
 
     this.html = el
   }
-  ns.Span = ns.TextContent  // Alias
+
+
+  /**
+   * CollapseElement listens to a property to hide or show a DOM element
+   * The collapse is done with height=0 so that there is an animation
+   *
+   * @param   {?Object} options An object containing the specifications of the
+   *                            module.
+   * @param   {?Object} d       The instance of domino.
+   *
+   * Here is the list of options that are interpreted:
+   *
+   *   {?string}         element            The DOM element (jQuery)
+   *   {?string|integer} height             The initial height
+   *   {?string|integer} timing             The css timing for animation (ex: '0.5s')
+   *   {?string}         property           The name of the property that collapses if true
+   *                                        (it is updated on triggers)
+   *   {?function}       property_wrap      A function to modify the property listened
+   *   {?(array|string)} triggers           The events that trigger the property (optional)
+   */
+  ns.CollapseElement = function(options, d) {
+    domino.module.call(this)
+
+    var self = this
+        ,o = options || {}
+        ,el = o['element'] || $('<div/>')
+        ,t = o['timing'] || '0.8s'
+
+    el.css('transition', 'height '+t)
+    el.css('-moz-transition', 'height '+t)
+    el.css('-webkit-transition', 'height '+t)
+    el.css('-o-transition', 'height '+t)
+
+    if(o['height']){
+      el.css('height', o['height'])
+    } else {
+      el.css('height', el.height())
+      o['height'] = el.height()
+    }
+    
+    if(o['property']){
+      if (o['triggers']){
+        domino.utils.array(o['triggers']).forEach(function(eventName) {
+          self.triggers.events[eventName] = update
+        })
+      }else{
+        self.triggers.properties[o['property']] = update
+      }
+    }
+
+    function update(domino) {
+      if(o['property'] !== undefined){
+        var prop = domino.get(o['property'])
+        if(prop !== undefined || o['property_wrap'] !== undefined){
+          var hide = (o['property_wrap']) ? (o['property_wrap'](prop)) : (prop)
+          if(hide !== undefined){
+            if(hide){
+              el.css('height', 0)
+              el.css('overflow', 'hidden')
+            } else {
+              el.css('height', o['height'])
+              el.css('overflow', 'hidden')
+            }
+          }
+        }
+      }
+    }
+
+    update(d)
+
+    this.html = el
+  }
+
+
+  /**
+   * HideElement listens to a property to hide or show a DOM element
+   *
+   * @param   {?Object} options An object containing the specifications of the
+   *                            module.
+   * @param   {?Object} d       The instance of domino.
+   *
+   * Here is the list of options that are interpreted:
+   *
+   *   {?string}         element            The DOM element (jQuery)
+   *   {?string}         property           The name of the property containing the text
+   *                                        (it is updated on triggers)
+   *   {?function}       property_wrap      A function to modify the property listened
+   *   {?(array|string)} triggers           The events that trigger the property (optional)
+   */
+  ns.HideElement = function(options, d) {
+    domino.module.call(this)
+
+    var self = this
+        ,o = options || {}
+        ,el = o['element']
+
+    if(o['property']){
+      if (o['triggers']){
+        domino.utils.array(o['triggers']).forEach(function(eventName) {
+          self.triggers.events[eventName] = update
+        })
+      }else{
+        self.triggers.properties[o['property']] = update
+      }
+    }
+
+    function update(domino) {
+      if(o['property'] !== undefined){
+        var prop = domino.get(o['property'])
+        if(prop !== undefined || o['property_wrap'] !== undefined){
+          var hide = (o['property_wrap']) ? (o['property_wrap'](prop)) : (prop)
+          if(hide !== undefined){
+            if(hide){
+              el.hide()
+            } else {
+              el.show()
+            }
+          }
+        }
+      }
+    }
+
+    update(d)
+
+    this.html = el
+  }
+
 
 })(jQuery, (window.dmod = window.dmod || {}), domino);

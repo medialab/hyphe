@@ -69,7 +69,6 @@ domino.settings({
                 id:'urllookupValidation'
                 ,dispatch: 'urllookupValidation_updated'
                 ,triggers: 'update_urllookupValidation'
-                
             },{
                 id:'crawlsettingsInvalid'
                 ,dispatch: 'crawlsettingsInvalid_updated'
@@ -478,7 +477,6 @@ domino.settings({
                     )
                 )
             })
-            
         }
     })
 
