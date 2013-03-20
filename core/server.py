@@ -338,8 +338,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def handle_results(self, results):
         return {'code': 'success', 'result': results}
 
-    def handle_error(self, failure):
-        print failure
+    def handle_error(self, failure, print_error=True):
+        if print_error:
+            print failure
         return {'code': 'fail', 'message': failure.getErrorMessage()}
 
     def format_webentity(self, WE, jobs=None):
@@ -437,7 +438,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_declare_webentity_by_lru(self, lru_prefix):
         mem_struct_conn = getThriftConn()
         lru_prefix = lru.cleanLRU(lru_prefix)
-        existing = yield mem_struct_conn.addCallback(self.get_webentity_by_lruprefix, lru_prefix).addErrback(self.handle_error)
+        existing = yield mem_struct_conn.addCallback(self.get_webentity_by_lruprefix, lru_prefix).addErrback(self.handle_error, print_error=False)
         if not isinstance(existing, dict):
             defer.returnValue({'code': 'fail', 'message': 'LRU prefix "%s" is already set to an existing webentity : %s' % (lru_prefix, existing)})
         WE = WebEntity(None, [lru_prefix], lru.lru_to_url_short(lru_prefix))
@@ -641,9 +642,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
             page_items.rewind()
             pages, links = processor.generate_cache_from_pages_list(page_items, config["precisionLimit"], self.precision_exceptions)
             s=time.time()
-            cache_id = yield client.createCache(pages.values())
-            nb_pages = yield client.indexCache(cache_id)
-            print "... "+str(nb_pages)+" pages indexed in "+str(time.time()-s)+"s ..."
+            try:
+                cache_id = yield client.createCache(pages.values())
+                nb_pages = yield client.indexCache(cache_id)
+                print "... "+str(nb_pages)+" pages indexed in "+str(time.time()-s)+"s ..."
+            except Exception as e:
+                print "ERROR Comm thrift: ", e
+                return
             s=time.time()
             nb_links = len(links)
             for link_list in [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]:
