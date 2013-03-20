@@ -1683,10 +1683,11 @@ public class LRUIndex {
             deleteObject(LuceneQueryFactory.getWebEntityLinksQuery(), true);
             reloadIndexIfChange();
             while (doneDocs < totalResults) {
-                logger.info("Browsing links " + doneDocs + " to " + doneDocs+batchSize);
-                results = indexSearcher.search(nodeLinksQuery, null, doneDocs+batchSize);
+                int maxDocs = Math.min(totalResults, doneDocs+batchSize);
+                logger.info("Browsing links " + doneDocs + " to " + maxDocs);
+                results = indexSearcher.search(nodeLinksQuery, null, maxDocs);
                 ScoreDoc[] scoreDocs = results.scoreDocs;
-                for (int i = doneDocs ; i < doneDocs + batchSize && i < totalResults ; i++) {
+                for (int i = doneDocs ; i < maxDocs && i < totalResults ; i++) {
                     NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(scoreDocs[i].doc));
                     if(logger.isDebugEnabled()) {
 	                    logger.debug("generating webentitylinks for nodelink from " + nodeLink.getSourceLRU() + " to " + nodeLink.getTargetLRU());
@@ -1756,7 +1757,7 @@ public class LRUIndex {
 	                webEntityLink.setLastModificationDate(now.toString());
 	                webEntityLink.setWeight(weight);
                 }
-                doneDocs += batchSize;
+                doneDocs = maxDocs;
             }
             logger.info("Saving " + webEntityLinksMap.size() + " WebEntityLinks");
             @SuppressWarnings({"unchecked"})
