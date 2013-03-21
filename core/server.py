@@ -325,7 +325,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self._start_loop()
 
     def _start_loop(self):
+        self.webentities = []
         self.total_webentities = -1
+        self.last_WE_update = 0
+        self.webentities_links = []
         self.jsonrpc_get_webentities()
         self.jsonrpc_get_precision_exceptions()
         self.loop_running = False
@@ -711,6 +714,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         elif self.total_webentities == -1 or self.recent_indexes:
             print "Updating webentities count"
             yield self.jsonrpc_get_webentities()
+            self.recent_indexes += 1
         self.loop_running = None
 
     def handle_index_error(self, failure):
@@ -767,8 +771,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if list_ids:
             WEs = yield client.getWebEntitiesByIDs(list_ids)
         else:
-            WEs = yield client.getWebEntities()
-            self.total_webentities = len(WEs)
+            if time.time() - self.last_WE_update > 600:
+                WEs = yield client.getWebEntities()
+                self.last_WE_update = time.time()
+                self.webentities = WEs
+                self.total_webentities = len(WEs)
+            else:
+                WEs = self.webentities
         res = []
         if WEs:
             for WE in WEs:
@@ -884,7 +893,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         s = time.time()
         print "Generating links between web entities ..."
         jobslog("WE_LINKS", "Starting WebEntity links generation...", self.db)
-        yield client.generateWebEntityLinks()
+        self.webentities_links = yield client.generateWebEntityLinks()
         s = str(time.time() -s)
         jobslog("WE_LINKS", "...finished WebEntity links generation (%ss)." %s, self.db)
         print "... processed webentity links in %ss" % s
@@ -894,7 +903,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         client = conn.client
         s = time.time()
         print "Generating %s webentities network ..." % outformat
-        links = yield client.getWebEntityLinks()
+        if self.webentities_links == []:
+            self.webentities_links = client.getWebEntityLinks()
         if outformat == "gexf":
             WEs = yield client.getWebEntities()
             WEs_metadata = {}
@@ -910,11 +920,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 for link in WE_links:
                     if link.targetId == WE.id:
                         WEs_metadata[WE.id]['nb_intern_links'] = link.weight
-            gexf.write_WEs_network_from_MS(links, WEs_metadata, 'test_welinks.gexf')
+            gexf.write_WEs_network_from_MS(self.webentities_links, WEs_metadata, 'test_welinks.gexf')
             print "... GEXF network generated in test_welinks.gexf in "+str(time.time()-s)
             defer.returnValue(None)
         elif outformat == "json":
-            res = [[link.sourceId, link.targetId, link.weight] for link in links]
+            res = [[link.sourceId, link.targetId, link.weight] for link in self.webentities_links]
             print "... JSON network generated in "+str(time.time()-s)
             defer.returnValue(res)
 
