@@ -166,7 +166,7 @@ void deleteWebEntity(1: WebEntity webEntity) throws (1:MemoryStructureException 
 /**
  * Generates WebEntity links.
  */
-void generateWebEntityLinks() throws (1:MemoryStructureException x),
+list<WebEntityLink> generateWebEntityLinks() throws (1:MemoryStructureException x),
 
 // get all webentity links
 /**

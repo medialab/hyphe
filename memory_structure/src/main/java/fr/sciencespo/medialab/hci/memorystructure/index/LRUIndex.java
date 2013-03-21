@@ -118,7 +118,7 @@ public class LRUIndex {
             	logger.trace("clearing index");
             }
             this.indexWriter.deleteAll();
-            //xx this.indexWriter.commit();
+            this.indexWriter.commit();
             this.indexReader = IndexReader.open(this.indexWriter, false);
             this.indexSearcher = new IndexSearcher(this.indexReader);
             if(logger.isDebugEnabled()) {
@@ -270,7 +270,7 @@ public class LRUIndex {
     }
 
     public String indexWebEntity(WebEntity webEntity) throws IndexException{
-        return indexWebEntity(webEntity, true);
+        return indexWebEntity(webEntity, true, true);
     }
 
     /**
@@ -285,7 +285,7 @@ public class LRUIndex {
       * @throws IndexException hmm
       * @return id of indexed webentity
       */
-    public String indexWebEntity(WebEntity webEntity, boolean checkExisting) throws IndexException{
+    public String indexWebEntity(WebEntity webEntity, boolean checkExisting, boolean commit) throws IndexException{
         logger.trace("indexWebEntity");
         // validation
         if(webEntity == null) {
@@ -343,8 +343,10 @@ public class LRUIndex {
             Document webEntityDocument = IndexConfiguration.convertWebEntityToLuceneDocument(webEntity);
             this.indexWriter.addDocument(webEntityDocument);
             
-            // Commit the addDocument ?
-            // this.indexWriter.commit();
+            // Commit the addDocument
+            if (commit) {
+                this.indexWriter.commit();
+            }
             reloadIndexIfChange();
 
             // return id of indexed webentity
@@ -439,7 +441,7 @@ public class LRUIndex {
             this.indexWriter.addDocument(IndexConfiguration.convertWebEntityCreationRuleToLuceneDocument(webEntityCreationRule));
             
             // Commit the addDocument ?
-            // this.indexWriter.commit();
+            this.indexWriter.commit();
             
             reloadIndexIfChange();
         }
@@ -573,7 +575,7 @@ public class LRUIndex {
             }
 
             // Commit the addDocument ?
-            // this.indexWriter.commit();
+            this.indexWriter.commit();
             
             reloadIndexIfChange();
 
@@ -1669,7 +1671,7 @@ public class LRUIndex {
      *
      * @throws IndexException hmm
      */
-    public void generateWebEntityLinks() throws IndexException {
+    public List<WebEntityLink> generateWebEntityLinks() throws IndexException {
         try {
             logger.debug("generateWebEntityLinks");
             final Query nodeLinksQuery = LuceneQueryFactory.getNodeLinksQuery();
@@ -1763,7 +1765,10 @@ public class LRUIndex {
             @SuppressWarnings({"unchecked"})
             List<Object> webEntityLinksList = new ArrayList(webEntityLinksMap.values());
             batchIndex(webEntityLinksList);
-            logger.debug("saveNodeLinks finished indexing nodeLinks");
+            this.indexWriter.commit();
+            reloadIndexIfChange();
+            logger.info("saveNodeLinks finished indexing nodeLinks");
+            return new ArrayList<WebEntityLink>(webEntityLinksMap.values());
         }
         catch(IOException x) {
             logger.error(x.getMessage());

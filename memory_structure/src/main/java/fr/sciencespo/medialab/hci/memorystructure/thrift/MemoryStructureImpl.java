@@ -377,10 +377,10 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     @Override
-    public void generateWebEntityLinks() throws MemoryStructureException, TException {
+    public List<WebEntityLink> generateWebEntityLinks() throws MemoryStructureException, TException {
         logger.debug("generateWebEntityLinks");
         try {
-            lruIndex.generateWebEntityLinks();
+            return lruIndex.generateWebEntityLinks();
         }
         catch (IndexException x) {
             logger.error(x.getMessage());

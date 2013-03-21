@@ -211,7 +211,7 @@ public class Cache {
                     createdWebEntitiesCount++;
                     logger.info("indexing new webentity");
                     // store new webentity in index
-                    lruIndex.indexWebEntity(webEntityDefault, false);
+                    lruIndex.indexWebEntity(webEntityDefault, false, false);
                 }
                 doneLRUPrefixes.add(LRUPrefix);
             }
