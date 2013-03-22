@@ -331,14 +331,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.total_webentities = -1
         self.last_WE_update = 0
         self.webentities_links = []
-        self.jsonrpc_get_webentities()
         self.jsonrpc_get_precision_exceptions()
         self.loop_running = False
         self.loop_running_since = 0
         self.last_links_loop = 0
         self.last_index_loop = 0
         self.recent_indexes = 0
-        reactor.callLater(5, self.index_loop.start, 1, True)
+        reactor.callLater(2, self.index_loop.start, 1, True)
 
     def handle_results(self, results):
         return {'code': 'success', 'result': results}
@@ -348,17 +347,28 @@ class Memory_Structure(jsonrpc.JSONRPC):
             print failure
         return {'code': 'fail', 'message': failure.getErrorMessage()}
 
-    def format_webentity(self, WE, jobs=None):
+    def format_webentity(self, WE, jobs=None, light=False, semilight=False):
         if WE:
-            res = {'id': WE.id, 'name': WE.name, 'lru_prefixes': list(WE.LRUSet), 'status': WE.status, 'homepage': WE.homepage, 'startpages': list(WE.startpages), 'creation_date': WE.creationDate, 'last_modification_date': WE.lastModificationDate, 'tags': {}}
-            for tag in WE.metadataItems.keys():
-                res["tags"][tag] = {}
-                for key in WE.metadataItems[tag].keys():
-                    res["tags"][tag][key] = list(WE.metadataItems[tag][key])
+            res = {'id': WE.id, 'name': WE.name}
+            if light:
+                return res
+            res['lru_prefixes'] = list(WE.LRUSet)
+            res['status'] = WE.status
+            res['creation_date'] = WE.creationDate
+            res['last_modification_date'] = WE.lastModificationDate
+            if semilight:
+                return res
+            res['homepage'] = WE.homepage
+            res['startpages'] = list(WE.startpages)
+            res['tags'] = {tag: {key: list(val) for key, val in values.iteritems()} for tag, values in WE.metadataItems.iteritems()}
             #pages = yield client.getPagesFromWebEntity(WE.id)
             # nb_pages = len(pages)
-            # nb_links 
-            job = self.db[config['mongo-scrapy']['jobListCol']].find_one({'webentity_id': WE.id}, sort=[('timestamp', pymongo.DESCENDING)])
+            # nb_links
+            job = None
+            if not jobs:
+                job = self.db[config['mongo-scrapy']['jobListCol']].find_one({'webentity_id': WE.id}, fields=['crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.DESCENDING)])
+            elif WE.id in jobs:
+                job = jobs[WE.id]
             if job:
                 res['crawling_status'] = job['crawling_status']
                 res['indexing_status'] = job['indexing_status']
@@ -418,7 +428,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def handle_lru_precision_exceptions(self, client, lru_prefix):
         lru_head = lru.getLRUHead(lru_prefix, self.precision_exceptions)
-        print lru_head, lru.isLRUNode(lru_prefix, config["precisionLimit"], lru_head=lru_head), lru_prefix.strip('|')
         if not lru.isLRUNode(lru_prefix, config["precisionLimit"], lru_head=lru_head) and lru_prefix.strip('|') != lru_head:
             yield client.markPrecisionExceptions([lru_prefix])
             self.precision_exceptions.append(lru_prefix)
@@ -684,7 +693,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
             defer.returnValue(False)
         oldest_page_in_queue = self.db[config['mongo-scrapy']['queueCol']].find_one(sort=[('timestamp', pymongo.ASCENDING)], fields=['_job'])
         # Run linking webentities on a regular basis when needed
-        if self.recent_indexes > 10 or (self.recent_indexes and (not oldest_page_in_queue or time.time() - self.last_links_loop > 300)):
+        if self.total_webentities == -1 or time.time() - self.last_WE_update > 1200:
+            self.loop_running = "collecting webentities and links from memory_structure"
+            print "Updating webentities count..."
+            yield self.jsonrpc_get_webentities(light=True, corelinks=(self.total_webentities == -1))
+        elif self.recent_indexes > 100 or (self.recent_indexes and (not oldest_page_in_queue or time.time() - self.last_links_loop > 1800)):
             self.loop_running = "generating links"
             self.loop_running_since = time.time()
             conn = getThriftConn()
@@ -712,11 +725,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 self.recent_indexes += 1
                 self.last_index_loop = time.time()
             else:
-                print "WARNING: job %s found for index but no page corresponding found in queue."
-        elif self.total_webentities == -1 or self.recent_indexes:
-            print "Updating webentities count"
-            yield self.jsonrpc_get_webentities()
-            self.recent_indexes += 1
+                print "WARNING: job %s found for index but no page corresponding found in queue." % jobid
+        if self.loop_running != True:
+            print "...loop run finished"
         self.loop_running = None
 
     def handle_index_error(self, failure):
@@ -756,9 +767,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(self.handle_results("Precision Exceptions %s removed." % list_exceptions))
 
     @inlineCallbacks
-    def jsonrpc_get_webentities(self, list_ids=None, corpus=''):
+    def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, corpus='', corelinks=False):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.get_webentities, list_ids).addErrback(self.handle_error)
+        res = yield mem_struct_conn.addCallback(self.get_webentities, list_ids, light, semilight, corelinks).addErrback(self.handle_error)
         defer.returnValue(res)
 
     @inlineCallbacks
@@ -768,22 +779,31 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(WE)
 
     @inlineCallbacks
-    def get_webentities(self, conn, list_ids=None):
+    def ramcache_webentities(self, client):
+        WEs = self.webentities
+        if WEs == [] or time.time() - self.last_WE_update > 1800:
+            WEs = yield client.getWebEntities()
+            self.last_WE_update = time.time()
+            self.webentities = WEs
+            self.total_webentities = len(WEs)
+        defer.returnValue(WEs)
+
+    @inlineCallbacks
+    def get_webentities(self, conn, list_ids=None, light=False, semilight=False, corelinks=False):
         client = conn.client
-        if list_ids:
+        if list_ids and len(list_ids):
             WEs = yield client.getWebEntitiesByIDs(list_ids)
+            jobs = {job['webentity_id']: job for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)])}
         else:
-            if time.time() - self.last_WE_update > 600:
-                WEs = yield client.getWebEntities()
-                self.last_WE_update = time.time()
-                self.webentities = WEs
-                self.total_webentities = len(WEs)
-            else:
-                WEs = self.webentities
-        res = []
-        if WEs:
-            for WE in WEs:
-                res.append(self.format_webentity(WE))
+   #        if not light:     # to be added when handled in front js
+   #            semilight = True
+            WEs = yield self.ramcache_webentities(client)
+            jobs = None
+        res = [self.format_webentity(WE, jobs, light, semilight) for WE in WEs]
+        if corelinks:
+            print "...get WebentityLinks..."
+            self.webentities_links = yield client.getWebEntityLinks()
+            print "...got WebentityLinks..."
         defer.returnValue(self.handle_results(res))
 
     @inlineCallbacks
@@ -842,10 +862,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 WEs = yield client.getSubWebEntities(webentity_id)
             else:
                 WEs = yield client.getParentWebEntities(webentity_id)
-            res = []
-            if WEs:
-                for WE in WEs:
-                    res.append(self.format_webentity(WE))
+            jobs = {job['webentity_id']: job for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)])}
+            res = [self.format_webentity(WE, jobs) for WE in WEs]
             defer.returnValue(self.handle_results(res))
         except Exception as x:
             defer.returnValue(self.handle_error(x))
@@ -906,9 +924,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         s = time.time()
         print "Generating %s webentities network ..." % outformat
         if self.webentities_links == []:
-            self.webentities_links = client.getWebEntityLinks()
+            self.webentities_links = yield client.getWebEntityLinks()
         if outformat == "gexf":
-            WEs = yield client.getWebEntities()
+            WEs = yield self.ramcache_webentities(client)
             WEs_metadata = {}
             for WE in WEs:
                 date = ''
