@@ -244,31 +244,6 @@ public class LRUIndex {
         }
     }
 
-    /**
-     *
-     * @param newId
-     * @param lrus
-     * @return
-     * @throws IndexException hmm
-     */
-    private Set<String> alreadyExistingWebEntityLRUs(String newId, Set<String> lrus) throws IndexException {
-        Set<String> result = new HashSet<String>();
-        Set<WebEntity> existingWebEntities = retrieveWebEntities();
-        for(WebEntity webEntity : existingWebEntities) {
-            if(StringUtils.isNotEmpty(newId) && webEntity.getId().equals(newId)) {
-                continue;
-            }
-            Set<String> existingLRUs = webEntity.getLRUSet();
-            Set<String> intersection = new HashSet<String>(lrus);
-            intersection.retainAll(existingLRUs);
-            result.addAll(intersection);
-        }
-        if(logger.isDebugEnabled()) {
-        	logger.trace("found # " + result.size() + " already existing webentity lrus");
-        }
-        return result;
-    }
-
     public String indexWebEntity(WebEntity webEntity) throws IndexException{
         return indexWebEntity(webEntity, true, true);
     }
@@ -297,10 +272,13 @@ public class LRUIndex {
 
         // Ensure a webEntity lruprefix is unique in the web entity index
         if (checkExisting == true) {
-            Set<String> existing = alreadyExistingWebEntityLRUs(webEntity.getId(), webEntity.getLRUSet());
-            if(existing.size() > 0) {
-                logger.error("ERROR / WARNING : WebEntity contains already existing LRUs: " + existing);
-                throw new IndexException("WebEntity contains already existing LRUs: " + existing);
+            String webentity_id = webEntity.getId();
+            for (String lru : webEntity.getLRUSet()) {
+                WebEntity existing = retrieveWebEntityByLRUPrefix(lru);
+                if (existing != null && !(StringUtils.isNotEmpty(webentity_id) && webentity_id.equals(existing.getId())) ){
+                    logger.error("ERROR / WARNING : WebEntity contains already existing LRU: " + lru);
+                    throw new IndexException("WebEntity contains already existing LRUs: " + lru);
+                }
             }
         }
         try {
@@ -957,16 +935,19 @@ public class LRUIndex {
            final List<Document> hits = executeMultipleResultsQuery(query);
            HashSet<String> ids = new HashSet<String>();
            for(Document hit: hits) {
-                   WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
-                   if (!ids.contains(webEntity.getId())) {
+                   String id = hit.get(IndexConfiguration.FieldName.ID.name());
+                   if (!ids.contains(id)) {
+                       WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
                        result.add(webEntity);
-                       ids.add(webEntity.getId());
-                   }
+                       ids.add(id);
+                   } else {
+                     logger.warn("Found a webentity multiple times : "+id);
+                    }
            }
            if(logger.isDebugEnabled()) {
                logger.debug("total webentities retrieved from index is  # " + result.size());
                for(WebEntity we : result) {
-                   logger.debug("retrieved web entity: " + we.getName());
+                   logger.trace("retrieved web entity: " + we.getName());
                }
            }
            return result;
@@ -1767,7 +1748,7 @@ public class LRUIndex {
             batchIndex(webEntityLinksList);
             this.indexWriter.commit();
             reloadIndexIfChange();
-            logger.info("saveNodeLinks finished indexing nodeLinks");
+            logger.info("finished indexing nodeLinks");
             return new ArrayList<WebEntityLink>(webEntityLinksMap.values());
         }
         catch(IOException x) {
