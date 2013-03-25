@@ -8,7 +8,7 @@
     ,'btn-danger'
     ,'btn-inverse'
   ]
-
+  
   /**
    * TextContent (alias Span ) dynamically shows a property (text). You can wrap it in a function.
    *
