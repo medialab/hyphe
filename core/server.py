@@ -92,7 +92,10 @@ class Core(jsonrpc.JSONRPC):
             maxdepth = config['mongo-scrapy']['maxdepth']
         mem_struct_conn = getThriftConn()
         WE = yield mem_struct_conn.addCallback(self.store.get_webentity_with_pages_and_subWEs, webentity_id, all_pages_as_startpoints)
-        defer.returnValue(self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth, WE_status=WE['status']))
+        if WE['status'] == "DISCOVERED":
+            yield self.store.jsonrpc_set_webentity_status(webentity_id, "UNDECIDED")
+        yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
+        defer.returnValue(self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth))
 
     def jsonrpc_refreshjobs(self):
         """Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks."""
@@ -210,7 +213,7 @@ class Crawler(jsonrpc.JSONRPC):
         except Exception as e:
             return {'code': 'fail', 'message': e}
 
-    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=config['discoverPrefixes'], maxdepth=config['mongo-scrapy']['maxdepth'], download_delay=config['mongo-scrapy']['download_delay'], WE_status=None, corpus=''):
+    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=config['discoverPrefixes'], maxdepth=config['mongo-scrapy']['maxdepth'], download_delay=config['mongo-scrapy']['download_delay'], corpus=''):
         """Starts a crawl with scrapy from arguments using a list of urls and of lrus for prefixes."""
         if len(starts) < 1:
             return {'code': 'fail', 'message': 'No startpage defined for crawling webentity %s.' % webentity_id}
@@ -233,13 +236,10 @@ class Crawler(jsonrpc.JSONRPC):
         if 'jobid' in res:
             ts = int(time.time()*1000)
             jobslog(res['jobid'], "CRAWL_ADDED", self.db, ts)
-            if WE_status and WE_status == "DISCOVERED":
-                self.parent.store.jsonrpc_set_webentity_status(webentity_id, "UNDECIDED")
             resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'webentity_id': webentity_id, 'nb_pages': 0, 'nb_links': 0, 'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts}}, upsert=True, safe=True)
             if (resdb['err']):
                 print "ERROR saving crawling job %s in database for webentity %s with arguments %s" % (res['jobid'], webentity_id, args), resdb
                 return {'code': 'fail', 'message': resdb}
-            self.parent.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
         return {'code': 'success', 'result': res}
 
     def jsonrpc_cancel(self, job_id):
@@ -731,7 +731,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             else:
                 print "WARNING: job %s found for index but no page corresponding found in queue." % jobid
         if self.loop_running != True:
-            print "...loop run finished"
+            print "...loop run finished."
         self.loop_running = None
 
     def handle_index_error(self, failure):
@@ -789,7 +789,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             WEs = yield client.getWebEntities()
             self.last_WE_update = time.time()
             self.webentities = WEs
-            self.total_webentities = len(WEs)
+        self.total_webentities = len(WEs)
         defer.returnValue(WEs)
 
     @inlineCallbacks
