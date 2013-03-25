@@ -77,7 +77,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             if(webEntity == null) {
                 throw new MemoryStructureException().setMsg("WebEntity is null");
             }
-            return lruIndex.indexWebEntity(webEntity);
+            return lruIndex.indexWebEntity(webEntity, false, true);
         }
         catch(IndexException x) {
             logger.error(x.getMessage());

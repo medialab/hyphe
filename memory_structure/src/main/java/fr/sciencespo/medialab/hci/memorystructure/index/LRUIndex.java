@@ -412,13 +412,12 @@ public class LRUIndex {
                 if(logger.isDebugEnabled()) {
                     logger.debug("deleting existing webentitycreationrule with lru " + webEntityCreationRule.getLRU());
                 }
-                // Delete and commit
                 deleteObject(q, true);
             }
 
             this.indexWriter.addDocument(IndexConfiguration.convertWebEntityCreationRuleToLuceneDocument(webEntityCreationRule));
             
-            // Commit the addDocument ?
+            // Commit the addDocument
             this.indexWriter.commit();
             
             reloadIndexIfChange();
@@ -1129,8 +1128,11 @@ public class LRUIndex {
         try {
             Query q = LuceneQueryFactory.getWebEntitiesByLRUQuery(prefix);
             final List<Document> hits = executeMultipleResultsQuery(q);
-            if (hits.size() != 1) {
+            if (hits.size() < 1) {
                 return null;
+            }
+            if (hits.size() > 1) {
+                logger.warn("WARNING : " + hits.size() + "multiple WEs found for lru "+prefix);
             }
             WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hits.get(0));
             return webEntity;

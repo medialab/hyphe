@@ -159,7 +159,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                     int weight = webEntityLink.getWeight();
                     if(existing != null) {
                         if(logger.isDebugEnabled()) {
-                            logger.debug("NodeLink already existed - increasing weight");
+                            logger.debug("WebEntityLink already existed - increasing weight");
                         }
                         weight += existing.getWeight();
                         lruIndex.deleteWebEntityLink(webEntityLink);

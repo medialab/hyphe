@@ -209,9 +209,9 @@ public class Cache {
                 WEcandidate = lruIndex.retrieveWebEntityByLRUPrefix(LRUPrefix);
                 if (WEcandidate == null && webEntityDefault != null) {
                     createdWebEntitiesCount++;
-                    logger.info("indexing new webentity");
+                    logger.trace("indexing new webentity for prefix "+LRUPrefix);
                     // store new webentity in index
-                    lruIndex.indexWebEntity(webEntityDefault, false, false);
+                    lruIndex.indexWebEntity(webEntityDefault, false, true);
                 }
                 doneLRUPrefixes.add(LRUPrefix);
             }
