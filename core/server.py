@@ -781,7 +781,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def ramcache_webentities(self, client):
         WEs = self.webentities
-        if WEs == [] or time.time() - self.last_WE_update > 1800:
+        if WEs == [] or (time.time() - self.last_WE_update > self.total_webentities/500 and self.loop_running != "collecting webentities and links from memory_structure"):
             WEs = yield client.getWebEntities()
             self.last_WE_update = time.time()
             self.webentities = WEs
