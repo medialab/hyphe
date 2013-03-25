@@ -360,7 +360,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 return res
             res['homepage'] = WE.homepage
             res['startpages'] = list(WE.startpages)
-            res['tags'] = {tag: {key: list(val) for key, val in values.iteritems()} for tag, values in WE.metadataItems.iteritems()}
+            res['tags'] = {}
+            for tag, values in WE.metadataItems.iteritems():
+                res['tags'][tag] = {}
+                for key, val in values.iteritems():
+                    res['tags'][tag][key] = list(val)
             #pages = yield client.getPagesFromWebEntity(WE.id)
             # nb_pages = len(pages)
             # nb_links
@@ -791,9 +795,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def get_webentities(self, conn, list_ids=None, light=False, semilight=False, corelinks=False):
         client = conn.client
+        jobs = {}
         if list_ids and len(list_ids):
             WEs = yield client.getWebEntitiesByIDs(list_ids)
-            jobs = {job['webentity_id']: job for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)])}
+            for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)]):
+                jobs[job['webentity_id']] = job
         else:
    #        if not light:     # to be added when handled in front js
    #            semilight = True
@@ -858,11 +864,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
             defer.returnValue(self.handle_error("ERROR: must set relative type as children or parents"))
         client = conn.client
         try:
+            jobs = {}
             if relative_type == "children":
                 WEs = yield client.getSubWebEntities(webentity_id)
             else:
                 WEs = yield client.getParentWebEntities(webentity_id)
-            jobs = {job['webentity_id']: job for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)])}
+            for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)]):
+                jobs[job['webentity_id']] = job
             res = [self.format_webentity(WE, jobs) for WE in WEs]
             defer.returnValue(self.handle_results(res))
         except Exception as x:
