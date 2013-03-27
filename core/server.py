@@ -697,11 +697,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
             defer.returnValue(False)
         oldest_page_in_queue = self.db[config['mongo-scrapy']['queueCol']].find_one(sort=[('timestamp', pymongo.ASCENDING)], fields=['_job'])
         # Run linking webentities on a regular basis when needed
-        if self.total_webentities == -1 or time.time() - self.last_WE_update > 1200:
+        if self.total_webentities == -1 or time.time() - self.last_WE_update > 300:
             self.loop_running = "collecting webentities and links from memory_structure"
             print "Updating webentities count..."
             yield self.jsonrpc_get_webentities(light=True, corelinks=(self.total_webentities == -1))
-        elif self.recent_indexes > 100 or (self.recent_indexes and (not oldest_page_in_queue or time.time() - self.last_links_loop > 1800)):
+        elif self.recent_indexes > 100 or (self.recent_indexes and not oldest_page_in_queue) or time.time() - self.last_links_loop > 1800:
             self.loop_running = "generating links"
             self.loop_running_since = time.time()
             conn = getThriftConn()
@@ -785,7 +785,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def ramcache_webentities(self, client):
         WEs = self.webentities
-        if WEs == [] or (time.time() - self.last_WE_update > self.total_webentities/500 and self.loop_running != "collecting webentities and links from memory_structure"):
+        if WEs == [] or (time.time() - self.last_WE_update > 60):
             WEs = yield client.getWebEntities()
             self.last_WE_update = time.time()
             self.webentities = WEs

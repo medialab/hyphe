@@ -354,7 +354,7 @@ public class LRUIndex {
      * @throws IndexException hmm
      */
     private String alreadyExistingWebEntityCreationRulePrefixes(String prefix) throws IndexException {
-        Set<WebEntityCreationRule> existingWebEntityCreationRules = retrieveWebEntityCreationRules();
+        List<WebEntityCreationRule> existingWebEntityCreationRules = retrieveWebEntityCreationRules();
         for(WebEntityCreationRule webEntityCreationRule : existingWebEntityCreationRules) {
             String existingPrefix = webEntityCreationRule.getLRU();
             if(existingPrefix.equals(prefix)) {
@@ -497,7 +497,7 @@ public class LRUIndex {
             int processedSoFar = 0;
             while(processedSoFar < batchSize) {
                 List<Object> batch;
-                int INDEXWRITER_MAX = 2500;
+                int INDEXWRITER_MAX = 5000;
                 if(batchSize >= processedSoFar + INDEXWRITER_MAX) {
                     batch = objects.subList(processedSoFar, processedSoFar + INDEXWRITER_MAX);
                 }
@@ -817,15 +817,15 @@ public class LRUIndex {
      * @return
      * @throws IndexException hmm
      */
-   public Set<NodeLink> retrieveNodeLinks() throws IndexException {
+   public List<NodeLink> retrieveNodeLinks() throws IndexException {
        logger.debug("retrieveNodeLinks");
        try {
-            Set<NodeLink> result = new HashSet<NodeLink>();
+            List<NodeLink> result = new ArrayList<NodeLink>();
             Query q = LuceneQueryFactory.getNodeLinksQuery();
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                    NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(hit);
-                    result.add(nodeLink);
+                NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(hit);
+                result.add(nodeLink);
             }
             if(logger.isDebugEnabled()) {
                 logger.debug("retrieved # " + result.size() + " nodelinks from index");
@@ -848,12 +848,12 @@ public class LRUIndex {
     * @return
     * @throws IndexException hmm
     */
-   public Set<NodeLink> retrieveWebentityNodeLinks(String webEntityId, Boolean includeFrontier) throws IndexException {
+   public List<NodeLink> retrieveWebentityNodeLinks(String webEntityId, Boolean includeFrontier) throws IndexException {
        logger.debug("retrieveNodeLinks");
        try {
            WebEntity webEntity = retrieveWebEntity(webEntityId);
            List<WebEntity> subWebEntities = findSubWebEntities(webEntity);
-           Set<NodeLink> result = new HashSet<NodeLink>();
+           List<NodeLink> result = new ArrayList<NodeLink>();
            Query q;
            q = LuceneQueryFactory.getNodeLinksMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities, includeFrontier);
            final List<Document> hits = executeMultipleResultsQuery(q);
@@ -864,7 +864,6 @@ public class LRUIndex {
            if(logger.isDebugEnabled()) {
                logger.debug("retrieved # " + result.size() + " nodelinks from index");
            }
-
            return result;
        }
        catch(IOException x) {
@@ -880,15 +879,15 @@ public class LRUIndex {
      * @return
      * @throws IndexException hmm
      */
-   public Set<WebEntityLink> retrieveWebEntityLinks() throws IndexException {
+   public List<WebEntityLink> retrieveWebEntityLinks() throws IndexException {
        logger.debug("retrieveWebEntityLinks");
        try {
-            Set<WebEntityLink> result = new HashSet<WebEntityLink>();
+            List<WebEntityLink> result = new ArrayList<WebEntityLink>();
             Query q = LuceneQueryFactory.getWebEntityLinksQuery();
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
-                    WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocumentToWebEntityLink(hit);
-                    result.add(webEntityLink);
+                WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocumentToWebEntityLink(hit);
+                result.add(webEntityLink);
             }
             if(logger.isDebugEnabled()) {
                 logger.debug("retrieved # " + result.size() + " webentitylinks from index");
@@ -907,7 +906,7 @@ public class LRUIndex {
     * @return
     * @throws IndexException hmm
     */
-   public HashSet<WebEntity> retrieveWebEntities() throws IndexException {
+   public List<WebEntity> retrieveWebEntities() throws IndexException {
        logger.debug("retrieveWebEntities");
        return retrieveWebEntitiesByQuery(LuceneQueryFactory.getWebEntitiesQuery());
    }
@@ -918,7 +917,7 @@ public class LRUIndex {
     * @return webentities
     * @throws IndexException hmm
     */
-   public HashSet<WebEntity> retrieveWebEntitiesByIDs(List<String> listIDs) throws IndexException {
+   public List<WebEntity> retrieveWebEntitiesByIDs(List<String> listIDs) throws IndexException {
        logger.debug("retrieveWebEntitiesByIDs");
        return retrieveWebEntitiesByQuery(LuceneQueryFactory.getWebEntitiesByIdsQuery(listIDs));
    }
@@ -928,26 +927,16 @@ public class LRUIndex {
     * @return
     * @throws IndexException hmm
     */
-   public HashSet<WebEntity> retrieveWebEntitiesByQuery(Query query) throws IndexException {
+   public List<WebEntity> retrieveWebEntitiesByQuery(Query query) throws IndexException {
        try {
-           HashSet<WebEntity> result = new HashSet<WebEntity>();
-           final List<Document> hits = executeMultipleResultsQuery(query);
-           HashSet<String> ids = new HashSet<String>();
+           List<Document> hits = executeMultipleResultsQuery(query);
+           List<WebEntity> result = new ArrayList<WebEntity>(hits.size());
            for(Document hit: hits) {
-                   String id = hit.get(IndexConfiguration.FieldName.ID.name());
-                   if (!ids.contains(id)) {
-                       WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
-                       result.add(webEntity);
-                       ids.add(id);
-                   } else {
-                     logger.warn("Found a webentity multiple times : "+id);
-                    }
+               WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
+               result.add(webEntity);
            }
-           if(logger.isDebugEnabled()) {
+           if (logger.isDebugEnabled()) {
                logger.debug("total webentities retrieved from index is  # " + result.size());
-               for(WebEntity we : result) {
-                   logger.trace("retrieved web entity: " + we.getName());
-               }
            }
            return result;
        }
@@ -963,10 +952,10 @@ public class LRUIndex {
      * @return
      * @throws IndexException hmm
      */
-    public Set<WebEntityCreationRule> retrieveWebEntityCreationRules() throws IndexException {
+    public List<WebEntityCreationRule> retrieveWebEntityCreationRules() throws IndexException {
         logger.debug("retrieveWebEntityCreationRules");
         try {
-            Set<WebEntityCreationRule> result = new HashSet<WebEntityCreationRule>();
+            List<WebEntityCreationRule> result = new ArrayList<WebEntityCreationRule>();
             Query q = LuceneQueryFactory.getWebEntityCreationRulesQuery();
             final List<Document> hits = executeMultipleResultsQuery(q);
             for(Document hit: hits) {
@@ -1150,12 +1139,12 @@ public class LRUIndex {
      * @return
      * @throws IndexException hmm
      */
-    public Set<WebEntity> retrieveWebEntitiesStartingByLRUPrefix(String prefix) throws IndexException {
+    public List<WebEntity> retrieveWebEntitiesStartingByLRUPrefix(String prefix) throws IndexException {
         if(logger.isDebugEnabled()) {
             logger.debug("retrieveWebEntitiesByLRUPrefix: " + prefix);
         }
         try {
-            Set<WebEntity> results = new HashSet<WebEntity>();
+            List<WebEntity> results = new ArrayList<WebEntity>();
             if(prefix == null) {
                 logger.warn("attempted to retrieve web entities with null lruprefix");
                 return results;
@@ -1185,12 +1174,12 @@ public class LRUIndex {
      * @return
      * @throws IndexException hmm
      */
-    public Set<NodeLink> retrieveNodeLinksBySourcePrefix(String prefix) throws IndexException {
+    public List<NodeLink> retrieveNodeLinksBySourcePrefix(String prefix) throws IndexException {
         if(logger.isDebugEnabled()) {
             logger.debug("retrieveNodeLinksBySourcePrefix: " + prefix);
         }
         try {
-            Set<NodeLink> results = new HashSet<NodeLink>();
+            List<NodeLink> results = new ArrayList<NodeLink>();
             if(prefix == null) {
                 logger.warn("attempted to retrieve node links with null source prefix");
                 return results;
@@ -1222,12 +1211,12 @@ public class LRUIndex {
      * @return
      * @throws IndexException hmm
      */
-    public Set<NodeLink> retrieveNodeLinksByTargetPrefix(String prefix) throws IndexException {
+    public List<NodeLink> retrieveNodeLinksByTargetPrefix(String prefix) throws IndexException {
         if(logger.isDebugEnabled()) {
             logger.debug("retrieveNodeLinksByTargetPrefix: " + prefix);
         }
         try {
-            Set<NodeLink> results = new HashSet<NodeLink>();
+            List<NodeLink> results = new ArrayList<NodeLink>();
             if(prefix == null) {
                 logger.warn("attempted to retrieve node links with null target prefix");
                 return results;
@@ -1251,30 +1240,37 @@ public class LRUIndex {
         }
     }
 
+    public List<WebEntityLink> retrieveWebEntityLinksBySource(String id) throws IndexException {
+        return retrieveWebEntityLinksByNeighborsQuery(LuceneQueryFactory.getWebEntityLinksBySourceQuery(id), id, "source");
+    }
+
+    public List<WebEntityLink> retrieveWebEntityLinksByTarget(String id) throws IndexException {
+        return retrieveWebEntityLinksByNeighborsQuery(LuceneQueryFactory.getWebEntityLinksByTargetQuery(id), id, "target");
+    }
+
     /**
      *
      * @param id
      * @return
      * @throws IndexException hmm
      */
-    public Set<WebEntityLink> retrieveWebEntityLinksBySource(String id) throws IndexException {
+    public List<WebEntityLink> retrieveWebEntityLinksByNeighborsQuery(Query neighborsQuery, String id, String type) throws IndexException {
         if(logger.isDebugEnabled()) {
-            logger.debug("retrieveWebEntityLinksBySource: " + id);
+            logger.debug("retrieveWebEntityLinksBy" + type + ": " + id);
         }
         try {
-            Set<WebEntityLink> results = new HashSet<WebEntityLink>();
+            List<WebEntityLink> results = new ArrayList<WebEntityLink>();
             if(StringUtils.isEmpty(id)) {
-                logger.warn("attempted to retrieve web entity links with null source id");
+                logger.warn("attempted to retrieve web entity links with null "+type+" id");
                 return results;
             }
-            Query q = LuceneQueryFactory.getWebEntityLinksBySourceQuery(id);
-            final List<Document> hits = executeMultipleResultsQuery(q);
+            final List<Document> hits = executeMultipleResultsQuery(neighborsQuery);
             for(Document hit: hits) {
                 WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocumentToWebEntityLink(hit);
                 results.add(webEntityLink);
             }
             if(logger.isDebugEnabled()) {
-                logger.debug("retrieved # " + results.size() + " WebEntityLinks with source id " + id);
+                logger.debug("retrieved # " + results.size() + " WebEntityLinks with " + type + " id " + id);
             }
             return results;
         }
@@ -1284,42 +1280,6 @@ public class LRUIndex {
             throw new IndexException(x.getMessage(), x);
         }
     }
-
-    /**
-     *
-     * @param id
-     * @return
-     * @throws IndexException hmm
-     */
-    public Set<WebEntityLink> retrieveWebEntityLinksByTarget(String id) throws IndexException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("retrieveWebEntityLinksByTarget: " + id);
-        }
-        try {
-            Set<WebEntityLink> results = new HashSet<WebEntityLink>();
-            if(StringUtils.isEmpty(id)) {
-                logger.warn("attempted to retrieve web entity links with null target id");
-                return results;
-            }
-            Query q = LuceneQueryFactory.getWebEntityLinksByTargetQuery(id);
-            final List<Document> hits = executeMultipleResultsQuery(q);
-            for(Document hit: hits) {
-                WebEntityLink webEntityLink = IndexConfiguration.convertLuceneDocumentToWebEntityLink(hit);
-                results.add(webEntityLink);
-            }
-            if(logger.isDebugEnabled()) {
-                logger.debug("retrieved # " + results.size() + " WebEntityLinks with target id " + id);
-            }
-            return results;
-        }
-        catch (IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x.getMessage(), x);
-        }
-    }
-
-
 
     /**
      *
@@ -1327,12 +1287,12 @@ public class LRUIndex {
      * @return
      * @throws IndexException hmm
      */
-    public Set<PageItem> retrievePageItemsByLRUPrefix(String prefix) throws IndexException {
+    public List<PageItem> retrievePageItemsByLRUPrefix(String prefix) throws IndexException {
         if(logger.isDebugEnabled()) {
             logger.debug("retrievePageItemsByLRUPrefix: " + prefix);
         }
         try {
-            Set<PageItem> results = new HashSet<PageItem>();
+            List<PageItem> results = new ArrayList<PageItem>();
             if(prefix == null) {
                 logger.warn("attempted to retrieve pageitems with null lruprefix");
                 return results;
@@ -1750,7 +1710,7 @@ public class LRUIndex {
             batchIndex(webEntityLinksList);
             this.indexWriter.commit();
             reloadIndexIfChange();
-            logger.info("finished indexing nodeLinks");
+            logger.info("finished indexing webEntityLinks");
             return new ArrayList<WebEntityLink>(webEntityLinksMap.values());
         }
         catch(IOException x) {

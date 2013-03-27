@@ -181,7 +181,7 @@ public class Cache {
     	logger.trace("createWebEntities");
         int createdWebEntitiesCount = 0;
         WebEntityCreationRule defaultRule = lruIndex.retrieveDefaultWECR();
-        Set<WebEntityCreationRule> webEntityCreationRules = lruIndex.retrieveWebEntityCreationRules();
+        List<WebEntityCreationRule> webEntityCreationRules = lruIndex.retrieveWebEntityCreationRules();
         Set<String> pageLRUs = this.pageItems.keySet();
         Set<String> doneLRUPrefixes = new HashSet<String>();
         WebEntity webEntityDefault;
