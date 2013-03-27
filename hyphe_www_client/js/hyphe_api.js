@@ -30,6 +30,12 @@ HYPHE_API = {
 	,PAGE:{
 		DECLARE:'declare_page'
 	}
+	,CRAWLJOBS:{
+		GET:'listjobs'
+	}
+	,CRAWLJOB:{
+		CANCEL:'crawl.cancel'
+	}
 
 	,URL_LOOKUP:'lookup_httpstatus'
 }

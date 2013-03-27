@@ -6,7 +6,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Hyphen</title>
+        <title>Hyphe</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
 
@@ -52,9 +52,6 @@
                     <div class="image">
                         <a href="index.php"><img title="Hyphe" src="res/header.png"/></a>
                     </div>
-                    <!-- <div class="title">
-                        hyphen
-                    </div> -->
                 </div>
                 <div class="span5">
                     <div class="abstract">

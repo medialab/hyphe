@@ -6,7 +6,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Hyphen</title>
+        <title>Hyphe</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
 
@@ -49,9 +49,6 @@
                     <div class="image">
                         <a href="index.php"><img title="Hyphen" src="res/header.png"/></a>
                     </div>
-                    <!-- <div class="title">
-                        hyphen
-                    </div> -->
                 </div>
                 <div class="span5">
                     <div class="abstract">
@@ -89,32 +86,17 @@
                             <input type="checkbox" id="crawlJobs_showPending" checked="true"> Show pending
                         </label>
                         &nbsp;
-                        <a class="btn" id="crawlJobs_refresh"><i class="icon-refresh"></i> Refresh</a>
+                        <a class="btn" id="crawlJobs_refresh"></a>
                     </form>
                 </div>
             </div>
 
             <div class="row">
                 <div class="span8">
-                    <div id="jobsMessage"><span class="muted">Loading...</span></div>
-                    <!-- <table class="table table-hover dataTable" style="display:none;" id="jobsTable"> -->
-                    <table class="table table-hover" style="display:none;" id="jobsTable">
-                        <thead>
-                            <tr>
-                                <th>Web entity</th>
-                                <th style="width:80px">Harvesting</th>
-                                <th style="width:80px">Indexing</th>
-                                <th style="width:70px">Data</th>
-                                <th style="width:10px"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="jobsTableBody">
-                        </tbody>
-                    </table>
-                    </ul>
+                    <div id="jobs"></div>
                 </div>
                 <div class="span4">
-                    <div class="well" id="jobFrame" style="display:none">
+                    <div id="jobFrame" style="display:none">
                     </div>
                 </div>
             </div>
@@ -122,9 +104,10 @@
 
 <?php include("includes/footer.php"); ?>
 
-<?php include("includes/codebottom.php"); ?>
+<?php include("includes/codebottom_v2.php"); ?>
 
         <!-- Page-specific js package -->
+        <script src="js/_page_crawl_modules.js"></script>
         <script src="js/_page_crawl.js"></script>
 
     </body>
