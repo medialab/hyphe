@@ -569,9 +569,17 @@ $.fn.editable.defaults.mode = 'inline';
         domino.module.call(this)
 
         this.triggers.events['currentWebEntity_updated'] = function() {
-            D.request('getCurrentWebEntityPages', {shortcuts:{
-                webEntityId: D.get('currentWebEntity').id
-            }})
+            var we = D.get('currentWebEntity')
+            if(we.lru_prefixes.some(function(p){return p == "s:http" || p == "s:https"})){
+                D.dispatchEvent('update_currentWebEntityPages', {
+                    currentWebEntityPages: []
+                })
+            } else {
+                D.request('getCurrentWebEntityPages', {shortcuts:{
+                    webEntityId: D.get('currentWebEntity').id
+                }})
+            }
+
             // Popover
             D.dispatchEvent('update_treeItemPopover', {
                 treeItemPopover: ''
