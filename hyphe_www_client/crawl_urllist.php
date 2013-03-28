@@ -13,11 +13,19 @@
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <style>
 /* Specific styles */
-
+.urlrow:hover{
+    background-color: #FFE;
+}
+.startUrl .editable{
+    word-wrap: break-word;
+    color: #333;
+    border-bottom: dashed 1px #cef;
+}
 
 
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="css/bootstrap-editable.css">
         <link rel="stylesheet" href="css/select2.css">
         <link rel="stylesheet" href="css/main.css">
 

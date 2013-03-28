@@ -3,6 +3,9 @@ domino.settings({
     ,verbose: true
 })
 
+// X-Editable: popup mode
+$.fn.editable.defaults.mode = 'popup';
+
 ;(function($, domino, dmod, undefined){
     
     // Check that config is OK
@@ -145,6 +148,12 @@ domino.settings({
                         ,timeout: 5
                     })
                 }
+            },{
+                // When some url is changed, we have to fetch every URL and reinitialize what changed
+                triggers: ['some_url_updated']
+                ,method: function(){
+                    alert('gaga')
+                }
             }
         ]
     })
@@ -192,9 +201,34 @@ domino.settings({
         this.triggers.events['startUrls_updated'] = function() {
             var urls = D.get('startUrls')
             urls.forEach(function(url){
-                el.append($('<div class="row"/>').append(
+                var editable_url = $('<a href="#"/>').text(Utils.URL_simplify(url))
+                // var editable_url = $('<span class="startUrl"/>').text(Utils.URL_simplify(url))
+                
+                D.addModule(function(){
+                    domino.module.call(this)
+                    editable_url.editable({
+                        type: 'text'
+                        ,title: 'Edit URL'
+                        ,disabled: false
+                        ,unsavedclass: null
+                        ,validate: function(url){
+                            if(url.trim() == '')
+                                return 'Must not be empty'
+                            D.dispatchEvent('some_url_updated', {})
+                        }
+                    })
+                    
+                   /* this.triggers.events['currentWebEntity_updated'] = function(d) {
+                        var webEntity = d.get('currentWebEntity')
+                        $('#name').editable('option', 'value', webEntity.name)
+                    }*/
+                })
+
+                el.append($('<div class="row urlrow"/>').append(
                     $('<div class="span4"/>').append(
-                        $('<span class="startUrl"/>').text(Utils.URL_simplify(url)+' ')
+                        $('<span class="startUrl"/>').append(editable_url)
+                    ).append(
+                        $('<span>&nbsp;</span>')
                     ).append(
                         $('<a target="_blank" title="Visit this link"><i class="icon-share-alt"></a>').attr('href', url)
                     )
@@ -260,7 +294,7 @@ domino.settings({
 
     //// Processing
     var extractWebentities = function(text){
-        var raw_urls = text.split(/[ \n\r\t]+/gi).filter(function(expression){
+        var raw_urls = text.split(/[ \n\r\t<>"']+/gi).filter(function(expression){
             return Utils.URL_validate(expression)
         }).map(function(url){
             if(url.indexOf('http')!=0)
