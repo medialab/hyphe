@@ -81,19 +81,15 @@
                         <ul>
                             <li><a href="webentities_list.php">List of web entities</a></li>
                             <li><a href="webentities_network.php">Network of web entities</a></li>
-                            <!-- <li><a href="webentities_browse.php">Hierarchy of a web entity</a> <span class="muted">(proof of concept)</span></li> -->
                         </ul>
                     </p>
-                    <!-- <p>
-                        <button id="downloadNetwork" class="btn"><i class="icon-download"></i> Download network</button>
-                    </p>
-                    <div id="downloadNetwork_loadbar"></div> -->
                 </div>
                 <div class="span4">
                     <h2>Work</h2>
                     <p>
                         <ul>
                             <li><a href="crawl.php">Crawl</a></li>
+                            <li><a href="webentities_exploreDiscovered.php">Explore discovered web entities</a></li>
                         </ul>
                     </p>
                 </div>
