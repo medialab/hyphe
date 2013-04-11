@@ -98,6 +98,12 @@ domino.settings({
                     D.request('getCrawljobs', {})
                 }
             },{
+                // On refresh crawl jobs, call the service
+                triggers:['crawljobs_refresh']
+                ,method: function(){
+                    D.request('getCrawljobs', {})
+                }
+            },{
                 // We need to declare the event somewhere
                 triggers:['crawljobs_redraw']
                 ,method: function(){
@@ -136,7 +142,7 @@ domino.settings({
         element: $('#crawlJobs_refresh')
         ,label: 'Refresh'
         ,bsIcon: 'icon-refresh'
-        ,dispatch: 'crawljobs_redraw'
+        ,dispatch: 'crawljobs_refresh'
         ,ghost: true
     }])
 
@@ -220,10 +226,11 @@ domino.settings({
                             })
                         })
                     )
-                    // Call web entities displayed
-                    D.request('getWebentities', {
-                        id_list: webEntitites_idDisplayed
-                    })
+                })
+                
+                // Call web entities displayed
+                D.request('getWebentities', {
+                    id_list: webEntitites_idDisplayed
                 })
             } else {
                 $('#jobsMessage').html('<span class="text-info">No crawl job</span>')
