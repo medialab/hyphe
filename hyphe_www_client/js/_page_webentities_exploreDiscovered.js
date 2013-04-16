@@ -1,6 +1,6 @@
 domino.settings({
     shortcutPrefix: "::" // Hack: preventing a bug related to a port in a URL for Ajax
-    ,verbose: false
+    ,verbose: true
 })
 
 ;(function($, domino, dmod, undefined){
