@@ -149,10 +149,10 @@ $.fn.editable.defaults.mode = 'popup';
                     })
                 }
             },{
-                // When some url is changed, we have to fetch every URL and reinitialize what changed
+                // When some url is changed, we cascade lookup
                 triggers: ['some_url_updated']
                 ,method: function(){
-                    alert('gaga')
+                    cascadeLookup()
                 }
             }
         ]
@@ -202,7 +202,7 @@ $.fn.editable.defaults.mode = 'popup';
             var urls = D.get('startUrls')
             urls.forEach(function(url){
                 var editable_url = $('<a href="#"/>').text(Utils.URL_simplify(url))
-                // var editable_url = $('<span class="startUrl"/>').text(Utils.URL_simplify(url))
+                    .attr('data-old-url', url)
                 
                 D.addModule(function(){
                     domino.module.call(this)
@@ -212,25 +212,44 @@ $.fn.editable.defaults.mode = 'popup';
                         ,disabled: false
                         ,unsavedclass: null
                         ,validate: function(url){
+                            if(url.substring(0, 4).toLowerCase() !== 'http')
+                                url = 'http://'+url
+
                             if(url.trim() == '')
                                 return 'Must not be empty'
+                            if(!Utils.URL_validate(url))
+                                return 'Invalid URL'
+
+                            // The URL is valid. Reroll lookup and erase the rest of the line
+                            $('span.lookup-info').each(function(i, el){
+                                if( $(el).attr('data-url') == editable_url.attr('data-old-url') ){
+                                    $(el).text('Waiting for lookup')
+                                        .attr('class', 'lookup-info muted')
+                                        .attr('data-url', url)
+                                        .attr('data-lookup-status', 'wait')
+
+                                    // Change the small link
+                                    $(el).parent().parent().find('a.external_link').attr('href', url)
+                                }
+                            })
+
+
+
+                            // Set current URL in the editable (for eventual further edition)
+                            editable_url.attr('data-old-url', url)
+
                             D.dispatchEvent('some_url_updated', {})
                         }
                     })
-                    
-                   /* this.triggers.events['currentWebEntity_updated'] = function(d) {
-                        var webEntity = d.get('currentWebEntity')
-                        $('#name').editable('option', 'value', webEntity.name)
-                    }*/
                 })
-
+                
                 el.append($('<div class="row urlrow"/>').append(
                     $('<div class="span4"/>').append(
                         $('<span class="startUrl"/>').append(editable_url)
                     ).append(
                         $('<span>&nbsp;</span>')
                     ).append(
-                        $('<a target="_blank" title="Visit this link"><i class="icon-share-alt"></a>').attr('href', url)
+                        $('<a class="external_link" target="_blank" title="Visit this link"><i class="icon-share-alt"></a>').attr('href', url)
                     )
                 ).append(
                     $('<div class="span2"/>').append(
@@ -271,15 +290,6 @@ $.fn.editable.defaults.mode = 'popup';
             }
         }
 
-        var cascadeLookup = function(){
-            var waiting = $('span.lookup-info[data-lookup-status=wait]')
-            if(waiting.length>0){
-                var span = $(waiting[0])
-                    ,url = span.attr('data-url')
-                span.text('Looking up...').attr('data-lookup-status', 'pending')
-                D.dispatchEvent('lookupUrl', {url: url})
-            }
-        }
     })
 
 
@@ -291,6 +301,17 @@ $.fn.editable.defaults.mode = 'popup';
     })
 
 
+
+    //// Cascade functions
+    var cascadeLookup = function(){
+        var waiting = $('span.lookup-info[data-lookup-status=wait]')
+        if(waiting.length>0){
+            var span = $(waiting[0])
+                ,url = span.attr('data-url')
+            span.text('Looking up...').attr('data-lookup-status', 'pending')
+            D.dispatchEvent('lookupUrl', {url: url})
+        }
+    }
 
     //// Processing
     var extractWebentities = function(text){
