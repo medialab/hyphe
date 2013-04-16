@@ -93,8 +93,17 @@
                     <div id="webentitieslist_footer"></div>
                 </div>
                 <div class="span7">
-                    <div id="webentity_summary"></div>
-                    <div id="webentity_neighbors"></div>
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <div id="webentity_summary"></div>
+                        </div>
+                        <div class="span6">
+                            <br/>
+                            <br/>
+                            <div id="webentity_neighbors"></div>
+                        </div>
+                    </div>
+                    <hr/>
                     <div id="webentity_preview"></div>
                 </div>
             </div>

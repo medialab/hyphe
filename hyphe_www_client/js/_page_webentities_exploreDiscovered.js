@@ -48,7 +48,7 @@ domino.settings({
             },{
                 id:'currentItem'
                 ,dispatch: 'currentItem_updated'
-                ,triggers: 'update_currentItem'
+                ,triggers: ['update_currentItem', 'update_discoveredWebentitiesList']
             },{
                 id:'statusValidation'
                 ,dispatch: 'statusValidation_updated'
@@ -105,7 +105,7 @@ domino.settings({
                     })
                 }
             },{
-                // When the json network is updated and the web entities are indexed by id, we update the list of discovered web entities
+                // When the json network is updated and the web entities are indexed by id, we update the list of discovered web entities and set current item to the first
                 triggers: ['networkJson_updated', 'webentitiesbyid_updated']
                 ,method: function() {
                     var net = D.get('networkJson')
@@ -114,17 +114,18 @@ domino.settings({
                         var discoveredWebentitiesList = buildDiscoveredWebentitiesList(wes_byId, net)
                         D.dispatchEvent('update_discoveredWebentitiesList', {
                             discoveredWebentitiesList: discoveredWebentitiesList
+                            ,currentItem: discoveredWebentitiesList[0]
                         })
                     }
                 }
             },{
-                // When a status change has been validated, we reload web entities and we erase the current item
+                // When a status change has been validated, we reload web entities
                 triggers: ['statusValidation_updated']
                 ,method: function() {
                     D.request('getWebentities', {})
-                    D.dispatchEvent('update_currentItem', {
+                    /*D.dispatchEvent('update_currentItem', {
                         currentItem: null
-                    })
+                    })*/
                 }
             }
         ]
@@ -181,14 +182,37 @@ domino.settings({
                 }
             })
             if(list.length > limit){
-                element_footer.html('').append(
-                    $('<button class="btn btn-block"/>').text('Show more items...')
+                var bsDarkBackgroundStyles = [
+                        'btn-primary'
+                        ,'btn-info'
+                        ,'btn-success'
+                        ,'btn-warning'
+                        ,'btn-danger'
+                        ,'btn-inverse'
+                    ]
+                    ,ghostify = function(button, bsColor){
+                        button.addClass('btn-link')
+                            .mouseenter(function(){
+                                button.removeClass('btn-link')
+                                bsColor && button.addClass(bsColor)
+                                if(bsColor && bsDarkBackgroundStyles.indexOf(bsColor) >= 0)
+                                    button.find('i').addClass('icon-white')
+                            }).mouseleave(function(){
+                                button.addClass('btn-link')
+                                bsColor && button.removeClass(bsColor)
+                                if(bsColor && bsDarkBackgroundStyles.indexOf(bsColor) >= 0)
+                                    button.find('i').removeClass('icon-white')
+                            })
+                        }
+                    ,button = $('<button class="btn btn-block"/>').text('Show more items...')
                         .click(function(){
                             D.dispatchEvent('update_listLength', {
                                 listLength: limit+10
                             })
                         })
-                )
+
+                ghostify(button)
+                element_footer.html('').append(button)
             }
         }
 
@@ -209,36 +233,12 @@ domino.settings({
 
             var current = D.get('currentItem')
             if(current !== undefined && current !== null){
-                /*var bsDarkBackgroundStyles = [
-                    'btn-primary'
-                    ,'btn-info'
-                    ,'btn-success'
-                    ,'btn-warning'
-                    ,'btn-danger'
-                    ,'btn-inverse'
-                  ]
-                  ,ghostify = function(button, bsColor){
-                    button.addClass('btn-link')
-                        .mouseenter(function(){
-                            button.removeClass('btn-link')
-                            bsColor && button.addClass(bsColor)
-                            if(bsColor && bsDarkBackgroundStyles.indexOf(bsColor) >= 0)
-                                button.find('i').addClass('icon-white')
-                        }).mouseleave(function(){
-                            button.addClass('btn-link')
-                            bsColor && button.removeClass(bsColor)
-                            if(bsColor && bsDarkBackgroundStyles.indexOf(bsColor) >= 0)
-                                button.find('i').removeClass('icon-white')
-                        })
-                    }*/
-
                 var button_in = $('<button class="btn btn-large btn-success">IN</button>').click(function(){
                     D.request('setCurrentWebEntityStatus', {
                         webEntityId: current.webentity.id
                         ,status: 'IN'
                     })
                 })
-                //ghostify(button_in, 'btn-success')
                 
                 var button_out = $('<button class="btn btn-large btn-danger">OUT</button>').click(function(){
                     D.request('setCurrentWebEntityStatus', {
@@ -246,7 +246,6 @@ domino.settings({
                         ,status: 'OUT'
                     })
                 })
-                //ghostify(button_out, 'btn-danger')
                 
                 var button_undecided = $('<button class="btn btn-large btn-info">UNDECIDED</button>').click(function(){
                     D.request('setCurrentWebEntityStatus', {
@@ -254,7 +253,6 @@ domino.settings({
                         ,status: 'UNDECIDED'
                     })
                 })
-                //ghostify(button_undecided, 'btn-info')
                 
                 var button_crawl = $('<a class="btn btn-large btn-link">Crawl</a>')
                     .attr('href', 'crawl_new.php#we_id='+current.webentity.id)
@@ -268,7 +266,7 @@ domino.settings({
                         .append(button_out)
                         .append(button_undecided)
                         .append(button_crawl)
-                ).append($('<hr/>'))
+                )
             }
         }
 
@@ -319,7 +317,7 @@ domino.settings({
                             return tr
                         })
                     )
-                ).append($('<hr/>'))
+                )
             }
         }
 
