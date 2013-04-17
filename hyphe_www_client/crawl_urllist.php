@@ -93,10 +93,10 @@
                             <div class="span4">
                                 <h4>URLs extracted</h4>
                             </div>
-                            <div class="span2">
+                            <div class="span1">
                                 
                             </div>
-                            <div class="span4">
+                            <div class="span6">
                                 <h4>Web entities</h4>
                             </div>
                         </div>

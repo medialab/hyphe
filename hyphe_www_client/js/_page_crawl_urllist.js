@@ -209,6 +209,7 @@ $.fn.editable.defaults.mode = 'popup';
                     editable_url.editable({
                         type: 'text'
                         ,title: 'Edit URL'
+                        ,inputclass: 'input-xlarge'
                         ,disabled: false
                         ,unsavedclass: null
                         ,validate: function(url){
@@ -222,14 +223,15 @@ $.fn.editable.defaults.mode = 'popup';
 
                             // The URL is valid. Reroll lookup and erase the rest of the line
                             $('span.lookup-info').each(function(i, el){
-                                if( $(el).attr('data-url') == editable_url.attr('data-old-url') ){
+                                if( $(el).parent().parent().attr('data-url') == editable_url.attr('data-old-url') ){
                                     $(el).text('Waiting for lookup')
                                         .attr('class', 'lookup-info muted')
-                                        .attr('data-url', url)
                                         .attr('data-lookup-status', 'wait')
 
                                     // Change the small link
-                                    $(el).parent().parent().find('a.external_link').attr('href', url)
+                                    $(el).parent().parent()
+                                        .attr('data-url', url)
+                                        .find('a.external_link').attr('href', url)
                                 }
                             })
 
@@ -243,21 +245,29 @@ $.fn.editable.defaults.mode = 'popup';
                     })
                 })
                 
-                el.append($('<div class="row urlrow"/>').append(
-                    $('<div class="span4"/>').append(
-                        $('<span class="startUrl"/>').append(editable_url)
-                    ).append(
-                        $('<span>&nbsp;</span>')
-                    ).append(
-                        $('<a class="external_link" target="_blank" title="Visit this link"><i class="icon-share-alt"></a>').attr('href', url)
-                    )
-                ).append(
-                    $('<div class="span2"/>').append(
-                        $('<span class="lookup-info muted"/>').text('Waiting for lookup')
-                            .attr('data-url', url)
-                            .attr('data-lookup-status', 'wait')
-                    )
-                ))
+                el.append(
+                    $('<div class="row urlrow"/>')
+                        .attr('data-url', url)
+                        .append(
+                            $('<div class="span4"/>').append(
+                                $('<span class="startUrl"/>').append(editable_url)
+                            ).append(
+                                $('<span>&nbsp;</span>')
+                            ).append(
+                                $('<a class="external_link" target="_blank" title="Visit this link"><i class="icon-share-alt"></a>').attr('href', url)
+                            )
+                        ).append(
+                            $('<div class="span1"/>').append(
+                                $('<span class="lookup-info muted"/>').text('Waiting')
+                                    .attr('data-lookup-status', 'wait')
+                            )
+                        ).append(
+                            $('<div class="span6"/>').append(
+                                $('<span class="webentity-info muted"/>').text('...')
+                                    .attr('data-webentity-status', 'wait')
+                            )
+                        )
+                )
             })
             cascadeLookup()
         }
@@ -270,7 +280,7 @@ $.fn.editable.defaults.mode = 'popup';
             if(pendings.length>0 && $(pendings[0]).attr('data-url') == url){
                 var pending = $(pendings[0])
                 // We have a valid target for the update
-                pending.removeClass('muted')
+                pending.removeClass('muted').removeClass('text-info')
                 if(status==200){
                     // We have a valid URL
                     pending.text('OK').addClass('text-success')
@@ -307,8 +317,9 @@ $.fn.editable.defaults.mode = 'popup';
         var waiting = $('span.lookup-info[data-lookup-status=wait]')
         if(waiting.length>0){
             var span = $(waiting[0])
-                ,url = span.attr('data-url')
-            span.text('Looking up...').attr('data-lookup-status', 'pending')
+                ,url = span.parent().parent().attr('data-url')
+            span.text('Lookup...').attr('data-lookup-status', 'pending')
+                .addClass('text-info')
             D.dispatchEvent('lookupUrl', {url: url})
         }
     }

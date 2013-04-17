@@ -32,6 +32,10 @@ domino.settings({
                 ,dispatch: 'webentities_updated'
                 ,triggers: 'update_webentities'
             },{
+                id:'webentitiesByid'
+                ,dispatch: 'webentitiesByid_updated'
+                ,triggers: 'update_webentitiesByid'
+            },{
                 id:'crawljobAbortValidation'
                 ,dispatch: 'crawljobAbortValidation_updated'
                 ,triggers: 'update_crawljobAbortValidation'
@@ -92,7 +96,7 @@ domino.settings({
                     })
                 }
             },{
-                // Refresh after abortion
+                // Refresh after abortion of a crawl job
                 triggers:['crawljobAbortValidation_updated']
                 ,method: function(){
                     D.request('getCrawljobs', {})
@@ -108,6 +112,18 @@ domino.settings({
                 triggers:['crawljobs_redraw']
                 ,method: function(){
                     //console.log('redraw')
+                }
+            },{
+                // When web entities are updated, we index the new list
+                triggers:['webentities_updated']
+                ,method: function(){
+                    var webentities = D.get('webentities')
+                    console.log('webentities', webentities)
+                    if(webentities !== undefined){
+                        D.dispatchEvent('update_webentitiesByid', {
+                            webentitiesByid: webentities_buildIndex(webentities)
+                        })
+                    }
                 }
             }
         ]
@@ -269,6 +285,21 @@ domino.settings({
                     var crawling_colorClass = crawlJobs_crawling_getLabelColor(crawlJob.crawling_status)
                         ,indexing_colorClass = crawlJobs_indexing_getLabelColor(crawlJob.indexing_status)
                         ,noCancel = crawlJob.crawling_status.toLowerCase() == "finished" || crawlJob.crawling_status.toLowerCase() == "crashed" || crawlJob.crawling_status.toLowerCase() == "canceled"
+                        ,webentities_byId = D.get('webentitiesByid')
+                        ,webentity_span
+
+                    if(webentities_byId !== undefined && webentities_byId[crawlJob.webentity_id] !== undefined){
+                        webentity_span = $('<span/>')
+                            .text(webentities_byId[crawlJob.webentity_id].name)
+                            .addClass('webEntity_proxy')
+                            .attr('webEntity_id', crawlJob.webentity_id)
+                    } else {
+                        webentity_span = $('<span/>').append(
+                                $('<small class="muted"/>').text(crawlJob.webentity_id)
+                            )
+                                .addClass('webEntity_proxy')
+                                .attr('webEntity_id', crawlJob.webentity_id)
+                    }
                     element.show()
                     element.html('')
                     element.append(
@@ -277,13 +308,8 @@ domino.settings({
                     element.append(
                         $('<h4/>').append(
                             $('<span/>').text('Crawling "')
-                        ).append(
-                            $('<span/>').append(
-                                $('<small class="muted"/>').text(crawlJob.webentity_id)
-                            )
-                                .addClass('webEntity_proxy')
-                                .attr('webEntity_id', crawlJob.webentity_id)
-                        ).append(
+                        ).append(webentity_span)
+                        .append(
                             $('<span/>').text('"')
                         )
                     ).append(
@@ -372,15 +398,46 @@ domino.settings({
         this.triggers.events['crawljobs_redraw'] = redraw
         
     })
+    
+    // Module dedicated to writing the 
+    D.addModule(function(){
+        domino.module.call(this)
 
+        var update = function(){
+            var webentities_byId = D.get('webentitiesByid')
+            $('.webEntity_proxy').each(function(i, element){
+                var span = $(element)
+                    ,we_id = span.attr('webEntity_id')
 
+                if(we_id !== undefined){
+                    var we = webentities_byId[we_id]
+
+                    if(we !== undefined){
+                        span.html('')
+                        span.removeClass('muted')
+                        span.text(we.name)
+                    }
+                }
+            })
+        }
+
+        this.triggers.events['webentitiesByid_updated'] = update
+
+    })
 
     //// On load
     $(document).ready(function(){
         D.request('getCrawljobs', {})
     })
 
-
+    //// Web entities: index
+    var webentities_buildIndex = function(webentities){
+        var webentities_byId = {}
+        webentities.forEach(function(we){
+            webentities_byId[we.id] = we
+        })
+        return webentities_byId
+    }
 
 
     /// Misc functions
