@@ -1,10 +1,14 @@
 package fr.sciencespo.medialab.hci.memorystructure.util;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+
+import fr.sciencespo.medialab.hci.memorystructure.thrift.ThriftServer;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 
 /**
  * Utility methods for LRUs.
@@ -13,22 +17,58 @@ import org.apache.commons.lang.StringUtils;
  */
 public class LRUUtil {
 
-	public static int PRECISION_LIMIT = 4;
+	public static int PRECISION_LIMIT = ThriftServer.readPrecisionLimitFromProperties();
 
-	public static String getPrecisionLimitNode(String lru) {
+    public static String getPrecisionLimitNode(String lru) {
+        return getLimitedStemsLRU(lru, PRECISION_LIMIT);
+    }
+
+    public static String getTLD(String lru) {
+        String[] ps = lru.split("\\|");
+        String n = "";
+        int i = 0;
+        while (i < ps.length && (ps[i].startsWith("h") || ps[i].startsWith("s"))) {
+            n += ps[i] + "|";
+            i++;
+        }
+        n = n.substring(0, n.length()-1);
+        return n;
+    }
+
+	public static String getLimitedStemsLRU(String lru, int limit) {
 	    String[] ps = lru.split("\\|");
 	    String n = "";
-	    for(int i = 0; i < ps.length && i <LRUUtil.PRECISION_LIMIT; i++) {
+	    int skip = 0;
+	    for(int i = 0; i < ps.length && i-skip < limit; i++) {
 	        n += ps[i] + "|";
+	        if (ps[i].startsWith("s") || ps[i].startsWith("h")) {
+                skip++;
+            }
 	    }
 	    n = n.substring(0, n.length()-1);
 	    return n;
 	}
 
 	public static boolean isPrecisionLimitNode(String lru) {
-	    return lru.split("\\|").length <= LRUUtil.PRECISION_LIMIT;
+	    return lru.split("\\|").length <= PRECISION_LIMIT;
 	}
-	
+
+    public static boolean LRUBelongsToWebentity(String lru, WebEntity webEntity, List<WebEntity> subWEs) {
+        for (WebEntity sub : subWEs) {
+            for (String prefix : sub.getLRUSet()) {
+                if (lru.startsWith(prefix)) {
+                    return false;
+                }
+            }
+        }
+        for (String prefix : webEntity.getLRUSet()) {
+            if (lru.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Reverts an lru to an url. Scheme is stripped; a "www" host is also stripped; returns null when input is null,
      * empty or blank.

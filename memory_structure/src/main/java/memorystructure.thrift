@@ -45,6 +45,13 @@ struct NodeLink {
   6: string lastModificationDate
 }
 
+struct WebEntityNodeLink {
+  1: string id,
+  2: string sourceId,
+  3: string targetLRU,
+  4: i32 weight=1,
+}
+
 struct WebEntityLink {
   1: string id,
   2: string sourceId,

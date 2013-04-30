@@ -35,6 +35,7 @@ public class ThriftServer {
 
     private static String luceneDirectoryPath = null;
     private static String logLevel = null;
+    private static String precisionLimit = null;
 
     private static MemoryStructureImpl memoryStructureImpl;
 
@@ -63,22 +64,34 @@ public class ThriftServer {
         }
     }
 
+
+    /**
+     * Reads precision limit from properties file.
+     *
+     * @return map of property names and values
+     */
+    public static int readPrecisionLimitFromProperties() {
+        Map<String, String> propertiesMap = readProperties(true);
+        return Integer.valueOf(propertiesMap.get("precisionLimit"));
+    }
+
     /**
      * Reads properties from file.
      *
      * @return map of property names and values
      */
-    private static Map<String, String> readProperties() {
+    private static Map<String, String> readProperties(boolean silent) {
         Map<String, String> propertiesMap = new HashMap<String, String>();
         try {
             String jsonTxt = IOUtils.toString(new FileInputStream("config.json"));
             JSONObject json = new JSONObject(jsonTxt);
             JSONObject properties = json.getJSONObject("memoryStructure");
             String[] propertyNames = JSONObject.getNames(properties);
-            logger.info("properties file found");
+            logger.debug("properties file found");
             for(String key : propertyNames) {
                 propertiesMap.put(key, properties.getString(key));
             }
+            propertiesMap.put("precisionLimit", json.getString("precisionLimit"));
         }
         catch(JSONException x) {
             logger.info("ERROR while parsing json in config.json");
@@ -87,8 +100,10 @@ public class ThriftServer {
             logger.info("no config.json file found");
             x.printStackTrace();
         }
-        for(String key : propertiesMap.keySet()) {
-            logger.info("read property from config.json: " + key + " = " + propertiesMap.get(key));
+        if (!silent) {
+            for(String key : propertiesMap.keySet()) {
+                logger.info("read property from config.json: " + key + " = " + propertiesMap.get(key));
+            }
         }
         return propertiesMap;
     }
@@ -118,7 +133,7 @@ public class ThriftServer {
      */
     private static void initializeMemoryStructure(String[] args) {
 
-        Map<String, String> propertiesFromFile = readProperties();
+        Map<String, String> propertiesFromFile = readProperties(false);
         Map<String, String> propertiesFromCL = readCL(args);
 
         // properties from command line take precedence
@@ -155,6 +170,11 @@ public class ThriftServer {
             logger.warn("Using default: log.level is " + logLevel);
         }
 
+        if(StringUtils.isEmpty(precisionLimit)) {
+            logger.warn("Could not find log.level either from memorystructure.properties or from command line arguments.");
+            logLevel = "INFO";
+            logger.warn("Using default: log.level is " + logLevel);
+        }
         DynamicLogger.setLogLevel(logLevel);
 
         File luceneDir = new File(luceneDirectoryPath);

@@ -436,7 +436,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             return getNodeLinks();
         }
         try {
-            return lruIndex.retrieveWebentityNodeLinks(webEntityId, includeFrontier);
+            return lruIndex.retrieveNodeLinksByWebentity(webEntityId, includeFrontier);
         }
         catch (IndexException x) {
             logger.error(x.getMessage());
