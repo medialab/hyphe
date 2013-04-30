@@ -19,5 +19,5 @@ thrift -gen py:twisted ../memory_structure/src/main/java/memorystructure.thrift
 cd ..
 
 # Starts the Lucene memory structure in debug mode
-bash bin/start_lucene.sh 1
+bash bin/start_lucene.sh $1
 
