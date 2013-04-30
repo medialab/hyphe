@@ -156,6 +156,7 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_lookup_httpstatus(self, url, timeout=2):
         try:
             prot, host, path = urlparse.urlparse(url)[0:3]
+            host = host.lower()
             if prot.endswith("s"):
                 conn = httplib.HTTPSConnection(host, timeout=timeout)
             else:
@@ -163,8 +164,8 @@ class Core(jsonrpc.JSONRPC):
             conn.request('HEAD', path)
             response = conn.getresponse()
             return {"code": "success", "result": response.status}
-        except socket.gaierror:
-            return {"code": "success", "result": 0}
+        except socket.gaierror as e:
+            return {"code": "success", "result": 0, "message": "DNS not found for url %s : %s" % (url, e)}
         except Exception as e:
             return {"code": "success", "result": -1, "message": "Cannot process url %s : %s" % (url, e)}
 
