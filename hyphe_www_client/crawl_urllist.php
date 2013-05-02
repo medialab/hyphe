@@ -180,13 +180,16 @@ Americano   2011    Born This Way
                     <div class="span12" id="panel_urllist" style="display:none;">
                         <div class="row">
                             <div class="span4">
-                                <h4>URLs extracted</h4>
+                                <h4>URL extracted</h4>
                             </div>
                             <div class="span1">
                                 
                             </div>
-                            <div class="span6">
-                                <h4>Web entities</h4>
+                            <div class="span3">
+                                <h4>Web entity</h4>
+                            </div>
+                            <div class="span3">
+                                <h4>Settings</h4>
                             </div>
                         </div>
                         <div id="urllist"></div>
