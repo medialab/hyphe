@@ -24,6 +24,7 @@ import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TopScoreDocCollector;
@@ -1651,12 +1652,20 @@ public class LRUIndex {
     public List<WebEntityLink> generateWebEntityLinksOld() throws IndexException {
         try {
             logger.debug("generateWebEntityLinks");
+            final Query nodeLinksQuery = LuceneQueryFactory.getNodeLinksQuery();
+            TopDocs results = indexSearcher.search(nodeLinksQuery, null, 1);
+            final int totalResults = results.totalHits;
+            logger.info("total # of nodelinks in index is " + totalResults);
+            results = indexSearcher.search(nodeLinksQuery, null, totalResults);
+            ScoreDoc[] scoreDocs = results.scoreDocs;
             Map<String, WebEntityLink> webEntityLinksMap = new HashMap<String, WebEntityLink>();
             Map<String, Map<String, Map<String, String>>> lruToWebEntityMap = new HashMap<String, Map<String, Map<String, String>>>();
             Map<String, Map<String, String>> tmpMapMap = new HashMap<String, Map<String, String>>();
             Map<String, String> tmpMap = new HashMap<String, String>();
             String sourceWEid, sourceLRU, targetWEid, targetLRU, lPrefix, lNode, shortLRU;
-            for (NodeLink nodeLink : retrieveNodeLinks()) {
+            //for (NodeLink nodeLink : retrieveNodeLinks()) {
+            for (int i = 0 ; i < totalResults ; i++) {
+                NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(scoreDocs[i].doc)); 
                 if(logger.isDebugEnabled()) {
                     logger.debug("generating webentitylinks for nodelink from " + nodeLink.getSourceLRU() + " to " + nodeLink.getTargetLRU());
                 }
@@ -1769,14 +1778,14 @@ public class LRUIndex {
 
     public List<WebEntityLink> generateWebEntityLinks() throws IndexException {
         long start = System.currentTimeMillis();
-        List<WebEntityLink> res1 = generateWebEntityLinksviaWENL();
+        List<WebEntityLink> res1 = generateWebEntityLinksViaMap();
         long mid = System.currentTimeMillis();
-//        List<WebEntityLink> res2 = generateWebEntityLinksViaMap();
+        List<WebEntityLink> res2 = generateWebEntityLinksviaWENL();
         long last = System.currentTimeMillis();
-//        List<WebEntityLink> res3 = generateWebEntityLinksOld();
-        logger.info("Method WENL : " + res1.size() + " results in " + (mid-start)/1000);
-//        logger.info("Method By Target + better maps : " + res2.size() + " results in " + (last-mid)/1000);
-//        logger.info("Method Old + better maps : " + res3.size() + " results in " + (System.currentTimeMillis()-last)/1000);
+//      List<WebEntityLink> res3 = generateWebEntityLinksOld();
+        logger.info("Method By Target + better maps : " + res1.size() + " results in " + (mid-start)/1000);
+        logger.info("Method WENL : " + res2.size() + " results in " + (last-mid)/1000);
+//      logger.info("Method Old + better maps : " + res1.size() + " results in " + (System.currentTimeMillis()-last)/1000);
         return res1;
     }
 
@@ -1787,14 +1796,22 @@ public class LRUIndex {
     public List<WebEntityLink> generateWebEntityLinksViaMap() throws IndexException {
         try {
             logger.info("generateWebEntityLinks");
+            final Query query = LuceneQueryFactory.getWebEntitiesQuery();
+            TopDocs results = indexSearcher.search(query, null, 1);
+            final int totalResults = results.totalHits;
+            logger.info("total # of webentities in index is " + totalResults);
+            results = indexSearcher.search(query, null, totalResults);
+            ScoreDoc[] scoreDocs = results.scoreDocs;
             Map<String, Map<String, Map<String, String>>> lruToWebEntityMap = new HashMap<String, Map<String, Map<String, String>>>();
             Map<String, Map<String, String>> tmpMapMap = new HashMap<String, Map<String, String>>();
             Map<String, String> tmpMap = new HashMap<String, String>();
             List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
             Map<String, WebEntityLink> webEntityLinksMap;
-            int weight = 0, intern_weight = 0;
+            int intern_weight = 0;
             String sourceId, sourceLRU, sourceNode, sourcePrefix, shortLRU;
-            for (WebEntity WE : retrieveWebEntities()) {
+            //for (WebEntity WE : retrieveWebEntities()) {
+            for (int i = 0 ; i < totalResults ; i++) {
+                WebEntity WE = IndexConfiguration.convertLuceneDocumentToWebEntity(indexSearcher.doc(scoreDocs[i].doc)); 
                 if(logger.isDebugEnabled()) {
                     logger.debug("generating webentitylinks for webentity " + WE.getName() + " / " + WE.getId());
                 }
@@ -1807,7 +1824,6 @@ public class LRUIndex {
                     webEntityLinksMap = new HashMap<String, WebEntityLink>();
                     intern_weight = 0;
                     for (NodeLink link : links) {
-                        weight += link.getWeight();
                         sourceLRU = link.getSourceLRU();
                         sourcePrefix = LRUUtil.getTLD(sourceLRU);
                         sourceNode = LRUUtil.getLimitedStemsLRU(sourceLRU, 1).replace(sourcePrefix, "");
@@ -1865,9 +1881,7 @@ public class LRUIndex {
                     }
                 }
             }
-            logger.info("TOTAL LINKS = " + weight);
             if (webEntityLinks.size() > 0) {
-                logger.info(n + " nodelinks processed for " + i + " webentities");
                 logger.info("delete all webentitylinks existing");
                 deleteObject(LuceneQueryFactory.getWebEntityLinksQuery(), true);
                 logger.info("index reloaded, Saving " + webEntityLinks.size() + " WebEntityLinks...");
@@ -1943,7 +1957,15 @@ public class LRUIndex {
             Map<String, WebEntityLink> webEntityLinksMap;
             String sourceId;
             n = 0;
-            for (WebEntity WE : retrieveWebEntities()) {
+            final Query query = LuceneQueryFactory.getWebEntitiesQuery();
+            TopDocs results = indexSearcher.search(query, null, 1);
+            final int totalResults = results.totalHits;
+            logger.info("total # of webentities in index is " + totalResults);
+            results = indexSearcher.search(query, null, totalResults);
+            ScoreDoc[] scoreDocs = results.scoreDocs;
+            //for (WebEntity WE : retrieveWebEntities()) {
+            for (int i = 0 ; i < totalResults ; i++) {
+                WebEntity WE = IndexConfiguration.convertLuceneDocumentToWebEntity(indexSearcher.doc(scoreDocs[i].doc)); 
                 if(logger.isDebugEnabled()) {
                     logger.debug("generating webentitylinks for webentity " + WE.getName() + " / " + WE.getId());
                 }
