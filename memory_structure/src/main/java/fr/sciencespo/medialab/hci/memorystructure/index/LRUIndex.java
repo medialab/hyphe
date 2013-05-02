@@ -1867,7 +1867,6 @@ public class LRUIndex {
             }
             logger.info("TOTAL LINKS = " + weight);
             if (webEntityLinks.size() > 0) {
-                logger.info(n + " nodelinks processed for " + i + " webentities");
                 logger.info("delete all webentitylinks existing");
                 deleteObject(LuceneQueryFactory.getWebEntityLinksQuery(), true);
                 logger.info("index reloaded, Saving " + webEntityLinks.size() + " WebEntityLinks...");
