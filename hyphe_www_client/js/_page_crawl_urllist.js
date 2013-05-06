@@ -45,30 +45,36 @@ $.fn.editable.defaults.mode = 'popup';
                 id:'urllookupValidation'
                 ,dispatch: 'urllookupValidation_updated'
                 ,triggers: 'update_urllookupValidation'   
+            },{
+                id:'declaredWebentity'
+                ,dispatch: 'declaredWebentity_updated'
+                ,triggers: 'update_declaredWebentity'   
+            },{
+                id:'fetchedUrl'
+                ,dispatch: 'fetchedUrl_updated'
+                ,triggers: 'update_fetchedUrl'
+            },{
+                id:'webentities_byId'
+                ,dispatch: 'webentities_byId_updated'
+                ,triggers: 'update_webentities_byId'   
+            },{
+                id:'currentWebentityId'
+                ,dispatch: 'currentWebentityId_updated'
+                ,triggers: 'update_currentWebentityId'   
+            },{
+                id:'addstartpageValidation'
+                ,dispatch: 'addstartpageValidation_updated'
+                ,triggers: 'update_addstartpageValidation'   
+            },{
+                id:'reloadedWebentity'
+                ,dispatch: 'reloadedWebentity_updated'
+                ,triggers: 'update_reloadedWebentity'   
             }
         ]
 
 
         ,services: [
             {
-                id: 'getWebentities'
-                ,setter: 'webentities'
-                ,data: function(settings){ return JSON.stringify({ //JSON RPC
-                        'method' : HYPHE_API.WEBENTITIES.GET,
-                        'params' : [],
-                    })}
-                ,path:'0.result'
-                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
-            },{
-                id: 'declarePage'
-                ,setter: 'currentWebentity'
-                ,data: function(settings){ return JSON.stringify({ //JSON RPC
-                        'method' : HYPHE_API.PAGE.DECLARE,
-                        'params' : [settings.url],
-                    })}
-                ,path:'0.result'
-                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
-            },{
                 id: 'addStartPage'
                 ,setter: 'addstartpageValidation'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
@@ -106,6 +112,26 @@ $.fn.editable.defaults.mode = 'popup';
                         ],
                     })}
                 ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'declarePage'
+                ,setter: 'declaredWebentity'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.PAGE.DECLARE,
+                        'params' : [settings.url],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'reloadWebentity'
+                ,setter: 'reloadedWebentity'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET,
+                        'params' : [
+                            [settings.webentityId]    // List of web entities ids
+                        ],
+                    })}
+                ,path:'0.result.0'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             }
         ]
@@ -154,6 +180,91 @@ $.fn.editable.defaults.mode = 'popup';
                 ,method: function(){
                     cascadeLookup()
                 }
+            },{
+                // On WebEntity fetch demanded, store the URL and fetch
+                triggers: ['ui_webentityFetch']
+                ,method: function(d){
+                    D.dispatchEvent('update_fetchedUrl', {
+                        fetchedUrl: d.data.url
+                    })
+                    D.request('declarePage', {
+                        url: d.data.url
+                        ,timeout: 5
+                    })
+                }
+            },{
+                // When a new webentity is declared, we index it
+                triggers: ['declaredWebentity_updated']
+                ,method: function(){
+                    var webentities_byId = D.get('webentities_byId') || {}
+                        ,we = D.get('declaredWebentity')
+                    if(we !== undefined && we.id !== undefined){
+                        webentities_byId[we.id] = we
+                        D.dispatchEvent('update_webentities_byId', {
+                            webentities_byId: webentities_byId
+                        })
+                    }
+                }
+            },{
+                // On autosearch or webentity reloaded, we look at the start pages and if needed we use the prefix
+                triggers: ['ui_startpagesAutosearch', 'startpagesWebentityreloaded']
+                ,method: function(d){
+                    var we_id = d.data.webentityId
+                        ,we = D.get('webentities_byId')[we_id]
+
+                    D.dispatchEvent('currentWebentityId_updated', {
+                        currentWebentityId: we_id
+                    })
+
+                    if(we.startpages.length == 0){
+                        var divs = $('div[data-webentity-id='+we_id+'] div.crawl-settings')
+                        divs.html('<span class="text-info">Use prefix...</span>')
+                            .attr('data-crawlsettings-status', 'pending')
+
+                        D.dispatchEvent('update_currentWebentityId', {
+                            currentWebentityId: we_id
+                        })
+                        // Use the first prefix
+                        D.request('addStartPage', {
+                            webentityId: we.id
+                            ,url: Utils.LRU_to_URL(we.lru_prefixes[0])
+                        })
+                    } else {
+                        var divs = $('div[data-webentity-id='+we_id+'] div.crawl-settings')
+                        divs.html('<span>Start pages OK</span>')
+                            .attr('data-crawlsettings-status', 'set')
+                        cascadeCrawlsettings()
+                    }
+                }
+            },{
+                // When start pages are modified, reload the web entity
+                triggers: ['addstartpageValidation_updated']
+                ,method: function(){
+                    var we_id = D.get('currentWebentityId')
+                        ,we = D.get('webentities_byId')[we_id]
+                    if(we !== undefined){
+                        D.request('reloadWebentity', {webentityId: we_id})
+                    } else {
+                        alert("we undefined")
+                        console.log('we', we)
+                    }
+                }
+            },{
+                // When a web entity is reloaded, update the index and trigger
+                triggers: ['reloadedWebentity_updated']
+                ,method: function(){
+                    var webentities_byId = D.get('webentities_byId') || {}
+                        ,we = D.get('reloadedWebentity')
+                    if(we !== undefined && we.id !== undefined){
+                        webentities_byId[we.id] = we
+                        D.dispatchEvent('update_webentities_byId', {
+                            webentities_byId: webentities_byId
+                        })
+                        D.dispatchEvent('startpagesWebentityreloaded', {
+                            webentityId: we.id
+                        })
+                    }
+                }
             }
         ]
     })
@@ -199,6 +310,7 @@ $.fn.editable.defaults.mode = 'popup';
         var el = $('#urllist')
 
         this.triggers.events['startUrls_updated'] = function() {
+            // When we have the startUrls, we display the list with waiting lookup
             var urls = D.get('startUrls')
             urls.forEach(function(url){
                 var editable_url = $('<a href="#"/>').text(Utils.URL_simplify(url))
@@ -263,8 +375,8 @@ $.fn.editable.defaults.mode = 'popup';
                             )
                         ).append(
                             $('<div class="span6"/>').append(
-                                $('<span class="webentity-info muted"/>').text('...')
-                                    .attr('data-webentity-status', 'wait')
+                                $('<div class="webentity-info muted"/>').text('...')
+                                    .attr('data-webentity-status', 'uninitialized')
                             )
                         )
                 )
@@ -273,33 +385,125 @@ $.fn.editable.defaults.mode = 'popup';
         }
         
         this.triggers.events['urllookupValidation_updated'] = function() {
+            // When an url lookup is done, we search for the lookup to update and we update it, then we cascade lookup
             var status = D.get('urllookupValidation')
                 ,url = D.get('lookedupUrl')
                 ,pendings = $('span.lookup-info[data-lookup-status=pending]')
 
-            if(pendings.length>0 && $(pendings[0]).attr('data-url') == url){
+            if(pendings.length>0){
                 var pending = $(pendings[0])
-                // We have a valid target for the update
-                pending.removeClass('muted').removeClass('text-info')
-                if(status==200){
-                    // We have a valid URL
-                    pending.text('OK').addClass('text-success')
-                        .attr('data-lookup-status', 'valid')
-                } else if([300, 301, 302].some(function(test){return status==test})){
-                    // Redirection
-                    pending.text('Redirection').addClass('text-warning')
-                        .attr('data-lookup-status', 'redirect')
-                        .attr('title', 'You may want to check that the corresponding web entity is the right one')
-                } else {
-                    // Fail
-                    pending.text('Dead link').addClass('text-error')
-                        .attr('data-lookup-status', 'invalid')
-                        .attr('title', 'The link is dead ; we will ignore it for web entity search')
+                    ,element_url = pending.parent().parent().attr('data-url')
+                if(element_url == url){
+                    // We have a valid target for the update
+                    pending.removeClass('muted').removeClass('text-info')
+                    if(status==200){
+                        // We have a valid URL
+                        // Edit the lookup
+                        pending.text('OK').addClass('text-success')
+                            .attr('data-lookup-status', 'valid')
+                        
+                        // Initialize the webentity
+                        var we_element = pending.parent().parent().find('.webentity-info')[0]
+                        $(we_element)
+                            .addClass('muted')
+                            .removeClass('text-error')
+                            .attr('data-webentity-status', 'wait')
+                            .text('Waiting')
+
+                    } else if([300, 301, 302].some(function(test){return status==test})){
+                        // Redirection
+                        // Edit the lookup
+                        pending.text('Redirection').addClass('text-warning')
+                            .attr('data-lookup-status', 'redirect')
+                            .attr('title', 'You may want to check that the corresponding web entity is the right one')
+
+                        // Initialize the webentity
+                        var we_element = pending.parent().parent().find('.webentity-info')[0]
+                        $(we_element)
+                            .addClass('muted')
+                            .removeClass('text-error')
+                            .attr('data-webentity-status', 'wait')
+                            .text('Waiting')
+                    } else {
+                        // Fail
+                        // Edit the lookup
+                        pending.addClass('text-error')
+                            .attr('data-lookup-status', 'invalid')
+                        switch(status){
+                            case -1:
+                                pending.text('URL error').attr('title', 'The server says "invalid URL" ; we will ignore it for web entity search')
+                                break;
+                            case 0:
+                                pending.text('Dead link').attr('title', 'The link is dead ; we will ignore it for web entity search')
+                                break;
+                            case 501:
+                                pending.text('Blocked').attr('title', 'The server blocked our query (501 status)')
+                                break;
+                            default:
+                                pending.text('Dead link ('+status+')').attr('title', 'The link is dead ; we will ignore it for web entity search (status: '+status+')')
+                                break;
+                        }
+
+                        // Log
+                        console.log('> Lookup failed',status)
+
+                        // Initialize the webentity
+                        var we_element = pending.parent().parent().find('.webentity-info')[0]
+                        $(we_element)
+                            .removeClass('muted')
+                            .addClass('text-error')
+                            .attr('data-webentity-status', 'skip')
+                            .text('')
+                    }
+                    cascadeLookup()
                 }
-                cascadeLookup()
             }
         }
 
+        this.triggers.events['declaredWebentity_updated'] = function(){
+            // When an web entity fetch is done, we search for the web entity to update and we update it, then we cascade lookup
+            var we = D.get('declaredWebentity')
+                ,url = D.get('fetchedUrl')
+                ,pendings = $('div.webentity-info[data-webentity-status=pending]')
+
+            if(pendings.length>0){
+                var pending = $(pendings[0])
+                    ,element_url = pending.parent().parent().attr('data-url')
+                if(element_url == url){
+                    // We have a valid target for the update
+                    if(we !== undefined){
+                        // We have a valid web entity
+                        // Edit
+                        pending.html('')
+                            .addClass('text-success')
+                            .attr('data-webentity-status', 'valid')
+                            .attr('data-webentity-id', we.id)
+                            .append(
+                                $('<div class="row"/>')
+                                    .append(
+                                        $('<div class="span3"/>')
+                                            .text(we.name)
+                                        )
+                                    .append(
+                                        $('<div class="span2 crawl-settings"/>')
+                                            .attr('data-crawlsettings-status', 'wait')
+                                            .append(
+                                                $('<span class="muted">Waiting</span>')
+                                                )
+                                        )
+                                )
+                    } else {
+                        // Fail
+                        // Edit
+                        pending.html('')
+                            .text('No web entity fetched').addClass('text-error')
+                            .attr('data-webentity-status', 'fail')
+                            .attr('data-webentity-id', '')
+                    }
+                }
+                cascadeWebentities()
+            }
+        }
     })
 
 
@@ -321,6 +525,39 @@ $.fn.editable.defaults.mode = 'popup';
             span.text('Lookup...').attr('data-lookup-status', 'pending')
                 .addClass('text-info')
             D.dispatchEvent('lookupUrl', {url: url})
+        } else {
+            cascadeWebentities()
+        }
+    }
+
+    var cascadeWebentities = function(){
+        var waiting = $('div.webentity-info[data-webentity-status=wait]')
+        if(waiting.length>0){
+            var div = $(waiting[0])
+                ,url = div.parent().parent().attr('data-url')
+            
+            div.text('Fetch web entity...').attr('data-webentity-status', 'pending')
+                .addClass('text-info')
+            D.dispatchEvent('ui_webentityFetch', {url: url})
+        } else {
+            cascadeCrawlsettings()
+        }
+    }
+
+    var cascadeCrawlsettings = function(){
+        var pending = $('div.crawl-settings[data-crawlsettings-status=pending]')
+        if(pending.length == 0){
+            var waiting = $('div.crawl-settings[data-crawlsettings-status=wait]')
+            if(waiting.length>0){
+                var div = $(waiting[0])
+                   ,we_id = div.parent().parent().attr('data-webentity-id')
+                    ,divs = $('div[data-webentity-id='+we_id+'] div.crawl-settings')
+                divs.html('<span class="text-info">Auto-search start pages...</span>')
+                    .attr('data-crawlsettings-status', 'pending')
+                D.dispatchEvent('ui_startpagesAutosearch', {
+                    webentityId: we_id
+                })
+            }
         }
     }
 

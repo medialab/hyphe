@@ -148,7 +148,8 @@ def cleanLRU(lru) :
 def isFullPrecision(lru, precision_exceptions = []):
     return (lru in precision_exceptions)
 
-re_head_lru = re.compile(r'(([sth]:[^|]*(\||$))+)', re.I)
+re_host_lru = re.compile(r'(([sth]:[^|]*(\||$))+)', re.I)
+re_path_lru = re.compile(r'(([sthp]:[^|]*(\||$))+)', re.I)
 def getLRUHead(lru, precision_exceptions = []):
     possible_result = ""
     for precision_exception in precision_exceptions:
@@ -156,7 +157,7 @@ def getLRUHead(lru, precision_exceptions = []):
             possible_result = precision_exception
     if possible_result:
         return possible_result
-    return re_head_lru.match(lru).group(1).strip('|')
+    return re_host_lru.match(lru).group(1).strip('|')
 
 # Identify links which are nodes
 def isLRUNode(lru, precision_limit = 1, precision_exceptions = [], lru_head = None):
@@ -173,6 +174,11 @@ def getLRUNode(lru, precision_limit = 1, precision_exceptions = [], lru_head = N
     stems.insert(0, lru_head)
     return "|".join(stems)
 
+def getURLHostFromLRU(lru):
+    return lru_to_url(re_host_lru.match(lru).group(1).strip('|'))
+
+def getURLPathFromLRU(lru):
+    return lru_to_url(re_path_lru.match(lru).group(1).strip('|'))
 
 # TESTS
 #url = "http://medialab.sciences-po.fr/hci"
