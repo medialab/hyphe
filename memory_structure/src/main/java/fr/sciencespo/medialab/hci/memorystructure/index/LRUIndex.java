@@ -1663,7 +1663,6 @@ public class LRUIndex {
             Map<String, Map<String, String>> tmpMapMap = new HashMap<String, Map<String, String>>();
             Map<String, String> tmpMap = new HashMap<String, String>();
             String sourceWEid, sourceLRU, targetWEid, targetLRU, lPrefix, lNode, shortLRU;
-            //for (NodeLink nodeLink : retrieveNodeLinks()) {
             for (int i = 0 ; i < totalResults ; i++) {
                 NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(scoreDocs[i].doc)); 
                 if(logger.isDebugEnabled()) {
@@ -1779,13 +1778,15 @@ public class LRUIndex {
     public List<WebEntityLink> generateWebEntityLinks() throws IndexException {
         long start = System.currentTimeMillis();
         List<WebEntityLink> res1 = generateWebEntityLinksViaMap();
+        logger.info("Generated " + res1.size() + " WebEntityLinks (method Target + better maps) in " + (System.currentTimeMillis()-start)/1000 + "s");
+/*
         long mid = System.currentTimeMillis();
         List<WebEntityLink> res2 = generateWebEntityLinksviaWENL();
         long last = System.currentTimeMillis();
-//      List<WebEntityLink> res3 = generateWebEntityLinksOld();
-        logger.info("Method By Target + better maps : " + res1.size() + " results in " + (mid-start)/1000);
+        List<WebEntityLink> res3 = generateWebEntityLinksOld();
         logger.info("Method WENL : " + res2.size() + " results in " + (last-mid)/1000);
-//      logger.info("Method Old + better maps : " + res1.size() + " results in " + (System.currentTimeMillis()-last)/1000);
+        logger.info("Method Old + better maps : " + res1.size() + " results in " + (System.currentTimeMillis()-last)/1000);
+*/
         return res1;
     }
 
@@ -1809,14 +1810,16 @@ public class LRUIndex {
             Map<String, WebEntityLink> webEntityLinksMap;
             int intern_weight = 0;
             String sourceId, sourceLRU, sourceNode, sourcePrefix, shortLRU;
-            //for (WebEntity WE : retrieveWebEntities()) {
             for (int i = 0 ; i < totalResults ; i++) {
                 WebEntity WE = IndexConfiguration.convertLuceneDocumentToWebEntity(indexSearcher.doc(scoreDocs[i].doc)); 
                 if(logger.isDebugEnabled()) {
                     logger.debug("generating webentitylinks for webentity " + WE.getName() + " / " + WE.getId());
                 }
+                if (WE.getName().equals("OUTSIDE_WEB")) {
+                    continue;
+                }
                 List<WebEntity> subWEs = findSubWebEntities(WE);
-                if (WE.getName().equals("OUTSIDE_WEB") || (subWEs != null && subWEs.size() > 500)) {
+                if (subWEs != null && subWEs.size() > 500) {
                     continue;
                 }
                 List<NodeLink> links = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksByTargetWebEntity(WE, subWEs));
@@ -1907,10 +1910,10 @@ public class LRUIndex {
         try {
             logger.debug("generateWebEntityLinks");
             List<WebEntity> linkedWEs = retrieveUserDefinedWebEntities();
-            logger.info("total # of linked webentities in index is " + linkedWEs.size());
+            logger.info("Total # of linked webentities in index is " + linkedWEs.size());
             List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
             List<WebEntityNodeLink> webEntityNodeLinks = new ArrayList<WebEntityNodeLink>();
-            logger.info("delete all webentitynodelinks existing");
+            logger.info("Regenerate WebEntityNodeLinks");
             deleteObject(LuceneQueryFactory.getWebEntityNodeLinksQuery(), true);
             int n = 0;
             for (WebEntity we : linkedWEs) {
@@ -1938,10 +1941,7 @@ public class LRUIndex {
                             webEntityNodeLinks.add(webEntityNodeLink);
                         }
                         n++;
-                    } /*
-                    if (intern_weight > 100) {
-                        logger.info(n + "links processed / this WE LINKS : "+links.size() + "INTERN LINKS : " + intern_n);
-                    } */
+                    }
                     if (intern_weight > 0) {
                         String now = new Date().toString();
                         webEntityLinks.add(new WebEntityLink(we.getId(), we.getId(), we.getId(), intern_weight, now, now));
@@ -1963,7 +1963,6 @@ public class LRUIndex {
             logger.info("total # of webentities in index is " + totalResults);
             results = indexSearcher.search(query, null, totalResults);
             ScoreDoc[] scoreDocs = results.scoreDocs;
-            //for (WebEntity WE : retrieveWebEntities()) {
             for (int i = 0 ; i < totalResults ; i++) {
                 WebEntity WE = IndexConfiguration.convertLuceneDocumentToWebEntity(indexSearcher.doc(scoreDocs[i].doc)); 
                 if(logger.isDebugEnabled()) {
@@ -1991,10 +1990,7 @@ public class LRUIndex {
                         webEntityLink.setWeight(webEntityLink.getWeight()+link.getWeight());
                         webEntityLinksMap.put(sourceId, webEntityLink);
                     }
-                    webEntityLinks.addAll(webEntityLinksMap.values()); /*
-                    if (webEntityLinksMap.size() > 20) {
-                        logger.info(n + "links processed / EXTERN LINKS : " + webEntityLinksMap.size());
-                    } */
+                    webEntityLinks.addAll(webEntityLinksMap.values());
                 }
             }
             if (webEntityLinks.size() > 0) {
