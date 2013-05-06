@@ -3,6 +3,7 @@ package fr.sciencespo.medialab.hci.memorystructure.index;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityNodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -149,12 +150,24 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                         wasIndexed = true;
                     }
                 }
+                else if(object instanceof WebEntityNodeLink) {
+                    WebEntityNodeLink webEntityNodeLink = (WebEntityNodeLink) object;
+                    if(logger.isDebugEnabled()) {
+                        logger.debug("webentitynodelink to be indexed: source: " + webEntityNodeLink.getSourceId() + " target: " + webEntityNodeLink.getTargetLRU());
+                    }
+                    Document webEntityLinkDocument = IndexConfiguration.convertWebEntityNodeLinkToLuceneDocument(webEntityNodeLink);
+                    if(webEntityLinkDocument != null) {
+                        indexWriter.addDocument(webEntityLinkDocument);
+                        wasIndexed = true;
+                    }
+                }
                 else if(object instanceof WebEntityLink) {
                     WebEntityLink webEntityLink = (WebEntityLink) object;
                     if(logger.isDebugEnabled()) {
-                        logger.debug("nodelink to be indexed: source: " + webEntityLink.getSourceId() + " target: " + webEntityLink.getTargetId());
+                        logger.debug("webentitylink to be indexed: source: " + webEntityLink.getSourceId() + " target: " + webEntityLink.getTargetId());
                     }
 
+            /*
                     WebEntityLink existing = lruIndex.retrieveWebEntityLink(webEntityLink);
                     int weight = webEntityLink.getWeight();
                     if(existing != null) {
@@ -165,8 +178,8 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                         lruIndex.deleteWebEntityLink(webEntityLink);
                     }
                     webEntityLink.setWeight(weight);
+            */
                     Document webEntityLinkDocument = IndexConfiguration.convertWebEntityLinkToLuceneDocument(webEntityLink);
-                    // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
                     if(webEntityLinkDocument != null) {
                         indexWriter.addDocument(webEntityLinkDocument);
                         wasIndexed = true;

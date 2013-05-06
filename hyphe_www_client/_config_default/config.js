@@ -1,4 +1,4 @@
-Hyphen.config = {
+HYPHE_CONFIG = {
 	"SERVER_ADDRESS":"http://host:port",
 	"DEBUG_LEVEL":1
 }

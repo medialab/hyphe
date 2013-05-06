@@ -891,9 +891,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         defer.returnValue(self.handle_results('GEXF graph generation started...'))
 
     @inlineCallbacks
-    def jsonrpc_get_webentity_nodelinks_network_json(self, webentity_id=None, include_frontier=False):
+    def jsonrpc_get_webentity_nodelinks_network_json(self, webentity_id=None, include_external_links=False):
         mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.generate_network_WE_nodelinks, webentity_id, "json", include_frontier).addErrback(self.handle_error)
+        res = yield mem_struct_conn.addCallback(self.generate_network_WE_nodelinks, webentity_id, "json", include_external_links).addErrback(self.handle_error)
         if "code" in res:
             defer.returnValue(res)
         defer.returnValue(self.handle_results(res))
@@ -958,14 +958,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
             defer.returnValue(res)
 
     @inlineCallbacks
-    def generate_network_WE_nodelinks(self, conn, webentity_id, outformat="json", include_frontier=False):
+    def generate_network_WE_nodelinks(self, conn, webentity_id, outformat="json", include_external_links=False):
         if outformat == "gexf":
             print "... GEXF nodelinks network not implemented yet."
             pass
         client = conn.client
         s = time.time()
         print "Generating %s nodelinks network for webentity %s ..." % (outformat, webentity_id)
-        links = yield client.getWebentityNodeLinks(webentity_id, include_frontier)
+        links = yield client.getWebentityNodeLinks(webentity_id, include_external_links)
         res = [[l.sourceLRU, l.targetLRU, l.weight] for l in links]
         print "... JSON network generated in "+str(time.time()-s)
         defer.returnValue(res)

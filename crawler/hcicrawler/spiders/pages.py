@@ -9,7 +9,7 @@ from scrapy import log
 
 from bson.binary import Binary
 
-from hcicrawler.lru import url_to_lru_clean
+from hcicrawler.lru import url_to_lru_clean, getURLHostFromLRU, getURLPathFromLRU
 from hcicrawler.items import Page
 from hcicrawler.samples import DEFAULT_INPUT
 from hcicrawler.errors import error_name
@@ -28,7 +28,7 @@ class PagesCrawler(BaseSpider):
         self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
         self.discover_prefixes = to_list(args['discover_prefixes'])
         self.user_agent = args['user_agent']
-        self.link_extractor = SgmlLinkExtractor(deny_extensions=[])
+        self.link_extractor = SgmlLinkExtractor(canonicalize=False, deny_extensions=[])
         self.ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
 
     def start_requests(self):
@@ -59,7 +59,12 @@ class PagesCrawler(BaseSpider):
         # handle redirects
         realdepth = response.meta['depth']
         if 300 < response.status < 400:
-            links = [{'url': response.headers['Location']}]
+            redir_url = response.headers['Location']
+            if redir_url.startswith('/'):
+                redir_url = "%s%s" % (getURLHostFromLRU(lru).strip('/'), redir_url)
+            elif redir_url.startswith('./') or not redir_url.startswith('http'):
+                redir_url = "%s%s" % (getURLPathFromLRU(lru).strip('/'), redir_url[1:])
+            links = [{'url': redir_url}]
             response.meta['depth'] -= 1
         else:
             links = self.link_extractor.extract_links(response)

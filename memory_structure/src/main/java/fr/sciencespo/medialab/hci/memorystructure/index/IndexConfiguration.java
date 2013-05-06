@@ -5,6 +5,7 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityNodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import fr.sciencespo.medialab.hci.memorystructure.util.LRUUtil;
@@ -63,6 +64,7 @@ public class IndexConfiguration {
         NODE_LINK,
         PRECISION_EXCEPTION,
         WEBENTITY,
+        WEBENTITY_NODE_LINK,
         WEBENTITY_LINK,
         WEBENTITY_CREATION_RULE
     }
@@ -175,13 +177,13 @@ public class IndexConfiguration {
             return null;
         }
         else {
-            Field sourceLRUField = new Field(FieldName.SOURCE.name(), webEntityLink.getSourceId(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            sourceLRUField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(sourceLRUField);
+            Field sourceIdField = new Field(FieldName.SOURCE.name(), webEntityLink.getSourceId(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            sourceIdField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(sourceIdField);
 
-            Field targetLRUField = new Field(FieldName.TARGET.name(), webEntityLink.getTargetId(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            targetLRUField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(targetLRUField);
+            Field targetIdField = new Field(FieldName.TARGET.name(), webEntityLink.getTargetId(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            targetIdField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(targetIdField);
 
             String weight = String.valueOf(webEntityLink.getWeight());
             Field weightField = new Field(FieldName.WEIGHT.name(), weight, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
@@ -189,6 +191,53 @@ public class IndexConfiguration {
             document.add(weightField);
 
             document = setDocumentDates(document, webEntityLink.getCreationDate());
+
+            return document;
+        }
+    }
+
+
+    /**
+     * Converts a WebEntityNodeLink into a Lucene Document
+     *
+     * @param webEntityNodeLink WebEntityNodeLink to convert into Lucene Document
+     * @return The Lucene Document
+     */
+    protected static Document convertWebEntityNodeLinkToLuceneDocument(WebEntityNodeLink webEntityNodeLink) {
+        if(webEntityNodeLink == null) {
+            logger.warn("attempt to create Lucene document for null WebEntityNodeLink");
+            return null;
+        }
+        Document document = new Document();
+        // id: generate random UUID
+        if(StringUtils.isEmpty(webEntityNodeLink.getId())) {
+            Field idField = new Field(FieldName.ID.name(), UUID.randomUUID().toString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(idField);
+        }
+
+        Field typeField = new Field(FieldName.TYPE.name(), DocType.WEBENTITY_NODE_LINK.name(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+        typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        document.add(typeField);
+
+        // if the WebEntityLink has no source and target, don't create a Lucene document for it
+        if(StringUtils.isEmpty(webEntityNodeLink.getSourceId()) || StringUtils.isEmpty(webEntityNodeLink.getTargetLRU())) {
+            logger.warn("attempt to create Lucene document for WebEntityNodeLink without source or target");
+            return null;
+        }
+        else {
+            Field sourceIdField = new Field(FieldName.SOURCE.name(), webEntityNodeLink.getSourceId(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            sourceIdField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(sourceIdField);
+
+            Field targetLRUField = new Field(FieldName.TARGET.name(), webEntityNodeLink.getTargetLRU(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            targetLRUField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(targetLRUField);
+
+            String weight = String.valueOf(webEntityNodeLink.getWeight());
+            Field weightField = new Field(FieldName.WEIGHT.name(), weight, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
+            weightField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+            document.add(weightField);
 
             return document;
         }
@@ -644,6 +693,37 @@ public class IndexConfiguration {
             logger.trace("convertLuceneDocumentToNodeLink returns nodelink with id: " + id);
         }
         return nodeLink;
+    }
+
+    /**
+     * Returns a WebEntityNodeLink object from a WebEntityNodeLink Lucene document.
+     *
+     * @param document
+     * @return
+     */
+    public static WebEntityNodeLink convertLuceneDocumentToWebEntityNodeLink(Document document) {
+        WebEntityNodeLink webEntityNodeLink = new WebEntityNodeLink();
+
+        String id = document.get(FieldName.ID.name());
+        webEntityNodeLink.setId(id);
+
+        String source = document.get(FieldName.SOURCE.name());
+        webEntityNodeLink.setSourceId(source);
+
+        String target = document.get(FieldName.TARGET.name());
+        webEntityNodeLink.setTargetLRU(target);
+
+        String weight$ = document.get(FieldName.WEIGHT.name());
+        int weight = 0;
+        if(StringUtils.isNotEmpty(weight$)) {
+            weight = Integer.parseInt(weight$);
+        }
+        webEntityNodeLink.setWeight(weight);
+
+        if(logger.isDebugEnabled()) {
+            logger.trace("convertLuceneDocumentToWebEntityNodeLink returns webEntityNodeLink with id: " + id);
+        }
+        return webEntityNodeLink;
     }
 
     /**

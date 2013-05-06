@@ -5,8 +5,11 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityNodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
+import fr.sciencespo.medialab.hci.memorystructure.util.LRUUtil;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -21,9 +24,9 @@ import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
-import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
@@ -481,6 +484,8 @@ public class LRUIndex {
                 logger.debug("batchIndex processing # " + batchSize + " objects");
             }
 
+/*   Unicity check from Heiki, shouldn't be necessary if processes are correct in core and preprocess
+ *   makes things a lot slower with big objectsets
             Set<Object> objectsSet = new HashSet<Object>(objects);
 
             if(objectsSet.size() != objects.size()) {
@@ -488,6 +493,7 @@ public class LRUIndex {
                 objects = new ArrayList<Object>(objectsSet);
                 batchSize = objects.size();
             }
+*/
 
             long startRAMIndexing = System.currentTimeMillis();
 
@@ -497,7 +503,7 @@ public class LRUIndex {
             int processedSoFar = 0;
             while(processedSoFar < batchSize) {
                 List<Object> batch;
-                int INDEXWRITER_MAX = 5000;
+                int INDEXWRITER_MAX = 25000;
                 if(batchSize >= processedSoFar + INDEXWRITER_MAX) {
                     batch = objects.subList(processedSoFar, processedSoFar + INDEXWRITER_MAX);
                 }
@@ -812,6 +818,52 @@ public class LRUIndex {
     }
 
     /**
+     *
+     * @param query
+     * @return
+     * @throws IndexException hmm
+     */
+    public List<WebEntityNodeLink> retrieveWebEntityNodeLinksByQuery(Query query) throws IndexException {
+        try {
+            List<WebEntityNodeLink> results = new ArrayList<WebEntityNodeLink>();
+            final List<Document> hits = executeMultipleResultsQuery(query);
+            for(Document hit: hits) {
+                WebEntityNodeLink link = IndexConfiguration.convertLuceneDocumentToWebEntityNodeLink(hit);
+                results.add(link);
+            }
+            return results;
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     *
+     * @param query
+     * @return
+     * @throws IndexException hmm
+     */
+    public List<NodeLink> retrieveNodeLinksByQuery(Query query) throws IndexException {
+        try {
+            List<NodeLink> results = new ArrayList<NodeLink>();
+            final List<Document> hits = executeMultipleResultsQuery(query);
+            for(Document hit: hits) {
+                NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(hit);
+                results.add(nodeLink);
+            }
+            return results;
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
      * Retrieves all NodeLinks.
      *
      * @return
@@ -819,52 +871,83 @@ public class LRUIndex {
      */
    public List<NodeLink> retrieveNodeLinks() throws IndexException {
        logger.debug("retrieveNodeLinks");
-       try {
-            List<NodeLink> result = new ArrayList<NodeLink>();
-            Query q = LuceneQueryFactory.getNodeLinksQuery();
-            final List<Document> hits = executeMultipleResultsQuery(q);
-            for(Document hit: hits) {
-                NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(hit);
-                result.add(nodeLink);
-            }
-            if(logger.isDebugEnabled()) {
-                logger.debug("retrieved # " + result.size() + " nodelinks from index");
-            }
+       List<NodeLink> results = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksQuery());
+        if(logger.isDebugEnabled()) {
+            logger.debug("retrieved # " + results.size() + " nodelinks from index");
+        }
+        return results;
+   }
 
-            return result;
-        }
-        catch(IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x.getMessage(), x);
-        }
+   /**
+    *
+    * @param prefix
+    * @return
+    * @throws IndexException hmm
+    */
+   private List<NodeLink> retrieveNodeLinksByPrefixQuery(String prefix, String type) throws IndexException {
+       if(logger.isDebugEnabled()) {
+           logger.debug("retrieveNodeLinksBy"+type+"Prefix: " + prefix);
+       }
+       List<NodeLink> results = new ArrayList<NodeLink>();
+       if(prefix == null) {
+           logger.warn("attempted to retrieve node links with null target prefix");
+           return results;
+       } else {
+           prefix = prefix + "*";
+           if (type.equals("target")) {
+               results = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksByTargetLRUQuery(prefix));
+           } else if (type.equals("source")) {
+               results = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksBySourceLRUQuery(prefix));
+           } else {
+               return results;
+           }
+           if(logger.isDebugEnabled()) {
+               logger.debug("retrieved # " + results.size() + " NodeLinks with "+type+" prefix " + prefix);
+           }
+       }
+       return results;
+   }
+
+   /**
+    *
+    * @param prefix
+    * @return
+    * @throws IndexException hmm
+    */
+   public List<NodeLink> retrieveNodeLinksBySourcePrefix(String prefix) throws IndexException {
+       return retrieveNodeLinksByPrefixQuery(prefix, "source");
+   }
+
+   /**
+    *
+    * @param prefix
+    * @return
+    * @throws IndexException hmm
+    */
+   public List<NodeLink> retrieveNodeLinksByTargetPrefix(String prefix) throws IndexException {
+       return retrieveNodeLinksByPrefixQuery(prefix, "target");
    }
 
    /**
     * Retrieves nodelinks corresponding to a specific webentity.
     *
     * @param webEntityId
-    * @param includeFrontier
+    * @param includeExternalLinks
     * @return
     * @throws IndexException hmm
     */
-   public List<NodeLink> retrieveWebentityNodeLinks(String webEntityId, Boolean includeFrontier) throws IndexException {
-       logger.debug("retrieveNodeLinks");
+   public List<NodeLink> retrieveNodeLinksByWebentity(String webEntityId, Boolean includeExternalLinks) throws IndexException {
+       if(logger.isDebugEnabled()) {
+           logger.debug("retrieveNodeLinksByWebentity: " + webEntityId);
+       }
        try {
            WebEntity webEntity = retrieveWebEntity(webEntityId);
            List<WebEntity> subWebEntities = findSubWebEntities(webEntity);
-           List<NodeLink> result = new ArrayList<NodeLink>();
-           Query q;
-           q = LuceneQueryFactory.getNodeLinksMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities, includeFrontier);
-           final List<Document> hits = executeMultipleResultsQuery(q);
-           for(Document hit: hits) {
-               NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(hit);
-               result.add(nodeLink);
-           }
+           List<NodeLink> results = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities, includeExternalLinks));
            if(logger.isDebugEnabled()) {
-               logger.debug("retrieved # " + result.size() + " nodelinks from index");
+               logger.debug("retrieved # " + results.size() + " nodelinks from index");
            }
-           return result;
+           return results;
        }
        catch(IOException x) {
            logger.error(x.getMessage());
@@ -909,6 +992,16 @@ public class LRUIndex {
    public List<WebEntity> retrieveWebEntities() throws IndexException {
        logger.debug("retrieveWebEntities");
        return retrieveWebEntitiesByQuery(LuceneQueryFactory.getWebEntitiesQuery());
+   }
+
+   /**
+    * Retrieves all user defined webentities.
+    * @return
+    * @throws IndexException hmm
+    */
+   public List<WebEntity> retrieveUserDefinedWebEntities() throws IndexException {
+       logger.debug("retrieveUderDefinedWebEntities");
+       return retrieveWebEntitiesByQuery(LuceneQueryFactory.getLinkedWebEntitiesQuery());
    }
 
    /**
@@ -1013,6 +1106,20 @@ public class LRUIndex {
             x.printStackTrace();
             throw new IndexException(x.getMessage(), x);
         }
+    }
+
+    /**
+     *
+     * @param lru
+     * @return web entity having prefix in its list of lru prefixes
+     * @throws IndexException hmm
+     */
+    public String retrieveWebEntityIdMatchingLRU(String lru) throws IndexException {
+        WebEntity we = retrieveWebEntityMatchingLRU(lru);
+        if (we == null) {
+            return null;
+        }
+        return we.getId();
     }
 
     /**
@@ -1158,78 +1265,6 @@ public class LRUIndex {
             }
             if(logger.isDebugEnabled()) {
                 logger.debug("retrieved # " + results.size() + " WebEntities with prefix " + prefix);
-            }
-            return results;
-        }
-        catch (IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x.getMessage(), x);
-        }
-    }
-
-    /**
-     *
-     * @param prefix
-     * @return
-     * @throws IndexException hmm
-     */
-    public List<NodeLink> retrieveNodeLinksBySourcePrefix(String prefix) throws IndexException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("retrieveNodeLinksBySourcePrefix: " + prefix);
-        }
-        try {
-            List<NodeLink> results = new ArrayList<NodeLink>();
-            if(prefix == null) {
-                logger.warn("attempted to retrieve node links with null source prefix");
-                return results;
-            }
-            prefix = prefix + "*";
-
-            Query q = LuceneQueryFactory.getNodeLinksBySourceLRUQuery(prefix);
-            final List<Document> hits = executeMultipleResultsQuery(q);
-            for(Document hit: hits) {
-                NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(hit);
-                results.add(nodeLink);
-            }
-            if(logger.isDebugEnabled()) {
-                logger.debug("retrieved # " + results.size() + " NodeLinks with source prefix " + prefix);
-            }
-            return results;
-
-        }
-        catch (IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x.getMessage(), x);
-        }
-    }
-
-    /**
-     *
-     * @param prefix
-     * @return
-     * @throws IndexException hmm
-     */
-    public List<NodeLink> retrieveNodeLinksByTargetPrefix(String prefix) throws IndexException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("retrieveNodeLinksByTargetPrefix: " + prefix);
-        }
-        try {
-            List<NodeLink> results = new ArrayList<NodeLink>();
-            if(prefix == null) {
-                logger.warn("attempted to retrieve node links with null target prefix");
-                return results;
-            }
-            prefix = prefix + "*";
-            Query q = LuceneQueryFactory.getNodeLinksByTargetLRUQuery(prefix);
-            final List<Document> hits = executeMultipleResultsQuery(q);
-            for(Document hit: hits) {
-                NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(hit);
-                results.add(nodeLink);
-            }
-            if(logger.isDebugEnabled()) {
-                logger.debug("retrieved # " + results.size() + " NodeLinks with target prefix " + prefix);
             }
             return results;
         }
@@ -1614,102 +1649,122 @@ public class LRUIndex {
      *
      * @throws IndexException hmm
      */
-    public List<WebEntityLink> generateWebEntityLinks() throws IndexException {
+    public List<WebEntityLink> generateWebEntityLinksOld() throws IndexException {
         try {
             logger.debug("generateWebEntityLinks");
             final Query nodeLinksQuery = LuceneQueryFactory.getNodeLinksQuery();
-            final int batchSize = 500000;
-            TopDocs results = indexSearcher.search(nodeLinksQuery, null, batchSize);
+            TopDocs results = indexSearcher.search(nodeLinksQuery, null, 1);
             final int totalResults = results.totalHits;
             logger.info("total # of nodelinks in index is " + totalResults);
-            int doneDocs = 0;
+            results = indexSearcher.search(nodeLinksQuery, null, totalResults);
+            ScoreDoc[] scoreDocs = results.scoreDocs;
             Map<String, WebEntityLink> webEntityLinksMap = new HashMap<String, WebEntityLink>();
-            Map<String, WebEntity> lruToWebEntityMap = new HashMap<String, WebEntity>();
-            deleteObject(LuceneQueryFactory.getWebEntityLinksQuery(), true);
-            reloadIndexIfChange();
-            while (doneDocs < totalResults) {
-                int maxDocs = Math.min(totalResults, doneDocs+batchSize);
-                logger.info("Browsing links " + doneDocs + " to " + maxDocs);
-                results = indexSearcher.search(nodeLinksQuery, null, maxDocs);
-                ScoreDoc[] scoreDocs = results.scoreDocs;
-                for (int i = doneDocs ; i < maxDocs && i < totalResults ; i++) {
-                    NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(scoreDocs[i].doc));
-                    if(logger.isDebugEnabled()) {
-	                    logger.debug("generating webentitylinks for nodelink from " + nodeLink.getSourceLRU() + " to " + nodeLink.getTargetLRU());
-	                }
-	                String source = nodeLink.getSourceLRU();
-	                WebEntity sourceWE;
-	                if (! lruToWebEntityMap.containsKey(source)) {
-                        sourceWE = retrieveWebEntityMatchingLRU(source);
-                        lruToWebEntityMap.put(source, sourceWE);
-                        if (sourceWE == null) {
-                            logger.warn("Warning couldn't retrieve WE for LRU source " + source);
-                            continue;
-                        }
-	                } else {
-                        sourceWE = lruToWebEntityMap.get(source);
-	                }
-	                String target = nodeLink.getTargetLRU();
-	                WebEntity targetWE;
-	                if (! lruToWebEntityMap.containsKey(target)) {
-                        targetWE = retrieveWebEntityMatchingLRU(target);
-                        lruToWebEntityMap.put(target, targetWE);
-                        if (targetWE == null) {
-                            logger.warn("Warning couldn't retrieve WE for LRU target " + target);
-                            continue;
-                        }
-	                } else {
-                        targetWE = lruToWebEntityMap.get(target);
-	                }
-	                if (targetWE == null || sourceWE == null) {
-                        continue;
-	                }
-	                //
-	                // if already exists a link between them, increase weight
-	                //
-	                String webEntityLinkId = sourceWE.getId()+"/"+targetWE.getId();
-	                WebEntityLink webEntityLink = null;
-	                int weight = nodeLink.getWeight();
-	                Date now = new Date();
-	                if (webEntityLinksMap.containsKey(webEntityLinkId)) {
-                        webEntityLink = webEntityLinksMap.get(webEntityLinkId);
-                        weight += webEntityLink.getWeight();
-	                } else {
-		                TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
-		                Query q = LuceneQueryFactory.getWebEntityLinkBySourceAndTargetQuery(sourceWE.getId(), targetWE.getId());
-		                indexSearcher.search(q, collector);
-		                ScoreDoc[] hits = collector.topDocs().scoreDocs;
-		                if(hits != null && hits.length > 0) {
-		                    if(logger.isDebugEnabled()) {
-		                        logger.debug("found # " + hits.length + " existing webentitylinks from source " + sourceWE.getId() + " to " + targetWE.getId());
-		                    }
-		                    int j = hits[0].doc;
-		                    Document doc = indexSearcher.doc(j);
-		                    webEntityLink = IndexConfiguration.convertLuceneDocumentToWebEntityLink(doc);
-		                }
-		                if(webEntityLink != null) {
-		                    weight += webEntityLink.getWeight();
-		                }
-		                else {
-		                    webEntityLink = new WebEntityLink();
-		                    webEntityLink.setCreationDate(now.toString());
-		                    webEntityLink.setLastModificationDate(now.toString());
-		                    webEntityLink.setSourceId(sourceWE.getId());
-		                    webEntityLink.setTargetId(targetWE.getId());
-		                }
-		                webEntityLinksMap.put(webEntityLinkId, webEntityLink);
-	                }
-	                webEntityLink.setLastModificationDate(now.toString());
-	                webEntityLink.setWeight(weight);
+            Map<String, Map<String, Map<String, String>>> lruToWebEntityMap = new HashMap<String, Map<String, Map<String, String>>>();
+            Map<String, Map<String, String>> tmpMapMap = new HashMap<String, Map<String, String>>();
+            Map<String, String> tmpMap = new HashMap<String, String>();
+            String sourceWEid, sourceLRU, targetWEid, targetLRU, lPrefix, lNode, shortLRU;
+            for (int i = 0 ; i < totalResults ; i++) {
+                NodeLink nodeLink = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(scoreDocs[i].doc)); 
+                if(logger.isDebugEnabled()) {
+                    logger.debug("generating webentitylinks for nodelink from " + nodeLink.getSourceLRU() + " to " + nodeLink.getTargetLRU());
                 }
-                doneDocs = maxDocs;
+                sourceLRU = nodeLink.getSourceLRU();
+                lPrefix = LRUUtil.getTLD(sourceLRU);
+                lNode = LRUUtil.getLimitedStemsLRU(sourceLRU, 1).replace(lPrefix, "");
+                shortLRU = sourceLRU.replace(lPrefix, "").replace(lNode, "");
+                tmpMapMap = lruToWebEntityMap.remove(lPrefix);
+                if (tmpMapMap == null) {
+                    tmpMapMap = new HashMap<String, Map<String, String>>();
+                }
+                tmpMap = tmpMapMap.remove(lNode);
+                if (tmpMap == null) {
+                    tmpMap = new HashMap<String, String>();
+                }
+                sourceWEid = tmpMap.remove(sourceLRU);
+                if (sourceWEid == null) {
+                    sourceWEid = retrieveWebEntityIdMatchingLRU(sourceLRU);
+                    if (sourceWEid == null) {
+                        logger.warn("Warning couldn't retrieve WE for LRU source " + sourceLRU);
+                        continue;
+                    }
+                }
+                tmpMap.put(shortLRU, sourceWEid);
+                tmpMapMap.put(lNode, tmpMap);
+                lruToWebEntityMap.put(lPrefix, tmpMapMap);
+
+                targetLRU = nodeLink.getTargetLRU();
+                if (targetLRU.equals(sourceLRU)) {
+                    targetWEid = sourceWEid;
+                } else {
+                    lPrefix = LRUUtil.getTLD(targetLRU);
+                    lNode = LRUUtil.getLimitedStemsLRU(targetLRU, 1).replace(lPrefix, "");
+                    shortLRU = sourceLRU.replace(lPrefix, "").replace(lNode, "");
+                    tmpMapMap = lruToWebEntityMap.remove(lPrefix);
+                    if (tmpMapMap == null) {
+                        tmpMapMap = new HashMap<String, Map<String, String>>();
+                    }
+                    tmpMap = tmpMapMap.remove(lNode);
+                    if (tmpMap == null) {
+                        tmpMap = new HashMap<String, String>();
+                    }
+                    targetWEid = tmpMap.remove(sourceLRU);
+                    if (targetWEid == null) {
+                        targetWEid = retrieveWebEntityIdMatchingLRU(targetLRU);
+                        if (targetWEid == null) {
+                            logger.warn("Warning couldn't retrieve WE for LRU target " + targetLRU);
+                            continue;
+                        }
+                    }
+                    tmpMap.put(shortLRU, targetWEid);
+                    tmpMapMap.put(lNode, tmpMap);
+                    lruToWebEntityMap.put(lPrefix, tmpMapMap);
+                }
+                if (targetWEid == null || sourceWEid == null) {
+                    continue;
+                }
+                // if already exists a link between them, increase weight
+                //
+                String webEntityLinkId = sourceWEid+"/"+targetWEid;
+                WebEntityLink webEntityLink = null;
+                int weight = nodeLink.getWeight();
+                String now = new Date().toString();
+                webEntityLink = webEntityLinksMap.remove(webEntityLinkId);
+                if (webEntityLink != null) {
+                    weight += webEntityLink.getWeight();
+                } else {
+	                TopScoreDocCollector collector = TopScoreDocCollector.create(1, false);
+	                Query q = LuceneQueryFactory.getWebEntityLinkBySourceAndTargetQuery(sourceWEid, targetWEid);
+	                indexSearcher.search(q, collector);
+	                ScoreDoc[] hits = collector.topDocs().scoreDocs;
+	                if(hits != null && hits.length > 0) {
+	                    if(logger.isDebugEnabled()) {
+	                        logger.debug("found # " + hits.length + " existing webentitylinks from source " + sourceWEid + " to " + targetWEid);
+	                    }
+	                    int j = hits[0].doc;
+	                    Document doc = indexSearcher.doc(j);
+	                    webEntityLink = IndexConfiguration.convertLuceneDocumentToWebEntityLink(doc);
+	                }
+	                if(webEntityLink != null) {
+	                    weight += webEntityLink.getWeight();
+	                }
+	                else {
+	                    webEntityLink = new WebEntityLink();
+	                    webEntityLink.setCreationDate(now);
+	                    webEntityLink.setSourceId(sourceWEid);
+	                    webEntityLink.setTargetId(targetWEid);
+	                }
+                }
+                webEntityLink.setLastModificationDate(now);
+                webEntityLink.setWeight(weight);
+                webEntityLinksMap.put(webEntityLinkId, webEntityLink);
             }
             logger.info("Saving " + webEntityLinksMap.size() + " WebEntityLinks");
             @SuppressWarnings({"unchecked"})
             List<Object> webEntityLinksList = new ArrayList(webEntityLinksMap.values());
+            logger.info("Map converted to array");
+            deleteObject(LuceneQueryFactory.getWebEntityLinksQuery(), true);
+            logger.info("old webentitylinks deleted");
             batchIndex(webEntityLinksList);
-            this.indexWriter.commit();
-            reloadIndexIfChange();
             logger.info("finished indexing webEntityLinks");
             return new ArrayList<WebEntityLink>(webEntityLinksMap.values());
         }
@@ -1720,6 +1775,241 @@ public class LRUIndex {
         }
     }
 
+    public List<WebEntityLink> generateWebEntityLinks() throws IndexException {
+        long start = System.currentTimeMillis();
+        List<WebEntityLink> res1 = generateWebEntityLinksViaMap();
+        logger.info("Generated " + res1.size() + " WebEntityLinks (method Target + better maps) in " + (System.currentTimeMillis()-start)/1000 + "s");
+/*
+        long mid = System.currentTimeMillis();
+        List<WebEntityLink> res2 = generateWebEntityLinksviaWENL();
+        long last = System.currentTimeMillis();
+        List<WebEntityLink> res3 = generateWebEntityLinksOld();
+        logger.info("Method WENL : " + res2.size() + " results in " + (last-mid)/1000);
+        logger.info("Method Old + better maps : " + res1.size() + " results in " + (System.currentTimeMillis()-last)/1000);
+*/
+        return res1;
+    }
+
+    /**
+     *
+     * @throws IndexException hmm
+     */
+    public List<WebEntityLink> generateWebEntityLinksViaMap() throws IndexException {
+        try {
+            logger.info("generateWebEntityLinks");
+            final Query query = LuceneQueryFactory.getWebEntitiesQuery();
+            TopDocs results = indexSearcher.search(query, null, 1);
+            final int totalResults = results.totalHits;
+            logger.info("total # of webentities in index is " + totalResults);
+            results = indexSearcher.search(query, null, totalResults);
+            ScoreDoc[] scoreDocs = results.scoreDocs;
+            Map<String, Map<String, Map<String, String>>> lruToWebEntityMap = new HashMap<String, Map<String, Map<String, String>>>();
+            Map<String, Map<String, String>> tmpMapMap = new HashMap<String, Map<String, String>>();
+            Map<String, String> tmpMap = new HashMap<String, String>();
+            List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
+            Map<String, WebEntityLink> webEntityLinksMap;
+            int intern_weight = 0;
+            String sourceId, sourceLRU, sourceNode, sourcePrefix, shortLRU;
+            for (int i = 0 ; i < totalResults ; i++) {
+                WebEntity WE = IndexConfiguration.convertLuceneDocumentToWebEntity(indexSearcher.doc(scoreDocs[i].doc)); 
+                if(logger.isDebugEnabled()) {
+                    logger.debug("generating webentitylinks for webentity " + WE.getName() + " / " + WE.getId());
+                }
+                if (WE.getName().equals("OUTSIDE_WEB")) {
+                    continue;
+                }
+                List<WebEntity> subWEs = findSubWebEntities(WE);
+                if (subWEs != null && subWEs.size() > 500) {
+                    continue;
+                }
+                List<NodeLink> links = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksByTargetWebEntity(WE, subWEs));
+                if (links.size() > 0) {
+                    webEntityLinksMap = new HashMap<String, WebEntityLink>();
+                    intern_weight = 0;
+                    for (NodeLink link : links) {
+                        sourceLRU = link.getSourceLRU();
+                        sourcePrefix = LRUUtil.getTLD(sourceLRU);
+                        sourceNode = LRUUtil.getLimitedStemsLRU(sourceLRU, 1).replace(sourcePrefix, "");
+                        shortLRU = sourceLRU.replace(sourcePrefix, "").replace(sourceNode, "");
+                        tmpMapMap = lruToWebEntityMap.remove(sourcePrefix);
+                        if (tmpMapMap == null) {
+                            tmpMapMap = new HashMap<String, Map<String, String>>();
+                        }
+                        tmpMap = tmpMapMap.remove(sourceNode);
+                        if (tmpMap == null) {
+                            tmpMap = new HashMap<String, String>();
+                        }
+                        tmpMapMap.put(sourceNode, tmpMap);
+                        lruToWebEntityMap.put(sourcePrefix, tmpMapMap);
+                        if (LRUUtil.LRUBelongsToWebentity(sourceLRU, WE, subWEs)) {
+                            tmpMapMap = lruToWebEntityMap.remove(sourcePrefix);
+                            tmpMap = tmpMapMap.remove(sourceNode);
+                            tmpMap.put(shortLRU, WE.getId());
+                            tmpMapMap.put(sourceNode, tmpMap);
+                            lruToWebEntityMap.put(sourcePrefix, tmpMapMap);
+                            intern_weight += link.getWeight();
+                        } else {
+                            tmpMapMap = lruToWebEntityMap.remove(sourcePrefix);
+                            tmpMap = tmpMapMap.remove(sourceNode);
+                            sourceId = tmpMap.remove(shortLRU);
+                            if (sourceId == null) {
+                                sourceId = retrieveWebEntityIdMatchingLRU(sourceLRU);
+                                if (sourceId == null) {
+                                    logger.warn("Warning couldn't retrieve WE for LRU source " + sourceLRU);
+                                    continue;
+                                }
+                            }
+                            tmpMap.put(shortLRU, sourceId);
+                            tmpMapMap.put(sourceNode, tmpMap);
+                            lruToWebEntityMap.put(sourcePrefix, tmpMapMap);
+                            String now = new Date().toString();
+                            WebEntityLink webEntityLink = webEntityLinksMap.remove(sourceId);
+                            if (webEntityLink == null) {
+                                webEntityLink = new WebEntityLink();
+                                webEntityLink.setCreationDate(now);
+                                webEntityLink.setSourceId(sourceId);
+                                webEntityLink.setTargetId(WE.getId());
+                            }
+                            webEntityLink.setLastModificationDate(now);
+                            webEntityLink.setWeight(webEntityLink.getWeight()+link.getWeight());
+                            webEntityLinksMap.put(sourceId, webEntityLink);
+                        }
+                    }
+                    if (webEntityLinksMap.size() > 0) {
+                        webEntityLinks.addAll(webEntityLinksMap.values());
+                    }
+                    if (intern_weight > 0) {
+                        String now = new Date().toString();
+                        webEntityLinks.add(new WebEntityLink(WE.getId(), WE.getId(), WE.getId(), intern_weight, now, now));
+                    }
+                }
+            }
+            if (webEntityLinks.size() > 0) {
+                logger.info("delete all webentitylinks existing");
+                deleteObject(LuceneQueryFactory.getWebEntityLinksQuery(), true);
+                logger.info("index reloaded, Saving " + webEntityLinks.size() + " WebEntityLinks...");
+                @SuppressWarnings({"unchecked"})
+                List<Object> webEntityLinksList = new ArrayList(webEntityLinks);
+                batchIndex(webEntityLinksList);
+                logger.info("...WebEntityLinks saved.");
+            }
+            return webEntityLinks;
+        }
+        catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     *
+     * @throws IndexException hmm
+     */
+    public List<WebEntityLink> generateWebEntityLinksviaWENL() throws IndexException {
+        try {
+            logger.debug("generateWebEntityLinks");
+            List<WebEntity> linkedWEs = retrieveUserDefinedWebEntities();
+            logger.info("Total # of linked webentities in index is " + linkedWEs.size());
+            List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
+            List<WebEntityNodeLink> webEntityNodeLinks = new ArrayList<WebEntityNodeLink>();
+            logger.info("Regenerate WebEntityNodeLinks");
+            deleteObject(LuceneQueryFactory.getWebEntityNodeLinksQuery(), true);
+            int n = 0;
+            for (WebEntity we : linkedWEs) {
+                List<WebEntity> subWEs = findSubWebEntities(we);
+                if (we.getName().equals("OUTSIDE_WEB") || (subWEs != null && subWEs.size() > 500)) {
+                    continue;
+                }
+                if (logger.isDebugEnabled()) {
+                    logger.debug("generating webentitynodelinks for webentity " + we.getName() + " / " + we.getId() + " (" + subWEs.size() + " subs)");
+                }
+                List<NodeLink> links = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksBySourceWebEntity(we, subWEs));
+                int intern_weight = 0;
+                int intern_n = 0;
+                if (links.size() > 0) {
+                    for (NodeLink link : links) {
+                        if (LRUUtil.LRUBelongsToWebentity(link.getTargetLRU(), we, subWEs)) {
+                            intern_weight += link.getWeight();
+                            intern_n++;
+                        } else {
+                            WebEntityNodeLink webEntityNodeLink = new WebEntityNodeLink();
+                            webEntityNodeLink.setId("-"+n);
+                            webEntityNodeLink.setSourceId(we.getId());
+                            webEntityNodeLink.setTargetLRU(link.getTargetLRU());
+                            webEntityNodeLink.setWeight(link.getWeight());
+                            webEntityNodeLinks.add(webEntityNodeLink);
+                        }
+                        n++;
+                    }
+                    if (intern_weight > 0) {
+                        String now = new Date().toString();
+                        webEntityLinks.add(new WebEntityLink(we.getId(), we.getId(), we.getId(), intern_weight, now, now));
+                    }
+                }
+            }
+            if (webEntityNodeLinks.size() > 0) {
+                @SuppressWarnings({"unchecked"})
+                List<Object> webEntityNodeLinksList = new ArrayList(webEntityNodeLinks);
+                batchIndex(webEntityNodeLinksList);
+            }
+
+            Map<String, WebEntityLink> webEntityLinksMap;
+            String sourceId;
+            n = 0;
+            final Query query = LuceneQueryFactory.getWebEntitiesQuery();
+            TopDocs results = indexSearcher.search(query, null, 1);
+            final int totalResults = results.totalHits;
+            logger.info("total # of webentities in index is " + totalResults);
+            results = indexSearcher.search(query, null, totalResults);
+            ScoreDoc[] scoreDocs = results.scoreDocs;
+            for (int i = 0 ; i < totalResults ; i++) {
+                WebEntity WE = IndexConfiguration.convertLuceneDocumentToWebEntity(indexSearcher.doc(scoreDocs[i].doc)); 
+                if(logger.isDebugEnabled()) {
+                    logger.debug("generating webentitylinks for webentity " + WE.getName() + " / " + WE.getId());
+                }
+                List<WebEntity> subWEs = findSubWebEntities(WE);
+                if (WE.getName().equals("OUTSIDE_WEB") || (subWEs != null && subWEs.size() > 500)) {
+                    continue;
+                }
+                List<WebEntityNodeLink> links = retrieveWebEntityNodeLinksByQuery(LuceneQueryFactory.getWebEntityNodeLinksByTargetWebEntity(WE, subWEs));
+                if (links.size() > 0) {
+                    webEntityLinksMap = new HashMap<String, WebEntityLink>();
+                    for (WebEntityNodeLink link : links) {
+                        n++;
+                        String now = new Date().toString();
+                        sourceId = link.getSourceId();
+                        WebEntityLink webEntityLink = webEntityLinksMap.remove(sourceId);
+                        if (webEntityLink == null) {
+                            webEntityLink = new WebEntityLink();
+                            webEntityLink.setCreationDate(now);
+                            webEntityLink.setSourceId(sourceId);
+                            webEntityLink.setTargetId(WE.getId());
+                        }
+                        webEntityLink.setLastModificationDate(now);
+                        webEntityLink.setWeight(webEntityLink.getWeight()+link.getWeight());
+                        webEntityLinksMap.put(sourceId, webEntityLink);
+                    }
+                    webEntityLinks.addAll(webEntityLinksMap.values());
+                }
+            }
+            if (webEntityLinks.size() > 0) {
+                logger.info("delete all webentitylinks existing");
+                deleteObject(LuceneQueryFactory.getWebEntityLinksQuery(), true);
+                logger.info("index reloaded, Saving " + webEntityLinks.size() + " WebEntityLinks");
+                @SuppressWarnings({"unchecked"})
+                List<Object> webEntityLinksList = new ArrayList(webEntityLinks);
+                batchIndex(webEntityLinksList);
+            }
+            logger.info(webEntityLinks.size()+" webentitylinks saved");
+            return webEntityLinks;
+        }
+        catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
     private void reloadIndexIfChange() throws IOException {
     	 IndexReader maybeChanged = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
          // if not changed, that returns null
