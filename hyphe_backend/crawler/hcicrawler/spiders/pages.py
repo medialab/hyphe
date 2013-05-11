@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import time
 
 from scrapy.spider import BaseSpider
@@ -6,9 +9,10 @@ from scrapy.linkextractor import IGNORED_EXTENSIONS
 from scrapy.utils.url import url_has_any_extension
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy import log
-
-from bson.binary import Binary
-
+try:
+    from pymongo.binary import Binary
+except:
+    from bson.binary import Binary
 from hcicrawler.lru import url_to_lru_clean, getURLHostFromLRU, getURLPathFromLRU
 from hcicrawler.items import Page
 from hcicrawler.samples import DEFAULT_INPUT

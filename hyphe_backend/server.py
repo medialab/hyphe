@@ -1,5 +1,7 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys, time, pymongo, bson, urllib, urllib2, httplib, socket, urlparse, random, types
+
+import sys, time, pymongo, bson, urllib, urllib2, httplib, urlparse, random, types
 import json
 from txjsonrpc import jsonrpclib
 from txjsonrpc.jsonrpc import Introspection
@@ -7,23 +9,21 @@ from txjsonrpc.web import jsonrpc
 from twisted.web import server
 from twisted.application import service, internet
 from twisted.internet import reactor, defer, task
-from twisted.internet.protocol import ClientCreator
 from twisted.internet.defer import inlineCallbacks
-from thrift import Thrift
-from thrift.transport import TTwisted, TSocket
-from thrift.protocol import TBinaryProtocol
-sys.path.append('gen-py.twisted')
-from memorystructure import MemoryStructure as ms
-from memorystructure.ttypes import *
-sys.path.append('../lib')
-import config_hci, lru, gexf
-import processor
-
-defer.setDebugging(True)
+from thrift.Thrift import TException
+from thrift.transport.TSocket import TSocket
+from hyphe_backend import processor
+from hyphe_backend.memorystructure import MemoryStructure as ms
+from hyphe_backend.memorystructure.ttypes import *
+from hyphe_backend.lib import config_hci, urllru, gexf
+from hyphe_backend.lib.thriftpool import *
 
 config = config_hci.load_config()
 if not config:
     exit()
+
+if config['DEBUG']:
+    defer.setDebugging(True)
 
 class Enum(set):
     def __getattr__(self, name):
@@ -43,10 +43,7 @@ def jobslog(jobid, msg, db, timestamp=None):
 def convert_urls_to_lrus_array(urls):
     if not isinstance(urls, types.ListType):
         urls = urls.split(",")
-    return [lru.url_to_lru_clean(url) for url in urls]
-
-def getThriftConn():
-    return ClientCreator(reactor, TTwisted.ThriftClientProtocol, ms.Client, TBinaryProtocol.TBinaryProtocolFactory()).connectTCP(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port'])
+    return [urllru.url_to_lru_clean(url) for url in urls]
 
 class Core(jsonrpc.JSONRPC):
 
@@ -55,10 +52,22 @@ class Core(jsonrpc.JSONRPC):
     def __init__(self):
         jsonrpc.JSONRPC.__init__(self)
         self.db = pymongo.Connection(config['mongo-scrapy']['host'],config['mongo-scrapy']['mongo_port'])[config['mongo-scrapy']['project']]
+        self.loop_ms = ThriftASyncClient(ms.Client, config['memoryStructure']['thrift.host'], config['memoryStructure']['thrift.port'])
+        self.sync_ms = ThriftSyncClient(ms.Client, config['memoryStructure']['thrift.host'], config['memoryStructure']['thrift.port'])
+        self.async_ms = ThriftPooledClient(ms.Client, config['memoryStructure']['thrift.host'], config['memoryStructure']['thrift.port'])
         self.crawler = Crawler(self.db, self)
         self.store = Memory_Structure(self.db, self)
         self.crawler.initDBindexes()
-        self.monitor_loop = task.LoopingCall(self.jsonrpc_refreshjobs).start(1, False)
+        self.monitor_loop = task.LoopingCall(self.jsonrpc_refreshjobs)
+        self.monitor_loop.start(1, False)
+
+    def close(self):
+        self.monitor_loop.stop()
+        self.loop_ms.close()
+        self.sync_ms.close()
+        self.sync_ms.close()
+        if self.store.index_loop.running:
+            self.store.index_loop.stop()
 
     def render(self, request):
         request.setHeader("Access-Control-Allow-Origin", "*")
@@ -74,28 +83,27 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_ping(self):
         return {'code': 'success', 'result': 'pong'}
 
-    @inlineCallbacks
     def jsonrpc_reinitialize(self):
         """Reinitializes both crawl jobs and memory structure."""
-        res = yield self.crawler.jsonrpc_reinitialize()
+        res = self.crawler.jsonrpc_reinitialize()
         if res['code'] == 'fail':
-            defer.returnValue(res)
-        res = yield self.store.jsonrpc_reinitialize()
+            return res
+        res = self.store.jsonrpc_reinitialize()
         if res['code'] == 'fail':
-            defer.returnValue(res)
-        defer.returnValue({'code': 'success', 'result': 'Memory structure and crawling database contents emptied'})
+            return res
+        return {'code': 'success', 'result': 'Memory structure and crawling database contents emptied'}
 
-    @inlineCallbacks
     def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None, all_pages_as_startpoints=False):
         """Tells scrapy to run crawl on a webentity defined by its id from memory structure."""
         if not maxdepth:
             maxdepth = config['mongo-scrapy']['maxdepth']
-        mem_struct_conn = getThriftConn()
-        WE = yield mem_struct_conn.addCallback(self.store.get_webentity_with_pages_and_subWEs, webentity_id, all_pages_as_startpoints)
+        WE = self.store.get_webentity_with_pages_and_subWEs(webentity_id, all_pages_as_startpoints)
+        if "code" in WE:
+            return WE
         if WE['status'] == "DISCOVERED":
-            yield self.store.jsonrpc_set_webentity_status(webentity_id, "UNDECIDED")
-        yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
-        defer.returnValue(self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth))
+            self.store.jsonrpc_set_webentity_status(webentity_id, "UNDECIDED")
+        self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
+        return self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth)
 
     def jsonrpc_refreshjobs(self):
         """Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks."""
@@ -136,22 +144,21 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_listjobs(self):
         return {'code': 'success', 'result': list(self.db[config['mongo-scrapy']['jobListCol']].find(sort=[('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)]))}
 
-    @inlineCallbacks
     def jsonrpc_declare_pages(self, list_urls, corpus=''):
         res = []
         print "Indexing pages and creating webentities from list of urls %s ..." % list_urls
         for url in list_urls:
-            WE = yield self.jsonrpc_declare_page(url)
+            WE = self.jsonrpc_declare_page(url)
             res.append(WE['result'])
-        defer.returnValue({'code': 'success', 'result': res})
+        return {'code': 'success', 'result': res}
 
-    @inlineCallbacks
     def jsonrpc_declare_page(self, url, corpus=''):
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.store.declare_page, url).addErrback(self.store.handle_error)
-        if "code" in res:
-            defer.returnValue(res)
-        defer.returnValue({'code': 'success', 'result': res})
+        try:
+            res = self.store.declare_page(url)
+        except Exception as e:
+            print e
+            return {'code': 'error', 'message': 'test'}
+        return {'code': 'success', 'result': res}
 
     def jsonrpc_lookup_httpstatus(self, url, timeout=2):
         try:
@@ -341,12 +348,17 @@ class Memory_Structure(jsonrpc.JSONRPC):
         reactor.callLater(2, self.index_loop.start, 1, True)
 
     def handle_results(self, results):
+        if config['DEBUG'] and len(results) < 100:
+            print results
         return {'code': 'success', 'result': results}
+
+    def format_error(self, msg):
+        return {'code': 'fail', 'msg': msg}
 
     def handle_error(self, failure, print_error=True):
         if print_error:
             print failure
-        return {'code': 'fail', 'message': failure.getErrorMessage()}
+        return self.format_error(failure.getErrorMessage())
 
     def format_webentity(self, WE, jobs=None, light=False, semilight=False):
         if WE:
@@ -366,7 +378,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 res['tags'][tag] = {}
                 for key, val in values.iteritems():
                     res['tags'][tag][key] = list(val)
-            #pages = yield client.getPagesFromWebEntity(WE.id)
+            #pages = yield self.parent.sync_ms.getPagesFromWebEntity(WE.id)
             # nb_pages = len(pages)
             # nb_links
             job = None
@@ -383,101 +395,77 @@ class Memory_Structure(jsonrpc.JSONRPC):
             return res
         return None
 
-    def reset(self, conn):
+    def reset(self):
         print "Empty memory structure content"
-        client = conn.client
-        client.clearIndex()
-        client.saveWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
+        self.parent.sync_ms.clearIndex()
+        print self.parent.sync_ms.saveWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
 
-    @inlineCallbacks
     def ensureDefaultCreationRuleExists(self):
-        mem_struct_conn = getThriftConn()
-        yield mem_struct_conn.addCallback(self._ensureDefaultCreationRuleExists).addErrback(self.handle_error)
-
-    @inlineCallbacks
-    def _ensureDefaultCreationRuleExists(self, conn):
-        client = conn.client
-        rules = yield client.getWebEntityCreationRules()
+        rules = self.parent.sync_ms.getWebEntityCreationRules()
         if (len(rules) == 0):
             print "Saves default WE creation rule"
-            yield client.saveWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
+            self.parent.sync_ms.saveWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
 
-    @inlineCallbacks
     def jsonrpc_reinitialize(self):
-        mem_struct_conn = getThriftConn()
-        try:
-            self.index_loop.stop()
-            yield mem_struct_conn.addCallback(self.reset).addErrback(self.handle_error)
-            self._start_loop()
-            defer.returnValue(self.handle_results("Memory structure reinitialized."))
-        except Exception as e:
-            defer.returnValue({'code': 'fail', 'message': "Service initialization not finished. Please retry in a second."})
+        self.index_loop.stop()
+        self.reset()
+        self._start_loop()
+        return self.handle_results("Memory structure reinitialized.")
+        #return {'code': 'fail', 'message': "Service initialization not finished. Please retry in a second."}
 
-    @inlineCallbacks
-    def return_new_webentity(self, client, lru_prefix, new=False, source=None):
-        WE = yield client.findWebEntityMatchingLRU(lru_prefix)
+    def return_new_webentity(self, lru_prefix, new=False, source=None):
+        WE = self.parent.sync_ms.findWebEntityMatchingLRU(lru_prefix)
         self.recent_indexes += 1
         if new:
             self.total_webentities += 1
             if source:
-                yield self.jsonrpc_add_webentity_tag_value(WE.id, 'CORE', 'user_created_via', source)
+                self.jsonrpc_add_webentity_tag_value(WE.id, 'CORE', 'user_created_via', source)
         WE = self.format_webentity(WE)
         WE['created'] = True if new else False
-        defer.returnValue(WE)
+        return WE
 
-    @inlineCallbacks
-    def handle_url_precision_exceptions(self, client, url):
-        l = lru.url_to_lru_clean(url)
-        yield self.handle_lru_precision_exceptions(client, l)
+    def handle_url_precision_exceptions(self, url):
+        l = urllru.url_to_lru_clean(url)
+        self.handle_lru_precision_exceptions(l)
 
-    @inlineCallbacks
-    def handle_lru_precision_exceptions(self, client, lru_prefix):
-        lru_head = lru.getLRUHead(lru_prefix, self.precision_exceptions)
-        if not lru.isLRUNode(lru_prefix, config["precisionLimit"], lru_head=lru_head) and lru_prefix.strip('|') != lru_head:
-            yield client.markPrecisionExceptions([lru_prefix])
+    def handle_lru_precision_exceptions(self, lru_prefix):
+        lru_head = urllru.getLRUHead(lru_prefix, self.precision_exceptions)
+        if not urllru.isLRUNode(lru_prefix, config["precisionLimit"], lru_head=lru_head) and lru_prefix.strip('|') != lru_head:
+            self.parent.sync_ms.markPrecisionExceptions([lru_prefix])
             self.precision_exceptions.append(lru_prefix)
 
-    @inlineCallbacks
-    def declare_page(self, conn, url):
-        url = lru.fix_missing_http(url)
-        client = conn.client
-        l = lru.url_to_lru_clean(url)
-        yield self.handle_lru_precision_exceptions(client, l)
-        is_node = lru.isLRUNode(l, config["precisionLimit"], self.precision_exceptions)
-        is_full_precision = lru.isFullPrecision(l, self.precision_exceptions)
+    def declare_page(self, url):
+        url = urllru.fix_missing_http(url)
+        l = urllru.url_to_lru_clean(url)
+        self.handle_lru_precision_exceptions(l)
+        is_node = urllru.isLRUNode(l, config["precisionLimit"], self.precision_exceptions)
+        is_full_precision = urllru.isFullPrecision(l, self.precision_exceptions)
         t = str(int(time.time()*1000))
         page = PageItem("%s/%s" % (l, t), url, l, t, None, -1, None, ['USER'], is_full_precision, is_node, {})
-        cache_id = yield client.createCache([page])
-        yield client.indexCache(cache_id)
-        new = yield client.createWebEntities(cache_id)
-        new_WE = yield self.return_new_webentity(client, l, new, 'page')
-        defer.returnValue(new_WE)
+        cache_id = self.parent.sync_ms.createCache([page])
+        self.parent.sync_ms.indexCache(cache_id)
+        new = self.parent.sync_ms.createWebEntities(cache_id)
+        new_WE = self.return_new_webentity(l, new, 'page')
+        return new_WE
 
-    @inlineCallbacks
     def jsonrpc_declare_webentity_by_lru(self, lru_prefix):
-        mem_struct_conn = getThriftConn()
         lru_prefix = lru.cleanLRU(lru_prefix)
-        existing = yield mem_struct_conn.addCallback(self.get_webentity_by_lruprefix, lru_prefix).addErrback(self.handle_error, print_error=False)
+        existing = self.get_webentity_by_lruprefix(lru_prefix)
         if not isinstance(existing, dict):
-            defer.returnValue({'code': 'fail', 'message': 'LRU prefix "%s" is already set to an existing webentity : %s' % (lru_prefix, existing)})
-        WE = WebEntity(None, [lru_prefix], lru.lru_to_url_short(lru_prefix))
-        mem_struct_conn = getThriftConn()
-        new_WE = yield mem_struct_conn.addCallback(self.create_webentity, WE, 'lru')
-        defer.returnValue(self.handle_results(new_WE))
+            return {'code': 'fail', 'message': 'LRU prefix "%s" is already set to an existing webentity : %s' % (lru_prefix, existing)}
+        WE = WebEntity(None, [lru_prefix], urllru.lru_to_url_short(lru_prefix))
+        new_WE = self.create_webentity(WE, 'lru')
+        return self.handle_results(new_WE)
 
-    @inlineCallbacks
-    def create_webentity(self, conn, webentity, source=None):
-        client = conn.client
-        res = yield client.updateWebEntity(webentity)
-        new_WE = yield self.return_new_webentity(client, webentity.LRUSet[0], True, source)
+    def create_webentity(self, webentity, source=None):
+        res = self.parent.sync_ms.updateWebEntity(webentity)
+        new_WE = self.return_new_webentity(webentity.LRUSet[0], True, source)
         l = new_WE['lru_prefixes'][0]
-        yield self.handle_lru_precision_exceptions(client, l)
-        defer.returnValue(new_WE)
+        self.handle_lru_precision_exceptions(l)
+        return new_WE
 
-    @inlineCallbacks
-    def update_webentity(self, conn, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None):
-        client = conn.client
-        WE = yield client.getWebEntity(webentity_id)
+    def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None):
+        WE = self.parent.sync_ms.getWebEntity(webentity_id)
         try:
             if array_behavior:
                 if array_key:
@@ -490,9 +478,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 if array_behavior == "push":
                     arr.add(value)
                     if field_name == 'LRUSet':
-                        yield self.handle_lru_precision_exceptions(client, value)
+                        self.handle_lru_precision_exceptions(value)
                     elif field_name == 'startpages':
-                        yield self.handle_url_precision_exceptions(client, value)
+                        self.handle_url_precision_exceptions(value)
                 elif array_behavior == "pop":
                     arr.remove(value)
                 elif array_behavior == "update":
@@ -508,184 +496,145 @@ class Memory_Structure(jsonrpc.JSONRPC):
             else:
                 setattr(WE, field_name, value)
             if len(WE.LRUSet):
-                res = yield client.updateWebEntity(WE)
-                defer.returnValue(self.handle_results("%s field of webentity %s updated." % (field_name, res)))
+                res = self.parent.sync_ms.updateWebEntity(WE)
+                return self.handle_results("%s field of webentity %s updated." % (field_name, res))
             else:
-                yield client.deleteWebEntity(WE)
+                self.parent.sync_ms.deleteWebEntity(WE)
                 self.total_webentities -= 1
-                defer.returnValue(self.handle_results("webentity %s had no LRUprefix left and was removed." % webentity_id))
+                return self.handle_results("webentity %s had no LRUprefix left and was removed." % webentity_id)
         except Exception as x:
-            defer.returnValue({"code": "fail", "message": "ERROR while updating webentity : %s" % x})
+            return {"code": "fail", "message": "ERROR while updating webentity : %s" % x}
 
-    @inlineCallbacks
     def jsonrpc_rename_webentity(self, webentity_id, new_name):
         if not new_name or new_name == "":
-            defer.returnValue({"code": "fail", "message": "ERROR: please specify a value for the webentity's name"})
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "name", new_name).addErrback(self.handle_error)
-        defer.returnValue(res)
+            return format_error("ERROR: please specify a value for the webentity's name")
+        res = self.update_webentity(webentity_id, "name", new_name)
+        return res
 
-    @inlineCallbacks
     def jsonrpc_set_webentity_status(self, webentity_id, status):
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "status", status).addErrback(self.handle_error)
-        defer.returnValue(res)
+        res = self.update_webentity(webentity_id, "status", status)
+        return res
 
-    @inlineCallbacks
     def jsonrpc_set_webentity_homepage(self, webentity_id, homepage):
-        mem_struct_conn = getThriftConn()
-        homepage = lru.fix_missing_http(homepage)
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "homepage", homepage).addErrback(self.handle_error)
-        defer.returnValue(res)
+        homepage = urllru.fix_missing_http(homepage)
+        res = self.update_webentity(webentity_id, "homepage", homepage)
+        return res
 
-    @inlineCallbacks
     def add_backend_tags(self, webentity_id, key, value):
-        yield self.jsonrpc_add_webentity_tag_value(webentity_id, "CORE", key, value)
-        yield self.jsonrpc_add_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
+        self.jsonrpc_add_webentity_tag_value(webentity_id, "CORE", key, value)
+        self.jsonrpc_add_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
 
-    @inlineCallbacks
     def jsonrpc_add_webentity_lruprefix(self, webentity_id, lru_prefix):
-        mem_struct_conn = getThriftConn()
-        lru_prefix = lru.cleanLRU(lru_prefix)
-        old_WE = yield mem_struct_conn.addCallback(self.get_webentity_by_lruprefix, lru_prefix).addErrback(self.handle_error)
+        lru_prefix = urllru.cleanLRU(lru_prefix)
+        old_WE = self.get_webentity_by_lruprefix(lru_prefix)
         if not isinstance(old_WE, dict):
             print "Removing LRUPrefix %s from webentity %s" % (lru_prefix, old_WE.name)
-            yield self.jsonrpc_rm_webentity_lruprefix(old_WE.id, lru_prefix)
-        mem_struct_conn = getThriftConn()
-        yield self.add_backend_tags(webentity_id, "lruprefixes_modified", "added %s" % lru_prefix)
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "LRUSet", lru_prefix, "push").addErrback(self.handle_error)
+            self.jsonrpc_rm_webentity_lruprefix(old_WE.id, lru_prefix)
+        self.add_backend_tags(webentity_id, "lruprefixes_modified", "added %s" % lru_prefix)
+        res = self.update_webentity(webentity_id, "LRUSet", lru_prefix, "push")
         self.recent_indexes += 1
-        defer.returnValue(res)
+        return res
 
-    @inlineCallbacks
     def jsonrpc_rm_webentity_lruprefix(self, webentity_id, lru_prefix):
         """ Will delete webentity if no LRUprefix left"""
-        mem_struct_conn = getThriftConn()
-        lru_prefix = lru.cleanLRU(lru_prefix)
-        yield self.add_backend_tags(webentity_id, "lruprefixes_modified", "removed %s" % lru_prefix)
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "LRUSet", lru_prefix, "pop").addErrback(self.handle_error)
+        lru_prefix = urllru.cleanLRU(lru_prefix)
+        self.add_backend_tags(webentity_id, "lruprefixes_modified", "removed %s" % lru_prefix)
+        res = self.update_webentity(webentity_id, "LRUSet", lru_prefix, "pop")
         self.recent_indexes += 1
-        defer.returnValue(res)
+        return res
 
-    @inlineCallbacks
     def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url):
-        mem_struct_conn = getThriftConn()
-        startpage_url = lru.fix_missing_http(startpage_url)
-        yield self.add_backend_tags(webentity_id, "startpages_modified", "added %s" % startpage_url)
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "startpages", startpage_url, "push").addErrback(self.handle_error)
-        defer.returnValue(res)
+        startpage_url = urllru.fix_missing_http(startpage_url)
+        self.add_backend_tags(webentity_id, "startpages_modified", "added %s" % startpage_url)
+        res = self.update_webentity(webentity_id, "startpages", startpage_url, "push")
+        return res
 
-    @inlineCallbacks
     def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url):
-        mem_struct_conn = getThriftConn()
-        startpage_url = lru.fix_missing_http(startpage_url)
-        yield self.add_backend_tags(webentity_id, "startpages_modified", "removed %s" % startpage_url)
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "startpages", startpage_url, "pop").addErrback(self.handle_error)
-        defer.returnValue(res)
+        startpage_url = urllru.fix_missing_http(startpage_url)
+        self.add_backend_tags(webentity_id, "startpages_modified", "removed %s" % startpage_url)
+        res = self.update_webentity(webentity_id, "startpages", startpage_url, "pop")
+        return res
 
-    @inlineCallbacks
     def jsonrpc_add_webentity_tag_value(self, webentity_id, tag_namespace, tag_key, tag_value):
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_value, "push", tag_key, tag_namespace).addErrback(self.handle_error)
-        defer.returnValue(res)
+        return self.update_webentity(webentity_id, "metadataItems", tag_value, "push", tag_key, tag_namespace)
 
     def jsonrpc_rm_webentity_tag_key(self, webentity_id, tag_namespace, tag_key):
         return self.jsonrpc_set_webentity_tag_values(webentity_id, tag_namespace, tag_key, [])
 
-    @inlineCallbacks
     def jsonrpc_rm_webentity_tag_value(self, webentity_id, tag_namespace, tag_key, tag_value):
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_value, "pop", tag_key, tag_namespace).addErrback(self.handle_error)
-        defer.returnValue(res) 
+        return self.update_webentity(webentity_id, "metadataItems", tag_value, "pop", tag_key, tag_namespace)
 
-    @inlineCallbacks
     def jsonrpc_set_webentity_tag_values(self, webentity_id, tag_namespace, tag_key, tag_values):
-        mem_struct_conn = getThriftConn()
         if not isinstance(tag_values, list):
             tag_values = list(tag_values)
-        res = yield mem_struct_conn.addCallback(self.update_webentity, webentity_id, "metadataItems", tag_values, "update", tag_key, tag_namespace).addErrback(self.handle_error)
-        defer.returnValue(res) 
+        return self.update_webentity(webentity_id, "metadataItems", tag_values, "update", tag_key, tag_namespace).addErrback(self.handle_error)
 
     @inlineCallbacks
     def jsonrpc_merge_webentity_into_another(self, old_webentity_id, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False):
-        mem_struct_conn = getThriftConn()
-        old_WE = yield mem_struct_conn.addCallback(self.get_webentity, old_webentity_id).addErrback(self.handle_error)
+        old_WE = self.get_webentity(old_webentity_id)
         if isinstance(old_WE, dict):
-            defer.returnValue({'code': 'fail', 'message': 'ERROR retrieving webentity with id %s' % old_webentity_id})
+            return {'code': 'fail', 'message': 'ERROR retrieving webentity with id %s' % old_webentity_id}
         res = []
         if include_home_and_startpages_as_startpages:
-            a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, old_WE.homepage)
+            a = self.jsonrpc_add_webentity_startpage(good_webentity_id, old_WE.homepage)
             res.append(a)
             for page in old_WE.startpages:
-                a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, page)
+                a = self.jsonrpc_add_webentity_startpage(good_webentity_id, page)
                 res.append(a)
         if include_tags:
             for tag_namespace in old_WE.metadataItems.keys():
                 for tag_key in old_WE.metadataItems[tag_namespace].keys():
                     for tag_val in old_WE.metadataItems[tag_namespace][tag_key]:
-                        a = yield self.jsonrpc_add_webentity_tag_value(good_webentity_id, tag_namespace, tag_key, tag_val)
+                        a = self.jsonrpc_add_webentity_tag_value(good_webentity_id, tag_namespace, tag_key, tag_val)
                         res.append(a)
         for lru in old_WE.LRUSet:
-            a = yield self.jsonrpc_rm_webentity_lruprefix(old_webentity_id, lru)
+            a = self.jsonrpc_rm_webentity_lruprefix(old_webentity_id, lru)
             res.append(a)
-            b = yield self.jsonrpc_add_webentity_lruprefix(good_webentity_id, lru)
+            b = self.jsonrpc_add_webentity_lruprefix(good_webentity_id, lru)
             res.append(b)
-        yield self.add_backend_tags(good_webentity_id, "alias_added", old_WE.name)
+        self.add_backend_tags(good_webentity_id, "alias_added", old_WE.name)
         self.total_webentities -= 1
         self.recent_indexes += 1
-        defer.returnValue(self.handle_results(res))
+        return self.handle_results(res)
 
-    @inlineCallbacks
     def jsonrpc_delete_webentity(self, webentity_id):
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.delete_webentity, webentity_id)
-        defer.returnValue(res)
-
-    @inlineCallbacks
-    def delete_webentity(self, conn, webentity_id):
-        client = conn.client
         try:
-            WE = yield client.getWebEntity(webentity_id)
-            yield client.deleteWebEntity(WE)
-            defer.returnValue(self.handle_results("Webentity %s (%s) was removed" % (webentity_id, WE.name)))
+            WE = self.parent.sync_ms.getWebEntity(webentity_id)
+            self.parent.sync_ms.deleteWebEntity(WE)
+            return self.handle_results("Webentity %s (%s) was removed" % (webentity_id, WE.name))
             self.total_webentities -= 1
             self.recent_indexes += 1
         except Exception as x:
-            defer.returnValue(self.handle_error(x))
+            return self.handle_error(x)
 
     @inlineCallbacks
-    def index_batch(self, conn, page_items, jobid):
-        client = conn.client
+    def index_batch(self, page_items, jobid):
         ids = [bson.ObjectId(str(record['_id'])) for record in page_items]
         if (len(ids) > 0):
             page_items.rewind()
             pages, links = processor.generate_cache_from_pages_list(page_items, config["precisionLimit"], self.precision_exceptions)
             s=time.time()
-            try:
-                cache_id = yield client.createCache(pages.values())
-                nb_pages = yield client.indexCache(cache_id)
-                print "... "+str(nb_pages)+" pages indexed in "+str(time.time()-s)+"s ..."
-            except Exception as e:
-                print "ERROR Comm thrift: ", e
-                return
+            cache_id = yield self.parent.loop_ms.createCache(pages.values())
+            nb_pages = yield self.parent.loop_ms.indexCache(cache_id)
+            print "... "+str(nb_pages)+" pages indexed in "+str(time.time()-s)+"s ..."
             s=time.time()
             nb_links = len(links)
             for link_list in [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]:
-                yield client.saveNodeLinks([NodeLink("id",source,target,weight) for source,target,weight in link_list])
+                yield self.parent.loop_ms.saveNodeLinks([NodeLink("id",source,target,weight) for source,target,weight in link_list])
             print "... "+str(nb_links)+" links indexed in "+str(time.time()-s)+"s ..."
             s=time.time()
-            n_WE = yield client.createWebEntities(cache_id)
+            n_WE = yield self.parent.loop_ms.createWebEntities(cache_id)
             print "... %s web entities created in %s" % (n_WE, str(time.time()-s))+"s"
             self.total_webentities += n_WE
-            yield client.deleteCache(cache_id)
+            yield self.parent.loop_ms.deleteCache(cache_id)
             resdb = self.db[config['mongo-scrapy']['queueCol']].remove({'_id': {'$in': ids}}, safe=True)
             if (resdb['err']):
                 print "ERROR cleaning queue in database for job %s" % jobid, resdb
-                return
+                defer.returnValue(False)
             res = self.db[config['mongo-scrapy']['jobListCol']].find_and_modify({'_id': jobid}, update={'$inc': {'nb_pages': nb_pages, 'nb_links': nb_links}, '$set': {'indexing_status': indexing_statuses.BATCH_FINISHED}})
             if not res:
                 print "ERROR updating job %s" % jobid
-                return
+                defer.returnValue(False)
             jobslog(jobid, "INDEX_"+indexing_statuses.BATCH_FINISHED, self.db)
 
     @inlineCallbacks
@@ -705,8 +654,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         elif self.recent_indexes > 100 or (self.recent_indexes and not oldest_page_in_queue) or time.time() - self.last_links_loop > 1800:
             self.loop_running = "generating links"
             self.loop_running_since = time.time()
-            conn = getThriftConn()
-            yield conn.addCallback(self.generate_WEs_links).addErrback(self.handle_index_error)
+            yield self.generate_WEs_links()
             self.recent_indexes = 0
             self.last_links_loop = time.time()
         elif oldest_page_in_queue:
@@ -725,8 +673,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 jobslog(jobid, "INDEX_"+indexing_statuses.BATCH_RUNNING, self.db)
                 self.loop_running = "indexing"
                 self.loop_running_since = time.time()
-                conn = getThriftConn()
-                yield conn.addCallback(self.index_batch, page_items, jobid).addErrback(self.handle_index_error)
+                yield self.index_batch(page_items, jobid)
                 self.recent_indexes += 1
                 self.last_index_loop = time.time()
             else:
@@ -744,61 +691,36 @@ class Memory_Structure(jsonrpc.JSONRPC):
         print failure
         return {'code': 'fail', 'message': failure}
 
-    @inlineCallbacks
     def jsonrpc_get_precision_exceptions(self, corpus=''):
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.get_precision_exceptions, corpus).addErrback(self.handle_error)
-        defer.returnValue(res)
-
-    @inlineCallbacks
-    def get_precision_exceptions(self, conn, corpus=''):
-        client = conn.client
-        exceptions = yield client.getPrecisionExceptions()
+        exceptions = self.parent.sync_ms.getPrecisionExceptions()
         self.precision_exceptions = exceptions
-        defer.returnValue(self.handle_results(exceptions))
+        return self.handle_results(exceptions)
 
-    @inlineCallbacks
     def jsonrpc_remove_precision_exceptions(self, list_exceptions, corpus=''):
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.remove_precision_exceptions, corpus).addErrback(self.handle_error)
-        defer.returnValue(res)
-
-    @inlineCallbacks
-    def remove_precision_exceptions(self, conn, list_exceptions, corpus=''):
-        client = conn.client
-        yield client.removePrecisionExceptions(list_exceptions)
+        self.parent.sync_ms.removePrecisionExceptions(list_exceptions)
         for e in list_exceptions:
             self.precision_exceptions.remove(e)
-        defer.returnValue(self.handle_results("Precision Exceptions %s removed." % list_exceptions))
+        return self.handle_results("Precision Exceptions %s removed." % list_exceptions)
 
-    @inlineCallbacks
-    def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, corpus='', corelinks=False):
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.get_webentities, list_ids, light, semilight, corelinks).addErrback(self.handle_error)
-        defer.returnValue(res)
-
-    @inlineCallbacks
-    def get_webentity(self, conn, webentity_id):
-        client = conn.client
-        WE = yield client.getWebEntity(webentity_id)
+    def get_webentity(self, webentity_id):
+        WE = self.parent.sync_ms.getWebEntity(webentity_id)
         defer.returnValue(WE)
 
     @inlineCallbacks
     def ramcache_webentities(self, client):
         WEs = self.webentities
         if WEs == [] or (time.time() - self.last_WE_update > 60):
-            WEs = yield client.getWebEntities()
+            WEs = yield self.msclient_pool.getWebEntities()
             self.last_WE_update = time.time()
             self.webentities = WEs
         self.total_webentities = len(WEs)
         defer.returnValue(WEs)
 
     @inlineCallbacks
-    def get_webentities(self, conn, list_ids=None, light=False, semilight=False, corelinks=False):
-        client = conn.client
+    def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, corpus='', corelinks=False):
         jobs = {}
         if list_ids and len(list_ids):
-            WEs = yield client.getWebEntitiesByIDs(list_ids)
+            WEs = yield self.msclient_pool.getWebEntitiesByIDs(list_ids)
             for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)]):
                 jobs[job['webentity_id']] = job
         else:
@@ -813,123 +735,93 @@ class Memory_Structure(jsonrpc.JSONRPC):
             print "...got WebentityLinks..."
         defer.returnValue(self.handle_results(res))
 
-    @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, corpus=''):
-        mem_struct_conn = getThriftConn()
-        pages = yield mem_struct_conn.addCallback(self.get_webentity_pages, webentity_id).addErrback(self.handle_error)
+        pages = self.parent.async_ms.getPagesFromWebEntity(webentity_id)
         if "code" in pages:
-            defer.returnValue(pages)
+            return pages
         formatted_pages = [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
-        defer.returnValue(self.handle_results(formatted_pages))
+        return self.handle_results(formatted_pages)
 
-    def get_webentity_pages(self, conn, webentity_id):
-        client = conn.client
-        return client.getPagesFromWebEntity(webentity_id)
-
-    @inlineCallbacks
     def jsonrpc_get_webentity_by_url(self, url):
-        mem_struct_conn = getThriftConn()
-        l = lru.url_to_lru_clean(url)
-        WE = yield mem_struct_conn.addCallback(self.get_webentity_matching_lru, l).addErrback(self.handle_error)
+        l = urllru.url_to_lru_clean(url)
+        WE = self.parent.sync_ms.findWebEntityMatchingLRU(l)
         if isinstance(WE, dict):
-            defer.returnValue({"code": 'fail', "result": "No webentity found in memory Structure for %s" % url})
-        defer.returnValue(self.handle_results(self.format_webentity(WE)))
+            return {"code": 'fail', "result": "No webentity found in memory Structure for %s" % url}
+        return self.handle_results(self.format_webentity(WE))
 
-    @inlineCallbacks
-    def get_webentity_matching_lru(self, conn, l):
-        client = conn.client
-        res = yield client.findWebEntityMatchingLRU(l)
-        defer.returnValue(res)
+    def get_webentity_by_lruprefix(self, l):
+        res = self.parent.sync_ms.findWebEntityByLRUPrefix(l)
+        return res
 
-    @inlineCallbacks
-    def get_webentity_by_lruprefix(self, conn, l):
-        client = conn.client
-        res = yield client.findWebEntityByLRUPrefix(l)
-        defer.returnValue(res)
-
-    @inlineCallbacks
     def jsonrpc_get_webentity_subwebentities(self, webentity_id):
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.get_webentity_relative_webentities, webentity_id, "children")
-        defer.returnValue(res)
+        return self.get_webentity_relative_webentities(webentity_id, "children")
 
-    @inlineCallbacks
     def jsonrpc_get_webentity_parentwebentities(self, webentity_id):
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.get_webentity_relative_webentities, webentity_id, "parents")
-        defer.returnValue(res)
+        return self.get_webentity_relative_webentities(webentity_id, "parents")
 
-    @inlineCallbacks
     def get_webentity_relative_webentities(self, conn, webentity_id, relative_type="children"):
         if relative_type != "children" and relative_type != "parents":
             defer.returnValue(self.handle_error("ERROR: must set relative type as children or parents"))
-        client = conn.client
-        try:
-            jobs = {}
-            if relative_type == "children":
-                WEs = yield client.getSubWebEntities(webentity_id)
-            else:
-                WEs = yield client.getParentWebEntities(webentity_id)
-            for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)]):
-                jobs[job['webentity_id']] = job
-            res = [self.format_webentity(WE, jobs) for WE in WEs]
-            defer.returnValue(self.handle_results(res))
+        jobs = {}
+        if relative_type == "children":
+            WEs = self.msclient_sync.getSubWebEntities(webentity_id)
+        else:
+            WEs = self.msclient_sync.getParentWebEntities(webentity_id)
+        for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)]):
+            jobs[job['webentity_id']] = job
+        res = [self.format_webentity(WE, jobs) for WE in WEs]
+        return self.handle_results(res)
         except Exception as x:
-            defer.returnValue(self.handle_error(x))
+            return self.handle_error(x)
 
-    @inlineCallbacks
     def jsonrpc_get_webentities_network_json(self):
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.generate_network_WEs, "json").addErrback(self.handle_error)
+        res = self.generate_network_WEs("json")
         if "code" in res:
-            defer.returnValue(res)
-        defer.returnValue(self.handle_results(res))
+            return res
+        return self.handle_results(res)
 
     def jsonrpc_generate_webentities_network_gexf(self):
-        mem_struct_conn = getThriftConn()
-        mem_struct_conn.addCallback(self.generate_network_WEs, "gexf").addErrback(self.handle_error)
-        defer.returnValue(self.handle_results('GEXF graph generation started...'))
+        self.generate_network_WEs("gexf")
+        return self.handle_results('GEXF graph generation started...')
 
-    @inlineCallbacks
-    def jsonrpc_get_webentity_nodelinks_network_json(self, webentity_id=None, include_external_links=False):
-        mem_struct_conn = getThriftConn()
-        res = yield mem_struct_conn.addCallback(self.generate_network_WE_nodelinks, webentity_id, "json", include_external_links).addErrback(self.handle_error)
-        if "code" in res:
-            defer.returnValue(res)
-        defer.returnValue(self.handle_results(res))
+    def jsonrpc_get_webentity_nodelinks_network_json(self, webentity_id=None, outformat="json", include_external_links=False):
+        if outformat == "gexf":
+            return self.handle_error("... GEXF nodelinks network not implemented yet.")
+        s = time.time()
+        print "Generating %s nodelinks network for webentity %s ..." % (outformat, webentity_id)
+        links = self.sync_ms.getWebentityNodeLinks(webentity_id, include_external_links)
+        res = [[l.sourceLRU, l.targetLRU, l.weight] for l in links]
+        print "... JSON network generated in "+str(time.time()-s)
+        return self.handle_results(res)
 
-    @inlineCallbacks
-    def get_webentity_with_pages_and_subWEs(self, conn, webentity_id, all_pages_as_startpoints=False):
-        client = conn.client
-        WE = yield client.getWebEntity(webentity_id)
-        if not WE:
-            raise Exception("No webentity with id %s found" % webentity_id)
-        res = {'status': WE.status, 'lrus': list(WE.LRUSet), 'pages': [lru.lru_to_url(lr) for lr in WE.LRUSet], 'subWEs': []}
+    def get_webentity_with_pages_and_subWEs(self, webentity_id, all_pages_as_startpoints=False):
+        WE = self.parent.sync_ms.getWebEntity(webentity_id)
+        if is_error(WE):
+            return format_error("No webentity with id %s found" % webentity_id)
+        res = {'status': WE.status, 'lrus': list(WE.LRUSet), 'pages': [urllru.lru_to_url(lr) for lr in WE.LRUSet], 'subWEs': []}
         if all_pages_as_startpoints:
-            pages = yield client.getPagesFromWebEntity(WE.id)
+            pages = self.parent.sync_ms.getPagesFromWebEntity(WE.id)
             if pages:
                 res['pages'] = [p.url for p in pages]
         else:
             res['pages'] = list(WE.startpages)
-        subs = yield client.getSubWebEntities(WE.id)
+        subs = self.parent.sync_ms.getSubWebEntities(WE.id)
         if subs:
             res['subWEs'] = [lr for subwe in subs for lr in subwe.LRUSet]
-        defer.returnValue(res)
+        return res
 
     @inlineCallbacks
-    def generate_WEs_links(self, conn):
-        client = conn.client
+    def generate_WEs_links(self):
         s = time.time()
         print "Generating links between web entities ..."
         jobslog("WE_LINKS", "Starting WebEntity links generation...", self.db)
-        self.webentities_links = yield client.generateWebEntityLinks()
+        self.webentities_links = yield self.parent.loop_ms.generateWebEntityLinks()
         s = str(time.time() -s)
         jobslog("WE_LINKS", "...finished WebEntity links generation (%ss)." %s, self.db)
         print "... processed webentity links in %ss" % s
 
     @inlineCallbacks
-    def generate_network_WEs(self, conn, outformat="json"):
-        client = conn.client
+    def generate_network_WEs(self, outformat="json"):
         s = time.time()
         print "Generating %s webentities network ..." % outformat
         if self.webentities_links == []:
@@ -943,11 +835,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     date = WE.lastModificationDate
                 elif WE.creationDate:
                     date = WE.creationDate
-                pages = yield client.getPagesFromWebEntity(WE.id)
+                pages = yield self.parent.async_ms.getPagesFromWebEntity(WE.id)
                 WEs_metadata[WE.id] = {"name": WE.name, "date": date, "LRUSet": ",".join(WE.LRUSet), "nb_pages": len(pages), "nb_intern_links": 0}
-                WE_links = yield client.findWebEntityLinksBySource(WE.id)
+                WE_links = yield self.parent.async_ms.findWebEntityLinksBySource(WE.id)
                 for link in WE_links:
-                    if link.targetId == WE.id:
+                    if link .targetId == WE.id:
                         WEs_metadata[WE.id]['nb_intern_links'] = link.weight
             gexf.write_WEs_network_from_MS(self.webentities_links, WEs_metadata, 'test_welinks.gexf')
             print "... GEXF network generated in test_welinks.gexf in "+str(time.time()-s)
@@ -957,63 +849,52 @@ class Memory_Structure(jsonrpc.JSONRPC):
             print "... JSON network generated in "+str(time.time()-s)
             defer.returnValue(res)
 
-    @inlineCallbacks
-    def generate_network_WE_nodelinks(self, conn, webentity_id, outformat="json", include_external_links=False):
-        if outformat == "gexf":
-            print "... GEXF nodelinks network not implemented yet."
-            pass
-        client = conn.client
-        s = time.time()
-        print "Generating %s nodelinks network for webentity %s ..." % (outformat, webentity_id)
-        links = yield client.getWebentityNodeLinks(webentity_id, include_external_links)
-        res = [[l.sourceLRU, l.targetLRU, l.weight] for l in links]
-        print "... JSON network generated in "+str(time.time()-s)
-        defer.returnValue(res)
-
 def test_connexions():
     try:
+        transport = TSocket(config['memoryStructure']['thrift.host'], config['memoryStructure']['thrift.port']).open()
+# TODO: run via core ping on mem struct : core.sync_ms.ping()
+    except TException as x:
+        print "ERROR: Cannot connect to lucene memory structure through thrift, please check your server and the configuration in config.json."
+        if config['DEBUG']:
+            print x
+        exit()
+    try:
         run = Core()
+    except:
+        raise
+    try:
+        reactor.addSystemEventTrigger('before', 'shutdown', run.close)
         # clean possible previous crash
         update_ids = [job['_id'] for job in run.db[config['mongo-scrapy']['jobListCol']].find({'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'])]
         if len(update_ids):
             run.db[config['mongo-scrapy']['jobListCol']].update({'_id' : {'$in': update_ids}}, {'$set': {'indexing_status': indexing_statuses.BATCH_CRASHED}}, multi=True)
             jobslog(update_ids, "INDEX_"+indexing_statuses.BATCH_CRASHED, run.db)
     except Exception as x:
+        print "ERROR: Cannot connect to mongoDB, please check your server and the configuration in config.json."
         if config['DEBUG']:
             print x
-        else:
-            print "ERROR: Cannot connect to mongoDB, please check your server and the configuration in config.json."
-        return None
-    try:
-        transport = TSocket.TSocket(config['memoryStructure']['thrift.IP'], config['memoryStructure']['thrift.port']).open()
-# TODO: run via core ping on mem struct
-    except Thrift.TException as x:
-        print "ERROR: Cannot connect to lucene memory structure through thrift, please check your server and the configuration in config.json."
-        if config['DEBUG']:
-            print x
-        return None
+        exit()
     try:
         run.store.ensureDefaultCreationRuleExists()
     except Exception as x:
         print "ERROR: Cannot save default web entity into memory structure."
         if config['DEBUG']:
             print x
+        exit()
     try:
         res = json.loads(urllib.urlopen("%slistprojects.json" % run.crawler.scrapy_url).read())
     except Exception as x:
         print "ERROR: Cannot connect to scrapyd server, please check your server and the configuration in config.json."
         if config['DEBUG']:
             print x
-        return None
+        exit()
     if "projects" not in res or config['mongo-scrapy']['project'] not in res['projects']:
         print "ERROR: Project's spider does not exist in scrapyd server, please run bin/deploy_scrapy_spider.sh."
         print res
-        return None
+        exit()    
     return run
 
 core = test_connexions()
-if not core:
-    exit()
 
 # JSON-RPC interface
 core.putSubHandler('crawl', core.crawler)
@@ -1025,3 +906,4 @@ application = service.Application("Example JSON-RPC Server")
 site = server.Site(core)
 server = internet.TCPServer(config['twisted']['port'], site)
 server.setServiceParent(application)
+

@@ -1,7 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import simplejson as json
 
-def load_config(filename = '../config.json') :
-    try :
+def load_config(filename = 'config.json'):
+    try:
         with open(filename, 'r') as config_file:
             return json.load(config_file)
     except IOError as e:

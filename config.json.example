@@ -16,7 +16,7 @@
     "max_simul_requests_per_host" : 12
   },
   "memoryStructure": {
-    "thrift.IP": "localhost",
+    "thrift.host": "localhost",
     "thrift.port": 9090,
     "lucene.path": "/home/hci/lucene",
     "log.level": "INFO",

@@ -1,25 +1,35 @@
-#!/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-import subprocess, json, sys, pystache
-sys.path.append('../lib')
-import config_hci
+import subprocess, json, pystache
 from shutil import copyfile
 from contextlib import nested
 
+# Copy config.json from root to scrapy deployment dir
+print "Copying config.json from root directory to hyphe_backend/crawler for scrapy deployment..."
+try:
+    copyfile("../../config.json", "config.json")
+except IOError as e:
+    print "Could not open either source or destination config.json file"
+    print "config.json", "crawler/config.json"
+    print e
+    exit()
+
+from hyphe_backend.lib import config_hci
 config = config_hci.load_config()
 if not config:
     exit()
 
 # Copy LRU library from HCI lib/
-print "Importing lru.py library from HCI /lib to hcicrawler..."
+print "Importing urllru.py library from HCI hyphe_backend/lib to hcicrawler..."
 try:
-    copyfile("../lib/lru.py", "hcicrawler/lru.py")
+    copyfile("../lib/urllru.py", "hcicrawler/urllru.py")
 except IOError as e:
-    print "Could not open either source or destination lru.py file"
-    print "lib/lru.py", "crawler/hcicrawler/lru.py"
+    print "Could not open either source or destination urllru.py file"
+    print "lib/urllru.py", "crawler/hcicrawler/urllru.py"
     print e
     exit()
- 
+
 # Render the proxy middleware settings (hcicrawler/middlewares.py) from template with mongo/scrapy proxy config from config.json when defined
 print "Rendering hcicrawler/middlewares.py with proxy config values from config.json..."
 proxyconf = {'host': '', 'port': 3128}
@@ -71,4 +81,4 @@ except ValueError:
     print output, errors
     exit()
 print "The egg was successfully sent to scrapyd server", config['mongo-scrapy']['host'], "on port", config['mongo-scrapy']['scrapy_port']
- 
+

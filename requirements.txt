@@ -1,0 +1,14 @@
+# Python (via pip install -r .dependencies) :
+#Scrapy>=0.14
+twisted
+simplejson
+networkx
+pymongo>=2.0
+txJSON-RPC
+thrift
+#https://github.com/amuraru/thrift-connection-pool/archive/master.zip
+pystache
+# 
+# General :
+# thrift 0.8 : https://dist.apache.org/repos/dist/release/thrift/0.8.0/thrift-0.8.0.tar.gz
+

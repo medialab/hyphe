@@ -1,17 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
-Write graphes data into JSON or GEXF (Gephi Network files)
+Library to write graph data into JSON or GEXF (Gephi Network files)
 """
 
-import lru
+import urllru
 import simplejson as json
 import networkx as nx
 from networkx.readwrite import json_graph
 
 def write_graph_in_format(graph, filename, fileformat='gexf') :
-    if fileformat.lower() == 'json' :
-        json.dump(json_graph.node_link_data(graph), open(filename,'w'))
-    else :
-        nx.write_gexf(graph, filename)
+    if fileformat.lower() == 'json':
+        return json.dump(json_graph.node_link_data(graph), open(filename,'w'))
+    return nx.write_gexf(graph, filename)
 
 def write_pages_network_from_mongo(pages, filename, fileformat='gexf') :
     G = nx.DiGraph()
@@ -41,5 +43,4 @@ def write_WEs_network_from_MS(WEs_links, WEs_metadata, filename, fileformat='gex
         if link.sourceId != link.targetId :
             G.add_edge(link.sourceId, link.targetId, weight=link.weight)
     write_graph_in_format(G, filename, fileformat)
-
 

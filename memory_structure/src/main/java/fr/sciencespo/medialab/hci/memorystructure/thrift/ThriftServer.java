@@ -7,7 +7,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TFramedTransport;
@@ -214,27 +213,33 @@ public class ThriftServer {
      * @throws TTransportException hmm
      */
     private static void initializeThriftServer() throws TTransportException {
-        //TServerTransport serverTransport = new TServerSocket(port);
-        //MemoryStructure.Processor processor = new MemoryStructure.Processor(memoryStructureImpl);
-        //TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
 
-        //
-        // server code provided by Patrick Browne
-        //
-        TProtocolFactory pfactory = new TBinaryProtocol.Factory();
-
-        TNonblockingServerTransport serverTransport = new TNonblockingServerSocket(port);
         MemoryStructure.Processor processor = new MemoryStructure.Processor(memoryStructureImpl);
+        // server code provided by Patrick Browne
+        TNonblockingServerTransport serverTransport = new TNonblockingServerSocket(port);
         THsHaServer.Args serverArgs = new THsHaServer.Args(serverTransport);
+        serverArgs.workerThreads(25);
         serverArgs.processor(processor);
         serverArgs.transportFactory(new TFramedTransport.Factory());
         serverArgs.protocolFactory(new TBinaryProtocol.Factory(true, true));
+        //serverArgs.protocolFactory(new TCompactProtocol.Factory());
         TServer server = new THsHaServer(serverArgs);
-        //
-        // end server code provided by Patrick Browne
-        //
-
         logger.info("starting Thrift server (THsHaServer) at port " + port);
+
+        // choice of server guided by https://github.com/m1ch1/mapkeeper/wiki/Thrift-Java-Servers-Compared
+        // choice of protocol guided by http://jnb.ociweb.com/jnb/jnbJun2009.html
+        // tryouts on hyphe TODO, local experiments give favor to THsHa + Binary
+        //TServerTransport serverTransport = new TServerSocket(port);
+        //TThreadPoolServer.Args serverArgs = new TThreadPoolServer.Args(serverTransport);
+        //serverArgs.minWorkerThreads(5);
+        //serverArgs.maxWorkerThreads(25);
+        //serverArgs.processor(processor);
+        //serverArgs.transportFactory(new TFramedTransport.Factory());
+        //serverArgs.protocolFactory(new TBinaryProtocol.Factory(true, true));
+        //serverArgs.protocolFactory(new TCompactProtocol.Factory());
+        //TServer server = new TThreadPoolServer(serverArgs);
+        //logger.info("starting Thrift server (TThreadPoolServer) at port " + port);
+
         server.serve();
     }
 

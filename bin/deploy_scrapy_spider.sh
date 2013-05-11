@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd crawler
+cd hyphe_backend/crawler
 python deploy.py
 

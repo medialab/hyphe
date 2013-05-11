@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 URL/LRU library to manage, build and clean original URLs and corresponding URLs
 """
