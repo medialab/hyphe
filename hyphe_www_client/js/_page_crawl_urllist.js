@@ -203,10 +203,13 @@ $.fn.editable.defaults.mode = 'popup';
                         D.dispatchEvent('update_webentities_byId', {
                             webentities_byId: webentities_byId
                         })
+                        D.dispatchEvent('declaredWebentity_indexed', {
+                            webentities_byId: webentities_byId
+                        })
                     }
                 }
             },{
-                // On autosearch or webentity reloaded, we look at the start pages and if needed we use the prefix
+                // On autosearch startpages or webentity reloaded, we look at the start pages and if needed we use the prefix
                 triggers: ['ui_startpagesAutosearch', 'startpagesWebentityreloaded']
                 ,method: function(d){
                     var we_id = d.data.webentityId
@@ -460,8 +463,8 @@ $.fn.editable.defaults.mode = 'popup';
             }
         }
 
-        this.triggers.events['declaredWebentity_updated'] = function(){
-            // When an web entity fetch is done, we search for the web entity to update and we update it, then we cascade lookup
+        this.triggers.events['declaredWebentity_indexed'] = function(){
+            // When an web entity fetch is done (after indexing), we search for the web entity to update and we update it, then we cascade lookup
             var we = D.get('declaredWebentity')
                 ,url = D.get('fetchedUrl')
                 ,pendings = $('div.webentity-info[data-webentity-status=pending]')
