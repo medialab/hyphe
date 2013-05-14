@@ -3,7 +3,7 @@ URL/LRU library to manage, build and clean original URLs and corresponding URLs
 """
 
 import re, urllib
-from urlparse import urljoin
+from urlparse import urljoin, urlparse
 
 lruFullPattern = re.compile("^([^:/?#]+):(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$")
 lruSchemePattern = re.compile("https?")
@@ -14,7 +14,9 @@ def fix_missing_http(url):
         return None
     if not url.startswith('http'):
         url = "http://%s" % url.lstrip('/')
-    return url
+    # lowerize host since some servers answer badly when querying upcase hosts
+    host = urlparse(url)[1]
+    return url.replace("://"+host, "://"+host.lower())
 
 def url_to_lru(url):
     """
