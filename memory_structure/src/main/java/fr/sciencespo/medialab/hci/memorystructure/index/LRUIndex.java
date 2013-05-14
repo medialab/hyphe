@@ -1801,12 +1801,15 @@ public class LRUIndex {
             TopDocs results = indexSearcher.search(query, null, 1);
             final int totalResults = results.totalHits;
             logger.info("total # of webentities in index is " + totalResults);
+            List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
+            if (totalResults == 0) {
+                return webEntityLinks;
+            }
             results = indexSearcher.search(query, null, totalResults);
             ScoreDoc[] scoreDocs = results.scoreDocs;
             Map<String, Map<String, Map<String, String>>> lruToWebEntityMap = new HashMap<String, Map<String, Map<String, String>>>();
             Map<String, Map<String, String>> tmpMapMap = new HashMap<String, Map<String, String>>();
             Map<String, String> tmpMap = new HashMap<String, String>();
-            List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
             Map<String, WebEntityLink> webEntityLinksMap;
             int intern_weight = 0;
             String sourceId, sourceLRU, sourceNode, sourcePrefix, shortLRU;
