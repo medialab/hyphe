@@ -484,8 +484,14 @@ $.fn.editable.defaults.mode = 'popup';
                             .append(
                                 $('<div class="row"/>')
                                     .append(
-                                        $('<div class="span3"/>')
-                                            .text(we.name)
+                                            $('<div class="span3"/>')
+                                                .append(
+                                                    $('<span/>')
+                                                        .text(' '+we.name)
+                                                ).append(
+                                                    $('<small class="muted"/>')
+                                                        .text(((we.lru_prefixes.length>1)?(' - '+we.lru_prefixes.length+' prefixes'):('')))
+                                                )
                                         )
                                     .append(
                                         $('<div class="span2 crawl-settings"/>')
