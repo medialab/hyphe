@@ -234,9 +234,9 @@ $.fn.editable.defaults.mode = 'popup';
                         })
                     } else {
                         var divs = $('div[data-webentity-id='+we_id+'] div.crawl-settings')
-                        divs.html('<span>Start pages OK</span>')
-                            .attr('data-crawlsettings-status', 'set')
-                        cascadeCrawlsettings()
+                        divs.html('<span>'+we.startpages.length+' start page'+((we.startpages.length>1)?('s'):(''))+' to test</span>')
+                            .attr('data-crawlsettings-status', 'startpagestestwaiting')
+                        cascadeFetchstartpages()
                     }
                 }
             },{
@@ -476,9 +476,16 @@ $.fn.editable.defaults.mode = 'popup';
                     // We have a valid target for the update
                     if(we !== undefined){
                         // We have a valid web entity
+                        var crawlStatusLabel = we.crawling_status.toLowerCase()
+                        if(we.crawling_status.toLowerCase() == 'finished'){
+                            crawlStatusLabel = 'crawled'
+                        } else if(we.crawling_status.toLowerCase() == 'pending' || we.crawling_status.toLowerCase() == 'running'){
+                            crawlStatusLabel = 'crawling'
+                        } else if(we.crawling_status.toLowerCase() == 'uncrawled'){
+                            crawlStatusLabel = ''
+                        }
                         // Edit
                         pending.html('')
-                            .addClass('text-success')
                             .attr('data-webentity-status', 'valid')
                             .attr('data-webentity-id', we.id)
                             .append(
@@ -488,9 +495,16 @@ $.fn.editable.defaults.mode = 'popup';
                                                 .append(
                                                     $('<span/>')
                                                         .text(' '+we.name)
+                                                        .addClass('text-success')
                                                 ).append(
                                                     $('<small class="muted"/>')
-                                                        .text(((we.lru_prefixes.length>1)?(' - '+we.lru_prefixes.length+' prefixes'):('')))
+                                                        .text((we.lru_prefixes.length>1)?(' ('+we.lru_prefixes.length+') '):(''))
+                                                        .attr('title', we.lru_prefixes.length+' prefixes')
+                                                ).append(
+                                                    $('<span class="pull-right"/>').append(
+                                                            $('<small class="muted"/>')
+                                                                .text(crawlStatusLabel)
+                                                        )
                                                 )
                                         )
                                     .append(
@@ -545,15 +559,17 @@ $.fn.editable.defaults.mode = 'popup';
             var div = $(waiting[0])
                 ,url = div.parent().parent().attr('data-url')
             
-            div.text('Fetch web entity...').attr('data-webentity-status', 'pending')
-                .addClass('text-info')
+            div.html('').append(
+                    $('<span class="text-info"/>').text('Fetch web entity...')
+                ).attr('data-webentity-status', 'pending')
+                
             D.dispatchEvent('ui_webentityFetch', {url: url})
         } else {
-            cascadeCrawlsettings()
+            cascadeFetchstartpages()
         }
     }
 
-    var cascadeCrawlsettings = function(){
+    var cascadeFetchstartpages = function(){
         var pending = $('div.crawl-settings[data-crawlsettings-status=pending]')
         if(pending.length == 0){
             var waiting = $('div.crawl-settings[data-crawlsettings-status=wait]')
@@ -566,6 +582,26 @@ $.fn.editable.defaults.mode = 'popup';
                 D.dispatchEvent('ui_startpagesAutosearch', {
                     webentityId: we_id
                 })
+            } else {
+                cascadeTeststartpages()
+            }
+        }
+    }
+
+    var cascadeTeststartpages = function(){
+        var pending = $('div.crawl-settings[data-crawlsettings-status=pending]')
+        if(pending.length == 0){
+            var waiting = $('div.crawl-settings[data-crawlsettings-status=startpagestestwaiting]')
+            if(waiting.length>0){
+                
+                /*var div = $(waiting[0])
+                   ,we_id = div.parent().parent().attr('data-webentity-id')
+                    ,divs = $('div[data-webentity-id='+we_id+'] div.crawl-settings')
+                divs.html('<span class="text-info">Auto-search start pages...</span>')
+                    .attr('data-crawlsettings-status', 'pending')
+                D.dispatchEvent('ui_startpagesAutosearch', {
+                    webentityId: we_id
+                })*/
             }
         }
     }
