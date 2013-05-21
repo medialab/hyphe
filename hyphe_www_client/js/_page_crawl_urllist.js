@@ -69,6 +69,11 @@ $.fn.editable.defaults.mode = 'popup';
                 id:'reloadedWebentity'
                 ,dispatch: 'reloadedWebentity_updated'
                 ,triggers: 'update_reloadedWebentity'   
+            },{
+                id:'lookups_byUrl'
+                ,value: {}
+                ,dispatch: 'lookups_byUrl_updated'
+                ,triggers: 'update_lookups_byUrl'   
             }
         ]
 
@@ -267,6 +272,18 @@ $.fn.editable.defaults.mode = 'popup';
                             webentityId: we.id
                         })
                     }
+                }
+            },{
+                // When an URL is lookedup, store the result
+                triggers: ['urllookupValidation_updated']
+                ,method: function(){
+                    var lookup = D.get('urllookupValidation')
+                        ,url = D.get('lookedupUrl')
+                        ,lookups_byUrl = D.get('lookups_byUrl')
+                    lookups_byUrl[url] = lookup
+                    D.dispatchEvent('update_lookups_byUrl', {
+                        lookups_byUrl: lookups_byUrl
+                    })
                 }
             }
         ]
@@ -527,6 +544,9 @@ $.fn.editable.defaults.mode = 'popup';
                 cascadeWebentities()
             }
         }
+        this.triggers.events['lookups_byUrl_updated'] = function(){
+            cascadeTeststartpages()
+        }
     })
 
 
@@ -575,7 +595,7 @@ $.fn.editable.defaults.mode = 'popup';
             var waiting = $('div.crawl-settings[data-crawlsettings-status=wait]')
             if(waiting.length>0){
                 var div = $(waiting[0])
-                   ,we_id = div.parent().parent().attr('data-webentity-id')
+                    ,we_id = div.parent().parent().attr('data-webentity-id')
                     ,divs = $('div[data-webentity-id='+we_id+'] div.crawl-settings')
                 divs.html('<span class="text-info">Auto-search start pages...</span>')
                     .attr('data-crawlsettings-status', 'pending')
@@ -589,19 +609,85 @@ $.fn.editable.defaults.mode = 'popup';
     }
 
     var cascadeTeststartpages = function(){
+        console.log('cascadeTeststartpages')
         var pending = $('div.crawl-settings[data-crawlsettings-status=pending]')
         if(pending.length == 0){
             var waiting = $('div.crawl-settings[data-crawlsettings-status=startpagestestwaiting]')
             if(waiting.length>0){
-                
-                /*var div = $(waiting[0])
-                   ,we_id = div.parent().parent().attr('data-webentity-id')
-                    ,divs = $('div[data-webentity-id='+we_id+'] div.crawl-settings')
-                divs.html('<span class="text-info">Auto-search start pages...</span>')
-                    .attr('data-crawlsettings-status', 'pending')
-                D.dispatchEvent('ui_startpagesAutosearch', {
-                    webentityId: we_id
-                })*/
+                var div = $(waiting[0])
+                    ,we_id = div.parent().parent().attr('data-webentity-id')
+                    ,we = D.get('webentities_byId')[we_id]
+                    ,startpages_tested = D.get('lookups_byUrl')
+                    ,startpages_untested = []
+                    ,startpages_valid = []
+                    ,startpages_redirected = []
+                    ,startpages_failed = []
+                we.startpages.forEach(function(sp){
+                    if(startpages_tested[sp] === undefined){
+                        console.log('start page ', sp, 'undefined')
+                        startpages_untested.push(sp)
+                    } else {
+                        var status = startpages_tested[sp]
+                        if(status == 200){
+                            // The start page is valid
+                            startpages_valid.push(sp)
+                        } else if([300, 301, 302].some(function(test){return status==test})){
+                            // Redirection
+                            startpages_redirected.push(sp)
+                        } else {
+                            // Fail
+                            startpages_failed.push(sp)
+                        }
+                        console.log('start page ', sp, 'status', status)
+                    }
+                })
+
+                // If there are pages to test, test the first
+                if(startpages_untested.length>0){
+                    var pendingLookups = $('span.lookup-info[data-lookup-status=pending]')
+                    if(pendingLookups.length == 0){
+                        div.html('<span class="text-info">Start pages tested...</span>')
+                        D.dispatchEvent('lookupUrl', {url: startpages_untested[0]})
+                    }
+                } else {
+                    // If all the pages are valid, search for the next
+                    if(startpages_valid.length == we.startpages.length){
+                        var s_letter = startpages_valid.length>1 ? 's' : ''
+                        div.attr('data-crawlsettings-status', 'startpagestestsuccess')
+                        div.html('')
+                        div.append(
+                                $('<span class="label label-success">'+startpages_valid.length+' start page'+s_letter+'</span>')
+                            ).append(
+                                $('<span> </span>')
+                            )
+                    } else {
+                        div.attr('data-crawlsettings-status', 'startpagestestfail')
+                        div.html('')
+                        if(startpages_redirected.length>0){
+                            var s_letter = startpages_redirected.length>1 ? 's' : ''
+                            div.append(
+                                    $('<span class="label label-warning">'+startpages_redirected.length+' redirection'+s_letter+'</span>')
+                                ).append(
+                                    $('<span> </span>')
+                                )
+                        }
+                        if(startpages_failed.length>0){
+                            var s_letter = startpages_failed.length>1 ? 's' : ''
+                            div.append(
+                                    $('<span class="label label-warning">'+startpages_failed.length+' wrong page'+s_letter+'</span>')
+                                ).append(
+                                    $('<span> </span>')
+                                )
+                        }
+                        var source_url = div.parent().parent().parent().parent().attr('data-url')
+                        if(we.startpages.indexOf(source_url) < 0){
+                            div.append(
+                                    $('<i class="icon-exclamation-sign" title="The source URL is not in the start pages"></i>')
+                                )
+                        }
+                    }
+                    cascadeTeststartpages()
+                }
             }
         }
     }

@@ -189,7 +189,7 @@ Americano   2011    Born This Way
                                 <h4>Web entity</h4>
                             </div>
                             <div class="span3">
-                                <h4>Settings</h4>
+                                <h4>Start pages</h4>
                             </div>
                         </div>
                         <div id="urllist"></div>
