@@ -14,14 +14,13 @@
         <style>
 /* Specific styles */
 .urlrow:hover{
-    background-color: #FFE;
+    background-color: #FFC;
 }
 .startUrl .editable{
     word-wrap: break-word;
     color: #333;
     border-bottom: dashed 1px #cef;
 }
-
 
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">

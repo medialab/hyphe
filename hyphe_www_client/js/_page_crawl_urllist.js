@@ -397,6 +397,13 @@ $.fn.editable.defaults.mode = 'popup';
                             $('<div class="span6"/>').append(
                                 $('<div class="webentity-info muted"/>').text('...')
                                     .attr('data-webentity-status', 'uninitialized')
+                                    .addClass('overable')
+                                    .popover({
+                                        title: url
+                                        ,placement: 'bottom'
+                                        ,trigger: 'manual'
+                                        ,html: $('<span class="muted">Please wait...</span>')
+                                    })
                             )
                         )
                 )
@@ -650,23 +657,30 @@ $.fn.editable.defaults.mode = 'popup';
                         D.dispatchEvent('lookupUrl', {url: startpages_untested[0]})
                     }
                 } else {
-                    // If all the pages are valid, search for the next
                     if(startpages_valid.length == we.startpages.length){
                         var s_letter = startpages_valid.length>1 ? 's' : ''
                         div.attr('data-crawlsettings-status', 'startpagestestsuccess')
                         div.html('')
                         div.append(
-                                $('<span class="label label-success">'+startpages_valid.length+' start page'+s_letter+'</span>')
+                                $('<span class="text-success">'+startpages_valid.length+' start page'+s_letter+'</span>')
                             ).append(
                                 $('<span> </span>')
                             )
                     } else {
                         div.attr('data-crawlsettings-status', 'startpagestestfail')
                         div.html('')
+                        if(startpages_valid.length>0){
+                            var s_letter = startpages_redirected.length>1 ? 's' : ''
+                            div.append(
+                                    $('<span class="text-success">'+startpages_valid.length+' start page'+s_letter+'</span>')
+                                ).append(
+                                    $('<span> </span>')
+                                )
+                        }
                         if(startpages_redirected.length>0){
                             var s_letter = startpages_redirected.length>1 ? 's' : ''
                             div.append(
-                                    $('<span class="label label-warning">'+startpages_redirected.length+' redirection'+s_letter+'</span>')
+                                    $('<span class="text-warning">'+startpages_redirected.length+' redirection'+s_letter+'</span>')
                                 ).append(
                                     $('<span> </span>')
                                 )
@@ -674,17 +688,17 @@ $.fn.editable.defaults.mode = 'popup';
                         if(startpages_failed.length>0){
                             var s_letter = startpages_failed.length>1 ? 's' : ''
                             div.append(
-                                    $('<span class="label label-warning">'+startpages_failed.length+' wrong page'+s_letter+'</span>')
+                                    $('<span class="text-warning">'+startpages_failed.length+' wrong page'+s_letter+'</span>')
                                 ).append(
                                     $('<span> </span>')
                                 )
                         }
-                        var source_url = div.parent().parent().parent().parent().attr('data-url')
-                        if(we.startpages.indexOf(source_url) < 0){
-                            div.append(
-                                    $('<i class="icon-exclamation-sign" title="The source URL is not in the start pages"></i>')
-                                )
-                        }
+                    }
+                    var source_url = div.parent().parent().parent().parent().attr('data-url')
+                    if(we.startpages.indexOf(source_url) < 0){
+                        div.append(
+                                $('<i class="icon-exclamation-sign" title="The source URL is not in the start pages" style="opacity: 0.5"></i>')
+                            )
                     }
                     cascadeTeststartpages()
                 }
