@@ -89,6 +89,7 @@
                     <p>
                         <ul>
                             <li><a href="crawl.php">Crawl</a></li>
+                            <li><a href="crawl_urllist.php">Crawl by a list of URLs</a></li>
                             <li><a href="webentities_exploreDiscovered.php">Explore discovered web entities</a></li>
                         </ul>
                     </p>

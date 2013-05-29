@@ -74,6 +74,20 @@ $.fn.editable.defaults.mode = 'popup';
                 ,value: {}
                 ,dispatch: 'lookups_byUrl_updated'
                 ,triggers: 'update_lookups_byUrl'   
+            },{
+                id:'crawlJobsScheduled'
+                ,value: -1
+                ,dispatch: 'crawlJobsScheduled_updated'
+                ,triggers: 'update_crawlJobsScheduled'
+            },{
+                id:'crawlJobsConfirmed'
+                ,value: 0
+                ,dispatch: 'crawlJobsConfirmed_updated'
+                ,triggers: 'update_crawlJobsConfirmed'
+            },{
+                id:'crawlValidation'
+                ,dispatch: 'crawlValidation_updated'
+                ,triggers: 'update_crawlValidation'
             }
         ]
 
@@ -137,6 +151,18 @@ $.fn.editable.defaults.mode = 'popup';
                         ],
                     })}
                 ,path:'0.result.0'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'crawl'
+                ,setter: 'crawlValidation'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.CRAWL,
+                        'params' : [
+                            settings.webentityId
+                            ,settings.maxDepth
+                        ],
+                    })}
+                ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             }
         ]
@@ -285,6 +311,91 @@ $.fn.editable.defaults.mode = 'popup';
                         lookups_byUrl: lookups_byUrl
                     })
                 }
+            },{
+                // When a web entity crawl selector is checked / unchecked, update UI
+                triggers: ['toggleCrawlSelector']
+                ,method: function(d){
+                    var we_id = d.data.webentityId
+                        ,selected = d.data.selected
+                    // Check all similar web entities
+                    var selectors = $('div[data-webentity-id='+we_id+'] div.select-webentity input.crawl-selector')
+                    if(selected){
+                        selectors.attr('checked', 'true')
+                        selectors.parent().parent().parent().parent().removeClass('crawl-disabled')
+                    } else {
+                        selectors.removeAttr('checked')
+                        selectors.parent().parent().parent().parent().addClass('crawl-disabled')
+                    }
+                    D.dispatchEvent('ui_update_globalSettings')
+                }
+            }, {
+                // When the lauch crawl button is clicked, launch the crawljobs
+                triggers: ['ui_launchCrawls']
+                ,method: function(){
+                    if(D.get('crawlJobsScheduled') == -1){
+                        var webentityDivs = $('div.webentity-info')
+                            ,selected_webentityIds = []
+                        webentityDivs.each(function(i, webentityDiv){
+                            var selector = $(webentityDiv).find('input.crawl-selector')
+                            if(selector && selector.is(':checked')){
+                                var we_id = $(webentityDiv).attr('data-webentity-id')
+                                selected_webentityIds.push(we_id)
+                            }
+                        })
+                        var selected_webentities = Utils.extractCases(selected_webentityIds)
+                            .map(function(we_id){
+                                    return D.get('webentities_byId')[we_id] || null
+                                })
+                        var maxdepth = $('#depth').val()
+                        if(Utils.checkforInteger(maxdepth)){
+                            // Freeze UI
+                            $('input.crawl-selector').parent().parent().html('<small>Scheduled</small>')
+                            $('#launchButton').addClass('disabled').click(function(){})
+                            // Record crawl jobs
+                            D.dispatchEvent('update_crawlJobsScheduled', {
+                                crawlJobsScheduled: selected_webentities.length
+                            })
+                            // Launch crawl jobs
+                            selected_webentities.forEach(function(we){
+                                D.request('crawl', {
+                                    webentityId: we.id
+                                    ,maxDepth: maxdepth
+                                })
+                            })
+                        }
+                    }
+                }
+            },{
+                // When a crawl is launched, update the confirmed count
+                triggers:['crawlValidation_updated']
+                ,method:function(){
+                    D.dispatchEvent('update_crawlJobsConfirmed', {
+                        crawlJobsConfirmed: D.get('crawlJobsConfirmed')+1
+                    })
+                }
+            },{
+                // When a crawl job is confirmed, display it
+                triggers:['crawlJobsConfirmed_updated']
+                ,method:function(){
+                    var done = D.get('crawlJobsConfirmed')
+                        ,total = D.get('crawlJobsScheduled')
+                    $('#crawlJobsFeedback').html('')
+                        .append(
+                                $('<span class="text-info"></span>')
+                                    .text(done+' / '+total+' crawl jobs launched')
+                            )
+                    if(done == total){
+                        // window.location = "crawl.php"
+                        $('#crawlJobsFeedback').html('')
+                            .append(
+                                    $('<span class="text-success"></span>')
+                                        .text(total+' crawl jobs successfully launched -')
+                                )
+                            .append(
+                                    $('<a href="crawl.php" target="_blank">Monitor crawl jobs</a>')
+                                )
+                    }
+                }
             }
         ]
     })
@@ -394,16 +505,9 @@ $.fn.editable.defaults.mode = 'popup';
                                     .attr('data-lookup-status', 'wait')
                             )
                         ).append(
-                            $('<div class="span6"/>').append(
-                                $('<div class="webentity-info muted"/>').text('...')
+                            $('<div class="span7"/>').append(
+                                $('<div class="webentity-info muted"/>')
                                     .attr('data-webentity-status', 'uninitialized')
-                                    .addClass('overable')
-                                    .popover({
-                                        title: url
-                                        ,placement: 'bottom'
-                                        ,trigger: 'manual'
-                                        ,html: $('<span class="muted">Please wait...</span>')
-                                    })
                             )
                         )
                 )
@@ -532,11 +636,14 @@ $.fn.editable.defaults.mode = 'popup';
                                                 )
                                         )
                                     .append(
-                                        $('<div class="span2 crawl-settings"/>')
-                                            .attr('data-crawlsettings-status', 'wait')
-                                            .append(
-                                                $('<span class="muted">Waiting</span>')
-                                                )
+                                            $('<div class="span3 crawl-settings"/>')
+                                                .attr('data-crawlsettings-status', 'wait')
+                                                .append(
+                                                    $('<span class="muted">Waiting</span>')
+                                                    )
+                                        )
+                                    .append(
+                                            $('<div class="span1 select-webentity"/>')
                                         )
                                 )
                     } else {
@@ -554,6 +661,55 @@ $.fn.editable.defaults.mode = 'popup';
         this.triggers.events['lookups_byUrl_updated'] = function(){
             cascadeTeststartpages()
         }
+    })
+
+    // Global settings module
+    D.addModule(function(){
+        domino.module.call(this)
+
+        var element = $('#globalSettings')
+
+        this.triggers.events['ui_update_globalSettings'] = function(){
+            element.html('')
+            var webentityDivs = $('div.webentity-info')
+                ,selected_webentityIds = []
+            webentityDivs.each(function(i, webentityDiv){
+                var selector = $(webentityDiv).find('input.crawl-selector')
+                if(selector && selector.is(':checked')){
+                    var we_id = $(webentityDiv).attr('data-webentity-id')
+                    selected_webentityIds.push(we_id)
+                }
+            })
+            var selected_webentities = Utils.extractCases(selected_webentityIds)
+                .map(function(we_id){
+                        return D.get('webentities_byId')[we_id] || null
+                    })
+
+            // Display
+            if(selected_webentities.length>0){
+                element.append(
+                        $('<h3/>').text(selected_webentities.length+' web entit'+((selected_webentities.length==1)?('y'):('ies'))+' to crawl')
+                    ).append(
+                        $('<label>Max depth</label>')
+                    ).append(
+                        $('<div class="input-append"/>').append(
+                                $('<input class="span1" id="depth" type="text" placeholder="Depth" value="1"/>')
+                            ).append(
+                                $('<button class="btn btn-primary" id="launchButton" type="button">Launch '+selected_webentities.length+' crawl job'+((selected_webentities.length==1)?(''):('s'))+'</button>')
+                                    .click(function(){
+                                        D.dispatchEvent('ui_launchCrawls')
+                                    })
+                            )
+                    ).append(
+                        $('<div id="crawlJobsFeedback"/>')
+                    )
+            } else {
+                element.append(
+                        $('<h3/>').text('Nothing to crawl')
+                    )
+            }
+        }
+        
     })
 
 
@@ -616,7 +772,6 @@ $.fn.editable.defaults.mode = 'popup';
     }
 
     var cascadeTeststartpages = function(){
-        console.log('cascadeTeststartpages')
         var pending = $('div.crawl-settings[data-crawlsettings-status=pending]')
         if(pending.length == 0){
             var waiting = $('div.crawl-settings[data-crawlsettings-status=startpagestestwaiting]')
@@ -631,7 +786,7 @@ $.fn.editable.defaults.mode = 'popup';
                     ,startpages_failed = []
                 we.startpages.forEach(function(sp){
                     if(startpages_tested[sp] === undefined){
-                        console.log('start page ', sp, 'undefined')
+                        //console.log('start page ', sp, 'undefined')
                         startpages_untested.push(sp)
                     } else {
                         var status = startpages_tested[sp]
@@ -645,7 +800,7 @@ $.fn.editable.defaults.mode = 'popup';
                             // Fail
                             startpages_failed.push(sp)
                         }
-                        console.log('start page ', sp, 'status', status)
+                        //console.log('start page ', sp, 'status', status)
                     }
                 })
 
@@ -658,6 +813,7 @@ $.fn.editable.defaults.mode = 'popup';
                     }
                 } else {
                     if(startpages_valid.length == we.startpages.length){
+                        // Start pages are all valid !
                         var s_letter = startpages_valid.length>1 ? 's' : ''
                         div.attr('data-crawlsettings-status', 'startpagestestsuccess')
                         div.html('')
@@ -666,6 +822,24 @@ $.fn.editable.defaults.mode = 'popup';
                             ).append(
                                 $('<span> </span>')
                             )
+
+                        var selectSpan = $('div[data-webentity-id='+we_id+'] div.select-webentity')
+                        selectSpan.html('').append(
+                                $('<label class="checkbox"></label>').append(
+                                        $('<input type="checkbox" class="crawl-selector">')
+                                            .attr('checked', 'true')
+                                            .click(function(e){
+                                                var state = $(e.target).is(':checked')
+                                                D.dispatchEvent('toggleCrawlSelector', {
+                                                    webentityId: we_id
+                                                    ,selected: state
+                                                })
+                                            })
+                                    ).append(
+                                        $('<span class="text-success">crawl</span>')
+                                    )
+                            )
+
                     } else {
                         div.attr('data-crawlsettings-status', 'startpagestestfail')
                         div.html('')
@@ -681,6 +855,7 @@ $.fn.editable.defaults.mode = 'popup';
                             var s_letter = startpages_redirected.length>1 ? 's' : ''
                             div.append(
                                     $('<span class="text-warning">'+startpages_redirected.length+' redirection'+s_letter+'</span>')
+                                        .attr('title', 'You cannot launch a crawl if some start pages are redirected')
                                 ).append(
                                     $('<span> </span>')
                                 )
@@ -693,15 +868,29 @@ $.fn.editable.defaults.mode = 'popup';
                                     $('<span> </span>')
                                 )
                         }
+
+                        var selectSpan = $('div[data-webentity-id='+we_id+'] div.select-webentity')
+                        selectSpan.html('').append(
+                                $('<a class="btn-link btn-mini fixncrawl">fix &amp; crawl</a>')
+                                    .attr('target', '_blank')
+                                    .attr('href', 'crawl_new.php#we_id='+we_id)
+                            )
                     }
                     var source_url = div.parent().parent().parent().parent().attr('data-url')
                     if(we.startpages.indexOf(source_url) < 0){
                         div.append(
-                                $('<i class="icon-exclamation-sign" title="The source URL is not in the start pages" style="opacity: 0.5"></i>')
+                                $('<i class="icon-exclamation-sign" title="The source URL is not in the start pages" style="opacity: 0.4"></i>')
                             )
                     }
                     cascadeTeststartpages()
                 }
+            } else {
+                var waitingLookups = $('span.lookup-info[data-lookup-status=wait]')
+                    ,uninitializedWebentities = $('div.webentity-info[data-webentity-status=uninitialized]')
+                    ,waitingWebentities = $('div.webentity-info[data-webentity-status=wait]')
+                    ,waitingSettings = $('div.crawl-settings[data-crawlsettings-status=wait]')
+                if(waitingLookups.length == 0 && uninitializedWebentities.length == 0 && waitingWebentities.length == 0 && waitingSettings.length == 0)
+                    D.dispatchEvent('ui_update_globalSettings')
             }
         }
     }
