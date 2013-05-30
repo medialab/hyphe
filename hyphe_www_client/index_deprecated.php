@@ -6,16 +6,14 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Hyphe</title>
+        <title>Hyphen</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
 
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <style>
-
         </style>
         <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
-        <link rel="stylesheet" href="css/bootstrap-editable.css">
         <link rel="stylesheet" href="css/select2.css">
         <link rel="stylesheet" href="css/main.css">
 
@@ -30,36 +28,52 @@
 
 <?php include("includes/navbar.php"); ?>
 
+
         <div class="container">
 
             <!-- Main hero unit for a primary marketing message or call to action -->
             <div class="splash-unit row">
                 <div class="span7">
                     <div class="image">
-                        <a href="index.php"><img title="Hyphe" src="res/header.png"/></a>
+                        <a href="index.php"><img title="Hyphen" src="res/header.png"/></a>
                     </div>
+                    <!-- <div class="title">
+                        hyphen
+                    </div> -->
                 </div>
                 <div class="span5">
                     <div class="abstract">
-                        <p><strong>Prototype monitoring.</strong> A test user experience and client-side monitoring application for Hyphe alpha.</p>
+                        <p><strong>Prototype monitoring.</strong> A test user experience and client-side monitoring application for Hyphen alpha.</p>
                     </div>
                 </div>
             </div>
 
+
+
+
+
             <div class="row">
                 <div class="span12">
-                    <h1>Welcome to Hyphe</h1>
-                    <p class="text-info">
-                        Hyphe does not manage different corpora or users at the moment. All the data is stored as a single corpus summarized here. 
-                    </p>
+                    <h1>Hardcoded test corpus</h1>
+                    <p><strong>
+                        We do not manage different corpuses (yet). When it will be the case this area will be dedicated to a description of the corpus.
+                    </strong></p>
                     <hr>
                 </div>
             </div>
 
             <div class="row">
                 <div class="span4">
-                    <h2>Status</h2>
-                    <div id="summary"></div>
+                    <h2>Content</h2>
+                    <p>
+                        <ul>
+                            <li><span class="content_webEntityCount"><span class="muted">n</span></span>  <span class="content_webEntityCount_text"><span class="muted">web entities</span></span></li>
+                            <li><span class="content_crawlJobsCount"><span class="muted">n</span></span>  <span class="content_crawlJobsCount_text"><span class="muted">crawl jobs</span></span></li>
+                        </ul>
+                    </p>
+                    <p>
+                        <a id="reinitialize_all" class="btn btn-danger"><i class="icon-off icon-white"></i> Reset all</a>
+                    </p>
                 </div>
                 <div class="span4">
                     <h2>Explore</h2>
@@ -81,18 +95,13 @@
                     </p>
                 </div>
             </div>
-            
         </div>
 
 <?php include("includes/footer.php"); ?>
 
-<?php include("includes/codebottom_v2.php"); ?>
+<?php include("includes/codebottom.php"); ?>
 
-        <!-- libs specifically needed here -->
-        <script src="js/libs/jquery.md5.js"></script>
-
-        <!-- Page-specific js packages -->
-        <script src="js/_page_index_modules.js"></script>
+        <!-- Page-specific js package -->
         <script src="js/_page_index.js"></script>
 
     </body>

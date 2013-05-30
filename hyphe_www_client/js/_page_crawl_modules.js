@@ -1,6 +1,6 @@
 ;(function($, ns, domino, undefined) {
   // Generic parameters
-  ns.bsDarkBackgroundStyles = [
+  ns.bsDarkBackgroundStyles = [   // The bootstrap styles that have a dark background
     'btn-primary'
     ,'btn-info'
     ,'btn-success'

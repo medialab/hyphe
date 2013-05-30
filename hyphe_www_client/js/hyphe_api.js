@@ -36,6 +36,9 @@ HYPHE_API = {
 	,CRAWLJOB:{
 		CANCEL:'crawl.cancel'
 	}
+	,STATUS:{
+		GET:'get_status'
+	}
 
 	,URL_LOOKUP:'lookup_httpstatus'
 }
