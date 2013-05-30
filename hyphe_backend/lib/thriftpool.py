@@ -16,6 +16,7 @@ from twisted.python.threadpool import ThreadPool
 from thrift.transport import TTransport
 from thrift.transport.TSocket import TSocket
 from thrift.Thrift import TException
+from hyphe_backend.lib.jsonrpc_utils import format_error
 
 DEFAULT_POOL_SIZE = 8
 DEFAULT_NETWORK_TIMEOUT = 1800000
@@ -119,12 +120,12 @@ class ThriftConnectionPool(object):
     def release_conn(self, conn):
         """ call when the connect is no usable anymore
         """
-        try:
-            self._close_thrift_connection(conn)
-        except:
-            pass
+        self._close_thrift_connection(conn)
         if not self._closed:
-            self._semaphore.release()
+            try:
+                self._semaphore.release()
+            except:
+                pass
 
 class ThriftPooledClient(object):
 
@@ -138,7 +139,7 @@ class ThriftPooledClient(object):
                  compact_protocol = False):
         self.retries = retries
         self._connection_pool = ThriftConnectionPool(iface_cls=iface_cls, host=host, port=port, framed_transport=framed_transport, compact_protocol=compact_protocol, pool_size=pool_size, network_timeout=network_timeout)
-        #inject all methods defined in the thrift Iface class
+        # inject all methods defined in the thrift Iface class
         for m in inspect.getmembers(iface_cls, predicate=inspect.ismethod):
             setattr(self, m[0], self.__create_thrift_proxy__(m[0]))
         # dispatch pool of multiple connections in Twisted threads
@@ -150,23 +151,14 @@ class ThriftPooledClient(object):
 
     def close(self):
         print "closing pool"
-        self._connection_pool.close()
         if hasattr(self, 'threadpool'):
             self.threadpool.stop()
-
-    def handle_error(self, failure):
-        try:
-            return {'code': 'fail', 'msg': failure.msg}
-        except:
-            try:
-                return {'code': 'fail', 'msg': failure.getErrorMessage()}
-            except:
-                return {'code': 'fail', 'msg': failure}
+        self._connection_pool.close()
 
     def __create_thrift_proxy__(self, methodName):
         def __thrift_proxy(*args):
             if hasattr(self, 'threadpool'):
-                return deferToThreadPool(reactor, self.threadpool, self.__thrift_call__, methodName, *args).addErrback(self.handle_error)
+                return deferToThreadPool(reactor, self.threadpool, self.__thrift_call__, methodName, *args)
             return self.__thrift_call__(methodName, *args)
         return __thrift_proxy
 
@@ -174,7 +166,10 @@ class ThriftPooledClient(object):
         attempts_left = self.retries
         result = None
         while True:
-            conn = self._connection_pool.get_connection()
+            try:
+                conn = self._connection_pool.get_connection()
+            except Exception as e:
+                return format_error(e)
             try:
                 result = getattr(conn, method)(*args)
             except TTransport.TTransportException as e:
@@ -183,11 +178,11 @@ class ThriftPooledClient(object):
                 if attempts_left > 0:
                     attempts_left -= 1
                     continue
-                raise e
+                return format_error(e)
             except Exception as e:
                 #data exceptions, return connection and don't retry
                 self._connection_pool.return_connection(conn)
-                self.handle_error(e)
+                return format_error(e)
 
             #call completed succesfully, return connection to pool
             self._connection_pool.return_connection(conn)
@@ -201,7 +196,7 @@ class ThriftSyncClient(ThriftPooledClient):
                  network_timeout = DEFAULT_NETWORK_TIMEOUT,
                  framed_transport = True,
                  compact_protocol = False):
-        ThriftPooledClient.__init__(self, iface_cls=iface_cls, host=host, port=port, framed_transport=framed_transport, compact_protocol=compact_protocol, pool_size=1, retries=retries, network_timeout=network_timeout)
+        ThriftPooledClient.__init__(self, iface_cls=iface_cls, host=host, port=port, pool_size=1, retries=retries, network_timeout=network_timeout, framed_transport=framed_transport, compact_protocol=compact_protocol)
 
 class ThriftASyncClient(ThriftPooledClient):
 
@@ -211,5 +206,5 @@ class ThriftASyncClient(ThriftPooledClient):
                  network_timeout = DEFAULT_NETWORK_TIMEOUT,
                  framed_transport = True,
                  compact_protocol = False):
-        ThriftPooledClient.__init__(self, iface_cls=iface_cls, host=host, port=port, framed_transport=framed_transport, compact_protocol=compact_protocol, pool_size=1, async=True, retries=retries, network_timeout=network_timeout)
+        ThriftPooledClient.__init__(self, iface_cls=iface_cls, host=host, port=port, pool_size=1, async=True, retries=retries, network_timeout=network_timeout, framed_transport=framed_transport, compact_protocol=compact_protocol)
 

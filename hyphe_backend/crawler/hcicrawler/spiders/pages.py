@@ -26,11 +26,11 @@ class PagesCrawler(BaseSpider):
         args = DEFAULT_INPUT.copy()
         args.update(kw)
         self.args = args
-        self.start_urls = to_list(args['start_urls'])
+        self.start_urls = args['start_urls']
         self.maxdepth = int(args['maxdepth'])
-        self.follow_prefixes = to_list(args['follow_prefixes'])
-        self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
-        self.discover_prefixes = to_list(args['discover_prefixes'])
+        self.follow_prefixes = args['follow_prefixes']
+        self.nofollow_prefixes = args['nofollow_prefixes']
+        self.discover_prefixes = args['discover_prefixes']
         self.user_agent = args['user_agent']
         self.link_extractor = SgmlLinkExtractor(canonicalize=False, deny_extensions=[])
         self.ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
@@ -136,10 +136,3 @@ class PagesCrawler(BaseSpider):
         if prefixes:
             return any((string.startswith(p) for p in prefixes))
         return False
-
-def to_list(obj):
-    if isinstance(obj, basestring):
-        if obj.startswith("['") and obj.endswith("']"):
-            return obj[2:-2].split("', '")
-        return []
-    return list(obj)

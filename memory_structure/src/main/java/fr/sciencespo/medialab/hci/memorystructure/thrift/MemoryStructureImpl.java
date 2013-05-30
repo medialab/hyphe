@@ -334,7 +334,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             x.printStackTrace();
             throw x;
         }
-        catch(Exception x) {
+        catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
@@ -455,11 +455,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         try {
             WebEntity webentity = lruIndex.retrieveWebEntityMatchingLRU(lru);
             if(webentity == null) {
-                throw new MemoryStructureException().setMsg("No matching webEntity found for " + lru);
+                throw new MemoryStructureException("No matching webEntity found for lru " + lru, "", IndexException.class.getName());
             }
             return webentity;
         }
-        catch (Exception x) {
+        catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
@@ -480,7 +480,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         try {
             WebEntity webentity = lruIndex.retrieveWebEntityByLRUPrefix(prefix);
             if(webentity == null) {
-                throw new MemoryStructureException().setMsg("No matching webEntity found.");
+                throw new MemoryStructureException("No matching webEntity found for prefix " + prefix, "", IndexException.class.getName());
             }
             return webentity;
         }
