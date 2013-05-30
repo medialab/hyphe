@@ -88,7 +88,7 @@ domino.settings({
 					.append($('<br/>'))
 			}
 			div.append($('<br/>'))
-				
+
 			div.append(
 						$('<span/>').text('Last memory activity '+Utils.prettyDate((new Date()).setTime(status.memory_structure.job_running_since)))
 					)
@@ -134,6 +134,18 @@ domino.settings({
     $(document).ready(function(){
         D.request('getStatus', {})
     })
+
+
+
+
+    //// Clock
+    function refreshStatus() {
+    	D.request('getStatus', {})
+   	}
+   	var auto_refresh_status = setInterval(refreshStatus, 5000);
+
+
+
 
     //// Processing
     

@@ -48,42 +48,20 @@
 
             <div class="row">
                 <div class="span12">
-                    <h1>Welcome to Hyphe</h1>
-                    <p class="text-info">
-                        Hyphe does not manage different corpora or users at the moment. All the data is stored as a single corpus summarized here. 
+                    <h1>Reset</h1>
+                    <p class="text-error">
+                        Reset is <strong>permanent</strong>. Clicking on this button is <strong>definitive</strong>. You will delete all memory content and stop all crawl jobs. No undo.
                     </p>
                     <hr>
                 </div>
             </div>
 
             <div class="row">
-                <div class="span4">
-                    <h2>Status</h2>
-                    <div id="summary"></div>
-                </div>
-                <div class="span4">
-                    <h2>Explore</h2>
-                    <p>
-                        <ul>
-                            <li><a href="webentities_list.php">List of web entities</a></li>
-                            <li><a href="webentities_network.php">Network of web entities</a></li>
-                        </ul>
-                    </p>
-                </div>
-                <div class="span4">
-                    <h2>Work</h2>
-                    <p>
-                        <ul>
-                            <li><a href="crawl.php">Crawl</a></li>
-                            <li><a href="crawl_urllist.php">Crawl by a list of URLs</a></li>
-                            <li><a href="webentities_exploreDiscovered.php">Explore discovered web entities</a></li>
-                        </ul>
-                        <ul>
-                            <li><a href="reset.php">Reset all</a></li>
-                        </ul>
-                    </p>
+                <div class="span12">
+                    <a id="reinitialize_all" class="btn btn-danger"><i class="icon-off icon-white"></i> Reset all</a>
                 </div>
             </div>
+                
             
         </div>
 
@@ -95,8 +73,7 @@
         <script src="js/libs/jquery.md5.js"></script>
 
         <!-- Page-specific js packages -->
-        <script src="js/_page_index_modules.js"></script>
-        <script src="js/_page_index.js"></script>
+        <script src="js/_page_reset.js"></script>
 
     </body>
 </html>
