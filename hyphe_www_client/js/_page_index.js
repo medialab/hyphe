@@ -106,22 +106,6 @@ domino.settings({
 				.append($('<br/>'))
 
         	element.append(div)
-
-/*
-        	crawler: Object
-				jobs_pending: 0
-				jobs_running: 0
-				pages_crawled: 1242
-
-			memory_structure: Object
-				job_running: null
-				job_running_since: 1369904197218.76
-				last_index: 1369857266493.114
-				last_links_generation: 1369904201808.857
-				pages_to_index: 0
-				webentities: 581
-*/
-
         }
 
         this.triggers.events['status_updated'] = redraw
@@ -142,7 +126,7 @@ domino.settings({
     function refreshStatus() {
     	D.request('getStatus', {})
    	}
-   	var auto_refresh_status = setInterval(refreshStatus, 5000);
+   	var auto_refresh_status = setInterval(refreshStatus, 20000);
 
 
 

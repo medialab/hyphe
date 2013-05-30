@@ -430,6 +430,12 @@ domino.settings({
         D.request('getCrawljobs', {})
     })
 
+    //// Clock
+    function refreshCrawljobs() {
+        D.request('getCrawljobs', {})
+    }
+    var auto_refresh_crawljobs = setInterval(refreshCrawljobs, 5000)
+
     //// Web entities: index
     var webentities_buildIndex = function(webentities){
         var webentities_byId = {}

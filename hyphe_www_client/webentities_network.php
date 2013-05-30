@@ -102,8 +102,13 @@
                     <div id="sigmaContainer"><span class="muted">[sigma loading]</span></div>
                 </div>
                 <div class="span4">
+                    <h3>Modes</h3>
+                    <p class="text-info">
+                        Which web entities to display
+                    </p>
+                    <div id='modes'></div>
                     <h3>Download</h3>
-                    <div id='download'/>
+                    <div id='download'></div>
                 </div>
             </div>
             

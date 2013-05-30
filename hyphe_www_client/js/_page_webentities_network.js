@@ -28,6 +28,10 @@ domino.settings({
                 ,dispatch: 'webentitiesLinks_updated'
                 ,triggers: 'update_webentitiesLinks'
             },{
+                id:'filteredNetworkJson'
+                ,dispatch: 'filteredNetworkJson_updated'
+                ,triggers: 'update_filteredNetworkJson'
+            },{
                 id:'networkJson'
                 ,dispatch: 'networkJson_updated'
                 ,triggers: 'update_networkJson'
@@ -41,7 +45,69 @@ domino.settings({
                 ,value: false
                 ,dispatch: 'layoutRunning_updated'
                 ,triggers: 'update_layoutRunning'
+            },{
+                id: 'modes'
+                ,value: [
+                    {
+                        id: 'mode_corpusInProgress'
+                        ,title: 'Corpus in progress'
+                        ,abstract: 'IN + UNDECIDED'
+                        ,info: 'The corpus including web entities you still have to accept or refuse'
+                        ,filter: function(n){
+                            return ['IN', 'UNDECIDED'].indexOf(n.attributes_byId['attr_status']) >= 0
+                        }
+                    },{
+                        id: 'mode_topNeighbors'
+                        ,title: 'Top neighbors'
+                        ,abstract: 'IN + UNDECIDED + top DISCOVERED'
+                        ,info: 'The corpus in progress with neighbors (discovered web entities) cited 3+ times by other web entities'
+                        ,filter: function(n){
+                            if(['IN', 'UNDECIDED'].indexOf(n.attributes_byId['attr_status']) >= 0){
+                                return true
+                            } else if(n.attributes_byId['attr_status'] == 'DISCOVERED'){
+                                return n.inEdges.length >= 3
+                            } else {
+                                return false
+                            }
+                        }
+                    },{
+                        id: 'mode_corpusStrict'
+                        ,title: 'Corpus strict'
+                        ,abstract: 'IN only'
+                        ,info: 'The pure corpus, as the result of selection process'
+                        ,filter: function(n){
+                            return n.attributes_byId['attr_status'] == 'IN'
+                        }
+                    },{
+                        id: 'mode_frontier'
+                        ,title: 'Frontier'
+                        ,abstract: 'IN + UNDECIDED + OUT'
+                        ,info: 'The corpus and its frontier (rejected web entities), for analysis or monitoring the selection process'
+                        ,filter: function(n){
+                            return ['IN', 'UNDECIDED', 'OUT'].indexOf(n.attributes_byId['attr_status']) >= 0
+                        }
+                    },{
+                        id: 'mode_neighbors'
+                        ,title: 'All neighbors'
+                        ,abstract: 'IN + UNDECIDED + DISCOVERED'
+                        ,info: 'The corpus in progress with all discovered web entities'
+                        ,filter: function(n){
+                            return ['IN', 'UNDECIDED', 'DISCOVERED'].indexOf(n.attributes_byId['attr_status']) >= 0
+                        }
+                    },{
+                        id: 'mode_full'
+                        ,title: 'Full'
+                        ,abstract: 'IN + OUT + UNDECIDED + DISCOVERED'
+                        ,info: 'Everything'
+                        ,filter: function(n){
+                            return true
+                        }
+                    }
+                ]
             }
+
+
+
         ],services: [
             {
                 id: 'getWebentitiesLinks'
@@ -62,6 +128,9 @@ domino.settings({
                 ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             }
+
+
+
         ],hacks:[
             {
                 // Download network
@@ -111,6 +180,51 @@ domino.settings({
                         buildNetworkJson()
                     }
                 }
+            },{
+                // When network is updated or mode is changed, rebuild the filtered network and rescale
+                triggers: ['networkJson_updated', 'ui_changeMode']
+                ,method: function(){
+                    var net = D.get('networkJson')
+                        ,modes = D.get('modes')
+                        ,mode_id = $('#modes input[type=radio]:checked').val()
+                        ,fetchMode = modes.filter(function(m){return m.id == mode_id})
+                        ,mode
+
+                    if(fetchMode.length == 1){
+                        mode = fetchMode[0]
+                    } else {
+                        console.log('[_page_webentities_network.js] unexpected bug when fetching mode')
+                    }
+
+                    // Filter network
+                    net.nodes.forEach(function(n){
+                        n.display = mode.filter(n)
+                    })
+
+                    // Build filtered network
+                    var fnet = {}  // Filtered network
+
+                    fnet.attributes = []
+
+                    fnet.nodesAttributes = net.nodesAttributes
+                    
+                    fnet.nodes = net.nodes.filter(function(n){
+                        return n.display
+                    })
+                    
+                    fnet.edgesAttributes = net.edgesAttributes
+
+                    fnet.edges = net.edges.filter(function(e){
+                        return e.source.display && e.target.display
+                    })
+                    fnet = json_graph_api.getBackbone(fnet)
+                    json_graph_api.buildIndexes(fnet)
+
+                    D.dispatchEvent('update_filteredNetworkJson', {
+                        filteredNetworkJson: fnet
+                    })
+                    D.dispatchEvent('layoutRescale')
+                }
             }
         ]
     })
@@ -127,8 +241,8 @@ domino.settings({
             container.html('<div class="sigma-parent"><div class="sigma-expand" id="sigma-example"></div></div>')
         })
 
-        this.triggers.events['networkJson_updated'] = function(){
-            var json = D.get('networkJson')
+        this.triggers.events['filteredNetworkJson_updated'] = function(){
+            var json = D.get('filteredNetworkJson')
 
             // Kill old sigma if needed
             var oldSigmaInstance = D.get('sigmaInstance')
@@ -174,6 +288,46 @@ domino.settings({
         }
     })
     
+    // Modes (custom module)
+    D.addModule(function(){
+        domino.module.call(this)
+
+        var element = $('#modes')
+            ,modes = D.get('modes')
+
+        // Display options
+        element.html('')
+        modes.forEach(function(mode, i){
+            element.append(
+                $('<label class="radio"/>')
+                    .append(
+                        $('<input type="radio" name="optionsRadios" id="'+mode.id+'" value="'+mode.id+'" '+((i==0)?('checked'):(''))+'/>')
+                        )
+                    .append(
+                        $('<strong/>').text(mode.title)
+                        )
+                    .append(
+                        $('<span/>').text(' - '+mode.abstract)
+                        )
+                    .append(
+                        $('<br/>')
+                        )
+                    .append(
+                        $('<span class="text-info"/>').text(mode.info)
+                        )
+                    .append(
+                        $('<br/>')
+                        )
+                    .append(
+                        $('<br/>')
+                        )
+                )
+        })
+        element.find('input').change(function(){
+            D.dispatchEvent('ui_changeMode')
+        })
+    })
+
     // Layout start/stop button
     D.addModule(dmod.Button_twoStates, [{
         label_A: 'Start layout'
@@ -219,7 +373,7 @@ domino.settings({
 
     //// Processing
     var downloadNetwork = function() {
-        var json = D.get('networkJson')
+        var json = D.get('filteredNetworkJson')
 
         // Get layout properties from sigma
         var sigmaInstance = D.get('sigmaInstance')
