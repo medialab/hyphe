@@ -41,4 +41,5 @@ HYPHE_API = {
 	}
 
 	,URL_LOOKUP:'lookup_httpstatus'
+	,RESET:'reinitialize'
 }

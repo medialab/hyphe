@@ -59,6 +59,9 @@
             <div class="row">
                 <div class="span12">
                     <a id="reinitialize_all" class="btn btn-danger"><i class="icon-off icon-white"></i> Reset all</a>
+                    <br/>
+                    <br/>
+                    <span id="result_message"></span>
                 </div>
             </div>
                 

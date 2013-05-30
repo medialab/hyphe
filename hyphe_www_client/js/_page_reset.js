@@ -20,19 +20,19 @@ domino.settings({
         name: 'main'
         ,properties: [
             {
-                id:'status'
-                ,dispatch: 'status_updated'
-                ,triggers: 'update_status'
+                id:'resetallValidation'
+                ,dispatch: 'resetallValidation_updated'
+                ,triggers: 'update_resetallValidation'
             }
         ]
 
 
         ,services: [
         	{
-                id: 'getStatus'
-                ,setter: 'status'
+                id: 'resetAll'
+                ,setter: 'resetallValidation'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
-                        'method' : HYPHE_API.STATUS.GET,
+                        'method' : HYPHE_API.RESET,
                         'params' : [],
                     })}
                 ,path:'0.result'
@@ -42,6 +42,13 @@ domino.settings({
 
 
         ,hacks:[
+            {
+                // On reset button pushed, reset
+                triggers: ['ui_reset']
+                ,method: function(){
+                    D.request('resetAll')
+                }
+            }
         ]
     })
 
@@ -49,101 +56,41 @@ domino.settings({
 
     //// Modules
 
-    // 
+    // Reset button
     D.addModule(function(){
         domino.module.call(this)
 
-        var element = $('#summary')
+        var element = $('#reinitialize_all')
 
-        var redraw = function(){
-        	var status = D.get('status')
-        	console.log('status', status)
-        	element.html('')
-
-        	var div = $('<div/>')
-			div.append(
-						$('<strong/>').text(status.memory_structure.webentities + ' web entit'+((status.memory_structure.webentities>1)?('ies'):('y')))
-					)
-				.append($('<br/>'))
-				.append($('<br/>'))
-
-			div.append(
-						$('<span/>').text(status.crawler.pages_crawled + ' page'+((status.crawler.pages_crawled>1)?('s'):(''))+' crawled')
-					)
-				.append($('<br/>'))
-
-			if(status.crawler.jobs_pending == 0 && status.crawler.jobs_running == 0){
-				div.append(
-							$('<span/>').text('No crawl scheduled')
-						)
-					.append($('<br/>'))
-			} else {
-				div.append(
-							$('<span/>').text(status.crawler.jobs_running+' crawl job'+((status.crawler.jobs_running>1)?('s'):(''))+' running')
-						)
-					.append($('<br/>'))
-					.append(
-							$('<span/>').text(status.crawler.jobs_pending+' crawl job'+((status.crawler.jobs_pending>1)?('s'):(''))+' pending')
-						)
-					.append($('<br/>'))
-			}
-			div.append($('<br/>'))
-
-			div.append(
-						$('<span/>').text('Last memory activity '+Utils.prettyDate((new Date()).setTime(status.memory_structure.job_running_since)))
-					)
-				.append($('<br/>'))
-				.append(
-						$('<span/>').text(
-								'Last content indexation '+Utils.prettyDate((new Date()).setTime(status.memory_structure.last_index))
-								+((status.memory_structure.pages_to_index>0)?(' ('+status.memory_structure.pages_to_index+' pages to index)'):(''))
-							)
-					)
-				.append($('<br/>'))
-				.append(
-						$('<span/>').text('Last link built '+Utils.prettyDate((new Date()).setTime(status.memory_structure.last_links_generation)))
-					)
-				.append($('<br/>'))
-
-        	element.append(div)
-
-/*
-        	crawler: Object
-				jobs_pending: 0
-				jobs_running: 0
-				pages_crawled: 1242
-
-			memory_structure: Object
-				job_running: null
-				job_running_since: 1369904197218.76
-				last_index: 1369857266493.114
-				last_links_generation: 1369904201808.857
-				pages_to_index: 0
-				webentities: 581
-*/
-
+        element.click(function(){
+            if(!element.hasClass('disabled'))
+                D.dispatchEvent('ui_reset')
+        })
+        
+        this.triggers.events['ui_reset'] = function(){
+            element.addClass('disabled')
         }
-
-        this.triggers.events['status_updated'] = redraw
     })
 
+    // Validation
+    D.addModule(function(){
+        domino.module.call(this)
 
+        var element = $('#result_message')
 
-
-    //// On load
-    $(document).ready(function(){
-        D.request('getStatus', {})
+        this.triggers.events['resetallValidation_updated'] = function(){
+            element.html('')
+                .append(
+                        $('<span>The reset has been done</span>')
+                    )
+                .append(
+                        $('<span> - </span>')
+                    )
+                .append(
+                        $('<a href="index.php">Back to home page</a>')
+                    )
+        }
     })
-
-
-
-
-    //// Clock
-    function refreshStatus() {
-    	D.request('getStatus', {})
-   	}
-   	var auto_refresh_status = setInterval(refreshStatus, 5000);
-
 
 
 
