@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-<<<<<<< HEAD:core/processor.py
-=======
-
->>>>>>> new thrift connection architecture + beginning to refactor:hyphe_backend/processor.py
 """
 
 """

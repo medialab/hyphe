@@ -94,23 +94,7 @@ class Core(jsonrpc.JSONRPC):
             return res
         return format_result('Memory structure and crawling database contents emptied.')
 
-<<<<<<< Updated upstream
-    def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None, all_pages_as_startpoints=False):
-        """Tells scrapy to run crawl on a webentity defined by its id from memory structure."""
-        if not maxdepth:
-            maxdepth = config['mongo-scrapy']['maxdepth']
-        WE = self.store.get_webentity_with_pages_and_subWEs(webentity_id, all_pages_as_startpoints)
-        if "code" in WE:
-            return WE
-        if WE['status'] == "DISCOVERED":
-            self.store.jsonrpc_set_webentity_status(webentity_id, "UNDECIDED")
-        self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
-        return self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], convert_urls_to_lrus_array(config['discoverPrefixes']), maxdepth)
-
-    def jsonrpc_refreshjobs(self):
-=======
     def refresh_jobs(self):
->>>>>>> Stashed changes
         """Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks."""
         scrapyjobs = self.crawler.jsonrpc_list()
         if is_error(scrapyjobs):
@@ -175,20 +159,13 @@ class Core(jsonrpc.JSONRPC):
                 conn = httplib.HTTPConnection(host, timeout=timeout)
             conn.request('HEAD', path)
             response = conn.getresponse()
-<<<<<<< Updated upstream
-            return {"code": "success", "result": response.status}
-        except socket.gaierror as e:
-            return {"code": "success", "result": 0, "message": "DNS not found for url %s : %s" % (url, e)}
-        except Exception as e:
-            return {"code": "success", "result": -1, "message": "Cannot process url %s : %s" % (url, e)}
-=======
             res['result'] = response.status
         except socket.gaierror as e:
             res['message'] = "DNS not found for url %s : %s" % (url, e)
         except Exception as e:
+            res['result'] = -1
             res['message'] = "Cannot process url %s : %s." % (url, e)
         return res
->>>>>>> Stashed changes
 
     def jsonrpc_lookup(self, url, timeout=2):
         res = self.jsonrpc_lookup_httpstatus(url, timeout)
@@ -325,13 +302,8 @@ class Crawler(jsonrpc.JSONRPC):
             resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'webentity_id': webentity_id, 'nb_pages': 0, 'nb_links': 0, 'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts}}, upsert=True, safe=True)
             if (resdb['err']):
                 print "ERROR saving crawling job %s in database for webentity %s with arguments %s" % (res['jobid'], webentity_id, args), resdb
-<<<<<<< Updated upstream
-                return {'code': 'fail', 'message': resdb}
-        return {'code': 'success', 'result': res}
-=======
                 return format_error(resdb['err'])
         return format_result(res)
->>>>>>> Stashed changes
 
     def jsonrpc_cancel(self, job_id):
         """Cancels a scrapy job with id job_id."""
@@ -392,22 +364,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.last_index_loop = 0
         self.recent_indexes = 0
         reactor.callLater(2, self.index_loop.start, 1, True)
-<<<<<<< Updated upstream
-
-    def handle_results(self, results):
-        if config['DEBUG'] and len(results) < 100:
-            print results
-        return {'code': 'success', 'result': results}
-
-    def format_error(self, msg):
-        return {'code': 'fail', 'msg': msg}
-
-    def handle_error(self, failure, print_error=True):
-        if print_error:
-            print failure
-        return self.format_error(failure.getErrorMessage())
-=======
->>>>>>> Stashed changes
 
     def format_webentity(self, WE, jobs=None, light=False, semilight=False):
         if WE:
@@ -427,11 +383,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 res['tags'][tag] = {}
                 for key, val in values.iteritems():
                     res['tags'][tag][key] = list(val)
-<<<<<<< Updated upstream
-            #pages = yield self.parent.sync_ms.getPagesFromWebEntity(WE.id)
-=======
             # pages = yield self.msclient_pool.getPagesFromWebEntity(WE.id)
->>>>>>> Stashed changes
             # nb_pages = len(pages)
             # nb_links
             job = None
@@ -512,12 +464,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_declare_webentity_by_lru(self, lru_prefix):
         lru_prefix = lru.cleanLRU(lru_prefix)
-<<<<<<< Updated upstream
-        existing = self.get_webentity_by_lruprefix(lru_prefix)
-=======
         existing = self.msclient_sync.findWebEntityByLRUPrefix(lru_prefix)
         # if not is_error() ?
->>>>>>> Stashed changes
         if not isinstance(existing, dict):
             return format_error('LRU prefix "%s" is already set to an existing webentity : %s' % (lru_prefix, existing))
         return handle_standard_results(self.create_webentity(WebEntity(None, [lru_prefix], urllru.lru_to_url_short(lru_prefix)), 'lru'))
@@ -580,12 +528,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_rename_webentity(self, webentity_id, new_name):
         if not new_name or new_name == "":
             return format_error("ERROR: please specify a value for the webentity's name")
-<<<<<<< Updated upstream
-        res = self.update_webentity(webentity_id, "name", new_name)
-        return res
-=======
         return self.update_webentity(webentity_id, "name", new_name)
->>>>>>> Stashed changes
 
     def jsonrpc_set_webentity_status(self, webentity_id, status):
         return self.update_webentity(webentity_id, "status", status)
@@ -640,16 +583,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return self.update_webentity(webentity_id, "metadataItems", tag_value, "pop", tag_key, tag_namespace)
 
     def jsonrpc_set_webentity_tag_values(self, webentity_id, tag_namespace, tag_key, tag_values):
-<<<<<<< Updated upstream
-        if not isinstance(tag_values, list):
-            tag_values = list(tag_values)
-        return self.update_webentity(webentity_id, "metadataItems", tag_values, "update", tag_key, tag_namespace).addErrback(self.handle_error)
-=======
-        mem_struct_conn = getThriftConn()
         if not isinstance(tag_values, list):
             tag_values = list(tag_values)
         return self.update_webentity(webentity_id, "metadataItems", tag_values, "update", tag_key, tag_namespace)
->>>>>>> Stashed changes
 
     @inlineCallbacks
     def jsonrpc_merge_webentity_into_another(self, old_webentity_id, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False):
@@ -748,16 +684,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if self.total_webentities == -1 or time.time() - self.last_WE_update > 300:
             self.loop_running = "collecting webentities and links from memory_structure"
             print "Updating webentities count..."
-<<<<<<< Updated upstream
-            yield self.jsonrpc_get_webentities(light=True, corelinks=(self.total_webentities == -1))
-        elif self.recent_indexes > 100 or (self.recent_indexes and not oldest_page_in_queue) or time.time() - self.last_links_loop > 1800:
-=======
             res = yield self.jsonrpc_get_webentities(light=True, corelinks=(self.total_webentities == -1))
             if is_error(res):
                 print res['message']
                 returnD(False)
-        elif self.recent_indexes > 100 or (self.recent_indexes and not oldest_page_in_queue) or time.time() - (self.recent_indexes and self.last_links_loop > 1800):
->>>>>>> Stashed changes
+        elif self.recent_indexes > 100 or (self.recent_indexes and not oldest_page_in_queue) or (self.recent_indexes and time.time() - self.last_links_loop > 1800):
             self.loop_running = "generating links"
             self.loop_running_since = time.time()
             res = yield self.generate_WEs_links()
