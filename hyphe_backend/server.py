@@ -76,7 +76,8 @@ class Core(jsonrpc.JSONRPC):
 
     def _cbRender(self, result, request, id, version):
         if config['DEBUG'] == 2:
-            print "RESULT: %s" % jsonrpclib.dumps(result, id=id, version=2.0)
+            txt = jsonrpclib.dumps(result, id=id, version=2.0)
+            print "RESULT: %s%s" % (txt[:1000], '...' if len(txt) > 1000 else '')
         return jsonrpc.JSONRPC._cbRender(self, result, request, id, version)
 
     def jsonrpc_ping(self):
@@ -825,14 +826,17 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = [self.format_webentity(WE, jobs) for WE in WEs]
         return format_result(res)
 
+    @inlineCallbacks
     def jsonrpc_get_webentities_network_json(self):
-        return handle_standard_results(self.generate_network_WEs("json"))
+        res = yield self.generate_network_WEs("json")
+        returnD(handle_standard_results(res))
 
+    @inlineCallbacks
     def jsonrpc_generate_webentities_network_gexf(self):
-        res = self.generate_network_WEs("gexf")
+        res = yield self.generate_network_WEs("gexf")
         if "code" in res:
-            return res
-        return format_result('GEXF graph generation started...')
+            returnD(res)
+        returnD(format_result('GEXF graph generation started...'))
 
     def jsonrpc_get_webentity_nodelinks_network_json(self, webentity_id=None, outformat="json", include_external_links=False):
         if outformat == "gexf":
