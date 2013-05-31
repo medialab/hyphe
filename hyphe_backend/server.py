@@ -77,7 +77,7 @@ class Core(jsonrpc.JSONRPC):
     def _cbRender(self, result, request, id, version):
         if config['DEBUG'] == 2:
             txt = jsonrpclib.dumps(result, id=id, version=2.0)
-            print "RESULT: %s%s" % (txt[:1000], '...' if len(txt) > 1000 else '')
+            print "RESULT: %s%s" % (txt[:1000], " ... [%d cars truncated]" % (len(txt)-1000) if len(txt) > 1000 else '')
         return jsonrpc.JSONRPC._cbRender(self, result, request, id, version)
 
     def jsonrpc_ping(self):
@@ -788,12 +788,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
             self.loop_running = False
         returnD(format_result(res))
 
+    @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, corpus=''):
-        pages = self.msclient_pool.getPagesFromWebEntity(webentity_id)
+        pages = yield self.msclient_pool.getPagesFromWebEntity(webentity_id)
         if is_error(pages):
-            return pages
+            returnD(pages)
         formatted_pages = [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
-        return format_result(formatted_pages)
+        returnD(format_result(formatted_pages))
 
     def jsonrpc_get_webentity_by_url(self, url):
         try:
