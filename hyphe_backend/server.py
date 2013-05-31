@@ -517,11 +517,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 res = self.msclient_sync.updateWebEntity(WE)
                 if is_error(res):
                     return res
+                self.recent_indexes += 1
                 return format_result("%s field of webentity %s updated." % (field_name, res))
             else:
                 res = self.msclient_sync.deleteWebEntity(WE)
                 if is_error(res):
                     return res
+                self.recent_indexes += 1
                 self.total_webentities -= 1
                 return format_result("webentity %s had no LRUprefix left and was removed." % webentity_id)
         except Exception as x:
