@@ -150,7 +150,6 @@ class ThriftPooledClient(object):
             reactor.addSystemEventTrigger('after', 'shutdown', self.threadpool.stop)
 
     def close(self):
-        print "closing pool"
         if hasattr(self, 'threadpool'):
             self.threadpool.stop()
         self._connection_pool.close()

@@ -137,7 +137,8 @@ class Core(jsonrpc.JSONRPC):
         return handle_standard_results(self.store.declare_page(url))
 
     def jsonrpc_declare_pages(self, list_urls, corpus=''):
-        res = errors = []
+        res = []
+        errors = []
         for url in list_urls:
             WE = self.jsonrpc_declare_page(url)
             if is_error(WE):
@@ -358,12 +359,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.last_WE_update = 0
         self.webentities_links = []
         self.jsonrpc_get_precision_exceptions()
-        self.loop_running = False
-        self.loop_running_since = 0
-        self.last_links_loop = 0
-        self.last_index_loop = 0
+        self.loop_running_since = time.time()
+        self.last_links_loop = time.time()
+        self.last_index_loop = time.time()
         self.recent_indexes = 0
-        reactor.callLater(2, self.index_loop.start, 1, True)
+        self.loop_running = "Collecting WebEntities & WebEntityLinks"
+        reactor.callLater(0, self.jsonrpc_get_webentities, light=True, corelinks=True)
+        reactor.callLater(5, self.index_loop.start, 1, True)
 
     def format_webentity(self, WE, jobs=None, light=False, semilight=False):
         if WE:
@@ -424,8 +426,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WE = self.msclient_sync.findWebEntityMatchingLRU(lru_prefix)
         if is_error(WE):
             return WE
-        self.recent_indexes += 1
         if new:
+            self.recent_indexes += 1
             self.total_webentities += 1
             if source:
                 self.jsonrpc_add_webentity_tag_value(WE.id, 'CORE', 'user_created_via', source)
@@ -445,7 +447,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def declare_page(self, url):
         url = urllru.fix_missing_http(url)
-        lru = urllru.url_to_lru_clean(url)
+        try:
+            lru = urllru.url_to_lru_clean(url)
+        except ValueError as e:
+            return format_error(e)
         self.handle_lru_precision_exceptions(lru)
         is_node = urllru.isLRUNode(lru, config["precisionLimit"], self.precision_exceptions)
         is_full_precision = urllru.isFullPrecision(lru, self.precision_exceptions)
@@ -468,17 +473,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
         # if not is_error() ?
         if not isinstance(existing, dict):
             return format_error('LRU prefix "%s" is already set to an existing webentity : %s' % (lru_prefix, existing))
-        return handle_standard_results(self.create_webentity(WebEntity(None, [lru_prefix], urllru.lru_to_url_short(lru_prefix)), 'lru'))
-
-    def create_webentity(self, webentity, source=None):
-        res = self.msclient_sync.updateWebEntity(webentity)
+        res = self.msclient_sync.updateWebEntity(WebEntity(None, [lru_prefix], urllru.lru_to_url_short(lru_prefix)))
         if is_error(res):
             return res
-        new_WE = self.return_new_webentity(webentity.LRUSet[0], True, source)
+        new_WE = self.return_new_webentity(webentity.LRUSet[0], True, 'lru')
         if is_error(new_WE):
             return new_WE
         self.handle_lru_precision_exceptions(new_WE['lru_prefixes'][0])
-        return new_WE
+        return format_result(new_WE)
 
     def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None):
         WE = self.msclient_sync.getWebEntity(webentity_id)
@@ -641,7 +643,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if is_error(nb_pages):
                 print nb_pages['message']
                 returnD(False)
-            print "... "+str(nb_pages)+" pages indexed in "+str(time.time()-s)+"s ..."
+            print "..."+str(nb_pages)+" pages indexed in "+str(time.time()-s)+"s..."
             s=time.time()
             nb_links = len(links)
             for link_list in [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]:
@@ -649,13 +651,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 if is_error(res):
                     print res['message']
                     returnD(False)
-            print "... "+str(nb_links)+" links indexed in "+str(time.time()-s)+"s ..."
+            print "..."+str(nb_links)+" links indexed in "+str(time.time()-s)+"s..."
             s=time.time()
             n_WE = yield self.msclient_loop.createWebEntities(cache_id)
             if is_error(n_WE):
                 print nb_WE['message']
                 returnD(False)
-            print "... %s web entities created in %s" % (n_WE, str(time.time()-s))+"s"
+            print "...%s web entities created in %s" % (n_WE, str(time.time()-s))+"s"
             self.total_webentities += n_WE
             res = yield self.msclient_loop.deleteCache(cache_id)
             if is_error(res):
@@ -681,14 +683,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(False)
         oldest_page_in_queue = self.db[config['mongo-scrapy']['queueCol']].find_one(sort=[('timestamp', pymongo.ASCENDING)], fields=['_job'])
         # Run linking webentities on a regular basis when needed
-        if self.total_webentities == -1 or time.time() - self.last_WE_update > 300:
-            self.loop_running = "collecting webentities and links from memory_structure"
-            print "Updating webentities count..."
-            res = yield self.jsonrpc_get_webentities(light=True, corelinks=(self.total_webentities == -1))
-            if is_error(res):
-                print res['message']
-                returnD(False)
-        elif self.recent_indexes > 100 or (self.recent_indexes and not oldest_page_in_queue) or (self.recent_indexes and time.time() - self.last_links_loop > 1800):
+        if self.recent_indexes > 100 or (self.recent_indexes and not oldest_page_in_queue) or (self.recent_indexes and time.time() - self.last_links_loop >= 1800):
             self.loop_running = "generating links"
             self.loop_running_since = time.time()
             res = yield self.generate_WEs_links()
@@ -752,7 +747,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def ramcache_webentities(self):
         WEs = self.webentities
-        if WEs == [] or (time.time() - self.last_WE_update > 60):
+        if WEs == [] or self.recent_indexes:
             WEs = yield self.msclient_pool.getWebEntities()
             if is_error(WEs):
                 returnD(WEs)
@@ -773,15 +768,21 @@ class Memory_Structure(jsonrpc.JSONRPC):
         else:
    #        if not light:     # to be added when handled in front js
    #            semilight = True
+            if corelinks:
+                print "Collecting webentities..."
             WEs = yield self.ramcache_webentities()
             if is_error(WEs):
                 returnD(res)
             jobs = None
         res = [self.format_webentity(WE, jobs, light, semilight) for WE in WEs]
         if corelinks:
-            print "...get WebentityLinks..."
-            self.webentities_links = yield self.msclient_pool.getWebEntityLinks()
-            print "...got WebentityLinks..."
+            print "...got webentities, collecting WebentityLinks..."
+            res = yield self.msclient_pool.getWebEntityLinks()
+            if is_error(res):
+                returnD(res)
+            self.webentities_links = res
+            print "...got WebentityLinks."
+            self.loop_running = False
         returnD(format_result(res))
 
     def jsonrpc_get_webentity_pages(self, webentity_id, corpus=''):
@@ -792,7 +793,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return format_result(formatted_pages)
 
     def jsonrpc_get_webentity_by_url(self, url):
-        l = urllru.url_to_lru_clean(url)
+        try:
+            lru = urllru.url_to_lru_clean(url)
+        except ValueError as e:
+            return format_error(e)
         WE = self.msclient_sync.findWebEntityMatchingLRU(l)
         if is_error(WE):
             return WE #format_error("No webentity found in memory Structure for %s" % url)
@@ -830,12 +834,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_get_webentity_nodelinks_network_json(self, webentity_id=None, outformat="json", include_external_links=False):
         if outformat == "gexf":
-            return format_error("... GEXF nodelinks network not implemented yet.")
+            return format_error("...GEXF nodelinks network not implemented yet.")
         s = time.time()
-        print "Generating %s nodelinks network for webentity %s ..." % (outformat, webentity_id)
+        print "Generating %s nodelinks network for webentity %s..." % (outformat, webentity_id)
         links = self.msclient_sync.getWebentityNodeLinks(webentity_id, include_external_links)
         res = [[l.sourceLRU, l.targetLRU, l.weight] for l in links]
-        print "... JSON network generated in "+str(time.time()-s)
+        print "...JSON network generated in "+str(time.time()-s)
         return format_result(res)
 
     @inlineCallbacks
@@ -862,20 +866,21 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def generate_WEs_links(self):
         s = time.time()
-        print "Generating links between web entities ..."
+        print "Generating links between web entities..."
         jobslog("WE_LINKS", "Starting WebEntity links generation...", self.db)
-        self.webentities_links = yield self.msclient_loop.generateWebEntityLinks()
+        res = yield self.msclient_loop.generateWebEntityLinks()
         if is_error(res):
             print res['message']
             returnD(False)
+        self.webentities_links = res
         s = str(time.time() -s)
-        jobslog("WE_LINKS", "...finished WebEntity links generation (%ss)." %s, self.db)
-        print "... processed webentity links in %ss" % s
+        jobslog("WE_LINKS", "...finished WebEntity links generation (%ss)" %s, self.db)
+        print "...processed webentity links in %ss..." % s
 
     @inlineCallbacks
     def generate_network_WEs(self, outformat="json"):
         s = time.time()
-        print "Generating %s webentities network ..." % outformat
+        print "Generating %s webentities network..." % outformat
         if self.webentities_links == []:
             self.webentities_links = yield self.msclient_loop.getWebEntityLinks()
             if is_error(links):
@@ -906,11 +911,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     if link.targetId == WE.id:
                         WEs_metadata[WE.id]['nb_intern_links'] = link.weight
             gexf.write_WEs_network_from_MS(self.webentities_links, WEs_metadata, 'test_welinks.gexf')
-            print "... GEXF network generated in test_welinks.gexf in "+str(time.time()-s)
+            print "...GEXF network generated in test_welinks.gexf in "+str(time.time()-s)
             returnD(None)
         elif outformat == "json":
             res = [[link.sourceId, link.targetId, link.weight] for link in self.webentities_links]
-            print "... JSON network generated in "+str(time.time()-s)
+            print "...JSON network generated in "+str(time.time()-s)
             returnD(res)
 
 def test_connexions():

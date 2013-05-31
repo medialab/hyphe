@@ -36,10 +36,10 @@ def url_to_lru(url):
     lru = lruFullPattern.match(url)
     if lru:
         scheme, authority, path, query, fragment = lru.groups()
-        if lruSchemePattern.match(scheme):
-            hostAndPast = lruAuthorityPattern.match(authority)
-            if hostAndPast:
-                _, _, host, port = hostAndPast.groups()
+        if lruSchemePattern.match(scheme) and authority:
+            hostAndPort = lruAuthorityPattern.match(authority)
+            if hostAndPort:
+                _, _, host, port = hostAndPort.groups()
                 tokens = ["s:" + scheme, "t:"+ (port if port else (str(443) if scheme == "https" else str(80)))]
                 host = host.split(".")
                 host.reverse()
