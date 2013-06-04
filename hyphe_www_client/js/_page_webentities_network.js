@@ -138,7 +138,7 @@ domino.settings({
                 ,method: function(){downloadNetwork()}
             },{
                 // Layout: start
-                triggers: ['layoutStart']
+                triggers: ['ui_layoutStart']
                 ,method: function(){
                     D.dispatchEvent('update_layoutRunning', {
                         layoutRunning: true
@@ -146,7 +146,7 @@ domino.settings({
                 }
             },{
                 // Layout: stop
-                triggers: ['layoutStop']
+                triggers: ['ui_layoutStop']
                 ,method: function(){
                     D.dispatchEvent('update_layoutRunning', {
                         layoutRunning: false
@@ -220,10 +220,16 @@ domino.settings({
                     fnet = json_graph_api.getBackbone(fnet)
                     json_graph_api.buildIndexes(fnet)
 
+                    // Nodes size
+                    fnet.nodes.forEach(function(n){
+                        n.size = Math.sqrt(1+n.inEdges.length)
+                    })
+
                     D.dispatchEvent('update_filteredNetworkJson', {
                         filteredNetworkJson: fnet
                     })
                     D.dispatchEvent('layoutRescale')
+                    D.dispatchEvent('ui_layoutStart')
                 }
             }
         ]
@@ -247,9 +253,9 @@ domino.settings({
             // Kill old sigma if needed
             var oldSigmaInstance = D.get('sigmaInstance')
             if(oldSigmaInstance !== undefined){
-                D.dispatchEvent('update_layoutRunning', {
+               /* D.dispatchEvent('update_layoutRunning', {
                     layoutRunning: !D.get('layoutRunning')
-                })
+                })*/
                 oldSigmaInstance.emptyGraph() // .kill() is not currently implemented
                 container.find('#sigma-example').html('')
             }
@@ -282,9 +288,9 @@ domino.settings({
             })
 
             // Start the ForceAtlas2 algorithm
-            D.dispatchEvent('update_layoutRunning', {
+            /*D.dispatchEvent('update_layoutRunning', {
                 layoutRunning: true
-            })
+            })*/
         }
     })
     
@@ -324,6 +330,7 @@ domino.settings({
                 )
         })
         element.find('input').change(function(){
+            D.dispatchEvent('ui_layoutStop')
             D.dispatchEvent('ui_changeMode')
         })
     })
@@ -334,11 +341,11 @@ domino.settings({
         ,label_B: 'Stop layout'
         ,bsIcon_A: 'icon-play'
         ,bsIcon_B: 'icon-stop'
-        ,triggers_stateA: 'layoutStop'
-        ,triggers_stateB: 'layoutStart'
+        ,triggers_stateA: 'ui_layoutStop'
+        ,triggers_stateB: 'ui_layoutStart'
         ,triggers_enable: 'sigmaInstance_updated'
-        ,dispatch_A: 'layoutStart'
-        ,dispatch_B: 'layoutStop'
+        ,dispatch_A: 'ui_layoutStart'
+        ,dispatch_B: 'ui_layoutStop'
         ,disabled: true
         ,stateB_init: true
         ,bsSize: 'btn-mini'
