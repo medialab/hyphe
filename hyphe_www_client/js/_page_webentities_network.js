@@ -487,9 +487,9 @@ domino.settings({
             networkJson: net
         })
 
-        console.log('Web entities', webentities)
+        /*console.log('Web entities', webentities)
         console.log('Links', net)
-        console.log('Network', net)
+        console.log('Network', net)*/
     }
 
 })(jQuery, domino, (window.dmod = window.dmod || {}))
