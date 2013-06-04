@@ -1,3 +1,422 @@
+domino.settings({
+    shortcutPrefix: "::" // Hack: preventing a bug related to a port in a URL for Ajax
+    ,verbose: true
+})
+
+;(function($, domino, dmod, undefined){
+    
+    // Check that config is OK
+    if(HYPHE_CONFIG === undefined)
+        alert('Your installation of Hyphe has no configuration.\nCreate a file at "_config/config.js" in the same directory than index.php, with at least this content:\n\nHYPHE_CONFIG = {\n"SERVER_ADDRESS":"http://YOUR_RPC_ENDPOINT_URL"\n}')
+
+    // Stuff we reuse often when we initialize Domino
+    var rpc_url = HYPHE_CONFIG.SERVER_ADDRESS
+        ,rpc_contentType = 'application/x-www-form-urlencoded'
+        ,rpc_type = 'POST'
+        ,rpc_expect = function(data){return data[0] !== undefined && data[0].code !== undefined && data[0].code == 'success'}
+        ,rpc_error = function(data){alert('Oops, an error occurred... \n'+data)}
+
+    var D = new domino({
+        name: 'main'
+        ,properties: [
+            {
+                id:'webentities'
+                ,dispatch: 'webentities_updated'
+                ,triggers: 'update_webentities'
+            }
+        ]
+
+
+        ,services: [
+            {
+                id: 'getWebentities'
+                ,setter: 'webentities'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET,
+                        'params' : [
+                            settings.id_list    // List of webentities
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'getWebentitiesLight'
+                ,setter: 'webentities'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET,
+                        'params' : [
+                            settings.id_list    // List of webentities
+                            ,true               // Mode light
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'getWebentitiesSemilight'
+                ,setter: 'webentities'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET,
+                        'params' : [
+                            settings.id_list    // List of webentities
+                            ,false               // Mode light
+                            ,true                // Mode semi-light
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            }
+        ]
+
+
+        ,hacks:[
+            {
+                // Just monitoring the web entities
+                triggers: ['webentities_updated']
+                ,method: function(){
+                    console.log('web entities', D.get('webentities'))
+                }
+            }
+        ]
+    })
+
+
+
+    //// Modules
+
+    // Data Table
+    D.addModule(function(){
+        domino.module.call(this)
+
+        var element = $('#webEntities_table')
+
+        var build = function(){
+            var webentities = D.get('webentities')
+            element.html('')
+
+            /* Table initialisation */
+            // Changing the order of columns is painful with this config, so we have an object allowing us to deal with that
+            var columns = {
+                name:0
+                ,status:1
+                ,prefixes:2
+                ,creation_date_formatted:3
+                ,last_modification_date_formatted:4
+                ,actions:5
+                ,id:6
+                ,creation_date_unformatted:7
+                ,last_modification_date_unformatted:8
+                ,searchable:9
+            }
+
+            var data = webentities.map(function(we){
+                var searchable = we.name
+                    + 'status:' + we.status
+                    /*+ we.lru_prefixes.map(function(lru){
+                        return 'prefix:' + Utils.LRU_to_URL(lru)
+                    }).join(' ')*/
+                return [
+                    we.name
+                    ,we.status
+                    ,we.lru_prefixes
+                    ,we.creation_date
+                    ,we.last_modification_date
+                    ,we.id
+                    ,we.id
+                    ,-we.creation_date
+                    ,-we.last_modification_date
+                    ,searchable
+                ]
+            })
+            
+            initDataTables()    // Bootstrap integration
+
+            // Initialize this table
+            element.dataTable( {
+                "sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>"
+                ,'aaData': data
+                ,'bDeferRender': true
+                ,"sPaginationType": "bootstrap"
+                ,"oLanguage": {
+                    "sLengthMenu": '_MENU_ web entities at once',
+                    "sZeroRecords": '<span class="text-error">Nothing found - sorry</span>',
+                    "sInfo": '<span class="muted">Showing </span>_START_ to _END_<span class="muted"> of _TOTAL_ records</span>',
+                    "sInfoEmpty": '<span class="text-warning">Showing 0 to 0 of 0 records</span>',
+                    "sInfoFiltered": '<span class="text-info">(filtered from _MAX_ total records)</span>'
+                }
+                ,"fnDrawCallback": function( oSettings ) {
+                    // Update the web entities proxies
+                    //Hyphen.view.webEntities.proxiesUpdate(true)
+                    //Hyphen.view.table_updateInteractions()
+                }
+                ,"aaSorting": [[ columns.last_modification_date_formatted, "asc" ]]
+                ,"aoColumnDefs": [
+                    {
+                        "mRender": function ( data, type, row ) {
+
+                            return $('<div/>').append(
+                                $('<span/>').text(data)
+                                    .addClass('webEntity_proxy')
+                                    .attr('webEntity_id', row[columns.id])
+                            ).html()
+                        },
+                        "aTargets": [ columns.name ]
+                    }
+                    ,{
+                        "mRender": function ( data, type, row ) {
+
+                            return $('<div/>').append(
+                                $('<span class="label"/>').text(data)
+                                    //.addClass(Hyphen.view.webEntities_status_getLabelColor(data))
+                            ).html()
+                        },
+                        "aTargets": [ columns.status ]
+                    }
+                    ,{
+                        "mRender": function ( data, type, row ) {
+                            return $('<div/>').append(
+                                $('<ul class="unstyled"/>').append(
+                                    data.map(function(lru_prefix){
+                                        var url = Utils.LRU_to_URL(lru_prefix)
+                                        return $('<li/>').append(
+                                            $('<small/>').append(
+                                                $('<a/>')
+                                                    .attr('href', url)
+                                                    .attr('target', '_blank')
+                                                    .text(Utils.URL_simplify(url))
+                                            )
+                                        )
+                                    })
+                                )
+                            ).html()
+                        },
+                        "aTargets": [ columns.prefixes ]
+                    }
+                    ,{
+                        "mRender": function ( data, type, row ) {
+                            var date = new Date()
+                            date.setTime(data)
+                            return $('<div/>').append(
+                                $('<small/>').text(Utils.prettyDate(date))
+                                    .attr('title', date)
+                            ).html()
+                        },
+                        "aTargets": [ columns.creation_date_formatted, columns.last_modification_date_formatted ]
+                    }
+                    ,{
+                        "mRender": function ( data, type, row ) {
+                            return '<div class="actions" we_id="'+data+'"></div>'
+                        },
+                        "aTargets": [ columns.actions ]
+                    }
+                    ,{ "iDataSort": columns.creation_date_unformatted, "aTargets": [ columns.creation_date_formatted ] }
+                    ,{ "iDataSort": columns.last_modification_date_unformatted, "aTargets": [ columns.last_modification_date_formatted ] }
+                    ,{ "bVisible": false,  "aTargets": [ columns.searchable, columns.creation_date_unformatted, columns.last_modification_date_unformatted, columns.id ] }
+                    ,{ "sClass": "center", "aTargets": [ columns.actions ] }
+                    ,{ "bSearchable": false, "aTargets": [ columns.prefixes, columns.creation_date_formatted, columns.last_modification_date_formatted, columns.actions ] }
+                    ,{ "bSortable": false, "aTargets": [ columns.prefixes, columns.actions, columns.searchable ] }
+                    ,{ "sWidth": "80px", "aTargets": [ columns.actions ] }
+                    ,{ "sWidth": "80px", "aTargets": [ columns.status ] }
+                    ,{ "sWidth": "80px", "aTargets": [ columns.creation_date_formatted, columns.last_modification_date_formatted ] }
+                ]
+            } )
+            
+            /*
+            // Fill table
+            element.dataTable().fnAddData(webentities.map(function(we){
+                var searchable = we.name
+                    + 'status:' + we.status
+                return [
+                    we.name
+                    ,we.status
+                    ,we.lru_prefixes
+                    ,we.creation_date
+                    ,we.last_modification_date
+                    ,we.id
+                    ,we.id
+                    ,-we.creation_date
+                    ,-we.last_modification_date
+                    ,searchable
+                ]
+            }))
+*/
+
+            $('#loading_proxy').hide()
+            $('#loading_achieved').show()
+            //Hyphen.view.table_updateInteractions()
+        }
+
+        this.triggers.events['webentities_updated'] = build
+
+    })
+    
+
+    //// On load
+    $(document).ready(function(){
+        D.request('getWebentitiesSemilight', {})
+    })
+
+
+
+    //// Data Tables Helpers
+    var initDataTables = function(){
+        // Code from http://www.datatables.net/blog/Twitter_Bootstrap_2
+
+        /* Set the defaults for DataTables initialisation */
+        $.extend( true, $.fn.dataTable.defaults, {
+            "sDom": "<'row-fluid'<'span6'l><'span6'f>r>t<'row-fluid'<'span6'i><'span6'p>>",
+            "sPaginationType": "bootstrap",
+            "oLanguage": {
+                "sLengthMenu": "_MENU_ records per page"
+            }
+        } );
+
+
+        /* Default class modification */
+        $.extend( $.fn.dataTableExt.oStdClasses, {
+            "sWrapper": "dataTables_wrapper form-inline"
+        } );
+
+
+        /* API method to get paging information */
+        $.fn.dataTableExt.oApi.fnPagingInfo = function ( oSettings )
+        {
+            return {
+                "iStart":         oSettings._iDisplayStart,
+                "iEnd":           oSettings.fnDisplayEnd(),
+                "iLength":        oSettings._iDisplayLength,
+                "iTotal":         oSettings.fnRecordsTotal(),
+                "iFilteredTotal": oSettings.fnRecordsDisplay(),
+                "iPage":          Math.ceil( oSettings._iDisplayStart / oSettings._iDisplayLength ),
+                "iTotalPages":    Math.ceil( oSettings.fnRecordsDisplay() / oSettings._iDisplayLength )
+            };
+        };
+
+
+        /* Bootstrap style pagination control */
+        $.extend( $.fn.dataTableExt.oPagination, {
+            "bootstrap": {
+                "fnInit": function( oSettings, nPaging, fnDraw ) {
+                    var oLang = oSettings.oLanguage.oPaginate;
+                    var fnClickHandler = function ( e ) {
+                        e.preventDefault();
+                        if ( oSettings.oApi._fnPageChange(oSettings, e.data.action) ) {
+                            fnDraw( oSettings );
+                        }
+                    };
+
+                    $(nPaging).addClass('pagination').append(
+                        '<ul>'+
+                            '<li class="prev disabled"><a href="#">&larr; '+oLang.sPrevious+'</a></li>'+
+                            '<li class="next disabled"><a href="#">'+oLang.sNext+' &rarr; </a></li>'+
+                        '</ul>'
+                    );
+                    var els = $('a', nPaging);
+                    $(els[0]).bind( 'click.DT', { action: "previous" }, fnClickHandler );
+                    $(els[1]).bind( 'click.DT', { action: "next" }, fnClickHandler );
+                },
+
+                "fnUpdate": function ( oSettings, fnDraw ) {
+                    var iListLength = 5;
+                    var oPaging = oSettings.oInstance.fnPagingInfo();
+                    var an = oSettings.aanFeatures.p;
+                    var i, j, sClass, iStart, iEnd, iHalf=Math.floor(iListLength/2);
+
+                    if ( oPaging.iTotalPages < iListLength) {
+                        iStart = 1;
+                        iEnd = oPaging.iTotalPages;
+                    }
+                    else if ( oPaging.iPage <= iHalf ) {
+                        iStart = 1;
+                        iEnd = iListLength;
+                    } else if ( oPaging.iPage >= (oPaging.iTotalPages-iHalf) ) {
+                        iStart = oPaging.iTotalPages - iListLength + 1;
+                        iEnd = oPaging.iTotalPages;
+                    } else {
+                        iStart = oPaging.iPage - iHalf + 1;
+                        iEnd = iStart + iListLength - 1;
+                    }
+
+                    for ( i=0, iLen=an.length ; i<iLen ; i++ ) {
+                        // Remove the middle elements
+                        $('li:gt(0)', an[i]).filter(':not(:last)').remove();
+
+                        // Add the new list items and their event handlers
+                        for ( j=iStart ; j<=iEnd ; j++ ) {
+                            sClass = (j==oPaging.iPage+1) ? 'class="active"' : '';
+                            $('<li '+sClass+'><a href="#">'+j+'</a></li>')
+                                .insertBefore( $('li:last', an[i])[0] )
+                                .bind('click', function (e) {
+                                    e.preventDefault();
+                                    oSettings._iDisplayStart = (parseInt($('a', this).text(),10)-1) * oPaging.iLength;
+                                    fnDraw( oSettings );
+                                } );
+                        }
+
+                        // Add / remove disabled classes from the static elements
+                        if ( oPaging.iPage === 0 ) {
+                            $('li:first', an[i]).addClass('disabled');
+                        } else {
+                            $('li:first', an[i]).removeClass('disabled');
+                        }
+
+                        if ( oPaging.iPage === oPaging.iTotalPages-1 || oPaging.iTotalPages === 0 ) {
+                            $('li:last', an[i]).addClass('disabled');
+                        } else {
+                            $('li:last', an[i]).removeClass('disabled');
+                        }
+                    }
+                }
+            }
+        } );
+
+
+        /*
+         * TableTools Bootstrap compatibility
+         * Required TableTools 2.1+
+         */
+        if ( $.fn.DataTable.TableTools ) {
+            // Set the classes that TableTools uses to something suitable for Bootstrap
+            $.extend( true, $.fn.DataTable.TableTools.classes, {
+                "container": "DTTT btn-group",
+                "buttons": {
+                    "normal": "btn",
+                    "disabled": "disabled"
+                },
+                "collection": {
+                    "container": "DTTT_dropdown dropdown-menu",
+                    "buttons": {
+                        "normal": "",
+                        "disabled": "disabled"
+                    }
+                },
+                "print": {
+                    "info": "DTTT_print_info modal"
+                },
+                "select": {
+                    "row": "active"
+                }
+            } );
+
+            // Have the collection use a bootstrap compatible dropdown
+            $.extend( true, $.fn.DataTable.TableTools.DEFAULTS.oTags, {
+                "collection": {
+                    "container": "ul",
+                    "button": "li",
+                    "liner": "a"
+                }
+            } );
+        }
+    }
+    
+
+})(jQuery, domino, (window.dmod = window.dmod || {}))
+
+
+
+
+
+
+// Old code (deprecated)
 ;(function(Hyphen, $, undefined){
     
     // On load
@@ -179,4 +598,4 @@
     })
     
 
-})(window.Hyphen = window.Hyphen || {}, jQuery)
+})//(window.Hyphen = window.Hyphen || {}, jQuery)

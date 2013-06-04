@@ -6,7 +6,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Hyphen</title>
+        <title>Hyphe</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
 
@@ -36,7 +36,7 @@
             <div class="splash-unit row">
                 <div class="span7">
                     <div class="image">
-                        <a href="index.php"><img title="Hyphen" src="res/header.png"/></a>
+                        <a href="index.php"><img title="Hyphe" src="res/header.png"/></a>
                     </div>
                     <!-- <div class="title">
                         hyphen
@@ -99,9 +99,10 @@
 
 <?php include("includes/footer.php"); ?>
 
-<?php include("includes/codebottom.php"); ?>
+<?php include("includes/codebottom_v2.php"); ?>
 
         <!-- Page-specific js package -->
+        <script src="js/libs/jquery.dataTables.js"></script>
         <script src="js/_page_webentities_list.js"></script>
 
     </body>
