@@ -73,7 +73,7 @@ domino.settings({
                 // Just monitoring the web entities
                 triggers: ['webentities_updated']
                 ,method: function(){
-                    console.log('web entities', D.get('webentities'))
+                    // console.log('web entities', D.get('webentities'))
                 }
             }
         ]
@@ -91,8 +91,7 @@ domino.settings({
 
         var build = function(){
             var webentities = D.get('webentities')
-            element.html('')
-
+            
             /* Table initialisation */
             // Changing the order of columns is painful with this config, so we have an object allowing us to deal with that
             var columns = {
@@ -108,12 +107,9 @@ domino.settings({
                 ,searchable:9
             }
 
-            var data = webentities.map(function(we){
+            var webentitiesTableData = webentities.map(function(we){
                 var searchable = we.name
                     + 'status:' + we.status
-                    /*+ we.lru_prefixes.map(function(lru){
-                        return 'prefix:' + Utils.LRU_to_URL(lru)
-                    }).join(' ')*/
                 return [
                     we.name
                     ,we.status
@@ -133,7 +129,7 @@ domino.settings({
             // Initialize this table
             element.dataTable( {
                 "sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>"
-                ,'aaData': data
+                ,'aaData': webentitiesTableData
                 ,'bDeferRender': true
                 ,"sPaginationType": "bootstrap"
                 ,"oLanguage": {
@@ -166,7 +162,7 @@ domino.settings({
 
                             return $('<div/>').append(
                                 $('<span class="label"/>').text(data)
-                                    //.addClass(Hyphen.view.webEntities_status_getLabelColor(data))
+                                    .addClass(getStatusColor(data))
                             ).html()
                         },
                         "aTargets": [ columns.status ]
@@ -408,6 +404,15 @@ domino.settings({
         }
     }
     
+    var getStatusColor = function(status){
+        return (status=='DISCOVERED')?('label-warning'):(
+                (status=='UNDECIDED')?('label-info'):(
+                    (status=='OUT')?('label-important'):(
+                        (status=='IN')?('label-success'):('')
+                    )
+                )
+            )
+    }
 
 })(jQuery, domino, (window.dmod = window.dmod || {}))
 
