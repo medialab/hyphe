@@ -126,7 +126,7 @@ domino.settings({
     function refreshStatus() {
     	D.request('getStatus', {})
    	}
-   	var auto_refresh_status = setInterval(refreshStatus, 20000);
+   	var auto_refresh_status = setInterval(refreshStatus, 20000)
 
 
 
