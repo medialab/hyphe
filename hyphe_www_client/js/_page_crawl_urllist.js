@@ -6,12 +6,12 @@ $.fn.editable.defaults.mode = 'popup';
 
 ;(function($, domino, dmod, undefined){
     
-    // Stuff we reuse often when we initialize Domino
-    var rpc_url = HYPHE_CONFIG.SERVER_ADDRESS
-        ,rpc_contentType = 'application/x-www-form-urlencoded'
-        ,rpc_type = 'POST'
-        ,rpc_expect = function(data){if(data[0] !== undefined && data[0].code !== undefined && data[0].code == 'success'){return true}else{console.log('[RPC] Unexpected result: ',data)}  }
-        ,rpc_error = function(data){alert('Oops, the server answered something unexpected...\nSorry for the crash.')}
+    // RPC config of this page
+    var rpc_url = HypheCommons.RPC.URL
+        ,rpc_contentType = HypheCommons.RPC.contentType
+        ,rpc_type = HypheCommons.RPC.type
+        ,rpc_expect = HypheCommons.RPC.expect
+        ,rpc_error = HypheCommons.RPC.error
 
     var D = new domino({
         name: 'main'
