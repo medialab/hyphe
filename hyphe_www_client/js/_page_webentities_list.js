@@ -70,10 +70,24 @@ domino.settings({
 
         ,hacks:[
             {
-                // Just monitoring the web entities
-                triggers: ['webentities_updated']
+                // On button click, download json
+                triggers: ['ui_downloadJson']
                 ,method: function(){
-                    // console.log('web entities', D.get('webentities'))
+                    var webentities = D.get('webentities')
+                        ,content = []
+                    content.push('[')
+                    webentities.forEach(function(we,i){
+                        if(i!=0)
+                            content.push(',')
+                        content.push(JSON.stringify(we))
+                    })
+                    content.push(']')
+                    
+                    var blob = new Blob(content, {'type':'text/json;charset=utf-8'})
+                        ,filename = "WebEntities.json"
+                    if(navigator.userAgent.match(/firefox/i))
+                       alert('Note:\nFirefox does not handle file names, so you will have to rename this file to\n\"'+filename+'\""\nor some equivalent.')
+                    saveAs(blob, filename)
                 }
             }
         ]
@@ -82,6 +96,15 @@ domino.settings({
 
 
     //// Modules
+
+    // Download JSON button
+    D.addModule(dmod.Button, [{
+        element: $('#webEntities_download')
+        ,label: 'Download as JSON'
+        ,bsIcon: 'icon-download'
+        ,dispatch: 'ui_downloadJson'
+        ,ghost: false
+    }])
 
     // Data Table
     D.addModule(function(){
@@ -109,6 +132,7 @@ domino.settings({
 
             var webentitiesTableData = webentities.map(function(we){
                 var searchable = we.name
+                    + we.lru_prefixes.map(function(lru){return Utils.LRU_to_URL(lru)}).join(" ")
                     + 'status:' + we.status
                 return [
                     we.name
@@ -135,23 +159,19 @@ domino.settings({
                 ,"oLanguage": {
                     "sLengthMenu": '_MENU_ web entities at once',
                     "sZeroRecords": '<span class="text-error">Nothing found - sorry</span>',
-                    "sInfo": '<span class="muted">Showing </span>_START_ to _END_<span class="muted"> of _TOTAL_ records</span>',
+                    "sInfo": '<br/><span class="muted">Showing </span>_START_ to _END_<span class="muted"> of _TOTAL_ records</span>',
                     "sInfoEmpty": '<span class="text-warning">Showing 0 to 0 of 0 records</span>',
                     "sInfoFiltered": '<span class="text-info">(filtered from _MAX_ total records)</span>'
                 }
-                ,"fnDrawCallback": function( oSettings ) {
-                    // Update the web entities proxies
-                    //Hyphen.view.webEntities.proxiesUpdate(true)
-                    //Hyphen.view.table_updateInteractions()
-                }
                 ,"aaSorting": [[ columns.last_modification_date_formatted, "asc" ]]
                 ,"aoColumnDefs": [
-                    {
+                   {
                         "mRender": function ( data, type, row ) {
 
                             return $('<div/>').append(
-                                $('<span/>').text(data)
+                                $('<a class="table_name"/>').text(data)
                                     .addClass('webEntity_proxy')
+                                    .attr('href', 'webentity_edit.php#we_id='+row[columns.id])
                                     .attr('webEntity_id', row[columns.id])
                             ).html()
                         },
@@ -161,8 +181,10 @@ domino.settings({
                         "mRender": function ( data, type, row ) {
 
                             return $('<div/>').append(
-                                $('<span class="label"/>').text(data)
-                                    .addClass(getStatusColor(data))
+                                $('<div class="table_status"/>').append(
+                                    $('<span class="label"/>').text(data)
+                                        .addClass(getStatusColor(data))
+                                )
                             ).html()
                         },
                         "aTargets": [ columns.status ]
@@ -170,18 +192,24 @@ domino.settings({
                     ,{
                         "mRender": function ( data, type, row ) {
                             return $('<div/>').append(
-                                $('<ul class="unstyled"/>').append(
-                                    data.map(function(lru_prefix){
-                                        var url = Utils.LRU_to_URL(lru_prefix)
-                                        return $('<li/>').append(
-                                            $('<small/>').append(
-                                                $('<a/>')
-                                                    .attr('href', url)
-                                                    .attr('target', '_blank')
-                                                    .text(Utils.URL_simplify(url))
-                                            )
-                                        )
-                                    })
+                                $('<div class="table_prefix"/>').append(
+                                    $('<ul class="unstyled"/>').append(
+                                        data.map(function(lru_prefix){
+                                            var url = Utils.LRU_to_URL(lru_prefix)
+                                            return $('<li/>')
+                                                .append(
+                                                        $('<span class="table_prefixtext"/>').text(Utils.URL_simplify(url)+'\xa0')
+                                                            .append(
+                                                                $('<a class="table_prefixlink"/>')
+                                                                    .attr('href', url)
+                                                                    .attr('target', '_blank')
+                                                                    .append(
+                                                                            $('<i class="icon-share-alt"/>')
+                                                                        )
+                                                           )
+                                                   )
+                                        })
+                                    )
                                 )
                             ).html()
                         },
@@ -200,7 +228,20 @@ domino.settings({
                     }
                     ,{
                         "mRender": function ( data, type, row ) {
-                            return '<div class="actions" we_id="'+data+'"></div>'
+                            var we_id = data
+                            return $('<div class="actions" we_id="'+we_id+'"></div>')
+                                .append(
+                                    $('<div class="btn-group pull-right"/>')
+                                        .append(
+                                            $('<a class="btn btn-link btn-mini"/>').html('edit')
+                                                .attr('title', 'Edit')
+                                                .attr('href', 'webentity_edit.php#we_id='+we_id)
+                                        ).append(
+                                            $('<a class="btn btn-link btn-mini"/>').html('crawl')
+                                                .attr('title', 'Crawl')
+                                                .attr('href', 'crawl_new.php#we_id='+we_id)
+                                        )
+                                ).html()
                         },
                         "aTargets": [ columns.actions ]
                     }
@@ -214,31 +255,10 @@ domino.settings({
                     ,{ "sWidth": "80px", "aTargets": [ columns.status ] }
                     ,{ "sWidth": "80px", "aTargets": [ columns.creation_date_formatted, columns.last_modification_date_formatted ] }
                 ]
-            } )
-            
-            /*
-            // Fill table
-            element.dataTable().fnAddData(webentities.map(function(we){
-                var searchable = we.name
-                    + 'status:' + we.status
-                return [
-                    we.name
-                    ,we.status
-                    ,we.lru_prefixes
-                    ,we.creation_date
-                    ,we.last_modification_date
-                    ,we.id
-                    ,we.id
-                    ,-we.creation_date
-                    ,-we.last_modification_date
-                    ,searchable
-                ]
-            }))
-*/
+            })
 
             $('#loading_proxy').hide()
             $('#loading_achieved').show()
-            //Hyphen.view.table_updateInteractions()
         }
 
         this.triggers.events['webentities_updated'] = build

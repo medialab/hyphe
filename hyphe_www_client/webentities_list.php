@@ -16,6 +16,29 @@
         <link rel="stylesheet" href="css/jquery.dataTables.css">
         <link rel="stylesheet" href="css/main.css">
         <style>
+td ul.unstyled{
+    margin-bottom: 0px;
+}
+
+div.table_name{
+    width: 350px;
+}
+div.table_status{
+    width: 90px;
+}
+div.table_prefix{
+    width: 220px;
+}
+.table_prefixtext{
+    font-size:11px;
+    word-wrap: break-word;
+}
+.table_prefixlink{
+    opacity: 0.4;
+}
+.table_prefixlink:hover{
+    opacity: 1;
+}
         </style>
 
         <script src="js/libs/modernizr-2.6.1-respond-1.1.0.min.js"></script>
@@ -57,7 +80,7 @@
                 <div class="span12">
                     <h1>Web entities: list</h1>
                     <p class="text-info">
-                        Manage and edit web entities as a data table
+                        Browse web entities as a data table. You can filter by status in the search box: "status:in".
                     </p>
                     <hr>
                 </div>
@@ -79,7 +102,7 @@
                                     <th>Prefixes</th>
                                     <th>Created</th>
                                     <th>Modified</th>
-                                    <th>Actions</th>
+                                    <th><span  class="pull-right">Actions</span></th>
                                     <th>id (hidden)</th>
                                     <th>Creation unformatted (hidden)</th>
                                     <th>Last modification unformatted (hidden)</th>
@@ -91,7 +114,8 @@
                         </table>
                     </div>
                     <p>
-                        <button class="btn" id="webEntities_download"><i class="icon-download"></i> Download as JSON</button>
+                        <button class="btn" id="webEntities_download"></button>
+                        <!-- <button class="btn" id="webEntities_download"><i class="icon-download"></i> Download as JSON</button> -->
                     </p>
                 </div>
             </div>
@@ -103,6 +127,7 @@
 
         <!-- Page-specific js package -->
         <script src="js/libs/jquery.dataTables.js"></script>
+        <script src="js/_page_webentities_list_modules.js"></script>
         <script src="js/_page_webentities_list.js"></script>
 
     </body>
