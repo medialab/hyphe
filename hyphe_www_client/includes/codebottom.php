@@ -17,6 +17,7 @@
 <script src="_config/config.js"></script>
 
 <script src="js/utils.js"></script>
+<script src="js/hyphe_commons.js"></script>
 <script src="js/hyphe_api.js"></script>
 
 <!--[if lt IE 7 ]>

@@ -1,14 +1,8 @@
-domino.settings({
-    shortcutPrefix: "::" // Hack: preventing a bug related to a port in a URL for Ajax
-    ,verbose: true
-})
+HypheCommons.js_file_init()
+HypheCommons.domino_init()
 
 ;(function($, domino, dmod, undefined){
     
-    // Check that config is OK
-    if(HYPHE_CONFIG === undefined)
-        alert('Your installation of Hyphe has no configuration.\nCreate a file at "_config/config.js" in the same directory than index.php, with at least this content:\n\nHYPHE_CONFIG = {\n"SERVER_ADDRESS":"http://YOUR_RPC_ENDPOINT_URL"\n}')
-
     // Stuff we reuse often when we initialize Domino
     var rpc_url = HYPHE_CONFIG.SERVER_ADDRESS
         ,rpc_contentType = 'application/x-www-form-urlencoded'
