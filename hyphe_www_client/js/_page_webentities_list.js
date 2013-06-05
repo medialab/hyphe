@@ -169,10 +169,12 @@ domino.settings({
                         "mRender": function ( data, type, row ) {
 
                             return $('<div/>').append(
-                                $('<a class="table_name"/>').text(data)
-                                    .addClass('webEntity_proxy')
-                                    .attr('href', 'webentity_edit.php#we_id='+row[columns.id])
-                                    .attr('webEntity_id', row[columns.id])
+                                $('<div class="table_name"/>').append(
+                                        $('<a/>')
+                                            .text(data)
+                                        .attr('href', 'webentity_edit.php#we_id='+row[columns.id])
+                                        .attr('webEntity_id', row[columns.id])
+                                    )
                             ).html()
                         },
                         "aTargets": [ columns.name ]
