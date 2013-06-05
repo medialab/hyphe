@@ -134,7 +134,7 @@
 
 <?php include("includes/footer.php"); ?>
 
-<?php include("includes/codebottom_v2.php"); ?>
+<?php include("includes/codebottom.php"); ?>
 
         <!-- Page-specific js package -->
         <script src="js/_page_crawl_new_modules.js"></script>

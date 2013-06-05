@@ -187,7 +187,7 @@ p.webEntityReminder{
 
 <?php include("includes/footer.php"); ?>
 
-<?php include("includes/codebottom_v2.php"); ?>
+<?php include("includes/codebottom.php"); ?>
 
         <!-- Page-specific js package -->
         <script src="js/_page_webentity_edit_modules.js"></script>

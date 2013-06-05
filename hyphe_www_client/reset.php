@@ -70,7 +70,7 @@
 
 <?php include("includes/footer.php"); ?>
 
-<?php include("includes/codebottom_v2.php"); ?>
+<?php include("includes/codebottom.php"); ?>
 
         <!-- libs specifically needed here -->
         <script src="js/libs/jquery.md5.js"></script>
