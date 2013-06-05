@@ -55,26 +55,7 @@ div.table_prefix{
 
         <div class="container">
 
-            <!-- Main hero unit for a primary marketing message or call to action -->
-            <div class="splash-unit row">
-                <div class="span7">
-                    <div class="image">
-                        <a href="index.php"><img title="Hyphe" src="res/header.png"/></a>
-                    </div>
-                    <!-- <div class="title">
-                        hyphen
-                    </div> -->
-                </div>
-                <div class="span5">
-                    <div class="abstract">
-                        <p><strong>Prototype monitoring.</strong> A test user experience and client-side monitoring application for Hyphen alpha.</p>
-                    </div>
-                </div>
-            </div>
-
-
-
-
+<?php include("includes/header.php"); ?>
 
             <div class="row">
                 <div class="span12">
