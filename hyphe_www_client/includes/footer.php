@@ -6,25 +6,43 @@
 				</div>
 			</div>
 			<div class="row">
-				<div class="span3">
-					[WORK IN PROGRESS]
-				
+				<div class="span4">
+					<p>
+                        We used:
+                        <br/>
+                        <strong><a href="http://dominojs.org/">Domino.js</a></strong>,
+                        <strong><a href="http://sigmajs.org/">Sigma.js</a></strong>,
+                        <a href="http://twitter.github.com/bootstrap/">Bootstrap</a>,
+                        <a href="http://jquery.com/">jQuery</a>,
+                        <a href="http://modernizr.com/">Modernizr</a>,
+                        <a href="http://www.initializr.com/">Initializr</a>
+                    </p>
 				</div>
-				<div class="span3">
-					Navigation
-					<li>
-						<a href="x.php">
-							x
-						</a>
-					</li>
+				<div class="span4">
+					<p>
+						[WORK IN PROGRESS]
+                    </p>
+					<p>
+                        Check our <a href="https://github.com/medialab/Hypertext-Corpus-Initiative">GitHub</a>.
+                    </p>
+                    <p>
+                    	See also our other tools at <strong><a href="http://tools.medialab.sciences-po.fr">Médialab Tools</a></strong>!
+                    </p>
 				</div>
-				<div class="span3">
-					Thanks to...
-				</div>
-				<div class="span3">
+				<div class="span4">
 					<div style="text-align:right">
-						<a href="http://medialab.sciences-po.fr"><img src="res/logosp_fonce.png"/></a>
-					</div>
+                        <a href="http://medialab.sciences-po.fr"><img src="res/logosp_fonce.png"/></a>
+                        <p class="muted">
+                            Developed by the médialab team
+                            <br/>
+                            at the <a href="http://medialab.sciences-po.fr">Sciences-Po Medialab</a>
+                        </p>
+                        <p>
+                            Help, bug report or contacting us:
+                            <br/>
+                            <i class="icon-hand-right"></i> <a href="https://github.com/medialab/Hypertext-Corpus-Initiative/issues">GitHub Issues</a>.
+                        </p>
+                    </div>
 				</div>
 			</div>
 		</div>

@@ -9,35 +9,28 @@
                     <a class="brand" href="#">Hyphe</a>
                     <div class="nav-collapse collapse">
                         <ul class="nav">
-                            <!--<li class="active"><a href="#">Gaga</a></li>-->
-                            <li><a href="#x">xxx</a></li>
-                            <!--
                             <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                    Web entities
+                                    <b class="caret"></b>
+                                </a>
                                 <ul class="dropdown-menu">
-                                    <li><a href="#">Action</a></li>
-                                    <li><a href="#">Another action</a></li>
-                                    <li><a href="#">Something else here</a></li>
-                                    <li class="divider"></li>
-                                    <li class="nav-header">Nav header</li>
-                                    <li><a href="#">Separated link</a></li>
-                                    <li><a href="#">One more separated link</a></li>
+                                    <li><a href="webentities_list.php">List</a></li>
+                                    <li><a href="webentities_network.php">Network</a></li>
                                 </ul>
                             </li>
-                            -->
+                            <li class="dropdown">
+                                <li><a href="crawl.php">Crawl</a></li>
+                            </li>
+                            <li><a href="https://github.com/medialab/Hypertext-Corpus-Initiative">GitHub</a></li>
+                            <li><a href="https://github.com/medialab/Hypertext-Corpus-Initiative/issues">Issues</a></li>
                         </ul>
 
-                       <div class="minilogo pull-right">
-                            <a href="http://medialab.sciences-po.fr"><img src="res/mini-tools.png"/></a>
-                            <a href="http://tools.medialab.sciences-po.fr"><img src="res/mini-sp.png"/></a>
+                        <div class="pull-right">
+                            <ul class="nav">
+                                <li><a href="http://tools.medialab.sciences-po.fr"><i class="icon icon-plus icon-white"></i> <span style="color: #FFF">Médialab Tools</span></a></li>
+                            </ul>
                         </div>
-
-                        <!-- <form class="navbar-form pull-right">
-                            <input class="span2" type="text" placeholder="Email">
-                            <input class="span2" type="password" placeholder="Password">
-                            <button type="submit" class="btn">Sign in</button>
-                        </form>
-                         -->
                     </div><!--/.nav-collapse -->
                 </div>
             </div>
