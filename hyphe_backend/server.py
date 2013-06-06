@@ -437,8 +437,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return WE
 
     def handle_url_precision_exceptions(self, url):
-        l = urllru.url_to_lru_clean(url)
-        self.handle_lru_precision_exceptions(l)
+        lru = urllru.url_to_lru_clean(url)
+        self.handle_lru_precision_exceptions(lru)
 
     def handle_lru_precision_exceptions(self, lru_prefix):
         lru_head = urllru.getLRUHead(lru_prefix, self.precision_exceptions)
@@ -468,13 +468,23 @@ class Memory_Structure(jsonrpc.JSONRPC):
             return new
         return self.return_new_webentity(lru, new, 'page')
 
+    def jsonrpc_declare_webentity_by_lru_prefix_as_url(self, url):
+        try:
+            lru_prefix = urllru.url_to_lru(urllru.fix_missing_http(url))
+        except ValueError as e:
+            return format_error(e)
+        return self.jsonrpc_declare_webentity_by_lru(lru_prefix)
+
     def jsonrpc_declare_webentity_by_lru(self, lru_prefix):
-        lru_prefix = lru.cleanLRU(lru_prefix)
+        try:
+            lru_prefix = urllru.cleanLRU(lru_prefix)
+            url = urllru.lru_to_url(lru_prefix)
+        except ValueError as e:
+            return format_error(e)
         existing = self.msclient_sync.findWebEntityByLRUPrefix(lru_prefix)
-        # if not is_error() ?
-        if not isinstance(existing, dict):
+        if not is_error(existing):
             return format_error('LRU prefix "%s" is already set to an existing webentity : %s' % (lru_prefix, existing))
-        res = self.msclient_sync.updateWebEntity(WebEntity(None, [lru_prefix], urllru.lru_to_url_short(lru_prefix)))
+        res = self.msclient_sync.updateWebEntity(WebEntity(None, [lru_prefix], urllru.url_shorten(url)))
         if is_error(res):
             return res
         new_WE = self.return_new_webentity(webentity.LRUSet[0], True, 'lru')
@@ -485,6 +495,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None):
         WE = self.msclient_sync.getWebEntity(webentity_id)
+        if is_error(WE):
+           return format_error("ERROR could not retrive webentity with id %s" % webentity_id)
         try:
             if array_behavior:
                 if array_key:
@@ -540,6 +552,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_set_webentity_homepage(self, webentity_id, homepage):
         homepage = urllru.fix_missing_http(homepage)
+        try:
+            urllru.url_to_lru(homepage)
+        except ValueError as e:
+            return format_error(e)
         return self.update_webentity(webentity_id, "homepage", homepage)
 
     def add_backend_tags(self, webentity_id, key, value):
@@ -547,10 +563,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.jsonrpc_add_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
 
     def jsonrpc_add_webentity_lruprefix(self, webentity_id, lru_prefix):
-        lru_prefix = urllru.cleanLRU(lru_prefix)
+        try:
+            lru_prefix = urllru.cleanLRU(lru_prefix)
+            url = urllru.lru_to_url(lru_prefix)
+        except ValueError as e:
+            return format_error(e)
         old_WE = self.msclient_sync.findWebEntityByLRUPrefix(lru_prefix)
-        # if not is_error() ?
-        if not isinstance(old_WE, dict):
+        if not is_error(old_WE):
             print "Removing LRUPrefix %s from webentity %s" % (lru_prefix, old_WE.name)
             res = self.jsonrpc_rm_webentity_lruprefix(old_WE.id, lru_prefix)
             if is_error(res):
@@ -562,7 +581,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_rm_webentity_lruprefix(self, webentity_id, lru_prefix):
         """ Will delete webentity if no LRUprefix left"""
-        lru_prefix = urllru.cleanLRU(lru_prefix)
+        try:
+            lru_prefix = urllru.cleanLRU(lru_prefix)
+            url = urllru.lru_to_url(lru_prefix)
+        except ValueError as e:
+            return format_error(e)
         self.add_backend_tags(webentity_id, "lruprefixes_modified", "removed %s" % lru_prefix)
         res = self.update_webentity(webentity_id, "LRUSet", lru_prefix, "pop")
         self.recent_indexes += 1
@@ -570,11 +593,19 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url):
         startpage_url = urllru.fix_missing_http(startpage_url)
+        try:
+            urllru.url_to_lru(startpage_url)
+        except ValueError as e:
+            return format_error(e)
         self.add_backend_tags(webentity_id, "startpages_modified", "added %s" % startpage_url)
         return self.update_webentity(webentity_id, "startpages", startpage_url, "push")
 
     def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url):
         startpage_url = urllru.fix_missing_http(startpage_url)
+        try:
+            urllru.url_to_lru(startpage_url)
+        except ValueError as e:
+            return format_error(e)
         self.add_backend_tags(webentity_id, "startpages_modified", "removed %s" % startpage_url)
         return self.update_webentity(webentity_id, "startpages", startpage_url, "pop")
 
@@ -801,7 +832,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             lru = urllru.url_to_lru_clean(url)
         except ValueError as e:
             return format_error(e)
-        WE = self.msclient_sync.findWebEntityMatchingLRU(l)
+        WE = self.msclient_sync.findWebEntityMatchingLRU(lru)
         if is_error(WE):
             return WE #format_error("No webentity found in memory Structure for %s" % url)
         return format_result(self.format_webentity(WE))
@@ -845,6 +876,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         s = time.time()
         print "Generating %s nodelinks network for webentity %s..." % (outformat, webentity_id)
         links = self.msclient_sync.getWebentityNodeLinks(webentity_id, include_external_links)
+        if is_error(links):
+            return format_error(links)
         res = [[l.sourceLRU, l.targetLRU, l.weight] for l in links]
         print "...JSON network generated in "+str(time.time()-s)
         return format_result(res)
@@ -927,8 +960,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
 def test_connexions():
     try:
-        transport = TSocket(config['memoryStructure']['thrift.host'], config['memoryStructure']['thrift.port']).open()
-# TODO: run via core ping on mem struct : core.msclient_sync.ping()
+        transport = TSocket(config['memoryStructure']['thrift.host'], config['memoryStructure']['thrift.port'])
+        transport.open()
+        transport.close()
     except TException as x:
         print "ERROR: Cannot connect to lucene memory structure through thrift, please check your server and the configuration in config.json."
         if config['DEBUG']:
@@ -936,6 +970,9 @@ def test_connexions():
         return None
     try:
         run = Core()
+        res = run.store.msclient_sync.ping()
+        if is_error(res):
+            raise Exception(res['message'])
     except:
         raise
     try:

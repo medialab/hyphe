@@ -57,7 +57,7 @@ def url_to_lru(url):
                     fragment = urllib.quote_plus(fragment)
                     tokens.append("f:"+fragment)
                 return "|".join(tokens)
-    raise ValueError("not an url: %s" % url)
+    raise ValueError("Not an url: %s" % url)
 
 def url_to_lru_clean(url):
     return cleanLRU(url_to_lru(url))
@@ -72,6 +72,10 @@ def lru_to_url(lru):
     #'http://www.google.com/search?q=text&p=2'
 
     """
+
+    if '|h:' not in lru:
+        raise ValueError("Not an lru: %s" % lru)
+
     # TODO: naive algorithm (to be updated)
     stem_types = []
     lru_list = [stem.split(":", 1) for stem in lru.split("|")]
@@ -103,8 +107,8 @@ def lru_to_url(lru):
     return url
 
 titlize_url_regexp = re.compile(r'(https?://|[./#])', re.I)
-def lru_to_url_short(lru):
-    return titlize_url_regexp.sub(' ', lru_to_url(lru)).strip().title()
+def url_shorten(url):
+    return titlize_url_regexp.sub(' ', url).strip().title()
 
 # Clean a URL
 def cleanUrl(url, currentUrl) :

@@ -137,6 +137,7 @@ class ThriftPooledClient(object):
                  network_timeout = DEFAULT_NETWORK_TIMEOUT,
                  framed_transport = True,
                  compact_protocol = False):
+        self.port = port
         self.retries = retries
         self._connection_pool = ThriftConnectionPool(iface_cls=iface_cls, host=host, port=port, framed_transport=framed_transport, compact_protocol=compact_protocol, pool_size=pool_size, network_timeout=network_timeout)
         # inject all methods defined in the thrift Iface class
@@ -168,7 +169,7 @@ class ThriftPooledClient(object):
             try:
                 conn = self._connection_pool.get_connection()
             except Exception as e:
-                return format_error(e)
+                return self._format_connexion_error(e)
             try:
                 result = getattr(conn, method)(*args)
             except TTransport.TTransportException as e:
@@ -177,7 +178,7 @@ class ThriftPooledClient(object):
                 if attempts_left > 0:
                     attempts_left -= 1
                     continue
-                return format_error(e)
+                return self._format_connexion_error(e)
             except Exception as e:
                 #data exceptions, return connection and don't retry
                 self._connection_pool.return_connection(conn)
@@ -186,6 +187,12 @@ class ThriftPooledClient(object):
             #call completed succesfully, return connection to pool
             self._connection_pool.return_connection(conn)
             return result
+
+    def _format_connexion_error(self, e):
+        error = format_error(e)
+        error['message'] = error['message'].replace('127.0.0.1:%d' % self.port, 'MemoryStructure')
+        return error
+
 
 class ThriftSyncClient(ThriftPooledClient):
 
