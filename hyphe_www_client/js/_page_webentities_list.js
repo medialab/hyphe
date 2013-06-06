@@ -17,6 +17,24 @@ HypheCommons.domino_init()
                 id:'webentities'
                 ,dispatch: 'webentities_updated'
                 ,triggers: 'update_webentities'
+            },{
+                id:'statusValidation'
+                ,dispatch: 'statusValidation_updated'
+                ,triggers: 'update_statusValidation'
+            },{
+                id:'datatableColumns'
+                ,value: {
+                    name:0
+                    ,status:1
+                    ,prefixes:2
+                    ,creation_date_formatted:3
+                    ,last_modification_date_formatted:4
+                    ,actions:5
+                    ,id:6
+                    ,creation_date_unformatted:7
+                    ,last_modification_date_unformatted:8
+                    ,searchable:9
+                }
             }
         ]
 
@@ -51,9 +69,21 @@ HypheCommons.domino_init()
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
-                            settings.id_list    // List of webentities
-                            ,false               // Mode light
-                            ,true                // Mode semi-light
+                            settings.id_list        // List of webentities
+                            ,false                  // Mode light
+                            ,true                   // Mode semi-light
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'setWebentityStatus'
+                ,setter: 'statusValidation'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.SET_STATUS,
+                        'params' : [
+                            settings.webentityId      // web entity id
+                            ,settings.status          // new status
                         ],
                     })}
                 ,path:'0.result'
@@ -83,6 +113,91 @@ HypheCommons.domino_init()
                        alert('Note:\nFirefox does not handle file names, so you will have to rename this file to\n\"'+filename+'\""\nor some equivalent.')
                     saveAs(blob, filename)
                 }
+            },{
+                // On click on a button, create and put a popover over the status
+                triggers: ['ui_clickOnStatus']
+                ,method: function(d){
+                    var dom_element = $(d.data.element)
+                        ,dom_id = dom_element.attr('id')
+                        ,we_id = d.data.webentityId
+                        ,status = d.data.webentityStatus
+                        ,row = d.data.row
+                        ,buttons = $('<div class="status_buttons_div"/>')
+
+                    $('.table_status:not(#'+dom_id+')').popover('destroy')
+
+                    // In
+                    if(status !== 'IN'){
+                        buttons.append(
+                                $('<button class="btn btn-success btn-small status-button">IN</button>')
+                                    .attr('data-webentity-id', we_id)
+                                    .attr('data-webentity-status', 'IN')
+                            )
+                    }
+                    
+                    // Out
+                    if(status !== 'OUT'){
+                        buttons.append(
+                                $('<button class="btn btn-danger btn-small status-button">OUT</button>')
+                                    .attr('data-webentity-id', we_id)
+                                    .attr('data-webentity-status', 'OUT')
+                            )
+                    }
+                    
+                    // Undecided
+                    if(status !== 'UNDECIDED'){
+                        buttons.append(
+                                $('<button class="btn btn-info btn-small status-button">UNDECIDED</button>')
+                                    .attr('data-webentity-id', we_id)
+                                    .attr('data-webentity-status', 'UNDECIDED')
+                            )
+                    }
+                    
+                    dom_element.popover({
+                        'title': 'Select a new status'+'<button type="button" id="close" class="close" onclick="$(&quot;#'+dom_id+'&quot;).popover(&quot;hide&quot;);">&times;</button>'
+                        ,'placement': 'right'
+                        ,'trigger': 'manual'
+                        ,'content': buttons
+                    })
+
+                    dom_element.popover('toggle')
+
+                    $('button.status-button').unbind()
+                    $('button.status-button').click(function(el){
+                        var target = el.target
+                            ,we_id = $(target).attr('data-webentity-id')
+                            ,we_status = $(target).attr('data-webentity-status')
+                        
+                        // Notify to the server
+                        D.request('setWebentityStatus', {
+                            webentityId: we_id
+                            ,status: we_status
+                        })
+
+
+                        // Destroy the popovers
+                        $('.table_status').popover('destroy')
+
+                        // We impact the change without checking server-side validation. Dirty but effective.
+                        D.dispatchEvent('ui_updateWebentityStatus', {
+                            webentityId: we_id
+                            ,status: we_status
+                            ,row: row
+                        })
+                    })
+                }
+            },{
+                // On notification of status changed, we change the UI
+                triggers: ['ui_updateWebentityStatus']
+                ,method: function(d){
+                    var we_id = d.data.webentityId
+                        ,status = d.data.status
+                        ,row = d.data.row
+                        ,columns = D.get('datatableColumns')
+// Modify the data table
+                    var oTable = $('#webEntities_table').dataTable()
+                    oTable.fnUpdate( status, row[0], columns.status ); // Single cell
+                }
             }
         ]
     })
@@ -111,18 +226,7 @@ HypheCommons.domino_init()
             
             /* Table initialisation */
             // Changing the order of columns is painful with this config, so we have an object allowing us to deal with that
-            var columns = {
-                name:0
-                ,status:1
-                ,prefixes:2
-                ,creation_date_formatted:3
-                ,last_modification_date_formatted:4
-                ,actions:5
-                ,id:6
-                ,creation_date_unformatted:7
-                ,last_modification_date_unformatted:8
-                ,searchable:9
-            }
+            var columns = D.get('datatableColumns')
 
             var webentitiesTableData = webentities.map(function(we){
                 var searchable = we.name
@@ -146,9 +250,10 @@ HypheCommons.domino_init()
 
             // Initialize this table
             element.dataTable( {
-                "sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>"
+                "sDom": "<'row table_ui_top'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>"
                 ,'aaData': webentitiesTableData
                 ,'bDeferRender': true
+                ,'bProcessing ': true
                 ,"sPaginationType": "bootstrap"
                 ,"oLanguage": {
                     "sLengthMenu": '_MENU_ web entities at once',
@@ -158,6 +263,27 @@ HypheCommons.domino_init()
                     "sInfoFiltered": '<span class="text-info">(filtered from _MAX_ total records)</span>'
                 }
                 ,"aaSorting": [[ columns.last_modification_date_formatted, "asc" ]]
+                ,"fnPreDrawCallback": function( oSettings ) {
+                    // Destroy the popovers
+                    $('.table_status').popover('destroy')
+                }
+                ,"fnDrawCallback": function( oSettings ) {
+                    // Update the status labels (for edit)
+                    $('.table_status').each(function(i, element){
+                        var div = $(element)
+                            ,we_id = div.attr('data-webentity-id')
+                            ,we_status = div.find('span.label').text()
+                        div.unbind()
+                        div.click(function(){
+                            D.dispatchEvent('ui_clickOnStatus', {
+                                element: element
+                                ,webentityId: we_id
+                                ,webentityStatus: we_status
+                                ,row: div.closest('tr')
+                            })
+                        })
+                    })
+                }
                 ,"aoColumnDefs": [
                    {
                         "mRender": function ( data, type, row ) {
@@ -167,7 +293,6 @@ HypheCommons.domino_init()
                                         $('<a/>')
                                             .text(data)
                                         .attr('href', 'webentity_edit.php#we_id='+row[columns.id])
-                                        .attr('webEntity_id', row[columns.id])
                                     )
                             ).html()
                         },
@@ -178,9 +303,11 @@ HypheCommons.domino_init()
 
                             return $('<div/>').append(
                                 $('<div class="table_status"/>').append(
-                                    $('<span class="label"/>').text(data)
-                                        .addClass(getStatusColor(data))
-                                )
+                                        $('<span class="label"/>').text(data)
+                                            .addClass(getStatusColor(data))
+                                    )
+                                    .attr('data-webentity-id', row[columns.id])
+                                    .attr('id', 'status-'+row[columns.id])
                             ).html()
                         },
                         "aTargets": [ columns.status ]
@@ -202,8 +329,8 @@ HypheCommons.domino_init()
                                                                     .append(
                                                                             $('<i class="icon-share-alt"/>')
                                                                         )
-                                                           )
-                                                   )
+                                                            )
+                                                    )
                                         })
                                     )
                                 )
@@ -431,192 +558,3 @@ HypheCommons.domino_init()
     }
 
 })(jQuery, domino, (window.dmod = window.dmod || {}))
-
-
-
-
-
-
-// Old code (deprecated)
-;(function(Hyphen, $, undefined){
-    
-    // On load
-	$(document).ready(function(){
-
-		/* Table initialisation */
-        // Changing the columns is painful with this config, so we have an object allowing us to deal with that
-        var columns = {
-            name:0
-            ,status:1
-            ,prefixes:2
-            ,creation_date_formatted:3
-            ,last_modification_date_formatted:4
-            ,actions:5
-            ,id:6
-            ,creation_date_unformatted:7
-            ,last_modification_date_unformatted:8
-            ,searchable:9
-        }
-        
-        Hyphen.integration.initDataTables()
-		$('.dataTable').dataTable( {
-			"sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>"
-			,"sPaginationType": "bootstrap"
-			,"oLanguage": {
-				"sLengthMenu": '_MENU_ web entities at once',
-				"sZeroRecords": '<span class="text-error">Nothing found - sorry</span>',
-	            "sInfo": '<span class="muted">Showing </span>_START_ to _END_<span class="muted"> of _TOTAL_ records</span>',
-        		"sInfoEmpty": '<span class="text-warning">Showing 0 to 0 of 0 records</span>',
-        		"sInfoFiltered": '<span class="text-info">(filtered from _MAX_ total records)</span>'
-			}
-            ,"fnDrawCallback": function( oSettings ) {
-                // Update the web entities proxies
-                Hyphen.view.webEntities.proxiesUpdate(true)
-                Hyphen.view.table_updateInteractions()
-            }
-            ,"aaSorting": [[ columns.last_modification_date_formatted, "asc" ]]
-            ,"aoColumnDefs": [
-                {
-                    "mRender": function ( data, type, row ) {
-
-                        return $('<div/>').append(
-                            $('<span/>').text(data)
-                                .addClass('webEntity_proxy')
-                                .attr('webEntity_id', row[columns.id])
-                        ).html()
-                    },
-                    "aTargets": [ columns.name ]
-                }
-                ,{
-                    "mRender": function ( data, type, row ) {
-
-                        return $('<div/>').append(
-                            $('<span class="label"/>').text(data)
-                                .addClass(Hyphen.view.webEntities_status_getLabelColor(data))
-                        ).html()
-                    },
-                    "aTargets": [ columns.status ]
-                }
-                ,{
-                    "mRender": function ( data, type, row ) {
-                        return $('<div/>').append(
-                            $('<ul class="unstyled"/>').append(
-                                data.map(function(lru_prefix){
-                                    var url = Hyphen.utils.LRU_to_URL(lru_prefix)
-                                    return $('<li/>').append(
-                                        $('<small/>').append(
-                                            $('<a/>')
-                                                .attr('href', url)
-                                                .attr('target', '_blank')
-                                                .text(Hyphen.utils.URL_simplify(url))
-                                        )
-                                    )
-                                })
-                            )
-                        ).html()
-                    },
-                    "aTargets": [ columns.prefixes ]
-                }
-                ,{
-                    "mRender": function ( data, type, row ) {
-                        var date = new Date()
-                        date.setTime(data)
-                        return $('<div/>').append(
-                            $('<small/>').text(Hyphen.utils.prettyDate(date))
-                                .attr('title', date)
-                        ).html()
-                    },
-                    "aTargets": [ columns.creation_date_formatted, columns.last_modification_date_formatted ]
-                }
-                ,{
-                    "mRender": function ( data, type, row ) {
-                        return '<div class="actions" we_id="'+data+'"></div>'
-                    },
-                    "aTargets": [ columns.actions ]
-                }
-                ,{ "iDataSort": columns.creation_date_unformatted, "aTargets": [ columns.creation_date_formatted ] }
-                ,{ "iDataSort": columns.last_modification_date_unformatted, "aTargets": [ columns.last_modification_date_formatted ] }
-                ,{ "bVisible": false,  "aTargets": [ columns.searchable, columns.creation_date_unformatted, columns.last_modification_date_unformatted, columns.id ] }
-                ,{ "sClass": "center", "aTargets": [ columns.actions ] }
-                ,{ "bSearchable": false, "aTargets": [ columns.prefixes, columns.creation_date_formatted, columns.last_modification_date_formatted, columns.actions ] }
-                ,{ "bSortable": false, "aTargets": [ columns.prefixes, columns.actions, columns.searchable ] }
-                ,{ "sWidth": "80px", "aTargets": [ columns.actions ] }
-                ,{ "sWidth": "80px", "aTargets": [ columns.status ] }
-                ,{ "sWidth": "80px", "aTargets": [ columns.creation_date_formatted, columns.last_modification_date_formatted ] }
-            ]
-		} )
-		Hyphen.controller.core.webEntities_update()
-
-	})
-
-
-
-	// View
-
-	// Fill the table on update
-	$(document).on( "/webentities", function(event, eventData){
-        switch(eventData.what){
-            case "updated":
-                $('#webEntities_table').dataTable().fnAddData(Hyphen.model.webEntities.getAll().map(function(we){
-                	return [
-                        we.name
-                        ,we.status
-                        ,we.lru_prefixes
-                        ,we.creation_date
-                        ,we.last_modification_date
-                        ,we.id
-                        ,we.id
-                        ,-we.creation_date
-                        ,-we.last_modification_date
-                        ,we.searchable
-                    ]
-                }))
-                $('#loading_proxy').hide()
-				$('#loading_achieved').show()
-                Hyphen.view.table_updateInteractions()
-                break
-        }
-    })
-
-    Hyphen.view.table_updateInteractions = function(){
-        $('#webEntities_table tbody tr').mouseenter(function(event){
-            var tr = event.currentTarget
-                actionsDiv = $(tr).find('div.actions')[0]
-            $(actionsDiv).html('').show()
-                .append(
-                    $('<div class="btn-group"/>')
-                        .append(
-                            $('<a class="btn btn-primary"/>').html('<i class="icon-edit icon-white"/>')
-                                .attr('title', 'Edit')
-                                .attr('href', 'webentity_edit.php#we_id='+$(actionsDiv).attr('we_id'))
-                        ).append(
-                            $('<a class="btn"/>').html('<i class="icon-download-alt"/>')
-                                .attr('title', 'Crawl')
-                                .attr('href', 'crawl_new.php#we_id='+$(actionsDiv).attr('we_id'))
-                        )
-                )
-        })
-        $('#webEntities_table tbody tr').mouseleave(function(event){
-            var tr = event.currentTarget
-                actionsDiv = $(tr).find('div.actions')[0]
-            $(actionsDiv).hide()
-        })
-    }
-
-    // Download json
-    $('#webEntities_download').click(function(){
-        // Blob Builder
-        window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder
-        var bb = new BlobBuilder
-        bb.append('[')
-        Hyphen.model.webEntities.getAll().forEach(function(we,i){
-            if(i!=0)
-                bb.append(',')
-            bb.append(JSON.stringify(we))
-        })
-        bb.append(']')
-        saveAs(bb.getBlob("text/json;charset=utf-8"), "WebEntities.json")
-    })
-    
-
-})//(window.Hyphen = window.Hyphen || {}, jQuery)

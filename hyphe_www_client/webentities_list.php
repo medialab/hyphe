@@ -16,6 +16,10 @@
         <link rel="stylesheet" href="css/jquery.dataTables.css">
         <link rel="stylesheet" href="css/main.css">
         <style>
+.status_buttons_div button{
+    margin-right: 2px;
+}
+
 td ul.unstyled{
     margin-bottom: 0px;
 }
@@ -25,6 +29,7 @@ div.table_name{
 }
 div.table_status{
     width: 90px;
+    cursor: pointer;
 }
 div.table_prefix{
     width: 220px;
@@ -38,6 +43,9 @@ div.table_prefix{
 }
 .table_prefixlink:hover{
     opacity: 1;
+}
+.table_ui_top{
+    margin-bottom: 20px;
 }
         </style>
 
