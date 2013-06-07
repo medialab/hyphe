@@ -924,10 +924,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         s = time.time()
         print "Generating %s WebEntities network..." % outformat
         if self.webentities_links == []:
-            self.webentities_links = yield self.msclient_loop.getWebEntityLinks()
+            links = yield self.msclient_loop.getWebEntityLinks()
             if is_error(links):
                 print links['message']
                 returnD(False)
+            self.webentities_links = links
         if outformat == "gexf":
             WEs = yield self.ramcache_webentities()
             if is_error(WEs):
