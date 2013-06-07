@@ -192,7 +192,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None, all_pages_as_startpoints=False):
-        """Tells scrapy to run crawl on a webentity defined by its id from memory structure."""
+        """Tells scrapy to run crawl on a WebEntity defined by its id from memory structure."""
         if not maxdepth:
             maxdepth = config['mongo-scrapy']['maxdepth']
         WE = yield self.store.get_webentity_with_pages_and_subWEs(webentity_id, all_pages_as_startpoints)
@@ -207,7 +207,7 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_get_webentity_logs(self, webentity_id):
         jobs = self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': webentity_id}, fields=['_id'], order=[('timestamp', pymongo.ASCENDING)])
         if not jobs.count():
-            return format_error('No job found for webentity %s.' % webentity_id)
+            return format_error('No job found for WebEntity %s.' % webentity_id)
         res = self.db[config['mongo-scrapy']['jobLogsCol']].find({'_job': {'$in': [a['_id'] for a in list(jobs)]}}, order=[('timestamp', pymongo.ASCENDING)])
         return format_result([{'timestamp': log['timestamp'], 'job': log['_job'], 'log': log['log']} for log in list(res)])
 
@@ -281,7 +281,7 @@ class Crawler(jsonrpc.JSONRPC):
     def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=config['discoverPrefixes'], maxdepth=config['mongo-scrapy']['maxdepth'], download_delay=config['mongo-scrapy']['download_delay'], corpus=''):
         """Starts a crawl with scrapy from arguments using a list of urls and of lrus for prefixes."""
         if len(starts) < 1:
-            return format_error('No startpage defined for crawling webentity %s.' % webentity_id)
+            return format_error('No startpage defined for crawling WebEntity %s.' % webentity_id)
         # Choose random user agent for each crawl
         agents = ["Mozilla/2.0 (compatible; MSIE 3.0B; Win32)","Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9b5) Gecko/2008032619 Firefox/3.0b5","Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; bgft)","Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; iOpus-I-M)","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.2.153.1 Safari/525.19","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.2.153.1 Safari/525.19"]
         # preparation of the request to scrapyd
@@ -303,7 +303,7 @@ class Crawler(jsonrpc.JSONRPC):
             jobslog(res['jobid'], "CRAWL_ADDED", self.db, ts)
             resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'webentity_id': webentity_id, 'nb_pages': 0, 'nb_links': 0, 'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts}}, upsert=True, safe=True)
             if (resdb['err']):
-                print "ERROR saving crawling job %s in database for webentity %s with arguments %s" % (res['jobid'], webentity_id, args), resdb
+                print "ERROR saving crawling job %s in database for WebEntity %s with arguments %s" % (res['jobid'], webentity_id, args), resdb
                 return format_error(resdb['err'])
         return format_result(res)
 
@@ -424,7 +424,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             return format_error("Service initialization not finished. Please retry in a second.")
 
     def return_new_webentity(self, lru_prefix, new=False, source=None):
-        WE = self.msclient_sync.findWebEntityMatchingLRU(lru_prefix)
+        WE = self.msclient_sync.findWebEntityByLRUPrefix(lru_prefix)
         if is_error(WE):
             return WE
         if new:
@@ -483,7 +483,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             return format_error(e)
         existing = self.msclient_sync.findWebEntityByLRUPrefix(lru_prefix)
         if not is_error(existing):
-            return format_error('LRU prefix "%s" is already set to an existing webentity : %s' % (lru_prefix, existing))
+            return format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (lru_prefix, existing))
         res = self.msclient_sync.updateWebEntity(WebEntity(None, [lru_prefix], urllru.url_shorten(url)))
         if is_error(res):
             return res
@@ -496,7 +496,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None):
         WE = self.msclient_sync.getWebEntity(webentity_id)
         if is_error(WE):
-           return format_error("ERROR could not retrive webentity with id %s" % webentity_id)
+           return format_error("ERROR could not retrieve WebEntity with id %s" % webentity_id)
         try:
             if array_behavior:
                 if array_key:
@@ -531,7 +531,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 if is_error(res):
                     return res
                 self.recent_indexes += 1
-                return format_result("%s field of webentity %s updated." % (field_name, res))
+                return format_result("%s field of WebEntity %s updated." % (field_name, res))
             else:
                 res = self.msclient_sync.deleteWebEntity(WE)
                 if is_error(res):
@@ -540,11 +540,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 self.total_webentities -= 1
                 return format_result("webentity %s had no LRUprefix left and was removed." % webentity_id)
         except Exception as x:
-            return format_error("ERROR while updating webentity : %s" % x)
+            return format_error("ERROR while updating WebEntity : %s" % x)
 
     def jsonrpc_rename_webentity(self, webentity_id, new_name):
         if not new_name or new_name == "":
-            return format_error("ERROR: please specify a value for the webentity's name")
+            return format_error("ERROR: please specify a value for the WebEntity's name")
         return self.update_webentity(webentity_id, "name", new_name)
 
     def jsonrpc_set_webentity_status(self, webentity_id, status):
@@ -570,7 +570,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             return format_error(e)
         old_WE = self.msclient_sync.findWebEntityByLRUPrefix(lru_prefix)
         if not is_error(old_WE):
-            print "Removing LRUPrefix %s from webentity %s" % (lru_prefix, old_WE.name)
+            print "Removing LRUPrefix %s from WebEntity %s" % (lru_prefix, old_WE.name)
             res = self.jsonrpc_rm_webentity_lruprefix(old_WE.id, lru_prefix)
             if is_error(res):
                 return res
@@ -580,7 +580,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return res
 
     def jsonrpc_rm_webentity_lruprefix(self, webentity_id, lru_prefix):
-        """ Will delete webentity if no LRUprefix left"""
+        """ Will delete WebEntity if no LRUprefix left"""
         try:
             lru_prefix = urllru.cleanLRU(lru_prefix)
             url = urllru.lru_to_url(lru_prefix)
@@ -627,7 +627,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_merge_webentity_into_another(self, old_webentity_id, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False):
         old_WE = self.msclient_sync.getWebEntity(old_webentity_id)
         if is_error(old_WE):
-            return format_error('ERROR retrieving webentity with id %s' % old_webentity_id)
+            return format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id)
         res = []
         if include_home_and_startpages_as_startpages:
             a = self.jsonrpc_add_webentity_startpage(good_webentity_id, old_WE.homepage)
@@ -654,13 +654,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_delete_webentity(self, webentity_id):
         WE = self.msclient_sync.getWebEntity(webentity_id)
         if is_error(WE):
-            return format_error('ERROR retrieving webentity with id %s' % old_webentity_id)
+            return format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id)
         res = self.msclient_sync.deleteWebEntity(WE)
         if is_error(res):
             return res
         self.total_webentities -= 1
         self.recent_indexes += 1
-        return format_result("Webentity %s (%s) was removed" % (webentity_id, WE.name))
+        return format_result("WebEntity %s (%s) was removed" % (webentity_id, WE.name))
 
     @inlineCallbacks
     def index_batch(self, page_items, jobid):
@@ -716,14 +716,21 @@ class Memory_Structure(jsonrpc.JSONRPC):
             print "WARNING : indexing job declared as running but probably crashed."
             returnD(False)
         oldest_page_in_queue = self.db[config['mongo-scrapy']['queueCol']].find_one(sort=[('timestamp', pymongo.ASCENDING)], fields=['_job'])
-        # Run linking webentities on a regular basis when needed
+        # Run linking WebEntities on a regular basis when needed
         if self.recent_indexes > 100 or (self.recent_indexes and not oldest_page_in_queue) or (self.recent_indexes and time.time() - self.last_links_loop >= 1800):
             self.loop_running = "generating links"
             self.loop_running_since = time.time()
-            res = yield self.generate_WEs_links()
+            s = time.time()
+            print "Generating links between web entities..."
+            jobslog("WE_LINKS", "Starting WebEntity links generation...", self.db)
+            res = yield self.msclient_loop.generateWebEntityLinks()
             if is_error(res):
                 print res['message']
                 returnD(False)
+            self.webentities_links = res
+            s = str(time.time() -s)
+            jobslog("WE_LINKS", "...finished WebEntity links generation (%ss)" %s, self.db)
+            print "...processed WebEntity links in %ss..." % s
             self.recent_indexes = 0
             self.last_links_loop = time.time()
         elif oldest_page_in_queue:
@@ -803,19 +810,19 @@ class Memory_Structure(jsonrpc.JSONRPC):
    #        if not light:     # to be added when handled in front js
    #            semilight = True
             if corelinks:
-                print "Collecting webentities..."
+                print "Collecting WebEntities..."
             WEs = yield self.ramcache_webentities()
             if is_error(WEs):
                 returnD(res)
             jobs = None
         res = [self.format_webentity(WE, jobs, light, semilight) for WE in WEs]
         if corelinks:
-            print "...got webentities, collecting WebentityLinks..."
+            print "...got WebEntities, collecting WebEntityLinks..."
             res = yield self.msclient_pool.getWebEntityLinks()
             if is_error(res):
                 returnD(res)
             self.webentities_links = res
-            print "...got WebentityLinks."
+            print "...got WebEntityLinks."
             self.loop_running = False
         returnD(format_result(res))
 
@@ -827,36 +834,44 @@ class Memory_Structure(jsonrpc.JSONRPC):
         formatted_pages = [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
         returnD(format_result(formatted_pages))
 
+    @inlineCallbacks
     def jsonrpc_get_webentity_by_url(self, url):
         try:
             lru = urllru.url_to_lru_clean(url)
         except ValueError as e:
-            return format_error(e)
-        WE = self.msclient_sync.findWebEntityMatchingLRU(lru)
+            returnD(format_error(e))
+        WE = yield self.msclient_pool.findWebEntityMatchingLRU(lru)
         if is_error(WE):
-            return WE #format_error("No webentity found in memory Structure for %s" % url)
-        return format_result(self.format_webentity(WE))
+            returnD(WE)
+        if WE.name == "OUTSIDE WEB":
+            returnD(format_error("No matching WebEntity found for url %s" % url))
+        returnD(format_result(self.format_webentity(WE)))
 
+    @inlineCallbacks
     def jsonrpc_get_webentity_subwebentities(self, webentity_id):
-        return self.get_webentity_relative_webentities(webentity_id, "children")
+        res = yield self.get_webentity_relative_webentities(webentity_id, "children")
+        returnD(res)
 
+    @inlineCallbacks
     def jsonrpc_get_webentity_parentwebentities(self, webentity_id):
-        return self.get_webentity_relative_webentities(webentity_id, "parents")
+        res = yield self.get_webentity_relative_webentities(webentity_id, "parents")
+        returnD(res)
 
+    @inlineCallbacks
     def get_webentity_relative_webentities(self, webentity_id, relative_type="children"):
         if relative_type != "children" and relative_type != "parents":
-            return format_error("ERROR: must set relative type as children or parents")
+            returnD(format_error("ERROR: must set relative type as children or parents"))
         jobs = {}
         if relative_type == "children":
-            WEs = self.msclient_sync.getSubWebEntities(webentity_id)
+            WEs = yield self.msclient_pool.getSubWebEntities(webentity_id)
         else:
-            WEs = self.msclient_sync.getParentWebEntities(webentity_id)
+            WEs = yield self.msclient_pool.getParentWebEntities(webentity_id)
         if is_error(WEs):
-            return WEs
+            returnD(WEs)
         for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)]):
             jobs[job['webentity_id']] = job
         res = [self.format_webentity(WE, jobs) for WE in WEs]
-        return format_result(res)
+        returnD(format_result(res))
 
     @inlineCallbacks
     def jsonrpc_get_webentities_network_json(self):
@@ -870,23 +885,24 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(res)
         returnD(format_result('GEXF graph generation started...'))
 
+    @inlineCallbacks
     def jsonrpc_get_webentity_nodelinks_network_json(self, webentity_id=None, outformat="json", include_external_links=False):
         if outformat == "gexf":
-            return format_error("...GEXF nodelinks network not implemented yet.")
+            returnD(format_error("...GEXF NodeLinks network not implemented yet."))
         s = time.time()
-        print "Generating %s nodelinks network for webentity %s..." % (outformat, webentity_id)
-        links = self.msclient_sync.getWebentityNodeLinks(webentity_id, include_external_links)
+        print "Generating %s NodeLinks network for WebEntity %s..." % (outformat, webentity_id)
+        links = yield self.msclient_pool.getWebentityNodeLinks(webentity_id, include_external_links)
         if is_error(links):
-            return format_error(links)
+            returnD(format_error(links))
         res = [[l.sourceLRU, l.targetLRU, l.weight] for l in links]
         print "...JSON network generated in "+str(time.time()-s)
-        return format_result(res)
+        returnD(format_result(res))
 
     @inlineCallbacks
     def get_webentity_with_pages_and_subWEs(self, webentity_id, all_pages_as_startpoints=False):
         WE = yield self.msclient_pool.getWebEntity(webentity_id)
         if is_error(WE):
-            returnD(format_error("No webentity with id %s found" % webentity_id))
+            returnD(format_error("No WebEntity with id %s found" % webentity_id))
         res = {'status': WE.status, 'lrus': list(WE.LRUSet), 'pages': [urllru.lru_to_url(lr) for lr in WE.LRUSet], 'subWEs': []}
         if all_pages_as_startpoints:
             pages = yield self.msclient_pool.getPagesFromWebEntity(WE.id)
@@ -904,23 +920,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(res)
 
     @inlineCallbacks
-    def generate_WEs_links(self):
-        s = time.time()
-        print "Generating links between web entities..."
-        jobslog("WE_LINKS", "Starting WebEntity links generation...", self.db)
-        res = yield self.msclient_loop.generateWebEntityLinks()
-        if is_error(res):
-            print res['message']
-            returnD(False)
-        self.webentities_links = res
-        s = str(time.time() -s)
-        jobslog("WE_LINKS", "...finished WebEntity links generation (%ss)" %s, self.db)
-        print "...processed webentity links in %ss..." % s
-
-    @inlineCallbacks
     def generate_network_WEs(self, outformat="json"):
         s = time.time()
-        print "Generating %s webentities network..." % outformat
+        print "Generating %s WebEntities network..." % outformat
         if self.webentities_links == []:
             self.webentities_links = yield self.msclient_loop.getWebEntityLinks()
             if is_error(links):
