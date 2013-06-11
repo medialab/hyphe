@@ -30,11 +30,10 @@ public class ThriftServer {
 
     private static DynamicLogger logger = new DynamicLogger(ThriftServer.class);
 
+    // Default values, will be overriden by command line arguments or values from config.json
     private static int port = 0;
-
     private static String luceneDirectoryPath = null;
     private static String logLevel = null;
-    private static String precisionLimit = null;
 
     private static MemoryStructureImpl memoryStructureImpl;
 
@@ -86,20 +85,21 @@ public class ThriftServer {
             JSONObject json = new JSONObject(jsonTxt);
             JSONObject properties = json.getJSONObject("memoryStructure");
             String[] propertyNames = JSONObject.getNames(properties);
-            logger.debug("properties file found");
+            if (logger.isDebugEnabled()) {
+                logger.info("properties file found");
+            }
             for(String key : propertyNames) {
                 propertiesMap.put(key, properties.getString(key));
             }
-            propertiesMap.put("precisionLimit", json.getString("precisionLimit"));
         }
         catch(JSONException x) {
-            logger.info("ERROR while parsing json in config.json");
+            logger.warn("ERROR while parsing json in config.json");
         }
         catch(Exception x) {
-            logger.info("no config.json file found");
+            logger.warn("no config.json file found");
             x.printStackTrace();
         }
-        if (!silent) {
+        if (!silent && logger.isDebugEnabled()) {
             for(String key : propertiesMap.keySet()) {
                 logger.info("read property from config.json: " + key + " = " + propertiesMap.get(key));
             }
@@ -120,8 +120,10 @@ public class ThriftServer {
             String value = parameter.substring(parameter.indexOf('=')+1);
             propertiesMap.put(property, value);
         }
-        for(String key : propertiesMap.keySet()) {
-            logger.info("read property from command line: " + key + " = " + propertiesMap.get(key));
+        if (logger.isDebugEnabled()) {
+            for(String key : propertiesMap.keySet()) {
+                logger.info("read property from command line: " + key + " = " + propertiesMap.get(key));
+            }
         }
         return propertiesMap;
     }
@@ -132,49 +134,41 @@ public class ThriftServer {
      */
     private static void initializeMemoryStructure(String[] args) {
 
-        Map<String, String> propertiesFromFile = readProperties(false);
-        Map<String, String> propertiesFromCL = readCL(args);
 
-        // properties from command line take precedence
-        Map<String, String> resolvedProperties = new HashMap<String, String>(propertiesFromFile);
+        Map<String, String> resolvedProperties = new HashMap<String, String>(readProperties(false));
+        Map<String, String> propertiesFromCL = readCL(args);
         for(String key : propertiesFromCL.keySet()) {
             resolvedProperties.put(key, propertiesFromCL.get(key));
         }
 
-        logger.info("command line properties take precedence; result is:");
-        for(String key : resolvedProperties.keySet()) {
-            logger.info("using property " + key + " = " + resolvedProperties.get(key));
-        }
-
-        port = Integer.parseInt(resolvedProperties.get("thrift.port"));
-        luceneDirectoryPath = resolvedProperties.get("lucene.path");
         logLevel = resolvedProperties.get("log.level");
-
-        //
-        // defaults
-        //
-        if(port == 0) {
-            logger.warn("Could not find thrift.port either from memorystructure config.json or from command line arguments.");
-            port = 9090;
-            logger.warn("Using default: thrift.port is " + port);
-        }
-        if(StringUtils.isEmpty(luceneDirectoryPath)) {
-            logger.warn("Could not find lucene.path either from memorystructure.properties or from command line arguments.");
-            luceneDirectoryPath = System.getProperty("user.home") + File.separator + "memorystructure.lucene";
-            logger.warn("Using default: lucene.path is " + luceneDirectoryPath);
-        }
         if(StringUtils.isEmpty(logLevel)) {
             logger.warn("Could not find log.level either from memorystructure.properties or from command line arguments.");
             logLevel = "INFO";
             logger.warn("Using default: log.level is " + logLevel);
         }
-
-        if(StringUtils.isEmpty(precisionLimit)) {
-            logger.warn("Could not find log.level either from memorystructure.properties or from command line arguments.");
-            logLevel = "INFO";
-            logger.warn("Using default: log.level is " + logLevel);
-        }
         DynamicLogger.setLogLevel(logLevel);
+
+        if (logger.isDebugEnabled()) {
+            logger.info("command line properties take precedence; result is:");
+            for(String key : resolvedProperties.keySet()) {
+                logger.info("using property " + key + " = " + resolvedProperties.get(key));
+            }
+        }
+
+        port = Integer.parseInt(resolvedProperties.get("thrift.port"));
+        if(port == 0) {
+            logger.warn("Could not find thrift.port either from memorystructure config.json or from command line arguments.");
+            port = 9090;
+            logger.warn("Using default: thrift.port is " + port);
+        }
+
+        luceneDirectoryPath = resolvedProperties.get("lucene.path");
+        if(StringUtils.isEmpty(luceneDirectoryPath)) {
+            logger.warn("Could not find lucene.path either from memorystructure.properties or from command line arguments.");
+            luceneDirectoryPath = System.getProperty("user.home") + File.separator + "memorystructure.lucene";
+            logger.warn("Using default: lucene.path is " + luceneDirectoryPath);
+        }
 
         File luceneDir = new File(luceneDirectoryPath);
         if(luceneDir.exists() && !luceneDir.isDirectory()) {
