@@ -227,28 +227,28 @@ HypheCommons.domino_init()
 
             var current = D.get('currentItem')
             if(current !== undefined && current !== null){
-                var button_in = $('<button class="btn btn-large btn-success">IN</button>').click(function(){
+                var button_in = $('<button class="btn btn-success">IN</button>').click(function(){
                     D.request('setCurrentWebEntityStatus', {
                         webEntityId: current.webentity.id
                         ,status: 'IN'
                     })
                 })
                 
-                var button_out = $('<button class="btn btn-large btn-danger">OUT</button>').click(function(){
+                var button_out = $('<button class="btn btn-danger">OUT</button>').click(function(){
                     D.request('setCurrentWebEntityStatus', {
                         webEntityId: current.webentity.id
                         ,status: 'OUT'
                     })
                 })
                 
-                var button_undecided = $('<button class="btn btn-large btn-info">UNDECIDED</button>').click(function(){
+                var button_undecided = $('<button class="btn btn-info">UNDECIDED</button>').click(function(){
                     D.request('setCurrentWebEntityStatus', {
                         webEntityId: current.webentity.id
                         ,status: 'UNDECIDED'
                     })
                 })
                 
-                var button_crawl = $('<a class="btn btn-large btn-link">Crawl</a>')
+                var button_crawl = $('<a class="btn btn-link">Crawl</a>')
                     .attr('href', 'crawl_new.php#we_id='+current.webentity.id)
                 
                 
@@ -282,35 +282,38 @@ HypheCommons.domino_init()
                 element.append(
                     $('<h5/>').text('Who is citing?')
                 ).append(
-                    $('<table class="table table-condensed"/>').append(
-                        current.node.inEdges.map(function(e){
-                            var webentities_byId = D.get('webentitiesbyid')
-                                ,we = webentities_byId[e.source.id]
-                                ,tr = $('<tr/>').append(
-                                    $('<td/>').append(
-                                        $('<a/>').text(we.name)
-                                            .attr('href', 'webentity_edit.php#we_id='+we.id)
-                                            .attr('target', 'blank')
-                                    )
-                                )
-                            if(we.homepage){
-                                tr.append(
-                                    $('<td>').append(
-                                        $('<a class="btn btn-link btn-mini pull-right"/>')
-                                            .attr('href', we.homepage)
-                                            .attr('target', 'blank')
-                                            .append($('<i class="icon-share-alt"/>'))
-                                    )
-                                )
-                            } else {
-                                tr.append(
-                                    $('<td>')
-                                )
-                            }
+                    $('<div class="cited-list"/>')
+                        .append(
+                                $('<table class="table table-condensed"/>').append(
+                                    current.node.inEdges.map(function(e){
+                                        var webentities_byId = D.get('webentitiesbyid')
+                                            ,we = webentities_byId[e.source.id]
+                                            ,tr = $('<tr/>').append(
+                                                $('<td/>').append(
+                                                    $('<a/>').text(we.name)
+                                                        .attr('href', 'webentity_edit.php#we_id='+we.id)
+                                                        .attr('target', 'blank')
+                                                )
+                                            )
+                                        if(we.homepage){
+                                            tr.append(
+                                                $('<td>').append(
+                                                    $('<a class="btn btn-link btn-mini pull-right"/>')
+                                                        .attr('href', we.homepage)
+                                                        .attr('target', 'blank')
+                                                        .append($('<i class="icon-share-alt"/>'))
+                                                )
+                                            )
+                                        } else {
+                                            tr.append(
+                                                $('<td>')
+                                            )
+                                        }
 
-                            return tr
-                        })
-                    )
+                                        return tr
+                                    })
+                                )
+                            )
                 )
             }
         }

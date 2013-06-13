@@ -31,6 +31,11 @@
     margin-right: 5px;
 }
 
+.cited-list{
+    max-height: 110px;
+    overflow-y: auto;
+}
+
 
         </style>
         
