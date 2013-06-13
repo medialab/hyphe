@@ -120,6 +120,7 @@ HypheCommons.domino_init()
     function refreshStatus() {
     	D.request('getStatus', {})
    	}
+    // Reset each 20s
    	var auto_refresh_status = setInterval(refreshStatus, 20000)
 
 
