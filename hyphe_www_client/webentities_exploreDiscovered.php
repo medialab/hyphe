@@ -10,7 +10,12 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
 
-        <link rel="stylesheet" href="css/bootstrap.min.css">
+<?php include("includes/codetop.php"); ?>
+
+
+        <link rel="stylesheet" href="css/select2.css">
+        <link rel="stylesheet" href="css/main.css">
+
         <style>
 
 #webentitieslist_container{
@@ -28,11 +33,7 @@
 
 
         </style>
-        <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
-        <link rel="stylesheet" href="css/bootstrap-editable.css">
-        <link rel="stylesheet" href="css/select2.css">
-        <link rel="stylesheet" href="css/main.css">
-
+        
         <script src="js/libs/modernizr-2.6.1-respond-1.1.0.min.js"></script>
     </head>
     <body>

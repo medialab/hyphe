@@ -10,12 +10,8 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
 
-        <link rel="stylesheet" href="css/bootstrap.min.css">
-        <style>
+<?php include("includes/codetop.php"); ?>
 
-        </style>
-        <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
-        <link rel="stylesheet" href="css/bootstrap-editable.css">
         <link rel="stylesheet" href="css/select2.css">
         <link rel="stylesheet" href="css/main.css">
 

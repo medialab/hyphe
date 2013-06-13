@@ -4,8 +4,13 @@
 
 	ns.js_file_init = function(){
 		// Check that config is OK
-	    if(HYPHE_CONFIG === undefined)
+	    if(HYPHE_CONFIG === undefined){
 	        alert('Your installation of Hyphe has no configuration.\nCreate a file at "_config/config.js" in the same directory than index.php, with at least this content:\n\nHYPHE_CONFIG = {\n"SERVER_ADDRESS":"http://YOUR_RPC_ENDPOINT_URL"\n}')
+	    }
+	    Messenger.options = {
+			extraClasses: 'messenger-fixed messenger-on-bottom',
+			theme: 'future'
+		}
 	}
 
 	ns.domino_init = function(){
@@ -21,8 +26,21 @@
 		return data[0] !== undefined && data[0].code !== undefined && data[0].code == 'success'
 	}
 
-	ns.RPC.error = function(data){
-		alert('Oops, an error occurred... \n'+data)
+	ns.RPC.error = function(data, xhr, input){
+		// alert('Oops, an error occurred... \n'+data)
+		Messenger().post({
+		    message: 'Oops, an error occurred... '+data
+		    ,type: 'error'
+		    ,showCloseButton: true
+		    ,actions: {
+			    retry: {
+					label: 'Log it in console',
+					action: function() {
+						console.log('RPC error - XHR:', xhr, 'Input:', input)
+					}
+			    }
+			 }
+    	})
 	}
 
 	ns.RPC.contentType = 'application/x-www-form-urlencoded'

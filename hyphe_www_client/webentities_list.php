@@ -10,11 +10,12 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
 
-        <link rel="stylesheet" href="css/bootstrap.min.css">
-        <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+<?php include("includes/codetop.php"); ?>
+
         <link rel="stylesheet" href="css/select2.css">
         <link rel="stylesheet" href="css/jquery.dataTables.css">
         <link rel="stylesheet" href="css/main.css">
+
         <style>
 .status_buttons_div button{
     margin-right: 2px;

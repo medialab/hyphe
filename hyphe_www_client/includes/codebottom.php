@@ -6,6 +6,8 @@
 <script src="js/libs/bootstrap.min.js"></script>
 <script src="js/libs/bootstrap-editable.min.js"></script>
 <script src="js/libs/select2.min.js"></script>
+<script src="js/libs/messenger.min.js"></script>
+<script src="js/libs/messenger-theme-future.js"></script>
 
 <script src="js/libs/d3.v2.min.js"></script>
 
