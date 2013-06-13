@@ -55,7 +55,8 @@
                 <div class="span12">
                     <h1>Crawl from a list of URLs</h1>
                     <p class="text-info">
-                        Doubi doubi dou baaa
+                        Paste a list or raw text to extract URLs. Each URL is tested and you will be able to crawl each valid web entity.
+                        In case of errors, you will be able to fix it in the individual crawl page.
                     </p>
                     <hr>
                 </div>
@@ -94,6 +95,13 @@
                             </div>
                         </div>
                         <div id="urllist"></div>
+                        <div class="row">
+                            <div class="span12">
+                                <br/>
+                                <br/>
+                                <hr/>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="span4">
                                 <div id="globalSettings"></div>
