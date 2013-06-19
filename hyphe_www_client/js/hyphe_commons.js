@@ -29,7 +29,7 @@
 	ns.RPC.error = function(data, xhr, input){
 		// alert('Oops, an error occurred... \n'+data)
 		Messenger().post({
-		    message: '<strong>Oops, an error occurred</strong> when communicating with the server: "'+data+'"'
+		    message: '<strong>Oops, an error occurred</strong> when communicating with the server\n<br/>\n"'+data+'"'
 		    ,type: 'error'
 		    ,showCloseButton: true
 		    /*,actions: {
