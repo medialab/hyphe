@@ -487,7 +487,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = self.msclient_sync.updateWebEntity(WebEntity(None, [lru_prefix], urllru.url_shorten(url)))
         if is_error(res):
             return res
-        new_WE = self.return_new_webentity(res.LRUSet[0], True, 'lru')
+        new_WE = self.return_new_webentity(lru_prefix, True, 'lru')
         if is_error(new_WE):
             return new_WE
         self.handle_lru_precision_exceptions(new_WE['lru_prefixes'][0])
