@@ -787,7 +787,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def ramcache_webentities(self):
         WEs = self.webentities
-        if WEs == [] or self.recent_indexes:
+        if WEs == [] or self.recent_indexes or self.last_links_loop > self.last_WE_update:
             WEs = yield self.msclient_pool.getWebEntities()
             if is_error(WEs):
                 returnD(WEs)
