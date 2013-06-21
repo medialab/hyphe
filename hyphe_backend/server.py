@@ -487,7 +487,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = self.msclient_sync.updateWebEntity(WebEntity(None, [lru_prefix], urllru.url_shorten(url)))
         if is_error(res):
             return res
-        new_WE = self.return_new_webentity(webentity.LRUSet[0], True, 'lru')
+        new_WE = self.return_new_webentity(res.LRUSet[0], True, 'lru')
         if is_error(new_WE):
             return new_WE
         self.handle_lru_precision_exceptions(new_WE['lru_prefixes'][0])
@@ -623,7 +623,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
             tag_values = list(tag_values)
         return self.update_webentity(webentity_id, "metadataItems", tag_values, "update", tag_key, tag_namespace)
 
-    @inlineCallbacks
     def jsonrpc_merge_webentity_into_another(self, old_webentity_id, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False):
         old_WE = self.msclient_sync.getWebEntity(old_webentity_id)
         if is_error(old_WE):
