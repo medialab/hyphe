@@ -313,4 +313,9 @@ list<WebEntityLink> findWebEntityLinksBySource(1:string id) throws (1:MemoryStru
  * @return webentities whose target id are this
  */
 list<WebEntityLink> findWebEntityLinksByTarget(1:string id) throws (1:MemoryStructureException me)
+
+/**
+ * delete all NodeLinks from index
+ */
+void deleteNodeLinks() throws (1:MemoryStructureException me)
 }

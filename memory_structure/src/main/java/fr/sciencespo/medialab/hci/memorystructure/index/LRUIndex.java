@@ -1447,11 +1447,23 @@ public class LRUIndex {
      */
     public void deleteNodeLink(NodeLink nodeLink) throws IndexException {
         if(logger.isDebugEnabled()) {
-            logger.debug("deleting nodeLink with source " + nodeLink.getSourceLRU() + " and target " + nodeLink.getTargetLRU());
+            logger.debug("deleting NodeLink with source " + nodeLink.getSourceLRU() + " and target " + nodeLink.getTargetLRU());
         }
         // The IndexWriter is closed and so committed at the end of the AsyncIndexWriterTask.run method
         deleteObject(LuceneQueryFactory.getNodeLinkBySourceAndTargetQuery(nodeLink.getSourceLRU(), nodeLink.getTargetLRU()), false);
     }
+    
+    /**
+    *
+    * @throws IndexException hmm
+    */
+   public void deleteNodeLinks() throws IndexException {
+       if(logger.isDebugEnabled()) {
+           logger.debug("deleting all NodeLinks");
+       }
+       // Commit the IndexWriter
+       deleteObject(LuceneQueryFactory.getNodeLinksQuery(), true);
+   }
 
     /**
      *

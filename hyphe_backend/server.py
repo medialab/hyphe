@@ -408,6 +408,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.msclient_sync.clearIndex()
         self.ensureDefaultCreationRuleExists()
 
+    def jsonrpc_delete_nodelinks(self):
+        self.recent_indexes += 1
+        return handle_standard_results(self.msclient_sync.deleteNodeLinks())
+
     def ensureDefaultCreationRuleExists(self):
         rules = self.msclient_sync.getWebEntityCreationRules()
         if is_error(rules) or len(rules) == 0:
