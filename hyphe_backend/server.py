@@ -424,7 +424,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             return format_error("Service initialization not finished. Please retry in a second.")
 
     def return_new_webentity(self, lru_prefix, new=False, source=None):
-        WE = self.msclient_sync.findWebEntityByLRUPrefix(lru_prefix)
+        WE = self.msclient_sync.findWebEntityMatchingLRU(lru_prefix)
         if is_error(WE):
             return WE
         if new:
