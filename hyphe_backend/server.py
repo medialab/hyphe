@@ -191,11 +191,13 @@ class Core(jsonrpc.JSONRPC):
         return format_result(res)
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None, all_pages_as_startpoints=False):
+    def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None, use_all_pages_as_startpages=False, use_prefixes_as_startpages=False):
         """Tells scrapy to run crawl on a WebEntity defined by its id from memory structure."""
         if not maxdepth:
             maxdepth = config['mongo-scrapy']['maxdepth']
-        WE = yield self.store.get_webentity_with_pages_and_subWEs(webentity_id, all_pages_as_startpoints)
+        WE = yield self.store.get_webentity_with_pages_and_subWEs(webentity_id, use_all_pages_as_startpages)
+        if use_prefixes_as_startpages and not use_all_pages_as_startpages:
+            WE['pages'] = [urllru.lru_to_url(lru) for lru in WE['lrus']]
         if is_error(WE):
             returnD(WE)
         if WE['status'] == "DISCOVERED":
@@ -407,6 +409,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         print "Empty memory structure content"
         self.msclient_sync.clearIndex()
         self.ensureDefaultCreationRuleExists()
+
+    def jsonrpc_delete_nodelinks(self):
+        self.recent_indexes += 1
+        return handle_standard_results(self.msclient_sync.deleteNodeLinks())
 
     def ensureDefaultCreationRuleExists(self):
         rules = self.msclient_sync.getWebEntityCreationRules()

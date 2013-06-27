@@ -781,6 +781,27 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
+     * Removes all NodeLinks in index.
+     *
+     * @throws TException hmm
+     * @throws MemoryStructureException hmm
+     */
+    @Override
+    public void deleteNodeLinks() throws MemoryStructureException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("deleteNodeLinks");
+        }
+        try {
+            lruIndex.deleteNodeLinks();
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
+    /**
      * Shortcut method only to be used in unit tests, not part of MemoryStructure interface.
      * @return
      */

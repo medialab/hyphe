@@ -1447,11 +1447,24 @@ public class LRUIndex {
      */
     public void deleteNodeLink(NodeLink nodeLink) throws IndexException {
         if(logger.isDebugEnabled()) {
-            logger.debug("deleting nodeLink with source " + nodeLink.getSourceLRU() + " and target " + nodeLink.getTargetLRU());
+            logger.debug("deleting NodeLink with source " + nodeLink.getSourceLRU() + " and target " + nodeLink.getTargetLRU());
         }
         // The IndexWriter is closed and so committed at the end of the AsyncIndexWriterTask.run method
         deleteObject(LuceneQueryFactory.getNodeLinkBySourceAndTargetQuery(nodeLink.getSourceLRU(), nodeLink.getTargetLRU()), false);
     }
+    
+    /**
+    *
+    * @throws IndexException hmm
+    */
+   public void deleteNodeLinks() throws IndexException {
+       if(logger.isDebugEnabled()) {
+           logger.debug("deleting all NodeLinks");
+       }
+       logger.info("delete all NodeLinks existing");
+       // Commit the IndexWriter
+       deleteObject(LuceneQueryFactory.getNodeLinksQuery(), true);
+   }
 
     /**
      *
@@ -1477,6 +1490,19 @@ public class LRUIndex {
         // The IndexWriter is closed and do committed at the end of the AsyncIndexWriterTask.run method
         deleteObject(LuceneQueryFactory.getWebEntityLinkBySourceAndTargetQuery(webEntityLink.getSourceId(), webEntityLink.getTargetId()), false);
     }
+
+    /**
+    *
+    * @throws IndexException hmm
+    */
+   public void deleteWebEntityLinks() throws IndexException {
+       if(logger.isDebugEnabled()) {
+           logger.debug("deleting all NodeLinks");
+       }
+       logger.info("delete all WebEntityLinks existing");
+       // Commit the IndexWriter
+       deleteObject(LuceneQueryFactory.getWebEntityLinksQuery(), true);
+   }
 
     /**
     *
@@ -1758,12 +1784,11 @@ public class LRUIndex {
                 webEntityLink.setWeight(weight);
                 webEntityLinksMap.put(webEntityLinkId, webEntityLink);
             }
+            deleteWebEntityLinks();
             logger.info("Saving " + webEntityLinksMap.size() + " WebEntityLinks");
             @SuppressWarnings({"unchecked"})
             List<Object> webEntityLinksList = new ArrayList(webEntityLinksMap.values());
             logger.info("Map converted to array");
-            deleteObject(LuceneQueryFactory.getWebEntityLinksQuery(), true);
-            logger.info("old webentitylinks deleted");
             batchIndex(webEntityLinksList);
             logger.info("finished indexing webEntityLinks");
             return new ArrayList<WebEntityLink>(webEntityLinksMap.values());
@@ -1789,7 +1814,7 @@ public class LRUIndex {
 */
         return res1;
     }
-
+    
     /**
      *
      * @throws IndexException hmm
@@ -1800,9 +1825,13 @@ public class LRUIndex {
             final Query query = LuceneQueryFactory.getWebEntitiesQuery();
             TopDocs results = indexSearcher.search(query, null, 1);
             final int totalResults = results.totalHits;
-            logger.info("total # of webentities in index is " + totalResults);
+            final Query query2 = LuceneQueryFactory.getNodeLinksQuery();
+            TopDocs nodelinks = indexSearcher.search(query2, null, 1);
+            logger.info("total # of webentities in index : " + totalResults);
+            logger.info("total # of  nodelinks  in index : " + nodelinks.totalHits);
             List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
-            if (totalResults == 0) {
+            if (totalResults == 0 || nodelinks.totalHits == 0) {
+                deleteWebEntityLinks();
                 return webEntityLinks;
             }
             results = indexSearcher.search(query, null, totalResults);
@@ -1887,10 +1916,9 @@ public class LRUIndex {
                     }
                 }
             }
+            deleteWebEntityLinks();
             if (webEntityLinks.size() > 0) {
-                logger.info("delete all webentitylinks existing");
-                deleteObject(LuceneQueryFactory.getWebEntityLinksQuery(), true);
-                logger.info("index reloaded, Saving " + webEntityLinks.size() + " WebEntityLinks...");
+                logger.info("index reloaded, saving " + webEntityLinks.size() + " WebEntityLinks...");
                 @SuppressWarnings({"unchecked"})
                 List<Object> webEntityLinksList = new ArrayList(webEntityLinks);
                 batchIndex(webEntityLinksList);
@@ -1929,12 +1957,10 @@ public class LRUIndex {
                 }
                 List<NodeLink> links = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksBySourceWebEntity(we, subWEs));
                 int intern_weight = 0;
-                int intern_n = 0;
                 if (links.size() > 0) {
                     for (NodeLink link : links) {
                         if (LRUUtil.LRUBelongsToWebentity(link.getTargetLRU(), we, subWEs)) {
                             intern_weight += link.getWeight();
-                            intern_n++;
                         } else {
                             WebEntityNodeLink webEntityNodeLink = new WebEntityNodeLink();
                             webEntityNodeLink.setId("-"+n);
@@ -1996,9 +2022,8 @@ public class LRUIndex {
                     webEntityLinks.addAll(webEntityLinksMap.values());
                 }
             }
+            deleteWebEntityLinks();
             if (webEntityLinks.size() > 0) {
-                logger.info("delete all webentitylinks existing");
-                deleteObject(LuceneQueryFactory.getWebEntityLinksQuery(), true);
                 logger.info("index reloaded, Saving " + webEntityLinks.size() + " WebEntityLinks");
                 @SuppressWarnings({"unchecked"})
                 List<Object> webEntityLinksList = new ArrayList(webEntityLinks);
