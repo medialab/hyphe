@@ -805,10 +805,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, corpus='', corelinks=False):
         jobs = {}
-        if list_ids and len(list_ids):
-            WEs = yield self.msclient_pool.getWebEntitiesByIDs(list_ids)
-            if is_error(WEs):
-                returnD(WEs)
+        n_WEs = len(list_ids) if list_ids else 0
+        if n_WEs:
+            MAX_WE_AT_ONCE = 100
+            WEs = []
+            for sublist_ids in [list_ids[MAX_WE_AT_ONCE*i : MAX_WE_AT_ONCE*(i+1)] for i in range((n_WEs-1)/MAX_WE_AT_ONCE + 1)]:
+                res = yield self.msclient_pool.getWebEntitiesByIDs(sublist_ids)
+                if is_error(res):
+                    returnD(res)
+                WEs.extend(res)
             for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)]):
                 jobs[job['webentity_id']] = job
         else:
