@@ -13,7 +13,7 @@ try:
     from pymongo.binary import Binary
 except:
     from bson.binary import Binary
-from hcicrawler.lru import url_to_lru_clean, getURLHostFromLRU, getURLPathFromLRU
+from hcicrawler.urllru import url_to_lru_clean, getURLHostFromLRU, getURLPathFromLRU
 from hcicrawler.items import Page
 from hcicrawler.samples import DEFAULT_INPUT
 from hcicrawler.errors import error_name
