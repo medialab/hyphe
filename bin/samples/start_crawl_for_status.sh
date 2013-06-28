@@ -13,15 +13,14 @@ if [ -z "$depth" ]; then
   depth=1
 fi
 
-
 ./hyphe_backend/test_client.py inline store.get_webentities |
   grep result |
   sed "s/{u'status'/\n{u'status'/g" |
-  grep "'$statuses'" > /tmp/webentities_to_crawl.list
+  grep "u'status': u'$statuses'" > /tmp/webentities_to_crawl.list
 
 echo "Start crawl for entities with defined startpages"
 cat /tmp/webentities_to_crawl.list |
-  grep -v "'startpages': []" |
+  grep -v "'startpages': \[\]" |
   sed "s/^.*'id': u'//" |
   sed "s/'}.*$//" |
   while read id; do
@@ -30,10 +29,12 @@ cat /tmp/webentities_to_crawl.list |
 
 echo "Start crawl for entities without any startpage using their LRU prefixes"
 cat /tmp/webentities_to_crawl.list |
-  grep "'startpages': []" |
+  grep "'startpages': \[\]" |
   sed "s/^.*'id': u'//" |
   sed "s/'}.*$//" |
   while read id; do
     ./hyphe_backend/test_client.py crawl_webentity $id 1 False True
   done
+
+rm /tmp/webentities_to_crawl.list
 
