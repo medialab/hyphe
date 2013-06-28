@@ -8,6 +8,7 @@ URL/LRU library to manage, build and clean original URLs and corresponding URLs
 import re, urllib
 from urlparse import urljoin, urlparse
 
+lruPattern = re.compile("^s:[^|]+(\|t:[^|]+)?(\|h:[^|]+)+")
 lruFullPattern = re.compile("^([^:/?#]+):(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$")
 lruSchemePattern = re.compile("https?")
 lruAuthorityPattern = re.compile("^(?:([^:]+)(?::([^@]+))?\@)?([^\s:]+)(?::(\d+))?$")
@@ -73,7 +74,7 @@ def lru_to_url(lru):
 
     """
 
-    if '|h:' not in lru:
+    if not lruPattern.match(lru):
         raise ValueError("Not an lru: %s" % lru)
 
     # TODO: naive algorithm (to be updated)

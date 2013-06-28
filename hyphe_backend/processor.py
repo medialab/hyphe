@@ -43,7 +43,10 @@ def generate_cache_from_pages_list(pageList, precision_limit = 1, precision_exce
                 original_link_number += 1
 # check False {} errorcode
                 if lrulink not in pages:
-                    pages[lrulink] = ms.PageItem(str(page_item["_id"])+"_"+str(index), urllru.lru_to_url(lrulink).encode('utf8'), lrulink.encode('utf8'), str(page_item["timestamp"]), None, int(page_item["depth"])+1, None, ['LINK'], is_full_precision, is_node, {})
+                    try:
+                        pages[lrulink] = ms.PageItem(str(page_item["_id"])+"_"+str(index), urllru.lru_to_url(lrulink).encode('utf8'), lrulink.encode('utf8'), str(page_item["timestamp"]), None, int(page_item["depth"])+1, None, ['LINK'], is_full_precision, is_node, {})
+                    except ValueError as e:
+                        print "Skipping link to misformatted URL : %s" % lrulink
                 elif 'LINK' not in pages[lrulink].sourceSet:
                     pages[lrulink].sourceSet.append('LINK')
                 links[(node_lru,target_node)] = links[(node_lru,target_node)] + 1 if (node_lru,target_node) in links else 1
