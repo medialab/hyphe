@@ -89,7 +89,9 @@ MongoDB, ScrapyD, JAVA & Thrift are required for the backend to work: below is a
     sudo make install
 ```
 
-### Python environment: it is recommended to use virtualenv with virtualenvwrapper:
+### Python environment:
+
+It is recommended to use virtualenv with virtualenvwrapper:
 
 ```bash
     sudo pip install virtualenv
