@@ -12,7 +12,6 @@ Examples from HCI root:
 ./hyphe_backend/test_client.py declare_page http://medialab.sciences-po.fr
 ./hyphe_backend/test_client.py declare_pages array http://medialab.sciences-po.fr http://www.sciences-po.fr
 ./hyphe_backend/test_client.py inline store.get_webentities
-
 """
 
 from twisted.internet import reactor, defer
