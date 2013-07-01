@@ -823,7 +823,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 print "Collecting WebEntities..."
             WEs = yield self.ramcache_webentities()
             if is_error(WEs):
-                returnD(res)
+                returnD(WEs)
             jobs = None
         res = [self.format_webentity(WE, jobs, light, semilight) for WE in WEs]
         if corelinks:
