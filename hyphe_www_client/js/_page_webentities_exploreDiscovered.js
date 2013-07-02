@@ -40,7 +40,7 @@ HypheCommons.domino_init()
             },{
                 id:'listLength'
                 ,type: 'number'
-                ,value: 10
+                ,value: 20
                 ,dispatch: 'listLength_updated'
                 ,triggers: 'update_listLength'
             },{
@@ -159,6 +159,22 @@ HypheCommons.domino_init()
     })
 
     //// Modules
+
+    // Loading bar
+    D.addModule(function(){
+        domino.module.call(this)
+
+        var loading_proxy = $('#loading_proxy')
+            ,loading_achieved = $('#loading_achieved')
+            ,_self = this
+        
+        var update = function(){
+            loading_proxy.hide()
+            loading_achieved.show()
+        }
+
+        _self.triggers.events['webentities_updated'] = update
+    })
 
     // List of discovered web entities
     D.addModule(function(){
