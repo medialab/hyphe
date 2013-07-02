@@ -20,7 +20,15 @@
                                 </ul>
                             </li>
                             <li class="dropdown">
-                                <li><a href="crawl.php">Crawl</a></li>
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                    Crawl
+                                    <b class="caret"></b>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="crawl.php">Jobs</a></li>
+                                    <li><a href="crawl_new.php">New crawl</a></li>
+                                    <li><a href="crawl_urllist.php">Crawl a list of URLs</a></li>
+                                </ul>
                             </li>
                             <li><a href="https://github.com/medialab/Hypertext-Corpus-Initiative">GitHub</a></li>
                             <li><a href="https://github.com/medialab/Hypertext-Corpus-Initiative/issues">Issues</a></li>
