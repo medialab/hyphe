@@ -69,36 +69,43 @@
             </div>
 
             <div class="row-fluid">
-                <div class="span5">
-                    <h5>Select a discovered web entity</h5>
-                    <div id="webentitieslist_container">
-                        <table class="table table-condensed table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Citing</th>
-                                    <th>Web Entity</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="webentities_list">
-                            </tbody>
-                        </table>
+                <div id="loading_proxy">
+                    <div class="progress progress-striped active">
+                        <div class="bar" style="width: 100%;">Loading and parsing... May take a minute or two.</div>
                     </div>
-                    <div id="webentitieslist_footer"></div>
                 </div>
-                <div class="span7">
-                    <div class="row-fluid">
-                        <div class="span6">
-                            <div id="webentity_summary"></div>
+                <div id="loading_achieved" style="display:none">
+                <div class="span5">
+                        <h5>Select a discovered web entity</h5>
+                        <div id="webentitieslist_container">
+                            <table class="table table-condensed table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Citing</th>
+                                        <th>Web Entity</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="webentities_list">
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="span6">
-                            <br/>
-                            <br/>
-                            <div id="webentity_neighbors"></div>
-                        </div>
+                        <div id="webentitieslist_footer"></div>
                     </div>
-                    <hr/>
-                    <div id="webentity_preview"></div>
+                    <div class="span7">
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <div id="webentity_summary"></div>
+                            </div>
+                            <div class="span6">
+                                <br/>
+                                <br/>
+                                <div id="webentity_neighbors"></div>
+                            </div>
+                        </div>
+                        <hr/>
+                        <div id="webentity_preview"></div>
+                    </div>
                 </div>
             </div>
         </div>
