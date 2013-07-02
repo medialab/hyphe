@@ -31,7 +31,7 @@ public class MemoryStructureClient {
     public static void main(String[] args) {
         TTransport transport = null;
         try {
-            String jsonTxt = IOUtils.toString(new FileInputStream("config.json"));
+            String jsonTxt = IOUtils.toString(new FileInputStream("config/config.json"));
             JSONObject json = new JSONObject(jsonTxt);
             JSONObject properties = json.getJSONObject("memoryStructure");
             String[] propertyNames = JSONObject.getNames(properties);
