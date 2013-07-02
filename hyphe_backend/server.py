@@ -8,7 +8,7 @@ from txjsonrpc.jsonrpc import Introspection
 from txjsonrpc.web import jsonrpc
 from twisted.web import server
 from twisted.application import service, internet
-from twisted.internet import reactor, defer, task
+from twisted.internet import reactor, defer, task, threads
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from thrift.Thrift import TException
 from thrift.transport.TSocket import TSocket
@@ -32,7 +32,7 @@ class Enum(set):
             return name
         raise AttributeError
 crawling_statuses = Enum(['UNCRAWLED', 'PENDING', 'RUNNING', 'FINISHED', 'CANCELED'])
-indexing_statuses = Enum(['UNINDEXED', 'PENDING', 'BATCH_RUNNING', 'BATCH_FINISHED', 'BATCH_CRASHED', 'FINISHED'])
+indexing_statuses = Enum(['UNINDEXED', 'PENDING', 'BATCH_RUNNING', 'BATCH_FINISHED', 'BATCH_CRASHED', 'FINISHED', 'CANCELED'])
 
 def jobslog(jobid, msg, db, timestamp=None):
     if timestamp is None:
@@ -129,6 +129,17 @@ class Core(jsonrpc.JSONRPC):
                 print "ERROR updating finished indexing jobs statuses", update_ids, resdb
                 return
             jobslog(update_ids, "INDEX_"+indexing_statuses.FINISHED, self.db)
+        # clean canceled jobs
+        resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'crawling_status': crawling_statuses.CANCELED}, {'$set': {'indexing_status': indexing_statuses.CANCELED}}, multi=True, safe=True)
+        if (resdb['err']):
+            print "ERROR updating canceled jobs indexing_statuses", resdb
+            return
+        # clean lost jobs
+        if (len(scrapyjobs['running'])*len(scrapyjobs['pending']) == 0):
+            resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'crawling_status': {'$in': [crawling_statuses.PENDING, crawling_statuses.RUNNING]}}, {'$set': {'crawling_status': crawling_statuses.FINISHED}}, multi=True, safe=True)
+            if (resdb['err']):
+                print "ERROR updating lost jobs crawling_statuses", resdb
+                return
         return self.jsonrpc_listjobs()
 
     def jsonrpc_listjobs(self):
@@ -361,7 +372,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.total_webentities = -1
         self.last_WE_update = 0
         self.webentities_links = []
-        self.jsonrpc_get_precision_exceptions()
+        threads.deferToThread(self.jsonrpc_get_precision_exceptions)
         self.loop_running_since = time.time()
         self.last_links_loop = time.time()
         self.last_index_loop = time.time()
@@ -404,6 +415,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 res['indexing_status'] = indexing_statuses.UNINDEXED
             return res
         return None
+
+    def format_webentities(self, WEs, jobs=None, light=False, semilight=False):
+        return [self.format_webentity(WE, jobs, light, semilight) for WE in WEs]
 
     def reset(self):
         print "Empty memory structure content"
@@ -672,7 +686,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         ids = [bson.ObjectId(str(record['_id'])) for record in page_items]
         if (len(ids) > 0):
             page_items.rewind()
-            pages, links = processor.generate_cache_from_pages_list(page_items, config["precisionLimit"], self.precision_exceptions)
+            pages, links = yield threads.deferToThread(processor.generate_cache_from_pages_list, page_items, config["precisionLimit"], self.precision_exceptions, config['DEBUG'] > 0)
             s=time.time()
             cache_id = yield self.msclient_loop.createCache(pages.values())
             if is_error(cache_id):
@@ -719,6 +733,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.loop_running = True
         if self.db[config['mongo-scrapy']['jobListCol']].find_one({'indexing_status': indexing_statuses.BATCH_RUNNING}):
             print "WARNING : indexing job declared as running but probably crashed."
+            self.loop_running = False
             returnD(False)
         oldest_page_in_queue = self.db[config['mongo-scrapy']['queueCol']].find_one(sort=[('timestamp', pymongo.ASCENDING)], fields=['_job'], skip=random.randint(0, 2))
         # Run linking WebEntities on a regular basis when needed
@@ -731,6 +746,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             res = yield self.msclient_loop.generateWebEntityLinks()
             if is_error(res):
                 print res['message']
+                self.loop_running = False
                 returnD(False)
             self.webentities_links = res
             s = str(time.time() -s)
@@ -742,14 +758,16 @@ class Memory_Structure(jsonrpc.JSONRPC):
             # find next job to be indexed and set its indexing status to batch_running
             job = self.db[config['mongo-scrapy']['jobListCol']].find_one({'_id': oldest_page_in_queue['_job'], 'crawling_status': {'$ne': crawling_statuses.PENDING}, 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id'], sort=[('timestamp', pymongo.ASCENDING)])
             if not job:
+                self.loop_running = False
                 returnD(False)
             jobid = job['_id']
             print "Indexing pages from job "+jobid
             page_items = self.db[config['mongo-scrapy']['queueCol']].find({'_job': jobid}, limit=config['memoryStructure']['max_simul_pages_indexing'], sort=[('timestamp', pymongo.ASCENDING)])
-            if (page_items.count()) > 0:
+            if (page_items.count(with_limit_and_skip=True)) > 0:
                 resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': jobid}, {'$set': {'indexing_status': indexing_statuses.BATCH_RUNNING}}, safe=True)
                 if (resdb['err']):
                     print "ERROR updating job %s's indexing status" % jobid, resdb
+                    self.loop_running = False
                     returnD(False)
                 jobslog(jobid, "INDEX_"+indexing_statuses.BATCH_RUNNING, self.db)
                 self.loop_running = "indexing"
@@ -757,6 +775,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 res = yield self.index_batch(page_items, jobid)
                 if is_error(res):
                     print res['message']
+                    self.loop_running = False
                     returnD(False)
                 self.recent_indexes += 1
                 self.last_index_loop = time.time()
@@ -825,7 +844,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if is_error(WEs):
                 returnD(WEs)
             jobs = None
-        res = [self.format_webentity(WE, jobs, light, semilight) for WE in WEs]
+        res = self.format_webentities(WEs, jobs, light, semilight)
         if corelinks:
             print "...got WebEntities, collecting WebEntityLinks..."
             res = yield self.msclient_pool.getWebEntityLinks()
@@ -880,7 +899,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(WEs)
         for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)]):
             jobs[job['webentity_id']] = job
-        res = [self.format_webentity(WE, jobs) for WE in WEs]
+        res = self.format_webentities(WEs, jobs)
         returnD(format_result(res))
 
     @inlineCallbacks
