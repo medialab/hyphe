@@ -71,7 +71,7 @@
                             <input type="checkbox" id="crawlJobs_showPending" checked="true"> Show pending
                         </label>
                         &nbsp;
-                        <a class="btn" id="crawlJobs_refresh"></a>
+                        <a class="btn btn-link" id="crawlJobs_refresh">Refresh</a>
                     </form>
                 </div>
             </div>

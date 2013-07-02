@@ -132,9 +132,10 @@ HypheCommons.domino_init()
         domino.module.call(this)
 
         var element = $('#crawlJobs_showFinished')
+            ,_self = this
 
         element.click(function(){
-            D.dispatchEvent('crawljobs_redraw',{})
+            _self.dispatchEvent('crawljobs_redraw',{})
         })
     })
 
@@ -142,9 +143,10 @@ HypheCommons.domino_init()
         domino.module.call(this)
 
         var element = $('#crawlJobs_showPending')
+            ,_self = this
 
         element.click(function(){
-            D.dispatchEvent('crawljobs_redraw',{})
+            _self.dispatchEvent('crawljobs_redraw',{})
         })
     })
 
@@ -162,15 +164,16 @@ HypheCommons.domino_init()
         domino.module.call(this)
 
         var element = $('#jobs')
+            ,_self = this
 
         element.html('').append(
-            $('<div id="jobsMessage"><span class="muted">Loading...</span></div>')
+            $('<div id="jobsMessage"><div class="progress progress-striped active"><div class="bar" style="width: 100%;">Loading...</div></div></div>')
         ).append(
             $('<table class="table table-hover" style="display:none;" id="jobsTable"><thead><tr><th>Web entity</th><th style="width:80px">Harvesting</th><th style="width:80px">Indexing</th><th style="width:80px">Data</th><th style="width:10px"></th></tr></thead><tbody id="jobsTableBody"></tbody></table>')
         )
         
-        var redraw = function() {
-            var jobs = D.get('crawljobs')
+        var redraw = function(d) {
+            var jobs = d.get('crawljobs')
                 ,showPending = $('#crawlJobs_showPending').is(':checked')
                 ,showFinished = $('#crawlJobs_showFinished').is(':checked')
                 ,webEntitites_idDisplayed = []
@@ -231,7 +234,7 @@ HypheCommons.domino_init()
                         ).append(
                             $('<td style="vertical-align:middle;"><i class="icon-chevron-right icon-white decorating-chevron pull-right"/></td>')
                         ).click(function(){
-                            D.dispatchEvent('update_currentCrawljob', {
+                            _self.dispatchEvent('update_currentCrawljob', {
                                 currentCrawljob: crawlJob
                             })
                         })
@@ -239,7 +242,7 @@ HypheCommons.domino_init()
                 })
                 
                 // Call web entities displayed
-                D.request('getWebentities', {
+                d.request('getWebentities', {
                     id_list: webEntitites_idDisplayed
                 })
             } else {
