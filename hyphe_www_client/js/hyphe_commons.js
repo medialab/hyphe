@@ -22,11 +22,23 @@
 
 	// RPC
 	ns.RPC = {}
-	ns.RPC.expect = function(data){
-		return data[0] !== undefined && data[0].code !== undefined && data[0].code == 'success'
+	ns.RPC.expect = function(
+		data
+		,input
+		,serviceOptions
+	){
+		var result = data[0] !== undefined && data[0].code !== undefined && data[0].code == 'success'
+		if(!result){
+			console.log('RPC expect fail - Data:', data, '\n                  Input:', input, '\n                  Service options:', serviceOptions)
+		}
+		return result
 	}
 
-	ns.RPC.error = function(data, xhr, input){
+	ns.RPC.error = function(
+		data	// Message returned
+		,xhr	// XHR object of ajax
+		,input 	// Input, parameters send to do the request
+	){
 		// alert('Oops, an error occurred... \n'+data)
 		Messenger().post({
 		    message: '<strong>Oops, an error occurred</strong> when communicating with the server\n<br/>\n"'+data+'"'
@@ -41,7 +53,7 @@
 			    }
 			}*/
     	})
-    	console.log('RPC error - XHR:', xhr, 'Input:', input)
+    	console.log('RPC error - Data:', data, '\n            XHR:', xhr, '\n            Input:', input)
 	}
 
 	ns.RPC.contentType = 'application/x-www-form-urlencoded'

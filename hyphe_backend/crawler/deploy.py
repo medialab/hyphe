@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import subprocess, json, pystache
 from shutil import copyfile
 from contextlib import nested
@@ -8,7 +9,9 @@ from contextlib import nested
 # Copy config.json from root to scrapy deployment dir
 print "Copying config.json from root directory to hyphe_backend/crawler for scrapy deployment..."
 try:
-    copyfile("../../config.json", "config.json")
+    if not os.path.exists("config"):
+        os.makedirs("config")
+    copyfile("../../config/config.json", "config/config.json")
 except IOError as e:
     print "Could not open either source or destination config.json file"
     print "config.json", "crawler/config.json"

@@ -88,7 +88,34 @@ HypheCommons.domino_init()
                 ,setter: 'webentities'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
-                        'params' : [],
+                        'params' : [
+                            settings.id_list    // List of webentities
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'getWebentitiesLight'
+                ,setter: 'webentities'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET,
+                        'params' : [
+                            settings.id_list    // List of webentities
+                            ,true               // Mode light
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'getWebentitiesSemilight'
+                ,setter: 'webentities'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET,
+                        'params' : [
+                            settings.id_list        // List of webentities
+                            ,false                  // Mode light
+                            ,true                   // Mode semi-light
+                        ],
                     })}
                 ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
@@ -178,6 +205,7 @@ HypheCommons.domino_init()
                 triggers: ['ui_webentitySelected']
                 ,method: function(){
                     var current_we_id = $('#webentities_selector').val()
+                    /*
                         ,current_we
                         ,webentities = D.get('webentities')
                     webentities.forEach(function(we){
@@ -187,6 +215,8 @@ HypheCommons.domino_init()
                     D.dispatchEvent('update_currentWebentity', {
                         currentWebentity: current_we
                     })
+                    */
+                    D.request('getCurrentWebentity', {currentWebentityId: current_we_id})
                 }
             },{
                 // On web entity declared in UI (by URL pasted), declare a page
@@ -199,7 +229,7 @@ HypheCommons.domino_init()
                     }
                 }
             },{
-                // Selecting a web entity show the prefixes
+                // Selecting a web entity shows the prefixes
                 triggers: ['currentWebentity_updated']
                 ,method: function(){
                     D.dispatchEvent('update_hidePrefixes', {
@@ -694,7 +724,7 @@ HypheCommons.domino_init()
 
     //// On load
     $(document).ready(function(){
-        D.request('getWebentities', {})
+        D.request('getWebentitiesSemilight', {})
     })
 
 

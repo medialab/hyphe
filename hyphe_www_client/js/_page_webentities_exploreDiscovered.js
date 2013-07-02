@@ -63,7 +63,34 @@ HypheCommons.domino_init()
                 ,setter: 'webentities'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
-                        'params' : [],
+                        'params' : [
+                            settings.id_list    // List of webentities
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'getWebentitiesLight'
+                ,setter: 'webentities'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET,
+                        'params' : [
+                            settings.id_list    // List of webentities
+                            ,true               // Mode light
+                        ],
+                    })}
+                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'getWebentitiesSemilight'
+                ,setter: 'webentities'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET,
+                        'params' : [
+                            settings.id_list        // List of webentities
+                            ,false                  // Mode light
+                            ,true                   // Mode semi-light
+                        ],
                     })}
                 ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
@@ -116,7 +143,7 @@ HypheCommons.domino_init()
                 // When a status change has been validated, we reload web entities
                 triggers: ['statusValidation_updated']
                 ,method: function() {
-                    D.request('getWebentities', {})
+                    D.request('getWebentitiesSemilight', {})
                     /*D.dispatchEvent('update_currentItem', {
                         currentItem: null
                     })*/
@@ -359,7 +386,7 @@ HypheCommons.domino_init()
     //// On load, get the web entities
     $(document).ready(function(e){
         D.request('getWebentitiesLinks', {})
-        D.request('getWebentities', {})
+        D.request('getWebentitiesSemilight', {})
     })
 
 
