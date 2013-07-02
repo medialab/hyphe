@@ -428,7 +428,7 @@ HypheCommons.domino_init()
     function refreshCrawljobs() {
         D.request('getCrawljobs', {})
     }
-    var auto_refresh_crawljobs = setInterval(refreshCrawljobs, 5000)
+    var auto_refresh_crawljobs = setInterval(refreshCrawljobs, 60000)
 
     //// Web entities: index
     var webentities_buildIndex = function(webentities){
