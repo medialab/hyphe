@@ -381,9 +381,9 @@ HypheCommons.domino_init()
                     ).append(
                     $('<span/>').text('. These may not be linked to pages, but the web entity may still be legitimate.')
                     )
-                )/*.append(
+                ).append(
                     $('<iframe/>').attr('src', url)
-                )*/
+                )
             }
         }
 
