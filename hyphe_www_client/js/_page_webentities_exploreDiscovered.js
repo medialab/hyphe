@@ -17,10 +17,14 @@ HypheCommons.domino_init()
                 id:'webentities'
                 ,dispatch: 'webentities_updated'
                 ,triggers: 'update_webentities'
+                ,type: 'array'
+                ,value: []
             },{
-                id:'webentitiesbyid'
-                ,dispatch: 'webentitiesbyid_updated'
-                ,triggers: 'update_webentitiesbyid'
+                id:'webentitiesById'
+                ,dispatch: 'webentitiesById_updated'
+                ,triggers: 'update_webentitiesById'
+                ,type: 'object'
+                ,value: {}
             },{
                 id:'webentitiesLinks'
                 ,dispatch: 'webentitiesLinks_updated'
@@ -83,7 +87,6 @@ HypheCommons.domino_init()
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'getWebentitiesSemilight'
-                ,setter: 'webentities'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
@@ -92,11 +95,19 @@ HypheCommons.domino_init()
                             ,true                   // Mode semi-light
                         ],
                     })}
-                ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+                ,success: function(data, input){
+                    var webentitiesUpdated = data[0].result
+                        ,webentities_byId = this.get('webentitiesById')
+                    webentitiesUpdated.forEach(function(we){
+                        webentities_byId[we.id] = we
+                    })
+                    var webentities = d3.values(webentities_byId)
+                    this.update('webentities', webentities)
+                    this.update('webentitiesById', webentities_byId)
+                }
             },{
                 id: 'setCurrentWebEntityStatus'
-                ,setter: 'statusValidation'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.SET_STATUS,
                         'params' : [
@@ -104,33 +115,28 @@ HypheCommons.domino_init()
                             ,settings.status          // new status
                         ],
                     })}
-                ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+                ,success: function(data, input){
+                    D.request('getWebentitiesSemilight', {
+                        id_list: [input.webEntityId]
+                    })
+                }
             }
         ],hacks:[
             {
                 // When web entities and links are loaded, build the json network
                 triggers: ['webentities_updated', 'webentitiesLinks_updated']
                 ,method: function() {
-                    if( D.get('webentities') !== undefined && D.get('webentitiesLinks') !== undefined ){
+                    if( this.get('webentities').length>0 && this.get('webentitiesLinks') !== undefined ){
                         buildNetworkJson()
                     }
                 }
             },{
-                // When web entities are loaded, index them by id
-                triggers: ['webentities_updated']
-                ,method: function() {
-                    var index = webentities_indexById(D.get('webentities'))
-                    D.dispatchEvent('update_webentitiesbyid', {
-                        webentitiesbyid: index
-                    })
-                }
-            },{
                 // When the json network is updated and the web entities are indexed by id, we update the list of discovered web entities and set current item to the first
-                triggers: ['networkJson_updated', 'webentitiesbyid_updated']
+                triggers: ['networkJson_updated', 'webentitiesById_updated']
                 ,method: function() {
                     var net = D.get('networkJson')
-                        ,wes_byId = D.get('webentitiesbyid')
+                        ,wes_byId = this.get('webentitiesById')
                     if( net !== undefined && wes_byId != undefined){
                         var discoveredWebentitiesList = buildDiscoveredWebentitiesList(wes_byId, net)
                         D.dispatchEvent('update_discoveredWebentitiesList', {
@@ -140,13 +146,13 @@ HypheCommons.domino_init()
                     }
                 }
             },{
-                // When a status change has been validated, we reload web entities
-                triggers: ['statusValidation_updated']
-                ,method: function() {
-                    D.request('getWebentitiesSemilight', {})
-                    /*D.dispatchEvent('update_currentItem', {
-                        currentItem: null
-                    })*/
+                // Request SetCurrentWebEntityStatus service
+                triggers: ['requestSetCurrentWebEntityStatus']
+                ,method: function(e){
+                    this.request('setCurrentWebEntityStatus', {
+                        webEntityId: e.data.webEntityId
+                        ,status: e.data.status
+                    })
                 }
             }
         ]
@@ -247,6 +253,7 @@ HypheCommons.domino_init()
         domino.module.call(this)
 
         var element = $('#webentity_summary')
+            ,_self = this
 
         var update = function(){
 
@@ -255,21 +262,21 @@ HypheCommons.domino_init()
             var current = D.get('currentItem')
             if(current !== undefined && current !== null){
                 var button_in = $('<button class="btn btn-success">IN</button>').click(function(){
-                    D.request('setCurrentWebEntityStatus', {
+                    _self.dispatchEvent('requestSetCurrentWebEntityStatus', {
                         webEntityId: current.webentity.id
                         ,status: 'IN'
                     })
                 })
                 
                 var button_out = $('<button class="btn btn-danger">OUT</button>').click(function(){
-                    D.request('setCurrentWebEntityStatus', {
+                    _self.dispatchEvent('requestSetCurrentWebEntityStatus', {
                         webEntityId: current.webentity.id
                         ,status: 'OUT'
                     })
                 })
                 
                 var button_undecided = $('<button class="btn btn-info">UNDECIDED</button>').click(function(){
-                    D.request('setCurrentWebEntityStatus', {
+                    _self.dispatchEvent('requestSetCurrentWebEntityStatus', {
                         webEntityId: current.webentity.id
                         ,status: 'UNDECIDED'
                     })
@@ -291,7 +298,7 @@ HypheCommons.domino_init()
             }
         }
 
-        this.triggers.events['currentItem_updated'] = update
+        _self.triggers.events['currentItem_updated'] = update
     })
 
     // Web entity neighbors
@@ -313,7 +320,7 @@ HypheCommons.domino_init()
                         .append(
                                 $('<table class="table table-condensed"/>').append(
                                     current.node.inEdges.map(function(e){
-                                        var webentities_byId = D.get('webentitiesbyid')
+                                        var webentities_byId = D.get('webentitiesById')
                                             ,we = webentities_byId[e.source.id]
                                             ,tr = $('<tr/>').append(
                                                 $('<td/>').append(
@@ -374,9 +381,9 @@ HypheCommons.domino_init()
                     ).append(
                     $('<span/>').text('. These may not be linked to pages, but the web entity may still be legitimate.')
                     )
-                ).append(
+                )/*.append(
                     $('<iframe/>').attr('src', url)
-                )
+                )*/
             }
         }
 
