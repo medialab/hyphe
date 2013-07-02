@@ -142,8 +142,11 @@ class Core(jsonrpc.JSONRPC):
                 return
         return self.jsonrpc_listjobs()
 
-    def jsonrpc_listjobs(self):
-        return format_result(list(self.db[config['mongo-scrapy']['jobListCol']].find(sort=[('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])))
+    def jsonrpc_listjobs(self, list_ids=None):
+        query = {}
+        if list_ids:
+            query = {'_id': {'$in': list_ids}}
+        return format_result(list(self.db[config['mongo-scrapy']['jobListCol']].find(query, sort=[('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])))
 
     def jsonrpc_declare_page(self, url, corpus=''):
         return handle_standard_results(self.store.declare_page(url))
