@@ -162,15 +162,17 @@ HypheCommons.domino_init()
                 triggers: ['refreshCrawljobs']
                 ,method: function(e){
                     var all = e.data.refreshAll || false
-                    if(false){
+                    if(all){
                         this.request('getCrawljobs', {})
                     } else {
                         var unfinishedCrawljobs = this.get('crawljobs').filter(function(job){
                             return (job.crawling_status.toLowerCase() != "finished" && job.crawling_status.toLowerCase() != "canceled") || job.indexing_status.toLowerCase() != "finished"
                         })
-                        this.request('getCrawljobs', {
-                            id_list: unfinishedCrawljobs.map(function(job){return job._id})
-                        })
+                        if(unfinishedCrawljobs.length > 0){
+                            this.request('getCrawljobs', {
+                                id_list: unfinishedCrawljobs.map(function(job){return job._id})
+                            })
+                        }
                     }
                 }
             }
@@ -500,7 +502,7 @@ HypheCommons.domino_init()
     //// On load
     function refreshCrawljobs(all) {
         D.dispatchEvent('refreshCrawljobs', {
-            refreshAll: all
+            refreshAll: all || false
         })
     }
     $(document).ready(function(){
@@ -508,7 +510,7 @@ HypheCommons.domino_init()
     })
 
     //// Clock
-    var auto_refresh_crawljobs = setInterval(refreshCrawljobs, 60000)
+    var auto_refresh_crawljobs = setInterval(refreshCrawljobs, 5000)
 
     //// Web entities: index
     var webentities_buildIndex = function(webentities){
