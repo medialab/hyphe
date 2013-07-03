@@ -458,14 +458,31 @@ HypheCommons.domino_init()
         this.triggers.events['currentItem_updated'] = update
     })
 
-    // Web entity cited pages
+    // Web entity pages
     D.addModule(function(){
         domino.module.call(this)
 
         var element = $('#webentity_pages')
             ,_self = this
 
-        var update = function(controller){
+        var displayPages = function(element, pages){
+            element.append(
+                $('<ul class="unstyled"/>').append(
+                        pages.map(function(p){
+                            return $('<li/>').append(
+                                    $('<a/>')
+                                        .attr('href', p.url)
+                                        .attr('target', '_blank')
+                                        .append(
+                                                $('<small/>').text(Utils.URL_simplify(p.url))
+                                            )
+                                )
+                        })
+                    )
+                )
+        }
+
+        var update = function(controller, e){
 
             element.html('')
 
@@ -484,30 +501,21 @@ HypheCommons.domino_init()
                                     )
                             )
                     _self.dispatchEvent('request_getPages', {webEntityId: current.webentity.id})
+                } else {
+                    var pagesContainer = $('<div id="pages-list"/>')
+                    displayPages(pagesContainer, current.webentity.pages)
+                    element.append(pagesContainer)
+                                
                 }
             }
         }
 
         var updatePages = function(controller, e){
             var current = controller.get('currentItem')
-            console.log(current.webentity.pages)
             
             if(current !== undefined && current !== null && current.webentity.id == e.data.webEntityId){
                 $('#pages-list').html('')
-                    .append(
-                        $('<ul class="unstyled"/>').append(
-                                current.webentity.pages.map(function(p){
-                                    return $('<li/>').append(
-                                            $('<a/>')
-                                                .attr('href', p.url)
-                                                .attr('target', '_blank')
-                                                .append(
-                                                        $('<small/>').text(Utils.URL_simplify(p.url))
-                                                    )
-                                        )
-                                })
-                            )
-                        )
+                displayPages($('#pages-list'), current.webentity.pages)  
             }
         }
 
@@ -596,6 +604,23 @@ HypheCommons.domino_init()
 
         this.triggers.events['currentItem_updated'] = update
         this.triggers.events['previewActive_updated'] = update
+    })
+
+    // Web entity auto placement (vertical)
+    D.addModule(function(){
+        domino.module.call(this)
+
+        var element = $('#rightPanel')
+            ,_self = this
+
+        var placement = function(controller, e){
+            var offsetTop = $('tr.info').offset().top
+            element.css('margin-top', offsetTop - $('#webentitieslist_container').offset().top)
+
+        }
+
+        this.triggers.events['currentItem_updated'] = placement
+
     })
 
     //// On load, get the web entities
