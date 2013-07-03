@@ -75,16 +75,8 @@ HypheCommons.domino_init()
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
                             settings.id_list    // List of webentities
-                        ],
-                    })}
-                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
-            },{
-                id: 'getWebentitiesLight'
-                ,data: function(settings){ return JSON.stringify({ //JSON RPC
-                        'method' : HYPHE_API.WEBENTITIES.GET,
-                        'params' : [
-                            settings.id_list    // List of webentities
-                            ,true               // Mode light
+                            ,(settings.light && !settings.semilight) || false
+                            ,settings.semilight || false
                         ],
                     })}
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
@@ -98,17 +90,6 @@ HypheCommons.domino_init()
                     this.update('webentities', webentities)
                     this.update('webentitiesById', webentities_byId)
                 }
-            },{
-                id: 'getWebentitiesSemilight'
-                ,data: function(settings){ return JSON.stringify({ //JSON RPC
-                        'method' : HYPHE_API.WEBENTITIES.GET,
-                        'params' : [
-                            settings.id_list        // List of webentities
-                            ,false                  // Mode light
-                            ,true                   // Mode semi-light
-                        ],
-                    })}
-                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'crawljobAbort'
                 ,setter: 'crawljobAbortValidation'
@@ -170,8 +151,9 @@ HypheCommons.domino_init()
                         })
 
                     if(missing_webentities_ids.length>0){
-                        this.request('getWebentitiesLight', {
+                        this.request('getWebentities', {
                             id_list: missing_webentities_ids
+                            ,light: true
                         })
                     }
                 }
