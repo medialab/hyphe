@@ -64,18 +64,15 @@ HypheCommons.domino_init()
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'getWebentities'
-                ,setter: 'webentities'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
                             settings.id_list    // List of webentities
                         ],
                     })}
-                ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'getWebentitiesLight'
-                ,setter: 'webentities'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
@@ -83,7 +80,6 @@ HypheCommons.domino_init()
                             ,true               // Mode light
                         ],
                     })}
-                ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'getWebentitiesSemilight'

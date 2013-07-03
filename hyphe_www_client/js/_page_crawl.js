@@ -15,8 +15,10 @@ HypheCommons.domino_init()
         ,properties: [
             {
                 id:'crawljobs'
+                ,type: 'array'
                 ,dispatch: 'crawljobs_updated'
                 ,triggers: 'update_crawljobs'
+                ,value: []
             },{
                 id:'currentCrawljob'
                 ,dispatch: 'currentCrawljob_updated'
@@ -25,10 +27,14 @@ HypheCommons.domino_init()
                 id:'webentities'
                 ,dispatch: 'webentities_updated'
                 ,triggers: 'update_webentities'
+                ,type: 'array'
+                ,value: []
             },{
-                id:'webentitiesByid'
-                ,dispatch: 'webentitiesByid_updated'
-                ,triggers: 'update_webentitiesByid'
+                id:'webentitiesById'
+                ,dispatch: 'webentitiesById_updated'
+                ,triggers: 'update_webentitiesById'
+                ,type: 'object'
+                ,value: {}
             },{
                 id:'crawljobAbortValidation'
                 ,dispatch: 'crawljobAbortValidation_updated'
@@ -43,13 +49,23 @@ HypheCommons.domino_init()
                 ,setter: 'crawljobs'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.CRAWLJOBS.GET,
-                        'params' : [],
+                        'params' : [
+                            settings.id_list    // List of crawl jobs
+                        ],
                     })}
                 ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'getWebentities'
-                ,setter: 'webentities'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET,
+                        'params' : [
+                            settings.id_list    // List of webentities
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'getWebentitiesLight'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
@@ -57,7 +73,27 @@ HypheCommons.domino_init()
                             ,true               // Mode light
                         ],
                     })}
-                ,path:'0.result'
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+                ,success: function(data, input){
+                    var webentitiesUpdated = data[0].result
+                        ,webentities_byId = this.get('webentitiesById')
+                    webentitiesUpdated.forEach(function(we){
+                        webentities_byId[we.id] = we
+                    })
+                    var webentities = d3.values(webentities_byId)
+                    this.update('webentities', webentities)
+                    this.update('webentitiesById', webentities_byId)
+                }
+            },{
+                id: 'getWebentitiesSemilight'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET,
+                        'params' : [
+                            settings.id_list        // List of webentities
+                            ,false                  // Mode light
+                            ,true                   // Mode semi-light
+                        ],
+                    })}
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'crawljobAbort'
@@ -77,13 +113,13 @@ HypheCommons.domino_init()
         ,hacks:[
             {
                 // Log in console on button click
-                triggers:['logInConsole']
+                triggers: ['logInConsole']
                 ,method: function(){
                     console.log('crawl job', D.get('currentCrawljob'))
                 }
             },{
                 // Abort crawl on button click
-                triggers:['abortCrawl']
+                triggers: ['abortCrawl']
                 ,method: function(){
                     D.request('crawljobAbort', {
                         id: D.get('currentCrawljob')._id
@@ -91,31 +127,53 @@ HypheCommons.domino_init()
                 }
             },{
                 // Refresh after abortion of a crawl job
-                triggers:['crawljobAbortValidation_updated']
+                triggers: ['crawljobAbortValidation_updated']
                 ,method: function(){
-                    D.request('getCrawljobs', {})
+                    this.dispatchEvent('refreshCrawljobs', {
+                        refreshAll: true
+                    })
                 }
             },{
                 // On refresh crawl jobs, call the service
-                triggers:['crawljobs_refresh']
+                triggers: ['crawljobs_refresh']
                 ,method: function(){
-                    D.request('getCrawljobs', {})
+                    this.request('getCrawljobs', {})
                 }
             },{
                 // We need to declare the event somewhere
-                triggers:['crawljobs_redraw']
+                triggers: ['crawljobs_redraw']
                 ,method: function(){
                     //console.log('redraw')
                 }
             },{
-                // When web entities are updated, we index the new list
-                triggers:['webentities_updated']
-                ,method: function(){
-                    var webentities = D.get('webentities')
-                    console.log('webentities', webentities)
-                    if(webentities !== undefined){
-                        D.dispatchEvent('update_webentitiesByid', {
-                            webentitiesByid: webentities_buildIndex(webentities)
+                // Request get web entities: make a request if needed
+                triggers: ['requestDisplayedWebentities']
+                ,method: function(e){
+                    var displayed_webentities_id_list = e.data.id_list
+                        ,webentities_byId = this.get('webentitiesById')
+                        ,missing_webentities_ids = displayed_webentities_id_list.filter(function(we_id){
+                            return webentities_byId[we_id] === undefined
+                        })
+
+                    if(missing_webentities_ids.length>0){
+                        this.request('getWebentitiesLight', {
+                            id_list: missing_webentities_ids
+                        })
+                    }
+                }
+            },{
+                // Refresh the crawl jobs (all or just those that are not finished)
+                triggers: ['refreshCrawljobs']
+                ,method: function(e){
+                    var all = e.data.refreshAll || false
+                    if(false){
+                        this.request('getCrawljobs', {})
+                    } else {
+                        var unfinishedCrawljobs = this.get('crawljobs').filter(function(job){
+                            return (job.crawling_status.toLowerCase() != "finished" && job.crawling_status.toLowerCase() != "canceled") || job.indexing_status.toLowerCase() != "finished"
+                        })
+                        this.request('getCrawljobs', {
+                            id_list: unfinishedCrawljobs.map(function(job){return job.id})
                         })
                     }
                 }
@@ -158,6 +216,12 @@ HypheCommons.domino_init()
         ,ghost: true
     }])
 
+    // The function to display a web entity, used by different modules
+    var displayWebEntity = function(element, we){
+        element.html('')
+        element.removeClass('muted')
+        element.text(we.name)
+    }
 
     // The big list of crawl jobs
     D.addModule(function(){
@@ -174,10 +238,14 @@ HypheCommons.domino_init()
         
         var redraw = function(d) {
             var jobs = d.get('crawljobs')
+                ,webEntities_byId = d.get('webentitiesById')
                 ,showPending = $('#crawlJobs_showPending').is(':checked')
                 ,showFinished = $('#crawlJobs_showFinished').is(':checked')
                 ,webEntitites_idDisplayed = []
 
+            jobs.sort(function(a,b){
+                return b.timestamp - a.timestamp
+            })
             if(!showFinished){
                 jobs = jobs.filter(function(job, i){
                     return i<5 || (job.crawling_status.toLowerCase() != "finished" && job.crawling_status.toLowerCase() != "canceled") || job.indexing_status.toLowerCase() != "finished" 
@@ -188,9 +256,6 @@ HypheCommons.domino_init()
                     return job.crawling_status.toLowerCase() != "pending"
                 })
             }
-            jobs.sort(function(a,b){
-                return b.timestamp - a.timestamp
-            })
 
             if(jobs.length > 0){
                 $('#jobsMessage').html('')
@@ -212,15 +277,17 @@ HypheCommons.domino_init()
                         row_colorClass = 'info'
 
                     // DOM
+                    var weElement = $('<span/>').append(
+                                $('<small class="muted"/>').text(crawlJob.webentity_id)
+                            )
+                            .addClass('webEntity_proxy')
+                            .attr('webEntity_id', crawlJob.webentity_id)
+                        ,we = webEntities_byId[crawlJob.webentity_id]
+                    if(we !== undefined)
+                        displayWebEntity(weElement, we)
                     $('#jobsTableBody').append(
                         $('<tr class="'+row_colorClass+' hover" crawljobid="'+crawlJob._id+'"/>').append(
-                            $('<td/>').append(
-                                $('<span/>').append(
-                                    $('<small class="muted"/>').text(crawlJob.webentity_id)
-                                )
-                                    .addClass('webEntity_proxy')
-                                    .attr('webEntity_id', crawlJob.webentity_id)
-                            )
+                            $('<td/>').append(weElement)
                         ).append(
                             $('<td/>').append(
                                 $('<span class="label '+crawling_colorClass+'"/>').text(crawlJob.crawling_status.replace('_', ' ').toLowerCase())
@@ -242,7 +309,7 @@ HypheCommons.domino_init()
                 })
                 
                 // Call web entities displayed
-                d.request('getWebentities', {
+                _self.dispatchEvent('requestDisplayedWebentities', {
                     id_list: webEntitites_idDisplayed
                 })
             } else {
@@ -252,8 +319,8 @@ HypheCommons.domino_init()
             }
         }
 
-        this.triggers.events['crawljobs_updated'] = redraw
-        this.triggers.events['crawljobs_redraw'] = redraw
+        _self.triggers.events['crawljobs_updated'] = redraw
+        _self.triggers.events['crawljobs_redraw'] = redraw
     })
     
     // The div for current crawl job
@@ -264,8 +331,8 @@ HypheCommons.domino_init()
 
         element.html('')
 
-        var redraw = function(){
-            var crawlJob = D.get('currentCrawljob')
+        var redraw = function(d){
+            var crawlJob = d.get('currentCrawljob')
                 ,offsetTop = -1
             if(crawlJob != undefined){
                 $('#jobsTableBody tr').each(function(i, tr){
@@ -282,7 +349,7 @@ HypheCommons.domino_init()
                     var crawling_colorClass = crawlJobs_crawling_getLabelColor(crawlJob.crawling_status)
                         ,indexing_colorClass = crawlJobs_indexing_getLabelColor(crawlJob.indexing_status)
                         ,noCancel = crawlJob.crawling_status.toLowerCase() == "finished" || crawlJob.crawling_status.toLowerCase() == "crashed" || crawlJob.crawling_status.toLowerCase() == "canceled"
-                        ,webentities_byId = D.get('webentitiesByid')
+                        ,webentities_byId = d.get('webentitiesById')
                         ,webentity_span
 
                     if(webentities_byId !== undefined && webentities_byId[crawlJob.webentity_id] !== undefined){
@@ -376,11 +443,11 @@ HypheCommons.domino_init()
                         $('<span/>').text("Starting URLs:")
                     ).append(
                         $('<ul class="unstyled"/>').append(
-                            crawlJob.crawl_arguments.start_urls.map(function(d){
+                            crawlJob.crawl_arguments.start_urls.map(function(url){
                                 return $('<li/>').append(
                                     $('<a/>').append(
-                                        $('<small/>').text(d)
-                                    ).attr('href', d)
+                                        $('<small/>').text(url)
+                                    ).attr('href', url)
                                     .attr('target', '_blank')
                                 )
                             })
@@ -396,12 +463,12 @@ HypheCommons.domino_init()
         
     })
     
-    // Module dedicated to writing the 
+    // Module dedicated to writing the names of web entities
     D.addModule(function(){
         domino.module.call(this)
 
-        var update = function(){
-            var webentities_byId = D.get('webentitiesByid')
+        var update = function(d){
+            var webentities_byId = d.get('webentitiesById')
             $('.webEntity_proxy').each(function(i, element){
                 var span = $(element)
                     ,we_id = span.attr('webEntity_id')
@@ -410,27 +477,27 @@ HypheCommons.domino_init()
                     var we = webentities_byId[we_id]
 
                     if(we !== undefined){
-                        span.html('')
-                        span.removeClass('muted')
-                        span.text(we.name)
+                        displayWebEntity(span, we)
                     }
                 }
             })
         }
 
-        this.triggers.events['webentitiesByid_updated'] = update
+        this.triggers.events['webentitiesById_updated'] = update
 
     })
 
     //// On load
+    function refreshCrawljobs(all) {
+        D.dispatchEvent('refreshCrawljobs', {
+            refreshAll: all
+        })
+    }
     $(document).ready(function(){
-        D.request('getCrawljobs', {})
+        refreshCrawljobs(true)
     })
 
     //// Clock
-    function refreshCrawljobs() {
-        D.request('getCrawljobs', {})
-    }
     var auto_refresh_crawljobs = setInterval(refreshCrawljobs, 60000)
 
     //// Web entities: index
