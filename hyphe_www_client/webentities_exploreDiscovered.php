@@ -36,6 +36,10 @@
     overflow-y: auto;
 }
 
+.citing_index{
+    width: 30px;
+}
+
 
         </style>
         
@@ -81,7 +85,7 @@
                             <table class="table table-condensed table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Citing</th>
+                                        <th>Cited</th>
                                         <th>Web Entity</th>
                                         <th></th>
                                     </tr>
@@ -96,11 +100,13 @@
                         <div class="row-fluid">
                             <div class="span6">
                                 <div id="webentity_summary"></div>
+                                <br/>
+                                <div id="webentity_neighbors"></div>
                             </div>
                             <div class="span6">
                                 <br/>
                                 <br/>
-                                <div id="webentity_neighbors"></div>
+                                <div id="webentity_pages"></div>
                             </div>
                         </div>
                         <hr/>

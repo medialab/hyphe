@@ -103,7 +103,7 @@ HypheCommons.domino_init()
                     this.update('webentitiesById', webentities_byId)
                 }
             },{
-                id: 'setCurrentWebEntityStatus'
+                id: 'setWebEntityStatus'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.SET_STATUS,
                         'params' : [
@@ -142,10 +142,10 @@ HypheCommons.domino_init()
                     }
                 }
             },{
-                // Request SetCurrentWebEntityStatus service
-                triggers: ['requestSetCurrentWebEntityStatus']
+                // Request SetWebEntityStatus service
+                triggers: ['requestSetWebEntityStatus']
                 ,method: function(e){
-                    this.request('setCurrentWebEntityStatus', {
+                    this.request('setWebEntityStatus', {
                         webEntityId: e.data.webEntityId
                         ,status: e.data.status
                     })
@@ -178,6 +178,7 @@ HypheCommons.domino_init()
 
         var element = $('#webentities_list')
             ,element_footer = $('#webentitieslist_footer')
+            ,_self = this
 
         var update = function() {
             
@@ -192,9 +193,50 @@ HypheCommons.domino_init()
             list.forEach(function(item, i){
                 if(i<limit){
                     var tr = $('<tr/>').append(
-                        $('<td/>').text(item.indegree)
+                        $('<td class="citing_index"/>').text(item.indegree)
                     ).append(
                         $('<td/>').text(item.webentity.name)
+                            .append(
+                                    $('<span class="muted"> - </span>')
+                                )
+                            .append(
+                                    $('<a class="muted"><small>edit</small></a>')
+                                        .attr('href', 'webentity_edit.php#we_id='+item.webentity.id)
+                                )
+                            .append(
+                                    $('<span class="muted"> - </span>')
+                                )
+                            .append(
+                                    $('<a class="muted"><small>crawl</small></a>')
+                                        .attr('href', 'crawl_new.php#we_id='+item.webentity.id)
+                                )
+                            .append(
+                                $('<div class="pull-right"/>')
+                                    .append(
+                                            $('<a class="btn btn-mini btn-link">in</a>').click(function(){
+                                                    _self.dispatchEvent('requestSetWebEntityStatus', {
+                                                        webEntityId: item.webentity.id
+                                                        ,status: 'IN'
+                                                    })
+                                                })
+                                        )
+                                    .append(
+                                            $('<a class="btn btn-mini btn-link">out</a>').click(function(){
+                                                    _self.dispatchEvent('requestSetWebEntityStatus', {
+                                                        webEntityId: item.webentity.id
+                                                        ,status: 'OUT'
+                                                    })
+                                                })
+                                        )
+                                    .append(
+                                            $('<a class="btn btn-mini btn-link">und.</a>').click(function(){
+                                                    _self.dispatchEvent('requestSetWebEntityStatus', {
+                                                        webEntityId: item.webentity.id
+                                                        ,status: 'UNDECIDED'
+                                                    })
+                                                })
+                                        )
+                            )
                     )
 
                     if(item == current){
@@ -274,21 +316,21 @@ HypheCommons.domino_init()
             var current = D.get('currentItem')
             if(current !== undefined && current !== null){
                 var button_in = $('<button class="btn btn-success">IN</button>').click(function(){
-                    _self.dispatchEvent('requestSetCurrentWebEntityStatus', {
+                    _self.dispatchEvent('requestSetWebEntityStatus', {
                         webEntityId: current.webentity.id
                         ,status: 'IN'
                     })
                 })
                 
                 var button_out = $('<button class="btn btn-danger">OUT</button>').click(function(){
-                    _self.dispatchEvent('requestSetCurrentWebEntityStatus', {
+                    _self.dispatchEvent('requestSetWebEntityStatus', {
                         webEntityId: current.webentity.id
                         ,status: 'OUT'
                     })
                 })
                 
                 var button_undecided = $('<button class="btn btn-info">UNDECIDED</button>').click(function(){
-                    _self.dispatchEvent('requestSetCurrentWebEntityStatus', {
+                    _self.dispatchEvent('requestSetWebEntityStatus', {
                         webEntityId: current.webentity.id
                         ,status: 'UNDECIDED'
                     })
