@@ -102,7 +102,7 @@
                         <div id="webentitieslist_footer"></div>
                     </div>
                     <div class="span7">
-                        <div class="row-fluid">
+                        <div id="rightPanel" class="row-fluid">
                             <div class="span6">
                                 <div id="webentity_summary"></div>
                                 <br/>
