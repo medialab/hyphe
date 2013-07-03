@@ -51,7 +51,6 @@ def handle_standard_results(res):
         return res
     return format_success(res)
 
-
 class Core(jsonrpc.JSONRPC):
 
     addSlash = True
@@ -196,7 +195,7 @@ class Core(jsonrpc.JSONRPC):
         if not maxdepth:
             maxdepth = config['mongo-scrapy']['maxdepth']
         WE = yield self.store.get_webentity_with_pages_and_subWEs(webentity_id, use_all_pages_as_startpages)
-        if use_prefixes_as_startpages and not use_all_pages_as_startpages:
+        if test_bool_arg(use_prefixes_as_startpages) and not test_bool_arg(use_all_pages_as_startpages):
             WE['pages'] = [urllru.lru_to_url(lru) for lru in WE['lrus']]
         if is_error(WE):
             returnD(WE)
@@ -370,16 +369,16 @@ class Memory_Structure(jsonrpc.JSONRPC):
         reactor.callLater(0, self.jsonrpc_get_webentities, light=True, corelinks=True)
         reactor.callLater(5, self.index_loop.start, 1, True)
 
-    def format_webentity(self, WE, jobs=None, light=False, semilight=False):
+    def format_webentity(self, WE, jobs=None, light=False, semilight=False, light_for_csv=False):
         if WE:
             res = {'id': WE.id, 'name': WE.name}
-            if light:
+            if test_bool_arg(light):
                 return res
             res['lru_prefixes'] = list(WE.LRUSet)
             res['status'] = WE.status
             res['creation_date'] = WE.creationDate
             res['last_modification_date'] = WE.lastModificationDate
-            if semilight:
+            if test_bool_arg(semilight):
                 return res
             res['homepage'] = WE.homepage
             res['startpages'] = list(WE.startpages)
@@ -388,6 +387,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 res['tags'][tag] = {}
                 for key, val in values.iteritems():
                     res['tags'][tag][key] = list(val)
+            if test_bool_arg(light_for_csv):
+                return {'id': WE.id, 'name': WE.name, 'status': WE.status,
+                        'prefixes': "|".join([urllru.lru_to_url(lru, nocheck=True) for lru in WE.LRUSet]),
+                        'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns != "CORE"])}
             # pages = yield self.msclient_pool.getPagesFromWebEntity(WE.id)
             # nb_pages = len(pages)
             # nb_links
@@ -433,7 +436,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WE = self.msclient_sync.findWebEntityMatchingLRU(lru_prefix)
         if is_error(WE):
             return WE
-        if new:
+        if test_bool_arg(new):
             self.recent_indexes += 1
             self.total_webentities += 1
             if source:
@@ -634,13 +637,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(old_WE):
             return format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id)
         res = []
-        if include_home_and_startpages_as_startpages:
+        if test_bool_arg(include_home_and_startpages_as_startpages):
             a = self.jsonrpc_add_webentity_startpage(good_webentity_id, old_WE.homepage)
             res.append(a)
             for page in old_WE.startpages:
                 a = self.jsonrpc_add_webentity_startpage(good_webentity_id, page)
                 res.append(a)
-        if include_tags:
+        if test_bool_arg(include_tags):
             for tag_namespace in old_WE.metadataItems.keys():
                 for tag_key in old_WE.metadataItems[tag_namespace].keys():
                     for tag_val in old_WE.metadataItems[tag_namespace][tag_key]:
@@ -803,7 +806,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(WEs)
 
     @inlineCallbacks
-    def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, corpus='', corelinks=False):
+    def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, corpus='', corelinks=False, light_for_csv=False):
         jobs = {}
         n_WEs = len(list_ids) if list_ids else 0
         if n_WEs:
@@ -817,16 +820,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
             for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)]):
                 jobs[job['webentity_id']] = job
         else:
-   #        if not light:     # to be added when handled in front js
-   #            semilight = True
-            if corelinks:
+            if test_bool_arg(corelinks):
                 print "Collecting WebEntities..."
             WEs = yield self.ramcache_webentities()
             if is_error(WEs):
                 returnD(WEs)
             jobs = None
-        res = [self.format_webentity(WE, jobs, light, semilight) for WE in WEs]
-        if corelinks:
+        res = [self.format_webentity(WE, jobs, light, semilight, light_for_csv) for WE in WEs]
+        if test_bool_arg(corelinks):
             print "...got WebEntities, collecting WebEntityLinks..."
             res = yield self.msclient_pool.getWebEntityLinks()
             if is_error(res):
@@ -901,7 +902,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(format_error("...GEXF NodeLinks network not implemented yet."))
         s = time.time()
         print "Generating %s NodeLinks network for WebEntity %s..." % (outformat, webentity_id)
-        links = yield self.msclient_pool.getWebentityNodeLinks(webentity_id, include_external_links)
+        links = yield self.msclient_pool.getWebentityNodeLinks(webentity_id, test_bool_arg(include_external_links))
         if is_error(links):
             returnD(format_error(links))
         res = [[l.sourceLRU, l.targetLRU, l.weight] for l in links]
@@ -914,7 +915,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(WE):
             returnD(format_error("No WebEntity with id %s found" % webentity_id))
         res = {'status': WE.status, 'lrus': list(WE.LRUSet), 'pages': [urllru.lru_to_url(lr) for lr in WE.LRUSet], 'subWEs': []}
-        if all_pages_as_startpoints:
+        if test_bool_arg(all_pages_as_startpoints):
             pages = yield self.msclient_pool.getPagesFromWebEntity(WE.id)
             if is_error(pages):
                 returnD(pages)

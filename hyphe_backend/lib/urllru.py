@@ -63,7 +63,7 @@ def url_to_lru(url):
 def url_to_lru_clean(url):
     return cleanLRU(url_to_lru(url))
 
-def lru_to_url(lru):
+def lru_to_url(lru, nocheck=False):
     """
     Convert a LRU to a URL
 
@@ -74,7 +74,7 @@ def lru_to_url(lru):
 
     """
 
-    if not lruPattern.match(lru):
+    if not lruPattern.match(lru) and not nocheck:
         raise ValueError("Not an lru: %s" % lru)
 
     # TODO: naive algorithm (to be updated)

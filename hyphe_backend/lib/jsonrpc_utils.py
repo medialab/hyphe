@@ -19,3 +19,5 @@ def is_error(res):
         return True
     return False
 
+def test_bool_arg(boolean):
+    return (isinstance(boolean, bool) and boolean) or (isinstance(boolean, unicode) and str(boolean).lower() == 'true') or (isinstance(boolean, int) and boolean != 0)
