@@ -64,7 +64,7 @@ div.table_prefix{
 
         <div class="container">
 
-<?php include("includes/header.php"); ?>
+<?php // include("includes/header.php"); ?>
 
             <div class="row">
                 <div class="span12">

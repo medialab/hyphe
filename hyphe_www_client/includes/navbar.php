@@ -6,7 +6,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </a>
-                    <a class="brand" href="index.php">Hyphe</a>
+                    <a class="brand" href="index.php"><img src="res/hyphe_logo_mini_black.png"/> Hyphe</a>
                     <div class="nav-collapse collapse">
                         <ul class="nav">
                             <li class="dropdown">

@@ -7,9 +7,12 @@
 			</div>
 			<div class="row">
 				<div class="span4">
+                    <div class="image">
+                        <a href="index.php"><img title="Hyphe" src="res/hyphe_logo.png"/></a>
+                    </div>
+                    <br/>
 					<p>
-                        We used:
-                        <br/>
+                        We used: 
                         <strong><a href="http://dominojs.org/">Domino.js</a></strong>,
                         <strong><a href="http://sigmajs.org/">Sigma.js</a></strong>,
                         <a href="http://twitter.github.com/bootstrap/">Bootstrap</a>,

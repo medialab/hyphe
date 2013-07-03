@@ -32,7 +32,7 @@
 
             <div class="row">
                 <div class="span12">
-                    <h1>Welcome to Hyphe</h1>
+                    <h1>Welcome</h1>
                     <p class="text-info">
                         Hyphe does not manage different corpora or users at the moment. All the data is stored as a single corpus summarized here. 
                     </p>

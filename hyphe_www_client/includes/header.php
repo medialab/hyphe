@@ -6,7 +6,7 @@
                 </div>
                 <div class="span5">
                     <div class="abstract">
-                        <p><strong>Prototype monitoring.</strong> A test user experience and client-side monitoring application for Hyphe alpha.</p>
+                        <p><strong>Crawl and explore a web corpus.</strong> Hyphe is still a work in progress. Help us by <a href="https://github.com/medialab/Hypertext-Corpus-Initiative/issues" target="_blank">reporting your issues</a>.</p>
                     </div>
                 </div>
             </div>
