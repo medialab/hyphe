@@ -16,9 +16,15 @@ HypheCommons.domino_init()
             {
                 id:'crawljobs'
                 ,type: 'array'
+                ,value: []
                 ,dispatch: 'crawljobs_updated'
                 ,triggers: 'update_crawljobs'
-                ,value: []
+            },{
+                id:'crawljobsById'
+                ,type: 'object'
+                ,value: {}
+                ,dispatch: 'crawljobsById_updated'
+                ,triggers: 'update_crawljobsById'
             },{
                 id:'currentCrawljob'
                 ,dispatch: 'currentCrawljob_updated'
@@ -46,15 +52,23 @@ HypheCommons.domino_init()
         ,services: [
             {
                 id: 'getCrawljobs'
-                ,setter: 'crawljobs'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.CRAWLJOBS.GET,
                         'params' : [
                             settings.id_list    // List of crawl jobs
                         ],
                     })}
-                ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+                ,success: function(data, input){
+                    var crawljobsUpdated = data[0].result
+                        ,crawljobs_byId = this.get('crawljobsById')
+                    crawljobsUpdated.forEach(function(job){
+                        crawljobs_byId[job._id] = job
+                    })
+                    var crawljobs = d3.values(crawljobs_byId)
+                    this.update('crawljobs', crawljobs)
+                    this.update('crawljobsById', crawljobs_byId)
+                }
             },{
                 id: 'getWebentities'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
@@ -173,7 +187,7 @@ HypheCommons.domino_init()
                             return (job.crawling_status.toLowerCase() != "finished" && job.crawling_status.toLowerCase() != "canceled") || job.indexing_status.toLowerCase() != "finished"
                         })
                         this.request('getCrawljobs', {
-                            id_list: unfinishedCrawljobs.map(function(job){return job.id})
+                            id_list: unfinishedCrawljobs.map(function(job){return job._id})
                         })
                     }
                 }
