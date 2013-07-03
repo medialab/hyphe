@@ -17,6 +17,14 @@ HypheCommons.domino_init()
                 id:'webentities'
                 ,dispatch: 'webentities_updated'
                 ,triggers: 'update_webentities'
+                ,type: 'array'
+                ,value: []
+            },{
+                id:'webentitiesById'
+                ,dispatch: 'webentitiesById_updated'
+                ,triggers: 'update_webentitiesById'
+                ,type: 'object'
+                ,value: {}
             },{
                 id:'currentWebentity'
                 ,dispatch: 'currentWebentity_updated'
@@ -85,24 +93,30 @@ HypheCommons.domino_init()
         ,services: [
             {
                 id: 'getWebentities'
-                ,setter: 'webentities'
-                ,data: function(settings){ return JSON.stringify({ //JSON RPC
-                        'method' : HYPHE_API.WEBENTITIES.GET,
-                        'params' : [],
-                    })}
-                ,path:'0.result'
-                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
-            },{
-                id: 'getCurrentWebentity'
-                ,setter: 'currentWebentity'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
-                            [settings.currentWebentityId]    // List of web entities ids
+                            settings.id_list    // List of webentities
+                            ,(settings.light && !settings.semilight) || false
+                            ,settings.semilight || false
                         ],
                     })}
-                ,path:'0.result.0'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+                ,success: function(data, input){
+                    var webentitiesUpdated = data[0].result
+                        ,webentities_byId = this.get('webentitiesById')
+                    webentitiesUpdated.forEach(function(we){
+                        webentities_byId[we.id] = we
+                    })
+                    var webentities = d3.values(webentities_byId)
+                    this.update('webentities', webentities)
+                    this.update('webentitiesById', webentities_byId)
+
+                    // If the update comes from current web entity, then update it
+                    if(input.current){
+                        this.update('currentWebentity', webentitiesUpdated[0])
+                    }
+                }
             },{
                 id: 'declarePage'
                 ,setter: 'currentWebentity'
@@ -169,7 +183,7 @@ HypheCommons.domino_init()
                 // Enable the selector when the web entities are updated
                 triggers: ['webentities_updated']
                 ,method: function(){
-                    D.dispatchEvent('update_webentitiesselectorDisabled', {
+                    this.dispatchEvent('update_webentitiesselectorDisabled', {
                         webentitiesselectorDisabled: false
                     })
                 }
@@ -178,31 +192,23 @@ HypheCommons.domino_init()
                 triggers: ['ui_webentitySelected']
                 ,method: function(){
                     var current_we_id = $('#webentities_selector').val()
-                        ,current_we
-                        ,webentities = D.get('webentities')
-                    webentities.forEach(function(we){
-                        if(we.id == current_we_id)
-                            current_we = we
-                    })
-                    D.dispatchEvent('update_currentWebentity', {
-                        currentWebentity: current_we
-                    })
+                    this.dispatchEvent('request_updateCurrentWebentity', {currentWebentityId: current_we_id})
                 }
             },{
                 // On web entity declared in UI (by URL pasted), declare a page
                 triggers: ['ui_webentityDeclared']
                 ,method: function(){
-                    if(!D.get('urldeclarationInvalid')){
-                        D.request('declarePage', {
+                    if(!this.get('urldeclarationInvalid')){
+                        this.request('declarePage', {
                             url: $('#urlField').val()
                         })
                     }
                 }
             },{
-                // Selecting a web entity show the prefixes
+                // Selecting a web entity shows the prefixes
                 triggers: ['currentWebentity_updated']
                 ,method: function(){
-                    D.dispatchEvent('update_hidePrefixes', {
+                    this.dispatchEvent('update_hidePrefixes', {
                         hidePrefixes: false
                     })
                 }
@@ -210,7 +216,7 @@ HypheCommons.domino_init()
                 // Start page message hidden when a new web entity is selected or declared
                 triggers: ['ui_webentitySelected', 'ui_webentityDeclared']
                 ,method: function(){
-                    D.dispatchEvent('update_startpagesMessageObject', {
+                    this.dispatchEvent('update_startpagesMessageObject', {
                         startpagesMessageObject: {text:'', display:false, bsClass:'', }
                     })
                 }
@@ -218,7 +224,7 @@ HypheCommons.domino_init()
                 // Start page message displayed when clicking on "Use prefixes as start pages"
                 triggers: ['ui_usePrefixesAsStartPages']
                 ,method: function(){
-                    D.dispatchEvent('update_startpagesMessageObject', {
+                    this.dispatchEvent('update_startpagesMessageObject', {
                         startpagesMessageObject: {text:'Use prefixes as start pages...', display:true, bsClass:'alert-info', }
                     })
                 }
@@ -226,7 +232,7 @@ HypheCommons.domino_init()
                 // Start page message displayed when one or more start pages added
                 triggers: ['addstartpageValidation_updated']
                 ,method: function(){
-                    D.dispatchEvent('update_startpagesMessageObject', {
+                    this.dispatchEvent('update_startpagesMessageObject', {
                         startpagesMessageObject: {text:'Start page(s) added', display:true, bsClass:'alert-success', }
                     })
                 }
@@ -234,7 +240,7 @@ HypheCommons.domino_init()
                 // Start page message displayed when pages removed
                 triggers: ['removestartpageValidation_updated']
                 ,method: function(){
-                    D.dispatchEvent('update_startpagesMessageObject', {
+                    this.dispatchEvent('update_startpagesMessageObject', {
                         startpagesMessageObject: {text:'Start page removed', display:true, bsClass:'alert-success', }
                     })
                 }
@@ -242,10 +248,11 @@ HypheCommons.domino_init()
                 // Clicking on "Use prefixes as start pages" triggers a remote action
                 triggers: ['ui_usePrefixesAsStartPages']
                 ,method: function(){
-                    var we = D.get('currentWebentity')
+                    var we = this.get('currentWebentity')
+                        ,_self = this
                     if(we !== undefined){
                         we.lru_prefixes.forEach(function(lru_prefix){
-                            D.request('addStartPage', {
+                            _self.request('addStartPage', {
                                 webentityId: we.id
                                 ,url: Utils.LRU_to_URL(lru_prefix)
                             })
@@ -256,18 +263,18 @@ HypheCommons.domino_init()
                 // If the start pages are modified, reload the current web entity
                 triggers: ['addstartpageValidation_updated', 'removestartpageValidation_updated']
                 ,method: function(){
-                    var we = D.get('currentWebentity')
+                    var we = this.get('currentWebentity')
                     if(we !== undefined)
-                        D.request('getCurrentWebentity', {currentWebentityId: we.id})
+                        this.dispatchEvent('request_updateCurrentWebentity', {currentWebentityId: we.id})
                 }
             },{
                 // On URL lookup demanded, store the URL and do the lookup
                 triggers: ['lookupUrl']
                 ,method: function(d){
-                    D.dispatchEvent('update_lookedupUrl', {
+                    this.dispatchEvent('update_lookedupUrl', {
                         lookedupUrl: d.data.url
                     })
-                    D.request('urlLookup', {
+                    this.request('urlLookup', {
                         url: d.data.url
                         ,timeout: 5
                     })
@@ -279,26 +286,26 @@ HypheCommons.domino_init()
                     var url = $('#startPages_urlInput').val()
                     if(url=='' || url === undefined){                           // No start page: do nothing
                     } else if(!Utils.URL_validate(url)){                        // The URL is invalid: display a message
-                        D.dispatchEvent('update_startpagesMessageObject', {
+                        this.dispatchEvent('update_startpagesMessageObject', {
                             startpagesMessageObject: {html:'<strong>Invalid URL.</strong> This string is not recognized as an URL. Check that it begins with "http://".', display:true, bsClass:'alert-error', }
                         })
                     } else {                                                    // Check that the start page is in one of the LRU prefixes
                         var lru = Utils.URL_to_LRU(url)
                             ,lru_valid = false
-                            ,we = D.get('currentWebentity')
+                            ,we = this.get('currentWebentity')
                         we.lru_prefixes.forEach(function(lru_prefix){
                             if(lru.indexOf(lru_prefix) == 0)
                                 lru_valid = true
                         })
                         if(!lru_valid){                                         // The start page does not belong to any LRU_prefix: display message
-                            D.dispatchEvent('update_startpagesMessageObject', {
+                            this.dispatchEvent('update_startpagesMessageObject', {
                                 startpagesMessageObject: {html:'<strong>Invalid start page.</strong> This page does not belong to the web entity (check the prefixes).', display:true, bsClass:'alert-error', }
                             })
                         } else {                                                // It's OK: display a message and request the service
-                            D.dispatchEvent('update_startpagesMessageObject', {
+                            this.dispatchEvent('update_startpagesMessageObject', {
                                 startpagesMessageObject: {text:'Adding the start page...', display:true, bsClass:'alert-info', }
                             })
-                            D.request('addStartPage', {
+                            this.request('addStartPage', {
                                 webentityId: we.id
                                 ,url: url
                             })
@@ -309,11 +316,11 @@ HypheCommons.domino_init()
                 // On 'remove start page' clicked, display message and request the service
                 triggers: ['ui_removeStartPage']
                 ,method: function (d) {
-                    D.dispatchEvent('update_startpagesMessageObject', {
+                    this.dispatchEvent('update_startpagesMessageObject', {
                         startpagesMessageObject: {text:'Removing the start page...', display:true, bsClass:'alert-info', }
                     })
-                    we = D.get('currentWebentity')
-                    D.request('removeStartPage', {
+                    we = this.get('currentWebentity')
+                    this.request('removeStartPage', {
                         webentityId: we.id
                         ,url: d.data.url
                     })
@@ -323,30 +330,30 @@ HypheCommons.domino_init()
                 // We dispatch the state of the launch button and the message.
                 triggers: ['currentWebentity_updated', 'startpagesChecked', 'ui_depthChange']
                 ,method: function(){
-                    var we = D.get('currentWebentity')
+                    var we = this.get('currentWebentity')
                     if(we === undefined){
                         // No web entity selected
-                        D.dispatchEvent('update_crawlLaunchState', {
+                        this.dispatchEvent('update_crawlLaunchState', {
                             launchcrawlMessageObject: {html:'You must <strong>pick a web entity</strong> or declare a new one', bsClass:'alert-info', display: true}
                             ,crawlsettingsInvalid: true
                         })
                     } else {
                         if(we.startpages === undefined || we.startpages.length == 0){
                             // There is a web entity but there are no starting pages
-                            D.dispatchEvent('update_crawlLaunchState', {
+                            this.dispatchEvent('update_crawlLaunchState', {
                                 launchcrawlMessageObject: {html:'<strong>No start page.</strong> You must define on which page the crawler will start', bsClass:'alert-error', display: true}
                                 ,crawlsettingsInvalid: true
                             })
                         } else {
                             if($('.startPage_tr td a.unchecked').length > 0){
                                 // Waiting for start pages validation
-                                D.dispatchEvent('update_crawlLaunchState', {
+                                this.dispatchEvent('update_crawlLaunchState', {
                                     launchcrawlMessageObject: {text:'Waiting for start pages validation...', bsClass:'alert-info', display: true}
                                     ,crawlsettingsInvalid: true
                                 })
                             } else if($('.startPage_tr td a.invalid').length > 0){
                                 // There are some invalid start pages
-                                D.dispatchEvent('update_crawlLaunchState', {
+                                this.dispatchEvent('update_crawlLaunchState', {
                                     launchcrawlMessageObject: {html:'<strong>Invalid start pages.</strong> Please check that start pages are not redirected and are actually working.', bsClass:'alert-warning', display: true}
                                     ,crawlsettingsInvalid: true
                                 })
@@ -355,13 +362,13 @@ HypheCommons.domino_init()
                                 var maxdepth = $('#depth').val()
                                 if(!Utils.checkforInteger(maxdepth)){
                                     // The depth is not an integer
-                                    D.dispatchEvent('update_crawlLaunchState', {
+                                    this.dispatchEvent('update_crawlLaunchState', {
                                         launchcrawlMessageObject: {html:'<strong>Wrong depth.</strong> The maximum depth must be an integer', bsClass:'alert-error', display: true}
                                         ,crawlsettingsInvalid: true
                                     })
                                 } else {
                                     // Everything's OK !
-                                    D.dispatchEvent('update_crawlLaunchState', {
+                                    this.dispatchEvent('update_crawlLaunchState', {
                                         launchcrawlMessageObject: {display: false}
                                         ,crawlsettingsInvalid: false
                                     })
@@ -374,10 +381,10 @@ HypheCommons.domino_init()
                 // Launch crawl on event
                 triggers:['ui_launchCrawl']
                 ,method: function(){
-                    var we = D.get('currentWebentity')
+                    var we = this.get('currentWebentity')
                         ,maxdepth = $('#depth').val()
                     if(we !== undefined && Utils.checkforInteger(maxdepth)){
-                        D.request('crawl', {
+                        this.request('crawl', {
                             webentityId: we.id
                             ,maxDepth: maxdepth
                         })
@@ -385,9 +392,26 @@ HypheCommons.domino_init()
                 }
             },{
                 // Redirection on crawl launched
-                triggers:['crawlValidation_updated']
-                ,method:function(){
+                triggers: ['crawlValidation_updated']
+                ,method: function(){
                     window.location = "crawl.php"
+                }
+            },{
+                // Request web entities LIGHT
+                triggers: ['requestWebentitiesLight']
+                ,method: function(){
+                    this.request('getWebentities', {
+                        light: true
+                    })
+                }
+            },{
+                // Update current web entity (we may need to get the full content)
+                triggers: ['request_updateCurrentWebentity']
+                ,method: function(e){
+                    this.request('getWebentities', {
+                        id_list: [e.data.currentWebentityId]
+                        ,current: true
+                    })
                 }
             }
         ]
@@ -422,18 +446,19 @@ HypheCommons.domino_init()
         domino.module.call(this)
 
         var element = $('#urlField')
+            ,_self = this
 
         element.on('keyup', function(e){
             if(e.keyCode == 13){
                 // Enter key pressed
-                if(!D.get('urldeclarationInvalid')){
-                    D.dispatchEvent('ui_webentityDeclared', {})
+                if(!_self.get('urldeclarationInvalid')){
+                    _self.dispatchEvent('ui_webentityDeclared', {})
                     element.blur()
                 }
             } else {
                 var url = element.val()
                 // Validation
-                D.dispatchEvent('update_urldeclarationInvalid', {
+                _self.dispatchEvent('update_urldeclarationInvalid', {
                     urldeclarationInvalid: !Utils.URL_validate(url)
                 })
             }
@@ -454,8 +479,8 @@ HypheCommons.domino_init()
 
         var element = $('#webEntities_prefixes')
 
-        this.triggers.events['currentWebentity_updated'] = function(d) {
-            var webEntity = d.get('currentWebentity')
+        this.triggers.events['currentWebentity_updated'] = function(controller) {
+            var webEntity = controller.get('currentWebentity')
             element.html('')
             webEntity.lru_prefixes.forEach(function(lru_prefix){
                 element.append(
@@ -486,9 +511,10 @@ HypheCommons.domino_init()
 
         var element = $('#startPagesTable')
             ,messagesElement = $('#startPages_messages')
+            ,_self = this
 
-        this.triggers.events['currentWebentity_updated'] = function(){
-            var we = D.get('currentWebentity')
+        _self.triggers.events['currentWebentity_updated'] = function(controller, e){
+            var we = controller.get('currentWebentity')
             if(we !== undefined){
                 element.html('')
                 if(we.startpages.length>0){
@@ -501,7 +527,7 @@ HypheCommons.domino_init()
                         ).append(
                             $('<td/>').append(
                                 $('<button class="btn btn-small pull-right">Use prefixes as start pages</button>').click(function(){
-                                    D.dispatchEvent('ui_usePrefixesAsStartPages', {})
+                                    _self.dispatchEvent('ui_usePrefixesAsStartPages', {})
                                 })
                             )
                         )
@@ -530,7 +556,7 @@ HypheCommons.domino_init()
                     tr.append(
                         $('<td/>').append(
                             $('<button class="close">&times;</button>').click(function(){
-                                D.dispatchEvent('ui_removeStartPage', {
+                                _self.dispatchEvent('ui_removeStartPage', {
                                     url: sp
                                 })
                             })
@@ -547,19 +573,19 @@ HypheCommons.domino_init()
             if(uncheckedElements.length > 0){
                 var a = $(uncheckedElements[0])
                     ,url = a.attr('href')
-                D.dispatchEvent('lookupUrl', {url: url})
+                _self.dispatchEvent('lookupUrl', {url: url})
             } else {
-                D.dispatchEvent('startpagesChecked', {})
+                _self.dispatchEvent('startpagesChecked', {})
             }
         }
 
         // Lookup result
-        this.triggers.events['urllookupValidation_updated'] = function(){
-            var status = D.get('urllookupValidation')
-                ,url = D.get('lookedupUrl')
+        this.triggers.events['urllookupValidation_updated'] = function(controller){
+            var status = controller.get('urllookupValidation')
+                ,url = controller.get('lookedupUrl')
                 ,candidate = ''
 
-            $('.startPage_tr td a.unchecked').each(function(i,el){
+            $('.startPage_tr td a.unchecked').each(function(i, el){
                 if(candidate == '' && $(el).attr('href') == url){
                     candidate = $(el)
                 }
@@ -599,9 +625,10 @@ HypheCommons.domino_init()
     D.addModule(function(){
         domino.module.call(this)
         var element = $('#startPages_urlInput')
+            ,_self = this
         element.on('keyup', function(e){
             if(e.keyCode == 13){ // Enter key pressed
-                D.dispatchEvent('ui_addStartpage', {})
+                _self.dispatchEvent('ui_addStartpage', {})
                 element.blur()
             }
         })
@@ -646,6 +673,7 @@ HypheCommons.domino_init()
     D.addModule(function(){
         domino.module.call(this)
 
+        var _self = this
         // Update hash on web entity selection
         /*this.triggers.events['currentWebentity_updated'] = function(){
             var we = D.get('currentWebentity')
@@ -656,15 +684,15 @@ HypheCommons.domino_init()
         }*/
 
         // Update web entity selection by hash, on web entities update (ie. on load)
-        this.triggers.events['webentities_updated'] = function(){
+        this.triggers.events['webentities_updated'] = function(e){
             var we_id = Utils.hash.get('we_id')
-                ,we = D.get('currentWebentity')
+                ,we = e.get('currentWebentity')
             if(we_id !== undefined && we === undefined){
                 var webentities = D.get('webentities')
                     ,we = fetchWebentity_byId(webentities, we_id)
                 if(we !== undefined){
-                    D.dispatchEvent('update_currentWebentity', {
-                        currentWebentity: we
+                    _self.dispatchEvent('request_updateCurrentWebentity', {
+                        currentWebentityId: we.id
                     })
                 }
             }
@@ -677,12 +705,12 @@ HypheCommons.domino_init()
                 var webentities = D.get('webentities')
                     ,we = fetchWebentity_byId(webentities, we_id)
                 if(we !== undefined){
-                    D.dispatchEvent('update_currentWebentity', {
-                        currentWebentity: we
+                    _self.dispatchEvent('request_updateCurrentWebentity', {
+                        currentWebentityId: we.id
                     })
                 }
             } else {
-                // D.dispatchEvent('update_currentWebentity', {
+                // _self.dispatchEvent('request_updateCurrentWebentity', {
                 //     currentWebentity: ''
                 // })
             }
@@ -694,7 +722,7 @@ HypheCommons.domino_init()
 
     //// On load
     $(document).ready(function(){
-        D.request('getWebentities', {})
+        D.dispatchEvent('requestWebentitiesLight', {})
     })
 
 

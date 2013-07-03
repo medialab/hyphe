@@ -43,7 +43,7 @@
 
         <div class="container">
 
-<?php include("includes/header.php"); ?>
+<?php // include("includes/header.php"); ?>
 
             <div class="row">
                 <div class="span12">
@@ -61,6 +61,7 @@
             <div class="row">
                 <div class="span8">
                     <a class="btn btn-primary" href="crawl_new.php"><i class="icon-plus icon-white"></i> New crawl</a>
+                    <a class="btn" href="crawl_urllist.php"><i class="icon-plus"></i> Crawl a list of URLs</a>
                     <form class="form-inline pull-right">
                         <label class="checkbox" title="The five last crawls are always showed">
                             <input type="checkbox" id="crawlJobs_showFinished"> Show all finished
@@ -70,7 +71,7 @@
                             <input type="checkbox" id="crawlJobs_showPending" checked="true"> Show pending
                         </label>
                         &nbsp;
-                        <a class="btn" id="crawlJobs_refresh"></a>
+                        <a class="btn btn-link" id="crawlJobs_refresh">Refresh</a>
                     </form>
                 </div>
             </div>

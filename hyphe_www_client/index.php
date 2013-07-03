@@ -32,7 +32,7 @@
 
             <div class="row">
                 <div class="span12">
-                    <h1>Welcome to Hyphe</h1>
+                    <h1>Welcome</h1>
                     <p class="text-info">
                         Hyphe does not manage different corpora or users at the moment. All the data is stored as a single corpus summarized here. 
                     </p>
@@ -42,26 +42,30 @@
 
             <div class="row">
                 <div class="span4">
-                    <h2>Status</h2>
+                    <h3>Status</h3>
                     <div id="summary"></div>
                 </div>
                 <div class="span4">
-                    <h2>Explore</h2>
+                    <h3>Tasks</h3>
                     <p>
-                        <ul>
-                            <li><a href="webentities_list.php">List of web entities</a></li>
+                        <ol>
+                            <li><a href="crawl.php">Crawl</a></li>
+                            <li><a href="webentities_exploreDiscovered.php">Classify discovered web entities</a></li>
+                            <li><span class="muted">Qualify</a></li>
                             <li><a href="webentities_network.php">Network of web entities</a></li>
-                        </ul>
+                        </ol>
                     </p>
                 </div>
                 <div class="span4">
-                    <h2>Work</h2>
+                    <h3>Monitoring</h3>
                     <p>
                         <ul>
-                            <li><a href="crawl.php">Crawl</a></li>
-                            <li><a href="crawl_urllist.php">Crawl by a list of URLs</a></li>
-                            <li><a href="webentities_exploreDiscovered.php">Explore discovered web entities</a></li>
+                            <li><a href="webentities_list.php">List of web entities</a></li>
                         </ul>
+                    </p>
+                    <br/>
+                    <h3>Administration</h3>
+                    <p>
                         <ul>
                             <li><a href="reset.php">Reset all</a></li>
                         </ul>

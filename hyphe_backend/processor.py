@@ -11,13 +11,13 @@ from hyphe_backend.memorystructure import MemoryStructure as ms
 # - handle errorcode
 # - metadataItems -> parsing later ?
 def generate_cache_from_pages_list(pageList, precision_limit = 1, precision_exceptions = [], verbose = False) :
-    if verbose :
+    if verbose:
         print "### createCache"
     pages = {}
     links = {}
     original_link_number = 0
     nodes = {}
-    for page_item in pageList : 
+    for page_item in pageList:
         page_item["lru"] = urllru.cleanLRU(page_item["lru"])
         is_full_precision = urllru.isFullPrecision(page_item["lru"], precision_exceptions)
         lru_head = urllru.getLRUHead(page_item["lru"], precision_exceptions)

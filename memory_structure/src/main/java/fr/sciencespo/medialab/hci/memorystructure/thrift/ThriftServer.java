@@ -81,7 +81,7 @@ public class ThriftServer {
     private static Map<String, String> readProperties(boolean silent) {
         Map<String, String> propertiesMap = new HashMap<String, String>();
         try {
-            String jsonTxt = IOUtils.toString(new FileInputStream("config.json"));
+            String jsonTxt = IOUtils.toString(new FileInputStream("config/config.json"));
             JSONObject json = new JSONObject(jsonTxt);
             JSONObject properties = json.getJSONObject("memoryStructure");
             String[] propertyNames = JSONObject.getNames(properties);

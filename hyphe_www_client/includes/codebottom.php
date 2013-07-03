@@ -13,7 +13,7 @@
 
 <script src="js/libs/FileSaver.js"></script>
 
-<script src="js/libs/domino.js"></script>
+<script src="js/libs/domino.min.js"></script>
 <script src="js/libs/domino.modules.js"></script>
 
 <script src="_config/config.js"></script>
