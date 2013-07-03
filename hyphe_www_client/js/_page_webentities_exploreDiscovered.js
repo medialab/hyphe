@@ -51,6 +51,12 @@ HypheCommons.domino_init()
                 id:'statusValidation'
                 ,dispatch: 'statusValidation_updated'
                 ,triggers: 'update_statusValidation'
+            },{
+                id:'previewActive'
+                ,type: 'boolean'
+                ,value: false
+                ,dispatch: 'previewActive_updated'
+                ,triggers: 'update_previewActive'
             }
         ],services: [
             {
@@ -68,27 +74,8 @@ HypheCommons.domino_init()
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
                             settings.id_list    // List of webentities
-                        ],
-                    })}
-                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
-            },{
-                id: 'getWebentitiesLight'
-                ,data: function(settings){ return JSON.stringify({ //JSON RPC
-                        'method' : HYPHE_API.WEBENTITIES.GET,
-                        'params' : [
-                            settings.id_list    // List of webentities
-                            ,true               // Mode light
-                        ],
-                    })}
-                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
-            },{
-                id: 'getWebentitiesSemilight'
-                ,data: function(settings){ return JSON.stringify({ //JSON RPC
-                        'method' : HYPHE_API.WEBENTITIES.GET,
-                        'params' : [
-                            settings.id_list        // List of webentities
-                            ,false                  // Mode light
-                            ,true                   // Mode semi-light
+                            ,(settings.light && !settings.semilight) || false
+                            ,settings.semilight || false
                         ],
                     })}
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
@@ -113,9 +100,33 @@ HypheCommons.domino_init()
                     })}
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
                 ,success: function(data, input){
-                    D.request('getWebentitiesSemilight', {
+                    this.dispatchEvent('request_webentities', {
                         id_list: [input.webEntityId]
                     })
+                }
+            },{
+                id: 'getWebEntityPages'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.GET_PAGES,
+                        'params' : [
+                            settings.webEntityId    // Web entity id
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+                ,success: function(data, input){
+                    var webentity = this.get('webentitiesById')[input.webEntityId]
+                    if(webentity == undefined){
+                        Messenger().post({
+                                message: '<strong>Something weird happended.</strong> Unkown web entity\n<br/>\n"'+data+'"'
+                                ,type: 'error'
+                                ,showCloseButton: true
+                            })
+                    } else {
+                        webentity.pages = data[0].result
+                        this.dispatchEvent('webentityPages_updated', {
+                            webEntityId: webentity.id
+                        })
+                    }
                 }
             }
         ],hacks:[
@@ -124,18 +135,18 @@ HypheCommons.domino_init()
                 triggers: ['webentities_updated', 'webentitiesLinks_updated']
                 ,method: function() {
                     if( this.get('webentities').length>0 && this.get('webentitiesLinks') !== undefined ){
-                        buildNetworkJson()
+                        buildNetworkJson(this)
                     }
                 }
             },{
                 // When the json network is updated and the web entities are indexed by id, we update the list of discovered web entities and set current item to the first
                 triggers: ['networkJson_updated', 'webentitiesById_updated']
                 ,method: function() {
-                    var net = D.get('networkJson')
+                    var net = this.get('networkJson')
                         ,wes_byId = this.get('webentitiesById')
-                    if( net !== undefined && wes_byId != undefined){
+                    if( net !== undefined && !(Object.keys(wes_byId).length === 0)){
                         var discoveredWebentitiesList = buildDiscoveredWebentitiesList(wes_byId, net)
-                        D.dispatchEvent('update_discoveredWebentitiesList', {
+                        this.dispatchEvent('update_discoveredWebentitiesList', {
                             discoveredWebentitiesList: discoveredWebentitiesList
                             ,currentItem: discoveredWebentitiesList[0]
                         })
@@ -148,6 +159,44 @@ HypheCommons.domino_init()
                     this.request('setWebEntityStatus', {
                         webEntityId: e.data.webEntityId
                         ,status: e.data.status
+                    })
+                }
+            },{
+                // Request web entities
+                triggers: ['request_webentities']
+                ,method: function(e){
+                    this.request('getWebentities', {
+                        id_list: e.data.id_list
+                        ,light: false
+                        ,semilight: false
+                    })
+                }
+            },{
+                // Request web entities SEMILIGHT
+                triggers: ['request_webentitiesSemilight']
+                ,method: function(e){
+                    this.request('getWebentities', {
+                        id_list: e.data.id_list
+                        ,light: false
+                        ,semilight: true
+                    })
+                }
+            },{
+                // Request web entities LIGHT
+                triggers: ['request_webentitiesLight']
+                ,method: function(e){
+                    this.request('getWebentities', {
+                        id_list: e.data.id_list
+                        ,light: true
+                        ,semilight: false
+                    })
+                }
+            },{
+                // Request: get pages of a web entity
+                triggers: ['request_getPages']
+                ,method: function(e){
+                    this.request('getWebEntityPages', {
+                        webEntityId: e.data.webEntityId
                     })
                 }
             }
@@ -229,7 +278,7 @@ HypheCommons.domino_init()
                                                 })
                                         )
                                     .append(
-                                            $('<a class="btn btn-mini btn-link">und.</a>').click(function(){
+                                            $('<a class="btn btn-mini btn-link">unde.</a>').click(function(){
                                                     _self.dispatchEvent('requestSetWebEntityStatus', {
                                                         webEntityId: item.webentity.id
                                                         ,status: 'UNDECIDED'
@@ -409,52 +458,157 @@ HypheCommons.domino_init()
         this.triggers.events['currentItem_updated'] = update
     })
 
+    // Web entity cited pages
+    D.addModule(function(){
+        domino.module.call(this)
+
+        var element = $('#webentity_pages')
+            ,_self = this
+
+        var update = function(controller){
+
+            element.html('')
+
+            var current = controller.get('currentItem')
+            
+            if(current !== undefined && current !== null){
+                element
+                    .append(
+                            $('<h5/>').text('Known pages')
+                        )
+                if(current.webentity.pages === undefined){
+                    element
+                        .append(
+                                $('<div id="pages-list"/>').append(
+                                        $('<span class="muted">Loading...</span>')
+                                    )
+                            )
+                    _self.dispatchEvent('request_getPages', {webEntityId: current.webentity.id})
+                }
+            }
+        }
+
+        var updatePages = function(controller, e){
+            var current = controller.get('currentItem')
+            console.log(current.webentity.pages)
+            
+            if(current !== undefined && current !== null && current.webentity.id == e.data.webEntityId){
+                $('#pages-list').html('')
+                    .append(
+                        $('<ul class="unstyled"/>').append(
+                                current.webentity.pages.map(function(p){
+                                    return $('<li/>').append(
+                                            $('<a/>')
+                                                .attr('href', p.url)
+                                                .attr('target', '_blank')
+                                                .append(
+                                                        $('<small/>').text(Utils.URL_simplify(p.url))
+                                                    )
+                                        )
+                                })
+                            )
+                        )
+            }
+        }
+
+        this.triggers.events['currentItem_updated'] = update
+        this.triggers.events['webentityPages_updated'] = updatePages
+    })
+
     // Web entity preview
     D.addModule(function(){
         domino.module.call(this)
 
         var element = $('#webentity_preview')
+            ,_self = this
 
-        var update = function(){
+        var update = function(controller){
 
             element.html('')
-
+            
             var current = D.get('currentItem')
 
             if(current !== undefined && current !== null){
-                var url = Utils.LRU_to_URL(current.webentity.lru_prefixes[0])
-                element.append(
-                    $('<h5/>').text('Preview')
-                ).append(
-                    $('<p class="text-info"/>').append(
-                        $('<span/>').text('The preview is based on the first prefix ')
-                    ).append(
-                        $('<a/>').text(url)
-                            .attr('href', url)
-                            .attr('target', '_blank')
-                    ).append(
-                    $('<span/>').text('. These may not be linked to pages, but the web entity may still be legitimate.')
+                if(controller.get('previewActive')){
+                    var url = Utils.LRU_to_URL(current.webentity.lru_prefixes[0])
+                    element
+                        .append(
+                                $('<h5/>').text('Preview')
+                                    .append(
+                                            $('<a class="btn btn-small pull-right"><i class="icon-remove"/> Disable preview</a>')
+                                                .click(function(e){
+                                                        _self.dispatchEvent('update_previewActive', {
+                                                            previewActive: false
+                                                        })  
+                                                    })
+                                        )
+                            )
+                        .append(
+                            $('<p class="text-info"/>')
+                                .append(
+                                        $('<span/>').text('The preview is based on the first prefix ')
+                                    )
+                                .append(
+                                        $('<a/>').text(url)
+                                            .attr('href', url)
+                                            .attr('target', '_blank')
+                                    )
+                                .append(
+                                        $('<span/>').text('. These may not be linked to pages, but the web entity may still be legitimate. ')
+                                    )
+                                
+                            )
+                        .append(
+                                $('<p/>')
+                                    
+                            )
+                            
+                    .append(
+                        $('<iframe/>').attr('src', url)
                     )
-                ).append(
-                    $('<iframe/>').attr('src', url)
-                )
+                } else {
+                    element
+                        .append(
+                                $('<h5/>').text('Preview ')
+                                    .append(
+                                            $('<span class="muted"/>')
+                                                .text('(disabled)')
+                                        )
+                                    
+                            )
+                        .append(
+                                $('<p class="text-info"/>')
+                                    .append(
+                                            $('<span/>').text('Shows the content of the first prefix')
+                                        )
+                            )
+                        .append(
+                                $('<a class="btn">Enable preview</a>')
+                                    .click(function(e){
+                                            _self.dispatchEvent('update_previewActive', {
+                                                previewActive: true
+                                            })  
+                                        })
+                            )
+                }
             }
         }
 
         this.triggers.events['currentItem_updated'] = update
+        this.triggers.events['previewActive_updated'] = update
     })
 
     //// On load, get the web entities
     $(document).ready(function(e){
         D.request('getWebentitiesLinks', {})
-        D.request('getWebentitiesSemilight', {})
+        D.dispatchEvent('request_webentitiesSemilight', {})
     })
 
 
     //// Processing
-    var buildNetworkJson = function(){
-        var webentities = D.get('webentities')
-            ,links = D.get('webentitiesLinks')
+    var buildNetworkJson = function(controller){
+        var webentities = controller.get('webentities')
+            ,links = controller.get('webentitiesLinks')
             ,net = {}
             ,statusColors = {
                 IN:             chroma.hex("#5AA04A")
@@ -536,7 +690,7 @@ HypheCommons.domino_init()
 
         json_graph_api.buildIndexes(net)
 
-        D.dispatchEvent('update_networkJson', {
+        controller.dispatchEvent('update_networkJson', {
             networkJson: net
         })
 

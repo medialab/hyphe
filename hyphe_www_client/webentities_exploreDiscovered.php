@@ -36,6 +36,11 @@
     overflow-y: auto;
 }
 
+#pages-list{
+    max-height: 180px;
+    overflow-y: auto;
+}
+
 .citing_index{
     width: 30px;
 }
