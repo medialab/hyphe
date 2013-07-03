@@ -242,11 +242,13 @@ HypheCommons.domino_init()
                     $('<a class="muted"><small>edit</small></a>')
                         .attr('href', 'webentity_edit.php#we_id='+we.id)
                 )
-        /*element.append(
-                $('<a></a>')
-                    .text(we.name)
-                    .attr('href', 'webentity_edit.php#we_id='+we.id)
-            )*/
+            .append(
+                    $('<span class="muted"> - </span>')
+                )
+            .append(
+                    $('<a class="muted"><small>recrawl</small></a>')
+                        .attr('href', 'crawl_new.php#we_id='+we.id)
+                )
     }
 
     // The big list of crawl jobs
