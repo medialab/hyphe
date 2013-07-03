@@ -60,7 +60,7 @@
 
             <div class="row-fluid">
                 <div class="span12">
-                    <h1>Explore discovered web entities</h1>
+                    <h1>Classify discovered web entities</h1>
                     <p class="text-info">
                         Explore the discovered web entities the most cited, browse them and crawl them or refuse them. 
                     </p>

@@ -20,16 +20,17 @@
                                     <li><a href="crawl_urllist.php">Crawl a list of URLs</a></li>
                                 </ul>
                             </li>
-                            <li class="dropdown">
+                            <!-- <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                    2 -. Classify
+                                    2 - Classify
                                     <b class="caret"></b>
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li><a href="webentities_exploreDiscovered.php">Classify discovered web entities</a></li>
                                 </ul>
-                            </li>
-                            <li class="dropdown">
+                            </li> -->
+                            <li><a href="webentities_exploreDiscovered.php">2 - Classify</a></li>
+                            <!-- <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     3 - Qualify
                                     <b class="caret"></b>
@@ -37,7 +38,8 @@
                                 <ul class="dropdown-menu">
                                     <li><a>(not available yet)</a></li>
                                 </ul>
-                            </li>
+                            </li> -->
+                            <li><a title="not available yet">3 - Qualify</a></li>
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     4 - Explore
