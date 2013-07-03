@@ -17,6 +17,7 @@
 		domino.settings({
 		    shortcutPrefix: "::" // Hack: preventing a bug related to a port in a URL for Ajax
 		    ,verbose: HYPHE_CONFIG.JAVASCRIPT_LOG_VERBOSE
+		    ,maxDepth: 20
 		})
 	}
 
