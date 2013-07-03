@@ -100,6 +100,17 @@ class Core(jsonrpc.JSONRPC):
         if is_error(scrapyjobs):
             return scrapyjobs
         scrapyjobs = scrapyjobs['result']
+        # clean lost jobs
+        if len(scrapyjobs['running']) + len(scrapyjobs['pending']) == 0:
+            resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'crawling_status': {'$in': [crawling_statuses.PENDING, crawling_statuses.RUNNING]}}, {'$set': {'crawling_status': crawling_statuses.FINISHED}}, multi=True, safe=True)
+            if (resdb['err']):
+                print "ERROR updating lost jobs crawling_statuses", resdb
+                return
+        # clean canceled jobs
+        resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'crawling_status': crawling_statuses.CANCELED}, {'$set': {'indexing_status': indexing_statuses.CANCELED}}, multi=True, safe=True)
+        if (resdb['err']):
+            print "ERROR updating canceled jobs indexing_statuses", resdb
+            return
         # update jobs crawling status accordingly to crawler's statuses
         running_ids = [job['id'] for job in scrapyjobs['running']]
         update_ids = [job['_id'] for job in self.db[config['mongo-scrapy']['jobListCol']].find({'_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, fields=['_id'])]
@@ -128,17 +139,6 @@ class Core(jsonrpc.JSONRPC):
                 print "ERROR updating finished indexing jobs statuses", update_ids, resdb
                 return
             jobslog(update_ids, "INDEX_"+indexing_statuses.FINISHED, self.db)
-        # clean canceled jobs
-        resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'crawling_status': crawling_statuses.CANCELED}, {'$set': {'indexing_status': indexing_statuses.CANCELED}}, multi=True, safe=True)
-        if (resdb['err']):
-            print "ERROR updating canceled jobs indexing_statuses", resdb
-            return
-        # clean lost jobs
-        if (len(scrapyjobs['running'])*len(scrapyjobs['pending']) == 0):
-            resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'crawling_status': {'$in': [crawling_statuses.PENDING, crawling_statuses.RUNNING]}}, {'$set': {'crawling_status': crawling_statuses.FINISHED}}, multi=True, safe=True)
-            if (resdb['err']):
-                print "ERROR updating lost jobs crawling_statuses", resdb
-                return
         return self.jsonrpc_listjobs()
 
     def jsonrpc_listjobs(self, list_ids=None):
