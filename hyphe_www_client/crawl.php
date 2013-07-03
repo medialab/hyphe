@@ -13,16 +13,18 @@
 <?php include("includes/codetop.php"); ?>
 
         <style>
-            /* Specific styles */
-            .crawlJob_log{
-                font-size:10px;
-            }
-            .crawlJob_log p{
-                line-height: 12px;
-                margin: 0px;
-            }
+/* Specific styles */
+.crawlJob_log{
+    font-size:10px;
+}
+.crawlJob_log p{
+    line-height: 12px;
+    margin: 0px;
+}
 
-
+.webentityNameContainer{
+    max-width: 400px;
+}
 
         </style>
         <link rel="stylesheet" href="css/jquery.dataTables.css">

@@ -8,6 +8,9 @@
   cursor:pointer;
 }
 
+span, a{
+    word-wrap: break-word;
+}
 
 /* --------------------------
    Table for x-editable contents

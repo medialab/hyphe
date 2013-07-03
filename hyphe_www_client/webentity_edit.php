@@ -104,7 +104,7 @@ p.webEntityReminder{
                     <table class="table table-editable">
                         <tr>
                             <th>Name</th>
-                            <td><a id="name">...</a></td>
+                            <td id="nameContainer"><a id="name">...</a></td>
                         </tr><tr>
                             <th>Home page</th>
                             <td><a id="homepage">...</a></td>

@@ -217,21 +217,26 @@ HypheCommons.domino_init()
     // The function to display a web entity, used by different modules
     var displayWebEntity = function(element, we){
         element.html('')
-        element.removeClass('muted')
-        element.text(we.name)
-        element.append(
-                    $('<span class="muted"> - </span>')
-                )
+            .removeClass('muted')
             .append(
-                    $('<a class="muted"><small>edit</small></a>')
-                        .attr('href', 'webentity_edit.php#we_id='+we.id)
-                )
-            .append(
-                    $('<span class="muted"> - </span>')
-                )
-            .append(
-                    $('<a class="muted"><small>recrawl</small></a>')
-                        .attr('href', 'crawl_new.php#we_id='+we.id)
+                    $('<div class="webentityNameContainer"/>')
+                        .append(
+                                $('<span/>').text(we.name)
+                            )
+                        .append(
+                                $('<span class="muted"> - </span>')
+                            )
+                        .append(
+                                $('<a class="muted"><small>edit</small></a>')
+                                    .attr('href', 'webentity_edit.php#we_id='+we.id)
+                            )
+                        .append(
+                                $('<span class="muted"> - </span>')
+                            )
+                        .append(
+                                $('<a class="muted"><small>recrawl</small></a>')
+                                    .attr('href', 'crawl_new.php#we_id='+we.id)
+                            )
                 )
     }
 
@@ -289,7 +294,7 @@ HypheCommons.domino_init()
                         row_colorClass = 'info'
 
                     // DOM
-                    var weElement = $('<span/>').append(
+                    var weElement = $('<div/>').append(
                                 $('<small class="muted"/>').text(crawlJob.webentity_id)
                             )
                             .addClass('webEntity_proxy')
