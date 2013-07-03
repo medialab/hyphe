@@ -42,25 +42,30 @@
 
             <div class="row">
                 <div class="span4">
-                    <h2>Status</h2>
+                    <h3>Status</h3>
                     <div id="summary"></div>
                 </div>
                 <div class="span4">
-                    <h2>Explore</h2>
+                    <h3>Tasks</h3>
                     <p>
-                        <ul>
-                            <li><a href="webentities_list.php">List of web entities</a></li>
+                        <ol>
+                            <li><a href="crawl.php">Crawl</a></li>
+                            <li><a href="webentities_exploreDiscovered.php">Classify discovered web entities</a></li>
+                            <li><span class="muted">Qualify</a></li>
                             <li><a href="webentities_network.php">Network of web entities</a></li>
-                        </ul>
+                        </ol>
                     </p>
                 </div>
                 <div class="span4">
-                    <h2>Work</h2>
+                    <h3>Monitoring</h3>
                     <p>
                         <ul>
-                            <li><a href="crawl.php">Crawl</a></li>
-                            <li><a href="webentities_exploreDiscovered.php">Explore discovered web entities</a></li>
+                            <li><a href="webentities_list.php">List of web entities</a></li>
                         </ul>
+                    </p>
+                    <br/>
+                    <h3>Administration</h3>
+                    <p>
                         <ul>
                             <li><a href="reset.php">Reset all</a></li>
                         </ul>
