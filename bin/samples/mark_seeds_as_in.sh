@@ -1,4 +1,6 @@
 #!/bin/bash
+source /usr/local/bin/virtualenvwrapper.sh
+workon HCI
 
 ./hyphe_backend/test_client.py inline store.get_webentities |
   grep result |

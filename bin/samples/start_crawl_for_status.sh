@@ -1,4 +1,6 @@
 #!/bin/bash
+source /usr/local/bin/virtualenvwrapper.sh
+workon HCI
 
 statuses=$(echo $1 | sed 's/^\(.*\)$/\U\1/')
 depth=$(echo $2 | grep "^[0-9]*$")
