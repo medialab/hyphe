@@ -221,6 +221,18 @@ HypheCommons.domino_init()
         element.html('')
         element.removeClass('muted')
         element.text(we.name)
+        element.append(
+                    $('<span class="muted"> - </span>')
+                )
+            .append(
+                    $('<a class="muted"><small>edit</small></a>')
+                        .attr('href', 'webentity_edit.php#we_id='+we.id)
+                )
+        /*element.append(
+                $('<a></a>')
+                    .text(we.name)
+                    .attr('href', 'webentity_edit.php#we_id='+we.id)
+            )*/
     }
 
     // The big list of crawl jobs
