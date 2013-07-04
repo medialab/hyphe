@@ -383,7 +383,7 @@ $.fn.editable.defaults.mode = 'popup';
                         $('#crawlJobsFeedback').html('')
                             .append(
                                     $('<span class="text-success"></span>')
-                                        .text(total+' crawl jobs successfully launched -')
+                                        .text(total+' crawl jobs successfully launched - ')
                                 )
                             .append(
                                     $('<a href="crawl.php" target="_blank">Monitor crawl jobs</a>')
@@ -538,7 +538,7 @@ $.fn.editable.defaults.mode = 'popup';
                     } else if([300, 301, 302].some(function(test){return status==test})){
                         // Redirection
                         // Edit the lookup
-                        pending.text('Redirection').addClass('text-warning')
+                        pending.text('Redirect').addClass('text-warning')
                             .attr('data-lookup-status', 'redirect')
                             .attr('title', 'You may want to check that the corresponding web entity is the right one')
 
