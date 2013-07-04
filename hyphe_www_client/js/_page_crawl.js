@@ -515,7 +515,7 @@ HypheCommons.domino_init()
     })
 
     //// Clock
-    var auto_refresh_crawljobs = setInterval(refreshCrawljobs, 5000)
+    var auto_refresh_crawljobs = setInterval(refreshCrawljobs, 30000)
 
     //// Web entities: index
     var webentities_buildIndex = function(webentities){
