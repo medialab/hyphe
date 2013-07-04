@@ -64,7 +64,7 @@ sigma.forceatlas2.ForceAtlas2 = function(graph) {
         nodes.forEach(function(n) {
           n.fa2.mass = 1 + n.degree;
           n.fa2.old_dx = n.fa2.dx;
-          n.fa2.old_dy = n.fa2.dx;
+          n.fa2.old_dy = n.fa2.dy;
           n.fa2.dx = 0;
           n.fa2.dy = 0;
         });
