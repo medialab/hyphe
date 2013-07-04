@@ -79,7 +79,11 @@ public class LuceneQueryFactory {
     protected static Query getLinkedWebEntitiesQuery() {
         BooleanQuery q = new BooleanQuery();
         Query q1 = new TermQuery(typeEqualWebEntity);
-        Query q2 = getLRUWildcardManagedQuery(IndexConfiguration.FieldName.TAG.name(), "CORE:*");
+        BooleanQuery q2 = new BooleanQuery();
+        q2.add(getLRUWildcardManagedQuery(IndexConfiguration.FieldName.TAG.name(), "CORE:*"), BooleanClause.Occur.SHOULD);
+        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), IndexConfiguration.WEStatus.UNDECIDED.name())), BooleanClause.Occur.SHOULD);
+        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), IndexConfiguration.WEStatus.IN.name())), BooleanClause.Occur.SHOULD);
+        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), IndexConfiguration.WEStatus.OUT.name())), BooleanClause.Occur.SHOULD);
         q.add(q1, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
         return q;
