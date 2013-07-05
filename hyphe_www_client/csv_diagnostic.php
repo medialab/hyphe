@@ -24,14 +24,27 @@
     overflow-y: hidden;
 }
 
+.header-row{
+    border-bottom: 1px solid #f9f9f9;
+}
+
 .diagnostic-row{
+    border-top: 1px solid #f6f6f6;
+    padding-top: 10px;
     padding-bottom: 5px;
-    margin-top: 3px;
-    margin-bottom: 3px;
+}
+
+.diagnostic-row.wrong{
+    /*background-color: #FFF0F8;*/
+    background-color: #f9f9f9;
 }
 
 .diagnostic-row:hover{
     background-color: #FFC;
+}
+
+.prefixeslist{
+    margin-top: 2px;
 }
 
 .pageslist{

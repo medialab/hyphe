@@ -196,6 +196,15 @@ HypheCommons.domino_init()
                         webentityId: we_id
                     })
                 }
+            },{
+                // Request get pages
+                triggers: ['request_updatePagesData']
+                ,method: function(e){
+                    var we_id = e.data.webentityId
+                        ,pagesData = e.data.pagesData
+                        ,webentities_byId = this.get('webentitiesById')
+                    webentities_byId[we_id].pagesData = pagesData
+                }
             }
         ]
     })
@@ -349,6 +358,29 @@ HypheCommons.domino_init()
                         $('<h3>Diagnostic</h3>')
                     )
                 .append(
+                        $('<div class="row header-row"/>')
+                            .append(
+                                    $('<div class="span2"/>')
+                                        .html('<h5>Source URL</h5>')
+                                )
+                            .append(
+                                    $('<div class="span4"/>')
+                                        .html('<h5>Web entity <small class="muted">+ prefixes</small></h5>')
+                                )
+                            .append(
+                                    $('<div class="span1"/>')
+                                        .html('<h5>Status</h5>')
+                                )
+                            .append(
+                                    $('<div class="span3"/>')
+                                        .html('<h5>Crawled pages</h5>')
+                                )
+                            .append(
+                                    $('<div class="span2"/>')
+                                        .html('<h5>Potential issues</h5>')
+                                )
+                    )
+                .append(
                         rows.map(function(row, i){
                             var url = row[colId]
                             return $('<div class="row diagnostic-row"/>')
@@ -356,14 +388,14 @@ HypheCommons.domino_init()
                                 .attr('data-url', url)
                                 .attr('data-url-md5', $.md5(url))
                                 .append(
-                                        $('<div class="span3 col-url"/>')
+                                        $('<div class="span2 col-url"/>')
                                             .append(
                                                     $('<span class="urlContainer"/>')
                                                         .text(Utils.URL_simplify(row[colId]))
                                                 )
                                     )
                                 .append(
-                                        $('<div class="span3 col-webentity"/>')
+                                        $('<div class="span4 col-webentity"/>')
                                             .attr('data-url', url)
                                             .attr('data-url-md5', $.md5(url))
                                             .attr('data-status', 'waiting')
@@ -379,7 +411,7 @@ HypheCommons.domino_init()
                                         $('<div class="span3 col-pages"/>')
                                     )
                                 .append(
-                                        $('<div class="span2 col-prefixes"/>')
+                                        $('<div class="span2 col-issues"/>')
                                     )
                         })
                     )
@@ -391,22 +423,16 @@ HypheCommons.domino_init()
                 ,currentQueries = controller.get('currentQueries')
             for(i = 0; i < queriesLimit - currentQueries; i++){
                 
-                // 1. Search for a web entity to fetch
+                // 1. Search for issues to summarize
 
-                var waitingForFetching = $('.col-webentity[data-status=waiting]')
-                if(waitingForFetching.length > 0){
-                    var element = waitingForFetching.first()
-                        ,url = element.attr('data-url')
-
-                    element.html('<span class="text-info">Fetching web entity...</span>')
-                        .attr('data-status', 'pending')
-
-                    _self.dispatchEvent('request_fetchWebEntity', {
-                        url: url
-                    })
+                var waitingIssues = $('.col-issues[data-status=waiting]')
+                if(waitingIssues.length > 0){
+                    var element = waitingIssues.first()
+                    buildIssues(element, controller)
+                    _self.dispatchEvent('request_cascade', {})
                 } else {
 
-                    // 2. If no web entity to fetch, search for pages to get
+                    // 2. Search for pages to fetch
 
                     var waitingPages = $('.col-pages[data-status=waiting]')
                     if(waitingPages.length > 0){
@@ -420,10 +446,27 @@ HypheCommons.domino_init()
                         })
                     } else {
 
-                        // 3. If no pages to fetch, then ...
+                        // 3. Search for a web entity to fetch
+
+                        var waitingForFetching = $('.col-webentity[data-status=waiting]')
+                        if(waitingForFetching.length > 0){
+                            var element = waitingForFetching.first()
+                                ,url = element.attr('data-url')
+
+                            element.html('<span class="text-info">Fetching web entity...</span>')
+                                .attr('data-status', 'pending')
+
+                            _self.dispatchEvent('request_fetchWebEntity', {
+                                url: url
+                            })
+                        } else {
+
+                            // 4. If no pages to fetch, then it's over
+                            
+                            _self.dispatchEvent('cascadeFinished', {})
+                        }
                     }
                 }
-
             }
         }
 
@@ -438,9 +481,11 @@ HypheCommons.domino_init()
                     elements.html('')
                         .attr('data-status', 'fetched')
                         .append(
-                                $('<span class="text-success"/>')
+                                $('<strong/>')
                                     .text(we.name)
                             )
+
+                        // edit - crawl
                         .append(
                                 $('<span/>')
                                     .append(
@@ -460,6 +505,22 @@ HypheCommons.domino_init()
                                                 .attr('target', '_blank')
                                         )
                             )
+
+                        // prefixes
+                        .append(
+                                $('<ul class="unstyled prefixeslist"/>')
+                                    .append(
+                                            we.lru_prefixes.map(function(lru){
+                                                var li = $('<li/>')
+                                                    .append(
+                                                            $('<small class="muted"/>').text(Utils.URL_simplify(Utils.LRU_to_URL(lru)))
+                                                        )
+                                                return li
+                                            })
+                                        )
+                            )
+
+                        // other columns
                         .siblings('.col-status')
                             .attr('data-webentity-id', we.id)
                             .html('')
@@ -474,6 +535,9 @@ HypheCommons.domino_init()
                             .append(
                                     $('<span class="muted"/>').text('waiting')
                                 )
+                        .parent()
+                            .removeClass('wrong')
+                            .attr('data-webentity-id', we.id)
                 } else {
                     var msg = e.data.message
                     elements.html('')
@@ -485,18 +549,13 @@ HypheCommons.domino_init()
                         .siblings('.col-status')
                             .attr('data-webentity-id', '')
                             .html('')
+                        .parent()
+                            .addClass('wrong')
+                            .attr('data-webentity-id', '')
                 }
             } else {
                 HypheCommons.errorAlert('Arg, something unexpected happened. (unable to find the elements to update...)')
                 console.log('Error from updateWebentityFetch', 'url', url)
-                elements.html('')
-                    .attr('data-status', 'error')
-                    .append(
-                            $('<span class="text-error">error</span>')
-                        )
-                    .siblings('.col-status')
-                        .attr('data-webentity-id', '')
-                        .html('')
             }
             _self.dispatchEvent('request_cascade', {})
         }
@@ -508,61 +567,57 @@ HypheCommons.domino_init()
             if(elements.length > 0){
                 var pagesData = getDataFromPages(pages)
                     ,ul = $('<ul class="pageslist unstyled"/>')
-                        .append(
-                                pagesData.depths.map(function(d, i){
-                                        if(i>=0){
-                                            var li = $('<li/>')
-                                                    .append(
-                                                            $('<span/>')
-                                                                .text('depth '+i+': ')
-                                                        )
-                                            if(d.crawled>0){
-                                                li.append(
-                                                        $('<span class="text-success"/>')
-                                                            .text(d.crawled + ' crawled')
-                                                    )
-                                            } else {
-                                                if(i != pagesData.depthMax){
-                                                    li.append(
-                                                            $('<span class="text-warning"/>')
-                                                                .text('none crawled')
-                                                        )
-                                                }
-                                            }
-                                            if(d.uncrawled>0)
-                                                if(i != pagesData.depthMax || d.crawled>0){
-                                                    li
-                                                        .append(
-                                                                $('<span class="muted"/>')
-                                                                    .text(' - ')
-                                                            )
-                                                        .append(
-                                                                $('<span class="text-warning"/>')
-                                                                    .text(d.uncrawled + ' uncrawled')
-                                                            )
-                                                } else {
-                                                    li.append(
-                                                            $('<span class="text-success"/>')
-                                                                .text(d.uncrawled + ' uncrawled')
-                                                        )
-                                                }
-                                            return li
-                                        }
-                                        return ''
-                                    })
-                            )
-                if(pagesData.depths[-1].crawled > 0 || pagesData.depths[-1].uncrawled > 0){
-                    var d = pagesData.depths[-1]
-                        ,text = 'unknown depth: '
-                    if(d.crawled>0)
-                        text += d.crawled + ' crawled'
-                    if(d.crawled>0 && d.uncrawled>0)
-                        text += ' - '
-                    if(d.uncrawled>0)
-                        text += d.uncrawled + ' uncrawled'
-                    ul.append(
-                            $('<li class="muted"/>').text(text)
-                        )
+
+                _self.dispatchEvent('request_updatePagesData', {
+                    webentityId: we_id
+                    ,pagesData: pagesData
+                })
+
+                for(i=-1; i<=pagesData.depthMax; i++){
+                    var d = pagesData.depths[i]
+                        ,li = $('<li/>')
+                    if(i>=0 || d.crawled > 0 || d.uncrawled > 0){
+                        if(i == -1){
+                            li.append(
+                                    $('<span/>')
+                                        .text('unkown depth: ')
+                                )
+                        } else {
+                            li.append(
+                                    $('<span/>')
+                                        .text('depth '+i+': ')
+                                )
+                        }
+                        if(d.crawled>0){
+                            li.append(
+                                    $('<span class="text-success"/>')
+                                        .text(d.crawled + ' crawled')
+                                )
+                        } else if(d.uncrawled == 0) {
+                            li.append(
+                                    $('<span class="muted"/>')
+                                        .text('none crawled')
+                                )
+                        }
+                        if(d.uncrawled>0)
+                            if(d.crawled>0){
+                                li
+                                    .append(
+                                            $('<span class="muted"/>')
+                                                .text(' - ')
+                                        )
+                                    .append(
+                                            $('<span class="text-warning"/>')
+                                                .text(d.uncrawled + ' uncrawled')
+                                        )
+                            } else {
+                                li.append(
+                                        $('<span class="text-warning"/>')
+                                            .text(d.uncrawled + ' uncrawled')
+                                    )
+                            }
+                        ul.append(li)
+                    }
                 }
 
                 var dateMessage = 'error'
@@ -570,9 +625,9 @@ HypheCommons.domino_init()
                     ,toText = Utils.prettyDate(pagesData.dateMax)
 
                 if(fromText == toText){
-                    dateMessage = 'Pages crawled '+fromText
+                    dateMessage = 'Pages were modified '+fromText
                 } else {
-                    dateMessage = 'Pages crawled between '+fromText+' and '+toText
+                    dateMessage = 'Pages were modified between '+fromText+' and '+toText
                 }
 
                 elements.html('')
@@ -581,16 +636,132 @@ HypheCommons.domino_init()
                             $('<span/>').text(dateMessage)
                         )
                     .append(ul)
+                    // other columns
+                    .siblings('.col-issues')
+                        .attr('data-status', 'waiting')
+                        .html('<span class="muted">waiting</span>')
             } else {
                 HypheCommons.errorAlert('Arg, something unexpected happened. (unable to find the elements to update...)')
                 console.log('Error from updatePagesFetch', 'we_id', we_id)
-                elements.html('')
-                    .attr('data-status', 'error')
-                    .append(
-                            $('<span class="text-error">error</span>')
-                        )
             }
             _self.dispatchEvent('request_cascade', {})
+        }
+
+        var buildIssues = function(element, controller){
+            element.attr('data-status', 'done')
+                .html('')
+
+            var someIssue = false
+
+            // Is the source URL very different from every prefix ?
+            var url = element.parent().attr('data-url')
+                ,lru = Utils.URL_to_LRU(url)
+                ,we_id = element.parent().attr('data-webentity-id')
+                ,we = controller.get('webentitiesById')[we_id]
+                ,prefixMatching = false
+            we.lru_prefixes.forEach(function(lru_prefix){
+                if(lru == lru_prefix){
+                    prefixMatching = true
+                }
+            })
+            if(!prefixMatching){
+                someIssue = true
+                element
+                    .append(
+                            $('<p class="text-error"/>')
+                                .append(
+                                        $('<strong/>').text('Prefix mismatch ')
+                                    )
+                                .append(
+                                        $('<small/>').text('Source URL differs from '+((we.lru_prefixes.length==1)?('the prefix'):('every prefix'))+'. Check that the webentity it the expected one.')
+                                    )
+                        )
+            }
+
+            // Status
+            if(we.status == 'OUT'){
+                someIssue = true
+                element.append(
+                        $('<p class="text-warning"/>')
+                            .append(
+                                    $('<strong/>').text('OUT status ')
+                                )
+                            .append(
+                                    $('<small/>').text('You may want to remove this URL from your CSV')
+                                )
+                    )
+            } else if(we.status == 'UNDECIDED'){
+                someIssue = true
+                element.append(
+                        $('<p class="text-warning"/>')
+                            .append(
+                                    $('<strong/>').text('Undecided ')
+                                )
+                            .append(
+                                    $('<small/>').text('You shoud set the proper status (IN or OUT)')
+                                )
+                    )
+            } else if(we.status == 'DISCOVERED'){
+                someIssue = true
+                element.append(
+                        $('<p class="text-error"/>')
+                            .append(
+                                    $('<strong/>').text('Not crawled yet ')
+                                )
+                            .append(
+                                    $('<small/>').text('The status is DISCOVERED.')
+                                )
+                    )
+            }
+
+            // Pages
+            if(we.status != 'DISCOVERED' && we.status != 'OUT'){
+                if(we.pagesData.crawled <= 3){
+                    someIssue = true
+                    element.append(
+                            $('<p class="text-error"/>')
+                                .append(
+                                        $('<strong/>').text('Poor crawl ')
+                                    )
+                                .append(
+                                        $('<small/>').text('Very few crawled pages ('+we.pagesData.crawled+'). The crawl may have failed.')
+                                    )
+                        )
+                } else if(we.pagesData.depths[1] && we.pagesData.depths[1].uncrawled > 0){
+                    someIssue = true
+                    element.append(
+                            $('<p class="text-warning"/>')
+                                .append(
+                                        $('<strong/>').text('Missed pages in crawl. ')
+                                    )
+                                .append(
+                                        $('<small/>').text('Some pages still not crawled at depth 1. You should ensure the web entity is properly crawled.')
+                                    )
+                        )
+                } else if(we.pagesData.crawled <= 10 && we.pagesData.uncrawled > 0){
+                    someIssue = true
+                    element.append(
+                            $('<p class="text-warning"/>')
+                                .append(
+                                        $('<strong/>').text('Small crawl ')
+                                    )
+                                .append(
+                                        $('<small/>').text('There are few crawled pages ('+we.pagesData.crawled+'). You may want to check that it comes the web entity (and not a failed crawl).')
+                                    )
+                        )
+                }
+            }
+
+            if(!someIssue){
+                element
+                    .append(
+                            $('<i class="icon-thumbs-up"></i>')
+                        )
+                    .append(
+                            $('<span class="text-success"/>')
+                                .text(' No issue')
+                        )
+            }
         }
 
         this.triggers.events['urlColumnId_updated'] = initialize
@@ -618,13 +789,17 @@ HypheCommons.domino_init()
             data.depths[i] = {crawled:0, uncrawled:0}
         }
 
+        data.crawled = 0
+        data.uncrawled = 0
         pages.forEach(function(p){
             var crawled = p.sources.some(function(tag){return tag=="CRAWL"})
                 ,depth = p.depth
             if(crawled){
                 data.depths[depth].crawled++
+                data.crawled++
             } else {
                 data.depths[depth].uncrawled++
+                data.uncrawled++
             }
         })
 

@@ -61,6 +61,7 @@
                     <p>
                         <ul>
                             <li><a href="webentities_list.php">List of web entities</a></li>
+                            <li><a href="csv_diagnostic.php">Diagnostic from a CSV file</a></li>
                         </ul>
                     </p>
                     <br/>

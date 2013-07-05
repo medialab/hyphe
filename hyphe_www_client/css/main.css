@@ -8,7 +8,7 @@
   cursor:pointer;
 }
 
-span, a{
+span, a, strong, em{
     word-wrap: break-word;
 }
 

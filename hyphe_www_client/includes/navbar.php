@@ -56,6 +56,7 @@
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li><a href="webentities_list.php">List of web entities</a></li>
+                                    <li><a href="csv_diagnostic.php">Diagnostic from a CSV file</a></li>
                                     <li><a href="reset.php">Reset</a></li>
                                 </ul>
                             </li>
