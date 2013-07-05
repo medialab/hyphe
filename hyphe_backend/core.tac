@@ -276,13 +276,15 @@ class Crawler(jsonrpc.JSONRPC):
             return format_error('Error while resetting mongoDB.')
         return format_result('Crawling database reset.')
 
-    def send_scrapy_query(self, action, arguments, tryout=0):
+    def send_scrapy_query(self, action, arguments=None, tryout=0):
         url = self.scrapy_url+action+".json"
         if action == 'listjobs':
             url += '?'+'&'.join([par+'='+val for (par,val) in arguments.iteritems()])
             req = urllib2.Request(url)
         else:
-            data = urllib.urlencode(arguments)
+            data = None
+            if arguments:
+                data = urllib.urlencode(arguments)
             req = urllib2.Request(url, data)
         try:
             response = urllib2.urlopen(req)
@@ -995,6 +997,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(res)
 
 def test_connexions():
+# THRIFT
     try:
         transport = TSocket(config['memoryStructure']['thrift.host'], config['memoryStructure']['thrift.port'])
         transport.open()
@@ -1011,6 +1014,7 @@ def test_connexions():
             raise Exception(res['message'])
     except:
         raise
+# MONGO
     try:
         reactor.addSystemEventTrigger('before', 'shutdown', run.close)
         # clean possible previous crash
@@ -1023,6 +1027,7 @@ def test_connexions():
         if config['DEBUG']:
             print x
         return None
+# INIT DEFAULT CREATION RULE
     try:
         run.store.ensureDefaultCreationRuleExists()
     except Exception as x:
@@ -1030,16 +1035,18 @@ def test_connexions():
         if config['DEBUG']:
             print x
         return None
-    try:
-        res = json.loads(urllib.urlopen("%slistprojects.json" % run.crawler.scrapy_url).read())
-    except Exception as x:
+# SCRAPY
+    res = run.crawler.send_scrapy_query('delproject', {'project': config['mongo-scrapy']['project']})
+    if is_error(res):
+        print "WARNING: Could not delete existing version of HCI's scrapy spider"
+        print res['message']
+        print "Trying to deploy anyway"
+    from subprocess import check_output, STDOUT
+    print "Deploying Hyphe's scrapyd spider..."
+    print check_output(['bin/deploy_scrapy_spider.sh', '--noenv'], stderr=STDOUT)
+    res = run.crawler.send_scrapy_query('listprojects')
+    if is_error(res) or "projects" not in res['result'] or config['mongo-scrapy']['project'] not in res['result']['projects']:
         print "ERROR: Cannot connect to scrapyd server, please check your server and the configuration in config.json."
-        if config['DEBUG']:
-            print x
-        return None
-    if "projects" not in res or config['mongo-scrapy']['project'] not in res['projects']:
-        print "ERROR: Project's spider does not exist in scrapyd server, please run bin/deploy_scrapy_spider.sh."
-        print res
         return None
     return run
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
+helpdoc="""
 Simple script to test the API in command line
 optionnal 1st arg : "inline" to get results as a single line
 2nd arg           : method name
@@ -21,6 +21,10 @@ from hyphe_backend.lib import config_hci
 
 config = config_hci.load_config()
 if not config:
+    exit()
+
+if len(sys.argv) == 1:
+    print helpdoc
     exit()
 
 if sys.argv[1] == "inline":

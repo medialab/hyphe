@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
+import os, sys, time
 import subprocess, json, pystache
 from shutil import copyfile
 from contextlib import nested
 
+verbose=len(sys.argv) == 2 and (sys.argv[1] == "-v" or sys.argv[1] == "--verbose")
+
 # Copy config.json from root to scrapy deployment dir
-print "Copying config.json from root directory to hyphe_backend/crawler for scrapy deployment..."
+if verbose:
+    print "Copying config.json from root directory to hyphe_backend/crawler for scrapy deployment..."
 try:
     if not os.path.exists("config"):
         os.makedirs("config")
@@ -24,7 +27,8 @@ if not config:
     exit()
 
 # Copy LRU library from HCI lib/
-print "Importing urllru.py library from HCI hyphe_backend/lib to hcicrawler..."
+if verbose:
+    print "Importing urllru.py library from HCI hyphe_backend/lib to hcicrawler..."
 try:
     copyfile("../lib/urllru.py", "hcicrawler/urllru.py")
 except IOError as e:
@@ -34,7 +38,8 @@ except IOError as e:
     exit()
 
 # Render the proxy middleware settings (hcicrawler/middlewares.py) from template with mongo/scrapy proxy config from config.json when defined
-print "Rendering hcicrawler/middlewares.py with proxy config values from config.json..."
+if verbose:
+    print "Rendering hcicrawler/middlewares.py with proxy config values from config.json..."
 proxyconf = {'host': '', 'port': 3128}
 if "proxy_host" in config['mongo-scrapy']:
     proxyconf['host'] = config['mongo-scrapy']['proxy_host']
@@ -49,7 +54,8 @@ except IOError as e:
     exit()
 
 # Render the settings py from template with mongo/scrapy config from config.json
-print "Rendering settings.py with mongo-scrapy config values from config.json..."
+if verbose:
+    print "Rendering settings.py with mongo-scrapy config values from config.json..."
 try:
     with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
         generated.write(pystache.render(template.read(), config['mongo-scrapy']))
@@ -59,7 +65,8 @@ except IOError as e:
     exit()
 
 # Render the scrapy cfg from template with scrapy config from config.json
-print "Rendering scrapy.cfg with scrapy config values from config.json..."
+if verbose:
+    print "Rendering scrapy.cfg with scrapy config values from config.json..."
 try:
     with nested(open("scrapy-template.cfg", "r"), open("scrapy.cfg", "w")) as (template, generated):
         generated.write(pystache.render(template.read(), config['mongo-scrapy']))
@@ -69,10 +76,10 @@ except IOError as e:
     exit()
 
 # Deploy the egg
-print "Sending HCI's scrapy egg to scrapyd server..."
-p = subprocess.Popen(['scrapy', 'deploy'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+if verbose:
+    print "Sending HCI's scrapy egg to scrapyd server..."
+p = subprocess.Popen(['scrapy', 'deploy', '--version', time.strftime('%Y%m%d-%H%M%S', time.gmtime(time.time()))], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 output, errors = p.communicate()
-print output, errors
 try :
     output = json.loads(output)
     if output['status'] != "ok" :
@@ -83,5 +90,7 @@ except ValueError:
     print "There was a problem sending the scrapy egg."
     print output, errors
     exit()
-print "The egg was successfully sent to scrapyd server", config['mongo-scrapy']['host'], "on port", config['mongo-scrapy']['scrapy_port']
-
+if verbose:
+    print "The egg was successfully sent to scrapyd server", config['mongo-scrapy']['host'], "on port", config['mongo-scrapy']['scrapy_port']
+if not verbose:
+    print "...spider successfully deployed."
