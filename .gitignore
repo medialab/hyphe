@@ -1,4 +1,4 @@
-config.json
+config/config.json*
 twistd.pid
 pip-log.txt
 *.pyc
@@ -12,3 +12,4 @@ hyphe_backend/memorystructure
 memory_structure/src/main/java/fr/sciencespo/medialab/hci/memorystructure/thrift/*
 memory_structure/target/*
 memory_structure/.*
+log/*
