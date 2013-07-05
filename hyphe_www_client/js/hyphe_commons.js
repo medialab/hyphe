@@ -61,4 +61,12 @@
 	ns.RPC.type = 'POST'
 	ns.RPC.URL = HYPHE_CONFIG.SERVER_ADDRESS
 	
+	ns.errorAlert = function(message){
+		Messenger().post({
+		    message: message
+		    ,type: 'error'
+		    ,showCloseButton: true
+    	})
+	}
+
 })(window.HypheCommons = window.HypheCommons || {}, jQuery)

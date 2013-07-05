@@ -23,6 +23,8 @@ HYPHE_API = {
 		,SET_TAG_VALUES: 'store.set_webentity_tag_values'
 
 		,CRAWL:'crawl_webentity'
+
+		,FETCH_BY_URL: 'store.get_webentity_by_url'
 	}
 	,PAGES:{
 		DECLARE:'declare_pages'

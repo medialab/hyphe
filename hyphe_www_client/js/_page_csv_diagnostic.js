@@ -14,9 +14,15 @@ HypheCommons.domino_init()
         name: 'main'
         ,properties: [
             {
-                id: 'parallelQueriesLimit'
+                id: 'queriesLimit'
                 ,type: 'number'
-                ,value: 5
+                ,value: 10
+            },{
+                id: 'currentQueries'
+                ,type: 'number'
+                ,value: 0
+                ,dispatch: 'currentQueries_updated'
+                ,triggers: 'update_currentQueries'
             },{
                 id: 'inputFile'
                 ,dispatch: 'inputFile_updated'
@@ -36,6 +42,18 @@ HypheCommons.domino_init()
                 ,dispatch: 'dataTable_updated'
                 ,triggers: 'update_dataTable'
             },{
+                id:'webentities'
+                ,dispatch: 'webentities_updated'
+                ,triggers: 'update_webentities'
+                ,type: 'array'
+                ,value: []
+            },{
+                id:'webentitiesById'
+                ,dispatch: 'webentitiesById_updated'
+                ,triggers: 'update_webentitiesById'
+                ,type: 'object'
+                ,value: {}
+            },{
                 id:'urlColumnId'
                 ,dispatch: 'urlColumnId_updated'
                 ,triggers: 'update_urlColumnId'
@@ -44,14 +62,66 @@ HypheCommons.domino_init()
 
 
         ,services: [
-        	
+        	{
+                id: 'fetchWebEntityByURL'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.FETCH_BY_URL,
+                        'params' : [settings.url],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type
+                ,error: function(data, xhr, input){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries - 1 )
+                        this.dispatchEvent('callback_webentityFetched', {
+                                webentityId: undefined
+                                ,message: 'RPC error'
+                                ,url: input.url
+                            })
+
+                        rpc_error(data, xhr, input)
+                    }
+                ,expect: function(data, input, serviceOptions){
+                        // console.log('RPC expect', data[0].code == 'fail' || rpc_expect(data, input, serviceOptions), 'data[0].code', data[0].code)
+                        return (data.length>0 && data[0].code == 'fail') || rpc_expect(data, input, serviceOptions)
+                    }
+                ,before: function(){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries + 1 )
+                    }
+                ,success: function(data, input){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries - 1 )
+
+                        if(data[0].code == 'fail'){
+                            this.dispatchEvent('callback_webentityFetched', {
+                                webentityId: undefined
+                                ,message: 'no match'
+                                ,url: input.url
+                            })
+                        } else {
+                            var we = data[0].result
+                                ,webentities = this.get('webentities')
+                                ,webentities_byId = this.get('webentitiesById')
+                                
+                            webentities_byId[we.id] = we
+                            var webentities = d3.values(webentities_byId)
+                            this.update('webentities', webentities)
+                            this.update('webentitiesById', webentities_byId)
+
+                            this.dispatchEvent('callback_webentityFetched', {
+                                webentityId: we.id
+                                ,url: input.url
+                            })
+                        }
+                    }
+            }
         ]
 
 
         ,hacks:[
             {
                 // Some events that need to be registered
-                triggers: ['loading_started', 'loading_completed', 'update_loadingProgress']
+                triggers: ['loading_started', 'loading_completed', 'update_loadingProgress', 'request_cascade']
             },{
                 // Parsing the CSV
                 triggers: ['loading_completed']
@@ -60,6 +130,15 @@ HypheCommons.domino_init()
                         ,csv = fileLoader.reader.result
                         ,table = d3.csv.parseRows(csv)
                     this.update('dataTable', table)
+                }
+            },{
+                // Request Fetch WebEntity
+                triggers: ['request_fetchWebEntity']
+                ,method: function(e){
+                    var url = e.data.url
+                    this.request('fetchWebEntityByURL', {
+                        url: url
+                    })
                 }
             }
         ]
@@ -202,10 +281,10 @@ HypheCommons.domino_init()
         var element = $('#diagnostic')
             ,_self = this
 
-        var update = function(controller, e){
+        var initialize = function(controller, e){
             var table = controller.get('dataTable')
                 ,colId = controller.get('urlColumnId')
-                ,queriesLimit = controller.get('parallelQueriesLimit')
+                ,queriesLimit = controller.get('queriesLimit')
                 ,headline = table[0]
                 ,rows = table.filter(function(d,i){return i>0})
 
@@ -214,21 +293,137 @@ HypheCommons.domino_init()
                         $('<h3>Diagnostic</h3>')
                     )
                 .append(
-                        rows.map(function(row){
+                        rows.map(function(row, i){
+                            var url = row[colId]
                             return $('<div class="row"/>')
+                                .attr('data-row-id', i)
+                                .attr('data-url', url)
+                                .attr('data-url-md5', $.md5(url))
                                 .append(
-                                        $('<div class="span4"/>')
+                                        $('<div class="span3 col-url"/>')
                                             .append(
                                                     $('<span class="urlContainer"/>')
-                                                        .text(row[colId])
+                                                        .text(Utils.URL_simplify(row[colId]))
                                                 )
+                                    )
+                                .append(
+                                        $('<div class="span3 col-webentity"/>')
+                                            .attr('data-url', url)
+                                            .attr('data-url-md5', $.md5(url))
+                                            .attr('data-status', 'waiting')
+                                            .append(
+                                                    $('<span class="muted"/>')
+                                                        .text('waiting')
+                                                )
+                                    )
+                                .append(
+                                        $('<div class="span1 col-status"/>')
+                                    )
+                                .append(
+                                        $('<div class="span1 col-crawl"/>')
                                     )
                         })
                     )
-
+            _self.dispatchEvent('request_cascade', {})
         }
 
-        this.triggers.events['urlColumnId_updated'] = update
+        var cascade = function(controller, e){
+            var queriesLimit = controller.get('queriesLimit')
+                ,currentQueries = controller.get('currentQueries')
+            for(i = 0; i < queriesLimit - currentQueries; i++){
+                
+                // 1. Search for a web entity to fetch
+
+                var waitingForFetching = $('.col-webentity[data-status=waiting]')
+                if(waitingForFetching.length > 0){
+                    var element = $('.col-webentity[data-status=waiting]').first()
+                        ,url = element.attr('data-url')
+
+                    element.html('<span class="text-info">Fetching web entity...</span>')
+                        .attr('data-status', 'pending')
+
+                    _self.dispatchEvent('request_fetchWebEntity', {
+                        url: url
+                    })
+                } else {
+
+                    // 2. If no web entity to fetch, search for ...
+
+                }
+
+            }
+        }
+
+        var updateWebentityFetch = function(controller, e){
+            var url = e.data.url
+                ,we_id = e.data.webentityId
+            var elements = $('.col-webentity[data-url-md5='+$.md5(url)+']')
+            if(elements.length > 0){
+                if(we_id !== undefined){
+                    var webentities_byId = controller.get('webentitiesById')
+                        ,we = webentities_byId[we_id]
+                    elements.html('')
+                        .attr('data-status', 'fetched')
+                        .append(
+                                $('<span class="text-success"/>')
+                                    .text(we.name)
+                            )
+                        .append(
+                                $('<span class="pull-right"/>')
+                                    .append(
+                                            $('<span class="muted">   </span>')
+                                        )
+                                    .append(
+                                            $('<a class="muted"><small>edit</small></a>')
+                                                .attr('href', 'webentity_edit.php#we_id='+we.id)
+                                                .attr('target', '_blank')
+                                        )
+                                    .append(
+                                            $('<span class="muted"> - </span>')
+                                        )
+                                    .append(
+                                            $('<a class="muted"><small>crawl</small></a>')
+                                                .attr('href', 'crawl_new.php#we_id='+we.id)
+                                                .attr('target', '_blank')
+                                        )
+                            )
+                        .siblings('.col-status')
+                            .attr('data-webentity-id', we.id)
+                            .html('')
+                            .append(
+                                    $('<span class="label"/>').text(we.status)
+                                        .addClass(getStatusColor(we.status))
+                                )
+                } else {
+                    var msg = e.data.message
+                    elements.html('')
+                        .attr('data-status', 'fetched')
+                        .append(
+                                $('<span class="text-error"/>')
+                                    .text(msg)
+                            )
+                        .siblings('.col-status')
+                            .attr('data-webentity-id', '')
+                            .html('')
+                }
+            } else {
+                HypheCommons.errorAlert('Arg, something unexpected happened. (unable to find the elements to update...)')
+                console.log('Error from updateWebentityFetch', 'url', url)
+                elements.html('')
+                    .attr('data-status', 'error')
+                    .append(
+                            $('<span class="text-error">error</span>')
+                        )
+                    .siblings('.col-status')
+                        .attr('data-webentity-id', '')
+                        .html('')
+            }
+            _self.dispatchEvent('request_cascade', {})
+        }
+
+        this.triggers.events['urlColumnId_updated'] = initialize
+        this.triggers.events['request_cascade'] = cascade
+        this.triggers.events['callback_webentityFetched'] = updateWebentityFetch
     })
 
 
@@ -302,6 +497,16 @@ HypheCommons.domino_init()
                     alert('An error occurred reading this file.');
             }
         }
+    }
+
+    var getStatusColor = function(status){
+        return (status=='DISCOVERED')?('label-warning'):(
+                (status=='UNDECIDED')?('label-info'):(
+                    (status=='OUT')?('label-important'):(
+                        (status=='IN')?('label-success'):('')
+                    )
+                )
+            )
     }
 
 })(jQuery, domino, (window.dmod = window.dmod || {}))
