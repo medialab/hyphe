@@ -114,6 +114,53 @@ HypheCommons.domino_init()
                             })
                         }
                     }
+            },{
+                id: 'getWebEntityPages'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.GET_PAGES,
+                        'params' : [
+                            settings.webentityId    // Web entity id
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect
+                ,error: function(data, xhr, input){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries - 1 )
+                        
+                        this.dispatchEvent('callback_webentityPagesFetched', {
+                                webentityId: input.webentityId
+                                ,message: 'RPC error'
+                                ,pages: undefined
+                            })
+
+                        rpc_error(data, xhr, input)
+                    }
+                ,before: function(){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries + 1 )
+                    }
+                ,success: function(data, input){
+                    var currentQueries = this.get('currentQueries')
+                    this.update('currentQueries', currentQueries - 1 )
+
+                    var webentity = this.get('webentitiesById')[input.webentityId]
+                        ,pages = data[0].result
+                    if(webentity == undefined){
+                        HypheCommons.errorAlert('<strong>Something weird happended.</strong> Unkown web entity\n<br/>\n"'+data+'"')
+
+                        this.dispatchEvent('callback_webentityPagesFetched', {
+                                webentityId: input.webentityId
+                                ,message: 'Unknown web entity'
+                                ,pages: undefined
+                            })
+                    } else {
+                        // webentity.pages = pages
+                        this.dispatchEvent('callback_webentityPagesFetched', {
+                            webentityId: input.webentityId
+                            ,pages: pages
+                        })
+                    }
+                }
             }
         ]
 
@@ -138,6 +185,15 @@ HypheCommons.domino_init()
                     var url = e.data.url
                     this.request('fetchWebEntityByURL', {
                         url: url
+                    })
+                }
+            },{
+                // Request get pages
+                triggers: ['request_getPages']
+                ,method: function(e){
+                    var we_id = e.data.webentityId
+                    this.request('getWebEntityPages', {
+                        webentityId: we_id
                     })
                 }
             }
@@ -295,7 +351,7 @@ HypheCommons.domino_init()
                 .append(
                         rows.map(function(row, i){
                             var url = row[colId]
-                            return $('<div class="row"/>')
+                            return $('<div class="row diagnostic-row"/>')
                                 .attr('data-row-id', i)
                                 .attr('data-url', url)
                                 .attr('data-url-md5', $.md5(url))
@@ -320,7 +376,10 @@ HypheCommons.domino_init()
                                         $('<div class="span1 col-status"/>')
                                     )
                                 .append(
-                                        $('<div class="span1 col-crawl"/>')
+                                        $('<div class="span3 col-pages"/>')
+                                    )
+                                .append(
+                                        $('<div class="span2 col-prefixes"/>')
                                     )
                         })
                     )
@@ -336,7 +395,7 @@ HypheCommons.domino_init()
 
                 var waitingForFetching = $('.col-webentity[data-status=waiting]')
                 if(waitingForFetching.length > 0){
-                    var element = $('.col-webentity[data-status=waiting]').first()
+                    var element = waitingForFetching.first()
                         ,url = element.attr('data-url')
 
                     element.html('<span class="text-info">Fetching web entity...</span>')
@@ -347,8 +406,22 @@ HypheCommons.domino_init()
                     })
                 } else {
 
-                    // 2. If no web entity to fetch, search for ...
+                    // 2. If no web entity to fetch, search for pages to get
 
+                    var waitingPages = $('.col-pages[data-status=waiting]')
+                    if(waitingPages.length > 0){
+                        var element = waitingPages.first()
+                            ,we_id = element.attr('data-webentity-id')
+                        element.html('<span class="text-info">Pending...</span>')
+                            .attr('data-status', 'pending')
+
+                        _self.dispatchEvent('request_getPages', {
+                            webentityId: we_id
+                        })
+                    } else {
+
+                        // 3. If no pages to fetch, then ...
+                    }
                 }
 
             }
@@ -369,9 +442,9 @@ HypheCommons.domino_init()
                                     .text(we.name)
                             )
                         .append(
-                                $('<span class="pull-right"/>')
+                                $('<span/>')
                                     .append(
-                                            $('<span class="muted">   </span>')
+                                            $('<span class="muted"> - </span>')
                                         )
                                     .append(
                                             $('<a class="muted"><small>edit</small></a>')
@@ -393,6 +466,13 @@ HypheCommons.domino_init()
                             .append(
                                     $('<span class="label"/>').text(we.status)
                                         .addClass(getStatusColor(we.status))
+                                )
+                        .siblings('.col-pages')
+                            .attr('data-status', 'waiting')
+                            .attr('data-webentity-id', we.id)
+                            .html('')
+                            .append(
+                                    $('<span class="muted"/>').text('waiting')
                                 )
                 } else {
                     var msg = e.data.message
@@ -421,14 +501,135 @@ HypheCommons.domino_init()
             _self.dispatchEvent('request_cascade', {})
         }
 
+        var updatePagesFetch = function(controller, e){
+            var we_id = e.data.webentityId
+                ,pages = e.data.pages
+            var elements = $('.col-pages[data-webentity-id='+we_id+']')
+            if(elements.length > 0){
+                var pagesData = getDataFromPages(pages)
+                    ,ul = $('<ul class="pageslist unstyled"/>')
+                        .append(
+                                pagesData.depths.map(function(d, i){
+                                        if(i>=0){
+                                            var li = $('<li/>')
+                                                    .append(
+                                                            $('<span/>')
+                                                                .text('depth '+i+': ')
+                                                        )
+                                            if(d.crawled>0){
+                                                li.append(
+                                                        $('<span class="text-success"/>')
+                                                            .text(d.crawled + ' crawled')
+                                                    )
+                                            } else {
+                                                if(i != pagesData.depthMax){
+                                                    li.append(
+                                                            $('<span class="text-warning"/>')
+                                                                .text('none crawled')
+                                                        )
+                                                }
+                                            }
+                                            if(d.uncrawled>0)
+                                                if(i != pagesData.depthMax || d.crawled>0){
+                                                    li
+                                                        .append(
+                                                                $('<span class="muted"/>')
+                                                                    .text(' - ')
+                                                            )
+                                                        .append(
+                                                                $('<span class="text-warning"/>')
+                                                                    .text(d.uncrawled + ' uncrawled')
+                                                            )
+                                                } else {
+                                                    li.append(
+                                                            $('<span class="text-success"/>')
+                                                                .text(d.uncrawled + ' uncrawled')
+                                                        )
+                                                }
+                                            return li
+                                        }
+                                        return ''
+                                    })
+                            )
+                if(pagesData.depths[-1].crawled > 0 || pagesData.depths[-1].uncrawled > 0){
+                    var d = pagesData.depths[-1]
+                        ,text = 'unknown depth: '
+                    if(d.crawled>0)
+                        text += d.crawled + ' crawled'
+                    if(d.crawled>0 && d.uncrawled>0)
+                        text += ' - '
+                    if(d.uncrawled>0)
+                        text += d.uncrawled + ' uncrawled'
+                    ul.append(
+                            $('<li class="muted"/>').text(text)
+                        )
+                }
+
+                var dateMessage = 'error'
+                    ,fromText = Utils.prettyDate(pagesData.dateMin)
+                    ,toText = Utils.prettyDate(pagesData.dateMax)
+
+                if(fromText == toText){
+                    dateMessage = 'Pages crawled '+fromText
+                } else {
+                    dateMessage = 'Pages crawled between '+fromText+' and '+toText
+                }
+
+                elements.html('')
+                    .attr('data-status', 'fetched')
+                    .append(
+                            $('<span/>').text(dateMessage)
+                        )
+                    .append(ul)
+            } else {
+                HypheCommons.errorAlert('Arg, something unexpected happened. (unable to find the elements to update...)')
+                console.log('Error from updatePagesFetch', 'we_id', we_id)
+                elements.html('')
+                    .attr('data-status', 'error')
+                    .append(
+                            $('<span class="text-error">error</span>')
+                        )
+            }
+            _self.dispatchEvent('request_cascade', {})
+        }
+
         this.triggers.events['urlColumnId_updated'] = initialize
         this.triggers.events['request_cascade'] = cascade
         this.triggers.events['callback_webentityFetched'] = updateWebentityFetch
+        this.triggers.events['callback_webentityPagesFetched'] = updatePagesFetch
     })
 
 
     //// Processing
-    
+    var getDataFromPages = function(pages){
+        var data = {}
+
+        data.dateMin = Number.MAX_VALUE
+        data.dateMax = Number.MIN_VALUE
+        data.depthMax = Number.MIN_VALUE
+        pages.forEach(function(p){
+            data.dateMin = Math.min(data.dateMin, p.crawl_timestamp)
+            data.dateMax = Math.max(data.dateMax, p.crawl_timestamp)
+            data.depthMax = Math.max(data.depthMax, p.depth)
+        })
+
+        data.depths = []
+        for(i=-1; i<=data.depthMax; i++){
+            data.depths[i] = {crawled:0, uncrawled:0}
+        }
+
+        pages.forEach(function(p){
+            var crawled = p.sources.some(function(tag){return tag=="CRAWL"})
+                ,depth = p.depth
+            if(crawled){
+                data.depths[depth].crawled++
+            } else {
+                data.depths[depth].uncrawled++
+            }
+        })
+
+        return data
+    }
 
 
     /// Misc functions

@@ -24,6 +24,21 @@
     overflow-y: hidden;
 }
 
+.diagnostic-row{
+    padding-bottom: 5px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.diagnostic-row:hover{
+    background-color: #FFC;
+}
+
+.pageslist{
+    font-size: 0.9em;
+}
+
+
 /* --------------------------
    Data preview table
    -------------------------- */

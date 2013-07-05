@@ -116,11 +116,7 @@ HypheCommons.domino_init()
                 ,success: function(data, input){
                     var webentity = this.get('webentitiesById')[input.webEntityId]
                     if(webentity == undefined){
-                        Messenger().post({
-                                message: '<strong>Something weird happended.</strong> Unkown web entity\n<br/>\n"'+data+'"'
-                                ,type: 'error'
-                                ,showCloseButton: true
-                            })
+                        HypheCommons.errorAlert('<strong>Something weird happended.</strong> Unkown web entity\n<br/>\n"'+data+'"')
                     } else {
                         webentity.pages = data[0].result
                         this.dispatchEvent('webentityPages_updated', {
