@@ -3,6 +3,7 @@ twistd.pid
 pip-log.txt
 *.pyc
 hyphe_backend/crawler/build
+hyphe_backend/crawler/config
 hyphe_backend/crawler/scrapy.cfg
 hyphe_backend/crawler/hcicrawler.egg-info
 hyphe_backend/crawler/hcicrawler/settings.py
