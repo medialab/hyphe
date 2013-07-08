@@ -812,7 +812,31 @@ HypheCommons.domino_init()
                                     $('<strong/>').text('Undecided ')
                                 )
                             .append(
-                                    $('<small/>').text('You shoud set the proper status (IN or OUT)')
+                                    $('<small/>')
+                                        .text('You shoud set the proper status: ')
+                                        .append(
+                                                $('<a class="overable"/>')
+                                                    .text('IN')
+                                                    .click(function(){
+                                                        _self.dispatchEvent('request_setWebEntityStatus', {
+                                                            webentityId: we.id
+                                                            ,status: 'IN'
+                                                        })
+                                                    })
+                                            )
+                                        .append(
+                                                $('<span> or </span>')
+                                            )
+                                        .append(
+                                                $('<a class="overable"/>')
+                                                    .text('OUT')
+                                                    .click(function(){
+                                                        _self.dispatchEvent('request_setWebEntityStatus', {
+                                                            webentityId: we.id
+                                                            ,status: 'OUT'
+                                                        })
+                                                    })
+                                            )
                                 )
                     )
             } else if(we.status == 'DISCOVERED'){
@@ -823,7 +847,12 @@ HypheCommons.domino_init()
                                     $('<strong/>').text('Not crawled yet ')
                                 )
                             .append(
-                                    $('<small/>').text('The status is DISCOVERED.')
+                                    $('<small/>').text('The status is DISCOVERED - ')
+                                )
+                            .append(
+                                    $('<a><small>Crawl</small></a>')
+                                        .attr('href', 'crawl_new.php#we_id='+we.id)
+                                        .attr('target', '_blank')
                                 )
                     )
             }
