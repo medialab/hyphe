@@ -29,7 +29,7 @@
 }
 
 .diagnostic-row{
-    border-top: 1px solid #f6f6f6;
+    border-top: 1px solid #eee;
     padding-top: 10px;
     padding-bottom: 5px;
 }
@@ -39,9 +39,9 @@
     background-color: #f9f9f9;
 }
 
-.diagnostic-row:hover{
+/*.diagnostic-row:hover{
     background-color: #FFC;
-}
+}*/
 
 .prefixeslist{
     margin-top: 2px;

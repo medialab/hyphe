@@ -63,6 +63,35 @@ HypheCommons.domino_init()
 
         ,services: [
         	{
+                id: 'getWebentities'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.GET,
+                        'params' : [
+                            settings.id_list    // List of webentities
+                            ,(settings.light && !settings.semilight) || false
+                            ,settings.semilight || false
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+                ,success: function(data, input){
+                    var webentitiesUpdated = data[0].result
+                        ,webentities_byId = this.get('webentitiesById')
+                    webentitiesUpdated.forEach(function(we){
+                        webentities_byId[we.id] = we
+                    })
+                    var webentities = d3.values(webentities_byId)
+                    this.update('webentities', webentities)
+                    this.update('webentitiesById', webentities_byId)
+
+                    // NB: below, legit only because we will never call many webentities at once in this page
+                    var _self = this
+                    webentitiesUpdated.forEach(function(we){
+                        _self.dispatchEvent('callback_webentityUpdated', {
+                            webentityId: we.id
+                        })
+                    })
+                }
+            },{
                 id: 'fetchWebEntityByURL'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.FETCH_BY_URL,
@@ -161,6 +190,21 @@ HypheCommons.domino_init()
                         })
                     }
                 }
+            },{
+                id: 'setWebEntityStatus'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.SET_STATUS,
+                        'params' : [
+                            settings.webentityId      // web entity id
+                            ,settings.status          // new status
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+                ,success: function(data, input){
+                    this.dispatchEvent('request_webentities', {
+                        id_list: [input.webentityId]
+                    })
+                }
             }
         ]
 
@@ -204,6 +248,25 @@ HypheCommons.domino_init()
                         ,pagesData = e.data.pagesData
                         ,webentities_byId = this.get('webentitiesById')
                     webentities_byId[we_id].pagesData = pagesData
+                }
+            },{
+                // Request web entities
+                triggers: ['request_webentities']
+                ,method: function(e){
+                    this.request('getWebentities', {
+                        id_list: e.data.id_list
+                        ,light: false
+                        ,semilight: false
+                    })
+                }
+            },{
+                // Request SetWebEntityStatus service
+                triggers: ['request_setWebEntityStatus']
+                ,method: function(e){
+                    this.request('setWebEntityStatus', {
+                        webentityId: e.data.webentityId
+                        ,status: e.data.status
+                    })
                 }
             }
         ]
@@ -470,74 +533,125 @@ HypheCommons.domino_init()
             }
         }
 
+        var displayWebentity = function(controller, elements, we_id){
+            var webentities_byId = controller.get('webentitiesById')
+                ,we = webentities_byId[we_id]
+                ,statusButtons = $('<small/>')
+
+            // Status buttons
+            var addStatusButton = function(parentElement, status){
+                if(we.status == 'DISCOVERED' && status.toUpperCase() == 'DISCOVERED'){
+                    parentElement
+                        .append($('<span class="muted"> - </span>'))
+                        .append(
+                                $('<span class="label"/>').text(we.status)
+                                    .addClass(getStatusColor(we.status))
+                            )
+                } else if(status.toUpperCase() != 'DISCOVERED'){
+                    if(we.status !== status.toUpperCase()){
+                        parentElement.append(
+                                $('<a class="muted overable"/>')
+                                    .text(status.toLowerCase())
+                                    .click(function(){
+                                        _self.dispatchEvent('request_setWebEntityStatus', {
+                                            webentityId: we.id
+                                            ,status: status.toUpperCase()
+                                        })
+                                    })
+                            )
+                    } else {
+                        parentElement.append(
+                                $('<span class="label"/>').text(we.status)
+                                    .addClass(getStatusColor(we.status))
+                            )
+                    }
+                }
+            }
+            addStatusButton(statusButtons, 'IN')
+            statusButtons.append($('<span class="muted"> - </span>'))
+            addStatusButton(statusButtons, 'OUT')
+            statusButtons.append($('<span class="muted"> - </span>'))
+            addStatusButton(statusButtons, 'UNDECIDED')
+            addStatusButton(statusButtons, 'DISCOVERED')
+
+            // The rest of the row
+            elements.html('')
+                .attr('data-status', 'fetched')
+                .append(
+                        $('<strong/>')
+                            .text(we.name)
+                    )
+
+                // edit - crawl
+                .append(
+                        $('<span/>')
+                            .append(
+                                    $('<span class="muted"> - </span>')
+                                )
+                            .append(
+                                    $('<a class="muted"><small>edit</small></a>')
+                                        .attr('href', 'webentity_edit.php#we_id='+we.id)
+                                        .attr('target', '_blank')
+                                )
+                            .append(
+                                    $('<span class="muted"> - </span>')
+                                )
+                            .append(
+                                    $('<a class="muted"><small>crawl</small></a>')
+                                        .attr('href', 'crawl_new.php#we_id='+we.id)
+                                        .attr('target', '_blank')
+                                )
+                    )
+
+                // prefixes
+                .append(
+                        $('<ul class="unstyled prefixeslist"/>')
+                            .append(
+                                    we.lru_prefixes.map(function(lru){
+                                        var li = $('<li/>')
+                                            .append(
+                                                    $('<small class="muted"/>').text(Utils.URL_simplify(Utils.LRU_to_URL(lru)))
+                                                )
+                                        return li
+                                    })
+                                )
+                    )
+
+                // other columns
+                .siblings('.col-status')
+                    .attr('data-webentity-id', we.id)
+                    .html('')
+                    .append(statusButtons)
+                .siblings('.col-pages')
+                    .attr('data-status', 'waiting')
+                    .attr('data-webentity-id', we.id)
+                    .html('')
+                    .append(
+                            $('<span class="muted"/>').text('waiting')
+                        )
+                .parent()
+                    .removeClass('wrong')
+                    .attr('data-webentity-id', we.id)
+        }
+
+        var updateWebentity = function(controller, e){
+            var we_id = e.data.webentityId
+
+            if(we_id !== undefined){
+                var elements = $('div.row[data-webentity-id='+we_id+'] div.col-webentity')
+                if(elements.length > 0){
+                    displayWebentity(controller, elements, we_id)
+                }
+            }
+        }
+
         var updateWebentityFetch = function(controller, e){
             var url = e.data.url
                 ,we_id = e.data.webentityId
             var elements = $('.col-webentity[data-url-md5='+$.md5(url)+']')
             if(elements.length > 0){
                 if(we_id !== undefined){
-                    var webentities_byId = controller.get('webentitiesById')
-                        ,we = webentities_byId[we_id]
-                    elements.html('')
-                        .attr('data-status', 'fetched')
-                        .append(
-                                $('<strong/>')
-                                    .text(we.name)
-                            )
-
-                        // edit - crawl
-                        .append(
-                                $('<span/>')
-                                    .append(
-                                            $('<span class="muted"> - </span>')
-                                        )
-                                    .append(
-                                            $('<a class="muted"><small>edit</small></a>')
-                                                .attr('href', 'webentity_edit.php#we_id='+we.id)
-                                                .attr('target', '_blank')
-                                        )
-                                    .append(
-                                            $('<span class="muted"> - </span>')
-                                        )
-                                    .append(
-                                            $('<a class="muted"><small>crawl</small></a>')
-                                                .attr('href', 'crawl_new.php#we_id='+we.id)
-                                                .attr('target', '_blank')
-                                        )
-                            )
-
-                        // prefixes
-                        .append(
-                                $('<ul class="unstyled prefixeslist"/>')
-                                    .append(
-                                            we.lru_prefixes.map(function(lru){
-                                                var li = $('<li/>')
-                                                    .append(
-                                                            $('<small class="muted"/>').text(Utils.URL_simplify(Utils.LRU_to_URL(lru)))
-                                                        )
-                                                return li
-                                            })
-                                        )
-                            )
-
-                        // other columns
-                        .siblings('.col-status')
-                            .attr('data-webentity-id', we.id)
-                            .html('')
-                            .append(
-                                    $('<span class="label"/>').text(we.status)
-                                        .addClass(getStatusColor(we.status))
-                                )
-                        .siblings('.col-pages')
-                            .attr('data-status', 'waiting')
-                            .attr('data-webentity-id', we.id)
-                            .html('')
-                            .append(
-                                    $('<span class="muted"/>').text('waiting')
-                                )
-                        .parent()
-                            .removeClass('wrong')
-                            .attr('data-webentity-id', we.id)
+                    displayWebentity(controller, elements, we_id)
                 } else {
                     var msg = e.data.message
                     elements.html('')
@@ -562,7 +676,7 @@ HypheCommons.domino_init()
 
         var updatePagesFetch = function(controller, e){
             var we_id = e.data.webentityId
-                ,pages = e.data.pages
+                ,pages = e.data.pages || []
             var elements = $('.col-pages[data-webentity-id='+we_id+']')
             if(elements.length > 0){
                 var pagesData = getDataFromPages(pages)
@@ -727,18 +841,18 @@ HypheCommons.domino_init()
                                         $('<small/>').text('Very few crawled pages ('+we.pagesData.crawled+'). The crawl may have failed.')
                                     )
                         )
-                } else if(we.pagesData.depths[1] && we.pagesData.depths[1].uncrawled > 0){
+                }/* else if(we.pagesData.depths[1] && we.pagesData.depths[1].uncrawled > 0){
                     someIssue = true
                     element.append(
                             $('<p class="text-warning"/>')
                                 .append(
-                                        $('<strong/>').text('Missed pages in crawl. ')
+                                        $('<strong/>').text('Missed pages in crawl ')
                                     )
                                 .append(
                                         $('<small/>').text('Some pages still not crawled at depth 1. You should ensure the web entity is properly crawled.')
                                     )
                         )
-                } else if(we.pagesData.crawled <= 10 && we.pagesData.uncrawled > 0){
+                }*/ else if(we.pagesData.crawled <= 10 && we.pagesData.uncrawled > 0){
                     someIssue = true
                     element.append(
                             $('<p class="text-warning"/>')
@@ -768,6 +882,7 @@ HypheCommons.domino_init()
         this.triggers.events['request_cascade'] = cascade
         this.triggers.events['callback_webentityFetched'] = updateWebentityFetch
         this.triggers.events['callback_webentityPagesFetched'] = updatePagesFetch
+        this.triggers.events['callback_webentityUpdated'] = updateWebentity
     })
 
 

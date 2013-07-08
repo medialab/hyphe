@@ -116,7 +116,7 @@
         <script src="js/libs/jquery.md5.js"></script>
 
         <!-- Page-specific js packages -->
-        <script src="js/webentities_define_fromCSV.js"></script>
+        <script src="js/_page_webentities_define_fromCSV.js"></script>
 
     </body>
 </html>
