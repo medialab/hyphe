@@ -787,7 +787,7 @@ HypheCommons.domino_init()
                                         $('<strong/>').text('Prefix mismatch ')
                                     )
                                 .append(
-                                        $('<small/>').text('Source URL differs from '+((we.lru_prefixes.length==1)?('the prefix'):('every prefix'))+'. Check that the webentity it the expected one.')
+                                        $('<small/>').text('Source URL differs from '+((we.lru_prefixes.length==1)?('the prefix'):('every prefix'))+'. Check that the webentity is the expected one.')
                                     )
                         )
             }
@@ -867,8 +867,13 @@ HypheCommons.domino_init()
                                         $('<strong/>').text('Poor crawl ')
                                     )
                                 .append(
-                                        $('<small/>').text('Very few crawled pages ('+we.pagesData.crawled+'). The crawl may have failed.')
+                                        $('<small/>').text('Very few crawled pages ('+we.pagesData.crawled+'). The crawl may have failed - ')
                                     )
+                                .append(
+                                    $('<a><small>Crawl again</small></a>')
+                                        .attr('href', 'crawl_new.php#we_id='+we.id)
+                                        .attr('target', '_blank')
+                                )
                         )
                 }/* else if(we.pagesData.depths[1] && we.pagesData.depths[1].uncrawled > 0){
                     someIssue = true
@@ -889,8 +894,13 @@ HypheCommons.domino_init()
                                         $('<strong/>').text('Small crawl ')
                                     )
                                 .append(
-                                        $('<small/>').text('There are few crawled pages ('+we.pagesData.crawled+'). You may want to check that it comes the web entity (and not a failed crawl).')
+                                        $('<small/>').text('There are few crawled pages ('+we.pagesData.crawled+'). You may want to check that it comes the web entity (and not a failed crawl) - ')
                                     )
+                                .append(
+                                    $('<a><small>Crawl again</small></a>')
+                                        .attr('href', 'crawl_new.php#we_id='+we.id)
+                                        .attr('target', '_blank')
+                                )
                         )
                 }
             }
