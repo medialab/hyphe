@@ -117,9 +117,36 @@
             </div>
         </div>
 
+        <!-- Modal -->
+        <div id="modal_resolveInvalidLRU" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="myModalLabel">URL not in the web entity</h3>
+                <p class="text-info">You may want to add a new prefix</p>
+            </div>
+            <div class="modal-body">
+                <p><strong>Add one of these prefixes?</strong></p>
+                <div class="list-prefix-suggestions"></div>
+                <br/>
+                <br/>
+                <p>
+                    <strong class="text-info"/>Help</strong> - The URL that you propose is not in the web entity, but you may add a prefix to fix this.
+                    Adding a prefix allows to deal with web entities that cover different domain names, like "google.com" and "google.fr".
+                    If a prefix already belongs to another web entity, they will be merged.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Do not add prefix</button>
+                <button class="btn btn-primary" id="button-add-prefix">Add prefix</button>
+            </div>
+        </div>
+
 <?php include("includes/footer.php"); ?>
 
 <?php include("includes/codebottom.php"); ?>
+
+        <!-- libs specifically needed here -->
+        <script src="js/libs/jquery.md5.js"></script>
 
         <!-- Page-specific js package -->
         <script src="js/_page_crawl_new_modules.js"></script>
