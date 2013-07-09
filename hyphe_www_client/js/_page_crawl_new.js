@@ -90,6 +90,12 @@ HypheCommons.domino_init()
                 id:'prefixCandidates'
                 ,dispatch: 'prefixCandidates_updated'
                 ,triggers: 'update_prefixCandidates'
+            },{
+                id:'pendingStartPage'
+                ,type: 'string'
+                ,value: ''
+                ,dispatch: 'pendingStartPage_updated'
+                ,triggers: 'update_pendingStartPage'
             }
         ]
 
@@ -221,6 +227,39 @@ HypheCommons.domino_init()
                                 ,url: input.url
                             })
                         }
+                    }
+            },{
+                id: 'webentityAddPrefix'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.PREFIX.ADD,
+                        'params' : [
+                            settings.webentityId
+                            ,settings.lru
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, error: rpc_error, expect: rpc_expect
+                ,success: function(data, input){
+                        this.dispatchEvent('callback_prefixAdded', {
+                            webentityId: input.webentityId
+                            ,lru: input.lru
+                        })
+                    }
+            },{
+                id: 'webentityMerge'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.MERGE,
+                        'params' : [
+                            settings.oldWebentityId
+                            ,settings.goodWebentityId
+                            ,false   // Include tags
+                            ,false   // Include Home and Startpages as Startpages
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+                ,success: function(data, input){
+                        this.dispatchEvent('callback_webentityMerged', {
+                            webentityId: input.goodWebentityId
+                        })
                     }
             }
         ]
@@ -365,6 +404,37 @@ HypheCommons.domino_init()
                     }
                 }
             },{
+                // On current web entity load, if there is a pending start page (from LRU invalid resolution), validate and add it
+                triggers: ['currentWebentity_updated']
+                ,method: function(){
+                    var lru = this.get('pendingStartPage')
+
+                    if(lru=='' || lru === undefined){                           // No pending start page: do nothing
+                    } else {                                                    // Check that the start page is in one of the LRU prefixes
+                        var lru_valid = false
+                            ,we = this.get('currentWebentity')
+                        we.lru_prefixes.forEach(function(lru_prefix){
+                            if(lru.indexOf(lru_prefix) == 0)
+                                lru_valid = true
+                        })
+                        if(!lru_valid){                                         // The start page does not belong to any LRU_prefix: trigger the resolution process
+                            this.dispatchEvent('update_startpagesMessageObject', {
+                                startpagesMessageObject: {html:'<strong>Invalid start page.</strong> This page does not belong to the web entity.', display:true, bsClass:'alert-error', }
+                            })
+                            this.dispatchEvent('lru_invalid', {lru: lru})
+                        } else {                                                // It's OK: display a message and request the service
+                            this.dispatchEvent('update_startpagesMessageObject', {
+                                startpagesMessageObject: {text:'Adding the start page...', display:true, bsClass:'alert-info', }
+                            })
+                            this.request('addStartPage', {
+                                webentityId: we.id
+                                ,url: Utils.LRU_to_URL(lru)
+                            })
+                        }
+                    }
+                    this.update('pendingStartPage', '')
+                }
+            },{
                 // On 'remove start page' clicked, display message and request the service
                 triggers: ['ui_removeStartPage']
                 ,method: function (d) {
@@ -475,6 +545,36 @@ HypheCommons.domino_init()
                         _self.request('fetchWebEntityByURL', {
                             url: Utils.LRU_to_URL(lru)
                         })
+                    })
+                }
+            },{
+                // Request adding a LRU prefix to current web entity
+                triggers: ['request_currentWebentityAddPrefix']
+                ,method: function(e){
+                    var currentWebentity = this.get('currentWebentity')
+                    this.request('webentityAddPrefix', {
+                        webentityId: currentWebentity.id
+                        ,lru: e.data.lru
+                    })
+
+                }
+            },{
+                // When a prefix has been added or a merge has been done, reload current web entity
+                triggers: ['callback_prefixAdded', 'callback_webentityMerged']
+                ,method: function(e){
+                    var we = this.get('currentWebentity')
+                    this.dispatchEvent('request_updateCurrentWebentity', {
+                        currentWebentityId: we.id
+                    })
+                }
+            },{
+                // Request the merge of another web entity in this one
+                triggers: ['request_currentWebentityMerge']
+                ,method: function(e){
+                    var currentWebentity = this.get('currentWebentity')
+                    this.request('webentityMerge', {
+                        oldWebentityId: e.data.webentityId
+                        ,goodWebentityId: currentWebentity.id
                     })
                 }
             }
@@ -792,6 +892,7 @@ HypheCommons.domino_init()
             var prefixListElement = element.find('.list-prefix-suggestions')
                 ,lru = e.data.lru
             element.modal('show')
+            element.attr('data-startpage-lru', lru)
 
             prefixListElement.html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">Loading...</div></div>')
 
@@ -893,16 +994,41 @@ HypheCommons.domino_init()
 
         var resolve = function(controller){
             if($('#button-add-prefix').attr('disabled') === undefined){
+                var lru = element.attr('data-startpage-lru')
+                _self.dispatchEvent('update_pendingStartPage', {
+                    pendingStartPage: lru
+                })
+
                 var checkedElement = element.find('input[name=prefixes]:checked')
                     ,prefix = checkedElement.val()
                     ,we_id = checkedElement.attr('data-webentity-id')
                 
                 if(we_id === undefined){
                     // Add prefix
+                    _self.dispatchEvent('request_currentWebentityAddPrefix', {
+                        lru: prefix
+                    })
                 } else {
                     // Merge web entity
+                    _self.dispatchEvent('request_currentWebentityMerge', {
+                        webentityId: we_id
+                    })
                 }
+
+                var prefixListElement = element.find('.list-prefix-suggestions')
+
+                prefixListElement.html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">Updating web entity...</div></div>')
+
+                $('#button-add-prefix').attr('disabled', true)
             }
+        }
+
+        var endModal = function(controller, e){
+            var prefixListElement = element.find('.list-prefix-suggestions')
+            element.modal('hide')
+            element.attr('data-startpage-lru', '')
+
+            prefixListElement.html('')
         }
 
         // Click on Add Prefix
@@ -914,8 +1040,7 @@ HypheCommons.domino_init()
         this.triggers.events['prefixCandidates_updated'] = updateModal
         this.triggers.events['callback_webentityFetched'] = updateLRU
         this.triggers.events['ui_addPrefix'] = resolve
-
-
+        this.triggers.events['currentWebentity_updated'] = endModal
 
     })
 

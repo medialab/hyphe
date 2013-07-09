@@ -12,6 +12,11 @@ HYPHE_API = {
 			ADD:'store.add_webentity_startpage'
 			,REMOVE:'store.rm_webentity_startpage'
 		}
+
+		,PREFIX:{
+			ADD:'store.add_webentity_lruprefix'
+			,REMOVE:'store.rm_webentity_lruprefix'
+		}
 		
 		,GET_PAGES:'store.get_webentity_pages'
 		,GET_SUBWEBENTITIES:'store.get_webentity_subwebentities'
