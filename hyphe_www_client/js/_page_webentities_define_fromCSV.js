@@ -293,6 +293,15 @@ HypheCommons.domino_init()
         var element = $('#diagnostic')
             ,_self = this
 
+        var displayLruPrefixHTML = function(lru){
+            var lru_json = Utils.LRU_to_JSON_LRU(lru)
+            return Utils.URL_simplify(Utils.LRU_to_URL(lru))
+                .replace(/^www\./gi, '<span class="muted">www.</span>')
+                .replace(/^https:\/\//gi, '<strong class="muted">https://</strong>')
+                .replace(lru_json.host[1]+'.'+lru_json.host[0], lru_json.host[1]+'<span class="muted">.'+lru_json.host[0]+'</span>')
+
+        }
+
         var initialize = function(controller, e){
             var table = controller.get('dataTable')
                 ,colId = controller.get('urlColumnId')
@@ -370,17 +379,11 @@ HypheCommons.domino_init()
                             ,url = element.attr('data-url')
                             ,lru = Utils.URL_to_LRU(url)
                             ,prefixCandidates = HypheCommons.getPrefixCandidates(lru)
-                            ,lru_json = Utils.LRU_to_JSON_LRU(lru)
 
                         element.html('')
                             .attr('data-status', 'computed')
                             .append(
                                     prefixCandidates.map(function(lru){
-                                        var urlPrefixHtml = Utils.URL_simplify(Utils.LRU_to_URL(lru))
-                                            .replace(/^www\./gi, '<span class="muted">www.</span>')
-                                            .replace(/^https:\/\//gi, '<strong class="muted">https://</strong>')
-                                            .replace(lru_json.host[1]+'.'+lru_json.host[0], lru_json.host[1]+'<span class="muted">.'+lru_json.host[0]+'</span>')
-
                                         return $('<div class="prefix"/>')
                                             .attr('data-url-prefix-md5', $.md5(Utils.LRU_to_URL(lru)))
                                             .attr('data-lru-prefix', lru)
@@ -388,12 +391,12 @@ HypheCommons.domino_init()
                                             .append(
                                                     $('<label class="checkbox"></label>')
                                                         .append(
-                                                                $('<input type="checkbox" name="prefixes" disabled/>')
+                                                                $('<input type="checkbox" disabled/>')
                                                                     .attr('value', lru)
                                                             )
                                                         .append(
                                                                 $('<span/>').html(
-                                                                        urlPrefixHtml
+                                                                        displayLruPrefixHTML(lru)
                                                                     )
                                                             )
                                                         .append(
@@ -419,8 +422,10 @@ HypheCommons.domino_init()
 
         var updateWebentityFetch = function(controller, e){
             var url = e.data.url
+                ,lru = Utils.URL_to_LRU(url)
                 ,we_id = e.data.webentityId
-            var elements = $('.col-webentity[data-url-md5='+$.md5(url)+']')
+
+            var elements = $('.prefix[data-url-prefix-md5='+$.md5(url)+']')
             if(elements.length > 0){
                 if(we_id !== undefined){
                     var webentities_byId = controller.get('webentitiesById')
@@ -428,50 +433,31 @@ HypheCommons.domino_init()
                     elements.html('')
                         .attr('data-status', 'fetched')
                         .append(
-                                $('<div class="row subrow-webentity"/>')
-                                    .attr('data-webentity-id', '')
+                                $('<label class="checkbox"></label>')
                                     .append(
-                                            $('<div class="span4 subcol-webentity-prefix"/>')
-                                                // Prefixes
-                                                .append(
-                                                        $('<ul class="unstyled prefixeslist"/>')
-                                                            .append(
-                                                                    we.lru_prefixes.map(function(lru){
-                                                                        var li = $('<li/>')
-                                                                            .append(
-                                                                                    $('<span/>').text(Utils.LRU_to_URL(lru))
-                                                                                )
-                                                                        return li
-                                                                    })
-                                                                )
-                                                    )
+                                            $('<input type="checkbox"/>')
+                                                .attr('value', lru)
                                         )
                                     .append(
-                                            $('<div class="span4 subcol-webentity-name"/>')
-                                                // Name
+                                            $('<div/>')
                                                 .append(
-                                                        $('<strong/>')
-                                                            .text(we.name)
+                                                        $('<span/>').html(displayLruPrefixHTML(lru))
                                                     )
-                                                // edit - crawl
                                                 .append(
-                                                        $('<span/>')
-                                                            .append(
-                                                                    $('<span class="muted"> - </span>')
-                                                                )
-                                                            .append(
-                                                                    $('<a class="muted"><small>edit</small></a>')
-                                                                        .attr('href', 'webentity_edit.php#we_id='+we.id)
-                                                                        .attr('target', '_blank')
-                                                                )
-                                                            .append(
-                                                                    $('<span class="muted"> - </span>')
-                                                                )
-                                                            .append(
-                                                                    $('<a class="muted"><small>crawl</small></a>')
-                                                                        .attr('href', 'crawl_new.php#we_id='+we.id)
-                                                                        .attr('target', '_blank')
-                                                                )
+                                                        $('<span class="text-muted"/>').text(' is a prefix of')
+                                                    )
+                                                .append(
+                                                        $('<p/>').append(
+                                                                $('<span class="text-info"/>')
+                                                                    .append(
+                                                                             $('<span class="label"/>').text(we.status)
+                                                                                .addClass(getStatusColor(we.status))
+                                                                        )
+                                                                    .append(
+                                                                            $('<strong/>').text(' '+we.name+' ')
+                                                                        )
+                                                            )
+                                                            
                                                     )
                                         )
                             )
@@ -480,21 +466,15 @@ HypheCommons.domino_init()
                     elements.html('')
                         .attr('data-status', 'fetched')
                         .append(
-                                $('<div class="row subrow-webentity"/>')
-                                    .attr('data-webentity-id', '')
+                                $('<label class="checkbox"></label>')
                                     .append(
-                                             $('<div class="span4 subcol-webentity-prefix"/>')
-                                                .append(
-                                                        $('<span class="muted"/>')
-                                                            .text('Ø')
-                                                    )
-
+                                            $('<input type="checkbox"/>')
+                                                .attr('value', lru)
                                         )
                                     .append(
-                                            $('<div class="span4 subcol-webentity-name"/>')
+                                            $('<div/>')
                                                 .append(
-                                                        $('<strong class="muted"/>')
-                                                            .text('No web entity')
+                                                        $('<span/>').html(displayLruPrefixHTML(lru))
                                                     )
                                         )
                             )
@@ -508,7 +488,7 @@ HypheCommons.domino_init()
 
         this.triggers.events['urlColumnId_updated'] = initialize
         this.triggers.events['request_cascade'] = cascade
-        //this.triggers.events['callback_webentityFetched'] = updateWebentityFetch
+        this.triggers.events['callback_webentityFetched'] = updateWebentityFetch
     })
 
 
