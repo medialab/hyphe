@@ -54,6 +54,12 @@ HypheCommons.domino_init()
                 ,type: 'object'
                 ,value: {}
             },{
+                id:'webentitiesByLruPrefix'
+                ,dispatch: 'webentitiesByLruPrefix_updated'
+                ,triggers: 'update_webentitiesByLruPrefix'
+                ,type: 'object'
+                ,value: {}
+            },{
                 id:'urlColumnId'
                 ,dispatch: 'urlColumnId_updated'
                 ,triggers: 'update_urlColumnId'
@@ -102,11 +108,17 @@ HypheCommons.domino_init()
                             var we = data[0].result
                                 ,webentities = this.get('webentities')
                                 ,webentities_byId = this.get('webentitiesById')
+                                ,webentities_byLruPrefix = this.get('webentitiesByLruPrefix')
                                 
                             webentities_byId[we.id] = we
                             var webentities = d3.values(webentities_byId)
                             this.update('webentities', webentities)
                             this.update('webentitiesById', webentities_byId)
+
+                            we.lru_prefixes.forEach(function(lru){
+                                webentities_byLruPrefix[lru] = we
+                            })
+                            this.update('webentitiesByLruPrefix', webentities_byLruPrefix)
 
                             this.dispatchEvent('callback_webentityFetched', {
                                 webentityId: we.id
@@ -114,53 +126,6 @@ HypheCommons.domino_init()
                             })
                         }
                     }
-            },{
-                id: 'getWebEntityPages'
-                ,data: function(settings){ return JSON.stringify({ //JSON RPC
-                        'method' : HYPHE_API.WEBENTITY.GET_PAGES,
-                        'params' : [
-                            settings.webentityId    // Web entity id
-                        ],
-                    })}
-                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect
-                ,error: function(data, xhr, input){
-                        var currentQueries = this.get('currentQueries')
-                        this.update('currentQueries', currentQueries - 1 )
-                        
-                        this.dispatchEvent('callback_webentityPagesFetched', {
-                                webentityId: input.webentityId
-                                ,message: 'RPC error'
-                                ,pages: undefined
-                            })
-
-                        rpc_error(data, xhr, input)
-                    }
-                ,before: function(){
-                        var currentQueries = this.get('currentQueries')
-                        this.update('currentQueries', currentQueries + 1 )
-                    }
-                ,success: function(data, input){
-                    var currentQueries = this.get('currentQueries')
-                    this.update('currentQueries', currentQueries - 1 )
-
-                    var webentity = this.get('webentitiesById')[input.webentityId]
-                        ,pages = data[0].result
-                    if(webentity == undefined){
-                        HypheCommons.errorAlert('<strong>Something weird happended.</strong> Unkown web entity\n<br/>\n"'+data+'"')
-
-                        this.dispatchEvent('callback_webentityPagesFetched', {
-                                webentityId: input.webentityId
-                                ,message: 'Unknown web entity'
-                                ,pages: undefined
-                            })
-                    } else {
-                        // webentity.pages = pages
-                        this.dispatchEvent('callback_webentityPagesFetched', {
-                            webentityId: input.webentityId
-                            ,pages: pages
-                        })
-                    }
-                }
             }
         ]
 
@@ -346,12 +311,12 @@ HypheCommons.domino_init()
                                         .html('<h5>Source URL</h5>')
                                 )
                             .append(
-                                    $('<div class="span4"/>')
-                                        .html('<h5>Prefix of web entity</h5>')
+                                    $('<div class="span6"/>')
+                                        .html('<h5>-</h5>')
                                 )
                             .append(
-                                    $('<div class="span4"/>')
-                                        .html('<h5>Name of web entity</h5>')
+                                    $('<div class="span2"/>')
+                                        .html('<h5>Potential issues</h5>')
                                 )
                         )
                 .append(
@@ -369,7 +334,7 @@ HypheCommons.domino_init()
                                                 )
                                     )
                                 .append(
-                                        $('<div class="span8 col-webentity"/>')
+                                        $('<div class="span6 col-prefixes"/>')
                                             .attr('data-url', url)
                                             .attr('data-url-md5', $.md5(url))
                                             .attr('data-status', 'waiting')
@@ -389,24 +354,65 @@ HypheCommons.domino_init()
 
             for(i = 0; i < queriesLimit - currentQueries; i++){
 
-                // 1. Search for a web entity to fetch
+                // 1. Search for prefixes that need a webentity fetch
 
-                var waitingForFetching = $('.col-webentity[data-status=waiting]')
-                if(waitingForFetching.length > 0){
-                    var element = waitingForFetching.first()
-                        ,url = element.attr('data-url')
+                if(false){
+                    
 
-                    element.html('<span class="text-info">Fetching web entity...</span>')
-                        .attr('data-status', 'pending')
 
-                    _self.dispatchEvent('request_fetchWebEntity', {
-                        url: url
-                    })
                 } else {
 
-                    // 2. If no pages to fetch, then it's over
-                    
-                    _self.dispatchEvent('cascadeFinished', {})
+                    // 2. Fill prefixes
+
+                    var waitingForPrefixes = $('.col-prefixes[data-status=waiting]')
+                    if(waitingForPrefixes.length > 0){
+                        var element = waitingForPrefixes.first()
+                            ,url = element.attr('data-url')
+                            ,lru = Utils.URL_to_LRU(url)
+                            ,prefixCandidates = HypheCommons.getPrefixCandidates(lru)
+                            ,lru_json = Utils.LRU_to_JSON_LRU(lru)
+
+                        element.html('')
+                            .attr('data-status', 'computed')
+                            .append(
+                                    prefixCandidates.map(function(lru){
+                                        var urlPrefixHtml = Utils.URL_simplify(Utils.LRU_to_URL(lru))
+                                            .replace(/^www\./gi, '<span class="muted">www.</span>')
+                                            .replace(/^https:\/\//gi, '<strong class="muted">https://</strong>')
+                                            .replace(lru_json.host[1]+'.'+lru_json.host[0], lru_json.host[1]+'<span class="muted">.'+lru_json.host[0]+'</span>')
+
+                                        return $('<div class="prefix"/>')
+                                            .attr('data-url-prefix-md5', $.md5(Utils.LRU_to_URL(lru)))
+                                            .attr('data-lru-prefix', lru)
+                                            .attr('data-status', 'fetching')
+                                            .append(
+                                                    $('<label class="checkbox"></label>')
+                                                        .append(
+                                                                $('<input type="checkbox" name="prefixes" disabled/>')
+                                                                    .attr('value', lru)
+                                                            )
+                                                        .append(
+                                                                $('<span/>').html(
+                                                                        urlPrefixHtml
+                                                                    )
+                                                            )
+                                                        .append(
+                                                                $('<span class="text-info"/>').text(' - fetching web entity...')
+                                                            )
+                                                )
+                                    })
+                                )
+
+                        prefixCandidates.forEach(function(lru){
+                            _self.dispatchEvent('request_fetchWebEntity', {url: Utils.LRU_to_URL(lru)})
+                        })
+
+                    } else {
+
+                        // 3. Then it's over
+                        
+                        _self.dispatchEvent('cascadeFinished', {})
+                    }
                 }
             }
         }
@@ -502,7 +508,7 @@ HypheCommons.domino_init()
 
         this.triggers.events['urlColumnId_updated'] = initialize
         this.triggers.events['request_cascade'] = cascade
-        this.triggers.events['callback_webentityFetched'] = updateWebentityFetch
+        //this.triggers.events['callback_webentityFetched'] = updateWebentityFetch
     })
 
 
