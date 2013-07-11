@@ -1,6 +1,8 @@
 HypheCommons.js_file_init()
 HypheCommons.domino_init()
 
+domino.settings({verbose:false})
+
 ;(function($, domino, dmod, undefined){
     
     // RPC config of this page
@@ -133,7 +135,7 @@ HypheCommons.domino_init()
         ,hacks:[
             {
                 // Some events that need to be registered
-                triggers: ['loading_started', 'loading_completed', 'update_loadingProgress', 'request_cascade']
+                triggers: ['loading_started', 'loading_completed', 'update_loadingProgress', 'request_cascade', 'ui_updateRowAnalysis']
             },{
                 // Parsing the CSV
                 triggers: ['loading_completed']
@@ -178,8 +180,8 @@ HypheCommons.domino_init()
         })
 
         
-        this.triggers.events['inputFile_updated'] = function(controller, e){
-            var files = controller.get('inputFile')
+        this.triggers.events['inputFile_updated'] = function(provider, e){
+            var files = provider.get('inputFile')
             if( files !== undefined && files.length >0 ){
                 container.find('div.input').hide()
                 container.find('div.progress').show()
@@ -209,8 +211,8 @@ HypheCommons.domino_init()
             }
         }
 
-        this.triggers.events['loadingProgress_updated'] = function(controller, e){
-            var percentLoaded = +controller.get('loadingProgress')
+        this.triggers.events['loadingProgress_updated'] = function(provider, e){
+            var percentLoaded = +provider.get('loadingProgress')
             // Increase the progress bar length.
             if (percentLoaded < 100) {
                 var bar = container.find('div.progress .bar')
@@ -241,8 +243,8 @@ HypheCommons.domino_init()
         var element = $('#tablepreview')
             ,_self = this
 
-        var update = function(controller, e){
-            var table = controller.get('dataTable')
+        var update = function(provider, e){
+            var table = provider.get('dataTable')
             element.html('<div id="dataPreview"><table class="table table-condensed table-bordered">'
                 + table
                     .filter(function(d,i){return i<10})
@@ -266,8 +268,8 @@ HypheCommons.domino_init()
         var element = $('#columnselector')
             ,_self = this
 
-        var update = function(controller, e){
-            var table = controller.get('dataTable')
+        var update = function(provider, e){
+            var table = provider.get('dataTable')
             element.html('')
                 .append(
                         $('<h3>Select a column containing URLs</h3>')
@@ -302,10 +304,10 @@ HypheCommons.domino_init()
 
         }
 
-        var initialize = function(controller, e){
-            var table = controller.get('dataTable')
-                ,colId = controller.get('urlColumnId')
-                ,queriesLimit = controller.get('queriesLimit')
+        var initialize = function(provider, e){
+            var table = provider.get('dataTable')
+                ,colId = provider.get('urlColumnId')
+                ,queriesLimit = provider.get('queriesLimit')
                 ,headline = table[0]
                 ,rows = table.filter(function(d,i){return i>0})
 
@@ -321,16 +323,19 @@ HypheCommons.domino_init()
                                 )
                             .append(
                                     $('<div class="span6"/>')
-                                        .html('<h5>-</h5>')
+                                        .html('<h5>Suggested prefixes</h5>')
                                 )
                             .append(
                                     $('<div class="span2"/>')
-                                        .html('<h5>Potential issues</h5>')
+                                        .html('<h5>Analysis</h5>')
                                 )
                         )
                 .append(
                         rows.map(function(row, i){
-                            var url = row[colId]
+                            var url = Utils.URL_fix(row[colId])
+                            if(url==''){
+                                return $('<div class="row"/>')
+                            }
                             return $('<div class="row diagnostic-row"/>')
                                 .attr('data-row-id', i)
                                 .attr('data-url', url)
@@ -364,9 +369,9 @@ HypheCommons.domino_init()
             _self.dispatchEvent('request_cascade', {})
         }
 
-        var cascade = function(controller, e){
-            var queriesLimit = controller.get('queriesLimit')
-                ,currentQueries = controller.get('currentQueries')
+        var cascade = function(provider, e){
+            var queriesLimit = provider.get('queriesLimit')
+                ,currentQueries = provider.get('currentQueries')
 
             for(i = 0; i < queriesLimit - currentQueries; i++){
 
@@ -386,10 +391,11 @@ HypheCommons.domino_init()
                             ,url = element.attr('data-url')
                             ,lru = Utils.URL_to_LRU(url)
                             ,prefixCandidates = HypheCommons.getPrefixCandidates(lru)
-
                         element.html('')
                             .attr('data-status', 'computed')
-                            .append(
+                        if(prefixCandidates.length > 0){
+                            element
+                                .append(
                                     prefixCandidates.map(function(lru){
                                         return $('<div class="prefix"/>')
                                             .attr('data-url-prefix-md5', $.md5(Utils.LRU_to_URL(lru)))
@@ -412,6 +418,7 @@ HypheCommons.domino_init()
                                                 )
                                     })
                                 )
+                        }
 
                         prefixCandidates.forEach(function(lru){
                             _self.dispatchEvent('request_fetchWebEntity', {url: Utils.LRU_to_URL(lru)})
@@ -427,15 +434,16 @@ HypheCommons.domino_init()
             }
         }
 
-        var updateWebentityFetch = function(controller, e){
+        var updateWebentityFetch = function(provider, e){
             var url = e.data.url
                 ,lru = Utils.URL_to_LRU(url)
                 ,we_id = e.data.webentityId
+                ,webentities_byLruPrefix = provider.get('webentitiesByLruPrefix')
 
             var elements = $('.prefix[data-url-prefix-md5='+$.md5(url)+']')
             if(elements.length > 0){
-                if(we_id !== undefined){
-                    var webentities_byId = controller.get('webentitiesById')
+                if(we_id !== undefined && webentities_byLruPrefix[lru] && webentities_byLruPrefix[lru].id == we_id){
+                    var webentities_byId = provider.get('webentitiesById')
                         ,we = webentities_byId[we_id]
                     elements.html('')
                         .attr('data-status', 'fetched')
@@ -542,6 +550,10 @@ HypheCommons.domino_init()
                             ,we_id = el.attr('data-webentity-id')
                         if(we_id != '')
                             $('input[type=checkbox][data-source-url-md5='+urlMD5+'][data-webentity-id='+we_id+']').prop('checked', checked)
+                        
+                        _self.dispatchEvent('ui_updateRowAnalysis', {
+                            rowId: rowElement.attr('data-row-id')
+                        })
                     })
 
             // Update analysis
@@ -550,15 +562,107 @@ HypheCommons.domino_init()
         }
 
         var updateAnalysis = function(rowElement){
-            rowElement.find('.col-analysis').html('')
-                .append(
-                        $('<span/>').text('All web entities fetched')
+            var checkboxes = rowElement.find('input[type=checkbox]')
+                ,sourceUrl = rowElement.attr('data-url')
+                ,sourceLru = Utils.URL_to_LRU(sourceUrl)
+                ,items = []
+                ,analysisElement = rowElement.find('.col-analysis')
+
+            // Build the table of what is checked
+            checkboxes.each(function(i, e){
+                var el = $(e)
+                items.push({
+                    id: i
+                    ,element: el
+                    ,we_id: el.attr('data-webentity-id')
+                    ,lru: el.attr('value')
+                    ,checked: el.is(':checked')
+                })
+            })
+
+            var noChange = items.every(function(item){
+                return (
+                        item.checked && (                                               // If the item is checked...
+                                item.lru == sourceLru                                   // ...then it is the source LRU
+                            ) || (                                                      // ...or it is because the item with the source LRU
+                                items.some(function(item2){                             //    is checked and has the same webentity id
+                                            return item2.we_id == item.we_id
+                                                && item.we_id != ''
+                                                && item2.lru == sourceLru
+                                                && item2.checked
+                                        })
+                            )
+                    ) || (                                                              // If the item is NOT checked
+                        !item.checked && item.lru != sourceLru                          // ...then it not the source LRU
+                            && !items.some(function(item2){                             // ...and it does not have the same webentity id
+                                            return item2.we_id == item.we_id            //    than a checked item being the source Lru
+                                                && item.we_id != ''
+                                                && item2.lru == sourceLru
+                                                && item2.checked
+                                        })
                     )
+            })
+            if(noChange){
+                var noIssue = true
+
+                // Let's clarify this.
+                //
+                // The goal of this UI is to allow the user to declare web entities on the basis of URLs.
+                //
+                // But there are two sub-goals here:
+                //      - Goal 1: If there is no web entity prefixed by the URL, declare some
+                //      - Goal 2: If there is a web entity but there are some issues with it, fix it
+                //
+                // This supposes two mechanisms:
+                //      - Mechanism 1: Declaring a web entity by a prefix
+                //      - Mechanism 2: Proposing alternatives and give a feedback of common issues
+                //
+                // From the point of view of only knowing the source URL and which prefixes are checked, this implies that:
+                //      - If there are checked prefixes not associated to a w.e., there is something to declare
+                //      - If there are checked prefixes associated to different w.e., there are some merges to do
+                //      - Unchecked prefixes do not mean anything. They are just ignored.
+                //      - If there are things checked that should NOT be, feedback an issue
+                //      - If there are things NOT checked that should be, feedback an issue
+                //
+                // Which are the cases where something is checked that should not be?
+                //      - I do not see any!
+                //
+                // Which are the cases where something UNchecked that should be?
+                //      - When there is a www URL prefixing a w.e. and the www-less URL does not prefix the web entity
+                //      - When there is a https URL prefixing a w.e. and the https-less URL does not prefix the web entity
+                //      - When there is a https-less URL prefixing a w.e. and the https URL does not prefix the web entity
+                //      - The same for discrepancies between TLDs (?)
+
+
+                // No issue
+                if(noIssue){
+                    analysisElement.html('')
+                        .append(
+                                $('<i class="icon-thumbs-up"></i>')
+                            )
+                        .append(
+                                $('<span class="text-success"/>')
+                                    .text(' Defines a web entity')
+                            )
+                }
+            } else {
+                analysisElement.html('')
+                    .append(
+                            $('<a class="btn btn-primary"/>')
+                                .html('Apply changes')
+                        )
+            }
+
+
+
         }
 
         this.triggers.events['urlColumnId_updated'] = initialize
         this.triggers.events['request_cascade'] = cascade
         this.triggers.events['callback_webentityFetched'] = updateWebentityFetch
+        this.triggers.events['ui_updateRowAnalysis'] = function(provider, e){
+            updateAnalysis($('div.diagnostic-row[data-row-id='+e.data.rowId+']'))
+        }
     })
 
 
