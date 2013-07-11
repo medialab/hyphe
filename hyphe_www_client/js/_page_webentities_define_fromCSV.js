@@ -352,6 +352,13 @@ HypheCommons.domino_init()
                                                         .text('waiting')
                                                 )
                                     )
+                                .append(
+                                        $('<div class="span2 col-analysis"/>')
+                                            .append(
+                                                    $('<span class="muted"/>')
+                                                        .text('waiting')
+                                                )
+                                    )
                         })
                     )
             _self.dispatchEvent('request_cascade', {})
@@ -433,9 +440,10 @@ HypheCommons.domino_init()
                     elements.html('')
                         .attr('data-status', 'fetched')
                         .append(
-                                $('<label class="checkbox"></label>')
+                                $('<label class="checkbox overable"></label>')
                                     .append(
                                             $('<input type="checkbox"/>')
+                                                .attr('data-webentity-id', we_id)
                                                 .attr('value', lru)
                                         )
                                     .append(
@@ -444,18 +452,19 @@ HypheCommons.domino_init()
                                                         $('<span/>').html(displayLruPrefixHTML(lru))
                                                     )
                                                 .append(
-                                                        $('<span class="text-muted"/>').text(' is a prefix of')
+                                                        $('<span class="muted"/>').text(' - is a prefix of')
                                                     )
                                                 .append(
                                                         $('<p/>').append(
-                                                                $('<span class="text-info"/>')
+                                                                $('<span/>')
                                                                     .append(
                                                                              $('<span class="label"/>').text(we.status)
                                                                                 .addClass(getStatusColor(we.status))
                                                                         )
                                                                     .append(
-                                                                            $('<strong/>').text(' '+we.name+' ')
+                                                                            $('<strong class="muted"/>').text(' '+we.name+' ')
                                                                         )
+                                                                    
                                                             )
                                                             
                                                     )
@@ -466,9 +475,10 @@ HypheCommons.domino_init()
                     elements.html('')
                         .attr('data-status', 'fetched')
                         .append(
-                                $('<label class="checkbox"></label>')
+                                $('<label class="checkbox overable"></label>')
                                     .append(
                                             $('<input type="checkbox"/>')
+                                                .attr('data-webentity-id', '')
                                                 .attr('value', lru)
                                         )
                                     .append(
@@ -479,11 +489,71 @@ HypheCommons.domino_init()
                                         )
                             )
                 }
+
+                // Test if all the prefixes were fetched
+                elements.parent().each(function(i,e){
+                    var element = $(e)
+                    if(element.find('.prefix[data-status!=fetched]').length == 0){
+                        // All prefixes fetched
+                        initAnalysis(element.parent())
+                    }
+                })
+
             } else {
                 HypheCommons.errorAlert('Arg, something unexpected happened. (unable to find the elements to update...)')
                 console.log('Error from updateWebentityFetch', 'url', url)
             }
             _self.dispatchEvent('request_cascade', {})
+        }
+
+        var initAnalysis = function(rowElement){
+            var checkboxes = rowElement.find('input[type=checkbox]')
+                ,sourceUrl = rowElement.attr('data-url')
+                ,sourceLru = Utils.URL_to_LRU(sourceUrl)
+                ,urlMD5 = $.md5(sourceUrl)
+                ,matchingWebentityId
+
+            // Check one if it is equal to source URL
+            checkboxes.each(function(i,e){
+                var el = $(e)
+                if(el.val() == sourceLru){
+                    el.attr('checked', true)
+                    // Get the id of the webentity, if there is one associated to this checkbox
+                    matchingWebentityId = el.attr('data-webentity-id')
+                }
+            })
+
+            // Check every checkbox with the same webentity id if needed
+            if(matchingWebentityId !== undefined && matchingWebentityId != ''){
+               checkboxes.each(function(i,e){
+                    var el = $(e)
+                    if(el.attr('data-webentity-id') == matchingWebentityId){
+                        el.attr('checked', true)
+                    }
+                })
+            }
+
+            // Activate checkboxes
+            checkboxes.removeAttr('disabled')
+                .attr('data-source-url-md5', urlMD5)
+                .change(function(e){
+                        var el = $(this)
+                            ,checked = el.is(':checked')
+                            ,we_id = el.attr('data-webentity-id')
+                        if(we_id != '')
+                            $('input[type=checkbox][data-source-url-md5='+urlMD5+'][data-webentity-id='+we_id+']').prop('checked', checked)
+                    })
+
+            // Update analysis
+            updateAnalysis(rowElement)
+
+        }
+
+        var updateAnalysis = function(rowElement){
+            rowElement.find('.col-analysis').html('')
+                .append(
+                        $('<span/>').text('All web entities fetched')
+                    )
         }
 
         this.triggers.events['urlColumnId_updated'] = initialize
