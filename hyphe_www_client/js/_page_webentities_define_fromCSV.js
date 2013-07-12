@@ -299,7 +299,7 @@ domino.settings({verbose:false})
             var lru_json = Utils.LRU_to_JSON_LRU(lru)
             return Utils.URL_simplify(Utils.LRU_to_URL(lru))
                 .replace(/^www\./gi, '<span class="muted">www.</span>')
-                .replace(/^https:\/\//gi, '<strong class="muted">https://</strong>')
+                .replace(/^https:\/\//gi, '<span class="muted">https://</span>')
                 .replace(lru_json.host[1]+'.'+lru_json.host[0], lru_json.host[1]+'<span class="muted">.'+lru_json.host[0]+'</span>')
 
         }
@@ -322,11 +322,11 @@ domino.settings({verbose:false})
                                         .html('<h5>Source URL</h5>')
                                 )
                             .append(
-                                    $('<div class="span6"/>')
+                                    $('<div class="span5"/>')
                                         .html('<h5>Suggested prefixes</h5>')
                                 )
                             .append(
-                                    $('<div class="span2"/>')
+                                    $('<div class="span3"/>')
                                         .html('<h5>Analysis</h5>')
                                 )
                         )
@@ -348,7 +348,7 @@ domino.settings({verbose:false})
                                                 )
                                     )
                                 .append(
-                                        $('<div class="span6 col-prefixes"/>')
+                                        $('<div class="span5 col-prefixes"/>')
                                             .attr('data-url', url)
                                             .attr('data-url-md5', $.md5(url))
                                             .attr('data-status', 'waiting')
@@ -358,7 +358,7 @@ domino.settings({verbose:false})
                                                 )
                                     )
                                 .append(
-                                        $('<div class="span2 col-analysis"/>')
+                                        $('<div class="span3 col-analysis"/>')
                                             .append(
                                                     $('<span class="muted"/>')
                                                         .text('waiting')
@@ -470,7 +470,7 @@ domino.settings({verbose:false})
                                                                                 .addClass(getStatusColor(we.status))
                                                                         )
                                                                     .append(
-                                                                            $('<strong class="muted"/>').text(' '+we.name+' ')
+                                                                            $('<span class="muted"/>').text(' '+we.name+' ')
                                                                         )
                                                                     
                                                             )
@@ -521,13 +521,19 @@ domino.settings({verbose:false})
                 ,urlMD5 = $.md5(sourceUrl)
                 ,matchingWebentityId
 
-            // Check one if it is equal to source URL
+            // Activate checkboxes
+            checkboxes.removeAttr('disabled')
+                .attr('data-source-url-md5', urlMD5)
+
+            // If one is equal to source URL and is prefixing a web entity, check and disable
             checkboxes.each(function(i,e){
                 var el = $(e)
                 if(el.val() == sourceLru){
-                    el.attr('checked', true)
-                    // Get the id of the webentity, if there is one associated to this checkbox
                     matchingWebentityId = el.attr('data-webentity-id')
+                    if(matchingWebentityId && matchingWebentityId != ''){
+                        el.attr('checked', true)
+                        el.attr('disabled', true)
+                    }
                 }
             })
 
@@ -537,14 +543,13 @@ domino.settings({verbose:false})
                     var el = $(e)
                     if(el.attr('data-webentity-id') == matchingWebentityId){
                         el.attr('checked', true)
+                            .attr('disabled', true)
                     }
                 })
             }
 
-            // Activate checkboxes
-            checkboxes.removeAttr('disabled')
-                .attr('data-source-url-md5', urlMD5)
-                .change(function(e){
+            // Actions
+            checkboxes.change(function(e){
                         var el = $(this)
                             ,checked = el.is(':checked')
                             ,we_id = el.attr('data-webentity-id')
@@ -561,10 +566,11 @@ domino.settings({verbose:false})
 
         }
 
-        var updateAnalysis = function(rowElement){
+        var updateAnalysis = function(rowElement, recommand){
             var checkboxes = rowElement.find('input[type=checkbox]')
                 ,sourceUrl = rowElement.attr('data-url')
                 ,sourceLru = Utils.URL_to_LRU(sourceUrl)
+                ,sourceJsonLru = Utils.LRU_to_JSON_LRU(sourceLru)
                 ,items = []
                 ,analysisElement = rowElement.find('.col-analysis')
 
@@ -577,83 +583,208 @@ domino.settings({verbose:false})
                     ,we_id: el.attr('data-webentity-id')
                     ,lru: el.attr('value')
                     ,checked: el.is(':checked')
+                    ,disabled: el.is(':disabled')
                 })
             })
 
-            var noChange = items.every(function(item){
-                return (
-                        item.checked && (                                               // If the item is checked...
-                                item.lru == sourceLru                                   // ...then it is the source LRU
-                            ) || (                                                      // ...or it is because the item with the source LRU
-                                items.some(function(item2){                             //    is checked and has the same webentity id
-                                            return item2.we_id == item.we_id
-                                                && item.we_id != ''
-                                                && item2.lru == sourceLru
-                                                && item2.checked
-                                        })
-                            )
-                    ) || (                                                              // If the item is NOT checked
-                        !item.checked && item.lru != sourceLru                          // ...then it not the source LRU
-                            && !items.some(function(item2){                             // ...and it does not have the same webentity id
-                                            return item2.we_id == item.we_id            //    than a checked item being the source Lru
-                                                && item.we_id != ''
-                                                && item2.lru == sourceLru
-                                                && item2.checked
-                                        })
-                    )
-            })
-            if(noChange){
-                var noIssue = true
+            /* Explanations
 
-                // Let's clarify this.
-                //
-                // The goal of this UI is to allow the user to declare web entities on the basis of URLs.
-                //
-                // But there are two sub-goals here:
-                //      - Goal 1: If there is no web entity prefixed by the URL, declare some
-                //      - Goal 2: If there is a web entity but there are some issues with it, fix it
-                //
-                // This supposes two mechanisms:
-                //      - Mechanism 1: Declaring a web entity by a prefix
-                //      - Mechanism 2: Proposing alternatives and give a feedback of common issues
-                //
-                // From the point of view of only knowing the source URL and which prefixes are checked, this implies that:
-                //      - If there are checked prefixes not associated to a w.e., there is something to declare
-                //      - If there are checked prefixes associated to different w.e., there are some merges to do
-                //      - Unchecked prefixes do not mean anything. They are just ignored.
-                //      - If there are things checked that should NOT be, feedback an issue
-                //      - If there are things NOT checked that should be, feedback an issue
-                //
-                // Which are the cases where something is checked that should not be?
-                //      - I do not see any!
-                //
-                // Which are the cases where something UNchecked that should be?
-                //      - When there is a www URL prefixing a w.e. and the www-less URL does not prefix the web entity
-                //      - When there is a https URL prefixing a w.e. and the https-less URL does not prefix the web entity
-                //      - When there is a https-less URL prefixing a w.e. and the https URL does not prefix the web entity
-                //      - The same for discrepancies between TLDs (?)
+                The goal of this UI is to allow the user to declare web entities on the basis of URLs.
+                
+                But there are two sub-goals here:
+                     - Goal 1: If there is no web entity prefixed by the URL, declare some
+                     - Goal 2: If there is a web entity but there are some issues with it, fix it
+                
+                This supposes two mechanisms:
+                     - Mechanism 1: Declaring a web entity by a prefix
+                     - Mechanism 2: Proposing alternatives and give a feedback of common issues:
+                                     alternatives with/-out www, https...
+                
+                So, we have checkboxes attached to the suggested prefixes.
+                What do they represent?
+                     - A way to select a prefix to declare to a new web entity (Mechanism 1)
+                     - A way to add a prefix to the current web entity (Mechanism 2)
+                
+                Important remark: there is NO way to REMOVE a prefix. So only options can really be unchecked.
+                The options are the w.e.-less prefixes and the alternatives.
+                So IF there is a w.e. for the exact URL, it cannot be unchecked.
+                
+                From the point of view of only knowing the source URL and which prefixes are checked, this implies that:
+                     - If there are checked prefixes not associated to a w.e., there is something to declare
+                     - If there are checked prefixes associated to different w.e., there are some merges to do
+                     - Unchecked prefixes do not mean anything. They are just ignored.
+                     - If there are things checked that should NOT be, feedback an issue
+                     - If there are things NOT checked that should be, feedback an issue
+                
+                Which are the cases where something is checked that should not be?
+                     - I do not see any!
+                
+                Which are the cases where something UNchecked that should be checked?
+                     - When there is a www URL prefixing a w.e. and the www-less URL does not prefix the web entity
+                     - When there is a https URL prefixing a w.e. and the https-less URL does not prefix the web entity
+                     - When there is a https-less URL prefixing a w.e. and the https URL does not prefix the web entity
+                     - The same for discrepancies between TLDs (?)
+                
+                So, when do we propose the update button ?
+                When we would do something in the back-end, that is:
+                     - Creating a web entity: one or more w.e.-less prefixes are checked, and them only
+                     - Adding prefixes to a web entity: a single w.e. prefix is checked and one or more w.e.-less prefixes are checked
+                     - Merging web entities: prefixes checked are associated to two or more (different) w.e.. Also there can be added prefixes
+            ****************/
 
 
-                // No issue
-                if(noIssue){
-                    analysisElement.html('')
-                        .append(
-                                $('<i class="icon-thumbs-up"></i>')
-                            )
-                        .append(
-                                $('<span class="text-success"/>')
-                                    .text(' Defines a web entity')
-                            )
-                }
-            } else {
-                analysisElement.html('')
-                    .append(
-                            $('<a class="btn btn-primary"/>')
-                                .html('Apply changes')
-                        )
+            // Determine the matching item (there should always be one since the original lru is always in candidate prefixes)
+            var matchingItem = items.filter(function(item){
+                    return item.lru == sourceLru
+                })[0]
+
+
+            // Recommandations if needed (pre-checking prefixes)
+            if(recommand){
+                // TODO
             }
 
 
+            // Diagnostic before anything selected (just looking prefixes)
+
+            // #issue - No prefix chosen: there is no web entity with this prefix or a shorter version
+            var noPrefixChosen = !items.some(function(item){
+                    return (item.lru == sourceLru || sourceLru.indexOf(item.lru) == 0)
+                        && item.we_id
+                        && item.we_id != ''
+                })
+
+            // #issue - WWW discrepancy: a web entity matches, but it has a www and the version without www is not a prefix / a prefix of the same w.e.
+            var wwwDiscrepancy = matchingItem.we_id
+                && matchingItem.we_id != ''
+                && sourceJsonLru.host[sourceJsonLru.host.length - 1] == 'www'
+                && items.some(function(item){
+                        var item_jsonLru = Utils.LRU_to_JSON_LRU(item.lru)
+                            ,item_jsonLru_wwwAdded = item_jsonLru
+                        item_jsonLru_wwwAdded.host.push('www')
+                        var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
+                        return item_lru_wwwAdded == sourceLru
+                            && (
+                                    (item.we_id && item.we_id != '' && item.we_id != matchingItem.we_id)
+                                    || (item.we_id === undefined || item.we_id == '')
+                                )
+                    })                
+
+            // #issue - HTTPS separated: a web entity matches, but it has a different / non-existent http alternative
+            var httpsSeparated = sourceJsonLru.scheme == 'https'
+                && matchingItem.we_id
+                && matchingItem.we_id != ''
+                && items.some(function(item){
+                        return item.lru.replace(/^s:http\|/, 's:https') == sourceLru
+                            && (
+                                    (item.we_id && item.we_id != '' && item.we_id != matchingItem.we_id)
+                                    || (item.we_id === undefined || item.we_id == '')
+                                )
+                    })
+
+            // #issue - Inclusion issue: there is a shorter prefix linked to a w.e., but not to the exact prefix
+            var inclusionIssue = (matchingItem.we_id === undefined || matchingItem.we_id == '')
+                && items.some(function(item){
+                        return item.we_id
+                            && item.we_id != ''
+                            && sourceLru.indexOf(item.lru) == 0
+                    })
+            
+
+            // Diagnostic after selection (simulation of the result of the checks)
+            
+            // #issuesolved - 'No prefix chosen': A prefix is checked
+            var noPrefixChosen_solved = noPrefixChosen
+                && items.some(function(item){
+                        return item.checked
+                    })
+
+            // #issuesolved - 'WWW discrepancy': the www-less alternative is checked
+            var wwwDiscrepancy_solved = wwwDiscrepancy
+                && !items.some(function(item){
+                        var item_jsonLru = Utils.LRU_to_JSON_LRU(item.lru)
+                            ,item_jsonLru_wwwAdded = item_jsonLru
+                        item_jsonLru_wwwAdded.host.push('www')
+                        var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
+                        return item_lru_wwwAdded == sourceLru
+                            && (
+                                    (item.we_id && item.we_id != '' && item.we_id != matchingItem.we_id)
+                                    || (item.we_id === undefined || item.we_id == '')
+                                )
+                            && !item.checked
+                    })
+
+            // #issuesolved - 'HTTPS separated': the https versions are checked if their http version is also checked
+            var httpsSeparated_solved = httpsSeparated
+                && !items.some(function(item){
+                        return item.lru.replace(/^s:http\|/, 's:https') == sourceLru
+                            && (
+                                    (item.we_id && item.we_id != '' && item.we_id != matchingItem.we_id)
+                                    || (item.we_id === undefined || item.we_id == '')
+                                )
+                            && !item.checked
+                    })
+
+            // #issuesolved - 'Inclusion issue': the exact prefix is (or both)
+            var inclusionIssue_solved = inclusionIssue
+                && matchingItem.checked
+
+            // #warning - Unecessary prefix: a non-mandatory prefix is checked while a shorter version is also checked
+            // #note - New web entity: if only w.e.-less prefixes are checked, a new w.e. will be created with all of them
+            // #note - Prefixes added: if there is exactly one prefix with a w.e. and at least one prefix without, prefixes will be added to this w.e.
+            // #warning - Merge: if prefixes asssociated to different w.e. are checked, there would be a merge
+
+
+            var analysisElement = rowElement.find('.col-analysis')
+            analysisElement.html('')
+            
+            if(inclusionIssue){
+                if(!inclusionIssue_solved){
+                    analysisElement.append(
+                            $('<p/>').text('inclusionIssue')
+                        )
+                } else {
+                    analysisElement.append(
+                            $('<p/>').html('<del>inclusionIssue</del>')
+                        )
+                }
+            }
+
+            if(httpsSeparated){
+                if(!httpsSeparated_solved){
+                    analysisElement.append(
+                            $('<p/>').text('httpsSeparated')
+                        )
+                } else {
+                    analysisElement.append(
+                            $('<p/>').html('<del>httpsSeparated</del>')
+                        )
+                }
+            }
+
+            if(noPrefixChosen){
+                if(!noPrefixChosen_solved){
+                    analysisElement.append(
+                            $('<p/>').text('noPrefixChosen')
+                        )
+                } else {
+                    analysisElement.append(
+                            $('<p/>').html('<del>noPrefixChosen</del>')
+                        )
+                }
+            }
+
+            if(wwwDiscrepancy){
+                if(!wwwDiscrepancy_solved){
+                    analysisElement.append(
+                            $('<p/>').text('wwwDiscrepancy')
+                        )
+                } else {
+                    analysisElement.append(
+                            $('<p/>').html('<del>wwwDiscrepancy</del>')
+                        )
+                }
+            }
 
         }
 
@@ -661,7 +792,7 @@ domino.settings({verbose:false})
         this.triggers.events['request_cascade'] = cascade
         this.triggers.events['callback_webentityFetched'] = updateWebentityFetch
         this.triggers.events['ui_updateRowAnalysis'] = function(provider, e){
-            updateAnalysis($('div.diagnostic-row[data-row-id='+e.data.rowId+']'))
+            updateAnalysis($('div.diagnostic-row[data-row-id='+e.data.rowId+']'), false)
         }
     })
 

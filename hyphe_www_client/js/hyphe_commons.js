@@ -72,17 +72,22 @@
 	ns.getPrefixCandidates = function(lru){
 		var candidates = []
 			,lru_a = lru.split('|')
-		// console.log('Prefix Candidates for LRU', lru)
 
 		candidates.push(lru)
+		if(lru.substr(0,8)=='s:https|'){
+			candidates.push(lru.replace(/^s:https\|/, 's:http|'))
+		}
 
 		if(lru_a.length>3){
 			for(length = lru_a.length-1; length>=3; length--){
 				var candidate = lru_a.filter(function(stem, i){
 					return i < length
 				}).join('|')
-				// console.log('                      Add', candidate)
+				
 				candidates.push(candidate)
+				if(candidate.substr(0,8)=='s:https|'){
+					candidates.push(candidate.replace(/^s:https\|/, 's:http|'))
+				}
 			}
 		}
 		return candidates

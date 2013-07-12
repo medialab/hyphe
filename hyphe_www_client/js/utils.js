@@ -125,6 +125,8 @@
 		if(protocolSplit.length == 1 || (protocolSplit.length > 1 && protocolSplit[0].length > 10)){
 			return 'http://'+url
 		}
+		// Strip the last slash
+		url = url.replace(/\/$/, '')
 		return url
 	}
 
