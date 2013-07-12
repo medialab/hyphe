@@ -82,7 +82,8 @@
                 <div class="span12">
                     <h1>Define Web Entities from a CSV source</h1>
                     <p class="text-info">
-                        Give a CSV table containing URLs and define the right web entities.
+                        Give a CSV table containing URLs and use them to define web entities.
+                        Check the right prefixes and apply all at once.
                     </p>
                     <hr>
                 </div>

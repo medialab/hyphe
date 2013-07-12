@@ -119,6 +119,9 @@
 	}
 
 	ns.URL_fix = function(url){
+		// Trim
+		url = $.trim(url)
+
 		if(url == '')
 			return ''
 		
