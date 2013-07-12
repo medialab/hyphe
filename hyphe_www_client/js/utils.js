@@ -121,12 +121,14 @@
 	ns.URL_fix = function(url){
 		if(url == '')
 			return ''
+		
+		// Strip the last slash
+		url = url.replace(/\/$/, '')
+		
 		var protocolSplit = url.split('://')
 		if(protocolSplit.length == 1 || (protocolSplit.length > 1 && protocolSplit[0].length > 10)){
 			return 'http://'+url
 		}
-		// Strip the last slash
-		url = url.replace(/\/$/, '')
 		return url
 	}
 

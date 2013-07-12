@@ -318,11 +318,11 @@ domino.settings({verbose:false})
                 .append(
                         $('<div class="row header-row"/>')
                             .append(
-                                    $('<div class="span4"/>')
+                                    $('<div class="span3"/>')
                                         .html('<h5>Source URL</h5>')
                                 )
                             .append(
-                                    $('<div class="span5"/>')
+                                    $('<div class="span6"/>')
                                         .html('<h5>Suggested prefixes</h5>')
                                 )
                             .append(
@@ -341,14 +341,14 @@ domino.settings({verbose:false})
                                 .attr('data-url', url)
                                 .attr('data-url-md5', $.md5(url))
                                 .append(
-                                        $('<div class="span4 col-url"/>')
+                                        $('<div class="span3 col-url"/>')
                                             .append(
                                                     $('<span class="urlContainer"/>')
                                                         .text(Utils.URL_simplify(row[colId]))
                                                 )
                                     )
                                 .append(
-                                        $('<div class="span5 col-prefixes"/>')
+                                        $('<div class="span6 col-prefixes"/>')
                                             .attr('data-url', url)
                                             .attr('data-url-md5', $.md5(url))
                                             .attr('data-status', 'waiting')
@@ -562,7 +562,7 @@ domino.settings({verbose:false})
                     })
 
             // Update analysis
-            updateAnalysis(rowElement)
+            updateAnalysis(rowElement, true)
 
         }
 
@@ -584,6 +584,10 @@ domino.settings({verbose:false})
                     ,lru: el.attr('value')
                     ,checked: el.is(':checked')
                     ,disabled: el.is(':disabled')
+                    ,check: function(){
+                        this.element.prop('checked', true)
+                        this.checked = el.is(':checked')
+                    }
                 })
             })
 
@@ -639,12 +643,6 @@ domino.settings({verbose:false})
                 })[0]
 
 
-            // Recommandations if needed (pre-checking prefixes)
-            if(recommand){
-                // TODO
-            }
-
-
             // Diagnostic before anything selected (just looking prefixes)
 
             // #issue - No prefix chosen: there is no web entity with this prefix or a shorter version
@@ -668,7 +666,7 @@ domino.settings({verbose:false})
                                     (item.we_id && item.we_id != '' && item.we_id != matchingItem.we_id)
                                     || (item.we_id === undefined || item.we_id == '')
                                 )
-                    })                
+                    })
 
             // #issue - HTTPS separated: a web entity matches, but it has a different / non-existent http alternative
             var httpsSeparated = sourceJsonLru.scheme == 'https'
@@ -691,7 +689,38 @@ domino.settings({verbose:false})
                     })
             
 
+
+
+            // Recommandations if needed (pre-checking prefixes)
+            if(recommand){
+                // What we usually want is just to check the exact prefix (and its http(s) variants)...
+                // ...except if it is www and has a www-less variant, because then we want this one instead (and its http(s) variants)
+                if(sourceJsonLru.host[sourceJsonLru.host.length - 1] == 'www'){
+                    // The matching URL, unchecked, has a shorter www-less variant.
+                    // If it does not belong to a web entity, we will check it
+                    var wwwLessVariant = items.filter(function(item){
+                            var item_jsonLru = Utils.LRU_to_JSON_LRU(item.lru)
+                                ,item_jsonLru_wwwAdded = item_jsonLru
+                            item_jsonLru_wwwAdded.host.push('www')
+                            var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
+                            return item_lru_wwwAdded == sourceLru
+                        })[0]
+                    if(wwwLessVariant){
+                        if(wwwLessVariant.we_id === undefined || wwwLessVariant.we_id == ''){
+                            wwwLessVariant.check()
+                        }
+                    } else {
+                        matchingItem.check()
+                    }
+                } else {
+                    matchingItem.check()
+                }
+            }
+
+
             // Diagnostic after selection (simulation of the result of the checks)
+            
+            var checkedItems = items.filter(function(item){return item.checked})
             
             // #issuesolved - 'No prefix chosen': A prefix is checked
             var noPrefixChosen_solved = noPrefixChosen
@@ -730,10 +759,47 @@ domino.settings({verbose:false})
                 && matchingItem.checked
 
             // #warning - Unecessary prefix: a non-mandatory prefix is checked while a shorter version is also checked
-            // #note - New web entity: if only w.e.-less prefixes are checked, a new w.e. will be created with all of them
-            // #note - Prefixes added: if there is exactly one prefix with a w.e. and at least one prefix without, prefixes will be added to this w.e.
-            // #warning - Merge: if prefixes asssociated to different w.e. are checked, there would be a merge
+            var unnecessaryPrefix = items.some(function(item, i){
+                    return item.checked && !item.disabled
+                        && items.some(function(item2, i2){
+                                return item2.checked && i != i2 && item.lru.indexOf(item2.lru) == 0
+                            })
+                })
 
+            // #note - New web entity: if only w.e.-less prefixes are checked, a new w.e. will be created with all of them
+            var newWebEntity = checkedItems.length>0
+                && !checkedItems.some(function(item){
+                        return item.we_id !== undefined && item.we_id != ''
+                    })
+
+            // #note - Prefixes added: if there is exactly one checked prefix with a w.e. and at least one checked prefix without, prefixes will be added to this w.e.
+            var prefixesAdded = checkedItems.filter(function(item){return item.we_id !== undefined && item.we_id != ''}).length == 1
+                && checkedItems.filter(function(item){return item.we_id === undefined || item.we_id == ''}).length > 0
+
+            // #warning - Merge: if checked prefixes asssociated to different w.e. are checked, there would be a merge
+            var merge = Utils.extractCases(
+                    checkedItems
+                        .filter(function(item){return item.we_id !== undefined && item.we_id != ''})
+                        .map(function(item){return item.we_id})
+                ).length >= 2
+
+            // #potential-issue - would create WWW discrepancy: a web entity does not match but the exact prefix is checked,
+            // and it has a www and the version without www is not a prefix / a prefix of the same w.e. and is not checked
+            var wouldWwwDiscrepancy = (matchingItem.we_id === undefined || matchingItem.we_id == '')
+                && sourceJsonLru.host[sourceJsonLru.host.length - 1] == 'www'
+                && matchingItem.checked
+                && items.some(function(item){
+                        var item_jsonLru = Utils.LRU_to_JSON_LRU(item.lru)
+                            ,item_jsonLru_wwwAdded = item_jsonLru
+                        item_jsonLru_wwwAdded.host.push('www')
+                        var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
+                        return item_lru_wwwAdded == sourceLru
+                            && (
+                                    (item.we_id && item.we_id != '' && item.we_id != matchingItem.we_id)
+                                    || (item.we_id === undefined || item.we_id == '')
+                                )
+                            && !item.checked
+                    })
 
             var analysisElement = rowElement.find('.col-analysis')
             analysisElement.html('')
@@ -784,6 +850,36 @@ domino.settings({verbose:false})
                             $('<p/>').html('<del>wwwDiscrepancy</del>')
                         )
                 }
+            }
+
+            if(unnecessaryPrefix){
+                analysisElement.append(
+                        $('<p/>').text('unnecessaryPrefix')
+                    )
+            }
+
+            if(wouldWwwDiscrepancy){
+                analysisElement.append(
+                        $('<p/>').text('wouldWwwDiscrepancy')
+                    )
+            }
+
+            if(newWebEntity){
+                analysisElement.append(
+                        $('<p/>').text('newWebEntity')
+                    )
+            }
+            
+            if(prefixesAdded){
+                analysisElement.append(
+                        $('<p/>').text('prefixesAdded')
+                    )
+            }
+
+            if(merge){
+                analysisElement.append(
+                        $('<p/>').text('merge')
+                    )
             }
 
         }
