@@ -55,13 +55,19 @@
                             <li><a href="webentities_network.php">Network of web entities</a></li>
                         </ol>
                     </p>
+                    <h3>Working with a CSV</h3>
+                    <p>
+                        <ul>
+                            <li><a href="webentities_define_fromCSV.php">Define web entities <small class="muted"/>(CSV)</small></a></li>
+                            <li><a href="csv_diagnostic.php">Diagnostic <small class="muted"/>(CSV)</small></a></li>
+                        </ul>
+                    </p>
                 </div>
                 <div class="span4">
                     <h3>Monitoring</h3>
                     <p>
                         <ul>
                             <li><a href="webentities_list.php">List of web entities</a></li>
-                            <li><a href="csv_diagnostic.php">Diagnostic from a CSV file</a></li>
                         </ul>
                     </p>
                     <br/>
