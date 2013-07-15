@@ -50,9 +50,9 @@ HypheCommons.domino_init()
                 ,type: 'array'
                 ,value: []
             },{
-                id:'webentitiesById'
-                ,dispatch: 'webentitiesById_updated'
-                ,triggers: 'update_webentitiesById'
+                id:'webentities_byId'
+                ,dispatch: 'webentities_byId_updated'
+                ,triggers: 'update_webentities_byId'
                 ,type: 'object'
                 ,value: {}
             },{
@@ -69,6 +69,30 @@ HypheCommons.domino_init()
                 id:'urlColumnId'
                 ,dispatch: 'urlColumnId_updated'
                 ,triggers: 'update_urlColumnId'
+            },{
+                id:'taskBags'
+                ,type: 'array'
+                ,value: []
+                ,dispatch: 'taskBags_updated'
+                ,triggers: 'update_taskBags'
+            },{
+                id:'taskBags_byId'
+                ,type: 'object'
+                ,value: {}
+                ,dispatch: 'taskBags_byId_updated'
+                ,triggers: 'update_taskBags_byId'
+            },{
+                id:'tasks'
+                ,type: 'array'
+                ,value: []
+                ,dispatch: 'tasks_updated'
+                ,triggers: 'update_tasks'
+            },{
+                id:'tasks_byId'
+                ,type: 'object'
+                ,value: {}
+                ,dispatch: 'tasks_byId_updated'
+                ,triggers: 'update_tasks_byId'
             }
         ]
 
@@ -113,13 +137,13 @@ HypheCommons.domino_init()
                         } else {
                             var we = data[0].result
                                 ,webentities = this.get('webentities')
-                                ,webentities_byId = this.get('webentitiesById')
+                                ,webentities_byId = this.get('webentities_byId')
                                 ,webentities_byLruPrefix = this.get('webentitiesByLruPrefix')
                                 
                             webentities_byId[we.id] = we
                             var webentities = d3.values(webentities_byId)
                             this.update('webentities', webentities)
-                            this.update('webentitiesById', webentities_byId)
+                            this.update('webentities_byId', webentities_byId)
 
                             we.lru_prefixes.forEach(function(lru){
                                 webentities_byLruPrefix[lru] = we
@@ -131,6 +155,76 @@ HypheCommons.domino_init()
                                 ,url: input.url
                             })
                         }
+                    }
+            },{
+                id: 'webentityAddPrefix'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.PREFIX.ADD,
+                        'params' : [
+                            settings.webentityId
+                            ,settings.lru
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect
+                ,before: function(){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries + 1 )
+                    }
+                ,error: function(data, xhr, input){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries - 1 )
+                        this.dispatchEvent('callback_prefixAdded', {
+                            webentityId: input.webentityId
+                            ,lru: input.lru
+                            ,taskId: input.taskId
+                            ,errorMessage: 'RPC Error'
+                        })
+
+                        rpc_error(data, xhr, input)
+                    }
+                ,success: function(data, input){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries - 1 )
+                        this.dispatchEvent('callback_prefixAdded', {
+                            webentityId: input.webentityId
+                            ,lru: input.lru
+                            ,taskId: input.taskId
+                        })
+                    }
+            },{
+                id: 'webentityMerge'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.MERGE,
+                        'params' : [
+                            settings.oldWebentityId
+                            ,settings.goodWebentityId
+                            ,false   // Include tags
+                            ,false   // Include Home and Startpages as Startpages
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect
+                ,before: function(){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries + 1 )
+                    }
+                ,error: function(data, xhr, input){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries - 1 )
+                        this.dispatchEvent('callback_webentityMerged', {
+                            webentityId: input.goodWebentityId
+                            ,taskId: input.taskId
+                            ,errorMessage: 'RPC Error'
+                        })
+
+                        rpc_error(data, xhr, input)
+                    }
+                ,success: function(data, input){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries - 1 )
+                        this.dispatchEvent('callback_webentityMerged', {
+                            webentityId: input.goodWebentityId
+                            ,taskId: input.taskId
+                        })
                     }
             }
         ]
@@ -162,6 +256,76 @@ HypheCommons.domino_init()
                 // On validate, trigger the begining of the analysis
                 triggers: ['ui_validateColumns']
                 ,dispatch: ['beginAnalysis']
+            },{
+                // When a row is done, update the tasks
+                triggers: ['rowDiagnosticUpdated']
+                ,method: function(e){
+                    var taskBag = e.data.taskBag
+                        ,taskBags = this.get('taskBags')
+                        ,taskBags_byId = this.get('taskBags_byId')
+                                
+                    taskBags_byId[taskBag.id] = taskBag
+                    var taskBags = d3.values(taskBags_byId)
+                    this.update('taskBags_byId', taskBags_byId)
+                    this.update('taskBags', taskBags)
+                }
+            },{
+                // When the tasks are updated, if there is nothing left to wait, stack tasks and finalize
+                triggers: ['taskBags_updated']
+                ,method: function(e){
+                    if($('[data-status=waiting]').length == 0){
+                        var taskBags = this.get('taskBags')
+                            ,tasks = []
+                            ,tasks_byId = {}
+                        taskBags.forEach(function(taskBag){
+                            tasks = tasks.concat(
+                                taskBag.tasks.map(function(task, i){
+                                    task.status = 'waiting'
+                                    task.bagId = taskBag.id
+                                    task.id = taskBag.id+'-'+i
+                                    return task
+                                })
+                            )
+                        })
+                        tasks.forEach(function(task){
+                            tasks_byId[task.id] = task
+                        })
+                        this.update('tasks', tasks)
+                        this.update('tasks_byId', tasks_byId)
+                        this.dispatchEvent('finalize')
+                    }
+                }
+            },{
+                // On apply changes, cascade the tasks
+                triggers: ['ui_applyChanges']
+                ,method: function(e){
+                    this.dispatchEvent('cascadeTask')
+                }
+            },{
+                // On cascade task, execute the first non executed task
+                triggers: ['cascadeTask']
+                ,method: function(e){
+                    var tasks = this.get('tasks')
+                        ,queriesLimit = this.get('queriesLimit')
+                        ,currentQueries = this.get('currentQueries')
+                        
+                    // Are there tasks still to execute ?
+                    var waitingTasks = tasks.filter(function(t){return t.status == 'waiting'})
+                    if(waitingTasks.length > 0){
+                        // Get the first non executed tasks, depending on free queries
+                        for(i = 0; i < 1; i++){
+                        // for(i = 0; i < queriesLimit - currentQueries && i < waitingTasks.length; i++){
+                            var task = waitingTasks[i]
+                            task.status = 'pending'
+                            if(Math.random()<0.8)
+                                this.dispatchEvent('taskExecuted', {taskId: task.id})
+                            else
+                                this.dispatchEvent('taskExecuted', {taskId: task.id, errorMessage: 'gaga'})
+
+                        }
+                        this.dispatchEvent('cascadeTask')
+                    }
+                }
             }
         ]
     })
@@ -314,7 +478,7 @@ HypheCommons.domino_init()
                 .append($('<br/>'))
                 .append($('<br/>'))
                 .append(
-                        $('<p/>').html('Is there a column for <strong>names</strong>?')
+                        $('<p/>').html('Is there a column for <strong>names</strong>? <small class="muted">(optional)</span>')
                     )
                 .append(
                         $('<select id="nameColumn" class="span6"/>')
@@ -535,7 +699,7 @@ HypheCommons.domino_init()
             var elements = $('.prefix[data-url-prefix-md5='+$.md5(url)+'][data-status!=fetched]')
             if(elements.length > 0){
                 if(we_id !== undefined && webentities_byLruPrefix[lru] && webentities_byLruPrefix[lru].id == we_id){
-                    var webentities_byId = provider.get('webentitiesById')
+                    var webentities_byId = provider.get('webentities_byId')
                         ,we = webentities_byId[we_id]
                     elements.html('')
                         .attr('data-status', 'fetched')
@@ -663,6 +827,7 @@ HypheCommons.domino_init()
                 ,sourceJsonLru = Utils.LRU_to_JSON_LRU(sourceLru)
                 ,items = []
                 ,analysisElement = rowElement.find('.col-analysis')
+                ,taskBag = {id: rowElement.attr('data-row-id'), tasks: []}        // This is for batch operations. We fill it during the diagnostic
 
             // Build the table of what is checked
             checkboxes.each(function(i, e){
@@ -953,6 +1118,54 @@ HypheCommons.domino_init()
                 && (!inclusionIssue || inclusionIssue_solved)
                 && (!wwwDiscrepancy || wwwDiscrepancy_solved)
             
+            // Building the taskBag
+            // Merge
+            if(merge){
+                var webentitiesToMerge = Utils.extractCases(
+                    checkedItems
+                        .filter(function(item){return item.we_id !== undefined && item.we_id != ''})
+                        .map(function(item){return item.we_id})
+                )
+                for(i=1; i<webentitiesToMerge.length; i++){
+                    taskBag.tasks.push({
+                        type:'merge'
+                        ,mergeTo: webentitiesToMerge[0]
+                        ,mergeFrom: webentitiesToMerge[i]
+                    })
+                }
+                var checkedPrefixItems = checkedItems.filter(function(item){return item.we_id === undefined || item.we_id == ''})
+                if(checkedPrefixItems.length > 0){
+                    checkedPrefixItems.forEach(function(item){
+                        taskBag.tasks.push({
+                            type:'addPrefix'
+                            ,prefix: item.lru
+                            ,addTo: webentitiesToMerge[0]
+                        })
+                    })
+                }
+            }
+            // Add prefix
+            if(prefixesAdded){
+                var checkedPrefixItems = checkedItems.filter(function(item){return item.we_id === undefined || item.we_id == ''})
+                    ,targetWebentityId = checkedItems.filter(function(item){return item.we_id !== undefined && item.we_id != ''})[0].we_id
+                if(checkedPrefixItems.length > 0){
+                    checkedPrefixItems.forEach(function(item){
+                        taskBag.tasks.push({
+                            type:'addPrefix'
+                            ,prefix: item.lru
+                            ,addTo: targetWebentityId[0]
+                        })
+                    })
+                }
+            }
+            // New web entity
+            if(newWebEntity){
+                taskBag.tasks.push({
+                    type:'declare'
+                    ,prefixes: checkedItems.map(function(item){return item.lru})
+                })
+            }
+
             // Display inclusion issue
             if(inclusionIssue){
                 if(!inclusionIssue_solved){
@@ -1157,7 +1370,12 @@ HypheCommons.domino_init()
                     )
             }
 
-            _self.dispatchEvent('rowDiagnosticUpdated')
+
+            _self.dispatchEvent('rowDiagnosticUpdated', {taskBag: taskBag})
+        }
+
+        var freeze = function(){
+            element.find('input[type=checkbox]').attr('disabled', true)
         }
 
         this.triggers.events['beginAnalysis'] = initialize
@@ -1166,6 +1384,7 @@ HypheCommons.domino_init()
         this.triggers.events['ui_updateRowAnalysis'] = function(provider, e){
             updateAnalysis($('div.diagnostic-row[data-row-id='+e.data.rowId+']'), false)
         }
+        this.triggers.events['ui_applyChanges'] = freeze
     })
 
     
@@ -1178,42 +1397,182 @@ HypheCommons.domino_init()
             ,_self = this
 
         var update = function(provider, e){
+            var tasks = provider.get('tasks')
+                ,declareCount = tasks.filter(function(task){return task.type == 'declare'}).length
+                ,addPrefixCount = tasks.filter(function(task){return task.type == 'addPrefix'}).length
+                ,mergeCount = tasks.filter(function(task){return task.type == 'merge'}).length
             element.html('')
-            if($('[data-status=waiting]').length == 0){
-                element
-                    .append(
-                            $('<h3>4. Apply changes</h3>')
-                        )
-                    .append(
-                            $('<p class="text-info"/>')
-                                .append(
-                                        $('<span>X web entities will be created</span>')
-                                    )
-                                .append($('<br/>'))
-                                .append(
-                                        $('<span>X web entities will have prefixes added</span>')
-                                    )
-                                .append($('<br/>'))
-                                .append(
-                                        $('<span>X web entities will be merged</span>')
-                                    )
-                        )
-                    .append(
-                            $('<p/>')
-                                .append(
-                                        $('<a class="btn btn-primary btn-block">Apply changes</a>')
-                                    )
-                        )
-            }
+                .append(
+                        $('<h3>4. Apply changes</h3>')
+                    )
+                .append(
+                        $('<div id="tasks_declare"/>')
+                            .append(
+                                    $('<p class="text-info"/>')
+                                        .append(
+                                                $('<span>'+declareCount+' web entit'+((declareCount>1)?('ies'):('y'))+' will be created</span>')
+                                            )
+                                )
+                    )
+                .append(
+                        $('<div id="tasks_addPrefix"/>')
+                            .append(
+                                    $('<p class="text-info"/>')
+                                        .append(
+                                                $('<span>'+addPrefixCount+' prefix'+((addPrefixCount>1)?('es'):(''))+' will be added to '+((addPrefixCount>1)?('web entities'):('a web entity'))+'</span>')
+                                            )
+                                )
+                    )
+                .append(
+                        $('<div id="tasks_merge"/>')
+                            .append(
+                                    $('<p class="text-info"/>')
+                                        .append(
+                                                $('<span>'+mergeCount+' web entit'+((mergeCount>1)?('ies'):('y'))+' will be merged into another one</span>')
+                                            )
+                                )
+                    )
+                .append(
+                        $('<div class="row"/>')
+                            .append(
+                                    $('<div class="span4"/>')
+                                        .append(
+                                                $('<a class="btn btn-primary btn-block" id="applyChangesButton">Apply changes</a>')
+                                                    .click(function(){
+                                                        if($(this).attr('disabled') === undefined)
+                                                            _self.dispatchEvent('ui_applyChanges')
+                                                    })
+                                            )
+                                )
+                    )
                 
         }
 
-        this.triggers.events['rowDiagnosticUpdated'] = update
+        var initLoadbars = function(provider, e){
+            var tasks = provider.get('tasks')
+                ,declareCount = tasks.filter(function(task){return task.type == 'declare'}).length
+                ,addPrefixCount = tasks.filter(function(task){return task.type == 'addPrefix'}).length
+                ,mergeCount = tasks.filter(function(task){return task.type == 'merge'}).length
+                ,declareElement = $('#tasks_declare')
+                ,addPrefixElement = $('#tasks_addPrefix')
+                ,mergeElement = $('#tasks_merge')
+
+            declareElement.html('<div class="progress"><div class="bar regular" style="width: 0%;">0/'+declareCount+' web entity declared</div><div class="bar bar-danger error" style="width: 0%;"></div></div>')
+                .attr('data-total', declareCount)
+                .attr('data-current', 0)
+                .attr('data-error', 0)
+            addPrefixElement.html('<div class="progress"><div class="bar regular" style="width: 0%;">0/'+addPrefixCount+' prefix added</div><div class="bar bar-danger error" style="width: 0%;"></div></div>')
+                .attr('data-total', addPrefixCount)
+                .attr('data-current', 0)
+                .attr('data-error', 0)
+            mergeElement.html('<div class="progress"><div class="bar regular" style="width: 0%;">0/'+mergeCount+' web entity merged</div><div class="bar bar-danger error" style="width: 0%;"></div></div>')
+                .attr('data-total', mergeCount)
+                .attr('data-current', 0)
+                .attr('data-error', 0)
+
+            if (declareCount == 0) {
+                var bar = declareElement.find('div.progress .bar.regular')
+                bar.css('width', '100%')
+            }
+
+            if (addPrefixCount == 0) {
+                var bar = addPrefixElement.find('div.progress .bar.regular')
+                bar.css('width', '100%')
+            }
+
+            if (mergeCount == 0) {
+                var bar = mergeElement.find('div.progress .bar.regular')
+                bar.css('width', '100%')
+            }
+
+            $('#applyChangesButton').attr('disabled', true)
+                .removeClass('btn-primary')
+                .addClass('btn-warning')
+                .text('Do not quit this page until end of process...')
+        }
+
+        var updateLoadbars = function(provider, e){
+            var tasks_byId = provider.get('tasks_byId')
+                ,task = tasks_byId[e.data.taskId]
+                ,declareElement = $('#tasks_declare')
+                ,addPrefixElement = $('#tasks_addPrefix')
+                ,mergeElement = $('#tasks_merge')
+                ,declareCurrent = +declareElement.attr('data-current')
+                ,declareError = +declareElement.attr('data-error')
+                ,declareTotal = +declareElement.attr('data-total')
+                ,addPrefixCurrent = +addPrefixElement.attr('data-current')
+                ,addPrefixError = +addPrefixElement.attr('data-error')
+                ,addPrefixTotal = +addPrefixElement.attr('data-total')
+                ,mergeCurrent = +mergeElement.attr('data-current')
+                ,mergeError = +mergeElement.attr('data-error')
+                ,mergeTotal = +mergeElement.attr('data-total')
+
+            if(e.data.errorMessage === undefined){
+                if(task.type == 'declare'){
+                    var bar = declareElement.find('div.progress .bar.regular')
+                        ,declareCount = declareCurrent + 1
+                    declareElement.attr('data-current', declareCount)
+                    bar.css('width', (100*declareCount/declareTotal)+'%')
+                    bar.text(declareCount+'/'+declareTotal+' web entit'+((declareCount>1)?('ies'):('y'))+' declared')
+                
+                } else if(task.type == 'addPrefix'){
+                    var bar = addPrefixElement.find('div.progress .bar.regular')
+                        ,addPrefixCount = addPrefixCurrent + 1
+                    addPrefixElement.attr('data-current', addPrefixCount)
+                    bar.css('width', (100*addPrefixCount/addPrefixTotal)+'%')
+                    bar.text(addPrefixCount+'/'+addPrefixTotal+' prefix'+((addPrefixCount>1)?('es'):(''))+' added')
+                
+                } else if(task.type == 'merge'){
+                    var bar = mergeElement.find('div.progress .bar.regular')
+                        ,mergeCount = mergeCurrent + 1
+                    mergeElement.attr('data-current', mergeCount)
+                    bar.css('width', (100*mergeCount/mergeTotal)+'%')
+                    bar.text(mergeCount+'/'+mergeTotal+' web entit'+((mergeCount>1)?('ies'):('y'))+' merged')
+                }
+            } else {
+                if(task.type == 'declare'){
+                    var bar = declareElement.find('div.progress .bar.error')
+                        ,declareCount = declareError + 1
+                    declareElement.attr('data-error', declareCount)
+                    bar.css('width', (100*declareCount/declareTotal)+'%')
+                    bar.text(declareCount+' error'+((declareCount>1)?('s'):('')))
+                
+                } else if(task.type == 'addPrefix'){
+                    var bar = addPrefixElement.find('div.progress .bar.error')
+                        ,addPrefixCount = addPrefixError + 1
+                    addPrefixElement.attr('data-error', addPrefixCount)
+                    bar.css('width', (100*addPrefixCount/addPrefixTotal)+'%')
+                    bar.text(addPrefixCount+' error'+((addPrefixCount>1)?('s'):('')))
+                
+                } else if(task.type == 'merge'){
+                    var bar = mergeElement.find('div.progress .bar.error')
+                        ,mergeCount = mergeError + 1
+                    mergeElement.attr('data-error', mergeCount)
+                    bar.css('width', (100*mergeCount/mergeTotal)+'%')
+                    bar.text(mergeCount+' error'+((mergeCount>1)?('s'):('')))
+                }
+            }
+
+            if(declareCurrent + addPrefixCurrent + mergeCurrent + declareError + addPrefixError + mergeError + 1 == declareTotal + addPrefixTotal + mergeTotal){
+                declareElement.find('.bar.regular').addClass('bar-success')
+                addPrefixElement.find('.bar.regular').addClass('bar-success')
+                mergeElement.find('.bar.regular').addClass('bar-success')
+                $('#applyChangesButton').attr('disabled', true)
+                    .removeClass('btn-warning')
+                    .addClass('btn-success')
+                    .text('Process successful')
+            }
+        }
+
+        this.triggers.events['finalize'] = update
+        this.triggers.events['ui_applyChanges'] = initLoadbars
+        this.triggers.events['taskExecuted'] = updateLoadbars
+
     })    
 
 
     //// Processing
-
+    
 
     /// Misc functions
     window.FileLoader = function(){

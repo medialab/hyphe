@@ -29,7 +29,7 @@
 }
 
 .diagnostic-row{
-    border-top: 1px solid #f6f6f6;
+    border-top: 1px solid #eee;
     padding-top: 10px;
     padding-bottom: 5px;
 }
@@ -100,11 +100,6 @@
                     <div id="columnselector"></div>
                     <div id="diagnostic"></div>
                     <hr/>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="span4">
                     <div id="finalization"></div>
                 </div>
             </div>
