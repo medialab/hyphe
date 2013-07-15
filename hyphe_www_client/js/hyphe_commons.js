@@ -8,7 +8,7 @@
 	        alert('Your installation of Hyphe has no configuration.\nCreate a file at "_config/config.js" in the same directory than index.php, with at least this content:\n\nHYPHE_CONFIG = {\n"SERVER_ADDRESS":"http://YOUR_RPC_ENDPOINT_URL"\n}')
 	    }
 	    Messenger.options = {
-			extraClasses: 'messenger-fixed messenger-on-top',
+			extraClasses: 'messenger-fixed messenger-on-top messenger-on-right',
 			theme: 'block'
 		}
 	}
@@ -42,7 +42,7 @@
 	){
 		// alert('Oops, an error occurred... \n'+data)
 		Messenger().post({
-		    message: '<strong>Oops, an error occurred</strong> when communicating with the server\n<br/>\n"'+data+'"'
+		    message: '<strong>Oops</strong> something failed when communicating with the server\n<br/>\n"'+data+'"'
 		    ,type: 'error'
 		    ,showCloseButton: true
 		    /*,actions: {
