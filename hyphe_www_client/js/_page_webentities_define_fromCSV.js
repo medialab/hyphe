@@ -1,7 +1,7 @@
 HypheCommons.js_file_init()
 HypheCommons.domino_init()
 
-domino.settings({verbose:false})
+// domino.settings({verbose:false})
 
 ;(function($, domino, dmod, undefined){
     
@@ -61,6 +61,10 @@ domino.settings({verbose:false})
                 ,triggers: 'update_webentitiesByLruPrefix'
                 ,type: 'object'
                 ,value: {}
+            },{
+                id:'nameColumnId'
+                ,dispatch: 'nameColumnId_updated'
+                ,triggers: 'update_nameColumnId'
             },{
                 id:'urlColumnId'
                 ,dispatch: 'urlColumnId_updated'
@@ -135,7 +139,7 @@ domino.settings({verbose:false})
         ,hacks:[
             {
                 // Some events that need to be registered
-                triggers: ['loading_started', 'loading_completed', 'update_loadingProgress', 'request_cascade', 'ui_updateRowAnalysis']
+                triggers: ['loading_started', 'loading_completed', 'update_loadingProgress', 'request_cascade', 'ui_updateRowAnalysis', 'cascadeFinished', 'rowDiagnosticUpdated']
             },{
                 // Parsing the CSV
                 triggers: ['loading_completed']
@@ -154,6 +158,10 @@ domino.settings({verbose:false})
                         url: url
                     })
                 }
+            },{
+                // On validate, trigger the begining of the analysis
+                triggers: ['ui_validateColumns']
+                ,dispatch: ['beginAnalysis']
             }
         ]
     })
@@ -270,22 +278,102 @@ domino.settings({verbose:false})
 
         var update = function(provider, e){
             var table = provider.get('dataTable')
+                ,urlColumnPreselect = -1
+                ,nameColumnPreselect = -1
+            table[0].forEach(function(d,i){
+                var text = d.toLowerCase()
+                if(urlColumnPreselect == -1 && (text.indexOf('url') >= 0 || text.indexOf('adresse') >= 0 || text.indexOf('address') >= 0 || text.indexOf('lien') >= 0 || text.indexOf('link') >= 0)){
+                    urlColumnPreselect = i
+                }
+                if(nameColumnPreselect == -1 && (text.indexOf('name') >= 0 || text.indexOf('nom') >= 0 || text.indexOf('title') >= 0 || text.indexOf('titre') >= 0 || text.indexOf('label') >= 0)){
+                    nameColumnPreselect = i
+                }
+            })
             element.html('')
                 .append(
-                        $('<h3>Select a column containing URLs</h3>')
+                        $('<h3>2. Select columns</h3>')
                     )
                 .append(
-                        $('<select id="column" class="span6"/>')
+                        $('<p/>').html('Which column contains <strong>URLs</strong>?')
+                    )
+                .append(
+                        $('<select id="urlColumn" class="span6"/>')
                             .append($('<option value="none">Choose a column...</option>'))
-                            .append(table[0].map(function(d,i){return '<option value="'+i+'">'+d+'</option>';}))
+                            .append(table[0].map(function(d,i){
+                                    var optEl = $('<option value="'+i+'">'+d+'</option>')
+                                    if(urlColumnPreselect == i){
+                                        optEl.attr('selected', true)
+                                    }
+                                    return optEl
+                                }))
                             .on('change', function(){
-                                    var colId = $(this).val()
-                                    _self.dispatchEvent('update_urlColumnId', {urlColumnId: colId})
+                                    var urlColId = $(this).val()
+                                    _self.dispatchEvent('update_urlColumnId', {urlColumnId: urlColId})
                                 })
                     )
+                .append($('<br/>'))
+                .append($('<br/>'))
+                .append(
+                        $('<p/>').html('Is there a column for <strong>names</strong>?')
+                    )
+                .append(
+                        $('<select id="nameColumn" class="span6"/>')
+                            .append($('<option value="none">No column for names</option>'))
+                            .append(table[0].map(function(d,i){
+                                    var optEl = $('<option value="'+i+'">'+d+'</option>')
+                                    if(nameColumnPreselect == i){
+                                        optEl.attr('selected', true)
+                                    }
+                                    return optEl
+                                }))
+                            .on('change', function(){
+                                    var nameColId = $(this).val()
+                                    _self.dispatchEvent('update_nameColumnId', {nameColumnId: nameColId})
+                                })
+                    )
+                .append($('<br/>'))
+                .append($('<br/>'))
+                .append(
+                        $('<p/>')
+                            .append(
+                                    $('<a class="btn" id="validateColumnButton">Validate columns</a>')
+                                        .click(function(){
+                                            if(!$(this).prop('disabled')){
+                                                _self.dispatchEvent('ui_validateColumns')
+                                            }
+                                        })
+                                )
+                    )
+                .append($('<br/>'))
+                .append($('<br/>'))
+
+                if(urlColumnPreselect >= 0){
+                    _self.dispatchEvent('update_urlColumnId', {urlColumnId: urlColumnPreselect})
+                }
+                if(nameColumnPreselect >= 0){
+                    _self.dispatchEvent('update_nameColumnId', {nameColumnId: nameColumnPreselect})
+                }
+                
+        }
+
+        var updateValidateState = function(provider){
+            var colId = provider.get('urlColumnId')
+            if(colId && colId >= 0){
+                $('#validateColumnButton').removeAttr('disabled')
+            } else {
+                $('#validateColumnButton').attr('disabled', true)
+            }
+        }
+
+        var freeze = function(){
+            $('#urlColumn').attr('disabled', true)
+            $('#nameColumn').attr('disabled', true)
+            $('#validateColumnButton').attr('disabled', true)
         }
 
         this.triggers.events['dataTable_updated'] = update
+        this.triggers.events['nameColumnId_updated', 'urlColumnId_updated'] = updateValidateState
+        this.triggers.events['beginAnalysis'] = freeze
     })
 
     // Diagnostic
@@ -306,14 +394,19 @@ domino.settings({verbose:false})
 
         var initialize = function(provider, e){
             var table = provider.get('dataTable')
-                ,colId = provider.get('urlColumnId')
+                ,urlColId = provider.get('urlColumnId')
+                ,nameColId = provider.get('nameColumnId')
                 ,queriesLimit = provider.get('queriesLimit')
                 ,headline = table[0]
                 ,rows = table.filter(function(d,i){return i>0})
 
             element.html('')
                 .append(
-                        $('<h3>Diagnostic</h3>')
+                        $('<h3>3. Diagnostic</h3>')
+                    )
+                .append(
+                        $('<p class="text-info"/>')
+                            .text('Review this table and validate changes below (step 4.)')
                     )
                 .append(
                         $('<div class="row header-row"/>')
@@ -332,7 +425,7 @@ domino.settings({verbose:false})
                         )
                 .append(
                         rows.map(function(row, i){
-                            var url = Utils.URL_fix(row[colId])
+                            var url = Utils.URL_fix(row[urlColId])
                             if(url==''){
                                 return $('<div class="row"/>')
                             }
@@ -344,7 +437,14 @@ domino.settings({verbose:false})
                                         $('<div class="span3 col-url"/>')
                                             .append(
                                                     $('<span class="urlContainer"/>')
-                                                        .text(Utils.URL_simplify(row[colId]))
+                                                        .text(Utils.URL_simplify(row[urlColId]))
+                                                )
+                                            .append(
+                                                    $('<br/>')
+                                                )
+                                            .append(
+                                                    $('<span class="muted"/>')
+                                                        .text(row[nameColId])
                                                 )
                                     )
                                 .append(
@@ -359,6 +459,7 @@ domino.settings({verbose:false})
                                     )
                                 .append(
                                         $('<div class="span3 col-analysis"/>')
+                                            .attr('data-status', 'waiting')
                                             .append(
                                                     $('<span class="muted"/>')
                                                         .text('waiting')
@@ -623,7 +724,8 @@ domino.settings({verbose:false})
                      - Creating a web entity: one or more w.e.-less prefixes are checked, and them only
                      - Adding prefixes to a web entity: a single w.e. prefix is checked and one or more w.e.-less prefixes are checked
                      - Merging web entities: prefixes checked are associated to two or more (different) w.e.. Also there can be added prefixes
-            ****************/
+            
+            */
 
 
             // Determine the matching item (there should always be one since the original lru is always in candidate prefixes)
@@ -793,9 +895,16 @@ domino.settings({verbose:false})
             var homepageMistake = checkedItems.some(function(item){
                     return item.lru.indexOf(':home|')>=0
                         || item.lru.indexOf(':index|')>=0
+                        || item.lru.indexOf(':accueil|')>=0
                         || item.lru.indexOf(':home.')>=0
                         || item.lru.indexOf(':index.')>=0
+                        || item.lru.indexOf(':accueil.')>=0
                 })
+
+            // #warning - Page as a web entity: 1 checked prefix that is a page (except if already Homepage mistake, because redundancy)
+            var webentityAsPage = checkedItems.length == 1
+                && Utils.LRU_to_JSON_LRU(checkedItems[0].lru).path.filter(function(p){return p.indexOf('.')>=0}).length>0
+                && !homepageMistake
 
             // #note - New web entity: if only w.e.-less prefixes are checked, a new w.e. will be created with all of them
             var newWebEntity = checkedItems.length>0
@@ -834,11 +943,20 @@ domino.settings({verbose:false})
 
             var analysisElement = rowElement.find('.col-analysis')
             analysisElement.html('')
+                .attr('data-status', 'diagnostic-done')
+
+            // #note - Already defined: Nothing will be done, but something is checked
+            var alreadyDefined = (!noPrefixChosen || noPrefixChosen_solved)
+                && !newWebEntity
+                && !prefixesAdded
+                && !merge
+                && (!inclusionIssue || inclusionIssue_solved)
+                && (!wwwDiscrepancy || wwwDiscrepancy_solved)
             
             // Display inclusion issue
             if(inclusionIssue){
                 if(!inclusionIssue_solved){
-                    var overWebEntity_item = items.filter(function(item){
+                    /*var overWebEntity_item = items.filter(function(item){
                             var item_jsonLru = Utils.LRU_to_JSON_LRU(item.lru)
                                 ,item_jsonLru_wwwAdded = item_jsonLru
                             item_jsonLru_wwwAdded.host.push('www')
@@ -849,7 +967,7 @@ domino.settings({verbose:false})
                                 && item_lru_wwwAdded != matchingItem.lru
                         })[0]
                         ,overWebEntity_name = overWebEntity_item.element.parent().find('.webentity-name[data-webentity-id='+overWebEntity_item.we_id+']').text()
-
+*/
                     analysisElement.append(
                             $('<p/>')
                                 .append(
@@ -857,22 +975,22 @@ domino.settings({verbose:false})
                                     )
                                 .append(
                                         $('<small class="text-error"/>')
-                                            .text(' - The source URL does not define its own web entity, but belongs to a more generic web entity: ')
+                                            .text(' - The source URL does not define its own web entity, but belongs to a more generic web entity')
                                     )
-                                .append(
+                                /*.append(
                                         $('<small class="text-error"/>')
                                             .append(
                                                     $('<strong/>').text(overWebEntity_name)
                                                 )
-                                    )
+                                    )*/
                         )
-                } else {
+                }/* else {
                     analysisElement.append(
                             $('<p class="muted"/>').append(
                                     $('<del/>').html('<span>&nbsp; Inclusion Issue &nbsp;</span>')
                                 )
                         )
-                }
+                }*/
             }
 
             // Display https separated issue
@@ -888,13 +1006,13 @@ domino.settings({verbose:false})
                                             .text(' - Check the HTTP and HTTPS versions of the same URL. They should probably be in the same web entity. The HTTPS protocol is for secure connections.')
                                     )
                         )
-                } else {
+                }/* else {
                     analysisElement.append(
                             $('<p class="muted"/>').append(
                                     $('<del/>').html('<span>&nbsp; HTTPS Issue &nbsp;</span>')
                                 )
                         )
-                }
+                }*/
             }
 
             // Display no prefix chosen issue
@@ -910,13 +1028,13 @@ domino.settings({verbose:false})
                                             .text(' - No prefix is chosen for this URL. Hyphe does not know it exists (yet). Check a prefix to define a web entity.')
                                     )
                         )
-                } else {
+                }/* else {
                     analysisElement.append(
                             $('<p class="muted"/>').append(
                                     $('<del/>').html('<span>&nbsp; No prefix &nbsp;</span>')
                                 )
                         )
-                }
+                }*/
             }
 
             // Display www discrepancy issue
@@ -929,16 +1047,16 @@ domino.settings({verbose:false})
                                     )
                                 .append(
                                         $('<small class="text-error"/>')
-                                            .text(' - There is a prefix without the WWW and it is not in the same web entity. These are probably the same web entity (exceptions exist though)')
+                                            .text(' - There is a prefix without the WWW and it is not in the same web entity. With and without "www." are probably the same, though exceptions exist.')
                                     )
                         )
-                } else {
+                }/* else {
                     analysisElement.append(
                             $('<p class="muted"/>').append(
                                     $('<del/>').html('<span>&nbsp; WWW discrepancy &nbsp;</span>')
                                 )
                         )
-                }
+                }*/
             }
 
             // Display homepage mistake
@@ -951,6 +1069,20 @@ domino.settings({verbose:false})
                             .append(
                                     $('<small class="text-error"/>')
                                         .text(' - A prefix seems to be a home page. You should choose a shorter prefix to allow different pages in the web entity.')
+                                )
+                    )
+            }
+
+            // Display Webentity as a page
+            if(webentityAsPage){
+                analysisElement.append(
+                        $('<p/>')
+                            .append(
+                                    $('<strong class="text-warning">Page as a web entity</strong>')
+                                )
+                            .append(
+                                    $('<small class="text-warning"/>')
+                                        .text(' - Defines a web entity with a page. Just make sure that it is what you want.')
                                 )
                     )
             }
@@ -1011,15 +1143,73 @@ domino.settings({verbose:false})
                     )
             }
 
+            // Display already defined
+            if(alreadyDefined){
+                analysisElement.append(
+                        $('<p/>')
+                            .append(
+                                    $('<strong class="text-success">Already defined</strong>')
+                                )
+                            .append(
+                                    $('<small class="text-success"/>')
+                                        .text(' - Web entity defined for this URL')
+                                )
+                    )
+            }
+
+            _self.dispatchEvent('rowDiagnosticUpdated')
         }
 
-        this.triggers.events['urlColumnId_updated'] = initialize
+        this.triggers.events['beginAnalysis'] = initialize
         this.triggers.events['request_cascade'] = cascade
         this.triggers.events['callback_webentityFetched'] = updateWebentityFetch
         this.triggers.events['ui_updateRowAnalysis'] = function(provider, e){
             updateAnalysis($('div.diagnostic-row[data-row-id='+e.data.rowId+']'), false)
         }
     })
+
+    
+
+    // Finalization
+    D.addModule(function(){
+        domino.module.call(this)
+
+        var element = $('#finalization')
+            ,_self = this
+
+        var update = function(provider, e){
+            element.html('')
+            if($('[data-status=waiting]').length == 0){
+                element
+                    .append(
+                            $('<h3>4. Apply changes</h3>')
+                        )
+                    .append(
+                            $('<p class="text-info"/>')
+                                .append(
+                                        $('<span>X web entities will be created</span>')
+                                    )
+                                .append($('<br/>'))
+                                .append(
+                                        $('<span>X web entities will have prefixes added</span>')
+                                    )
+                                .append($('<br/>'))
+                                .append(
+                                        $('<span>X web entities will be merged</span>')
+                                    )
+                        )
+                    .append(
+                            $('<p/>')
+                                .append(
+                                        $('<a class="btn btn-primary btn-block">Apply changes</a>')
+                                    )
+                        )
+            }
+                
+        }
+
+        this.triggers.events['rowDiagnosticUpdated'] = update
+    })    
 
 
     //// Processing
