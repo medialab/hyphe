@@ -1,7 +1,7 @@
 HypheCommons.js_file_init()
 HypheCommons.domino_init()
 
-// domino.settings({verbose:false})
+domino.settings({verbose:false})
 
 ;(function($, domino, dmod, undefined){
     
@@ -173,7 +173,7 @@ HypheCommons.domino_init()
                 ,error: function(data, xhr, input){
                         var currentQueries = this.get('currentQueries')
                         this.update('currentQueries', currentQueries - 1 )
-                        this.dispatchEvent('callback_prefixAdded', {
+                        this.dispatchEvent('callback_webentityPrefixAdded', {
                             webentityId: input.webentityId
                             ,lru: input.lru
                             ,taskId: input.taskId
@@ -185,7 +185,7 @@ HypheCommons.domino_init()
                 ,success: function(data, input){
                         var currentQueries = this.get('currentQueries')
                         this.update('currentQueries', currentQueries - 1 )
-                        this.dispatchEvent('callback_prefixAdded', {
+                        this.dispatchEvent('callback_webentityPrefixAdded', {
                             webentityId: input.webentityId
                             ,lru: input.lru
                             ,taskId: input.taskId
@@ -222,6 +222,37 @@ HypheCommons.domino_init()
                         var currentQueries = this.get('currentQueries')
                         this.update('currentQueries', currentQueries - 1 )
                         this.dispatchEvent('callback_webentityMerged', {
+                            webentityId: input.goodWebentityId
+                            ,taskId: input.taskId
+                        })
+                    }
+            },{
+                id: 'webentityDeclare'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.CREATE_BY_LRU,
+                        'params' : [
+                            settings.prefixes[0] // TO FIX AFTER API CHANGE
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect
+                ,before: function(){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries + 1 )
+                    }
+                ,error: function(data, xhr, input){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries - 1 )
+                        this.dispatchEvent('callback_webentityDeclared', {
+                            taskId: input.taskId
+                            ,errorMessage: 'RPC Error'
+                        })
+
+                        rpc_error(data, xhr, input)
+                    }
+                ,success: function(data, input){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries - 1 )
+                        this.dispatchEvent('callback_webentityDeclared', {
                             webentityId: input.goodWebentityId
                             ,taskId: input.taskId
                         })
@@ -312,19 +343,50 @@ HypheCommons.domino_init()
                     // Are there tasks still to execute ?
                     var waitingTasks = tasks.filter(function(t){return t.status == 'waiting'})
                     if(waitingTasks.length > 0){
-                        // Get the first non executed tasks, depending on free queries
-                        for(i = 0; i < 1; i++){
-                        // for(i = 0; i < queriesLimit - currentQueries && i < waitingTasks.length; i++){
-                            var task = waitingTasks[i]
+                        // Get the first non executed task, depending on free queries
+                        if(currentQueries <= queriesLimit){
+                            var task = waitingTasks[0]
                             task.status = 'pending'
-                            if(Math.random()<0.8)
-                                this.dispatchEvent('taskExecuted', {taskId: task.id})
-                            else
-                                this.dispatchEvent('taskExecuted', {taskId: task.id, errorMessage: 'gaga'})
 
+                            if(task.type == 'merge'){
+                                this.request('webentityMerge', {
+                                    oldWebentityId: task.mergeFrom
+                                    ,goodWebentityId: task.mergeTo
+                                    ,taskId: task.id
+                                })
+                                // this.dispatchEvent('callback_webentityMerged', {taskId: task.id})
+                            } else if(task.type == 'addPrefix'){
+                                this.request('webentityAddPrefix', {
+                                    webentityId: task.addTo
+                                    ,lru: task.prefix
+                                    ,taskId: task.id
+                                })
+                                // this.dispatchEvent('callback_webentityPrefixAdded', {taskId: task.id})
+                            } else if(task.type == 'declare'){
+                                this.request('webentityDeclare', {
+                                    prefixes: task.prefixes
+                                    ,taskId: task.id
+                                })
+                                // this.dispatchEvent('callback_webentityDeclared', {taskId: task.id})
+                            }
                         }
-                        this.dispatchEvent('cascadeTask')
+                        // Keep batching if there are other tasks and queries limit allows it
+                        if(waitingTasks.length > 1){
+                            if(currentQueries < queriesLimit){
+                                this.dispatchEvent('cascadeTask')
+                            }
+                        }
                     }
+                }
+            },{
+                // On task callbacks, trigger task executed event
+                triggers: ['callback_webentityMerged', 'callback_webentityPrefixAdded', 'callback_webentityDeclared']
+                ,method: function(e){
+                    this.dispatchEvent('taskExecuted', {
+                        taskId: e.data.taskId
+                        ,errorMessage: e.data.errorMessage
+                    })
+                    this.dispatchEvent('cascadeTask')
                 }
             }
         ]
@@ -1058,12 +1120,9 @@ HypheCommons.domino_init()
 
             // #warning - Homepage mistake: if checked prefixes contain 'home' or 'index', they might just be home pages
             var homepageMistake = checkedItems.some(function(item){
-                    return item.lru.indexOf(':home|')>=0
-                        || item.lru.indexOf(':index|')>=0
-                        || item.lru.indexOf(':accueil|')>=0
-                        || item.lru.indexOf(':home.')>=0
-                        || item.lru.indexOf(':index.')>=0
-                        || item.lru.indexOf(':accueil.')>=0
+                    return item.lru.indexOf(':home')>=0
+                        || item.lru.indexOf(':index')>=0
+                        || item.lru.indexOf(':accueil')>=0
                 })
 
             // #warning - Page as a web entity: 1 checked prefix that is a page (except if already Homepage mistake, because redundancy)
@@ -1153,7 +1212,7 @@ HypheCommons.domino_init()
                         taskBag.tasks.push({
                             type:'addPrefix'
                             ,prefix: item.lru
-                            ,addTo: targetWebentityId[0]
+                            ,addTo: targetWebentityId
                         })
                     })
                 }
