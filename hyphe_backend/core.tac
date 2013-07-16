@@ -132,7 +132,8 @@ class Core(jsonrpc.JSONRPC):
         # collect list of crawling jobs whose outputs is not fully indexed yet
         jobs_in_queue = self.db[config['mongo-scrapy']['queueCol']].distinct('_job')
         # set index finished for jobs with crawling finished and no page left in queue
-        update_ids = [job['_id'] for job in self.db[config['mongo-scrapy']['jobListCol']].find({'_id': {'$in': list(set(finished_ids)-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$nin': [indexing_statuses.BATCH_RUNNING, indexing_statuses.FINISHED]}}, fields=['_id'])]
+        finished_ids = set([job['_id'] for job in self.db[config['mongo-scrapy']['jobListCol']].find({'crawling_status': crawling_statuses.FINISHED})] + finished_ids)
+        update_ids = [job['_id'] for job in self.db[config['mongo-scrapy']['jobListCol']].find({'_id': {'$in': list(finished_ids-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$nin': [indexing_statuses.BATCH_RUNNING, indexing_statuses.FINISHED]}}, fields=['_id'])]
         if len(update_ids):
             resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': {'$in': update_ids}}, {'$set': {'indexing_status': indexing_statuses.FINISHED}}, multi=True, safe=True)
             if (resdb['err']):
