@@ -971,7 +971,7 @@ domino.settings({verbose:false})
             var matchingItem = items.filter(function(item){
                     return item.lru == sourceLru
                 })[0]
-            var matchingItem_jsonLru = matchingItem.lru_json
+            var matchingItem_jsonLru = domino.utils.clone(matchingItem.lru_json)
                 ,matchingItem_jsonLru_wwwAdded = matchingItem_jsonLru
             matchingItem_jsonLru_wwwAdded.host.push('www')
             var matchingItem_lru_wwwAdded = Utils.JSON_LRU_to_LRU(matchingItem_jsonLru_wwwAdded)
@@ -992,7 +992,7 @@ domino.settings({verbose:false})
                 && matchingItem.we_id != ''
                 && sourceJsonLru.host[sourceJsonLru.host.length - 1] == 'www'
                 && items.some(function(item){
-                        var item_jsonLru = item.lru_json
+                        var item_jsonLru = domino.utils.clone(item.lru_json)
                             ,item_jsonLru_wwwAdded = item_jsonLru
                         item_jsonLru_wwwAdded.host.push('www')
                         var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
@@ -1019,7 +1019,7 @@ domino.settings({verbose:false})
             var inclusionIssue = (matchingItem.we_id === undefined || matchingItem.we_id == '')
                 && !matchingItem.looksHomePage
                 && items.some(function(item){
-                        var item_jsonLru = item.lru_json
+                        var item_jsonLru = domino.utils.clone(item.lru_json)
                             ,item_jsonLru_wwwAdded = item_jsonLru
                         item_jsonLru_wwwAdded.host.push('www')
                         var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
@@ -1036,7 +1036,7 @@ domino.settings({verbose:false})
                 // ...except if it is www and has a www-less variant, because then we want to deal with the www discrepancy 
                 if(sourceJsonLru.host[sourceJsonLru.host.length - 1] == 'www'){
                     var wwwLessVariant = items.filter(function(item){
-                            var item_jsonLru = item.lru_json
+                            var item_jsonLru = domino.utils.clone(item.lru_json)
                                 ,item_jsonLru_wwwAdded = item_jsonLru
                             item_jsonLru_wwwAdded.host.push('www')
                             var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
@@ -1122,7 +1122,7 @@ domino.settings({verbose:false})
             // #issuesolved - 'WWW discrepancy': the www-less alternative is checked
             var wwwDiscrepancy_solved = wwwDiscrepancy
                 && !items.some(function(item){
-                        var item_jsonLru = item.lru_json
+                        var item_jsonLru = domino.utils.clone(item.lru_json)
                             ,item_jsonLru_wwwAdded = item_jsonLru
                         item_jsonLru_wwwAdded.host.push('www')
                         var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
@@ -1185,7 +1185,7 @@ domino.settings({verbose:false})
                 && sourceJsonLru.host[sourceJsonLru.host.length - 1] == 'www'
                 && matchingItem.checked
                 && items.some(function(item){
-                        var item_jsonLru = item.lru_json
+                        var item_jsonLru = domino.utils.clone(item.lru_json)
                             ,item_jsonLru_wwwAdded = item_jsonLru
                         item_jsonLru_wwwAdded.host.push('www')
                         var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
