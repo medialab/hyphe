@@ -179,7 +179,7 @@ domino.settings({verbose:false})
                             ,taskId: input.taskId
                             ,errorMessage: '<strong>Error adding a prefix to a web entity</strong> - We tried to add the prefix '+Utils.URL_simplify(Utils.LRU_to_URL(input.lru))+' <small class="muted">('+input.lru+')</small> '
                                 +'to the web entity <code>'+input.webentityId+'</code>. '
-                                +'The server said:<br/>'+data
+                                +'<pre> '+xhr.responseText+' </pre>'
                         })
 
                         rpc_error(data, xhr, input)
@@ -216,7 +216,7 @@ domino.settings({verbose:false})
                             taskId: input.taskId
                             ,errorMessage: '<strong>Error merging web entities</strong> - We tried to merge the web entity <code>'+input.oldWebentityId+'</code>'
                                 +' into the web entity <code>'+input.goodWebentityId+'</code>. '
-                                +'The server said: <br/>'+data+'.'
+                                +'<pre> '+xhr.responseText+' </pre>'
                         })
 
                         rpc_error(data, xhr, input)
@@ -249,7 +249,7 @@ domino.settings({verbose:false})
                             taskId: input.taskId
                             ,errorMessage: '<strong>Error declaring web entities</strong> - We tried to declare these prefixes:<ul>'
                                 +input.prefixes.map(function(p){return '<li>'+Utils.URL_simplify(Utils.LRU_to_URL(p))+' <small class="muted">'+p+'</small></li>'}).join('')+'</ul>'
-                                +'The server said: <br/>'+data+'.'
+                                +'<pre> '+xhr.responseText+' </pre>'
                         })
 
                         rpc_error(data, xhr, input)
@@ -1536,7 +1536,7 @@ domino.settings({verbose:false})
                                             )
                                 )
                             .append(
-                                    $('<div class="span8" id="errorLog"/>')
+                                    $('<div class="span6" id="errorLog"/>')
                                 )
                     )
                 

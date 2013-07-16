@@ -42,7 +42,7 @@
 	){
 		// alert('Oops, an error occurred... \n'+data)
 		Messenger().post({
-		    message: '<strong>Oops</strong> - something failed when communicating with the server - <code> '+data+' </code>'
+		    message: '<strong>Oops</strong> - something failed when communicating with the server - '+data+' <pre> '+xhr.responseText+' </pre>'
 		    ,type: 'error'
 		    ,showCloseButton: true
 		    /*,actions: {
