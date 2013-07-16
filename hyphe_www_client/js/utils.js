@@ -2,7 +2,10 @@
 
 	// Utils
 	ns.URL_to_LRU = function(url){
-		return Utils.JSON_LRU_to_LRU(Utils.URL_to_JSON_LRU(url));
+		var json_lru = Utils.URL_to_JSON_LRU(url)
+		if(json_lru === undefined)
+			return ''
+		return Utils.JSON_LRU_to_LRU(json_lru)
 	}
 	ns.JSON_LRU_to_LRU = function(json_lru){
 		var lru = "s:" + json_lru.scheme
@@ -113,6 +116,23 @@
 
 	ns.URL_simplify = function(url){
 		return url.replace(/^http:\/\//, '').replace(/\/$/, '')
+	}
+
+	ns.URL_fix = function(url){
+		// Trim
+		url = $.trim(url)
+
+		if(url == '')
+			return ''
+		
+		// Strip the last slash
+		url = url.replace(/\/$/, '')
+		
+		var protocolSplit = url.split('://')
+		if(protocolSplit.length == 1 || (protocolSplit.length > 1 && protocolSplit[0].length > 10)){
+			return 'http://'+url
+		}
+		return url
 	}
 
 	ns.LRU_prefix_fix = function(lru_prefix){

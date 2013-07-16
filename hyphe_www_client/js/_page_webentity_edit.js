@@ -186,8 +186,45 @@ $.fn.editable.defaults.mode = 'inline';
                     })}
                 ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'webentityRemovePrefix'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.PREFIX.REMOVE,
+                        'params' : [
+                            settings.webentityId
+                            ,settings.lru
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, error: rpc_error, expect: rpc_expect
+                ,success: function(data, input){
+                        this.dispatchEvent('callback_prefixRemoved', {
+                            webentityId: input.webentityId
+                            ,lru: input.lru
+                        })
+                    }
             }
-        ],hacks:[]
+        ],hacks:[
+             {
+                // When a prefix is removed, reload
+                triggers: ['callback_prefixRemoved']
+                ,method: function(e){
+                    var we_id = this.get('currentWebEntity').id
+                    
+                    this.request('getCurrentWebEntity', {shortcuts:{
+                        webEntityId: we_id
+                    }})
+                }
+             },{
+                triggers: ['request_removePrefix']
+                ,method: function(e){
+                    var we_id = this.get('currentWebEntity').id
+                    this.request('webentityRemovePrefix', {
+                        lru: e.data.lru
+                        ,webentityId: we_id
+                    })
+                }
+             }
+        ]
     })
 
     //// Modules
@@ -272,25 +309,40 @@ $.fn.editable.defaults.mode = 'inline';
     D.addModule(function(){
         domino.module.call(this)
 
-        this.triggers.events['currentWebEntity_updated'] = function(d) {
-            var webEntity = d.get('currentWebEntity')
-            $('#lru_prefixes').html('')
+        var element = $('#lru_prefixes')
+            ,_self = this
+
+        var update = function(controller, e) {
+            var webEntity = controller.get('currentWebEntity')
+            element.html('')
             webEntity.lru_prefixes.forEach(function(lru_prefix){
-                $('#lru_prefixes').append(
+                element.append(
                     $('<tr/>').append(
-                        $('<td/>').text(Utils.LRU_to_URL(lru_prefix))
+                        $('<td/>').append(
+                                    $('<span/>').text(Utils.LRU_to_URL(lru_prefix)+' ')
+                                )
+                            .append(
+                                    $('<a class="btn btn-link btn-mini"/>')
+                                        .attr('href', Utils.LRU_to_URL(lru_prefix))
+                                        .attr('target', 'blank')
+                                        .append($('<i class="icon-share-alt"/>'))
+                                )
                     ).append(
                         $('<td>').append(
-                            $('<a class="btn btn-link btn-mini pull-right"/>')
-                                .attr('href', Utils.LRU_to_URL(lru_prefix))
-                                .attr('target', 'blank')
-                                .append($('<i class="icon-share-alt"/>'))
-                        )
+                                $('<a class="btn btn-danger btn-link btn-mini pull-right"/>')
+                                    .html('<i class="icon-remove"/> remove')
+                                    .click(function(){
+                                        _self.dispatchEvent('request_removePrefix', {
+                                            lru: lru_prefix
+                                        })
+                                    })
+                            )
                     )
                 )
-            })
-            
+            })    
         }
+
+        this.triggers.events['currentWebEntity_updated'] = update
     })
 
     // Editable name

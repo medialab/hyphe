@@ -86,6 +86,16 @@ HypheCommons.domino_init()
                 id:'crawlValidation'
                 ,dispatch: 'crawlValidation_updated'
                 ,triggers: 'update_crawlValidation'
+            },{
+                id:'prefixCandidates'
+                ,dispatch: 'prefixCandidates_updated'
+                ,triggers: 'update_prefixCandidates'
+            },{
+                id:'pendingStartPage'
+                ,type: 'string'
+                ,value: ''
+                ,dispatch: 'pendingStartPage_updated'
+                ,triggers: 'update_pendingStartPage'
             }
         ]
 
@@ -174,12 +184,92 @@ HypheCommons.domino_init()
                     })}
                 ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'fetchWebEntityByURL'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.FETCH_BY_URL,
+                        'params' : [settings.url],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type
+                ,error: function(data, xhr, input){
+                        var currentQueries = this.get('currentQueries')
+                        this.update('currentQueries', currentQueries - 1 )
+                        this.dispatchEvent('callback_webentityFetched', {
+                                webentityId: undefined
+                                ,message: 'RPC error'
+                                ,url: input.url
+                            })
+
+                        rpc_error(data, xhr, input)
+                    }
+                ,expect: function(data, input, serviceOptions){
+                        return (data.length>0 && data[0].code == 'fail') || rpc_expect(data, input, serviceOptions)
+                    }
+                ,success: function(data, input){
+                        if(data[0].code == 'fail'){
+                            this.dispatchEvent('callback_webentityFetched', {
+                                webentityId: undefined
+                                ,message: 'no match'
+                                ,url: input.url
+                            })
+                        } else {
+                            var we = data[0].result
+                                ,webentities = this.get('webentities')
+                                ,webentities_byId = this.get('webentitiesById')
+                                
+                            webentities_byId[we.id] = we
+                            var webentities = d3.values(webentities_byId)
+                            this.update('webentities', webentities)
+                            this.update('webentitiesById', webentities_byId)
+
+                            this.dispatchEvent('callback_webentityFetched', {
+                                webentityId: we.id
+                                ,url: input.url
+                            })
+                        }
+                    }
+            },{
+                id: 'webentityAddPrefix'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.PREFIX.ADD,
+                        'params' : [
+                            settings.webentityId
+                            ,settings.lru
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, error: rpc_error, expect: rpc_expect
+                ,success: function(data, input){
+                        this.dispatchEvent('callback_prefixAdded', {
+                            webentityId: input.webentityId
+                            ,lru: input.lru
+                        })
+                    }
+            },{
+                id: 'webentityMerge'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITIES.MERGE,
+                        'params' : [
+                            settings.oldWebentityId
+                            ,settings.goodWebentityId
+                            ,false   // Include tags
+                            ,false   // Include Home and Startpages as Startpages
+                        ],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+                ,success: function(data, input){
+                        this.dispatchEvent('callback_webentityMerged', {
+                            webentityId: input.goodWebentityId
+                        })
+                    }
             }
         ]
 
 
         ,hacks:[
             {
+                // Registering events
+                triggers: ['ui_addPrefix']
+            },{
                 // Enable the selector when the web entities are updated
                 triggers: ['webentities_updated']
                 ,method: function(){
@@ -297,10 +387,11 @@ HypheCommons.domino_init()
                             if(lru.indexOf(lru_prefix) == 0)
                                 lru_valid = true
                         })
-                        if(!lru_valid){                                         // The start page does not belong to any LRU_prefix: display message
+                        if(!lru_valid){                                         // The start page does not belong to any LRU_prefix: trigger the resolution process
                             this.dispatchEvent('update_startpagesMessageObject', {
-                                startpagesMessageObject: {html:'<strong>Invalid start page.</strong> This page does not belong to the web entity (check the prefixes).', display:true, bsClass:'alert-error', }
+                                startpagesMessageObject: {html:'<strong>Invalid start page.</strong> This page does not belong to the web entity.', display:true, bsClass:'alert-error', }
                             })
+                            this.dispatchEvent('lru_invalid', {lru: lru})
                         } else {                                                // It's OK: display a message and request the service
                             this.dispatchEvent('update_startpagesMessageObject', {
                                 startpagesMessageObject: {text:'Adding the start page...', display:true, bsClass:'alert-info', }
@@ -311,6 +402,37 @@ HypheCommons.domino_init()
                             })
                         }
                     }
+                }
+            },{
+                // On current web entity load, if there is a pending start page (from LRU invalid resolution), validate and add it
+                triggers: ['currentWebentity_updated']
+                ,method: function(){
+                    var lru = this.get('pendingStartPage')
+
+                    if(lru=='' || lru === undefined){                           // No pending start page: do nothing
+                    } else {                                                    // Check that the start page is in one of the LRU prefixes
+                        var lru_valid = false
+                            ,we = this.get('currentWebentity')
+                        we.lru_prefixes.forEach(function(lru_prefix){
+                            if(lru.indexOf(lru_prefix) == 0)
+                                lru_valid = true
+                        })
+                        if(!lru_valid){                                         // The start page does not belong to any LRU_prefix: trigger the resolution process
+                            this.dispatchEvent('update_startpagesMessageObject', {
+                                startpagesMessageObject: {html:'<strong>Invalid start page.</strong> This page does not belong to the web entity.', display:true, bsClass:'alert-error', }
+                            })
+                            this.dispatchEvent('lru_invalid', {lru: lru})
+                        } else {                                                // It's OK: display a message and request the service
+                            this.dispatchEvent('update_startpagesMessageObject', {
+                                startpagesMessageObject: {text:'Adding the start page...', display:true, bsClass:'alert-info', }
+                            })
+                            this.request('addStartPage', {
+                                webentityId: we.id
+                                ,url: Utils.LRU_to_URL(lru)
+                            })
+                        }
+                    }
+                    this.update('pendingStartPage', '')
                 }
             },{
                 // On 'remove start page' clicked, display message and request the service
@@ -411,6 +533,48 @@ HypheCommons.domino_init()
                     this.request('getWebentities', {
                         id_list: [e.data.currentWebentityId]
                         ,current: true
+                    })
+                }
+            },{
+                // When prefix candidates are updated, fetch web entities
+                triggers:['prefixCandidates_updated']
+                ,method: function(e){
+                    var lrus = this.get('prefixCandidates')
+                        ,_self = this
+                    lrus.forEach(function(lru){
+                        _self.request('fetchWebEntityByURL', {
+                            url: Utils.LRU_to_URL(lru)
+                        })
+                    })
+                }
+            },{
+                // Request adding a LRU prefix to current web entity
+                triggers: ['request_currentWebentityAddPrefix']
+                ,method: function(e){
+                    var currentWebentity = this.get('currentWebentity')
+                    this.request('webentityAddPrefix', {
+                        webentityId: currentWebentity.id
+                        ,lru: e.data.lru
+                    })
+
+                }
+            },{
+                // When a prefix has been added or a merge has been done, reload current web entity
+                triggers: ['callback_prefixAdded', 'callback_webentityMerged']
+                ,method: function(e){
+                    var we = this.get('currentWebentity')
+                    this.dispatchEvent('request_updateCurrentWebentity', {
+                        currentWebentityId: we.id
+                    })
+                }
+            },{
+                // Request the merge of another web entity in this one
+                triggers: ['request_currentWebentityMerge']
+                ,method: function(e){
+                    var currentWebentity = this.get('currentWebentity')
+                    this.request('webentityMerge', {
+                        oldWebentityId: e.data.webentityId
+                        ,goodWebentityId: currentWebentity.id
                     })
                 }
             }
@@ -717,7 +881,168 @@ HypheCommons.domino_init()
         }
     })
 
+    // Resolution of a start page proposed out of the web entities
+    D.addModule(function(){
+        domino.module.call(this)
 
+        var element = $('#modal_resolveInvalidLRU')
+            ,_self = this
+
+        var initModal = function(controller, e){
+            var prefixListElement = element.find('.list-prefix-suggestions')
+                ,lru = e.data.lru
+            element.modal('show')
+            element.attr('data-startpage-lru', lru)
+
+            prefixListElement.html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">Loading...</div></div>')
+
+            var prefixCandidates = HypheCommons.getPrefixCandidates(lru)
+            _self.dispatchEvent('update_prefixCandidates', {
+                prefixCandidates: prefixCandidates
+            })
+
+            $('#button-add-prefix').attr('disabled', true)
+        }
+
+        var updateModal = function(controller, e){
+            var prefixListElement = element.find('.list-prefix-suggestions')
+                ,lrus = controller.get('prefixCandidates')
+
+            prefixListElement.html('')
+                .append(
+                        lrus.map(function(lru, i){
+                            return $('<div/>')
+                                .attr('data-url-prefix-md5', $.md5(Utils.LRU_to_URL(lru)))
+                                .append(
+                                        $('<label class="radio"></label>')
+                                            .append(
+                                                    $('<input type="radio" name="prefixes" disabled/>')
+                                                        .attr('value', lru)
+                                                )
+                                            .append(
+                                                    $('<div class="progress progress-striped active"></div>')
+                                                        .append(
+                                                                $('<div class="bar" style="width: 100%;"></div>').text('Loading "'+Utils.URL_simplify(Utils.LRU_to_URL(lru))+'"...')
+                                                            )
+                                                )
+                                    )
+                        })
+                    )
+
+        }
+
+        var updateLRU = function(controller, e){
+            var url = e.data.url
+                ,url_md5 = $.md5(url)
+                ,lru = Utils.URL_to_LRU(url)
+                ,we_id = e.data.webentityId
+                ,lruElement = element.find('div[data-url-prefix-md5='+url_md5+']')
+                ,p = $('<p/>')
+                ,webentities_byId = controller.get('webentitiesById')
+                ,we
+                ,prefixAlreadyInUse = false
+
+            if(we_id !== undefined){
+                we = webentities_byId[we_id]
+                prefixAlreadyInUse = we.lru_prefixes.some(function(we_prefix){
+                    return we_prefix == lru
+                })
+            }
+
+            if(prefixAlreadyInUse){
+                p
+                    .append(
+                            $('<span/>').text(Utils.URL_simplify(Utils.LRU_to_URL(lru)))
+                        )
+                    .append(
+                            $('<span class="text-info"/>').text(' - will merge with:')
+                        )
+                    .append(
+                            $('<p/>').append(
+                                        $('<span class="text-info"/>')
+                                            .append(
+                                                     $('<span class="label"/>').text(we.status)
+                                                        .addClass(getStatusColor(we.status))
+                                                )
+                                            .append(
+                                                    $('<strong/>').text(' '+we.name+' ')
+                                                )
+                                    )
+                                
+                        )
+            } else {
+                p.append(
+                        $('<span/>').text(Utils.URL_simplify(Utils.LRU_to_URL(lru)))
+                    )
+            }
+
+            lruElement.html('')
+                .append(
+                        $('<label class="radio"></label>')
+                            .append(
+                                    $('<input type="radio" name="prefixes"/>')
+                                        .attr('data-webentity-id', ((prefixAlreadyInUse)?(we_id):(undefined)))
+                                        .attr('value', lru)
+                                )
+                            .append(p)
+                        .click(function(){
+                            $('#button-add-prefix').removeAttr('disabled')
+                        })
+                    )
+            
+        }
+
+        var resolve = function(controller){
+            if($('#button-add-prefix').attr('disabled') === undefined){
+                var lru = element.attr('data-startpage-lru')
+                _self.dispatchEvent('update_pendingStartPage', {
+                    pendingStartPage: lru
+                })
+
+                var checkedElement = element.find('input[name=prefixes]:checked')
+                    ,prefix = checkedElement.val()
+                    ,we_id = checkedElement.attr('data-webentity-id')
+                
+                if(we_id === undefined){
+                    // Add prefix
+                    _self.dispatchEvent('request_currentWebentityAddPrefix', {
+                        lru: prefix
+                    })
+                } else {
+                    // Merge web entity
+                    _self.dispatchEvent('request_currentWebentityMerge', {
+                        webentityId: we_id
+                    })
+                }
+
+                var prefixListElement = element.find('.list-prefix-suggestions')
+
+                prefixListElement.html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">Updating web entity...</div></div>')
+
+                $('#button-add-prefix').attr('disabled', true)
+            }
+        }
+
+        var endModal = function(controller, e){
+            var prefixListElement = element.find('.list-prefix-suggestions')
+            element.modal('hide')
+            element.attr('data-startpage-lru', '')
+
+            prefixListElement.html('')
+        }
+
+        // Click on Add Prefix
+        $('#button-add-prefix').click(function(e){
+            _self.dispatchEvent('ui_addPrefix', {})
+        })
+
+        this.triggers.events['lru_invalid'] = initModal
+        this.triggers.events['prefixCandidates_updated'] = updateModal
+        this.triggers.events['callback_webentityFetched'] = updateLRU
+        this.triggers.events['ui_addPrefix'] = resolve
+        this.triggers.events['currentWebentity_updated'] = endModal
+
+    })
 
 
     //// On load
@@ -739,6 +1064,17 @@ HypheCommons.domino_init()
             }
         }
         return undefined
+    }
+
+    /// Misc
+    var getStatusColor = function(status){
+        return (status=='DISCOVERED')?('label-warning'):(
+                (status=='UNDECIDED')?('label-info'):(
+                    (status=='OUT')?('label-important'):(
+                        (status=='IN')?('label-success'):('')
+                    )
+                )
+            )
     }
 
 })(jQuery, domino, (window.dmod = window.dmod || {}))

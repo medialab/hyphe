@@ -41,8 +41,8 @@
 
 /*.diagnostic-row:hover{
     background-color: #FFC;
-}*/
-
+}
+*/
 .prefixeslist{
     margin-top: 2px;
 }
@@ -80,10 +80,10 @@
 
             <div class="row">
                 <div class="span12">
-                    <h1>CSV Diagnostic</h1>
+                    <h1>Define Web Entities from a CSV source</h1>
                     <p class="text-info">
-                        Give a CSV table containing URLs and get their status in the corpus: web entity, crawled pages...
-                        You can then export a modified CSV or work on the web entities that need it.
+                        Give a CSV table containing URLs and use them to define web entities.
+                        Check the right prefixes and apply all at once.
                     </p>
                     <hr>
                 </div>
@@ -91,7 +91,7 @@
 
             <div class="row">
                 <div class="span12">
-                    <h3>Load CSV file</h3>
+                    <h3>1. Load CSV file</h3>
                     <p class="text-info">
                         It has to be <strong><a href='http://en.wikipedia.org/wiki/Comma-separated_values' target='_blank'>comma-separated</a></strong> and the first row must be dedicated to <strong>column names</strong>.
                     </p>
@@ -99,6 +99,8 @@
                     <div id="tablepreview"></div>
                     <div id="columnselector"></div>
                     <div id="diagnostic"></div>
+                    <hr/>
+                    <div id="finalization"></div>
                 </div>
             </div>
             <div class="row">
@@ -117,7 +119,7 @@
         <script src="js/libs/jquery.md5.js"></script>
 
         <!-- Page-specific js packages -->
-        <script src="js/_page_csv_diagnostic.js"></script>
+        <script src="js/_page_webentities_define_fromCSV.js"></script>
 
     </body>
 </html>

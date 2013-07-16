@@ -183,6 +183,7 @@ $.fn.editable.defaults.mode = 'popup';
                 triggers: ['ui_findWebentities']
                 ,method: function(){
                     var urls = extractWebentities(D.get('urlslistText'))
+                        .map(function(url){return Utils.URL_fix(url)})
                     D.dispatchEvent('update_startUrls', {
                         startUrls: urls
                     })

@@ -5,12 +5,18 @@ HYPHE_API = {
 		GET: 'store.get_webentities'
 		,GET_LINKS: 'store.get_webentities_network_json'
 		,CREATE_BY_LRU: 'store.declare_webentity_by_lru'
+		,CREATE_BY_LRUS: 'store.declare_webentity_by_lrus'
 		,MERGE: 'store.merge_webentity_into_another'
 	}
 	,WEBENTITY:{
 		STARTPAGE:{
 			ADD:'store.add_webentity_startpage'
 			,REMOVE:'store.rm_webentity_startpage'
+		}
+
+		,PREFIX:{
+			ADD:'store.add_webentity_lruprefix'
+			,REMOVE:'store.rm_webentity_lruprefix'
 		}
 		
 		,GET_PAGES:'store.get_webentity_pages'

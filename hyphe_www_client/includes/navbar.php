@@ -51,12 +51,21 @@
                             </li>
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                    CSV
+                                    <b class="caret"></b>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="webentities_define_fromCSV.php">1 - Define web entities</a></li>
+                                    <li><a href="csv_diagnostic.php">2 - Diagnostic</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     Other
                                     <b class="caret"></b>
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li><a href="webentities_list.php">List of web entities</a></li>
-                                    <li><a href="csv_diagnostic.php">Diagnostic from a CSV file</a></li>
                                     <li><a href="reset.php">Reset</a></li>
                                 </ul>
                             </li>
