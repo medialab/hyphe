@@ -92,5 +92,3 @@ except ValueError:
     exit()
 if verbose:
     print "The egg was successfully sent to scrapyd server", config['mongo-scrapy']['host'], "on port", config['mongo-scrapy']['scrapy_port']
-if not verbose:
-    print "...spider successfully deployed."

@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, time, pymongo, bson, urllib, urllib2, httplib, urlparse, random, types
-import json
+import os, sys, time, random, types, json, bson
+import urllib, urllib2, httplib, urlparse
+import pymongo
 from txjsonrpc import jsonrpclib
 from txjsonrpc.jsonrpc import Introspection
 from txjsonrpc.web import jsonrpc
 from twisted.web import server
+from twisted.python import log
 from twisted.application import service, internet
 from twisted.internet import reactor, defer, task, threads
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
@@ -1068,11 +1070,11 @@ def test_connexions():
         print res['message']
         print "Trying to deploy anyway"
     import subprocess
-    print "Deploying Hyphe's scrapyd spider..."
-    print subprocess.Popen(['bin/deploy_scrapy_spider.sh', '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
+    output = subprocess.Popen(['bin/deploy_scrapy_spider.sh', '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
     res = run.crawler.send_scrapy_query('listprojects')
     if is_error(res) or "projects" not in res['result'] or config['mongo-scrapy']['project'] not in res['result']['projects']:
-        print "ERROR: Cannot connect to scrapyd server, please check your server and the configuration in config.json."
+        print "ERROR: Could not connect to scrapyd server to deploy spider, please check your server and the configuration in config.json."
+        print output
         return None
     return run
 
@@ -1084,9 +1086,17 @@ if not core:
 core.putSubHandler('crawl', core.crawler)
 core.putSubHandler('store', core.store)
 core.putSubHandler('system', Introspection(core))
-
-# start JSON-RPC server with twisted
-application = service.Application("Example JSON-RPC Server")
 site = server.Site(core)
-server = internet.TCPServer(config['twisted']['port'], site)
-server.setServiceParent(application)
+
+# Run as 'python core.tac' ...
+if __name__ == '__main__':
+    reactor.listenTCP(config['twisted']['port'], site)
+    log.startLogging(sys.stdout)
+    reactor.run()
+# ... or in the background when called with 'twistd -noy core.tac'
+elif __name__ == '__builtin__':
+    application = service.Application("Hyphe backend API Server")
+    server = internet.TCPServer(config['twisted']['port'], site)
+    server.setServiceParent(application)
+    log.startLogging(open(os.path.relpath('log/hyphe-core.log'), 'a'))
+
