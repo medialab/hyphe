@@ -106,7 +106,7 @@
                     </p>
                     <p>
                         <label>Maximum depth</label>
-                        <input type="text" id="depth" placeholder="Depth" value="2"/>
+                        <input type="text" id="depth" placeholder="Depth" value="1"/>
                     </p>
                     <hr/>
                     <p>
