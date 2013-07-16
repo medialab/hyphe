@@ -899,18 +899,23 @@ domino.settings({verbose:false})
             // Build the table of what is checked
             checkboxes.each(function(i, e){
                 var el = $(e)
-                items.push({
-                    id: i
-                    ,element: el
-                    ,we_id: el.attr('data-webentity-id')
-                    ,lru: el.attr('value')
-                    ,checked: el.is(':checked')
-                    ,disabled: el.is(':disabled')
-                    ,check: function(){
-                        this.element.prop('checked', true)
-                        this.checked = el.is(':checked')
+                    ,lru = el.attr('value')
+                    ,item = {
+                        id: i
+                        ,element: el
+                        ,we_id: el.attr('data-webentity-id')
+                        ,lru: lru
+                        ,checked: el.is(':checked')
+                        ,disabled: el.is(':disabled')
+                        ,check: function(){
+                            this.element.prop('checked', true)
+                            this.checked = el.is(':checked')
+                        }
+                        ,looksHomePage: lru.indexOf(':home')>=0
+                            || lru.indexOf(':index')>=0
+                            || lru.indexOf(':accueil')>=0
                     }
-                })
+                items.push(item)
             })
 
             /* Explanations
@@ -1008,8 +1013,9 @@ domino.settings({verbose:false})
                                 )
                     })
 
-            // #issue - Inclusion issue: there is a shorter prefix linked to a w.e. (that is not the www-less one), but not to the exact prefix
+            // #issue - Inclusion issue: there is a shorter prefix linked to a w.e. (that is not the www-less one), but not to the exact prefix, and the matching prefix is not a homepage
             var inclusionIssue = (matchingItem.we_id === undefined || matchingItem.we_id == '')
+                && !matchingItem.looksHomePage
                 && items.some(function(item){
                         var item_jsonLru = Utils.LRU_to_JSON_LRU(item.lru)
                             ,item_jsonLru_wwwAdded = item_jsonLru
@@ -1123,11 +1129,12 @@ domino.settings({verbose:false})
             var inclusionIssue_solved = inclusionIssue
                 && matchingItem.checked
 
-            // #warning - Homepage mistake: if checked prefixes contain 'home' or 'index', they might just be home pages
+            // #warning - Homepage mistake: if one of the checked prefixes looks a home page, and there is no other shorter prefix checked that does not looks like a home page
             var homepageMistake = checkedItems.some(function(item){
-                    return item.lru.indexOf(':home')>=0
-                        || item.lru.indexOf(':index')>=0
-                        || item.lru.indexOf(':accueil')>=0
+                    return item.looksHomePage
+                        && !checkedItems.some(function(item2){
+                            return !item2.looksHomePage
+                        })
                 })
 
             // #warning - Page as a web entity: 1 checked prefix that is a page (except if already Homepage mistake, because redundancy)
