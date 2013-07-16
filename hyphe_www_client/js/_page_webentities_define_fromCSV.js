@@ -177,7 +177,9 @@ domino.settings({verbose:false})
                             webentityId: input.webentityId
                             ,lru: input.lru
                             ,taskId: input.taskId
-                            ,errorMessage: 'RPC Error'
+                            ,errorMessage: '<strong>Error adding a prefix to a web entity</strong> - We tried to add the prefix '+Utils.URL_simplify(Utils.LRU_to_URL(input.lru))+' <small class="muted">('+input.lru+')</small> '
+                                +'to the web entity <code>'+input.webentityId+'</code>. '
+                                +'The server said:<br/>'+data
                         })
 
                         rpc_error(data, xhr, input)
@@ -211,9 +213,10 @@ domino.settings({verbose:false})
                         var currentQueries = this.get('currentQueries')
                         this.update('currentQueries', currentQueries - 1 )
                         this.dispatchEvent('callback_webentityMerged', {
-                            webentityId: input.goodWebentityId
-                            ,taskId: input.taskId
-                            ,errorMessage: 'RPC Error'
+                            taskId: input.taskId
+                            ,errorMessage: '<strong>Error merging web entities</strong> - We tried to merge the web entity <code>'+input.oldWebentityId+'</code>'
+                                +' into the web entity <code>'+input.goodWebentityId+'</code>. '
+                                +'The server said: <br/>'+data+'.'
                         })
 
                         rpc_error(data, xhr, input)
@@ -244,7 +247,9 @@ domino.settings({verbose:false})
                         this.update('currentQueries', currentQueries - 1 )
                         this.dispatchEvent('callback_webentityDeclared', {
                             taskId: input.taskId
-                            ,errorMessage: 'RPC Error'
+                            ,errorMessage: '<strong>Error declaring web entities</strong> - We tried to declare these prefixes:<ul>'
+                                +input.prefixes.map(function(p){return '<li>'+Utils.URL_simplify(Utils.LRU_to_URL(p))+' <small class="muted">'+p+'</small></li>'}).join('')+'</ul>'
+                                +'The server said: <br/>'+data+'.'
                         })
 
                         rpc_error(data, xhr, input)
@@ -1503,6 +1508,9 @@ domino.settings({verbose:false})
                                                     })
                                             )
                                 )
+                            .append(
+                                    $('<div class="span8" id="errorLog"/>')
+                                )
                     )
                 
         }
@@ -1610,6 +1618,10 @@ domino.settings({verbose:false})
                     bar.css('width', (100*mergeCount/mergeTotal)+'%')
                     bar.text(mergeCount+' error'+((mergeCount>1)?('s'):('')))
                 }
+                
+                element.find('#errorLog').append(
+                        $('<p class="text-error"/>').html(e.data.errorMessage)
+                    )
             }
 
             if(declareCurrent + addPrefixCurrent + mergeCurrent + declareError + addPrefixError + mergeError + 1 == declareTotal + addPrefixTotal + mergeTotal){
