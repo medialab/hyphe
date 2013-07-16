@@ -125,11 +125,11 @@ def cleanUrl(url, currentUrl) :
 
 # removing port if 80 :
 def stripHttpPort(lru) :
-    return "|".join([stem for stem in lru.split("|") if stem!="t:80" ])
+    return "|".join([stem for stem in lru.split("|") if stem != "t:80" and stem != "t:443"])
 
 # Removing subdomain if www :
 def stripWWW(lru) :
-    return "|".join([stem for stem in lru.split("|") if stem!="h:www" ])
+    return "|".join([stem for stem in lru.split("|") if stem != "h:www" ])
 
 re_trailing_slash = re.compile(r'(h:[^\|]*)\|p:\|?$')
 def stripTrailingSlash(lru):
