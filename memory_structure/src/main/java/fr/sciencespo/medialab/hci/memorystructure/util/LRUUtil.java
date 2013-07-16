@@ -110,7 +110,7 @@ public class LRUUtil {
                             }
                         }
                     }
-                } else if(lruElement.startsWith("t:") && ! (lruElement.endsWith(":80"))) {
+                } else if(lruElement.startsWith("t:") && ! (lruElement.endsWith(":80") || lruElement.endsWith(":443"))) {
                     url += ":"+lruElement.substring(lruElement.indexOf(':')+1).trim();
                 } else {
                     if(!removedTrailingDot && url.endsWith(".")) {
