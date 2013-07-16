@@ -895,6 +895,7 @@ domino.settings({verbose:false})
                 ,items = []
                 ,analysisElement = rowElement.find('.col-analysis')
                 ,taskBag = {id: rowElement.attr('data-row-id'), tasks: []}        // This is for batch operations. We fill it during the diagnostic
+                ,checkedItems
 
             // Build the table of what is checked
             checkboxes.each(function(i, e){
@@ -905,6 +906,7 @@ domino.settings({verbose:false})
                         ,element: el
                         ,we_id: el.attr('data-webentity-id')
                         ,lru: lru
+                        ,lru_json: Utils.LRU_to_JSON_LRU(lru)
                         ,checked: el.is(':checked')
                         ,disabled: el.is(':disabled')
                         ,check: function(){
@@ -969,7 +971,7 @@ domino.settings({verbose:false})
             var matchingItem = items.filter(function(item){
                     return item.lru == sourceLru
                 })[0]
-            var matchingItem_jsonLru = Utils.LRU_to_JSON_LRU(matchingItem.lru)
+            var matchingItem_jsonLru = matchingItem.lru_json
                 ,matchingItem_jsonLru_wwwAdded = matchingItem_jsonLru
             matchingItem_jsonLru_wwwAdded.host.push('www')
             var matchingItem_lru_wwwAdded = Utils.JSON_LRU_to_LRU(matchingItem_jsonLru_wwwAdded)
@@ -990,7 +992,7 @@ domino.settings({verbose:false})
                 && matchingItem.we_id != ''
                 && sourceJsonLru.host[sourceJsonLru.host.length - 1] == 'www'
                 && items.some(function(item){
-                        var item_jsonLru = Utils.LRU_to_JSON_LRU(item.lru)
+                        var item_jsonLru = item.lru_json
                             ,item_jsonLru_wwwAdded = item_jsonLru
                         item_jsonLru_wwwAdded.host.push('www')
                         var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
@@ -1017,7 +1019,7 @@ domino.settings({verbose:false})
             var inclusionIssue = (matchingItem.we_id === undefined || matchingItem.we_id == '')
                 && !matchingItem.looksHomePage
                 && items.some(function(item){
-                        var item_jsonLru = Utils.LRU_to_JSON_LRU(item.lru)
+                        var item_jsonLru = item.lru_json
                             ,item_jsonLru_wwwAdded = item_jsonLru
                         item_jsonLru_wwwAdded.host.push('www')
                         var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
@@ -1026,8 +1028,6 @@ domino.settings({verbose:false})
                             && sourceLru.indexOf(item.lru) == 0
                             && item_lru_wwwAdded != matchingItem.lru
                     })
-            
-
 
 
             // Recommandations if needed (pre-checking prefixes)
@@ -1036,7 +1036,7 @@ domino.settings({verbose:false})
                 // ...except if it is www and has a www-less variant, because then we want to deal with the www discrepancy 
                 if(sourceJsonLru.host[sourceJsonLru.host.length - 1] == 'www'){
                     var wwwLessVariant = items.filter(function(item){
-                            var item_jsonLru = Utils.LRU_to_JSON_LRU(item.lru)
+                            var item_jsonLru = item.lru_json
                                 ,item_jsonLru_wwwAdded = item_jsonLru
                             item_jsonLru_wwwAdded.host.push('www')
                             var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
@@ -1086,12 +1086,32 @@ domino.settings({verbose:false})
                 } else {
                     matchingItem.check()
                 }
+
+                // For each checked item that has a https scheme, we also want to check a https-less alternative, and vice-versa
+                checkedItems = items.filter(function(item){return item.checked})
+                checkedItems.forEach(function(checkedItem){
+                        if(checkedItem.lru_json.scheme == 'https'){
+                            var httpAlternativeLru = checkedItem.lru.replace(/^s:https\|/i, 's:http|')
+                            items.forEach(function(item){
+                                if(item.lru == httpAlternativeLru){
+                                    item.check()
+                                }
+                            })
+                        } else if(checkedItem.lru_json.scheme == 'http'){
+                            var httpsAlternativeLru = checkedItem.lru.replace(/^s:http\|/i, 's:https|')
+                            items.forEach(function(item){
+                                if(item.lru == httpsAlternativeLru){
+                                    item.check()
+                                }
+                            })
+                        }
+                    })
             }
 
 
             // Diagnostic after selection (simulation of the result of the checks)
             
-            var checkedItems = items.filter(function(item){return item.checked})
+            checkedItems = items.filter(function(item){return item.checked})
             
             // #issuesolved - 'No prefix chosen': A prefix is checked
             var noPrefixChosen_solved = noPrefixChosen
@@ -1102,7 +1122,7 @@ domino.settings({verbose:false})
             // #issuesolved - 'WWW discrepancy': the www-less alternative is checked
             var wwwDiscrepancy_solved = wwwDiscrepancy
                 && !items.some(function(item){
-                        var item_jsonLru = Utils.LRU_to_JSON_LRU(item.lru)
+                        var item_jsonLru = item.lru_json
                             ,item_jsonLru_wwwAdded = item_jsonLru
                         item_jsonLru_wwwAdded.host.push('www')
                         var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
@@ -1139,7 +1159,7 @@ domino.settings({verbose:false})
 
             // #warning - Page as a web entity: 1 checked prefix that is a page (except if already Homepage mistake, because redundancy)
             var webentityAsPage = checkedItems.length == 1
-                && Utils.LRU_to_JSON_LRU(checkedItems[0].lru).path.filter(function(p){return p.indexOf('.')>=0}).length>0
+                && checkedItems[0].lru_json.path.filter(function(p){return p.indexOf('.')>=0}).length>0
                 && !homepageMistake
 
             // #note - New web entity: if only w.e.-less prefixes are checked, a new w.e. will be created with all of them
@@ -1165,7 +1185,7 @@ domino.settings({verbose:false})
                 && sourceJsonLru.host[sourceJsonLru.host.length - 1] == 'www'
                 && matchingItem.checked
                 && items.some(function(item){
-                        var item_jsonLru = Utils.LRU_to_JSON_LRU(item.lru)
+                        var item_jsonLru = item.lru_json
                             ,item_jsonLru_wwwAdded = item_jsonLru
                         item_jsonLru_wwwAdded.host.push('www')
                         var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
