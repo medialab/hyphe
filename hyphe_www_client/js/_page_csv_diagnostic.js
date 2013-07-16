@@ -629,6 +629,9 @@ HypheCommons.domino_init()
                     .append(
                             $('<span class="muted"/>').text('waiting')
                         )
+                .siblings('.col-issues')
+                    .attr('data-status', 'uninitialized')
+                    .html('')
                 .parent()
                     .removeClass('wrong')
                     .attr('data-webentity-id', we.id)
@@ -636,11 +639,13 @@ HypheCommons.domino_init()
 
         var updateWebentity = function(controller, e){
             var we_id = e.data.webentityId
+            console.log('Update web entity', we_id)
 
             if(we_id !== undefined){
                 var elements = $('div.row[data-webentity-id='+we_id+'] div.col-webentity')
                 if(elements.length > 0){
                     displayWebentity(controller, elements, we_id)
+                    _self.dispatchEvent('request_cascade', {})
                 }
             }
         }

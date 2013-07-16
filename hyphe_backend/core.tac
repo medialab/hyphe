@@ -503,7 +503,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             return format_error(e)
         return self.jsonrpc_declare_webentity_by_lru(lru_prefix)
 
-    def jsonrpc_declare_webentity_by_lru(self, lru_prefix):
+    def _check_lru_prefix(self, lru_prefix):
         try:
             lru_prefix = urllru.cleanLRU(lru_prefix)
             url = urllru.lru_to_url(lru_prefix)
@@ -512,14 +512,39 @@ class Memory_Structure(jsonrpc.JSONRPC):
         existing = self.msclient_sync.findWebEntityByLRUPrefix(lru_prefix)
         if not is_error(existing):
             return format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (lru_prefix, existing))
-        res = self.msclient_sync.updateWebEntity(WebEntity(None, [lru_prefix], urllru.url_shorten(url)))
+        return lru_prefix, url
+
+    def _create_and_return_webentity(self, WE):
+        res = self.msclient_sync.updateWebEntity(WE)
         if is_error(res):
             return res
-        new_WE = self.return_new_webentity(lru_prefix, True, 'lru')
+        new_WE = self.return_new_webentity(WE.LRUSet[0], True, 'lru')
         if is_error(new_WE):
             return new_WE
-        self.handle_lru_precision_exceptions(new_WE['lru_prefixes'][0])
+        for lru in new_WE['lru_prefixes']:
+            self.handle_lru_precision_exceptions(lru)
         return format_result(new_WE)
+
+    def jsonrpc_declare_webentity_by_lru(self, lru_prefix):
+        res = self._check_lru_prefix(lru_prefix)
+        if is_error(res):
+            return res
+        lru_prefix, url = res
+        return self._create_and_return_webentity(WebEntity(None, [lru_prefix], urllru.url_shorten(url)))
+
+    def jsonrpc_declare_webentity_by_lrus(self, list_lrus, name=None):
+        if not isinstance(list_lrus, list):
+            list_lrus = [list_lrus]
+        lru_prefixes_list = []
+        for lru in list_lrus:
+            res = self._check_lru_prefix(lru)
+            if is_error(res):
+                return res
+            lru_prefix, url = res
+            if not name:
+                name = urllru.url_shorten(url)
+            lru_prefixes_list.append(lru_prefix)
+        return self._create_and_return_webentity(WebEntity(None, lru_prefixes_list, name))
 
     def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None):
         WE = self.msclient_sync.getWebEntity(webentity_id)
