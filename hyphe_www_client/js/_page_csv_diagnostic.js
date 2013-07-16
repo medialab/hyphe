@@ -738,10 +738,14 @@ HypheCommons.domino_init()
                     ,fromText = Utils.prettyDate(pagesData.dateMin)
                     ,toText = Utils.prettyDate(pagesData.dateMax)
 
-                if(fromText == toText){
-                    dateMessage = 'Pages were modified '+fromText
+                if(pages.length == 0){
+                    dateMessage = "Not crawled yet"
                 } else {
-                    dateMessage = 'Pages were modified between '+fromText+' and '+toText
+                    if(fromText == toText){
+                        dateMessage = 'Pages were modified '+fromText
+                    } else {
+                        dateMessage = 'Pages were modified between '+fromText+' and '+toText
+                    }
                 }
 
                 elements.html('')
