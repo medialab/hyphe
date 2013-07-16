@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p log
+
 # Run as debug mode on start_lucene.sh 1
 if [ -z $1 ]; then
   log=""
