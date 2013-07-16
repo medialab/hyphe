@@ -232,9 +232,9 @@ domino.settings({verbose:false})
             },{
                 id: 'webentityDeclare'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
-                        'method' : HYPHE_API.WEBENTITIES.CREATE_BY_LRU,
+                        'method' : HYPHE_API.WEBENTITIES.CREATE_BY_LRUS,
                         'params' : [
-                            settings.prefixes[0] // TO FIX AFTER API CHANGE
+                            settings.prefixes
                         ],
                     })}
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect
