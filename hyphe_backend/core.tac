@@ -1091,12 +1091,10 @@ site = server.Site(core)
 # Run as 'python core.tac' ...
 if __name__ == '__main__':
     reactor.listenTCP(config['twisted']['port'], site)
-    log.startLogging(sys.stdout)
     reactor.run()
 # ... or in the background when called with 'twistd -noy core.tac'
 elif __name__ == '__builtin__':
     application = service.Application("Hyphe backend API Server")
     server = internet.TCPServer(config['twisted']['port'], site)
     server.setServiceParent(application)
-    log.startLogging(open(os.path.relpath('log/hyphe-core.log'), 'a'))
 

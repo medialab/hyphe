@@ -2,6 +2,15 @@
 
 mkdir -p log
 
+if test -f java-memstruct.pid; then
+  if ps -p $(cat java-memstruct.pid) > /dev/null; then
+    echo "Hyphe's Java Memory Structure is already running, please run bin/stop.sh or kill "$(cat java-memstruct.pid)
+    exit 1
+  else
+    rm java-memstruct.pid
+  fi
+fi
+
 # Run as debug mode on start_lucene.sh 1
 if [ -z $1 ]; then
   log=""

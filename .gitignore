@@ -1,5 +1,5 @@
 config/config.json*
-twistd.pid
+*.pid
 pip-log.txt
 *.pyc
 hyphe_backend/crawler/build

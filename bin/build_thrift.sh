@@ -28,6 +28,6 @@ rm -rf tmpms
 #rm -rf gen-py.twisted
 cd -
 
-# Starts the Lucene memory structure in debug mode
-bash bin/start_lucene.sh $1
+# Starts the Lucene memory structure
+# bash bin/start_lucene.sh $1
 
