@@ -637,7 +637,7 @@ domino.settings({verbose:false})
                     )
                 .append(
                         $('<p class="text-info"/>')
-                            .text('Review this table and validate changes below (step 4.)')
+                            .text('Review the table and apply changes below (step 4.)')
                     )
                 .append(
                         $('<div class="row header-row"/>')
@@ -647,7 +647,7 @@ domino.settings({verbose:false})
                                 )
                             .append(
                                     $('<div class="span6"/>')
-                                        .html('<h5>Possible prefixes <small class="muted"> - check to use it and validate under the table</small></h5>')
+                                        .html('<h5>Possible prefixes <small class="muted"> - check and apply below</small></h5>')
                                 )
                             .append(
                                     $('<div class="span3"/>')
@@ -980,60 +980,6 @@ domino.settings({verbose:false})
                 ,matchingItem_jsonLru_wwwAdded = matchingItem_jsonLru
             matchingItem_jsonLru_wwwAdded.host.push('www')
             var matchingItem_lru_wwwAdded = Utils.JSON_LRU_to_LRU(matchingItem_jsonLru_wwwAdded)
-                        
-
-
-            // Diagnostic before anything selected (just looking prefixes)
-
-            // #issue - No prefix chosen: there is no web entity with this prefix or a shorter version
-            var noPrefixChosen = !items.some(function(item){
-                    return (item.lru == sourceLru || sourceLru.indexOf(item.lru) == 0)
-                        && item.we_id
-                        && item.we_id != ''
-                })
-
-            // #issue - WWW discrepancy: a web entity matches, but it has a www and the version without www is not a prefix / a prefix of the same w.e.
-            var wwwDiscrepancy = matchingItem.we_id
-                && matchingItem.we_id != ''
-                && sourceJsonLru.host[sourceJsonLru.host.length - 1] == 'www'
-                && items.some(function(item){
-                        var item_jsonLru = domino.utils.clone(item.lru_json)
-                            ,item_jsonLru_wwwAdded = item_jsonLru
-                        item_jsonLru_wwwAdded.host.push('www')
-                        var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
-                        return item_lru_wwwAdded == sourceLru
-                            && (
-                                    (item.we_id && item.we_id != '' && item.we_id != matchingItem.we_id)
-                                    || (item.we_id === undefined || item.we_id == '')
-                                )
-                    })
-
-            // #issue - HTTPS separated: a web entity matches, but it has a different / non-existent http alternative
-            var httpsSeparated = sourceJsonLru.scheme == 'https'
-                && matchingItem.we_id
-                && matchingItem.we_id != ''
-                && items.some(function(item){
-                        return item.lru.replace(/^s:http\|/, 's:https') == sourceLru
-                            && (
-                                    (item.we_id && item.we_id != '' && item.we_id != matchingItem.we_id)
-                                    || (item.we_id === undefined || item.we_id == '')
-                                )
-                    })
-
-            // #issue - Inclusion issue: there is a shorter prefix linked to a w.e. (that is not the www-less one), but not to the exact prefix, and the matching prefix is not a homepage
-            var inclusionIssue = (matchingItem.we_id === undefined || matchingItem.we_id == '')
-                && !matchingItem.looksHomePage
-                && items.some(function(item){
-                        var item_jsonLru = domino.utils.clone(item.lru_json)
-                            ,item_jsonLru_wwwAdded = item_jsonLru
-                        item_jsonLru_wwwAdded.host.push('www')
-                        var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
-                        return item.we_id
-                            && item.we_id != ''
-                            && sourceLru.indexOf(item.lru) == 0
-                            && item_lru_wwwAdded != matchingItem.lru
-                    })
-
 
             // Recommandations if needed (pre-checking prefixes)
             if(recommand){
@@ -1054,13 +1000,11 @@ domino.settings({verbose:false})
                                 
                                 // None has a web entity
                                 wwwLessVariant.check()
-                                matchingItem.check()
 
                             } else {
 
                                 // Matching has a w.e. but not the www-less variant
                                 wwwLessVariant.check()
-                                matchingItem.check()
 
                             }
                         } else {
@@ -1068,7 +1012,6 @@ domino.settings({verbose:false})
                                 
                                 // The www-less variant has a web entity, but not the matching
                                 wwwLessVariant.check()
-                                matchingItem.check()    // Check also to prevent the creation of a different w.e. later
 
                             } else {
                                 if(matchingItem.we_id == wwwLessVariant.we_id){
@@ -1113,110 +1056,276 @@ domino.settings({verbose:false})
                     })
             }
 
-
-            // Diagnostic after selection (simulation of the result of the checks)
-            
             checkedItems = items.filter(function(item){return item.checked})
-            
-            // #issuesolved - 'No prefix chosen': A prefix is checked
-            var noPrefixChosen_solved = noPrefixChosen
-                && items.some(function(item){
-                        return item.checked
-                    })
 
-            // #issuesolved - 'WWW discrepancy': the www-less alternative is checked
-            var wwwDiscrepancy_solved = wwwDiscrepancy
-                && !items.some(function(item){
+            // Diagnostics
+            var diagnostics = []
+                ,diagnostics_byId = {}
+                ,registerDiagnostic = function(diag){
+                    diagnostics.push(diag)
+                    diagnostics_byId[diag.id] = diag
+                }
+
+            // #issue - No prefix chosen: there is no checked prefix or web entity with this prefix or a shorter version
+            registerDiagnostic({
+                id: 'noPrefixChosen'
+                ,type: 'issue'
+                ,test: !items.some(function(item){
+                        return item.checked
+                            || (
+                                    (item.lru == sourceLru || sourceLru.indexOf(item.lru) == 0)
+                                    && item.we_id
+                                    && item.we_id != ''
+                                )
+                    })
+                ,render: function(){
+                        if(this.test){
+                            return $('<p/>')
+                                .append(
+                                        $('<strong class="text-error">No prefix</strong>')
+                                    )
+                                .append(
+                                        $('<small class="text-error"/>')
+                                            .text(' - No prefix is chosen for this URL. Hyphe does not know it exists (yet). Check a prefix to define a web entity.')
+                                    )
+                        }
+                    }
+            })
+
+            // #issue - WWW discrepancy: a prefix with www is checked while a www-less variation is not
+            registerDiagnostic({
+                id: 'wwwDiscrepancy'
+                ,test: items.some(function(item){
                         var item_jsonLru = domino.utils.clone(item.lru_json)
-                            ,item_jsonLru_wwwAdded = item_jsonLru
+                        if(item_jsonLru.host[item_jsonLru.host.length - 1] == 'www' || item.checked){
+                            return false
+                        }
+                        var item_jsonLru_wwwAdded = item_jsonLru
                         item_jsonLru_wwwAdded.host.push('www')
                         var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
-                        return item_lru_wwwAdded == sourceLru
-                            && (
-                                    (item.we_id && item.we_id != '' && item.we_id != matchingItem.we_id)
-                                    || (item.we_id === undefined || item.we_id == '')
-                                )
-                            && !item.checked
+                        return checkedItems.some(function(checkedItem){
+                                return checkedItem.lru == item_lru_wwwAdded
+                            })
                     })
-
-            // #issuesolved - 'HTTPS separated': the https versions are checked if their http version is also checked
-            var httpsSeparated_solved = httpsSeparated
-                && !items.some(function(item){
-                        return item.lru.replace(/^s:http\|/, 's:https') == sourceLru
-                            && (
-                                    (item.we_id && item.we_id != '' && item.we_id != matchingItem.we_id)
-                                    || (item.we_id === undefined || item.we_id == '')
-                                )
-                            && !item.checked
+                ,render: function(){
+                        if(this.test){
+                            return $('<p/>')
+                                .append(
+                                        $('<strong class="text-error">WWW discrepancy</strong>')
+                                    )
+                                .append(
+                                        $('<small class="text-error"/>')
+                                            .text(' - There is a prefix without the WWW and it is not in the same web entity. With and without "www." are probably the same, though exceptions exist.')
+                                    )
+                        }
+                    }
+            })
+            
+            // #issue - HTTPS discrepancy: a prefix has a different check status from a https/http variation
+            registerDiagnostic({
+                id: 'httpsDiscrepancy'
+                ,test: items.some(function(item){
+                        if(Utils.LRU_to_JSON_LRU(item.lru).scheme == 'https'){
+                            return items.some(function(item2){
+                                    return Utils.LRU_to_JSON_LRU(item2.lru).scheme == 'http'
+                                        && item2.lru.replace(/^s:http\|/, 's:https|') == item.lru
+                                        && item.checked != item2.checked
+                                })
+                        } else if(Utils.LRU_to_JSON_LRU(item.lru).scheme == 'http'){
+                            return items.some(function(item2){
+                                    return Utils.LRU_to_JSON_LRU(item2.lru).scheme == 'https'
+                                        && item2.lru.replace(/^s:https\|/, 's:http|') == item.lru
+                                        && item.checked != item2.checked
+                                })
+                        }
                     })
+                ,render: function(){
+                        if(this.test){
+                            return $('<p/>')
+                                .append(
+                                        $('<strong class="text-error">HTTPS discrepancy</strong>')
+                                    )
+                                .append(
+                                        $('<small class="text-error"/>')
+                                            .text(' - Variations of the same prefix: one is checked and not the other. HTTP and HTTPS are probably the same, though exceptions exist.')
+                                    )
+                        }
+                    }
+            })
 
-            // #issuesolved - 'Inclusion issue': the exact prefix is (or both)
-            var inclusionIssue_solved = inclusionIssue
-                && matchingItem.checked
-
-            // #warning - Homepage mistake: if one of the checked prefixes looks a home page, and there is no other shorter prefix checked that does not looks like a home page
-            var homepageMistake = checkedItems.some(function(item){
-                    return item.looksHomePage
-                        && !checkedItems.some(function(item2){
-                            return !item2.looksHomePage
+            // #issue - Inclusion issue: there is a shorter prefix linked to a w.e. (that is not the www-less one), but not to the exact prefix, and the matching prefix is not a homepage
+            registerDiagnostic({
+                id: 'inclusionIssue'
+                ,test: !matchingItem.checked
+                    && (matchingItem.we_id === undefined || matchingItem.we_id == '')
+                    && !matchingItem.looksHomePage
+                    && items.some(function(item){
+                            if(item.we_id === undefined || item.we_id == '' || !item.checked){
+                                return false
+                            }
+                            var item_jsonLru = domino.utils.clone(item.lru_json)
+                                ,item_jsonLru_wwwAdded = item_jsonLru
+                            item_jsonLru_wwwAdded.host.push('www')
+                            var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
+                            return sourceLru.indexOf(item.lru) == 0
+                                && item_lru_wwwAdded != matchingItem.lru
                         })
-                })
+                ,render: function(){
+                        if(this.test){
+                            return $('<p/>')
+                                .append(
+                                        $('<strong class="text-error">Inclusion Issue</strong>')
+                                    )
+                                .append(
+                                        $('<small class="text-error"/>')
+                                            .text(' - The source URL does not define its own web entity, but belongs to a more generic web entity')
+                                    )
+                        }
+                    }
+            })
+            
+            // #warning - Homepage mistake: if one of the checked prefixes looks a home page, and there is no other shorter prefix checked that does not looks like a home page
+            registerDiagnostic({
+                id: 'homepageMistake'
+                ,test: checkedItems.some(function(item){
+                        return item.looksHomePage
+                            && !checkedItems.some(function(item2){
+                                return !item2.looksHomePage
+                            })
+                    })
+                ,render: function(){
+                        if(this.test){
+                            return $('<p/>')
+                                .append(
+                                        $('<strong class="text-error">Home page instead of website</strong>')
+                                    )
+                                .append(
+                                        $('<small class="text-error"/>')
+                                            .text(' - A prefix seems to be a home page. You should choose a shorter prefix to allow different pages in the web entity.')
+                                    )
+                        }
+                    }
+            })
 
             // #warning - Page as a web entity: 1 checked prefix that is a page (except if already Homepage mistake, because redundancy)
-            var webentityAsPage = checkedItems.length == 1
-                && checkedItems[0].lru_json.path.filter(function(p){return p.indexOf('.')>=0}).length>0
-                && !homepageMistake
-
+            registerDiagnostic({
+                id: 'webentityAsPage'
+                ,test: checkedItems.length == 1
+                    && checkedItems[0].lru_json.path.filter(function(p){return p.indexOf('.')>=0}).length>0
+                    && !diagnostics_byId['homepageMistake'].test
+                ,render: function(){
+                        if(this.test){
+                            return $('<p/>')
+                                .append(
+                                        $('<strong class="text-warning">Page as a web entity</strong>')
+                                    )
+                                .append(
+                                        $('<small class="text-warning"/>')
+                                            .text(' - Defines a web entity with a page. Just make sure that it is what you want.')
+                                    )
+                        }
+                    }
+            })
+            
             // #note - New web entity: if only w.e.-less prefixes are checked, a new w.e. will be created with all of them
-            var newWebEntity = checkedItems.length>0
-                && !checkedItems.some(function(item){
-                        return item.we_id !== undefined && item.we_id != ''
-                    })
+            registerDiagnostic({
+                id: 'newWebEntity'
+                ,test: checkedItems.length>0
+                    && !checkedItems.some(function(item){
+                            return item.we_id !== undefined && item.we_id != ''
+                        })
+                ,render: function(){
+                        if(this.test){
+                            return $('<p/>')
+                                .append(
+                                        $('<strong class="text-info">New web entity</strong>')
+                                    )
+                                .append(
+                                        $('<small class="text-info"/>')
+                                            .text(' - Checked prefixes will create new web entities.')
+                                    )
+                        }
+                    }
+            })
 
-            // #note - Prefixes added: if there is exactly one checked prefix with a w.e. and at least one checked prefix without, prefixes will be added to this w.e.
-            var prefixesAdded = checkedItems.filter(function(item){return item.we_id !== undefined && item.we_id != ''}).length == 1
-                && checkedItems.filter(function(item){return item.we_id === undefined || item.we_id == ''}).length > 0
-
+            // #note - Prefixes added: if checked prefixes define exactly one w.e. and at least one checked prefix without, prefixes will be added to this w.e.
+            registerDiagnostic({
+                id: 'prefixesAdded'
+                ,test: Utils.extractCases(
+                            checkedItems
+                                .filter(function(item){return item.we_id !== undefined && item.we_id != ''})
+                                .map(function(item){return item.we_id})
+                        ).length == 1
+                    && checkedItems.filter(function(item){return item.we_id === undefined || item.we_id == ''}).length > 0
+                ,render: function(){
+                        if(this.test){
+                            return $('<p/>')
+                                .append(
+                                        $('<strong class="text-info">Adding prefixes</strong>')
+                                    )
+                                .append(
+                                        $('<small class="text-info"/>')
+                                            .text(' - Checked prefixes will be added to existing web entities.')
+                                    )
+                        }
+                    }
+            })
+            
             // #warning - Merge: if checked prefixes are asssociated to different w.e., there would be a merge
-            var merge = Utils.extractCases(
-                    checkedItems
-                        .filter(function(item){return item.we_id !== undefined && item.we_id != ''})
-                        .map(function(item){return item.we_id})
-                ).length >= 2
+            registerDiagnostic({
+                id: 'merge'
+                ,test: Utils.extractCases(
+                        checkedItems
+                            .filter(function(item){return item.we_id !== undefined && item.we_id != ''})
+                            .map(function(item){return item.we_id})
+                    ).length >= 2
+                ,render: function(){
+                        if(this.test){
+                            return $('<p/>')
+                                .append(
+                                        $('<strong class="text-warning">Merging web entities</strong>')
+                                    )
+                                .append(
+                                        $('<small class="text-warning"/>')
+                                            .text(' - Web entities will be merged, be sure that it is what you want.')
+                                    )
+                        }
+                    }
+            })
 
-            // #potential-issue - would create WWW discrepancy: a web entity does not match but the exact prefix is checked,
-            // and it has a www and the version without www is not a prefix / a prefix of the same w.e. and is not checked
-            var wouldWwwDiscrepancy = (matchingItem.we_id === undefined || matchingItem.we_id == '')
-                && sourceJsonLru.host[sourceJsonLru.host.length - 1] == 'www'
-                && matchingItem.checked
-                && items.some(function(item){
-                        var item_jsonLru = domino.utils.clone(item.lru_json)
-                            ,item_jsonLru_wwwAdded = item_jsonLru
-                        item_jsonLru_wwwAdded.host.push('www')
-                        var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
-                        return item_lru_wwwAdded == sourceLru
-                            && (
-                                    (item.we_id && item.we_id != '' && item.we_id != matchingItem.we_id)
-                                    || (item.we_id === undefined || item.we_id == '')
-                                )
-                            && !item.checked
-                    })
+
+            // #note - Already defined: Nothing will be done, but something is checked
+            registerDiagnostic({
+                id: 'alreadyDefined'
+                ,test: !diagnostics_byId['noPrefixChosen'].test
+                    && !diagnostics_byId['newWebEntity'].test
+                    && !diagnostics_byId['prefixesAdded'].test
+                    && !diagnostics_byId['merge'].test
+                    && !diagnostics_byId['inclusionIssue'].test
+                    && !diagnostics_byId['wwwDiscrepancy'].test
+                ,render: function(){
+                        if(this.test){
+                            return $('<p/>')
+                                .append(
+                                        $('<strong class="text-success">Defined</strong>')
+                                    )
+                                .append(
+                                        $('<small class="text-success"/>')
+                                            .text(' - Web entity defined for this URL')
+                                    )
+                        }
+                    }
+            })
+            
 
             var analysisElement = rowElement.find('.col-analysis')
             analysisElement.html('')
                 .attr('data-status', 'diagnostic-done')
 
-            // #note - Already defined: Nothing will be done, but something is checked
-            var alreadyDefined = (!noPrefixChosen || noPrefixChosen_solved)
-                && !newWebEntity
-                && !prefixesAdded
-                && !merge
-                && (!inclusionIssue || inclusionIssue_solved)
-                && (!wwwDiscrepancy || wwwDiscrepancy_solved)
-            
+
             // Building the taskBag
             // Merge
-            if(merge){
+            if(diagnostics_byId['merge'].test){
                 var webentitiesToMerge = Utils.extractCases(
                     checkedItems
                         .filter(function(item){return item.we_id !== undefined && item.we_id != ''})
@@ -1241,7 +1350,7 @@ domino.settings({verbose:false})
                 }
             }
             // Add prefix
-            if(prefixesAdded){
+            if(diagnostics_byId['prefixesAdded'].test){
                 var checkedPrefixItems = checkedItems.filter(function(item){return item.we_id === undefined || item.we_id == ''})
                     ,targetWebentityId = checkedItems.filter(function(item){return item.we_id !== undefined && item.we_id != ''})[0].we_id
                 if(checkedPrefixItems.length > 0){
@@ -1254,218 +1363,24 @@ domino.settings({verbose:false})
                     })
                 }
             }
+
             // New web entity
-            if(newWebEntity){
+            if(diagnostics_byId['newWebEntity'].test){
                 taskBag.tasks.push({
                     type:'declare'
                     ,prefixes: checkedItems.map(function(item){return item.lru})
                 })
             }
 
-            // Display inclusion issue
-            if(inclusionIssue){
-                if(!inclusionIssue_solved){
-                    /*var overWebEntity_item = items.filter(function(item){
-                            var item_jsonLru = Utils.LRU_to_JSON_LRU(item.lru)
-                                ,item_jsonLru_wwwAdded = item_jsonLru
-                            item_jsonLru_wwwAdded.host.push('www')
-                            var item_lru_wwwAdded = Utils.JSON_LRU_to_LRU(item_jsonLru_wwwAdded)
-                            return item.we_id
-                                && item.we_id != ''
-                                && sourceLru.indexOf(item.lru) == 0
-                                && item_lru_wwwAdded != matchingItem.lru
-                        })[0]
-                        ,overWebEntity_name = overWebEntity_item.element.parent().find('.webentity-name[data-webentity-id='+overWebEntity_item.we_id+']').text()
-*/
+
+            // Display diagnostics
+            diagnostics.forEach(function(diag){
+                if(diag.test){
                     analysisElement.append(
-                            $('<p/>')
-                                .append(
-                                        $('<strong class="text-error">Inclusion Issue</strong>')
-                                    )
-                                .append(
-                                        $('<small class="text-error"/>')
-                                            .text(' - The source URL does not define its own web entity, but belongs to a more generic web entity')
-                                    )
-                                /*.append(
-                                        $('<small class="text-error"/>')
-                                            .append(
-                                                    $('<strong/>').text(overWebEntity_name)
-                                                )
-                                    )*/
+                            diag.render()
                         )
-                }/* else {
-                    analysisElement.append(
-                            $('<p class="muted"/>').append(
-                                    $('<del/>').html('<span>&nbsp; Inclusion Issue &nbsp;</span>')
-                                )
-                        )
-                }*/
-            }
-
-            // Display https separated issue
-            if(httpsSeparated){
-                if(!httpsSeparated_solved){
-                    analysisElement.append(
-                            $('<p/>')
-                                .append(
-                                        $('<strong class="text-error">HTTPS Issue</strong>')
-                                    )
-                                .append(
-                                        $('<small class="text-error"/>')
-                                            .text(' - Check the HTTP and HTTPS versions of the same URL. They should probably be in the same web entity. The HTTPS protocol is for secure connections.')
-                                    )
-                        )
-                }/* else {
-                    analysisElement.append(
-                            $('<p class="muted"/>').append(
-                                    $('<del/>').html('<span>&nbsp; HTTPS Issue &nbsp;</span>')
-                                )
-                        )
-                }*/
-            }
-
-            // Display no prefix chosen issue
-            if(noPrefixChosen){
-                if(!noPrefixChosen_solved){
-                    analysisElement.append(
-                            $('<p/>')
-                                .append(
-                                        $('<strong class="text-error">No prefix</strong>')
-                                    )
-                                .append(
-                                        $('<small class="text-error"/>')
-                                            .text(' - No prefix is chosen for this URL. Hyphe does not know it exists (yet). Check a prefix to define a web entity.')
-                                    )
-                        )
-                }/* else {
-                    analysisElement.append(
-                            $('<p class="muted"/>').append(
-                                    $('<del/>').html('<span>&nbsp; No prefix &nbsp;</span>')
-                                )
-                        )
-                }*/
-            }
-
-            // Display www discrepancy issue
-            if(wwwDiscrepancy){
-                if(!wwwDiscrepancy_solved){
-                    analysisElement.append(
-                            $('<p/>')
-                                .append(
-                                        $('<strong class="text-error">WWW discrepancy</strong>')
-                                    )
-                                .append(
-                                        $('<small class="text-error"/>')
-                                            .text(' - There is a prefix without the WWW and it is not in the same web entity. With and without "www." are probably the same, though exceptions exist.')
-                                    )
-                        )
-                }/* else {
-                    analysisElement.append(
-                            $('<p class="muted"/>').append(
-                                    $('<del/>').html('<span>&nbsp; WWW discrepancy &nbsp;</span>')
-                                )
-                        )
-                }*/
-            }
-
-            // Display homepage mistake
-            if(homepageMistake){
-                analysisElement.append(
-                        $('<p/>')
-                            .append(
-                                    $('<strong class="text-error">Home page instead of website</strong>')
-                                )
-                            .append(
-                                    $('<small class="text-error"/>')
-                                        .text(' - A prefix seems to be a home page. You should choose a shorter prefix to allow different pages in the web entity.')
-                                )
-                    )
-            }
-
-            // Display Webentity as a page
-            if(webentityAsPage){
-                analysisElement.append(
-                        $('<p/>')
-                            .append(
-                                    $('<strong class="text-warning">Page as a web entity</strong>')
-                                )
-                            .append(
-                                    $('<small class="text-warning"/>')
-                                        .text(' - Defines a web entity with a page. Just make sure that it is what you want.')
-                                )
-                    )
-            }
-
-            // Display POTENTIAL www discrepancy issue
-            if(wouldWwwDiscrepancy){
-                analysisElement.append(
-                        $('<p/>')
-                            .append(
-                                    $('<strong class="text-error">This would create a WWW discrepancy</strong>')
-                                )
-                            .append(
-                                    $('<small class="text-error"/>')
-                                        .text(' - There would be a prefix without the WWW that would not be in the same web entity.')
-                                )
-                    )
-            }
-
-            // Display new web entity info
-            if(newWebEntity){
-                analysisElement.append(
-                        $('<p/>')
-                            .append(
-                                    $('<strong class="text-info">New web entity</strong>')
-                                )
-                            .append(
-                                    $('<small class="text-info"/>')
-                                        .text(' - Checked prefixes will create new web entities.')
-                                )
-                    )
-            }
-            
-            // Display prefixes added
-            if(prefixesAdded){
-                analysisElement.append(
-                        $('<p/>')
-                            .append(
-                                    $('<strong class="text-info">Adding prefixes</strong>')
-                                )
-                            .append(
-                                    $('<small class="text-info"/>')
-                                        .text(' - Checked prefixes will be added to existing web entities.')
-                                )
-                    )
-            }
-
-            // Display prefixes added
-            if(merge){
-                analysisElement.append(
-                        $('<p/>')
-                            .append(
-                                    $('<strong class="text-warning">Merging web entities</strong>')
-                                )
-                            .append(
-                                    $('<small class="text-warning"/>')
-                                        .text(' - Web entities will be merged, be sure that it is what you want.')
-                                )
-                    )
-            }
-
-            // Display already defined
-            if(alreadyDefined){
-                analysisElement.append(
-                        $('<p/>')
-                            .append(
-                                    $('<strong class="text-success">Already defined</strong>')
-                                )
-                            .append(
-                                    $('<small class="text-success"/>')
-                                        .text(' - Web entity defined for this URL')
-                                )
-                    )
-            }
-
+                }
+            })
 
             _self.dispatchEvent('rowDiagnosticUpdated', {taskBag: taskBag})
         }
