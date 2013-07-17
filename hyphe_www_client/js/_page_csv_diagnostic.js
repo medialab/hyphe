@@ -639,7 +639,6 @@ HypheCommons.domino_init()
 
         var updateWebentity = function(controller, e){
             var we_id = e.data.webentityId
-            console.log('Update web entity', we_id)
 
             if(we_id !== undefined){
                 var elements = $('div.row[data-webentity-id='+we_id+'] div.col-webentity')

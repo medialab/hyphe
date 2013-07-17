@@ -714,7 +714,12 @@ domino.settings({verbose:false})
                     var element = waitingForPrefixes.first()
                         ,url = element.attr('data-url')
                         ,lru = Utils.URL_to_LRU(url)
-                        ,prefixCandidates = HypheCommons.getPrefixCandidates(lru)
+                        ,prefixCandidates = HypheCommons.getPrefixCandidates(lru, {
+                                wwwlessVariations: true
+                                ,wwwVariations: false
+                                ,httpVariations: true
+                                ,httpsVariations: true
+                            })
                     element.html('')
                         .attr('data-status', 'computed')
                     if(prefixCandidates.length > 0){
@@ -913,9 +918,9 @@ domino.settings({verbose:false})
                             this.element.prop('checked', true)
                             this.checked = el.is(':checked')
                         }
-                        ,looksHomePage: lru.indexOf(':home')>=0
-                            || lru.indexOf(':index')>=0
-                            || lru.indexOf(':accueil')>=0
+                        ,looksHomePage: lru.toLowerCase().indexOf(':home')>=0
+                            || lru.toLowerCase().indexOf(':index')>=0
+                            || lru.toLowerCase().indexOf(':accueil')>=0
                     }
                 items.push(item)
             })

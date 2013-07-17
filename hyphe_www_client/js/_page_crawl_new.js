@@ -891,17 +891,24 @@ HypheCommons.domino_init()
         var initModal = function(controller, e){
             var prefixListElement = element.find('.list-prefix-suggestions')
                 ,lru = e.data.lru
-            element.modal('show')
-            element.attr('data-startpage-lru', lru)
+                ,prefixCandidates = HypheCommons.getPrefixCandidates(lru, {
+                        wwwlessVariations: true
+                        ,wwwVariations: false
+                        ,httpVariations: false
+                        ,httpsVariations: false
+                    })
+            if(prefixCandidates.length>0){
+                element.modal('show')
+                element.attr('data-startpage-lru', lru)
 
-            prefixListElement.html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">Loading...</div></div>')
+                prefixListElement.html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">Loading...</div></div>')
 
-            var prefixCandidates = HypheCommons.getPrefixCandidates(lru)
-            _self.dispatchEvent('update_prefixCandidates', {
-                prefixCandidates: prefixCandidates
-            })
+                _self.dispatchEvent('update_prefixCandidates', {
+                    prefixCandidates: prefixCandidates
+                })
 
-            $('#button-add-prefix').attr('disabled', true)
+                $('#button-add-prefix').attr('disabled', true)
+            }
         }
 
         var updateModal = function(controller, e){
@@ -922,7 +929,7 @@ HypheCommons.domino_init()
                                             .append(
                                                     $('<div class="progress progress-striped active"></div>')
                                                         .append(
-                                                                $('<div class="bar" style="width: 100%;"></div>').text('Loading "'+Utils.URL_simplify(Utils.LRU_to_URL(lru))+'"...')
+                                                                $('<div class="bar" style="width: 100%;"></div>').text('Loading "'+Utils.LRU_to_URL(lru)+'" ...')
                                                             )
                                                 )
                                     )
@@ -952,7 +959,7 @@ HypheCommons.domino_init()
             if(prefixAlreadyInUse){
                 p
                     .append(
-                            $('<span/>').text(Utils.URL_simplify(Utils.LRU_to_URL(lru)))
+                            $('<span/>').text(Utils.LRU_to_URL(lru))
                         )
                     .append(
                             $('<span class="text-info"/>').text(' - will merge with:')

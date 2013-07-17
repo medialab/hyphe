@@ -69,15 +69,20 @@
     	})
 	}
 
-	ns.getPrefixCandidates = function(lru){
+	ns.getPrefixCandidates = function(lru, settings){
+		if(lru === undefined)
+			return []
 		var candidates = []
 			,lru_a = lru.split('|')
+			,lru_json = Utils.LRU_to_JSON_LRU(lru)
+			,settings = settings || {}
+		settings.wwwlessVariations = settings.wwwlessVariations || false
+		settings.wwwVariations = settings.wwwVariations || false
+		settings.httpVariations = settings.httpVariations || false
+		settings.httpsVariations = settings.httpsVariations || false
 
 		candidates.push(lru)
-		if(lru.substr(0,8)=='s:https|'){
-			candidates.push(lru.replace(/^s:https\|/, 's:http|'))
-		}
-
+		
 		if(lru_a.length>3){
 			for(length = lru_a.length-1; length>=3; length--){
 				var candidate = lru_a.filter(function(stem, i){
@@ -85,12 +90,54 @@
 				}).join('|')
 				
 				candidates.push(candidate)
-				if(candidate.substr(0,8)=='s:https|'){
-					candidates.push(candidate.replace(/^s:https\|/, 's:http|'))
-				}
 			}
 		}
-		return candidates
+		if(settings.wwwlessVariations && lru_json.host[lru_json.host.length - 1] == 'www'){
+			var wwwlessVariation_json = domino.utils.clone(lru_json)
+			wwwlessVariation_json.host.pop()
+			var wwwlessVariation = Utils.JSON_LRU_to_LRU(wwwlessVariation_json)
+			candidates = candidates.concat(ns.getPrefixCandidates(wwwlessVariation, {
+				wwwlessVariations: false
+				,wwwVariations: false
+				,httpVariations: settings.httpVariations
+				,httpsVariations: settings.httpsVariations
+			}))
+		}
+		if(settings.wwwVariations && lru_json.host[lru_json.host.length - 1] != 'www'){
+			var wwwVariation_json = domino.utils.clone(lru_json)
+			wwwVariation_json.host.push('www')
+			var wwwVariation = Utils.JSON_LRU_to_LRU(wwwVariation_json)
+			candidates = candidates.concat(ns.getPrefixCandidates(wwwVariation, {
+				wwwlessVariations: false
+				,wwwVariations: false
+				,httpVariations: settings.httpVariations
+				,httpsVariations: settings.httpsVariations
+			}))
+		}
+		if(settings.httpsVariations && lru_json.scheme == 'http'){
+			var httpsVariation_json = domino.utils.clone(lru_json)
+			httpsVariation_json.scheme = 'https'
+			var httpsVariation = Utils.JSON_LRU_to_LRU(httpsVariation_json)
+			candidates = candidates.concat(ns.getPrefixCandidates(httpsVariation, {
+				wwwlessVariations: settings.wwwlessVariations
+				,wwwVariations: settings.wwwVariations
+				,httpVariations: false
+				,httpsVariations: false
+			}))
+		
+		}
+		if(settings.httpVariations && lru_json.scheme == 'https'){
+			var httpVariation_json = domino.utils.clone(lru_json)
+			httpVariation_json.scheme = 'http'
+			var httpVariation = Utils.JSON_LRU_to_LRU(httpVariation_json)
+			candidates = candidates.concat(ns.getPrefixCandidates(httpsVariation, {
+				wwwlessVariations: settings.wwwlessVariations
+				,wwwVariations: settings.wwwVariations
+				,httpVariations: false
+				,httpsVariations: false
+			}))
+		}
+		return Utils.extractCases(candidates).reverse()
 	}
 
 })(window.HypheCommons = window.HypheCommons || {}, jQuery)
