@@ -99,14 +99,12 @@
                     <div id="tablepreview"></div>
                     <div id="columnselector"></div>
                     <div id="diagnostic"></div>
+                    <div id="postprocessing">
+                        <hr/>
+                        <div id="csvexport"></div>
+                    </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="span12">
-                    
-                </div>
-            </div>
-            
         </div>
 
 <?php include("includes/footer.php"); ?>

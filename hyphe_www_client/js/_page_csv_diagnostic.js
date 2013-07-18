@@ -48,9 +48,9 @@ HypheCommons.domino_init()
                 ,type: 'array'
                 ,value: []
             },{
-                id:'webentitiesById'
-                ,dispatch: 'webentitiesById_updated'
-                ,triggers: 'update_webentitiesById'
+                id:'webentities_byId'
+                ,dispatch: 'webentities_byId_updated'
+                ,triggers: 'update_webentities_byId'
                 ,type: 'object'
                 ,value: {}
             },{
@@ -75,13 +75,13 @@ HypheCommons.domino_init()
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
                 ,success: function(data, input){
                     var webentitiesUpdated = data[0].result
-                        ,webentities_byId = this.get('webentitiesById')
+                        ,webentities_byId = this.get('webentities_byId')
                     webentitiesUpdated.forEach(function(we){
                         webentities_byId[we.id] = we
                     })
                     var webentities = d3.values(webentities_byId)
                     this.update('webentities', webentities)
-                    this.update('webentitiesById', webentities_byId)
+                    this.update('webentities_byId', webentities_byId)
 
                     // NB: below, legit only because we will never call many webentities at once in this page
                     var _self = this
@@ -130,12 +130,12 @@ HypheCommons.domino_init()
                         } else {
                             var we = data[0].result
                                 ,webentities = this.get('webentities')
-                                ,webentities_byId = this.get('webentitiesById')
+                                ,webentities_byId = this.get('webentities_byId')
                                 
                             webentities_byId[we.id] = we
                             var webentities = d3.values(webentities_byId)
                             this.update('webentities', webentities)
-                            this.update('webentitiesById', webentities_byId)
+                            this.update('webentities_byId', webentities_byId)
 
                             this.dispatchEvent('callback_webentityFetched', {
                                 webentityId: we.id
@@ -172,7 +172,7 @@ HypheCommons.domino_init()
                     var currentQueries = this.get('currentQueries')
                     this.update('currentQueries', currentQueries - 1 )
 
-                    var webentity = this.get('webentitiesById')[input.webentityId]
+                    var webentity = this.get('webentities_byId')[input.webentityId]
                         ,pages = data[0].result
                     if(webentity == undefined){
                         HypheCommons.errorAlert('<strong>Something weird happended.</strong> Unkown web entity\n<br/>\n"'+data+'"')
@@ -212,7 +212,7 @@ HypheCommons.domino_init()
         ,hacks:[
             {
                 // Some events that need to be registered
-                triggers: ['loading_started', 'loading_completed', 'update_loadingProgress', 'request_cascade']
+                triggers: ['loading_started', 'loading_completed', 'update_loadingProgress', 'request_cascade', 'cascadeFinished']
             },{
                 // Parsing the CSV
                 triggers: ['loading_completed']
@@ -246,7 +246,7 @@ HypheCommons.domino_init()
                 ,method: function(e){
                     var we_id = e.data.webentityId
                         ,pagesData = e.data.pagesData
-                        ,webentities_byId = this.get('webentitiesById')
+                        ,webentities_byId = this.get('webentities_byId')
                     webentities_byId[we_id].pagesData = pagesData
                 }
             },{
@@ -267,6 +267,73 @@ HypheCommons.domino_init()
                         webentityId: e.data.webentityId
                         ,status: e.data.status
                     })
+                }
+            },{
+                // Export CSV table
+                triggers: ['ui_exportCSV']
+                ,method: function(e){
+                    var table = this.get('dataTable')
+                        ,webentities_byId = this.get('webentities_byId')
+                        ,colId = this.get('urlColumnId')
+                        ,exportHeadline = []
+                        ,exportContent = []
+
+                    table.forEach(function(row, i){
+                        if(i == 0){
+                            exportHeadline = row.slice(0)
+                        } else {
+                            var newRow = []
+                            exportHeadline.forEach(function(headcell, col){
+                                newRow.push(row[col] || '')
+                            })
+                            exportContent.push(newRow)
+                        }
+                    })
+
+                    // Web entity id, name, prefixes
+                    exportHeadline.push('id_webentity')
+                    exportHeadline.push('name_webentity')
+                    exportHeadline.push('prefixes_webentity')
+                    exportHeadline.push('status')
+                    exportHeadline.push('crawled_pages')
+                    exportHeadline.push('uncrawled_pages')
+                    exportContent.forEach(function(row, rowId){
+                        var rowElement = $('.diagnostic-row[data-row-id='+rowId+']')
+                            ,we_id = rowElement.attr('data-webentity-id')
+                        if(we_id == '' || webentities_byId[we_id] === undefined){
+                            row.push('None')
+                            row.push('N/A')
+                            row.push('N/A')
+                            row.push('N/A')
+                            row.push('N/A')
+                            row.push('N/A')
+                        } else {
+                            var we = webentities_byId[we_id]
+                            row.push(we_id)
+                            row.push(we.name)
+                            row.push(we.lru_prefixes.map(function(lru){return Utils.LRU_to_URL(lru)}).join(' ; '))
+                            row.push(we.status)
+                            row.push(we.pagesData.crawled)
+                            row.push(we.pagesData.uncrawled)
+                        }
+                    })
+
+                    // Write CSV
+                    var csvElement = function(txt){
+                        txt = ''+txt //cast
+                        return '"'+txt.replace(/"/gi, '""')+'"'
+                    }
+                    var content = []
+                    
+                    content.push(exportHeadline.map(csvElement).join(','))
+                    
+                    exportContent.forEach(function(row, rowId){
+                        content.push('\n'+row.map(csvElement).join(','))
+                    })
+                    var blob = new Blob(content, {'type':'text/csv;charset=utf-8'})
+                        ,filename = "Table.csv"
+                    saveAs(blob, filename)
+                    this.dispatchEvent('csv_downloaded')
                 }
             }
         ]
@@ -534,7 +601,7 @@ HypheCommons.domino_init()
         }
 
         var displayWebentity = function(controller, elements, we_id){
-            var webentities_byId = controller.get('webentitiesById')
+            var webentities_byId = controller.get('webentities_byId')
                 ,we = webentities_byId[we_id]
                 ,statusButtons = $('<small/>')
 
@@ -779,7 +846,7 @@ HypheCommons.domino_init()
             var url = element.parent().attr('data-url')
                 ,lru = Utils.URL_to_LRU(url)
                 ,we_id = element.parent().attr('data-webentity-id')
-                ,we = controller.get('webentitiesById')[we_id]
+                ,we = controller.get('webentities_byId')[we_id]
                 ,prefixMatching = false
             we.lru_prefixes.forEach(function(lru_prefix){
                 if(lru == lru_prefix){
@@ -883,18 +950,7 @@ HypheCommons.domino_init()
                                         .attr('target', '_blank')
                                 )
                         )
-                }/* else if(we.pagesData.depths[1] && we.pagesData.depths[1].uncrawled > 0){
-                    someIssue = true
-                    element.append(
-                            $('<p class="text-warning"/>')
-                                .append(
-                                        $('<strong/>').text('Missed pages in crawl ')
-                                    )
-                                .append(
-                                        $('<small/>').text('Some pages still not crawled at depth 1. You should ensure the web entity is properly crawled.')
-                                    )
-                        )
-                }*/ else if(we.pagesData.crawled <= 10 && we.pagesData.uncrawled > 0){
+                } else if(we.pagesData.crawled <= 10 && we.pagesData.uncrawled > 0){
                     someIssue = true
                     element.append(
                             $('<p class="text-warning"/>')
@@ -931,7 +987,44 @@ HypheCommons.domino_init()
         this.triggers.events['callback_webentityPagesFetched'] = updatePagesFetch
         this.triggers.events['callback_webentityUpdated'] = updateWebentity
     })
+    
+    // CSV exporting
+    D.addModule(function(){
+        domino.module.call(this)
 
+        var element = $('#csvexport')
+            ,_self = this
+
+        var update = function(provider, e){
+            element.html('')
+                .append(
+                        $('<h3>Export CSV</h3>')
+                    )
+                .append(
+                        $('<p class="text-info"/>').text('Export the original CSV with additional columns containing the diagnostic')
+                    )
+                .append(
+                        $('<button class="btn" id="export_csv_button"></button>')
+                            .click(function(){
+                                var el = $(this)
+                                if(!el.attr('disabled')){
+                                    el.attr('disabled', true)
+                                        .html('<i class="icon-download"/> Processing...')
+                                    _self.dispatchEvent('ui_exportCSV')
+                                }
+                            })
+                    )
+            resetButton()
+        }
+
+        var resetButton = function(provider, e){
+            $('#export_csv_button').html('<i class="icon-download"/> Download CSV')
+                .removeAttr('disabled')
+        }
+
+        this.triggers.events['cascadeFinished'] = update
+        this.triggers.events['csv_downloaded'] = resetButton
+    })
 
     //// Processing
     var getDataFromPages = function(pages){
