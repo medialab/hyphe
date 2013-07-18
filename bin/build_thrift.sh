@@ -14,7 +14,7 @@ mvn -Dmaven.test.skip=true clean install
 if [ ! -z $1 ]; then
   mvn javadoc:javadoc
 fi
-cd -
+cd ..
 
 # Build Python API with Thrift and include it into python libraries
 cd hyphe_backend
@@ -22,11 +22,12 @@ rm -rf memorystructure tmpms
 mkdir -p tmpms
 thrift -gen py -out tmpms ../memory_structure/src/main/java/memorystructure.thrift
 mv tmpms/memorystructure memorystructure
+cp ../memory_structure/target/MemoryStructureExecutable.jar memorystructure/
 rm -rf tmpms
 #thrift -gen py:twisted ../memory_structure/src/main/java/memorystructure.thrift
 #mv gen-py.twisted/memorystructure .
 #rm -rf gen-py.twisted
-cd -
+cd ..
 
 # Starts the Lucene memory structure
 # bash bin/start_lucene.sh $1

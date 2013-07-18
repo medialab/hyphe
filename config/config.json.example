@@ -18,7 +18,7 @@
   "memoryStructure": {
     "thrift.host": "localhost",
     "thrift.port": 9090,
-    "lucene.path": "/home/hci/lucene",
+    "lucene.path": "##HCIPATH##/lucene-data",
     "log.level": "INFO",
     "max_simul_pages_indexing": 100,
     "max_simul_links_indexing": 10000

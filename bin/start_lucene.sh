@@ -17,6 +17,6 @@ if [ -z $1 ]; then
 else log="log.level=DEBUG"
 fi
 
-java -server -Xms256m -Xmx1024m -Xmn224m -XX:NewSize=224m -XX:MaxNewSize=224m -XX:NewRatio=3 -XX:SurvivorRatio=6 -XX:PermSize=128m -XX:MaxPermSize=128m -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar memory_structure/target/MemoryStructureExecutable.jar $log >> log/hyphe-memorystructure.log &
+java -server -Xms256m -Xmx1024m -Xmn224m -XX:NewSize=224m -XX:MaxNewSize=224m -XX:NewRatio=3 -XX:SurvivorRatio=6 -XX:PermSize=128m -XX:MaxPermSize=128m -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar hyphe_backend/memorystructure/MemoryStructureExecutable.jar $log >> log/hyphe-memorystructure.log &
 echo $! > java-memstruct.pid
 

@@ -1,4 +1,4 @@
 HYPHE_CONFIG = {
-	"SERVER_ADDRESS":"http://host:port",
+	"SERVER_ADDRESS":"http://localhost:6978",
 	"JAVASCRIPT_LOG_VERBOSE":false
 }
