@@ -55,7 +55,6 @@ echo ""
 # Install JAVA if necessary
 echo "Check JAVA and install OpenJDK if necessary..."
 echo "----------------------------------------------"
-echo ""
 java -version > /dev/null 2>&1 || sudo apt-get -y install openjdk-6-jre > install.log
 echo ""
 
