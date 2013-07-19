@@ -1069,12 +1069,15 @@ def test_connexions():
         print "WARNING: Could not delete existing version of HCI's scrapy spider"
         print res['message']
         print "Trying to deploy anyway"
-    import subprocess
-    output = subprocess.Popen(['bin/deploy_scrapy_spider.sh', '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
-    res = run.crawler.send_scrapy_query('listprojects')
-    if is_error(res) or "projects" not in res['result'] or config['mongo-scrapy']['project'] not in res['result']['projects']:
+    try:
+        import subprocess
+        output = subprocess.Popen(['bash', 'bin/deploy_scrapy_spider.sh', '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
+        res = run.crawler.send_scrapy_query('listprojects')
+        if is_error(res) or "projects" not in res['result'] or config['mongo-scrapy']['project'] not in res['result']['projects']:
+            raise Exception(output)
+    except Exception as e:
         print "ERROR: Could not connect to scrapyd server to deploy spider, please check your server and the configuration in config.json."
-        print output
+        print e
         return None
     return run
 
