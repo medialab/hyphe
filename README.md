@@ -15,6 +15,8 @@ The project relies on the following main components:
 
 # Download the code for install
 
+For easy installation, you can directly download the [release version](https://github.com/medialab/Hypertext-Corpus-Initiative/releases).
+
 ```bash
     git clone https://github.com/medialab/Hypertext-Corpus-Initiative HCI
     cd HCI
