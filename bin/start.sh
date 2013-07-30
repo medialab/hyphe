@@ -23,7 +23,17 @@ fi
 
 echo "Starting Hyphe's Java Memory Structure..."
 bash bin/start_lucene.sh
-sleep 1
+
+ct=0
+while ! tail -n 1 log/hyphe-memorystructure.log | grep "starting Thrift server (THsHaServer) at port" > /dev/null; do
+  ct=$(( $ct + 1 ))
+  if [ $ct -gt 10 ]; then
+    echo "Could not start the Java Memory Structure, please investigate log in log/hyphe-memorystructure.log :"
+    tail -n 20 log/hyphe-memorystructure.log
+    exit 1
+  fi
+  sleep 1
+done
 echo "Starting Hyphe's Core JsonRPC API..."
 source /usr/local/bin/virtualenvwrapper.sh
 workon HCI
@@ -34,7 +44,7 @@ echo ""
 ct=0
 while ! ( test -f java-memstruct.pid && ps -p $(cat java-memstruct.pid) > /dev/null && test -f twistd.pid && ps -p $(cat twistd.pid) > /dev/null ); do
   ct=$(( $ct + 1 ))
-  if [ $ct -gt 6 ]; then
+  if [ $ct -gt 10 ]; then
     echo "Could not start Hyphe's backend server, please investigate logs in log/"
     bash bin/stop.sh > /dev/null 2>&1
     exit 1
