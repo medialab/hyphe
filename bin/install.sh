@@ -5,7 +5,7 @@ echo "Install dependencies..."
 echo "-----------------------"
 echo ""
 sudo apt-get update > /dev/null || exit 1
-sudo apt-get -y install curl git vim python-dev python-pip apache2 php5 > install.log || exit 1
+sudo apt-get -y install curl git vim python-dev python-pip apache2 php5 >> install.log || exit 1
 echo ""
 
 # Install apt repositories for ScrapyD and MongoDB
@@ -29,15 +29,15 @@ if ! grep "downloads-distro.mongodb.org" /etc/apt/sources.list > /dev/null; then
   echo "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen" >> /tmp/sources.list
   sudo mv /tmp/sources.list /etc/apt/sources.list
 fi
-sudo apt-get update > install.log || exit 1
+sudo apt-get update >> install.log || exit 1
 echo ""
 
 # Install MongoDB
 echo "Install and start MongoDB..."
 echo "----------------------------"
 echo ""
-sudo apt-get -y install mongodb-10gen > install.log || exit 1
-sudo pip -q install pymongo > install.log || exit 1
+sudo apt-get -y install mongodb-10gen >> install.log || exit 1
+sudo pip -q install pymongo >> install.log || exit 1
 #possible config via : vi /etc/mongodb.conf
 sudo service mongodb restart || exit 1
 echo ""
@@ -46,7 +46,7 @@ echo ""
 echo "Install and start ScrapyD..."
 echo "----------------------------"
 echo ""
-sudo apt-get -y install scrapyd-0.17 > install.log || exit 1
+sudo apt-get -y install scrapyd-0.17 >> install.log || exit 1
 #possible config via : vi config/scrapyd.config
 sudo ln -s `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe || exit 1
 sudo service scrapyd restart
@@ -55,19 +55,19 @@ echo ""
 # Install JAVA if necessary
 echo "Check JAVA and install OpenJDK if necessary..."
 echo "----------------------------------------------"
-java -version > /dev/null 2>&1 || sudo apt-get -y install openjdk-6-jre > install.log
+java -version > /dev/null 2>&1 || sudo apt-get -y install openjdk-6-jre >> install.log
 echo ""
 
 # Install Hyphe's VirtualEnv
 echo "Install VirtualEnv..."
 echo "---------------------"
 echo ""
-sudo pip -q install virtualenv > install.log || exit 1
-sudo pip -q install virtualenvwrapper > install.log || exit 1
+sudo pip -q install virtualenv >> install.log || exit 1
+sudo pip -q install virtualenvwrapper >> install.log || exit 1
 source /usr/local/bin/virtualenvwrapper.sh
 mkvirtualenv --no-site-packages HCI
 workon HCI
-pip install -r requirements.txt > install.log || exit 1
+pip install -r requirements.txt >> install.log || exit 1
 add2virtualenv .
 deactivate
 echo ""
