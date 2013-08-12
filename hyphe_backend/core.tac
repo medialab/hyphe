@@ -17,7 +17,7 @@ from thrift.transport.TSocket import TSocket
 from hyphe_backend import processor
 from hyphe_backend.memorystructure import MemoryStructure as ms
 from hyphe_backend.memorystructure.ttypes import *
-from hyphe_backend.lib import config_hci, urllru, gexf
+from hyphe_backend.lib import config_hci, urllru, gexf, user_agents
 from hyphe_backend.lib.thriftpool import *
 from hyphe_backend.lib.jsonrpc_utils import *
 
@@ -302,8 +302,6 @@ class Crawler(jsonrpc.JSONRPC):
         """Starts a crawl with scrapy from arguments using a list of urls and of lrus for prefixes."""
         if len(starts) < 1:
             return format_error('No startpage defined for crawling WebEntity %s.' % webentity_id)
-        # Choose random user agent for each crawl
-        agents = ["Mozilla/2.0 (compatible; MSIE 3.0B; Win32)","Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9b5) Gecko/2008032619 Firefox/3.0b5","Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; bgft)","Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; iOpus-I-M)","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.2.153.1 Safari/525.19","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.2.153.1 Safari/525.19"]
         # preparation of the request to scrapyd
         args = {'project': config['mongo-scrapy']['project'],
                   'spider': 'pages',
@@ -313,7 +311,7 @@ class Crawler(jsonrpc.JSONRPC):
                   'follow_prefixes': list(follow_prefixes),
                   'nofollow_prefixes': list(nofollow_prefixes),
                   'discover_prefixes': list(discover_prefixes),
-                  'user_agent': agents[random.randint(0, len(agents) - 1)]}
+                  'user_agent': user_agents.agents[random.randint(0, len(user_agents.agents) - 1)]}
         res = self.send_scrapy_query('schedule', args)
         if is_error(res):
             return res
