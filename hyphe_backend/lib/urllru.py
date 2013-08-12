@@ -45,7 +45,7 @@ def url_to_lru(url):
                 host = host.split(".")
                 host.reverse()
                 if host:
-                    tokens += ["h:"+stem for stem in host]
+                    tokens += ["h:"+stem for stem in host if stem]
                 if path:
                     path = urllib.quote_plus(path).replace("%2F", "/")
                     if len(path) and path.startswith("/"):
@@ -123,7 +123,7 @@ def cleanUrl(url, currentUrl) :
             return url
     return None
 
-# removing port if 80 :
+# removing port if 80 (http) or 443 (https):
 def stripHttpPort(lru) :
     return "|".join([stem for stem in lru.split("|") if stem != "t:80" and stem != "t:443"])
 
