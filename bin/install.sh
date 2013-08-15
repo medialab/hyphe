@@ -48,6 +48,7 @@ echo "----------------------------"
 echo ""
 sudo apt-get -y install scrapyd-0.17 >> install.log || exit 1
 #possible config via : vi config/scrapyd.config
+sudo rm -f /etc/scrapyd/conf.d/100-hyphe
 sudo ln -s `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe || exit 1
 sudo service scrapyd restart
 echo ""
@@ -82,6 +83,7 @@ cp -r hyphe_www_client/_config{_default,} || exit 1
 
 # Prepare apache config
 sed "s|##HCIPATH##|"`pwd`"|" hyphe_www_client/_config/apache2_example.conf > hyphe_www_client/_config/apache2.conf  || exit 1
+sudo rm -f /etc/apache2/sites-available/hyphe
 sudo ln -s `pwd`/hyphe_www_client/_config/apache2.conf /etc/apache2/sites-available/hyphe || exit 1
 sudo a2ensite hyphe || exit 1
 sudo service apache2 reload
