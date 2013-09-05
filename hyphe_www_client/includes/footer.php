@@ -12,13 +12,23 @@
                     </div>
                     <br/>
 					<p>
-                        We used: 
+                        We used:
+                        <br/> 
+                        - Web Interface:
                         <strong><a href="http://dominojs.org/">Domino.js</a></strong>,
                         <strong><a href="http://sigmajs.org/">Sigma.js</a></strong>,
                         <a href="http://twitter.github.com/bootstrap/">Bootstrap</a>,
                         <a href="http://jquery.com/">jQuery</a>,
                         <a href="http://modernizr.com/">Modernizr</a>,
                         <a href="http://www.initializr.com/">Initializr</a>
+                        <br/>
+                        - Crawl &amp; storage server API:
+                        <strong><a href="http://lucene.apache.org/">Lucene</a></strong>,
+                        <strong><a href="http://scrapy.org/">Scrapy</a></strong>,
+                        <a href="http://twistedmatrix.com/trac/">Twisted</a>,
+                        <a href="http://json-rpc.org/">JsonRPC</a>,
+                        <a href="http://www.mongodb.org/">MongoDB</a>,
+                        <a href="http://thrift.apache.org/">Thrift</a>
                     </p>
 				</div>
 				<div class="span4">
