@@ -195,9 +195,14 @@ class Core(jsonrpc.JSONRPC):
         crawls = self.crawler.jsonrpc_list()
         pages = self.db[config['mongo-scrapy']['queueCol']].count()
         crawled = self.db[config['mongo-scrapy']['pageStoreCol']].count()
+        jobs = list(self.db[config['mongo-scrapy']['jobListCol']].find(fields=['nb_pages', 'nb_links']))
+        found_pages = sum([j['nb_pages'] for j in jobs])
+        found_links = sum([j['nb_links'] for j in jobs])
         res = {'crawler': {'jobs_pending': len(crawls['result']['pending']),
                            'jobs_running': len(crawls['result']['running']),
-                           'pages_crawled': crawled},
+                           'pages_crawled': crawled,
+                           'pages_found': found_pages,
+                           'links_found': found_links},
                'memory_structure': {'job_running': self.store.loop_running,
                                     'job_running_since': self.store.loop_running_since*1000,
                                     'last_index': self.store.last_index_loop*1000,
@@ -319,7 +324,7 @@ class Crawler(jsonrpc.JSONRPC):
         if 'jobid' in res:
             ts = int(time.time()*1000)
             jobslog(res['jobid'], "CRAWL_ADDED", self.db, ts)
-            resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'webentity_id': webentity_id, 'nb_pages': 0, 'nb_links': 0, 'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts}}, upsert=True, safe=True)
+            resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': res['jobid']}, {'$set': {'webentity_id': webentity_id, 'nb_crawled_pages': 0, 'nb_pages': 0, 'nb_links': 0, 'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts}}, upsert=True, safe=True)
             if (resdb['err']):
                 print "ERROR saving crawling job %s in database for WebEntity %s with arguments %s" % (res['jobid'], webentity_id, args), resdb
                 return format_error(resdb['err'])
@@ -718,7 +723,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def index_batch(self, page_items, jobid):
         ids = [bson.ObjectId(str(record['_id'])) for record in page_items]
-        if (len(ids) > 0):
+        nb_crawled_pages = len(ids)
+        if (nb_crawled_pages > 0):
             page_items.rewind()
             pages, links = yield threads.deferToThread(processor.generate_cache_from_pages_list, page_items, config["precisionLimit"], self.precision_exceptions, config['DEBUG'] > 0)
             s=time.time()
@@ -754,7 +760,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if (resdb['err']):
                 print "ERROR cleaning queue in database for job %s" % jobid, resdb
                 returnD(False)
-            res = self.db[config['mongo-scrapy']['jobListCol']].find_and_modify({'_id': jobid}, update={'$inc': {'nb_pages': nb_pages, 'nb_links': nb_links}, '$set': {'indexing_status': indexing_statuses.BATCH_FINISHED}})
+            res = self.db[config['mongo-scrapy']['jobListCol']].find_and_modify({'_id': jobid}, update={'$inc': {'nb_crawled_pages': nb_crawled_pages, 'nb_pages': nb_pages, 'nb_links': nb_links}, '$set': {'indexing_status': indexing_statuses.BATCH_FINISHED}})
             if not res:
                 print "ERROR updating job %s" % jobid
                 returnD(False)
