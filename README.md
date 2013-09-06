@@ -15,7 +15,9 @@ The project relies on the following main components:
 
 # Download the code for install
 
-For easy installation, you can directly download the [release version](https://github.com/medialab/Hypertext-Corpus-Initiative/releases).
+For an easy install, the best solution is to download directly the [release version](https://github.com/medialab/Hypertext-Corpus-Initiative/releases).
+
+Otherwise, if you want fine control and maybe modify the code, you can download the whole source here:
 
 ```bash
     git clone https://github.com/medialab/Hypertext-Corpus-Initiative HCI
@@ -29,6 +31,12 @@ Warning: run from HCI's root directory in which you downloaded the whole code. T
 
 ```bash
     bash bin/install.sh
+```
+
+If you downloaded the code source from the git repository instead of the release, please note you will need to also [install Thrift according to the section below](#java--thrift-environment) and run afterwards the following command:
+
+```bash
+    bash bin/build_thrift.sh
 ```
 
 ## Set paths, ports and options
