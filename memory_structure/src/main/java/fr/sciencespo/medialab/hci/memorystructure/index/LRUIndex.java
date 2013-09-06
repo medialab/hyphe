@@ -2005,7 +2005,7 @@ public class LRUIndex {
                 if(logger.isDebugEnabled()) {
                     logger.debug("generating webentitylinks for webentity " + WE.getName() + " / " + WE.getId());
                 }
-                if (WE.getName().equals("OUTSIDE_WEB")) {
+                if (WE.getName() != null && WE.getName().equals("OUTSIDE_WEB")) {
                     continue;
                 }
                 List<WebEntity> subWEs = findSubWebEntities(WE);
