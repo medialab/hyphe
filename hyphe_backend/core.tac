@@ -169,13 +169,13 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_lookup_httpstatus(self, url, timeout=2):
         res = format_result(0)
         try:
-            prot, host, path = urlparse.urlparse(url)[0:3]
+            prot, host, path, _, query = urlparse.urlparse(url)[0:5]
             host = host.lower()
             if prot.endswith("s"):
                 conn = httplib.HTTPSConnection(host, timeout=timeout)
             else:
                 conn = httplib.HTTPConnection(host, timeout=timeout)
-            conn.request('HEAD', path)
+            conn.request('HEAD', "%s?%s" % (path, query))
             response = conn.getresponse()
             res['result'] = response.status
         except socket.gaierror as e:
