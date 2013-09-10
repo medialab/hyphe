@@ -166,17 +166,27 @@ class Core(jsonrpc.JSONRPC):
             return {'code': 'fail', 'message': '%d urls failed, see details in "errors" field and successes in "results" field.' % len(errors), 'errors': errors, 'results': res}
         return format_result(res)
 
+    def _prepare_conn(self, prot, host, timeout):
+        if prot.endswith("s"):
+            conn = httplib.HTTPSConnection(host, timeout=timeout)
+        else:
+            conn = httplib.HTTPConnection(host, timeout=timeout)
+        return conn
+
     def jsonrpc_lookup_httpstatus(self, url, timeout=2):
         res = format_result(0)
         try:
             prot, host, path, _, query = urlparse.urlparse(url)[0:5]
             host = host.lower()
-            if prot.endswith("s"):
-                conn = httplib.HTTPSConnection(host, timeout=timeout)
-            else:
-                conn = httplib.HTTPConnection(host, timeout=timeout)
-            conn.request('HEAD', "%s?%s" % (path, query))
+            conn = self._prepare_conn(prot, host, timeout)
+            if query != "":
+                query = "?%s" % query
+            conn.request('HEAD', "%s%s" % (path, query))
             response = conn.getresponse()
+            if response.status != 200:
+                conn = self._prepare_conn(prot, host, timeout)
+                conn.request('GET', "%s%s" % (path, query), headers= {'User-Agent': user_agents.agents[random.randint(0, len(user_agents.agents) - 1)], 'Accept': '*/*', 'Accept-Encoding': '*', 'Accept-Charset': '*'})
+                response = conn.getresponse()
             res['result'] = response.status
         except socket.gaierror as e:
             res['message'] = "DNS not found for url %s : %s" % (url, e)
