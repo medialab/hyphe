@@ -538,6 +538,7 @@ $.fn.editable.defaults.mode = 'inline';
                                     $('<a></a>').editable({
                                         type: 'select2'
                                         ,inputclass: 'input-xxlarge'
+                                        ,placeholder: 'Type tag(s) values for this category'
                                         ,emptytext: 'Add tag(s) to complete'
                                         ,value: userTagCategories[cat]
                                         ,select2: {
