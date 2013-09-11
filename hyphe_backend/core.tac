@@ -557,7 +557,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(WE):
            return format_error("ERROR could not retrieve WebEntity with id %s" % webentity_id)
         try:
-            value = value.encode('utf-8')
+            if isinstance(value, list):
+                value = [i.encode('utf-8') for i in value]
+            else:
+                value = value.encode('utf-8')
             if array_behavior:
                 if array_key:
                     array_key = array_key.encode('utf-8')
