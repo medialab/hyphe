@@ -115,6 +115,9 @@ class Core(jsonrpc.JSONRPC):
             return
         # update jobs crawling status accordingly to crawler's statuses
         running_ids = [job['id'] for job in scrapyjobs['running']]
+        for job_id in running_ids:
+            crawled_pages = self.db[config['mongo-scrapy']['pageStoreCol']].find({'_job': job_id}).count()
+            self.db[config['mongo-scrapy']['jobListCol']].update({'_id': job_id}, {'$set': {'nb_crawled_pages': crawled_pages}})
         update_ids = [job['_id'] for job in self.db[config['mongo-scrapy']['jobListCol']].find({'_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, fields=['_id'])]
         if len(update_ids):
             resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': {'$in': update_ids}}, {'$set': {'crawling_status': crawling_statuses.RUNNING}}, multi=True, safe=True)
@@ -776,7 +779,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if (resdb['err']):
                 print "ERROR cleaning queue in database for job %s" % jobid, resdb
                 returnD(False)
-            res = self.db[config['mongo-scrapy']['jobListCol']].find_and_modify({'_id': jobid}, update={'$inc': {'nb_crawled_pages': nb_crawled_pages, 'nb_pages': nb_pages, 'nb_links': nb_links}, '$set': {'indexing_status': indexing_statuses.BATCH_FINISHED}})
+            tot_crawled_pages = self.db[config['mongo-scrapy']['pageStoreCol']].find({'_job': jobid}).count()
+            res = self.db[config['mongo-scrapy']['jobListCol']].find_and_modify({'_id': jobid}, update={'$inc': {'nb_pages': nb_pages, 'nb_links': nb_links}, '$set': {'nb_crawled_pages': tot_crawled_pages, 'indexing_status': indexing_statuses.BATCH_FINISHED}})
             if not res:
                 print "ERROR updating job %s" % jobid
                 returnD(False)
