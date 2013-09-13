@@ -250,7 +250,7 @@ HypheCommons.domino_init()
         element.html('').append(
             $('<div id="jobsMessage"><div class="progress progress-striped active"><div class="bar" style="width: 100%;">Loading...</div></div></div>')
         ).append(
-            $('<table class="table table-hover" style="display:none;" id="jobsTable"><thead><tr><th>Web entity</th><th style="width:80px">Harvesting</th><th style="width:80px">Indexing</th><th style="width:80px">Data</th><th style="width:10px"></th></tr></thead><tbody id="jobsTableBody"></tbody></table>')
+            $('<table class="table table-hover" style="display:none;" id="jobsTable"><thead><tr><th>Web entity</th><th style="width:80px">Harvesting</th><th style="width:80px">Indexing</th><th style="width:100px">Data</th><th style="width:10px"></th></tr></thead><tbody id="jobsTableBody"></tbody></table>')
         )
         
         var redraw = function(d) {
@@ -314,7 +314,7 @@ HypheCommons.domino_init()
                                 $('<span class="label '+indexing_colorClass+'"/>').text(crawlJob.indexing_status.replace('_', ' ').toLowerCase())
                             )
                         ).append(
-                            $('<td><small>'+crawlJob.nb_pages+' pages<br/>'+crawlJob.nb_links+' links</small></td>')
+                            $('<td><small>'+crawlJob.nb_crawled_pages+' crawled pages<br/>'+crawlJob.nb_pages+' found pages<br/>'+crawlJob.nb_links+' found links</small></td>')
                         ).append(
                             $('<td style="vertical-align:middle;"><i class="icon-chevron-right icon-white decorating-chevron pull-right"/></td>')
                         ).click(function(){
