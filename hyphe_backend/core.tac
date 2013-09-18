@@ -884,6 +884,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, corpus='', corelinks=False, light_for_csv=False):
         jobs = {}
+        if isinstance(list_ids, unicode):
+            list_ids = [list_ids]
         n_WEs = len(list_ids) if list_ids else 0
         if n_WEs:
             MAX_WE_AT_ONCE = 100
