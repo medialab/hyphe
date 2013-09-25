@@ -328,6 +328,7 @@ $.fn.editable.defaults.mode = 'inline';
                                         .append($('<i class="icon-share-alt"/>'))
                                 )
                     ).append(
+                        webEntity.lru_prefixes.length > 1 ?
                         $('<td>').append(
                                 $('<a class="btn btn-danger btn-link btn-mini pull-right"/>')
                                     .html('<i class="icon-remove"/> remove')
@@ -337,6 +338,7 @@ $.fn.editable.defaults.mode = 'inline';
                                         })
                                     })
                             )
+                        : null
                     )
                 )
             })    
