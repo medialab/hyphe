@@ -1054,7 +1054,12 @@ HypheCommons.domino_init()
 
     //// On load
     $(document).ready(function(){
-        D.dispatchEvent('requestWebentitiesLight', {})
+        var we_id = Utils.hash.get('we_id')
+        if(we_id && we_id!=''){
+            D.dispatchEvent('request_updateCurrentWebentity', {currentWebentityId: we_id})
+        }else{
+            D.dispatchEvent('requestWebentitiesLight', {})
+        }
     })
 
 
