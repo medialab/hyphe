@@ -45,6 +45,9 @@ public class IndexConfiguration {
         FULLPREC,
         IS_NODE,
         TAG,
+        TAG_NAMESPACE,
+        TAG_CATEGORY,
+        TAG_VALUE,
         REGEXP,
         NAME,
         HOMEPAGE,
@@ -86,8 +89,8 @@ public class IndexConfiguration {
      * @return
      */
     public static String getWEStatusValue(final String status) {
-        for (WEStatus good : WEStatus.values()) {
-            if (StringUtils.isNotEmpty(status)) {
+        if (StringUtils.isNotEmpty(status)) {
+            for (WEStatus good : WEStatus.values()) {
                 if (status.equalsIgnoreCase(good.name())) {
                     return good.name();
                 }
@@ -96,7 +99,60 @@ public class IndexConfiguration {
         return WEStatus.DISCOVERED.name();
     }
 
+    /**
+     * Return the correct FieldName match for a string
+     *
+     * @param status
+     * @return
+     */
+    public static String getFieldNameValue(final String field) {
+        if (StringUtils.isNotEmpty(field)) {
+            for (FieldName good : FieldName.values()) {
+                if (field.equalsIgnoreCase(good.name())) {
+                    return good.name();
+                }
+            }
+        }
+        return null;
+    }
+
     public static final String DEFAULT_WEBENTITY_CREATION_RULE = "DEFAULT_WEBENTITY_CREATION_RULE";
+
+    private static Document addDocumentField(Document document, FieldName name, String value, boolean store, boolean index, boolean tokenize) {
+        Field.Store fieldStore = Field.Store.YES;
+        if (! store) {
+            fieldStore = Field.Store.NO;
+        }
+        Field.Index fieldIndex = Field.Index.NOT_ANALYZED_NO_NORMS;
+        if (! index) {
+            fieldIndex = Field.Index.NO;
+        } else if (tokenize) {
+            fieldIndex = Field.Index.ANALYZED_NO_NORMS;
+        }
+        Field field = new Field(name.name(), value, fieldStore, fieldIndex, Field.TermVector.NO);
+        if (! tokenize) {
+            field.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        }
+        field.setOmitNorms(true);
+        document.add(field);
+        return document;
+    }
+
+    private static Document addDocumentUnstoredField(Document document, FieldName name, String value) {
+        return addDocumentField(document, name, value, false, true, true);
+    }
+
+    private static Document addDocumentUnindexedField(Document document, FieldName name, String value) {
+        return addDocumentField(document, name, value, true, false, false);
+    }
+
+    private static Document addDocumentUntokenizedField(Document document, FieldName name, String value) {
+        return addDocumentField(document, name, value, true, true, false);
+    }
+
+    private static Document addDocumentTokenizedField(Document document, FieldName name, String value) {
+        return addDocumentField(document, name, value, true, true, true);
+    }
 
     /**
      * Set the creation and the modification date of the document
@@ -105,17 +161,13 @@ public class IndexConfiguration {
      * @param creationDate The creation date
      * @return
      */
-    protected static Document setDocumentDates(Document document, String creationDate) {
+    private static Document setDocumentDates(Document document, String creationDate) {
         String currentDate = String.valueOf(System.currentTimeMillis());
         if (creationDate == null) {
             creationDate = currentDate;
         }
-        Field creationDateField = new Field(FieldName.DATECREA.name(), creationDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        creationDateField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(creationDateField);
-        Field lastModificationDateField = new Field(FieldName.DATEMODIF.name(), currentDate, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        lastModificationDateField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(lastModificationDateField);
+        document = addDocumentUnindexedField(document, FieldName.DATECREA, creationDate);
+        document = addDocumentUnindexedField(document, FieldName.DATEMODIF, currentDate);
         return document;
     }
 
@@ -131,18 +183,10 @@ public class IndexConfiguration {
             return null;
         }
         Document document = new Document();
-
-        Field typeField = new Field(FieldName.TYPE.name(), DocType.PRECISION_EXCEPTION.name(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(typeField);
-
-        Field lruField = new Field(FieldName.LRU.name(), lru, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        lruField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(lruField);
-
+        document = addDocumentUntokenizedField(document, FieldName.TYPE, DocType.PRECISION_EXCEPTION.name());
+        document = addDocumentUntokenizedField(document, FieldName.LRU, lru);
         return document;
     }
-
 
     /**
      * Converts a WebEntityLink into a Lucene Document
@@ -156,18 +200,12 @@ public class IndexConfiguration {
             return null;
         }
         Document document = new Document();
-        //
-        // id: generate random UUID
-        //
-        if(StringUtils.isEmpty(webEntityLink.getId())) {
-            Field idField = new Field(FieldName.ID.name(), UUID.randomUUID().toString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(idField);
-        }
 
-        Field typeField = new Field(FieldName.TYPE.name(), DocType.WEBENTITY_LINK.name(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(typeField);
+        // id: generate random UUID
+        if(StringUtils.isEmpty(webEntityLink.getId())) {
+            document = addDocumentUntokenizedField(document, FieldName.ID, UUID.randomUUID().toString());
+        }
+        document = addDocumentUntokenizedField(document, FieldName.TYPE, DocType.WEBENTITY_LINK.name());
 
         //
         // if the WebEntityLink has no source and target, don't create a Lucene document for it
@@ -177,21 +215,13 @@ public class IndexConfiguration {
             return null;
         }
         else {
-            Field sourceIdField = new Field(FieldName.SOURCE.name(), webEntityLink.getSourceId(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            sourceIdField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(sourceIdField);
-
-            Field targetIdField = new Field(FieldName.TARGET.name(), webEntityLink.getTargetId(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            targetIdField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(targetIdField);
+            document = addDocumentUntokenizedField(document, FieldName.SOURCE, webEntityLink.getSourceId());
+            document = addDocumentUntokenizedField(document, FieldName.TARGET, webEntityLink.getTargetId());
 
             String weight = String.valueOf(webEntityLink.getWeight());
-            Field weightField = new Field(FieldName.WEIGHT.name(), weight, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            weightField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(weightField);
+            document = addDocumentUnindexedField(document, FieldName.WEIGHT, weight);
 
             document = setDocumentDates(document, webEntityLink.getCreationDate());
-
             return document;
         }
     }
@@ -209,16 +239,12 @@ public class IndexConfiguration {
             return null;
         }
         Document document = new Document();
+
         // id: generate random UUID
         if(StringUtils.isEmpty(webEntityNodeLink.getId())) {
-            Field idField = new Field(FieldName.ID.name(), UUID.randomUUID().toString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(idField);
+            document = addDocumentUntokenizedField(document, FieldName.ID, UUID.randomUUID().toString());
         }
-
-        Field typeField = new Field(FieldName.TYPE.name(), DocType.WEBENTITY_NODE_LINK.name(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(typeField);
+        document = addDocumentUntokenizedField(document, FieldName.TYPE, DocType.WEBENTITY_NODE_LINK.name());
 
         // if the WebEntityLink has no source and target, don't create a Lucene document for it
         if(StringUtils.isEmpty(webEntityNodeLink.getSourceId()) || StringUtils.isEmpty(webEntityNodeLink.getTargetLRU())) {
@@ -226,18 +252,11 @@ public class IndexConfiguration {
             return null;
         }
         else {
-            Field sourceIdField = new Field(FieldName.SOURCE.name(), webEntityNodeLink.getSourceId(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            sourceIdField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(sourceIdField);
-
-            Field targetLRUField = new Field(FieldName.TARGET.name(), webEntityNodeLink.getTargetLRU(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            targetLRUField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(targetLRUField);
+            document = addDocumentUntokenizedField(document, FieldName.SOURCE, webEntityNodeLink.getSourceId());
+            document = addDocumentUntokenizedField(document, FieldName.TARGET, webEntityNodeLink.getTargetLRU());
 
             String weight = String.valueOf(webEntityNodeLink.getWeight());
-            Field weightField = new Field(FieldName.WEIGHT.name(), weight, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            weightField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(weightField);
+            document = addDocumentUnindexedField(document, FieldName.WEIGHT, weight);
 
             return document;
         }
@@ -255,40 +274,24 @@ public class IndexConfiguration {
             return null;
         }
         Document document = new Document();
-        //
+
         // id: generate random UUID
-        //
-        Field idField = new Field(FieldName.ID.name(), UUID.randomUUID().toString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(idField);
+        document = addDocumentUntokenizedField(document, FieldName.ID, UUID.randomUUID().toString());
+        document = addDocumentUntokenizedField(document, FieldName.TYPE, DocType.NODE_LINK.name());
 
-        Field typeField = new Field(FieldName.TYPE.name(), DocType.NODE_LINK.name(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(typeField);
-
-        //
         // if the NodeLink has no source and target, don't create a Lucene document for it
-        //
         if(StringUtils.isEmpty(nodeLink.getSourceLRU()) || StringUtils.isEmpty(nodeLink.getTargetLRU())) {
             logger.warn("attempt to create Lucene document for NodeLink without LRU");
             return null;
         }
         else {
-            Field sourceLRUField = new Field(FieldName.SOURCE.name(), nodeLink.getSourceLRU(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            sourceLRUField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(sourceLRUField);
-
-            Field targetLRUField = new Field(FieldName.TARGET.name(), nodeLink.getTargetLRU(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            targetLRUField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(targetLRUField);
+            document = addDocumentUntokenizedField(document, FieldName.SOURCE, nodeLink.getSourceLRU());
+            document = addDocumentUntokenizedField(document, FieldName.TARGET, nodeLink.getTargetLRU());
 
             String weight = String.valueOf(nodeLink.getWeight());
-            Field weightField = new Field(FieldName.WEIGHT.name(), weight, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            weightField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(weightField);
+            document = addDocumentUnindexedField(document, FieldName.WEIGHT, weight);
 
             document = setDocumentDates(document, nodeLink.getCreationDate());
-
             return document;
         }
     }
@@ -301,99 +304,71 @@ public class IndexConfiguration {
      */
     protected static Document convertPageItemToLuceneDocument(PageItem pageItem) {
         Document document = new Document();
-        //
+
         // id: generate random UUID
-        //
-        Field idField = new Field(FieldName.ID.name(), UUID.randomUUID().toString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(idField);
+        document = addDocumentUntokenizedField(document, FieldName.ID, UUID.randomUUID().toString());
+        document = addDocumentUntokenizedField(document, FieldName.TYPE, DocType.PAGE_ITEM.name());
 
-        Field typeField = new Field(FieldName.TYPE.name(), DocType.PAGE_ITEM.name(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(typeField);
-
-        //
         // if the PageItem has no LRU, don't create a Lucene document for it
-        //
         if(StringUtils.isNotEmpty(pageItem.getLru())) {
-            Field lruField = new Field(FieldName.LRU.name(), pageItem.getLru(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            lruField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(lruField);
+            document = addDocumentUntokenizedField(document, FieldName.LRU, pageItem.getLru());
         }
         else {
             logger.warn("attempt to create Lucene document for PageItem without LRU");
             return null;
         }
 
-        //
         // if the PageItem has no URL, recreate it from LRU
-        //
         if(StringUtils.isEmpty(pageItem.getUrl())) {
             pageItem.setUrl(LRUUtil.revertLRU(pageItem.getLru()));
         }
-        Field urlField = new Field(FieldName.URL.name(), pageItem.getUrl(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        urlField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(urlField);
+        document = addDocumentUntokenizedField(document, FieldName.URL, pageItem.getUrl());
 
         if(StringUtils.isNotEmpty(pageItem.getCrawlerTimestamp())) {
-            Field crawlerTimestampField = new Field(FieldName.CRAWLERTS.name(), pageItem.getCrawlerTimestamp(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            crawlerTimestampField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(crawlerTimestampField);
+            document = addDocumentUnindexedField(document, FieldName.CRAWLERTS, pageItem.getCrawlerTimestamp());
         }
 
         if(StringUtils.isNotEmpty(Integer.toString(pageItem.getDepth()))) {
-            Field depthField = new Field(FieldName.DEPTH.name(), Integer.toString(pageItem.getDepth()), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            depthField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(depthField);
+            document = addDocumentUnindexedField(document, FieldName.DEPTH, Integer.toString(pageItem.getDepth()));
         }
 
         if(StringUtils.isNotEmpty(pageItem.getErrorCode())) {
-            Field errorCodeField = new Field(FieldName.ERROR.name(), pageItem.getErrorCode(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            errorCodeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(errorCodeField);
+            document = addDocumentUnindexedField(document, FieldName.ERROR, pageItem.getErrorCode());
         }
 
         if(StringUtils.isNotEmpty(Integer.toString(pageItem.getHttpStatusCode()))) {
-            Field httpStatusCodeField = new Field(FieldName.HTTPSTATUS.name(), Integer.toString(pageItem.getHttpStatusCode()), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            httpStatusCodeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(httpStatusCodeField);
+            document = addDocumentUnindexedField(document, FieldName.HTTPSTATUS, Integer.toString(pageItem.getHttpStatusCode()));
         }
 
         if(StringUtils.isNotEmpty(Boolean.toString(pageItem.isNode))) {
-            Field isNodeField = new Field(FieldName.IS_NODE.name(), Boolean.toString(pageItem.isNode), Field.Store.NO, Field.Index.NOT_ANALYZED_NO_NORMS);
-            isNodeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(isNodeField);
+            document = addDocumentUnindexedField(document, FieldName.IS_NODE, Boolean.toString(pageItem.isNode));
         }
 
         if(StringUtils.isNotEmpty(Boolean.toString(pageItem.isFullPrecision))) {
-            Field isFullPrecision = new Field(FieldName.FULLPREC.name(), Boolean.toString(pageItem.isFullPrecision), Field.Store.NO, Field.Index.NOT_ANALYZED_NO_NORMS);
-            isFullPrecision.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(isFullPrecision);
+            document = addDocumentUnindexedField(document, FieldName.FULLPREC, Boolean.toString(pageItem.isFullPrecision));
         }
 
         if (pageItem.getSourceSet() != null) {
 	        for(String source : pageItem.getSourceSet()) {
-	            Field sourceField = new Field(FieldName.SOURCE.name(), source, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-	            sourceField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-	            document.add(sourceField);
+	            document = addDocumentUntokenizedField(document, FieldName.SOURCE, source);
 	        }
         }
 
         Map<String, Map<String, Set<String>>> tags = pageItem.getMetadataItems();
         if (tags != null) {
             for (String tagNameSpace : tags.keySet()) {
+                document = addDocumentUnstoredField(document, FieldName.TAG_NAMESPACE, tagNameSpace);
                 for (String tagKey : tags.get(tagNameSpace).keySet()) {
+                    document = addDocumentUnstoredField(document, FieldName.TAG_CATEGORY, tagKey);
                     for (String tagValue: tags.get(tagNameSpace).get(tagKey)) {
-                        Field tagField = new Field(FieldName.TAG.name(), tagNameSpace+":"+tagKey+"="+tagValue, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-                        tagField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-                        document.add(tagField);
+                        document = addDocumentUnstoredField(document, FieldName.TAG_VALUE, tagValue);
+                        document = addDocumentTokenizedField(document, FieldName.TAG, tagNameSpace+":"+tagKey+"="+tagValue);
                     }
                 }
             }
         }
 
         document = setDocumentDates(document, pageItem.getCreationDate());
-
         return document;
     }
 
@@ -405,7 +380,6 @@ public class IndexConfiguration {
      * @return
      */
     protected static Document convertWebEntityCreationRuleToLuceneDocument(WebEntityCreationRule webEntityCreationRule) throws IndexException {
-
         if(webEntityCreationRule == null) {
             throw new IndexException("WebEntityCreationRule is null");
         }
@@ -414,29 +388,16 @@ public class IndexConfiguration {
         }
 
         Document document = new Document();
-
-        Field idField = new Field(FieldName.ID.name(), UUID.randomUUID().toString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(idField);
-
-        Field typeField = new Field(FieldName.TYPE.name(), DocType.WEBENTITY_CREATION_RULE.name(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(typeField);
+        document = addDocumentUntokenizedField(document, FieldName.ID, UUID.randomUUID().toString());
+        document = addDocumentUntokenizedField(document, FieldName.TYPE, DocType.WEBENTITY_CREATION_RULE.name());
 
         String lru = DEFAULT_WEBENTITY_CREATION_RULE;
         if(StringUtils.isNotEmpty(webEntityCreationRule.getLRU())) {
             lru = webEntityCreationRule.getLRU();
         }
-        Field lruField = new Field(FieldName.LRU.name(), lru, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        lruField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(lruField);
-
-        Field regExpField = new Field(FieldName.REGEXP.name(), webEntityCreationRule.getRegExp(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        regExpField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(regExpField);
-
+        document = addDocumentUntokenizedField(document, FieldName.LRU, lru);
+        document = addDocumentUnindexedField(document, FieldName.REGEXP, webEntityCreationRule.getRegExp());
         document = setDocumentDates(document, webEntityCreationRule.getCreationDate());
-
         return document;
     }
 
@@ -448,8 +409,6 @@ public class IndexConfiguration {
      * @return
      */
     protected static Document convertWebEntityToLuceneDocument(WebEntity webEntity) {
-        Document document = new Document();
-
         String id = webEntity.getId();
         if(StringUtils.isEmpty(webEntity.getId())) {
             id = UUID.randomUUID().toString();
@@ -457,69 +416,55 @@ public class IndexConfiguration {
         if(logger.isDebugEnabled()) {
             logger.trace("lucene document for webentity with id " + id);
         }
-        Field idField = new Field(FieldName.ID.name(), id, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        idField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(idField);
+        Document document = new Document();
+        document = addDocumentUntokenizedField(document, FieldName.ID, id);
+        document = addDocumentUntokenizedField(document, FieldName.TYPE, DocType.WEBENTITY.name());
  
         String name = webEntity.getName();
         if(StringUtils.isEmpty(name)) {
             name = "OUTSIDE WEB";
         }
-        Field nameField = new Field(FieldName.NAME.name(), name, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        nameField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(nameField);
-
-        Field typeField = new Field(FieldName.TYPE.name(), DocType.WEBENTITY.name(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        typeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(typeField);
+        document = addDocumentTokenizedField(document, FieldName.NAME, name);
 
         if (webEntity.getLRUSet() != null) {
             for(String lru : webEntity.getLRUSet()) {
-                Field lruField = new Field(FieldName.LRU.name(), lru, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-                lruField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-                document.add(lruField);
+                document = addDocumentUntokenizedField(document, FieldName.LRU, lru);
             }
-        }
-        if(logger.isDebugEnabled()) {
-            logger.trace("lucene document has # " + document.getFieldables(FieldName.LRU.name()).length + " lrufields in webentity " + id);
+            if(logger.isDebugEnabled()) {
+                logger.trace("lucene document has # " + document.getFieldables(FieldName.LRU.name()).length + " lrufields in webentity " + id);
+            }
         }
 
         String status = getWEStatusValue(webEntity.getStatus());
-        Field statusField = new Field(FieldName.STATUS.name(), status, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-        statusField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-        document.add(statusField);
+        document = addDocumentTokenizedField(document, FieldName.STATUS, status);
 
         String homePage = webEntity.getHomepage();
         if(StringUtils.isNotEmpty(homePage)) {
-            Field homeField = new Field(FieldName.HOMEPAGE.name(), homePage, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-            homeField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-            document.add(homeField);
+            document = addDocumentUntokenizedField(document, FieldName.HOMEPAGE, homePage);
         }
 
         Set<String> startPages = webEntity.getStartpages();
         if (startPages != null) {
             for (String page : startPages) {
-                Field pagesField = new Field(FieldName.STARTPAGE.name(), page, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-                pagesField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-                document.add(pagesField);
+                document = addDocumentUntokenizedField(document, FieldName.STARTPAGE, page);
             }
         }
 
         Map<String, Map<String, Set<String>>> tags = webEntity.getMetadataItems();
         if (tags != null) {
             for (String tagNameSpace : tags.keySet()) {
+                document = addDocumentUnstoredField(document, FieldName.TAG_NAMESPACE, tagNameSpace);
                 for (String tagKey : tags.get(tagNameSpace).keySet()) {
+                    document = addDocumentUnstoredField(document, FieldName.TAG_CATEGORY, tagKey);
                     for (String tagValue: tags.get(tagNameSpace).get(tagKey)) {
-                        Field tagField = new Field(FieldName.TAG.name(), tagNameSpace+":"+tagKey+"="+tagValue, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS);
-                        tagField.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
-                        document.add(tagField);
+                        document = addDocumentUnstoredField(document, FieldName.TAG_VALUE, tagValue);
+                        document = addDocumentTokenizedField(document, FieldName.TAG, tagNameSpace+":"+tagKey+"="+tagValue);
                     }
                 }
             }
         }
 
         document = setDocumentDates(document, webEntity.getCreationDate());
-
         return document;
     }
 
