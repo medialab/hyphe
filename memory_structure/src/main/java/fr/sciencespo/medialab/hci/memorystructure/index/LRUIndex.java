@@ -2010,6 +2010,9 @@ public class LRUIndex {
             TopDocs results = indexSearcher.search(query, null, 1);
             final int totalResults = results.totalHits;
             logger.info("total # of webentities in index is " + totalResults);
+            if (totalResults == 0) {
+                return webEntityLinks;
+            }
             results = indexSearcher.search(query, null, totalResults);
             ScoreDoc[] scoreDocs = results.scoreDocs;
             for (int i = 0 ; i < totalResults ; i++) {
