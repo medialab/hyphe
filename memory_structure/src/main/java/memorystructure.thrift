@@ -285,6 +285,13 @@ WebEntity findWebEntityByLRUPrefix(1:string prefix) throws (1:MemoryStructureExc
 list<WebEntity> findWebEntitiesByLRUPrefix(1:string prefix) throws (1:MemoryStructureException me),
 
 /**
+ * @param 1 list of keywords to search for
+ * @param 2 list of pair field/keyword to search for
+ * @return web entities matching the search
+ */
+list<WebEntity> searchWebEntities(1:list<string> allFieldsKeywords, 2: list<list<string>> fieldKeywords) throws (1:MemoryStructureException me),
+
+/**
  * @param 1 prefix to search for
  * @return pageitems whose lru matches this prefix
  */

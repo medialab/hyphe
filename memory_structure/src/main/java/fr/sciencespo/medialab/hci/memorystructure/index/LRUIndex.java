@@ -1028,6 +1028,17 @@ public class LRUIndex {
    }
 
    /**
+    * Search webentities matching a list of keywords.
+    * @param listIDs
+    * @return webentities
+    * @throws IndexException hmm
+    */
+   public List<WebEntity> searchWebEntitiesByKeywords(List<String> allFieldsKeywords, List<List<String>> fieldKeywords) throws IndexException {
+       logger.debug("searchWebEntitiesByKeywords");
+       return retrieveWebEntitiesByQuery(LuceneQueryFactory.searchWebEntitiesByKeywords(allFieldsKeywords, fieldKeywords));
+   }
+
+   /**
     * Retrieves webentities matching a specific Lucene Query.
     * @return
     * @throws IndexException hmm

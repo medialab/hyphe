@@ -514,6 +514,22 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
+    @Override
+    public List<WebEntity> searchWebEntities(List<String> allFieldsKeywords, List<List<String>> fieldKeywords) throws TException, MemoryStructureException {
+        logger.debug("searchWebEntities");
+        try {
+            return lruIndex.searchWebEntitiesByKeywords(allFieldsKeywords, fieldKeywords);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            logger.debug("searchWebEntities end");
+        }
+    }
+
     /**
      * @param prefix prefix to search for
      * @return pageitems whose lru matches this prefix
