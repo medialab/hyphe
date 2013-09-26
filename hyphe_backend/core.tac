@@ -916,6 +916,74 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(format_result(res))
 
     @inlineCallbacks
+    def jsonrpc_advanced_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[]):
+        afk = []
+        fk = []
+        if isinstance(allFieldsKeywords, unicode):
+            allFieldsKeywords = [allFieldsKeywords]
+        if not (isinstance(allFieldsKeywords, list) and isinstance(fieldKeywords, list)):
+            returnD(format_error("ERROR: Both arguments must be lists."))
+        for k in allFieldsKeywords:
+            if not (isinstance(k, unicode)):
+                returnD(format_error("ERROR: allFieldsKeywords must be a list of strings."))
+            afk.append(k.encode('utf-8'))
+        for kv in fieldKeywords:
+            if not (isinstance(kv, list) and len(kv) == 2 and ((isinstance(kv[0], unicode) and isinstance(kv[1], unicode)) or (isinstance(kv[0], str) and isinstance(kv[1], str)))):
+                returnD(format_error("ERROR: fieldKeywords must be a list of two-string-elements lists. %s" % fieldKeywords))
+            fk.append([kv[0].encode('utf-8'), kv[1].encode('utf-8')])
+        WEs = yield self.msclient_pool.searchWebEntities(afk, fk)
+        if is_error(WEs):
+            returnD(WEs)
+        returnD(format_result(self.format_webentities(WEs, light=True)))
+
+    def jsonrpc_escape_search_query(self, query):
+        for char in ["\\", "+", "-", "!", "(", ")", ":", "^", "[", "]", "{", "}", "~", "*", "?"]:
+            query = query.replace(char, "\\%s" % char)
+        return query.replace(' ', '?')
+
+    def _optionnal_field_search(self, query, field=None):
+        if field:
+            if not isinstance(field, unicode):
+                field = unicode(field)
+            return self.jsonrpc_advanced_search_webentities([], [[field, query]])
+        return self.jsonrpc_advanced_search_webentities([query])
+
+    def jsonrpc_exact_search_webentities(self, query, field=None):
+        query = self.jsonrpc_escape_search_query(query)
+        return self._optionnal_field_search(query, field)
+
+    def jsonrpc_prefixed_search_webentities(self, query, field=None):
+        query = "%s*" % self.jsonrpc_escape_search_query(query)
+        return self._optionnal_field_search(query, field)
+
+    def jsonrpc_postfixed_search_webentities(self, query, field=None):
+        query = "*%s" % self.jsonrpc_escape_search_query(query)
+        return self._optionnal_field_search(query, field)
+
+    def jsonrpc_free_search_webentities(self, query, field=None):
+        query = "*%s*" % self.jsonrpc_escape_search_query(query)
+        return self._optionnal_field_search(query, field)
+
+    def jsonrpc_get_webentities_by_status(self, status):
+        status = status.lower()
+        valid_statuses = ['in', 'out', 'undecided', 'discovered']
+        if status not in valid_statuses:
+            returnD(format_error("ERROR: status argument must be one of %s" % ",".join(valid_statuses)))
+        return self.jsonrpc_exact_search_webentities(status, 'STATUS')
+
+    def jsonrpc_get_webentities_by_name(self, name):
+        return self.jsonrpc_exact_search_webentities(name, 'NAME')
+
+    def jsonrpc_get_webentities_by_tag_value(self, value):
+        return self.jsonrpc_exact_search_webentities(value, 'TAG_VALUE')
+
+    def jsonrpc_get_webentities_by_tag_category(self, category):
+        return self.jsonrpc_exact_search_webentities(category, 'TAG_CATEGORY')
+
+    def jsonrpc_get_webentities_by_user_tag(self, category, value):
+        return self.jsonrpc_exact_search_webentities("USER:%s=%s" % (category, value), 'TAG')
+
+    @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, corpus=''):
         pages = yield self.msclient_pool.getPagesFromWebEntity(webentity_id)
         if is_error(pages):
