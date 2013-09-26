@@ -67,7 +67,8 @@ for a in sys.argv[startargs:]:
         is_array = False
 
 re_clean_args = re.compile(r"^\[(.*)\]$")
-print "CALL:", command, re_clean_args.sub(r"\1", str(args))
+if not inline:
+    print "CALL:", command, re_clean_args.sub(r"\1", str(args))
 d = proxy.callRemote(command, *args)
 
 d.addCallback(printValue).addErrback(printError)
