@@ -9,11 +9,11 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityNodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import fr.sciencespo.medialab.hci.memorystructure.util.LRUUtil;
+import fr.sciencespo.medialab.hci.memorystructure.index.LowercasedKeywordAnalyzer;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.KeywordAnalyzer;
+import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
@@ -31,6 +31,9 @@ import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +64,7 @@ public class LRUIndex {
     // Lucene settings
     //
 
-    private static final Version LUCENE_VERSION = Version.LUCENE_35;
+    protected static final Version LUCENE_VERSION = Version.LUCENE_35;
 
     // CREATE - creates a new index or overwrites an existing one.
     // CREATE_OR_APPEND - creates a new index if one does not exist, otherwise it opens the index and documents will be
@@ -72,7 +75,16 @@ public class LRUIndex {
     // Lucene settings to be tested to optimize
     private static final int RAM_BUFFER_SIZE_MB = 512;
 
-    private final Analyzer analyzer = new KeywordAnalyzer();
+    protected static final Analyzer analyzer = new PerFieldAnalyzerWrapper(
+        new LowercasedKeywordAnalyzer(),
+        new HashMap<String, Analyzer>() {{
+            put(IndexConfiguration.FieldName.LRU.name(), new KeywordAnalyzer());
+            put(IndexConfiguration.FieldName.URL.name(), new KeywordAnalyzer());
+            put(IndexConfiguration.FieldName.HOMEPAGE.name(), new KeywordAnalyzer());
+            put(IndexConfiguration.FieldName.STARTPAGE.name(), new KeywordAnalyzer());
+            put(IndexConfiguration.FieldName.SOURCE.name(), new KeywordAnalyzer());
+            put(IndexConfiguration.FieldName.TARGET.name(), new KeywordAnalyzer());
+        }});
     private IndexReader indexReader;
     private IndexSearcher indexSearcher;
     private IndexWriter indexWriter;
@@ -1005,7 +1017,7 @@ public class LRUIndex {
    }
 
    /**
-    * Retrieves all webentities.
+    * Retrieves webentities from a list of IDs.
     * @param listIDs
     * @return webentities
     * @throws IndexException hmm
