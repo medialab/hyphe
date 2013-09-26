@@ -16,3 +16,5 @@ memory_structure/target/*
 memory_structure/.*
 log/*
 build/*
+releases/
+dependencies/
