@@ -9,6 +9,9 @@ import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
+import org.apache.lucene.queryParser.MultiFieldQueryParser;
+import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.queryParser.QueryParser;
 
 import java.util.List;
 import java.util.Set;
@@ -30,12 +33,11 @@ public class LuceneQueryFactory {
     private static Term typeEqualWebEntityNodeLink = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_NODE_LINK.name());
     private static Term typeEqualWebEntityCreationRule = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_CREATION_RULE.name());
     private static Term lruEqualDefaultWebEntityCreationRule = new Term(IndexConfiguration.FieldName.LRU.name(), IndexConfiguration.DEFAULT_WEBENTITY_CREATION_RULE);
-
     
     protected static Query getObjectItemByFieldQuery(Term objectTypeQueryTerm, IndexConfiguration.FieldName fieldName, String fieldValue) {
     	BooleanQuery q = new BooleanQuery();
         Query q1 = new TermQuery(objectTypeQueryTerm);
-        Query q2 = getLRUWildcardManagedQuery(fieldName.name(), fieldValue);
+        Query q2 = getWildcardManagedQuery(fieldName.name(), fieldValue);
         q.add(q1, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
         if(logger.isDebugEnabled()) {
@@ -80,10 +82,10 @@ public class LuceneQueryFactory {
         BooleanQuery q = new BooleanQuery();
         Query q1 = new TermQuery(typeEqualWebEntity);
         BooleanQuery q2 = new BooleanQuery();
-        q2.add(getLRUWildcardManagedQuery(IndexConfiguration.FieldName.TAG.name(), "CORE:*"), BooleanClause.Occur.SHOULD);
-        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), IndexConfiguration.WEStatus.UNDECIDED.name())), BooleanClause.Occur.SHOULD);
-        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), IndexConfiguration.WEStatus.IN.name())), BooleanClause.Occur.SHOULD);
-        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), IndexConfiguration.WEStatus.OUT.name())), BooleanClause.Occur.SHOULD);
+        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.TAG_NAMESPACE.name(), "CORE")), BooleanClause.Occur.SHOULD);
+        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), IndexConfiguration.WEStatus.UNDECIDED.name().toLowerCase())), BooleanClause.Occur.SHOULD);
+        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), IndexConfiguration.WEStatus.IN.name().toLowerCase())), BooleanClause.Occur.SHOULD);
+        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), IndexConfiguration.WEStatus.OUT.name().toLowerCase())), BooleanClause.Occur.SHOULD);
         q.add(q1, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
         return q;
@@ -307,6 +309,81 @@ public class LuceneQueryFactory {
         return q;
     }
 
+    /**
+     * Query to search WebEntities by keywords through all fields and/or by keywords through specific fields
+     *
+     * @param allFieldsKeywords List of keywords to look for in main text fields of webentities
+     * @param fieldsKeywords List of keyword/field doublets to search keywords by field in webentities
+     * @return List<WebEntity>
+     */
+    protected static Query searchWebEntitiesByKeywords(List<String> allFieldsKeywords, List<List<String>> fieldKeywords) {
+        int nb_queries = 0;
+        BooleanQuery q = new BooleanQuery();
+        Query q1 = new TermQuery(typeEqualWebEntity);
+        q.add(q1, BooleanClause.Occur.MUST);
+        if (allFieldsKeywords != null && ! allFieldsKeywords.isEmpty()) {
+            String[] searchableFields = {
+                    IndexConfiguration.FieldName.NAME.name(),
+                    IndexConfiguration.FieldName.LRU.name(),
+                    IndexConfiguration.FieldName.HOMEPAGE.name(),
+                    IndexConfiguration.FieldName.STARTPAGE.name(),
+                    IndexConfiguration.FieldName.TAG_VALUE.name()};
+            for (String keyword : allFieldsKeywords) {
+                MultiFieldQueryParser multiParser = new MultiFieldQueryParser(LRUIndex.LUCENE_VERSION, searchableFields, LRUIndex.analyzer);
+                if (keyword.startsWith("*")) {
+                    multiParser.setAllowLeadingWildcard(true);
+                }
+                try {
+                    Query qAllFields = multiParser.parse(keyword);
+                    q.add(qAllFields, BooleanClause.Occur.MUST);
+                    nb_queries++;
+                } catch (ParseException x) {
+                    if(logger.isDebugEnabled()) {
+                        logger.debug("ERROR " + x + " - Skipping keyword " + keyword + " for search query.");
+                    }
+                }
+            }
+        }
+        if (fieldKeywords != null && ! fieldKeywords.isEmpty()) {
+            for (List<String> pair : fieldKeywords) {
+                if (pair.size() != 2) {
+                    if(logger.isDebugEnabled()) {
+                        logger.debug("Skipping query " + pair + ". Each fieldKeyword must be a two-sized string array: field, keyword.");
+                    }
+                    continue;
+                }
+                String field = IndexConfiguration.getFieldNameValue(pair.get(0));
+                String val = pair.get(1);
+                if (field == null) {
+                    if(logger.isDebugEnabled()) {
+                        logger.debug("Skipping query " + val + " for field " + pair.get(0) + "not found.");
+                    }
+                } else {
+                    QueryParser parser = new QueryParser(LRUIndex.LUCENE_VERSION, field, LRUIndex.analyzer);
+                    if (val.startsWith("*")) {
+                        parser.setAllowLeadingWildcard(true);
+                    }
+                    try {
+                        Query qField = parser.parse(val);
+                        q.add(qField, BooleanClause.Occur.MUST);
+                        nb_queries++;
+                    } catch (ParseException x) {
+                        if(logger.isDebugEnabled()) {
+                            logger.debug("ERROR " + x + " - Skipping keyword " + val + " for search query on field " + field + ".");
+                        }
+                    }
+                }
+            }
+        }
+        if (nb_queries == 0) {
+            q.add(new TermQuery(typeEqualPageItem), BooleanClause.Occur.MUST);
+        }
+        if(logger.isDebugEnabled()) {
+            logger.info("Lucene query: " + q.toString());
+        }
+        return q;
+    }
+
     //
     // WebEntityCreationRule
     //
@@ -423,14 +500,21 @@ public class LuceneQueryFactory {
         return q;
     }
 
-    protected static Query getLRUWildcardManagedQuery(String field, String value) {
+    /**
+     * Query to search WebEntities by keywords through all fields and/or by keywords through specific fields
+     *
+     * @param allFieldsKeywords
+     * @return List<WebEntity>
+     * @throws ParseException
+     */
+    protected static Query getWildcardManagedQuery(String field, String value) {
     	Term prefixTerm = new Term(field, value);
     	// prefix query
         if(value != null && value.endsWith("*")) {
             return new PrefixQuery(new Term(field, value.substring(0, value.length() - 1)));
         }
         // wildcard query
-        if(value != null && (value.contains("*") || value.contains("?"))) {
+        if (value != null && (value.contains("*") || value.contains("?"))) {
         	return new WildcardQuery(prefixTerm);
         }
         // no-wildcard query (faster)
