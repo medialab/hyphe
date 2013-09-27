@@ -992,7 +992,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def ramcache_tags(self):
         tags = self.tags
         if tags == {} or self.recent_tagging:
-            print "YOUPIIIIIIIIII"
             tags = yield self.msclient_pool.getTags()
             if is_error(tags):
                 returnD(tags)
