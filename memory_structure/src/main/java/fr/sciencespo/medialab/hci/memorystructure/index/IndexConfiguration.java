@@ -16,8 +16,10 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.index.FieldInfo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -354,7 +356,7 @@ public class IndexConfiguration {
 	        }
         }
 
-        Map<String, Map<String, Set<String>>> tags = pageItem.getMetadataItems();
+        Map<String, Map<String, List<String>>> tags = pageItem.getMetadataItems();
         if (tags != null) {
             for (String tagNameSpace : tags.keySet()) {
                 document = addDocumentUnstoredField(document, FieldName.TAG_NAMESPACE, tagNameSpace);
@@ -362,7 +364,7 @@ public class IndexConfiguration {
                     document = addDocumentUnstoredField(document, FieldName.TAG_CATEGORY, tagKey);
                     for (String tagValue: tags.get(tagNameSpace).get(tagKey)) {
                         document = addDocumentUnstoredField(document, FieldName.TAG_VALUE, tagValue);
-                        document = addDocumentTokenizedField(document, FieldName.TAG, tagNameSpace+":"+tagKey+"="+tagValue);
+                        document = addDocumentUntokenizedField(document, FieldName.TAG, tagNameSpace+":"+tagKey+"="+tagValue);
                     }
                 }
             }
@@ -450,7 +452,7 @@ public class IndexConfiguration {
             }
         }
 
-        Map<String, Map<String, Set<String>>> tags = webEntity.getMetadataItems();
+        Map<String, Map<String, List<String>>> tags = webEntity.getMetadataItems();
         if (tags != null) {
             for (String tagNameSpace : tags.keySet()) {
                 document = addDocumentUnstoredField(document, FieldName.TAG_NAMESPACE, tagNameSpace);
@@ -458,7 +460,7 @@ public class IndexConfiguration {
                     document = addDocumentUnstoredField(document, FieldName.TAG_CATEGORY, tagKey);
                     for (String tagValue: tags.get(tagNameSpace).get(tagKey)) {
                         document = addDocumentUnstoredField(document, FieldName.TAG_VALUE, tagValue);
-                        document = addDocumentTokenizedField(document, FieldName.TAG, tagNameSpace+":"+tagKey+"="+tagValue);
+                        document = addDocumentUntokenizedField(document, FieldName.TAG, tagNameSpace+":"+tagKey+"="+tagValue);
                     }
                 }
             }
@@ -475,20 +477,30 @@ public class IndexConfiguration {
      * @param tagFields
      * @return
      */
-    private static Map<String, Map<String, Set<String>>> convertTagFieldsToTagsSet(Fieldable[] tagFields) {
-        Map<String, Map<String, Set<String>>> tags = new HashMap<String, Map<String, Set<String>>>();
+    private static Map<String, Map<String, List<String>>> convertTagFieldsToTagsMap(Fieldable[] tagFields) {
+        List<String> tagStrings = new ArrayList<String>(tagFields.length);
         if (tagFields.length != 0) {
-            for(Fieldable tagField : tagFields) {
-                String tag = tagField.stringValue();
+            for (Fieldable tagField : tagFields) {
+                tagStrings.add(tagField.stringValue());
+            }
+        }
+        return convertTagStringsToTagsMap(tagStrings);
+    }
+    
+    protected static Map<String, Map<String, List<String>>> convertTagStringsToTagsMap(List<String> tagStrings) {
+
+        Map<String, Map<String, List<String>>> tags = new HashMap<String, Map<String, List<String>>>();
+        if (tagStrings.size() != 0) {
+            for(String tag : tagStrings) {
                 String nameSpace = tag.substring(0, tag.indexOf(":"));
                 String keyValue = tag.replace(nameSpace + ":", "");
                 String key = keyValue.substring(0, keyValue.indexOf("="));
                 String value = keyValue.replace(key + "=", "");
                 if (! tags.containsKey(nameSpace)) {
-                    tags.put(nameSpace, new HashMap<String, Set<String>>());
+                    tags.put(nameSpace, new HashMap<String, List<String>>());
                 }
                 if (! tags.get(nameSpace).containsKey(key)) {
-                    tags.get(nameSpace).put(key, new HashSet<String>());
+                    tags.get(nameSpace).put(key, new ArrayList<String>());
                 }
                 tags.get(nameSpace).get(key).add(value);
             }
@@ -547,7 +559,7 @@ public class IndexConfiguration {
         }
 
         Fieldable[] tagFields = document.getFieldables(FieldName.TAG.name());
-        pageItem.setMetadataItems(convertTagFieldsToTagsSet(tagFields));
+        pageItem.setMetadataItems(convertTagFieldsToTagsMap(tagFields));
 
         pageItem.setCreationDate(document.get(FieldName.DATECREA.name()));
         pageItem.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
@@ -596,7 +608,7 @@ public class IndexConfiguration {
         webEntity.setStartpages(startPages);
 
         Fieldable[] tagFields = document.getFieldables(FieldName.TAG.name());
-        webEntity.setMetadataItems(convertTagFieldsToTagsSet(tagFields));
+        webEntity.setMetadataItems(convertTagFieldsToTagsMap(tagFields));
 
         webEntity.setCreationDate(document.get(FieldName.DATECREA.name()));
         webEntity.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));

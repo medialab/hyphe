@@ -14,6 +14,7 @@ import org.apache.thrift.TException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of MemoryStructure interface.
@@ -527,6 +528,22 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         finally {
             logger.debug("searchWebEntities end");
+        }
+    }
+
+    @Override
+    public Map<String, Map<String, List<String>>> getTags() throws TException, MemoryStructureException {
+        logger.debug("getTagNamespaces");
+        try {
+            return lruIndex.getWebEntitiesTags();
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            logger.debug("getTagNamespaces end");
         }
     }
 

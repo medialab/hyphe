@@ -19,7 +19,9 @@ import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
+import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
@@ -2080,6 +2082,33 @@ public class LRUIndex {
             throw new IndexException(x.getMessage(), x);
         }
     }
+
+    public Map<String, Map<String, List<String>>> getWebEntitiesTags() throws IndexException {
+        try {
+            List<String> results = getFieldValues(IndexConfiguration.FieldName.TAG.name());
+            return IndexConfiguration.convertTagStringsToTagsMap(results);
+        } catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+    
+    public List<String> getFieldValues(String fieldName) throws IOException {
+        List<String> values = new ArrayList<String>();
+        TermEnum te = indexReader.terms(new Term(fieldName));
+        if (te != null && te.term() != null && te.term().field() == fieldName) {
+            values.add(te.term().text());
+            while (te.next()) {
+                if (te.term().field() != fieldName) {
+                    break;
+                }
+                values.add(te.term().text());
+            }
+        }
+        return values;
+    }
+    
     private void reloadIndexIfChange() throws IOException {
     	 IndexReader maybeChanged = IndexReader.openIfChanged(this.indexReader, this.indexWriter, false);
          // if not changed, that returns null
