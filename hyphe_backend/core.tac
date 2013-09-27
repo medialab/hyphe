@@ -395,6 +395,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.total_webentities = -1
         self.last_WE_update = 0
         self.webentities_links = []
+        self.tags = {}
+        self.recent_tagging = True
         threads.deferToThread(self.jsonrpc_get_precision_exceptions)
         self.loop_running_since = time.time()
         self.last_links_loop = time.time()
@@ -688,17 +690,20 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return self.update_webentity(webentity_id, "startpages", startpage_url, "pop")
 
     def jsonrpc_add_webentity_tag_value(self, webentity_id, tag_namespace, tag_key, tag_value):
+        self.recent_tagging = True
         return self.update_webentity(webentity_id, "metadataItems", tag_value, "push", tag_key, tag_namespace)
 
     def jsonrpc_rm_webentity_tag_key(self, webentity_id, tag_namespace, tag_key):
         return self.jsonrpc_set_webentity_tag_values(webentity_id, tag_namespace, tag_key, [])
 
     def jsonrpc_rm_webentity_tag_value(self, webentity_id, tag_namespace, tag_key, tag_value):
+        self.recent_tagging = True
         return self.update_webentity(webentity_id, "metadataItems", tag_value, "pop", tag_key, tag_namespace)
 
     def jsonrpc_set_webentity_tag_values(self, webentity_id, tag_namespace, tag_key, tag_values):
         if not isinstance(tag_values, list):
             tag_values = list(tag_values)
+        self.recent_tagging = True
         return self.update_webentity(webentity_id, "metadataItems", tag_values, "update", tag_key, tag_namespace)
 
     def jsonrpc_merge_webentity_into_another(self, old_webentity_id, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False):
@@ -982,6 +987,48 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_get_webentities_by_user_tag(self, category, value):
         return self.jsonrpc_exact_search_webentities("USER:%s=%s" % (category, value), 'TAG')
+
+    @inlineCallbacks
+    def ramcache_tags(self):
+        tags = self.tags
+        if tags == {} or self.recent_tagging:
+            print "YOUPIIIIIIIIII"
+            tags = yield self.msclient_pool.getTags()
+            if is_error(tags):
+                returnD(tags)
+            self.recent_tagging = False
+            self.tags = tags
+        returnD(tags)
+
+    @inlineCallbacks
+    def jsonrpc_get_tags(self):
+        tags = yield self.ramcache_tags()
+        returnD(format_result(tags))
+
+    @inlineCallbacks
+    def jsonrpc_get_tag_namespaces(self):
+        tags = yield self.ramcache_tags()
+        returnD(format_result(tags.keys()))
+
+    @inlineCallbacks
+    def jsonrpc_get_tag_categories(self, namespace=None):
+        tags = yield self.ramcache_tags()
+        categories = set()
+        for ns in tags.keys():
+            if not namespace or (ns == namespace):
+                categories |= set(tags[ns].keys())
+        returnD(format_result(list(categories)))
+
+    @inlineCallbacks
+    def jsonrpc_get_tag_values(self, namespace=None, category=None):
+        tags = yield self.ramcache_tags()
+        values = set()
+        for ns in tags.keys():
+            if not namespace or (ns == namespace):
+                for cat in tags[ns].keys():
+                    if not category or (cat == category):
+                        values |= set(tags[ns][cat])
+        returnD(format_result(list(values)))
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, corpus=''):
