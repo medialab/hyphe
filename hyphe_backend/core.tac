@@ -71,8 +71,12 @@ class Core(jsonrpc.JSONRPC):
 
     def render(self, request):
         request.setHeader("Access-Control-Allow-Origin", "*")
+        from_ip = ""
+        # TODO : put this in generic twisted or txjsonrpc logs
+        if request.getHeader("x-forwarded-for"):
+            from_ip = " from %s" % request.getHeader("x-forwarded-for")
         if config['DEBUG']:
-            print "QUERY: %s" % request.content.read()
+            print "QUERY%s: %s" % (from_ip, request.content.read())
         return jsonrpc.JSONRPC.render(self, request)
 
     def _cbRender(self, result, request, id, version):
