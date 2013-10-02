@@ -88,7 +88,7 @@ function test_process_running {
     echo "...already running, please run bin/hyphe stop or bin/hyphe restart."
     exit 1
   fi
-  if test -f $BOTNAME.pid; then
+  if test -f $PID_FILE; then
     PID=$(cat $PID_FILE)
     if ! test -z "$PID" && ps -p $PID -f | grep "$COMMAND" > /dev/null; then
       echo "...already running, please run bin/hyphe stop or bin/hyphe restart."
@@ -114,7 +114,7 @@ function test_process_started {
   TEST_TIME=$(($3 * 2))
   ts=0
   sleep 0.5
-  while [ $ts -lt 30 ] && ! $TEST_STARTED; do
+  while [ $ts -lt $TEST_TIME ] && ! $TEST_STARTED; do
     sleep 0.5
     ts=$(($ts + 1))
     if $TEST_ERROR; then
@@ -134,7 +134,7 @@ function start_java_memstruct {
   $JAVA_COMMAND >> log/hyphe-memorystructure.log 2>&1 &
   echo -n "$!" > java-memstruct.pid
   echo "...started..."
-  test_process_started "test_java_started_in_log" "test_error_in_java_log" 30
+  test_process_started "test_java_started_in_log" "test_error_in_java_log" 15
 }
 
 function start_twisted_core {
@@ -143,7 +143,7 @@ function start_twisted_core {
   workon $HCIVENV
   $CORE_COMMAND 2>&1 &
   echo "...started..."
-  test_process_started "test_core_started_in_log" "test_error_in_core_log" 60
+  test_process_started "test_core_started_in_log" "test_error_in_core_log" 30
 }
 
 function test_java_started_in_log {
