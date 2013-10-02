@@ -3,8 +3,7 @@
 
 USAGE="$0 <start|stop|restart> [--nologs]"
 HCIVENV=HCI
-#HCIPATH=##HCIPATH##
-HCIPATH=/home/benjamin/dev/HCI
+HCIPATH=##HCIPATH##
 
 STOP=false
 START=false

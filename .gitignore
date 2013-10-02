@@ -1,3 +1,4 @@
+bin/hyphe
 config/config.json*
 *.pid
 pip-log.txt
