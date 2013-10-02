@@ -1,0 +1,184 @@
+#!/bin/bash
+# Bash service to start, stop or restart Hyphe's backend server
+
+USAGE="$0 <start|stop|restart> [--nologs]"
+HCIVENV=HCI
+#HCIPATH=##HCIPATH##
+HCIPATH=/home/benjamin/dev/HCI
+
+STOP=false
+START=false
+case "$1" in
+  stop   )  STOP=true;;
+  restart)  STOP=true
+            START=true;;
+  start  )  START=true;;
+  *      )  echo "Usage: $USAGE"
+            exit 1;;
+esac
+
+LOGS=true
+if [ $# -gt 1 ] && [ "$2" == "--nologs" ]; then
+  LOGS=false
+fi
+
+# Check config  TODO
+cd $HCIPATH
+mkdir -p log
+# ...
+# ...
+
+JAVA_COMMAND="java -server -Xms256m -Xmx1024m -Xmn224m -XX:NewSize=224m -XX:MaxNewSize=224m -XX:NewRatio=3 -XX:SurvivorRatio=6 -XX:PermSize=128m -XX:MaxPermSize=128m -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar $HCIPATH/hyphe_backend/memorystructure/MemoryStructureExecutable.jar"
+CORE_COMMAND="twistd -oy $HCIPATH/hyphe_backend/core.tac -l $HCIPATH/log/hyphe-core.log"
+
+function test_and_stop_process {
+  PID_FILE=$1
+  COMMAND=$(echo $2 | sed -r 's/(\s+-X\S+)+/.*/')
+  NOLOG=$3
+  if test -z "$PID_FILE" || test -z "$COMMAND"; then
+    return
+  fi
+  if ! test -f $PID_FILE; then
+    if test -z "$NOLOG"; then
+      echo "...$PID_FILE is missing, searching process..."
+    fi
+    PID=$(pgrep -f "$COMMAND")
+  else
+    PID=$(cat $PID_FILE)
+  fi
+  if test -z "$PID" || ! ps -p $PID -f | grep "$COMMAND" > /dev/null ; then
+    if test -z "$NOLOG"; then
+      echo "...does not seem like running."
+    fi
+    rm -f $PID_FILE
+    return
+  fi
+  count=0
+  killopts=""
+  delay=5
+  # First try to kill 3 times during 15 seconds then twice with "-9" during 20 more seconds
+  while ps -p $PID > /dev/null && [ $count -lt 5 ]; do
+    kill $killopts $PID
+    if ps -p $PID > /dev/null; then
+      sleep $delay
+      count=$(($count + 1))
+      if [ $count -eq 3 ]; then
+        killopts="-9"
+        delay=10
+      fi
+    fi
+  done
+  if ps -p $PID > /dev/null; then
+    echo "...could not stop. Please try to kill -15 $PID"
+    exit 1
+  elif test -z "$NOLOG"; then
+    echo "...stopped."
+  fi
+  rm -f $PID_FILE
+}
+
+function test_process_running {
+  PID_FILE=$1
+  COMMAND=$(echo $2 | sed -r 's/(\s+-X\S+)+/.*/')
+  if test -z "$PID_FILE" || test -z "$COMMAND"; then
+    return
+  fi
+  PID=$(pgrep -f "$COMMAND")
+  if ! test -z "$PID" && ps -p $PID -f | grep "$COMMAND" > /dev/null; then
+    echo "...already running, please run bin/hyphe stop or bin/hyphe restart."
+    exit 1
+  fi
+  if test -f $BOTNAME.pid; then
+    PID=$(cat $PID_FILE)
+    if ! test -z "$PID" && ps -p $PID -f | grep "$COMMAND" > /dev/null; then
+      echo "...already running, please run bin/hyphe stop or bin/hyphe restart."
+      exit 1
+    fi
+    echo "...removing lost $PID_FILE file..."
+    rm -f $PID_FILE
+  fi
+}
+
+function exit_on_error {
+  test_and_stop_process twistd.pid "$CORE_COMMAND" nolog
+  test_and_stop_process java-memstruct.pid "$JAVA_COMMAND" nolog
+  echo "ERROR: Could not start Hyphe's backend server properly. See log below:"
+  echo
+  tail -n 10 log/hyphe-*.log
+  exit 1
+}
+
+function test_process_started {
+  TEST_STARTED=$1
+  TEST_ERROR=$2
+  TEST_TIME=$(($3 * 2))
+  ts=0
+  sleep 0.5
+  while [ $ts -lt 30 ] && ! $TEST_STARTED; do
+    sleep 0.5
+    ts=$(($ts + 1))
+    if $TEST_ERROR; then
+      exit_on_error
+    fi
+  done
+  if $TEST_ERROR || ! $TEST_STARTED; then
+    exit_on_error
+  else
+    echo "...ready."
+  fi
+}
+
+function start_java_memstruct {
+  test_process_running java-memstruct.pid "$JAVA_COMMAND"
+  echo >> log/hyphe-memorystructure.log
+  $JAVA_COMMAND >> log/hyphe-memorystructure.log 2>&1 &
+  echo -n "$!" > java-memstruct.pid
+  echo "...started..."
+  test_process_started "test_java_started_in_log" "test_error_in_java_log" 30
+}
+
+function start_twisted_core {
+  test_process_running twistd.pid "$CORE_COMMAND"
+  source /usr/local/bin/virtualenvwrapper.sh || ( echo "ERROR: You must install virtualenvwrapper to use this starter: sudo pip -q install virtualenvwrapper" && exit 1 )
+  workon $HCIVENV
+  $CORE_COMMAND 2>&1 &
+  echo "...started..."
+  test_process_started "test_core_started_in_log" "test_error_in_core_log" 60
+}
+
+function test_java_started_in_log {
+  tail -n 5 log/hyphe-memorystructure.log | grep "starting Thrift server (THsHaServer) at port" > /dev/null && ! tail -n 5 log/hyphe-memorystructure.log | grep "Memory Structure shutdown hook" > /dev/null
+}
+function test_core_started_in_log {
+  tail -n 5 log/hyphe-core.log | grep "Collecting WebEntities..." > /dev/null
+}
+function test_error_in_java_log {
+  tail -n 5 log/hyphe-memorystructure.log | grep -i "error\|exception" > /dev/null
+}
+function test_error_in_core_log {
+  tail -n 5 log/hyphe-core.log | grep -i "error\|exception" > /dev/null
+}
+
+if $STOP; then
+  echo "Stopping Hyphe's Python core JsonRPC API..."
+  test_and_stop_process twistd.pid "$CORE_COMMAND"
+  echo "Stopping Hyphe's Java Memory Structure..."
+  test_and_stop_process java-memstruct.pid "$JAVA_COMMAND"
+  echo "Hyphe's backend is now stopped."
+  echo
+  find . -name *.pyc -type f -print | xargs rm -f
+fi
+
+if $START; then
+  echo "Starting Hyphe's Java Memory Structure..."
+  start_java_memstruct
+  echo "Starting Hyphe's Python core JsonRPC API..."
+  start_twisted_core
+  echo
+  if $LOGS; then
+    echo "Displaying logs now. Ctrl+C will only stop logs display. Run bin/hyphe stop to stop the backend server..."
+    echo
+    tail -f log/hyphe-*.log
+  fi
+fi
+
