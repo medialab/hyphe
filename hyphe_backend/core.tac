@@ -233,6 +233,8 @@ class Core(jsonrpc.JSONRPC):
         """Tells scrapy to run crawl on a WebEntity defined by its id from memory structure."""
         if not maxdepth:
             maxdepth = config['mongo-scrapy']['maxdepth']
+        if maxdepth > config['mongo-scrapy']['maxdepth']:
+            returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % config['mongo-scrapy']['maxdepth']))
         WE = yield self.store.get_webentity_with_pages_and_subWEs(webentity_id, use_all_pages_as_startpages)
         if test_bool_arg(use_prefixes_as_startpages) and not test_bool_arg(use_all_pages_as_startpages):
             WE['pages'] = [urllru.lru_to_url(lru) for lru in WE['lrus']]
@@ -322,6 +324,8 @@ class Crawler(jsonrpc.JSONRPC):
 
     def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=config['discoverPrefixes'], maxdepth=config['mongo-scrapy']['maxdepth'], download_delay=config['mongo-scrapy']['download_delay'], corpus=''):
         """Starts a crawl with scrapy from arguments using a list of urls and of lrus for prefixes."""
+        if maxdepth > config['mongo-scrapy']['maxdepth']:
+            return format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % config['mongo-scrapy']['maxdepth'])
         if len(starts) < 1:
             return format_error('No startpage defined for crawling WebEntity %s.' % webentity_id)
         # preparation of the request to scrapyd
