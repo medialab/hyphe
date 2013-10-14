@@ -35,12 +35,13 @@ class LuceneRunner(threading.Thread):
                 s.close()
                 return port
             except Exception as e:
-                print e, address, port
                 next
         return False
 
     def run(self):
         self.port = self.choose_port()
+        if not self.port:
+            return
         command = "%s thrift.port=%d" % (self.command, self.port)
         print command
         self.proc = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
@@ -66,8 +67,7 @@ if __name__ == '__main__':
     myclass = LuceneRunner()
     myclass.start()
     time.sleep(5)
-    myclass2 = LuceneRunner("tonpere", 1024)
-    print "tonpère"
+    myclass2 = LuceneRunner("test-more-ram", 1024)
     myclass2.start()
     time.sleep(10)
     myclass.stop()
