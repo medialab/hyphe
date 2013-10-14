@@ -27,11 +27,13 @@ import gnu.trove.map.hash.THashMap;
  */
 public class ThriftServer {
 
-    private static DynamicLogger logger = new DynamicLogger(ThriftServer.class);
+    private static DynamicLogger logger = null;
 
     // Default values, will be overriden by command line arguments or values from config.json
     private static int port = 0;
+    private static String corpus = null;
     private static String luceneDirectoryPath = null;
+    private static String luceneDirectoryRoot = null;
     private static String logLevel = null;
 
     private static MemoryStructureImpl memoryStructureImpl;
@@ -43,6 +45,14 @@ public class ThriftServer {
      * @param args command line arguments
      */
     public static void main(String[]args) {
+        Map<String, String> commandargs = readCL(args);
+        corpus = commandargs.get("corpus");
+        if(StringUtils.isEmpty(corpus)) {
+            System.out.println("ERROR: memory structure cannot start without a corpus given in option as corpus=<corpus_name>");
+            System.exit(1);
+        }
+        System.setProperty("corpus", corpus);
+        logger = new DynamicLogger(ThriftServer.class);
         try {
             DynamicLogger.setLogLevel("INFO");
             logger.info("starting Thrift server");
@@ -52,12 +62,12 @@ public class ThriftServer {
         catch(TException x) {
             logger.error("Thrift server exception: " + x.getMessage() + ", shutting down");
             x.printStackTrace();
-            System.exit(-1);
+            System.exit(1);
         }
         catch(Throwable x) {
             logger.error("Internal server error: " + x.getMessage() + ", shutting down");
             x.printStackTrace();
-            System.exit(-1);
+            System.exit(1);
         }
     }
 
@@ -120,9 +130,9 @@ public class ThriftServer {
             String value = parameter.substring(parameter.indexOf('=')+1);
             propertiesMap.put(property, value);
         }
-        if (logger.isDebugEnabled()) {
+        if (logger != null && logger.isDebugEnabled()) {
             for(String key : propertiesMap.keySet()) {
-                logger.trace("read property from command line: " + key + " = " + propertiesMap.get(key));
+                logger.debug("read property from command line: " + key + " = " + propertiesMap.get(key));
             }
         }
         return propertiesMap;
@@ -163,17 +173,19 @@ public class ThriftServer {
             logger.warn("Using default: thrift.port is " + port);
         }
 
-        luceneDirectoryPath = resolvedProperties.get("lucene.path");
-        if(StringUtils.isEmpty(luceneDirectoryPath)) {
+        corpus = resolvedProperties.get("corpus");
+        luceneDirectoryRoot = resolvedProperties.get("lucene.path");
+        if(StringUtils.isEmpty(luceneDirectoryRoot)) {
             logger.warn("Could not find lucene.path either from memorystructure.properties or from command line arguments.");
-            luceneDirectoryPath = System.getProperty("user.home") + File.separator + "memorystructure.lucene";
-            logger.warn("Using default: lucene.path is " + luceneDirectoryPath);
+            luceneDirectoryRoot = System.getProperty("user.home") + File.separator + "hyphe-memorystructure.lucene";
+            logger.warn("Using default: lucene.path is " + luceneDirectoryRoot);
         }
+        luceneDirectoryPath = luceneDirectoryRoot + File.separator + corpus;
 
         File luceneDir = new File(luceneDirectoryPath);
         if(luceneDir.exists() && !luceneDir.isDirectory()) {
             logger.error("Lucene path already exists: " + luceneDirectoryPath + " but it is not a directory, exiting");
-            System.exit(0);
+            System.exit(1);
         }
         else if(!luceneDir.exists()) {
             logger.info("Lucene path does not exist, creating directory: " + luceneDirectoryPath);
@@ -185,7 +197,7 @@ public class ThriftServer {
 
         memoryStructureImpl = new MemoryStructureImpl(luceneDirectoryPath, IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
 
-        logger.info("successfully created Memory Structure");
+        logger.info("successfully created Memory Structure for corpus " + corpus);
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
