@@ -174,11 +174,11 @@ public class ThriftServer {
         }
 
         corpus = resolvedProperties.get("corpus");
-        luceneDirectoryRoot = resolvedProperties.get("lucene.path");
+        luceneDirectoryRoot = resolvedProperties.get("lucene.rootpath");
         if(StringUtils.isEmpty(luceneDirectoryRoot)) {
-            logger.warn("Could not find lucene.path either from memorystructure.properties or from command line arguments.");
+            logger.warn("Could not find lucene.rootpath either from memorystructure.properties or from command line arguments.");
             luceneDirectoryRoot = System.getProperty("user.home") + File.separator + "hyphe-memorystructure.lucene";
-            logger.warn("Using default: lucene.path is " + luceneDirectoryRoot);
+            logger.warn("Using default: lucene.rootpath is " + luceneDirectoryRoot);
         }
         luceneDirectoryPath = luceneDirectoryRoot + File.separator + corpus;
 
