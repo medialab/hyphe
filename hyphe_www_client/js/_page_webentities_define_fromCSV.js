@@ -1000,6 +1000,7 @@ domino.settings({verbose:false})
                                 
                                 // None has a web entity
                                 wwwLessVariant.check()
+                                matchingItem.check()
 
                             } else {
 
