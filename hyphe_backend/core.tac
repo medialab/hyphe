@@ -1052,6 +1052,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_get_webentity_by_url(self, url):
         try:
             lru = urllru.url_to_lru_clean(url)
+            url = urllru.lru_to_url(lru)
+            lru = urllru.url_to_lru_clean(url)
         except ValueError as e:
             returnD(format_error(e))
         WE = yield self.msclient_pool.findWebEntityMatchingLRU(lru)
