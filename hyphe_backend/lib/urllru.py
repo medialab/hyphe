@@ -22,6 +22,20 @@ def fix_missing_http(url):
     host = urlparse(url)[1]
     return url.replace("://"+host, "://"+host.lower())
 
+def clean_input_urllru(urllru):
+    if "%" in urllru:
+        try:
+            urllru = urllib.unquote_plus(urllru.encode('ascii'))
+        except:
+            pass
+    return urllru
+
+def clean_input_url(url):
+    return clean_input_urllru(fix_missing_http(url))
+
+def clean_input_lru(lru):
+    return cleanLRU(clean_input_urllru(lru))
+
 def url_to_lru(url):
     """
     Convert a URL to a LRU
@@ -30,8 +44,9 @@ def url_to_lru(url):
     's:http|t:80|h:com|h:google|h:www|p:search|q:q=text&p=2'
 
     """
-    try:
+    if "%" in url:
         url = urllib.unquote_plus(url)
+    try:
         url = url.encode('utf8')
     except:
         pass
@@ -78,6 +93,11 @@ def lru_to_url(lru, nocheck=False):
     if not lruPattern.match(lru) and not nocheck:
         raise ValueError("Not an lru: %s" % lru)
 
+    try:
+        lru = lru.decode('utf8')
+    except:
+        pass
+
     # TODO: naive algorithm (to be updated)
     stem_types = []
     lru_list = [stem.split(":", 1) for stem in lru.split("|")]
@@ -106,23 +126,23 @@ def lru_to_url(lru, nocheck=False):
         fragment = [x[1] for x in filter(lambda (k, stem): k == "f", lru_list)][0]
         if fragment or ['f', ''] in lru_list:
             url += "#" + urllib.unquote_plus(fragment)
-    return url
+    return url.encode('utf-8')
 
 titlize_url_regexp = re.compile(r'(https?://|[./#])', re.I)
 def url_shorten(url):
     return titlize_url_regexp.sub(' ', url).strip().title()
 
 # Clean a URL
-def cleanUrl(url, currentUrl) :
-    # relative path
-    url = urljoin(currentUrl, url)
-    lru = lruFullPattern.match(url)
-    if lru :
-        (scheme, authority, path, query, fragment) = lru.groups()
-        # mailto
-        if not "mailto" in scheme :
-            return url
-    return None
+#def cleanUrl(url, currentUrl) :
+#    # relative path
+#    url = urljoin(currentUrl, url)
+#    lru = lruFullPattern.match(url)
+#    if lru :
+#        (scheme, authority, path, query, fragment) = lru.groups()
+#        # mailto
+#        if not "mailto" in scheme :
+#            return url
+#    return None
 
 # removing port if 80 (http) or 443 (https):
 def stripHttpPort(lru) :

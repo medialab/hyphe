@@ -182,6 +182,7 @@ class Core(jsonrpc.JSONRPC):
 
     def jsonrpc_lookup_httpstatus(self, url, timeout=2):
         res = format_result(0)
+        url = urllru.clean_input_url(url)
         try:
             prot, host, path, _, query = urlparse.urlparse(url)[0:5]
             host = host.lower()
@@ -506,8 +507,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
             self.precision_exceptions.append(lru_prefix)
 
     def declare_page(self, url):
-        url = urllru.fix_missing_http(url)
         try:
+            url = urllru.clean_input_url(url)
             lru = urllru.url_to_lru_clean(url)
         except ValueError as e:
             return format_error(e)
@@ -529,14 +530,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_declare_webentity_by_lru_prefix_as_url(self, url):
         try:
-            lru_prefix = urllru.url_to_lru(urllru.fix_missing_http(url))
+            lru_prefix = urllru.url_to_lru(urllru.clean_input_url(url))
         except ValueError as e:
             return format_error(e)
         return self.jsonrpc_declare_webentity_by_lru(lru_prefix)
 
     def _check_lru_prefix(self, lru_prefix):
         try:
-            lru_prefix = urllru.cleanLRU(lru_prefix)
+            lru_prefix = urllru.clean_input_lru(lru_prefix)
             url = urllru.lru_to_url(lru_prefix)
             lru_prefix = urllru.url_to_lru_clean(url)
         except ValueError as e:
@@ -642,7 +643,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return self.update_webentity(webentity_id, "status", status)
 
     def jsonrpc_set_webentity_homepage(self, webentity_id, homepage):
-        homepage = urllru.fix_missing_http(homepage)
+        homepage = urllru.clean_input_url(homepage)
         try:
             urllru.url_to_lru(homepage)
         except ValueError as e:
@@ -655,7 +656,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_add_webentity_lruprefix(self, webentity_id, lru_prefix):
         try:
-            lru_prefix = urllru.cleanLRU(lru_prefix)
+            lru_prefix = urllru.clean_input_lru(lru_prefix)
             url = urllru.lru_to_url(lru_prefix)
         except ValueError as e:
             return format_error(e)
@@ -673,7 +674,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_rm_webentity_lruprefix(self, webentity_id, lru_prefix):
         """ Will delete WebEntity if no LRUprefix left"""
         try:
-            lru_prefix = urllru.cleanLRU(lru_prefix)
+            lru_prefix = urllru.clean_input_lru(lru_prefix)
             url = urllru.lru_to_url(lru_prefix)
         except ValueError as e:
             return format_error(e)
@@ -683,7 +684,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return res
 
     def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url):
-        startpage_url = urllru.fix_missing_http(startpage_url)
+        startpage_url = urllru.clean_input_url(startpage_url)
         try:
             urllru.url_to_lru(startpage_url)
         except ValueError as e:
@@ -692,7 +693,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return self.update_webentity(webentity_id, "startpages", startpage_url, "push")
 
     def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url):
-        startpage_url = urllru.fix_missing_http(startpage_url)
+        startpage_url = urllru.clean_input_url(startpage_url)
         try:
             urllru.url_to_lru(startpage_url)
         except ValueError as e:
@@ -1051,9 +1052,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentity_by_url(self, url):
         try:
+            url = urllru.clean_input_url(url)
             lru = urllru.url_to_lru_clean(url)
             url = urllru.lru_to_url(lru)
-            lru = urllru.url_to_lru_clean(url)
         except ValueError as e:
             returnD(format_error(e))
         WE = yield self.msclient_pool.findWebEntityMatchingLRU(lru)
