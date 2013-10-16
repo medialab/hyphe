@@ -770,7 +770,7 @@ domino.settings({verbose:false})
 
             var elements = $('.prefix[data-url-prefix-md5='+$.md5(url)+'][data-status!=fetched]')
             if(elements.length > 0){
-                if(we_id !== undefined && webentities_byLruPrefix[lru] && webentities_byLruPrefix[lru].id == we_id){
+                if(we_id !== undefined) { // && webentities_byLruPrefix[lru]) {// && webentities_byLruPrefix[lru].id == we_id){
                     var webentities_byId = provider.get('webentities_byId')
                         ,we = webentities_byId[we_id]
                     elements.html('')
