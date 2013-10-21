@@ -982,6 +982,45 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_get_webentities_by_user_tag(self, category, value):
         return self.jsonrpc_exact_search_webentities("USER:%s=%s" % (category, value), 'TAG')
 
+    def jsonrpc_get_webentity_by_lruprefix_as_url(self, url):
+        try:
+            url, lru = urllru.url_clean_and_convert(url)
+        except ValueError as e:
+            return format_error(e)
+        return self.jsonrpc_get_webentity_by_lruprefix(lru)
+
+    def jsonrpc_get_webentity_by_lruprefix(self, lru_prefix):
+        try:
+            lru_prefix = urllru.lru_clean(lru_prefix)
+        except ValueError as e:
+            returnD(format_error(e))
+        WE = yield self.msclient_pool.findWebEntityByLRUPrefix(lru_prefix)
+        if is_error(WE):
+            returnD(WE)
+        if WE.name == "OUTSIDE WEB":
+            returnD(format_error("No matching WebEntity found for url %s" % url))
+        returnD(format_result(self.format_webentity(WE)))
+
+    def jsonrpc_get_webentity_for_url(self, url):
+        try:
+            url, lru = urllru.url_clean_and_convert(url)
+        except ValueError as e:
+            return format_error(e)
+        return self.jsonrpc_get_webentity_for_url_as_lru(lru)
+
+    @inlineCallbacks
+    def jsonrpc_get_webentity_for_url_as_lru(self, lru):
+        try:
+            lru = urllru.lru_clean(lru)
+        except ValueError as e:
+            returnD(format_error(e))
+        WE = yield self.msclient_pool.findWebEntityMatchingLRU(lru)
+        if is_error(WE):
+            returnD(WE)
+        if WE.name == "OUTSIDE WEB":
+            returnD(format_error("No matching WebEntity found for url %s" % url))
+        returnD(format_result(self.format_webentity(WE)))
+
     @inlineCallbacks
     def ramcache_tags(self):
         tags = self.tags
@@ -1030,21 +1069,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(pages)
         formatted_pages = [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
         returnD(format_result(formatted_pages))
-
-    @inlineCallbacks
-    def jsonrpc_get_webentity_by_url(self, url):
-        try:
-            url = urllru.clean_input_url(url)
-            lru = urllru.url_to_lru_clean(url)
-            url = urllru.lru_to_url(lru)
-        except ValueError as e:
-            returnD(format_error(e))
-        WE = yield self.msclient_pool.findWebEntityMatchingLRU(lru)
-        if is_error(WE):
-            returnD(WE)
-        if WE.name == "OUTSIDE WEB":
-            returnD(format_error("No matching WebEntity found for url %s" % url))
-        returnD(format_result(self.format_webentity(WE)))
 
     @inlineCallbacks
     def jsonrpc_get_webentity_subwebentities(self, webentity_id):
