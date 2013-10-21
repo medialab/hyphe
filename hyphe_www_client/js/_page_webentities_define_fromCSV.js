@@ -808,23 +808,31 @@ domino.settings({verbose:false})
                                         )
                             )
                 } else {
-                    var msg = e.data.message
-                    elements.html('')
-                        .attr('data-status', 'fetched')
-                        .append(
-                                $('<label class="checkbox overable"></label>')
-                                    .append(
-                                            $('<input type="checkbox"/>')
-                                                .attr('data-webentity-id', '')
-                                                .attr('value', lru)
-                                        )
-                                    .append(
-                                            $('<div/>')
-                                                .append(
-                                                        $('<span/>').html(displayLruPrefixHTML(lru))
-                                                    )
-                                        )
-                            )
+                    if (lru && Utils.LRU_validate(lru)) {
+                        elements.html('')
+                            .attr('data-status', 'fetched')
+                            .append(
+                                    $('<label class="checkbox overable"></label>')
+                                        .append(
+                                                $('<input type="checkbox"/>')
+                                                    .attr('data-webentity-id', '')
+                                                    .attr('value', lru)
+                                            )
+                                        .append(
+                                                $('<div/>')
+                                                    .append(
+                                                            $('<span/>').html(displayLruPrefixHTML(lru))
+                                                        )
+                                            )
+                                )
+                    } else {
+                        var msg = e.data.message
+                        elements.html('')
+                            .attr('data-status', 'fetched')
+                            .append(
+                                    $('<span/>').html(msg)
+                                )
+                    }
                 }
 
                 // Test if all the prefixes were fetched
@@ -976,13 +984,15 @@ domino.settings({verbose:false})
             var matchingItem = items.filter(function(item){
                     return item.lru == sourceLru
                 })[0]
-            var matchingItem_jsonLru = domino.utils.clone(matchingItem.lru_json)
-                ,matchingItem_jsonLru_wwwAdded = matchingItem_jsonLru
-            matchingItem_jsonLru_wwwAdded.host.push('www')
-            var matchingItem_lru_wwwAdded = Utils.JSON_LRU_to_LRU(matchingItem_jsonLru_wwwAdded)
+            if (matchingItem) {
+                var matchingItem_jsonLru = domino.utils.clone(matchingItem.lru_json)
+                    ,matchingItem_jsonLru_wwwAdded = matchingItem_jsonLru
+                matchingItem_jsonLru_wwwAdded.host.push('www')
+                var matchingItem_lru_wwwAdded = Utils.JSON_LRU_to_LRU(matchingItem_jsonLru_wwwAdded)
+            }
 
             // Recommandations if needed (pre-checking prefixes)
-            if(recommand){
+            if(matchingItem && recommand){
                 // What we usually want is just to check the exact prefix...
                 // ...except if it is www and has a www-less variant, because then we want to deal with the www discrepancy 
                 if(sourceJsonLru.host[sourceJsonLru.host.length - 1] == 'www'){
@@ -1067,11 +1077,31 @@ domino.settings({verbose:false})
                     diagnostics_byId[diag.id] = diag
                 }
 
+            // #issue - Wrong url given as input, no prefix identified
+            registerDiagnostic({
+                id: 'wrongURL'
+                ,type: 'issue'
+                ,test: !items.length
+                ,render: function(){
+                        if(this.test){
+                            return $('<p/>')
+                                .append(
+                                        $('<strong class="text-error">URL wrongly formatted</strong>')
+                                    )
+                                .append(
+                                        $('<small class="text-error"/>')
+                                            .text(' - No prefix could be identified for this URL. Hyphe does not know it exists (yet). Check that the URL is properly formatted and fix it in your CSV before reloading.')
+                                    )
+                        }
+                    }
+            })
+
             // #issue - No prefix chosen: there is no checked prefix or web entity with this prefix or a shorter version
             registerDiagnostic({
                 id: 'noPrefixChosen'
                 ,type: 'issue'
-                ,test: !items.some(function(item){
+                ,test: items.length
+                    && !items.some(function(item){
                         return item.checked
                             || (
                                     (item.lru == sourceLru || sourceLru.indexOf(item.lru) == 0)
@@ -1157,7 +1187,8 @@ domino.settings({verbose:false})
             // #issue - Inclusion issue: there is a shorter prefix linked to a w.e. (that is not the www-less one), but not to the exact prefix, and the matching prefix is not a homepage
             registerDiagnostic({
                 id: 'inclusionIssue'
-                ,test: !matchingItem.checked
+                ,test: matchingItem
+                    && !matchingItem.checked
                     && (matchingItem.we_id === undefined || matchingItem.we_id == '')
                     && !matchingItem.looksHomePage
                     && items.some(function(item){
@@ -1299,6 +1330,7 @@ domino.settings({verbose:false})
             registerDiagnostic({
                 id: 'alreadyDefined'
                 ,test: !diagnostics_byId['noPrefixChosen'].test
+                    && !diagnostics_byId['wrongURL'].test
                     && !diagnostics_byId['newWebEntity'].test
                     && !diagnostics_byId['prefixesAdded'].test
                     && !diagnostics_byId['merge'].test
