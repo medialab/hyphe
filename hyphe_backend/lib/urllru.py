@@ -42,7 +42,7 @@ def split_lru_in_stems(lru, check=True):
     elements = lruStems.split(lru)
     if not check and len(elements) < 2:
         return []
-    if len(elements) < 2 or elements[0] != '' or (check and (len(elements) < 6 or elements[1] != 's' or elements[3] != 'h' or elements[5] != 'h')):
+    if len(elements) < 2 or elements[0] != '' or (check and (len(elements) < 6 or elements[1] != 's' or elements[5] != 'h')):
         raise ValueError("ERROR: %s is not a proper LRU." % lru)
     return [(elements[1+2*i], elements[2+2*i], "%s:%s" % (elements[1+2*i], elements[2+2*i])) for i in range(len(elements[1:])/2)]
 
