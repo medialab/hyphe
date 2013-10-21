@@ -984,7 +984,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_get_webentity_by_lruprefix_as_url(self, url):
         try:
-            url, lru = urllru.url_clean_and_convert(url)
+            _, lru = urllru.url_clean_and_convert(url)
         except ValueError as e:
             return format_error(e)
         return self.jsonrpc_get_webentity_by_lruprefix(lru)
@@ -1003,7 +1003,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_get_webentity_for_url(self, url):
         try:
-            url, lru = urllru.url_clean_and_convert(url)
+            _, lru = urllru.url_clean_and_convert(url)
         except ValueError as e:
             return format_error(e)
         return self.jsonrpc_get_webentity_for_url_as_lru(lru)
