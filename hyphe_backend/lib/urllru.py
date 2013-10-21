@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-URL/LRU library to manage, build and clean original URLs and corresponding URLs
+URL/LRU library to manage, build and clean original URLs and corresponding LRUs
 """
 
 import re, urllib
@@ -12,44 +12,61 @@ lruPattern = re.compile("^s:[^|]+(\|t:[^|]+)?(\|h:[^|]+)+")
 lruFullPattern = re.compile("^([^:/?#]+):(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$")
 lruSchemePattern = re.compile("https?")
 lruAuthorityPattern = re.compile("^(?:([^:]+)(?::([^@]+))?\@)?([^\s:]+)(?::(\d+))?$")
+lruStems = re.compile(r'(?:^|\|)([shtpqf]):')
+queryStems = re.compile(r'(?:^|&)([^=]+)=([^&]+)')
 
-def fix_missing_http(url):
+def uri_decode(text):
+    try:
+        return urllib.unquote(text.encode('utf-8')).decode('utf-8')
+    except:
+        return urllib.unquote(text)
+
+def uri_encode(text, safechars=''):
+    try:
+        return urllib.quote(text.encode('utf-8'), safechars).decode('utf-8')
+    except:
+        return urllib.quote(text, safechars)
+
+def uri_recode(text, safechars='', query=False):
+    if query:
+        return uri_recode_query(text)
+    return uri_encode(uri_decode(text), safechars)
+
+def uri_recode_query(query):
+    elements = queryStems.split(query)
+    if len(elements) == 1:
+        return uri_recode(query)
+    return "&".join(["%s=%s" % (uri_recode(elements[1+3*i]), uri_recode(elements[2+3*i])) for i in range(len(elements[1:])/3)])
+
+def split_lru_in_stems(lru, check=True):
+    elements = lruStems.split(lru)
+    if not check and len(elements) < 2:
+        return []
+    if len(elements) < 2 or elements[0] != '' or (check and (len(elements) < 6 or elements[1] != 's' or elements[3] != 'h' or elements[5] != 'h')):
+        raise ValueError("ERROR: %s is not a proper LRU." % lru)
+    return [(elements[1+2*i], elements[2+2*i], "%s:%s" % (elements[1+2*i], elements[2+2*i])) for i in range(len(elements[1:])/2)]
+
+def url_clean(url):
     if not url or url.strip() == "":
         return None
+    # Fix missing http
     if not url.startswith('http'):
         url = "http://%s" % url.lstrip('/')
-    # lowerize host since some servers answer badly when querying upcase hosts
+    # Lowerize host since some servers answer badly when querying upcase hosts
     host = urlparse(url)[1]
     return url.replace("://"+host, "://"+host.lower())
 
-def clean_input_urllru(urllru):
-    if "%" in urllru:
-        try:
-            urllru = urllib.unquote_plus(urllru.encode('ascii'))
-        except:
-            pass
-    return urllru
+titlize_url_regexp = re.compile(r'(https?://|[./#])', re.I)
+def url_shorten(url):
+    return titlize_url_regexp.sub(' ', uri_decode(url)).strip().title().encode('utf-8')
 
-def clean_input_url(url):
-    return clean_input_urllru(fix_missing_http(url))
-
-def clean_input_lru(lru):
-    return cleanLRU(clean_input_urllru(lru))
-
-def url_to_lru(url):
+def url_to_lru(url, encode_utf8=True):
     """
     Convert a URL to a LRU
-
     >>> url_to_lru("http://www.google.com/search?q=text&p=2")
     's:http|t:80|h:com|h:google|h:www|p:search|q:q=text&p=2'
-
     """
-    if "%" in url:
-        url = urllib.unquote_plus(url)
-    try:
-        url = url.encode('utf8')
-    except:
-        pass
+
     lru = lruFullPattern.match(url)
     if lru:
         scheme, authority, path, query, fragment = lru.groups()
@@ -63,44 +80,41 @@ def url_to_lru(url):
                 if host:
                     tokens += ["h:"+stem for stem in host if stem]
                 if path:
-                    path = urllib.quote_plus(path).replace("%2F", "/")
+                    path = uri_recode(path, '/')
                     if len(path) and path.startswith("/"):
                         path = path[1:]
                     tokens += ["p:"+stem for stem in path.split("/")]
                 if query is not None:
-                    query = urllib.quote_plus(query)
-                    tokens.append("q:"+query)
+                    tokens.append("q:"+uri_recode_query(query))
                 if fragment is not None:
-                    fragment = urllib.quote_plus(fragment)
+                    fragment = uri_recode(fragment)
                     tokens.append("f:"+fragment)
-                return "|".join(tokens)
+                res_lru = "|".join(tokens)
+                if encode_utf8:
+                    try:
+                        return res_lru.encode('utf-8')
+                    except:
+                        pass
+                return res_lru
     raise ValueError("Not an url: %s" % url)
 
-def url_to_lru_clean(url):
-    return cleanLRU(url_to_lru(url))
+def url_to_lru_clean(url, encode_utf8=True):
+    return lru_clean(url_to_lru(url, encode_utf8))
 
-def lru_to_url(lru, nocheck=False):
+def lru_to_url(lru, encode_utf8=True, nocheck=False):
     """
     Convert a LRU to a URL
-
     >>> lru_to_url('s:http|t:80|h:com|h:google|h:www|p:search')
     'http://www.google.com/search'
     >>> lru_to_url('s:http|t:80|h:com|h:google|h:www|p:search|q:q=text&p=2')
     #'http://www.google.com/search?q=text&p=2'
-
     """
 
     if not lruPattern.match(lru) and not nocheck:
         raise ValueError("Not an lru: %s" % lru)
 
-    try:
-        lru = lru.decode('utf8')
-    except:
-        pass
-
-    # TODO: naive algorithm (to be updated)
     stem_types = []
-    lru_list = [stem.split(":", 1) for stem in lru.split("|")]
+    lru_list = [[k, t] for k, t, _ in split_lru_in_stems(lru)]
     for stem in lru_list:
         if stem[0] not in stem_types:
             stem_types.append(stem[0])
@@ -115,55 +129,54 @@ def lru_to_url(lru, nocheck=False):
     if "p" in stem_types:
         path = "/".join([x[1] for x in filter(lambda (k, stem): k=="p", lru_list)])
         if path:
-            url += "/" + urllib.unquote_plus(path)
+            url += "/" + uri_recode(path, '/')
         if not path and ['p', ''] in lru_list:
             url += "/"
     if "q" in stem_types:
         query = [x[1] for x in filter(lambda (k, stem): k == "q", lru_list)][0]
         if query or ['q', ''] in lru_list:
-            url += "?" + urllib.unquote_plus(query)
+            url += "?" + uri_recode_query(query)
     if "f" in stem_types:
         fragment = [x[1] for x in filter(lambda (k, stem): k == "f", lru_list)][0]
         if fragment or ['f', ''] in lru_list:
-            url += "#" + urllib.unquote_plus(fragment)
-    return url.encode('utf-8')
+            url += "#" + uri_recode(fragment)
+    if encode_utf8:
+        try:
+            return url.encode('utf-8')
+        except:
+            pass
+    return url
 
-titlize_url_regexp = re.compile(r'(https?://|[./#])', re.I)
-def url_shorten(url):
-    return titlize_url_regexp.sub(' ', url).strip().title()
+def url_clean_and_convert(url, lru_encode_utf8=True):
+    url = url_clean(url)
+    lru = url_to_lru_clean(url, lru_encode_utf8)
+    return url, lru
 
-# Clean a URL
-#def cleanUrl(url, currentUrl) :
-#    # relative path
-#    url = urljoin(currentUrl, url)
-#    lru = lruFullPattern.match(url)
-#    if lru :
-#        (scheme, authority, path, query, fragment) = lru.groups()
-#        # mailto
-#        if not "mailto" in scheme :
-#            return url
-#    return None
+def lru_clean_and_convert(lru, url_encode_utf8=True):
+    lru = lru_clean(lru)
+    url = lru_to_url(lru, url_encode_utf8)
+    return url, lru
 
-# removing port if 80 (http) or 443 (https):
-def stripHttpPort(lru) :
-    return "|".join([stem for stem in lru.split("|") if stem != "t:80" and stem != "t:443"])
+# Removing port if 80 (http) or 443 (https):
+def lru_strip_standard_ports(lru):
+    return "|".join([stem for _, _, stem in split_lru_in_stems(lru, False) if not stem in ['t:80', 't:443']])
 
-# Removing subdomain if www :
-def stripWWW(lru) :
-    return "|".join([stem for stem in lru.split("|") if stem != "h:www" ])
+# Removing subdomain if www:
+def lru_strip_www(lru):
+    return "|".join([stem for k, t, stem in split_lru_in_stems(lru) if k != 'h' or t != "www" ])
 
+# Removing slash at the end if ending with path or host stem:
 re_trailing_slash = re.compile(r'(h:[^\|]*)\|p:\|?$')
-def stripTrailingSlash(lru):
+def lru_strip_trailing_slash(lru):
     return re_trailing_slash.sub(r'\1', lru)
 
-# Removing anchors :
-anchorRegexp = re.compile(r"f")
-def stripAnchors(lru) :
-    return "|".join([stem for stem in lru.split("|") if not anchorRegexp.match(stem) ])
+# Removing anchors:
+def lru_strip_anchors(lru) :
+    return "|".join([stem for k, _, stem in split_lru_in_stems(lru) if k != "f"])
 
-# Order query parameters alphabetically
+# Order query parameters alphabetically:
 queryRegexp = re.compile(r"\|q:([^|]*)")
-def orderQueryParameters(lru) :
+def lru_reorder_query(lru) :
     match = queryRegexp.search(lru)
     if match is not None and match.group(1) is not None :
         res = match.group(1).split("&")
@@ -171,17 +184,30 @@ def orderQueryParameters(lru) :
         return lru.replace(match.group(1), "&".join(res))
     return lru
 
-#Clean LRU by applying selection of previous filters
-def cleanLRU(lru) :
-#   return orderQueryParameters(stripAnchors(stripWWW(stripHttpPort(lru))))
-    return stripTrailingSlash(stripHttpPort(lru))
+def lru_uriencode(lru):
+    return "|".join(["%s:%s" % (k, uri_recode(t, query=(k=='q'))) if k in ['p', 'q', 'f'] else stem for k, t, stem in split_lru_in_stems(lru)])
 
-def isFullPrecision(lru, precision_exceptions = []):
+#Clean LRU by applying selection of previous filters
+def lru_clean(lru):
+    lru = lru_strip_trailing_slash(lru)
+    lru = lru_strip_standard_ports(lru)
+#    lru = lru_reorder_query(lru)
+#    lru = lru_strip_anchors(lru)
+#    lru = lru_strip_www(lru)
+    return lru_uriencode(lru)
+
+def lru_is_full_precision(lru, precision_exceptions = []):
     return (lru in precision_exceptions)
 
 re_host_lru = re.compile(r'(([sth]:[^|]*(\||$))+)', re.I)
+def lru_get_host_url(lru):
+    return lru_to_url(re_host_lru.match(lru).group(1).strip('|'), False)
+
 re_path_lru = re.compile(r'(([sthp]:[^|]*(\||$))+)', re.I)
-def getLRUHead(lru, precision_exceptions = []):
+def lru_get_path_url(lru):
+    return lru_to_url(re_path_lru.match(lru).group(1).strip('|'), False)
+
+def lru_get_head(lru, precision_exceptions = []):
     possible_result = ""
     for precision_exception in precision_exceptions:
         if lru.startswith(precision_exception) and len(precision_exception) > len(possible_result):
@@ -191,25 +217,19 @@ def getLRUHead(lru, precision_exceptions = []):
     return re_host_lru.match(lru).group(1).strip('|')
 
 # Identify links which are nodes
-def isLRUNode(lru, precision_limit = 1, precision_exceptions = [], lru_head = None):
+def lru_is_node(lru, precision_limit = 1, precision_exceptions = [], lru_head = None):
     if not lru_head:
-        lru_head = getLRUHead(lru, precision_exceptions)
-    return (len(lru.replace(lru_head, '').strip('|').split("|")) <= precision_limit)
+        lru_head = lru_get_head(lru, precision_exceptions)
+    return (len(split_lru_in_stems(lru.replace(lru_head, '').strip('|'), False)) <= precision_limit)
 
 # Get a LRU's node
-def getLRUNode(lru, precision_limit = 1, precision_exceptions = [], lru_head = None) :
+def lru_get_node(lru, precision_limit = 1, precision_exceptions = [], lru_head = None) :
 # need to add check for exceptions
     if not lru_head:
-        lru_head = getLRUHead(lru, precision_exceptions)
-    stems = [stem for stem in lru.replace(lru_head, '').strip('|').split("|")[:precision_limit]]
+        lru_head = lru_get_head(lru, precision_exceptions)
+    stems = [stem for _, _, stem in split_lru_in_stems(lru.replace(lru_head, '').strip('|'), False)[:precision_limit]]
     stems.insert(0, lru_head)
     return "|".join(stems)
-
-def getURLHostFromLRU(lru):
-    return lru_to_url(re_host_lru.match(lru).group(1).strip('|'))
-
-def getURLPathFromLRU(lru):
-    return lru_to_url(re_path_lru.match(lru).group(1).strip('|'))
 
 # TESTS
 #url = "http://medialab.sciences-po.fr/hci"
@@ -223,5 +243,5 @@ def getURLPathFromLRU(lru):
 #print getUrl("s:http|h:fr|h:sciences-po|h:www|p:dans|p:ton|p:cul.html")
 
 #    testlru = "s:http|t:80|h:org|h:mongodb|h:www|p:display|p:DOCS|p:Verifying+Propagation+of+Writes+with+getLastError|q:f=1&sg=3&a=3&b=34&_675=5&loiyy=hdsjk|f:HGYT"
-#    print "TEST : " + testlru + "\nTEST : " + cleanLRU(testlru)
+#    print "TEST : " + testlru + "\nTEST : " + lru_clean(testlru)
 

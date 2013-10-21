@@ -182,7 +182,7 @@ class Core(jsonrpc.JSONRPC):
 
     def jsonrpc_lookup_httpstatus(self, url, timeout=2):
         res = format_result(0)
-        url = urllru.clean_input_url(url)
+        url = urllru.url_clean(url)
         try:
             prot, host, path, _, query = urlparse.urlparse(url)[0:5]
             host = host.lower()
@@ -497,24 +497,23 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return WE
 
     def handle_url_precision_exceptions(self, url):
-        lru = urllru.url_to_lru_clean(url)
+        lru = urllru.url_to_lru_clean(url, False)
         self.handle_lru_precision_exceptions(lru)
 
     def handle_lru_precision_exceptions(self, lru_prefix):
-        lru_head = urllru.getLRUHead(lru_prefix, self.precision_exceptions)
-        if not urllru.isLRUNode(lru_prefix, config["precisionLimit"], lru_head=lru_head) and lru_prefix.strip('|') != lru_head:
+        lru_head = urllru.lru_get_head(lru_prefix, self.precision_exceptions)
+        if not urllru.lru_is_node(lru_prefix, config["precisionLimit"], lru_head=lru_head) and lru_prefix.strip('|') != lru_head:
             self.msclient_sync.markPrecisionExceptions([lru_prefix])
             self.precision_exceptions.append(lru_prefix)
 
     def declare_page(self, url):
         try:
-            url = urllru.clean_input_url(url)
-            lru = urllru.url_to_lru_clean(url)
+            url, lru = urllru.url_clean_and_convert(url)
         except ValueError as e:
             return format_error(e)
         self.handle_lru_precision_exceptions(lru)
-        is_node = urllru.isLRUNode(lru, config["precisionLimit"], self.precision_exceptions)
-        is_full_precision = urllru.isFullPrecision(lru, self.precision_exceptions)
+        is_node = urllru.lru_is_node(lru, config["precisionLimit"], self.precision_exceptions)
+        is_full_precision = urllru.lru_is_full_precision(lru, self.precision_exceptions)
         t = str(int(time.time()*1000))
         page = PageItem("%s/%s" % (lru, t), url, lru, t, None, -1, None, ['USER'], is_full_precision, is_node, {})
         cache_id = self.msclient_sync.createCache([page])
@@ -528,26 +527,32 @@ class Memory_Structure(jsonrpc.JSONRPC):
             return new
         return self.return_new_webentity(lru, new, 'page')
 
-    def jsonrpc_declare_webentity_by_lru_prefix_as_url(self, url):
+    def jsonrpc_declare_webentity_by_lruprefix_as_url(self, url):
         try:
-            lru_prefix = urllru.url_to_lru(urllru.clean_input_url(url))
+            url, lru_prefix = urllru.url_clean_and_convert(url, False)
         except ValueError as e:
             return format_error(e)
-        return self.jsonrpc_declare_webentity_by_lru(lru_prefix)
+        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix])
 
-    def _check_lru_prefix(self, lru_prefix):
-        try:
-            lru_prefix = urllru.clean_input_lru(lru_prefix)
-            url = urllru.lru_to_url(lru_prefix)
-            lru_prefix = urllru.url_to_lru_clean(url)
-        except ValueError as e:
-            return format_error(e)
-        existing = self.msclient_sync.findWebEntityByLRUPrefix(lru_prefix)
-        if not is_error(existing):
-            return format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (lru_prefix, existing))
-        return lru_prefix, url
+    def jsonrpc_declare_webentity_by_lru(self, lru_prefix):
+        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix])
 
-    def _create_and_return_webentity(self, WE):
+    def jsonrpc_declare_webentity_by_lrus(self, list_lrus, name=None):
+        if not isinstance(list_lrus, list):
+            list_lrus = [list_lrus]
+        lru_prefixes_list = []
+        for lru in list_lrus:
+            try:
+                url, lru = urllru.lru_clean_and_convert(lru, False)
+            except ValueError as e:
+                return format_error(e)
+            existing = self.msclient_sync.findWebEntityByLRUPrefix(lru)
+            if not is_error(existing):
+                return format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (lru, existing))
+            if not name:
+                name = urllru.url_shorten(url)
+            lru_prefixes_list.append(lru)
+        WE = WebEntity(None, lru_prefixes_list, name)
         res = self.msclient_sync.updateWebEntity(WE)
         if is_error(res):
             return res
@@ -557,27 +562,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         for lru in new_WE['lru_prefixes']:
             self.handle_lru_precision_exceptions(lru)
         return format_result(new_WE)
-
-    def jsonrpc_declare_webentity_by_lru(self, lru_prefix):
-        res = self._check_lru_prefix(lru_prefix)
-        if is_error(res):
-            return res
-        lru_prefix, url = res
-        return self._create_and_return_webentity(WebEntity(None, [lru_prefix], urllru.url_shorten(url)))
-
-    def jsonrpc_declare_webentity_by_lrus(self, list_lrus, name=None):
-        if not isinstance(list_lrus, list):
-            list_lrus = [list_lrus]
-        lru_prefixes_list = []
-        for lru in list_lrus:
-            res = self._check_lru_prefix(lru)
-            if is_error(res):
-                return res
-            lru_prefix, url = res
-            if not name:
-                name = urllru.url_shorten(url)
-            lru_prefixes_list.append(lru_prefix)
-        return self._create_and_return_webentity(WebEntity(None, lru_prefixes_list, name))
 
     def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None):
         WE = self.msclient_sync.getWebEntity(webentity_id)
@@ -643,9 +627,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return self.update_webentity(webentity_id, "status", status)
 
     def jsonrpc_set_webentity_homepage(self, webentity_id, homepage):
-        homepage = urllru.clean_input_url(homepage)
         try:
-            urllru.url_to_lru(homepage)
+            homepage, _ = urllru.url_clean_and_convert(url)
         except ValueError as e:
             return format_error(e)
         return self.update_webentity(webentity_id, "homepage", homepage)
@@ -656,8 +639,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_add_webentity_lruprefix(self, webentity_id, lru_prefix):
         try:
-            lru_prefix = urllru.clean_input_lru(lru_prefix)
-            url = urllru.lru_to_url(lru_prefix)
+            url, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
         except ValueError as e:
             return format_error(e)
         old_WE = self.msclient_sync.findWebEntityByLRUPrefix(lru_prefix)
@@ -674,8 +656,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_rm_webentity_lruprefix(self, webentity_id, lru_prefix):
         """ Will delete WebEntity if no LRUprefix left"""
         try:
-            lru_prefix = urllru.clean_input_lru(lru_prefix)
-            url = urllru.lru_to_url(lru_prefix)
+            url, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
         except ValueError as e:
             return format_error(e)
         self.add_backend_tags(webentity_id, "lruprefixes_modified", "removed %s" % lru_prefix)
@@ -684,18 +665,16 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return res
 
     def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url):
-        startpage_url = urllru.clean_input_url(startpage_url)
         try:
-            urllru.url_to_lru(startpage_url)
+            startpage_url, _ = urllru.url_clean_and_convert(startpage_url)
         except ValueError as e:
             return format_error(e)
         self.add_backend_tags(webentity_id, "startpages_modified", "added %s" % startpage_url)
         return self.update_webentity(webentity_id, "startpages", startpage_url, "push")
 
     def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url):
-        startpage_url = urllru.clean_input_url(startpage_url)
         try:
-            urllru.url_to_lru(startpage_url)
+            startpage_url, _ = urllru.url_clean_and_convert(startpage_url)
         except ValueError as e:
             return format_error(e)
         self.add_backend_tags(webentity_id, "startpages_modified", "removed %s" % startpage_url)

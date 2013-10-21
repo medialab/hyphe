@@ -13,7 +13,7 @@ try:
     from pymongo.binary import Binary
 except:
     from bson.binary import Binary
-from hcicrawler.urllru import url_to_lru_clean, getURLHostFromLRU, getURLPathFromLRU
+from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url
 from hcicrawler.items import Page
 from hcicrawler.samples import DEFAULT_INPUT
 from hcicrawler.errors import error_name
@@ -65,9 +65,9 @@ class PagesCrawler(BaseSpider):
         if 300 < response.status < 400:
             redir_url = response.headers['Location']
             if redir_url.startswith('/'):
-                redir_url = "%s%s" % (getURLHostFromLRU(lru).strip('/'), redir_url)
+                redir_url = "%s%s" % (lru_get_host_url(lru).strip('/'), redir_url)
             elif redir_url.startswith('./') or not redir_url.startswith('http'):
-                redir_url = "%s%s" % (getURLPathFromLRU(lru).strip('/'), redir_url[1:])
+                redir_url = "%s%s" % (lru_get_path_url(lru).strip('/'), redir_url[1:])
             links = [{'url': redir_url}]
             response.meta['depth'] -= 1
         else:

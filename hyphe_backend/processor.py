@@ -18,11 +18,11 @@ def generate_cache_from_pages_list(pageList, precision_limit = 1, precision_exce
     original_link_number = 0
     nodes = {}
     for page_item in pageList:
-        page_item["lru"] = urllru.cleanLRU(page_item["lru"])
-        is_full_precision = urllru.isFullPrecision(page_item["lru"], precision_exceptions)
-        lru_head = urllru.getLRUHead(page_item["lru"], precision_exceptions)
-        is_node = urllru.isLRUNode(page_item["lru"], precision_limit, lru_head=lru_head)
-        node_lru = page_item["lru"] if is_node else urllru.getLRUNode(page_item["lru"], precision_limit, lru_head=lru_head)
+        page_item["lru"] = urllru.lru_clean(page_item["lru"])
+        is_full_precision = urllru.lru_is_full_precision(page_item["lru"], precision_exceptions)
+        lru_head = urllru.lru_get_head(page_item["lru"], precision_exceptions)
+        is_node = urllru.lru_is_node(page_item["lru"], precision_limit, lru_head=lru_head)
+        node_lru = page_item["lru"] if is_node else urllru.lru_get_node(page_item["lru"], precision_limit, lru_head=lru_head)
         nodes[node_lru] = 1
         # Create index of crawled pages from queue
         if page_item["lru"] not in pages:
@@ -34,19 +34,21 @@ def generate_cache_from_pages_list(pageList, precision_limit = 1, precision_exce
         # Add to index linked pages and index all links between nodes
         if "lrulinks" in page_item:
             for index,lrulink in enumerate(page_item["lrulinks"]) :
-                lrulink = urllru.cleanLRU(lrulink)
-                is_full_precision = urllru.isFullPrecision(lrulink, precision_exceptions)
-                lru_head = urllru.getLRUHead(lrulink, precision_exceptions)
-                is_node = urllru.isLRUNode(lrulink, precision_limit, lru_head=lru_head)
-                target_node = lrulink if is_node else urllru.getLRUNode(lrulink, precision_limit, lru_head=lru_head)
+                lrulink = urllru.lru_clean(lrulink)
+                is_full_precision = urllru.lru_is_full_precision(lrulink, precision_exceptions)
+                lru_head = urllru.lru_get_head(lrulink, precision_exceptions)
+                is_node = urllru.lru_is_node(lrulink, precision_limit, lru_head=lru_head)
+                target_node = lrulink if is_node else urllru.lru_get_node(lrulink, precision_limit, lru_head=lru_head)
                 nodes[target_node] = 1
                 original_link_number += 1
 # check False {} errorcode
                 if lrulink not in pages:
                     try:
-                        pages[lrulink] = ms.PageItem(str(page_item["_id"])+"_"+str(index), urllru.lru_to_url(lrulink).encode('utf8'), lrulink.encode('utf8'), str(page_item["timestamp"]), None, int(page_item["depth"])+1, None, ['LINK'], is_full_precision, is_node, {})
+                        pages[lrulink] = ms.PageItem(str(page_item["_id"])+"_"+str(index), urllru.lru_to_url(lrulink), lrulink.encode('utf-8'), str(page_item["timestamp"]), None, int(page_item["depth"])+1, None, ['LINK'], is_full_precision, is_node, {})
                     except ValueError as e:
                         print "Skipping link to misformatted URL : %s" % lrulink
+                        if verbose:
+                            print e
                 elif 'LINK' not in pages[lrulink].sourceSet:
                     pages[lrulink].sourceSet.append('LINK')
                 links[(node_lru,target_node)] = links[(node_lru,target_node)] + 1 if (node_lru,target_node) in links else 1
