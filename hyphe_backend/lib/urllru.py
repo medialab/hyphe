@@ -74,13 +74,13 @@ def url_to_lru(url, encode_utf8=True):
             hostAndPort = lruAuthorityPattern.match(authority)
             if hostAndPort:
                 _, _, host, port = hostAndPort.groups()
-                tokens = ["s:" + scheme, "t:"+ (port if port else (str(443) if scheme == "https" else str(80)))]
-                host = host.split(".")
+                tokens = ["s:" + scheme.lower(), "t:"+ (port if port else (str(443) if scheme == "https" else str(80)))]
+                host = host.lower().split(".")
                 host.reverse()
                 if host:
                     tokens += ["h:"+stem for stem in host if stem]
                 if path:
-                    path = uri_recode(path, '/')
+                    path = uri_recode(path, '/+')
                     if len(path) and path.startswith("/"):
                         path = path[1:]
                     tokens += ["p:"+stem for stem in path.split("/")]
@@ -129,7 +129,7 @@ def lru_to_url(lru, encode_utf8=True, nocheck=False):
     if "p" in stem_types:
         path = "/".join([x[1] for x in filter(lambda (k, stem): k=="p", lru_list)])
         if path:
-            url += "/" + uri_recode(path, '/')
+            url += "/" + uri_recode(path, '/+')
         if not path and ['p', ''] in lru_list:
             url += "/"
     if "q" in stem_types:
@@ -161,6 +161,9 @@ def lru_clean_and_convert(lru, url_encode_utf8=True):
 def lru_strip_standard_ports(lru):
     return "|".join([stem for _, _, stem in split_lru_in_stems(lru, False) if not stem in ['t:80', 't:443']])
 
+def lru_lowerize_host(lru):
+    return "|".join([stem.lower() if k in ['s', 'h'] else stem for k,_, stem in split_lru_in_stems(lru)])
+
 # Removing subdomain if www:
 def lru_strip_www(lru):
     return "|".join([stem for k, t, stem in split_lru_in_stems(lru) if k != 'h' or t != "www" ])
@@ -185,15 +188,16 @@ def lru_reorder_query(lru) :
     return lru
 
 def lru_uriencode(lru):
-    return "|".join(["%s:%s" % (k, uri_recode(t, query=(k=='q'))) if k in ['p', 'q', 'f'] else stem for k, t, stem in split_lru_in_stems(lru)])
+    return "|".join(["%s:%s" % (k, uri_recode(t, safechars=('/+' if k == 'p' else ''), query=(k=='q'))) if k in ['p', 'q', 'f'] else stem for k, t, stem in split_lru_in_stems(lru)])
 
 #Clean LRU by applying selection of previous filters
 def lru_clean(lru):
-    lru = lru_strip_trailing_slash(lru)
     lru = lru_strip_standard_ports(lru)
-#    lru = lru_reorder_query(lru)
-#    lru = lru_strip_anchors(lru)
+    lru = lru_lowerize_host(lru)
 #    lru = lru_strip_www(lru)
+    lru = lru_strip_trailing_slash(lru)
+#    lru = lru_strip_anchors(lru)
+#    lru = lru_reorder_query(lru)
     return lru_uriencode(lru)
 
 def lru_is_full_precision(lru, precision_exceptions = []):

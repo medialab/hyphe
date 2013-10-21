@@ -43,10 +43,10 @@
 					host = RegExp.$3,
 					port = RegExp.$4
 				
-				host = host.split(/\./)
+				host = host.toLowerCase().split(/\./)
 				
 				LRU = {
-					"scheme": scheme,
+					"scheme": scheme.toLowerCase(),
 					"host": host.reverse(),
 					"path": path.split(/\//).filter(function(pathToken){return pathToken.length}),   
 				}
@@ -70,11 +70,11 @@
 			var type = stem.substr(0, 1)
 				name = stem.substr(2, stem.length - 2)
 			if(type=="s"){
-				json_lru.scheme = name
+				json_lru.scheme = name.toLowerCase()
 			} else if(type=="t"){
 				json_lru.port = name
 			} else if(type=="h"){
-				json_lru.host.push(name)
+				json_lru.host.push(name.toLowerCase())
 			} else if(type=="p"){
 				json_lru.path.push(name)
 			} else if(type=="q"){
