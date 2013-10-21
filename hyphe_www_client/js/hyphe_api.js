@@ -30,7 +30,7 @@ HYPHE_API = {
 
 		,CRAWL:'crawl_webentity'
 
-		,FETCH_BY_URL: 'store.get_webentity_by_url'
+		,FETCH_BY_URL: 'store.get_webentity_for_url'
 	}
 	,PAGES:{
 		DECLARE:'declare_pages'
