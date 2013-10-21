@@ -155,9 +155,14 @@
 		return split.join('|')
 	}
 
+	ns.LRU_validate = function(lru){
+		var lruregex = /^s:[^\|]+\|(h:[a-zA-Z0-9\-]+\|?){2}/
+		return lruregex.test(lru)
+	}
+
 	ns.URL_validate = function(url){
-	    var urlregex = /^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/
-	    return urlregex.test(url)
+		var urlregex = /^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/
+		return urlregex.test(url)
 	}
 
 	ns.htmlEncode = function(value){
@@ -165,20 +170,20 @@
 	}
 
 	ns.htmlDecode = function(value){
-  		return $('<div/>').html(value).text()
+		return $('<div/>').html(value).text()
 	}
 
 	ns.checkforInteger = function(value) {
 		if (parseInt(value) != value)
 			return false
 		else return true
-    }
+	}
 
-    ns.checkforPrice = function(value) {
-    	if (isNaN(parseFloat(value)))
-		    return false
-        else return true
-    }
+	ns.checkforPrice = function(value) {
+		if (isNaN(parseFloat(value)))
+			return false
+		else return true
+	}
 
 	ns.prettyDate = function(date){
 		// Code adapted from http://webdesign.onyou.ch/2010/08/04/javascript-time-ago-pretty-date/
@@ -238,7 +243,7 @@
 	        
 	        for(var i = 0; i < params.length; i++) {
             	var a = params[i].split("=")
-	            paramsObject[a[0]] =  decodeURIComponent(a[1])
+	            paramsObject[a[0]] = decodeURIComponent(a[1])
 	        }
 	        return paramsObject
     	}
