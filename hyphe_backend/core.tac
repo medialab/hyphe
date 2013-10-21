@@ -877,6 +877,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.total_webentities = len(WEs)
         returnD(WEs)
 
+    def jsonrpc_get_webentity(self, we_id):
+        return self.jsonrpc_get_webentities([we_id])
+
     @inlineCallbacks
     def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, corpus='', corelinks=False, light_for_csv=False):
         jobs = {}
