@@ -130,7 +130,7 @@
 			var httpVariation_json = domino.utils.clone(lru_json)
 			httpVariation_json.scheme = 'http'
 			var httpVariation = Utils.JSON_LRU_to_LRU(httpVariation_json)
-			candidates = candidates.concat(ns.getPrefixCandidates(httpsVariation, {
+			candidates = candidates.concat(ns.getPrefixCandidates(httpVariation, {
 				wwwlessVariations: settings.wwwlessVariations
 				,wwwVariations: settings.wwwVariations
 				,httpVariations: false
