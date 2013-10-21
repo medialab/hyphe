@@ -998,7 +998,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(WE):
             returnD(WE)
         if WE.name == "OUTSIDE WEB":
-            returnD(format_error("No matching WebEntity found for url %s" % url))
+            returnD(format_error("No matching WebEntity found for lruprefix %s" % lru_prefix))
         returnD(format_result(self.format_webentity(WE)))
 
     def jsonrpc_get_webentity_for_url(self, url):
@@ -1011,7 +1011,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentity_for_url_as_lru(self, lru):
         try:
-            lru = urllru.lru_clean(lru)
+            url, lru = urllru.lru_clean_and_convert(lru)
         except ValueError as e:
             returnD(format_error(e))
         WE = yield self.msclient_pool.findWebEntityMatchingLRU(lru)
