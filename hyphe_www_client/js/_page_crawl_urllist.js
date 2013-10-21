@@ -240,26 +240,37 @@ $.fn.editable.defaults.mode = 'popup';
                 ,method: function(d){
                     var we_id = d.data.webentityId
                         ,we = D.get('webentities_byId')[we_id]
+                        ,source_url = $('div[data-webentity-id='+we_id+']').parent().parent().find('[data-old-url]').attr('data-old-url')
+                        ,scheme = source_url.substring(0, 5)
+                        ,startpage = null
+                        ,page = null
+                        ,divs = $('div[data-webentity-id='+we_id+'] div.crawl-settings')
+                        ,i = 0
 
                     D.dispatchEvent('currentWebentityId_updated', {
                         currentWebentityId: we_id
                     })
 
                     if(we.startpages.length == 0){
-                        var divs = $('div[data-webentity-id='+we_id+'] div.crawl-settings')
                         divs.html('<span class="text-info">Use prefix...</span>')
                             .attr('data-crawlsettings-status', 'pending')
 
                         D.dispatchEvent('update_currentWebentityId', {
                             currentWebentityId: we_id
                         })
-                        // Use the first prefix
-                        D.request('addStartPage', {
-                            webentityId: we.id
-                            ,url: Utils.LRU_to_URL(we.lru_prefixes[0])
-                        })
+                        // Use the first prefix with the same scheme as input url
+                        while (startpage == null && we.lru_prefixes[i]) {
+                            page = Utils.LRU_to_URL(we.lru_prefixes[i])
+                            if (page.substring(0, 5) == scheme) {
+                                startpage = page
+                                D.request('addStartPage', {
+                                    webentityId: we.id
+                                    ,url: startpage
+                                })
+                            }
+                            i++
+                        }
                     } else {
-                        var divs = $('div[data-webentity-id='+we_id+'] div.crawl-settings')
                         divs.html('<span>'+we.startpages.length+' start page'+((we.startpages.length>1)?('s'):(''))+' to test</span>')
                             .attr('data-crawlsettings-status', 'startpagestestwaiting')
                         cascadeFetchstartpages()
