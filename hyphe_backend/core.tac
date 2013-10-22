@@ -727,7 +727,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_delete_webentity(self, webentity_id):
         WE = self.msclient_sync.getWebEntity(webentity_id)
         if is_error(WE):
-            return format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id)
+            return format_error('ERROR retrieving WebEntity with id %s' % webentity_id)
         res = self.msclient_sync.deleteWebEntity(WE)
         if is_error(res):
             return res
