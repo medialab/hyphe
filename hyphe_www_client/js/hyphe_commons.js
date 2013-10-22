@@ -42,7 +42,7 @@
 	){
 		// alert('Oops, an error occurred... \n'+data)
 		Messenger().post({
-		    message: '<strong>Oops</strong> - something failed when communicating with the server - '+data+' <pre> '+xhr.responseText+' </pre>'
+		    message: '<strong>Oops</strong> - something failed when communicating with the server - '+data+((xhr.responseText!='')?(' <pre> '+xhr.responseText+' </pre>'):(''))
 		    ,type: 'error'
 		    ,showCloseButton: true
 		    /*,actions: {
@@ -73,6 +73,7 @@
 		if(lru === undefined)
 			return []
 		var candidates = []
+			,tld_length = Utils.LRU_getTld(lru).split('.').length
 			,lru_a = lru.split('|')
 			,lru_json = Utils.LRU_to_JSON_LRU(lru)
 			,settings = settings || {}

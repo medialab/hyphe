@@ -131,7 +131,7 @@ domino.settings({verbose:false})
                         if(data[0].code == 'fail'){
                             this.dispatchEvent('callback_webentityFetched', {
                                 webentityId: undefined
-                                ,message: 'no match'
+                                ,message: '<span class="muted">invalid address</span>'
                                 ,url: input.url
                             })
                         } else {
@@ -716,7 +716,7 @@ domino.settings({verbose:false})
                         ,lru = Utils.URL_to_LRU(url)
                         ,prefixCandidates = HypheCommons.getPrefixCandidates(lru, {
                                 wwwlessVariations: true
-                                ,wwwVariations: false
+                                ,wwwVariations: !Utils.LRU_test_hasNoPath(lru, {strict: false}) && Utils.LRU_test_hasNoSubdomain(lru)
                                 ,httpVariations: true
                                 ,httpsVariations: true
                             })
@@ -965,13 +965,13 @@ domino.settings({verbose:false})
                 Which are the cases where something is checked that should not be?
                      - I do not see any!
                 
-                Which are the cases where something UNchecked that should be checked?
+                Which are the cases where something is UNchecked that should be checked?
                      - When there is a www URL prefixing a w.e. and the www-less URL does not prefix the web entity
                      - When there is a https URL prefixing a w.e. and the https-less URL does not prefix the web entity
                      - When there is a https-less URL prefixing a w.e. and the https URL does not prefix the web entity
                      - The same for discrepancies between TLDs (?)
                 
-                So, when do we propose the update button ?
+                So, when do we propose to update something ?
                 When we would do something in the back-end, that is:
                      - Creating a web entity: one or more w.e.-less prefixes are checked, and them only
                      - Adding prefixes to a web entity: a single w.e. prefix is checked and one or more w.e.-less prefixes are checked
@@ -1086,7 +1086,7 @@ domino.settings({verbose:false})
                         if(this.test){
                             return $('<p/>')
                                 .append(
-                                        $('<strong class="text-error">URL wrongly formatted</strong>')
+                                        $('<strong class="text-error">URL mis-formatted</strong>')
                                     )
                                 .append(
                                         $('<small class="text-error"/>')
@@ -1229,10 +1229,10 @@ domino.settings({verbose:false})
                         if(this.test){
                             return $('<p/>')
                                 .append(
-                                        $('<strong class="text-error">Home page instead of website</strong>')
+                                        $('<strong class="text-warning">Home page instead of website</strong>')
                                     )
                                 .append(
-                                        $('<small class="text-error"/>')
+                                        $('<small class="text-warning"/>')
                                             .text(' - A prefix seems to be a home page. You should choose a shorter prefix to allow different pages in the web entity.')
                                     )
                         }
@@ -1702,5 +1702,5 @@ domino.settings({verbose:false})
                 )
             )
     }
-
+    
 })(jQuery, domino, (window.dmod = window.dmod || {}))

@@ -165,6 +165,182 @@
 		return urlregex.test(url)
 	}
 
+	ns.LRU_getTld = function(lru){
+		var json_lru = ns.LRU_to_JSON_LRU(lru)
+			,host_split = json_lru.host.slice(0)
+			,tlds = ns.getTldLists()
+
+		function getLongestMatchingTldSplit(tld_candidate_split){
+			var longestMatchingTld_split = []
+			tlds.rules.forEach(function(tld){
+				var tld_split = tld.split('.').reverse()
+					,match_flag = true
+					
+					for(i in tld_split){
+						if(tld_candidate_split.length < i){
+							match_flag = false
+							break
+						}
+						if(tld_split[i] != tld_candidate_split[i]){
+							if(tld_split[i] != '*'){
+								match_flag = false
+								break
+							}
+						}
+					}
+
+					if(match_flag && tld_split.length > longestMatchingTld_split.length){
+						var actualTldCandidate = host_split.slice(0, tld_split.length)
+						longestMatchingTld_split = tld_split
+					}
+				})
+			if(longestMatchingTld_split.length == 0){
+				console.log('No tld matching for', lru)
+				return []
+			}
+			// Check the longest matching tld is not an exception
+			var actualTldCandidate = host_split.slice(0, longestMatchingTld_split.length)
+				,matchingExceptions = tlds.exceptions.filter(function(tld){
+					var tld_split = tld.split('.').reverse()
+						,match_flag = true
+					
+					for(i in tld_split){
+						if(actualTldCandidate.length < i){
+							match_flag = false
+							break
+						}
+						if(tld_split[i] != actualTldCandidate[i]){
+							match_flag = false
+							break
+						}
+					}
+					return match_flag
+				})
+			if(matchingExceptions.length != 0){
+				// console.log('Tld is an exception', longestMatchingTld_split)
+				longestMatchingTld_split.pop()
+			}
+			return longestMatchingTld_split
+		}
+
+		var longestMatchingTld = getLongestMatchingTldSplit(host_split, [])
+		return host_split.slice(0, longestMatchingTld.length).reverse().join('.')
+
+	}
+
+	// Test functions
+	ns.LRU_test_hasNoPath = function(lru, settings){
+		settings = settings || {}
+		if(settings.strict === undefined)
+			settings.strict = true
+		var json_lru = ns.LRU_to_JSON_LRU(lru)
+		if(settings.strict){
+			return json_lru.path.length == 0
+		} else {
+			if(json_lru.path.length == 0){
+				return true
+			} else if(json_lru.path.length == 0){
+				return json_lru.path[0] == ''
+			} else {
+				return false
+			}
+		}
+	}
+
+	ns.LRU_test_hasNoSubdomain = function(lru, settings){
+		settings = settings || {}
+		var json_lru = ns.LRU_to_JSON_LRU(lru)
+			,host_array = json_lru.host.slice(0)
+		// Truncate host
+		host_array.pop()
+		var truncatedHost = host_array.reverse().join('.')
+		// There was no subdomain if the removed part was the domain and thus the truncated host is just a tld
+		return ns.TLD_isValid(truncatedHost)
+	}
+
+	// TLD
+	ns.tld_list = undefined
+	ns.getTldLists = function(){
+		// Retrieve the list only if it is the first time it's needed
+		if(ns.tld_lists === undefined)
+			ns.tld_lists = ns.buildTLDLists()
+		return ns.tld_lists
+	}
+	ns.buildTLDLists = function(){
+		var list_text
+		$.ajax({
+	        url:"res/tld_list.txt"
+	        ,success: function(result) {
+	        		list_text = result
+            	}
+	        ,async: false
+	    })
+	    var lines = list_text.split('\r\n')
+	    	,list =  lines
+		    	.filter(function(l){
+			    		return l.length > 0
+			    			&& l.indexOf('//') != 0
+			    	})
+		    	.map(function(l){
+		    			var split = l.split(' ')
+		    			return split[0] || ''
+			    	})
+		var tld_lists = {
+				rules: list
+					.filter(function(l){return l.substr(0,1) != '!'})
+				,exceptions: list
+					.filter(function(l){return l.substr(0,1) == '!'})
+					.map(function(l){return l.substr(1, l.length-1)})
+			}
+		// console.log('tld_lists', tld_lists)
+		return tld_lists
+	}
+
+	ns.TLD_isValid = function(tld_candidate){
+		var tlds = ns.getTldLists()
+			,tld_candidate_split = tld_candidate.split('.')
+			,matchingTlds = tlds.rules.filter(function(tld){
+				var tld_split = tld.split('.')
+					,match_flag = true
+				
+				for(i in tld_candidate_split){
+					if(tld_split.length < i){
+						match_flag = false
+						break
+					}
+					if(tld_split[i] != tld_candidate_split[i]){
+						if(tld_split[i] != '*'){
+							match_flag = false
+							break
+						}
+					}
+				}
+
+				return match_flag
+			})
+		// Check for exceptions
+		var matchingExceptions = tlds.exceptions.filter(function(tld){
+				var tld_split = tld.split('.')
+					,match_flag = true
+				
+				for(i in tld_candidate_split){
+					if(tld_split.length < i){
+						match_flag = false
+						break
+					}
+					if(tld_split[i] != tld_candidate_split[i]){
+						match_flag = false
+						break
+					}
+				}
+
+				return match_flag
+			})
+		return matchingTlds.length > 0 && matchingExceptions.length == 0
+	}
+
+	//
+
 	ns.htmlEncode = function(value){
 		return $('<div/>').text(value).html()
 	}
