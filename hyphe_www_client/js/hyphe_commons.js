@@ -84,8 +84,8 @@
 
 		candidates.push(lru)
 		
-		if(lru_a.length>3){
-			for(length = lru_a.length-1; length>=3; length--){
+		if(lru_a.length>2+tld_length){
+			for(length = lru_a.length-1; length>=2+tld_length; length--){
 				var candidate = lru_a.filter(function(stem, i){
 					return i < length
 				}).join('|')
