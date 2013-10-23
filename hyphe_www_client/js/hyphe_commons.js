@@ -73,7 +73,7 @@
 		if(lru === undefined)
 			return []
 		var candidates = []
-			,tld_length = Utils.LRU_getTld(lru).split('.').length
+			,tld_length = Utils.LRU_getTLD(lru).split('.').length
 			,lru_a = lru.split('|')
 			,lru_json = Utils.LRU_to_JSON_LRU(lru)
 			,settings = settings || {}

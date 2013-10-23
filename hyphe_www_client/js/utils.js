@@ -165,13 +165,13 @@
 		return urlregex.test(url)
 	}
 
-	ns.LRU_getTld = function(lru){
+	ns.LRU_getTLD = function(lru){
 		var json_lru = ns.LRU_to_JSON_LRU(lru)
 			,host_split = json_lru.host.slice(0)
-			,tlds = ns.getTldLists()
+			,tlds = ns.getTLDLists()
 
-		function getLongestMatchingTldSplit(tld_candidate_split){
-			var longestMatchingTld_split = []
+		function getLongestMatchingTLDSplit(tld_candidate_split){
+			var longestMatchingTLD_split = []
 			tlds.rules.forEach(function(tld){
 				var tld_split = tld.split('.').reverse()
 					,match_flag = true
@@ -189,27 +189,27 @@
 						}
 					}
 
-					if(match_flag && tld_split.length > longestMatchingTld_split.length){
-						var actualTldCandidate = host_split.slice(0, tld_split.length)
-						longestMatchingTld_split = tld_split
+					if(match_flag && tld_split.length > longestMatchingTLD_split.length){
+						var actualTLDCandidate = host_split.slice(0, tld_split.length)
+						longestMatchingTLD_split = tld_split
 					}
 				})
-			if(longestMatchingTld_split.length == 0){
+			if(longestMatchingTLD_split.length == 0){
 				console.log('No tld matching for', lru)
 				return []
 			}
 			// Check the longest matching tld is not an exception
-			var actualTldCandidate = host_split.slice(0, longestMatchingTld_split.length)
+			var actualTLDCandidate = host_split.slice(0, longestMatchingTLD_split.length)
 				,matchingExceptions = tlds.exceptions.filter(function(tld){
 					var tld_split = tld.split('.').reverse()
 						,match_flag = true
 					
 					for(i in tld_split){
-						if(actualTldCandidate.length < i){
+						if(actualTLDCandidate.length < i){
 							match_flag = false
 							break
 						}
-						if(tld_split[i] != actualTldCandidate[i]){
+						if(tld_split[i] != actualTLDCandidate[i]){
 							match_flag = false
 							break
 						}
@@ -217,14 +217,14 @@
 					return match_flag
 				})
 			if(matchingExceptions.length != 0){
-				// console.log('Tld is an exception', longestMatchingTld_split)
-				longestMatchingTld_split.pop()
+				// console.log('TLD is an exception', longestMatchingTLD_split)
+				longestMatchingTLD_split.pop()
 			}
-			return longestMatchingTld_split
+			return longestMatchingTLD_split
 		}
 
-		var longestMatchingTld = getLongestMatchingTldSplit(host_split, [])
-		return host_split.slice(0, longestMatchingTld.length).reverse().join('.')
+		var longestMatchingTLD = getLongestMatchingTLDSplit(host_split, [])
+		return host_split.slice(0, longestMatchingTLD.length).reverse().join('.')
 
 	}
 
@@ -259,8 +259,8 @@
 	}
 
 	// TLD
-	ns.tld_list = undefined
-	ns.getTldLists = function(){
+	ns.tld_lists = undefined
+	ns.getTLDLists = function(){
 		// Retrieve the list only if it is the first time it's needed
 		if(ns.tld_lists === undefined)
 			ns.tld_lists = ns.buildTLDLists()
@@ -275,7 +275,8 @@
             	}
 	        ,async: false
 	    })
-	    var lines = list_text.split('\r\n')
+	    // var lines = list_text.split('\r\n')
+	    var lines = list_text.match(/[^\r\n]+/g)
 	    	,list =  lines
 		    	.filter(function(l){
 			    		return l.length > 0
@@ -297,9 +298,9 @@
 	}
 
 	ns.TLD_isValid = function(tld_candidate){
-		var tlds = ns.getTldLists()
+		var tlds = ns.getTLDLists()
 			,tld_candidate_split = tld_candidate.split('.')
-			,matchingTlds = tlds.rules.filter(function(tld){
+			,matchingTLDs = tlds.rules.filter(function(tld){
 				var tld_split = tld.split('.')
 					,match_flag = true
 				
@@ -336,7 +337,7 @@
 
 				return match_flag
 			})
-		return matchingTlds.length > 0 && matchingExceptions.length == 0
+		return matchingTLDs.length > 0 && matchingExceptions.length == 0
 	}
 
 	//
