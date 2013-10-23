@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * Implementation of MemoryStructure interface.
  *
- * @author heikki doeleman
+ * @author heikki doeleman, benjamin ooghe-tabanou
  */
 public class MemoryStructureImpl implements MemoryStructure.Iface {
 
@@ -32,13 +32,61 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
+     * Shortcut method only to be used in unit tests, not part of MemoryStructure interface.
+     * @return
+     */
+    public LRUIndex getLruIndex() {
+        return this.lruIndex;
+    }
+
+    /**
+     * Shuts down the LRUIndex.
+     *
+     * @throws TException hmm
+     */
+    public void shutdown() throws TException {
+        logger.info("shutting down");
+        try {
+            lruIndex.close();
+        }
+        catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+
+    // -- THRIFT API METHODS
+
+
+    /**
+     * Returns 'pong'.
+     * 
+     * @return 'pong'
+     * @throws TException hmm
+     */
+    @Override
+    public List<PingPong> ping() throws TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("ping");
+        }
+        List<PingPong> pingpongset = new ArrayList<PingPong>();
+        pingpongset.add(new PingPong("ping 1","pong 1"));
+        pingpongset.add(new PingPong("ping 2","pong 2"));
+        return pingpongset;
+    }
+
+    /**
      * Clears (empties) the index.
      *
      * @throws TException hmm
      */
     @Override
     public void clearIndex() throws TException {
-        //logger.debug("clearIndex");
+        if (logger.isDebugEnabled()) {
+            logger.debug("clearIndex");
+        }
         try {
             lruIndex.clearIndex();
         }
@@ -49,222 +97,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
-    /**
-     * Returns 'pong'.
-     * @return 'pong'
-     * @throws TException hmm
-     */
-    @Override
-    public List<PingPong> ping() throws TException {
-        logger.debug("ping");
-        List<PingPong> pingpongset = new ArrayList<PingPong>();
-        pingpongset.add(new PingPong("ping 1","pong 1"));
-        pingpongset.add(new PingPong("ping 2","pong 2"));
-        return pingpongset;
-    }
+
+    // -- PAGEITEMS
+
 
     /**
-     * Updates (or creates) a WebEntity .
-     *
-     * @param webEntity to update
-     * @return id of indexed webentity
-     * @throws MemoryStructureException hmm
-     */
-    @Override
-    public String updateWebEntity(WebEntity webEntity) throws MemoryStructureException {
-        logger.debug("updateWebEntity");
-        try {
-            if(webEntity == null) {
-                throw new MemoryStructureException().setMsg("WebEntity is null");
-            }
-            return lruIndex.indexWebEntity(webEntity, false, true);
-        }
-        catch(IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-    }
-
-    /**
-     * Retrieves a WebEntity.
-     *
-     * @param id id of web entity
-     * @return web entity
-     * @throws ObjectNotFoundException hmm
-     * @throws MemoryStructureException hmm
-     */
-    @Override
-    public WebEntity getWebEntity(String id) throws ObjectNotFoundException, MemoryStructureException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("getWebEntity with id: " + id);
-        }
-        if(StringUtils.isEmpty(id)) {
-            logger.debug("requested id is null, returning null");
-            return null;
-        }
-        try {
-            WebEntity found = lruIndex.retrieveWebEntity(id);
-            if(found != null && logger.isDebugEnabled()) {
-                logger.debug("found webentity with id: " + found.getId());
-                logger.debug("webentity has # " + found.getLRUSet().size() + " lrus");
-            }
-            if(found == null) {
-                throw new ObjectNotFoundException().setMsg("Could not find WebEntity with id " + id);
-            }
-            return found;
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
-        }
-    }
-
-    /**
-     * Returns all web entities thinner than a master web entity
-     *
-     * @param id id of web entity
-     * @return web entities
-     * @throws TException hmm
-     */
-    @Override
-    public List<WebEntity> getWebEntitySubWebEntities(String id) throws ObjectNotFoundException, MemoryStructureException, TException {
-        logger.debug("getWebEntitySubWebEntities");
-        try {
-            WebEntity WE = lruIndex.retrieveWebEntity(id);
-            return lruIndex.findSubWebEntities(WE);
-        }
-        catch (IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new TException(x.getMessage(), x);
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new TException(x.getMessage(), x);
-        }
-    }
-
-    /**
-     * Returns all web entities with LRU prefixes included into a child webentity's lru prefixes
-     *
-     * @param id of web entity
-     * @return web entities
-     * @throws TException hmm
-     */
-    @Override
-    public List<WebEntity> getWebEntityParentWebEntities(String id) throws ObjectNotFoundException, MemoryStructureException, TException {
-        logger.debug("getWebEntityParentWebEntities");
-        try {
-            WebEntity WE = lruIndex.retrieveWebEntity(id);
-            return lruIndex.findParentWebEntities(WE);
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new TException(x.getMessage(), x);
-        }
-    }
-
-    /**
-     * Returns all web entities in the index.
-     *
-     * @return web entities
-     * @throws TException hmm
-     */
-    @Override
-    public List<WebEntity> getWebEntities() throws TException {
-        logger.debug("getWebEntities");
-        try {
-            return lruIndex.retrieveWebEntities();
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new TException(x.getMessage(), x);
-        }
-    }
-
-    /**
-     * Returns web entities having ids in the given list.
-     * @param list of webentities ids
-     * @return web entities
-     * @throws TException hmm
-     */
-    @Override
-    public List<WebEntity> getWebEntitiesByIDs(List<String> listIDs) throws TException {
-        logger.debug("getWebEntitiesByIDs");
-        try {
-            return lruIndex.retrieveWebEntitiesByIDs(listIDs);
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new TException(x.getMessage(), x);
-        }
-    }
-
-    /**
-     * Deletes a web entity.
-     *
-     * @param webEntity to delete
-     * @throws TException hmm
-     */
-    @Override
-    public void deleteWebEntity(WebEntity webEntity) throws TException {
-        logger.debug("deleteWebEntity");
-        try {
-            lruIndex.deleteWebEntity(webEntity);
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new TException(x.getMessage(), x);
-        }
-    }
-
-    /**
-     * Returns all web entity creation rules in the index.
-     *
-     * @return web entity creation rules
-     * @throws TException hmm
-     */
-    @Override
-    public List<WebEntityCreationRule> getWebEntityCreationRules() throws TException {
-        logger.debug("getWebEntityCreationRules");
-        try {
-            return lruIndex.retrieveWebEntityCreationRules();
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new TException(x.getMessage(), x);
-        }
-    }
-
-    /**
-     * Deletes a web entity creation rule.
-     *
-     * @param webEntityCreationRule to delete
-     * @throws TException hmm
-     */
-    @Override
-    public void removeWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException {
-        logger.debug("removeWebEntityCreationRule");
-        try {
-            lruIndex.deleteWebEntityCreationRule(webEntityCreationRule);
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new TException(x.getMessage(), x);
-        }
-    }
-
-    /**
-     * Creates a cache containing pages.
+     * Creates a cache containing pages to be indexed.
      *
      * @param pageItems pages for this cache
      * @return id of cache
@@ -343,317 +181,6 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
-     * Retrieves pages belonging to a WebEntity.
-     *
-     * @param id web entity id
-     * @return pages
-     * @throws TException
-     * @throws MemoryStructureException
-     * @throws ObjectNotFoundException
-     */
-    @Override
-    public List<PageItem> getWebEntityPages(String id) throws TException, MemoryStructureException, ObjectNotFoundException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("getWebEntityPages with id: " + id);
-        }
-        List<PageItem> pages;
-        try {
-            pages = lruIndex.findPagesForWebEntity(id);
-            if(logger.isDebugEnabled()) {
-                logger.debug("found # " + pages.size() + " pages");
-            }
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        return pages;
-    }
-
-    @Override
-    public List<WebEntityLink> generateWebEntityLinks() throws MemoryStructureException, TException {
-        logger.debug("generateWebEntityLinks");
-        try {
-            return lruIndex.generateWebEntityLinks();
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-    }
-
-    /**
-     * Returns all web entity links in the index.
-     *
-     * @return web entity links
-     * @throws TException hmm
-     */
-    @Override
-    public List<WebEntityLink> getWebEntityLinks() throws MemoryStructureException, TException {
-        logger.debug("getWebEntityLinks");
-        try {
-            return lruIndex.retrieveWebEntityLinks();
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-    }
-
-    /**
-     * Returns all nodelinks in the index.
-     *
-     * @return nodelinks
-     * @throws TException hmm
-     */
-    @Override
-    public List<NodeLink> getNodeLinks() throws MemoryStructureException, TException {
-        logger.debug("getNodeLinks");
-        try {
-            return lruIndex.retrieveNodeLinks();
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-    }
-
-    /**
-     * Returns all nodelinks within a webentity.
-     *
-     * @param webEntityId
-     * @param includeFrontier
-     * @return nodelinks
-     * @throws TException hmm
-     */
-    @Override
-    public List<NodeLink> getWebentityNodeLinks(String webEntityId, boolean includeFrontier) throws MemoryStructureException, TException {
-        logger.debug("getWebentityNodeLinks");
-        if (webEntityId == null) {
-            return getNodeLinks();
-        }
-        try {
-            return lruIndex.retrieveNodeLinksByWebentity(webEntityId, includeFrontier);
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-    }
-
-    /**
-     * @param lru to search for
-     * @return web entity associated to this lru
-     */
-    @Override
-    public WebEntity findWebEntityMatchingLRUPrefix(String lru) throws TException, MemoryStructureException {
-        logger.debug("findWebEntityMatchingLRUPrefix");
-        try {
-            WebEntity webentity = lruIndex.retrieveWebEntityMatchingLRU(lru);
-            if(webentity == null) {
-                throw new MemoryStructureException("No matching WebEntity found for lru " + lru, "", IndexException.class.getName());
-            }
-            return webentity;
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
-            logger.debug("findWebEntityMatchingLRUPrefix end");
-        }
-    }
-
-    /**
-     * @param prefix prefix to search for
-     * @return web entity whose aliases has this prefix
-     */
-    @Override
-    public WebEntity getWebEntityByLRUPrefix(String prefix) throws TException, MemoryStructureException {
-        logger.debug("getWebEntityByLRUPrefix");
-        try {
-            WebEntity webentity = lruIndex.retrieveWebEntityByLRUPrefix(prefix);
-            if(webentity == null) {
-                throw new MemoryStructureException("No WebEntity found for prefix " + prefix, "", IndexException.class.getName());
-            }
-            return webentity;
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
-            logger.debug("getWebEntityByLRUPrefix end");
-        }
-    }
-
-    @Override
-    public List<WebEntity> searchWebEntities(List<String> allFieldsKeywords, List<List<String>> fieldKeywords) throws TException, MemoryStructureException {
-        logger.debug("searchWebEntities");
-        try {
-            return lruIndex.searchWebEntitiesByKeywords(allFieldsKeywords, fieldKeywords);
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
-            logger.debug("searchWebEntities end");
-        }
-    }
-
-    @Override
-    public Map<String, Map<String, List<String>>> getTags() throws TException, MemoryStructureException {
-        logger.debug("getTagNamespaces");
-        try {
-            return lruIndex.getWebEntitiesTags();
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
-            logger.debug("getTagNamespaces end");
-        }
-    }
-
-    /**
-     * @param prefix prefix to search for
-     * @return nodelinks whose source matches this prefix
-     */
-    @Override
-    public List<NodeLink> findNodeLinksMatchingSourceLRUPrefix(String prefix) throws TException, MemoryStructureException {
-        logger.debug("findNodeLinksMatchingSourceLRUPrefix");
-        try {
-            return lruIndex.retrieveNodeLinksBySourcePrefix(prefix);
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
-            logger.debug("findNodeLinksMatchingSourceLRUPrefix end");
-        }
-    }
-
-    /**
-     * @param prefix prefix to search for
-     * @return nodelinks whose target matches this prefix
-     */
-    @Override
-    public List<NodeLink> findNodeLinksMatchingTargetLRUPrefix(String prefix) throws TException, MemoryStructureException {
-        logger.debug("findNodeLinksMatchingTargetLRUPrefix");
-        try {
-            return lruIndex.retrieveNodeLinksByTargetPrefix(prefix);
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
-            logger.debug("findNodeLinksMatchingTargetLRUPrefix end");
-        }
-    }
-
-    /**
-     * @param id id of web entity
-     * @return webentities whose source id are this
-     */
-    @Override
-    public List<WebEntityLink> getWebEntityLinksByWebEntitySource(String id) throws TException, MemoryStructureException {
-        logger.debug("getWebEntityLinksByWebEntitySource");
-        try {
-            return lruIndex.retrieveWebEntityLinksBySource(id);
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
-            logger.debug("getWebEntityLinksByWebEntitySource end");
-        }
-    }
-
-    /**
-     * @param id id of web entity
-     * @return webentities whose target id are this
-     */
-    @Override
-    public List<WebEntityLink> getWebEntityLinksByWebEntityTarget(String id) throws TException, MemoryStructureException {
-        logger.debug("getWebEntityLinksByWebEntityTarget");
-        try {
-            return lruIndex.retrieveWebEntityLinksByTarget(id);
-        }
-        catch (IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
-            logger.debug("getWebEntityLinksByWebEntityTarget end");
-        }
-    }
-
-    @Override
-    public List<String> getPrecisionExceptions() throws TException, ObjectNotFoundException, MemoryStructureException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("getPrecisionExceptions");
-        }
-        try {
-            // get precisionExceptions from index
-            List<String> precisionExceptions = lruIndex.retrievePrecisionExceptions();
-            return precisionExceptions;
-        }
-        catch(IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-    }
-
-    @Override
-    public void addPrecisionExceptions(List<String> listLRUs) throws MemoryStructureException, ObjectNotFoundException, TException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("markPrecisionExceptions (" + listLRUs.size() +")");
-        }
-        try {
-            lruIndex.addPrecisionExceptions(listLRUs);
-        }
-        catch(IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-    }
-
-    @Override
-    public void removePrecisionExceptions(List<String> listLRUs) throws MemoryStructureException, ObjectNotFoundException, TException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("removePrecisionExceptions (" + listLRUs.size() +")");
-        }
-        try {
-            lruIndex.deletePrecisionExceptions(listLRUs);
-        }
-        catch(IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-    }
-
-    /**
      * Creates WebEntities for pages in a cache. Uses the following algorithm:
      *
      * for each page in the cache
@@ -707,54 +234,13 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
-     * Stores a web entity creation rule.
-     *
-     * @param webEntityCreationRule rule to store
-     * @throws TException hmm
-     * @throws MemoryStructureException hmm
-     */
-    @Override
-    public void addWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException, MemoryStructureException {
-        logger.debug("addWebEntityCreationRule");
-        try{
-            lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
-            if(logger.isDebugEnabled()) {
-                logger.debug("addWebEntityCreationRule finished indexing webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
-            }
-        }
-        catch(IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
-        }
-    }
-
-    @Override
-    public void saveNodeLinks(List<NodeLink> nodeLinks) throws TException, MemoryStructureException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("MemoryStructure saveNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
-        }
-        try{
-            @SuppressWarnings({"unchecked"})
-            List<Object> nodeLinksList = new ArrayList(nodeLinks);
-            lruIndex.batchIndex(nodeLinksList);
-            logger.debug("saveNodeLinks finished indexing nodeLinks");
-        }
-        catch(IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
-        }
-    }
-
-    /**
      * Saves pageItems to index, bypassing cache.
+     * This should not be used for most of the cases since it will not trigger the creation of corresponding webentities
      *
      * @param pageItems pages
      * @throws TException hmm
      * @throws MemoryStructureException hmm
      */
-    // TODO TEST. IS METHOD NECESSARY? NORMAL IS : CREATE CACHE WITH PAGES AND INDEX CACHE
     @Override
     public void savePageItems(List<PageItem> pageItems) throws TException, MemoryStructureException {
         if(logger.isDebugEnabled()) {
@@ -773,32 +259,15 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
-     * Removes all NodeLinks in index.
-     *
-     * @throws TException hmm
-     * @throws MemoryStructureException hmm
+     * Search PageItems whose LRU starts with a LRUPrefix
+     * 
+     * @return a List of PageItems whose lru matches this prefix
      */
-    @Override
-    public void deleteNodeLinks() throws MemoryStructureException, TException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("deleteNodeLinks");
-        }
-        try {
-            lruIndex.deleteNodeLinks();
-        }
-        catch(IndexException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-    }
-
-    /**
-      * @return pageitems whose lru matches this prefix
-      */
      @Override
      public List<PageItem> findPageItemsMatchingLRUPrefix(String prefix) throws TException, MemoryStructureException {
-         logger.debug("findPageItemsMatchingLRUPrefix");
+         if(logger.isDebugEnabled()) {
+             logger.debug("findPageItemsMatchingLRUPrefix");
+         }
          try {
              return lruIndex.retrievePageItemsByLRUPrefix(prefix);
          }
@@ -808,33 +277,720 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
              throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
          }
          finally {
-             logger.debug("findPageItemsMatchingLRUPrefix end");
+             if(logger.isDebugEnabled()) {
+                 logger.debug("findPageItemsMatchingLRUPrefix end");
+             }
          }
      }
- 
+
+
+     // -- NODELINKS
+
+
+     /**
+      * Returns all NodeLinks in the index.
+      *
+      * @return nodelinks
+      * @throws TException hmm
+      */
+     @Override
+     public List<NodeLink> getNodeLinks() throws MemoryStructureException, TException {
+         if(logger.isDebugEnabled()) {
+             logger.debug("getNodeLinks");
+         }
+         try {
+             return lruIndex.retrieveNodeLinks();
+         }
+         catch (IndexException x) {
+             logger.error(x.getMessage());
+             x.printStackTrace();
+             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+         }
+     }
+
+     /**
+      * Removes all NodeLinks in index.
+      *
+      * @throws TException hmm
+      * @throws MemoryStructureException hmm
+      */
+     @Override
+     public void deleteNodeLinks() throws MemoryStructureException, TException {
+         if(logger.isDebugEnabled()) {
+             logger.debug("deleteNodeLinks");
+         }
+         try {
+             lruIndex.deleteNodeLinks();
+         }
+         catch(IndexException x) {
+             logger.error(x.getMessage());
+             x.printStackTrace();
+             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+         }
+     }
+
+     /**
+      * Store a set of NodeLinks in index.
+      *
+      * @throws TException hmm
+      * @throws MemoryStructureException hmm
+      */
+     @Override
+     public void saveNodeLinks(List<NodeLink> nodeLinks) throws TException, MemoryStructureException {
+         if(logger.isDebugEnabled()) {
+             logger.debug("MemoryStructure saveNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
+         }
+         try{
+             @SuppressWarnings({"unchecked"})
+             List<Object> nodeLinksList = new ArrayList(nodeLinks);
+             lruIndex.batchIndex(nodeLinksList);
+             if(logger.isDebugEnabled()) {
+                 logger.debug("saveNodeLinks finished indexing nodeLinks");
+             }
+         }
+         catch(IndexException x) {
+             logger.error(x.getMessage());
+             x.printStackTrace();
+             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
+         }
+     }
+
+     /**
+      * Returns all NodeLinks whose Source LRU matches the LRU prefix
+      * 
+      * @param prefix prefix to search for
+      * @return nodelinks whose source matches this prefix
+      */
+     @Override
+     public List<NodeLink> findNodeLinksMatchingSourceLRUPrefix(String prefix) throws TException, MemoryStructureException {
+         if(logger.isDebugEnabled()) {
+             logger.debug("findNodeLinksMatchingSourceLRUPrefix");
+         }
+         try {
+             return lruIndex.retrieveNodeLinksBySourcePrefix(prefix);
+         }
+         catch (IndexException x) {
+             logger.error(x.getMessage());
+             x.printStackTrace();
+             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+         }
+         finally {
+             if(logger.isDebugEnabled()) {
+                 logger.debug("findNodeLinksMatchingSourceLRUPrefix end");
+             }
+         }
+     }
+
+     /**
+      * Returns all NodeLinks whose Target LRU matches the LRU prefix
+      * 
+      * @param prefix prefix to search for
+      * @return nodelinks whose target matches this prefix
+      */
+     @Override
+     public List<NodeLink> findNodeLinksMatchingTargetLRUPrefix(String prefix) throws TException, MemoryStructureException {
+         if(logger.isDebugEnabled()) {
+             logger.debug("findNodeLinksMatchingTargetLRUPrefix");
+         }
+         try {
+             return lruIndex.retrieveNodeLinksByTargetPrefix(prefix);
+         }
+         catch (IndexException x) {
+             logger.error(x.getMessage());
+             x.printStackTrace();
+             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+         }
+         finally {
+             if(logger.isDebugEnabled()) {
+                 logger.debug("findNodeLinksMatchingTargetLRUPrefix end");
+             }
+         }
+     }
+
+
+     // -- WEBENTITIES
+
+
+     /**
+      * Returns all web entities in the index.
+      *
+      * @return web entities
+      * @throws TException hmm
+      */
+     @Override
+     public List<WebEntity> getWebEntities() throws TException {
+         if(logger.isDebugEnabled()) {
+             logger.debug("getWebEntities");
+         }
+         try {
+             return lruIndex.retrieveWebEntities();
+         }
+         catch (IndexException x) {
+             logger.error(x.getMessage());
+             x.printStackTrace();
+             throw new TException(x.getMessage(), x);
+         }
+     }
+
+     /**
+      * Returns web entities having ids in the given list.
+      * @param list of webentities ids
+      * @return web entities
+      * @throws TException hmm
+      */
+     @Override
+     public List<WebEntity> getWebEntitiesByIDs(List<String> listIDs) throws TException {
+         if(logger.isDebugEnabled()) {
+             logger.debug("getWebEntitiesByIDs");
+         }
+         try {
+             return lruIndex.retrieveWebEntitiesByIDs(listIDs);
+         }
+         catch (IndexException x) {
+             logger.error(x.getMessage());
+             x.printStackTrace();
+             throw new TException(x.getMessage(), x);
+         }
+     }
 
     /**
-     * Shortcut method only to be used in unit tests, not part of MemoryStructure interface.
-     * @return
+     * Retrieves a WebEntity. by its id
+     *
+     * @param id of web entity
+     * @return web entity
+     * @throws ObjectNotFoundException hmm
+     * @throws MemoryStructureException hmm
      */
-    public LRUIndex getLruIndex() {
-        return this.lruIndex;
+    @Override
+    public WebEntity getWebEntity(String id) throws ObjectNotFoundException, MemoryStructureException {
+        if(StringUtils.isEmpty(id)) {
+            return null;
+        }
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntity with id: " + id);
+        }
+        try {
+            WebEntity found = lruIndex.retrieveWebEntity(id);
+            if(found != null && logger.isDebugEnabled()) {
+                if(logger.isDebugEnabled()) {
+                    logger.debug("found webentity with id: " + found.getId());
+                    logger.debug("webentity has # " + found.getLRUSet().size() + " lrus");
+                }
+            }
+            if(found == null) {
+                throw new ObjectNotFoundException().setMsg("Could not find WebEntity with id " + id);
+            }
+            return found;
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
+        }
     }
 
     /**
-     * Shuts down the LRUIndex.
+    * Updates (or creates) a WebEntity .
+    *
+    * @param webEntity to update
+    * @return id of indexed webentity
+    * @throws MemoryStructureException hmm
+    */
+    @Override
+    public String updateWebEntity(WebEntity webEntity) throws MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("updateWebEntity");
+        }
+        try {
+            if(webEntity == null) {
+                throw new MemoryStructureException().setMsg("WebEntity is null");
+            }
+            return lruIndex.indexWebEntity(webEntity, false, true);
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
+    /**
+     * Deletes a web entity.
      *
+     * @param webEntity to delete
      * @throws TException hmm
      */
-    public void shutdown() throws TException {
-        logger.info("shutting down");
+    @Override
+    public void deleteWebEntity(WebEntity webEntity) throws TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("deleteWebEntity");
+        }
         try {
-            lruIndex.close();
+            lruIndex.deleteWebEntity(webEntity);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     * Returns all web entities thinner than a master web entity
+     *
+     * @param id id of web entity
+     * @return web entities
+     * @throws TException hmm
+     */
+    @Override
+    public List<WebEntity> getWebEntitySubWebEntities(String id) throws ObjectNotFoundException, MemoryStructureException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntitySubWebEntities");
+        }
+        try {
+            WebEntity WE = lruIndex.retrieveWebEntity(id);
+            return lruIndex.findSubWebEntities(WE);
         }
         catch (IOException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new TException(x.getMessage(), x);
         }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
     }
+
+    /**
+     * Returns all web entities with LRU prefixes included into a child webentity's lru prefixes
+     *
+     * @param id of web entity
+     * @return web entities
+     * @throws TException hmm
+     */
+    @Override
+    public List<WebEntity> getWebEntityParentWebEntities(String id) throws ObjectNotFoundException, MemoryStructureException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntityParentWebEntities");
+        }
+        try {
+            WebEntity WE = lruIndex.retrieveWebEntity(id);
+            return lruIndex.findParentWebEntities(WE);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     * Retrieves pages belonging to a WebEntity.
+     *
+     * @param id web entity id
+     * @return pages
+     * @throws TException
+     * @throws MemoryStructureException
+     * @throws ObjectNotFoundException
+     */
+    @Override
+    public List<PageItem> getWebEntityPages(String id) throws TException, MemoryStructureException, ObjectNotFoundException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntityPages with id: " + id);
+        }
+        List<PageItem> pages;
+        try {
+            pages = lruIndex.findPagesForWebEntity(id);
+            if(logger.isDebugEnabled()) {
+                logger.debug("found # " + pages.size() + " pages");
+            }
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        return pages;
+    }
+
+    /**
+     * Returns all nodelinks within a webentity.
+     *
+     * @param webEntityId
+     * @param includeFrontier
+     * @return nodelinks
+     * @throws TException hmm
+     */
+    @Override
+    public List<NodeLink> getWebentityNodeLinks(String webEntityId, boolean includeFrontier) throws MemoryStructureException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebentityNodeLinks");
+        }
+        if (webEntityId == null) {
+            return getNodeLinks();
+        }
+        try {
+            return lruIndex.retrieveNodeLinksByWebentity(webEntityId, includeFrontier);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
+    /**
+     * Find the WebEntity which has LRU within its list of prefixes
+     * 
+     * @param prefix prefix to search for
+     * @return web entity whose aliases has this prefix
+     */
+    @Override
+    public WebEntity getWebEntityByLRUPrefix(String prefix) throws TException, MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntityByLRUPrefix");
+        }
+        try {
+            WebEntity webentity = lruIndex.retrieveWebEntityByLRUPrefix(prefix);
+            if(webentity == null) {
+                throw new MemoryStructureException("No WebEntity found for prefix " + prefix, "", IndexException.class.getName());
+            }
+            return webentity;
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            if(logger.isDebugEnabled()) {
+                logger.debug("getWebEntityByLRUPrefix end");
+            }
+        }
+    }
+
+    /**
+     * Search which WebEntity matches a LRU (meaning it matches one of its prefixes but none of the entity's subwebentities)
+     * 
+     * @param lru to search for
+     * @return web entity associated to this lru
+     */
+    @Override
+    public WebEntity findWebEntityMatchingLRUPrefix(String lru) throws TException, MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("findWebEntityMatchingLRUPrefix");
+        }
+        try {
+            WebEntity webentity = lruIndex.retrieveWebEntityMatchingLRU(lru);
+            if(webentity == null) {
+                throw new MemoryStructureException("No matching WebEntity found for lru " + lru, "", IndexException.class.getName());
+            }
+            return webentity;
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            if(logger.isDebugEnabled()) {
+                logger.debug("findWebEntityMatchingLRUPrefix end");
+            }
+        }
+    }
+
+    /**
+     * Perform free Lucene search upon the webentities stored in the index
+     *
+     * @param allFieldsKeywords List of keywords to search against the main text fields of the webentities
+     * @param fieldKeywords
+     * @return web entity associated to this lru
+     */
+    @Override
+    public List<WebEntity> searchWebEntities(List<String> allFieldsKeywords, List<List<String>> fieldKeywords) throws TException, MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("searchWebEntities");
+        }
+        try {
+            return lruIndex.searchWebEntitiesByKeywords(allFieldsKeywords, fieldKeywords);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            if(logger.isDebugEnabled()) {
+                logger.debug("searchWebEntities end");
+            }
+        }
+    }
+
+    /**
+     * Get all tags describing the webentities as a map of namespace:key:value
+     *
+     * @return a Map by Namespaces of Maps by Categories of all Tag values stored in the index's WebEntities metadataItems
+     */
+    @Override
+    public Map<String, Map<String, List<String>>> getTags() throws TException, MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getTagNamespaces");
+        }
+        try {
+            return lruIndex.getWebEntitiesTags();
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            if(logger.isDebugEnabled()) {
+                logger.debug("getTagNamespaces end");
+            }
+        }
+    }
+
+
+    // -- WEBENTITYLINKS
+
+
+    /**
+     * Returns all web entity links in the index.
+     *
+     * @return web entity links
+     * @throws TException hmm
+     */
+    @Override
+    public List<WebEntityLink> getWebEntityLinks() throws MemoryStructureException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntityLinks");
+        }
+        try {
+            return lruIndex.retrieveWebEntityLinks();
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
+    /**
+     * Run the process to generate the WebEntityLinks from the definition of the WebEntities and the list of NodeLinks.
+     *
+     * @return web entity links
+     * @throws TException hmm
+     */
+    @Override
+    public List<WebEntityLink> generateWebEntityLinks() throws MemoryStructureException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("generateWebEntityLinks");
+        }
+        try {
+            return lruIndex.generateWebEntityLinks();
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
+    /**
+     * Returns a list of WebEntityLinks having a specific webentity as source
+     * 
+     * @param id id of web entity
+     * @return webentities whose source id are this
+     */
+    @Override
+    public List<WebEntityLink> getWebEntityLinksByWebEntitySource(String id) throws TException, MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntityLinksByWebEntitySource");
+        }
+        try {
+            return lruIndex.retrieveWebEntityLinksBySource(id);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            if(logger.isDebugEnabled()) {
+                logger.debug("getWebEntityLinksByWebEntitySource end");
+            }
+        }
+    }
+
+    /**
+     * Returns a list of WebEntityLinks having a specific webentity as target
+     * 
+     * @param  id of the web entity
+     * @return List of webentity links whose target id are this
+     */
+    @Override
+    public List<WebEntityLink> getWebEntityLinksByWebEntityTarget(String id) throws TException, MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntityLinksByWebEntityTarget");
+        }
+        try {
+            return lruIndex.retrieveWebEntityLinksByTarget(id);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            if(logger.isDebugEnabled()) {
+                logger.debug("getWebEntityLinksByWebEntityTarget end");
+            }
+        }
+    }
+
+
+    // -- WEBENTITYCREATIONRULES
+
+
+    /**
+     * Returns all web entity creation rules stored in the index.
+     *
+     * @return web entity creation rules
+     * @throws TException hmm
+     */
+    @Override
+    public List<WebEntityCreationRule> getWebEntityCreationRules() throws TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntityCreationRules");
+        }
+        try {
+            return lruIndex.retrieveWebEntityCreationRules();
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     * Stores a web entity creation rule.
+     *
+     * @param webEntityCreationRule rule to store
+     * @throws TException hmm
+     * @throws MemoryStructureException hmm
+     */
+    @Override
+    public void addWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException, MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("addWebEntityCreationRule");
+        }
+        try{
+            lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
+            if(logger.isDebugEnabled()) {
+                logger.debug("addWebEntityCreationRule finished indexing webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
+            }
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
+        }
+    }
+
+    /**
+     * Deletes a web entity creation rule.
+     *
+     * @param webEntityCreationRule to delete
+     * @throws TException hmm
+     */
+    @Override
+    public void removeWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("removeWebEntityCreationRule");
+        }
+        try {
+            lruIndex.deleteWebEntityCreationRule(webEntityCreationRule);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+
+    // -- PRECISIONEXCEPTIONS
+
+
+    /**
+     * Returns all precision exceptions stored in the index.
+     *
+     * @throws TException hmm
+     * @throws MemoryStructureException hmm
+     */
+    @Override
+    public List<String> getPrecisionExceptions() throws MemoryStructureException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getPrecisionExceptions");
+        }
+        try {
+            return lruIndex.retrievePrecisionExceptions();
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
+    /**
+     * Adds a set of precisions exceptions.
+     *
+     * @param listLRUs a list of LRU prefixes to add to precisions exceptions in the index
+     * @throws TException hmm
+     * @throws MemoryStructureException hmm
+     * @throws ObjectNotFoundException hmm
+     */
+    @Override
+    public void addPrecisionExceptions(List<String> listLRUs) throws MemoryStructureException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("markPrecisionExceptions (" + listLRUs.size() +")");
+        }
+        try {
+            lruIndex.addPrecisionExceptions(listLRUs);
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
+    /**
+     * Removes a set of precisions exceptions.
+     *
+     * @param listLRUs a list of LRU prefixes to remove from precisions exceptions
+     * @throws TException hmm
+     * @throws MemoryStructureException hmm
+     * @throws ObjectNotFoundException hmm
+     */
+    @Override
+    public void removePrecisionExceptions(List<String> listLRUs) throws MemoryStructureException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("removePrecisionExceptions (" + listLRUs.size() +")");
+        }
+        try {
+            lruIndex.deletePrecisionExceptions(listLRUs);
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
 }

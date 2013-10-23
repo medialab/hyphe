@@ -112,17 +112,17 @@ string createCache(1:list<PageItem> pageItems) throws (1:MemoryStructureExceptio
  */
 i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
 
-// deleteCache
-/**
- * @param 1 cacheId : id of the cache
- */
-void deleteCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
-
 /** createWebEntitiesFromCache
  * @param 1 cacheId : id of the cache
  * @return number of indexed PageItems
  */
 i32 createWebEntitiesFromCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+
+// deleteCache
+/**
+ * @param 1 cacheId : id of the cache
+ */
+void deleteCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
 
 /** savePageItems
  * Saves pages in the index WITHOUT USING THE CACHE.
