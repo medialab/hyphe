@@ -27,7 +27,7 @@ public class Test {
     private void test() {
 
         String a = "aaa";
-        String b= "bbb";
+        String b = "bbb";
         String c = "ccc";
         String d = "ddd";
         String e = "eee";
