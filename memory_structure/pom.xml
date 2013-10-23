@@ -3,7 +3,7 @@
 
   <groupId>fr.sciencespo.medialab.hci.memorystructure</groupId>
   <artifactId>MemoryStructure</artifactId>
-  <version>0.1</version>
+  <version>0.2</version>
   <packaging>jar</packaging>
 
   <name>MemoryStructure</name>
@@ -19,12 +19,6 @@
         <groupId>org.apache.lucene</groupId>
         <artifactId>lucene-core</artifactId>
         <version>3.5.0</version>
-    </dependency>
-
-    <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-        <version>11.0.1</version>
     </dependency>
 
     <dependency>

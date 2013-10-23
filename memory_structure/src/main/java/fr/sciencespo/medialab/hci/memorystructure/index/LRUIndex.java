@@ -588,6 +588,55 @@ public class LRUIndex {
     }
 
     /**
+    *
+    * @param prefix
+    * @return
+    * @throws IndexException hmm
+    */
+   public List<PageItem> retrievePageItemsByLRUPrefix(String prefix) throws IndexException {
+       if(logger.isDebugEnabled()) {
+           logger.debug("retrievePageItemsByLRUPrefix: " + prefix);
+       }
+       try {
+           List<PageItem> results = new ArrayList<PageItem>();
+           if(prefix == null) {
+               logger.warn("attempted to retrieve pageitems with null lruprefix");
+               return results;
+           }
+           prefix = prefix + "*";
+           Query q = LuceneQueryFactory.getPageItemByLRUQuery(prefix);
+           final List<Document> hits = executeMultipleResultsQuery(q);
+           for(Document hit: hits) {
+               PageItem pageItem = IndexConfiguration.convertLuceneDocumentToPageItem(hit);
+               results.add(pageItem);
+           }
+           if(logger.isDebugEnabled()) {
+               logger.debug("retrieved # " + results.size() + " PageItems with prefix " + prefix);
+           }
+           return results;
+       }
+       catch (IOException x) {
+           logger.error(x.getMessage());
+           x.printStackTrace();
+           throw new IndexException(x.getMessage(), x);
+       }
+   }
+
+   /**
+    *
+    * @param url
+    * @return
+    * @throws IndexException hmm
+    */
+   public PageItem retrievePageItemByLRU(String lru) throws IndexException {
+       if(logger.isDebugEnabled()) {
+           logger.debug("retrieving PageItem by LRU " + lru);
+       }
+       Query q = LuceneQueryFactory.getPageItemByLRUQuery(lru);
+       return retrievePageItemByFieldQuery(q);
+   }
+
+    /**
      * Add precision exceptions.
      * @param List of precision exceptions as string LRUs
      * @return
@@ -881,57 +930,7 @@ public class LRUIndex {
         }
         return results;
    }
-
-   /**
-    *
-    * @param prefix
-    * @return
-    * @throws IndexException hmm
-    */
-   private List<NodeLink> retrieveNodeLinksByPrefixQuery(String prefix, String type) throws IndexException {
-       if(logger.isDebugEnabled()) {
-           logger.debug("retrieveNodeLinksBy"+type+"Prefix: " + prefix);
-       }
-       List<NodeLink> results = new ArrayList<NodeLink>();
-       if(prefix == null) {
-           logger.warn("attempted to retrieve node links with null target prefix");
-           return results;
-       } else {
-           prefix = prefix + "*";
-           if (type.equals("target")) {
-               results = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksByTargetLRUQuery(prefix));
-           } else if (type.equals("source")) {
-               results = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksBySourceLRUQuery(prefix));
-           } else {
-               return results;
-           }
-           if(logger.isDebugEnabled()) {
-               logger.debug("retrieved # " + results.size() + " NodeLinks with "+type+" prefix " + prefix);
-           }
-       }
-       return results;
-   }
-
-   /**
-    *
-    * @param prefix
-    * @return
-    * @throws IndexException hmm
-    */
-   public List<NodeLink> retrieveNodeLinksBySourcePrefix(String prefix) throws IndexException {
-       return retrieveNodeLinksByPrefixQuery(prefix, "source");
-   }
-
-   /**
-    *
-    * @param prefix
-    * @return
-    * @throws IndexException hmm
-    */
-   public List<NodeLink> retrieveNodeLinksByTargetPrefix(String prefix) throws IndexException {
-       return retrieveNodeLinksByPrefixQuery(prefix, "target");
-   }
-
+ 
    /**
     * Retrieves nodelinks corresponding to a specific webentity.
     *
@@ -959,6 +958,56 @@ public class LRUIndex {
            throw new IndexException(x.getMessage(), x);
        }
    }
+   /**
+   *
+   * @param prefix
+   * @return
+   * @throws IndexException hmm
+   */
+  private List<NodeLink> retrieveNodeLinksByPrefixQuery(String prefix, String type) throws IndexException {
+      if(logger.isDebugEnabled()) {
+          logger.debug("retrieveNodeLinksBy"+type+"Prefix: " + prefix);
+      }
+      List<NodeLink> results = new ArrayList<NodeLink>();
+      if(prefix == null) {
+          logger.warn("attempted to retrieve node links with null target prefix");
+          return results;
+      } else {
+          prefix = prefix + "*";
+          if (type.equals("target")) {
+              results = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksByTargetLRUQuery(prefix));
+          } else if (type.equals("source")) {
+              results = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksBySourceLRUQuery(prefix));
+          } else {
+              return results;
+          }
+          if(logger.isDebugEnabled()) {
+              logger.debug("retrieved # " + results.size() + " NodeLinks with "+type+" prefix " + prefix);
+          }
+      }
+      return results;
+  }
+
+  /**
+   *
+   * @param prefix
+   * @return
+   * @throws IndexException hmm
+   */
+  public List<NodeLink> retrieveNodeLinksBySourcePrefix(String prefix) throws IndexException {
+      return retrieveNodeLinksByPrefixQuery(prefix, "source");
+  }
+
+  /**
+   *
+   * @param prefix
+   * @return
+   * @throws IndexException hmm
+   */
+  public List<NodeLink> retrieveNodeLinksByTargetPrefix(String prefix) throws IndexException {
+      return retrieveNodeLinksByPrefixQuery(prefix, "target");
+  }
+
 
     /**
      * Retrieves all WebEntityLinks.
@@ -1151,14 +1200,18 @@ public class LRUIndex {
             int lastIndex;
             String prefixLRU = lru;
             WebEntity webentity = null;
-            final Pattern pattern = Pattern.compile("\\|[shpqft]:");
+            final Pattern pattern = Pattern.compile("(\\|[shpqft]:)");
             while (webentity == null && prefixLRU != null && prefixLRU.length() > 0) {
                 webentity = retrieveWebEntityByLRUPrefix(prefixLRU);
                 if (webentity == null) {
                     lastIndex = -1;
                     Matcher matcher = pattern.matcher(prefixLRU);
                     while (matcher.find()) {
-                        lastIndex = matcher.start();
+                        /*if (matcher.group().equals("|p:") && !prefixLRU.endsWith("|p:")) {
+                            lastIndex = matcher.end();
+                        } else {*/
+                            lastIndex = matcher.start();
+                        //}
                     }
                     if (lastIndex != -1) {
                         prefixLRU = prefixLRU.substring(0, lastIndex);
@@ -1237,7 +1290,7 @@ public class LRUIndex {
             logger.debug("retrieveWebEntityByLRUPrefix: " + prefix);
         }
         try {
-            Query q = LuceneQueryFactory.getWebEntitiesByLRUQuery(prefix);
+            Query q = LuceneQueryFactory.getWebEntityByLRUQuery(prefix);
             final List<Document> hits = executeMultipleResultsQuery(q);
             if (hits.size() < 1) {
                 return null;
@@ -1247,41 +1300,6 @@ public class LRUIndex {
             }
             WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hits.get(0));
             return webEntity;
-        }
-        catch (IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x.getMessage(), x);
-        }
-    }
-
-    /**
-     *
-     * @param prefix
-     * @return
-     * @throws IndexException hmm
-     */
-    public List<WebEntity> retrieveWebEntitiesStartingByLRUPrefix(String prefix) throws IndexException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("retrieveWebEntitiesByLRUPrefix: " + prefix);
-        }
-        try {
-            List<WebEntity> results = new ArrayList<WebEntity>();
-            if(prefix == null) {
-                logger.warn("attempted to retrieve web entities with null lruprefix");
-                return results;
-            }
-            prefix = prefix + "*";
-            Query q = LuceneQueryFactory.getWebEntitiesByLRUQuery(prefix);
-            final List<Document> hits = executeMultipleResultsQuery(q);
-            for(Document hit: hits) {
-                WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hit);
-                results.add(webEntity);
-            }
-            if(logger.isDebugEnabled()) {
-                logger.debug("retrieved # " + results.size() + " WebEntities with prefix " + prefix);
-            }
-            return results;
         }
         catch (IOException x) {
             logger.error(x.getMessage());
@@ -1329,69 +1347,6 @@ public class LRUIndex {
             x.printStackTrace();
             throw new IndexException(x.getMessage(), x);
         }
-    }
-
-    /**
-     *
-     * @param prefix
-     * @return
-     * @throws IndexException hmm
-     */
-    public List<PageItem> retrievePageItemsByLRUPrefix(String prefix) throws IndexException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("retrievePageItemsByLRUPrefix: " + prefix);
-        }
-        try {
-            List<PageItem> results = new ArrayList<PageItem>();
-            if(prefix == null) {
-                logger.warn("attempted to retrieve pageitems with null lruprefix");
-                return results;
-            }
-            prefix = prefix + "*";
-            Query q = LuceneQueryFactory.getPageItemByLRUQuery(prefix);
-            final List<Document> hits = executeMultipleResultsQuery(q);
-            for(Document hit: hits) {
-                PageItem pageItem = IndexConfiguration.convertLuceneDocumentToPageItem(hit);
-                results.add(pageItem);
-            }
-            if(logger.isDebugEnabled()) {
-                logger.debug("retrieved # " + results.size() + " PageItems with prefix " + prefix);
-            }
-            return results;
-        }
-        catch (IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x.getMessage(), x);
-        }
-    }
-
-    /**
-     *
-     * @param url
-     * @return
-     * @throws IndexException hmm
-     */
-    public PageItem retrievePageItemByURL(String url) throws IndexException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("retrieving PageItem by URL " + url);
-        }
-        Query q = LuceneQueryFactory.getPageItemByURLQuery(url);
-        return retrievePageItemByFieldQuery(q);
-    }
-
-    /**
-     *
-     * @param url
-     * @return
-     * @throws IndexException hmm
-     */
-    public PageItem retrievePageItemByLRU(String lru) throws IndexException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("retrieving PageItem by LRU " + lru);
-        }
-        Query q = LuceneQueryFactory.getPageItemByLRUQuery(lru);
-        return retrievePageItemByFieldQuery(q);
     }
 
     /**
@@ -1561,33 +1516,6 @@ public class LRUIndex {
         }
     }
 
-    private List<PageItem> findPagesMatchingWebEntityButNotMatchingSubWebEntities(WebEntity webEntity, List<WebEntity> subWebEntities) throws IndexException {
-        if(logger.isDebugEnabled()) {
-            logger.debug("findPagesMatchingWebEntityButNotMatchingSubWebEntities for webEntity " + webEntity.getName());
-        }
-        try {
-            List<PageItem> results = new ArrayList<PageItem>();
-            Query q = LuceneQueryFactory.getPageItemMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities);
-            final List<Document> hits = executeMultipleResultsQuery(q);
-            for(Document hit: hits) {
-                PageItem pageItem = IndexConfiguration.convertLuceneDocumentToPageItem(hit);
-                results.add(pageItem);
-            }
-            if(logger.isDebugEnabled()) {
-                logger.debug("findPagesMatchingWebEntityButNotMatchingSubWebEntities returns # " + results.size() + " pages:");
-                for(PageItem page : results) {
-                    logger.debug("page " + page.getLru() + " with id " + page.getId());
-                }
-            }
-            return results;
-        }
-        catch(IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x.getMessage(), x);
-        }
-    }
-
     /**
      *
      * @param id
@@ -1610,17 +1538,20 @@ public class LRUIndex {
 
         try {
             List<WebEntity> subWebEntities = findSubWebEntities(webEntity);
-            results = findPagesMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities);
+            Query q = LuceneQueryFactory.getPageItemMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities);
+            final List<Document> hits = executeMultipleResultsQuery(q);
+            for(Document hit: hits) {
+                PageItem pageItem = IndexConfiguration.convertLuceneDocumentToPageItem(hit);
+                results.add(pageItem);
+            }
         }
         catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
             throw new IndexException(x.getMessage(), x);
         }
-
         if(logger.isDebugEnabled()) {
             logger.debug("found " + results.size() + " pages for web entity " + webEntity.getName() + ":");
-            for(PageItem p : results) {
-                logger.debug(p.getLru());
-            }
         }
         return results;
     }

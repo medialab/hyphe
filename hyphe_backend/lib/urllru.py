@@ -169,9 +169,14 @@ def lru_strip_www(lru):
     return "|".join([stem for k, t, stem in split_lru_in_stems(lru) if k != 'h' or t != "www" ])
 
 # Removing slash at the end if ending with path or host stem:
-re_trailing_slash = re.compile(r'(h:[^\|]*)\|p:\|?$')
-def lru_strip_trailing_slash(lru):
-    return re_trailing_slash.sub(r'\1', lru)
+re_host_trailing_slash = re.compile(r'(h:[^\|]*)\|p:\|?$')
+def lru_strip_host_trailing_slash(lru):
+    return re_host_trailing_slash.sub(r'\1', lru)
+
+# Remove slash at the end of path for webentity defining lru prefixes:
+re_path_trailing_slash = re.compile(r'(\|p:)+\|?$')
+def lru_strip_path_trailing_slash(lru):
+    return re_path_trailing_slash.sub(r'\1', lru)
 
 # Removing anchors:
 def lru_strip_anchors(lru) :
@@ -195,7 +200,7 @@ def lru_clean(lru):
     lru = lru_strip_standard_ports(lru)
     lru = lru_lowerize_host(lru)
 #    lru = lru_strip_www(lru)
-    lru = lru_strip_trailing_slash(lru)
+    lru = lru_host_strip_trailing_slash(lru)
 #    lru = lru_strip_anchors(lru)
 #    lru = lru_reorder_query(lru)
     return lru_uriencode(lru)

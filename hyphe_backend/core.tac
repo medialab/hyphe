@@ -439,7 +439,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 return {'id': WE.id, 'name': WE.name, 'status': WE.status,
                         'prefixes': "|".join([urllru.lru_to_url(lru, nocheck=True) for lru in WE.LRUSet]),
                         'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns != "CORE"])}
-            # pages = yield self.msclient_pool.getPagesFromWebEntity(WE.id)
+            # pages = yield self.msclient_pool.getWebEntityPages(WE.id)
             # nb_pages = len(pages)
             # nb_links
             job = None
@@ -464,7 +464,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.msclient_sync.clearIndex()
         self.ensureDefaultCreationRuleExists()
 
-    def jsonrpc_delete_nodelinks(self):
+    @inlineCallbacks
+    def jsonrpc_get_all_nodelinks(self):
+        res = yield self.msclient_pool.getNodeLinks()
+        returnD(handle_standard_results(res))
+
+    def jsonrpc_delete_all_nodelinks(self):
         self.recent_indexes += 1
         return handle_standard_results(self.msclient_sync.deleteNodeLinks())
 
@@ -472,7 +477,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         rules = self.msclient_sync.getWebEntityCreationRules()
         if is_error(rules) or len(rules) == 0:
             print "Saves default WE creation rule"
-            self.msclient_sync.saveWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
+            self.msclient_sync.addWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
 
     def jsonrpc_reinitialize(self):
         try:
@@ -484,7 +489,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             return format_error("Service initialization not finished. Please retry in a second.")
 
     def return_new_webentity(self, lru_prefix, new=False, source=None):
-        WE = self.msclient_sync.findWebEntityMatchingLRU(lru_prefix)
+        WE = self.msclient_sync.findWebEntityMatchingLRUPrefix(lru_prefix)
         if is_error(WE):
             return WE
         if test_bool_arg(new):
@@ -503,7 +508,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def handle_lru_precision_exceptions(self, lru_prefix):
         lru_head = urllru.lru_get_head(lru_prefix, self.precision_exceptions)
         if not urllru.lru_is_node(lru_prefix, config["precisionLimit"], lru_head=lru_head) and lru_prefix.strip('|') != lru_head:
-            self.msclient_sync.markPrecisionExceptions([lru_prefix])
+            self.msclient_sync.addPrecisionExceptions([lru_prefix])
             self.precision_exceptions.append(lru_prefix)
 
     def declare_page(self, url):
@@ -522,7 +527,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = self.msclient_sync.indexCache(cache_id)
         if is_error(res):
             return res
-        new = self.msclient_sync.createWebEntities(cache_id)
+        new = self.msclient_sync.createWebEntitiesFromCache(cache_id)
         if is_error(new):
             return new
         return self.return_new_webentity(lru, new, 'page')
@@ -546,7 +551,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 url, lru = urllru.lru_clean_and_convert(lru, False)
             except ValueError as e:
                 return format_error(e)
-            existing = self.msclient_sync.findWebEntityByLRUPrefix(lru)
+            existing = self.msclient_sync.getWebEntityByLRUPrefix(lru_prefix)
             if not is_error(existing):
                 return format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (lru, existing))
             if not name:
@@ -642,7 +647,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             url, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
         except ValueError as e:
             return format_error(e)
-        old_WE = self.msclient_sync.findWebEntityByLRUPrefix(lru_prefix)
+        old_WE = self.msclient_sync.getWebEntityByLRUPrefix(lru_prefix)
         if not is_error(old_WE):
             print "Removing LRUPrefix %s from WebEntity %s" % (lru_prefix, old_WE.name)
             res = self.jsonrpc_rm_webentity_lruprefix(old_WE.id, lru_prefix)
@@ -761,7 +766,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     returnD(False)
             print "..."+str(nb_links)+" links indexed in "+str(time.time()-s)+"s..."
             s=time.time()
-            n_WE = yield self.msclient_loop.createWebEntities(cache_id)
+            n_WE = yield self.msclient_loop.createWebEntitiesFromCache(cache_id)
             if is_error(n_WE):
                 print nb_WE['message']
                 returnD(False)
@@ -1064,11 +1069,24 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, corpus=''):
-        pages = yield self.msclient_pool.getPagesFromWebEntity(webentity_id)
+        pages = yield self.msclient_pool.getWebEntityPages(webentity_id)
         if is_error(pages):
             returnD(pages)
         formatted_pages = [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
         returnD(format_result(formatted_pages))
+
+    @inlineCallbacks
+    def jsonrpc_get_webentity_by_url(self, url):
+        try:
+            lru = urllru.url_to_lru_clean(url)
+        except ValueError as e:
+            returnD(format_error(e))
+        WE = yield self.msclient_pool.findWebEntityMatchingLRUPrefix(lru)
+        if is_error(WE):
+            returnD(WE)
+        if WE.name == "OUTSIDE WEB":
+            returnD(format_error("No matching WebEntity found for url %s" % url))
+        returnD(format_result(self.format_webentity(WE)))
 
     @inlineCallbacks
     def jsonrpc_get_webentity_subwebentities(self, webentity_id):
@@ -1086,9 +1104,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(format_error("ERROR: must set relative type as children or parents"))
         jobs = {}
         if relative_type == "children":
-            WEs = yield self.msclient_pool.getSubWebEntities(webentity_id)
+            WEs = yield self.msclient_pool.getWebEntitySubWebEntities(webentity_id)
         else:
-            WEs = yield self.msclient_pool.getParentWebEntities(webentity_id)
+            WEs = yield self.msclient_pool.getWebEntityParentWebEntities(webentity_id)
         if is_error(WEs):
             returnD(WEs)
         for job in self.db[config['mongo-scrapy']['jobListCol']].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)]):
@@ -1128,14 +1146,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(format_error("No WebEntity with id %s found" % webentity_id))
         res = {'status': WE.status, 'lrus': list(WE.LRUSet), 'pages': [urllru.lru_to_url(lr) for lr in WE.LRUSet], 'subWEs': []}
         if test_bool_arg(all_pages_as_startpoints):
-            pages = yield self.msclient_pool.getPagesFromWebEntity(WE.id)
+            pages = yield self.msclient_pool.getWebEntityPages(WE.id)
             if is_error(pages):
                 returnD(pages)
             if pages:
                 res['pages'] = [p.url for p in pages]
         else:
             res['pages'] = list(WE.startpages)
-        subs = yield self.msclient_pool.getSubWebEntities(WE.id)
+        subs = yield self.msclient_pool.getWebEntitySubWebEntities(WE.id)
         if is_error(subs):
             returnD(subs)
         if subs:
@@ -1164,12 +1182,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     date = WE.lastModificationDate
                 elif WE.creationDate:
                     date = WE.creationDate
-                pages = yield self.msclient_pool.getPagesFromWebEntity(WE.id)
+                pages = yield self.msclient_pool.getWebEntityPages(WE.id)
                 if is_error(pages):
                     print pages['message']
                     returnD(False)
                 WEs_metadata[WE.id] = {"name": WE.name, "date": date, "LRUSet": ",".join(WE.LRUSet), "nb_pages": len(pages), "nb_intern_links": 0}
-                WE_links = yield self.msclient_pool.findWebEntityLinksBySource(WE.id)
+                WE_links = yield self.msclient_pool.getWebEntityLinksByWebEntitySource(WE.id)
                 if is_error(WE_links):
                     print WE_links['message']
                     returnD(False)

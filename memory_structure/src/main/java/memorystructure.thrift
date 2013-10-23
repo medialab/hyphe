@@ -3,7 +3,6 @@
 #
 #
 
-
 ## Objects as structures
 
 namespace java fr.sciencespo.medialab.hci.memorystructure.thrift
@@ -45,25 +44,6 @@ struct NodeLink {
   6: string lastModificationDate
 }
 
-struct WebEntityNodeLink {
-  1: string id,
-  2: string sourceId,
-  3: string targetLRU,
-  4: i32 weight=1,
-}
-
-struct WebEntityLink {
-  1: string id,
-  2: string sourceId,
-  3: string targetId,
-  4: i32 weight=1,
-  5: string creationDate,
-  6: string lastModificationDate
-}
-
-/**
- *
- */
 struct WebEntity {
   1: string id,
   2: set<string> LRUSet,
@@ -74,6 +54,15 @@ struct WebEntity {
   7: map<string, map<string, list<string>>> metadataItems,
   8: string creationDate,
   9: string lastModificationDate
+}
+
+struct WebEntityLink {
+  1: string id,
+  2: string sourceId,
+  3: string targetId,
+  4: i32 weight=1,
+  5: string creationDate,
+  6: string lastModificationDate
 }
 
 struct WebEntityCreationRule {
@@ -93,241 +82,252 @@ struct PingPong {
 
 service MemoryStructure {
 
-// CREATED by PAUL
+
 // ping
-/*¨replies pong */
-list<PingPong> ping(),
-
-
-// MODIFIED by Paul
- //update  webentity
- /**
-  * @param 1 webEntity
-  * @return id of the web entity
-  */
-  string updateWebEntity(1:WebEntity webEntity) throws (1:MemoryStructureException x),
-
-// ADDED by Paul
-// get webentity
 /**
-* @param 1 id
-* @return a WebEntity Object
-**/
-WebEntity getWebEntity(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
-
-// get subwebentities
-/**
-* @param 1 id
-* @return a List of WebEntity Objects
-**/
-list<WebEntity> getSubWebEntities(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
-
-// get parentwebentities
-/**
-* @param 1 id
-* @return a List of WebEntity Objects
-**/
-list<WebEntity> getParentWebEntities(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
-
-// get all nodelinks
-/**
- * @return all nodelinks in the index
+ * replies pong
  */
-list<NodeLink> getNodeLinks() throws (1:MemoryStructureException me),
+list<PingPong> ping()
 
-// get nodelinks of a specific webentity
+// clearIndex
 /**
- * @param 1 webEntityId
- * @param 2 includeFrontier
- * @return nodelinks for webEntity
+ * Empties completely the index.
  */
-list<NodeLink> getWebentityNodeLinks(1: string webEntityId, 2: bool includeFrontier) throws (1:MemoryStructureException me),
+void clearIndex() throws (1:MemoryStructureException x)
 
-// get all webentities
-/**
- * @return all webentities in the index
- */
-list<WebEntity> getWebEntities() throws (1:MemoryStructureException me),
 
-// get webentities by ids
-/**
- * @param 1 listIDs
- * @return webentities having ids
- */
-list<WebEntity> getWebEntitiesByIDs(1: list<string> listIDs) throws (1:MemoryStructureException me),
+// -- PAGEITEMS
 
-// get pages belonging to one webentity
+// createCache
 /**
- * @param 1 id
- * @return set of pages for this webentity (may be empty)
- */
-list<PageItem> getPagesFromWebEntity(1:string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
-
-// deletes a webentity
-/**
- * @param 1 webEntity
- */
-void deleteWebEntity(1: WebEntity webEntity) throws (1:MemoryStructureException me),
-
-// generate webentity links
-/**
- * Generates WebEntity links.
- */
-list<WebEntityLink> generateWebEntityLinks() throws (1:MemoryStructureException x),
-
-// get all webentity links
-/**
- * @return all WebEntity links from the index.
- */
-list<WebEntityLink> getWebEntityLinks() throws (1:MemoryStructureException x),
-
-// clear complete index
-/**
- * Clears (empties) the index.
- */
-void clearIndex() throws (1:MemoryStructureException x),
-
-// create_pages_cache
-/**
- * @param 1 pageItems : set of PageItem objects
+ * @param 1 pageItems : List of PageItem objects to be indexed
  * @return id of the created cache
  */
-string createCache(1:list<PageItem> pageItems) throws (1:MemoryStructureException x),
+string createCache(1:list<PageItem> pageItems) throws (1:MemoryStructureException x)
 
-// index_pages_from_cache
+// indexCache
 /**
+ * @param 1 cacheId : id of the cache containing the PageItems to be indexed
+ * @return number of indexed PageItems
+ */
+i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+
+// deleteCache
+/**
+ * @param 1 cacheId : id of the cache
+ */
+void deleteCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+
+/** createWebEntitiesFromCache
  * @param 1 cacheId : id of the cache
  * @return number of indexed PageItems
  */
-i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
+i32 createWebEntitiesFromCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
 
- //get_precision_exceptions
- /**
-  * @return set of lru prefixes
-  */
- list<string> getPrecisionExceptions() throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
-
- /**
-  * @param 1 cacheId : id of the cache
-  */
-i32 createWebEntities(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
-
- // delete_page_cache
- /**
-  * @param 1 cacheId : id of the cache
-  */
- void deleteCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
-
- // mark lrus as precision exception
- /**
-  * @param 1 LRUs : list of lrus to add as precision exceptions
-  */
- void markPrecisionExceptions(1:list<string> listLRUs) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
-
- // remove lrus as precision exception
- /**
-  * @param 1 LRUs : list of lrus to remove from precision exceptions
-  */
- void removePrecisionExceptions(1:list<string> listLRUs) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x),
-
- // store WebEntityCreationRule
- /**
-  * Adds or updates a single WebEntityCreationRule to the index. If the rule's LRU is empty, it is set as the
-  * DEFAULT rule. If there exists already a rule with this rule's LRU, it is updated, otherwise it is created.
-  *
-  * @param 1 webEntityCreationRule : webentity creation rule to save
-  */
-void saveWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule) throws (1:MemoryStructureException me),
-
-// get all WebEntityCreationRules from index
-/**
- *
- */
-list<WebEntityCreationRule> getWebEntityCreationRules(),
-
-// delete a WebEntityCreationRule from index
-/**
- * @param 1 webEntityCreationRule : webentity creation rule to delete
- */
-void deleteWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule),
-
-// PageItems
-/**
+/** savePageItems
  * Saves pages in the index WITHOUT USING THE CACHE.
- *
- * @param 1 pageItems : set of PageItem objects
+ * @param 1 pageItems : List of PageItem objects to index
  */
-void savePageItems(1:list<PageItem> pageItems) throws (1:MemoryStructureException me),
+void savePageItems(1:list<PageItem> pageItems) throws (1:MemoryStructureException me)
 
-// NodeLinks
+/** findPageItemsMatchingLRUPrefix
+  * @param 1 prefix to search for
+  * @return a List of PageItems whose lru matches this prefix
+ */
+list<PageItem> findPageItemsMatchingLRUPrefix(1:string prefix) throws (1:MemoryStructureException me)
+
+
+// -- NODELINKS
+
+// getNodeLinks
 /**
- *
- * @param 1 nodeLinks : set of NodeLink objects
+ * @return all NodeLinks in the index
  */
-void saveNodeLinks(1:list<NodeLink> nodeLinks) throws (1:MemoryStructureException me),
+list<NodeLink> getNodeLinks() throws (1:MemoryStructureException me)
 
-/**
- * @param 1 lru to search for
- * @return web entity whose lruprefixes contain this LRU and not contained in any wubwebentity
- */
-WebEntity findWebEntityMatchingLRU(1:string lru) throws (1:MemoryStructureException me),
-
-/**
- * @param 1 prefix to search for
- * @return web entity whose aliases contains this prefix
- */
-WebEntity findWebEntityByLRUPrefix(1:string prefix) throws (1:MemoryStructureException me),
-
-/**
- * @param 1 prefix to search for
- * @return web entities one of whose aliases contains this prefix
- */
-list<WebEntity> findWebEntitiesByLRUPrefix(1:string prefix) throws (1:MemoryStructureException me),
-
-/**
- * @param 1 list of keywords to search for
- * @param 2 list of pair field/keyword to search for
- * @return web entities matching the search
- */
-list<WebEntity> searchWebEntities(1:list<string> allFieldsKeywords, 2: list<list<string>> fieldKeywords) throws (1:MemoryStructureException me),
-
-/**
- * @param 1 prefix to search for
- * @return pageitems whose lru matches this prefix
- */
-list<PageItem> findPagesByPrefix(1:string prefix) throws (1:MemoryStructureException me),
-
-/**
- * @param 1 prefix to search for
- * @return nodelinks whose source matches this prefix
- */
-list<NodeLink> findNodeLinksBySource(1:string prefix) throws (1:MemoryStructureException me),
-
-/**
- * @param 1 prefix to search for
- * @return nodelinks whose target matches this prefix
- */
-list<NodeLink> findNodeLinksByTarget(1:string prefix) throws (1:MemoryStructureException me),
-
-/**
- * @param 1 id: id of web entity
- * @return webentities whose source id are this
- */
-list<WebEntityLink> findWebEntityLinksBySource(1:string id) throws (1:MemoryStructureException me),
-
-/**
- * @param 1 id: id of web entity
- * @return webentities whose target id are this
- */
-list<WebEntityLink> findWebEntityLinksByTarget(1:string id) throws (1:MemoryStructureException me)
-
+// deleteNodeLinks
 /**
  * delete all NodeLinks from index
  */
 void deleteNodeLinks() throws (1:MemoryStructureException me)
 
+/** saveNodeLinks
+ *
+ * @param 1 nodeLinks : List of NodeLink objects to be indexed
+ */
+void saveNodeLinks(1:list<NodeLink> nodeLinks) throws (1:MemoryStructureException me)
+
+/** findNodeLinksBySourceLRUPrefix
+ * @param 1 LRU prefix to match by Searched NodeLink's source
+ * @return a List of NodeLinks whose source matches this prefix
+ */
+list<NodeLink> findNodeLinksMatchingSourceLRUPrefix(1:string prefix) throws (1:MemoryStructureException me)
+
+/** findNodeLinksByTargetLRUPrefix
+ * @param 1 LRU prefix to match by Searched NodeLink's target
+ * @return a List of NodeLinks whose target matches this prefix
+ */
+list<NodeLink> findNodeLinksMatchingTargetLRUPrefix(1:string prefix) throws (1:MemoryStructureException me)
+
+
+// -- WEBENTITIES
+
+// getWebEntities
 /**
- * get all tag values
+ * @return all WebEntities in the index
+ */
+list<WebEntity> getWebEntities() throws (1:MemoryStructureException me)
+
+// getWebEntitiesByIDs
+/**
+ * @param 1 listIDs
+ * @return webentities having ids in listIDs
+ */
+list<WebEntity> getWebEntitiesByIDs(1: list<string> listIDs) throws (1:MemoryStructureException me)
+
+// getWebEntity
+/**
+* @param 1 id of the webentity
+* @return a WebEntity Object
+**/
+WebEntity getWebEntity(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+
+// updateWebEntity
+/**
+ * @param 1 webEntity
+ * @return id of the web entity
+ */
+string updateWebEntity(1:WebEntity webEntity) throws (1:MemoryStructureException x)
+
+// deleteWebEntity
+/**
+ * @param 1 webEntity
+ */
+void deleteWebEntity(1: WebEntity webEntity) throws (1:MemoryStructureException me)
+
+// getWebEntitySubWebEntities: get children webentities of a webentity
+/**
+* @param 1 id of the webentity
+* @return a List of WebEntity Objects
+**/
+list<WebEntity> getWebEntitySubWebEntities(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+
+// getWebEntityParentWebEntities: get parent webentities of a webentity
+/**
+* @param 1 id of the webentity
+* @return a List of WebEntity Objects
+**/
+list<WebEntity> getWebEntityParentWebEntities(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+
+// getWebEntityPages pages belonging to one webentity
+/**
+ * @param 1 id
+ * @return a List of Page Objects having urls within the prefixes of the webentity (may be empty)
+ */
+list<PageItem> getWebEntityPages(1:string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+
+// getWebEntityNodeLinks: get all NodeLinks for a specific WebEntity
+/**
+ * @param 1 webEntityId
+ * @param 2 includeFrontier: boolean to decide whether external links from other webentities to the specific one whoudl be included or not
+ * @return a List of NodeLink Objects having source or target within the prefixes of the webentity (may be empty)
+ */
+list<NodeLink> getWebentityNodeLinks(1: string webEntityId, 2: bool includeFrontier) throws (1:MemoryStructureException me)
+
+/** getWebEntityByLRUPrefix
+ * @param 1 prefix to search for
+ * @return a WebEntity Object whose LRU prefixes contains this prefix
+ */
+WebEntity getWebEntityByLRUPrefix(1:string prefix) throws (1:MemoryStructureException me)
+
+/** findWebEntityMatchingLRUPrefix
+ * @param 1 lru to search for
+ * @return a WebEntity Object whose LRUprefixes match the LRU and where the LRU is not contained in any subwebentity
+ */
+WebEntity findWebEntityMatchingLRUPrefix(1:string lru) throws (1:MemoryStructureException me)
+
+/** searchWebEntities: Free search of webentities in the index on main fields and/or by specific fields. Accepts Lucene wildcards.
+ * @param 1 list of keywords to search for
+ * @param 2 list of pair field/keyword to search for
+ * @return a List of WebEntity Objects matching the search
+ */
+list<WebEntity> searchWebEntities(1:list<string> allFieldsKeywords, 2: list<list<string>> fieldKeywords) throws (1:MemoryStructureException me)
+
+/** getTags
+ * @return a Map by Namespaces of Maps by Categories of all Tag values stored in the index's WebEntities metadataItems
  */
 map<string, map<string, list<string>>> getTags() throws (1:MemoryStructureException me)
+
+
+// -- WEBENTITYLINKS
+
+// getWebEntityLinks
+/**
+ * @return all WebEntityLinks from the index.
+ */
+list<WebEntityLink> getWebEntityLinks() throws (1:MemoryStructureException x)
+
+// generate webentity links
+/**
+ * Run process to generate WebEntityLinks from WebEntities and NodeLinks.
+ */
+list<WebEntityLink> generateWebEntityLinks() throws (1:MemoryStructureException x)
+
+/** getWebEntityLinksByWebEntitySource
+ * @param 1 id: id of web entity
+ * @return a List of WebEntityLink Objects whose source id are this
+ */
+list<WebEntityLink> getWebEntityLinksByWebEntitySource(1:string id) throws (1:MemoryStructureException me)
+
+/** getWebEntityLinksByWebEntityTarget
+ * @param 1 id: id of web entity
+ * @return a List of WebEntityLink Objects whose target id are this
+ */
+list<WebEntityLink> getWebEntityLinksByWebEntityTarget(1:string id) throws (1:MemoryStructureException me)
+
+
+// -- WEBENTITYCREATIONRULES
+
+// getWebEntityCreationRules
+/**
+ * @return the List of WebEntityCreationRules Objects in index
+ */
+list<WebEntityCreationRule> getWebEntityCreationRules()
+
+// addWebEntityCreationRule
+/**
+ * Adds or updates a single WebEntityCreationRule to the index. If the rule's LRU is empty, it is set as the
+ * DEFAULT rule. If there exists already a rule with this rule's LRU, it is updated, otherwise it is created.
+ * @param 1 webEntityCreationRule : WebEntityCreationRule object to save
+ */
+void addWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule) throws (1:MemoryStructureException me)
+
+// removeWebEntityCreationRule
+/**
+ * @param 1 webEntityCreationRule : WebEntityCreationRule to delete
+ */
+void removeWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule)
+
+
+// -- PRECISIONEXCEPTIONS
+
+// getPrecisionExceptions
+/**
+ * @return the List of LRU prefixes defining precision exceptions
+ */
+list<string> getPrecisionExceptions() throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+
+// addPrecisionExceptions: mark LRUs as precision exceptions
+/**
+ * @param 1 listLRUs : list of LRUs to add as precision exceptions
+ */
+void addPrecisionExceptions(1:list<string> listLRUs) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+
+// removePrecisionExceptions: remove LRUs as precision exceptions
+/**
+ * @param 1 LRUs : list of LRUs to remove from precision exceptions
+ */
+void removePrecisionExceptions(1:list<string> listLRUs) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+
+
 }
