@@ -24,7 +24,7 @@ import java.lang.Integer;
 /**
  * MemoryStructure server.
  *
- * @author heikki doeleman
+ * @author heikki doeleman, benjamin ooghe-tabanou, patrick browne
  */
 public class ThriftServer {
 
@@ -151,9 +151,9 @@ public class ThriftServer {
         DynamicLogger.setLogLevel(logLevel);
 
         if (logger.isDebugEnabled()) {
-            logger.info("command line properties take precedence; result is:");
+            logger.debug("command line properties take precedence; result is:");
             for(String key : resolvedProperties.keySet()) {
-                logger.info("using property " + key + " = " + resolvedProperties.get(key));
+                logger.debug("using property " + key + " = " + resolvedProperties.get(key));
             }
         }
 
@@ -209,32 +209,30 @@ public class ThriftServer {
      */
     private static void initializeThriftServer() throws TTransportException {
 
-        MemoryStructure.Processor processor = new MemoryStructure.Processor(memoryStructureImpl);
-        // server code provided by Patrick Browne
+        // choice of server guided by https://github.com/m1ch1/mapkeeper/wiki/Thrift-Java-Servers-Compared
+        // choice of protocol guided by http://jnb.ociweb.com/jnb/jnbJun2009.html
+        // TODO: tryouts on heavy hyphe, local experiments give favor to THsHa + Binary
+
         TNonblockingServerTransport serverTransport = new TNonblockingServerSocket(port);
+        //TServerTransport serverTransport = new TServerSocket(port);
         THsHaServer.Args serverArgs = new THsHaServer.Args(serverTransport);
-        serverArgs.workerThreads(25);
+        //TThreadPoolServer.Args serverArgs = new TThreadPoolServer.Args(serverTransport);
+
+        MemoryStructure.Processor processor = new MemoryStructure.Processor(memoryStructureImpl);
         serverArgs.processor(processor);
+
+        serverArgs.workerThreads(25);
+        //serverArgs.minWorkerThreads(5);
+        //serverArgs.maxWorkerThreads(25);
+
         serverArgs.transportFactory(new TFramedTransport.Factory());
         serverArgs.protocolFactory(new TBinaryProtocol.Factory(true, true));
         //serverArgs.protocolFactory(new TCompactProtocol.Factory());
+
         TServer server = new THsHaServer(serverArgs);
-        logger.info("starting Thrift server (THsHaServer) at port " + port);
-
-        // choice of server guided by https://github.com/m1ch1/mapkeeper/wiki/Thrift-Java-Servers-Compared
-        // choice of protocol guided by http://jnb.ociweb.com/jnb/jnbJun2009.html
-        // tryouts on hyphe TODO, local experiments give favor to THsHa + Binary
-        //TServerTransport serverTransport = new TServerSocket(port);
-        //TThreadPoolServer.Args serverArgs = new TThreadPoolServer.Args(serverTransport);
-        //serverArgs.minWorkerThreads(5);
-        //serverArgs.maxWorkerThreads(25);
-        //serverArgs.processor(processor);
-        //serverArgs.transportFactory(new TFramedTransport.Factory());
-        //serverArgs.protocolFactory(new TBinaryProtocol.Factory(true, true));
-        //serverArgs.protocolFactory(new TCompactProtocol.Factory());
         //TServer server = new TThreadPoolServer(serverArgs);
-        //logger.info("starting Thrift server (TThreadPoolServer) at port " + port);
 
+        logger.info("starting Thrift server (" + server.getClass() + ") at port " + port);
         server.serve();
     }
 
