@@ -66,6 +66,7 @@
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li><a href="webentities_list.php">List of web entities</a></li>
+                                    <li><a href="corpus_overview.php">Corpus Overview <em class="text-warning">(currently in development)</em></a></li>
                                     <li><a href="reset.php">Reset</a></li>
                                 </ul>
                             </li>
