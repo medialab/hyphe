@@ -2,18 +2,17 @@ package fr.sciencespo.medialab.hci.memorystructure.cache;
 
 import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException;
 
-import java.util.HashMap;
-import java.util.Map;
+import gnu.trove.map.hash.THashMap;
 
 /**
  * Singleton map to hold caches. Caches can be retrieved by their id.
  *
- * @author heikki doeleman
+ * @author heikki doeleman, benjamin ooghe-tabanou
  */
 public class CacheMap {
 
     private static CacheMap instance;
-    private static Map<String, Cache> map;
+    private static THashMap<String, Cache> map;
 
     public synchronized static CacheMap getInstance() {
         if(instance == null) {
@@ -25,7 +24,7 @@ public class CacheMap {
         throw new CloneNotSupportedException();
     }
     private CacheMap() {
-        map = new HashMap<String, Cache>();
+        map = new THashMap<String, Cache>();
     }
 
     public void add(Cache cache) {

@@ -6,13 +6,11 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityNodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,16 +22,11 @@ import java.util.concurrent.TimeoutException;
 
 /**
  *
- * @author heikki doeleman
+ * @author heikki doeleman, benjamin ooghe-tabanou
  */
 public class AsyncIndexWriterTask implements RunnableFuture {
 
     private static DynamicLogger logger = new DynamicLogger(AsyncIndexWriterTask.class);
-
-    private static Version LUCENE_VERSION;
-    private static IndexWriterConfig.OpenMode OPEN_MODE;
-    private static int RAM_BUFFER_SIZE_MB;
-    private static Analyzer ANALYZER;
 
     private List<?> objectsToWrite = null;
     private boolean isDone;
@@ -41,16 +34,11 @@ public class AsyncIndexWriterTask implements RunnableFuture {
     private IndexWriter indexWriter;
     private LRUIndex lruIndex;
 
-    AsyncIndexWriterTask(String name, List<?> objectsToWrite, RAMDirectory directory, Version LuceneVersion,
-                         IndexWriterConfig.OpenMode openMode, int ramBufferSize, Analyzer analyzer, LRUIndex lruIndex) {
+    AsyncIndexWriterTask(String name, List<?> objectsToWrite, RAMDirectory directory, LRUIndex lruIndex) {
         try {
             if(logger.isDebugEnabled()) {
-                logger.debug("creating new AsyncIndexWriterTask indexing # " + objectsToWrite.size() + " objects with OPEN_MODE " + openMode.name() + " RAM_BUFFER_SIZE_MB " + ramBufferSize);
+                logger.debug("creating new AsyncIndexWriterTask indexing # " + objectsToWrite.size() + " objects with OPEN_MODE " + LRUIndex.OPEN_MODE.name() + " RAM_BUFFER_SIZE_MB " + LRUIndex.RAM_BUFFER_SIZE_MB);
             }
-            LUCENE_VERSION = LuceneVersion;
-            OPEN_MODE = openMode;
-            RAM_BUFFER_SIZE_MB = ramBufferSize;
-            ANALYZER = analyzer;
 
             this.lruIndex = lruIndex;
             this.name = name;
@@ -72,10 +60,12 @@ public class AsyncIndexWriterTask implements RunnableFuture {
      * @throws java.io.IOException
      */
     private IndexWriter newRAMWriter(RAMDirectory ramDirectory) throws IOException {
-        logger.debug("creating new RAM writer");
-        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(LUCENE_VERSION, ANALYZER);
-        indexWriterConfig.setOpenMode(OPEN_MODE);
-        indexWriterConfig.setRAMBufferSizeMB(RAM_BUFFER_SIZE_MB);
+        if (logger.isDebugEnabled()) {
+            logger.debug("creating new RAM writer");
+        }
+        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(LRUIndex.LUCENE_VERSION, LRUIndex.analyzer);
+        indexWriterConfig.setOpenMode(LRUIndex.OPEN_MODE);
+        indexWriterConfig.setRAMBufferSizeMB(LRUIndex.RAM_BUFFER_SIZE_MB);
         //LogMergePolicy logMergePolicy = new LogByteSizeMergePolicy();
         //logMergePolicy.setUseCompoundFile(false);
         //indexWriterConfig.setMergePolicy(logMergePolicy);
@@ -86,7 +76,9 @@ public class AsyncIndexWriterTask implements RunnableFuture {
     }
 
     public void run() {
-        logger.debug("started run");
+        if (logger.isDebugEnabled()) {
+            logger.debug("started run");
+        }
         try {
             if(CollectionUtils.isEmpty(objectsToWrite)) {
                 this.isDone = true;
@@ -207,9 +199,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                 x.printStackTrace();
             }
             if(logger.isDebugEnabled()) {
-                if(logger.isDebugEnabled()) {
-                    logger.debug("finished run");
-                }
+                logger.debug("finished run");
             }
         }
     }

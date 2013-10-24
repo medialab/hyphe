@@ -62,7 +62,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     /**
      * Returns 'pong'.
-     * 
+     *
      * @return 'pong'
      * @throws TException hmm
      */
@@ -260,198 +260,198 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     /**
      * Search PageItems whose LRU starts with a LRUPrefix
-     * 
+     *
      * @return a List of PageItems whose lru matches this prefix
      */
-     @Override
-     public List<PageItem> findPageItemsMatchingLRUPrefix(String prefix) throws TException, MemoryStructureException {
-         if(logger.isDebugEnabled()) {
-             logger.debug("findPageItemsMatchingLRUPrefix");
-         }
-         try {
-             return lruIndex.retrievePageItemsByLRUPrefix(prefix);
-         }
-         catch (IndexException x) {
-             logger.error(x.getMessage());
-             x.printStackTrace();
-             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-         }
-         finally {
-             if(logger.isDebugEnabled()) {
-                 logger.debug("findPageItemsMatchingLRUPrefix end");
-             }
-         }
-     }
+    @Override
+    public List<PageItem> findPageItemsMatchingLRUPrefix(String prefix) throws TException, MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("findPageItemsMatchingLRUPrefix");
+        }
+        try {
+            return lruIndex.retrievePageItemsByLRUPrefix(prefix);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            if(logger.isDebugEnabled()) {
+                logger.debug("findPageItemsMatchingLRUPrefix end");
+            }
+        }
+    }
 
 
-     // -- NODELINKS
+    // -- NODELINKS
 
 
-     /**
-      * Returns all NodeLinks in the index.
-      *
-      * @return nodelinks
-      * @throws TException hmm
-      */
-     @Override
-     public List<NodeLink> getNodeLinks() throws MemoryStructureException, TException {
-         if(logger.isDebugEnabled()) {
-             logger.debug("getNodeLinks");
-         }
-         try {
-             return lruIndex.retrieveNodeLinks();
-         }
-         catch (IndexException x) {
-             logger.error(x.getMessage());
-             x.printStackTrace();
-             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-         }
-     }
+    /**
+     * Returns all NodeLinks in the index.
+     *
+     * @return nodelinks
+     * @throws TException hmm
+     */
+    @Override
+    public List<NodeLink> getNodeLinks() throws MemoryStructureException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getNodeLinks");
+        }
+        try {
+            return lruIndex.retrieveNodeLinks();
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
 
-     /**
-      * Removes all NodeLinks in index.
-      *
-      * @throws TException hmm
-      * @throws MemoryStructureException hmm
-      */
-     @Override
-     public void deleteNodeLinks() throws MemoryStructureException, TException {
-         if(logger.isDebugEnabled()) {
-             logger.debug("deleteNodeLinks");
-         }
-         try {
-             lruIndex.deleteNodeLinks();
-         }
-         catch(IndexException x) {
-             logger.error(x.getMessage());
-             x.printStackTrace();
-             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-         }
-     }
+    /**
+     * Removes all NodeLinks in index.
+     *
+     * @throws TException hmm
+     * @throws MemoryStructureException hmm
+     */
+    @Override
+    public void deleteNodeLinks() throws MemoryStructureException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("deleteNodeLinks");
+        }
+        try {
+            lruIndex.deleteNodeLinks();
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
 
-     /**
-      * Store a set of NodeLinks in index.
-      *
-      * @throws TException hmm
-      * @throws MemoryStructureException hmm
-      */
-     @Override
-     public void saveNodeLinks(List<NodeLink> nodeLinks) throws TException, MemoryStructureException {
-         if(logger.isDebugEnabled()) {
-             logger.debug("MemoryStructure saveNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
-         }
-         try{
-             @SuppressWarnings({"unchecked"})
-             List<Object> nodeLinksList = new ArrayList(nodeLinks);
-             lruIndex.batchIndex(nodeLinksList);
-             if(logger.isDebugEnabled()) {
-                 logger.debug("saveNodeLinks finished indexing nodeLinks");
-             }
-         }
-         catch(IndexException x) {
-             logger.error(x.getMessage());
-             x.printStackTrace();
-             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
-         }
-     }
+    /**
+     * Store a set of NodeLinks in index.
+     *
+     * @throws TException hmm
+     * @throws MemoryStructureException hmm
+     */
+    @Override
+    public void saveNodeLinks(List<NodeLink> nodeLinks) throws TException, MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("MemoryStructure saveNodeLinks() received # " + nodeLinks.size() + " NodeLinks");
+        }
+        try{
+            @SuppressWarnings({"unchecked"})
+            List<Object> nodeLinksList = new ArrayList(nodeLinks);
+            lruIndex.batchIndex(nodeLinksList);
+            if(logger.isDebugEnabled()) {
+                logger.debug("saveNodeLinks finished indexing nodeLinks");
+            }
+        }
+        catch(IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
+        }
+    }
 
-     /**
-      * Returns all NodeLinks whose Source LRU matches the LRU prefix
-      * 
-      * @param prefix prefix to search for
-      * @return nodelinks whose source matches this prefix
-      */
-     @Override
-     public List<NodeLink> findNodeLinksMatchingSourceLRUPrefix(String prefix) throws TException, MemoryStructureException {
-         if(logger.isDebugEnabled()) {
-             logger.debug("findNodeLinksMatchingSourceLRUPrefix");
-         }
-         try {
-             return lruIndex.retrieveNodeLinksBySourcePrefix(prefix);
-         }
-         catch (IndexException x) {
-             logger.error(x.getMessage());
-             x.printStackTrace();
-             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-         }
-         finally {
-             if(logger.isDebugEnabled()) {
-                 logger.debug("findNodeLinksMatchingSourceLRUPrefix end");
-             }
-         }
-     }
+    /**
+     * Returns all NodeLinks whose Source LRU matches the LRU prefix
+     *
+     * @param prefix prefix to search for
+     * @return nodelinks whose source matches this prefix
+     */
+    @Override
+    public List<NodeLink> findNodeLinksMatchingSourceLRUPrefix(String prefix) throws TException, MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("findNodeLinksMatchingSourceLRUPrefix");
+        }
+        try {
+            return lruIndex.retrieveNodeLinksBySourcePrefix(prefix);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            if(logger.isDebugEnabled()) {
+                logger.debug("findNodeLinksMatchingSourceLRUPrefix end");
+            }
+        }
+    }
 
-     /**
-      * Returns all NodeLinks whose Target LRU matches the LRU prefix
-      * 
-      * @param prefix prefix to search for
-      * @return nodelinks whose target matches this prefix
-      */
-     @Override
-     public List<NodeLink> findNodeLinksMatchingTargetLRUPrefix(String prefix) throws TException, MemoryStructureException {
-         if(logger.isDebugEnabled()) {
-             logger.debug("findNodeLinksMatchingTargetLRUPrefix");
-         }
-         try {
-             return lruIndex.retrieveNodeLinksByTargetPrefix(prefix);
-         }
-         catch (IndexException x) {
-             logger.error(x.getMessage());
-             x.printStackTrace();
-             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-         }
-         finally {
-             if(logger.isDebugEnabled()) {
-                 logger.debug("findNodeLinksMatchingTargetLRUPrefix end");
-             }
-         }
-     }
-
-
-     // -- WEBENTITIES
+    /**
+     * Returns all NodeLinks whose Target LRU matches the LRU prefix
+     *
+     * @param prefix prefix to search for
+     * @return nodelinks whose target matches this prefix
+     */
+    @Override
+    public List<NodeLink> findNodeLinksMatchingTargetLRUPrefix(String prefix) throws TException, MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("findNodeLinksMatchingTargetLRUPrefix");
+        }
+        try {
+            return lruIndex.retrieveNodeLinksByTargetPrefix(prefix);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        finally {
+            if(logger.isDebugEnabled()) {
+                logger.debug("findNodeLinksMatchingTargetLRUPrefix end");
+            }
+        }
+    }
 
 
-     /**
-      * Returns all web entities in the index.
-      *
-      * @return web entities
-      * @throws TException hmm
-      */
-     @Override
-     public List<WebEntity> getWebEntities() throws TException {
-         if(logger.isDebugEnabled()) {
-             logger.debug("getWebEntities");
-         }
-         try {
-             return lruIndex.retrieveWebEntities();
-         }
-         catch (IndexException x) {
-             logger.error(x.getMessage());
-             x.printStackTrace();
-             throw new TException(x.getMessage(), x);
-         }
-     }
+    // -- WEBENTITIES
 
-     /**
-      * Returns web entities having ids in the given list.
-      * @param list of webentities ids
-      * @return web entities
-      * @throws TException hmm
-      */
-     @Override
-     public List<WebEntity> getWebEntitiesByIDs(List<String> listIDs) throws TException {
-         if(logger.isDebugEnabled()) {
-             logger.debug("getWebEntitiesByIDs");
-         }
-         try {
-             return lruIndex.retrieveWebEntitiesByIDs(listIDs);
-         }
-         catch (IndexException x) {
-             logger.error(x.getMessage());
-             x.printStackTrace();
-             throw new TException(x.getMessage(), x);
-         }
-     }
+
+    /**
+     * Returns all web entities in the index.
+     *
+     * @return web entities
+     * @throws TException hmm
+     */
+    @Override
+    public List<WebEntity> getWebEntities() throws TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntities");
+        }
+        try {
+            return lruIndex.retrieveWebEntities();
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
+    /**
+     * Returns web entities having ids in the given list.
+     * @param list of webentities ids
+     * @return web entities
+     * @throws TException hmm
+     */
+    @Override
+    public List<WebEntity> getWebEntitiesByIDs(List<String> listIDs) throws TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntitiesByIDs");
+        }
+        try {
+            return lruIndex.retrieveWebEntitiesByIDs(listIDs);
+        }
+        catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
 
     /**
      * Retrieves a WebEntity. by its id
@@ -472,10 +472,8 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         try {
             WebEntity found = lruIndex.retrieveWebEntity(id);
             if(found != null && logger.isDebugEnabled()) {
-                if(logger.isDebugEnabled()) {
-                    logger.debug("found webentity with id: " + found.getId());
-                    logger.debug("webentity has # " + found.getLRUSet().size() + " lrus");
-                }
+                logger.debug("found webentity with id: " + found.getId());
+                logger.debug("webentity has # " + found.getLRUSet().size() + " lrus");
             }
             if(found == null) {
                 throw new ObjectNotFoundException().setMsg("Could not find WebEntity with id " + id);
@@ -643,7 +641,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     /**
      * Find the WebEntity which has LRU within its list of prefixes
-     * 
+     *
      * @param prefix prefix to search for
      * @return web entity whose aliases has this prefix
      */
@@ -673,7 +671,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     /**
      * Search which WebEntity matches a LRU (meaning it matches one of its prefixes but none of the entity's subwebentities)
-     * 
+     *
      * @param lru to search for
      * @return web entity associated to this lru
      */
@@ -801,7 +799,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     /**
      * Returns a list of WebEntityLinks having a specific webentity as source
-     * 
+     *
      * @param id id of web entity
      * @return webentities whose source id are this
      */
@@ -827,7 +825,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
 
     /**
      * Returns a list of WebEntityLinks having a specific webentity as target
-     * 
+     *
      * @param  id of the web entity
      * @return List of webentity links whose target id are this
      */

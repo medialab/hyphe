@@ -3,39 +3,37 @@ package fr.sciencespo.medialab.hci.memorystructure.cache;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexConfiguration;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.Constants;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityStatus;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import fr.sciencespo.medialab.hci.memorystructure.util.StringUtil;
 import fr.sciencespo.medialab.hci.memorystructure.util.LRUUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.HashSet;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.set.hash.THashSet;
 
 /**
  * Cache.
  *
- * @author heikki doeleman
+ * @author heikki doeleman, benjamin ooghe-tabanou
  */
 public class Cache {
-	
-	private static DynamicLogger logger = new DynamicLogger(Cache.class);
 
-    // TODO make configurable
+    private static DynamicLogger logger = new DynamicLogger(Cache.class);
     private final int MAX_CACHE_SIZE = Integer.MAX_VALUE;
-
     private final String id;
-    private Map<String, PageItem> pageItems = new HashMap<String, PageItem>();
+    private THashMap<String, PageItem> pageItems = new THashMap<String, PageItem>();
     private LRUIndex lruIndex;
 
 
@@ -97,7 +95,7 @@ public class Cache {
      */
     public void removePageItem(PageItem pageItem) throws ObjectNotFoundException {
         if(logger.isDebugEnabled()) {
-        	logger.trace("removePageItem " + pageItem.getLru());
+            logger.trace("removePageItem " + pageItem.getLru());
         }
         if(this.pageItems.remove(pageItem.getLru()) == null) {
             throw new ObjectNotFoundException().setMsg("Could not find pageItem " + pageItem.getLru() + " in cache with id " + this.id);
@@ -119,20 +117,21 @@ public class Cache {
         }
         WebEntity webEntity = null;
         if(logger.isDebugEnabled()) {
-        	logger.trace("applyWebEntityCreationRule " + rule.getRegExp());
+            logger.trace("applyWebEntityCreationRule " + rule.getRegExp());
         }
         String LRUPrefix = getLRUPrefixAccordingToRule(rule, page.getLru());
         String name;
         if(LRUPrefix == null) {
             LRUPrefix = page.getLru().substring(0, page.getLru().indexOf('|'));
-            name = "OUTSIDE WEB";
+            name = Constants.DEFAULT_WEBENTITY;
+        } else {
+            name = StringUtil.toTitle(LRUUtil.revertLRU(LRUPrefix));
         }
-        name = StringUtil.toTitle(LRUUtil.revertLRU(LRUPrefix));
         webEntity = new WebEntity();
         webEntity.setName(name);
         webEntity.setLRUSet(new HashSet<String>());
         webEntity.addToLRUSet(LRUPrefix);
-        webEntity.setStatus(IndexConfiguration.WEStatus.DISCOVERED.name());
+        webEntity.setStatus(WebEntityStatus.DISCOVERED.name());
         String now = String.valueOf(System.currentTimeMillis());
         webEntity.setCreationDate(now);
         webEntity.setLastModificationDate(now);
@@ -143,28 +142,28 @@ public class Cache {
     private String getLRUPrefixAccordingToRule(WebEntityCreationRule rule, String pageLRU) {
         String LRUPrefix = null;
         // only apply rule to page with lru that match the rule lruprefix (or if this is the default rule)
-        if(pageLRU.startsWith(rule.getLRU()) || rule.getLRU().equals(IndexConfiguration.DEFAULT_WEBENTITY_CREATION_RULE)) {
+        if(pageLRU.startsWith(rule.getLRU()) || rule.getLRU().equals(Constants.DEFAULT_WEBENTITY_CREATION_RULE)) {
             if(logger.isDebugEnabled()) {
-            	logger.debug("page " + pageLRU + " matches rule prefix " + rule.getLRU());
+                logger.debug("page " + pageLRU + " matches rule prefix " + rule.getLRU());
             }
             String regexp = rule.getRegExp();
             Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(pageLRU);
             if(matcher.find()) {
                 if(logger.isDebugEnabled()) {
-                	logger.trace("rule matches page " + pageLRU);
+                    logger.trace("rule matches page " + pageLRU);
                 }
                 LRUPrefix = matcher.group();
             }
             else {
                 if(logger.isDebugEnabled()) {
-                	logger.trace("rule does not match page " + pageLRU);
+                    logger.trace("rule does not match page " + pageLRU);
                 }
             }
         }
         else {
             if(logger.isDebugEnabled()) {
-            	logger.trace("page " + pageLRU + " does not match rule prefix " + rule.getLRU());
+                logger.trace("page " + pageLRU + " does not match rule prefix " + rule.getLRU());
             }
         }
         return LRUPrefix;
@@ -178,15 +177,16 @@ public class Cache {
      * @throws IndexException hmm
      */
     public int createWebEntities() throws MemoryStructureException, IndexException {
-    	logger.trace("createWebEntities");
+        logger.trace("createWebEntities");
         int createdWebEntitiesCount = 0;
         WebEntityCreationRule defaultRule = lruIndex.retrieveDefaultWECR();
         List<WebEntityCreationRule> webEntityCreationRules = lruIndex.retrieveWebEntityCreationRules();
-        Set<String> pageLRUs = this.pageItems.keySet();
-        Set<String> doneLRUPrefixes = new HashSet<String>();
+        THashSet<String> pageLRUs = new THashSet<String>();
+        pageLRUs.addAll(this.pageItems.keySet());
+        THashSet<String> doneLRUPrefixes = new THashSet<String>();
         WebEntity webEntityDefault;
         String ruleLRUPrefix, LRUPrefix;
-        Set<String> LRUPrefixesCandidates;
+        THashSet<String> LRUPrefixesCandidates;
         WebEntity WEcandidate;
         logger.trace("cache contains # " + pageLRUs.size() + " pages");
         for(String pageLRU : pageLRUs) {
@@ -194,7 +194,7 @@ public class Cache {
                 logger.debug("createWebEntities for page " + pageLRU);
             }
             webEntityDefault = applyWebEntityCreationRule(defaultRule, this.pageItems.get(pageLRU));
-            LRUPrefixesCandidates = new HashSet<String>();
+            LRUPrefixesCandidates = new THashSet<String>();
             if (webEntityDefault != null && webEntityDefault.getLRUSet().size() > 0) {
                 LRUPrefixesCandidates.add((String)(webEntityDefault.getLRUSet().toArray())[0]);
             }
@@ -204,12 +204,12 @@ public class Cache {
                     LRUPrefixesCandidates.add(ruleLRUPrefix);
                 }
             }
-            LRUPrefix = (String) (LRUUtil.findLongestString(LRUPrefixesCandidates)).toArray()[0];
+            LRUPrefix = (String) (StringUtil.findLongestString(LRUPrefixesCandidates)).toArray()[0];
             if (!doneLRUPrefixes.contains(LRUPrefix)) {
                 WEcandidate = lruIndex.retrieveWebEntityByLRUPrefix(LRUPrefix);
                 if (WEcandidate == null && webEntityDefault != null) {
                     createdWebEntitiesCount++;
-                    logger.trace("indexing new webentity for prefix "+LRUPrefix);
+                    logger.trace("indexing new webentity for prefix " + LRUPrefix);
                     // store new webentity in index
                     lruIndex.indexWebEntity(webEntityDefault, false, true);
                 }

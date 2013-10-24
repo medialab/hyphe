@@ -7,6 +7,16 @@
 
 namespace java fr.sciencespo.medialab.hci.memorystructure.thrift
 
+const string DEFAULT_WEBENTITY = "OUTSIDE WEB"
+const string DEFAULT_WEBENTITY_CREATION_RULE = "DEFAULT_WEBENTITY_CREATION_RULE"
+
+enum WebEntityStatus {
+  DISCOVERED,
+  UNDECIDED,
+  IN,
+  OUT
+}
+
 exception MemoryStructureException {
   1: string msg,
   2: string stacktrace,

@@ -17,9 +17,8 @@ import org.json.JSONObject;
 import org.json.JSONException;
 import java.io.FileInputStream;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import java.lang.Integer;
+import gnu.trove.map.hash.THashMap;
 
 /**
  * MemoryStructure server.
@@ -69,7 +68,7 @@ public class ThriftServer {
      * @return map of property names and values
      */
     public static int readPrecisionLimitFromProperties() {
-        Map<String, String> propertiesMap = readProperties(true);
+        THashMap<String, String> propertiesMap = readProperties(true);
         return Integer.valueOf(propertiesMap.get("precisionLimit"));
     }
 
@@ -78,15 +77,15 @@ public class ThriftServer {
      *
      * @return map of property names and values
      */
-    private static Map<String, String> readProperties(boolean silent) {
-        Map<String, String> propertiesMap = new HashMap<String, String>();
+    private static THashMap<String, String> readProperties(boolean silent) {
+        THashMap<String, String> propertiesMap = new THashMap<String, String>();
         try {
             String jsonTxt = IOUtils.toString(new FileInputStream("config/config.json"));
             JSONObject json = new JSONObject(jsonTxt);
             JSONObject properties = json.getJSONObject("memoryStructure");
             String[] propertyNames = JSONObject.getNames(properties);
             if (logger.isDebugEnabled()) {
-                logger.info("properties file found");
+                logger.trace("properties file found");
             }
             for(String key : propertyNames) {
                 propertiesMap.put(key, properties.getString(key));
@@ -102,7 +101,7 @@ public class ThriftServer {
         }
         if (!silent && logger.isDebugEnabled()) {
             for(String key : propertiesMap.keySet()) {
-                logger.info("read property from config.json: " + key + " = " + propertiesMap.get(key));
+                logger.trace("read property from config.json: " + key + " = " + propertiesMap.get(key));
             }
         }
         return propertiesMap;
@@ -114,8 +113,8 @@ public class ThriftServer {
      * @param args command line arguments
      * @return map of property names and values
      */
-    private static Map<String, String> readCL(String[] args) {
-        Map<String, String> propertiesMap = new HashMap<String, String>();
+    private static THashMap<String, String> readCL(String[] args) {
+        THashMap<String, String> propertiesMap = new THashMap<String, String>();
         for(String parameter : args) {
             String property = parameter.substring(0, parameter.indexOf('='));
             String value = parameter.substring(parameter.indexOf('=')+1);
@@ -123,7 +122,7 @@ public class ThriftServer {
         }
         if (logger.isDebugEnabled()) {
             for(String key : propertiesMap.keySet()) {
-                logger.info("read property from command line: " + key + " = " + propertiesMap.get(key));
+                logger.trace("read property from command line: " + key + " = " + propertiesMap.get(key));
             }
         }
         return propertiesMap;
@@ -136,8 +135,8 @@ public class ThriftServer {
     private static void initializeMemoryStructure(String[] args) {
 
 
-        Map<String, String> resolvedProperties = new HashMap<String, String>(readProperties(false));
-        Map<String, String> propertiesFromCL = readCL(args);
+        THashMap<String, String> resolvedProperties = new THashMap<String, String>(readProperties(false));
+        THashMap<String, String> propertiesFromCL = readCL(args);
         for(String key : propertiesFromCL.keySet()) {
             resolvedProperties.put(key, propertiesFromCL.get(key));
         }
@@ -211,7 +210,7 @@ public class ThriftServer {
 
         // choice of server guided by https://github.com/m1ch1/mapkeeper/wiki/Thrift-Java-Servers-Compared
         // choice of protocol guided by http://jnb.ociweb.com/jnb/jnbJun2009.html
-        // TODO: tryouts on heavy hyphe, local experiments give favor to THsHa + Binary
+        // TODO: tryouts on heavy Hyphe instances, local experiments give favor to THsHa + Binary
 
         TNonblockingServerTransport serverTransport = new TNonblockingServerSocket(port);
         //TServerTransport serverTransport = new TServerSocket(port);

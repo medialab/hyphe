@@ -1,14 +1,12 @@
 package fr.sciencespo.medialab.hci.memorystructure.util;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-
 import fr.sciencespo.medialab.hci.memorystructure.thrift.ThriftServer;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
+
+import org.apache.commons.lang.StringUtils;
+import java.util.List;
+import java.util.Scanner;
+
 
 /**
  * Utility methods for LRUs.
@@ -17,13 +15,35 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
  */
 public class LRUUtil {
 
-	public static int PRECISION_LIMIT = ThriftServer.readPrecisionLimitFromProperties();
+    public static int PRECISION_LIMIT = ThriftServer.readPrecisionLimitFromProperties();
+
+    public static String getLimitedStemsLRU(String lru, int limit) {
+        String[] ps = lru.split("\\|");
+        String n = "";
+        int skip = 0;
+        for(int i = 0; i < ps.length && i-skip < limit; i++) {
+            n += ps[i] + "|";
+            if (ps[i].startsWith("s") || ps[i].startsWith("h")) {
+                skip++;
+            }
+        }
+        n = n.substring(0, n.length()-1);
+        return n;
+    }
+
+    /*   UNUSED, this logic was moved to the python core API instead
 
     public static String getPrecisionLimitNode(String lru) {
         return getLimitedStemsLRU(lru, PRECISION_LIMIT);
     }
 
-    public static String getTLD(String lru) {
+    public static boolean isPrecisionLimitNode(String lru) {
+        return lru.split("\\|").length <= PRECISION_LIMIT;
+    }
+
+    */
+
+    public static String getLRUHead(String lru) {
         String[] ps = lru.split("\\|");
         String n = "";
         int i = 0;
@@ -34,24 +54,6 @@ public class LRUUtil {
         n = n.substring(0, n.length()-1);
         return n;
     }
-
-	public static String getLimitedStemsLRU(String lru, int limit) {
-	    String[] ps = lru.split("\\|");
-	    String n = "";
-	    int skip = 0;
-	    for(int i = 0; i < ps.length && i-skip < limit; i++) {
-	        n += ps[i] + "|";
-	        if (ps[i].startsWith("s") || ps[i].startsWith("h")) {
-                skip++;
-            }
-	    }
-	    n = n.substring(0, n.length()-1);
-	    return n;
-	}
-
-	public static boolean isPrecisionLimitNode(String lru) {
-	    return lru.split("\\|").length <= PRECISION_LIMIT;
-	}
 
     public static boolean LRUBelongsToWebentity(String lru, WebEntity webEntity, List<WebEntity> subWEs) {
         for (WebEntity sub : subWEs) {
@@ -141,37 +143,5 @@ public class LRUUtil {
         }
         return url;
     }
-
-	/**
-	 * Returns a set of the longest strings in a set. If the input is empty, returns a set containing the empty string.
-	 * TODO the longest token not string length
-	 * @param strings strings
-	 * @return the longest string(s)
-	 */
-	public static Set<String> findLongestString(Set<String> strings) {
-	    Set<String> longests = new HashSet<String>();
-	    String longest = "";
-	    longests.add(longest);
-	    if(strings != null) {
-	        // for each string
-	        for(String s : strings) {
-	            // if longer than longest seen before
-	            if(s.length() > longest.length()) {
-	                // clear previous results
-	                longests.clear();
-	                // now this is the longest
-	                longest = s;
-	                // add to results
-	                longests.add(longest);
-	            }
-	            // if equal length to longest seen before
-	            else if(s.length() == longest.length()) {
-	                // add to results
-	                longests.add(s);
-	            }
-	        }
-	    }
-	    return longests;
-	}
 
 }

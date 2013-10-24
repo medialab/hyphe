@@ -1,6 +1,8 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
+import fr.sciencespo.medialab.hci.memorystructure.thrift.Constants;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityStatus;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
@@ -19,7 +21,7 @@ import java.util.Set;
 /**
  * Lucene queries used in the LRUIndex.
  *
- * @author heikki doeleman
+ * @author heikki doeleman, benjamin ooghe-tabanou
  */
 public class LuceneQueryFactory {
 
@@ -32,10 +34,10 @@ public class LuceneQueryFactory {
     private static Term typeEqualWebEntityLink = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_LINK.name());
     private static Term typeEqualWebEntityNodeLink = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_NODE_LINK.name());
     private static Term typeEqualWebEntityCreationRule = new Term(IndexConfiguration.FieldName.TYPE.name(), IndexConfiguration.DocType.WEBENTITY_CREATION_RULE.name());
-    private static Term lruEqualDefaultWebEntityCreationRule = new Term(IndexConfiguration.FieldName.LRU.name(), IndexConfiguration.DEFAULT_WEBENTITY_CREATION_RULE);
+    private static Term lruEqualDefaultWebEntityCreationRule = new Term(IndexConfiguration.FieldName.LRU.name(), Constants.DEFAULT_WEBENTITY_CREATION_RULE);
 
     protected static Query getObjectItemByFieldQuery(Term objectTypeQueryTerm, IndexConfiguration.FieldName fieldName, String fieldValue) {
-    	BooleanQuery q = new BooleanQuery();
+        BooleanQuery q = new BooleanQuery();
         Query q1 = new TermQuery(objectTypeQueryTerm);
         Query q2 = getWildcardManagedQuery(fieldName.name(), fieldValue);
         q.add(q1, BooleanClause.Occur.MUST);
@@ -50,12 +52,12 @@ public class LuceneQueryFactory {
         return getObjectItemByFieldQuery(typeEqualPageItem, fieldName, fieldValue);
     }
 
-    protected static Query getPageItemByURLQuery(String url) {
-        return getPageItemByFieldQuery(IndexConfiguration.FieldName.URL, url);
-    }
-
     protected static Query getPageItemByLRUQuery(String lru) {
         return getPageItemByFieldQuery(IndexConfiguration.FieldName.LRU, lru);
+    }
+
+    protected static Query getPageItemByURLQuery(String url) {
+        return getPageItemByFieldQuery(IndexConfiguration.FieldName.URL, url);
     }
 
     protected static Query getNodeLinkByFieldQuery(IndexConfiguration.FieldName fieldName, String fieldValue) {
@@ -83,9 +85,9 @@ public class LuceneQueryFactory {
         Query q1 = new TermQuery(typeEqualWebEntity);
         BooleanQuery q2 = new BooleanQuery();
         q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.TAG_NAMESPACE.name(), "CORE")), BooleanClause.Occur.SHOULD);
-        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), IndexConfiguration.WEStatus.UNDECIDED.name().toLowerCase())), BooleanClause.Occur.SHOULD);
-        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), IndexConfiguration.WEStatus.IN.name().toLowerCase())), BooleanClause.Occur.SHOULD);
-        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), IndexConfiguration.WEStatus.OUT.name().toLowerCase())), BooleanClause.Occur.SHOULD);
+        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), WebEntityStatus.UNDECIDED.name().toLowerCase())), BooleanClause.Occur.SHOULD);
+        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), WebEntityStatus.IN.name().toLowerCase())), BooleanClause.Occur.SHOULD);
+        q2.add(new TermQuery(new Term(IndexConfiguration.FieldName.STATUS.name(), WebEntityStatus.OUT.name().toLowerCase())), BooleanClause.Occur.SHOULD);
         q.add(q1, BooleanClause.Occur.MUST);
         q.add(q2, BooleanClause.Occur.MUST);
         return q;
@@ -171,19 +173,19 @@ public class LuceneQueryFactory {
     * @return
     * @throws IndexException hmm
     */
-	protected static Query getNodeLinkBySourceAndTargetQuery(String source, String target) throws IndexException {
-		BooleanQuery q = new BooleanQuery();
-		TermQuery q1 = new TermQuery(typeEqualNodeLink);
-		TermQuery q2 = new TermQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), source));
-		TermQuery q3 = new TermQuery(new Term(IndexConfiguration.FieldName.TARGET.name(), target));
-		q.add(q1, BooleanClause.Occur.MUST);
-		q.add(q2, BooleanClause.Occur.MUST);
-		q.add(q3, BooleanClause.Occur.MUST);
-		if (logger.isDebugEnabled()) {
-			logger.debug("Lucene query: " + q.toString());
-		}
-		return q;
-	}
+    protected static Query getNodeLinkBySourceAndTargetQuery(String source, String target) throws IndexException {
+        BooleanQuery q = new BooleanQuery();
+        TermQuery q1 = new TermQuery(typeEqualNodeLink);
+        TermQuery q2 = new TermQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), source));
+        TermQuery q3 = new TermQuery(new Term(IndexConfiguration.FieldName.TARGET.name(), target));
+        q.add(q1, BooleanClause.Occur.MUST);
+        q.add(q2, BooleanClause.Occur.MUST);
+        q.add(q3, BooleanClause.Occur.MUST);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Lucene query: " + q.toString());
+        }
+        return q;
+    }
 
     protected static Query getNodeLinksMatchingWebEntityButNotMatchingSubWebEntities(WebEntity webEntity, List<WebEntity> subWebEntities, Boolean includeExternalLinks) {
         BooleanQuery q = new BooleanQuery();
@@ -379,7 +381,7 @@ public class LuceneQueryFactory {
             q.add(new TermQuery(typeEqualPageItem), BooleanClause.Occur.MUST);
         }
         if(logger.isDebugEnabled()) {
-            logger.info("Lucene query: " + q.toString());
+            logger.debug("Lucene query: " + q.toString());
         }
         return q;
     }
@@ -398,7 +400,7 @@ public class LuceneQueryFactory {
      */
     protected static Query getWebEntityCreationRuleByLRUQuery(String lru) {
         if(lru == null) {
-            lru = IndexConfiguration.DEFAULT_WEBENTITY_CREATION_RULE;
+            lru = Constants.DEFAULT_WEBENTITY_CREATION_RULE;
         }
         BooleanQuery q = new BooleanQuery();
         Query q1 = new TermQuery(typeEqualWebEntityCreationRule);
@@ -457,7 +459,7 @@ public class LuceneQueryFactory {
      * @return
      */
     protected static Query getWebEntityLinkBySourceAndTargetQuery(String source, String target) {
-    	BooleanQuery q = new BooleanQuery();
+        BooleanQuery q = new BooleanQuery();
         Query q1 = new TermQuery(typeEqualWebEntityLink);
         Query q2 = new TermQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), source));
         Query q3 = new TermQuery(new Term(IndexConfiguration.FieldName.TARGET.name(), target));
@@ -508,18 +510,18 @@ public class LuceneQueryFactory {
      * @throws ParseException
      */
     protected static Query getWildcardManagedQuery(String field, String value) {
-    	Term prefixTerm = new Term(field, value);
-    	// prefix query
+        Term prefixTerm = new Term(field, value);
+        // prefix query
         if(value != null && value.endsWith("*")) {
             return new PrefixQuery(new Term(field, value.substring(0, value.length() - 1)));
         }
         // wildcard query
         if (value != null && (value.contains("*") || value.contains("?"))) {
-        	return new WildcardQuery(prefixTerm);
+            return new WildcardQuery(prefixTerm);
         }
         // no-wildcard query (faster)
         else {
-        	return new TermQuery(prefixTerm);
+            return new TermQuery(prefixTerm);
         }
     }
 }

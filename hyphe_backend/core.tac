@@ -15,8 +15,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from thrift.Thrift import TException
 from thrift.transport.TSocket import TSocket
 from hyphe_backend import processor
-from hyphe_backend.memorystructure import MemoryStructure as ms
-from hyphe_backend.memorystructure.ttypes import *
+from hyphe_backend.memorystructure import MemoryStructure as ms, constants as ms_const
 from hyphe_backend.lib import config_hci, urllru, gexf, user_agents
 from hyphe_backend.lib.thriftpool import *
 from hyphe_backend.lib.jsonrpc_utils import *
@@ -243,8 +242,8 @@ class Core(jsonrpc.JSONRPC):
             WE['pages'] = [urllru.lru_to_url(lru) for lru in WE['lrus']]
         if is_error(WE):
             returnD(WE)
-        if WE['status'] == "DISCOVERED":
-            yield self.store.jsonrpc_set_webentity_status(webentity_id, "UNDECIDED")
+        if WE['status'] == ms.WebEntityStatus._VALUES_TO_NAMES(ms.WebEntityStatus.DISCOVERED):
+            yield self.store.jsonrpc_set_webentity_status(webentity_id, ms.WebEntityStatus._VALUES_TO_NAMES(ms.WebEntityStatus.UNDECIDED))
         yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
         res = yield self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], config['discoverPrefixes'], maxdepth)
         returnD(res)
@@ -477,7 +476,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         rules = self.msclient_sync.getWebEntityCreationRules()
         if is_error(rules) or len(rules) == 0:
             print "Saves default WE creation rule"
-            self.msclient_sync.addWebEntityCreationRule(WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
+            self.msclient_sync.addWebEntityCreationRule(ms.WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
 
     def jsonrpc_reinitialize(self):
         try:
@@ -520,7 +519,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         is_node = urllru.lru_is_node(lru, config["precisionLimit"], self.precision_exceptions)
         is_full_precision = urllru.lru_is_full_precision(lru, self.precision_exceptions)
         t = str(int(time.time()*1000))
-        page = PageItem("%s/%s" % (lru, t), url, lru, t, None, -1, None, ['USER'], is_full_precision, is_node, {})
+        page = ms.PageItem("%s/%s" % (lru, t), url, lru, t, None, -1, None, ['USER'], is_full_precision, is_node, {})
         cache_id = self.msclient_sync.createCache([page])
         if is_error(cache_id):
             return cache_id
@@ -557,7 +556,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if not name:
                 name = urllru.url_shorten(url)
             lru_prefixes_list.append(lru)
-        WE = WebEntity(None, lru_prefixes_list, name)
+        WE = ms.WebEntity(None, lru_prefixes_list, name)
         res = self.msclient_sync.updateWebEntity(WE)
         if is_error(res):
             return res
@@ -732,7 +731,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_delete_webentity(self, webentity_id):
         WE = self.msclient_sync.getWebEntity(webentity_id)
         if is_error(WE):
-            return format_error('ERROR retrieving WebEntity with id %s' % webentity_id)
+            return format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id)
         res = self.msclient_sync.deleteWebEntity(WE)
         if is_error(res):
             return res
@@ -760,7 +759,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             s=time.time()
             nb_links = len(links)
             for link_list in [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]:
-                res = yield self.msclient_loop.saveNodeLinks([NodeLink("id",source,target,weight) for source,target,weight in link_list])
+                res = yield self.msclient_loop.saveNodeLinks([ms.NodeLink("id",source,target,weight) for source,target,weight in link_list])
                 if is_error(res):
                     print res['message']
                     returnD(False)
@@ -970,7 +969,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_get_webentities_by_status(self, status):
         status = status.lower()
-        valid_statuses = ['in', 'out', 'undecided', 'discovered']
+        valid_statuses = [s.lower() for s in ms.WebEntityStatus._NAMES_TO_VALUES]
         if status not in valid_statuses:
             returnD(format_error("ERROR: status argument must be one of %s" % ",".join(valid_statuses)))
         return self.jsonrpc_exact_search_webentities(status, 'STATUS')
@@ -1002,7 +1001,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WE = yield self.msclient_pool.findWebEntityByLRUPrefix(lru_prefix)
         if is_error(WE):
             returnD(WE)
-        if WE.name == "OUTSIDE WEB":
+        if WE.name == ms_const.DEFAULT_WEBENTITY:
             returnD(format_error("No matching WebEntity found for lruprefix %s" % lru_prefix))
         returnD(format_result(self.format_webentity(WE)))
 
@@ -1022,7 +1021,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WE = yield self.msclient_pool.findWebEntityMatchingLRU(lru)
         if is_error(WE):
             returnD(WE)
-        if WE.name == "OUTSIDE WEB":
+        if WE.name == ms_const.DEFAULT_WEBENTITY:
             returnD(format_error("No matching WebEntity found for url %s" % url))
         returnD(format_result(self.format_webentity(WE)))
 
@@ -1084,7 +1083,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WE = yield self.msclient_pool.findWebEntityMatchingLRUPrefix(lru)
         if is_error(WE):
             returnD(WE)
-        if WE.name == "OUTSIDE WEB":
+        if WE.name == ms_const.DEFAULT_WEBENTITY:
             returnD(format_error("No matching WebEntity found for url %s" % url))
         returnD(format_result(self.format_webentity(WE)))
 
