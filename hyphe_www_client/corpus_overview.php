@@ -15,6 +15,15 @@
         <link rel="stylesheet" href="css/select2.css">
         <link rel="stylesheet" href="css/main.css">
 
+        <style>
+            .block{
+                background-color: #EEE;
+                padding: 20px;
+                height: 200px;
+                margin-bottom: 30px;
+            }
+        </style>
+
         <script src="js/libs/modernizr-2.6.1-respond-1.1.0.min.js"></script>
     </head>
     <body>
@@ -42,7 +51,57 @@
 
             <div class="row">
                 <div class="span4">
-                    
+                    <div class="block">
+                        "Paste your addresses"
+                    </div>
+                </div>
+                <div class="span8">
+                    <div class="block">
+                        Solve issues related to web entities definition
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="span8">
+                    <div class="block">
+                        Network visualization
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="block">
+                        Network viz settings (filtering...)
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="span4">
+                    <div class="block">
+                        To be crawled
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="block">
+                        Pending and running crawl jobs
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="block">
+                        Web entities suggestion (prospection)
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="span12">
+                    <div class="block">
+                        Corpus as a list (refining and qualifying)
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="span12">
+                    <div class="block">
+                        Export
+                    </div>
                 </div>
             </div>
             
