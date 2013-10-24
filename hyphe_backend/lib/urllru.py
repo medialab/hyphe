@@ -215,6 +215,9 @@ def lru_get_head(lru, precision_exceptions = []):
     possible_result = ""
     for precision_exception in precision_exceptions:
         if lru.startswith(precision_exception) and len(precision_exception) > len(possible_result):
+            #Temporary Fix until LRU ending with | added
+            if precision_exception.endswith('|p:'):
+                precision_exception = precision_exception[:-3]
             possible_result = precision_exception
     if possible_result:
         return possible_result
