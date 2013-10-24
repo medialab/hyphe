@@ -175,6 +175,7 @@
 			tlds.rules.forEach(function(tld){
 				var tld_split = tld.split('.').reverse()
 					,match_flag = true
+					,i
 					
 					for(i in tld_split){
 						if(tld_candidate_split.length < i){

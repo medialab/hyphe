@@ -1,8 +1,6 @@
 HypheCommons.js_file_init()
 HypheCommons.domino_init()
 
-domino.settings({verbose:false})
-
 ;(function($, domino, dmod, undefined){
     
     // RPC config of this page
@@ -704,9 +702,10 @@ domino.settings({verbose:false})
         var cascade = function(provider, e){
             var queriesLimit = provider.get('queriesLimit')
                 ,currentQueries = provider.get('currentQueries')
+                ,queryIndex
 
-            for(i = 0; i < queriesLimit - currentQueries; i++){
-
+            for(queryIndex = 0; queryIndex < queriesLimit - currentQueries; queryIndex++){
+                
                 // 1. Fill prefixes
 
                 var waitingForPrefixes = $('.col-prefixes[data-status=waiting]')
@@ -756,7 +755,6 @@ domino.settings({verbose:false})
                 } else {
 
                     // 2. Then it's over
-                    
                     _self.dispatchEvent('cascadeFinished', {})
                 }
             }
