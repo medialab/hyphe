@@ -227,7 +227,13 @@ def lru_get_head(lru, precision_exceptions = []):
 def lru_is_node(lru, precision_limit = 1, precision_exceptions = [], lru_head = None):
     if not lru_head:
         lru_head = lru_get_head(lru, precision_exceptions)
-    return (len(split_lru_in_stems(lru.replace(lru_head, '').strip('|'), False)) <= precision_limit)
+    #Temporary Fix until LRU ending with | added
+    try:
+        return (len(split_lru_in_stems(lru.replace(lru_head, '').strip('|'), False)) <= precision_limit)
+    except Exception as e:
+        print lru, lru_head
+        print e
+        return True
 
 # Get a LRU's node
 def lru_get_node(lru, precision_limit = 1, precision_exceptions = [], lru_head = None) :
