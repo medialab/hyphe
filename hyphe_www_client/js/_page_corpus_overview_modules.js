@@ -34,12 +34,17 @@
         	,networkUpdatedEvent = options['networkUpdatedEvent']
         	,container = options['element'] || $('<div/>')
         	,pending = options['pendingStateProperty'] || false
+        	,pendingStateUpdatedEvent = options['pendingStateUpdatedEvent']
         	,pendingMessage = options['pendingMessage'] || 'Loading...'
 
-        container.html('<div class="sigma-parent"><div class="sigma-expand"></div></div>')
+        container.html('<div class="sigma-parent"><div class="sigma-expand"></div><div class="sigma-overlay"></div></div>')
         
         var showPending = function(){
-        	container.find('.sigma-expand').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
+        	container.find('.sigma-overlay').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
+        }
+
+        var hidePending = function(){
+        	container.find('.sigma-overlay').html('')
         }
 
         var rescale = function(){
@@ -80,6 +85,15 @@
             })
 
             rescale()
+        }
+
+        this.triggers.events[pendingStateUpdatedEvent] = function(provider, e){
+        	pending = provider.get(options['pendingStateProperty'])
+        	if(pending){
+	        	showPending()
+	        } else {
+	        	hidePending()
+	        }
         }
 
         // Initialization

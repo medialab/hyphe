@@ -23,6 +23,13 @@
                 margin-bottom: 30px;
             }
 
+            /* Network Settings */
+            #networkSettings{
+                background-color: #EEE;
+                height: 350px;
+                margin-bottom: 30px;
+            }
+
             /* sigma */
             .sigma-parent {
                 position: relative;
@@ -55,6 +62,11 @@
                 height: 100%;
                 top: 0;
                 left: 0;
+            }
+
+            .sigma-overlay {
+                position: absolute;
+                width: 100%;
             }
         </style>
 
@@ -101,7 +113,7 @@
                     </div>
                 </div>
                 <div class="span4">
-                    <div class="block">
+                    <div id="networkSettings">
                         Network viz settings (filtering...)
                     </div>
                 </div>

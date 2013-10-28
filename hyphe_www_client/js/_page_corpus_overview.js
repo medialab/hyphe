@@ -70,6 +70,12 @@ HypheCommons.domino_init()
                         })
                     }
                 }
+            },{
+                // When the network is updated, sigma stops being pending
+                triggers: ['networkJson_updated']
+                ,method: function(){
+                    this.update('sigmaPending', false)
+                }
             }
         ]
     })
