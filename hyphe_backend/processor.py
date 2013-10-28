@@ -26,7 +26,7 @@ def generate_cache_from_pages_list(pageList, precision_limit = 1, precision_exce
         nodes[node_lru] = 1
         # Create index of crawled pages from queue
         if page_item["lru"] not in pages:
-            pages[page_item["lru"]] = ms.PageItem(str(page_item["_id"]), page_item["url"].encode('utf8'), page_item["lru"].encode('utf8'), str(page_item["timestamp"]), int(page_item["status"]), int(page_item["depth"]), str(page_item["error"]), ['CRAWL'], is_full_precision, is_node, {})
+            pages[page_item["lru"]] = ms.PageItem(page_item["url"].encode('utf8'), page_item["lru"].encode('utf8'), str(page_item["timestamp"]), int(page_item["status"]), int(page_item["depth"]), str(page_item["error"]), ['CRAWL'], is_full_precision, is_node, {})
         else:
             if 'CRAWL' not in pages[page_item["lru"]].sourceSet:
                 pages[page_item["lru"]].sourceSet.append('CRAWL')
@@ -44,7 +44,7 @@ def generate_cache_from_pages_list(pageList, precision_limit = 1, precision_exce
 # check False {} errorcode
                 if lrulink not in pages:
                     try:
-                        pages[lrulink] = ms.PageItem(str(page_item["_id"])+"_"+str(index), urllru.lru_to_url(lrulink), lrulink.encode('utf-8'), str(page_item["timestamp"]), None, int(page_item["depth"])+1, None, ['LINK'], is_full_precision, is_node, {})
+                        pages[lrulink] = ms.PageItem(urllru.lru_to_url(lrulink), lrulink.encode('utf-8'), str(page_item["timestamp"]), None, int(page_item["depth"])+1, None, ['LINK'], is_full_precision, is_node, {})
                     except ValueError as e:
                         print "Skipping link to misformatted URL : %s" % lrulink
                         if verbose:

@@ -242,8 +242,8 @@ class Core(jsonrpc.JSONRPC):
             WE['pages'] = [urllru.lru_to_url(lru) for lru in WE['lrus']]
         if is_error(WE):
             returnD(WE)
-        if WE['status'] == ms.WebEntityStatus._VALUES_TO_NAMES(ms.WebEntityStatus.DISCOVERED):
-            yield self.store.jsonrpc_set_webentity_status(webentity_id, ms.WebEntityStatus._VALUES_TO_NAMES(ms.WebEntityStatus.UNDECIDED))
+        if WE['status'] == ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.DISCOVERED]:
+            yield self.store.jsonrpc_set_webentity_status(webentity_id, ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.UNDECIDED])
         yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
         res = yield self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], config['discoverPrefixes'], maxdepth)
         returnD(res)
@@ -506,7 +506,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def handle_lru_precision_exceptions(self, lru_prefix):
         lru_head = urllru.lru_get_head(lru_prefix, self.precision_exceptions)
-        if not urllru.lru_is_node(lru_prefix, config["precisionLimit"], lru_head=lru_head) and lru_prefix.strip('|') != lru_head:
+        if not urllru.lru_is_node(lru_prefix, config["precisionLimit"], lru_head=lru_head) and lru_prefix != lru_head:
             self.msclient_sync.addPrecisionExceptions([lru_prefix])
             self.precision_exceptions.append(lru_prefix)
 
@@ -519,7 +519,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         is_node = urllru.lru_is_node(lru, config["precisionLimit"], self.precision_exceptions)
         is_full_precision = urllru.lru_is_full_precision(lru, self.precision_exceptions)
         t = str(int(time.time()*1000))
-        page = ms.PageItem("%s/%s" % (lru, t), url, lru, t, None, -1, None, ['USER'], is_full_precision, is_node, {})
+        page = ms.PageItem(url, lru, t, None, -1, None, ['USER'], is_full_precision, is_node, {})
         cache_id = self.msclient_sync.createCache([page])
         if is_error(cache_id):
             return cache_id
@@ -550,7 +550,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 url, lru = urllru.lru_clean_and_convert(lru, False)
             except ValueError as e:
                 return format_error(e)
-            existing = self.msclient_sync.getWebEntityByLRUPrefix(lru_prefix)
+            existing = self.msclient_sync.getWebEntityByLRUPrefix(lru)
             if not is_error(existing):
                 return format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (lru, existing))
             if not name:
@@ -759,7 +759,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             s=time.time()
             nb_links = len(links)
             for link_list in [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]:
-                res = yield self.msclient_loop.saveNodeLinks([ms.NodeLink("id",source,target,weight) for source,target,weight in link_list])
+                res = yield self.msclient_loop.saveNodeLinks([ms.NodeLink(source,target,weight) for source,target,weight in link_list])
                 if is_error(res):
                     print res['message']
                     returnD(False)
@@ -1018,7 +1018,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             url, lru = urllru.lru_clean_and_convert(lru)
         except ValueError as e:
             returnD(format_error(e))
-        WE = yield self.msclient_pool.findWebEntityMatchingLRU(lru)
+        WE = yield self.msclient_pool.findWebEntityMatchingLRUPrefix(lru)
         if is_error(WE):
             returnD(WE)
         if WE.name == ms_const.DEFAULT_WEBENTITY:

@@ -39,7 +39,7 @@ def uri_recode_query(query):
     return "&".join(["%s=%s" % (uri_recode(elements[1+3*i]), uri_recode(elements[2+3*i])) for i in range(len(elements[1:])/3)])
 
 def split_lru_in_stems(lru, check=True):
-    elements = lruStems.split(lru)
+    elements = lruStems.split(lru.rstrip("|"))
     if not check and len(elements) < 2:
         return []
     if len(elements) < 2 or elements[0] != '' or (check and (len(elements) < 6 or elements[1] != 's' or elements[5] != 'h')):
@@ -64,10 +64,12 @@ def url_to_lru(url, encode_utf8=True):
     """
     Convert a URL to a LRU
     >>> url_to_lru("http://www.google.com/search?q=text&p=2")
-    's:http|t:80|h:com|h:google|h:www|p:search|q:q=text&p=2'
+    's:http|t:80|h:com|h:google|h:www|p:search|q:q=text&p=2|'
     """
-
-    lru = lruFullPattern.match(url)
+    try:
+        lru = lruFullPattern.match(url)
+    except:
+        raise ValueError("Not an url: %s" % url)
     if lru:
         scheme, authority, path, query, fragment = lru.groups()
         if lruSchemePattern.match(scheme) and authority:
@@ -95,7 +97,7 @@ def url_to_lru(url, encode_utf8=True):
                         return res_lru.encode('utf-8')
                     except:
                         pass
-                return res_lru
+                return add_trailing_pipe(res_lru)
     raise ValueError("Not an url: %s" % url)
 
 def url_to_lru_clean(url, encode_utf8=True):
@@ -104,9 +106,9 @@ def url_to_lru_clean(url, encode_utf8=True):
 def lru_to_url(lru, encode_utf8=True, nocheck=False):
     """
     Convert a LRU to a URL
-    >>> lru_to_url('s:http|t:80|h:com|h:google|h:www|p:search')
+    >>> lru_to_url('s:http|t:80|h:com|h:google|h:www|p:search|')
     'http://www.google.com/search'
-    >>> lru_to_url('s:http|t:80|h:com|h:google|h:www|p:search|q:q=text&p=2')
+    >>> lru_to_url('s:http|t:80|h:com|h:google|h:www|p:search|q:q=text&p=2|')
     #'http://www.google.com/search?q=text&p=2'
     """
 
@@ -114,6 +116,7 @@ def lru_to_url(lru, encode_utf8=True, nocheck=False):
         raise ValueError("Not an lru: %s" % lru)
 
     stem_types = []
+    lru = lru.rstrip("|")
     lru_list = [[k, t] for k, t, _ in split_lru_in_stems(lru)]
     for stem in lru_list:
         if stem[0] not in stem_types:
@@ -159,14 +162,14 @@ def lru_clean_and_convert(lru, url_encode_utf8=True):
 
 # Removing port if 80 (http) or 443 (https):
 def lru_strip_standard_ports(lru):
-    return "|".join([stem for _, _, stem in split_lru_in_stems(lru, False) if not stem in ['t:80', 't:443']])
+    return add_trailing_pipe("|".join([stem for _, _, stem in split_lru_in_stems(lru, False) if not stem in ['t:80', 't:443']]))
 
 def lru_lowerize_host(lru):
-    return "|".join([stem.lower() if k in ['s', 'h'] else stem for k,_, stem in split_lru_in_stems(lru)])
+    return add_trailing_pipe("|".join([stem.lower() if k in ['s', 'h'] else stem for k,_, stem in split_lru_in_stems(lru)]))
 
 # Removing subdomain if www:
 def lru_strip_www(lru):
-    return "|".join([stem for k, t, stem in split_lru_in_stems(lru) if k != 'h' or t != "www" ])
+    return add_trailing_pipe("|".join([stem for k, t, stem in split_lru_in_stems(lru) if k != 'h' or t != "www" ]))
 
 # Removing slash at the end if ending with path or host stem:
 re_host_trailing_slash = re.compile(r'(h:[^\|]*)\|p:\|?$')
@@ -174,13 +177,13 @@ def lru_strip_host_trailing_slash(lru):
     return re_host_trailing_slash.sub(r'\1', lru)
 
 # Remove slash at the end of path for webentity defining lru prefixes:
-re_path_trailing_slash = re.compile(r'(\|p:)+\|?$')
+re_path_trailing_slash = re.compile(r'(p:\|?)+$')
 def lru_strip_path_trailing_slash(lru):
     return re_path_trailing_slash.sub(r'\1', lru)
 
 # Removing anchors:
 def lru_strip_anchors(lru) :
-    return "|".join([stem for k, _, stem in split_lru_in_stems(lru) if k != "f"])
+    return add_trailing_pipe("|".join([stem for k, _, stem in split_lru_in_stems(lru) if k != "f"]))
 
 # Order query parameters alphabetically:
 queryRegexp = re.compile(r"\|q:([^|]*)")
@@ -189,32 +192,39 @@ def lru_reorder_query(lru) :
     if match is not None and match.group(1) is not None :
         res = match.group(1).split("&")
         res.sort()
-        return lru.replace(match.group(1), "&".join(res))
-    return lru
+        lru = lru.replace(match.group(1), "&".join(res))
+    return add_trailing_pipe(lru)
 
 def lru_uriencode(lru):
-    return "|".join(["%s:%s" % (k, uri_recode(t, safechars=('/+' if k == 'p' else ''), query=(k=='q'))) if k in ['p', 'q', 'f'] else stem for k, t, stem in split_lru_in_stems(lru)])
+    return add_trailing_pipe("|".join(["%s:%s" % (k, uri_recode(t, safechars=('/+' if k == 'p' else ''), query=(k=='q'))) if k in ['p', 'q', 'f'] else stem for k, t, stem in split_lru_in_stems(lru)]))
+
+def add_trailing_pipe(lru):
+    if not lru.endswith("|"):
+        lru += "|"
+    return lru
 
 #Clean LRU by applying selection of previous filters
 def lru_clean(lru):
     lru = lru_strip_standard_ports(lru)
     lru = lru_lowerize_host(lru)
 #    lru = lru_strip_www(lru)
-    lru = lru_host_strip_trailing_slash(lru)
+    lru = lru_strip_host_trailing_slash(lru)
 #    lru = lru_strip_anchors(lru)
 #    lru = lru_reorder_query(lru)
-    return lru_uriencode(lru)
+    lru = lru_uriencode(lru)
+    lru = add_trailing_pipe(lru)
+    return lru
 
 def lru_is_full_precision(lru, precision_exceptions = []):
     return (lru in precision_exceptions)
 
 re_host_lru = re.compile(r'(([sth]:[^|]*(\||$))+)', re.I)
 def lru_get_host_url(lru):
-    return lru_to_url(re_host_lru.match(lru).group(1).strip('|'), False)
+    return lru_to_url(re_host_lru.match(lru).group(1), False)
 
 re_path_lru = re.compile(r'(([sthp]:[^|]*(\||$))+)', re.I)
 def lru_get_path_url(lru):
-    return lru_to_url(re_path_lru.match(lru).group(1).strip('|'), False)
+    return lru_to_url(re_path_lru.match(lru).group(1), False)
 
 def lru_get_head(lru, precision_exceptions = []):
     possible_result = ""
@@ -223,22 +233,22 @@ def lru_get_head(lru, precision_exceptions = []):
             possible_result = precision_exception
     if possible_result:
         return possible_result
-    return re_host_lru.match(lru).group(1).strip('|')
+    return add_trailing_pipe(re_host_lru.match(lru).group(1))
 
 # Identify links which are nodes
 def lru_is_node(lru, precision_limit = 1, precision_exceptions = [], lru_head = None):
     if not lru_head:
         lru_head = lru_get_head(lru, precision_exceptions)
-    return (len(split_lru_in_stems(lru.replace(lru_head, '').strip('|'), False)) <= precision_limit)
+    return (len(split_lru_in_stems(lru.replace(lru_head, ''), False)) <= precision_limit)
 
 # Get a LRU's node
 def lru_get_node(lru, precision_limit = 1, precision_exceptions = [], lru_head = None) :
 # need to add check for exceptions
     if not lru_head:
         lru_head = lru_get_head(lru, precision_exceptions)
-    stems = [stem for _, _, stem in split_lru_in_stems(lru.replace(lru_head, '').strip('|'), False)[:precision_limit]]
+    stems = [stem for _, _, stem in split_lru_in_stems(lru.replace(lru_head, ''), False)[:precision_limit]]
     stems.insert(0, lru_head)
-    return "|".join(stems)
+    return add_trailing_pipe("|".join(stems))
 
 # TESTS
 #url = "http://medialab.sciences-po.fr/hci"
