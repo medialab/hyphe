@@ -30,18 +30,17 @@ public class AsyncIndexWriterTask implements RunnableFuture {
 
     private List<?> objectsToWrite = null;
     private boolean isDone;
-    private String name;
+    private String id;
     private IndexWriter indexWriter;
     private LRUIndex lruIndex;
 
-    AsyncIndexWriterTask(String name, List<?> objectsToWrite, RAMDirectory directory, LRUIndex lruIndex) {
+    AsyncIndexWriterTask(String id, List<?> objectsToWrite, RAMDirectory directory, LRUIndex lruIndex) {
         try {
             if(logger.isDebugEnabled()) {
                 logger.debug("creating new AsyncIndexWriterTask indexing # " + objectsToWrite.size() + " objects with OPEN_MODE " + LRUIndex.OPEN_MODE.name() + " RAM_BUFFER_SIZE_MB " + LRUIndex.RAM_BUFFER_SIZE_MB);
             }
-
             this.lruIndex = lruIndex;
-            this.name = name;
+            this.id = id;
             this.objectsToWrite = objectsToWrite;
             this.indexWriter = newRAMWriter(directory);
             this.indexWriter.commit();
@@ -66,9 +65,11 @@ public class AsyncIndexWriterTask implements RunnableFuture {
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(LRUIndex.LUCENE_VERSION, LRUIndex.analyzer);
         indexWriterConfig.setOpenMode(LRUIndex.OPEN_MODE);
         indexWriterConfig.setRAMBufferSizeMB(LRUIndex.RAM_BUFFER_SIZE_MB);
-        //LogMergePolicy logMergePolicy = new LogByteSizeMergePolicy();
-        //logMergePolicy.setUseCompoundFile(false);
-        //indexWriterConfig.setMergePolicy(logMergePolicy);
+        // TODO: Test best settings to avoid "Too Many Open Files" errors
+        //
+        // LogMergePolicy logMergePolicy = new LogByteSizeMergePolicy();
+        // logMergePolicy.setUseCompoundFile(false);
+        // indexWriterConfig.setMergePolicy(logMergePolicy);
         TieredMergePolicy tieredMergePolicy = new TieredMergePolicy();
         tieredMergePolicy.setUseCompoundFile(true);
         indexWriterConfig.setMergePolicy(tieredMergePolicy);
@@ -76,125 +77,85 @@ public class AsyncIndexWriterTask implements RunnableFuture {
     }
 
     public void run() {
-        if (logger.isDebugEnabled()) {
-            logger.debug("started run");
+        if(CollectionUtils.isEmpty(objectsToWrite)) {
+            this.isDone = true;
+            return;
+        }
+        if(logger.isDebugEnabled()) {
+            if(objectsToWrite.get(0) instanceof PageItem) {
+                logger.debug("AsyncIndexWriterTask run started for LRUItems");
+            } else if(objectsToWrite.get(0) instanceof NodeLink) {
+                logger.debug("AsyncIndexWriterTask run started for NodeLinks");
+            } else if(objectsToWrite.get(0) instanceof WebEntityNodeLink) {
+                logger.debug("AsyncIndexWriterTask run started for WebEntityNodeLinks");
+            } else if(objectsToWrite.get(0) instanceof WebEntityLink) {
+                logger.debug("AsyncIndexWriterTask run started for WebEntityLinks");
+            }
         }
         try {
-            if(CollectionUtils.isEmpty(objectsToWrite)) {
-                this.isDone = true;
-                return;
-            }
-            if(logger.isDebugEnabled()) {
-                if(objectsToWrite.get(0) instanceof PageItem) {
-                    logger.debug("AsyncIndexWriterTask run started for LRUItems");
-                }
-                else if(objectsToWrite.get(0) instanceof NodeLink) {
-                    logger.debug("AsyncIndexWriterTask run started for NodeLinks");
-                }
-            }
             isDone = false;
             int written = 0;
             for(Object object : objectsToWrite) {
-                boolean wasIndexed = false;
+                Document luceneDoc = null;
                 if(object instanceof PageItem) {
                     PageItem pageItem = (PageItem) object;
-
                     PageItem existing = lruIndex.retrievePageItemByLRU(pageItem.getLru());
                     if(existing != null) {
                         if(logger.isDebugEnabled()) {
-                            logger.debug("PageItem " + pageItem.getLru() + " already exists in index - updating\n");
+                            logger.trace("PageItem " + pageItem.getLru() + " already exists in index - updating");
                         }
                         lruIndex.deletePageItem(pageItem);
                         Set<String> sources = existing.getSourceSet();
                         if (sources != null) {
-                            pageItem.getSourceSet().addAll(existing.getSourceSet());
+                            pageItem.getSourceSet().addAll(sources);
                         }
                         // TODO Replicate existing tags on pageitem
                     }
-                    Document pageDocument = IndexConfiguration.convertPageItemToLuceneDocument(pageItem);
-                    // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
-                    if(pageDocument != null) {
-                        indexWriter.addDocument(pageDocument);
-                        wasIndexed = true;
-                    }
-                }
-                else if(object instanceof NodeLink) {
+                    luceneDoc = IndexConfiguration.convertPageItemToLuceneDocument(pageItem);
+                } else if(object instanceof NodeLink) {
                     NodeLink nodeLink = (NodeLink) object;
-                    
-                    if(logger.isDebugEnabled()) {
-                        logger.debug("nodelink to be indexed: source: " + nodeLink.getSourceLRU() + " target: " + nodeLink.getTargetLRU());
-                    }
-
                     NodeLink existing = lruIndex.retrieveNodeLink(nodeLink);
-                    int weight = nodeLink.getWeight();
                     if(existing != null) {
                         if(logger.isDebugEnabled()) {
-                            logger.debug("NodeLink already existed - increasing weight");
+                            logger.trace("NodeLink with source: " + nodeLink.getSourceLRU() + " and target: " + nodeLink.getTargetLRU() + " already existed - increasing weight");
                         }
-                        weight += existing.getWeight();
                         lruIndex.deleteNodeLink(nodeLink);
+                        nodeLink.setWeight(nodeLink.getWeight() + existing.getWeight());
                     }
-                    nodeLink.setWeight(weight);
-                    Document nodelinkDocument = IndexConfiguration.convertNodeLinkToLuceneDocument(nodeLink);
-                    // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
-                    if(nodelinkDocument != null) {
-                        indexWriter.addDocument(nodelinkDocument);
-                        wasIndexed = true;
-                    }
-                }
-                else if(object instanceof WebEntityNodeLink) {
+                    luceneDoc = IndexConfiguration.convertNodeLinkToLuceneDocument(nodeLink);
+                } else if(object instanceof WebEntityNodeLink) {
                     WebEntityNodeLink webEntityNodeLink = (WebEntityNodeLink) object;
-                    if(logger.isDebugEnabled()) {
-                        logger.debug("webentitynodelink to be indexed: source: " + webEntityNodeLink.getSourceId() + " target: " + webEntityNodeLink.getTargetLRU());
-                    }
-                    Document webEntityLinkDocument = IndexConfiguration.convertWebEntityNodeLinkToLuceneDocument(webEntityNodeLink);
-                    if(webEntityLinkDocument != null) {
-                        indexWriter.addDocument(webEntityLinkDocument);
-                        wasIndexed = true;
-                    }
-                }
-                else if(object instanceof WebEntityLink) {
+                    luceneDoc = IndexConfiguration.convertWebEntityNodeLinkToLuceneDocument(webEntityNodeLink);
+                } else if(object instanceof WebEntityLink) {
                     WebEntityLink webEntityLink = (WebEntityLink) object;
-                    if(logger.isDebugEnabled()) {
-                        logger.debug("webentitylink to be indexed: source: " + webEntityLink.getSourceId() + " target: " + webEntityLink.getTargetId());
-                    }
-
             /*
+             *      TODO : Optionnalize this part for opti if update webentitylinks instead of only recreating all of them
+             *      Don't increment weight since such updates supposes to remove these specific links before
+             *
                     WebEntityLink existing = lruIndex.retrieveWebEntityLink(webEntityLink);
-                    int weight = webEntityLink.getWeight();
                     if(existing != null) {
-                        if(logger.isDebugEnabled()) {
-                            logger.debug("WebEntityLink already existed - increasing weight");
-                        }
-                        weight += existing.getWeight();
                         lruIndex.deleteWebEntityLink(webEntityLink);
                     }
-                    webEntityLink.setWeight(weight);
             */
-                    Document webEntityLinkDocument = IndexConfiguration.convertWebEntityLinkToLuceneDocument(webEntityLink);
-                    if(webEntityLinkDocument != null) {
-                        indexWriter.addDocument(webEntityLinkDocument);
-                        wasIndexed = true;
-                    }
+                    luceneDoc = IndexConfiguration.convertWebEntityLinkToLuceneDocument(webEntityLink);
                 }
-                if(wasIndexed) {
+                // it may be null if it's rejected (e.g. there is no value for LRU in the PageItem)
+                if(luceneDoc != null) {
+                    indexWriter.addDocument(luceneDoc);
                     written++;
                 }
             }
             this.isDone = true;
             if(logger.isDebugEnabled()) {
-                logger.debug("AsyncIndexWriterTask " + name + " run finished, wrote # " + written + " documents to Lucene index");
+                logger.debug("AsyncIndexWriterTask " + id + " run finished, wrote # " + written + " documents to Lucene index");
             }
-        }
-        catch(Exception x) {
+        } catch(Exception x) {
             logger.error(x.getMessage());
             x.printStackTrace();
-        }
-        finally {
+        } finally {
             try {
                 this.indexWriter.close();
-            }
-            catch (IOException x) {
+            } catch (IOException x) {
                 logger.error(x.getMessage());
                 x.printStackTrace();
             }

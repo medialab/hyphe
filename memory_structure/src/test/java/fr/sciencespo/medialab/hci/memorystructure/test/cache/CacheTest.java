@@ -317,7 +317,7 @@ public class CacheTest extends TestCase {
             logger.debug("\n\n\nchecking generated webentities");
             for(WebEntity we : lruIndex.retrieveWebEntities()) {
                 logger.debug("\nchecking we " + we.getName());
-                List<PageItem> pagesForWE = lruIndex.findPagesForWebEntity(we.getId());
+                List<PageItem> pagesForWE = lruIndex.retrieveWebEntityPageItems(we.getId());
                 logger.debug("found # " + pagesForWE + " pages for we " + we.getName());
                 for(PageItem p : pagesForWE) {
                     for(String lru : we.getLRUSet()) {

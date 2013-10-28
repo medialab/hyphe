@@ -1,7 +1,7 @@
 package fr.sciencespo.medialab.hci.memorystructure.util;
 
-import gnu.trove.set.hash.THashSet;
-
+import java.util.Set;
+import java.util.HashSet;
 import java.lang.String;
 import java.lang.StringBuffer;
 
@@ -24,9 +24,11 @@ public class StringUtil {
 
     public static String toTitle(String text) {
         StringBuffer output = new StringBuffer();
-        String[] tokens = text.replace(".", " ").replace("-", "- ").split(" ");
+        String[] tokens = text.replace(".", " ").replace("-", "- ").replace("/", " ")
+                        .replace("?", " ").replace("&", " ").replace("#", " ")
+                        .split(" ");
         for (int i=0; i<tokens.length; i++) {
-            output.append(" "+toProperCase(tokens[i]));
+            output.append(" " + toProperCase(tokens[i]));
         }
         return output.toString().replace("- ", "-").trim();
     }
@@ -36,8 +38,8 @@ public class StringUtil {
      * @param strings strings
      * @return the longest string(s)
      */
-    public static THashSet<String> findLongestString(THashSet<String> strings) {
-        THashSet<String> longests = new THashSet<String>();
+    public static HashSet<String> findLongestString(Set<String> strings) {
+        HashSet<String> longests = new HashSet<String>();
         String longest = "";
         longests.add(longest);
         if(strings != null) {

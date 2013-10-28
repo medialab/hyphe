@@ -30,28 +30,26 @@ exception ObjectNotFoundException {
 }
 
 struct PageItem {
-  1: string id,
-  2: string url,
-  3: string lru,
-  4: string crawlerTimestamp,
-  5: i32 httpStatusCode,
-  6: i32 depth,
-  7: string errorCode,
-  8: set<string> sourceSet,
-  9: bool isFullPrecision = false,
-  10: bool isNode,
-  11: map<string, map<string, list<string>>> metadataItems,
-  12: string creationDate,
-  13: string lastModificationDate
+  1: string url,
+  2: string lru,
+  3: string crawlerTimestamp,
+  4: i32 httpStatusCode,
+  5: i32 depth,
+  6: string errorCode,
+  7: set<string> sourceSet,
+  8: bool isFullPrecision = false,
+  9: bool isNode,
+  10: map<string, map<string, list<string>>> metadataItems,
+  11: string creationDate,
+  12: string lastModificationDate
 }
 
 struct NodeLink {
-  1: string id,
-  2: string sourceLRU,
-  3: string targetLRU,
-  4: i32 weight=1,
-  5: string creationDate,
-  6: string lastModificationDate
+  1: string sourceLRU,
+  2: string targetLRU,
+  3: i32 weight=1,
+  4: string creationDate,
+  5: string lastModificationDate
 }
 
 struct WebEntity {
@@ -67,19 +65,17 @@ struct WebEntity {
 }
 
 struct WebEntityNodeLink {
-  1: string id,
-  2: string sourceId,
-  3: string targetLRU,
-  4: i32 weight=1,
+  1: string sourceId,
+  2: string targetLRU,
+  3: i32 weight=1,
 }
 
 struct WebEntityLink {
-  1: string id,
-  2: string sourceId,
-  3: string targetId,
-  4: i32 weight=1,
-  5: string creationDate,
-  6: string lastModificationDate
+  1: string sourceId,
+  2: string targetId,
+  3: i32 weight=1,
+  4: string creationDate,
+  5: string lastModificationDate
 }
 
 struct WebEntityCreationRule {
@@ -249,7 +245,7 @@ list<PageItem> getWebEntityPages(1:string id) throws (1:MemoryStructureException
  * @param 2 includeFrontier: boolean to decide whether external links from other webentities to the specific one whoudl be included or not
  * @return a List of NodeLink Objects having source or target within the prefixes of the webentity (may be empty)
  */
-list<NodeLink> getWebentityNodeLinks(1: string webEntityId, 2: bool includeFrontier) throws (1:MemoryStructureException me)
+list<NodeLink> getWebentityNodeLinks(1: string webEntityId, 2: bool includeFrontier) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
 
 /** getWebEntityByLRUPrefix
  * @param 1 prefix to search for

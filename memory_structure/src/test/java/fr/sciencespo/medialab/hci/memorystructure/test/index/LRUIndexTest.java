@@ -549,7 +549,7 @@ public class LRUIndexTest extends TestCase {
             webEntity.addToLRUSet("s:http|h:fr|h:sciences-po");
             String id = lruIndex.indexWebEntity(webEntity);
 
-            List<PageItem> result = lruIndex.findPagesForWebEntity(id);
+            List<PageItem> result = lruIndex.retrieveWebEntityPageItems(id);
             assertNotNull("findPagesForWebEntity returned null", result);
             assertEquals("Unexpected # of pageitems", 2, result.size());
         }
@@ -592,13 +592,13 @@ public class LRUIndexTest extends TestCase {
             webEntity3.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci");
             String id3 = lruIndex.indexWebEntity(webEntity3);
 
-            List<PageItem> result = lruIndex.findPagesForWebEntity(id1);
+            List<PageItem> result = lruIndex.retrieveWebEntityPageItems(id1);
             assertNotNull("findPagesForWebEntity returned null", result);
             assertEquals("Unexpected # of pageitems", 1, result.size());
 
            // long s = System.currentTimeMillis();
            // for(int i = 0; i < 10000; i++) {
-                result = lruIndex.findPagesForWebEntity(id2);
+                result = lruIndex.retrieveWebEntityPageItems(id2);
            // }
            // long s2 = System.currentTimeMillis();
             
@@ -607,7 +607,7 @@ public class LRUIndexTest extends TestCase {
             assertNotNull("findPagesForWebEntity returned null", result);
             assertEquals("Unexpected # of pageitems", 1, result.size());
 
-            result = lruIndex.findPagesForWebEntity(id3);
+            result = lruIndex.retrieveWebEntityPageItems(id3);
             assertNotNull("findPagesForWebEntity returned null", result);
             assertEquals("Unexpected # of pageitems", 1, result.size());
         }
@@ -641,13 +641,13 @@ public class LRUIndexTest extends TestCase {
             webEntity3.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci");
             String id3 = lruIndex.indexWebEntity(webEntity3);
 
-            List<WebEntity> subWebEntities = lruIndex.findSubWebEntities(webEntity1);
+            List<WebEntity> subWebEntities = lruIndex.retrieveWebEntitySubWebEntities(webEntity1);
             assertEquals("Unexpected # of sub web entities", 2, subWebEntities.size());
 
-            subWebEntities = lruIndex.findSubWebEntities(webEntity2);
+            subWebEntities = lruIndex.retrieveWebEntitySubWebEntities(webEntity2);
             assertEquals("Unexpected # of sub web entities", 1, subWebEntities.size());
 
-            subWebEntities = lruIndex.findSubWebEntities(webEntity3);
+            subWebEntities = lruIndex.retrieveWebEntitySubWebEntities(webEntity3);
             assertEquals("Unexpected # of sub web entities", 0, subWebEntities.size());
         }
         catch (IndexException x) {
@@ -689,15 +689,15 @@ public class LRUIndexTest extends TestCase {
             webEntity3.addToLRUSet("s:http|h:fr|h:sciences-po|h:medialab|h:jiminy|p:hci");
             String id3 = lruIndex.indexWebEntity(webEntity3);
 
-            List<PageItem> result1 = lruIndex.findPagesForWebEntity(id1);
+            List<PageItem> result1 = lruIndex.retrieveWebEntityPageItems(id1);
             assertNotNull("findPagesForWebEntity returned null", result1);
             assertEquals("Unexpected # of pageitems", 1, result1.size());
 
-            List<PageItem> result2 = lruIndex.findPagesForWebEntity(id2);
+            List<PageItem> result2 = lruIndex.retrieveWebEntityPageItems(id2);
             assertNotNull("findPagesForWebEntity returned null", result2);
             assertEquals("Unexpected # of pageitems", 1, result2.size());
 
-            List<PageItem> result3 = lruIndex.findPagesForWebEntity(id3);
+            List<PageItem> result3 = lruIndex.retrieveWebEntityPageItems(id3);
             assertNotNull("findPagesForWebEntity returned null", result3);
             assertEquals("Unexpected # of pageitems", 1, result3.size());
         }
@@ -731,7 +731,7 @@ public class LRUIndexTest extends TestCase {
             webEntity.addToLRUSet("s:http|h:fr|h:sciences-po");
             String id = lruIndex.indexWebEntity(webEntity);
 
-            List<PageItem> result = lruIndex.findPagesForWebEntity(null);
+            List<PageItem> result = lruIndex.retrieveWebEntityPageItems(null);
             assertNotNull("findPagesForWebEntity returned null", result);
             assertEquals("Unexpected # of pageitems", 0, result.size());
         }
@@ -764,7 +764,7 @@ public class LRUIndexTest extends TestCase {
             webEntity.addToLRUSet("s:http|h:fr|h:sciences-po");
             String id = lruIndex.indexWebEntity(webEntity);
 
-            List<PageItem> result = lruIndex.findPagesForWebEntity(id+id);
+            List<PageItem> result = lruIndex.retrieveWebEntityPageItems(id+id);
             fail("Expected ObjectNotFoundException but it wasn't thrown");
         }
         catch (IndexException x) {

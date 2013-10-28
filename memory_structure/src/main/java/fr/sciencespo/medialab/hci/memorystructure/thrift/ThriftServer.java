@@ -90,7 +90,7 @@ public class ThriftServer {
             for(String key : propertyNames) {
                 propertiesMap.put(key, properties.getString(key));
             }
-            propertiesMap.put("precisionLimit", json.getString("precisionLimit")); 
+            propertiesMap.put("precisionLimit", json.getString("precisionLimit"));
         }
         catch(JSONException x) {
             logger.warn("ERROR while parsing json in config.json");

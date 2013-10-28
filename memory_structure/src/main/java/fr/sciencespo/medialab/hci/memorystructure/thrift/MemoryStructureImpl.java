@@ -48,8 +48,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         logger.info("shutting down");
         try {
             lruIndex.close();
-        }
-        catch (IOException x) {
+        } catch (IOException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new TException(x.getMessage(), x);
@@ -89,8 +88,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             lruIndex.clearIndex();
-        }
-        catch(IndexException x) {
+        } catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new TException(x.getMessage(), x);
@@ -123,13 +121,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
                     logger.debug("createCache created cache with id " + cache.getId());
                 }
                 return cache.getId();
-            }
-            else {
+            } else {
                 logger.warn("createCache received null");
                 throw new MemoryStructureException().setMsg("WARNING: createCache received null pageItems. No cache created.");
             }
-        }
-        catch(MaxCacheSizeException x) {
+        } catch(MaxCacheSizeException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
@@ -167,13 +163,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
                 logger.debug("indexCache finished indexing cache with id: " + cacheId);
             }
             return indexedPages;
-        }
-        catch(ObjectNotFoundException x) {
+        } catch(ObjectNotFoundException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw x;
-        }
-        catch(IndexException x) {
+        } catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
@@ -208,8 +202,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             if(logger.isDebugEnabled()) {
                 logger.debug("# new web entities: " + newWebEntitiesCount);
             }
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
@@ -250,8 +243,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             @SuppressWarnings({"unchecked"})
             List<Object> pageItemsList = new ArrayList(pageItems);
             lruIndex.batchIndex(pageItemsList);
-        }
-        catch(IndexException x) {
+        } catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
@@ -270,13 +262,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             return lruIndex.retrievePageItemsByLRUPrefix(prefix);
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
+        } finally {
             if(logger.isDebugEnabled()) {
                 logger.debug("findPageItemsMatchingLRUPrefix end");
             }
@@ -300,8 +290,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             return lruIndex.retrieveNodeLinks();
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
@@ -321,8 +310,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             lruIndex.deleteNodeLinks();
-        }
-        catch(IndexException x) {
+        } catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
@@ -347,8 +335,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             if(logger.isDebugEnabled()) {
                 logger.debug("saveNodeLinks finished indexing nodeLinks");
             }
-        }
-        catch(IndexException x) {
+        } catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
@@ -368,13 +355,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             return lruIndex.retrieveNodeLinksBySourcePrefix(prefix);
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
+        } finally {
             if(logger.isDebugEnabled()) {
                 logger.debug("findNodeLinksMatchingSourceLRUPrefix end");
             }
@@ -394,13 +379,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             return lruIndex.retrieveNodeLinksByTargetPrefix(prefix);
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
+        } finally {
             if(logger.isDebugEnabled()) {
                 logger.debug("findNodeLinksMatchingTargetLRUPrefix end");
             }
@@ -424,8 +407,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             return lruIndex.retrieveWebEntities();
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new TException(x.getMessage(), x);
@@ -445,8 +427,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             return lruIndex.retrieveWebEntitiesByIDs(listIDs);
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new TException(x.getMessage(), x);
@@ -471,16 +452,14 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             WebEntity found = lruIndex.retrieveWebEntity(id);
-            if(found != null && logger.isDebugEnabled()) {
+            if(found == null) {
+                throw new ObjectNotFoundException().setMsg("Could not find WebEntity with id " + id);
+            } else if (logger.isDebugEnabled()) {
                 logger.debug("found webentity with id: " + found.getId());
                 logger.debug("webentity has # " + found.getLRUSet().size() + " lrus");
             }
-            if(found == null) {
-                throw new ObjectNotFoundException().setMsg("Could not find WebEntity with id " + id);
-            }
             return found;
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
@@ -504,8 +483,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
                 throw new MemoryStructureException().setMsg("WebEntity is null");
             }
             return lruIndex.indexWebEntity(webEntity, false, true);
-        }
-        catch(IndexException x) {
+        } catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
@@ -525,8 +503,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             lruIndex.deleteWebEntity(webEntity);
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new TException(x.getMessage(), x);
@@ -547,14 +524,8 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             WebEntity WE = lruIndex.retrieveWebEntity(id);
-            return lruIndex.findSubWebEntities(WE);
-        }
-        catch (IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new TException(x.getMessage(), x);
-        }
-        catch (IndexException x) {
+            return lruIndex.retrieveWebEntitySubWebEntities(WE);
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new TException(x.getMessage(), x);
@@ -575,9 +546,8 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             WebEntity WE = lruIndex.retrieveWebEntity(id);
-            return lruIndex.findParentWebEntities(WE);
-        }
-        catch (IndexException x) {
+            return lruIndex.retrieveWebEntityParentWebEntities(WE);
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new TException(x.getMessage(), x);
@@ -600,12 +570,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         List<PageItem> pages;
         try {
-            pages = lruIndex.findPagesForWebEntity(id);
+            pages = lruIndex.retrieveWebEntityPageItems(id);
             if(logger.isDebugEnabled()) {
                 logger.debug("found # " + pages.size() + " pages");
             }
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
@@ -614,7 +583,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
-     * Returns all nodelinks within a webentity.
+     * Returns all nodelinks within a webentity or all NodeLinks if null given as webEntityId.
      *
      * @param webEntityId
      * @param includeFrontier
@@ -622,7 +591,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      * @throws TException hmm
      */
     @Override
-    public List<NodeLink> getWebentityNodeLinks(String webEntityId, boolean includeFrontier) throws MemoryStructureException, TException {
+    public List<NodeLink> getWebentityNodeLinks(String webEntityId, boolean includeFrontier) throws MemoryStructureException, TException, ObjectNotFoundException {
         if(logger.isDebugEnabled()) {
             logger.debug("getWebentityNodeLinks");
         }
@@ -630,9 +599,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             return getNodeLinks();
         }
         try {
-            return lruIndex.retrieveNodeLinksByWebentity(webEntityId, includeFrontier);
-        }
-        catch (IndexException x) {
+            return lruIndex.retrieveWebEntityNodeLinks(webEntityId, includeFrontier);
+        } catch(ObjectNotFoundException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw x;
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
@@ -656,13 +628,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
                 throw new MemoryStructureException("No WebEntity found for prefix " + prefix, "", IndexException.class.getName());
             }
             return webentity;
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
+        } finally {
             if(logger.isDebugEnabled()) {
                 logger.debug("getWebEntityByLRUPrefix end");
             }
@@ -686,13 +656,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
                 throw new MemoryStructureException("No matching WebEntity found for lru " + lru, "", IndexException.class.getName());
             }
             return webentity;
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
+        } finally {
             if(logger.isDebugEnabled()) {
                 logger.debug("findWebEntityMatchingLRUPrefix end");
             }
@@ -712,14 +680,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             logger.debug("searchWebEntities");
         }
         try {
-            return lruIndex.searchWebEntitiesByKeywords(allFieldsKeywords, fieldKeywords);
-        }
-        catch (IndexException x) {
+            return lruIndex.retrieveWebEntitiesBySearchKeywords(allFieldsKeywords, fieldKeywords);
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
+        } finally {
             if(logger.isDebugEnabled()) {
                 logger.debug("searchWebEntities end");
             }
@@ -737,14 +703,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             logger.debug("getTagNamespaces");
         }
         try {
-            return lruIndex.getWebEntitiesTags();
-        }
-        catch (IndexException x) {
+            return lruIndex.retrieveWebEntitiesTags();
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
+        } finally {
             if(logger.isDebugEnabled()) {
                 logger.debug("getTagNamespaces end");
             }
@@ -768,8 +732,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             return lruIndex.retrieveWebEntityLinks();
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
@@ -789,8 +752,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             return lruIndex.generateWebEntityLinks();
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
@@ -810,13 +772,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             return lruIndex.retrieveWebEntityLinksBySource(id);
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
+        } finally {
             if(logger.isDebugEnabled()) {
                 logger.debug("getWebEntityLinksByWebEntitySource end");
             }
@@ -836,13 +796,11 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             return lruIndex.retrieveWebEntityLinksByTarget(id);
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
-        }
-        finally {
+        } finally {
             if(logger.isDebugEnabled()) {
                 logger.debug("getWebEntityLinksByWebEntityTarget end");
             }
@@ -866,8 +824,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             return lruIndex.retrieveWebEntityCreationRules();
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new TException(x.getMessage(), x);
@@ -886,13 +843,12 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         if(logger.isDebugEnabled()) {
             logger.debug("addWebEntityCreationRule");
         }
-        try{
+        try {
             lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
             if(logger.isDebugEnabled()) {
                 logger.debug("addWebEntityCreationRule finished indexing webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
             }
-        }
-        catch(IndexException x) {
+        } catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), MaxCacheSizeException.class.getName());
@@ -912,8 +868,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             lruIndex.deleteWebEntityCreationRule(webEntityCreationRule);
-        }
-        catch (IndexException x) {
+        } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new TException(x.getMessage(), x);
@@ -937,8 +892,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             return lruIndex.retrievePrecisionExceptions();
-        }
-        catch(IndexException x) {
+        } catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
@@ -959,9 +913,8 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             logger.debug("markPrecisionExceptions (" + listLRUs.size() +")");
         }
         try {
-            lruIndex.addPrecisionExceptions(listLRUs);
-        }
-        catch(IndexException x) {
+            lruIndex.indexPrecisionExceptions(listLRUs);
+        } catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
@@ -983,8 +936,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             lruIndex.deletePrecisionExceptions(listLRUs);
-        }
-        catch(IndexException x) {
+        } catch(IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());

@@ -175,9 +175,6 @@ public class IndexConfiguration {
      */
     protected static Document convertPageItemToLuceneDocument(PageItem pageItem) {
         Document document = new Document();
-
-        // id: generate random UUID
-        document = addDocumentUntokenizedField(document, FieldName.ID, UUID.randomUUID().toString());
         document = addDocumentUntokenizedField(document, FieldName.TYPE, DocType.PAGE_ITEM.name());
 
         // if the PageItem has no LRU, don't create a Lucene document for it
@@ -252,9 +249,6 @@ public class IndexConfiguration {
     public static PageItem convertLuceneDocumentToPageItem(Document document) {
         PageItem pageItem = new PageItem();
 
-        String id = document.get(FieldName.ID.name());
-        pageItem.setId(id);
-
         String lru = document.get(FieldName.LRU.name());
         pageItem.setLru(lru);
 
@@ -318,9 +312,6 @@ public class IndexConfiguration {
             return null;
         }
         Document document = new Document();
-
-        // id: generate random UUID
-        document = addDocumentUntokenizedField(document, FieldName.ID, UUID.randomUUID().toString());
         document = addDocumentUntokenizedField(document, FieldName.TYPE, DocType.NODE_LINK.name());
 
         // if the NodeLink has no source and target, don't create a Lucene document for it
@@ -349,12 +340,8 @@ public class IndexConfiguration {
     public static NodeLink convertLuceneDocumentToNodeLink(Document document) {
         NodeLink nodeLink = new NodeLink();
 
-        String id = document.get(FieldName.ID.name());
-        nodeLink.setId(id);
-
         String source = document.get(FieldName.SOURCE.name());
         nodeLink.setSourceLRU(source);
-
         String target = document.get(FieldName.TARGET.name());
         nodeLink.setTargetLRU(target);
 
@@ -368,7 +355,7 @@ public class IndexConfiguration {
         nodeLink.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
 
         if(logger.isDebugEnabled()) {
-            logger.trace("convertLuceneDocumentToNodeLink returns nodelink with id: " + id);
+            logger.trace("convertLuceneDocumentToNodeLink returns nodelink with source: " + source + " and target: " + target);
         }
         return nodeLink;
     }
@@ -555,11 +542,6 @@ public class IndexConfiguration {
             return null;
         }
         Document document = new Document();
-
-        // id: generate random UUID
-        if(StringUtils.isEmpty(webEntityNodeLink.getId())) {
-            document = addDocumentUntokenizedField(document, FieldName.ID, UUID.randomUUID().toString());
-        }
         document = addDocumentUntokenizedField(document, FieldName.TYPE, DocType.WEBENTITY_NODE_LINK.name());
 
         // if the WebEntityLink has no source and target, don't create a Lucene document for it
@@ -587,12 +569,8 @@ public class IndexConfiguration {
     public static WebEntityNodeLink convertLuceneDocumentToWebEntityNodeLink(Document document) {
         WebEntityNodeLink webEntityNodeLink = new WebEntityNodeLink();
 
-        String id = document.get(FieldName.ID.name());
-        webEntityNodeLink.setId(id);
-
         String source = document.get(FieldName.SOURCE.name());
         webEntityNodeLink.setSourceId(source);
-
         String target = document.get(FieldName.TARGET.name());
         webEntityNodeLink.setTargetLRU(target);
 
@@ -604,7 +582,7 @@ public class IndexConfiguration {
         webEntityNodeLink.setWeight(weight);
 
         if(logger.isDebugEnabled()) {
-            logger.trace("convertLuceneDocumentToWebEntityNodeLink returns webEntityNodeLink with id: " + id);
+            logger.trace("convertLuceneDocumentToWebEntityNodeLink returns webEntityNodeLink with sourceId: " + source + " and target: " + target);
         }
         return webEntityNodeLink;
     }
@@ -625,11 +603,6 @@ public class IndexConfiguration {
             return null;
         }
         Document document = new Document();
-
-        // id: generate random UUID
-        if(StringUtils.isEmpty(webEntityLink.getId())) {
-            document = addDocumentUntokenizedField(document, FieldName.ID, UUID.randomUUID().toString());
-        }
         document = addDocumentUntokenizedField(document, FieldName.TYPE, DocType.WEBENTITY_LINK.name());
 
         // if the WebEntityLink has no source and target, don't create a Lucene document for it
@@ -658,12 +631,8 @@ public class IndexConfiguration {
     public static WebEntityLink convertLuceneDocumentToWebEntityLink(Document document) {
         WebEntityLink webEntityLink = new WebEntityLink();
 
-        String id = document.get(FieldName.ID.name());
-        webEntityLink.setId(id);
-
         String source = document.get(FieldName.SOURCE.name());
         webEntityLink.setSourceId(source);
-
         String target = document.get(FieldName.TARGET.name());
         webEntityLink.setTargetId(target);
 
@@ -677,7 +646,7 @@ public class IndexConfiguration {
         webEntityLink.setLastModificationDate(document.get(FieldName.DATEMODIF.name()));
 
         if(logger.isDebugEnabled()) {
-            logger.trace("convertLuceneDocumentToWebEntityLink returns webEntityLink with id: " + id);
+            logger.trace("convertLuceneDocumentToWebEntityLink returns webEntityLink with sourceId: " + source + " and target: " + target);
         }
         return webEntityLink;
     }

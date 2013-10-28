@@ -1,6 +1,5 @@
 package fr.sciencespo.medialab.hci.memorystructure.cache;
 
-import fr.sciencespo.medialab.hci.memorystructure.index.IndexConfiguration;
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.Constants;
@@ -111,23 +110,28 @@ public class Cache {
      * @param page page
      * @return created web entity or null
      */
-    public WebEntity applyWebEntityCreationRule(WebEntityCreationRule rule, PageItem page) {
-        if(rule == null || page == null) {
+    public WebEntity applyWebEntityCreationRule(WebEntityCreationRule rule, String pageLRU) {
+        if(rule == null || pageLRU == null) {
             return null;
         }
-        WebEntity webEntity = null;
         if(logger.isDebugEnabled()) {
-            logger.trace("applyWebEntityCreationRule " + rule.getRegExp());
+            logger.debug("applyWebEntityCreationRule " + rule.getRegExp());
         }
-        String LRUPrefix = getLRUPrefixAccordingToRule(rule, page.getLru());
-        String name;
-        if(LRUPrefix == null) {
-            LRUPrefix = page.getLru().substring(0, page.getLru().indexOf('|'));
+        String name, LRUPrefix;
+        Matcher matcher = Pattern.compile(rule.getRegExp(), Pattern.CASE_INSENSITIVE).matcher(pageLRU);
+        if(matcher.find()) {
+            LRUPrefix = matcher.group();
+            name = StringUtil.toTitle(LRUUtil.revertLRU(LRUUtil.stripLRUScheme(LRUPrefix)));
+            if(logger.isDebugEnabled()) {
+                logger.debug("page " + pageLRU + " matches prefix " + LRUPrefix + " -> " + name);
+            }
+        }
+        // Sets LRUs that don't match any CreationRule RegExp to default scheme only entity
+        else {
+            LRUPrefix = pageLRU.substring(0, pageLRU.indexOf('|'));
             name = Constants.DEFAULT_WEBENTITY;
-        } else {
-            name = StringUtil.toTitle(LRUUtil.revertLRU(LRUPrefix));
         }
-        webEntity = new WebEntity();
+        WebEntity webEntity = new WebEntity();
         webEntity.setName(name);
         webEntity.setLRUSet(new HashSet<String>());
         webEntity.addToLRUSet(LRUPrefix);
@@ -135,38 +139,7 @@ public class Cache {
         String now = String.valueOf(System.currentTimeMillis());
         webEntity.setCreationDate(now);
         webEntity.setLastModificationDate(now);
-        logger.trace("created new WebEntity");
         return webEntity;
-    }
-
-    private String getLRUPrefixAccordingToRule(WebEntityCreationRule rule, String pageLRU) {
-        String LRUPrefix = null;
-        // only apply rule to page with lru that match the rule lruprefix (or if this is the default rule)
-        if(pageLRU.startsWith(rule.getLRU()) || rule.getLRU().equals(Constants.DEFAULT_WEBENTITY_CREATION_RULE)) {
-            if(logger.isDebugEnabled()) {
-                logger.debug("page " + pageLRU + " matches rule prefix " + rule.getLRU());
-            }
-            String regexp = rule.getRegExp();
-            Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
-            Matcher matcher = pattern.matcher(pageLRU);
-            if(matcher.find()) {
-                if(logger.isDebugEnabled()) {
-                    logger.trace("rule matches page " + pageLRU);
-                }
-                LRUPrefix = matcher.group();
-            }
-            else {
-                if(logger.isDebugEnabled()) {
-                    logger.trace("rule does not match page " + pageLRU);
-                }
-            }
-        }
-        else {
-            if(logger.isDebugEnabled()) {
-                logger.trace("page " + pageLRU + " does not match rule prefix " + rule.getLRU());
-            }
-        }
-        return LRUPrefix;
     }
 
     /**
@@ -179,39 +152,43 @@ public class Cache {
     public int createWebEntities() throws MemoryStructureException, IndexException {
         logger.trace("createWebEntities");
         int createdWebEntitiesCount = 0;
-        WebEntityCreationRule defaultRule = lruIndex.retrieveDefaultWECR();
         List<WebEntityCreationRule> webEntityCreationRules = lruIndex.retrieveWebEntityCreationRules();
         THashSet<String> pageLRUs = new THashSet<String>();
         pageLRUs.addAll(this.pageItems.keySet());
         THashSet<String> doneLRUPrefixes = new THashSet<String>();
-        WebEntity webEntityDefault;
-        String ruleLRUPrefix, LRUPrefix;
-        THashSet<String> LRUPrefixesCandidates;
-        WebEntity WEcandidate;
-        logger.trace("cache contains # " + pageLRUs.size() + " pages");
+        if(logger.isDebugEnabled()) {
+            logger.trace("cache contains # " + pageLRUs.size() + " pages");
+        }
+        String LRUPrefix;
+        WebEntity WEcandidate, existing;
+        THashMap<String, WebEntity> WEcandidates;
         for(String pageLRU : pageLRUs) {
             if(logger.isDebugEnabled()) {
-                logger.debug("createWebEntities for page " + pageLRU);
+                logger.trace("createWebEntities for page " + pageLRU);
             }
-            webEntityDefault = applyWebEntityCreationRule(defaultRule, this.pageItems.get(pageLRU));
-            LRUPrefixesCandidates = new THashSet<String>();
-            if (webEntityDefault != null && webEntityDefault.getLRUSet().size() > 0) {
-                LRUPrefixesCandidates.add((String)(webEntityDefault.getLRUSet().toArray())[0]);
-            }
-            for(WebEntityCreationRule wecr : webEntityCreationRules) {
-                ruleLRUPrefix = wecr.getLRU();
-                if (pageLRU.startsWith(ruleLRUPrefix)) {
-                    LRUPrefixesCandidates.add(ruleLRUPrefix);
+            WEcandidates = new THashMap<String, WebEntity>();
+            for(WebEntityCreationRule rule : webEntityCreationRules) {
+                // only apply rule to page with lru that match the rule lruprefix (or if this is the default rule)
+                if (pageLRU.startsWith(rule.getLRU()) || rule.getLRU().equals(Constants.DEFAULT_WEBENTITY_CREATION_RULE)) {
+                    if(logger.isDebugEnabled()) {
+                        logger.debug("page " + pageLRU + " matches rule " + rule.getLRU());
+                    }
+                    WEcandidate = applyWebEntityCreationRule(rule, pageLRU);
+                    if (WEcandidate != null && WEcandidate.getLRUSet().size() > 0) {
+                        LRUPrefix = (String)(WEcandidate.getLRUSet().toArray())[0];
+                        WEcandidates.put(LRUPrefix, WEcandidate);
+                    }
                 }
             }
-            LRUPrefix = (String) (StringUtil.findLongestString(LRUPrefixesCandidates)).toArray()[0];
+            LRUPrefix = (String) (StringUtil.findLongestString(WEcandidates.keySet())).toArray()[0];
             if (!doneLRUPrefixes.contains(LRUPrefix)) {
-                WEcandidate = lruIndex.retrieveWebEntityByLRUPrefix(LRUPrefix);
-                if (WEcandidate == null && webEntityDefault != null) {
+                WEcandidate = WEcandidates.get(LRUPrefix);
+                existing = lruIndex.retrieveWebEntityByLRUPrefix(LRUPrefix);
+                // store new webentity in index
+                if (existing == null && WEcandidate != null) {
                     createdWebEntitiesCount++;
-                    logger.trace("indexing new webentity for prefix " + LRUPrefix);
-                    // store new webentity in index
-                    lruIndex.indexWebEntity(webEntityDefault, false, true);
+                    logger.debug("indexing new webentity for prefix " + LRUPrefix);
+                    lruIndex.indexWebEntity(WEcandidate, false, true);
                 }
                 doneLRUPrefixes.add(LRUPrefix);
             }

@@ -6,6 +6,7 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import org.apache.commons.lang.StringUtils;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 
 /**
@@ -16,19 +17,19 @@ import java.util.Scanner;
 public class LRUUtil {
 
     public static int PRECISION_LIMIT = ThriftServer.readPrecisionLimitFromProperties();
+    public static final Pattern LRU_STEM_PATTERN = Pattern.compile("\\|[shtpqf]:");
 
     public static String getLimitedStemsLRU(String lru, int limit) {
         String[] ps = lru.split("\\|");
-        String n = "";
-        int skip = 0;
-        for(int i = 0; i < ps.length && i-skip < limit; i++) {
-            n += ps[i] + "|";
+        String res = "";
+        int nocount = 0;
+        for(int i = 0; i < ps.length && i-nocount < limit; i++) {
+            res += ps[i] + "|";
             if (ps[i].startsWith("s") || ps[i].startsWith("h")) {
-                skip++;
+                nocount++;
             }
         }
-        n = n.substring(0, n.length()-1);
-        return n;
+        return res;
     }
 
     /*   UNUSED, this logic was moved to the python core API instead
@@ -45,14 +46,24 @@ public class LRUUtil {
 
     public static String getLRUHead(String lru) {
         String[] ps = lru.split("\\|");
-        String n = "";
+        String res = "";
         int i = 0;
-        while (i < ps.length && (ps[i].startsWith("h") || ps[i].startsWith("s"))) {
-            n += ps[i] + "|";
+        while (i < ps.length && (ps[i].startsWith("h") || ps[i].startsWith("s") || ps[i].startsWith("t"))) {
+            res += ps[i] + "|";
             i++;
         }
-        n = n.substring(0, n.length()-1);
-        return n;
+        return res;
+    }
+
+    public static String stripLRUScheme(String lru) {
+        String[] ps = lru.split("\\|");
+        String res = "";
+        for (String s : ps) {
+            if (!(s.startsWith("s:") || s.startsWith("t:"))) {
+                res += s + "|";
+            }
+        }
+        return res;
     }
 
     public static boolean LRUBelongsToWebentity(String lru, WebEntity webEntity, List<WebEntity> subWEs) {
@@ -72,8 +83,8 @@ public class LRUUtil {
     }
 
     /**
-     * Reverts an lru to an url. Scheme is stripped; a "www" host is also stripped; returns null when input is null,
-     * empty or blank.
+     * Reverts an lru to an url.
+     * null when input is null, empty or blank.
      *
      * @param lru to revert
      * @return url
@@ -86,62 +97,39 @@ public class LRUUtil {
         if(StringUtils.isEmpty(lru)) {
             return null;
         }
-        String url = "";
+        String key, scheme = "", host = "", port = "", path = "", query = "", fragment = "";
         Scanner scanner = new Scanner(lru);
         scanner.useDelimiter("\\|");
-        boolean tldDone = false;
-        boolean removedTrailingDot = false;
         while(scanner.hasNext()) {
             String lruElement = scanner.next();
-            if(!lruElement.startsWith("s:")) {
-                if(lruElement.startsWith("h:")) {
-                    if(lruElement.equals("h:localhost")) {
-                        tldDone = true;
+            key = lruElement.substring(0, lruElement.indexOf(':')+1);
+            lruElement = lruElement.substring(lruElement.indexOf(':')+1).trim();
+            if(StringUtils.isNotEmpty(lruElement) || key.equals("p:")) {
+                if(key.equals("s:")) {
+                    scheme = lruElement + "://";
+                } else if(key.equals("t:") && ! (lruElement.equals("80") || lruElement.equals("443"))) {
+                    port = ":" + lruElement;
+                } else if(key.equals("h:")) {
+                    if (host == "") {
+                        host = lruElement;
                     } else {
-                        lruElement = lruElement.substring(lruElement.indexOf(':')+1);
-                        lruElement = lruElement.trim();
-                        if(StringUtils.isNotEmpty(lruElement)) {
-                            if(tldDone) {
-                                url = url + "." + lruElement;
-                            }
-                            else {
-                                url = lruElement + "." + url;
-                            }
-                            if(!tldDone && lruElement.startsWith("h:")) {
-                                tldDone = true;
-                            }
-                        }
+                        host = lruElement + "." + host;
                     }
-                } else if(lruElement.startsWith("t:") && ! (lruElement.endsWith(":80") || lruElement.endsWith(":443"))) {
-                    url += ":"+lruElement.substring(lruElement.indexOf(':')+1).trim();
-                } else {
-                    if(!removedTrailingDot && url.endsWith(".")) {
-                        url = url.substring(0, url.length() - 1);
-                        removedTrailingDot = true;
+                } else if(key.equals("p:")) {
+                    path += "/" + lruElement.trim();
+                } else if(key.equals("q:")) {
+                    if (host == null) {
+                        query = "?" + lruElement;
+                    } else {
+                        query += "&" + lruElement;
                     }
-                    if(lruElement.startsWith("p:")) {
-                        lruElement = lruElement.substring(lruElement.indexOf(':')+1);
-                        lruElement = lruElement.trim();
-                        url = url + "/" + lruElement;
-                    }
-                    else if(lruElement.startsWith("q:")) {
-                        lruElement = lruElement.substring(lruElement.indexOf(':')+1);
-                        lruElement = lruElement.trim();
-                        url = url + "?" + lruElement;
-                    }
-                    else if(lruElement.startsWith("f:")) {
-                        lruElement = lruElement.substring(lruElement.indexOf(':')+1);
-                        lruElement = lruElement.trim();
-                        url = url + "#" + lruElement;
-                    }
+                } else if(lruElement.startsWith("f:")) {
+                    fragment = "#" + lruElement;
                 }
             }
         }
         scanner.close();
-        if(!removedTrailingDot && url.endsWith(".")) {
-            url = url.substring(0, url.length() - 1);
-        }
-        return url;
+        return scheme + host + port + path + query + fragment;
     }
 
 }
