@@ -22,6 +22,40 @@
                 height: 200px;
                 margin-bottom: 30px;
             }
+
+            /* sigma */
+            .sigma-parent {
+                position: relative;
+
+                /* from http://www.colorzilla.com/gradient-editor/ */
+                background: rgb(248,248,248); /* Old browsers */
+                background: -moz-linear-gradient(top, rgba(248,248,248,1) 0%, rgba(255,255,255,1) 100%); /* FF3.6+ */
+                background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(248,248,248,1)), color-stop(100%,rgba(255,255,255,1))); /* Chrome,Safari4+ */
+                background: -webkit-linear-gradient(top, rgba(248,248,248,1) 0%,rgba(255,255,255,1) 100%); /* Chrome10+,Safari5.1+ */
+                background: -o-linear-gradient(top, rgba(248,248,248,1) 0%,rgba(255,255,255,1) 100%); /* Opera 11.10+ */
+                background: -ms-linear-gradient(top, rgba(248,248,248,1) 0%,rgba(255,255,255,1) 100%); /* IE10+ */
+                background: linear-gradient(to bottom, rgba(248,248,248,1) 0%,rgba(255,255,255,1) 100%); /* W3C */
+                filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f8f8f8', endColorstr='#ffffff',GradientType=0 ); /* IE6-9 */
+
+                border: 1px solid #e3e3e3;
+                -webkit-border-radius: 4px;
+                -moz-border-radius: 4px;
+                border-radius: 4px;
+                -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+                -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+                box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+
+                margin-bottom: 30px;
+                height: 350px;
+            }
+
+            .sigma-expand {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 0;
+            }
         </style>
 
         <script src="js/libs/modernizr-2.6.1-respond-1.1.0.min.js"></script>
@@ -63,8 +97,7 @@
             </div>
             <div class="row">
                 <div class="span8">
-                    <div class="block">
-                        Network visualization
+                    <div id="networkContainer">
                     </div>
                 </div>
                 <div class="span4">
@@ -113,7 +146,10 @@
 
         <!-- libs specifically needed here -->
         <script src="js/libs/jquery.md5.js"></script>
-
+        <script src="js/libs/chroma.js"></script>
+        <script src="js/libs/sigma.min.js"></script>
+        <script src="js/libs/sigma.forceatlas2.js"></script>
+        <script src="js/libs/json_graph_api.js"></script>
         <!-- Page-specific js packages -->
         <script src="js/_page_corpus_overview_modules.js"></script>
         <script src="js/_page_corpus_overview.js"></script>
