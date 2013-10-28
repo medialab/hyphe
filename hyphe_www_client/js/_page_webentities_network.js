@@ -123,7 +123,7 @@ HypheCommons.domino_init()
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             }
 
-
+        
 
         ],hacks:[
             {
