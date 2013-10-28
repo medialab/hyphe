@@ -88,8 +88,7 @@
 			for(length = lru_a.length-1; length>=2+tld_length; length--){
 				var candidate = lru_a.filter(function(stem, i){
 					return i < length
-				}).join('|')
-				
+				}).join('|') + '|'
 				candidates.push(candidate)
 			}
 		}

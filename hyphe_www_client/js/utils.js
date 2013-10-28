@@ -16,15 +16,15 @@
 		return Utils.JSON_LRU_to_LRU(json_lru)
 	}
 	ns.JSON_LRU_to_LRU = function(json_lru){
-		var lru = "s:" + json_lru.scheme
+		var lru = "s:" + json_lru.scheme + "|"
 		if(json_lru.port)
-			lru += "|t:" + json_lru.port
-		json_lru.host.forEach(function(h){lru += "|h:"+h;})
-		json_lru["path"].forEach(function(p){lru += "|p:"+Utils.URI_recode_no_slash(p);})
+			lru += "t:" + json_lru.port + "|"
+		json_lru.host.forEach(function(h){lru += "h:" + h + "|";})
+		json_lru["path"].forEach(function(p){lru += "p:" + Utils.URI_recode_no_slash(p) + "|";})
 		if(json_lru.query)
-			lru += "|q:" + json_lru.query
+			lru += "q:" + json_lru.query + "|"
 		if(json_lru.fragment)
-			lru += "|f:" + Utils.URI_recode(json_lru.fragment)
+			lru += "f:" + Utils.URI_recode(json_lru.fragment) + "|"
 		return lru
 	}
 	ns.URL_to_JSON_LRU = function(URL){
@@ -64,7 +64,7 @@
 		return ns.JSON_LRU_to_URL(ns.LRU_to_JSON_LRU(lru)); 
 	}
 	ns.LRU_to_JSON_LRU = function(lru){
-		var lru_array = lru.split("|"),
+		var lru_array = lru.replace(/\|$/, '').split("|"),
 			json_lru = {host:[], path:[]}
 		lru_array.forEach(function(stem){
 			var type = stem.substr(0, 1)
@@ -147,16 +147,16 @@
 	}
 
 	ns.LRU_prefix_fix = function(lru_prefix){
-		var split = lru_prefix.split('|')
+		var split = lru_prefix.replace(/\|$/, '').split('|')
 			,lastStem = split[split.length-1]
 			,lastStemSplit = lastStem.split(':')
 		if(lastStemSplit.length>1 && lastStemSplit[1]=='')
 			split.pop()
-		return split.join('|')
+		return split.join('|') + '|'
 	}
 
 	ns.LRU_validate = function(lru){
-		var lruregex = /^s:[^\|]+\|(h:[a-zA-Z0-9\-]+\|?){2}/
+		var lruregex = /^s:[^\|]+\|(h:[a-zA-Z0-9\-]+\|){2}/
 		return lruregex.test(lru)
 	}
 

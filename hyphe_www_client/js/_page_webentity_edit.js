@@ -657,7 +657,7 @@ $.fn.editable.defaults.mode = 'inline';
             var tree = {children:{}}
                 ,pushBranch = function(tree, lru, properties){
                     var path = tree
-                        ,target = lru.split('|')
+                        ,target = lru.replace(/\|$/, '').split('|')
 
                     while(target.length>=1){
                         var stem = target.shift()
