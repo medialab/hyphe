@@ -548,6 +548,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         for lru in list_lrus:
             try:
                 url, lru = urllru.lru_clean_and_convert(lru, False)
+                lru = urllru.lru_strip_path_trailing_slash(lru)
             except ValueError as e:
                 return format_error(e)
             existing = self.msclient_sync.getWebEntityByLRUPrefix(lru)

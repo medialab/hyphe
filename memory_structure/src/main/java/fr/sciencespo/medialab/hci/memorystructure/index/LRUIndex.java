@@ -46,6 +46,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -737,6 +739,16 @@ public class LRUIndex {
         if (CollectionUtils.isEmpty(webEntity.getLRUSet())) {
             throw new IndexException("WebEntity has empty lru set");
         }
+
+        // Never store a prefix for a webentity ending with a trailing path slash (p:|):so clean prefixes before ever indexing a webentity
+        Set<String> lruSet = new HashSet<String>(webEntity.getLRUSet().size());
+        for (String lru : webEntity.getLRUSet()) {
+            while (lru.endsWith("p:|")) {
+                lru = lru.substring(0, lru.length()-3);
+            }
+            lruSet.add(lru);
+        }
+        webEntity.setLRUSet(lruSet);
 
         // Ensure a webEntity lruprefix is unique in the web entity index
         if (checkExisting == true) {
