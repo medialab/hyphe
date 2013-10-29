@@ -2,10 +2,10 @@
 
 	// Utils
 
-	ns.URI_recode_no_slash = function(uri){
+	ns.URI_reEncode = function(uri){
 		return encodeURI(decodeURI(uri))
 	}
-	ns.URI_recode = function(uri){
+	ns.URI_reEncodeComponent = function(uri){
 		return encodeURIComponent(decodeURIComponent(uri))
 	}
 
@@ -20,11 +20,11 @@
 		if(json_lru.port)
 			lru += "t:" + json_lru.port + "|"
 		json_lru.host.forEach(function(h){lru += "h:" + h + "|";})
-		json_lru["path"].forEach(function(p){lru += "p:" + Utils.URI_recode_no_slash(p) + "|";})
+		json_lru["path"].forEach(function(p){lru += "p:" + Utils.URI_reEncode(p) + "|";})
 		if(json_lru.query)
 			lru += "q:" + json_lru.query + "|"
 		if(json_lru.fragment)
-			lru += "f:" + Utils.URI_recode(json_lru.fragment) + "|"
+			lru += "f:" + Utils.URI_reEncodeComponent(json_lru.fragment) + "|"
 		return lru
 	}
 	ns.URL_to_JSON_LRU = function(URL){
@@ -107,14 +107,14 @@
 		
 		if(json_lru.path != undefined && json_lru.path.length>0)
 			json_lru.path.forEach(function(p){
-				path = path+"/"+Utils.URI_recode_no_slash(p)
+				path = path+"/"+Utils.URI_reEncode(p)
 			})
 		
 		if(json_lru.query != undefined && json_lru.query.length>0)
 			query = "?"+json_lru.query
 		
 		if(json_lru.fragment != undefined && json_lru.fragment.length>0)
-			fragment = "#"+Utils.URI_recode(json_lru.fragment)
+			fragment = "#"+Utils.URI_reEncodeComponent(json_lru.fragment)
 		
 		if(json_lru.port != undefined && json_lru.port!="80")
 			port = ":"+json_lru.port
