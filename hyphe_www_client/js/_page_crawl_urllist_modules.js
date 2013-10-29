@@ -14,7 +14,7 @@
    *                                        (it is updated on triggers)
    *   {?function}       property_wrap      A function to modify the property listened
    *   {?string}         id                 The DOM id
-   *   {?(array|string)} triggers           The events that disable the button
+   *   {?(array|string)} triggers           The events that disable the textcontent
    */
   ns.TextContent = function(options, d) {
     domino.module.call(this)

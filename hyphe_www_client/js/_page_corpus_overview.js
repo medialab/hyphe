@@ -36,17 +36,17 @@ HypheCommons.domino_init()
                 ,dispatch: 'urlslistText_updated'
                 ,triggers: 'update_urlslistText'
             },{
-                id:'hidePasteUrlInfo'
-                ,type: 'boolean'
-                ,value: false
-                ,dispatch: 'hidePasteUrlInfo_updated'
-                ,triggers: 'update_hidePasteUrlInfo'
-            },{
                 id:'hideParseUrlListButton'
                 ,type: 'boolean'
                 ,value: true
                 ,dispatch: 'hideParseUrlListButton_updated'
                 ,triggers: 'update_hideParseUrlListButton'
+            },{
+                id:'urlsDiagnosticActiveState'
+                ,type: 'boolean'
+                ,value: false
+                ,dispatch: 'urlsDiagnosticActiveState_updated'
+                ,triggers: 'update_urlsDiagnosticActiveState'
             }
         ]
 
@@ -102,6 +102,12 @@ HypheCommons.domino_init()
                         this.update('hideParseUrlListButton', false)
                     }
                 }
+            },{
+                // Click on Diagnostic URLs triggers the diagnostic (TODO)
+                triggers: ['ui_DiagnosticUrls']
+                ,method: function(){
+                    this.update('urlsDiagnosticActiveState', true)
+                }
             }
         ]
     })
@@ -117,11 +123,19 @@ HypheCommons.domino_init()
         ,contentDispatchEvent: 'update_urlslistText'
     }])
 
-    // Hide/Show URLs Diagnostic area
+    // Hide/Show URLs Paste Panel
     D.addModule(dmod.HideElement, [{
-        element: $('#addWebentitiesDiagnostic_info')
-        ,hideProperty: 'hidePasteUrlInfo'
-        ,hideTriggerEvent: 'hidePasteUrlInfo_updated'
+        element: $('#urlsPastePanel')
+        ,hideProperty: 'urlsDiagnosticActiveState'
+        ,hideTriggerEvent: 'urlsDiagnosticActiveState_updated'
+    }])
+
+    // Hide/Show URLs Diagnostic Panel
+    D.addModule(dmod.HideElement, [{
+        element: $('#urlsDiagnosticPanel')
+        ,hideProperty: 'urlsDiagnosticActiveState'
+        ,propertyWrap: function(d){return !d}
+        ,hideTriggerEvent: 'urlsDiagnosticActiveState_updated'
     }])
 
     // Hide/Show URLs Diagnostic "Find" button
@@ -129,6 +143,12 @@ HypheCommons.domino_init()
         element: $('#addWebentitiesDiagnostic_findButton')
         ,hideProperty: 'hideParseUrlListButton'
         ,hideTriggerEvent: 'hideParseUrlListButton_updated'
+    }])
+
+    // Action on diagnostic button
+    D.addModule(dmod.Button, [{
+        element: $('#addWebentitiesDiagnostic_findButton')
+        ,dispatchEvent: 'ui_DiagnosticUrls'
     }])
 
     // Network display (Sigma)
