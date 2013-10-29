@@ -421,8 +421,8 @@ $.fn.editable.defaults.mode = 'popup';
     // Text area: paste URLs list
     D.addModule(dmod.TextArea, [{
         element: $('#urlsList')
-        ,content_property: 'urlslistText'
-        ,content_dispatch: 'update_urlslistText'
+        ,contentProperty: 'urlslistText'
+        ,contentDispatchEvent: 'update_urlslistText'
     }])
 
     // Button: Find web entities
