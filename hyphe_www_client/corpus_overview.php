@@ -16,16 +16,18 @@
         <link rel="stylesheet" href="css/main.css">
 
         <style>
-            .block{
+            .block {
                 background-color: #EEE;
                 padding: 20px;
                 height: 200px;
                 margin-bottom: 30px;
             }
 
-            /* Network Settings */
+            #addWebentitiesPasteArea{
+                margin-bottom: 30px;
+            }
+
             #networkSettings{
-                background-color: #EEE;
                 height: 350px;
                 margin-bottom: 30px;
             }
@@ -68,6 +70,11 @@
                 position: absolute;
                 width: 100%;
             }
+
+            .sigma-messages {
+                padding-left: 5px;
+                padding-top: 3px;
+            }
         </style>
 
         <script src="js/libs/modernizr-2.6.1-respond-1.1.0.min.js"></script>
@@ -97,13 +104,22 @@
 
             <div class="row">
                 <div class="span4">
-                    <div class="block">
-                        "Paste your addresses"
+                    <div id="addWebentitiesPasteArea">
+                        <h4>Add web entities</h4>
+                        <textarea rows="8" class="span4" id="urlsList" placeholder="Paste a list of URLs"></textarea>
                     </div>
                 </div>
                 <div class="span8">
-                    <div class="block">
-                        Solve issues related to web entities definition
+                    <div id="addWebentitiesDiagnostic">
+                        <br/>
+                        <br/>
+                        <br/>
+                        <p class="text-info">
+                            <i class="icon-hand-left"></i>
+                            Paste URLs to create new web entities
+                            <br/>
+                            <span class="muted">You can also paste a bunch of text, we will try to identify the URLs</span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -114,7 +130,7 @@
                 </div>
                 <div class="span4">
                     <div id="networkSettings">
-                        Network viz settings (filtering...)
+                        <span class="muted">[ Network viz settings (filtering...) ]</span>
                     </div>
                 </div>
             </div>

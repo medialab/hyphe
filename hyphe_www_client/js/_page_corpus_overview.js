@@ -31,9 +31,12 @@ HypheCommons.domino_init()
                 ,value: true
                 ,dispatch: 'sigmaPending_updated'
                 ,triggers: 'update_sigmaPending'
+            },{
+                id:'urlslistText'
+                ,dispatch: 'urlslistText_updated'
+                ,triggers: 'update_urlslistText'
             }
         ]
-
 
         ,services: [
         	{
@@ -80,10 +83,18 @@ HypheCommons.domino_init()
         ]
     })
 
-
+    
 
     //// Modules
-    // Sigma
+    
+    // Paste Urls Textarea
+    D.addModule(dmod.TextArea, [{
+        element: $('#urlsList')
+        ,contentProperty: 'urlslistText'
+        ,contentDispatchEvent: 'update_urlslistText'
+    }])
+
+    // Network display (Sigma)
     D.addModule(dmod.Sigma, [{
         element: $('#networkContainer')
         ,networkProperty: 'networkJson'

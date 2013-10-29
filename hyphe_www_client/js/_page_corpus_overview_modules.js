@@ -37,14 +37,14 @@
         	,pendingStateUpdatedEvent = options['pendingStateUpdatedEvent']
         	,pendingMessage = options['pendingMessage'] || 'Loading...'
 
-        container.html('<div class="sigma-parent"><div class="sigma-expand"></div><div class="sigma-overlay"></div></div>')
+        container.html('<div class="sigma-parent"><div class="sigma-expand"></div><div class="sigma-overlay sigma-messages"></div><div class="sigma-overlay sigma-pending"></div></div>')
         
         var showPending = function(){
-        	container.find('.sigma-overlay').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
+        	container.find('.sigma-pending').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
         }
 
         var hidePending = function(){
-        	container.find('.sigma-overlay').html('')
+        	container.find('.sigma-pending').html('')
         }
 
         var rescale = function(){
@@ -76,13 +76,16 @@
                     'x': Math.random()
                     ,'y': Math.random()
                     ,label: node.label
-                    ,size: 1 + Math.log(1 + 0.1 * ( node.inEdges.length + node.outEdges.length ) )
+                    ,size: Math.sqrt( 1 + Math.log( 1 + 0.1 * ( node.inEdges.length ) ) )
                     ,'color': chroma.rgb(node.color.r, node.color.g, node.color.b).hex()
                 })
             })
             json.edges.forEach(function(link, i){
                 sigmaInstance.addEdge(i,link.sourceID,link.targetID)
             })
+
+            // Info message: nodes size...
+            container.find('.sigma-messages').html('<span class="label">Network</span> <span class="label label-inverse">'+json.nodes.length+' nodes</span> <span class="label label-inverse">'+json.edges.length+' edges</span>')
 
             rescale()
         }
@@ -101,6 +104,42 @@
         	showPending()
         }
 
+        return container
+    }
+
+    /**
+    * TextArea dynamically updates a property with the content.
+    *
+    * @param   {?Object} options An object containing the specifications of the
+    *                            module.
+    * @param   {?Object} d       The instance of domino.
+    *
+    * Here is the list of options that are interpreted:
+    *
+    *   {?string}         element                   The DOM element (jQuery)
+    *   {?string}         contentProperty           The name of the property that will be set to the content
+    *                                               (it is dispatched on contentDispatchEvent)
+    *   {?(array|string)} contentDispatchEvent      The property dispatched
+    */
+    ns.TextArea = function(options, d) {
+        domino.module.call(this)
+
+        var self = this
+            ,o = options || {}
+            ,el = o['element'] || $('<textarea/>')
+
+        var contentUpdated = function(){
+                var s = [] // settings
+                s[o['contentProperty']] = el.val()
+                self.dispatchEvent(o['contentDispatchEvent'], s)
+            }
+
+        if(o['contentProperty'] !== undefined && o['contentDispatchEvent'] !== undefined){
+            el.bind('input propertychange', contentUpdated)
+        }
+
+
+        this.html = el
     }
   
 

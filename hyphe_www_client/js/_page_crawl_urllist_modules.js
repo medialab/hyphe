@@ -156,22 +156,26 @@
    *                                        (it is dispatched on content_dispatch)
    *   {?(array|string)} content_dispatch   The property dispatched
    */
-  ns.TextArea = function(options, d) {
-    domino.module.call(this)
+   ns.TextArea = function(options, d) {
+        domino.module.call(this)
 
-    var self = this
-        ,o = options || {}
-        ,el = o['element'] || $('<textarea/>')
+        var self = this
+            ,o = options || {}
+            ,el = o['element'] || $('<textarea/>')
 
-    if(o['content_property'] !== undefined && o['content_dispatch'] !== undefined)
-      el.on('keyup', function(){
-        var s = [] // settings
-        s[o['content_property']] = el.val()
-        self.dispatchEvent(o['content_dispatch'], s)
-      })
+        var contentUpdated = function(){
+                var s = [] // settings
+                s[o['contentProperty']] = el.val()
+                self.dispatchEvent(o['contentDispatchEvent'], s)
+            }
 
-    this.html = el
-  }
+        if(o['contentProperty'] !== undefined && o['contentDispatchEvent'] !== undefined){
+            el.bind('input propertychange', contentUpdated)
+        }
+
+
+        this.html = el
+    }
 
 
   /**
