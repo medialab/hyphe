@@ -12,9 +12,7 @@
                     </div>
                     <br/>
 					<p>
-                        We used:
-                        <br/> 
-                        - Web Interface:
+                        We used for the web interface:
                         <strong><a href="http://dominojs.org/">Domino.js</a></strong>,
                         <strong><a href="http://sigmajs.org/">Sigma.js</a></strong>,
                         <a href="http://twitter.github.com/bootstrap/">Bootstrap</a>,
@@ -22,7 +20,7 @@
                         <a href="http://modernizr.com/">Modernizr</a>,
                         <a href="http://www.initializr.com/">Initializr</a>
                         <br/>
-                        - Crawl &amp; storage server API:
+                        We used for the crawl &amp; storage server API:
                         <strong><a href="http://lucene.apache.org/">Lucene</a></strong>,
                         <strong><a href="http://scrapy.org/">Scrapy</a></strong>,
                         <a href="http://twistedmatrix.com/trac/">Twisted</a>,
