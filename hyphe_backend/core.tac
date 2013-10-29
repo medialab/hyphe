@@ -588,7 +588,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 else:
                     arr = getattr(WE, field_name, set())
                 if array_behavior == "push":
-                    arr.append(value)
+                    if isinstance(arr, list):
+                        arr.append(value)
+                    elif isinstance(arr, set):
+                        arr.add(value)
                     if field_name == 'LRUSet':
                         self.handle_lru_precision_exceptions(value)
                     elif field_name == 'startpages':
