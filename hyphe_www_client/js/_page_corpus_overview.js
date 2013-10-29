@@ -36,6 +36,10 @@ HypheCommons.domino_init()
                 ,dispatch: 'urlslistText_updated'
                 ,triggers: 'update_urlslistText'
             },{
+                id:'candidateUrls'
+                ,dispatch: 'candidateUrls_updated'
+                ,triggers: 'update_candidateUrls'
+            },{
                 id:'hideParseUrlListButton'
                 ,type: 'boolean'
                 ,value: true
@@ -103,10 +107,18 @@ HypheCommons.domino_init()
                     }
                 }
             },{
-                // Click on Diagnostic URLs triggers the diagnostic (TODO)
+                // Clicking on the Diagnostic URLs button triggers the diagnostic (TODO)
                 triggers: ['ui_DiagnosticUrls']
                 ,method: function(){
                     this.update('urlsDiagnosticActiveState', true)
+                }
+            },{
+                // Clicking on Diagnostic URLs button parses the URLs list
+                triggers: ['ui_DiagnosticUrls']
+                ,method: function(){
+                    var urlslistText = this.get('urlslistText')
+                        ,urls = extractWebentities(urlslistText)
+                    this.update('candidateUrls', urls)
                 }
             }
         ]
@@ -267,31 +279,19 @@ HypheCommons.domino_init()
         return net
     }
 
-    var buildNetworkForDownload = function(provider) {
-        var json = provider.get('filteredNetworkJson')
+    var extractWebentities = function(text){
+        var re = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig
+            ,raw_urls = text.match(re)
+            ,urls = raw_urls.filter(function(expression){
+                        return Utils.URL_validate(expression)
+                    })
+                .map(function(url){
+                        if(url.indexOf('http')!=0)
+                            return 'http://'+url
+                        return url
+                    })
 
-        // Get layout properties from sigma
-        var sigmaInstance = provider.get('sigmaInstance')
-        sigmaInstance.iterNodes(function(sigmaNode){
-            var node = json.nodes_byId[sigmaNode.id]
-            if(node === undefined){
-                console.log('Cannot find node '+sigmaNode.id)
-                sigmaNode.color = '#FF0000'
-            } else {
-                // console.log('Can find node '+sigmaNode.id)
-                node.x = sigmaNode.x
-                node.y = sigmaNode.y
-                node.size = sigmaNode.size
-                var rgb = chroma.hex(sigmaNode.color).rgb
-                node.color = {r:rgb[0], g:rgb[1], b:rgb[2]}
-            }
-        })
-
-        var blob = new Blob(json_graph_api.buildGEXF(json), {'type':'text/gexf+xml;charset=utf-8'})
-            ,filename = "Web Entities.gexf"
-        if(navigator.userAgent.match(/firefox/i))
-           alert('Note:\nFirefox does not handle file names, so you will have to rename this file to\n\"'+filename+'\""\nor some equivalent.')
-        saveAs(blob, filename)
+        return Utils.extractCases(urls)
     }
 
 
