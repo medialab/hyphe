@@ -10,7 +10,7 @@
 	]
 
 	/**
-	* A Sigma module
+	* Sigma module for displaying a network
 	*
 	* @param   {?Object} options 	An object containing the specifications of the module
 	* @param   {?Object} d       	The instance of domino.
@@ -29,13 +29,14 @@
         domino.module.call(this)
 
         var _self = this
+            ,o = options || {}
         	,sigmaInstance
-        	,networkProperty = options['networkProperty']
-        	,networkUpdatedEvent = options['networkUpdatedEvent']
-        	,container = options['element'] || $('<div/>')
-        	,pending = options['pendingStateProperty'] || false
-        	,pendingStateUpdatedEvent = options['pendingStateUpdatedEvent']
-        	,pendingMessage = options['pendingMessage'] || 'Loading...'
+        	,networkProperty = o['networkProperty']
+        	,networkUpdatedEvent = o['networkUpdatedEvent']
+        	,container = o['element'] || $('<div/>')
+        	,pending = o['pendingStateProperty'] || false
+        	,pendingStateUpdatedEvent = o['pendingStateUpdatedEvent']
+        	,pendingMessage = o['pendingMessage'] || 'Loading...'
 
         container.html('<div class="sigma-parent"><div class="sigma-expand"></div><div class="sigma-overlay sigma-messages"></div><div class="sigma-overlay sigma-pending"></div></div>')
         
@@ -85,13 +86,21 @@
             })
 
             // Info message: nodes size...
-            container.find('.sigma-messages').html('<span class="label">Network</span> <span class="label label-inverse">'+json.nodes.length+' nodes</span> <span class="label label-inverse">'+json.edges.length+' edges</span>')
+            if(json.nodes.length > 0){
+                if(json.edges.length > 0){
+                    container.find('.sigma-messages').html('<span class="label">Network</span> <span class="label label-inverse">'+json.nodes.length+' web entities</span> <span class="label label-inverse">'+json.edges.length+' links</span>')
+                } else {
+                    container.find('.sigma-messages').html('<span class="label">Network</span> <span class="label label-inverse">'+json.nodes.length+' web entities</span> <span class="label label-info">No link: crawl a web entity to get links</span>')
+                }
+            } else {
+                container.find('.sigma-messages').html('<span class="label">Empty Network</span> <span class="label label-info">You have no web entity to visualize</span>')
+            }
 
             rescale()
         }
 
         this.triggers.events[pendingStateUpdatedEvent] = function(provider, e){
-        	pending = provider.get(options['pendingStateProperty'])
+        	pending = provider.get(o['pendingStateProperty'])
         	if(pending){
 	        	showPending()
 	        } else {
@@ -124,14 +133,14 @@
     ns.TextArea = function(options, d) {
         domino.module.call(this)
 
-        var self = this
+        var _self = this
             ,o = options || {}
             ,el = o['element'] || $('<textarea/>')
 
         var contentUpdated = function(){
                 var s = [] // settings
                 s[o['contentProperty']] = el.val()
-                self.dispatchEvent(o['contentDispatchEvent'], s)
+                _self.dispatchEvent(o['contentDispatchEvent'], s)
             }
 
         if(o['contentProperty'] !== undefined && o['contentDispatchEvent'] !== undefined){
@@ -141,6 +150,57 @@
 
         this.html = el
     }
-  
+
+    /**
+    * HideElement listens to a property to hide or show a DOM element
+    *
+    * @param   {?Object} options An object containing the specifications of the
+    *                            module.
+    * @param   {?Object} d       The instance of domino.
+    *
+    * Here is the list of options that are interpreted:
+    *
+    *   {?string}           element             The DOM element (jQuery)
+    *   {?string}           hideProperty        The name of the property listened (boolean)
+    *   {?(array|string)}   hideTriggerEvent   The event used to listen to the property
+    *   {?function}         propertyWrap        A function to modify the property listened
+    */
+    ns.HideElement = function(options, d) {
+        domino.module.call(this)
+
+        var _self = this
+            ,o = options || {}
+            ,el = o['element']
+
+        if(o['hideProperty']){
+            if (o['hideTriggerEvent']){
+                domino.utils.array(o['hideTriggerEvent']).forEach(function(eventName) {
+                    _self.triggers.events[eventName] = update
+                })
+            }else{
+                _self.triggers.properties[o['hideProperty']] = update
+            }
+        }
+
+        function update(provider, e) {
+            if(o['hideProperty'] !== undefined){
+                var prop = provider.get(o['hideProperty'])
+                if(prop !== undefined || o['propertyWrap'] !== undefined){
+                    var hide = (o['propertyWrap']) ? (o['propertyWrap'](prop)) : (prop)
+                    if(hide !== undefined){
+                        if(hide){
+                            el.hide()
+                        } else {
+                            el.show()
+                        }
+                    }
+                }
+            }
+        }
+
+        update(d)
+
+        this.html = el
+  }
 
 })(jQuery, (window.dmod = window.dmod || {}), domino);

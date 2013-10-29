@@ -35,6 +35,18 @@ HypheCommons.domino_init()
                 id:'urlslistText'
                 ,dispatch: 'urlslistText_updated'
                 ,triggers: 'update_urlslistText'
+            },{
+                id:'hidePasteUrlInfo'
+                ,type: 'boolean'
+                ,value: false
+                ,dispatch: 'hidePasteUrlInfo_updated'
+                ,triggers: 'update_hidePasteUrlInfo'
+            },{
+                id:'hideParseUrlListButton'
+                ,type: 'boolean'
+                ,value: true
+                ,dispatch: 'hideParseUrlListButton_updated'
+                ,triggers: 'update_hideParseUrlListButton'
             }
         ]
 
@@ -79,6 +91,17 @@ HypheCommons.domino_init()
                 ,method: function(){
                     this.update('sigmaPending', false)
                 }
+            },{
+                // When the list of URLs textarea is empty, hide the button, and not else
+                triggers: ['urlslistText_updated']
+                ,method: function() {
+                    var text = this.get('urlslistText')
+                    if(text == ''){
+                        this.update('hideParseUrlListButton', true)
+                    } else {
+                        this.update('hideParseUrlListButton', false)
+                    }
+                }
             }
         ]
     })
@@ -87,11 +110,25 @@ HypheCommons.domino_init()
 
     //// Modules
     
-    // Paste Urls Textarea
+    // Paste URLs Textarea
     D.addModule(dmod.TextArea, [{
         element: $('#urlsList')
         ,contentProperty: 'urlslistText'
         ,contentDispatchEvent: 'update_urlslistText'
+    }])
+
+    // Hide/Show URLs Diagnostic area
+    D.addModule(dmod.HideElement, [{
+        element: $('#addWebentitiesDiagnostic_info')
+        ,hideProperty: 'hidePasteUrlInfo'
+        ,hideTriggerEvent: 'hidePasteUrlInfo_updated'
+    }])
+
+    // Hide/Show URLs Diagnostic "Find" button
+    D.addModule(dmod.HideElement, [{
+        element: $('#addWebentitiesDiagnostic_findButton')
+        ,hideProperty: 'hideParseUrlListButton'
+        ,hideTriggerEvent: 'hideParseUrlListButton_updated'
     }])
 
     // Network display (Sigma)

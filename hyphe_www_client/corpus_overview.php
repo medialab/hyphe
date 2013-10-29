@@ -111,15 +111,18 @@
                 </div>
                 <div class="span8">
                     <div id="addWebentitiesDiagnostic">
-                        <br/>
-                        <br/>
-                        <br/>
-                        <p class="text-info">
-                            <i class="icon-hand-left"></i>
-                            Paste URLs to create new web entities
+                        <div id="addWebentitiesDiagnostic_info">
                             <br/>
-                            <span class="muted">You can also paste a bunch of text, we will try to identify the URLs</span>
-                        </p>
+                            <br/>
+                            <br/>
+                            <p class="text-info">
+                                <i class="icon-hand-left"></i>
+                                Paste URLs to create new web entities
+                                <br/>
+                                <span class="muted">You can also paste a bunch of text, we will try to identify the URLs</span>
+                            </p>
+                            <button class="btn btn-primary" id="addWebentitiesDiagnostic_findButton">Find web entities</button>
+                        </div>
                     </div>
                 </div>
             </div>
