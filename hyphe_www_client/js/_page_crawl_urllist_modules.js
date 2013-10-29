@@ -151,10 +151,10 @@
    *
    * Here is the list of options that are interpreted:
    *
-   *   {?string}         element            The DOM element (jQuery)
-   *   {?string}         content_property   The name of the property that will be set to the content
-   *                                        (it is dispatched on content_dispatch)
-   *   {?(array|string)} content_dispatch   The property dispatched
+   *   {?string}         element                The DOM element (jQuery)
+   *   {?string}         contentProperty        The name of the property that will be set to the content
+   *                                            (it is dispatched on content_dispatch)
+   *   {?(array|string)} contentDispatchEvent   The property dispatched
    */
    ns.TextArea = function(options, d) {
         domino.module.call(this)
