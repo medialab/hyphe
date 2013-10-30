@@ -1358,7 +1358,7 @@ public class LRUIndex {
             final TopDocs results = indexSearcher.search(LuceneQueryFactory.getWebEntitiesQuery(), null, 1);
             List<WebEntityLink> res;
             String method = "HashMap";
-            if (results.totalHits > 2000) {
+            if (results.totalHits < 5000) {
                 res = generateWebEntityLinksViaMap();
             } else {
                 res = generateWebEntityLinksViaWENL();
@@ -1377,7 +1377,7 @@ public class LRUIndex {
      * Runs the generation of WebEntityLinks from the combination of WebEntities definition and the list of all NodeLinks.
      * Method Map: iterates over all WebEntities, search all NodeLinks having it as Target,
      * and maps everything in a three-layered HashMap to optimize resolving.
-     * Most effective on smaller corpora, set as default method when there are less than 2000 WEs in the index
+     * Most effective on smaller corpora, set as default method when there are less than 5000 WEs in the index
      *
      * @throws IndexException hmm
      */
@@ -1403,8 +1403,8 @@ public class LRUIndex {
             THashMap<String, WebEntityLink> webEntityLinksMap;
             int intern_weight = 0;
             String sourceId, sourceLRU, sourceNode, sourcePrefix, shortLRU;
-            for (int i = 0 ; i < totalWebEntities ; i++) {
-                final WebEntity WE = IndexConfiguration.convertLuceneDocumentToWebEntity(indexSearcher.doc(scoreDocs[i].doc));
+            for (ScoreDoc doc : scoreDocs) {
+                final WebEntity WE = IndexConfiguration.convertLuceneDocumentToWebEntity(indexSearcher.doc(doc.doc));
                 if(logger.isDebugEnabled()) {
                     logger.debug("generating webentitylinks for webentity " + WE.getName() + " / " + WE.getId());
                 }
@@ -1502,7 +1502,7 @@ public class LRUIndex {
      * Method WebEntityNodeLink: iterates over all user created WebEntities, find corresponding NodeLinks (having Source within the WE),
      * and creates temporary links between WebEntities and NodeLinks as WebEntityNodeLinks Lucene Objects
      * Then query these on their Target for each WebEntity and assemble them as WebEntityLinks
-     * Most effective on big corpora, set as default method when there are more than 2000 WEs in the index
+     * Most effective on big corpora, set as default method when there are more than 5000 WEs in the index
      *
      * @throws IndexException hmm
      */
@@ -1535,8 +1535,8 @@ public class LRUIndex {
                 if (totalLinksResults > 0) {
                     linksResults = indexSearcher.search(linksQuery, null, totalLinksResults);
                     final ScoreDoc[] scoreDocs = linksResults.scoreDocs;
-                    for (int i = 0 ; i < totalLinksResults ; i++) {
-                        final NodeLink link = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(scoreDocs[i].doc));
+                    for (ScoreDoc doc : scoreDocs) {
+                        final NodeLink link = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(doc.doc));
                         if (LRUUtil.LRUBelongsToWebentity(link.getTargetLRU(), WE, subWEs)) {
                             intern_weight += link.getWeight();
                         } else {
@@ -1570,8 +1570,8 @@ public class LRUIndex {
             }
             results = indexSearcher.search(query, null, totalResults);
             ScoreDoc[] scoreDocs = results.scoreDocs;
-            for (int i = 0 ; i < scoreDocs.length ; i++) {
-                final WebEntity WE = IndexConfiguration.convertLuceneDocumentToWebEntity(indexSearcher.doc(scoreDocs[i].doc));
+            for (ScoreDoc doc : scoreDocs) {
+                final WebEntity WE = IndexConfiguration.convertLuceneDocumentToWebEntity(indexSearcher.doc(doc.doc));
                 if (WE.getName() != null && WE.getName().equals(Constants.DEFAULT_WEBENTITY)) {
                     continue;
                 }
@@ -1590,8 +1590,8 @@ public class LRUIndex {
                     webEntityLinksMap = new THashMap<String, WebEntityLink>();
                     linksResults = indexSearcher.search(linksQuery, null, totalLinksResults);
                     final ScoreDoc[] linksScoreDocs = linksResults.scoreDocs;
-                    for (int j = 0 ; j < totalLinksResults ; j++) {
-                        final WebEntityNodeLink link = IndexConfiguration.convertLuceneDocumentToWebEntityNodeLink(indexSearcher.doc(linksScoreDocs[j].doc));
+                    for (ScoreDoc linkDoc : linksScoreDocs) {
+                        final WebEntityNodeLink link = IndexConfiguration.convertLuceneDocumentToWebEntityNodeLink(indexSearcher.doc(linkDoc.doc));
                         final String now = new Date().toString();
                         sourceId = link.getSourceId();
                         WebEntityLink webEntityLink = webEntityLinksMap.remove(sourceId);
