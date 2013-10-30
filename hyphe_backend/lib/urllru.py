@@ -247,7 +247,7 @@ def lru_get_node(lru, precision_limit = 1, precision_exceptions = [], lru_head =
     if not lru_head:
         lru_head = lru_get_head(lru, precision_exceptions)
     stems = [stem for _, _, stem in split_lru_in_stems(lru.replace(lru_head, ''), False)[:precision_limit]]
-    stems.insert(0, lru_head)
+    stems.insert(0, lru_head.strip("|"))
     return add_trailing_pipe("|".join(stems))
 
 # TESTS
