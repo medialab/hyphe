@@ -27,6 +27,7 @@
                 overflow: hidden;
                 height: 200px;
                 margin-bottom: 30px;
+                overflow-y: auto;
             }
 
             #networkSettings{
@@ -127,7 +128,8 @@
                 </div>
                 <div id="urlsDiagnosticPanel">
                     <div class="span12">
-                        [URLs Diagnostic]
+                        <div id="urlsDiagnosticPanel_content">
+                        </div>
                     </div>
                 </div>
             </div>

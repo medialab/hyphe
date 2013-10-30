@@ -15,42 +15,42 @@ HypheCommons.domino_init()
         ,properties: [
             {
                 id:'webentities'
-                ,dispatch: 'webentities_updated'
                 ,triggers: 'update_webentities'
+                ,dispatch: 'webentities_updated'
             },{
                 id:'webentitiesLinks'
-                ,dispatch: 'webentitiesLinks_updated'
                 ,triggers: 'update_webentitiesLinks'
+                ,dispatch: 'webentitiesLinks_updated'
             },{
                 id:'networkJson'
-                ,dispatch: 'networkJson_updated'
                 ,triggers: 'update_networkJson'
+                ,dispatch: 'networkJson_updated'
             },{
                 id:'sigmaPending'
                 ,type: 'boolean'
                 ,value: true
-                ,dispatch: 'sigmaPending_updated'
                 ,triggers: 'update_sigmaPending'
+                ,dispatch: 'sigmaPending_updated'
             },{
                 id:'urlslistText'
-                ,dispatch: 'urlslistText_updated'
                 ,triggers: 'update_urlslistText'
+                ,dispatch: 'urlslistText_updated'
             },{
                 id:'candidateUrls'
-                ,dispatch: 'candidateUrls_updated'
                 ,triggers: 'update_candidateUrls'
+                ,dispatch: 'candidateUrls_updated'
             },{
                 id:'hideParseUrlListButton'
                 ,type: 'boolean'
                 ,value: true
-                ,dispatch: 'hideParseUrlListButton_updated'
                 ,triggers: 'update_hideParseUrlListButton'
+                ,dispatch: 'hideParseUrlListButton_updated'
             },{
                 id:'urlsDiagnosticActiveState'
                 ,type: 'boolean'
                 ,value: false
-                ,dispatch: 'urlsDiagnosticActiveState_updated'
                 ,triggers: 'update_urlsDiagnosticActiveState'
+                ,dispatch: 'urlsDiagnosticActiveState_updated'
             }
         ]
 
@@ -127,6 +127,16 @@ HypheCommons.domino_init()
     
 
     //// Modules
+
+    // Network display (Sigma)
+    D.addModule(dmod.Sigma, [{
+        element: $('#networkContainer')
+        ,networkProperty: 'networkJson'
+        ,networkUpdatedEvent: 'networkJson_updated'
+        ,pendingStateProperty: 'sigmaPending'
+        ,pendingStateUpdatedEvent: 'sigmaPending_updated'
+        ,pendingMessage: 'Loading and parsing the network...'
+    }])
     
     // Paste URLs Textarea
     D.addModule(dmod.TextArea, [{
@@ -163,16 +173,25 @@ HypheCommons.domino_init()
         ,dispatchEvent: 'ui_DiagnosticUrls'
     }])
 
-    // Network display (Sigma)
-    D.addModule(dmod.Sigma, [{
-        element: $('#networkContainer')
-        ,networkProperty: 'networkJson'
-        ,networkUpdatedEvent: 'networkJson_updated'
-        ,pendingStateProperty: 'sigmaPending'
-        ,pendingStateUpdatedEvent: 'sigmaPending_updated'
-        ,pendingMessage: 'Loading and parsing the network...'
-    }])
-    
+    // Display the diagnostic (Custom Module)
+    D.addModule(function(){
+        domino.module.call(this)
+
+        var _self = this
+            ,container = $('#urlsDiagnosticPanel_content')
+
+        this.triggers.events['candidateUrls_updated'] = function(provider, e) {
+            var urls = provider.get('candidateUrls')
+            container.html('')
+                .append(
+                        urls.map(function(url){
+                            return $('<p/>').text(url)
+                        })
+                    )
+        }
+    })
+
+        
 
 
 
