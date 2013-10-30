@@ -15,26 +15,42 @@ HypheCommons.domino_init()
         ,properties: [
             {
                 id:'webentities'
-                ,dispatch: 'webentities_updated'
                 ,triggers: 'update_webentities'
+                ,dispatch: 'webentities_updated'
             },{
                 id:'webentitiesLinks'
-                ,dispatch: 'webentitiesLinks_updated'
                 ,triggers: 'update_webentitiesLinks'
+                ,dispatch: 'webentitiesLinks_updated'
             },{
                 id:'networkJson'
-                ,dispatch: 'networkJson_updated'
                 ,triggers: 'update_networkJson'
+                ,dispatch: 'networkJson_updated'
             },{
                 id:'sigmaPending'
                 ,type: 'boolean'
                 ,value: true
-                ,dispatch: 'sigmaPending_updated'
                 ,triggers: 'update_sigmaPending'
+                ,dispatch: 'sigmaPending_updated'
             },{
                 id:'urlslistText'
-                ,dispatch: 'urlslistText_updated'
                 ,triggers: 'update_urlslistText'
+                ,dispatch: 'urlslistText_updated'
+            },{
+                id:'candidateUrls'
+                ,triggers: 'update_candidateUrls'
+                ,dispatch: 'candidateUrls_updated'
+            },{
+                id:'hideParseUrlListButton'
+                ,type: 'boolean'
+                ,value: true
+                ,triggers: 'update_hideParseUrlListButton'
+                ,dispatch: 'hideParseUrlListButton_updated'
+            },{
+                id:'urlsDiagnosticActiveState'
+                ,type: 'boolean'
+                ,value: false
+                ,triggers: 'update_urlsDiagnosticActiveState'
+                ,dispatch: 'urlsDiagnosticActiveState_updated'
             }
         ]
 
@@ -79,6 +95,31 @@ HypheCommons.domino_init()
                 ,method: function(){
                     this.update('sigmaPending', false)
                 }
+            },{
+                // When the list of URLs textarea is empty, hide the button, and not else
+                triggers: ['urlslistText_updated']
+                ,method: function() {
+                    var text = this.get('urlslistText')
+                    if(text == ''){
+                        this.update('hideParseUrlListButton', true)
+                    } else {
+                        this.update('hideParseUrlListButton', false)
+                    }
+                }
+            },{
+                // Clicking on the Diagnostic URLs button triggers the diagnostic (TODO)
+                triggers: ['ui_DiagnosticUrls']
+                ,method: function(){
+                    this.update('urlsDiagnosticActiveState', true)
+                }
+            },{
+                // Clicking on Diagnostic URLs button parses the URLs list
+                triggers: ['ui_DiagnosticUrls']
+                ,method: function(){
+                    var urlslistText = this.get('urlslistText')
+                        ,urls = extractWebentities(urlslistText)
+                    this.update('candidateUrls', urls)
+                }
             }
         ]
     })
@@ -86,13 +127,6 @@ HypheCommons.domino_init()
     
 
     //// Modules
-    
-    // Paste Urls Textarea
-    D.addModule(dmod.TextArea, [{
-        element: $('#urlsList')
-        ,contentProperty: 'urlslistText'
-        ,contentDispatchEvent: 'update_urlslistText'
-    }])
 
     // Network display (Sigma)
     D.addModule(dmod.Sigma, [{
@@ -104,6 +138,60 @@ HypheCommons.domino_init()
         ,pendingMessage: 'Loading and parsing the network...'
     }])
     
+    // Paste URLs Textarea
+    D.addModule(dmod.TextArea, [{
+        element: $('#urlsList')
+        ,contentProperty: 'urlslistText'
+        ,contentDispatchEvent: 'update_urlslistText'
+    }])
+
+    // Hide/Show URLs Paste Panel
+    D.addModule(dmod.HideElement, [{
+        element: $('#urlsPastePanel')
+        ,hideProperty: 'urlsDiagnosticActiveState'
+        ,hideTriggerEvent: 'urlsDiagnosticActiveState_updated'
+    }])
+
+    // Hide/Show URLs Diagnostic Panel
+    D.addModule(dmod.HideElement, [{
+        element: $('#urlsDiagnosticPanel')
+        ,hideProperty: 'urlsDiagnosticActiveState'
+        ,propertyWrap: function(d){return !d}
+        ,hideTriggerEvent: 'urlsDiagnosticActiveState_updated'
+    }])
+
+    // Hide/Show URLs Diagnostic "Find" button
+    D.addModule(dmod.HideElement, [{
+        element: $('#addWebentitiesDiagnostic_findButton')
+        ,hideProperty: 'hideParseUrlListButton'
+        ,hideTriggerEvent: 'hideParseUrlListButton_updated'
+    }])
+
+    // Action on diagnostic button
+    D.addModule(dmod.Button, [{
+        element: $('#addWebentitiesDiagnostic_findButton')
+        ,dispatchEvent: 'ui_DiagnosticUrls'
+    }])
+
+    // Display the diagnostic (Custom Module)
+    D.addModule(function(){
+        domino.module.call(this)
+
+        var _self = this
+            ,container = $('#urlsDiagnosticPanel_content')
+
+        this.triggers.events['candidateUrls_updated'] = function(provider, e) {
+            var urls = provider.get('candidateUrls')
+            container.html('')
+                .append(
+                        urls.map(function(url){
+                            return $('<p/>').text(url)
+                        })
+                    )
+        }
+    })
+
+        
 
 
 
@@ -210,31 +298,19 @@ HypheCommons.domino_init()
         return net
     }
 
-    var buildNetworkForDownload = function(provider) {
-        var json = provider.get('filteredNetworkJson')
+    var extractWebentities = function(text){
+        var re = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig
+            ,raw_urls = text.match(re)
+            ,urls = raw_urls.filter(function(expression){
+                        return Utils.URL_validate(expression)
+                    })
+                .map(function(url){
+                        if(url.indexOf('http')!=0)
+                            return 'http://'+url
+                        return url
+                    })
 
-        // Get layout properties from sigma
-        var sigmaInstance = provider.get('sigmaInstance')
-        sigmaInstance.iterNodes(function(sigmaNode){
-            var node = json.nodes_byId[sigmaNode.id]
-            if(node === undefined){
-                console.log('Cannot find node '+sigmaNode.id)
-                sigmaNode.color = '#FF0000'
-            } else {
-                // console.log('Can find node '+sigmaNode.id)
-                node.x = sigmaNode.x
-                node.y = sigmaNode.y
-                node.size = sigmaNode.size
-                var rgb = chroma.hex(sigmaNode.color).rgb
-                node.color = {r:rgb[0], g:rgb[1], b:rgb[2]}
-            }
-        })
-
-        var blob = new Blob(json_graph_api.buildGEXF(json), {'type':'text/gexf+xml;charset=utf-8'})
-            ,filename = "Web Entities.gexf"
-        if(navigator.userAgent.match(/firefox/i))
-           alert('Note:\nFirefox does not handle file names, so you will have to rename this file to\n\"'+filename+'\""\nor some equivalent.')
-        saveAs(blob, filename)
+        return Utils.extractCases(urls)
     }
 
 
