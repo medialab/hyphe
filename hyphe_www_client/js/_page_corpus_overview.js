@@ -107,18 +107,28 @@ HypheCommons.domino_init()
                     }
                 }
             },{
-                // Clicking on the Diagnostic URLs button triggers the diagnostic (TODO)
-                triggers: ['ui_DiagnosticUrls']
-                ,method: function(){
-                    this.update('urlsDiagnosticActiveState', true)
-                }
-            },{
                 // Clicking on Diagnostic URLs button parses the URLs list
                 triggers: ['ui_DiagnosticUrls']
                 ,method: function(){
                     var urlslistText = this.get('urlslistText')
                         ,urls = extractWebentities(urlslistText)
                     this.update('candidateUrls', urls)
+                }
+            },{
+                // Having a non-empty candidates URLs list triggers the diagnostic
+                triggers: ['candidateUrls_updated']
+                ,method: function(){
+                    var candidateUrls = this.get('candidateUrls')
+                    if(candidateUrls.length > 0)
+                        this.update('urlsDiagnosticActiveState', true)
+                }
+            },{
+                // Having an empty list of candidates URLs triggers an alert
+                triggers: ['candidateUrls_updated']
+                ,method: function(){
+                    var candidateUrls = this.get('candidateUrls')
+                    if(candidateUrls.length == 0)
+                        alert('There are no URLs in the text you pasted')
                 }
             }
         ]
@@ -300,7 +310,7 @@ HypheCommons.domino_init()
 
     var extractWebentities = function(text){
         var re = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig
-            ,raw_urls = text.match(re)
+            ,raw_urls = text.match(re) || []
             ,urls = raw_urls.filter(function(expression){
                         return Utils.URL_validate(expression)
                     })

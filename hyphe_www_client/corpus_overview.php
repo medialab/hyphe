@@ -27,7 +27,14 @@
                 overflow: hidden;
                 height: 200px;
                 margin-bottom: 30px;
+            }
+
+            #urlsDiagnosticPanel_container{
+                height: 198px;
+                overflow-x: hidden;
                 overflow-y: auto;
+                background: rgb(248,248,248);
+                border: 1px solid #DDD;
             }
 
             #networkSettings{
@@ -106,29 +113,39 @@
             </div>
 
             <div class="row" id='addWebentitiesRow'>
-                <div id="urlsPastePanel">
-                    <div class="span4">
-                        <div id="addWebentitiesPasteArea">
-                            <h4>Add web entities</h4>
-                            <textarea rows="7" class="span4" id="urlsList" placeholder="Paste a list of URLs"></textarea>
+                <div class="span12">
+                    <div class="row" id="urlsPastePanel">
+                        <div class="span4">
+                            <div id="addWebentitiesPasteArea">
+                                <h4>Add web entities</h4>
+                                <textarea rows="7" class="span4" id="urlsList" placeholder="Paste a list of URLs"></textarea>
+                            </div>
+                        </div>
+                        <div class="span8">
+                            <br/>
+                            <br/>
+                            <br/>
+                            <p class="text-info">
+                                <i class="icon-hand-left"></i>
+                                Paste URLs to create new web entities
+                                <br/>
+                                <span class="muted">You can also paste a bunch of text, we will try to identify the URLs</span>
+                            </p>
+                            <button class="btn btn-primary" id="addWebentitiesDiagnostic_findButton">Find web entities</button>
                         </div>
                     </div>
-                    <div class="span8">
-                        <br/>
-                        <br/>
-                        <br/>
-                        <p class="text-info">
-                            <i class="icon-hand-left"></i>
-                            Paste URLs to create new web entities
-                            <br/>
-                            <span class="muted">You can also paste a bunch of text, we will try to identify the URLs</span>
-                        </p>
-                        <button class="btn btn-primary" id="addWebentitiesDiagnostic_findButton">Find web entities</button>
-                    </div>
-                </div>
-                <div id="urlsDiagnosticPanel">
-                    <div class="span12">
-                        <div id="urlsDiagnosticPanel_content">
+                    <div class="row" id="urlsDiagnosticPanel">
+                        <div class="span8">
+                            <div id="urlsDiagnosticPanel_container">
+                                <div id="urlsDiagnosticPanel_content">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="span4">
+                            <p class="text-info">
+                                <i class="icon-hand-left"></i>
+                                We're verifying the URLs
+                            </p>
                         </div>
                     </div>
                 </div>
