@@ -35,6 +35,27 @@
                 overflow-y: auto;
                 background: rgb(248,248,248);
                 border: 1px solid #DDD;
+                -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+                -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+                box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+            }
+
+            #urlsDiagnosticPanel_content{
+                padding-bottom: 20px;
+            }
+
+            .urlCandidateBlock{
+                height: 20px;
+                border: 1px solid #EEE;
+                background: #FFF;
+                margin: 4px;
+                padding: 5px;
+                -webkit-border-radius: 2px;
+                -moz-border-radius: 2px;
+                border-radius: 2px;
+                -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+                -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
             }
 
             #networkSettings{

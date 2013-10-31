@@ -51,6 +51,32 @@ HypheCommons.domino_init()
                 ,value: false
                 ,triggers: 'update_urlsDiagnosticActiveState'
                 ,dispatch: 'urlsDiagnosticActiveState_updated'
+            },{
+                id: 'queriesLimit'
+                ,type: 'number'
+                ,value: 10
+            },{
+                id: 'currentQueries'
+                ,type: 'number'
+                ,value: 0
+                ,dispatch: 'currentQueries_updated'
+                ,triggers: 'update_currentQueries'
+            },{
+                id:'tasks'
+                ,type: 'array'
+                ,value: []
+                ,dispatch: 'tasks_updated'
+                ,triggers: 'update_tasks'
+            },{
+                id:'nextTaskId'
+                ,type: 'integer'
+                ,value: 0
+            },{
+                id:'tasks_byId'
+                ,type: 'object'
+                ,value: {}
+                ,dispatch: 'tasks_byId_updated'
+                ,triggers: 'update_tasks_byId'
             }
         ]
 
@@ -130,7 +156,86 @@ HypheCommons.domino_init()
                     if(candidateUrls.length == 0)
                         alert('There are no URLs in the text you pasted')
                 }
-            }
+            },{
+                // Having an non-empty list of candidates URLs stacks tasks for parsing every URL
+                triggers: ['candidateUrls_updated']
+                ,method: function(){
+                    var _self = this
+                        ,candidateUrls = this.get('candidateUrls')
+
+                    if(candidateUrls.length > 0){
+                        candidateUrls.forEach(function(url){
+                            _self.dispatchEvent('task_stack', {
+                                task: {
+                                        type: 'initializeCandidateURL'
+                                    }
+                            })
+                        })
+                    }
+                }
+            },{
+                // Stack a task on request
+                triggers: ['task_stack']
+                ,method: function(e){
+                    var tasks = this.get('tasks')
+                        ,tasks_byId = this.get('tasks_byId')
+                        ,taskId = this.get('nextTaskId')
+                        ,task = e.data.task || {}
+
+                    task.id = taskId++
+                    tasks.push(task)
+                    tasks_byId[task.id] = task
+
+                    this.update('nextTaskId', taskId)
+                    this.update('tasks', tasks)
+                    this.update('tasks_byId', tasks_byId)
+                }
+            },{
+                // On cascade task, execute the first non executed task
+                triggers: ['cascadeTask']
+                ,method: function(e){
+                    var tasks = this.get('tasks')
+                        ,queriesLimit = this.get('queriesLimit')
+                        ,currentQueries = this.get('currentQueries')
+                        
+                    // Are there tasks still to execute ?
+                    var waitingTasks = tasks.filter(function(t){return t.status == 'waiting'})
+                    if(waitingTasks.length > 0){
+
+                        // Get the first non executed task, depending on free queries
+                        if(currentQueries <= queriesLimit){
+                            var task = waitingTasks[0]
+                            task.status = 'pending'
+
+                            if(task.type == 'initializeCandidateURL'){
+                                var url_md5 = $.md5(task.url)
+                            }/* else if(task.type == 'declare'){
+                                this.request('webentityDeclare', {
+                                    prefixes: task.prefixes
+                                    ,taskId: task.id
+                                })
+                            }*/
+                        }
+
+                        // Keep batching if there are other tasks and queries limit allows it
+                        if(waitingTasks.length > 1){
+                            if(currentQueries < queriesLimit){
+                                this.dispatchEvent('cascadeTask')
+                            }
+                        }
+                    }
+                }
+            }/*,{
+                // On task callbacks, trigger task executed event
+                triggers: ['callback_webentityMerged', 'callback_webentityPrefixAdded', 'callback_webentityDeclared']
+                ,method: function(e){
+                    this.dispatchEvent('taskExecuted', {
+                        taskId: e.data.taskId
+                        ,errorMessage: e.data.errorMessage
+                    })
+                    this.dispatchEvent('cascadeTask')
+                }
+            }*/
         ]
     })
 
@@ -195,10 +300,12 @@ HypheCommons.domino_init()
             container.html('')
                 .append(
                         urls.map(function(url){
-                            return $('<p/>').text(url)
+                            return $('<div class="urlCandidateBlock" data-url-md5="'+$.md5(url)+'"/>').text(url)
                         })
                     )
         }
+
+        // this.triggers.events['urlDiag_'] = function(provider, e)
     })
 
         
