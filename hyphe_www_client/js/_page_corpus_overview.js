@@ -334,7 +334,9 @@ domino.settings('maxDepth', 1000)
                                         ,looks_a_homepage = looks_a_page && ((Utils.LRU_to_JSON_LRU(diag.lru).path || []).pop() || '').match(/.*(index|home|accueil).*/gi)
                                     
                                     if(looks_a_homepage){
-                                    // if(looks_a_page){
+                                        diag.status = 'warning'
+                                        diag.warningMessage = '<strong>It looks like a homepage</strong>. Having the whole domain often makes more sense.<span class="muted"> Click "Add" to define a web entity for this page anyway.</span>'
+                                    } else if(looks_a_page){
                                         diag.status = 'warning'
                                         diag.warningMessage = 'This URL <strong>looks like a page</strong> and not a section of a website. It might be a mistake.<span class="muted"> Click "Add" to define a web entity for this page anyway.</span>'
                                     } else {
