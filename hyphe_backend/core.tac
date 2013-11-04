@@ -475,8 +475,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def ensureDefaultCreationRuleExists(self):
         rules = self.msclient_sync.getWebEntityCreationRules()
         if is_error(rules) or len(rules) == 0:
+            default_regexp = "(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|)(h:[^\\|]+\\|)+)"
             print "Saves default WE creation rule"
-            self.msclient_sync.addWebEntityCreationRule(ms.WebEntityCreationRule(config['defaultWebEntityCreationRule']['regexp'], config['defaultWebEntityCreationRule']['prefix']))
+            self.msclient_sync.addWebEntityCreationRule(ms.WebEntityCreationRule(default_regexp, ''))
 
     def jsonrpc_reinitialize(self):
         try:

@@ -27,10 +27,6 @@
     "port" : 6978
   },
   "precisionLimit": 2,
-  "defaultWebEntityCreationRule": {
-    "regexp": "(s:[a-zA-Z]+(\\|t:[0-9]+)?(\\|h:[^\\|]+)(\\|h:[^\\|]+)+)",
-    "prefix": ""
-  },
   "discoverPrefixes": ["http://bit.ly",
                        "http://t.co",
                        "http://tinyurl.com",
