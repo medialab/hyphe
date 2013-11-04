@@ -330,10 +330,16 @@ domino.settings('maxDepth', 1000)
                                 case 'buildDiagnostic':
                                     var diagnostic_byUrl = this.get('diagnostic_byUrl')
                                         ,diag = diagnostic_byUrl[task.url]
-
-                                    /* To do */
-                                    diag.status = 'warning'
-                                    diag.warningMessage = 'You might have some issue with whatever I don\'t really know'
+                                        ,looks_a_page = Utils.LRU_test_isNonsectionPage(diag.lru)
+                                        ,looks_a_homepage = looks_a_page && ((Utils.LRU_to_JSON_LRU(diag.lru).path || []).pop() || '').match(/.*(index|home|accueil).*/gi)
+                                    
+                                    if(looks_a_homepage){
+                                    // if(looks_a_page){
+                                        diag.status = 'warning'
+                                        diag.warningMessage = 'This URL <strong>looks like a page</strong> and not a section of a website. It might be a mistake.<span class="muted"> Click "Add" to define a web entity for this page anyway.</span>'
+                                    } else {
+                                        diag.status = 'success'
+                                    }
 
                                     diagnostic_byUrl[task.url] = diag
                                     this.update('diagnostic_byUrl', diagnostic_byUrl)

@@ -48,7 +48,8 @@
 				LRU = {
 					"scheme": scheme.toLowerCase(),
 					"host": host.reverse(),
-					"path": path.split(/\//).filter(function(pathToken){return pathToken.length}),   
+					// "path": path.split(/\//).filter(function(pathToken){return pathToken.length}),   
+					"path": path.split(/\//).filter(function(pathToken, i){return i>0}),   
 				}
 				if(port)
 					LRU.port = port
@@ -257,6 +258,17 @@
 		var truncatedHost = host_array.reverse().join('.')
 		// There was no subdomain if the removed part was the domain and thus the truncated host is just a tld
 		return ns.TLD_isValid(truncatedHost)
+	}
+
+	ns.LRU_test_isNonsectionPage = function(lru, settings){
+		settings = settings || {}
+		var json_lru = ns.LRU_to_JSON_LRU(lru)
+		return (json_lru.fragment && json_lru.fragment != '')
+			|| (json_lru.query !== undefined)
+			|| (
+				json_lru.path.length > 0
+				&& json_lru.path.pop() != ''
+			)
 	}
 
 	// TLD

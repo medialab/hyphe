@@ -924,9 +924,10 @@ HypheCommons.domino_init()
                             this.element.prop('checked', true)
                             this.checked = el.is(':checked')
                         }
-                        ,looksHomePage: lru.toLowerCase().indexOf(':home')>=0
+                        ,looksHomePage: ((Utils.LRU_to_JSON_LRU(lru).path || []).pop() || '').match(/.*(index|home|accueil).*/gi)
+                        /*,looksHomePage: lru.toLowerCase().indexOf(':home')>=0
                             || lru.toLowerCase().indexOf(':index')>=0
-                            || lru.toLowerCase().indexOf(':accueil')>=0
+                            || lru.toLowerCase().indexOf(':accueil')>=0*/
                     }
                 items.push(item)
             })
