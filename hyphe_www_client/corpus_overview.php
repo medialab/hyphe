@@ -57,6 +57,9 @@
                 -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
                 box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
             }
+            .urlCandidateBlock table{
+                width: 100%;
+            }
             .urlCandidateBlock div.progress{
                 margin-left: 10px;
                 margin-bottom: 0px;

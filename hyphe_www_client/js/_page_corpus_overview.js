@@ -490,7 +490,7 @@ domino.settings('maxDepth', 1000)
             var url = e.data.url
                 ,url_md5 = $.md5(url)
                 ,pendingMessage = "Checking variants"
-            container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
+            container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-striped progress-info active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
         }
 
         this.triggers.events['urlDiag_prefixChecked'] = function(provider, e){
