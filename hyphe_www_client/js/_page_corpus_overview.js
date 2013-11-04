@@ -121,14 +121,8 @@ domino.settings('maxDepth', 1000)
                                 webentityId: undefined
                                 ,message: 'RPC error'
                                 ,url: input.url
+                                ,diagUrl: input.diagUrl
                             })
-
-                        if(input.task){
-                            this.dispatchEvent('task_serviceCallback', {
-                                taskId: input.taskId
-                                ,success: false
-                            })
-                        }
 
                         rpc_error(data, xhr, input)
                     }
@@ -149,14 +143,8 @@ domino.settings('maxDepth', 1000)
                                 webentityId: undefined
                                 ,message: '<span class="muted">invalid address</span>'
                                 ,url: input.url
+                                ,diagUrl: input.diagUrl
                             })
-
-                            if(input.task){
-                                this.dispatchEvent('task_serviceCallback', {
-                                    taskId: input.taskId
-                                    ,success: false
-                                })
-                            }
                         } else {
                             var we = data[0].result
                                 ,webentities = this.get('webentities')
@@ -176,15 +164,8 @@ domino.settings('maxDepth', 1000)
                             this.dispatchEvent('callback_webentityFetched', {
                                 webentityId: we.id
                                 ,url: input.url
+                                ,diagUrl: input.diagUrl
                             })
-
-                            if(input.task){
-                                this.dispatchEvent('task_serviceCallback', {
-                                    taskId: input.taskId
-                                    ,success: true
-                                    ,result: data[0].result
-                                })
-                            }
                         }
                     }
             }
@@ -343,7 +324,7 @@ domino.settings('maxDepth', 1000)
 
                                     diagnostic_byUrl[task.url] = diag
                                     this.update('diagnostic_byUrl', diagnostic_byUrl)
-                                    this.request('fetchWebEntityByURL', {url: Utils.LRU_to_URL(prefix), taskId: task.id})
+                                    this.request('fetchWebEntityByURL', {url: Utils.LRU_to_URL(prefix), diagUrl:task.url})
                                     break
                             }
                         }
@@ -365,6 +346,25 @@ domino.settings('maxDepth', 1000)
                     }
                 }
             },{
+                // On callback of Fetch WebEntity, update the diagnostic
+                triggers: ['callback_webentityFetched']
+                ,method: function(e){
+                    var _self = this
+                        ,prefixUrl = e.data.url
+                        ,diagUrl = e.data.diagUrl
+                        ,weId = e.data.webentityId
+                        ,diagnostic_byUrl = this.get('diagnostic_byUrl')
+                        ,diag = diagnostic_byUrl[diagUrl]
+                    
+                    diag.webEntityId_byPrefixUrl = diag.webEntityId_byPrefixUrl || {}
+                    diag.webEntityId_byPrefixUrl[prefixUrl] = weId
+
+                    diagnostic_byUrl[diagUrl] = diag
+                    this.update('diagnostic_byUrl', diagnostic_byUrl)
+                    this.dispatchEvent('urlDiag_prefixChecked', {url:diagUrl})
+                    this.dispatchEvent('cascadeTask')
+                }
+            },{
                 // Diagnostic: On url initialized, ask for prefixes
                 triggers: ['urlDiag_initialized']
                 ,method: function(e){
@@ -381,42 +381,27 @@ domino.settings('maxDepth', 1000)
                 // Diagnostic: On prefixes found, ask for fetching the webentities
                 triggers: ['urlDiag_prefixesDefined']
                 ,method: function(e){
-                    var _self = this
-                        ,url = e.data.url
+                    var url = e.data.url
                         ,diagnostic_byUrl = this.get('diagnostic_byUrl')
-                        ,dumb = console.log('url', url)
                         ,diag = diagnostic_byUrl[url]
+                        ,tasks = []
                     
                     diag.prefixCandidates.forEach(function(prefix){
-                        _self.dispatchEvent('tasks_stack', {
-                            tasks: [{
-                                    type: 'fetchWebEntityFromPrefix'
-                                    ,url: url
-                                    ,prefix: prefix
-                                }]
-                        })
+                        tasks.push({
+                                type: 'fetchWebEntityFromPrefix'
+                                ,url: url
+                                ,prefix: prefix
+                            })
+                    })
+                    this.dispatchEvent('tasks_stack', {
+                        tasks: tasks
                     })
                 }
-            },{
-                // Request Fetch WebEntity
-                triggers: ['request_fetchWebEntity']
+            }/*,{
+                // Diagnostic: On prefix checked (w.e. fetching), ...
+                triggers: ['urlDiag_prefixChecked']
                 ,method: function(e){
-                    var url = e.data.url
-                    this.request('fetchWebEntityByURL', {
-                        url: url
-                    })
-                }
-            }
 
-            /*,{
-                // On task callbacks, trigger task executed event
-                triggers: ['callback_webentityMerged', 'callback_webentityPrefixAdded', 'callback_webentityDeclared']
-                ,method: function(e){
-                    this.dispatchEvent('taskExecuted', {
-                        taskId: e.data.taskId
-                        ,errorMessage: e.data.errorMessage
-                    })
-                    this.dispatchEvent('cascadeTask')
                 }
             }*/
         ]
@@ -505,8 +490,20 @@ domino.settings('maxDepth', 1000)
             var url = e.data.url
                 ,url_md5 = $.md5(url)
                 ,pendingMessage = "Checking variants"
-            // container.find('div[data-url-md5='+url_md5+'] div.progress div.bar').text('Checking prefix candidates')
             container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
+        }
+
+        this.triggers.events['urlDiag_prefixChecked'] = function(provider, e){
+            var url = e.data.url
+                ,diagnostic_byUrl = provider.get('diagnostic_byUrl')
+                ,diag = diagnostic_byUrl[url]
+                ,url_md5 = diag.url_md5
+                ,done = (d3.keys(diag.webEntityId_byPrefixUrl)).length
+                ,total = diag.prefixCandidates.length
+                ,pendingMessage = done+'/'+total+' variants checked'
+                ,percent = Math.round(100*done/total)
+            console.log('pendingMessage', pendingMessage)
+            container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress"><div class="bar" style="width: '+percent+'%;">'+pendingMessage+'</div></div>')
         }
     })
 
