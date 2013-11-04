@@ -1,7 +1,7 @@
 HypheCommons.js_file_init()
 HypheCommons.domino_init()
 
-domino.settings('maxDepth', 10000)
+domino.settings('maxDepth', 1000)
 
 ;(function($, domino, dmod, undefined){
     
@@ -60,15 +60,15 @@ domino.settings('maxDepth', 10000)
                 ,dispatch: 'diagnostic_byUrl_updated'
                 ,triggers: 'update_diagnostic_byUrl'
             },{
-                id: 'queriesLimit'
+                id: 'concurrentTasksLimit'
                 ,type: 'number'
                 ,value: 10
             },{
-                id: 'currentQueries'
+                id: 'pendingTasksCount'
                 ,type: 'number'
                 ,value: 0
-                ,dispatch: 'currentQueries_updated'
-                ,triggers: 'update_currentQueries'
+                ,dispatch: 'pendingTasksCount_updated'
+                ,triggers: 'update_pendingTasksCount'
             },{
                 id:'tasks'
                 ,type: 'array'
@@ -107,6 +107,86 @@ domino.settings('maxDepth', 10000)
                     })}
                 ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+            },{
+                id: 'fetchWebEntityByURL'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.FETCH_BY_URL,
+                        'params' : [settings.url],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type
+                ,error: function(data, xhr, input){
+                        var pendingTasksCount = this.get('pendingTasksCount')
+                        this.update('pendingTasksCount', pendingTasksCount - 1 )
+                        this.dispatchEvent('callback_webentityFetched', {
+                                webentityId: undefined
+                                ,message: 'RPC error'
+                                ,url: input.url
+                            })
+
+                        if(input.task){
+                            this.dispatchEvent('task_serviceCallback', {
+                                taskId: input.taskId
+                                ,success: false
+                            })
+                        }
+
+                        rpc_error(data, xhr, input)
+                    }
+                ,expect: function(data, input, serviceOptions){
+                        // console.log('RPC expect', data[0].code == 'fail' || rpc_expect(data, input, serviceOptions), 'data[0].code', data[0].code)
+                        return (data.length>0 && data[0].code == 'fail') || rpc_expect(data, input, serviceOptions)
+                    }
+                ,before: function(){
+                        var pendingTasksCount = this.get('pendingTasksCount')
+                        this.update('pendingTasksCount', pendingTasksCount + 1 )
+                    }
+                ,success: function(data, input){
+                        var pendingTasksCount = this.get('pendingTasksCount')
+                        this.update('pendingTasksCount', pendingTasksCount - 1 )
+
+                        if(data[0].code == 'fail'){
+                            this.dispatchEvent('callback_webentityFetched', {
+                                webentityId: undefined
+                                ,message: '<span class="muted">invalid address</span>'
+                                ,url: input.url
+                            })
+
+                            if(input.task){
+                                this.dispatchEvent('task_serviceCallback', {
+                                    taskId: input.taskId
+                                    ,success: false
+                                })
+                            }
+                        } else {
+                            var we = data[0].result
+                                ,webentities = this.get('webentities')
+                                ,webentities_byId = this.get('webentities_byId')
+                                ,webentities_byLruPrefix = this.get('webentitiesByLruPrefix')
+                                
+                            webentities_byId[we.id] = we
+                            var webentities = d3.values(webentities_byId)
+                            this.update('webentities', webentities)
+                            this.update('webentities_byId', webentities_byId)
+
+                            we.lru_prefixes.forEach(function(lru){
+                                webentities_byLruPrefix[lru] = we
+                            })
+                            this.update('webentitiesByLruPrefix', webentities_byLruPrefix)
+
+                            this.dispatchEvent('callback_webentityFetched', {
+                                webentityId: we.id
+                                ,url: input.url
+                            })
+
+                            if(input.task){
+                                this.dispatchEvent('task_serviceCallback', {
+                                    taskId: input.taskId
+                                    ,success: true
+                                    ,result: data[0].result
+                                })
+                            }
+                        }
+                    }
             }
         ]
 
@@ -142,7 +222,7 @@ domino.settings('maxDepth', 10000)
                 }
             },{
                 // Clicking on Diagnostic URLs button parses the URLs list
-                triggers: ['ui_DiagnosticUrls']
+                triggers: ['ui_DiagnosticUrlsButton']
                 ,method: function(){
                     var urlslistText = this.get('urlslistText')
                         ,urls = extractWebentities(urlslistText)
@@ -176,7 +256,6 @@ domino.settings('maxDepth', 10000)
                         candidateUrls.forEach(function(url){
                             tasksToStack.push({
                                     type: 'initializeCandidateURL'
-                                    ,status: 'waiting'
                                     ,url: url
                                 })
                         })
@@ -210,38 +289,126 @@ domino.settings('maxDepth', 10000)
                 // On cascade task, execute the first non executed task
                 triggers: ['cascadeTask']
                 ,method: function(e){
-                    var tasks = this.get('tasks')
-                        ,queriesLimit = this.get('queriesLimit')
-                        ,currentQueries = this.get('currentQueries')
+                    var _self = this
+                        ,tasks = this.get('tasks')
+                        ,tasks_byId = this.get('tasks_byId')
+                        ,concurrentTasksLimit = this.get('concurrentTasksLimit')
+                        ,pendingTasksCount = this.get('pendingTasksCount')
                         
                     // Are there tasks still to execute ?
-                    var waitingTasks = tasks.filter(function(t){return t.status == 'waiting'})
-                    if(waitingTasks.length > 0){
+                    if(tasks.length > 0){
 
                         // Get the first non executed task, depending on free queries
-                        if(currentQueries <= queriesLimit){
-                            var task = waitingTasks[0]
-                            task.status = 'pending'
+                        if(pendingTasksCount <= concurrentTasksLimit){
+                            var task = tasks[0]
 
-                            if(task.type == 'initializeCandidateURL'){
-                                var url = task.url
-                                    ,url_md5 = $.md5(url)
-                                    ,diagnostic_byUrl = this.get('diagnostic_byUrl')
-                                diagnostic_byUrl[url] = {}
-                                console.log('Initialize candidate url ', task.url)
-                                this.update('diagnostic_byUrl', diagnostic_byUrl)
+                            switch(task.type){
+
+                                case 'initializeCandidateURL':
+                                    var url = task.url
+                                        ,lru = Utils.URL_to_LRU(url)
+                                        ,url_md5 = $.md5(url)
+                                        ,diagnostic_byUrl = this.get('diagnostic_byUrl')
+                                    
+                                    diagnostic_byUrl[url] = {
+                                            url: url
+                                            ,url_md5: url_md5
+                                            ,lru: lru
+                                        }
+
+                                    this.update('diagnostic_byUrl', diagnostic_byUrl)
+                                    this.dispatchEvent('urlDiag_initialized', {url:url})
+                                    break
+
+                                case 'definePrefixCandidates':
+                                    var diagnostic_byUrl = this.get('diagnostic_byUrl')
+                                        ,diag = diagnostic_byUrl[task.url]
+
+                                    diag.prefixCandidates = HypheCommons.getPrefixCandidates(diag.lru, {
+                                            wwwlessVariations: true
+                                            ,wwwVariations: !Utils.LRU_test_hasNoPath(diag.lru, {strict: false}) && Utils.LRU_test_hasNoSubdomain(diag.lru)
+                                            ,httpVariations: true
+                                            ,httpsVariations: true
+                                        })
+
+                                    diagnostic_byUrl[task.url] = diag
+                                    this.update('diagnostic_byUrl', diagnostic_byUrl)
+                                    this.dispatchEvent('urlDiag_prefixesDefined', {url:task.url})
+                                    break
+
+                                case 'fetchWebEntityFromPrefix':
+                                    var diagnostic_byUrl = this.get('diagnostic_byUrl')
+                                        ,diag = diagnostic_byUrl[task.url]
+                                        ,prefix = task.prefix
+
+                                    diagnostic_byUrl[task.url] = diag
+                                    this.update('diagnostic_byUrl', diagnostic_byUrl)
+                                    this.request('fetchWebEntityByURL', {url: Utils.LRU_to_URL(prefix), taskId: task.id})
+                                    break
                             }
                         }
 
+                        // Remove task from the list
+                        tasks.shift()
+                        tasks_byId[task.id] = undefined
+                        this.update('tasks', tasks)
+                        this.update('tasks_byId', tasks_byId)
+
                         // Keep batching if there are other tasks and queries limit allows it
-                        if(waitingTasks.length > 1){
-                            if(currentQueries < queriesLimit){
-                                this.dispatchEvent('cascadeTask')
+                        if(tasks.length > 1){
+                            if(pendingTasksCount < concurrentTasksLimit){
+                                setTimeout(0, function(){
+                                    _self.dispatchEvent('cascadeTask')
+                                })
                             }
                         }
                     }
                 }
-            }/*,{
+            },{
+                // Diagnostic: On url initialized, ask for prefixes
+                triggers: ['urlDiag_initialized']
+                ,method: function(e){
+                    var url = e.data.url
+                    
+                    this.dispatchEvent('tasks_stack', {
+                        tasks: [{
+                                type: 'definePrefixCandidates'
+                                ,url: url
+                            }]
+                    })
+                }
+            },{
+                // Diagnostic: On prefixes found, ask for fetching the webentities
+                triggers: ['urlDiag_prefixesDefined']
+                ,method: function(e){
+                    var _self = this
+                        ,url = e.data.url
+                        ,diagnostic_byUrl = this.get('diagnostic_byUrl')
+                        ,dumb = console.log('url', url)
+                        ,diag = diagnostic_byUrl[url]
+                    
+                    diag.prefixCandidates.forEach(function(prefix){
+                        _self.dispatchEvent('tasks_stack', {
+                            tasks: [{
+                                    type: 'fetchWebEntityFromPrefix'
+                                    ,url: url
+                                    ,prefix: prefix
+                                }]
+                        })
+                    })
+                }
+            },{
+                // Request Fetch WebEntity
+                triggers: ['request_fetchWebEntity']
+                ,method: function(e){
+                    var url = e.data.url
+                    this.request('fetchWebEntityByURL', {
+                        url: url
+                    })
+                }
+            }
+
+            /*,{
                 // On task callbacks, trigger task executed event
                 triggers: ['callback_webentityMerged', 'callback_webentityPrefixAdded', 'callback_webentityDeclared']
                 ,method: function(e){
@@ -301,7 +468,7 @@ domino.settings('maxDepth', 10000)
     // Action on diagnostic button
     D.addModule(dmod.Button, [{
         element: $('#addWebentitiesDiagnostic_findButton')
-        ,dispatchEvent: 'ui_DiagnosticUrls'
+        ,dispatchEvent: 'ui_DiagnosticUrlsButton'
     }])
 
     // Display the diagnostic (Custom Module)
@@ -334,7 +501,13 @@ domino.settings('maxDepth', 10000)
                     )
         }
 
-        // this.triggers.events['urlDiag_'] = function(provider, e)
+        this.triggers.events['urlDiag_initialized'] = function(provider, e){
+            var url = e.data.url
+                ,url_md5 = $.md5(url)
+                ,pendingMessage = "Checking variants"
+            // container.find('div[data-url-md5='+url_md5+'] div.progress div.bar').text('Checking prefix candidates')
+            container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
+        }
     })
 
         

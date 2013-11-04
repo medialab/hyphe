@@ -62,7 +62,7 @@
                 margin-bottom: 0px;
             }
             .urlCandidateBlock td.info{
-                width: 120px;
+                width: 180px;
             }
 
             #networkSettings{
