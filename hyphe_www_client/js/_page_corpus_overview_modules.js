@@ -39,7 +39,7 @@
         	,pendingMessage = o['pendingMessage'] || 'Loading...'
 
         container.html('<div class="sigma-parent"><div class="sigma-expand"></div><div class="sigma-overlay sigma-messages"></div><div class="sigma-overlay sigma-pending"></div></div>')
-        
+
         var showPending = function(){
         	container.find('.sigma-pending').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
         }

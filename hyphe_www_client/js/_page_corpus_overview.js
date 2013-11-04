@@ -1,6 +1,8 @@
 HypheCommons.js_file_init()
 HypheCommons.domino_init()
 
+domino.settings('maxDepth', 10000)
+
 ;(function($, domino, dmod, undefined){
     
     // RPC config of this page
@@ -52,6 +54,12 @@ HypheCommons.domino_init()
                 ,triggers: 'update_urlsDiagnosticActiveState'
                 ,dispatch: 'urlsDiagnosticActiveState_updated'
             },{
+                id:'diagnostic_byUrl'
+                ,type: 'object'
+                ,value: {}
+                ,dispatch: 'diagnostic_byUrl_updated'
+                ,triggers: 'update_diagnostic_byUrl'
+            },{
                 id: 'queriesLimit'
                 ,type: 'number'
                 ,value: 10
@@ -69,7 +77,7 @@ HypheCommons.domino_init()
                 ,triggers: 'update_tasks'
             },{
                 id:'nextTaskId'
-                ,type: 'integer'
+                ,type: 'number'
                 ,value: 0
             },{
                 id:'tasks_byId'
@@ -162,33 +170,41 @@ HypheCommons.domino_init()
                 ,method: function(){
                     var _self = this
                         ,candidateUrls = this.get('candidateUrls')
+                        ,tasksToStack = []
 
                     if(candidateUrls.length > 0){
                         candidateUrls.forEach(function(url){
-                            _self.dispatchEvent('task_stack', {
-                                task: {
-                                        type: 'initializeCandidateURL'
-                                    }
-                            })
+                            tasksToStack.push({
+                                    type: 'initializeCandidateURL'
+                                    ,status: 'waiting'
+                                    ,url: url
+                                })
+                        })
+                        _self.dispatchEvent('tasks_stack', {
+                            tasks: tasksToStack
                         })
                     }
                 }
             },{
                 // Stack a task on request
-                triggers: ['task_stack']
+                triggers: ['tasks_stack']
                 ,method: function(e){
                     var tasks = this.get('tasks')
                         ,tasks_byId = this.get('tasks_byId')
                         ,taskId = this.get('nextTaskId')
-                        ,task = e.data.task || {}
+                        ,tasksToStack = e.data.tasks || []
 
-                    task.id = taskId++
-                    tasks.push(task)
-                    tasks_byId[task.id] = task
+                    tasksToStack.forEach(function(task){                    
+                        task.id = taskId++
+                        tasks.push(task)
+                        tasks_byId[task.id] = task
+                    })
 
                     this.update('nextTaskId', taskId)
                     this.update('tasks', tasks)
                     this.update('tasks_byId', tasks_byId)
+
+                    this.dispatchEvent('cascadeTask')
                 }
             },{
                 // On cascade task, execute the first non executed task
@@ -208,13 +224,13 @@ HypheCommons.domino_init()
                             task.status = 'pending'
 
                             if(task.type == 'initializeCandidateURL'){
-                                var url_md5 = $.md5(task.url)
-                            }/* else if(task.type == 'declare'){
-                                this.request('webentityDeclare', {
-                                    prefixes: task.prefixes
-                                    ,taskId: task.id
-                                })
-                            }*/
+                                var url = task.url
+                                    ,url_md5 = $.md5(url)
+                                    ,diagnostic_byUrl = this.get('diagnostic_byUrl')
+                                diagnostic_byUrl[url] = {}
+                                console.log('Initialize candidate url ', task.url)
+                                this.update('diagnostic_byUrl', diagnostic_byUrl)
+                            }
                         }
 
                         // Keep batching if there are other tasks and queries limit allows it
@@ -300,7 +316,20 @@ HypheCommons.domino_init()
             container.html('')
                 .append(
                         urls.map(function(url){
-                            return $('<div class="urlCandidateBlock" data-url-md5="'+$.md5(url)+'"/>').text(url)
+                            var pendingMessage = "Waiting..."
+                            return $('<div class="urlCandidateBlock" data-url-md5="'+$.md5(url)+'"/>')
+                                .append($('<table/>')
+                                    .append($('<tr/>')
+                                        .append($('<td class="url"/>')
+                                            .append($('<span/>')
+                                                    .text(url)
+                                                )
+                                            )
+                                        .append($('<td class="info pull-right"/>')
+                                            .html('<div class="progress progress-striped progress-info active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
+                                            )
+                                        )
+                                    )
                         })
                     )
         }

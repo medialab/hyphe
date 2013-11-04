@@ -45,7 +45,7 @@
             }
 
             .urlCandidateBlock{
-                height: 20px;
+                /*height: 20px;*/
                 border: 1px solid #EEE;
                 background: #FFF;
                 margin: 4px;
@@ -56,6 +56,13 @@
                 -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
                 -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
                 box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+            }
+            .urlCandidateBlock div.progress{
+                margin-left: 10px;
+                margin-bottom: 0px;
+            }
+            .urlCandidateBlock td.info{
+                width: 120px;
             }
 
             #networkSettings{
