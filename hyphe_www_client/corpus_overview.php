@@ -49,7 +49,7 @@
                 border: 1px solid #EEE;
                 background: #FFF;
                 margin: 0px 4px 6px 4px;
-                padding: 5px;
+                padding: 3px 5px 0px 5px;
                 -webkit-border-radius: 2px;
                 -moz-border-radius: 2px;
                 border-radius: 2px;
@@ -58,7 +58,7 @@
                 box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 
                 overflow: hidden;
-                height: 20px;
+                height: 28px;
 
                   -webkit-transition: height 0.5s;
                      -moz-transition: height 0.5s;
@@ -67,14 +67,11 @@
             }
             .urlCandidateBlock.collapsed:hover{
                 margin-bottom: 6px;
-                padding-bottom: 5px;
-                height: 20px;
+                height: 28px;
             }
             .urlCandidateBlock.collapsed{
                 height: 0px;
-                /*background: #EFE;*/
                 margin-bottom: 0px;
-                padding-bottom: 0px;
             }
             .urlCandidateBlock table{
                 width: 100%;
@@ -84,7 +81,7 @@
                 margin-bottom: 0px;
             }
             .urlCandidateBlock td.info{
-                width: 180px;
+                width: 260px;
             }
 
             #networkSettings{

@@ -333,7 +333,8 @@ domino.settings('maxDepth', 1000)
                                         ,diag = diagnostic_byUrl[task.url]
 
                                     /* To do */
-                                    diag.status = 'success'
+                                    diag.status = 'warning'
+                                    diag.warningMessage = 'You might have some issue with whatever I don\'t really know'
 
                                     diagnostic_byUrl[task.url] = diag
                                     this.update('diagnostic_byUrl', diagnostic_byUrl)
@@ -541,9 +542,37 @@ domino.settings('maxDepth', 1000)
                 ,diag = diagnostic_byUrl[url]
                 ,url_md5 = diag.url_md5
 
-            if(diag.status == 'success'){
-                container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Adding web entity...</div></div>')
-                container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+            switch(diag.status){
+                
+                case 'success':
+                    container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Adding web entity...</div></div>')
+                    container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                    break
+
+                case 'warning':
+                    container.find('div[data-url-md5='+url_md5+'] .info').html('')
+                        .append(
+                                $('<div class="pull-right"/>')
+                                    .append(
+                                            $('<span class="label label-info overable">Please check</span>')
+                                        )
+                                    .append($('<span> </span>'))
+                                    .append(
+                                            $('<a class="btn btn-mini">Add</a>')
+                                        )
+                                    .append($('<span> </span>'))
+                                    .append(
+                                            $('<a class="btn btn-mini">Do not add</a>')
+                                        )
+                            )
+                    container.find('div[data-url-md5='+url_md5+']').popover({
+                            placement: 'right'
+                            ,trigger: 'hover'
+                            ,title: 'Please check this URL'
+                            ,content: diag.warningMessage
+                        })
+                    break
+
             }
         }
     })
