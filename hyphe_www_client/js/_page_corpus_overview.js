@@ -241,7 +241,7 @@ domino.settings('maxDepth', 1000)
                                 })
                         })
                         _self.dispatchEvent('tasks_stack', {
-                            tasks: tasksToStack
+                            tasks: tasksToStack.reverse()
                         })
                     }
                 }
@@ -278,10 +278,10 @@ domino.settings('maxDepth', 1000)
                         
                     // Are there tasks still to execute ?
                     if(tasks.length > 0){
-
                         // Get the first non executed task, depending on free queries
                         if(pendingTasksCount <= concurrentTasksLimit){
-                            var task = tasks[0]
+                            var task = tasks[tasks.length - 1]
+                            console.log('Do a task ('+task.type+')')
 
                             switch(task.type){
 
@@ -310,6 +310,7 @@ domino.settings('maxDepth', 1000)
                                             ,wwwVariations: !Utils.LRU_test_hasNoPath(diag.lru, {strict: false}) && Utils.LRU_test_hasNoSubdomain(diag.lru)
                                             ,httpVariations: true
                                             ,httpsVariations: true
+                                            ,smallerVariations: false
                                         })
 
                                     diagnostic_byUrl[task.url] = diag
@@ -326,14 +327,30 @@ domino.settings('maxDepth', 1000)
                                     this.update('diagnostic_byUrl', diagnostic_byUrl)
                                     this.request('fetchWebEntityByURL', {url: Utils.LRU_to_URL(prefix), diagUrl:task.url})
                                     break
+
+                                case 'buildDiagnostic':
+                                    var diagnostic_byUrl = this.get('diagnostic_byUrl')
+                                        ,diag = diagnostic_byUrl[task.url]
+
+                                    /* To do */
+                                    diag.status = 'success'
+
+                                    diagnostic_byUrl[task.url] = diag
+                                    this.update('diagnostic_byUrl', diagnostic_byUrl)
+                                    this.dispatchEvent('urlDiag_diagnosticBuilt', {url:task.url})
+                                    break
                             }
+
+                            // Remove task from the list
+                            tasks.pop()
+                            tasks_byId[task.id] = undefined
+                            this.update('tasks', tasks)
+                            this.update('tasks_byId', tasks_byId)
+
+                        } else {
+                            console.log('Too many tasks, waiting...')
                         }
 
-                        // Remove task from the list
-                        tasks.shift()
-                        tasks_byId[task.id] = undefined
-                        this.update('tasks', tasks)
-                        this.update('tasks_byId', tasks_byId)
 
                         // Keep batching if there are other tasks and queries limit allows it
                         if(tasks.length > 1){
@@ -394,16 +411,28 @@ domino.settings('maxDepth', 1000)
                             })
                     })
                     this.dispatchEvent('tasks_stack', {
-                        tasks: tasks
+                        tasks: tasks.reverse()
                     })
                 }
-            }/*,{
-                // Diagnostic: On prefix checked (w.e. fetching), ...
+            },{
+                // Diagnostic: On prefix checked (w.e. fetching), if all prefixes fetched, build the diagnostic
                 triggers: ['urlDiag_prefixChecked']
                 ,method: function(e){
-
+                    var url = e.data.url
+                        ,diagnostic_byUrl = this.get('diagnostic_byUrl')
+                        ,diag = diagnostic_byUrl[url]
+                        ,done = (d3.keys(diag.webEntityId_byPrefixUrl)).length
+                        ,total = diag.prefixCandidates.length
+                    if(done == total){
+                        this.dispatchEvent('tasks_stack', {
+                            tasks: [{
+                                    type: 'buildDiagnostic'
+                                    ,url: url
+                                }]
+                        })
+                    }
                 }
-            }*/
+            }
         ]
     })
 
@@ -489,7 +518,7 @@ domino.settings('maxDepth', 1000)
         this.triggers.events['urlDiag_initialized'] = function(provider, e){
             var url = e.data.url
                 ,url_md5 = $.md5(url)
-                ,pendingMessage = "Checking variants"
+                ,pendingMessage = "wait for prefix check..."
             container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-striped progress-info active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
         }
 
@@ -500,10 +529,22 @@ domino.settings('maxDepth', 1000)
                 ,url_md5 = diag.url_md5
                 ,done = (d3.keys(diag.webEntityId_byPrefixUrl)).length
                 ,total = diag.prefixCandidates.length
-                ,pendingMessage = done+'/'+total+' variants checked'
+                ,pendingMessage = done+'/'+total+' prefixes checked'
                 ,percent = Math.round(100*done/total)
-            console.log('pendingMessage', pendingMessage)
-            container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress"><div class="bar" style="width: '+percent+'%;">'+pendingMessage+'</div></div>')
+
+            container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress '+((done==total)?('progress-striped active'):(''))+'"><div class="bar" style="width: '+percent+'%;">'+pendingMessage+'</div></div>')
+        }
+
+        this.triggers.events['urlDiag_diagnosticBuilt'] = function(provider, e){
+            var url = e.data.url
+                ,diagnostic_byUrl = provider.get('diagnostic_byUrl')
+                ,diag = diagnostic_byUrl[url]
+                ,url_md5 = diag.url_md5
+
+            if(diag.status == 'success'){
+                container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Adding web entity...</div></div>')
+                container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+            }
         }
     })
 
