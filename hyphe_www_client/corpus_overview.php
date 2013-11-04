@@ -30,7 +30,7 @@
             }
 
             #urlsDiagnosticPanel_container{
-                height: 198px;
+                height: 194px;
                 overflow-x: hidden;
                 overflow-y: auto;
                 background: rgb(248,248,248);

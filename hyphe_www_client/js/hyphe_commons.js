@@ -84,7 +84,7 @@
 		if(settings.smallerVariations === undefined){settings.smallerVariations == true}
 
 		candidates.push(lru)
-		console.log('settings.smallerVariations', settings.smallerVariations)
+		
 		if(lru_a.length>2+tld_length && settings.smallerVariations){
 			for(length = lru_a.length-1; length>=2+tld_length; length--){
 				var candidate = lru_a.filter(function(stem, i){

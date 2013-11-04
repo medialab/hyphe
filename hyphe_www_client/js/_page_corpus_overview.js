@@ -241,7 +241,7 @@ domino.settings('maxDepth', 1000)
                                 })
                         })
                         _self.dispatchEvent('tasks_stack', {
-                            tasks: tasksToStack.reverse()
+                            tasks: tasksToStack
                         })
                     }
                 }
@@ -280,8 +280,7 @@ domino.settings('maxDepth', 1000)
                     if(tasks.length > 0){
                         // Get the first non executed task, depending on free queries
                         if(pendingTasksCount <= concurrentTasksLimit){
-                            var task = tasks[tasks.length - 1]
-                            console.log('Do a task ('+task.type+')')
+                            var task = tasks[0]
 
                             switch(task.type){
 
@@ -343,22 +342,16 @@ domino.settings('maxDepth', 1000)
                             }
 
                             // Remove task from the list
-                            tasks.pop()
+                            tasks.shift()
                             tasks_byId[task.id] = undefined
                             this.update('tasks', tasks)
                             this.update('tasks_byId', tasks_byId)
-
-                        } else {
-                            console.log('Too many tasks, waiting...')
                         }
 
-
                         // Keep batching if there are other tasks and queries limit allows it
-                        if(tasks.length > 1){
+                        if(tasks.length > 0){
                             if(pendingTasksCount < concurrentTasksLimit){
-                                setTimeout(0, function(){
-                                    _self.dispatchEvent('cascadeTask')
-                                })
+                                _self.dispatchEvent('cascadeTask')
                             }
                         }
                     }
@@ -412,7 +405,7 @@ domino.settings('maxDepth', 1000)
                             })
                     })
                     this.dispatchEvent('tasks_stack', {
-                        tasks: tasks.reverse()
+                        tasks: tasks
                     })
                 }
             },{
