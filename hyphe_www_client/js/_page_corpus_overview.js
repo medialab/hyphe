@@ -17,8 +17,21 @@ domino.settings('maxDepth', 1000)
         ,properties: [
             {
                 id:'webentities'
-                ,triggers: 'update_webentities'
                 ,dispatch: 'webentities_updated'
+                ,triggers: 'update_webentities'
+                ,type: 'array'
+            },{
+                id:'webentities_byId'
+                ,dispatch: 'webentities_byId_updated'
+                ,triggers: 'update_webentities_byId'
+                ,type: 'object'
+                ,value: {}
+            },{
+                id:'webentitiesByLruPrefix'
+                ,dispatch: 'webentitiesByLruPrefix_updated'
+                ,triggers: 'update_webentitiesByLruPrefix'
+                ,type: 'object'
+                ,value: {}
             },{
                 id:'webentitiesLinks'
                 ,triggers: 'update_webentitiesLinks'
@@ -100,13 +113,22 @@ domino.settings('maxDepth', 1000)
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'getWebentities'
-                ,setter: 'webentities'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [],
                     })}
-                ,path:'0.result'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
+                ,success: function(data, input){
+                        var webentities = data[0].result
+                            ,webentities_byId = this.get('webentities_byId')
+                        
+                        webentities.forEach(function(we){
+                            webentities_byId[we.id] = we
+                        })
+
+                        this.update('webentities', webentities)
+                        this.update('webentities_byId', webentities_byId)
+                    }
             },{
                 id: 'fetchWebEntityByURL'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
@@ -141,7 +163,6 @@ domino.settings('maxDepth', 1000)
                         if(data[0].code == 'fail'){
                             this.dispatchEvent('callback_webentityFetched', {
                                 webentityId: undefined
-                                ,message: '<span class="muted">invalid address</span>'
                                 ,url: input.url
                                 ,diagUrl: input.diagUrl
                             })
@@ -153,13 +174,13 @@ domino.settings('maxDepth', 1000)
                                 
                             webentities_byId[we.id] = we
                             var webentities = d3.values(webentities_byId)
-                            this.update('webentities', webentities)
-                            this.update('webentities_byId', webentities_byId)
+                            // this.update('webentities', webentities)
+                            // this.update('webentities_byId', webentities_byId)
 
                             we.lru_prefixes.forEach(function(lru){
                                 webentities_byLruPrefix[lru] = we
                             })
-                            this.update('webentitiesByLruPrefix', webentities_byLruPrefix)
+                            // this.update('webentitiesByLruPrefix', webentities_byLruPrefix)
 
                             this.dispatchEvent('callback_webentityFetched', {
                                 webentityId: we.id
@@ -246,7 +267,7 @@ domino.settings('maxDepth', 1000)
                     }
                 }
             },{
-                // Stack a task on request
+                // Stack tasks on request
                 triggers: ['tasks_stack']
                 ,method: function(e){
                     var tasks = this.get('tasks')
@@ -281,6 +302,9 @@ domino.settings('maxDepth', 1000)
                         // Get the first non executed task, depending on free queries
                         if(pendingTasksCount <= concurrentTasksLimit){
                             var task = tasks[0]
+
+                            if(HYPHE_CONFIG.JAVASCRIPT_LOG_VERBOSE)
+                                console.log('[Task] "'+task.type+'" - pending '+pendingTasksCount, task)
 
                             switch(task.type){
 
@@ -332,13 +356,26 @@ domino.settings('maxDepth', 1000)
                                         ,diag = diagnostic_byUrl[task.url]
                                         ,looks_a_page = Utils.LRU_test_isNonsectionPage(diag.lru)
                                         ,looks_a_homepage = looks_a_page && ((Utils.LRU_to_JSON_LRU(diag.lru).path || []).pop() || '').match(/.*(index|home|accueil).*/gi)
-                                    
-                                    if(looks_a_homepage){
+                                        ,weCount = 0
+
+                                    for(prefixUrl in diag.webEntityId_byPrefixUrl){
+                                        if(diag.webEntityId_byPrefixUrl[prefixUrl]){
+                                            weCount++
+                                        }
+                                    }
+
+                                    console.log('WE count', weCount, 'for', task.url)
+
+                                    /* Todo */
+                                    /*if(weCount>1){
+                                        diag.status = 'merge'
+                                        diag.merge = 'There are different web entities for this URL'
+                                    } else */if(looks_a_homepage){
                                         diag.status = 'warning'
-                                        diag.warningMessage = '<strong>It looks like a homepage</strong>. Having the whole domain often makes more sense.<span class="muted"> Click "Add" to define a web entity for this page anyway.</span>'
+                                        diag.message = '<strong>It looks like a homepage</strong>. Having the whole domain often makes more sense.<span class="muted"> Click "Add" to define a web entity for this page anyway.</span>'
                                     } else if(looks_a_page){
                                         diag.status = 'warning'
-                                        diag.warningMessage = 'This URL <strong>looks like a page</strong> and not a section of a website. It might be a mistake.<span class="muted"> Click "Add" to define a web entity for this page anyway.</span>'
+                                        diag.message = 'This URL <strong>looks like a page</strong> and not a section of a website. It might be a mistake.<span class="muted"> Click "Add" to define a web entity for this page anyway.</span>'
                                     } else {
                                         diag.status = 'success'
                                     }
@@ -356,12 +393,10 @@ domino.settings('maxDepth', 1000)
                             this.update('tasks_byId', tasks_byId)
                         }
 
-                        // Keep batching if there are other tasks and queries limit allows it
-                        if(tasks.length > 0){
-                            if(pendingTasksCount < concurrentTasksLimit){
-                                _self.dispatchEvent('cascadeTask')
-                            }
-                        }
+                        // Keep batching
+                        setTimeout(function(){
+                            domino.instances('main').dispatchEvent('cascadeTask')
+                        }, 0)
                     }
                 }
             },{
@@ -370,18 +405,41 @@ domino.settings('maxDepth', 1000)
                 ,method: function(e){
                     var _self = this
                         ,prefixUrl = e.data.url
+                        ,prefixLru = Utils.URL_to_LRU(e.data.url)
                         ,diagUrl = e.data.diagUrl
                         ,weId = e.data.webentityId
                         ,diagnostic_byUrl = this.get('diagnostic_byUrl')
                         ,diag = diagnostic_byUrl[diagUrl]
                     
                     diag.webEntityId_byPrefixUrl = diag.webEntityId_byPrefixUrl || {}
-                    diag.webEntityId_byPrefixUrl[prefixUrl] = weId
+                    diag.webEntityId_containingUrl = diag.webEntityId_containingUrl || {}
+                    
+                    if(weId){
+
+                        var webentities_byId = this.get('webentities_byId')
+                            ,we = webentities_byId[weId]
+                        
+                        if(we.lru_prefixes.some(function(lru){return lru == prefixLru})){
+                            diag.webEntityId_byPrefixUrl[prefixUrl] = weId
+                        } else {
+                            diag.webEntityId_byPrefixUrl[prefixUrl] = undefined
+                        }
+
+                        diag.webEntityId_containingUrl[prefixUrl] = weId
+
+                    } else {
+
+                        // Notice that if weId is undefined, we still want to report it
+                        diag.webEntityId_byPrefixUrl[prefixUrl] = undefined
+                        diag.webEntityId_containingUrl[prefixUrl] = undefined
+
+                    }
+
+
 
                     diagnostic_byUrl[diagUrl] = diag
                     this.update('diagnostic_byUrl', diagnostic_byUrl)
                     this.dispatchEvent('urlDiag_prefixChecked', {url:diagUrl})
-                    this.dispatchEvent('cascadeTask')
                 }
             },{
                 // Diagnostic: On url initialized, ask for prefixes
@@ -570,7 +628,7 @@ domino.settings('maxDepth', 1000)
                             placement: 'right'
                             ,trigger: 'hover'
                             ,title: 'Please check this URL'
-                            ,content: diag.warningMessage
+                            ,content: diag.message
                         })
                     break
 

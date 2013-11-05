@@ -267,7 +267,7 @@
 			|| (json_lru.query !== undefined)
 			|| (
 				json_lru.path.length > 0
-				&& json_lru.path.pop() != ''
+				&& json_lru.path.pop().indexOf('.') >= 0
 			)
 	}
 
