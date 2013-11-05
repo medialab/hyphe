@@ -361,20 +361,52 @@ domino.settings('maxDepth', 1000)
                                         ,looks_a_page = Utils.LRU_test_isNonsectionPage(diag.lru)
                                         ,looks_a_homepage = looks_a_page && ((Utils.LRU_to_JSON_LRU(diag.lru).path || []).pop() || '').match(/.*(index|home|accueil).*/gi)
                                         ,weCount = 0
+                                        ,weValues = []
 
                                     for(prefixUrl in diag.webEntityId_byPrefixUrl){
-                                        if(diag.webEntityId_byPrefixUrl[prefixUrl]){
+                                        var val = diag.webEntityId_byPrefixUrl[prefixUrl]
+                                        if(val !== undefined){
                                             weCount++
+                                        }
+                                        if(weValues.indexOf(val) < 0){
+                                            weValues.push(val)
                                         }
                                     }
 
                                     console.log('WE count', weCount, 'for', task.url, '- diag:', diag)
 
-                                    /* Todo */
-                                    /*if(weCount>1){
-                                        diag.status = 'merge'
-                                        diag.merge = 'There are different web entities for this URL'
-                                    } else */if(looks_a_homepage){
+                                    if(weCount > 0){
+                                        if(weValues.length == 1){
+                                            
+                                            // The web entity exists
+                                            var webentities_byId = this.get('webentities_byId')
+                                                ,we = webentities_byId[weValues[0]]
+                                            diag.status = 'exists'
+                                            diag.message = 'This web entity is <strong>already existing</strong>. Its current name is "'+we.label+'"</span>'
+
+                                        } else if(weValues.length == 2 && weValues.indexOf(undefined)>=0){
+                                            
+                                            // Web entity exists and will be extended
+                                            // We deal with this case as if everything is OK
+                                            diag.status = 'success'
+
+                                        } else {
+                                            // Web entity merge
+                                            diag.status = 'merge'
+                                            var weIdList = weValues.filter(function(val){return val !== undefined})
+                                                ,webentities_byId = this.get('webentities_byId')
+                                                ,webentities = weIdList.map(function(weId){return webentities_byId[weId]})
+                                            diag.message = 'Different web entities match the URL, so <strong>we cannot add </strong> a web entity:<ul>'
+                                                +webentities.map(function(we){
+                                                    return '<li>'+we.name+' <small class="muted">('
+                                                        +we.lru_prefixes.map(function(lru){
+                                                                return Utils.LRU_to_URL(lru)
+                                                            }).join(', ')
+                                                        +')</small></li>'
+                                                }).join('')
+                                                +'</ul>'
+                                        }
+                                    } else if(looks_a_homepage){
                                         diag.status = 'warning'
                                         diag.message = '<strong>It looks like a homepage</strong>. Having the whole domain often makes more sense.<span class="muted"> Click "Add" to define a web entity for this page anyway.</span>'
                                     } else if(looks_a_page){
@@ -619,8 +651,19 @@ domino.settings('maxDepth', 1000)
             switch(diag.status){
                 
                 case 'success':
-                    container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Analyse pending...</div></div>')
+                    container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Ready to be added...</div></div>')
                     container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                    break
+
+                case 'exists':
+                    container.find('div[data-url-md5='+url_md5+'] .info').html('<span class="label label-success overable">Already existing</span>')
+                    container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                    container.find('div[data-url-md5='+url_md5+']').popover({
+                            placement: 'right'
+                            ,trigger: 'hover'
+                            ,title: 'Already existing'
+                            ,content: diag.message
+                        })
                     break
 
                 case 'warning':
@@ -643,6 +686,22 @@ domino.settings('maxDepth', 1000)
                             placement: 'right'
                             ,trigger: 'hover'
                             ,title: 'Please check this URL'
+                            ,content: diag.message
+                        })
+                    break
+
+                case 'merge':
+                    container.find('div[data-url-md5='+url_md5+'] .info').html('')
+                        .append(
+                                $('<div class="pull-right"/>')
+                                    .append(
+                                            $('<span class="label label-important overable">Conflict</span>')
+                                        )
+                            )
+                    container.find('div[data-url-md5='+url_md5+']').popover({
+                            placement: 'right'
+                            ,trigger: 'hover'
+                            ,title: 'Multiple web entities'
                             ,content: diag.message
                         })
                     break
