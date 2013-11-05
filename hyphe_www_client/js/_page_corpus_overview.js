@@ -231,7 +231,7 @@ domino.settings('maxDepth', 1000)
                             .map(function(url){
                                     return Utils.URL_fix(url)
                                 })
-                    this.update('candidateUrls', urls)
+                    this.update('candidateUrls', Utils.extractCases(urls))
                 }
             },{
                 // Having a non-empty candidates URLs list triggers the diagnostic
@@ -373,8 +373,6 @@ domino.settings('maxDepth', 1000)
                                         }
                                     }
 
-                                    console.log('WE count', weCount, 'for', task.url, '- diag:', diag)
-
                                     if(weCount > 0){
                                         if(weValues.length == 1){
                                             
@@ -388,7 +386,7 @@ domino.settings('maxDepth', 1000)
                                             
                                             // Web entity exists and will be extended
                                             // We deal with this case as if everything is OK
-                                            diag.status = 'success'
+                                            diag.status = 'extend'
 
                                         } else {
                                             // Web entity merge
@@ -396,7 +394,7 @@ domino.settings('maxDepth', 1000)
                                             var weIdList = weValues.filter(function(val){return val !== undefined})
                                                 ,webentities_byId = this.get('webentities_byId')
                                                 ,webentities = weIdList.map(function(weId){return webentities_byId[weId]})
-                                            diag.message = 'Different web entities match the URL, so <strong>we cannot add </strong> a web entity:<ul>'
+                                            diag.message = 'Different web entities match the URL, so <strong>we cannot add </strong> one:<ul>'
                                                 +webentities.map(function(we){
                                                     return '<li>'+we.name+' <small class="muted">('
                                                         +we.lru_prefixes.map(function(lru){
@@ -471,24 +469,27 @@ domino.settings('maxDepth', 1000)
 
                     }
 
-
-
                     diagnostic_byUrl[diagUrl] = diag
                     this.update('diagnostic_byUrl', diagnostic_byUrl)
                     this.dispatchEvent('urlDiag_prefixChecked', {url:diagUrl})
                 }
             },{
-                // Diagnostic: On url initialized, ask for prefixes
+                // Diagnostic: When the last URL is initialized, get prefixes
                 triggers: ['urlDiag_initialized']
                 ,method: function(e){
-                    var url = e.data.url
-                    
-                    this.dispatchEvent('tasks_stack', {
-                        tasks: [{
-                                type: 'definePrefixCandidates'
-                                ,url: url
-                            }]
-                    })
+                    var diagnostic_byUrl = this.get('diagnostic_byUrl')
+                        ,candidateUrls = this.get('candidateUrls')
+                    if(d3.keys(diagnostic_byUrl).length == candidateUrls.length){
+                        var tasks = candidateUrls.map(function(url){
+                                return {
+                                        type: 'definePrefixCandidates'
+                                        ,url: url
+                                    }
+                            })
+                        this.dispatchEvent('tasks_stack', {
+                            tasks: tasks
+                        })
+                    }
                 }
             },{
                 // Diagnostic: On prefixes found, ask for fetching the webentities
@@ -652,12 +653,17 @@ domino.settings('maxDepth', 1000)
                 
                 case 'success':
                     container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Ready to be added...</div></div>')
-                    container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                    // container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                    break
+
+                case 'extend':
+                    container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Ready to be added...</div></div>')
+                    // container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
                     break
 
                 case 'exists':
                     container.find('div[data-url-md5='+url_md5+'] .info').html('<span class="label label-success overable">Already existing</span>')
-                    container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                    // container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
                     container.find('div[data-url-md5='+url_md5+']').popover({
                             placement: 'right'
                             ,trigger: 'hover'
