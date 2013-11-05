@@ -136,11 +136,11 @@
 		var protocolSplit = url.split('://')
 		if(protocolSplit.length == 1 || (protocolSplit.length > 1 && protocolSplit[0].length > 10)){
 			url = 'http://'+url
+		}
 		
 		// Strip the last slash if there are only three slashes in the URL
-		if(url.match(/\//g) == 3)
+		if(url.match(/\//g).length == 3){
 			url = url.replace(/\/$/, '')
-		
 		}
 
 

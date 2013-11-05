@@ -32,7 +32,7 @@
             #urlsDiagnosticPanel_container{
                 height: 194px;
                 overflow-x: hidden;
-                overflow-y: auto;
+                overflow-y: scroll;
                 background: rgb(248,248,248);
                 border: 1px solid #DDD;
                 -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);

@@ -228,6 +228,9 @@ domino.settings('maxDepth', 1000)
                 ,method: function(){
                     var urlslistText = this.get('urlslistText')
                         ,urls = extractWebentities(urlslistText)
+                            .map(function(url){
+                                    return Utils.URL_fix(url)
+                                })
                     this.update('candidateUrls', urls)
                 }
             },{
@@ -349,6 +352,7 @@ domino.settings('maxDepth', 1000)
                                     diagnostic_byUrl[task.url] = diag
                                     this.update('diagnostic_byUrl', diagnostic_byUrl)
                                     this.request('fetchWebEntityByURL', {url: Utils.LRU_to_URL(prefix), diagUrl:task.url})
+                                    this.dispatchEvent('urlDiag_prefixCheckPending', {url: task.url})
                                     break
 
                                 case 'buildDiagnostic':
@@ -364,7 +368,7 @@ domino.settings('maxDepth', 1000)
                                         }
                                     }
 
-                                    console.log('WE count', weCount, 'for', task.url)
+                                    console.log('WE count', weCount, 'for', task.url, '- diag:', diag)
 
                                     /* Todo */
                                     /*if(weCount>1){
@@ -578,7 +582,14 @@ domino.settings('maxDepth', 1000)
         this.triggers.events['urlDiag_initialized'] = function(provider, e){
             var url = e.data.url
                 ,url_md5 = $.md5(url)
-                ,pendingMessage = "wait for prefix check..."
+                ,pendingMessage = "Check prepared..."
+            container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-striped progress-info"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
+        }
+
+        this.triggers.events['urlDiag_prefixCheckPending'] = function(provider, e){
+            var url = e.data.url
+                ,url_md5 = $.md5(url)
+                ,pendingMessage = "Prefix info pending..."
             container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-striped progress-info active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
         }
 
@@ -589,10 +600,14 @@ domino.settings('maxDepth', 1000)
                 ,url_md5 = diag.url_md5
                 ,done = (d3.keys(diag.webEntityId_byPrefixUrl)).length
                 ,total = diag.prefixCandidates.length
-                ,pendingMessage = done+'/'+total+' prefixes checked'
+                ,pendingMessage = done+'/'+total+' prefix info gathered'
                 ,percent = Math.round(100*done/total)
 
-            container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress '+((done==total)?('progress-striped active'):(''))+'"><div class="bar" style="width: '+percent+'%;">'+pendingMessage+'</div></div>')
+            if(done < total){
+                container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress"><div class="bar" style="width: '+percent+'%;">'+pendingMessage+'</div></div></div>')
+            } else {
+                container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">Diagnostic pending...</div></div>')
+            }
         }
 
         this.triggers.events['urlDiag_diagnosticBuilt'] = function(provider, e){
@@ -604,7 +619,7 @@ domino.settings('maxDepth', 1000)
             switch(diag.status){
                 
                 case 'success':
-                    container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Adding web entity...</div></div>')
+                    container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Analyse pending...</div></div>')
                     container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
                     break
 
