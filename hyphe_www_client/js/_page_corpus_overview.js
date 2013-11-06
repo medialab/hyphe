@@ -635,7 +635,11 @@ domino.settings('maxDepth', 1000)
                             }
                         }
                         if(complete){
-                            this.dispatchEvent('diagUrl_finalize')
+                            this.dispatchEvent('temporize', {
+                                millisec: 800
+                                ,eventName: 'diagUrl_finalize'
+                                ,eventData: {}
+                            })
                         }
                     }
                 }
@@ -663,6 +667,20 @@ domino.settings('maxDepth', 1000)
     
 
     //// Modules
+
+    // Tempo
+    D.addModule(function(){
+        domino.module.call(this)
+        var _self = this
+        this.triggers.events['temporize'] = function(provider, e){
+            var millisec = e.data.millisec
+                ,eventName = e.data.eventName
+                ,eventData = e.data.eventData || {}
+            setTimeout(function(){
+                _self.dispatchEvent(eventName, eventData)
+            }, millisec)
+        }
+    })
 
     // Network display (Sigma)
     D.addModule(dmod.Sigma, [{
