@@ -129,6 +129,7 @@
     *   {?string}           contentProperty         The name of the property that will be set to the content
     *                                               (it is dispatched on contentDispatchEvent)
     *   {?(array|string)}   contentDispatchEvent    The property dispatched
+    *   {?(array|string)}   contentTriggerEvent     The event used to update the content
     *   {?string}           hideProperty            The name of the property listened (boolean) (optional)
     *   {?(array|string)}   hideTriggerEvent        The event used to listen to the property (optional)
     */
@@ -165,12 +166,20 @@
             }
         }
 
+        if(o['contentTriggerEvent']){
+            domino.utils.array(o['contentTriggerEvent']).forEach(function(eventName) {
+                _self.triggers.events[eventName] = function(provider, e){
+                    el.val(provider.get(o['contentProperty']))
+                }
+            })
+        }
+
         if(o['hideProperty']){
-            if (o['hideTriggerEvent']){
+            if(o['hideTriggerEvent']){
                 domino.utils.array(o['hideTriggerEvent']).forEach(function(eventName) {
                     _self.triggers.events[eventName] = hideShowUpdate
                 })
-            }else{
+            } else {
                 _self.triggers.properties[o['hideProperty']] = hideShowUpdate
             }
         }

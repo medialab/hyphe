@@ -259,7 +259,7 @@ domino.settings('maxDepth', 1000)
                 triggers: ['candidateUrls_updated']
                 ,method: function(){
                     var candidateUrls = this.get('candidateUrls')
-                    if(candidateUrls.length > 0)
+                    if(candidateUrls && candidateUrls.length > 0)
                         this.update('urlsDiagnosticActiveState', true)
                 }
             },{
@@ -267,7 +267,7 @@ domino.settings('maxDepth', 1000)
                 triggers: ['candidateUrls_updated']
                 ,method: function(){
                     var candidateUrls = this.get('candidateUrls')
-                    if(candidateUrls.length == 0)
+                    if(candidateUrls && candidateUrls.length == 0)
                         alert('There are no URLs in the text you pasted')
                 }
             },{
@@ -278,7 +278,7 @@ domino.settings('maxDepth', 1000)
                         ,candidateUrls = this.get('candidateUrls')
                         ,tasksToStack = []
 
-                    if(candidateUrls.length > 0){
+                    if(candidateUrls && candidateUrls.length > 0){
                         candidateUrls.forEach(function(url){
                             tasksToStack.push({
                                     type: 'initializeCandidateURL'
@@ -343,7 +343,7 @@ domino.settings('maxDepth', 1000)
                                             ,url_md5: url_md5
                                             ,lru: lru
                                             ,added: false
-                                            ,canceled: false
+                                            ,cancelled: false
                                         }
 
                                     this.update('diagnostic_byUrl', diagnostic_byUrl)
@@ -606,9 +606,55 @@ domino.settings('maxDepth', 1000)
 
                     this.dispatchEvent('urlDiag_cancel', {url: url})
 
-                    diag.cancel = true
+                    diag.cancelled = true
                     diagnostic_byUrl[url] = diag
                     this.update('diagnostic_byUrl', diagnostic_byUrl)
+                }
+            },{
+                // Diagnostic: when the diagnostic is updated, if it is complete, finalize
+                triggers:['diagnostic_byUrl_updated']
+                ,method: function(e){
+                    var diagnostic_byUrl = this.get('diagnostic_byUrl')
+                    if(d3.keys(diagnostic_byUrl).length > 0){
+                        var complete = true
+                        for(url in diagnostic_byUrl){
+                            var diag = diagnostic_byUrl[url]
+                            if(diag.added){
+                                // OK
+                            } else if(diag.cancelled){
+                                // OK
+                            } else if(diag.status == 'warning'){
+                                complete = false
+                            } else if(diag.status == 'exists'){
+                                // OK
+                            } else if(diag.status == 'merge'){
+                                // OK
+                            } else {
+                                // Pending...
+                                complete = false
+                            }
+                        }
+                        if(complete){
+                            this.dispatchEvent('diagUrl_finalize')
+                        }
+                    }
+                }
+            },{
+                // Diagnostic: finalize
+                triggers:['diagUrl_finalize']
+                ,method: function(e){
+
+                    // Clear the input field
+                    this.update('urlslistText', '')
+                    
+                    // Clear candidate URLs
+                    this.update('candidateUrls', undefined)
+
+                    // Clear diagnostic
+                    this.update('diagnostic_byUrl', {})
+
+                    // Reset the state
+                    this.update('urlsDiagnosticActiveState', false)
                 }
             }
         ]
@@ -633,6 +679,7 @@ domino.settings('maxDepth', 1000)
         element: $('#urlsList')
         ,contentProperty: 'urlslistText'
         ,contentDispatchEvent: 'update_urlslistText'
+        ,contentTriggerEvent: 'urlslistText_updated'
     }])
 
     // Hide/Show URLs Paste Panel
@@ -669,28 +716,35 @@ domino.settings('maxDepth', 1000)
 
         var _self = this
             ,container = $('#urlsDiagnosticPanel_content')
+            ,infoContainer = $('#urlsDiagInfoPanel')
+
+        var initialize = function(provider){
+            infoContainer.html('<p class="text-info"><i class="icon-hand-left"></i> We are verifying the URLs</p>')
+        }
 
         this.triggers.events['candidateUrls_updated'] = function(provider, e) {
             var urls = provider.get('candidateUrls')
-            container.html('')
-                .append(
-                        urls.map(function(url){
-                            var pendingMessage = "Waiting..."
-                            return $('<div class="urlCandidateBlock" data-url-md5="'+$.md5(url)+'"/>')
-                                .append($('<table/>')
-                                    .append($('<tr/>')
-                                        .append($('<td class="url"/>')
-                                            .append($('<span/>')
-                                                    .text(url)
+            if(urls && urls.length > 0){
+                container.html('')
+                    .append(
+                            urls.map(function(url){
+                                var pendingMessage = "Waiting..."
+                                return $('<div class="urlCandidateBlock" data-url-md5="'+$.md5(url)+'"/>')
+                                    .append($('<table/>')
+                                        .append($('<tr/>')
+                                            .append($('<td class="url"/>')
+                                                .append($('<span/>')
+                                                        .text(url)
+                                                    )
+                                                )
+                                            .append($('<td class="info pull-right"/>')
+                                                .html('<div class="progress progress-striped progress-info active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
                                                 )
                                             )
-                                        .append($('<td class="info pull-right"/>')
-                                            .html('<div class="progress progress-striped progress-info active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
-                                            )
                                         )
-                                    )
-                        })
-                    )
+                            })
+                        )
+            }
         }
 
         this.triggers.events['urlDiag_initialized'] = function(provider, e){
@@ -727,11 +781,12 @@ domino.settings('maxDepth', 1000)
         updateDiagnosticSummary = function(provider){
             var diagnostic_byUrl = provider.get('diagnostic_byUrl')
                 ,summary = {
-                    added: 0
+                    pending: 0
+                    ,added: 0
                     ,cancelled: 0
                     ,existing: 0
-                    ,pending: 0
                     ,toBeChecked: 0
+                    ,toBeCheckedUrls: []
                     ,conflict: 0
                 }
             for(url in diagnostic_byUrl){
@@ -742,13 +797,77 @@ domino.settings('maxDepth', 1000)
                     summary.cancelled++
                 } else if(diag.status == 'warning'){
                     summary.toBeChecked++
+                    summary.toBeCheckedUrls.push(url)
                 } else if(diag.status == 'exists'){
                     summary.existing++
                 } else if(diag.status == 'merge'){
-                    summary.conflit++
+                    summary.conflict++
+                } else {
+                    summary.pending++
                 }
             }
-            // TODO: build summary
+            infoContainer.html('')
+            if(summary.added > 0 || summary.existing > 0){
+                var el = $('<div class="text-success"/>')
+                if(summary.added == 0){
+                    el.html(summary.existing + ' web entit' + ((summary.existing>1)?('ies'):('y')) + ' already exist' + ((summary.existing>1)?(''):('s')))
+                } else if(summary.existing == 0){
+                    el.html(summary.added + ' web entit' + ((summary.added>1)?('ies'):('y')) + ' added')
+                } else {
+                    el.html(summary.added + ' web entit' + ((summary.added>1)?('ies are'):('y is')) + ' added while ' + summary.existing + ' already exist' + ((summary.existing>1)?(''):('s')))
+                }
+                infoContainer.append(
+                    $('<div class="summary summary-success"/>').append(el)
+                )
+            }
+            if(summary.conflict > 0 || summary.cancelled > 0){
+                var el = $('<div class="text-error"/>')
+                if(summary.conflict == 0){
+                    el.html(summary.cancelled + ' URL' + ((summary.cancelled>1)?('s are'):(' is')) + ' cancelled')
+                } else if(summary.cancelled == 0){
+                    el.html(summary.conflict + ' URL' + ((summary.conflict>1)?('s have'):(' has')) + ' a conflict')
+                } else {
+                    el.html(summary.conflict + ' URL' + ((summary.conflict>1)?('s have'):(' has')) + ' a conflict and ' + summary.cancelled + ((summary.cancelled>1)?(' are'):(' is')) + ' cancelled')
+                }
+                infoContainer.append(
+                    $('<div class="summary summary-error"/>').append(el)
+                )
+            }
+            if(summary.toBeChecked > 0){
+                var el = $('<div class="text-info"/>')
+                el.html(summary.toBeChecked + ' URL' + ((summary.toBeChecked>1)?('s need'):(' needs')) + ' a check')
+                el.append(
+                        $('<div class="pull-right"/>').append($('<span> </span>'))
+                            .append(
+                                    $('<a class="btn btn-mini">Add all</a>')
+                                        .click(function(){
+                                                summary.toBeCheckedUrls.forEach(function(url){
+                                                    _self.dispatchEvent('ui_diag_checkAdd', {url:url})
+                                                })
+                                            })
+                                )
+                            .append($('<span> </span>'))
+                            .append(
+                                    $('<a class="btn btn-mini">Cancel all</a>')
+                                        .click(function(){
+                                                summary.toBeCheckedUrls.forEach(function(url){
+                                                    _self.dispatchEvent('ui_diag_checkCancel', {url:url})
+                                                })
+                                            })
+                                )
+                    )
+                infoContainer.append(
+                    $('<div class="summary summary-info"/>').append(el)
+                )
+            }
+            if(summary.pending > 0){
+                var el = $('<div class="muted"/>')
+                el.html(summary.pending + ' URL' + ((summary.pending>1)?('s are'):(' is')) + ' still in progress')
+                infoContainer.append(
+                    $('<div class="summary"/>').append(el)
+                )
+            }
+
         }
 
         this.triggers.events['urlDiag_diagnosticBuilt'] = function(provider, e){
@@ -878,6 +997,8 @@ domino.settings('maxDepth', 1000)
 
             updateDiagnosticSummary(provider)
         }
+
+        initialize()
     })
 
         

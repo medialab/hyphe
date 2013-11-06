@@ -84,6 +84,21 @@
                 width: 260px;
             }
 
+            #urlsDiagInfoPanel div.summary{
+                border: 3px solid #EEE;
+                padding: 4px 4px 8px 5px;
+                margin-bottom: 5px;
+            }
+            #urlsDiagInfoPanel div.summary.summary-success{
+                border-color:#B7E0B7;
+            }
+            #urlsDiagInfoPanel div.summary.summary-error{
+                border-color:#E0B7B7;
+            }
+            #urlsDiagInfoPanel div.summary.summary-info{
+                border-color:#A5B5CC;
+            }
+
             #networkSettings{
                 height: 350px;
                 margin-bottom: 30px;
@@ -189,10 +204,8 @@
                             </div>
                         </div>
                         <div class="span4">
-                            <p class="text-info">
-                                <i class="icon-hand-left"></i>
-                                We're verifying the URLs
-                            </p>
+                            <div id="urlsDiagInfoPanel">
+                            </div>
                         </div>
                     </div>
                 </div>
