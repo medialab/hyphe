@@ -123,8 +123,12 @@
 		return scheme+hosts+port+path+query+fragment
 	}
 
+    ns.URL_remove_http = function(url) {
+        return url.replace(/^http:\/\//, '')
+    }
+
 	ns.URL_simplify = function(url){
-		return url.replace(/^http:\/\//, '').replace(/\/$/, '')
+		return ns.URL_stripLastSlash(ns.URL_remove_http(url))
 	}
 
 	ns.URL_fix = function(url){

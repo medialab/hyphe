@@ -714,7 +714,7 @@ HypheCommons.domino_init()
                 var tr = $('<tr class="startPage_tr"/>')
                 element.append(tr)
                 tr.append(
-                    $('<td/>').append($('<small/>').append($('<a target="_blank" class="unchecked"/>').attr('href',sp).attr('title',sp).text(Utils.URL_simplify(sp)+' ')))
+                    $('<td/>').append($('<small/>').append($('<a target="_blank" class="unchecked"/>').attr('href',sp).attr('title',sp).text(Utils.URL_remove_http(sp)+' ')))
                 )
                 if(startpages.length>1){
                     tr.append(
