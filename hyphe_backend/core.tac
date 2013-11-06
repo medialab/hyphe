@@ -561,7 +561,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WE = ms.WebEntity(None, lru_prefixes_list, name)
         if status:
             for s in ms.WebEntityStatus._NAMES_TO_VALUES:
-                print s
                 if status.lower() == s.lower():
                     WE.status = s
                     break
