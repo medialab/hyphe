@@ -147,6 +147,15 @@
 		return url
 	}
 
+	ns.URL_stripLastSlash = function(url){
+		// Trim
+		url = $.trim(url)
+
+		url = url.replace(/\/$/, '')
+
+		return url
+	}
+
 	ns.LRU_prefix_fix = function(lru_prefix){
 		var split = lru_prefix.replace(/\|$/, '').split('|')
 			,lastStem = split[split.length-1]

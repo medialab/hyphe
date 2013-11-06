@@ -249,7 +249,8 @@ domino.settings('maxDepth', 1000)
                     var urlslistText = this.get('urlslistText')
                         ,urls = extractWebentities(urlslistText)
                             .map(function(url){
-                                    return Utils.URL_fix(url)
+                                    return Utils.URL_stripLastSlash(Utils.URL_fix(url))
+                                    // We strip the last slash because these URLs will become prefixes, and we don't want prefixes with slashes
                                 })
                     this.update('candidateUrls', Utils.extractCases(urls))
                 }
@@ -702,7 +703,7 @@ domino.settings('maxDepth', 1000)
         this.triggers.events['urlDiag_prefixCheckPending'] = function(provider, e){
             var url = e.data.url
                 ,url_md5 = $.md5(url)
-                ,pendingMessage = "Prefix info pending..."
+                ,pendingMessage = "Prefix analyze pending..."
             container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-striped progress-info active"><div class="bar" style="width: 100%;">'+pendingMessage+'</div></div>')
         }
 
@@ -721,6 +722,33 @@ domino.settings('maxDepth', 1000)
             } else {
                 container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">Diagnostic pending...</div></div>')
             }
+        }
+
+        updateDiagnosticSummary = function(provider){
+            var diagnostic_byUrl = provider.get('diagnostic_byUrl')
+                ,summary = {
+                    added: 0
+                    ,cancelled: 0
+                    ,existing: 0
+                    ,pending: 0
+                    ,toBeChecked: 0
+                    ,conflict: 0
+                }
+            for(url in diagnostic_byUrl){
+                var diag = diagnostic_byUrl[url]
+                if(diag.added){
+                    summary.added++
+                } else if(diag.cancelled){
+                    summary.cancelled++
+                } else if(diag.status == 'warning'){
+                    summary.toBeChecked++
+                } else if(diag.status == 'exists'){
+                    summary.existing++
+                } else if(diag.status == 'merge'){
+                    summary.conflit++
+                }
+            }
+            // TODO: build summary
         }
 
         this.triggers.events['urlDiag_diagnosticBuilt'] = function(provider, e){
@@ -803,8 +831,9 @@ domino.settings('maxDepth', 1000)
                             ,content: diag.message
                         })
                     break
-
             }
+
+            updateDiagnosticSummary(provider)
         }
 
         this.triggers.events['urlDiag_forceAdd'] = function(provider, e){
@@ -815,6 +844,8 @@ domino.settings('maxDepth', 1000)
 
             container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Being added...</div></div>')
             container.find('div[data-url-md5='+url_md5+']').popover('disable')
+
+            updateDiagnosticSummary(provider)
         }
 
         this.triggers.events['urlDiag_cancel'] = function(provider, e){
@@ -832,6 +863,8 @@ domino.settings('maxDepth', 1000)
                     )
             container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
             container.find('div[data-url-md5='+url_md5+']').popover('disable')
+
+            updateDiagnosticSummary(provider)
         }
 
         this.triggers.events['urlDiag_webentityAdded'] = function(provider, e){
@@ -842,6 +875,8 @@ domino.settings('maxDepth', 1000)
 
             container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success"><div class="bar" style="width: 100%;">Added</div></div>')
             container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+
+            updateDiagnosticSummary(provider)
         }
     })
 
