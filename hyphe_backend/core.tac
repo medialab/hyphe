@@ -1005,12 +1005,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
             return format_error(e)
         return self.jsonrpc_get_webentity_by_lruprefix(lru)
 
+    @inlineCallbacks
     def jsonrpc_get_webentity_by_lruprefix(self, lru_prefix):
         try:
             lru_prefix = urllru.lru_clean(lru_prefix)
         except ValueError as e:
             returnD(format_error(e))
-        WE = yield self.msclient_pool.findWebEntityByLRUPrefix(lru_prefix)
+        WE = yield self.msclient_pool.getWebEntityByLRUPrefix(lru_prefix)
         if is_error(WE):
             returnD(WE)
         if WE.name == ms_const.DEFAULT_WEBENTITY:

@@ -41,8 +41,14 @@
                 padding-top: 4px;
             }
 
+
             #urlsDiagnosticPanel_content{
                 padding-bottom: 20px;
+            }
+
+            #urlsDiagInfoPanel{
+                height: 200px;
+                overflow-y: auto;
             }
 
             .urlCandidateBlock{
@@ -74,15 +80,27 @@
                 margin-bottom: 0px;
             }
             .urlCandidateBlock table{
+                table-layout: fixed;
+                border-collapse: collapse;
                 width: 100%;
             }
             .urlCandidateBlock div.progress{
                 margin-left: 10px;
                 margin-bottom: 0px;
             }
-            .urlCandidateBlock td.info{
+            .urlCandidateBlock col.wide{
                 width: 260px;
             }
+            .urlCandidateBlock td.info{
+                width: 260px;
+            } 
+            .urlCandidateBlock .url{
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                overflow: hidden;
+            }
+
 
             #urlsDiagInfoPanel div.summary{
                 border: 3px solid #EEE;
