@@ -765,6 +765,8 @@ domino.settings('maxDepth', 1000)
                                 var pendingMessage = "Waiting..."
                                 return $('<div class="urlCandidateBlock" data-url-md5="'+$.md5(url)+'"/>')
                                     .append($('<table/>')
+                                        .append($('<col/>'))
+                                        .append($('<col span="1" class="wide"/>'))
                                         .append($('<tr/>')
                                             .append($('<td/>')
                                                 .append($('<div class="url"/>')

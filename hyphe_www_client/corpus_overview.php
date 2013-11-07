@@ -80,20 +80,23 @@
                 margin-bottom: 0px;
             }
             .urlCandidateBlock table{
+                table-layout: fixed;
+                border-collapse: collapse;
                 width: 100%;
             }
             .urlCandidateBlock div.progress{
                 margin-left: 10px;
                 margin-bottom: 0px;
             }
-            .urlCandidateBlock td.info{
+            .urlCandidateBlock .wide {
                 width: 260px;
-            }
-            .urlCandidateBlock .url {
-                overflow: hidden;
-                word-wrap: break-word; /* or "normal" */
-                overflow-wrap: break-word;
+            } 
+            .urlCandidateBlock .url{
+                white-space: nowrap;
                 text-overflow: ellipsis;
+                word-wrap: break-word;
+                overflow: hidden;
+                max-width: 100%;
             }
 
 
