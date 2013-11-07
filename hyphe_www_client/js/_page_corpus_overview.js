@@ -195,8 +195,7 @@ domino.settings('maxDepth', 1000)
                         this.dispatchEvent('callback_webentityDeclared', {
                             taskId: input.taskId
                             ,error: true
-                            ,errorMessage: '<strong>Error declaring web entities</strong> - We tried to declare these prefixes:<ul>'
-                                +input.prefixes.map(function(p){return '<li>'+Utils.URL_simplify(Utils.LRU_to_URL(p))+' <small class="muted">'+p+'</small></li>'}).join('')+'</ul>'
+                            ,errorMessage: '<strong>We could not declare</strong> the web entity'
                                 +'<pre> '+xhr.responseText+' </pre>'
                             ,diagUrl: input.diagUrl
                         })
@@ -507,7 +506,6 @@ domino.settings('maxDepth', 1000)
                         ,diagUrl = e.data.diagUrl
                         ,diagnostic_byUrl = this.get('diagnostic_byUrl')
                         ,diag = diagnostic_byUrl[diagUrl]
-
                     if(e.data.error){
                         diag.status = 'error'
                         diag.errorMessage = e.data.errorMessage
@@ -636,6 +634,8 @@ domino.settings('maxDepth', 1000)
                             } else if(diag.status == 'exists'){
                                 // OK
                             } else if(diag.status == 'merge'){
+                                // OK
+                            } else if(diag.status == 'error'){
                                 // OK
                             } else {
                                 // Pending...
@@ -977,22 +977,6 @@ domino.settings('maxDepth', 1000)
                             ,content: diag.message
                         })
                     break
-
-                case 'error':
-                    container.find('div[data-url-md5='+url_md5+'] .info').html('')
-                        .append(
-                                $('<div class="pull-right"/>')
-                                    .append(
-                                            $('<span class="label label-important">Error</span>')
-                                        )
-                            )
-                    container.find('div[data-url-md5='+url_md5+']').popover({
-                            placement: 'right'
-                            ,trigger: 'hover'
-                            ,title: 'Multiple web entities'
-                            ,content: diag.message
-                        })
-                    break
             }
 
             updateDiagnosticSummary(provider)
@@ -1035,8 +1019,24 @@ domino.settings('maxDepth', 1000)
                 ,diag = diagnostic_byUrl[url]
                 ,url_md5 = diag.url_md5
 
-            container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success"><div class="bar" style="width: 100%;">Added</div></div>')
-            container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+            if(diag.status == 'error'){
+                container.find('div[data-url-md5='+url_md5+'] .info').html('')
+                    .append(
+                            $('<div class="pull-right"/>')
+                                .append(
+                                        $('<span class="label label-important">Error</span>')
+                                    )
+                        )
+                container.find('div[data-url-md5='+url_md5+']').popover({
+                        placement: 'right'
+                        ,trigger: 'hover'
+                        ,title: 'Error'
+                        ,content: diag.errorMessage
+                    })
+            } else {
+                container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success"><div class="bar" style="width: 100%;">Added</div></div>')
+                container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+            }
 
             updateDiagnosticSummary(provider)
         }
