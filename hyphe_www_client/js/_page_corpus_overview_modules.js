@@ -241,6 +241,27 @@
     }
 
     /**
+    * Tempo allows to delay an event (useful for UX purposes)
+    *
+    * @param   {?Object} options An object containing the specifications of the
+    *                            module.
+    * @param   {?Object} d       The instance of domino.
+    *
+    */
+    ns.Tempo = function(options, d) {
+        domino.module.call(this)
+        var _self = this
+        this.triggers.events['tempoEvent'] = function(provider, e){
+            var millisec = e.data.millisec
+                ,eventName = e.data.eventName
+                ,eventData = e.data.eventData || {}
+            setTimeout(function(){
+                _self.dispatchEvent(eventName, eventData)
+            }, millisec)
+        }
+    }
+
+    /**
    * A button dispatching an event on click. Bootstrap attributes can be set.
    * A property can be listened for enabling/disabling the button. An alternate label is possible for
    * the disabled button.
