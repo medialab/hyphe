@@ -88,7 +88,10 @@
                 margin-left: 10px;
                 margin-bottom: 0px;
             }
-            .urlCandidateBlock .wide {
+            .urlCandidateBlock col.wide{
+                width: 260px;
+            }
+            .urlCandidateBlock td.info{
                 width: 260px;
             } 
             .urlCandidateBlock .url{
@@ -96,7 +99,6 @@
                 text-overflow: ellipsis;
                 word-wrap: break-word;
                 overflow: hidden;
-                max-width: 100%;
             }
 
 
