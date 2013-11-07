@@ -67,6 +67,12 @@ domino.settings('maxDepth', 1000)
                 ,triggers: 'update_urlsDiagnosticActiveState'
                 ,dispatch: 'urlsDiagnosticActiveState_updated'
             },{
+                id: 'urlsDiagnosticStatusCollapseInfo'
+                ,type: 'object'
+                ,value: {added: true, extend: true, exists: true, warning: false, merge: true, pending: false, cancelled: true, error: false}
+                ,triggers: 'update_urlsDiagnosticStatusCollapseInfo'
+                ,dispatch: 'urlsDiagnosticStatusCollapseInfo_updated'
+            },{
                 id:'diagnostic_byUrl'
                 ,type: 'object'
                 ,value: {}
@@ -195,7 +201,7 @@ domino.settings('maxDepth', 1000)
                         this.dispatchEvent('callback_webentityDeclared', {
                             taskId: input.taskId
                             ,error: true
-                            ,errorMessage: '<strong>We could not declare</strong> the web entity'
+                            ,errorMessage: '<strong>We could not declare</strong> the web entity.'
                                 +'<pre> '+xhr.responseText+' </pre>'
                             ,diagUrl: input.diagUrl
                         })
@@ -617,6 +623,16 @@ domino.settings('maxDepth', 1000)
                     this.update('diagnostic_byUrl', diagnostic_byUrl)
                 }
             },{
+                // Diagnostic: change the collapse of some events
+                triggers: ['ui_diag_setCollapseStatus']
+                ,method: function(e){
+                    var collapseInfo = this.get('urlsDiagnosticStatusCollapseInfo')
+
+                    collapseInfo[e.data.status] = e.data.value
+
+                    this.update('urlsDiagnosticStatusCollapseInfo', collapseInfo)
+                }
+            },{
                 // Diagnostic: when the diagnostic is updated, if it is complete, finalize
                 triggers:['diagnostic_byUrl_updated']
                 ,method: function(e){
@@ -643,17 +659,13 @@ domino.settings('maxDepth', 1000)
                             }
                         }
                         if(complete){
-                            this.dispatchEvent('tempoEvent', {
-                                millisec: 800
-                                ,eventName: 'diagUrl_finalize'
-                                ,eventData: {}
-                            })
+                            this.dispatchEvent('urlDiag_complete', {diagComplete: true})
                         }
                     }
                 }
             },{
                 // Diagnostic: finalize
-                triggers:['diagUrl_finalize']
+                triggers:['urlDiag_finalize']
                 ,method: function(e){
 
                     // Clear the input field
@@ -677,18 +689,7 @@ domino.settings('maxDepth', 1000)
     //// Modules
 
     // Tempo module
-    D.addModule(function(){
-        domino.module.call(this)
-        var _self = this
-        this.triggers.events['tempoEvent'] = function(provider, e){
-            var millisec = e.data.millisec
-                ,eventName = e.data.eventName
-                ,eventData = e.data.eventData || {}
-            setTimeout(function(){
-                _self.dispatchEvent(eventName, eventData)
-            }, millisec)
-        }
-    })
+    D.addModule(dmod.Tempo)
 
     // Network display (Sigma)
     D.addModule(dmod.Sigma, [{
@@ -804,8 +805,9 @@ domino.settings('maxDepth', 1000)
             }
         }
 
-        updateDiagnosticSummary = function(provider){
+        updateDiagnosticSummary = function(provider, e){
             var diagnostic_byUrl = provider.get('diagnostic_byUrl')
+                ,collapseInfo = provider.get('urlsDiagnosticStatusCollapseInfo')
                 ,summary = {
                     pending: 0
                     ,added: 0
@@ -839,24 +841,24 @@ domino.settings('maxDepth', 1000)
             if(summary.added > 0 || summary.existing > 0){
                 var el = $('<div class="text-success"/>')
                 if(summary.added == 0){
-                    el.html(summary.existing + ' web entit' + ((summary.existing>1)?('ies'):('y')) + ' already exist' + ((summary.existing>1)?(''):('s')))
+                    el.html(summary.existing + ' web entit' + ((summary.existing>1)?('ies'):('y')) + ' <strong>already exist' + ((summary.existing>1)?(''):('s')) + '</strong> <a class="diag-collapse"  data-collapse-status="exists"/>')
                 } else if(summary.existing == 0){
-                    el.html(summary.added + ' web entit' + ((summary.added>1)?('ies'):('y')) + ' added')
+                    el.html(summary.added + ' web entit' + ((summary.added>1)?('ies'):('y')) + ' <strong>added</strong> <a class="diag-collapse"  data-collapse-status="added"/>')
                 } else {
-                    el.html(summary.added + ' web entit' + ((summary.added>1)?('ies are'):('y is')) + ' added while ' + summary.existing + ' already exist' + ((summary.existing>1)?(''):('s')))
+                    el.html(summary.added + ' web entit' + ((summary.added>1)?('ies are'):('y is')) + ' <strong>added</strong> <a class="diag-collapse"  data-collapse-status="added"/> while ' + summary.existing + ' <strong>already exist' + ((summary.existing>1)?(''):('s')) + '</strong> <a class="diag-collapse"  data-collapse-status="exists"/>')
                 }
                 infoContainer.append(
                     $('<div class="summary summary-success"/>').append(el)
                 )
             }
-            if(summary.conflict > 0 || summary.cancelled > 0){
+            if(summary.conflict > 0 || summary.error > 0){
                 var el = $('<div class="text-error"/>')
                 if(summary.conflict == 0){
-                    el.html(summary.cancelled + ' URL' + ((summary.cancelled>1)?('s are'):(' is')) + ' cancelled')
-                } else if(summary.cancelled == 0){
-                    el.html(summary.conflict + ' URL' + ((summary.conflict>1)?('s have'):(' has')) + ' a conflict')
+                    el.html(summary.error + ' URL' + ((summary.error>1)?('s have'):(' has')) + ' an <strong>error</strong> <a class="diag-collapse"  data-collapse-status="error"/>')
+                } else if(summary.error == 0){
+                    el.html(summary.conflict + ' URL' + ((summary.conflict>1)?('s have'):(' has')) + ' a <strong>conflict</strong> <a class="diag-collapse"  data-collapse-status="merge"/>')
                 } else {
-                    el.html(summary.conflict + ' URL' + ((summary.conflict>1)?('s have'):(' has')) + ' a conflict and ' + summary.cancelled + ((summary.cancelled>1)?(' are'):(' is')) + ' cancelled')
+                    el.html(summary.conflict + ' URL' + ((summary.conflict>1)?('s have'):(' has')) + ' a <strong>conflict</strong> <a class="diag-collapse"  data-collapse-status="merge"/> and ' + summary.error + ((summary.cancelled>1)?(' have'):(' has')) + ' an <strong>error</strong> <a class="diag-collapse"  data-collapse-status="error"/>')
                 }
                 infoContainer.append(
                     $('<div class="summary summary-error"/>').append(el)
@@ -864,7 +866,7 @@ domino.settings('maxDepth', 1000)
             }
             if(summary.toBeChecked > 0){
                 var el = $('<div class="text-info"/>')
-                el.html(summary.toBeChecked + ' URL' + ((summary.toBeChecked>1)?('s need'):(' needs')) + ' a check')
+                el.html(summary.toBeChecked + ' URL' + ((summary.toBeChecked>1)?('s <strong>need'):(' <strong>needs')) + ' a check</strong> <a class="diag-collapse"  data-collapse-status="warning"/>')
                 el.append(
                         $('<div class="pull-right"/>').append($('<span> </span>'))
                             .append(
@@ -889,19 +891,53 @@ domino.settings('maxDepth', 1000)
                     $('<div class="summary summary-info"/>').append(el)
                 )
             }
+            if(summary.cancelled > 0){
+                var el = $('<div class="muted"/>')
+                el.html(summary.cancelled + ' URL' + ((summary.cancelled>1)?('s are'):(' is')) + ' <strong>cancelled</strong> <a class="diag-collapse"  data-collapse-status="cancelled"/>')
+                infoContainer.append(
+                    $('<div class="summary"/>').append(el)
+                )
+            }
             if(summary.pending > 0){
                 var el = $('<div class="muted"/>')
-                el.html(summary.pending + ' URL' + ((summary.pending>1)?('s are'):(' is')) + ' still in progress')
+                el.html(summary.pending + ' URL' + ((summary.pending>1)?('s are'):(' is')) + ' still <strong>in progress</strong> <a class="diag-collapse"  data-collapse-status="pending"/>')
                 infoContainer.append(
                     $('<div class="summary"/>').append(el)
                 )
             }
 
+            // Draw the finalize button
+            if(e.data.diagComplete){
+                infoContainer.append(
+                    $('<a class="btn btn-block">Done</a>').click(function(){
+                        _self.dispatchEvent('urlDiag_finalize')
+                    })
+                )
+            } else {
+                infoContainer.append(
+                    $('<center class="muted">Please add or cancel all URLs to finalize the process</center>')
+                )
+            }
+
+            // Update the show/hide elements
+            infoContainer.find('a.diag-collapse').each(function(i, A){
+                var a = $(A)
+                    ,diagCollapseStatus = a.attr('data-collapse-status')
+                a.addClass('overable')
+                    .html('<small class="muted">('+((collapseInfo[diagCollapseStatus])?('show'):('hide'))+')</small>')
+                    .click(function(){
+                        _self.dispatchEvent('ui_diag_setCollapseStatus', {
+                            status: diagCollapseStatus
+                            ,value: !collapseInfo[diagCollapseStatus]
+                        })
+                    })
+            })
         }
 
         this.triggers.events['urlDiag_diagnosticBuilt'] = function(provider, e){
             var url = e.data.url
                 ,diagnostic_byUrl = provider.get('diagnostic_byUrl')
+                ,collapseInfo = provider.get('urlsDiagnosticStatusCollapseInfo')
                 ,diag = diagnostic_byUrl[url]
                 ,url_md5 = diag.url_md5
 
@@ -909,10 +945,18 @@ domino.settings('maxDepth', 1000)
                 
                 case 'success':
                     container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Being added...</div></div>')
+                    container.find('div[data-url-md5='+url_md5+']').attr('data-collapse-status', 'pending')
+                    if(collapseInfo.pending){
+                        container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                    }
                     break
 
                 case 'extend':
                     container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Being added...</div></div>')
+                    container.find('div[data-url-md5='+url_md5+']').attr('data-collapse-status', 'extend')
+                    if(collapseInfo.extend){
+                        container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                    }
                     break
 
                 case 'exists':
@@ -923,7 +967,10 @@ domino.settings('maxDepth', 1000)
                                             $('<span class="label label-success">Already existing</span>')
                                         )
                             )
-                    container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                    container.find('div[data-url-md5='+url_md5+']').attr('data-collapse-status', 'exists')
+                    if(collapseInfo.exists){
+                        container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                    }
                     container.find('div[data-url-md5='+url_md5+']').popover({
                             placement: 'right'
                             ,trigger: 'hover'
@@ -960,6 +1007,10 @@ domino.settings('maxDepth', 1000)
                             ,title: 'Please check this URL'
                             ,content: diag.message
                         })
+                    container.find('div[data-url-md5='+url_md5+']').attr('data-collapse-status', 'warning')
+                    if(collapseInfo.warning){
+                        container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                    }
                     break
 
                 case 'merge':
@@ -976,27 +1027,38 @@ domino.settings('maxDepth', 1000)
                             ,title: 'Multiple web entities'
                             ,content: diag.message
                         })
+                    container.find('div[data-url-md5='+url_md5+']').attr('data-collapse-status', 'merge')
+                    if(collapseInfo.merge){
+                        container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                    }
                     break
             }
 
-            updateDiagnosticSummary(provider)
+            updateDiagnosticSummary(provider, e)
         }
 
         this.triggers.events['urlDiag_forceAdd'] = function(provider, e){
             var url = e.data.url
                 ,diagnostic_byUrl = provider.get('diagnostic_byUrl')
+                ,collapseInfo = provider.get('urlsDiagnosticStatusCollapseInfo')
                 ,diag = diagnostic_byUrl[url]
                 ,url_md5 = diag.url_md5
 
             container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success progress-striped active"><div class="bar" style="width: 100%;">Being added...</div></div>')
             container.find('div[data-url-md5='+url_md5+']').popover('disable')
+            container.find('div[data-url-md5='+url_md5+']').attr('data-collapse-status', 'pending')
+            if(collapseInfo.pending){
+                container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+            }
 
-            updateDiagnosticSummary(provider)
+
+            updateDiagnosticSummary(provider, e)
         }
 
         this.triggers.events['urlDiag_cancel'] = function(provider, e){
             var url = e.data.url
                 ,diagnostic_byUrl = provider.get('diagnostic_byUrl')
+                ,collapseInfo = provider.get('urlsDiagnosticStatusCollapseInfo')
                 ,diag = diagnostic_byUrl[url]
                 ,url_md5 = diag.url_md5
 
@@ -1007,15 +1069,19 @@ domino.settings('maxDepth', 1000)
                                     $('<span class="label label-inverse">Cancelled</span>')
                                 )
                     )
-            container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
             container.find('div[data-url-md5='+url_md5+']').popover('disable')
+            container.find('div[data-url-md5='+url_md5+']').attr('data-collapse-status', 'cancelled')
+            if(collapseInfo.cancelled){
+                container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+            }
 
-            updateDiagnosticSummary(provider)
+            updateDiagnosticSummary(provider, e)
         }
 
         this.triggers.events['urlDiag_webentityAdded'] = function(provider, e){
             var url = e.data.url
                 ,diagnostic_byUrl = provider.get('diagnostic_byUrl')
+                ,collapseInfo = provider.get('urlsDiagnosticStatusCollapseInfo')
                 ,diag = diagnostic_byUrl[url]
                 ,url_md5 = diag.url_md5
 
@@ -1033,12 +1099,38 @@ domino.settings('maxDepth', 1000)
                         ,title: 'Error'
                         ,content: diag.errorMessage
                     })
+                container.find('div[data-url-md5='+url_md5+']').attr('data-collapse-status', 'error')
+                if(collapseInfo.error){
+                    container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                }
             } else {
                 container.find('div[data-url-md5='+url_md5+'] .info').html('<div class="progress progress-success"><div class="bar" style="width: 100%;">Added</div></div>')
-                container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                container.find('div[data-url-md5='+url_md5+']').attr('data-collapse-status', 'added')
+                if(collapseInfo.added){
+                    container.find('div[data-url-md5='+url_md5+']').addClass('collapsed')
+                }
             }
 
-            updateDiagnosticSummary(provider)
+            updateDiagnosticSummary(provider, e)
+        }
+
+        this.triggers.events['urlsDiagnosticStatusCollapseInfo_updated'] = function(provider, e){
+            var collapseInfo = provider.get('urlsDiagnosticStatusCollapseInfo')
+            for(status in collapseInfo){
+                console.log('Collapse Status: ', status, ': ', collapseInfo[status])
+                var elements = container.find('[data-collapse-status='+status+']')
+                if(collapseInfo[status]){
+                    elements.addClass('collapsed')
+                } else {
+                    elements.removeClass('collapsed')
+                }
+            }
+
+            updateDiagnosticSummary(provider, e)
+        }
+
+        this.triggers.events['urlDiag_complete'] = function(provider, e){
+            updateDiagnosticSummary(provider, e)
         }
 
         initialize()
