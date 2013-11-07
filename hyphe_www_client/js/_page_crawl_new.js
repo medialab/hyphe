@@ -892,7 +892,7 @@ HypheCommons.domino_init()
             var prefixListElement = element.find('.list-prefix-suggestions')
                 ,lru = e.data.lru
                 ,prefixCandidates = HypheCommons.getPrefixCandidates(lru, {
-                        wwwlessVariations: true
+                        wwwlessVariations: (lru.indexOf("|p:") !== -1 ? false : true)
                         ,wwwVariations: false
                         ,httpVariations: false
                         ,httpsVariations: false
