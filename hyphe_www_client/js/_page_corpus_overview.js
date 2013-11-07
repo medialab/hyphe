@@ -73,6 +73,12 @@ domino.settings('maxDepth', 1000)
                 ,triggers: 'update_urlsDiagnosticStatusCollapseInfo'
                 ,dispatch: 'urlsDiagnosticStatusCollapseInfo_updated'
             },{
+                id: 'diagnosticComplete'
+                ,type: 'boolean'
+                ,value: false
+                ,triggers: 'update_diagnosticComplete'
+                ,dispatch: 'diagnosticComplete_updated'
+            },{
                 id:'diagnostic_byUrl'
                 ,type: 'object'
                 ,value: {}
@@ -659,7 +665,7 @@ domino.settings('maxDepth', 1000)
                             }
                         }
                         if(complete){
-                            this.dispatchEvent('urlDiag_complete', {diagComplete: true})
+                            this.update('diagnosticComplete', true)
                         }
                     }
                 }
@@ -676,6 +682,7 @@ domino.settings('maxDepth', 1000)
 
                     // Clear diagnostic
                     this.update('diagnostic_byUrl', {})
+                    this.update('diagnosticComplete', false)
 
                     // Reset the state
                     this.update('urlsDiagnosticActiveState', false)
@@ -907,7 +914,7 @@ domino.settings('maxDepth', 1000)
             }
 
             // Draw the finalize button
-            if(e.data.diagComplete){
+            if(provider.get('diagnosticComplete')){
                 infoContainer.append(
                     $('<a class="btn btn-block">Done</a>').click(function(){
                         _self.dispatchEvent('urlDiag_finalize')
@@ -1129,7 +1136,7 @@ domino.settings('maxDepth', 1000)
             updateDiagnosticSummary(provider, e)
         }
 
-        this.triggers.events['urlDiag_complete'] = function(provider, e){
+        this.triggers.events['diagnosticComplete_updated'] = function(provider, e){
             updateDiagnosticSummary(provider, e)
         }
 
