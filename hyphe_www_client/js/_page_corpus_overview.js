@@ -61,6 +61,12 @@ domino.settings('maxDepth', 1000)
                 ,triggers: 'update_hideParseUrlListButton'
                 ,dispatch: 'hideParseUrlListButton_updated'
             },{
+                id:'diagnostic_byUrl'
+                ,type: 'object'
+                ,value: {}
+                ,dispatch: 'diagnostic_byUrl_updated'
+                ,triggers: 'update_diagnostic_byUrl'
+            },{
                 id:'urlsDiagnosticActiveState'
                 ,type: 'boolean'
                 ,value: false
@@ -78,12 +84,6 @@ domino.settings('maxDepth', 1000)
                 ,value: false
                 ,triggers: 'update_diagnosticComplete'
                 ,dispatch: 'diagnosticComplete_updated'
-            },{
-                id:'diagnostic_byUrl'
-                ,type: 'object'
-                ,value: {}
-                ,dispatch: 'diagnostic_byUrl_updated'
-                ,triggers: 'update_diagnostic_byUrl'
             },{
                 id: 'concurrentTasksLimit'
                 ,type: 'number'
@@ -184,6 +184,73 @@ domino.settings('maxDepth', 1000)
                                 ,url: input.url
                                 ,diagUrl: input.diagUrl
                             })
+
+                            // Update front-end web entities list
+                            var webentities = this.get('webentities')
+                                ,webentities_byId = this.get('webentities_byId')
+                            if(webentities_byId[we.id] === undefined){
+                                // New web entity
+                                webentities.push(we)
+                                this.update('webentities', webentities)
+                                webentities_byId[we.id] = we
+                                this.update('webentities_byId', webentities_byId)
+                            }
+                        }
+                    }
+            },{
+                id: 'fetchWebEntityByURLPrefix'
+                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                        'method' : HYPHE_API.WEBENTITY.FETCH_BY_PREFIX_URL,
+                        'params' : [settings.url],
+                    })}
+                ,url: rpc_url, contentType: rpc_contentType, type: rpc_type
+                ,error: function(data, xhr, input){
+                        var pendingTasksCount = this.get('pendingTasksCount')
+                        this.update('pendingTasksCount', pendingTasksCount - 1 )
+                        this.dispatchEvent('callback_webentityFetched', {
+                                webentityId: undefined
+                                ,message: 'RPC error'
+                                ,url: input.url
+                                ,diagUrl: input.diagUrl
+                            })
+
+                        rpc_error(data, xhr, input)
+                    }
+                ,expect: function(data, input, serviceOptions){
+                        return (data.length>0 && data[0].code == 'fail') || rpc_expect(data, input, serviceOptions)
+                    }
+                ,before: function(){
+                        var pendingTasksCount = this.get('pendingTasksCount')
+                        this.update('pendingTasksCount', pendingTasksCount + 1 )
+                    }
+                ,success: function(data, input){
+                        var pendingTasksCount = this.get('pendingTasksCount')
+                        this.update('pendingTasksCount', pendingTasksCount - 1 )
+
+                        if(data[0].code == 'fail'){
+                            this.dispatchEvent('callback_webentityFetched', {
+                                webentityId: undefined
+                                ,url: input.url
+                                ,diagUrl: input.diagUrl
+                            })
+                        } else {
+                            var we = data[0].result
+                            this.dispatchEvent('callback_webentityFetched', {
+                                webentityId: we.id
+                                ,url: input.url
+                                ,diagUrl: input.diagUrl
+                            })
+                            
+                            // Update front-end web entities list
+                            var webentities = this.get('webentities')
+                                ,webentities_byId = this.get('webentities_byId')
+                            if(webentities_byId[we.id] === undefined){
+                                // New web entity
+                                webentities.push(we)
+                                this.update('webentities', webentities)
+                                webentities_byId[we.id] = we
+                                this.update('webentities_byId', webentities_byId)
+                            }
                         }
                     }
             },{
@@ -388,7 +455,7 @@ domino.settings('maxDepth', 1000)
 
                                     diagnostic_byUrl[task.url] = diag
                                     this.update('diagnostic_byUrl', diagnostic_byUrl)
-                                    this.request('fetchWebEntityByURL', {url: Utils.LRU_to_URL(prefix), diagUrl:task.url})
+                                    this.request('fetchWebEntityByURLPrefix', {url: Utils.LRU_to_URL(prefix), diagUrl:task.url})
                                     this.dispatchEvent('urlDiag_prefixCheckPending', {url: task.url})
                                     break
 
@@ -483,27 +550,15 @@ domino.settings('maxDepth', 1000)
                         ,diag = diagnostic_byUrl[diagUrl]
                     
                     diag.webEntityId_byPrefixUrl = diag.webEntityId_byPrefixUrl || {}
-                    diag.webEntityId_containingUrl = diag.webEntityId_containingUrl || {}
                     
                     if(weId){
 
-                        var webentities_byId = this.get('webentities_byId')
-                            ,we = webentities_byId[weId]
-                        
-                        if(we.lru_prefixes.some(function(lru){return lru == prefixLru})){
-                            diag.webEntityId_byPrefixUrl[prefixUrl] = weId
-                        } else {
-                            diag.webEntityId_byPrefixUrl[prefixUrl] = undefined
-                        }
-
-                        diag.webEntityId_containingUrl[prefixUrl] = weId
+                        diag.webEntityId_byPrefixUrl[prefixUrl] = weId
 
                     } else {
 
                         // Notice that if weId is undefined, we still want to report it
                         diag.webEntityId_byPrefixUrl[prefixUrl] = undefined
-                        diag.webEntityId_containingUrl[prefixUrl] = undefined
-
                     }
 
                     diagnostic_byUrl[diagUrl] = diag
