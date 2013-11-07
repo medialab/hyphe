@@ -41,8 +41,14 @@
                 padding-top: 4px;
             }
 
+
             #urlsDiagnosticPanel_content{
                 padding-bottom: 20px;
+            }
+
+            #urlsDiagInfoPanel{
+                height: 200px;
+                overflow-y: auto;
             }
 
             .urlCandidateBlock{
@@ -83,6 +89,13 @@
             .urlCandidateBlock td.info{
                 width: 260px;
             }
+            .urlCandidateBlock .url {
+                overflow: hidden;
+                word-wrap: break-word; /* or "normal" */
+                overflow-wrap: break-word;
+                text-overflow: ellipsis;
+            }
+
 
             #urlsDiagInfoPanel div.summary{
                 border: 3px solid #EEE;
