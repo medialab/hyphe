@@ -373,7 +373,7 @@ HypheCommons.domino_init()
                 // On 'add start page' button clicked, validate
                 triggers: ['ui_addStartpage']
                 ,method: function(){
-                    var url = $('#startPages_urlInput').val()
+                    var url = Utils.URL_fix($('#startPages_urlInput').val())
                     if(url=='' || url === undefined){                           // No start page: do nothing
                     } else if(!Utils.URL_validate(url)){                        // The URL is invalid: display a message
                         this.dispatchEvent('update_startpagesMessageObject', {
