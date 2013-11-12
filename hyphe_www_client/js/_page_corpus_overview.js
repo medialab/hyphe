@@ -1201,7 +1201,36 @@ domino.settings('maxDepth', 1000)
         initialize()
     })
     
+    // "To be crawled" module
+    D.addModule(function(){
+        domino.module.call(this)
 
+        var _self = this
+            ,container = $('#toBeCrawled_content')
+
+        this.triggers.events['webentities_updated'] = function(provider, e){
+            var webentities = provider.get('webentities')
+                ,uncrawled_webentities = webentities.filter(function(we){
+                        return we.status == "IN"
+                            && we.crawling_status == "UNCRAWLED"
+                    })
+            container.html('')
+            uncrawled_webentities.forEach(function(we){
+                container.append(
+                        $('<div class="toBeCrawledBlock"/>')
+                            .append(
+                                    $('<p/>').text(we.name)
+                                )
+                            .append(
+                                    $('<p/>').append(
+                                        $('<span class="label label-info"/>').text('Test test')
+                                    )
+                                )
+                    )
+            })
+        }
+
+    })
         
 
 
