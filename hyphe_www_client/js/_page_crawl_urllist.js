@@ -454,7 +454,7 @@ $.fn.editable.defaults.mode = 'popup';
             // When we have the startUrls, we display the list with waiting lookup
             var urls = D.get('startUrls')
             urls.forEach(function(url){
-                var editable_url = $('<a href="#"/>').text(Utils.URL_simplify(url))
+                var editable_url = $('<a href="#"/>').text(Utils.URL_remove_http(url))
                     .attr('data-old-url', url)
                 
                 D.addModule(function(){
