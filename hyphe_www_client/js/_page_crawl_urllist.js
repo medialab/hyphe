@@ -263,6 +263,9 @@ $.fn.editable.defaults.mode = 'popup';
                             page = Utils.LRU_to_URL(we.lru_prefixes[i])
                             if (page.substring(0, 11) === scheme) {
                                 startpage = page
+                                if(source_url.substring(source_url.length-1) === "/"){
+                                    startpage += "/"
+                                }
                             }
                             i++
                         }
