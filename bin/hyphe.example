@@ -32,7 +32,7 @@ CORE_COMMAND="twistd -y $HCIPATH/hyphe_backend/core.tac -l $HCIPATH/log/hyphe-co
 
 function test_and_stop_process {
   PID_FILE=$1
-  COMMAND=$(echo $2 | sed -r 's/(\s+-X\S+)+/.*/')
+  COMMAND=$(echo $2 | sed 's/\(\s\+-X\S\+\)\+/.*/')
   NOLOG=$3
   if test -z "$PID_FILE" || test -z "$COMMAND"; then
     return
@@ -78,7 +78,7 @@ function test_and_stop_process {
 
 function test_process_running {
   PID_FILE=$1
-  COMMAND=$(echo $2 | sed -r 's/(\s+-X\S+)+/.*/')
+  COMMAND=$(echo $2 | sed 's/\(\s\+-X\S\+\)\+/.*/')
   if test -z "$PID_FILE" || test -z "$COMMAND"; then
     return
   fi
