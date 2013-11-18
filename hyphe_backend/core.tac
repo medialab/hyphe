@@ -184,7 +184,8 @@ class Core(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_lookup_httpstatus(self, url, timeout=5):
         res = format_result(0)
-        url = urllru.url_clean(url)
+        timeout = int(timeout)
+        url = urllru.url_clean(str(url))
         try:
             if proxyconf['host']:
                 agent = ProxyAgent(TCP4ClientEndpoint(reactor, proxyconf['host'], proxyconf['port'], timeout=timeout))
@@ -200,7 +201,7 @@ class Core(jsonrpc.JSONRPC):
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_lookup(self, url, timeout=2):
+    def jsonrpc_lookup(self, url, timeout=5):
         res = yield self.jsonrpc_lookup_httpstatus(url, timeout)
         if res['code'] == 'success' and (res['result'] == 200 or 300 < res['result'] < 400):
             returnD(format_result("true"))
