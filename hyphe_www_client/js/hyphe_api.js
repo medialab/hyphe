@@ -31,6 +31,8 @@ HYPHE_API = {
 		,CRAWL:'crawl_webentity'
 
 		,FETCH_BY_URL: 'store.get_webentity_for_url'
+		,FETCH_BY_PREFIX_LRU: 'store.get_webentity_by_lruprefix'
+		,FETCH_BY_PREFIX_URL: 'store.get_webentity_by_lruprefix_as_url'
 	}
 	,PAGES:{
 		DECLARE:'declare_pages'

@@ -263,6 +263,9 @@ $.fn.editable.defaults.mode = 'popup';
                             page = Utils.LRU_to_URL(we.lru_prefixes[i])
                             if (page.substring(0, 11) === scheme) {
                                 startpage = page
+                                if(source_url.substring(source_url.length-1) === "/"){
+                                    startpage += "/"
+                                }
                             }
                             i++
                         }
@@ -454,7 +457,7 @@ $.fn.editable.defaults.mode = 'popup';
             // When we have the startUrls, we display the list with waiting lookup
             var urls = D.get('startUrls')
             urls.forEach(function(url){
-                var editable_url = $('<a href="#"/>').text(Utils.URL_simplify(url))
+                var editable_url = $('<a href="#"/>').text(Utils.URL_remove_http(url))
                     .attr('data-old-url', url)
                 
                 D.addModule(function(){

@@ -175,7 +175,7 @@ HypheCommons.domino_init()
                             webentityId: input.webentityId
                             ,lru: input.lru
                             ,taskId: input.taskId
-                            ,errorMessage: '<strong>Error adding a prefix to a web entity</strong> - We tried to add the prefix '+Utils.URL_simplify(Utils.LRU_to_URL(input.lru))+' <small class="muted">('+input.lru+')</small> '
+                            ,errorMessage: '<strong>Error adding a prefix to a web entity</strong> - We tried to add the prefix '+Utils.URL_remove_http(Utils.LRU_to_URL(input.lru))+' <small class="muted">('+input.lru+')</small> '
                                 +'to the web entity <code>'+input.webentityId+'</code>. '
                                 +'<pre> '+xhr.responseText+' </pre>'
                         })
@@ -246,7 +246,7 @@ HypheCommons.domino_init()
                         this.dispatchEvent('callback_webentityDeclared', {
                             taskId: input.taskId
                             ,errorMessage: '<strong>Error declaring web entities</strong> - We tried to declare these prefixes:<ul>'
-                                +input.prefixes.map(function(p){return '<li>'+Utils.URL_simplify(Utils.LRU_to_URL(p))+' <small class="muted">'+p+'</small></li>'}).join('')+'</ul>'
+                                +input.prefixes.map(function(p){return '<li>'+Utils.URL_remove_http(Utils.LRU_to_URL(p))+' <small class="muted">'+p+'</small></li>'}).join('')+'</ul>'
                                 +'<pre> '+xhr.responseText+' </pre>'
                         })
 
@@ -614,7 +614,7 @@ HypheCommons.domino_init()
 
         var displayLruPrefixHTML = function(lru){
             var lru_json = Utils.LRU_to_JSON_LRU(lru)
-            return Utils.URL_simplify(Utils.LRU_to_URL(lru))
+            return Utils.URL_remove_http(Utils.LRU_to_URL(lru))
                 .replace(/^www\./gi, '<span class="muted">www.</span>')
                 .replace(/^https:\/\//gi, '<span class="muted">https://</span>')
                 .replace(lru_json.host[1]+'.'+lru_json.host[0], lru_json.host[1]+'<span class="muted">.'+lru_json.host[0]+'</span>')
@@ -666,7 +666,7 @@ HypheCommons.domino_init()
                                         $('<div class="span3 col-url"/>')
                                             .append(
                                                     $('<span class="urlContainer"/>')
-                                                        .text(Utils.URL_simplify(row[urlColId]))
+                                                        .text(Utils.URL_remove_http(row[urlColId]))
                                                 )
                                             .append(
                                                     $('<br/>')
@@ -712,7 +712,7 @@ HypheCommons.domino_init()
                 if(waitingForPrefixes.length > 0){
                     var element = waitingForPrefixes.first()
                         ,url = element.attr('data-url')
-                        ,lru = Utils.URL_to_LRU(url)
+                        ,lru = Utils.LRU_prefix_fix(Utils.URL_to_LRU(url))
                         ,prefixCandidates = HypheCommons.getPrefixCandidates(lru, {
                                 wwwlessVariations: true
                                 ,wwwVariations: !Utils.LRU_test_hasNoPath(lru, {strict: false}) && Utils.LRU_test_hasNoSubdomain(lru)
@@ -901,7 +901,7 @@ HypheCommons.domino_init()
         var updateAnalysis = function(rowElement, recommand){
             var checkboxes = rowElement.find('input[type=checkbox]')
                 ,sourceUrl = rowElement.attr('data-url')
-                ,sourceLru = Utils.URL_to_LRU(sourceUrl)
+                ,sourceLru = Utils.LRU_prefix_fix(Utils.URL_to_LRU(sourceUrl))
                 ,sourceJsonLru = Utils.LRU_to_JSON_LRU(sourceLru)
                 ,items = []
                 ,analysisElement = rowElement.find('.col-analysis')

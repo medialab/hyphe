@@ -16,21 +16,7 @@
         <link rel="stylesheet" href="css/main.css">
 
         <style>
-            .block {
-                background-color: #EEE;
-                padding: 20px;
-                height: 200px;
-                margin-bottom: 30px;
-            }
-
-            #addWebentitiesRow{
-                overflow: hidden;
-                height: 200px;
-                margin-bottom: 30px;
-            }
-
-            #urlsDiagnosticPanel_container{
-                height: 194px;
+            #urlsDiagnosticPanel_container, #toBeCrawled_container{
                 overflow-x: hidden;
                 overflow-y: scroll;
                 background: rgb(248,248,248);
@@ -41,6 +27,40 @@
                 padding-top: 4px;
             }
 
+            .urlCandidateBlock, .toBeCrawledBlock{
+                border: 1px solid #EEE;
+                background: #FFF;
+                margin: 0px 4px 6px 4px;
+                padding: 3px 5px 0px 5px;
+                -webkit-border-radius: 2px;
+                -moz-border-radius: 2px;
+                border-radius: 2px;
+                -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+                -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+            }
+
+            .block {
+                background-color: #EEE;
+                padding: 20px;
+                height: 200px;
+                margin-bottom: 30px;
+            }
+
+            .blockTitle{
+                margin-top: 0px;
+                margin-bottom: 4px;
+            }
+
+            #addWebentitiesRow{
+                overflow: hidden;
+                height: 200px;
+                margin-bottom: 30px;
+            }
+
+            #urlsDiagnosticPanel_container{
+                height: 194px;
+            }
 
             #urlsDiagnosticPanel_content{
                 padding-bottom: 20px;
@@ -52,17 +72,6 @@
             }
 
             .urlCandidateBlock{
-                border: 1px solid #EEE;
-                background: #FFF;
-                margin: 0px 4px 6px 4px;
-                padding: 3px 5px 0px 5px;
-                -webkit-border-radius: 2px;
-                -moz-border-radius: 2px;
-                border-radius: 2px;
-                -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-                -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-                box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-
                 overflow: hidden;
                 height: 28px;
 
@@ -121,6 +130,16 @@
                 height: 350px;
                 margin-bottom: 30px;
             }
+
+
+            #toBeCrawled_container{
+                height: 180px;
+            }
+
+            #toBeCrawled_buttons{
+                margin: 4px 0px 0px 0px;
+            }
+
 
             /* sigma */
             .sigma-parent {
@@ -197,8 +216,8 @@
                     <div class="row" id="urlsPastePanel">
                         <div class="span4">
                             <div id="addWebentitiesPasteArea">
-                                <h4>Add web entities</h4>
-                                <textarea rows="7" class="span4" id="urlsList" placeholder="Paste a list of URLs"></textarea>
+                                <h4 class="blockTitle">Add web entities</h4>
+                                <textarea rows="8" class="span4" id="urlsList" placeholder="Paste a list of URLs"></textarea>
                             </div>
                         </div>
                         <div class="span8">
@@ -241,8 +260,13 @@
             </div>
             <div class="row">
                 <div class="span4">
-                    <div class="block">
-                        To be crawled
+                    <h4 class="blockTitle">To be crawled</h4>
+                    <div id="toBeCrawled_container">
+                        <div id="toBeCrawled_content">
+                        </div>
+                    </div>
+                    <div id="toBeCrawled_buttons">
+                        <button class="btn disabled">Crawl everything</button>
                     </div>
                 </div>
                 <div class="span4">
