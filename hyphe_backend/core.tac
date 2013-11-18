@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os, sys, time, random, types, json, bson
-import urllib, urllib2, httplib, urlparse
+import urllib, urllib2
 import pymongo
 from txjsonrpc import jsonrpclib
 from txjsonrpc.jsonrpc import Introspection
@@ -12,6 +12,10 @@ from twisted.python import log
 from twisted.application import service, internet
 from twisted.internet import reactor, defer, task, threads
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
+from twisted.internet.endpoints import TCP4ClientEndpoint
+from twisted.internet.error import DNSLookupError
+from twisted.web.client import Agent, ProxyAgent, _HTTP11ClientFactory
+_HTTP11ClientFactory.noisy = False
 from thrift.Thrift import TException
 from thrift.transport.TSocket import TSocket
 from hyphe_backend import processor
@@ -23,6 +27,11 @@ from hyphe_backend.lib.jsonrpc_utils import *
 config = config_hci.load_config()
 if not config:
     exit()
+proxyconf = {'host': '', 'port': 3128}
+if "proxy_host" in config['mongo-scrapy']:
+    proxyconf['host'] = config['mongo-scrapy']['proxy_host']
+if "proxy_port" in config['mongo-scrapy']:
+    proxyconf['port'] = config['mongo-scrapy']['proxy_port']
 
 if config['DEBUG']:
     defer.setDebugging(True)
@@ -172,41 +181,30 @@ class Core(jsonrpc.JSONRPC):
             return {'code': 'fail', 'message': '%d urls failed, see details in "errors" field and successes in "results" field.' % len(errors), 'errors': errors, 'results': res}
         return format_result(res)
 
-    def _prepare_conn(self, prot, host, timeout):
-        if prot.endswith("s"):
-            conn = httplib.HTTPSConnection(host, timeout=timeout)
-        else:
-            conn = httplib.HTTPConnection(host, timeout=timeout)
-        return conn
-
-    def jsonrpc_lookup_httpstatus(self, url, timeout=2):
+    @inlineCallbacks
+    def jsonrpc_lookup_httpstatus(self, url, timeout=5):
         res = format_result(0)
         url = urllru.url_clean(url)
         try:
-            prot, host, path, _, query = urlparse.urlparse(url)[0:5]
-            host = host.lower()
-            conn = self._prepare_conn(prot, host, timeout)
-            if query != "":
-                query = "?%s" % query
-            conn.request('HEAD', "%s%s" % (path, query))
-            response = conn.getresponse()
-            if response.status != 200:
-                conn = self._prepare_conn(prot, host, timeout)
-                conn.request('GET', "%s%s" % (path, query), headers= {'User-Agent': user_agents.agents[random.randint(0, len(user_agents.agents) - 1)], 'Accept': '*/*', 'Accept-Encoding': '*', 'Accept-Charset': '*'})
-                response = conn.getresponse()
-            res['result'] = response.status
-        except socket.gaierror as e:
+            if proxyconf['host']:
+                agent = ProxyAgent(TCP4ClientEndpoint(reactor, proxyconf['host'], proxyconf['port'], timeout=timeout))
+            else:
+                agent = Agent(reactor, connectTimeout=timeout)
+            response = yield agent.request('HEAD', url, None, None)
+            res['result'] = response.code
+        except DNSLookupError as e:
             res['message'] = "DNS not found for url %s : %s" % (url, e)
         except Exception as e:
             res['result'] = -1
             res['message'] = "Cannot process url %s : %s." % (url, e)
-        return res
+        returnD(res)
 
+    @inlineCallbacks
     def jsonrpc_lookup(self, url, timeout=2):
-        res = self.jsonrpc_lookup_httpstatus(url, timeout)
+        res = yield self.jsonrpc_lookup_httpstatus(url, timeout)
         if res['code'] == 'success' and (res['result'] == 200 or 300 < res['result'] < 400):
-            return format_result("true")
-        return format_result("false")
+            returnD(format_result("true"))
+        returnD(format_result("false"))
 
     def jsonrpc_get_status(self):
         crawls = self.crawler.jsonrpc_list()
