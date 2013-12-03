@@ -1,5 +1,5 @@
 #!/bin/bash
-source /usr/local/bin/virtualenvwrapper.sh
+source $(which virtualenvwrapper.sh)
 workon HCI
 
 keyword=$(echo $1 | sed 's/^\(.*\)$/\1/')

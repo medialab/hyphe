@@ -1,5 +1,5 @@
 #!/bin/bash
-source /usr/local/bin/virtualenvwrapper.sh
+source $(which virtualenvwrapper.sh)
 workon HCI
 
 statuses=$(echo $1 | sed 's/^\(.*\)$/\U\1/')

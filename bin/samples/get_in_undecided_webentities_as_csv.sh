@@ -1,5 +1,5 @@
 #!/bin/bash
-source /usr/local/bin/virtualenvwrapper.sh
+source $(which virtualenvwrapper.sh)
 workon HCI
 
 echo "status,lru_prefixes,id,name,tags"
