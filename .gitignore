@@ -1,9 +1,10 @@
 bin/hyphe
 config/config.json*
 *.pid
+*.pyc
 pip-log.txt
 install.log
-*.pyc
+log/*
 hyphe_backend/crawler/build
 hyphe_backend/crawler/config
 hyphe_backend/crawler/scrapy.cfg
@@ -15,7 +16,8 @@ hyphe_backend/memorystructure
 memory_structure/src/main/java/fr/sciencespo/medialab/hci/memorystructure/thrift/*
 memory_structure/target/*
 memory_structure/.*
-log/*
 build/*
 releases/
 dependencies/
+thrift-0.8.0/
+lucene-data/
