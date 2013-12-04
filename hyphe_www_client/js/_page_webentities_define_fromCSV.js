@@ -233,6 +233,8 @@ HypheCommons.domino_init()
                         'method' : HYPHE_API.WEBENTITIES.CREATE_BY_LRUS,
                         'params' : [
                             settings.prefixes
+                            ,''         // Name
+                            ,'IN'       // Status
                         ],
                     })}
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect
