@@ -187,7 +187,7 @@ if ! grep "$(pwd)/hyphe_www_client" /etc/$apache_path/$apache_name*.conf > /dev/
     apache_name="hyphe-$instance"
   done
   sed "s|##HCIPATH##|"`pwd`"|" hyphe_www_client/_config/apache2_example.conf |
-    sed "s|##WEBPATH##|$apache_name|" > hyphe_www_client/_config/apache2.conf || exit 1
+    sed "s|##WEBPATH##|/$apache_name|" > hyphe_www_client/_config/apache2.conf || exit 1
   sudo ln -s `pwd`/hyphe_www_client/_config/apache2.conf /etc/$apache_path/$apache_name.conf || exit 1
 fi
 if ! $centos; then
