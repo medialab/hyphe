@@ -33,25 +33,25 @@ echo "-----------------------"
 # Install possible missing packages
 echo "Install dependencies..."
 echo "-----------------------"
-echo ""
+echo
 sudo $repos_tool $repos_updt > /dev/null || $centos || exit 1
 sudo $repos_tool -y install curl git vim $python_dev python-pip $apache $php >> install.log || exit 1
 if $centos; then
   sudo chkconfig --levels 235 httpd on || exit 1
   sudo service httpd restart || exit 1
 fi
-echo ""
+echo
 
 # Check SELinux
 if test -x /usr/sbin/sestatus && sestatus | grep "enabled" > /dev/null; then
   echo "WARNING: SELinux is enabled on your machine and may cause issues with mongo, twisted and thrift"
-  echo ""
+  echo
 fi
 
 # Prepare repositories for MongoDB and ScrapyD
 echo "Add source repositories..."
 echo "--------------------------"
-echo ""
+echo
 if $centos; then
   if ! test -f /etc/yum.repos.d/mongodb.repo; then
     echo "[mongodb]
@@ -67,38 +67,38 @@ else
   sudo cp /etc/apt/sources.list{,.hyphebackup-`date +%Y%m%d-%H%M`}
   if ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
     cp /etc/apt/sources.list /tmp/sources.list
-    echo "" >> /tmp/sources.list
+    echo >> /tmp/sources.list
     echo "# SCRAPYD repository, automatically added by Hyphe's install" >> /tmp/sources.list
     echo "deb http://archive.scrapy.org/ubuntu $(lsb_release -cs) main" >> /tmp/sources.list
     sudo mv /tmp/sources.list /etc/apt/sources.list
   fi
   if ! grep "downloads-distro.mongodb.org" /etc/apt/sources.list > /dev/null; then
     cp /etc/apt/sources.list /tmp/sources.list
-    echo "" >> /tmp/sources.list
+    echo >> /tmp/sources.list
     echo "# MONGODB repository, automatically added by Hyphe's install" >> /tmp/sources.list
     echo "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen" >> /tmp/sources.list
     sudo mv /tmp/sources.list /etc/apt/sources.list
   fi
 fi
 sudo $repos_tool $repos_updt >> install.log || $centos || exit 1
-echo ""
+echo
 
 # Install MongoDB
 echo "Install and start MongoDB..."
 echo "----------------------------"
-echo ""
+echo
 sudo $repos_tool -y install $mongo_pack >> install.log || exit 1
 if $centos; then
   sudo chkconfig mongod on
 fi
 #possible config via : vi /etc/mongodb.conf
 sudo service $mongo restart || exit 1
-echo ""
+echo
 
 # Install ScrapyD
 echo "Install and start ScrapyD..."
 echo "----------------------------"
-echo ""
+echo
 # Install pymongo as a global dependency for ScrapyD spiders to be able to use it
 sudo pip -q install pymongo >> install.log || exit 1
 if $centos; then
@@ -130,13 +130,13 @@ sleep 5
 if ! curl -s "http://localhost:6800/listprojects.json" > /dev/null 2>&1; then
   echo "Could not start ScrapyD server properly. Please check your install" && exit 1
 fi
-echo ""
+echo
 
 # Install JAVA if necessary
 echo "Check JAVA and install OpenJDK if necessary..."
 echo "----------------------------------------------"
 java -version > /dev/null 2>&1 || sudo $repos_tool -y install $java >> install.log || exit 1
-echo ""
+echo
 
 # Install Thrift for development instances cloned from source
 if ! test -d hyphe_backend/memorystructure; then
@@ -151,12 +151,13 @@ if ! test -d hyphe_backend/memorystructure; then
     source /etc/profile.d/maven.sh
   fi
   ./bin/build_thrift.sh > install.log || exit 1
+  echo
 fi
 
 # Install Hyphe's VirtualEnv
 echo "Install VirtualEnv..."
 echo "---------------------"
-echo ""
+echo
 sudo pip -q install virtualenv >> install.log || exit 1
 sudo pip -q install virtualenvwrapper >> install.log || exit 1
 source $(which virtualenvwrapper.sh)
@@ -165,12 +166,12 @@ workon HCI
 pip install -r requirements.txt >> install.log || exit 1
 add2virtualenv .
 deactivate
-echo ""
+echo
 
 # Copy default config
 echo "Prepare config and install Apache virtualhost..."
 echo "------------------------------------------------"
-echo ""
+echo
 sed "s|##HCIPATH##|"`pwd`"|" config/config.json.example > config/config.json || exit 1
 sed "s|##HCIPATH##|"`pwd`"|" bin/hyphe.example > bin/hyphe || exit 1
 chmod +x bin/hyphe
@@ -188,20 +189,22 @@ if ! grep "$(pwd)/hyphe_www_client" /etc/$apache_path/$apache_name*.conf > /dev/
   sed "s|##HCIPATH##|"`pwd`"|" hyphe_www_client/_config/apache2_example.conf |
     sed "s|##WEBPATH##|$apache_name|" > hyphe_www_client/_config/apache2.conf || exit 1
   sudo ln -s `pwd`/hyphe_www_client/_config/apache2.conf /etc/$apache_path/$apache_name.conf || exit 1
-  if ! $centos; then
-    sudo a2ensite "$apache_name" || exit 1
-  fi
+fi
+if ! $centos; then
+  sudo a2ensite "$apache_name".conf || exit 1
 fi
 sudo service $apache reload
-echo ""
+echo
 if ! curl -s http://localhost/$apache_name > /dev/null 2>&1; then
   echo "WARNING: apache/httpd says FORBIDDEN, read access (r+x) to $(pwd) must be opened to the `apache` group"
   echo "sudo chmod -R g+rx DIR; sudo chown -R :apache DIR"
   echo "If you installed from a /home directory, you may need to do this to your /home/<USER> dir"
   echo "Or you can move the current install to another directory (/srv, /opt, ...), give it the rights and reinstall, this should be quick now"
+  echo
   exit 1
 fi
 
 echo "Installation complete!"
 echo "----------------------"
 echo "You can now run bash bin/hyphe start and access Hyphe at http://localhost/$apache_name"
+echo
