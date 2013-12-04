@@ -3,7 +3,7 @@
 option=$1
 
 if [ -z "$option" ] || [ "$option" != "--noenv" ]; then
-  source /usr/local/bin/virtualenvwrapper.sh
+  source $(which virtualenvwrapper.sh)
   workon HCI
   option="--verbose"
 else

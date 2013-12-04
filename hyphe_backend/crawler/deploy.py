@@ -78,11 +78,12 @@ except IOError as e:
 # Deploy the egg
 if verbose:
     print "Sending HCI's scrapy egg to scrapyd server..."
+
 p = subprocess.Popen(['scrapy', 'deploy', '--version', time.strftime('%Y%m%d-%H%M%S', time.gmtime(time.time()))], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 output, errors = p.communicate()
-try :
+try:
     output = json.loads(output)
-    if output['status'] != "ok" :
+    if output['status'] != "ok":
         print "There was a problem sending the scrapy egg."
         print output, errors
         exit()

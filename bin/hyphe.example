@@ -138,7 +138,7 @@ function start_java_memstruct {
 
 function start_twisted_core {
   test_process_running twistd.pid "$CORE_COMMAND"
-  source /usr/local/bin/virtualenvwrapper.sh || ( echo "ERROR: You must install virtualenvwrapper to use this starter: sudo pip -q install virtualenvwrapper" && exit 1 )
+  source $(which virtualenvwrapper.sh) || ( echo "ERROR: You must install virtualenvwrapper to use this starter: sudo pip -q install virtualenvwrapper" && exit 1 )
   workon $HCIVENV
   $CORE_COMMAND 2>&1 || exit 1
   echo "...started..."

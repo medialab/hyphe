@@ -9,7 +9,7 @@ if test -f twistd.pid; then
   fi
 fi
 
-source /usr/local/bin/virtualenvwrapper.sh
+source $(which virtualenvwrapper.sh)
 workon HCI
 twistd -noy hyphe_backend/core.tac -l -
 
