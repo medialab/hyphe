@@ -545,6 +545,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not isinstance(list_lrus, list):
             list_lrus = [list_lrus]
         lru_prefixes_list = []
+        if name:
+            name = name.encode('utf-8')
         for lru in list_lrus:
             try:
                 url, lru = urllru.lru_clean_and_convert(lru, False)
