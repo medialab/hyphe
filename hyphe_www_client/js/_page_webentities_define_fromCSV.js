@@ -229,11 +229,11 @@ HypheCommons.domino_init()
                     }
             },{
                 id: 'webentityDeclare'
-                ,data: function(settings){ return JSON.stringify({ //JSON RPC
+                ,data: function(settings){ console.log('NAME: ', settings.name); return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.CREATE_BY_LRUS,
                         'params' : [
                             settings.prefixes
-                            ,''         // Name
+                            ,settings.name || ''         // Name
                             ,'IN'       // Status
                         ],
                     })}
@@ -370,6 +370,7 @@ HypheCommons.domino_init()
                             } else if(task.type == 'declare'){
                                 this.request('webentityDeclare', {
                                     prefixes: task.prefixes
+                                    ,name: task.name
                                     ,taskId: task.id
                                 })
                                 // this.dispatchEvent('callback_webentityDeclared', {taskId: task.id})
@@ -674,7 +675,7 @@ HypheCommons.domino_init()
                                                     $('<br/>')
                                                 )
                                             .append(
-                                                    $('<span class="muted"/>')
+                                                    $('<span class="muted webentity-name"/>')
                                                         .text(row[nameColId])
                                                 )
                                     )
@@ -909,6 +910,7 @@ HypheCommons.domino_init()
                 ,analysisElement = rowElement.find('.col-analysis')
                 ,taskBag = {id: rowElement.attr('data-row-id'), tasks: []}        // This is for batch operations. We fill it during the diagnostic
                 ,checkedItems
+                ,webentityName = rowElement.find('.webentity-name').text() // It is acceptable to have undefined here
 
             // Build the table of what is checked
             checkboxes.each(function(i, e){
@@ -1403,6 +1405,7 @@ HypheCommons.domino_init()
                 taskBag.tasks.push({
                     type:'declare'
                     ,prefixes: checkedItems.map(function(item){return item.lru})
+                    ,name: webentityName
                 })
             }
 
