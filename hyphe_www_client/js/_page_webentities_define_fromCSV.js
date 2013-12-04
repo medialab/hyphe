@@ -229,7 +229,7 @@ HypheCommons.domino_init()
                     }
             },{
                 id: 'webentityDeclare'
-                ,data: function(settings){ console.log('NAME: ', settings.name); return JSON.stringify({ //JSON RPC
+                ,data: function(settings){return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.CREATE_BY_LRUS,
                         'params' : [
                             settings.prefixes
