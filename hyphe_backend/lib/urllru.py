@@ -117,7 +117,7 @@ def lru_to_url(lru, encode_utf8=True, nocheck=False):
 
     stem_types = []
     lru = lru.rstrip("|")
-    lru_list = [[k, t] for k, t, _ in split_lru_in_stems(lru)]
+    lru_list = [[k, t] for k, t, _ in split_lru_in_stems(lru, not nocheck)]
     for stem in lru_list:
         if stem[0] not in stem_types:
             stem_types.append(stem[0])
