@@ -192,7 +192,11 @@ class Core(jsonrpc.JSONRPC):
             else:
                 agent = Agent(reactor, connectTimeout=timeout)
             response = yield agent.request('HEAD', url, None, None)
-            res['result'] = response.code
+            try:
+                assert(response.headers._rawHeaders['location'][0] == url)
+                res['result'] = 200
+            except:
+                res['result'] = response.code
         except DNSLookupError as e:
             res['message'] = "DNS not found for url %s : %s" % (url, e)
         except Exception as e:
