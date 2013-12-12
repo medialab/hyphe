@@ -192,20 +192,32 @@ class Core(jsonrpc.JSONRPC):
                 agent = ProxyAgent(TCP4ClientEndpoint(reactor, proxyconf['host'], proxyconf['port'], timeout=timeout))
             else:
                 agent = Agent(reactor, connectTimeout=timeout)
-            response = yield agent.request('HEAD', url, Headers({'User-Agent': [user_agents.agents[random.randint(0, len(user_agents.agents) - 1)]]}), None)
-            try:
-                assert(response.headers._rawHeaders['location'][0] == url)
-                res['result'] = 200
-            except:
-                if response.code in [403, 500, 501, 503] and tryout < 3:
-                    res = yield jsonrpc_lookup_httpstatus(url, timeout=timeout+2,tryout=tryout+1)
-                    returnD(res)
-                res['result'] = response.code
+            method = "HEAD"
+            if tryout > 2:
+                method = "GET"
+            useragent = user_agents.agents[random.randint(0, len(user_agents.agents) - 1)]
+            response = yield agent.request(method, url, Headers({'User-Agent': [useragent]}), None)
         except DNSLookupError as e:
             res['message'] = "DNS not found for url %s : %s" % (url, e)
         except Exception as e:
             res['result'] = -1
             res['message'] = "Cannot process url %s : %s." % (url, e)
+        if 'message' in res:
+            returnD(res)
+        try:
+            assert(response.headers._rawHeaders['location'][0] == url)
+            res['result'] = 200
+        except:
+            try:
+                assert(url.startswith("http:") and tryout == 4 and response.code == 403 and "IIS" in response.headers._rawHeaders['server'][0])
+                res['result'] = 301
+            except:
+                if response.code in [403, 405, 500, 501, 503] and tryout < 5:
+                    if config['DEBUG']:
+                        print "RETRY LOOKUP", method, url, tryout, response.__dict__
+                    res = yield self.jsonrpc_lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1)
+                    returnD(res)
+                res['result'] = response.code
         returnD(res)
 
     @inlineCallbacks
