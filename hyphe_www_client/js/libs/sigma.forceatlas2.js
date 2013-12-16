@@ -21,6 +21,7 @@ sigma.forceatlas2.ForceAtlas2 = function(graph) {
     outboundAttCompensation: 1,
     totalSwinging: 0,
     totalEffectiveTraction: 0,
+    speedEfficiency: 1, // tweak
     complexIntervals: 500,
     simpleIntervals: 1000
   };
@@ -225,9 +226,42 @@ sigma.forceatlas2.ForceAtlas2 = function(graph) {
         self.p.totalEffectiveTraction = totalEffectiveTraction;
 
         // We want that swingingMovement < tolerance * convergenceMovement
-        var targetSpeed = Math.pow(self.p.jitterTolerance, 2) *
+        /*var targetSpeed = Math.pow(self.p.jitterTolerance, 2) *
+                          self.p.totalEffectiveTraction /
+                          self.p.totalSwinging;*/
+        /// Tweak start
+        // Optimize jitter tolerance:
+        // var jitterTolerance = Math.max(self.p.jitterTolerance, Math.min(5, self.p.totalEffectiveTraction / Math.pow(nodes.length, 2)))
+        var estimatedOptimalJitterTolerance = 0.02 * Math.sqrt(nodes.length) // The 'right' jitter tolerance for this network. Bigger networks need more tolerance.
+          ,minJT = Math.sqrt(estimatedOptimalJitterTolerance)
+          ,maxJT = 10
+          ,jitterTolerance = self.p.jitterTolerance * Math.max(minJT, Math.min(maxJT, estimatedOptimalJitterTolerance * self.p.totalEffectiveTraction / Math.pow(nodes.length, 2)))
+
+        var minSpeedEfficiency = 0.05;
+        
+        // Protection against erratic behavior
+        if(self.p.totalSwinging / self.p.totalEffectiveTraction > 2.0){
+            if(self.p.speedEfficiency > minSpeedEfficiency)
+                self.p.speedEfficiency *= 0.5;
+            jt = Math.max(jitterTolerance, self.p.jitterTolerance);
+        }
+
+        var targetSpeed = jitterTolerance *
+                          self.p.speedEfficiency *
                           self.p.totalEffectiveTraction /
                           self.p.totalSwinging;
+
+        // Speed efficiency is how the speed really corresponds to the swinging vs. convergence tradeoff
+        // We adjust it slowly and carefully
+        if(self.p.totalSwinging > jitterTolerance * self.p.totalEffectiveTraction){
+          if(self.p.speedEfficiency > minSpeedEfficiency)
+            self.p.speedEfficiency *= 0.7
+        } else {
+          if(self.p.speed < 1000)
+            self.p.speedEfficiency *= 1.3
+        }
+
+        /// End tweak
 
         // But the speed shoudn't rise too much too quickly,
         // since it would make the convergence drop dramatically.
@@ -237,6 +271,8 @@ sigma.forceatlas2.ForceAtlas2 = function(graph) {
                          targetSpeed - self.p.speed,
                          maxRise * self.p.speed
                        );
+        
+        // console.log('speed '+Math.floor(1000*self.p.speed)/1000+' sEff '+Math.floor(1000*self.p.speedEfficiency)/1000+' jitter '+Math.floor(1000*jitterTolerance)/1000+' swing '+Math.floor(self.p.totalSwinging/nodes.length)+' conv '+Math.floor(self.p.totalEffectiveTraction/nodes.length));
 
         // Save old coordinates
         nodes.forEach(function(n) {
@@ -260,7 +296,8 @@ sigma.forceatlas2.ForceAtlas2 = function(graph) {
             if (!fixed) {
               // Adaptive auto-speed: the speed of each node is lowered
               // when the node swings.
-              var swinging = Math.sqrt(
+              var swinging = n.fa2.mass * Math.sqrt(  // tweak
+              // var swinging = Math.sqrt(
                 (n.fa2.old_dx - n.fa2.dx) *
                 (n.fa2.old_dx - n.fa2.dx) +
                 (n.fa2.old_dy - n.fa2.dy) *
@@ -285,13 +322,15 @@ sigma.forceatlas2.ForceAtlas2 = function(graph) {
             if (!fixed) {
               // Adaptive auto-speed: the speed of each node is lowered
               // when the node swings.
-              var swinging = Math.sqrt(
+              var swinging = n.fa2.mass * Math.sqrt(  // tweak
+              // var swinging = Math.sqrt(
                 (n.fa2.old_dx - n.fa2.dx) *
                 (n.fa2.old_dx - n.fa2.dx) +
                 (n.fa2.old_dy - n.fa2.dy) *
                 (n.fa2.old_dy - n.fa2.dy)
               );
-              var factor = speed / (1 + speed * Math.sqrt(swinging));
+//              var factor = speed / (1 + speed * Math.sqrt(swinging));
+              var factor = speed / (1 + Math.sqrt(speed * swinging)); // Tweak
 
               n.x += n.fa2.dx * factor;
               n.y += n.fa2.dy * factor;
@@ -341,7 +380,7 @@ sigma.forceatlas2.ForceAtlas2 = function(graph) {
     this.p.edgeWeightInfluence = 1;
 
     // Performance
-    if (graph.nodes.length >= 50000) {
+    /*if (graph.nodes.length >= 50000) {
       this.p.jitterTolerance = 10;
     } else if (graph.nodes.length >= 5000) {
       this.p.jitterTolerance = 1;
@@ -354,6 +393,16 @@ sigma.forceatlas2.ForceAtlas2 = function(graph) {
       this.p.barnesHutOptimize = false;
     }
     this.p.barnesHutTheta = 1.2;
+    */
+    /// Tweak start
+    if (graph.nodes.length >= 1000) {
+      this.p.barnesHutOptimize = true;
+    } else {
+      this.p.barnesHutOptimize = false;
+    }
+    this.p.jitterTolerance = 1;
+    this.p.barnesHutTheta = 1.2;
+    /// End tweak
 
     return this;
   }
