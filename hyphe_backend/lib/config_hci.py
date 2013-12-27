@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import simplejson as json
+import os
 
-def load_config(filename = 'config/config.json'):
+def load_config(filename = os.path.join(os.path.dirname(__file__),'../../config/config.json')):
     try:
         with open(filename, 'r') as config_file:
             return json.load(config_file)
