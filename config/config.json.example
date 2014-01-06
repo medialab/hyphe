@@ -15,6 +15,11 @@
     "max_simul_requests" : 36,
     "max_simul_requests_per_host" : 12
   },
+  "solr":{
+    "host":"localhost",
+    "port":"8080",
+    "path":"solr"
+  },
   "memoryStructure": {
     "thrift.host": "localhost",
     "thrift.port": 9090,
