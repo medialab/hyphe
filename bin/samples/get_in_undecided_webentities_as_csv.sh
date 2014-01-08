@@ -8,6 +8,6 @@ echo "status,urls_prefixes,id,name,tags"
   sed "s/{u'status'/\n{u'status'/g" |
   grep "u'status': u'\(IN\|UNDECIDED\)'" |
   sed "s/', u'[^']*': u'/\",\"/g" |
-.  sed "s/^{u'[^']*': u'/\"/" |
+  sed "s/^{u'[^']*': u'/\"/" |
   sed "s/'}\(, \|]}\)$/\"/"
 
