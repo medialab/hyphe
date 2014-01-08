@@ -14,6 +14,7 @@ from twisted.internet import reactor, defer, task, threads
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.internet.error import DNSLookupError
+from twisted.web.http_headers import Headers
 from twisted.web.client import Agent, ProxyAgent, _HTTP11ClientFactory
 _HTTP11ClientFactory.noisy = False
 from thrift.Thrift import TException
@@ -182,7 +183,7 @@ class Core(jsonrpc.JSONRPC):
         return format_result(res)
 
     @inlineCallbacks
-    def jsonrpc_lookup_httpstatus(self, url, timeout=5):
+    def jsonrpc_lookup_httpstatus(self, url, timeout=5, tryout=0):
         res = format_result(0)
         timeout = int(timeout)
         url = urllru.url_clean(str(url))
@@ -191,13 +192,32 @@ class Core(jsonrpc.JSONRPC):
                 agent = ProxyAgent(TCP4ClientEndpoint(reactor, proxyconf['host'], proxyconf['port'], timeout=timeout))
             else:
                 agent = Agent(reactor, connectTimeout=timeout)
-            response = yield agent.request('HEAD', url, None, None)
-            res['result'] = response.code
+            method = "HEAD"
+            if tryout > 2:
+                method = "GET"
+            useragent = user_agents.agents[random.randint(0, len(user_agents.agents) - 1)]
+            response = yield agent.request(method, url, Headers({'User-Agent': [useragent]}), None)
         except DNSLookupError as e:
             res['message'] = "DNS not found for url %s : %s" % (url, e)
         except Exception as e:
             res['result'] = -1
             res['message'] = "Cannot process url %s : %s." % (url, e)
+        if 'message' in res:
+            returnD(res)
+        try:
+            assert(response.headers._rawHeaders['location'][0] == url)
+            res['result'] = 200
+        except:
+            try:
+                assert(url.startswith("http:") and tryout == 4 and response.code == 403 and "IIS" in response.headers._rawHeaders['server'][0])
+                res['result'] = 301
+            except:
+                if response.code in [403, 405, 500, 501, 503] and tryout < 5:
+                    if config['DEBUG']:
+                        print "RETRY LOOKUP", method, url, tryout, response.__dict__
+                    res = yield self.jsonrpc_lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1)
+                    returnD(res)
+                res['result'] = response.code
         returnD(res)
 
     @inlineCallbacks
@@ -546,6 +566,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not isinstance(list_lrus, list):
             list_lrus = [list_lrus]
         lru_prefixes_list = []
+        if name:
+            name = name.encode('utf-8')
         for lru in list_lrus:
             try:
                 url, lru = urllru.lru_clean_and_convert(lru, False)

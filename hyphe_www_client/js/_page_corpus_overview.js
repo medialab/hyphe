@@ -522,6 +522,25 @@ domino.settings('maxDepth', 1000)
                                     this.update('diagnostic_byUrl', diagnostic_byUrl)
                                     this.dispatchEvent('urlDiag_diagnosticBuilt', {url:task.url})
                                     break
+
+                                case 'searchStartPage':
+                                    var webentities_byId = this.get('webentities_byId')
+                                        ,we = webentities_byId[task.webentityId]
+
+                                    we.startpages_candidates = we.lru_prefixes.map(function(p){return Utils.LRU_to_URL(p)})
+                                    we.startpages_candidates_results = {}
+
+                                    this.dispatchEvent('crawlDiag_startPagesCandidatesSet', {webentityId: task.webentityId})
+
+                                    break
+
+                                case 'testStartpageCandidate':
+                                    var webentities_byId = this.get('webentities_byId')
+                                        ,we = webentities_byId[task.webentityId]
+                                        ,url = task.url
+
+                                    // TODO
+                                    break
                             }
 
                             // Remove task from the list
@@ -742,6 +761,26 @@ domino.settings('maxDepth', 1000)
                     // Reset the state
                     this.update('urlsDiagnosticActiveState', false)
                 }
+            },{
+                // Crawl diagnostic: when candidate start pages are set, test them
+                triggers:['crawlDiag_startPagesCandidatesSet']
+                ,method: function(e){
+                    var tasks = []
+                        ,webentities_byId = this.get('webentities_byId')
+                        ,we_id = e.data.webentityId
+                        ,we = webentities_byId[we_id]
+                    
+                    we.startpages_candidates.forEach(function(url){
+                        tasks.push({
+                            type: 'testStartpageCandidate'
+                            ,url: url
+                            ,webentityId: we.id
+                        })
+                    })
+                    this.dispatchEvent('tasks_stack', {
+                        tasks: tasks
+                    })
+                }
             }
         ]
     })
@@ -799,7 +838,7 @@ domino.settings('maxDepth', 1000)
         ,dispatchEvent: 'ui_DiagnosticUrlsButton'
     }])
 
-    // Display the diagnostic (Custom Module)
+    // Display the diagnostic (custom module)
     D.addModule(function(){
         domino.module.call(this)
 
@@ -1201,7 +1240,7 @@ domino.settings('maxDepth', 1000)
         initialize()
     })
     
-    // "To be crawled" module
+    // "To be crawled" module (custom module)
     D.addModule(function(){
         domino.module.call(this)
 
@@ -1214,19 +1253,47 @@ domino.settings('maxDepth', 1000)
                         return we.status == "IN"
                             && we.crawling_status == "UNCRAWLED"
                     })
+                ,weList_startPagesToCheck = []
+                ,weList_startPagesToSearch = []
+
             container.html('')
+            
             uncrawled_webentities.forEach(function(we){
-                container.append(
-                        $('<div class="toBeCrawledBlock"/>')
-                            .append(
-                                    $('<p/>').text(we.name)
-                                )
-                            .append(
-                                    $('<p/>').append(
-                                        $('<span class="label label-info"/>').text('Test test')
-                                    )
-                                )
+                var block = $('<div class="toBeCrawledBlock"/>')
+                    .attr('data-we-id', we.id)
+                    .append(
+                            $('<div/>').text(we.name)
+                        )
+                if(we.startpages.length == 0){
+                    block.append(
+                        $('<div/>').html('<div class="progress progress-striped active"><div class="bar" style="width: 100%;">Searching a start page...</div></div>')
                     )
+                    weList_startPagesToSearch.push(we)
+                } else {
+                    block.append(
+                        $('<div/>').html('<div class="progress progress-striped progress-info active"><div class="bar" style="width: 100%;">Checking start page'+((we.startpages.length>1)?('s'):(''))+'...</div></div>')
+                    )
+                    weList_startPagesToCheck.push(we)
+                }
+                container.append(block)
+            })
+
+            // Build tasks
+            var tasks = []
+            weList_startPagesToSearch.forEach(function(we){
+                tasks.push({
+                    type: 'searchStartPage'
+                    ,webentityId: we.id
+                })
+            })
+            weList_startPagesToCheck.forEach(function(we){
+                tasks.push({
+                    type: 'startPagesCheck_init'
+                    ,webentityId: we.id
+                })
+            })
+            _self.dispatchEvent('tasks_stack', {
+                tasks: tasks
             })
         }
 

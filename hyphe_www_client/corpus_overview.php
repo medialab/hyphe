@@ -39,6 +39,10 @@
                 -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
                 box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
             }
+            .toBeCrawledBlock .progress{
+                margin-top: 5px;
+                margin-bottom: 5px;
+            }
 
             .block {
                 background-color: #EEE;
@@ -255,6 +259,7 @@
                 <div class="span4">
                     <div id="networkSettings">
                         <span class="muted">[ Network viz settings (filtering...) ]</span>
+                        <p><span class="label label-warning">Work in progress</span></p>
                     </div>
                 </div>
             </div>
@@ -272,11 +277,13 @@
                 <div class="span4">
                     <div class="block">
                         Pending and running crawl jobs
+                        <p><span class="label label-warning">Work in progress</span></p>
                     </div>
                 </div>
                 <div class="span4">
                     <div class="block">
                         Web entities suggestion (prospection)
+                        <p><span class="label label-warning">Work in progress</span></p>
                     </div>
                 </div>
             </div>
@@ -284,6 +291,7 @@
                 <div class="span12">
                     <div class="block">
                         Corpus as a list (refining and qualifying)
+                        <p><span class="label label-warning">Work in progress</span></p>
                     </div>
                 </div>
             </div>
