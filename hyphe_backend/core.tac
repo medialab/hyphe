@@ -267,6 +267,7 @@ class Crawler(jsonrpc.JSONRPC):
 
     def init_indexes(self):
         self.db[config['mongo-scrapy']['pageStoreCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
+        self.db[config['mongo-scrapy']['pageStoreCol']].ensure_index([('url', pymongo.ASCENDING)], safe=True)
         self.db[config['mongo-scrapy']['queueCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
         self.db[config['mongo-scrapy']['queueCol']].ensure_index([('_job', pymongo.ASCENDING), ('timestamp', pymongo.DESCENDING)], safe=True)
         self.db[config['mongo-scrapy']['jobLogsCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
