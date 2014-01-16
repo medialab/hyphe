@@ -36,7 +36,7 @@ else:
 
 def printValue(value):
     if inline:
-        print value
+        print repr(value).decode("unicode-escape").encode('utf-8')
     else:
         import pprint
         pprint.pprint(value)
