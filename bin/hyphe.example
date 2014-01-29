@@ -150,13 +150,13 @@ function test_java_started_in_log {
   tail -n 5 log/hyphe-memorystructure.log | grep "starting Thrift server (class org.apache.thrift" > /dev/null && ! tail -n 5 log/hyphe-memorystructure.log | grep "Memory Structure shutdown hook" > /dev/null
 }
 function test_core_started_in_log {
-  grep -v "[-] ..." log/hyphe-core.log | tail -n 5 | grep "Collecting WebEntities..." > /dev/null
+  grep -v "\[-\] \.\.\.\|Deprecation" log/hyphe-core.log | tail -n 5 | grep "Collecting WebEntities..." > /dev/null
 }
 function test_error_in_java_log {
   tail -n 5 log/hyphe-memorystructure.log | grep -i "error\|exception" > /dev/null
 }
 function test_error_in_core_log {
-  tail -n 2 log/hyphe-core.log | grep -i "error\|exception" > /dev/null
+  tail -n 2 log/hyphe-core.log | grep -v "Deprecation" | grep -i "error\|exception" > /dev/null
 }
 
 if $STOP; then
