@@ -2,11 +2,26 @@
 
 	// Utils
 
-	ns.URI_reEncode = function(uri){
+	ns.reEncode = function(uri){
 		return encodeURI(decodeURI(uri))
 	}
-	ns.URI_reEncodeComponent = function(uri){
+	ns.reEncodeComponent = function(uri){
 		return encodeURIComponent(decodeURIComponent(uri))
+	}
+
+	ns.LRU_reEncode = function(lru){
+		var json_lru = ns.LRU_to_JSON_LRU(lru)
+		if(json_lru["path"])
+			json_lru["path"].forEach(function(p){
+				p = ns.reEncode(p)
+			})
+		if(json_lru["fragment"])
+			json_lru["fragment"] = ns.reEncodeComponent(json_lru["fragment"])
+		return ns.JSON_LRU_to_LRU(json_lru)
+	}
+
+	ns.URL_reEncode = function(url){
+		return ns.LRU_to_URL(ns.LRU_reEncode(ns.URL_to_LRU(url)))
 	}
 
 	ns.URL_to_LRU = function(url){
