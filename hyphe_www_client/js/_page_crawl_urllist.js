@@ -183,7 +183,7 @@ $.fn.editable.defaults.mode = 'popup';
                 triggers: ['ui_findWebentities']
                 ,method: function(){
                     var urls = extractWebentities(D.get('urlslistText'))
-                        .map(function(url){return Utils.URL_fix(url)})
+                        .map(function(url){return Utils.URL_reEncode(Utils.URL_fix(url))})
                     D.dispatchEvent('update_startUrls', {
                         startUrls: urls
                     })
@@ -476,6 +476,8 @@ $.fn.editable.defaults.mode = 'popup';
                                 return 'Must not be empty'
                             if(!Utils.URL_validate(url))
                                 return 'Invalid URL'
+
+                            url = Utils.reEncode(url)
 
                             // The URL is valid. Reroll lookup and erase the rest of the line
                             $('span.lookup-info').each(function(i, el){
