@@ -312,8 +312,8 @@ $.fn.editable.defaults.mode = 'inline';
         var element = $('#lru_prefixes')
             ,_self = this
 
-        var update = function(controller, e) {
-            var webEntity = controller.get('currentWebEntity')
+        var update = function(provider, e) {
+            var webEntity = provider.get('currentWebEntity')
             element.html('')
             webEntity.lru_prefixes.forEach(function(lru_prefix){
                 element.append(
