@@ -12,8 +12,8 @@
 	ns.LRU_reEncode = function(lru){
 		var json_lru = ns.LRU_to_JSON_LRU(lru)
 		if(json_lru["path"])
-			json_lru["path"].forEach(function(p){
-				p = ns.reEncode(p)
+			json_lru["path"] = json_lru["path"].map(function(p){
+				return p = ns.reEncodeComponent(p)
 			})
 		if(json_lru["fragment"])
 			json_lru["fragment"] = ns.reEncodeComponent(json_lru["fragment"])
