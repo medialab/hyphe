@@ -35,7 +35,7 @@ echo "Install dependencies..."
 echo "-----------------------"
 echo
 sudo $repos_tool $repos_updt > /dev/null || $centos || exit 1
-sudo $repos_tool -y install curl git vim $python_dev python-pip $apache $php >> install.log || exit 1
+sudo $repos_tool -y install curl wget git $python_dev python-pip $apache $php >> install.log || exit 1
 if $centos; then
   sudo chkconfig --levels 235 httpd on || exit 1
   sudo service httpd restart || exit 1
@@ -53,7 +53,7 @@ echo "Add source repositories..."
 echo "--------------------------"
 echo
 if $centos; then
-  if ! test -f /etc/yum.repos.d/mongodb.repo; then
+  if ! which mongod > /dev/null && ! test -f /etc/yum.repos.d/mongodb.repo; then
     echo "[mongodb]
 name=MongoDB Repository
 baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64/
@@ -62,38 +62,42 @@ enabled=1" > mongodb.repo.tmp
     sudo mv mongodb.repo.tmp /etc/yum.repos.d/mongodb.repo
   fi
 else
-  curl -s http://docs.mongodb.org/10gen-gpg-key.asc | sudo apt-key add -
   curl -s http://archive.scrapy.org/ubuntu/archive.key | sudo apt-key add -
   sudo cp /etc/apt/sources.list{,.hyphebackup-`date +%Y%m%d-%H%M`}
-  if ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
+  if ! which scrapyd > /dev/null && ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
     cp /etc/apt/sources.list /tmp/sources.list
     echo >> /tmp/sources.list
     echo "# SCRAPYD repository, automatically added by Hyphe's install" >> /tmp/sources.list
     echo "deb http://archive.scrapy.org/ubuntu $(lsb_release -cs) main" >> /tmp/sources.list
     sudo mv /tmp/sources.list /etc/apt/sources.list
   fi
-  if ! grep "downloads-distro.mongodb.org" /etc/apt/sources.list > /dev/null; then
-    cp /etc/apt/sources.list /tmp/sources.list
-    echo >> /tmp/sources.list
-    echo "# MONGODB repository, automatically added by Hyphe's install" >> /tmp/sources.list
-    echo "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen" >> /tmp/sources.list
-    sudo mv /tmp/sources.list /etc/apt/sources.list
+  if ! which mongod > /dev/null; then
+    curl -s http://docs.mongodb.org/10gen-gpg-key.asc | sudo apt-key add -
+    if ! grep "downloads-distro.mongodb.org" /etc/apt/sources.list > /dev/null; then
+      cp /etc/apt/sources.list /tmp/sources.list
+      echo >> /tmp/sources.list
+      echo "# MONGODB repository, automatically added by Hyphe's install" >> /tmp/sources.list
+      echo "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen" >> /tmp/sources.list
+      sudo mv /tmp/sources.list /etc/apt/sources.list
+    fi
   fi
 fi
 sudo $repos_tool $repos_updt >> install.log || $centos || exit 1
 echo
 
 # Install MongoDB
-echo "Install and start MongoDB..."
-echo "----------------------------"
-echo
-sudo $repos_tool -y install $mongo_pack >> install.log || exit 1
-if $centos; then
-  sudo chkconfig mongod on
+if ! which mongod > /dev/null; then
+  echo "Install and start MongoDB..."
+  echo "----------------------------"
+  echo
+  sudo $repos_tool -y install $mongo_pack >> install.log || exit 1
+  if $centos; then
+    sudo chkconfig mongod on
+  fi
+  #possible config via : vi /etc/mongodb.conf
+  sudo service $mongo restart || exit 1
+  echo
 fi
-#possible config via : vi /etc/mongodb.conf
-sudo service $mongo restart || exit 1
-echo
 
 # Install ScrapyD
 echo "Install and start ScrapyD..."
@@ -145,12 +149,12 @@ if ! test -d hyphe_backend/memorystructure; then
   echo "Install from source requires Thrift & Maven install to build Lucene Java server and Python API"
   echo "Trying now. Please install from releases for faster install or to avoid this"
   if ! which thrift > /dev/null 2>&1 || ! which mvn > /dev/null 2>&1 ; then
-    ./bin/install_thrift.sh > install.log || exit 1
+    ./bin/install_thrift.sh >> install.log || exit 1
   fi
   if $centos; then
     source /etc/profile.d/maven.sh
   fi
-  ./bin/build_thrift.sh > install.log || exit 1
+  ./bin/build_thrift.sh >> install.log || exit 1
   echo
 fi
 
@@ -164,7 +168,7 @@ source $(which virtualenvwrapper.sh)
 mkvirtualenv --no-site-packages HCI
 workon HCI
 pip install -r requirements.txt >> install.log || exit 1
-add2virtualenv .
+add2virtualenv $(pwd)
 deactivate
 echo
 
@@ -196,7 +200,7 @@ fi
 sudo service $apache reload
 echo
 if ! curl -s http://localhost/$apache_name > /dev/null 2>&1; then
-  echo "WARNING: apache/httpd says FORBIDDEN, read access (r+x) to $(pwd) must be opened to the `apache` group"
+  echo "WARNING: apache/httpd says FORBIDDEN, read access (r+x) to $(pwd) must be opened to the `apache|httpd|www-data` group"
   echo "sudo chmod -R g+rx DIR; sudo chown -R :apache DIR"
   echo "If you installed from a /home directory, you may need to do this to your /home/<USER> dir"
   echo "Or you can move the current install to another directory (/srv, /opt, ...), give it the rights and reinstall, this should be quick now"
