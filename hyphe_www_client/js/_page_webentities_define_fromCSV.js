@@ -657,7 +657,7 @@ HypheCommons.domino_init()
                         )
                 .append(
                         rows.map(function(row, i){
-                            var url = Utils.URL_fix(row[urlColId])
+                            var url = Utils.reEncode(Utils.URL_fix(row[urlColId]))
                             if(url==''){
                                 return $('<div class="row"/>')
                             }

@@ -512,7 +512,7 @@ HypheCommons.domino_init()
                     )
                 .append(
                         rows.map(function(row, i){
-                            var url = row[colId]
+                            var url = Utils.reEncode(row[colId])
                             return $('<div class="row diagnostic-row"/>')
                                 .attr('data-row-id', i)
                                 .attr('data-url', url)

@@ -2,11 +2,26 @@
 
 	// Utils
 
-	ns.URI_reEncode = function(uri){
+	ns.reEncode = function(uri){
 		return encodeURI(decodeURI(uri))
 	}
-	ns.URI_reEncodeComponent = function(uri){
+	ns.reEncodeComponent = function(uri){
 		return encodeURIComponent(decodeURIComponent(uri))
+	}
+
+	ns.LRU_reEncode = function(lru){
+		var json_lru = ns.LRU_to_JSON_LRU(lru)
+		if(json_lru["path"])
+			json_lru["path"] = json_lru["path"].map(function(p){
+				return p = ns.reEncodeComponent(p)
+			})
+		if(json_lru["fragment"])
+			json_lru["fragment"] = ns.reEncodeComponent(json_lru["fragment"])
+		return ns.JSON_LRU_to_LRU(json_lru)
+	}
+
+	ns.URL_reEncode = function(url){
+		return ns.LRU_to_URL(ns.LRU_reEncode(ns.URL_to_LRU(url)))
 	}
 
 	ns.URL_to_LRU = function(url){
@@ -20,11 +35,11 @@
 		if(json_lru.port)
 			lru += "t:" + json_lru.port + "|"
 		json_lru.host.forEach(function(h){lru += "h:" + h + "|";})
-		json_lru["path"].forEach(function(p){lru += "p:" + ns.URI_reEncode(p) + "|";})
+		json_lru["path"].forEach(function(p){lru += "p:" + p + "|";})
 		if(json_lru.query)
 			lru += "q:" + json_lru.query + "|"
 		if(json_lru.fragment)
-			lru += "f:" + ns.URI_reEncodeComponent(json_lru.fragment) + "|"
+			lru += "f:" + json_lru.fragment + "|"
 		return lru
 	}
 	ns.URL_to_JSON_LRU = function(URL){
@@ -108,14 +123,14 @@
 		
 		if(json_lru.path != undefined && json_lru.path.length>0)
 			json_lru.path.forEach(function(p){
-				path = path+"/"+ns.URI_reEncode(p)
+				path = path+"/"+p
 			})
 		
 		if(json_lru.query != undefined && json_lru.query.length>0)
 			query = "?"+json_lru.query
 		
 		if(json_lru.fragment != undefined && json_lru.fragment.length>0)
-			fragment = "#"+ns.URI_reEncodeComponent(json_lru.fragment)
+			fragment = "#"+json_lru.fragment
 		
 		if(json_lru.port != undefined && json_lru.port!="80")
 			port = ":"+json_lru.port

@@ -287,9 +287,14 @@ class Crawler(jsonrpc.JSONRPC):
 
     def init_indexes(self):
         self.db[config['mongo-scrapy']['pageStoreCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
+        self.db[config['mongo-scrapy']['pageStoreCol']].ensure_index([('_job', pymongo.ASCENDING)], safe=True)
+        self.db[config['mongo-scrapy']['pageStoreCol']].ensure_index([('url', pymongo.ASCENDING)], safe=True)
         self.db[config['mongo-scrapy']['queueCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
         self.db[config['mongo-scrapy']['queueCol']].ensure_index([('_job', pymongo.ASCENDING), ('timestamp', pymongo.DESCENDING)], safe=True)
         self.db[config['mongo-scrapy']['jobLogsCol']].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
+        self.db[config['mongo-scrapy']['jobListCol']].ensure_index([('crawling_status', pymongo.ASCENDING)], safe=True)
+        self.db[config['mongo-scrapy']['jobListCol']].ensure_index([('indexing_status', pymongo.ASCENDING)], safe=True)
+        self.db[config['mongo-scrapy']['jobListCol']].ensure_index([('webentity_id', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], safe=True)
         self.db[config['mongo-scrapy']['jobListCol']].ensure_index([('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], safe=True)
 
     def jsonrpc_cancel_all(self):
