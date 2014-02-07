@@ -86,7 +86,7 @@ To run on a server and not only locally, a few adjustments need to be performed:
 ```bash
     sudo apt-get install libapache2-mod-proxy-html
     sudo a2enmod proxy
-    sudo &2enmod proxy_http
+    sudo a2enmod proxy_http
     sudo service apache2 restart
 ```
  - Add to the Apache configuration in ```hyphe_www_client/_config/apache2.conf``` the ProxyPass directives to redirect the port to the desired url, for instance:
