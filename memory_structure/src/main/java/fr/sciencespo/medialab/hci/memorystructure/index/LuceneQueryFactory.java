@@ -323,6 +323,7 @@ public class LuceneQueryFactory {
     protected static Query getPageItemMatchingWebEntityButNotMatchingSubWebEntities(WebEntity webEntity, List<WebEntity> subWebEntities) {
         BooleanQuery q = new BooleanQuery();
         q.add(getPageItemsQuery(), BooleanClause.Occur.MUST);
+        q.add(new TermQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), "CRAWL")), BooleanClause.Occur.MUST);
         q = addWebEntityButNotSubWebEntitiesToQuery(q, IndexConfiguration.FieldName.LRU, webEntity, subWebEntities);
         if(logger.isDebugEnabled()) {
             logger.debug("Lucene query: " + q.toString());
