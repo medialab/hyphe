@@ -556,7 +556,7 @@ $.fn.editable.defaults.mode = 'popup';
                             .attr('data-webentity-status', 'wait')
                             .text('Waiting')
 
-                    } else if([300, 301, 302].some(function(test){return status==test})){
+                    } else if ((status+"").charAt(0) == '3'){
                         // Redirection
                         // Edit the lookup
                         pending.text('Redirect').addClass('text-warning')
@@ -808,7 +808,7 @@ $.fn.editable.defaults.mode = 'popup';
                         if(status == 200){
                             // The start page is valid
                             startpages_valid.push(sp)
-                        } else if([300, 301, 302].some(function(test){return status==test})){
+                        } else if((status+"").charAt(0) == '3'){
                             // Redirection
                             startpages_redirected.push(sp)
                         } else {
