@@ -206,7 +206,7 @@ class Core(jsonrpc.JSONRPC):
         if 'message' in res:
             returnD(res)
         try:
-            assert(response.headers._rawHeaders['location'][0] == url)
+            assert(url in " ".join(response.headers._rawHeaders['location']))
             res['result'] = 200
         except:
             try:
