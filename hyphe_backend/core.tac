@@ -183,12 +183,13 @@ class Core(jsonrpc.JSONRPC):
         return format_result(res)
 
     @inlineCallbacks
-    def jsonrpc_lookup_httpstatus(self, url, timeout=5, tryout=0):
+    def jsonrpc_lookup_httpstatus(self, url, timeout=5, tryout=0, noproxy=False):
         res = format_result(0)
         timeout = int(timeout)
+        use_proxy = proxyconf['host'] and not noproxy
         url = urllru.url_clean(str(url))
         try:
-            if proxyconf['host']:
+            if use_proxy:
                 agent = ProxyAgent(TCP4ClientEndpoint(reactor, proxyconf['host'], proxyconf['port'], timeout=timeout))
             else:
                 agent = Agent(reactor, connectTimeout=timeout)
@@ -212,17 +213,21 @@ class Core(jsonrpc.JSONRPC):
                 assert(url.startswith("http:") and tryout == 4 and response.code == 403 and "IIS" in response.headers._rawHeaders['server'][0])
                 res['result'] = 301
             except:
-                if response.code in [403, 405, 500, 501, 503] and tryout < 5:
-                    if config['DEBUG']:
-                        print "RETRY LOOKUP", method, url, tryout, response.__dict__
-                    res = yield self.jsonrpc_lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1)
-                    returnD(res)
+                if use_proxy or response.code in [403, 405, 500, 501, 503]:
+                    if tryout == 5 and use_proxy:
+                        noproxy = True
+                        tryout = 3
+                    if tryout < 5:
+                        if config['DEBUG']:
+                            print "RETRY LOOKUP", method, url, tryout, response.__dict__
+                        res = yield self.jsonrpc_lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy)
+                        returnD(res)
                 res['result'] = response.code
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_lookup(self, url, timeout=5):
-        res = yield self.jsonrpc_lookup_httpstatus(url, timeout)
+    def jsonrpc_lookup(self, url, timeout=5, noproxy=False):
+        res = yield self.jsonrpc_lookup_httpstatus(url, timeout=timeout, noproxy=noproxy)
         if res['code'] == 'success' and (res['result'] == 200 or 300 < res['result'] < 400):
             returnD(format_result("true"))
         returnD(format_result("false"))
