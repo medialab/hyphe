@@ -196,8 +196,9 @@ class Core(jsonrpc.JSONRPC):
             method = "HEAD"
             if tryout > 2:
                 method = "GET"
-            useragent = user_agents.agents[random.randint(0, len(user_agents.agents) - 1)]
-            response = yield agent.request(method, url, Headers({'Accept': ['*/*'], 'User-Agent': [useragent]}), None)
+            headers = {'Accept': ['*/*'],
+                      'User-Agent': [user_agents.agents[random.randint(0, len(user_agents.agents) -1)]]}
+            response = yield agent.request(method, url, Headers(headers), None)
         except DNSLookupError as e:
             res['message'] = "DNS not found for url %s : %s" % (url, e)
         except Exception as e:
@@ -206,7 +207,7 @@ class Core(jsonrpc.JSONRPC):
         if 'message' in res:
             returnD(res)
         try:
-            assert(url in " ".join(response.headers._rawHeaders['location']))
+            assert(response.code == 200 or url in " ".join(response.headers._rawHeaders['location']))
             res['result'] = 200
         except:
             try:
