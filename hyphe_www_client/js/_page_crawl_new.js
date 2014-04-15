@@ -762,7 +762,7 @@ HypheCommons.domino_init()
                     // We have a valid URL
                     candidate.parent().parent().parent().addClass('success')
                     candidate.append($('<i class="icon-ok info_tooltip"/>').attr('title', 'Valid start page').tooltip())
-                } else if((status+'').charAt(0) == '3'})){
+                } else if((status+'').charAt(0) == '3'){
                     // Redirection
                     candidate.addClass('invalid')
                     candidate.parent().parent().parent().addClass('warning')
