@@ -84,7 +84,8 @@ $.fn.editable.defaults.mode = 'inline';
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.GET_PAGES,
                         'params' : [
-                            settings.shortcuts.webEntityId    // Web entity id
+                            settings.shortcuts.webEntityId,    // Web entity id
+                            false                              // Get all pages, not onyl crawled ones
                         ],
                     })}
                 ,path:'0.result'

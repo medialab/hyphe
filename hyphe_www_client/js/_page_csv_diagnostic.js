@@ -148,7 +148,8 @@ HypheCommons.domino_init()
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITY.GET_PAGES,
                         'params' : [
-                            settings.webentityId    // Web entity id
+                            settings.webentityId,    // Web entity id
+                            false                    // Get all pages, not only crawled ones
                         ],
                     })}
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect

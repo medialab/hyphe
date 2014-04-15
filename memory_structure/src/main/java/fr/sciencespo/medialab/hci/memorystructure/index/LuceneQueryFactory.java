@@ -323,7 +323,6 @@ public class LuceneQueryFactory {
     protected static Query getPageItemMatchingWebEntityButNotMatchingSubWebEntities(WebEntity webEntity, List<WebEntity> subWebEntities) {
         BooleanQuery q = new BooleanQuery();
         q.add(getPageItemsQuery(), BooleanClause.Occur.MUST);
-        q.add(new TermQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), "CRAWL")), BooleanClause.Occur.MUST);
         q = addWebEntityButNotSubWebEntitiesToQuery(q, IndexConfiguration.FieldName.LRU, webEntity, subWebEntities);
         if(logger.isDebugEnabled()) {
             logger.debug("Lucene query: " + q.toString());
@@ -331,6 +330,19 @@ public class LuceneQueryFactory {
         return q;
     }
 
+    /**
+     * Make Query to find all PageItems fitting within a webEntity's prefixes but not its subWebEntities
+     *
+     * @param webEntity WebEntity object
+     * @param subWebEntities List of WebEntity objects being subWebEntities of the input WebEntity
+     * @return Query
+     */
+    protected static Query getCrawledPageItemMatchingWebEntityButNotMatchingSubWebEntities(WebEntity webEntity, List<WebEntity> subWebEntities) {
+        BooleanQuery q = (BooleanQuery) getPageItemMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities);
+        q.add(new TermQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), "CRAWL")), BooleanClause.Occur.MUST);
+        return q;
+    }
+    
     /**
      * Make Query to find all NodeLinks fitting within a webEntity's prefixes but not its subWebEntities
      *

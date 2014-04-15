@@ -467,7 +467,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 return {'id': WE.id, 'name': WE.name, 'status': WE.status,
                         'prefixes': "|".join([urllru.lru_to_url(lru, nocheck=True) for lru in WE.LRUSet]),
                         'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns != "CORE"])}
-            # pages = yield self.msclient_pool.getWebEntityPages(WE.id)
+            # pages = yield self.msclient_pool.getWebEntityCrawledPages(WE.id)
             # nb_pages = len(pages)
             # nb_links
             job = None
@@ -1111,8 +1111,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(format_result(list(values)))
 
     @inlineCallbacks
-    def jsonrpc_get_webentity_pages(self, webentity_id, corpus=''):
-        pages = yield self.msclient_pool.getWebEntityPages(webentity_id)
+    def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=''):
+        if onlyCrawled:
+            pages = yield self.msclient_pool.getWebEntityCrawledPages(webentity_id)
+        else:
+            pages = yield self.msclient_pool.getWebEntityPages(webentity_id)
         if is_error(pages):
             returnD(pages)
         formatted_pages = [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
@@ -1189,7 +1192,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(format_error("No WebEntity with id %s found" % webentity_id))
         res = {'status': WE.status, 'lrus': list(WE.LRUSet), 'pages': [urllru.lru_to_url(lr) for lr in WE.LRUSet], 'subWEs': []}
         if test_bool_arg(all_pages_as_startpoints):
-            pages = yield self.msclient_pool.getWebEntityPages(WE.id)
+            pages = yield self.msclient_pool.getWebEntityCrawledPages(WE.id)
             if is_error(pages):
                 returnD(pages)
             if pages:
@@ -1225,11 +1228,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     date = WE.lastModificationDate
                 elif WE.creationDate:
                     date = WE.creationDate
-                pages = yield self.msclient_pool.getWebEntityPages(WE.id)
+                pages = yield self.msclient_pool.getWebEntityCrawledPages(WE.id)
                 if is_error(pages):
                     print pages['message']
                     returnD(False)
-                WEs_metadata[WE.id] = {"name": WE.name, "date": date, "LRUSet": ",".join(WE.LRUSet), "nb_pages": len(pages), "nb_intern_links": 0}
+                WEs_metadata[WE.id] = {"name": WE.name, "date": date, "LRUSet": ",".join(WE.LRUSet), "nb_crawled_pages": len(pages), "nb_intern_links": 0}
                 WE_links = yield self.msclient_pool.getWebEntityLinksByWebEntitySource(WE.id)
                 if is_error(WE_links):
                     print WE_links['message']

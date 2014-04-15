@@ -1156,7 +1156,7 @@ public class LRUIndex {
      * @throws IndexException hmm
      * @throws ObjectNotFoundException hmm
      */
-    public List<PageItem> retrieveWebEntityPageItems(String webEntityId) throws IndexException, ObjectNotFoundException {
+    public List<PageItem> retrieveWebEntityPageItems(String webEntityId, boolean onlyCrawled) throws IndexException, ObjectNotFoundException {
         if(logger.isDebugEnabled()) {
             logger.debug("retrieveWebEntityPageItems for webEntityId: " + webEntityId);
         }
@@ -1169,7 +1169,13 @@ public class LRUIndex {
             throw new ObjectNotFoundException().setMsg("Could not find webentity with id: " + webEntityId);
         }
         List<WebEntity> subWebEntities = retrieveWebEntitySubWebEntities(webEntity);
-        results = retrievePageItemsByQuery(LuceneQueryFactory.getPageItemMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities));
+        Query q;
+        if (onlyCrawled) {
+        	q = LuceneQueryFactory.getCrawledPageItemMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities);
+        } else {
+        	q = LuceneQueryFactory.getPageItemMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities);
+        }
+        results = retrievePageItemsByQuery(q);
         if(logger.isDebugEnabled()) {
             logger.debug("found " + results.size() + " pages for web entity " + webEntity.getName() + ":");
         }

@@ -570,7 +570,35 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         List<PageItem> pages;
         try {
-            pages = lruIndex.retrieveWebEntityPageItems(id);
+            pages = lruIndex.retrieveWebEntityPageItems(id, false);
+            if(logger.isDebugEnabled()) {
+                logger.debug("found # " + pages.size() + " pages");
+            }
+        } catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        return pages;
+    }
+
+    /**
+     * Retrieves crawled pages belonging to a WebEntity.
+     *
+     * @param id web entity id
+     * @return pages
+     * @throws TException
+     * @throws MemoryStructureException
+     * @throws ObjectNotFoundException
+     */
+    @Override
+    public List<PageItem> getWebEntityCrawledPages(String id) throws TException, MemoryStructureException, ObjectNotFoundException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getCrawledWebEntityPages with id: " + id);
+        }
+        List<PageItem> pages;
+        try {
+            pages = lruIndex.retrieveWebEntityPageItems(id, true);
             if(logger.isDebugEnabled()) {
                 logger.debug("found # " + pages.size() + " pages");
             }

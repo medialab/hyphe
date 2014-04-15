@@ -239,6 +239,13 @@ list<WebEntity> getWebEntityParentWebEntities(1: string id) throws (1:MemoryStru
  */
 list<PageItem> getWebEntityPages(1:string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
 
+// getWebEntityCrawledPages pages belonging to one webentity which have been crawled
+/**
+ * @param 1 id
+ * @return a List of Page Objects having urls within the prefixes of the webentity and coming from actual crawls (may be empty)
+ */
+list<PageItem> getWebEntityCrawledPages(1:string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+
 // getWebEntityNodeLinks: get all NodeLinks for a specific WebEntity
 /**
  * @param 1 webEntityId
