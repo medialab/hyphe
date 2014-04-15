@@ -24,6 +24,7 @@ from hyphe_backend.memorystructure import MemoryStructure as ms, constants as ms
 from hyphe_backend.lib import config_hci, urllru, gexf, user_agents
 from hyphe_backend.lib.thriftpool import *
 from hyphe_backend.lib.jsonrpc_utils import *
+import hashlib
 
 config = config_hci.load_config()
 if not config:
@@ -196,8 +197,11 @@ class Core(jsonrpc.JSONRPC):
             method = "HEAD"
             if tryout > 2:
                 method = "GET"
+            if url.count("/") < 3:
+                url += "/"
             headers = {'Accept': ['*/*'],
-                      'User-Agent': [user_agents.agents[random.randint(0, len(user_agents.agents) -1)]]}
+                       'Vortknox': [hashlib.sha1("Hyphe %s" % url).hexdigest()],
+                       'User-Agent': [user_agents.agents[random.randint(0, len(user_agents.agents) -1)]]}
             response = yield agent.request(method, url, Headers(headers), None)
         except DNSLookupError as e:
             res['message'] = "DNS not found for url %s : %s" % (url, e)
