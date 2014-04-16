@@ -17,6 +17,7 @@ from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_u
 from hcicrawler.items import Page
 from hcicrawler.samples import DEFAULT_INPUT
 from hcicrawler.errors import error_name
+import hashlib
 
 class PagesCrawler(BaseSpider):
 
@@ -130,6 +131,9 @@ class PagesCrawler(BaseSpider):
         kw['meta'] = {'handle_httpstatus_all': True}
         kw['callback'] = self.handle_response
         kw['errback'] = self.handle_error
+        if url.count("/") < 3:
+            url += "/"
+        kw['headers'] = {'Vortknox': hashlib.sha1("Hyphe %s" % url).hexdigest()}
         return Request(url, **kw)
 
     def has_prefix(self, string, prefixes):
