@@ -24,16 +24,21 @@ from hyphe_backend.memorystructure import MemoryStructure as ms, constants as ms
 from hyphe_backend.lib import config_hci, urllru, gexf, user_agents
 from hyphe_backend.lib.thriftpool import *
 from hyphe_backend.lib.jsonrpc_utils import *
-import hashlib
+import hashlib, datetime
 
 config = config_hci.load_config()
 if not config:
     exit()
-proxyconf = {'host': '', 'port': 3128}
+proxyconf = {'host': '', 'port': 3128, 'date': 'last'}
 if "proxy_host" in config['mongo-scrapy']:
     proxyconf['host'] = config['mongo-scrapy']['proxy_host']
 if "proxy_port" in config['mongo-scrapy']:
     proxyconf['port'] = config['mongo-scrapy']['proxy_port']
+if "proxy_date" in config['mongo-scrapy'] and config['mongo-scrapy']['proxy_date']:
+    try:
+        proxyconf['date'] = time.mktime(datetime.datetime.strptime(configi['mongo-scrapy']['proxy_date'], '%Y-%m-%d').timetuple())
+    except:
+        proxyconf['date'] = config['mongo-scrapy']['proxy_date']
 
 if config['DEBUG']:
     defer.setDebugging(True)
@@ -201,6 +206,7 @@ class Core(jsonrpc.JSONRPC):
                 url += "/"
             headers = {'Accept': ['*/*'],
                        'Vortknox': [hashlib.sha1("Hyphe %s" % url).hexdigest()],
+                       'X-Request-Time': [proxyconf['date']],
                        'User-Agent': [user_agents.agents[random.randint(0, len(user_agents.agents) -1)]]}
             response = yield agent.request(method, url, Headers(headers), None)
         except DNSLookupError as e:
@@ -373,6 +379,7 @@ class Crawler(jsonrpc.JSONRPC):
                   'follow_prefixes': list(follow_prefixes),
                   'nofollow_prefixes': list(nofollow_prefixes),
                   'discover_prefixes': list(discover_prefixes),
+                  'crawl_timestamp': proxyconf['date'],
                   'user_agent': user_agents.agents[random.randint(0, len(user_agents.agents) - 1)]}
         res = self.send_scrapy_query('schedule', args)
         if is_error(res):

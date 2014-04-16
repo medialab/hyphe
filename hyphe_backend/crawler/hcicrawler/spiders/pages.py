@@ -133,7 +133,8 @@ class PagesCrawler(BaseSpider):
         kw['errback'] = self.handle_error
         if url.count("/") < 3:
             url += "/"
-        kw['headers'] = {'Vortknox': hashlib.sha1("Hyphe %s" % url).hexdigest()}
+        kw['headers'] = {'Vortknox': hashlib.sha1("Hyphe %s" % url).hexdigest(),
+                         'X-Request-Time': self.args['crawl_timestamp']}
         return Request(url, **kw)
 
     def has_prefix(self, string, prefixes):

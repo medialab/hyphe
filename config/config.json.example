@@ -4,6 +4,7 @@
     "mongo_port": 27017,
     "proxy_host": "",
     "proxy_port": 3128,
+    "proxy_date": "2009-01-01",
     "project": "hci",
     "queueCol": "crawler.queue",
     "pageStoreCol": "crawler.pages",
