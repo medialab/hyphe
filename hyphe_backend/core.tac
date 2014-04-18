@@ -36,7 +36,7 @@ if "proxy_port" in config['mongo-scrapy']:
     proxyconf['port'] = config['mongo-scrapy']['proxy_port']
 if "proxy_date" in config['mongo-scrapy'] and config['mongo-scrapy']['proxy_date']:
     try:
-        proxyconf['date'] = time.mktime(datetime.datetime.strptime(configi['mongo-scrapy']['proxy_date'], '%Y-%m-%d').timetuple())
+        proxyconf['date'] = time.mktime(datetime.datetime.strptime(config['mongo-scrapy']['proxy_date'], '%Y-%m-%d').timetuple())
     except:
         proxyconf['date'] = config['mongo-scrapy']['proxy_date']
 
