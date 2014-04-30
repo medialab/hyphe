@@ -417,7 +417,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         jsonrpc.JSONRPC.__init__(self)
         self.db = db
         self.parent = parent
-        self.msclient_loop = ThriftASyncClient(ms.Client, config['memoryStructure']['thrift.host'], config['memoryStructure']['thrift.port'])
+        self.msclient_loop = ThriftASyncClient(ms.Client, config['memoryStructure']['thrift.host'], config['memoryStructure']['thrift.port'], network_timeout=7200*1000)
         self.msclient_pool = ThriftPooledClient(ms.Client, config['memoryStructure']['thrift.host'], config['memoryStructure']['thrift.port'])
         self.msclient_sync = ThriftSyncClient(ms.Client, config['memoryStructure']['thrift.host'], config['memoryStructure']['thrift.port'])
         self.index_loop = task.LoopingCall(self.index_batch_loop)
@@ -835,13 +835,16 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if self.loop_running:
             returnD(False)
         self.loop_running = True
-        if self.db[config['mongo-scrapy']['jobListCol']].find_one({'indexing_status': indexing_statuses.BATCH_RUNNING}):
-            print "WARNING : indexing job declared as running but probably crashed."
+        crashed = self.db[config['mongo-scrapy']['jobListCol']].find_one({'indexing_status': indexing_statuses.BATCH_RUNNING})
+        if crashed:
+            print "WARNING : indexing job declared as running but probably crashed ,trying to restart it."
+            self.db[config['mongo-scrapy']['jobListCol']].update({'_id' : crashed}, {'$set': {'indexing_status': indexing_statuses.BATCH_CRASHED}})
+            jobslog(crashed, "INDEX_"+indexing_statuses.BATCH_CRASHED, self.db)
             self.loop_running = False
             returnD(False)
         oldest_page_in_queue = self.db[config['mongo-scrapy']['queueCol']].find_one(sort=[('timestamp', pymongo.ASCENDING)], fields=['_job'], skip=random.randint(0, 2))
         # Run linking WebEntities on a regular basis when needed
-        if self.recent_indexes > 100 or (self.recent_indexes and not oldest_page_in_queue) or (self.recent_indexes and time.time() - self.last_links_loop >= 1800):
+        if self.recent_indexes > 100 or (self.recent_indexes and not oldest_page_in_queue) or (self.recent_indexes and time.time() - self.last_links_loop >= 3600):
             self.loop_running = "generating links"
             self.loop_running_since = time.time()
             s = time.time()
