@@ -82,7 +82,7 @@
 		settings.httpVariations = settings.httpVariations || false
 		settings.httpsVariations = settings.httpsVariations || false
 		if(settings.smallerVariations === undefined){settings.smallerVariations = true}
-		console.log('SETTINGS', settings)
+		
 		candidates.push(lru)
 		if(lru_a.length>2+tld_length && settings.smallerVariations){
 			for(length = lru_a.length-1; length>=2+tld_length; length--){
