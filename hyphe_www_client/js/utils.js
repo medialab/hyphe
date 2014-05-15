@@ -3,10 +3,20 @@
 	// Utils
 
 	ns.reEncode = function(uri){
-		return encodeURI(decodeURI(uri))
+        try {
+    		return encodeURI(decodeURI(uri))
+        } catch(e) {
+            console.log("ERROR reEncoding url", uri)
+            return uri
+        }
 	}
 	ns.reEncodeComponent = function(uri){
-		return encodeURIComponent(decodeURIComponent(uri))
+        try {
+		    return encodeURIComponent(decodeURIComponent(uri))
+        } catch(e) {
+            console.log("ERROR reEncoding url components", uri)
+            return uri
+        }
 	}
 
 	ns.LRU_reEncode = function(lru){
