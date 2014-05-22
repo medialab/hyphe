@@ -852,7 +852,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(False)
         oldest_page_in_queue = self.db[config['mongo-scrapy']['queueCol']].find_one(sort=[('timestamp', pymongo.ASCENDING)], fields=['_job'], skip=random.randint(0, 2))
         # Run linking WebEntities on a regular basis when needed
-        if self.recent_indexes > 100 or (self.recent_indexes and not oldest_page_in_queue) or (self.recent_indexes and time.time() - self.last_links_loop >= 1800):
+        if self.recent_indexes > 300 or (self.recent_indexes and not oldest_page_in_queue) or (self.recent_indexes and time.time() - self.last_links_loop >= 3600):
             self.loop_running = "generating links"
             self.loop_running_since = time.time()
             s = time.time()
