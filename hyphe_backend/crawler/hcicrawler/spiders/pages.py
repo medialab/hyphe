@@ -17,6 +17,7 @@ from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_u
 from hcicrawler.items import Page
 from hcicrawler.samples import DEFAULT_INPUT
 from hcicrawler.errors import error_name
+from datetime import datetime
 import hashlib
 
 class PagesCrawler(BaseSpider):
@@ -105,6 +106,10 @@ class PagesCrawler(BaseSpider):
         p['depth'] = response.meta['depth']
         if response.headers.get('content-type'):
             p['content_type'] = response.headers.get('content-type').partition(';')[0]
+        if response.headers.get('X-Response-Time'):
+            ts = int(response.headers.get('X-Response-Time'))
+            p['archive_timestamp'] = ts*1000
+            p['archive_date'] = datetime.fromtimestamp(ts).isoformat()[:10]
         p['error'] = None;
         return p
 

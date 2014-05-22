@@ -13,3 +13,5 @@ class Page(Item):
     body = Field()
     lrulinks = Field()
     error = Field()
+    archive_date = Field()
+    archive_timestamp = Field()

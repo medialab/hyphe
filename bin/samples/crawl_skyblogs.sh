@@ -11,7 +11,7 @@ if [ -z "$1" ]; then
     sed "s/'.*$//" > skyrock_webentity.id
 
   ./hyphe_backend/test_client.py store.add_webentity_startpage $(cat skyrock_webentity.id) "http://www.skyrock.com/blog/"
-  ./hyphe_backend/test_client.py crawl_webentity $(cat skyrock_webentity.id) 5
+  ./hyphe_backend/test_client.py crawl_webentity $(cat skyrock_webentity.id) 3
 
 # ./bin/samples/crawl_skyblogs.sh 1 to crawl all skyblogs when crawl is over
 else
@@ -25,7 +25,7 @@ else
     while read id; do
       echo "Start crawl for $id"
       ./hyphe_backend/test_client.py store.set_webentity_status $id in
-      ./hyphe_backend/test_client.py crawl_webentity $id 25 False True
+      ./hyphe_backend/test_client.py crawl_webentity $id 1 False True
     done
 
 fi
