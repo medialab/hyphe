@@ -46,8 +46,12 @@ class PagesCrawler(Spider):
         phantom_args = []
         if proxy is not None:
             phantom_args.append('--proxy=%s' % proxy)
-        self.cookie = os.path.join(tempfile.gettempdir(), 'hyphe-cookie-%s.txt' % uuid.uuid1())
-        phantom_args.append('--cookies-file=%s' % self.cookie)
+        self.cachedir = os.path.join(tempfile.gettempdir(), 'hyphe-%s' % uuid.uuid1())
+        phantom_args.append('--cookies-file=%s' % os.path.join(self.cachedir, 'cookie.txt'))
+        phantom_args.append('--ignore-ssl-errors=true')
+        phantom_args.append('--load-images=false')
+        phantom_args.append('--local-storage-path=%s' % self.cachedir)
+        phantom_args.append('--local-storage-path=%s' % self.cachedir)
         capabilities = dict(DesiredCapabilities.PHANTOMJS)
         capabilities['phantomjs.page.settings.userAgent'] = self.user_agent
         self.phantom = webdriver.PhantomJS(
@@ -58,7 +62,10 @@ class PagesCrawler(Spider):
 
     def closed(self):
         if self.phantom:
-            os.remove(self.cookie)
+            for f in os.listdir(self.cachedir):
+                os.remove(os.path.join(self.cachedir, f))
+            os.rmdir(self.cachedir)
+            self.phantom.stop()
 
     def start_requests(self):
         self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'])
@@ -68,6 +75,11 @@ class PagesCrawler(Spider):
 
     def handle_response(self, response):
         lru = url_to_lru_clean(response.url)
+        if self.phantom:
+            self.phantom.get(response.url)
+            # TODO: handle wait listeners, see phantomas ?
+            time.sleep(5)
+            response.body = self.phantom.page_source.encode('utf-8')
         if 300 < response.status < 400 or isinstance(response, HtmlResponse):
             return self.parse_html(response, lru)
         else:
@@ -155,6 +167,8 @@ class PagesCrawler(Spider):
         kw['meta'] = {'handle_httpstatus_all': True}
         kw['callback'] = self.handle_response
         kw['errback'] = self.handle_error
+        if self.phantom:
+            kw['method'] = 'HEAD'
         return Request(url, **kw)
 
     def has_prefix(self, string, prefixes):
