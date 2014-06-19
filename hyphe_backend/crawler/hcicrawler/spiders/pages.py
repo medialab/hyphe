@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time
+import time, tempfile, uuid
 
 from scrapy.spider import BaseSpider
 from scrapy.http import Request, HtmlResponse
@@ -15,8 +15,12 @@ except:
     from bson.binary import Binary
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url
 from hcicrawler.items import Page
+from hcicrawler.settings import PHANTOM_PATH
 from hcicrawler.samples import DEFAULT_INPUT
 from hcicrawler.errors import error_name
+
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 class PagesCrawler(BaseSpider):
 
@@ -34,6 +38,27 @@ class PagesCrawler(BaseSpider):
         self.user_agent = args['user_agent']
         self.link_extractor = SgmlLinkExtractor(canonicalize=False, deny_extensions=[])
         self.ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
+        self.phantom = None
+        if 'phantom' in args['phantom'] and args['phantom']:
+            self.init_phantom()
+
+    def init_phantom(self):
+        phantom_args = []
+        if proxy is not None:
+            phantom_args.append('--proxy=%s' % proxy)
+        self.cookie = os.path.join(tempfile.gettempdir(), 'hyphe-cookie-%s.txt' % uuid.uuid1())
+        phantom_args.append('--cookies-file=%s' % self.cookie)
+        capabilities = dict(DesiredCapabilities.PHANTOMJS)
+        capabilities['phantomjs.page.settings.userAgent'] = self.user_agent
+        self.phantom = webdriver.PhantomJS(
+            executable_path=PHANTOM_PATH,
+            service_args=phantom_args,
+            desired_capabilities=capabilities
+        )
+
+    def closed(self):
+        if self.phantom:
+            os.remove(self.cookie)
 
     def start_requests(self):
         self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'])

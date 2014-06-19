@@ -30,6 +30,8 @@ MONGO_DB = '{{project}}'
 MONGO_QUEUE_COL = '{{queueCol}}'
 MONGO_PAGESTORE_COL = '{{pageStoreCol}}'
 
+PHANTOM_PATH = os.path.join('{{hyphePath}}', 'bin', 'hyphe-phantomjs-1.9.7')
+
 if 'SCRAPY_JOB' in os.environ:
     JOBID = os.environ['SCRAPY_JOB']
 else:

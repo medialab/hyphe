@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os, sys, time
+from inspect import getsourcefile
 import subprocess, json, pystache
 from shutil import copyfile
 from contextlib import nested
@@ -45,6 +46,8 @@ try:
         config['mongo-scrapy']['proxy_host'] = ''
     if 'proxy_port' not in config['mongo-scrapy']:
         config['mongo-scrapy']['proxy_port'] = 3128
+    curpath = os.path.abspath(getsourcefile(lambda _: None))
+    config['mongo-scrapy']['hyphePath'] = os.path.sep.join(curpath.split(os.path.sep)[:-3])
     with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
         generated.write(pystache.render(template.read(), config['mongo-scrapy']))
 except IOError as e:
