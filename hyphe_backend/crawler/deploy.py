@@ -37,26 +37,14 @@ except IOError as e:
     print e
     exit()
 
-# Render the proxy middleware settings (hcicrawler/middlewares.py) from template with mongo/scrapy proxy config from config.json when defined
-if verbose:
-    print "Rendering hcicrawler/middlewares.py with proxy config values from config.json..."
-proxyconf = {'host': '', 'port': 3128}
-if "proxy_host" in config['mongo-scrapy']:
-    proxyconf['host'] = config['mongo-scrapy']['proxy_host']
-if "proxy_port" in config['mongo-scrapy']:
-    proxyconf['port'] = config['mongo-scrapy']['proxy_port']
-try:
-    with nested(open("hcicrawler/middlewares-template.py", "r"), open("hcicrawler/middlewares.py", "w")) as (template, generated):
-        generated.write(pystache.render(template.read(), proxyconf))
-except IOError as e:
-    print "Could not open either crawler/hcicrawler/middlewares-template.py file or crawler/hcicrawler/middlewares.py"
-    print e
-    exit()
-
 # Render the settings py from template with mongo/scrapy config from config.json
 if verbose:
     print "Rendering settings.py with mongo-scrapy config values from config.json..."
 try:
+    if 'proxy_host' not in config['mongo-scrapy']:
+        config['mongo-scrapy']['proxy_host'] = ''
+    if 'proxy_port' not in config['mongo-scrapy']:
+        config['mongo-scrapy']['proxy_port'] = 3128
     with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
         generated.write(pystache.render(template.read(), config['mongo-scrapy']))
 except IOError as e:

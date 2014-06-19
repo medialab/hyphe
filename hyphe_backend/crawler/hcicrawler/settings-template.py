@@ -18,6 +18,7 @@ CONCURRENT_REQUESTS_PER_DOMAIN = {{max_simul_requests_per_host}}
 DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
 REDIRECT_ENABLED = False
 
+PROXY = '{{proxy_host}}:%s' % {{proxy_port}}
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 110,
     'hcicrawler.middlewares.ProxyMiddleware': 100,
