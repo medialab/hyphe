@@ -3,7 +3,7 @@
 
 import time, tempfile, uuid
 
-from scrapy.spider import BaseSpider
+from scrapy.spider import Spider
 from scrapy.http import Request, HtmlResponse
 from scrapy.linkextractor import IGNORED_EXTENSIONS
 from scrapy.utils.url import url_has_any_extension
@@ -22,7 +22,7 @@ from hcicrawler.errors import error_name
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-class PagesCrawler(BaseSpider):
+class PagesCrawler(Spider):
 
     name = 'pages'
 
