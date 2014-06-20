@@ -7,7 +7,7 @@ from scrapy.spider import Spider
 from scrapy.http import Request, HtmlResponse
 from scrapy.linkextractor import IGNORED_EXTENSIONS
 from scrapy.utils.url import url_has_any_extension
-from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.contrib.linkextractors.regex import RegexLinkExtractor
 from scrapy import log
 try:
     from pymongo.binary import Binary
@@ -25,6 +25,8 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 class PagesCrawler(Spider):
 
     name = 'pages'
+    link_extractor = RegexLinkExtractor(canonicalize=False, deny_extensions=[])
+    ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
 
     def __init__(self, **kw):
         args = DEFAULT_INPUT.copy()
@@ -36,8 +38,6 @@ class PagesCrawler(Spider):
         self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
         self.discover_prefixes = to_list(args['discover_prefixes'])
         self.user_agent = args['user_agent']
-        self.link_extractor = SgmlLinkExtractor(canonicalize=False, deny_extensions=[])
-        self.ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
         self.phantom = None
         if 'phantom' in args and args['phantom']:
             self.init_phantom()
