@@ -57,29 +57,27 @@ class PagesCrawler(Spider):
         self.phantom = webdriver.PhantomJS(
             executable_path=PHANTOM_PATH,
             service_args=phantom_args,
-            desired_capabilities=capabilities
+            desired_capabilities=capabilities,
+            service_log_path=os.path.join(self.cachedir, 'phantomjs.log')
         )
 
     def closed(self, reason):
-        if self.phantom:
+        if self.errors:
+            self.log("%s error%s encountered during the crawl." %
+                (self.errors, 's' if self.errors > 1 else ''))
+        if self.phantom and not self.errors:
             for f in os.listdir(self.cachedir):
                 os.remove(os.path.join(self.cachedir, f))
             os.rmdir(self.cachedir)
-            self.phantom.stop()
-
-    def start_requests(self):
-        self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'])
-        self.log("ARGUMENTS : "+str(self.args))
-        for url in self.start_urls:
-            yield self._request(url)
+            self.phantom.quit()
 
     def handle_response(self, response):
         lru = url_to_lru_clean(response.url)
         if self.phantom:
             self.phantom.get(response.url)
-            # TODO: handle wait listeners, see phantomas ?
-            time.sleep(5)
-            response.body = self.phantom.page_source.encode('utf-8')
+            # TODO: handle wait/click listeners, see phantomas ?
+            time.sleep(3)
+            response._set_body(self.phantom.page_source.encode('utf-8'))
         if 300 < response.status < 400 or isinstance(response, HtmlResponse):
             return self.parse_html(response, lru)
         else:
