@@ -106,7 +106,10 @@ class PagesCrawler(Spider):
             links = [{'url': redir_url}]
             response.meta['depth'] -= 1
         else:
-            links = self.link_extractor.extract_links(response)
+            try:
+                links = self.link_extractor.extract_links(response)
+            except:
+                links = []
         for link in links:
             try:
                 url = link.url
