@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time, tempfile, uuid
+import os, time, uuid
 
 from scrapy.spider import Spider
 from scrapy.http import Request, HtmlResponse
@@ -9,13 +9,14 @@ from scrapy.linkextractor import IGNORED_EXTENSIONS
 from scrapy.utils.url import url_has_any_extension
 from scrapy.contrib.linkextractors.regex import RegexLinkExtractor
 from scrapy import log
+from scrapyd.config import Config as scrapyd_config
 try:
     from pymongo.binary import Binary
 except:
     from bson.binary import Binary
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url
 from hcicrawler.items import Page
-from hcicrawler.settings import PHANTOM_PATH
+from hcicrawler.settings import PHANTOM_PATH, PROXY, HYPHE_PROJECT
 from hcicrawler.samples import DEFAULT_INPUT
 from hcicrawler.errors import error_name
 
@@ -38,15 +39,29 @@ class PagesCrawler(Spider):
         self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
         self.discover_prefixes = to_list(args['discover_prefixes'])
         self.user_agent = args['user_agent']
-        self.phantom = None
-        if 'phantom' in args and args['phantom']:
+        self.phantom = 'phantom' in args and args['phantom']
+        self.errors = 0
+
+    def start_requests(self):
+        self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'])
+        self.log("ARGUMENTS : "+str(self.args))
+        if self.phantom:
             self.init_phantom()
+        for url in self.start_urls:
+            yield self._request(url)
 
     def init_phantom(self):
+        self.cachedir = os.path.join(
+            scrapyd_config().get('logs_dir'),
+            HYPHE_PROJECT,
+            self.name,
+            "%s-phantom" % self.crawler.settings['JOBID']
+        )
+        self.log("Using directory %s for PhantomJs crawl" % self.cachedir)
+        os.makedirs(self.cachedir)
         phantom_args = []
-        if proxy is not None:
-            phantom_args.append('--proxy=%s' % proxy)
-        self.cachedir = os.path.join(tempfile.gettempdir(), 'hyphe-%s' % uuid.uuid1())
+        if PROXY and not PROXY.startswith(':'):
+            phantom_args.append('--proxy=%s' % PROXY)
         phantom_args.append('--cookies-file=%s' % os.path.join(self.cachedir, 'cookie.txt'))
         phantom_args.append('--ignore-ssl-errors=true')
         phantom_args.append('--load-images=false')
@@ -91,6 +106,7 @@ class PagesCrawler(Spider):
         elif not "://www" in failure.request.url:
             return self._request(failure.request.url.replace('://', '://www.'))
         self.log("ERROR : %s" % failure.getErrorMessage())
+        self.errors += 1
         return
 
     def parse_html(self, response, lru):
@@ -110,6 +126,7 @@ class PagesCrawler(Spider):
                 links = self.link_extractor.extract_links(response)
             except:
                 links = []
+                self.errors += 1
         for link in links:
             try:
                 url = link.url
