@@ -39,7 +39,7 @@ class PagesCrawler(Spider):
         self.link_extractor = SgmlLinkExtractor(canonicalize=False, deny_extensions=[])
         self.ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
         self.phantom = None
-        if 'phantom' in args['phantom'] and args['phantom']:
+        if 'phantom' in args and args['phantom']:
             self.init_phantom()
 
     def init_phantom(self):
@@ -60,7 +60,7 @@ class PagesCrawler(Spider):
             desired_capabilities=capabilities
         )
 
-    def closed(self):
+    def closed(self, reason):
         if self.phantom:
             for f in os.listdir(self.cachedir):
                 os.remove(os.path.join(self.cachedir, f))
@@ -138,7 +138,8 @@ class PagesCrawler(Spider):
         p['size'] = len(response.body)
         if isinstance(response, HtmlResponse):
             p['encoding'] = response.encoding
-        p['depth'] = response.meta['depth']
+        if response.meta.get('depth'):
+            p['depth'] = response.meta['depth']
         if response.headers.get('content-type'):
             p['content_type'] = response.headers.get('content-type').partition(';')[0]
         p['error'] = None;
@@ -150,6 +151,7 @@ class PagesCrawler(Spider):
         p = Page()
         p['url'] = url
         p['lru'] = lru
+        p['depth'] = 0
         p['timestamp'] = int(time.time()*1000)
         return p
 
