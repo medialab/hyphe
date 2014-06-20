@@ -151,9 +151,10 @@ Or from CentOS:
     # Update the sources list
     sudo apt-get update
 
-    # Install MongoDB and ScrapyD with pymongo
+    # Install MongoDB and ScrapyD with pymongo and selenium
     sudo apt-get install mongodb-10gen
     sudo pip install pymongo
+    sudo pip install selenium==2.42.1
     sudo apt-get install scrapyd
 ```
 
@@ -171,6 +172,7 @@ enabled=1" > mongodb.repo.tmp
     sudo yum check-update
     sudo yum install mongo-10gen mongo-10gen-server
     sudo pip install pymongo
+    sudo pip install selenium==2.42.1
 ```
 
  * There is no official package for ScrapyD in CentOS yet, so we built one specifically which you can install as follow:
