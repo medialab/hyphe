@@ -33,6 +33,8 @@ If you do not feel comfortable with this, read the script and run the steps line
     tar xzvf hyphe-release-*.tar.gz
     cd Hyphe
     ./bin/install.sh
+    # DO NOT prefix any of these commands with sudo!
+    # The script is already using it wwhere necessary and will ask for your password once.
 ```
 
 ### 2) Configure
@@ -52,7 +54,7 @@ The default configuration should work by default for a local install (i.e. runni
 ### 3) Run Hyphe
 
 Hyphe relies on a web interface communicating with a server which must be running at all times.
-To start, stop or restart the server, run:
+To start, stop or restart the server, run (again, NO SUDO):
 
 ```bash
     bin/hyphe <start|restart|stop>
