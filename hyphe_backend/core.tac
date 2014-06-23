@@ -254,7 +254,7 @@ class Core(jsonrpc.JSONRPC):
         return format_result(res)
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None, use_all_pages_as_startpages=False, use_prefixes_as_startpages=False):
+    def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None, use_all_pages_as_startpages=False, use_prefixes_as_startpages=False, phantom_crawl=False):
         """Tells scrapy to run crawl on a WebEntity defined by its id from memory structure."""
         try:
             maxdepth = int(maxdepth)
@@ -270,7 +270,7 @@ class Core(jsonrpc.JSONRPC):
         if WE['status'] == ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.DISCOVERED]:
             yield self.store.jsonrpc_set_webentity_status(webentity_id, ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.UNDECIDED])
         yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true")
-        res = yield self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], config['discoverPrefixes'], maxdepth)
+        res = yield self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], config['discoverPrefixes'], maxdepth, phantom_crawl)
         returnD(res)
 
     def jsonrpc_get_webentity_logs(self, webentity_id):
@@ -354,7 +354,7 @@ class Crawler(jsonrpc.JSONRPC):
         except Exception as e:
             return format_error(e)
 
-    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=config['discoverPrefixes'], maxdepth=config['mongo-scrapy']['maxdepth'], download_delay=config['mongo-scrapy']['download_delay'], corpus=''):
+    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=config['discoverPrefixes'], maxdepth=config['mongo-scrapy']['maxdepth'], phantom_crawl=False, download_delay=config['mongo-scrapy']['download_delay'], corpus=''):
         """Starts a crawl with scrapy from arguments using a list of urls and of lrus for prefixes."""
         if maxdepth > config['mongo-scrapy']['maxdepth']:
             return format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % config['mongo-scrapy']['maxdepth'])
@@ -363,6 +363,7 @@ class Crawler(jsonrpc.JSONRPC):
         # preparation of the request to scrapyd
         args = {'project': config['mongo-scrapy']['project'],
                   'spider': 'pages',
+                  'phantom': phantom_crawl,
                   'setting': 'DOWNLOAD_DELAY=' + str(download_delay),
                   'maxdepth': maxdepth,
                   'start_urls': list(starts),
