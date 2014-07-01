@@ -39,7 +39,7 @@ class PagesCrawler(Spider):
         self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
         self.discover_prefixes = to_list(args['discover_prefixes'])
         self.user_agent = args['user_agent']
-        self.phantom = 'phantom' in args and args['phantom']
+        self.phantom = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
         self.errors = 0
 
     def start_requests(self):
