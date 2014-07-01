@@ -803,7 +803,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             s=time.time()
             nb_links = len(links)
             for link_list in [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]:
-                res = yield self.msclient_loop.saveNodeLinks([ms.NodeLink(source,target,weight) for source,target,weight in link_list])
+                res = yield self.msclient_loop.saveNodeLinks([ms.NodeLink(source.encode('utf-8'),target.encode('utf-8'),weight) for source,target,weight in link_list])
                 if is_error(res):
                     print res['message']
                     returnD(False)
