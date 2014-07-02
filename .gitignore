@@ -1,4 +1,5 @@
 bin/hyphe
+bin/hyphe-phantomjs-1.9.7
 config/config.json*
 *.pid
 *.pyc

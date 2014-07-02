@@ -8,6 +8,7 @@ txJSON-RPC
 thrift
 #https://github.com/amuraru/thrift-connection-pool/archive/master.zip
 pystache
+selenium==2.42.1
 # 
 # General :
 # thrift 0.8 : https://dist.apache.org/repos/dist/release/thrift/0.8.0/thrift-0.8.0.tar.gz

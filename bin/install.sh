@@ -15,6 +15,8 @@ if cat /etc/issue 2> /dev/null | grep -i "debian\|ubuntu" > /dev/null; then
   mongo='mongodb'
   mongo_pack='mongodb-10gen'
   java='openjdk-6-jre'
+  freetype='libfreetype6 libfreetype6-dev libfontconfig'
+  libstd='libstdc++6'
 else
   echo "Install for CentOS/Fedora/RedHat"
   centos=true
@@ -27,6 +29,8 @@ else
   mongo='mongod'
   mongo_pack='mongo-10gen mongo-10gen-server'
   java='java-1.6.0-openjdk'
+  freetype='freetype libfreetype.so.6 libfontconfig.so.1'
+  libstd='libstdc++.so.6'
 fi
 echo "-----------------------"
 
@@ -36,6 +40,8 @@ echo "-----------------------"
 echo
 sudo $repos_tool $repos_updt > /dev/null || $centos || exit 1
 sudo $repos_tool -y install curl wget git $python_dev python-pip $apache $php >> install.log || exit 1
+sudo $repos_tool -y install fontconfig $freetype >> install.log || exit 1
+sudo $repos_tool -y install $libstd >> install.log
 if $centos; then
   sudo chkconfig --levels 235 httpd on || exit 1
   sudo service httpd restart || exit 1
@@ -136,6 +142,9 @@ if ! curl -s "http://localhost:6800/listprojects.json" > /dev/null 2>&1; then
   echo "Could not start ScrapyD server properly. Please check your install" && exit 1
 fi
 echo
+
+# Install local PhantomJS
+./bin/install_phantom.sh >> install.log || exit 1
 
 # Install JAVA if necessary
 echo "Check JAVA and install OpenJDK if necessary..."

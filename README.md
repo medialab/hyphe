@@ -130,14 +130,14 @@ All of this steps are adaptable to Debian and CentOS as can be read in the ```bi
 Install possible missing required basics:
 
 ```bash
-    sudo apt-get install curl wget git python-dev python-pip apache2 php5
+    sudo apt-get install curl wget git python-dev python-pip apache2 php5 fontconfig libfreetype6 libfreetype6-dev libfontconfig libstdc++6
 ```
 Or from CentOS:
 ```bash
-    sudo yum install curl git python-devel python-setuptools python-pip httpd php
+    sudo yum install curl git python-devel python-setuptools python-pip httpd php fontconfig freetype libfreetype.so.6 libfontconfig.so.1 #libstdc++.so.6
 ```
 
-#### 2.2) Install [MongoDB](http://www.mongodb.org/) and [ScrapyD](http://scrapyd.readthedocs.org/en/latest/):
+#### 2.2) Install [MongoDB](http://www.mongodb.org/), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) and [PhantomJS](http://phantomjs.org/):
 
 - Edit your package manager source list to include official repositories for MongoDB and ScrapyD:
 
@@ -158,6 +158,9 @@ Or from CentOS:
     sudo pip install pymongo
     sudo pip install selenium==2.42.1
     sudo apt-get install scrapyd
+
+    # Install the local PhantomJS binary:
+    ./bin/install_phantom.sh
 ```
 
 - In CentOS, this is slightly more complex:
@@ -173,8 +176,14 @@ enabled=1" > mongodb.repo.tmp
     # Then update yum's source list and install:
     sudo yum check-update
     sudo yum install mongo-10gen mongo-10gen-server
+```
+
+ * Install python's required libraries for the ScrapyD spiders and the local PhantomJS binary:
+
+```bash
     sudo pip install pymongo
     sudo pip install selenium==2.42.1
+    ./bin/install_phantom.sh
 ```
 
  * There is no official package for ScrapyD in CentOS yet, so we built one specifically which you can install as follow:
