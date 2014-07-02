@@ -95,8 +95,8 @@ To run on a server and not only locally, a few adjustments need to be performed:
 
 ```bash
     <Location /hyphe-api>
-        ProxyPass http://www.example.com:6978/
-        ProxyPassReverse http://www.example.com:6978/
+        ProxyPass http://localhost:6978/
+        ProxyPassReverse http://localhost:6978/
     </Location>
 ```
 
@@ -106,9 +106,11 @@ To run on a server and not only locally, a few adjustments need to be performed:
     "SERVER_ADDRESS":"http://www.example.com/hyphe-api",
 ```
 
+ - If Apache is still reluctant to serve Hyphe's frontend and API and you encounter 403 errors, adding the line "Require all granted" before the "Order allow,deny" one in the ```apache2.conf``` file usually solves the problem. Please [report an issue](https://github.com/medialab/Hypertext-Corpus-Initiative/issues) otherwise.
+
 
 ## Detailed advanced install
-Like everywhere in this README, every example command showed here should be ran from Hyphe's root directory.
+Like everywhere in this README, every example command showed here should be ran from Hyphe's root directory and sudo should be used only when explicitly mentioned.
 
 ### 1) Download the source code
 
