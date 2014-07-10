@@ -32,6 +32,7 @@ MONGO_QUEUE_COL = '{{queueCol}}'
 MONGO_PAGESTORE_COL = '{{pageStoreCol}}'
 
 PHANTOM_PATH = os.path.join('{{hyphePath}}', 'bin', 'hyphe-phantomjs-1.9.7')
+JS_PATH = os.path.join('{{hyphePath}}', 'hyphe_backend', 'crawler', BOT_NAME, 'spiders', 'js')
 
 if 'SCRAPY_JOB' in os.environ:
     JOBID = os.environ['SCRAPY_JOB']

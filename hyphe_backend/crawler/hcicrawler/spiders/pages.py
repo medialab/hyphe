@@ -16,7 +16,7 @@ except:
     from bson.binary import Binary
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url
 from hcicrawler.items import Page
-from hcicrawler.settings import PHANTOM_PATH, PROXY, HYPHE_PROJECT
+from hcicrawler.settings import PHANTOM_PATH, PROXY, HYPHE_PROJECT, JS_PATH
 from hcicrawler.samples import DEFAULT_INPUT
 from hcicrawler.errors import error_name
 
