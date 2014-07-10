@@ -92,7 +92,9 @@ class PagesCrawler(BaseSpider):
             self.phantom.get(response.url)
             # TODO: handle wait/click listeners, see phantomas ?
             time.sleep(3)
-            response._set_body(self.phantom.page_source.encode('utf-8'))
+            with open(os.path.join(JS_PATH, "get_iframes_content.js")) as js:
+                iframes = self.phantom.execute_script(js.read())
+            response._set_body((self.phantom.page_source+iframes).encode('utf-8'))
         if 300 < response.status < 400 or isinstance(response, HtmlResponse):
             return self.parse_html(response, lru)
         else:
