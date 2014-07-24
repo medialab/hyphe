@@ -672,6 +672,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
             return format_error("ERROR: please specify a value for the WebEntity's name")
         return self.update_webentity(webentity_id, "name", new_name)
 
+    def jsonrpc_change_webentity_id(self, webentity_old_id, webentity_new_id):
+        res = self.update_webentity(webentity_old_id, "id", webentity_new_id)
+        if is_error(res):
+            return format_error('ERROR a WebEntity with id %s already seems to exist' % webentity_new_id)
+        res = self.jsonrpc_delete_webentity(webentity_old_id)
+        if is_error(res):
+            return format_error('ERROR a WebEntity with id %s already seems to exist' % webentity_new_id)
+        return format_result("WebEntity %s was re-ided as %s" % (webentity_old_id, webentity_new_id))
+
     def jsonrpc_set_webentity_status(self, webentity_id, status):
         return self.update_webentity(webentity_id, "status", status)
 
