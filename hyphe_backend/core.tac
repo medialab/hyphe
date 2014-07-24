@@ -679,6 +679,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = self.jsonrpc_delete_webentity(webentity_old_id)
         if is_error(res):
             return format_error('ERROR a WebEntity with id %s already seems to exist' % webentity_new_id)
+        self.total_webentities += 1
         return format_result("WebEntity %s was re-ided as %s" % (webentity_old_id, webentity_new_id))
 
     def jsonrpc_set_webentity_status(self, webentity_id, status):
