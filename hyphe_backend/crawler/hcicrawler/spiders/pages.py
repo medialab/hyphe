@@ -94,7 +94,7 @@ class PagesCrawler(BaseSpider):
             time.sleep(3)
             with open(os.path.join(JS_PATH, "get_iframes_content.js")) as js:
                 iframes = self.phantom.execute_script(js.read())
-            response._set_body((self.phantom.page_source+iframes).encode('utf-8'))
+            response._set_body((iframes).encode('utf-8'))
         if 300 < response.status < 400 or isinstance(response, HtmlResponse):
             return self.parse_html(response, lru)
         else:
