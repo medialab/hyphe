@@ -1,0 +1,42 @@
+
+
+/* ==========================================================================
+   Generic styles
+   ========================================================================== */
+
+/* Adjusting to the presence of a nav bar */
+body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Global color and font */
+body {
+  color: #555;
+  /*font-family: 'Roboto Condensed', sans-serif;*/
+  font-family: 'Roboto', sans-serif;
+}
+.label, .badge{
+  font-family: sans-serif;
+}
+
+/* ==========================================================================
+   Welcome page
+   ========================================================================== */
+
+div.welcome-column{
+	margin-top: 160px;
+	text-align: center;
+}
+
+
+
+
+
+
+
+
+
+
+
+
