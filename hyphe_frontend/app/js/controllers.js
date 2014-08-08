@@ -14,5 +14,6 @@ angular.module('hyphe.controllers', [])
   	$scope.gloss = function(term){
   		return term
   	}
+  	$scope.parsingOption = 'paste_csv'
   }])
 

@@ -9,10 +9,39 @@
             <div class="row">
               <div class="col-md-12">
                 <h1 class="page-title">IMPORT URLS</h1>
-                <p class="text-info">
-                  Your URL addresses will be "converted" into {{gloss('web entities')}}. Additionnal data like tags are imported.
+                <br/>
+                <ul class="nav nav-tabs" role="tablist">
+                  <li ng-class="{active: parsingOption=='paste_csv'}"><a href="" ng-click="parsingOption='paste_csv'">Paste CSV</a></li>
+                  <li ng-class="{active: parsingOption=='paste_tsv'}"><a href="" ng-click="parsingOption='paste_tsv'">Paste TSV</a></li>
+                  <li ng-class="{active: parsingOption=='paste_text'}"><a href="" ng-click="parsingOption='paste_text'">Paste text</a></li>
+                  <li>
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="">
+                      Import file <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu">
+                      <li><a href="">CSV</a></li>
+                      <li><a href="">TSV</a></li>
+                      <li><a href="">Text</a></li>
+                    </ul>
+                  </li>
+                </ul>
+                <p class="text-info import-info" ng-show="parsingOption=='paste_csv'">
+                  URL addresses are extracted to build {{gloss('web entities')}}. Note: <strong>one URL by line</strong>.
+                  <br>
+                  Additionnal data like categories, <strong>separated by comma</strong>, are imported.
                 </p>
-                
+                <p class="text-info import-info" ng-show="parsingOption=='paste_tsv'">
+                  URL addresses are extracted to build {{gloss('web entities')}}. Note: <strong>one URL by line</strong>.
+                  <br>
+                  Additionnal data like categories, <strong>separated by tab</strong>, are imported.
+                </p>
+                <p class="text-info import-info" ng-show="parsingOption=='paste_text'">
+                  URL addresses are <strong>fetched in the full text</strong> to build {{gloss('web entities')}}.
+                  <br>
+                  There can be any number of URLs per line, but no category or additionnal data is imported.
+                </p>
+                <textarea class="form-control" rows="8"></textarea>
+                <button class="btn btn-primary center-block" id="define-we-button">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</button>
               </div>
             </div>
           </div>

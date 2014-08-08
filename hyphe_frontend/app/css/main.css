@@ -44,7 +44,7 @@ h1.page-title{
    ========================================================================== */
 
 div.welcome-column{
-	margin-top: 160px;
+	margin-top: 120px;
 	text-align: center;
 }
 div.welcome-column h1{
@@ -118,6 +118,13 @@ div.welcome-column h1{
   font-weight: 600;
 }
 
+.import-info{
+  margin-top: 8px;
+}
+
+#define-we-button{
+  margin-top: 6px;
+}
 
 
 
