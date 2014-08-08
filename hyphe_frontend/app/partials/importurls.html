@@ -1,19 +1,10 @@
     <div class="container-fluid">
-      <div class="row no-gutter topbar">
-        <div class="col-lg-2 col-md-3 col-sm-4 topbar-project">
-          Project
-        </div>
-        <div class="col-lg-8 col-md-6 col-sm-4 topbar-status">
-          hyphe status
-        </div>
-        <div class="col-lg-2 col-md-3 col-sm-4 topbar-branding">
-          Sciences Po | médialab
-        </div>
+      <div class="row no-gutter topbar" ng-include="'partials/sub/topbar.html'">
       </div>
       <div class="row no-gutter">
-        <div class="col-lg-2 col-md-3 col-sm-4 sidebar-col" ng-include="'partials/sub/menu.html'">
+        <div class="col-lg-2 col-md-3 col-sm-4 sidebar-col" ng-include="'partials/sub/sidebar.html'">
         </div>
-        <div class="col-lg-10 col-md-7 col-sm-6">
+        <div class="col-lg-10 col-md-9 col-sm-8">
           <div class="container-fluid">
             <div class="row">
               <div class="col-md-12">
@@ -21,6 +12,7 @@
                 <p class="text-info">
                   Your URL addresses will be "converted" into {{gloss('web entities')}}. Additionnal data like tags are imported.
                 </p>
+                
               </div>
             </div>
           </div>
