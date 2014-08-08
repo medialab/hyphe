@@ -13,6 +13,9 @@ body {
   font-family: sans-serif;
   font-weight: 400;
 }
+h1.page-title{
+  font-weight: 300;
+}
 
 
 /* ==========================================================================
@@ -21,16 +24,16 @@ body {
 
 /* remove spacing between middle columns */
 @media (min-width: 768px) { /* sm screen and up */
-  .row.no-gutter [class*='col-']:not(:first-child):not(:last-child) {
+  .row.no-gutter>[class*='col-']:not(:first-child):not(:last-child) {
     padding-right:0;
     padding-left:0;
   }
   /* remove right padding from first column */
-  .row.no-gutter [class*='col-']:first-child {
+  .row.no-gutter>[class*='col-']:first-child {
     padding-right:0;
   }
   /* remove left padding from first column */
-  .row.no-gutter [class*='col-']:last-child {
+  .row.no-gutter>[class*='col-']:last-child {
     padding-left:0;
   }
 }
