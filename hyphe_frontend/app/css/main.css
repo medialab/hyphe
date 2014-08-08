@@ -4,12 +4,6 @@
    Generic styles
    ========================================================================== */
 
-/* Adjusting to the presence of a nav bar */
-body {
-    padding-top: 50px;
-    padding-bottom: 20px;
-}
-
 /* Global color and font */
 body {
   color: #555;
@@ -21,7 +15,7 @@ body {
 }
 
 /* ==========================================================================
-   Welcome page
+   Login page
    ========================================================================== */
 
 div.welcome-column{
@@ -30,8 +24,45 @@ div.welcome-column{
 }
 
 
+/* ==========================================================================
+   Top bar
+   ========================================================================== */
+.topbar{
+  background-color: #3AA6DD;
+  color: #AFD6EE;
+  font-weight: 400;
+  font-size: 1.3em;
+}
+.topbar-project{
+  background-color: #1B4C6B;
+  color: #FFF;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.topbar-status{
+  background-color: #FF846F;
+  color: #FFF;
+  text-align: center;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.topbar-branding{
+  text-align: right;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
 
 
+/* ==========================================================================
+   Sidebar nav
+   ========================================================================== */
+.sidebar span.symbol{
+  float: left;
+  width: 40px;
+}
+.sidebar li.spacer{
+  margin-bottom: 24px;
+}
 
 
 

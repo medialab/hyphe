@@ -17,38 +17,11 @@
   <script src="bower_components/html5-boilerplate/js/vendor/modernizr-2.6.2.min.js"></script>
 </head>
 <body>
-  <ul class="menu">
-    <li><a href="#/view1">view 1</a></li>
-    <li><a href="#/view2">view 2</a></li>
-  </ul>
-
   <!--[if lt IE 7]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
   <![endif]-->
 
-  <div ng-view></div>
-
-  <div>Angular seed app: v<span app-version></span></div>
-
-  <div class="container-fluid">
-    <div class="row" ng-controller="Project">
-      <div class="col-md-5">
-      </div>
-      <div class="col-md-2">
-        <div class="welcome-column">
-          <img src="img/hyphe logo med.png"/ title="hyphe-logo">
-          <h1>hyphe</h1>
-          <br/>
-          <br/>
-          <p>
-            <button type="button" class="btn btn-primary" ng-click="project = 0">Go to the project</button>
-          </p>
-          <p class="text-info">Currently there is only one project per hyphe</p>
-        </div>
-      </div>
-      <div class="col-md-5">
-      </div>
-    </div>
+  <div ng-view>
   </div>
 
   <!-- jQuery -->
