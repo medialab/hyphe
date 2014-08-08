@@ -7,6 +7,6 @@ angular.module('hyphe.controllers', [])
 
   }])
   .controller('Overview', ['$scope', function($scope) {
-
+  	$scope.currentPage = 'overview'
   }])
 
