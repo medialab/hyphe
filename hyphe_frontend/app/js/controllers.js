@@ -7,26 +7,27 @@ angular.module('hyphe.controllers', [])
   	$scope.currentPage = 'login'
   }])
   .controller('Overview', ['$scope', function($scope) {
-  	$scope.currentPage = 'overview'
+    $scope.currentPage = 'overview'
   }])
-  .controller('ImportUrls', ['$scope', 'fileLoader', function($scope, fileLoader) {
-  	$scope.currentPage = 'importurls'
-  	$scope.glossary = function(term){
-  		return term
-  	}
-  	$scope.parsingOption = 'paste_csv'
-  	$scope.parsingFileOption = ''
+  .controller('ImportUrls', ['$scope', 'FileLoader', 'glossary', 'Parser', function($scope, FileLoader, glossary, Parser) {
+    $scope.currentPage = 'importurls'
+    $scope.glossary = glossary
+    
+    var droppableTextArea = document.getElementById("droppable-text-area")
+      ,parser = new Parser()
+
+    $scope.parsingOption = 'csv'
 
     $scope.dataText = ''
+    $scope.csvPreview = [[]]
 
-  	$scope.loadFile = function(parsingFileOption){
-  		$scope.parsingFileOption = parsingFileOption
-  		$('#hidden-file-input').trigger('click');
-  	}
+    $scope.loadFile = function(){
+      $('#hidden-file-input').trigger('click');
+    }
 
-  	$scope.setFile = function(element) {
-    	var file = element.files[0]
-    	$scope.readFile(file)
+    $scope.setFile = function(element) {
+      var file = element.files[0]
+      $scope.readFile(file)
     }
 
     $scope.readFile = function(file){
@@ -51,9 +52,44 @@ angular.module('hyphe.controllers', [])
       })
     }
 
+    // Custom filtering for the previews
+    $scope.$watch('dataText', updatePreview)
+    $scope.$watch('parsingOption', updatePreview)
+
+    function updatePreview() {
+      if($scope.parsingOption=='csv'){
+        $scope.csvPreview = buildPreview_table($scope.dataText, 4, 10, 'csv')
+      }
+
+      if($scope.parsingOption=='tsv'){
+        $scope.tsvPreview = buildPreview_table($scope.dataText, 4, 10, 'tsv')
+      }
+
+      function buildPreview_table(text, maxRow, maxCol, mode) {
+        maxRow = maxRow || 3
+        maxCol = maxCol || 3
+
+        if(text == '')
+          return ''
+
+        var data_text = String(text)
+          ,array_data = ((mode=='tsv')?(parser.parseTSV(data_text)):(parser.parseCSV(data_text)))
+          ,array_data_filtered = array_data
+            .filter(function(row,i){
+              return i < maxRow
+            })
+            .map(function(row,i){
+              return row.filter(function(col,j){
+                return j < maxCol
+              })
+            })
+
+        return array_data_filtered
+      }
+    }
+
     //============== DRAG & DROP =============
     // adapted from http://jsfiddle.net/danielzen/utp7j/
-    var dropbox = document.getElementById("droppable-text-area")
 
     // init event handlers
     function dragEnterLeave(evt) {
@@ -63,9 +99,9 @@ angular.module('hyphe.controllers', [])
         $scope.dropClass = 'over'
       })
     }
-    dropbox.addEventListener("dragenter", dragEnterLeave, false)
-    dropbox.addEventListener("dragleave", dragEnterLeave, false)
-    dropbox.addEventListener("dragover", function(evt) {
+    droppableTextArea.addEventListener("dragenter", dragEnterLeave, false)
+    droppableTextArea.addEventListener("dragleave", dragEnterLeave, false)
+    droppableTextArea.addEventListener("dragover", function(evt) {
       evt.stopPropagation()
       evt.preventDefault()
       var ok = evt.dataTransfer && evt.dataTransfer.types && evt.dataTransfer.types.indexOf('Files') >= 0
@@ -73,8 +109,8 @@ angular.module('hyphe.controllers', [])
         $scope.dropClass = ok ? 'over' : 'over-error'
       })
     }, false)
-    dropbox.addEventListener("drop", function(evt) {
-      console.log('drop evt:', JSON.parse(JSON.stringify(evt.dataTransfer)))
+    droppableTextArea.addEventListener("drop", function(evt) {
+      // console.log('drop evt:', JSON.parse(JSON.stringify(evt.dataTransfer)))
       evt.stopPropagation()
       evt.preventDefault()
       $scope.$apply(function(){
@@ -84,8 +120,8 @@ angular.module('hyphe.controllers', [])
       if (files.length == 1) {
         $scope.$apply(function(){
           $scope.readFile(files[0])
+          $scope.dropClass = ''
         })
       }
     }, false)
-    //============== DRAG & DROP =============
 }])
