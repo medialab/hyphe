@@ -141,6 +141,16 @@ Or from CentOS:
 
 #### 2.2) Install [MongoDB](http://www.mongodb.org/), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) and [PhantomJS](http://phantomjs.org/):
 
+- Install PhantomJS:
+
+Hyphe currently uses PhantomJS 2.0 to ensure proper handling of websites using modern javascript such as Facebook.
+The latest official release still being 1.9.7 while 2.0 is stil unstable in development and its compilation takes quite some time, so Hyphe ships for now with a precompiled binary for phantomjs 2.0.
+It will be removed from the repository when the official 2.0 release is made. Until then you should not need to run the following command.
+
+```bash
+    #./bin/install_phantom.sh
+```
+
 - Edit your package manager source list to include official repositories for MongoDB and ScrapyD:
 
 ```bash
@@ -160,9 +170,6 @@ Or from CentOS:
     sudo pip install pymongo
     sudo pip install selenium==2.42.1
     sudo apt-get install scrapyd
-
-    # Install the local PhantomJS binary:
-    ./bin/install_phantom.sh
 ```
 
 - In CentOS, this is slightly more complex:
@@ -185,7 +192,6 @@ enabled=1" > mongodb.repo.tmp
 ```bash
     sudo pip install pymongo
     sudo pip install selenium==2.42.1
-    ./bin/install_phantom.sh
 ```
 
  * There is no official package for ScrapyD in CentOS yet, so we built one specifically which you can install as follow:

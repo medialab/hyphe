@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, time, uuid
-
+import os, time, uuid, sys
+try:
+    import json
+except:
+    import simplejson as json
 from scrapy.spider import BaseSpider
 from scrapy.http import Request, HtmlResponse
 from scrapy.linkextractor import IGNORED_EXTENSIONS
@@ -14,14 +17,22 @@ try:
     from pymongo.binary import Binary
 except:
     from bson.binary import Binary
-from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url
-from hcicrawler.items import Page
-from hcicrawler.settings import PHANTOM_PATH, PROXY, HYPHE_PROJECT, JS_PATH
-from hcicrawler.samples import DEFAULT_INPUT
-from hcicrawler.errors import error_name
 
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
+import signal
+
+from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url
+from hcicrawler.items import Page
+from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM
+from hcicrawler.samples import DEFAULT_INPUT
+from hcicrawler.errors import error_name
+
+class TimeOut(Exception):
+    pass
+def timeout_alarm(*args):
+    raise SeleniumTimeout
 
 class PagesCrawler(BaseSpider):
 
@@ -66,35 +77,61 @@ class PagesCrawler(BaseSpider):
         phantom_args.append('--ignore-ssl-errors=true')
         phantom_args.append('--load-images=false')
         phantom_args.append('--local-storage-path=%s' % self.cachedir)
-        phantom_args.append('--local-storage-path=%s' % self.cachedir)
-        capabilities = dict(DesiredCapabilities.PHANTOMJS)
-        capabilities['phantomjs.page.settings.userAgent'] = self.user_agent
+        self.capabilities = dict(DesiredCapabilities.PHANTOMJS)
+        self.capabilities['phantomjs.page.settings.userAgent'] = self.user_agent
+        self.capabilities['takesScreenshot'] = False
+        self.capabilities['phantomjs.page.settings.javascriptCanCloseWindows'] = False
+        self.capabilities['phantomjs.page.settings.javascriptCanOpenWindows'] = False
         self.phantom = webdriver.PhantomJS(
-            executable_path=PHANTOM_PATH,
+            executable_path=PHANTOM['PATH'],
             service_args=phantom_args,
-            desired_capabilities=capabilities,
+            desired_capabilities=self.capabilities,
             service_log_path=os.path.join(self.cachedir, 'phantomjs.log')
         )
+        self.phantom.implicitly_wait(10);
+        self.phantom.set_page_load_timeout(60);
+        self.phantom.set_script_timeout(PHANTOM['TIMEOUT'] + 15);
 
     def closed(self, reason):
         if self.errors:
             self.log("%s error%s encountered during the crawl." %
                 (self.errors, 's' if self.errors > 1 else ''))
-        if self.phantom and not self.errors:
-            for f in os.listdir(self.cachedir):
-                os.remove(os.path.join(self.cachedir, f))
-            os.rmdir(self.cachedir)
+        if self.phantom:
             self.phantom.quit()
+            if not self.errors:
+                for f in os.listdir(self.cachedir):
+                    os.remove(os.path.join(self.cachedir, f))
+                os.rmdir(self.cachedir)
 
     def handle_response(self, response):
         lru = url_to_lru_clean(response.url)
+
         if self.phantom:
             self.phantom.get(response.url)
-            # TODO: handle wait/click listeners, see phantomas ?
-            time.sleep(3)
-            with open(os.path.join(JS_PATH, "get_iframes_content.js")) as js:
-                iframes = self.phantom.execute_script(js.read())
-            response._set_body((iframes).encode('utf-8'))
+            self.log("Start PhantomJS scrolling and unfolding")
+            with open(os.path.join(PHANTOM["JS_PATH"], "scrolldown_and_unfold.js")) as js:
+                try:
+                    signal.signal(signal.SIGALRM, timeout_alarm)
+                    signal.alarm(PHANTOM["TIMEOUT"] + 30)
+                    self.phantom.execute_async_script(
+                        js.read(), PHANTOM["TIMEOUT"],
+                        PHANTOM["IDLE_TIMEOUT"], PHANTOM["AJAX_TIMEOUT"])
+                    signal.alarm(0)
+                    self.log("Scrolling/Unfolding finished")
+                except SeleniumTimeout:
+                    self.log("Scrolling/Unfolding timed-out (%ss)" % PHANTOM["TIMEOUT"])
+                    self.errors += 1
+                except WebDriverException as e:
+                    err = json.loads(e.msg)['errorMessage']
+                    self.log("Scrolling/Unfolding crashed: %s" % err)
+                    self.errors += 1
+
+            # Collect whole DOM of the webpage including embedded iframes
+            with open(os.path.join(PHANTOM["JS_PATH"], "get_iframes_content.js")) as js:
+                bod_w_iframes = self.phantom.execute_script(js.read())
+
+            response._set_body(bod_w_iframes.encode('utf-8'))
+
         if 300 < response.status < 400 or isinstance(response, HtmlResponse):
             return self.parse_html(response, lru)
         else:

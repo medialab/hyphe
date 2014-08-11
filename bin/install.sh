@@ -144,7 +144,9 @@ fi
 echo
 
 # Install local PhantomJS
-./bin/install_phantom.sh >> install.log || exit 1
+if ! test -f bin/hyphe-phantomjs-2.0.0; then
+  ./bin/install_phantom.sh >> install.log || exit 1
+fi
 
 # Install JAVA if necessary
 echo "Check JAVA and install OpenJDK if necessary..."
