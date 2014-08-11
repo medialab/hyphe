@@ -1,0 +1,140 @@
+
+
+/* ==========================================================================
+   Generic styles
+   ========================================================================== */
+
+/* Global color and font */
+body {
+  color: #555;
+  font-family: 'Source Sans Pro', sans-serif;
+}
+.label, .badge{
+  font-family: sans-serif;
+  font-weight: 400;
+}
+h1.page-title{
+  font-weight: 300;
+}
+
+
+/* ==========================================================================
+   "No-gutter" option for bootstrap rows
+   ========================================================================== */
+
+/* remove spacing between middle columns */
+@media (min-width: 768px) { /* sm screen and up */
+  .row.no-gutter>[class*='col-']:not(:first-child):not(:last-child) {
+    padding-right:0;
+    padding-left:0;
+  }
+  /* remove right padding from first column */
+  .row.no-gutter>[class*='col-']:first-child {
+    padding-right:0;
+  }
+  /* remove left padding from first column */
+  .row.no-gutter>[class*='col-']:last-child {
+    padding-left:0;
+  }
+}
+
+
+/* ==========================================================================
+   Login page
+   ========================================================================== */
+
+div.welcome-column{
+	margin-top: 120px;
+	text-align: center;
+}
+div.welcome-column h1{
+  font-size: 52px;
+  font-weight: 300;
+}
+
+
+/* ==========================================================================
+   Top bar
+   ========================================================================== */
+.topbar{
+  background-color: #EFEBE8;
+  font-size: 18px;
+}
+.topbar-project{
+  background-color: #428bca;
+  color: #FFF;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  font-weight: 600;
+}
+.topbar-status{
+  text-align: center;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  font-weight: 300;
+}
+.topbar-branding{
+  text-align: right;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+
+/* ==========================================================================
+   Sidebar nav
+   ========================================================================== */
+.sidebar-col{
+  background-color: #EFEBE8;
+  border-radius: 0px 0px 6px 0px;
+}
+.sidebar span.symbol{
+  float: left;
+  width: 26px;
+}
+.sidebar li.spacer{
+  margin-bottom: 24px;
+}
+
+/* Relooking the nav pills */
+.sidebar>li>a{
+  color: #1B4C6B;
+  border-radius: 4px 0px 0px 4px;
+}
+@media (max-width: 768px) { /* xs screen only */
+  .sidebar>li>a{
+    border-radius: 4px 4px 4px 4px;
+  }
+  .sidebar-col{
+    padding-right: 15px;
+  }
+}
+.sidebar>li>a:hover{
+  background-color: #FFF;
+  color: #1B4C6B;
+}
+.sidebar>li.active>a, .sidebar>li.active>a:hover{
+  background-color: #FFF;
+  color: #000;
+  font-weight: 600;
+}
+
+.import-info{
+  margin-top: 8px;
+}
+
+#define-we-button{
+  margin-top: 6px;
+}
+
+
+/* ==========================================================================
+   Import URLs page
+   ========================================================================== */
+textarea.over{
+  border-color: rgba(117, 179, 229, 0.8);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(117, 179, 229, 0.6);
+}
+textarea.over-error{
+  border-color: rgba(148, 25, 25, 0.8);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(148, 25, 25, 0.6);
+}
