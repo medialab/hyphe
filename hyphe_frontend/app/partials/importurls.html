@@ -19,9 +19,9 @@
                       Import file <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu" role="menu">
-                      <li><a href="">CSV</a></li>
-                      <li><a href="">TSV</a></li>
-                      <li><a href="">Text</a></li>
+                      <li><a href="" ng-click="loadFile('CSV')">CSV</a></li>
+                      <li><a href="" ng-click="loadFile('TSV')">TSV</a></li>
+                      <li><a href="" ng-click="loadFile('text')">Text</a></li>
                     </ul>
                   </li>
                 </ul>
@@ -36,12 +36,15 @@
                   Additionnal data like categories, <strong>separated by tab</strong>, are imported.
                 </p>
                 <p class="text-info import-info" ng-show="parsingOption=='paste_text'">
-                  URL addresses are <strong>fetched in the full text</strong> to build {{gloss('web entities')}}.
+                  URL addresses are <strong>fetched in the full text</strong> to build {{glossary('web entities')}}.
                   <br>
                   There can be any number of URLs per line, but no category or additionnal data is imported.
                 </p>
-                <textarea class="form-control" rows="8"></textarea>
+                <textarea id="droppable-text-area" class="form-control" rows="8" placeholder="Paste your data here" ng-class="dropClass">{{dataText}}</textarea>
                 <button class="btn btn-primary center-block" id="define-we-button">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</button>
+
+                <!-- This hidden input is used for loading the files via the dropdown of the nav tabs -->
+                <input id="hidden-file-input" type="file" name="hidden-file-input" style="display: none;" onchange="angular.element(this).scope().setFile(this)"/>
               </div>
             </div>
           </div>
