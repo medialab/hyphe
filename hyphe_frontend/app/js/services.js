@@ -80,7 +80,11 @@ angular.module('hyphe.services', []).
   		var ns = this
 
   		ns.parseCSV = function(data){
-  			return ns.CSVToArray(data, ',')
+        return ns.CSVToArray(data, ',')
+      }
+
+      ns.parseSCSV = function(data){
+  			return ns.CSVToArray(data, ';')
   		}
 
   		ns.parseTSV = function(data){

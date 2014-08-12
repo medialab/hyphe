@@ -19,6 +19,7 @@ angular.module('hyphe.controllers', [])
 
     $scope.dataText = ''
     $scope.csvPreview = [[]]
+    $scope.scsvPreview = [[]]
     $scope.tsvPreview = [[]]
     $scope.textPreview = []
     $scope.headline = true
@@ -33,6 +34,10 @@ angular.module('hyphe.controllers', [])
     function updatePreview() {
       if($scope.parsingOption=='csv'){
         $scope.csvPreview = buildPreview_table($scope.dataText, 4, 3, 'csv')
+      }
+
+      if($scope.parsingOption=='scsv'){
+        $scope.scsvPreview = buildPreview_table($scope.dataText, 4, 3, 'scsv')
       }
 
       if($scope.parsingOption=='tsv'){
@@ -52,7 +57,7 @@ angular.module('hyphe.controllers', [])
           return ''
 
         var data_text = String(text)
-          ,array_data = ((mode=='tsv')?(parser.parseTSV(data_text)):(parser.parseCSV(data_text)))
+          ,array_data = ((mode=='scsv')?(parser.parseSCSV(data_text)):(mode=='tsv')?(parser.parseTSV(data_text)):(parser.parseCSV(data_text)))
 
         if(!$scope.headline){
           var headrow = array_data[0].map(function(col, i){return 'Col ' + (i+1)})

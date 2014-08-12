@@ -15,30 +15,30 @@
                 <textarea id="droppable-text-area" class="form-control" rows="6" placeholder="Paste your data or drop a file here" ng-class="dropClass" ng-model="dataText"></textarea>
 
                 <br/>
-                <!-- <div ng-show="dataText!=''"> -->
-                <div>
+                <div ng-show="dataText!=''">
                   <ul class="nav nav-tabs" role="tablist">
                     <li ng-class="{active: parsingOption=='csv'}"><a href="" ng-click="parsingOption='csv'">Parse as CSV</a></li>
+                    <li ng-class="{active: parsingOption=='scsv'}"><a href="" ng-click="parsingOption='scsv'">Parse as SCSV</a></li>
                     <li ng-class="{active: parsingOption=='tsv'}"><a href="" ng-click="parsingOption='tsv'">Parse as TSV</a></li>
                     <li ng-class="{active: parsingOption=='text'}"><a href="" ng-click="parsingOption='text'">Parse as text</a></li>
                   </ul>
                   
-                  <div ng-show="parsingOption=='csv' || parsingOption=='tsv'">
+                  <div ng-show="parsingOption=='csv' || parsingOption=='tsv' || parsingOption=='scsv'">
                     <div class="row">
                       <div class="col-md-8">
                         <br/>
-                        <p class="text-info">Preview with columns separated by {{parsingOption=='csv' ? 'comma' : 'tabulation'}}</p>
+                        <p class="text-info">Preview with columns separated by <strong>{{parsingOption=='csv' ? 'comma' : parsingOption=='tsv' ? 'tabulation' : 'semicolon'}}</strong></p>
                         <div class="preview-container">
                           <table class="table table-condensed table-striped table-bordered">
-                            <thead ng-if="(parsingOption=='csv' && csvPreview.length > 0) || (parsingOption=='tsv' && tsvPreview.length > 0)">
+                            <thead ng-if="(parsingOption=='csv' && csvPreview.length > 0) || (parsingOption=='tsv' && tsvPreview.length > 0) || (parsingOption=='scsv' && scsvPreview.length > 0)">
                               <tr>
-                                <th ng-repeat="col in (parsingOption=='csv' ? csvPreview : tsvPreview)[0] track by $index">
+                                <th ng-repeat="col in (parsingOption=='csv' ? csvPreview : parsingOption=='tsv' ? tsvPreview : scsvPreview)[0] track by $index">
                                   {{col}}
                                 </th>
                               </tr>
                             </thead>
                             <tbody>
-                              <tr ng-repeat="row in (parsingOption=='csv' ? csvPreview : tsvPreview)|stripFirst track by $index ">
+                              <tr ng-repeat="row in (parsingOption=='csv' ? csvPreview : parsingOption=='tsv' ? tsvPreview : scsvPreview)|stripFirst track by $index ">
                                 <td ng-repeat="col in row track by $index">
                                   {{col}}
                                 </td>
