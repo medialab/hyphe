@@ -38,7 +38,11 @@
   "phantom": {
     "timeout": 600,
     "idle_timeout": 20,
-    "ajax_timeout": 15
+    "ajax_timeout": 15,
+    "whitelist_domains": [
+      "facebook.com",
+      "twitter.com"
+    ]
   },
   "DEBUG": 0
 }

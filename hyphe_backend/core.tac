@@ -23,6 +23,7 @@ from hyphe_backend import processor
 from hyphe_backend.memorystructure import MemoryStructure as ms, constants as ms_const
 from hyphe_backend.lib import config_hci, urllru, gexf, user_agents
 from hyphe_backend.lib.thriftpool import *
+from hyphe_backend.lib.utils import *
 from hyphe_backend.lib.jsonrpc_utils import *
 
 config = config_hci.load_config()
@@ -356,6 +357,8 @@ class Crawler(jsonrpc.JSONRPC):
 
     def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=config['discoverPrefixes'], maxdepth=config['mongo-scrapy']['maxdepth'], phantom_crawl=False, download_delay=config['mongo-scrapy']['download_delay'], corpus=''):
         """Starts a crawl with scrapy from arguments using a list of urls and of lrus for prefixes."""
+        if not phantom_crawl and urls_match_domainlist(starts, config['phantom']['whitelist_domains']):
+            phantom_crawl = True
         if maxdepth > config['mongo-scrapy']['maxdepth']:
             return format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % config['mongo-scrapy']['maxdepth'])
         if len(starts) < 1:
