@@ -48,6 +48,8 @@ try:
         config['mongo-scrapy']['proxy_port'] = 3128
     curpath = os.path.abspath(getsourcefile(lambda _: None))
     config['mongo-scrapy']['hyphePath'] = os.path.sep.join(curpath.split(os.path.sep)[:-3])
+    for _to in ["", "idle_", "ajax_"]:
+        config['mongo-scrapy']['phantom_%stimeout' % _to] = config['phantom']['%stimeout' % _to]
     with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
         generated.write(pystache.render(template.read(), config['mongo-scrapy']))
 except IOError as e:

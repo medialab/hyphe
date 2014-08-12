@@ -35,5 +35,10 @@
                        "http://on.fb.me",
                        "http://ur1.ca",
                        "http://ow.ly"],
+  "phantom": {
+    "timeout": 600,
+    "idle_timeout": 20,
+    "ajax_timeout": 15
+  },
   "DEBUG": 0
 }

@@ -51,6 +51,10 @@ class PagesCrawler(BaseSpider):
         self.discover_prefixes = to_list(args['discover_prefixes'])
         self.user_agent = args['user_agent']
         self.phantom = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
+        if self.phantom:
+            self.ph_timeout = args.get('phantom_timeout', PHANTOM['TIMEOUT'])
+            self.ph_idle_timeout = args.get('phantom_idle_timeout', PHANTOM['IDLE_TIMEOUT'])
+            self.ph_ajax_timeout = args.get('phantom_ajax_timeout', PHANTOM['AJAX_TIMEOUT'])
         self.errors = 0
 
     def start_requests(self):
@@ -88,9 +92,9 @@ class PagesCrawler(BaseSpider):
             desired_capabilities=self.capabilities,
             service_log_path=os.path.join(self.cachedir, 'phantomjs.log')
         )
-        self.phantom.implicitly_wait(10);
-        self.phantom.set_page_load_timeout(60);
-        self.phantom.set_script_timeout(PHANTOM['TIMEOUT'] + 15);
+        self.phantom.implicitly_wait(10)
+        self.phantom.set_page_load_timeout(60)
+        self.phantom.set_script_timeout(self.ph_timeout + 15)
 
     def closed(self, reason):
         if self.errors:
@@ -112,14 +116,14 @@ class PagesCrawler(BaseSpider):
             with open(os.path.join(PHANTOM["JS_PATH"], "scrolldown_and_unfold.js")) as js:
                 try:
                     signal.signal(signal.SIGALRM, timeout_alarm)
-                    signal.alarm(PHANTOM["TIMEOUT"] + 30)
+                    signal.alarm(self.ph_timeout + 30)
                     self.phantom.execute_async_script(
-                        js.read(), PHANTOM["TIMEOUT"],
-                        PHANTOM["IDLE_TIMEOUT"], PHANTOM["AJAX_TIMEOUT"])
+                        js.read(), self.ph_timeout,
+                        self.ph_idle_timeout, self.ph_ajax_timeout)
                     signal.alarm(0)
                     self.log("Scrolling/Unfolding finished")
                 except SeleniumTimeout:
-                    self.log("Scrolling/Unfolding timed-out (%ss)" % PHANTOM["TIMEOUT"])
+                    self.log("Scrolling/Unfolding timed-out (%ss)" % self.ph_timeout)
                     self.errors += 1
                 except WebDriverException as e:
                     err = json.loads(e.msg)['errorMessage']
@@ -198,7 +202,7 @@ class PagesCrawler(BaseSpider):
             p['depth'] = response.meta['depth']
         if response.headers.get('content-type'):
             p['content_type'] = response.headers.get('content-type').partition(';')[0]
-        p['error'] = None;
+        p['error'] = None
         return p
 
     def _new_page(self, url, lru=None):
