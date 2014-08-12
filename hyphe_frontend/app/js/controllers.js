@@ -30,45 +30,19 @@ angular.module('hyphe.controllers', [])
     $scope.$watch('dataText', updatePreview)
     $scope.$watch('parsingOption', updatePreview)
     $scope.$watch('headline', updatePreview)
+    $scope.$watch('table', function(){console.log($scope.table[0])})
 
     function updatePreview() {
       if($scope.parsingOption=='csv'){
         $scope.table = buildTable($scope.dataText, 'csv')
-        /*$scope.csvPreview = $scope.table
-          .filter(function(row,i){
-              return i < $scope.previewMaxRow
-            })
-          .map(function(row,i){
-              return row.filter(function(col,j){
-                return j < $scope.previewMaxCol
-              })
-            })*/
       }
 
       if($scope.parsingOption=='scsv'){
         $scope.table = buildTable($scope.dataText, 'scsv')
-        /*$scope.scsvPreview = $scope.table
-          .filter(function(row,i){
-              return i < $scope.previewMaxRow
-            })
-          .map(function(row,i){
-              return row.filter(function(col,j){
-                return j < $scope.previewMaxCol
-              })
-            })*/
       }
 
       if($scope.parsingOption=='tsv'){
         $scope.table = buildTable($scope.dataText, 'tsv')
-        /*$scope.tsvPreview = $scope.table
-          .filter(function(row,i){
-              return i < $scope.previewMaxRow
-            })
-          .map(function(row,i){
-              return row.filter(function(col,j){
-                return j < $scope.previewMaxCol
-              })
-            })*/
       }
       
       if($scope.parsingOption=='text'){

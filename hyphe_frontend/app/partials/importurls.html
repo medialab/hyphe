@@ -50,7 +50,7 @@
                           <span class="text-muted" ng-if="table.length > previewMaxRow">({{table.length - previewMaxRow}} more rows)</span>
                         </div>
                       </div>
-                      <div class="cold-md-4">
+                      <div class="col-md-4">
 
                         <div class="checkbox">
                           <label>
@@ -58,10 +58,12 @@
                           </label>
                         </div>
 
-                        <select class="form-control" ng-model="urlColum" ng-repeat="colName in columnNames track by $index">
-                          <option value="col{{$index}}">{{colName}}</option>
+                        <span>Column containing URLs</span>
+                        <select class="form-control" ng-model="urlColum">
+                          <option ng-repeat="colName in table[0]" value="col{{$index}}">{{colName}}</option>
                         </select>
 
+                        <br/>
                         <button class="btn btn-primary">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</button>
                       </div>
                     </div>
