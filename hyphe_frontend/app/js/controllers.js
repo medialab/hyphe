@@ -9,12 +9,11 @@ angular.module('hyphe.controllers', [])
   .controller('Overview', ['$scope', function($scope) {
     $scope.currentPage = 'overview'
   }])
-  .controller('ImportUrls', ['$scope', 'FileLoader', 'glossary', 'Parser', 'extractWebEntities', function($scope, FileLoader, glossary, Parser, extractWebEntities) {
+  .controller('ImportUrls', ['$scope', 'FileLoader', 'glossary', 'Parser', 'extractWebEntities', 'droppableTextArea', function($scope, FileLoader, glossary, Parser, extractWebEntities, droppableTextArea) {
     $scope.currentPage = 'importurls'
     $scope.glossary = glossary
     
-    var droppableTextArea = document.getElementById("droppable-text-area")
-      ,parser = new Parser()
+    var parser = new Parser()
 
     $scope.parsingOption = 'csv'
 
@@ -24,37 +23,7 @@ angular.module('hyphe.controllers', [])
     $scope.textPreview = []
     $scope.headline = true
 
-    $scope.loadFile = function(){
-      $('#hidden-file-input').trigger('click');
-    }
-
-    $scope.setFile = function(element) {
-      var file = element.files[0]
-      $scope.readFile(file)
-    }
-
-    $scope.readFile = function(file){
-      var fileLoader = new FileLoader()
-      fileLoader.read(file, {
-        onloadstart: function(evt){
-          
-        }
-        ,onprogress: function(evt){
-          // evt is an ProgressEvent
-          if (evt.lengthComputable) {
-            var msg = '[upload ' + Math.round((evt.loaded / evt.total) * 100) + '% completed]'
-            $scope.dataText = msg
-            $scope.$apply()
-          }
-        }
-        ,onload: function(evt){
-          var target = evt.target || evt.srcElement
-          $scope.dataText = target.result
-          $scope.$apply()
-        }
-      })
-    }
-
+    
     // Custom filtering for the previews
     // $scope.$watchGroup(['dataText', 'parsingOption', 'headline'], updatePreview)
     $scope.$watch('dataText', updatePreview)
@@ -104,40 +73,41 @@ angular.module('hyphe.controllers', [])
       }
     }
 
-    //============== DRAG & DROP =============
-    // adapted from http://jsfiddle.net/danielzen/utp7j/
+    // File loading interactions
+    $scope.loadFile = function(){
+      $('#hidden-file-input').trigger('click');
+    }
 
-    // init event handlers
-    function dragEnterLeave(evt) {
-      evt.stopPropagation()
-      evt.preventDefault()
-      $scope.$apply(function(){
-        $scope.dropClass = 'over'
+    $scope.setFile = function(element) {
+      var file = element.files[0]
+      $scope.readFile(file)
+    }
+
+    $scope.readFile = function(file){
+      var fileLoader = new FileLoader()
+      fileLoader.read(file, {
+        onloadstart: function(evt){
+          var msg = '[upload starting]'
+          $scope.dataText = msg
+          $scope.$apply()
+        }
+        ,onprogress: function(evt){
+          // evt is an ProgressEvent
+          if (evt.lengthComputable) {
+            var msg = '[upload ' + Math.round((evt.loaded / evt.total) * 100) + '% completed]'
+            $scope.dataText = msg
+            $scope.$apply()
+          }
+        }
+        ,onload: function(evt){
+          var target = evt.target || evt.srcElement
+          $scope.dataText = target.result
+          $scope.$apply()
+        }
       })
     }
-    droppableTextArea.addEventListener("dragenter", dragEnterLeave, false)
-    droppableTextArea.addEventListener("dragleave", dragEnterLeave, false)
-    droppableTextArea.addEventListener("dragover", function(evt) {
-      evt.stopPropagation()
-      evt.preventDefault()
-      var ok = evt.dataTransfer && evt.dataTransfer.types && evt.dataTransfer.types.indexOf('Files') >= 0
-      $scope.$apply(function(){
-        $scope.dropClass = ok ? 'over' : 'over-error'
-      })
-    }, false)
-    droppableTextArea.addEventListener("drop", function(evt) {
-      // console.log('drop evt:', JSON.parse(JSON.stringify(evt.dataTransfer)))
-      evt.stopPropagation()
-      evt.preventDefault()
-      $scope.$apply(function(){
-        $scope.dropClass = 'over'
-      })
-      var files = evt.dataTransfer.files
-      if (files.length == 1) {
-        $scope.$apply(function(){
-          $scope.readFile(files[0])
-          $scope.dropClass = ''
-        })
-      }
-    }, false)
-}])
+
+    // Make the text area droppable
+    droppableTextArea(document.getElementById("droppable-text-area"), $scope, $scope.readFile)
+
+  }])
