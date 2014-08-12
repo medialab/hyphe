@@ -141,3 +141,6 @@ textarea.over-error{
 .preview-container{
   overflow: auto;
 }
+.preview-table{
+  margin-bottom: 2px;
+}

@@ -27,24 +27,27 @@
                     <div class="row">
                       <div class="col-md-8">
                         <br/>
-                        <p class="text-info">Preview with columns separated by <strong>{{parsingOption=='csv' ? 'comma' : parsingOption=='tsv' ? 'tabulation' : 'semicolon'}}</strong></p>
+                        <p class="text-info">Preview for <strong>{{parsingOption=='csv' ? 'comma' : parsingOption=='tsv' ? 'tabulation' : 'semicolon'}}</strong>-separated values</p>
                         <div class="preview-container">
-                          <table class="table table-condensed table-striped table-bordered">
-                            <thead ng-if="(parsingOption=='csv' && csvPreview.length > 0) || (parsingOption=='tsv' && tsvPreview.length > 0) || (parsingOption=='scsv' && scsvPreview.length > 0)">
+                          <table class="table table-condensed table-striped table-bordered preview-table">
+                            <thead ng-if="table.length > 0">
                               <tr>
-                                <th ng-repeat="col in (parsingOption=='csv' ? csvPreview : parsingOption=='tsv' ? tsvPreview : scsvPreview)[0] track by $index">
+                                <th ng-repeat="col in table[0]|limitTo:previewMaxCol track by $index">
                                   {{col}}
                                 </th>
+                                <th ng-if="table[0].length > previewMaxCol">...</th>
                               </tr>
                             </thead>
                             <tbody>
-                              <tr ng-repeat="row in (parsingOption=='csv' ? csvPreview : parsingOption=='tsv' ? tsvPreview : scsvPreview)|stripFirst track by $index ">
-                                <td ng-repeat="col in row track by $index">
+                              <tr ng-repeat="row in table|limitTo:previewMaxRow|stripFirst track by $index">
+                                <td ng-repeat="col in row|limitTo:previewMaxCol track by $index">
                                   {{col}}
                                 </td>
+                                <td ng-if="row.length > previewMaxCol">...</td>
                               </tr>
                             </tbody>
                           </table>
+                          <span class="text-muted" ng-if="table.length > previewMaxRow">({{table.length - previewMaxRow}} more rows)</span>
                         </div>
                       </div>
                       <div class="cold-md-4">
@@ -55,8 +58,8 @@
                           </label>
                         </div>
 
-                        <select class="form-control" ng-model="" ng-repeat="colName in columnNames">
-                          <option value="urlColumn">{{colName}}</option>
+                        <select class="form-control" ng-model="urlColum" ng-repeat="colName in columnNames track by $index">
+                          <option value="col{{$index}}">{{colName}}</option>
                         </select>
 
                         <button class="btn btn-primary">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</button>
@@ -71,8 +74,8 @@
                         <p class="text-info">Preview of urls fetched in full text</p>
                         <div class="preview-container">
                           <ul>
-                            <li ng-repeat="url in textPreview|limitTo:3">{{url}}</li>
-                            <li class="text-muted">({{textPreview.length}} more)</li>
+                            <li ng-repeat="url in textPreview|limitTo:previewMaxRow">{{url}}</li>
+                            <li class="text-muted" ng-if="textPreview.length > previewMaxRow">({{textPreview.length - previewMaxRow}} more)</li>
                           </ul>
                         </div>
                       </div>

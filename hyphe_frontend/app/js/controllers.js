@@ -18,11 +18,11 @@ angular.module('hyphe.controllers', [])
     $scope.parsingOption = 'csv'
 
     $scope.dataText = ''
-    $scope.csvPreview = [[]]
-    $scope.scsvPreview = [[]]
-    $scope.tsvPreview = [[]]
+    $scope.table
     $scope.textPreview = []
     $scope.headline = true
+    $scope.previewMaxRow = 4
+    $scope.previewMaxCol = 3
 
     
     // Custom filtering for the previews
@@ -33,15 +33,42 @@ angular.module('hyphe.controllers', [])
 
     function updatePreview() {
       if($scope.parsingOption=='csv'){
-        $scope.csvPreview = buildPreview_table($scope.dataText, 4, 3, 'csv')
+        $scope.table = buildTable($scope.dataText, 'csv')
+        /*$scope.csvPreview = $scope.table
+          .filter(function(row,i){
+              return i < $scope.previewMaxRow
+            })
+          .map(function(row,i){
+              return row.filter(function(col,j){
+                return j < $scope.previewMaxCol
+              })
+            })*/
       }
 
       if($scope.parsingOption=='scsv'){
-        $scope.scsvPreview = buildPreview_table($scope.dataText, 4, 3, 'scsv')
+        $scope.table = buildTable($scope.dataText, 'scsv')
+        /*$scope.scsvPreview = $scope.table
+          .filter(function(row,i){
+              return i < $scope.previewMaxRow
+            })
+          .map(function(row,i){
+              return row.filter(function(col,j){
+                return j < $scope.previewMaxCol
+              })
+            })*/
       }
 
       if($scope.parsingOption=='tsv'){
-        $scope.tsvPreview = buildPreview_table($scope.dataText, 4, 3, 'tsv')
+        $scope.table = buildTable($scope.dataText, 'tsv')
+        /*$scope.tsvPreview = $scope.table
+          .filter(function(row,i){
+              return i < $scope.previewMaxRow
+            })
+          .map(function(row,i){
+              return row.filter(function(col,j){
+                return j < $scope.previewMaxCol
+              })
+            })*/
       }
       
       if($scope.parsingOption=='text'){
@@ -49,12 +76,9 @@ angular.module('hyphe.controllers', [])
       }
 
 
-      function buildPreview_table(text, maxRow, maxCol, mode) {
-        maxRow = maxRow || 3
-        maxCol = maxCol || 3
-
+      function buildTable(text, mode) {
         if(text == '')
-          return ''
+          return [[]]
 
         var data_text = String(text)
           ,array_data = ((mode=='scsv')?(parser.parseSCSV(data_text)):(mode=='tsv')?(parser.parseTSV(data_text)):(parser.parseCSV(data_text)))
@@ -64,17 +88,7 @@ angular.module('hyphe.controllers', [])
           array_data.unshift(headrow)
         }
 
-        var array_data_filtered = array_data
-          .filter(function(row,i){
-            return i < maxRow
-          })
-          .map(function(row,i){
-            return row.filter(function(col,j){
-              return j < maxCol
-            })
-          })
-
-        return array_data_filtered
+        return array_data
       }
     }
 
