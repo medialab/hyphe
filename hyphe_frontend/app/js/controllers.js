@@ -9,7 +9,7 @@ angular.module('hyphe.controllers', [])
   .controller('Overview', ['$scope', function($scope) {
     $scope.currentPage = 'overview'
   }])
-  .controller('ImportUrls', ['$scope', 'FileLoader', 'glossary', 'Parser', function($scope, FileLoader, glossary, Parser) {
+  .controller('ImportUrls', ['$scope', 'FileLoader', 'glossary', 'Parser', 'extractWebEntities', function($scope, FileLoader, glossary, Parser, extractWebEntities) {
     $scope.currentPage = 'importurls'
     $scope.glossary = glossary
     
@@ -20,6 +20,9 @@ angular.module('hyphe.controllers', [])
 
     $scope.dataText = ''
     $scope.csvPreview = [[]]
+    $scope.tsvPreview = [[]]
+    $scope.textPreview = []
+    $scope.headline = true
 
     $scope.loadFile = function(){
       $('#hidden-file-input').trigger('click');
@@ -53,17 +56,24 @@ angular.module('hyphe.controllers', [])
     }
 
     // Custom filtering for the previews
+    // $scope.$watchGroup(['dataText', 'parsingOption', 'headline'], updatePreview)
     $scope.$watch('dataText', updatePreview)
     $scope.$watch('parsingOption', updatePreview)
+    $scope.$watch('headline', updatePreview)
 
     function updatePreview() {
       if($scope.parsingOption=='csv'){
-        $scope.csvPreview = buildPreview_table($scope.dataText, 4, 10, 'csv')
+        $scope.csvPreview = buildPreview_table($scope.dataText, 4, 3, 'csv')
       }
 
       if($scope.parsingOption=='tsv'){
-        $scope.tsvPreview = buildPreview_table($scope.dataText, 4, 10, 'tsv')
+        $scope.tsvPreview = buildPreview_table($scope.dataText, 4, 3, 'tsv')
       }
+      
+      if($scope.parsingOption=='text'){
+        $scope.textPreview = extractWebEntities($scope.dataText)
+      }
+
 
       function buildPreview_table(text, maxRow, maxCol, mode) {
         maxRow = maxRow || 3
@@ -74,15 +84,21 @@ angular.module('hyphe.controllers', [])
 
         var data_text = String(text)
           ,array_data = ((mode=='tsv')?(parser.parseTSV(data_text)):(parser.parseCSV(data_text)))
-          ,array_data_filtered = array_data
-            .filter(function(row,i){
-              return i < maxRow
+
+        if(!$scope.headline){
+          var headrow = array_data[0].map(function(col, i){return 'Col ' + (i+1)})
+          array_data.unshift(headrow)
+        }
+
+        var array_data_filtered = array_data
+          .filter(function(row,i){
+            return i < maxRow
+          })
+          .map(function(row,i){
+            return row.filter(function(col,j){
+              return j < maxCol
             })
-            .map(function(row,i){
-              return row.filter(function(col,j){
-                return j < maxCol
-              })
-            })
+          })
 
         return array_data_filtered
       }

@@ -12,54 +12,73 @@
 
                 <button type="button" class="btn btn-link pull-right" ng-click="loadFile()"><span class="glyphicon glyphicon-upload"></span> Import file</button>
                 
-                <textarea id="droppable-text-area" class="form-control" rows="6" placeholder="Paste your text data or drop a file here" ng-class="dropClass" ng-model="dataText"></textarea>
+                <textarea id="droppable-text-area" class="form-control" rows="6" placeholder="Paste your data or drop a file here" ng-class="dropClass" ng-model="dataText"></textarea>
 
                 <br/>
-                <div ng-show="dataText!=''">
+                <!-- <div ng-show="dataText!=''"> -->
+                <div>
                   <ul class="nav nav-tabs" role="tablist">
                     <li ng-class="{active: parsingOption=='csv'}"><a href="" ng-click="parsingOption='csv'">Parse as CSV</a></li>
                     <li ng-class="{active: parsingOption=='tsv'}"><a href="" ng-click="parsingOption='tsv'">Parse as TSV</a></li>
                     <li ng-class="{active: parsingOption=='text'}"><a href="" ng-click="parsingOption='text'">Parse as text</a></li>
                   </ul>
-
-                  <div ng-show="parsingOption=='csv'">
+                  
+                  <div ng-show="parsingOption=='csv' || parsingOption=='tsv'">
                     <div class="row">
                       <div class="col-md-8">
                         <br/>
-                        <div class="table-container">
-                          <table class="table table-condensed table-framed">
-                            <tr ng-repeat="row in csvPreview track by $index">
-                              <td ng-repeat="col in row track by $index">
-                                {{col}}
-                              </td>
-                            </tr>
+                        <p class="text-info">Preview with columns separated by {{parsingOption=='csv' ? 'comma' : 'tabulation'}}</p>
+                        <div class="preview-container">
+                          <table class="table table-condensed table-striped table-bordered">
+                            <thead ng-if="(parsingOption=='csv' && csvPreview.length > 0) || (parsingOption=='tsv' && tsvPreview.length > 0)">
+                              <tr>
+                                <th ng-repeat="col in (parsingOption=='csv' ? csvPreview : tsvPreview)[0] track by $index">
+                                  {{col}}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr ng-repeat="row in (parsingOption=='csv' ? csvPreview : tsvPreview)|stripFirst track by $index ">
+                                <td ng-repeat="col in row track by $index">
+                                  {{col}}
+                                </td>
+                              </tr>
+                            </tbody>
                           </table>
                         </div>
                       </div>
                       <div class="cold-md-4">
-                        <br/>
-                        <button class="btn btn-primary center-block">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</button>
+
+                        <div class="checkbox">
+                          <label>
+                            <input type="checkbox" ng-model="headline"> First line has column names
+                          </label>
+                        </div>
+
+                        <select class="form-control" ng-model="" ng-repeat="colName in columnNames">
+                          <option value="urlColumn">{{colName}}</option>
+                        </select>
+
+                        <button class="btn btn-primary">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</button>
                       </div>
                     </div>
                   </div>
 
-                  <div ng-show="parsingOption=='tsv'">
+                  <div ng-show="parsingOption=='text'">
                     <div class="row">
                       <div class="col-md-8">
                         <br/>
-                        <div class="table-container">
-                          <table class="table table-condensed table-framed">
-                            <tr ng-repeat="row in tsvPreview track by $index">
-                              <td ng-repeat="col in row track by $index">
-                                {{col}}
-                              </td>
-                            </tr>
-                          </table>
+                        <p class="text-info">Preview of urls fetched in full text</p>
+                        <div class="preview-container">
+                          <ul>
+                            <li ng-repeat="url in textPreview|limitTo:3">{{url}}</li>
+                            <li class="text-muted">({{textPreview.length}} more)</li>
+                          </ul>
                         </div>
                       </div>
                       <div class="cold-md-4">
                         <br/>
-                        <button class="btn btn-primary center-block">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</button>
+                        <button class="btn btn-primary">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</button>
                       </div>
                     </div>
                   </div>

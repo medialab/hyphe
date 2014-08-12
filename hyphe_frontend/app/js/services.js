@@ -171,4 +171,48 @@ angular.module('hyphe.services', []).
         return( arrData )
 	    }
   	}
+  }]).
+  factory('extractWebEntities', ['extractCases', 'URL_validate', function(extractCases, URL_validate){
+    return function(text){
+      var re = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig
+        ,raw_urls = text.match(re) || []
+        ,urls = raw_urls
+          .filter(function(expression){
+              return URL_validate(expression)
+            })
+          .map(function(url){
+              if(url.indexOf('http')!=0)
+                return 'http://'+url
+              return url
+            })
+      return extractCases(urls)
+    }
+  }]).
+  factory('extractCases', [function(){
+    return function(data_array, elementAccessor){
+      if(elementAccessor === undefined)
+      elementAccessor = function(x){return x}
+      
+      var temp_result = data_array.map(function(d){
+        return {id:elementAccessor(d), content:d}
+      }).sort(function(a, b) {
+          return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+      })
+        
+      // Merge Doubles
+      var result = []
+      for (var i = 0; i < temp_result.length; i++) {
+        if (i==0 || temp_result[i - 1].id != temp_result[i].id) {
+          result.push(temp_result[i].content)
+        }
+      }
+      
+      return result
+    }
+  }]).
+  factory('URL_validate', [function(){
+    return function(url){
+      var urlregex = /^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/
+      return urlregex.test(url)
+    }
   }]);
