@@ -180,6 +180,9 @@ HypheCommons.domino_init()
                         'params' : [
                             settings.webentityId
                             ,settings.maxDepth
+                            ,false
+                            ,false
+                            ,document.getElementById("phantom").checked
                         ],
                     })}
                 ,path:'0.result'

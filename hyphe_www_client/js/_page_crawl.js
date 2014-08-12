@@ -457,6 +457,12 @@ HypheCommons.domino_init()
                     ).append(
                         $('<br/>')
                     ).append(
+                        $('<span/>').text("Phantom: ")
+                    ).append(
+                        $('<span/>').text(crawlJob.crawl_arguments.phantom)
+                    ).append(
+                        $('<br/>')
+                    ).append(
                         $('<span/>').text("Starting URLs:")
                     ).append(
                         $('<ul class="unstyled"/>').append(

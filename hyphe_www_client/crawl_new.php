@@ -40,7 +40,7 @@
             <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to better experience this site.</p>
         <![endif]-->
 
-        
+
 
 <?php include("includes/navbar.php"); ?>
 
@@ -109,6 +109,10 @@
                         <input type="text" id="depth" placeholder="Depth" value="1"/>
                     </p>
                     <hr/>
+                    <p>
+                        <input style="margin-bottom: 5px" type="checkbox" id="phantom"/>
+                        <label style="display:inline">Phantom crawl (more efficient but drastically slower)</label>
+                    </p>
                     <p>
                         <button class="btn btn-block" id="launchButton"></button>
                     </p>
