@@ -3,7 +3,7 @@
  *
  * -> tries to unveil the ajax-hidden content of a webpage:
  *   - by scrolling all the way up and down
- *   - by clicking on anchor links
+ *   - by clicking on all clickable elements without changing webpage
  *   - by restarting all over every time a new Ajax request is intercepted
  * Takes 3 timeout arguments provided via the Selenium call:
  * - timeout: global timeout after which the script will always end whatever
@@ -108,22 +108,21 @@ if (typeof(arguments) == "undefined") {
             }
         };
 
-    // Identify and click (only once) on anchor links to trigger Ajax queries
+    // Identify & click only once on clickable elements to trigger Ajax queries
     var clicking = false,
         relaunch = true,
-        isClick = function(element){
-            // Identify not already clicked links with a href ending in "#"
-            return (element.href &&
-                element.href.indexOf('#', element.href.length-1) !== -1 &&
-                !element.hasAttribute('hyphantomas_clicked')
-            );
+        isClick = function(el){
+            // Identify not already clicked clickable elements
+            return !el.hasAttribute('hyphantomas_clicked') &&
+              (el.href || el.onclick || el.ondblclick || el.onmousedown);
         },
         simulateClick = function(element) {
             // Try clicking all ways
-            try { element.ondblclick(); } catch(e0) {
+            try { element.click(); } catch(e0) {
             try { element.onclick(); } catch(e1) {
-            try { element.click(); } catch(e2) {
-            }}}
+            try { element.ondblclick(); } catch(e2) {
+            try { element.onmousedown(); } catch(e3) {
+            }}}}
         },
         unfold = function() {
             // Never run twice simultaneously, plan restart for concurrent calls
