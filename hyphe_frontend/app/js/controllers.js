@@ -19,6 +19,8 @@ angular.module('hyphe.controllers', [])
 
     $scope.dataText = ''
     $scope.table
+    $scope.columns = []
+    $scope.selectedColumns
     $scope.textPreview = []
     $scope.headline = true
     $scope.previewMaxRow = 4
@@ -30,7 +32,6 @@ angular.module('hyphe.controllers', [])
     $scope.$watch('dataText', updatePreview)
     $scope.$watch('parsingOption', updatePreview)
     $scope.$watch('headline', updatePreview)
-    $scope.$watch('table', function(){console.log($scope.table[0])})
 
     function updatePreview() {
       if($scope.parsingOption=='csv'){
@@ -65,6 +66,38 @@ angular.module('hyphe.controllers', [])
         return array_data
       }
     }
+
+    // Setting the columns list
+    $scope.$watch('table', function(){
+      // Default: first column
+      var selectedColumnId = 0
+        ,found = false
+
+      // We look at the column names
+      if($scope.table[0]){
+        $scope.table[0].forEach(function(col, i){
+          var text = col.toLowerCase()
+          if(!found && (text.indexOf('url') >= 0 || text.indexOf('adress') >= 0 || text.indexOf('address') >= 0 || text.indexOf('lien') >= 0 || text.indexOf('link') >= 0 || text.indexOf('http') >= 0 || text.indexOf('www') >= 0)){
+            found = true
+            selectedColumnId = i
+          }
+        })
+      }
+
+      // Else we search for URLs in the first 10 lines
+      if(!found && $scope.table[1]){
+        for(var row = 1; row < 10 && !found && $scope.table[row]; row++){
+          $scope.table[row].forEach(function(col, i){
+            if(extractWebEntities($scope.dataText).length > 0){
+              found = true
+              selectedColumnId = i
+            }
+          })
+        }
+      }
+
+      $scope.selectedColumn = $scope.table[0][selectedColumnId]
+    })
 
     // File loading interactions
     $scope.loadFile = function(){

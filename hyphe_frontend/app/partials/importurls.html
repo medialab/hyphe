@@ -12,7 +12,7 @@
 
                 <button type="button" class="btn btn-link pull-right" ng-click="loadFile()"><span class="glyphicon glyphicon-upload"></span> Import file</button>
                 
-                <textarea id="droppable-text-area" class="form-control" rows="6" placeholder="Paste your data or drop a file here" ng-class="dropClass" ng-model="dataText"></textarea>
+                <textarea id="droppable-text-area" class="form-control" rows="5" placeholder="Paste your data or drop a file here" ng-class="dropClass" ng-model="dataText"></textarea>
 
                 <br/>
                 <div ng-show="dataText!=''">
@@ -52,16 +52,15 @@
                       </div>
                       <div class="col-md-4">
 
+                        <br/>
                         <div class="checkbox">
                           <label>
                             <input type="checkbox" ng-model="headline"> First line has column names
                           </label>
                         </div>
 
-                        <span>Column containing URLs</span>
-                        <select class="form-control" ng-model="urlColum">
-                          <option ng-repeat="colName in table[0]" value="col{{$index}}">{{colName}}</option>
-                        </select>
+                        <span>Column containing URLs:</span>
+                        <select class="form-control" ng-model="selectedColumn" ng-options="col for col in table[0]"></select>
 
                         <br/>
                         <button class="btn btn-primary">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</button>
