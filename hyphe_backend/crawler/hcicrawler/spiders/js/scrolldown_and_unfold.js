@@ -24,6 +24,9 @@ if (typeof(arguments) == "undefined") {
         idle_timeout = idle_timeout * 1000,
         ajax_timeout = ajax_timeout * 1000;
 
+    // Forbid leaving current page while processing script
+    window.onbeforeunload = function(){return "";};
+
     // Control each second whether script finished running or ran for too long
     // and trigger end of async selenium script if so
     var running_since = Date.now(),
@@ -37,11 +40,14 @@ if (typeof(arguments) == "undefined") {
             consolelog((now - running_since >= timeout ? "FORCE STOPP" : "FINISH") +
               "ING script running since", Math.floor((now - running_since)/1000)+"s");
 
-            // Clear all leftover running timeouts
+        // Clear all leftover running timeouts
             var maxTimeOutId = setTimeout(';') + 1000;
             for (var i=0; i<maxTimeOutId; i++) clearTimeout(i);
 
-            // Run Selenium async-script signal-stopper
+        // Reset regular leaving page behavior
+            window.onbeforeunload = function(){return;};
+
+        // Run Selenium async-script signal-stopper
             return endScript();
         };
 

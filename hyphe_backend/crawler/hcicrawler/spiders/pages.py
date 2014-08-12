@@ -129,7 +129,6 @@ class PagesCrawler(BaseSpider):
             # Collect whole DOM of the webpage including embedded iframes
             with open(os.path.join(PHANTOM["JS_PATH"], "get_iframes_content.js")) as js:
                 bod_w_iframes = self.phantom.execute_script(js.read())
-
             response._set_body(bod_w_iframes.encode('utf-8'))
 
         if 300 < response.status < 400 or isinstance(response, HtmlResponse):
