@@ -128,7 +128,7 @@ div.welcome-column h1{
 
 
 /* ==========================================================================
-   Import URLs page
+   View: Import URLs
    ========================================================================== */
 textarea.over{
   border-color: rgba(117, 179, 229, 0.8);
@@ -144,3 +144,15 @@ textarea.over-error{
 .preview-table{
   margin-bottom: 2px;
 }
+
+
+/* ==========================================================================
+   View: Define Web Entities
+   ========================================================================== */
+.sliders-table>thead>tr>th, .sliders-table>tbody>tr>th, .sliders-table>tfoot>tr>th, .sliders-table>thead>tr>td, .sliders-table>tbody>tr>td, .sliders-table>tfoot>tr>td{
+  border-top: none;
+}
+
+/* ==========================================================================
+   Module: Web Entity Slider
+   ========================================================================== */

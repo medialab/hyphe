@@ -3,13 +3,16 @@
 /* Controllers */
 
 angular.module('hyphe.controllers', [])
+
   .controller('Login', ['$scope', function($scope) {
   	$scope.currentPage = 'login'
   }])
+
   .controller('Overview', ['$scope', function($scope) {
     $scope.currentPage = 'overview'
   }])
-  .controller('ImportUrls', ['$scope', 'FileLoader', 'glossary', 'Parser', 'extractWebEntities', 'droppableTextArea', 'store', function($scope, FileLoader, glossary, Parser, extractWebEntities, droppableTextArea, store) {
+
+  .controller('ImportUrls', ['$scope', 'FileLoader', 'glossary', 'Parser', 'extractURLs', 'droppableTextArea', 'store', function($scope, FileLoader, glossary, Parser, extractURLs, droppableTextArea, store) {
     $scope.currentPage = 'importurls'
     $scope.glossary = glossary
     
@@ -35,7 +38,7 @@ angular.module('hyphe.controllers', [])
     function updatePreview() {
       // Parse URLs
       if($scope.parsingOption=='text'){
-        $scope.textPreview = extractWebEntities($scope.dataText)
+        $scope.textPreview = extractURLs($scope.dataText)
       } else{
         $scope.table = buildTable($scope.dataText, $scope.parsingOption)
       }
@@ -86,7 +89,7 @@ angular.module('hyphe.controllers', [])
       if(!found && $scope.table[1]){
         for(var row = 1; row < 10 && !found && $scope.table[row]; row++){
           $scope.table[row].forEach(function(col, i){
-            if(extractWebEntities(col).length > 0 && !found){
+            if(extractURLs(col).length > 0 && !found){
               found = true
               selectedColumnId = i
             }
@@ -137,21 +140,22 @@ angular.module('hyphe.controllers', [])
 
     // Make the text area droppable
     droppableTextArea(document.getElementById("droppable-text-area"), $scope, $scope.readFile)
-
   }])
-  .controller('DefineWebEntities', ['$scope', 'store', function($scope, store) {
+
+  .controller('DefineWebEntities', ['$scope', 'store', 'utils', function($scope, store, utils) {
     $scope.currentPage = 'definewebentities'
 
-    // Build the list of web entities
+    // Build the basic list of web entities
+    var list
     if(store.get('parsedUrls_type') == 'list'){
-      $scope.urlList = store.get('parsedUrls')
+      list = store.get('parsedUrls')
         .map(function(url, i){return {id:i, url:url}})
 
     } else if(store.get('parsedUrls_type') == 'table') {
       var settings = store.get('parsedUrls_settings')
         ,table = store.get('parsedUrls')
       $scope.headline = table.shift().filter(function(d,i){return i != settings.urlColId})
-      $scope.urlList = table.map(function(row, i){
+      list = table.map(function(row, i){
         var meta = {}
         table[0].forEach(function(colName,j){
           if(j != settings.urlColId)
@@ -166,6 +170,22 @@ angular.module('hyphe.controllers', [])
       })
     }
 
-    
-    
+    // Consolidate the list of web entities
+    list = list
+      .filter(function(obj){
+          return obj.url && utils.URL_validate(obj.url)
+        })
+      .map(function(obj){
+          obj.name = utils.nameURL(obj.url)
+          obj.lru = utils.URL_to_LRU(obj.url)
+          return obj
+        })
+
+    // Record in model
+    $scope.urlList = list
+
+
+
+
+
   }])
