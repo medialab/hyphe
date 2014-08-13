@@ -9,7 +9,11 @@
             <div class="row">
               <div class="col-md-12">
                 <h1 class="page-title">DEFINE WEB ENTITIES</h1>
-                <p>{{samplecontent}}</p>
+                <table>
+                  <tr ng-repeat="row in table track by $index">
+                    <td ng-repeat="col in row track by $index">{{col}}</td>
+                  </tr>
+                </table>
               </div>
             </div>
           </div>

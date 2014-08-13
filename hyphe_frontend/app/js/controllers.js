@@ -98,8 +98,7 @@ angular.module('hyphe.controllers', [])
       $scope.selectedColumn = $scope.columns[selectedColumnId]
 
       // Store these settings
-      store.set('parsedUrls_settings', {colId: selectedColumnId, headline:$scope.headline})
-      console.log(store.get('parsedUrls_settings'))
+      store.set('parsedUrls_settings', {urlColId: selectedColumnId})
     })
 
     // File loading interactions
@@ -143,4 +142,30 @@ angular.module('hyphe.controllers', [])
   .controller('DefineWebEntities', ['$scope', 'store', function($scope, store) {
     $scope.currentPage = 'definewebentities'
 
+    // Build the list of web entities
+    if(store.get('parsedUrls_type') == 'list'){
+      $scope.urlList = store.get('parsedUrls')
+        .map(function(url, i){return {id:i, url:url}})
+
+    } else if(store.get('parsedUrls_type') == 'table') {
+      var settings = store.get('parsedUrls_settings')
+        ,table = store.get('parsedUrls')
+      $scope.headline = table.shift().filter(function(d,i){return i != settings.urlColId})
+      $scope.urlList = table.map(function(row, i){
+        var meta = {}
+        table[0].forEach(function(colName,j){
+          if(j != settings.urlColId)
+            meta[colName] = row[j]
+        })
+        return {
+          id:i
+          ,url:row[settings.urlColId]
+          ,row:row.filter(function(d,i){return i != settings.urlColId})
+          ,meta:meta
+        }
+      })
+    }
+
+    
+    
   }])
