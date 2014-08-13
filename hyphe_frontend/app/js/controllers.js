@@ -20,7 +20,7 @@ angular.module('hyphe.controllers', [])
     $scope.dataText = ''
     $scope.table
     $scope.columns = []
-    $scope.selectedColumns
+    $scope.selectedColumn
     $scope.textPreview = []
     $scope.headline = true
     $scope.previewMaxRow = 4
@@ -88,7 +88,7 @@ angular.module('hyphe.controllers', [])
       if(!found && $scope.table[1]){
         for(var row = 1; row < 10 && !found && $scope.table[row]; row++){
           $scope.table[row].forEach(function(col, i){
-            if(extractWebEntities($scope.dataText).length > 0){
+            if(extractWebEntities(col).length > 0 && !found){
               found = true
               selectedColumnId = i
             }
@@ -96,7 +96,8 @@ angular.module('hyphe.controllers', [])
         }
       }
 
-      $scope.selectedColumn = $scope.table[0][selectedColumnId]
+      $scope.columns = $scope.table[0].map(function(col, i){return {name:col, id:i}})
+      $scope.selectedColumn = $scope.columns[selectedColumnId]
     })
 
     // File loading interactions
@@ -113,7 +114,7 @@ angular.module('hyphe.controllers', [])
       var fileLoader = new FileLoader()
       fileLoader.read(file, {
         onloadstart: function(evt){
-          var msg = '[upload starting]'
+          var msg = '[upload started]'
           $scope.dataText = msg
           $scope.$apply()
         }

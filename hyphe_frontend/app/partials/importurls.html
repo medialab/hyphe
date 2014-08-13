@@ -9,9 +9,18 @@
             <div class="row">
               <div class="col-md-12">
                 <h1 class="page-title">IMPORT URLS</h1>
-
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-8">
+                <p class="text-info">Import URLs to build {{glossary('web entities')}}</p>
+              </div>
+              <div class="col-md-4">
                 <button type="button" class="btn btn-link pull-right" ng-click="loadFile()"><span class="glyphicon glyphicon-upload"></span> Import file</button>
-                
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
                 <textarea id="droppable-text-area" class="form-control" rows="5" placeholder="Paste your data or drop a file here" ng-class="dropClass" ng-model="dataText"></textarea>
 
                 <br/>
@@ -59,8 +68,8 @@
                           </label>
                         </div>
 
-                        <span>Column containing URLs:</span>
-                        <select class="form-control" ng-model="selectedColumn" ng-options="col for col in table[0]"></select>
+                        <span>Where are the URLs?</span>
+                        <select class="form-control" ng-model="selectedColumn" ng-options="col.name for col in columns"></select>
 
                         <br/>
                         <button class="btn btn-primary">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</button>
