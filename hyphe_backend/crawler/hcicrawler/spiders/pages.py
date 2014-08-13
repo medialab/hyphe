@@ -100,12 +100,19 @@ class PagesCrawler(BaseSpider):
         if self.errors:
             self.log("%s error%s encountered during the crawl." %
                 (self.errors, 's' if self.errors > 1 else ''))
+            logdir = os.path.join(
+                scrapyd_config().get('logs_dir'),
+                HYPHE_PROJECT,
+                self.name
+            )
         if self.phantom:
             self.phantom.quit()
-            if not self.errors:
-                for f in os.listdir(self.cachedir):
+            for f in os.listdir(self.cachedir):
+                if self.errors:
+                    os.rename(os.path.join(self.cachedir, f), os.path.join(logdir, "%s-%s" % (self.crawler.settings['JOBID'], f)))
+                else:
                     os.remove(os.path.join(self.cachedir, f))
-                os.rmdir(self.cachedir)
+            os.rmdir(self.cachedir)
 
     def handle_response(self, response):
         lru = url_to_lru_clean(response.url)
@@ -117,6 +124,7 @@ class PagesCrawler(BaseSpider):
             with open(os.path.join(PHANTOM["JS_PATH"], "get_iframes_content.js")) as js:
                 get_bod_w_iframes = js.read()
             bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
+            response._set_body(bod_w_iframes.encode('utf-8'))
 
             # Try to scroll and unfold page
             self.log("Start PhantomJS scrolling and unfolding")
