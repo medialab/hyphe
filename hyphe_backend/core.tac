@@ -43,7 +43,7 @@ class Enum(set):
         if name in self:
             return name
         raise AttributeError
-crawling_statuses = Enum(['UNCRAWLED', 'PENDING', 'RUNNING', 'FINISHED', 'CANCELED'])
+crawling_statuses = Enum(['UNCRAWLED', 'PENDING', 'RUNNING', 'FINISHED', 'CANCELED', 'RETRIED'])
 indexing_statuses = Enum(['UNINDEXED', 'PENDING', 'BATCH_RUNNING', 'BATCH_FINISHED', 'BATCH_CRASHED', 'FINISHED', 'CANCELED'])
 
 def jobslog(jobid, msg, db, timestamp=None):
@@ -141,7 +141,7 @@ class Core(jsonrpc.JSONRPC):
             jobslog(update_ids, "CRAWL_"+crawling_statuses.RUNNING, self.db)
         # update crawling status for finished jobs
         finished_ids = [job['id'] for job in scrapyjobs['finished']]
-        update_ids = [job['_id'] for job in self.db[config['mongo-scrapy']['jobListCol']].find({'_id': {'$in': finished_ids}, 'crawling_status': {'$nin': [crawling_statuses.CANCELED, crawling_statuses.FINISHED]}}, fields=['_id'])]
+        update_ids = [job['_id'] for job in self.db[config['mongo-scrapy']['jobListCol']].find({'_id': {'$in': finished_ids}, 'crawling_status': {'$nin': [crawling_statuses.RETRIED, crawling_statuses.CANCELED, crawling_statuses.FINISHED]}}, fields=['_id'])]
         if len(update_ids):
             resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': {'$in': update_ids}}, {'$set': {'crawling_status': crawling_statuses.FINISHED}}, multi=True, safe=True)
             if (resdb['err']):
@@ -159,6 +159,14 @@ class Core(jsonrpc.JSONRPC):
                 print "ERROR updating finished indexing jobs statuses", update_ids, resdb
                 return
             jobslog(update_ids, "INDEX_"+indexing_statuses.FINISHED, self.db)
+            # Try to restart in phantom mode all regular crawls that seem to have failed (less than 3 pages found for a depth of at least 1)
+            for job in self.db[config['mongo-scrapy']['jobListCol']].find({'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.maxdepth': {'$gt': 0}}):
+                print "INFO: Crawl job %s seems to have failed, trying to restart it in phantom mode" % job['_id']
+                self.jsonrpc_crawl_webentity(job['webentity_id'], job['crawl_arguments']['maxdepth'], False, False, True)
+                jobslog(job['_id'], "CRAWL_RETRIED_AS_PHANTOM", self.db)
+                resdb = self.db[config['mongo-scrapy']['jobListCol']].update({'_id': job['_id']}, {'$set': {'crawling_status': crawling_statuses.RETRIED}}, safe=True)
+                if (resdb['err']):
+                    print "ERROR updating finished indexing jobs statuses", jobs['_id'], resdb
         return self.jsonrpc_listjobs()
 
     def jsonrpc_listjobs(self, list_ids=None):
