@@ -3,8 +3,8 @@
             <li ng-class="{active: currentPage=='overview'}"><a href="#/overview"><table><tr><td><span class="symbol"><span class="glyphicon glyphicon-asterisk"></span></span></td><td>OVERVIEW</td></tr></table></a></li>
             <li class="spacer"></li>
             <li ng-class="{active: currentPage=='importurls'}"><a href="#/importurls"><table><tr><td><span class="symbol">1</span></td><td>IMPORT URLS</td></tr></table></a></li>
-            <li><a href="#"><table><tr><td><span class="symbol">&nbsp;</span></td><td>DEFINE WEB ENTITIES</td></tr></table></a></li>
-            <li><a href="#"><table><tr><td><span class="symbol">&nbsp;</span></td><td>CHECK STARTING PAGES</td></tr></table></a></li>
+            <li ng-if="currentPage=='importurls' || currentPage=='definewebentities'" ng-class="{active: currentPage=='definewebentities'}"><a href="#/definewebentities"><table><tr><td><span class="symbol">&nbsp;</span></td><td>DEFINE WEB ENTITIES</td></tr></table></a></li>
+            <li ng-if="currentPage=='importurls' || currentPage=='definewebentities'"><a href="#"><table><tr><td><span class="symbol">&nbsp;</span></td><td>CHECK STARTING PAGES</td></tr></table></a></li>
             <li class="spacer"></li>
             <li><a href="#"><table><tr><td><span class="symbol">2</span></td><td>LAUNCH CRAWL</td></tr></table></a></li>
             <li class="spacer"></li>

@@ -71,9 +71,27 @@ angular.module('hyphe.services', []).
     }
   }]).
   factory('glossary', [function(){
-  	return function(term){
+    return function(term){
       return term
     }
+  }]).
+  factory('store', [function(){
+  	var savedData = {}
+      function set(key, data){
+        savedData[key] = data
+      }
+      function get(key){
+        return savedData[key]
+      }
+      function remove(key){
+        return delete savedData[key]
+      }
+
+      return {
+        set: set
+        ,get: get
+        ,remove: remove
+      }
   }]).
   factory('Parser', [function(){
   	return function(){

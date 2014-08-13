@@ -9,7 +9,7 @@ angular.module('hyphe.controllers', [])
   .controller('Overview', ['$scope', function($scope) {
     $scope.currentPage = 'overview'
   }])
-  .controller('ImportUrls', ['$scope', 'FileLoader', 'glossary', 'Parser', 'extractWebEntities', 'droppableTextArea', function($scope, FileLoader, glossary, Parser, extractWebEntities, droppableTextArea) {
+  .controller('ImportUrls', ['$scope', 'FileLoader', 'glossary', 'Parser', 'extractWebEntities', 'droppableTextArea', 'store', function($scope, FileLoader, glossary, Parser, extractWebEntities, droppableTextArea, store) {
     $scope.currentPage = 'importurls'
     $scope.glossary = glossary
     
@@ -27,27 +27,27 @@ angular.module('hyphe.controllers', [])
     $scope.previewMaxCol = 3
 
     
-    // Custom filtering for the previews
-    // $scope.$watchGroup(['dataText', 'parsingOption', 'headline'], updatePreview)
+    // Custom filtering process
     $scope.$watch('dataText', updatePreview)
     $scope.$watch('parsingOption', updatePreview)
     $scope.$watch('headline', updatePreview)
 
     function updatePreview() {
-      if($scope.parsingOption=='csv'){
-        $scope.table = buildTable($scope.dataText, 'csv')
-      }
 
-      if($scope.parsingOption=='scsv'){
-        $scope.table = buildTable($scope.dataText, 'scsv')
-      }
-
-      if($scope.parsingOption=='tsv'){
-        $scope.table = buildTable($scope.dataText, 'tsv')
-      }
-      
+      // Parse URLs
       if($scope.parsingOption=='text'){
         $scope.textPreview = extractWebEntities($scope.dataText)
+      } else{
+        $scope.table = buildTable($scope.dataText, $scope.parsingOption)
+      }
+
+      // Store the parsing result
+      if($scope.parsingOption == 'text'){
+        store.set('parsedUrls_settings', {type: 'list'})
+        store.set('parsedUrls', $scope.textPreview)
+      } else {
+        store.set('parsedUrls_settings', {type: 'table', urlsColumnId:($scope.selectedColumn || {id:-1}).id})
+        store.set('parsedUrls', $scope.table)
       }
 
 
@@ -137,4 +137,10 @@ angular.module('hyphe.controllers', [])
     // Make the text area droppable
     droppableTextArea(document.getElementById("droppable-text-area"), $scope, $scope.readFile)
 
+  }])
+  .controller('DefineWebEntities', ['$scope', 'store', function($scope, store) {
+    $scope.currentPage = 'definewebentities'
+
+    $scope.samplecontent = store.get('parsedUrls')
+    // $scope.samplecontent = store.get('parsedUrls_settings')
   }])
