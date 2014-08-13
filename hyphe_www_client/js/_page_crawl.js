@@ -542,7 +542,8 @@ HypheCommons.domino_init()
             crawling_colorClass = 'label-important'
         else if(status.toLowerCase() == "pending")
             crawling_colorClass = 'label-warning'
-        else if(status.toLowerCase() == "canceled")
+        else if(status.toLowerCase() == "canceled"
+             || status.toLowerCase() == "retried")
             crawling_colorClass = 'label-inverse'
         else
             crawling_colorClass = ''
