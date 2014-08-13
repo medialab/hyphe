@@ -33,23 +33,21 @@ angular.module('hyphe.controllers', [])
     $scope.$watch('headline', updatePreview)
 
     function updatePreview() {
-
       // Parse URLs
       if($scope.parsingOption=='text'){
         $scope.textPreview = extractWebEntities($scope.dataText)
       } else{
         $scope.table = buildTable($scope.dataText, $scope.parsingOption)
       }
-
-      // Store the parsing result
+      
+      // Store parsing results
       if($scope.parsingOption == 'text'){
-        store.set('parsedUrls_settings', {type: 'list'})
+        store.set('parsedUrls_type', 'list')
         store.set('parsedUrls', $scope.textPreview)
       } else {
-        store.set('parsedUrls_settings', {type: 'table', urlsColumnId:($scope.selectedColumn || {id:-1}).id})
+        store.set('parsedUrls_type', 'table')
         store.set('parsedUrls', $scope.table)
       }
-
 
       function buildTable(text, mode) {
         if(text == '')
@@ -98,6 +96,10 @@ angular.module('hyphe.controllers', [])
 
       $scope.columns = $scope.table[0].map(function(col, i){return {name:col, id:i}})
       $scope.selectedColumn = $scope.columns[selectedColumnId]
+
+      // Store these settings
+      store.set('parsedUrls_settings', {colId: selectedColumnId, headline:$scope.headline})
+      console.log(store.get('parsedUrls_settings'))
     })
 
     // File loading interactions
@@ -141,6 +143,4 @@ angular.module('hyphe.controllers', [])
   .controller('DefineWebEntities', ['$scope', 'store', function($scope, store) {
     $scope.currentPage = 'definewebentities'
 
-    $scope.samplecontent = store.get('parsedUrls')
-    // $scope.samplecontent = store.get('parsedUrls_settings')
   }])

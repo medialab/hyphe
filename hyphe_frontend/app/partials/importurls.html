@@ -72,7 +72,7 @@
                         <select class="form-control" ng-model="selectedColumn" ng-options="col.name for col in columns"></select>
 
                         <br/>
-                        <a class="btn btn-primary" href="#/definewebentities">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</a>
+                        <a class="btn btn-primary" href="#/definewebentities">DEFINE WEB ENTITIES</a>
                       </div>
                     </div>
                   </div>
@@ -91,31 +91,13 @@
                       </div>
                       <div class="cold-md-4">
                         <br/>
-                        <a class="btn btn-primary" href="#/definewebentities">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</a>
+                        <a class="btn btn-primary" href="#/definewebentities">DEFINE WEB ENTITIES</a>
                       </div>
                     </div>
                   </div>
 
                 </div>
                 
-                <!-- <p class="text-info import-info" ng-show="parsingOption=='paste_csv'">
-                  URL addresses are extracted to build {{gloss('web entities')}}. Note: <strong>one URL by line</strong>.
-                  <br>
-                  Additionnal data like categories, <strong>separated by comma</strong>, are imported.
-                </p>
-                <p class="text-info import-info" ng-show="parsingOption=='paste_tsv'">
-                  URL addresses are extracted to build {{gloss('web entities')}}. Note: <strong>one URL by line</strong>.
-                  <br>
-                  Additionnal data like categories, <strong>separated by tab</strong>, are imported.
-                </p>
-                <p class="text-info import-info" ng-show="parsingOption=='paste_text'">
-                  URL addresses are <strong>fetched in the full text</strong> to build {{glossary('web entities')}}.
-                  <br>
-                  There can be any number of URLs per line, but no category or additionnal data is imported.
-                </p>
-
-                <button class="btn btn-primary center-block">URLS &nbsp; <span class="glyphicon glyphicon-arrow-right"></span> &nbsp; WEB ENTITIES</button>
- -->
                 <!-- This hidden input is used for loading the files via the dropdown of the nav tabs -->
                 <input id="hidden-file-input" type="file" name="hidden-file-input" style="display: none;" onchange="angular.element(this).scope().setFile(this)"/>
               </div>
