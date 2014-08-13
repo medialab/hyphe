@@ -112,6 +112,13 @@ class PagesCrawler(BaseSpider):
 
         if self.phantom:
             self.phantom.get(response.url)
+
+            # Collect whole DOM of the webpage including embedded iframes
+            with open(os.path.join(PHANTOM["JS_PATH"], "get_iframes_content.js")) as js:
+                get_bod_w_iframes = js.read()
+            bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
+
+            # Try to scroll and unfold page
             self.log("Start PhantomJS scrolling and unfolding")
             with open(os.path.join(PHANTOM["JS_PATH"], "scrolldown_and_unfold.js")) as js:
                 try:
@@ -129,10 +136,11 @@ class PagesCrawler(BaseSpider):
                     err = json.loads(e.msg)['errorMessage']
                     self.log("Scrolling/Unfolding crashed: %s" % err)
                     self.errors += 1
-
-            # Collect whole DOM of the webpage including embedded iframes
-            with open(os.path.join(PHANTOM["JS_PATH"], "get_iframes_content.js")) as js:
-                bod_w_iframes = self.phantom.execute_script(js.read())
+                except Exception as e:
+                    self.log("Scrolling/Unfolding crashed: %s %s" % (type(e), e))
+                    self.errors += 1
+                    return self._make_raw_page(response, lru)
+            bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
             response._set_body(bod_w_iframes.encode('utf-8'))
 
         if 300 < response.status < 400 or isinstance(response, HtmlResponse):
