@@ -1310,6 +1310,9 @@ def test_connexions():
             print x
         return None
 # SCRAPY
+    if 'phantom' not in config:
+        print "ERROR: Hyphe's newest version requires to set up phantom in your configuration, please copy paste and adapt it from config/config.json.example"
+        return None
     res = run.crawler.send_scrapy_query('delproject', {'project': config['mongo-scrapy']['project']})
     if is_error(res):
         print "WARNING: Could not delete existing version of HCI's scrapy spider"
@@ -1329,7 +1332,7 @@ def test_connexions():
 
 core = test_connexions()
 if not core:
-    exit()
+    exit(1)
 
 # JSON-RPC interface
 core.putSubHandler('crawl', core.crawler)
