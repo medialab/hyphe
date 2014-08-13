@@ -9,7 +9,17 @@
             <div class="row">
               <div class="col-md-12">
                 <h1 class="page-title">DEFINE WEB ENTITIES</h1>
-                <div ng-repeat="urlObj in urlList" ng-include="'partials/sub/webentityslider.html'"></div>
+                <table class="table table-striped sliders-table">
+                  <tr ng-repeat="obj in urlList">
+                    <td>{{obj.id}}</td>
+                    <td ng-include="'partials/sub/webentityslider.html'"></td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <a class="btn btn-primary center-block">CHECK START PAGES</a>
               </div>
             </div>
           </div>
