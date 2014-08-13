@@ -115,7 +115,8 @@ if (typeof(arguments) == "undefined") {
         isClick = function(el){
             // Identify not already clicked clickable elements
             return !el.hasAttribute('hyphantomas_clicked') &&
-              (el.href || el.onclick || el.ondblclick || el.onmousedown);
+              (el.href);
+            // || el.onclick || el.ondblclick || el.onmousedown);
         },
         simulateClick = function(element) {
             // Try clicking all ways
