@@ -124,10 +124,12 @@ class PagesCrawler(BaseSpider):
                 try:
                     signal.signal(signal.SIGALRM, timeout_alarm)
                     signal.alarm(self.ph_timeout + 30)
-                    self.phantom.execute_async_script(
+                    timedout = self.phantom.execute_async_script(
                         js.read(), self.ph_timeout,
                         self.ph_idle_timeout, self.ph_ajax_timeout)
                     signal.alarm(0)
+                    if timedout:
+                        raise SeleniumTimeout
                     self.log("Scrolling/Unfolding finished")
                 except SeleniumTimeout:
                     self.log("Scrolling/Unfolding timed-out (%ss)" % self.ph_timeout)

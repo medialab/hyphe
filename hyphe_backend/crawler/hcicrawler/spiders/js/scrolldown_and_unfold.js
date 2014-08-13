@@ -32,23 +32,24 @@ if (typeof(arguments) == "undefined") {
     var running_since = Date.now(),
         idling_since = Date.now(),
         finalize = function() {
-            var now = Date.now();
+            var now = Date.now(),
+                timedout = now - running_since >= timeout;
             if ((scrolling || clicking || now - idling_since < idle_timeout) && 
-              now - running_since < timeout)
+              !timedout)
                 return setTimeout(finalize, 1000);
 
-            consolelog((now - running_since >= timeout ? "FORCE STOPP" : "FINISH") +
+            consolelog((timedout ? "FORCE STOPP" : "FINISH") +
               "ING script running since", Math.floor((now - running_since)/1000)+"s");
 
         // Clear all leftover running timeouts
-            var maxTimeOutId = setTimeout(';') + 1000;
-            for (var i=0; i<maxTimeOutId; i++) clearTimeout(i);
+            var maxTimeoutId = setTimeout(';') + 1000;
+            for (var i=0; i<maxTimeoutId; i++) clearTimeout(i);
 
         // Reset regular leaving page behavior
             window.onbeforeunload = function(){return;};
 
         // Run Selenium async-script signal-stopper
-            return endScript();
+            return endScript(timedout);
         };
 
     // Scroll the page screen by screen first
