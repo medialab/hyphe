@@ -173,13 +173,13 @@ textarea.over-error{
 /* ==========================================================================
    Module: Web Entity Slider
    ========================================================================== */
-.name-container{
+.hyphe-prefix-slider .name-container{
   word-break:keep-all;
   white-space: nowrap;
   overflow: hidden;
 }
 
-.stem{
+.hyphe-prefix-slider .stem{
   padding-left: 8px;
   padding-right: 8px;
   padding-top: 6px;
@@ -188,7 +188,7 @@ textarea.over-error{
   font-family: 'Roboto Condensed';
   font-weight: 400;
 }
-.stem.inblock{
+.hyphe-prefix-slider .stem.inblock{
   background-color: #ff846f;
   border: 4px solid #ff846f;
   color: #FFF;
@@ -197,10 +197,10 @@ textarea.over-error{
   box-shadow:         0px 3px 2px 0px rgba(0, 0, 0, 0.2);
 }
 
-.blurred .stem{
+.blurred>.hyphe-prefix-slider .stem{
   color: #BBB;
 }
-.blurred .stem.inblock{
+.blurred>.hyphe-prefix-slider .stem.inblock{
   background-color: #EFEBE8;
   border: 4px solid #EFEBE8;
   color: #555;
@@ -209,12 +209,12 @@ textarea.over-error{
   box-shadow:         none;
 }
 
-.slider-button-container{
+.hyphe-prefix-slider .slider-button-container{
   position: absolute;
   margin-top: -20px;
   cursor: pointer;
 }
-.slider-button-container .slider-hitbox{
+.hyphe-prefix-slider .slider-button-container .slider-hitbox{
   position: absolute;
   width: 48px;
   height: 64px;
@@ -222,7 +222,7 @@ textarea.over-error{
   margin-top: -32px;
   background-color: rgba(250, 250, 250, 0.);
 }
-.slider-button-container .slider-bar{
+.hyphe-prefix-slider .slider-button-container .slider-bar{
   position: absolute;
   width: 4px;
   height: 56px;
@@ -230,13 +230,13 @@ textarea.over-error{
   margin-top: -28px;
   background-color: #000;
 }
-.slider-button-container:hover .slider-bar, .slider-button-container.draggable .slider-bar{
+.hyphe-prefix-slider .slider-button-container:hover .slider-bar, .hyphe-prefix-slider .slider-button-container.draggable .slider-bar{
   background-color: #428bca;
   -webkit-box-shadow: 0px 0px 4px 2px rgba(255, 255, 255, 0.4);
   -moz-box-shadow:    0px 0px 4px 2px rgba(255, 255, 255, 0.4);
   box-shadow:         0px 0px 4px 2px rgba(255, 255, 255, 0.4);
 }
-.slider-button-container .slider-button{
+.hyphe-prefix-slider .slider-button-container .slider-button{
   position: absolute;
   width: 16px;
   height: 16px;
@@ -249,13 +249,13 @@ textarea.over-error{
   -moz-box-shadow:    0px 3px 2px 0px rgba(0, 0, 0, 0.2);
   box-shadow:         0px 3px 2px 0px rgba(0, 0, 0, 0.2);
 }
-.slider-button-container:hover .slider-button, .slider-button-container.draggable .slider-button{
+.hyphe-prefix-slider .slider-button-container:hover .slider-button, .hyphe-prefix-slider .slider-button-container.draggable .slider-button{
   border-color: #428bca;
   background-color: #FFF;
   -webkit-box-shadow: 0px 0px 4px 2px rgba(255, 255, 255, 0.4);
   -moz-box-shadow:    0px 0px 4px 2px rgba(255, 255, 255, 0.4);
   box-shadow:         0px 0px 4px 2px rgba(255, 255, 255, 0.4);
 }
-.blurred .slider-button-container{
+.blurred>.hyphe-prefix-slider .slider-button-container{
   display: none;
 }

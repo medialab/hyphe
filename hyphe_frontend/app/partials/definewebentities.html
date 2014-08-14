@@ -12,7 +12,7 @@
                 <table class="table table-striped sliders-table">
                   <tr ng-repeat="obj in urlList track by $index" ng-class="{active: $parent.activeRow == $index}" ng-click="$parent.activeRow = $index">
                     <td><div class="row-id">{{obj.id}}</div></td>
-                    <td ng-include="'partials/sub/webentityslider.html'" ng-class="{blurred: $parent.activeRow != $index}"></td>
+                    <td><div hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != $index}"></div></td>
                   </tr>
                 </table>
               </div>

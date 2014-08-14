@@ -196,10 +196,5 @@ angular.module('hyphe.controllers', [])
     // Record in model
     $scope.urlList = list
 
-    // Interactions for the webentity slider module
-    // TODO
-
-
-
-
+    
   }])

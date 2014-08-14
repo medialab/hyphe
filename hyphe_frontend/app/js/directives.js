@@ -6,49 +6,57 @@
 angular.module('hyphe.directives', [])
   
   .directive('appVersion', ['version', function(version) {
-    return function(scope, elm, attrs) {
-      elm.text(version);
+    return function(scope, el, attrs) {
+      el.text(version);
     };
   }])
 
-  .directive('hyphePrefixSlider', ['$route', function($route) {
-	  return function(scope, elm, attrs) {
+  .directive('hyphePrefixSlider', [function(){
+    return {
+      restrict: 'A'
+      ,templateUrl: 'partials/sub/webentityslider.html'
+    }
+  }])
+
+  .directive('hyphePrefixSliderButton', [function() {
+	  return {
+      restrict: 'A'
+      ,link: function(scope, el, attrs) {
 	      
-	      var opt = scope.$eval(attrs.hyphePrefixSlider) || {}	// allow options to be passed
+	      var opt = scope.$eval(attrs.hyphePrefixSliderButton) || {}	// allow options to be passed
 	      opt.cursor = opt.cursor || 'move'
 
         // Keeping an updated
 	      var steps
         scope.$watch(function(){  // Watch active state (blurred ancestor)
-            var componentRoot = elm.parent().parent().parent().parent()
-            ,container = componentRoot.parent()
-            return componentRoot.hasClass('blurred') || container.hasClass('blurred')
+            var container = el.parent().parent().parent().parent()
+            return container.hasClass('blurred')
           }, updateCoordinates)
         scope.$watch(function(){  // Watch coordinates change
-            return elm.parent().offset().left
+            return el.parent().offset().left
           }, updateCoordinates)
-        /*scope.$watch(function(){  // Watch object change
+        scope.$watch(function(){  // Watch object change
             return scope.obj
-          }, updateCoordinates)*/
+          }, updateCoordinates)
 				$(window).resize(updateCoordinates)
 	      
-	      var z_idx = elm.css('z-index')
-	      ,drg_w = elm.outerWidth()
-        ,pos_x = elm.offset().left + drg_w
+	      var z_idx = el.css('z-index')
+	      ,drg_w = el.outerWidth()
+        ,pos_x = el.offset().left + drg_w
         
-        elm.css('cursor', opt.cursor)
+        el.css('cursor', opt.cursor)
         	.on("mousedown", startDrag)
 
-        return elm
+        return el
 
         function startDrag(e) {
-          drg_w = elm.outerWidth()
-          pos_x = elm.offset().left + drg_w - e.pageX
-          z_idx = elm.css('z-index')
+          drg_w = el.outerWidth()
+          pos_x = el.offset().left + drg_w - e.pageX
+          z_idx = el.css('z-index')
 
           e.preventDefault(); // disable selection
 
-          elm
+          el
           	.addClass('draggable')
           	.css('z-index', 1000)
 	        	.parents()
@@ -93,7 +101,7 @@ angular.module('hyphe.directives', [])
         }
 
         function endDrag() {
-          elm
+          el
           	.removeClass('draggable')
 						.css('z-index', z_idx)
 						.parents()
@@ -102,28 +110,27 @@ angular.module('hyphe.directives', [])
         }
 
         function updateSteps(){
-        	steps = elm.parent().find('table>tbody>tr>td').toArray().map(function(td){
+        	steps = el.parent().find('table>tbody>tr>td').toArray().map(function(td){
         		var $td = $(td)
         		return $td.offset().left + $td.outerWidth()
         	})
         }
 
         function updateBoundaries(){
-          elm.offset({
-              left:Math.min(steps[steps.length-1], Math.max(steps[0], elm.offset().left))
+          el.offset({
+              left:Math.min(steps[steps.length-1], Math.max(steps[0], el.offset().left))
           })
         }
 
         function updatePosition(){
-          elm.offset({
+          el.offset({
               left:steps[(scope.obj.prefixLength || 1)-1]
           })
         }
 
         function updateCoordinates(){
-          var componentRoot = elm.parent().parent().parent().parent()
-          ,container = componentRoot.parent()
-          if(componentRoot.hasClass('blurred') || container.hasClass('blurred')){
+          var container = el.parent().parent().parent().parent()
+          if(container.hasClass('blurred')){
             // we do not check
           } else {
             updateSteps()
@@ -132,4 +139,5 @@ angular.module('hyphe.directives', [])
           }
         }
 	    }
+    }
 	}]);
