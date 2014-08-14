@@ -13,7 +13,7 @@ The project relies on the following main components:
   + lib: shared libraries
  * hyphe_www_client: a JavaScript web interface to constitute and explore web corpuses through the backend API
 
-You can try a feature-limited version of Hyphe at the following url: (http://hyphe.medialab.sciences-po.fr/demo/[)http://hyphe.medialab.sciences-po.fr/demo/]
+You can try a restricted version of Hyphe at the following url: (http://hyphe.medialab.sciences-po.fr/demo/)[http://hyphe.medialab.sciences-po.fr/demo/]
 
 _Note:_ MongoDB being limited to 2Go databases on 32bit systems, it is recommanded to always install Hyphe on a 64bit machine.
 
