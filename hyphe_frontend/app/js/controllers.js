@@ -187,10 +187,10 @@ angular.module('hyphe.controllers', [])
                 }
                 return stem
               })
-          obj.prefixLength = obj.pretty_lru.length - 1
+          obj.prefixLength = 3
           obj.parentWebEntities = [
-            {id:1, name:"Webentity-That-Exist.com", prefixLength:3}
-            ,{id:2, name:".com TLD", prefixLength:2}
+            /*{id:1, name:"Webentity-That-Exist.com", prefixLength:3}
+            ,*/{id:2, name:".com TLD", prefixLength:2}
           ]
           return obj
         })

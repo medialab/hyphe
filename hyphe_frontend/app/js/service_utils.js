@@ -166,7 +166,7 @@ angular.module('hyphe.service_utils', [])
 
     ns.JSON_LRU_to_pretty_LRU = function(json_lru){
       var pretty_lru = []
-      pretty_lru.push(json_lru.scheme)
+      pretty_lru.push(json_lru.scheme || 'http')
       json_lru.host.forEach(function(stem, i){
         switch(i){
           case 0:
@@ -196,6 +196,10 @@ angular.module('hyphe.service_utils', [])
       }
 
       return pretty_lru
+    }
+
+    ns.LRU_truncate = function(lru, length){
+      return lru.split('|').slice(0, length).join('|')
     }
 
     ns.URL_remove_http = function(url) {
@@ -389,6 +393,10 @@ angular.module('hyphe.service_utils', [])
         }))
       }
       return ns.extractCases(candidates).reverse()
+    }
+
+    ns.nameLRU = function(lru){
+      return ns.nameURL(ns.LRU_to_URL(lru))
     }
 
     ns.nameURL = function(url){

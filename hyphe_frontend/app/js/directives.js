@@ -29,7 +29,7 @@ angular.module('hyphe.directives', [])
             scope.statusText = 'Already exists'
             scope.status = 'exists'
           } else {
-            scope.name = utils.nameURL(obj.url)
+            scope.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.prefixLength))
             scope.statusText = 'New'
             scope.status = 'new'
           }

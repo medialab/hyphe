@@ -177,10 +177,13 @@ textarea.over-error{
   word-break:keep-all;
   white-space: nowrap;
   overflow: hidden;
-  font-weight:600;
+  font-weight:400;
+}
+.hyphe-prefix-slider .name-container.bold{
+  font-weight: 700;
 }
 .hyphe-prefix-slider .status-container{
-  color: #ff846f;
+  color: #f08060;
 }
 
 .hyphe-prefix-slider .stem{
