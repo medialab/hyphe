@@ -11,11 +11,33 @@ angular.module('hyphe.directives', [])
     };
   }])
 
-  .directive('hyphePrefixSlider', [function(){
+  .directive('hyphePrefixSlider', ['utils', function(utils){
     return {
       restrict: 'A'
       ,templateUrl: 'partials/sub/webentityslider.html'
       ,link: function(scope, el, attrs) {
+        
+        scope.updateNameAndStatus = function(obj){
+          var webentityFound
+          obj.parentWebEntities.forEach(function(we){
+            if(!webentityFound && we.prefixLength == obj.prefixLength){
+              webentityFound = we
+            }
+          })
+          if(webentityFound){
+            scope.name = webentityFound.name
+            scope.statusText = 'Already exists'
+            scope.status = 'exists'
+          } else {
+            scope.name = utils.nameURL(obj.url)
+            scope.statusText = 'New'
+            scope.status = 'new'
+          }
+        }
+
+        scope.updateNameAndStatus(scope.obj)
+
+        // Useful for templating
         scope.getRange = function(number){
           var result = []
           for(var i = 1; i<=number; i++){result.push(i)}
@@ -54,7 +76,12 @@ angular.module('hyphe.directives', [])
         el.css('cursor', opt.cursor)
         	.on("mousedown", startDrag)
 
+        updateCoordinates(true)
+
         return el
+
+
+        // functions used in this directive
 
         function startDrag(e) {
           drg_w = el.outerWidth()
@@ -71,7 +98,6 @@ angular.module('hyphe.directives', [])
 	        
 	        $('body')
 	        	.one("mouseup", endDrag)
-
         }
 
         function updateDrag(e) {
@@ -103,6 +129,7 @@ angular.module('hyphe.directives', [])
           })
           if(scope.obj.prefixLength != closestStepId){
             scope.obj.prefixLength = closestStepId
+            scope.updateNameAndStatus(scope.obj)
             scope.$apply()
           }
         }
@@ -143,11 +170,9 @@ angular.module('hyphe.directives', [])
           })
         }
 
-        function updateCoordinates(){
+        function updateCoordinates(forceUpdateAll){
           var container = el.parent().parent().parent().parent()
-          if(container.hasClass('blurred')){
-            // we do not check
-          } else {
+          if(forceUpdateAll || !container.hasClass('blurred')){
             updateSteps()
             updateBoundaries()
             updatePosition()

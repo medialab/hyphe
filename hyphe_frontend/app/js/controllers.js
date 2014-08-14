@@ -177,7 +177,6 @@ angular.module('hyphe.controllers', [])
           return obj.url && utils.URL_validate(obj.url)
         })
       .map(function(obj){
-          obj.name = utils.nameURL(obj.url)
           obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
           obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
           obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
@@ -188,10 +187,9 @@ angular.module('hyphe.controllers', [])
                 }
                 return stem
               })
-          obj.status = 'status'
           obj.prefixLength = obj.pretty_lru.length - 1
           obj.parentWebEntities = [
-            {id:1, name:"Altermondes", prefixLength:3}
+            {id:1, name:"Webentity-That-Exist.com", prefixLength:3}
             ,{id:2, name:".com TLD", prefixLength:2}
           ]
           return obj

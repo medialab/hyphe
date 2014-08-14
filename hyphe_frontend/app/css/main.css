@@ -173,10 +173,14 @@ textarea.over-error{
 /* ==========================================================================
    Module: Web Entity Slider
    ========================================================================== */
-.hyphe-prefix-slider .name-container{
+.hyphe-prefix-slider .name-container, .hyphe-prefix-slider .status-container{
   word-break:keep-all;
   white-space: nowrap;
   overflow: hidden;
+  font-weight:600;
+}
+.hyphe-prefix-slider .status-container{
+  color: #ff846f;
 }
 
 .hyphe-prefix-slider .stem{
