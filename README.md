@@ -13,6 +13,8 @@ The project relies on the following main components:
   + lib: shared libraries
  * hyphe_www_client: a JavaScript web interface to constitute and explore web corpuses through the backend API
 
+You can try a feature-limited version of Hyphe at the following url: (http://hyphe.medialab.sciences-po.fr/demo/[)http://hyphe.medialab.sciences-po.fr/demo/]
+
 _Note:_ MongoDB being limited to 2Go databases on 32bit systems, it is recommanded to always install Hyphe on a 64bit machine.
 
 _Warning:_ Hyphe's current release does not support multiple corpus. This feature will come soon, but at the moment building a different corpus requires to either install a new instance or to stop working on the previous corpus and change the settings to point to a different mongodb collection and lucene directory.
