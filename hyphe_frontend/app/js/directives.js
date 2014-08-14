@@ -11,15 +11,28 @@ angular.module('hyphe.directives', [])
     };
   }])
 
-  .directive('hyphePrefixSlider', [function() {
+  .directive('hyphePrefixSlider', ['$route', function($route) {
 	  return function(scope, elm, attrs) {
 	      
 	      var opt = scope.$eval(attrs.hyphePrefixSlider) || {}	// allow options to be passed
 	      opt.cursor = opt.cursor || 'move'
 
-
-	      var steps = buildSteps()
-
+	      var steps
+        scope.$watch(function(){  // Look at active state (blurred ancestor)
+          var componentRoot = elm.parent().parent().parent().parent()
+          ,container = componentRoot.parent()
+          return componentRoot.hasClass('blurred') || container.hasClass('blurred')
+        }, updateCoordinates)
+        scope.$watch(function(){  // Look at active state (blurred ancestor)
+          // Look at offset
+          return elm.parent().offset().left
+        }, updateCoordinates)
+				$(window).resize(updateCoordinates)
+        /*
+        scope.$watch('obj', updateSteps)
+        scope.$watch('slidersLoaded', updateSteps)
+        */
+	      
 	      var z_idx = elm.css('z-index')
 	      ,drg_w = elm.outerWidth()
         ,pos_x = elm.offset().left + drg_w
@@ -47,15 +60,13 @@ angular.module('hyphe.directives', [])
 
         }
 
-        function updateDrag(e){
-        	console.log('updateDrag')
+        function updateDrag(e) {
           $('.draggable').offset({
-              left:e.pageX + pos_x - drg_w
+              left:Math.min(steps[steps.length-1], Math.max(steps[0], e.pageX + pos_x - drg_w))
           })
         }
 
         function endDrag() {
-        	console.log('endDrag')
           elm
           	.removeClass('draggable')
 						.css('z-index', z_idx)
@@ -63,8 +74,29 @@ angular.module('hyphe.directives', [])
           		.off("mousemove", updateDrag)
         }
 
-        function buildSteps(){
+        function updateSteps(){
+        	steps = elm.parent().find('table>tbody>tr>td').toArray().map(function(td){
+        		var $td = $(td)
+        		return $td.offset().left// + $td.width()
+        	})
+        }
 
+        function updateBoundaries(){
+          elm.offset({
+              left:Math.min(steps[steps.length-1], Math.max(steps[0], elm.offset().left))
+          })
+        }
+
+        function updateCoordinates(){
+          var componentRoot = elm.parent().parent().parent().parent()
+          ,container = componentRoot.parent()
+          if(componentRoot.hasClass('blurred') || container.hasClass('blurred')){
+            // we do not check
+          } else {
+            console.log('update coordinates for row '+scope.$index)
+            updateSteps()
+            updateBoundaries()
+          }
         }
 	    }
 	}]);
