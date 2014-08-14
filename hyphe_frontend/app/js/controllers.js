@@ -144,6 +144,7 @@ angular.module('hyphe.controllers', [])
 
   .controller('DefineWebEntities', ['$scope', 'store', 'utils', function($scope, store, utils) {
     $scope.currentPage = 'definewebentities'
+    $scope.activeRow = 0
 
     // Build the basic list of web entities
     var list
@@ -177,13 +178,26 @@ angular.module('hyphe.controllers', [])
         })
       .map(function(obj){
           obj.name = utils.nameURL(obj.url)
-          obj.lru = utils.URL_to_LRU(obj.url)
+          obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
+          obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
+          obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
+            .map(function(stem){
+                var maxLength = 12
+                if(stem.length > maxLength+3){
+                  return stem.substr(0,maxLength) + '...'
+                }
+                return stem
+              })
+          obj.status = 'status'
+          obj.prefixLength = obj.pretty_lru.length - 1
           return obj
         })
 
     // Record in model
     $scope.urlList = list
 
+    // Interactions for the webentity slider module
+    // TODO
 
 
 

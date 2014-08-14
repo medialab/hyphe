@@ -412,15 +412,53 @@ angular.module('hyphe.services', [])
       if(json_lru.port != undefined && json_lru.port!="80")
         port = ":"+json_lru.port
 
-      return scheme+hosts+port+path+query+fragment
+      return scheme+port+hosts+path+query+fragment
+    }
+
+    ns.URL_to_pretty_LRU = function(url){
+      return ns.JSON_LRU_to_pretty_LRU(ns.URL_to_JSON_LRU(url))
+    }
+
+    ns.LRU_to_pretty_LRU = function(lru){
+      return ns.JSON_LRU_to_pretty_LRU(ns.LRU_to_JSON_LRU(url))
+    }
+
+    ns.JSON_LRU_to_pretty_LRU = function(json_lru){
+      var pretty_lru = []
+      pretty_lru.push(json_lru.scheme)
+      json_lru.host.forEach(function(stem, i){
+        switch(i){
+          case 0:
+            pretty_lru.push('.'+explicit(stem))
+            break
+          case 1:
+            pretty_lru.push(explicit(stem))
+            break
+          default:
+            pretty_lru.push(explicit(stem)+'.')
+            break
+        }
+      })
+      json_lru.path.forEach(function(stem){
+        pretty_lru.push('/'+explicit(stem))
+      })
+      if(json_lru.query)
+        pretty_lru.push('?'+explicit(stem))
+      if(json_lru.fragment)
+        pretty_lru.push('#'+explicit(stem))
+
+      function explicit(stem){
+        return stem.replace(/[\n\r]/gi, '<line break>')
+          .replace(/^$/gi, '<empty>')
+          .replace(/^ $/, '<space>')
+          .replace(/(  +)/, ' <spaces> ')
+      }
+
+      return pretty_lru
     }
 
     ns.URL_remove_http = function(url) {
       return url.replace(/^http:\/\//, '')
-    }
-
-    ns.URL_simplify = function(url){
-      return ns.URL_stripLastSlash(ns.URL_remove_http(url))
     }
 
     ns.URL_fix = function(url){
@@ -775,21 +813,21 @@ angular.module('hyphe.services', [])
     ns.prettyDate = function(date){
       // Code adapted from http://webdesign.onyou.ch/2010/08/04/javascript-time-ago-pretty-date/
       var time_formats = [
-        [60, 'just now', 'just now'], // 60
-        [120, '1 minute ago', '1 minute from now'], // 60*2
-        [3600, 'minutes', 60], // 60*60, 60
-        [7200, '1 hour ago', '1 hour from now'], // 60*60*2
-        [86400, 'hours', 3600], // 60*60*24, 60*60
-        [172800, 'yesterday', 'tomorrow'], // 60*60*24*2
-        [604800, 'days', 86400], // 60*60*24*7, 60*60*24
-        [1209600, 'last week', 'next week'], // 60*60*24*7*4*2
-        [2419200, 'weeks', 604800], // 60*60*24*7*4, 60*60*24*7
-        [4838400, 'last month', 'next month'], // 60*60*24*7*4*2
-        [29030400, 'months', 2419200], // 60*60*24*7*4*12, 60*60*24*7*4
-        [58060800, 'last year', 'next year'], // 60*60*24*7*4*12*2
-        [2903040000, 'years', 29030400], // 60*60*24*7*4*12*100, 60*60*24*7*4*12
+        [60, 'just now', 'just now'],                 // 60
+        [120, '1 minute ago', '1 minute from now'],   // 60*2
+        [3600, 'minutes', 60],                        // 60*60, 60
+        [7200, '1 hour ago', '1 hour from now'],      // 60*60*2
+        [86400, 'hours', 3600],                       // 60*60*24, 60*60
+        [172800, 'yesterday', 'tomorrow'],            // 60*60*24*2
+        [604800, 'days', 86400],                      // 60*60*24*7, 60*60*24
+        [1209600, 'last week', 'next week'],          // 60*60*24*7*4*2
+        [2419200, 'weeks', 604800],                   // 60*60*24*7*4, 60*60*24*7
+        [4838400, 'last month', 'next month'],        // 60*60*24*7*4*2
+        [29030400, 'months', 2419200],                // 60*60*24*7*4*12, 60*60*24*7*4
+        [58060800, 'last year', 'next year'],         // 60*60*24*7*4*12*2
+        [2903040000, 'years', 29030400],              // 60*60*24*7*4*12*100, 60*60*24*7*4*12
         [5806080000, 'last century', 'next century'], // 60*60*24*7*4*12*100*2
-        [58060800000, 'centuries', 2903040000] // 60*60*24*7*4*12*100*20, 60*60*24*7*4*12*100
+        [58060800000, 'centuries', 2903040000]        // 60*60*24*7*4*12*100*20, 60*60*24*7*4*12*100
       ]
       ,seconds = (new Date() - date) / 1000
       ,token = 'ago'

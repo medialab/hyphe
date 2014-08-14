@@ -1,12 +1,18 @@
                   <div class="webentity-slider">
                   	<div class="container-fluid">
-                  		<div class="row no-gutter">
+                  		<div class="row">
                   			<div class="col-md-4">
-			                  	{{obj.name}}
+                  				<div class="name-container">{{obj.name}}</div>
+                  				<div class="status-container">{{obj.status}}</div>
                   			</div>
                   			<div class="col-md-8">
-                  				{{obj.lru}}
+                  				<table>
+                  					<tr>
+                  						<td class="stem" ng-repeat="stem in obj.pretty_lru track by $index" ng-class="{inblock: $index < $parent.obj.prefixLength}">{{stem}}</td>
+                  					</tr>
+                  				</table>
                   			</div>
                   		</div>
                   	</div>
+                  	<div class="slider-button"></div>
                   </div>
