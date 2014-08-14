@@ -164,10 +164,13 @@ textarea.over-error{
 .sliders-table>tbody>tr:not(.active){
   cursor: pointer;
 }
+.sliders-table .td-row-id{
+  width: 50px;
+}
 .row-id{
   padding-top: 6px;
-  font-size: 18px;
-  font-weight: 400;
+  font-size: 24px;
+  font-weight: 300;
 }
 
 /* ==========================================================================
