@@ -26,16 +26,16 @@ angular.module('hyphe.directives', [])
 	      var opt = scope.$eval(attrs.hyphePrefixSliderButton) || {}	// allow options to be passed
 	      opt.cursor = opt.cursor || 'move'
 
-        // Keeping an updated
+        // Keeping an updated version of x-coordinates where the slider makes something happen
 	      var steps
-        scope.$watch(function(){  // Watch active state (blurred ancestor)
+        scope.$watch(function(){  // Watch active state (!.blurred container)
             var container = el.parent().parent().parent().parent()
             return container.hasClass('blurred')
           }, updateCoordinates)
-        scope.$watch(function(){  // Watch coordinates change
+        scope.$watch(function(){  // Watch coordinate changes
             return el.parent().offset().left
           }, updateCoordinates)
-        scope.$watch(function(){  // Watch object change
+        scope.$watch(function(){  // Watch obj changes
             return scope.obj
           }, updateCoordinates)
 				$(window).resize(updateCoordinates)
@@ -78,7 +78,7 @@ angular.module('hyphe.directives', [])
           })
 
           // boundaries
-          x = Math.min(steps[steps.length-1], Math.max(steps[0], x))
+          x = Math.min(steps[steps.length-1], Math.max(steps[1], x))
 
           $('.draggable').offset({
               left:x
@@ -118,7 +118,7 @@ angular.module('hyphe.directives', [])
 
         function updateBoundaries(){
           el.offset({
-              left:Math.min(steps[steps.length-1], Math.max(steps[0], el.offset().left))
+              left:Math.min(steps[steps.length-1], Math.max(steps[1], el.offset().left))
           })
         }
 

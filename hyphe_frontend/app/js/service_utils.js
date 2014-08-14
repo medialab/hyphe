@@ -394,8 +394,8 @@ angular.module('hyphe.service_utils', [])
     ns.nameURL = function(url){
       var json_lru = ns.URL_to_JSON_LRU(url)
       ,name = json_lru.host
-        .filter(function(d){return d != 'www'})
-        .map(function(d,i){if(i==1){return ns.toProperCase(d)} return d})
+        .map(function(d,i){if(i==1){return ns.toDomainCase(d)} return d})
+        .filter(function(d,i){return d != 'www' && i>0})
         .reverse()
         .join('.')
       if(json_lru.path.length == 1 && json_lru.path[0].trim().length>0){
@@ -592,7 +592,11 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.toProperCase = function(str){
-      return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+      return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();})
+    }
+
+    ns.toDomainCase = function(str){
+      return str.replace(/\w[^ -]*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();})
     }
 
     // Sort array and remove doubles
