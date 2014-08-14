@@ -5,16 +5,24 @@
                 				<div class="status-container">{{obj.status}}</div>
                 			</div>
                 			<div class="col-md-8">
-                				<table>
-                					<tr>
-                						<td class="stem" ng-repeat="stem in obj.pretty_lru track by $index" ng-class="{inblock: $index < $parent.obj.prefixLength}">{{stem}}</td>
-                					</tr>
-                				</table>
 		                  	<div class="slider-button-container" hyphe-prefix-slider-button="{cursor:'pointer'}">
 			                  	<div class="slider-hitbox"></div>
 			                  	<div class="slider-bar"></div>
 			                  	<div class="slider-button"></div>
 			                  </div>
+                				<table>
+                					<tr>
+                						<td class="stem" ng-repeat="stem in obj.pretty_lru track by $index" ng-class="{inblock: $index < $parent.obj.prefixLength}">{{stem}}</td>
+                					</tr>
+                					<tbody ng-repeat="webEntity in obj.parentWebEntities">
+	                					<tr>
+	                						<td class="webentity-spacer"></td>
+	                					</tr>
+	                					<tr class="webentity-row" ng-class="{selected: obj.prefixLength==webEntity.prefixLength}">
+	                						<td class="webentity-stem" ng-repeat="i in getRange(webEntity.prefixLength)"></td>
+	                					</tr>
+	                				</tbody>
+                				</table>
                 			</div>
                 		</div>
                 	</div>

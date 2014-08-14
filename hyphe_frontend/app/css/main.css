@@ -209,9 +209,31 @@ textarea.over-error{
   box-shadow:         none;
 }
 
+/* bars showing web entities */
+.hyphe-prefix-slider tr>td.webentity-stem{
+  border-bottom: 4px solid #cfc9c4;
+  height: 6px;
+}
+.hyphe-prefix-slider tr>td.webentity-stem:first-child{
+  border-left: 4px solid #cfc9c4;
+}
+.hyphe-prefix-slider tr>td.webentity-stem:last-child{
+  border-right: 4px solid #cfc9c4;
+}
+.hyphe-prefix-slider tr>td.webentity-spacer{
+  height: 5px;
+}
+.hyphe-prefix-slider tr.selected>td.webentity-stem{
+  border-color: #000;
+}
+.blurred>.hyphe-prefix-slider tr>td.webentity-stem{
+  border-color:#ebe7e4;
+}
+
+/* slider button */
 .hyphe-prefix-slider .slider-button-container{
   position: absolute;
-  margin-top: -20px;
+  margin-top: 20px;
   cursor: pointer;
 }
 .hyphe-prefix-slider .slider-button-container .slider-hitbox{
@@ -225,9 +247,9 @@ textarea.over-error{
 .hyphe-prefix-slider .slider-button-container .slider-bar{
   position: absolute;
   width: 4px;
-  height: 56px;
+  height: 48px;
   margin-left: -2px;
-  margin-top: -28px;
+  margin-top: -24px;
   background-color: #000;
 }
 .hyphe-prefix-slider .slider-button-container:hover .slider-bar, .hyphe-prefix-slider .slider-button-container.draggable .slider-bar{

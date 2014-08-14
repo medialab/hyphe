@@ -190,11 +190,15 @@ angular.module('hyphe.controllers', [])
               })
           obj.status = 'status'
           obj.prefixLength = obj.pretty_lru.length - 1
+          obj.parentWebEntities = [
+            {id:1, name:"Altermondes", prefixLength:3}
+            ,{id:2, name:".com TLD", prefixLength:2}
+          ]
           return obj
         })
 
     // Record in model
     $scope.urlList = list
 
-    
+
   }])

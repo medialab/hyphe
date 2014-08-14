@@ -15,6 +15,13 @@ angular.module('hyphe.directives', [])
     return {
       restrict: 'A'
       ,templateUrl: 'partials/sub/webentityslider.html'
+      ,link: function(scope, el, attrs) {
+        scope.getRange = function(number){
+          var result = []
+          for(var i = 1; i<=number; i++){result.push(i)}
+          return result
+        }
+      }
     }
   }])
 
@@ -78,7 +85,7 @@ angular.module('hyphe.directives', [])
           })
 
           // boundaries
-          x = Math.min(steps[steps.length-1], Math.max(steps[1], x))
+          x = applyBoundaries(x)
 
           $('.draggable').offset({
               left:x
@@ -110,7 +117,7 @@ angular.module('hyphe.directives', [])
         }
 
         function updateSteps(){
-        	steps = el.parent().find('table>tbody>tr>td').toArray().map(function(td){
+        	steps = el.parent().find('table>tbody>tr>td.stem').toArray().map(function(td){
         		var $td = $(td)
         		return $td.offset().left + $td.outerWidth()
         	})
@@ -118,8 +125,16 @@ angular.module('hyphe.directives', [])
 
         function updateBoundaries(){
           el.offset({
-              left:Math.min(steps[steps.length-1], Math.max(steps[1], el.offset().left))
+              left:applyBoundaries(el.offset().left)
           })
+        }
+
+        function applyBoundaries(x){
+          if(x > steps[steps.length-1])
+            x = steps[steps.length-1]
+          if(x < steps[1])
+            x = steps[1]
+          return x
         }
 
         function updatePosition(){
