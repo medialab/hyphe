@@ -6,6 +6,7 @@ angular.module('hyphe', [
   'ngRoute',
   'hyphe.filters',
   'hyphe.services',
+  'hyphe.service_utils',
   'hyphe.directives',
   'hyphe.controllers'
 ]).
