@@ -11,8 +11,12 @@
                   						<td class="stem" ng-repeat="stem in obj.pretty_lru track by $index" ng-class="{inblock: $index < $parent.obj.prefixLength}">{{stem}}</td>
                   					</tr>
                   				</table>
+			                  	<div class="slider-button-container" hyphe-prefix-slider="{cursor:'pointer'}">
+				                  	<div class="slider-hitbox"></div>
+				                  	<div class="slider-bar"></div>
+				                  	<div class="slider-button"></div>
+				                  </div>
                   			</div>
                   		</div>
                   	</div>
-                  	<div class="slider-button"></div>
                   </div>
