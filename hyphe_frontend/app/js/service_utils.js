@@ -157,16 +157,21 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.URL_to_pretty_LRU = function(url){
-      return ns.JSON_LRU_to_pretty_LRU(ns.URL_to_JSON_LRU(url))
+      if(ns.URL_validate(url))
+        return ns.JSON_LRU_to_pretty_LRU(ns.URL_to_JSON_LRU(url))
+      return []
     }
 
     ns.LRU_to_pretty_LRU = function(lru){
-      return ns.JSON_LRU_to_pretty_LRU(ns.LRU_to_JSON_LRU(url))
+      var url = ns.LRU_to_JSON_LRU(lru)
+      return ns.URL_to_pretty_LRU(url)
     }
 
     ns.JSON_LRU_to_pretty_LRU = function(json_lru){
       var pretty_lru = []
-      pretty_lru.push(json_lru.scheme || 'http')
+      if(json_lru === undefined || !json_lru.scheme || json_lru.host.length < 2)
+        return []
+      pretty_lru.push(json_lru.scheme)
       json_lru.host.forEach(function(stem, i){
         switch(i){
           case 0:
@@ -184,9 +189,9 @@ angular.module('hyphe.service_utils', [])
         pretty_lru.push('/'+explicit(stem))
       })
       if(json_lru.query)
-        pretty_lru.push('?'+explicit(stem))
+        pretty_lru.push('?'+json_lru.query)
       if(json_lru.fragment)
-        pretty_lru.push('#'+explicit(stem))
+        pretty_lru.push('#'+json_lru.fragment)
 
       function explicit(stem){
         return stem.replace(/[\n\r]/gi, '<line break>')
@@ -401,6 +406,8 @@ angular.module('hyphe.service_utils', [])
 
     ns.nameURL = function(url){
       var json_lru = ns.URL_to_JSON_LRU(url)
+      if(json_lru === undefined)
+        return '<Impossible to Name>'
       ,name = json_lru.host
         .map(function(d,i){if(i==1){return ns.toDomainCase(d)} return d})
         .filter(function(d,i){return d != 'www' && i>0})
