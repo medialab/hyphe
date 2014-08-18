@@ -239,6 +239,7 @@ angular.module('hyphe.controllers', [])
       if(objFound){
         $scope.concurrentQueries++
         obj.status = 'pending'
+
         api.getLruParentWebentities(
           {lru: obj.lru}
           ,function(webentities){ // success
@@ -253,6 +254,7 @@ angular.module('hyphe.controllers', [])
             $scope.fetchQueries()
           }
         )
+        
       } else {
         $scope.allQueriesSent = true
       }

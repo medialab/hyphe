@@ -24,7 +24,7 @@
                 <table class="table table-striped sliders-table">
                   <tr ng-repeat="obj in urlList|paginate:page:paginationLength track by $index" ng-class="{active: $parent.activeRow == ($index+paginationLength*page)}" ng-click="$parent.activeRow = ($index+paginationLength*page)" ng-mouseover="$parent.activeRow = ($index+paginationLength*page)">
                     <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>
-                    <td>
+                    <td class="td-row-content">
                       <div ng-if="obj.status != 'loaded'"><p class="text-muted loading-p">{{obj.status}}</p></div>
                       <div ng-if="obj.status == 'loaded'" hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div>
                     </td>
