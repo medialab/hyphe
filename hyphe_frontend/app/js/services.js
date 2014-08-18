@@ -72,6 +72,7 @@ angular.module('hyphe.services', [])
   
   .factory('glossary', [function(){
     return function(term){
+      // TODO
       return term
     }
   }])

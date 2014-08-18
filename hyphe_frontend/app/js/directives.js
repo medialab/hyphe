@@ -164,8 +164,9 @@ angular.module('hyphe.directives', [])
           return x
         }
 
-        function updatePosition(active){
-          if(active)
+        function updatePosition(){
+          var container = el.parent().parent().parent().parent()
+          if(!container.hasClass('blurred'))
             el.offset({
               left:steps[(scope.obj.prefixLength || 1)-1]
             })
@@ -176,7 +177,7 @@ angular.module('hyphe.directives', [])
           if(forceUpdateAll || !container.hasClass('blurred')){
             updateSteps()
             updateBoundaries()
-            updatePosition(!container.hasClass('blurred'))
+            updatePosition()
           }
         }
 	    }

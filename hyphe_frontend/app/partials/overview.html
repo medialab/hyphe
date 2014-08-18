@@ -11,6 +11,12 @@
                 <h2>
                   To be done later
                 </h2>
+                <p class="text-info">
+                  Test: show list of web entities ({{webEntities.length}})
+                </p>
+                <ul>
+                  <li ng-repeat="we in webEntities">{{we.name}}</li>
+                </ul>
               </div>
             </div>
           </div>

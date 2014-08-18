@@ -10,8 +10,12 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('Overview', ['$scope', function($scope) {
+  .controller('Overview', ['$scope', 'api', function($scope, api) {
     $scope.currentPage = 'overview'
+    $scope.webEntities = 
+    api.getWebentities({light: true}, function(data){
+      $scope.webEntities = data
+    })
   }])
 
 
