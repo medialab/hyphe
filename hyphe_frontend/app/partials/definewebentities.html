@@ -22,10 +22,10 @@
               <div class="col-md-12">
                 <h1 class="page-title">DEFINE WEB ENTITIES</h1>
                 <table class="table table-striped sliders-table">
-                  <tr ng-repeat="obj in urlList|paginate:page:paginationLength track by $index" ng-class="{active: $parent.activeRow == ($index+paginationLength*page)}" ng-click="$parent.activeRow = ($index+paginationLength*page)" ng-mouseover="$parent.activeRow = ($index+paginationLength*page)">
+                  <tr ng-repeat="obj in urlList|paginate:page:paginationLength track by $index" ng-class="{active: $parent.activeRow == ($index+paginationLength*page) && obj.status=='loaded', danger:obj.status=='error'}" ng-click="$parent.activeRow = ($index+paginationLength*page)" ng-mouseover="$parent.activeRow = ($index+paginationLength*page)">
                     <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>
                     <td class="td-row-content">
-                      <div ng-if="obj.status != 'loaded'"><p class="text-muted loading-p">{{obj.status}}</p></div>
+                      <div ng-if="obj.status != 'loaded'"><p class="loading-p" ng-class="{'text-muted':obj.status=='loading', 'text-info':obj.status=='pending'}">{{obj.status|titlecase}}</p></div>
                       <div ng-if="obj.status == 'loaded'" hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div>
                     </td>
                   </tr>

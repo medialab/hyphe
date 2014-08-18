@@ -180,6 +180,11 @@ angular.module('hyphe.controllers', [])
       })
     }
 
+    // Clean store
+    store.remove('parsedUrls')
+    store.remove('parsedUrls_type')
+    store.remove('parsedUrls_settings')
+    
     if(list){
 
       // Consolidate the list of web entities
@@ -250,11 +255,12 @@ angular.module('hyphe.controllers', [])
           }
           ,function(){  // error
             console.log('Error while fetching parent webentities for',obj.url)
+            obj.status = 'error'
             $scope.concurrentQueries--
             $scope.fetchQueries()
           }
         )
-        
+
       } else {
         $scope.allQueriesSent = true
       }
