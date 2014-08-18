@@ -1191,6 +1191,25 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(format_result(res))
 
     @inlineCallbacks
+    def jsonrpc_get_lru_parentwebentities(self, lru_prefix):
+        try:
+            lru_prefix = urllru.lru_clean(lru_prefix)
+            parent_lrus = urllru.lru_parent_prefixes(lru_prefix)
+        except ValueError as e:
+            returnD(format_error(e))
+        WEs = []
+        for lru in parent_lrus:
+            WE = yield self.msclient_pool.getWebEntityByLRUPrefix(lru)
+            if not is_error(WE):
+                WEs.append({
+                    "lru": lru,
+                    "stems_count": len(urllru.split_lru_in_stems(lru)),
+                    "id": WE.id,
+                    "name": WE.name
+                })
+        returnD(format_result(WEs))
+
+    @inlineCallbacks
     def jsonrpc_get_webentities_network_json(self):
         res = yield self.generate_network_WEs("json")
         returnD(handle_standard_results(res))

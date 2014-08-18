@@ -38,6 +38,15 @@ def uri_recode_query(query):
         return uri_recode(query)
     return "&".join(["%s=%s" % (uri_recode(elements[1+3*i]), uri_recode(elements[2+3*i])) for i in range(len(elements[1:])/3)])
 
+def lru_parent_prefixes(lru):
+    res = []
+    lru_arr = [k for _,_,k in split_lru_in_stems(lru)]
+    lru_arr.pop()
+    while lru_arr:
+        res.append("|".join(lru_arr)+"|")
+        lru_arr.pop()
+    return res
+
 def split_lru_in_stems(lru, check=True):
     elements = lruStems.split(lru.rstrip("|"))
     if not check and len(elements) < 2:
