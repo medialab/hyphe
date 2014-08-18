@@ -853,7 +853,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             jobslog(jobid, "INDEX_"+indexing_statuses.BATCH_FINISHED, self.db)
 
     def jsonrpc_trigger_links(self):
-        self.recent_indexes += 100
+        self.recent_indexes += 105
         return format_result("Links generation should start soon")
 
     @inlineCallbacks
