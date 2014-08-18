@@ -8,9 +8,13 @@ angular.module('hyphe.controllers', [])
   	$scope.currentPage = 'login'
   }])
 
+
+
   .controller('Overview', ['$scope', function($scope) {
     $scope.currentPage = 'overview'
   }])
+
+
 
   .controller('ImportUrls', ['$scope', 'FileLoader', 'glossary', 'Parser', 'extractURLs', 'droppableTextArea', 'store', function($scope, FileLoader, glossary, Parser, extractURLs, droppableTextArea, store) {
     $scope.currentPage = 'importurls'
@@ -142,6 +146,8 @@ angular.module('hyphe.controllers', [])
     droppableTextArea(document.getElementById("droppable-text-area"), $scope, $scope.readFile)
   }])
 
+
+
   .controller('DefineWebEntities', ['$scope', 'store', 'utils', function($scope, store, utils) {
     $scope.currentPage = 'definewebentities'
     $scope.activeRow = 0
@@ -195,8 +201,17 @@ angular.module('hyphe.controllers', [])
           return obj
         })
 
-    // Record in model
-    $scope.urlList = list
+    // Pagination
+    $scope.paginationLength = 20
+    $scope.pages = utils.getRange(Math.ceil(list.length/$scope.paginationLength))
+    $scope.page = 0
 
+    $scope.goToPage = function(page){
+      if(page >= 0 && page < Math.ceil(list.length/$scope.paginationLength))
+        $scope.page = page
+    }
+
+    // Record list in model
+    $scope.urlList = list
 
   }])

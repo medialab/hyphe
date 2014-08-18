@@ -408,7 +408,7 @@ angular.module('hyphe.service_utils', [])
       var json_lru = ns.URL_to_JSON_LRU(url)
       if(json_lru === undefined)
         return '<Impossible to Name>'
-      ,name = json_lru.host
+      var name = json_lru.host
         .map(function(d,i){if(i==1){return ns.toDomainCase(d)} return d})
         .filter(function(d,i){return d != 'www' && i>0})
         .reverse()
@@ -635,6 +635,13 @@ angular.module('hyphe.service_utils', [])
         }
       }
       
+      return result
+    }
+
+    // Sometimes useful for templating. Ex.: 3 -> [1,2,3]
+    ns.getRange = function(number){
+      var result = []
+      for(var i = 1; i<=number; i++){result.push(i)}
       return result
     }
 
