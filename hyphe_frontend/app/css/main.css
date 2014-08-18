@@ -290,4 +290,5 @@ textarea.over-error{
 }
 .blurred>.hyphe-prefix-slider .slider-button-container{
   display: none;
+  left: 0px;
 }
