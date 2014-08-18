@@ -202,7 +202,7 @@ angular.module('hyphe.controllers', [])
         })
 
     // Pagination
-    $scope.paginationLength = 20
+    $scope.paginationLength = 50
     $scope.pages = utils.getRange(Math.ceil(list.length/$scope.paginationLength))
     $scope.page = 0
 
