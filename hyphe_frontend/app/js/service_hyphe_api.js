@@ -38,6 +38,9 @@ angular.module('hyphe.service_hyphe_api', [])
         ,FETCH_BY_PREFIX_LRU: 'store.get_webentity_by_lruprefix'
         ,FETCH_BY_PREFIX_URL: 'store.get_webentity_by_lruprefix_as_url'
       }
+      ,PREFIX:{
+        GET_PARENTWEBENTITIES:'store.get_lru_parentwebentities'
+      }
       ,PAGES:{
         DECLARE:'declare_pages'
       }
@@ -62,27 +65,50 @@ angular.module('hyphe.service_hyphe_api', [])
       settings = settings || {}
       errorCallback = errorCallback || rpcError
       $http({
-          method: 'POST'
-          ,url: surl
-          ,data: JSON.stringify({ //JSON RPC
-                'method' : HYPHE_API.WEBENTITIES.GET,
-                'params' : [
-                    settings.id_list                // List of webentities
-                    ,settings.light || false        // Mode light
-                    ,settings.semiLight || false    // Mode semi-light
-                ],
-            })
-          ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-        })
+        method: 'POST'
+        ,url: surl
+        ,data: JSON.stringify({ //JSON RPC
+            'method' : HYPHE_API.WEBENTITIES.GET,
+            'params' : [
+              settings.id_list                // List of webentities
+              ,settings.light || false        // Mode light
+              ,settings.semiLight || false    // Mode semi-light
+            ],
+          })
+        ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+      })
         .success(function(data, status, headers, config){
-          var target = data[0].result
-          if(target)
-            successCallback(target)
-          else
-            errorCallback(data, status, headers, config)
-        })
+            var target = data[0].result
+            if(target)
+              successCallback(target)
+            else
+              errorCallback(data, status, headers, config)
+          })
         .error(errorCallback)
-      return [{name:1},{name:2},{name:3}]
+    }
+
+    api.getLruParentWebentities = function(settings, successCallback, errorCallback){
+      settings = settings || {}
+      errorCallback = errorCallback || rpcError
+      $http({
+        method: 'POST'
+        ,url: surl
+        ,data: JSON.stringify({ //JSON RPC
+            'method' : HYPHE_API.PREFIX.GET_PARENTWEBENTITIES,
+            'params' : [
+              settings.lru
+            ],
+          })
+        ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+      })
+        .success(function(data, status, headers, config){
+            var target = data[0].result
+            if(target)
+              successCallback(target)
+            else
+              errorCallback(data, status, headers, config)
+          })
+        .error(errorCallback)
     }
 
     return api

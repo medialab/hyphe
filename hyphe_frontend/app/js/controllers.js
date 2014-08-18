@@ -12,7 +12,6 @@ angular.module('hyphe.controllers', [])
 
   .controller('Overview', ['$scope', 'api', function($scope, api) {
     $scope.currentPage = 'overview'
-    $scope.webEntities = 
     api.getWebentities({light: true}, function(data){
       $scope.webEntities = data
     })
@@ -152,7 +151,7 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('DefineWebEntities', ['$scope', 'store', 'utils', function($scope, store, utils) {
+  .controller('DefineWebEntities', ['$scope', 'store', 'utils', 'api', function($scope, store, utils, api) {
     $scope.currentPage = 'definewebentities'
     $scope.activeRow = 0
 
@@ -181,41 +180,84 @@ angular.module('hyphe.controllers', [])
       })
     }
 
-    // Consolidate the list of web entities
-    list = list
-      .filter(function(obj){
-          return obj.url && utils.URL_validate(obj.url)
-        })
-      .map(function(obj){
-          obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
-          obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
-          obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
-            .map(function(stem){
-                var maxLength = 12
-                if(stem.length > maxLength+3){
-                  return stem.substr(0,maxLength) + '...'
-                }
-                return stem
-              })
-          obj.prefixLength = 3
-          obj.parentWebEntities = [
-            /*{id:1, name:"Webentity-That-Exist.com", prefixLength:3}
-            ,*/{id:2, name:".com TLD", prefixLength:2}
-          ]
-          return obj
-        })
+    if(list){
 
-    // Pagination
-    $scope.paginationLength = 50
-    $scope.pages = utils.getRange(Math.ceil(list.length/$scope.paginationLength))
-    $scope.page = 0
+      // Consolidate the list of web entities
+      list = list
+        .filter(function(obj){
+            return obj.url && utils.URL_validate(obj.url)
+          })
+        .map(function(obj){
+            obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
+            obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
+            obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
+              .map(function(stem){
+                  var maxLength = 12
+                  if(stem.length > maxLength+3){
+                    return stem.substr(0,maxLength) + '...'
+                  }
+                  return stem
+                })
+            obj.prefixLength = 3
+            obj.status = 'loading'
+            return obj
+          })
 
-    $scope.goToPage = function(page){
-      if(page >= 0 && page < Math.ceil(list.length/$scope.paginationLength))
-        $scope.page = page
+      // Pagination
+      $scope.paginationLength = 50
+      $scope.pages = utils.getRange(Math.ceil(list.length/$scope.paginationLength))
+      $scope.page = 0
+
+      $scope.goToPage = function(page){
+        if(page >= 0 && page < Math.ceil(list.length/$scope.paginationLength))
+          $scope.page = page
+      }
+
+      // Record list in model
+      $scope.urlList = list
+
+    } else {
+
+      $scope.urlList = []
+
     }
 
-    // Record list in model
-    $scope.urlList = list
-
+    // Fetching parent web entities
+    $scope.concurrentQueriesMax = 10
+    $scope.concurrentQueries = 0
+    $scope.allQueriesSent = $scope.urlList.length == 0
+    $scope.fetchQueries = function(){
+      // Find a query
+      var obj
+      ,objFound = $scope.urlList.some(function(o){
+          if(o.status == 'loading'){
+            obj = o
+            return true
+          }
+          return false
+        })
+      if(objFound){
+        $scope.concurrentQueries++
+        obj.status = 'pending'
+        api.getLruParentWebentities(
+          {lru: obj.lru}
+          ,function(webentities){ // success
+            obj.parentWebEntities = webentities
+            obj.status = 'loaded'
+            $scope.concurrentQueries--
+            $scope.fetchQueries()
+          }
+          ,function(){  // error
+            console.log('Error while fetching parent webentities for',obj.url)
+            $scope.concurrentQueries--
+            $scope.fetchQueries()
+          }
+        )
+      } else {
+        $scope.allQueriesSent = true
+      }
+      if($scope.concurrentQueries < $scope.concurrentQueriesMax && !$scope.allQueriesSent)
+        $scope.fetchQueries()
+    }
+    $scope.fetchQueries()
   }])

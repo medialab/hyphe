@@ -20,7 +20,7 @@ angular.module('hyphe.directives', [])
         scope.updateNameAndStatus = function(obj){
           var webentityFound
           obj.parentWebEntities.forEach(function(we){
-            if(!webentityFound && we.prefixLength == obj.prefixLength){
+            if(!webentityFound && we.stems_count == obj.prefixLength){
               webentityFound = we
             }
           })

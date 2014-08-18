@@ -144,6 +144,7 @@ textarea.over-error{
 }
 .preview-table{
   margin-bottom: 2px;
+  font-weight: 300;
 }
 
 
@@ -172,6 +173,9 @@ textarea.over-error{
   padding-top: 6px;
   font-size: 24px;
   font-weight: 300;
+}
+.loading-p{
+  margin-top: 10px;
 }
 
 /* ==========================================================================

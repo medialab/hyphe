@@ -5,14 +5,29 @@
         <div class="col-lg-2 col-md-3 col-sm-4 sidebar-col" ng-include="'partials/sub/sidebar.html'">
         </div>
         <div class="col-lg-10 col-md-9 col-sm-8">
-          <div class="container-fluid">
+          <div ng-if="urlList.length == 0" class="container-fluid">
             <div class="row">
               <div class="col-md-12">
-                <h1 class="page-title">DEFINE WEB ENTITIES {{serverURL}}</h1>
+                <div class="bg-warning">
+                  <h1 class="page-title">DEFINE WEB ENTITIES</h1>
+                  <p>
+                    A list of URLs should have been passed to this page. Try to <a href="#/importurls">IMPORT URLS</a>.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div ng-if="urlList.length > 0" class="container-fluid">
+            <div class="row">
+              <div class="col-md-12">
+                <h1 class="page-title">DEFINE WEB ENTITIES</h1>
                 <table class="table table-striped sliders-table">
                   <tr ng-repeat="obj in urlList|paginate:page:paginationLength track by $index" ng-class="{active: $parent.activeRow == ($index+paginationLength*page)}" ng-click="$parent.activeRow = ($index+paginationLength*page)" ng-mouseover="$parent.activeRow = ($index+paginationLength*page)">
                     <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>
-                    <td><div hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div></td>
+                    <td>
+                      <div ng-if="obj.status != 'loaded'"><p class="text-muted loading-p">{{obj.status}}</p></div>
+                      <div ng-if="obj.status == 'loaded'" hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div>
+                    </td>
                   </tr>
                 </table>
               </div>
