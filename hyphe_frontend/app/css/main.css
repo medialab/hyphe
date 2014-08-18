@@ -10,7 +10,7 @@ body {
   font-family: 'Open Sans', sans-serif;
 }
 .label, .badge{
-  font-family: sans-serif;
+  font-family: 'Open Sans', sans-serif;
   font-weight: 400;
 }
 h1.page-title{
@@ -99,6 +99,7 @@ div.welcome-column h1{
 .sidebar>li>a{
   color: #1B4C6B;
   border-radius: 4px 0px 0px 4px;
+  font-weight: 400;
 }
 @media (max-width: 768px) { /* xs screen only */
   .sidebar>li>a{
