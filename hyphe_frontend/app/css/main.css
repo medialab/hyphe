@@ -7,10 +7,10 @@
 /* Global color and font */
 body {
   color: #555;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Open Sans', sans-serif;
 }
 .label, .badge{
-  font-family: sans-serif;
+  font-family: 'Open Sans', sans-serif;
   font-weight: 400;
 }
 h1.page-title{
@@ -99,6 +99,7 @@ div.welcome-column h1{
 .sidebar>li>a{
   color: #1B4C6B;
   border-radius: 4px 0px 0px 4px;
+  font-weight: 400;
 }
 @media (max-width: 768px) { /* xs screen only */
   .sidebar>li>a{
@@ -164,10 +165,13 @@ textarea.over-error{
 .sliders-table>tbody>tr:not(.active){
   cursor: pointer;
 }
+.sliders-table .td-row-id{
+  width: 50px;
+}
 .row-id{
   padding-top: 6px;
-  font-size: 18px;
-  font-weight: 400;
+  font-size: 24px;
+  font-weight: 300;
 }
 
 /* ==========================================================================
@@ -177,10 +181,11 @@ textarea.over-error{
   word-break:keep-all;
   white-space: nowrap;
   overflow: hidden;
+  font-family: 'Roboto', sans-serif;
   font-weight:400;
 }
 .hyphe-prefix-slider .name-container.bold{
-  font-weight: 700;
+  font-weight: 900;
 }
 .hyphe-prefix-slider .status-container{
   color: #f08060;
@@ -192,7 +197,7 @@ textarea.over-error{
   padding-top: 6px;
   padding-bottom: 6px;
   border: 4px solid transparent;
-  font-family: 'Roboto Condensed';
+  font-family: 'Roboto Condensed', sans-serif;
   font-weight: 400;
 }
 .hyphe-prefix-slider .stem.inblock{
@@ -287,4 +292,5 @@ textarea.over-error{
 }
 .blurred>.hyphe-prefix-slider .slider-button-container{
   display: none;
+  left: 0px;
 }

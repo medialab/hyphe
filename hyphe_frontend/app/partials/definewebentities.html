@@ -8,18 +8,33 @@
           <div class="container-fluid">
             <div class="row">
               <div class="col-md-12">
-                <h1 class="page-title">DEFINE WEB ENTITIES</h1>
+                <h1 class="page-title">DEFINE WEB ENTITIES {{serverURL}}</h1>
                 <table class="table table-striped sliders-table">
-                  <tr ng-repeat="obj in urlList track by $index" ng-class="{active: $parent.activeRow == $index}" ng-click="$parent.activeRow = $index">
-                    <td><div class="row-id">{{obj.id}}</div></td>
-                    <td><div hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != $index}"></div></td>
+                  <tr ng-repeat="obj in urlList|paginate:page:paginationLength track by $index" ng-class="{active: $parent.activeRow == ($index+paginationLength*page)}" ng-click="$parent.activeRow = ($index+paginationLength*page)" ng-mouseover="$parent.activeRow = ($index+paginationLength*page)">
+                    <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>
+                    <td><div hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div></td>
                   </tr>
                 </table>
               </div>
             </div>
             <div class="row">
               <div class="col-md-12">
-                <a class="btn btn-primary center-block">CHECK START PAGES</a>
+                <div class="text-center">
+                  <ul class="pagination">
+                    <li ng-class="{disabled: page == 0}"><a ng-click="goToPage(page - 1)" href>&laquo;</a></li>
+                    <li ng-repeat="p in pages" ng-class="{active: p == page+1}"><a ng-click="goToPage(p-1)" href>{{p}}<span class="sr-only" ng-if="p == page+1">(current)</span></a></li>
+                    <li ng-class="{disabled: page == pages.length - 1}"><a ng-click="goToPage(page + 1)" href>&raquo;</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+              </div>
+              <div class="col-md-4">
+                <div class="text-center">
+                  <a class="btn btn-primary">CHECK START PAGES</a>
+                </div>
               </div>
             </div>
           </div>
