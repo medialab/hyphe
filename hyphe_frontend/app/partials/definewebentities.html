@@ -10,7 +10,7 @@
               <div class="col-md-12">
                 <h1 class="page-title">DEFINE WEB ENTITIES</h1>
                 <table class="table table-striped sliders-table">
-                  <tr ng-repeat="obj in urlList track by $index" ng-class="{active: $parent.activeRow == $index}" ng-click="$parent.activeRow = $index">
+                  <tr ng-repeat="obj in urlList track by $index" ng-class="{active: $parent.activeRow == $index}" ng-click="$parent.activeRow = $index" ng-mouseover="$parent.activeRow = $index">
                     <td class="td-row-id"><div class="row-id">{{obj.id}}</div></td>
                     <td><div hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != $index}"></div></td>
                   </tr>
