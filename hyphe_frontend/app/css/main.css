@@ -8,6 +8,7 @@
 body {
   color: #555;
   font-family: 'Open Sans', sans-serif;
+  background-color: #EFEBE8;
 }
 .label, .badge{
   font-family: 'Open Sans', sans-serif;
@@ -15,6 +16,10 @@ body {
 }
 h1.page-title{
   font-weight: 300;
+}
+.main{
+  background-color: #FFF;
+  padding-bottom: 300px;
 }
 
 
@@ -24,16 +29,8 @@ h1.page-title{
 
 /* remove spacing between middle columns */
 @media (min-width: 768px) { /* sm screen and up */
-  .row.no-gutter>[class*='col-']:not(:first-child):not(:last-child) {
+  .row.no-gutter>[class*='col-']{
     padding-right:0;
-    padding-left:0;
-  }
-  /* remove right padding from first column */
-  .row.no-gutter>[class*='col-']:first-child {
-    padding-right:0;
-  }
-  /* remove left padding from first column */
-  .row.no-gutter>[class*='col-']:last-child {
     padding-left:0;
   }
 }
@@ -86,6 +83,7 @@ div.welcome-column h1{
 .sidebar-col{
   background-color: #EFEBE8;
   border-radius: 0px 0px 6px 0px;
+  padding-right: 0px;
 }
 .sidebar span.symbol{
   float: left;

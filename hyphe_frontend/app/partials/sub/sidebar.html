@@ -1,20 +1,26 @@
-          <br/>
-          <ul class="nav nav-pills nav-stacked sidebar">
-            <li ng-class="{active: currentPage=='overview'}"><a href="#/overview"><table><tr><td><span class="symbol"><span class="glyphicon glyphicon-asterisk"></span></span></td><td>OVERVIEW</td></tr></table></a></li>
-            <li class="spacer"></li>
-            <li ng-class="{active: currentPage=='importurls'}"><a href="#/importurls"><table><tr><td><span class="symbol">1</span></td><td>IMPORT URLS</td></tr></table></a></li>
-            <li ng-if="currentPage=='importurls' || currentPage=='definewebentities'" ng-class="{active: currentPage=='definewebentities'}"><a href="#/definewebentities"><table><tr><td><span class="symbol">&nbsp;</span></td><td>DEFINE WEB ENTITIES</td></tr></table></a></li>
-            <li ng-if="currentPage=='importurls' || currentPage=='definewebentities'"><a href="#"><table><tr><td><span class="symbol">&nbsp;</span></td><td>CHECK STARTING PAGES</td></tr></table></a></li>
-            <li class="spacer"></li>
-            <li><a href="#"><table><tr><td><span class="symbol">2</span></td><td>LAUNCH CRAWL</td></tr></table></a></li>
-            <li class="spacer"></li>
-            <li><a href="#"><table><tr><td><span class="symbol">3</span></td><td>FILTER DISCOVERED WEB ENTITIES</td></tr></table></a></li>
-            <li><a href="#"><table><tr><td><span class="symbol">4</span></td><td>LIST WEB ENTITIES</td></tr></table></a></li>
-            <li><a href="#"><table><tr><td><span class="symbol">5</span></td><td>EXPORT WEB ENTITIES</td></tr></table></a></li>
-            <li class="spacer"></li>
-            <li><a href="#"><table><tr><td><span class="symbol"><span class="glyphicon glyphicon-time"></span></td><td>MONITOR CRAWL</td></tr></table></a></li>
-            <li><a href="#"><table><tr><td><span class="symbol"><span class="glyphicon glyphicon-list"></span></td><td>PROJECT HISTORY</td></tr></table></a></li>
-            <li class="spacer"></li>
-            <li><a href="#"><table><tr><td><span class="symbol"><span class="glyphicon glyphicon-wrench"></span></td><td>PROJECT SETTINGS</td></tr></table></a></li>
-            <li class="spacer"></li>
-          </ul>
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-xs-12 sidebar-col">
+                <br/>
+                <ul class="nav nav-pills nav-stacked sidebar">
+                  <li ng-class="{active: currentPage=='overview'}"><a href="#/overview"><table><tr><td><span class="symbol"><span class="glyphicon glyphicon-asterisk"></span></span></td><td>OVERVIEW</td></tr></table></a></li>
+                  <li class="spacer"></li>
+                  <li ng-class="{active: currentPage=='importurls'}"><a href="#/importurls"><table><tr><td><span class="symbol">1</span></td><td>IMPORT URLS</td></tr></table></a></li>
+                  <li ng-if="currentPage=='importurls' || currentPage=='definewebentities'" ng-class="{active: currentPage=='definewebentities'}"><a href="#/definewebentities"><table><tr><td><span class="symbol">&nbsp;</span></td><td>DEFINE WEB ENTITIES</td></tr></table></a></li>
+                  <li ng-if="currentPage=='importurls' || currentPage=='definewebentities'"><a href="#"><table><tr><td><span class="symbol">&nbsp;</span></td><td>CHECK STARTING PAGES</td></tr></table></a></li>
+                  <li class="spacer"></li>
+                  <li><a href="#"><table><tr><td><span class="symbol">2</span></td><td>LAUNCH CRAWL</td></tr></table></a></li>
+                  <li class="spacer"></li>
+                  <li><a href="#"><table><tr><td><span class="symbol">3</span></td><td>FILTER DISCOVERED WEB ENTITIES</td></tr></table></a></li>
+                  <li><a href="#"><table><tr><td><span class="symbol">4</span></td><td>LIST WEB ENTITIES</td></tr></table></a></li>
+                  <li><a href="#"><table><tr><td><span class="symbol">5</span></td><td>EXPORT WEB ENTITIES</td></tr></table></a></li>
+                  <li class="spacer"></li>
+                  <li><a href="#"><table><tr><td><span class="symbol"><span class="glyphicon glyphicon-time"></span></td><td>MONITOR CRAWL</td></tr></table></a></li>
+                  <li><a href="#"><table><tr><td><span class="symbol"><span class="glyphicon glyphicon-list"></span></td><td>PROJECT HISTORY</td></tr></table></a></li>
+                  <li class="spacer"></li>
+                  <li><a href="#"><table><tr><td><span class="symbol"><span class="glyphicon glyphicon-wrench"></span></td><td>PROJECT SETTINGS</td></tr></table></a></li>
+                  <li class="spacer"></li>
+                </ul>
+              </div>
+            </div>
+          </div>
