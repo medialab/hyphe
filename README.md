@@ -80,35 +80,10 @@ To run on a server and not only locally, a few adjustments need to be performed:
 * Adapt the web interface API endpoint in ```hyphe_www_client/_config/config.js``` by replacing localhost into the actual domain name, for instance:
 
 ```bash
-    "SERVER_ADDRESS":"http://www.example.com:6978",
-```
-
-* If your server's security restrains access to the API port, you may want either to open the port in your proxy or iptables, or add a ProxyPass in your apache conf to redirect the port to a specific URL:
-
- - Install Apache's proxy module
-
-```bash
-    sudo apt-get install libapache2-mod-proxy-html
-    sudo a2enmod proxy
-    sudo a2enmod proxy_http
-    sudo service apache2 restart
-```
- - Add to the Apache configuration in ```hyphe_www_client/_config/apache2.conf``` the ProxyPass directives to redirect the port to the desired url, for instance:
-
-```bash
-    <Location /hyphe-api>
-        ProxyPass http://localhost:6978/
-        ProxyPassReverse http://localhost:6978/
-    </Location>
-```
-
- - Change the API endpoint in ```hyphe_www_client/_config/config.js``` to the newly defined, for instance:
-
-```bash
     "SERVER_ADDRESS":"http://www.example.com/hyphe-api",
 ```
 
- - If Apache is still reluctant to serve Hyphe's frontend and API and you encounter 403 errors, adding the line "Require all granted" before the "Order allow,deny" one in the ```apache2.conf``` file usually solves the problem. Please [report an issue](https://github.com/medialab/Hypertext-Corpus-Initiative/issues) otherwise.
+ - If Apache is still reluctant to serve Hyphe's frontend and API and you encounter for instance 403 errors, please [report an issue](https://github.com/medialab/Hypertext-Corpus-Initiative/issues).
 
 
 ## Detailed advanced install
@@ -134,7 +109,7 @@ All of this steps are adaptable to Debian and CentOS as can be read in the ```bi
 Install possible missing required basics:
 
 ```bash
-    sudo apt-get install curl wget git python-dev python-pip apache2 php5 fontconfig libfreetype6 libfreetype6-dev libfontconfig libstdc++6
+    sudo apt-get install curl wget git python-dev python-pip apache2 libapache2-mod-proxy-html php5 fontconfig libfreetype6 libfreetype6-dev libfontconfig libstdc++6
 ```
 Or from CentOS:
 ```bash
@@ -316,13 +291,16 @@ This will need to be ran again every time the Java code in the memory_structure 
 
 ```bash
     cp -r hyphe_www_client/_config{_default,}
+    sed "s|##WEBPATH##|/hyphe|" > hyphe_www_client/_config/config.js > hyphe_www_client/_config/config.js.new
+    mv hyphe_www_client/_config/config.js{.new,}
 ```
 
 * Prepare Hyphe's Apache configuration:
 
 ```bash
     sed "s|##HCIPATH##|"`pwd`"|" hyphe_www_client/_config/apache2_example.conf |
-      sed "s|##WEBPATH##|/hyphe/ > hyphe_www_client/_config/apache2.conf
+      sed "s|##TWISTEDPORT##|6978|" |
+      sed "s|##WEBPATH##|/hyphe|" > hyphe_www_client/_config/apache2.conf
 ```
 
 * Install the VirtualHost:

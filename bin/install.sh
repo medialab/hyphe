@@ -11,6 +11,7 @@ if cat /etc/issue 2> /dev/null | grep -i "debian\|ubuntu" > /dev/null; then
   python_dev='python-dev'
   apache='apache2'
   apache_path='apache2/sites-available'
+  apache_pack='apache2 libapache2-mod-proxy-html'
   php='php5'
   mongo='mongodb'
   mongo_pack='mongodb-10gen'
@@ -25,6 +26,7 @@ else
   python_dev='python-devel python-setuptools'
   apache='httpd'
   apache_path='httpd/conf.d'
+  apache_pack='httpd'
   php='php'
   mongo='mongod'
   mongo_pack='mongo-10gen mongo-10gen-server'
@@ -39,7 +41,7 @@ echo "Install dependencies..."
 echo "-----------------------"
 echo
 sudo $repos_tool $repos_updt > /dev/null || $centos || exit 1
-sudo $repos_tool -y install curl wget git $python_dev python-pip $apache $php >> install.log || exit 1
+sudo $repos_tool -y install curl wget git $python_dev python-pip $apache_pack $php >> install.log || exit 1
 sudo $repos_tool -y install fontconfig $freetype >> install.log || exit 1
 sudo $repos_tool -y install $libstd >> install.log
 if $centos; then
@@ -196,6 +198,10 @@ cp -r hyphe_www_client/_config{_default,} || exit 1
 
 # Prepare apache config
 apache_name="hyphe"
+
+sed "s|##WEBPATH##|/$apache_name|" > hyphe_www_client/_config/config.js > hyphe_www_client/_config/config.js.new || exit 1
+mv hyphe_www_client/_config/config.js{.new,} || exit 1
+
 if ! grep "$(pwd)/hyphe_www_client" /etc/$apache_path/$apache_name*.conf > /dev/null 2>&1; then
   instance=0
   while test -f /etc/apache2/sites-available/$apache_name.conf || test -f /etc/apache2/sites-available/$apache_name.conf || test -f /etc/httpd/conf.d/$apache_name.conf; do
@@ -203,11 +209,20 @@ if ! grep "$(pwd)/hyphe_www_client" /etc/$apache_path/$apache_name*.conf > /dev/
     apache_name="hyphe-$instance"
   done
   sed "s|##HCIPATH##|"`pwd`"|" hyphe_www_client/_config/apache2_example.conf |
+    sed "s|##TWISTEDPORT##|6978|" |
     sed "s|##WEBPATH##|/$apache_name|" > hyphe_www_client/_config/apache2.conf || exit 1
   sudo ln -s `pwd`/hyphe_www_client/_config/apache2.conf /etc/$apache_path/$apache_name.conf || exit 1
 fi
 if ! $centos; then
   sudo a2ensite "$apache_name".conf || exit 1
+  sudo a2enmod proxy
+  sudo a2enmod proxy_http
+else
+  if ! grep "^\s*LoadModule.*mod_proxy_http" /etc/httpd/conf/httpd.conf; then
+    echo "WARNING: apache/httpd's mod_proxy and mod_proxy_http need to be activated for Hyphe to work. It usually is by default on CentOS but appears not here. Please do so"
+    echo
+    exit 1
+  fi
 fi
 sudo service $apache reload
 echo
