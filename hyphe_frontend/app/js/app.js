@@ -4,9 +4,11 @@
 // Declare app level module which depends on filters, and services
 angular.module('hyphe', [
   'ngRoute',
+  'hyphe.conf',
   'hyphe.filters',
   'hyphe.services',
   'hyphe.service_utils',
+  'hyphe.service_hyphe_api',
   'hyphe.directives',
   'hyphe.controllers'
 ]).
