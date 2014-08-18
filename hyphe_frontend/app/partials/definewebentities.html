@@ -20,7 +20,7 @@
             <div class="row">
               <div class="col-md-12">
                 <div class="text-center">
-                  <ul class="pagination">
+                  <ul class="pagination" ng-if="pages.length > 1">
                     <li ng-class="{disabled: page == 0}"><a ng-click="goToPage(page - 1)" href>&laquo;</a></li>
                     <li ng-repeat="p in pages" ng-class="{active: p == page+1}"><a ng-click="goToPage(p-1)" href>{{p}}<span class="sr-only" ng-if="p == page+1">(current)</span></a></li>
                     <li ng-class="{disabled: page == pages.length - 1}"><a ng-click="goToPage(page + 1)" href>&raquo;</a></li>
