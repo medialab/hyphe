@@ -10,7 +10,7 @@
               <div class="col-md-12">
                 <h1 class="page-title">DEFINE WEB ENTITIES</h1>
                 <table class="table table-striped sliders-table">
-                  <tr ng-repeat="obj in urlList|paginate:page:paginationLength track by $index" ng-class="{active: $parent.activeRow == $index}" ng-click="$parent.activeRow = $index" ng-mouseover="$parent.activeRow = $index">
+                  <tr ng-repeat="obj in urlList|paginate:page:paginationLength track by $index" ng-class="{active: $parent.activeRow == ($index+paginationLength*page)}" ng-click="$parent.activeRow = ($index+paginationLength*page)" ng-mouseover="$parent.activeRow = ($index+paginationLength*page)">
                     <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>
                     <td><div hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div></td>
                   </tr>
