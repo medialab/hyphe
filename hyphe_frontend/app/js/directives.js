@@ -192,9 +192,11 @@ angular.module('hyphe.directives', [])
       restrict: 'A'
       ,link: function(scope, el, attrs) {
         var def = glossary(el.text())
-        el.addClass('definition')
-        el.attr('title', def)
-        el.tooltip()
+        if(def){
+          el.addClass('definition')
+          el.attr('title', def)
+          el.tooltip()
+        }
       }
     }
   }])

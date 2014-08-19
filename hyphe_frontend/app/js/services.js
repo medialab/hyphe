@@ -77,6 +77,12 @@ angular.module('hyphe.services', [])
       {
         definition: 'A web entity is used in Hyphe to describe a website, an actor, or any set of pages that you consider as a whole'
         ,entries: ['web entity', 'web entities']
+      },{
+        definition: 'URLs that differ only by the presence of the www subdomain. Ex: <em>www.google.com</em> and <em>google.com</em>'
+        ,entries: ['www variation', 'www variations']
+      },{
+        definition: 'URLs that differ only by using the secured protocol "https". Ex: <em>https://google.com</em> and <em>http://google.com</em>'
+        ,entries: ['https variation', 'https variations']
       }
     ]
 
@@ -88,7 +94,10 @@ angular.module('hyphe.services', [])
     })
 
     return function(term){
-      return ns.definitions[ns.entries[term.toLocaleLowerCase()]].definition
+      var defObj = ns.definitions[ns.entries[term.toLocaleLowerCase()]]
+      if(defObj)
+        return defObj.definition
+      return undefined
     }
   }])
 

@@ -192,6 +192,10 @@ textarea.over-error{
 .loading-p{
   margin-top: 10px;
 }
+.variations-checkbox{
+  margin-top: 4px;
+  margin-right: 12px;
+}
 
 /* ==========================================================================
    Module: Web Entity Slider
