@@ -257,5 +257,115 @@ angular.module('hyphe.services', [])
     }
   }])
 
-  
+  .factory('QueriesBatcher', [function(){
+    return function(){
+      var ns = this   // namespace
+
+      ns.currentId = 0
+      ns.atTheSameTime = 10
+      ns.list = []
+      ns.pending = []
+      ns.success = []
+      ns.fail = []
+      ns._atEachFetch = function(list,pending,success,fail){}
+      ns._atFinalization = function(list,pending,success,fail){}
+
+      ns.addQuery = function(call, settings, success, fail, options){
+        var query = {}
+        options = options || {}
+        
+        query.id = ns.currentId++
+        query.call = call
+        query.settings = settings
+        query.success = success
+        query.fail = fail
+
+        if(options.label){
+          query.label = options.label
+        } else {
+          query.label = 'query ' + query.id
+        }
+
+        query.before = options.before
+        query.after = options.after
+
+        ns.list.push(query)
+      }
+
+      ns.atEachFetch = function(callback){
+        ns._atEachFetch = callback
+      }
+
+      ns.atFinalization = function(callback){
+        ns._atFinalization = callback
+      }
+
+      ns.run = function(){
+        ns._fetch()
+      }
+
+      ns._move_pending_to_success = function(query){
+        ns.pending = ns.pending
+          .filter(function(q){return q.id != query.id})
+        ns.success.push(query)
+      }
+
+      ns._move_pending_to_fail = function(query){
+        ns.pending = ns.pending
+          .filter(function(q){return q.id != query.id})
+        ns.fail.push(query)
+      }
+
+      ns._fetch = function(){
+        if(ns.list.length > 0){
+          if(ns.pending.length < ns.atTheSameTime){
+            var query = ns.list.shift() || {}
+            
+            if(query.before)
+              query.before()
+            
+            if(query.call){
+              ns.pending.push(query)
+              query.call(
+                  query.settings
+                  ,function(data){
+                    ns._move_pending_to_success(query)
+                    query.success(data)
+                    if(query.after){
+                      query.after()
+                    }
+                    ns._atEachFetch(ns.list, ns.pending, ns.success, ns.fail)
+                    ns._fetch()
+                  }
+                  ,function(){
+                    ns._move_pending_to_fail(query)
+                    query.fail()
+                    if(query.after){
+                      query.after()
+                    }
+                    ns._atEachFetch(ns.list, ns.pending, ns.success, ns.fail)
+                    ns._fetch()
+                  }
+                )
+            } else {
+              ns.fail.push(query)
+              query.fail()
+              if(query.after){
+                query.after()
+              }
+              ns._atEachFetch(ns.list, ns.pending, ns.success, ns.fail)
+              ns._fetch()
+            }
+            if(ns.pending.length < ns.atTheSameTime){
+              ns._fetch()
+            }
+          }
+        } else {
+          // No more queries
+          if(ns._atFinalization)
+            ns._atFinalization(ns.list, ns.pending, ns.success, ns.fail)
+        }
+      }
+    }
+  }])
 ;

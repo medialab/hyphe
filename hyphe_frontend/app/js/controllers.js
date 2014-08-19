@@ -151,7 +151,7 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('DefineWebEntities', ['$scope', 'store', 'utils', 'api', function($scope, store, utils, api) {
+  .controller('DefineWebEntities', ['$scope', 'store', 'utils', 'api', 'QueriesBatcher', function($scope, store, utils, api, QueriesBatcher) {
     $scope.currentPage = 'definewebentities'
     $scope.activeRow = 0
 
@@ -228,120 +228,44 @@ angular.module('hyphe.controllers', [])
     }
 
     // Fetching parent web entities
-    $scope.queries = {
-      atTheSameTime: 10
-      ,list:[]
-      ,pending:[]
-      ,success:[]
-      ,fail:[]
-      ,fetch: function(){
-        if($scope.queries.list.length > 0){
-          if($scope.queries.pending.length < $scope.queries.atTheSameTime){
-            var query = $scope.queries.list.shift() || {}
-            
-            if(query.before)
-              query.before()
-            
-            if(query.call){
-              $scope.queries.pending.push(query)
-              query.call(
-                  query.settings
-                  ,function(data){
-                    $scope.queries._move_pending_to_success(query)
-                    query.success(data)
-                    if(query.after){
-                      query.after()
-                    }
-                    $scope.queries.afterFetch($scope.queries.list, $scope.queries.pending, $scope.queries.success, $scope.queries.fail)
-                    $scope.queries.fetch()
-                  }
-                  ,function(){
-                    $scope.queries._move_pending_to_fail(query)
-                    query.fail()
-                    if(query.after){
-                      query.after()
-                    }
-                    $scope.queries.afterFetch($scope.queries.list, $scope.queries.pending, $scope.queries.success, $scope.queries.fail)
-                    $scope.queries.fetch()
-                  }
-                )
-            } else {
-              $scope.queries.fail.push(query)
-              query.fail()
-              if(query.after){
-                query.after()
-              }
-              $scope.queries.afterFetch($scope.queries.list, $scope.queries.pending, $scope.queries.success, $scope.queries.fail)
-              $scope.queries.fetch()
+    var queriesBatcher = new QueriesBatcher()
+    $scope.urlList.forEach(function(obj){
+      queriesBatcher.addQuery(
+          api.getLruParentWebentities   // Query call
+          ,{lru: obj.lru}               // Query settings
+          ,function(webentities){       // Success callback
+              obj.parentWebEntities = webentities
+              obj.status = 'loaded'
             }
-            if($scope.queries.pending.length < $scope.queries.atTheSameTime){
-              $scope.queries.fetch()
+          ,function(){                  // Fail callback
+              console.log('Error while fetching parent webentities for', obj.url)
+              obj.status = 'error'
             }
-          }
-        } else {
-          // No more queries
-          if($scope.queries.finalize)
-            $scope.queries.finalize($scope.queries.list, $scope.queries.pending, $scope.queries.success, $scope.queries.fail)
-        }
+          ,{                            // Options
+              label: obj.lru
+              ,before: function(){
+                  obj.status = 'pending'
+                }
+            }
+        )
+    })
+
+    queriesBatcher.atEachFetch(function(list,pending,success,fail){
+      var summary = {
+        total: list.length + pending.length + success.length + fail.length
+        ,pending: pending.length
+        ,loaded: success.length + fail.length
       }
-      ,afterFetch: function(list,pending,success,fail){
-        var summary = {
-            total: list.length + pending.length + success.length + fail.length
-            ,pending: pending.length
-            ,loaded: success.length + fail.length
-          }
-          ,percent = Math.round((summary.loaded / summary.total) * 100)
-          ,percent_pending = Math.round((summary.pending / summary.total) * 100)
-          ,msg = percent + '% loaded'
-        $scope.status = {message: msg, progress:percent, progressPending:percent_pending}
-      }
-      ,finalize: function(list,pending,success,fail){
-        $scope.status = {}
-      }
-      ,_move_pending_to_success: function(query){
-        $scope.queries.pending = $scope.queries.pending
-          .filter(function(q){return q.id != query.id})
-        $scope.queries.success.push(query)
-      }
-      ,_move_pending_to_fail: function(query){
-        $scope.queries.pending = $scope.queries.pending
-          .filter(function(q){return q.id != query.id})
-        $scope.queries.fail.push(query)
-      }
-    }
+      ,percent = Math.round((summary.loaded / summary.total) * 100)
+      ,percent_pending = Math.round((summary.pending / summary.total) * 100)
+      ,msg = percent + '% loaded'
+      $scope.status = {message: msg, progress:percent, progressPending:percent_pending}
+    })
 
-    $scope.queries.list = $scope.urlList
-      .map(function(obj,i){
-        var query = {}
+    queriesBatcher.atFinalization(function(list,pending,success,fail){
+      $scope.status = {}
+    })
 
-        query.id = i
-        query.label = obj.lru
-
-        query.before = function(){
-          obj.status = 'pending'
-        }
-
-        query.after = function(){
-
-        }
-
-        query.success = function(webentities){
-          obj.parentWebEntities = webentities
-          obj.status = 'loaded'
-        }
-
-        query.fail = function(){
-          console.log('Error while fetching parent webentities for', obj.url)
-          obj.status = 'error'
-        }
-
-        query.settings = {lru: obj.lru}
-
-        query.call = api.getLruParentWebentities
-
-        return query
-      })
-
-    $scope.queries.fetch()
+    queriesBatcher.run()
 
   }])
