@@ -292,7 +292,7 @@ angular.module('hyphe.controllers', [])
           }
           ,percent = Math.round((summary.loaded / summary.total) * 100)
           ,percent_pending = Math.round((summary.pending / summary.total) * 100)
-          ,msg = percent + '% loaded + ' + summary.pending + ' queries pending'
+          ,msg = percent + '% loaded'
         $scope.status = {message: msg, progress:percent, progressPending:percent_pending}
       }
       ,finalize: function(list,pending,success,fail){

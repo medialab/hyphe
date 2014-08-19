@@ -881,3 +881,5 @@ angular.module('hyphe.services', [])
     utils = angular.element(document.body).injector().get('utils')
     */
   }])
+  
+;
