@@ -9,6 +9,7 @@ angular.module('hyphe', [
   'hyphe.services',
   'hyphe.service_utils',
   'hyphe.service_hyphe_api',
+  'hyphe.service_glossary',
   'hyphe.directives',
   'hyphe.controllers'
 ]).

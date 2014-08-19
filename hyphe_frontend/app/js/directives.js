@@ -194,8 +194,12 @@ angular.module('hyphe.directives', [])
         var def = glossary(el.text())
         if(def){
           el.addClass('definition')
-          el.attr('title', def)
-          el.tooltip()
+          el.attr('data-toggle', 'popover')
+          el.attr('data-placement', 'top')
+          el.attr('title', def.title)
+          el.attr('data-content', def.definition)
+          el.attr('data-trigger', 'click hover')
+          el.popover()
         }
       }
     }
