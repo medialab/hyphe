@@ -66,9 +66,17 @@ div.welcome-column h1{
 }
 .topbar-status{
   text-align: center;
-  padding-top: 12px;
-  padding-bottom: 12px;
   font-weight: 300;
+  height: 49px;
+  padding-top: 12px;
+}
+.topbar-status .progress{
+  height: 4px;
+  margin-top: 7px;
+  border-radius: 0px;
+}
+.topbar-status .progress .progress-bar{
+  transition: none;
 }
 .topbar-branding{
   text-align: right;

@@ -125,21 +125,21 @@ angular.module('hyphe.controllers', [])
       var fileLoader = new FileLoader()
       fileLoader.read(file, {
         onloadstart: function(evt){
-          var msg = '[upload started]'
-          $scope.dataText = msg
+          $scope.status = {message: 'Upload started'}
           $scope.$apply()
         }
         ,onprogress: function(evt){
-          // evt is an ProgressEvent
+          // evt is a ProgressEvent
           if (evt.lengthComputable) {
-            var msg = '[upload ' + Math.round((evt.loaded / evt.total) * 100) + '% completed]'
-            $scope.dataText = msg
+            var msg = 'Upload ' + Math.round((evt.loaded / evt.total) * 100) + '% completed'
+            $scope.status = {message: msg, progress:Math.round((evt.loaded / evt.total) * 100)}
             $scope.$apply()
           }
         }
         ,onload: function(evt){
           var target = evt.target || evt.srcElement
           $scope.dataText = target.result
+          $scope.status = {}
           $scope.$apply()
         }
       })
@@ -228,44 +228,120 @@ angular.module('hyphe.controllers', [])
     }
 
     // Fetching parent web entities
-    $scope.concurrentQueriesMax = 10
-    $scope.concurrentQueries = 0
-    $scope.allQueriesSent = $scope.urlList.length == 0
-    $scope.fetchQueries = function(){
-      // Find a query
-      var obj
-      ,objFound = $scope.urlList.some(function(o){
-          if(o.status == 'loading'){
-            obj = o
-            return true
+    $scope.queries = {
+      atTheSameTime: 10
+      ,list:[]
+      ,pending:[]
+      ,success:[]
+      ,fail:[]
+      ,fetch: function(){
+        if($scope.queries.list.length > 0){
+          if($scope.queries.pending.length < $scope.queries.atTheSameTime){
+            var query = $scope.queries.list.shift() || {}
+            
+            if(query.before)
+              query.before()
+            
+            if(query.call){
+              $scope.queries.pending.push(query)
+              query.call(
+                  query.settings
+                  ,function(data){
+                    $scope.queries._move_pending_to_success(query)
+                    query.success(data)
+                    if(query.after){
+                      query.after()
+                    }
+                    $scope.queries.afterFetch($scope.queries.list, $scope.queries.pending, $scope.queries.success, $scope.queries.fail)
+                    $scope.queries.fetch()
+                  }
+                  ,function(){
+                    $scope.queries._move_pending_to_fail(query)
+                    query.fail()
+                    if(query.after){
+                      query.after()
+                    }
+                    $scope.queries.afterFetch($scope.queries.list, $scope.queries.pending, $scope.queries.success, $scope.queries.fail)
+                    $scope.queries.fetch()
+                  }
+                )
+            } else {
+              $scope.queries.fail.push(query)
+              query.fail()
+              if(query.after){
+                query.after()
+              }
+              $scope.queries.afterFetch($scope.queries.list, $scope.queries.pending, $scope.queries.success, $scope.queries.fail)
+              $scope.queries.fetch()
+            }
+            if($scope.queries.pending.length < $scope.queries.atTheSameTime){
+              $scope.queries.fetch()
+            }
           }
-          return false
-        })
-      if(objFound){
-        $scope.concurrentQueries++
-        obj.status = 'pending'
-
-        api.getLruParentWebentities(
-          {lru: obj.lru}
-          ,function(webentities){ // success
-            obj.parentWebEntities = webentities
-            obj.status = 'loaded'
-            $scope.concurrentQueries--
-            $scope.fetchQueries()
-          }
-          ,function(){  // error
-            console.log('Error while fetching parent webentities for',obj.url)
-            obj.status = 'error'
-            $scope.concurrentQueries--
-            $scope.fetchQueries()
-          }
-        )
-
-      } else {
-        $scope.allQueriesSent = true
+        } else {
+          // No more queries
+          if($scope.queries.finalize)
+            $scope.queries.finalize($scope.queries.list, $scope.queries.pending, $scope.queries.success, $scope.queries.fail)
+        }
       }
-      if($scope.concurrentQueries < $scope.concurrentQueriesMax && !$scope.allQueriesSent)
-        $scope.fetchQueries()
+      ,afterFetch: function(list,pending,success,fail){
+        var summary = {
+            total: list.length + pending.length + success.length + fail.length
+            ,pending: pending.length
+            ,loaded: success.length + fail.length
+          }
+          ,percent = Math.round((summary.loaded / summary.total) * 100)
+          ,percent_pending = Math.round((summary.pending / summary.total) * 100)
+          ,msg = percent + '% loaded + ' + summary.pending + ' queries pending'
+        $scope.status = {message: msg, progress:percent, progressPending:percent_pending}
+      }
+      ,finalize: function(list,pending,success,fail){
+        $scope.status = {}
+      }
+      ,_move_pending_to_success: function(query){
+        $scope.queries.pending = $scope.queries.pending
+          .filter(function(q){return q.id != query.id})
+        $scope.queries.success.push(query)
+      }
+      ,_move_pending_to_fail: function(query){
+        $scope.queries.pending = $scope.queries.pending
+          .filter(function(q){return q.id != query.id})
+        $scope.queries.fail.push(query)
+      }
     }
-    $scope.fetchQueries()
+
+    $scope.queries.list = $scope.urlList
+      .map(function(obj,i){
+        var query = {}
+
+        query.id = i
+        query.label = obj.lru
+
+        query.before = function(){
+          obj.status = 'pending'
+        }
+
+        query.after = function(){
+
+        }
+
+        query.success = function(webentities){
+          obj.parentWebEntities = webentities
+          obj.status = 'loaded'
+        }
+
+        query.fail = function(){
+          console.log('Error while fetching parent webentities for', obj.url)
+          obj.status = 'error'
+        }
+
+        query.settings = {lru: obj.lru}
+
+        query.call = api.getLruParentWebentities
+
+        return query
+      })
+
+    $scope.queries.fetch()
+
   }])

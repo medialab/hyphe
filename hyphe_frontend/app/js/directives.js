@@ -4,12 +4,6 @@
 
 
 angular.module('hyphe.directives', [])
-  
-  .directive('appVersion', ['version', function(version) {
-    return function(scope, el, attrs) {
-      el.text(version);
-    };
-  }])
 
   .directive('hyphePrefixSlider', ['utils', function(utils){
     return {
@@ -184,4 +178,13 @@ angular.module('hyphe.directives', [])
         }
 	    }
     }
-	}]);
+	}])
+
+  .directive('hypheStatus', ['utils', function(utils){
+    return {
+      restrict: 'A'
+      ,templateUrl: 'partials/sub/status.html'
+    }
+  }])
+
+;
