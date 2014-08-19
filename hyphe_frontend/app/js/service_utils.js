@@ -306,7 +306,7 @@ angular.module('hyphe.service_utils', [])
           var tld_split = tld.split('.').reverse()
           ,match_flag = true
 
-          for(i in tld_split){
+          for(var i in tld_split){
             if(actualTLDCandidate.length < i){
               match_flag = false
               break
@@ -329,14 +329,13 @@ angular.module('hyphe.service_utils', [])
       return host_split.slice(0, longestMatchingTLD.length).reverse().join('.')
     }
 
-    // Previously: ns.getPrefixCandidates
     ns.LRU_variations = function(lru, settings){
       if(lru === undefined)
         return []
       var candidates = []
-      ,tld_length = Utils.LRU_getTLD(lru).split('.').length
+      ,tld_length = ns.LRU_getTLD(lru).split('.').length
       ,lru_a = lru.split('|')
-      ,lru_json = Utils.LRU_to_JSON_LRU(lru)
+      ,lru_json = ns.LRU_to_JSON_LRU(lru)
       ,settings = settings || {}
       
       // Settings content and defaults
@@ -356,10 +355,10 @@ angular.module('hyphe.service_utils', [])
         }
       }
       if(settings.wwwlessVariations && lru_json.host[lru_json.host.length - 1] == 'www'){
-        var wwwlessVariation_json = lru_json.slice()
+        var wwwlessVariation_json = jQuery.extend(true, {}, lru_json)
         wwwlessVariation_json.host.pop()
         var wwwlessVariation = ns.JSON_LRU_to_LRU(wwwlessVariation_json)
-        candidates = candidates.concat(ns.getPrefixCandidates(wwwlessVariation, {
+        candidates = candidates.concat(ns.LRU_variations(wwwlessVariation, {
           wwwlessVariations: false
           ,wwwVariations: false
           ,httpVariations: settings.httpVariations
@@ -368,10 +367,10 @@ angular.module('hyphe.service_utils', [])
         }))
       }
       if(settings.wwwVariations && lru_json.host[lru_json.host.length - 1] != 'www'){
-        var wwwVariation_json = lru_json.slice()
+        var wwwVariation_json = jQuery.extend(true, {}, lru_json)
         wwwVariation_json.host.push('www')
         var wwwVariation = ns.JSON_LRU_to_LRU(wwwVariation_json)
-        candidates = candidates.concat(ns.getPrefixCandidates(wwwVariation, {
+        candidates = candidates.concat(ns.LRU_variations(wwwVariation, {
           wwwlessVariations: false
           ,wwwVariations: false
           ,smallerVariations: settings.smallerVariations
@@ -380,10 +379,10 @@ angular.module('hyphe.service_utils', [])
         }))
       }
       if(settings.httpsVariations && lru_json.scheme == 'http'){
-        var httpsVariation_json = lru_json.slice()
+        var httpsVariation_json = jQuery.extend(true, {}, lru_json)
         httpsVariation_json.scheme = 'https'
         var httpsVariation = ns.JSON_LRU_to_LRU(httpsVariation_json)
-        candidates = candidates.concat(ns.getPrefixCandidates(httpsVariation, {
+        candidates = candidates.concat(ns.LRU_variations(httpsVariation, {
           wwwlessVariations: settings.wwwlessVariations
           ,wwwVariations: settings.wwwVariations
           ,smallerVariations: settings.smallerVariations
@@ -393,10 +392,10 @@ angular.module('hyphe.service_utils', [])
       
       }
       if(settings.httpVariations && lru_json.scheme == 'https'){
-        var httpVariation_json = lru_json.slice()
+        var httpVariation_json = jQuery.extend(true, {}, lru_json)
         httpVariation_json.scheme = 'http'
         var httpVariation = ns.JSON_LRU_to_LRU(httpVariation_json)
-        candidates = candidates.concat(ns.getPrefixCandidates(httpVariation, {
+        candidates = candidates.concat(ns.LRU_variations(httpVariation, {
           wwwlessVariations: settings.wwwlessVariations
           ,wwwVariations: settings.wwwVariations
           ,smallerVariations: settings.smallerVariations

@@ -17,7 +17,7 @@
                     <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>
                     <td class="td-row-content">
                       <div ng-if="obj.status != 'loaded'" class="info-content">
-                        <p class="loading-p" ng-class="{'text-muted':obj.status=='loading', 'text-info':obj.status=='pending'}">
+                        <p class="loading-p" ng-class="{'text-muted':obj.status=='loading', 'text-info':obj.status=='pending', 'text-success':obj.status=='created'}">
                           {{obj.status|titlecase}}
                         </p>
                         <p ng-if="obj.status == 'error'">
@@ -63,7 +63,7 @@
                 </div>
                 <br/>
                 <div class="text-center">
-                  <button class="btn btn-primary">CREATE WEB ENTITIES</button>
+                  <button class="btn btn-primary" ng-click="createWebEntities()">CREATE WEB ENTITIES</button>
                 </div>
               </div>
             </div>

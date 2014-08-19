@@ -275,4 +275,69 @@ angular.module('hyphe.controllers', [])
 
     queriesBatcher.run()
 
+    // Create web entities
+    $scope.createWebEntities = function(){
+      var queriesBatcher = new QueriesBatcher()
+      $scope.urlList
+        .filter(function(obj){
+            var webentityFound
+            obj.parentWebEntities.forEach(function(we){
+              if(!webentityFound && we.stems_count == obj.prefixLength){
+                webentityFound = we
+              }
+            })
+            return obj.status == 'loaded' && webentityFound === undefined
+          })
+        .forEach(function(obj){
+          // Compute prefix variations
+          var prefixes = utils.LRU_variations(obj.lru, {
+            wwwlessVariations: $scope.wwwVariations
+            ,wwwVariations: $scope.wwwVariations
+            ,httpVariations: $scope.httpsVariations
+            ,httpsVariations: $scope.httpsVariations
+            ,smallerVariations: false
+          })
+
+          // Stack the query
+          queriesBatcher.addQuery(
+              api.declareWebentity          // Query call
+              ,{                            // Query settings
+                  prefixes: prefixes
+                  ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.prefixLength))
+                }
+              ,function(){                  // Success callback
+                  obj.status = 'created'
+                }
+              ,function(){                  // Fail callback
+                  console.log('[row '+(obj.id+1)+'] Error while creating web entity', obj)
+                  obj.status = 'error'
+                }
+              ,{                            // Options
+                  label: obj.lru
+                  ,before: function(){
+                      obj.status = 'pending'
+                    }
+                }
+            )
+        })
+
+      queriesBatcher.atEachFetch(function(list,pending,success,fail){
+        var summary = {
+          total: list.length + pending.length + success.length + fail.length
+          ,pending: pending.length
+          ,loaded: success.length + fail.length
+        }
+        ,percent = Math.round((summary.loaded / summary.total) * 100)
+        ,percent_pending = Math.round((summary.pending / summary.total) * 100)
+        ,msg = percent + '% created'
+        $scope.status = {message: msg, progress:percent, progressPending:percent_pending}
+      })
+
+      queriesBatcher.atFinalization(function(list,pending,success,fail){
+        $scope.status = {}
+      })
+
+      queriesBatcher.run()
+    }
+
   }])

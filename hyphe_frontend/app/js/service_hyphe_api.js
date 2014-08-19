@@ -61,54 +61,58 @@ angular.module('hyphe.service_hyphe_api', [])
       ,RESET:'reinitialize'
     }
 
-    api.getWebentities = function(settings, successCallback, errorCallback){
-      settings = settings || {}
-      errorCallback = errorCallback || rpcError
-      $http({
-        method: 'POST'
-        ,url: surl
-        ,data: JSON.stringify({ //JSON RPC
-            'method' : HYPHE_API.WEBENTITIES.GET,
-            'params' : [
-              settings.id_list                // List of webentities
-              ,settings.light || false        // Mode light
-              ,settings.semiLight || false    // Mode semi-light
-            ],
-          })
-        ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-      })
-        .success(function(data, status, headers, config){
-            var target = data[0].result
-            if(target)
-              successCallback(target)
-            else
-              errorCallback(data, status, headers, config)
-          })
-        .error(errorCallback)
-    }
+    api.getWebentities = buildApiCall(
+        HYPHE_API.WEBENTITIES.GET
+        ,function(settings){
+          return [
+            settings.id_list                // List of webentities
+            ,settings.light || false        // Mode light
+            ,settings.semiLight || false    // Mode semi-light
+          ]}
+      )
 
-    api.getLruParentWebentities = function(settings, successCallback, errorCallback){
-      settings = settings || {}
-      errorCallback = errorCallback || rpcError
-      $http({
-        method: 'POST'
-        ,url: surl
-        ,data: JSON.stringify({ //JSON RPC
-            'method' : HYPHE_API.PREFIX.GET_PARENTWEBENTITIES,
-            'params' : [
-              settings.lru
-            ],
-          })
-        ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-      })
-        .success(function(data, status, headers, config){
-            var target = data[0].result
-            if(target)
-              successCallback(target)
-            else
-              errorCallback(data, status, headers, config)
-          })
-        .error(errorCallback)
+    api.getLruParentWebentities = buildApiCall(
+        HYPHE_API.PREFIX.GET_PARENTWEBENTITIES
+        ,function(settings){
+          return [
+            settings.lru
+          ]}
+      )
+
+    api.declareWebentity = buildApiCall(
+        HYPHE_API.WEBENTITIES.CREATE_BY_LRUS
+        ,function(settings){
+          return [
+              settings.prefixes             // LRU list
+              ,settings.name || ''          // Name
+              ,'IN'                         // Status
+            ]}
+      )
+
+
+
+    function buildApiCall(pseudo_route, params){
+      return function(settings, successCallback, errorCallback){
+        settings = settings || {}
+        errorCallback = errorCallback || rpcError
+        $http({
+          method: 'POST'
+          ,url: surl
+          ,data: JSON.stringify({ //JSON RPC
+              'method' : pseudo_route,
+              'params' : params(settings),
+            })
+          ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+        })
+          .success(function(data, status, headers, config){
+              var target = data[0].result
+              if(target)
+                successCallback(target)
+              else
+                errorCallback(data, status, headers, config)
+            })
+          .error(errorCallback)
+      }
     }
 
     return api
