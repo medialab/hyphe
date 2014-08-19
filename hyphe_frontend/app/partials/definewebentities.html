@@ -30,6 +30,9 @@
                         </p>
                       </div>
                       <div ng-if="obj.status == 'loaded'" hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div>
+                      <div ng-if="obj.conflicts.length > 0" class="conflicts">
+                        Conflicts with rows <span ng-repeat="r in obj.conflicts">{{r+1}} </span>
+                      </div>
                     </td>
                   </tr>
                 </table>

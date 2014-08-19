@@ -187,9 +187,8 @@ angular.module('hyphe.controllers', [])
     store.remove('parsedUrls')
     store.remove('parsedUrls_type')
     store.remove('parsedUrls_settings')
-    
-    if(list){
 
+    if(list){
       // Consolidate the list of web entities
       list = list
         .filter(function(obj){
@@ -208,6 +207,7 @@ angular.module('hyphe.controllers', [])
                   return stem
                 })
             obj.prefixLength = 3
+            obj.conflicts = []
             obj.status = 'loading'
             return obj
           })
@@ -221,6 +221,75 @@ angular.module('hyphe.controllers', [])
         if(page >= 0 && page < Math.ceil(list.length/$scope.paginationLength))
           $scope.page = page
       }
+
+      // Building an index of these objects to find them by id
+      var urlList_byId = {}
+      list.forEach(function(obj){
+        urlList_byId[obj.id] = obj
+      })
+
+      // Catching conflicts: we use this index of LRU prefixes set in the UI
+      $scope.lruIndex = (function(){
+        var ns = {}
+
+        ns.index = {}
+
+        ns.addToLruIndex = function(obj){
+          var lru = utils.LRU_truncate(obj.lru, obj.prefixLength)
+          ,objId_list = ns.index[lru]
+          if(objId_list){
+            ns.addConflictsTo(objId_list,obj.id)
+            objId_list.push(obj.id)
+          } else {
+            ns.index[lru] = [obj.id]
+          }
+        }
+
+        ns.removeFromLruIndex = function(obj){
+          var lru = utils.LRU_truncate(obj.lru, obj.prefixLength)
+          ,objId_list = ns.index[lru]
+          if(objId_list.length == 1){
+            // No conflict
+            delete ns.index[lru]
+          } else {
+            var updated_objId_list = objId_list.filter(function(objId){
+              return objId != obj.id
+            })
+            ns.removeConflictsFrom(updated_objId_list, obj.id)
+            ns.index[lru] = updated_objId_list
+          }
+        }
+
+        ns.addConflictsTo = function(old_objId_list, new_objId){
+          var new_obj = urlList_byId[new_objId]
+          old_objId_list.forEach(function(old_objId){
+            var old_obj = urlList_byId[old_objId]
+            new_obj.conflicts.push(old_objId)
+            old_obj.conflicts.push(new_objId)
+          })
+        }
+
+        ns.removeConflictsFrom = function(objId_list, obsolete_objId){
+          var obsolete_obj = urlList_byId[obsolete_objId]
+          objId_list.forEach(function(objId){
+            var obj = urlList_byId[objId]
+            obj.conflicts = ns.filterOut(obsolete_objId, obj.conflicts)
+            obsolete_obj.conflicts = ns.filterOut(objId, obsolete_obj.conflicts)
+          })
+        }
+
+        ns.filterOut = function(val, arr){
+          return arr.filter(function(d){
+            return d != val
+          })
+        }
+
+        return ns
+      })()
+
+      list.forEach(function(obj){
+        $scope.lruIndex.addToLruIndex(obj)
+      })
 
       // Record list in model
       $scope.urlList = list
