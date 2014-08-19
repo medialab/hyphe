@@ -39,7 +39,7 @@ angular.module('hyphe.service_hyphe_api', [])
         ,FETCH_BY_PREFIX_URL: 'store.get_webentity_by_lruprefix_as_url'
       }
       ,PREFIX:{
-        GET_PARENTWEBENTITIES:'store.get_lru_parentwebentities'
+        GET_PARENTWEBENTITIES:'store.get_lru_definedprefixes'
       }
       ,PAGES:{
         DECLARE:'declare_pages'

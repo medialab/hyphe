@@ -1191,19 +1191,20 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(format_result(res))
 
     @inlineCallbacks
-    def jsonrpc_get_lru_parentwebentities(self, lru_prefix):
+    def jsonrpc_get_lru_definedprefixes(self, lru):
         try:
-            lru_prefix = urllru.lru_clean(lru_prefix)
-            parent_lrus = urllru.lru_parent_prefixes(lru_prefix)
+            lru = urllru.lru_clean(lru)
+            parent_prefixes = [lru]
+            parent_prefixes.extend(urllru.lru_parent_prefixes(lru))
         except ValueError as e:
             returnD(format_error(e))
         WEs = []
-        for lru in parent_lrus:
-            WE = yield self.msclient_pool.getWebEntityByLRUPrefix(lru)
+        for prefix in parent_prefixes:
+            WE = yield self.msclient_pool.getWebEntityByLRUPrefix(prefix)
             if not is_error(WE):
                 WEs.append({
-                    "lru": lru,
-                    "stems_count": len(urllru.split_lru_in_stems(lru)),
+                    "lru": prefix,
+                    "stems_count": len(urllru.split_lru_in_stems(prefix)),
                     "id": WE.id,
                     "name": WE.name
                 })
