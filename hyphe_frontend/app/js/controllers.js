@@ -155,6 +155,8 @@ angular.module('hyphe.controllers', [])
     
     $scope.currentPage = 'definewebentities'
     $scope.activeRow = 0
+    $scope.wwwVariations = true
+    $scope.httpsVariations = true
 
     // Build the basic list of web entities
     var list
@@ -194,9 +196,10 @@ angular.module('hyphe.controllers', [])
             return obj.url && utils.URL_validate(obj.url)
           })
         .map(function(obj){
-            obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
-            obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
-            obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
+            obj.url = utils.URL_fix(obj.url)
+            obj.lru = utils.URL_to_LRU(obj.url)
+            obj.json_lru = utils.URL_to_JSON_LRU(obj.url)
+            obj.pretty_lru = utils.URL_to_pretty_LRU(obj.url)
               .map(function(stem){
                   var maxLength = 12
                   if(stem.length > maxLength+3){
@@ -242,7 +245,7 @@ angular.module('hyphe.controllers', [])
               obj.status = 'loaded'
             }
           ,function(){                  // Fail callback
-              console.log('Error while fetching parent webentities for', obj.url)
+              console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url)
               obj.status = 'error'
             }
           ,{                            // Options

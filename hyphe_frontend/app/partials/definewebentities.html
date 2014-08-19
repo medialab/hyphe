@@ -10,13 +10,20 @@
               <div class="col-md-12">
                 <h1 class="page-title">DEFINE WEB ENTITIES</h1>
                 <p class="text-info">
-                  Check boundaries of <span hyphe-glossary>web entities</span> and create them in Hyphe
+                  Check definition of each <span hyphe-glossary>web entity</span> then create them
                 </p>
                 <table class="table table-striped sliders-table">
                   <tr ng-repeat="obj in urlList|paginate:page:paginationLength track by $index" ng-class="{active: $parent.activeRow == ($index+paginationLength*page) && obj.status=='loaded', danger:obj.status=='error'}" ng-click="$parent.activeRow = ($index+paginationLength*page)" ng-mouseover="$parent.activeRow = ($index+paginationLength*page)">
                     <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>
                     <td class="td-row-content">
-                      <div ng-if="obj.status != 'loaded'"><p class="loading-p" ng-class="{'text-muted':obj.status=='loading', 'text-info':obj.status=='pending'}">{{obj.status|titlecase}}</p></div>
+                      <div ng-if="obj.status != 'loaded'" class="info-content">
+                        <p class="loading-p" ng-class="{'text-muted':obj.status=='loading', 'text-info':obj.status=='pending'}">
+                          {{obj.status|titlecase}}
+                        </p>
+                        <p ng-if="obj.status == 'error'">
+                          <a ng-href="obj.url">{{obj.url}}</a> is not considered valid by the server
+                        </p>
+                      </div>
                       <div ng-if="obj.status == 'loaded'" hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div>
                     </td>
                   </tr>
@@ -35,28 +42,29 @@
               </div>
             </div>
             <div class="row">
-              <div class="col-md-4">
-                <div class="pull-right">
+              <div class="col-md-4 col-md-offset-4">
+                <div class="text-center">
                   <form class="form-inline">
                     <div class="form-group">
                       <div class="checkbox variations-checkbox">
                         <label>
-                          <input type="checkbox"> Use <span hyphe-glossary>www variations</span>
+                          <input type="checkbox" ng-model="wwwVariations"> Use <span hyphe-glossary>www variations</span>
                         </label>
                       </div>
                     </div>
                     <div class="form-group">
                       <div class="checkbox variations-checkbox">
                         <label>
-                          <input type="checkbox"> Use <span hyphe-glossary>https variations</span>
+                          <input type="checkbox" ng-model="httpsVariations"> Use <span hyphe-glossary>https variations</span>
                         </label>
                       </div>
                     </div>
                   </form>
                 </div>
-              </div>
-              <div class="col-md-4">
-                <button class="btn btn-primary">CHECK START PAGES</button>
+                <br/>
+                <div class="text-center">
+                  <button class="btn btn-primary">CREATE WEB ENTITIES</button>
+                </div>
               </div>
             </div>
           </div>

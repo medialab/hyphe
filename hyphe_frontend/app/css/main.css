@@ -189,8 +189,12 @@ textarea.over-error{
   font-size: 24px;
   font-weight: 300;
 }
+.info-content{
+  padding-left: 15px;
+  padding-right: 15px;
+}
 .loading-p{
-  margin-top: 10px;
+  font-weight: 600;
 }
 .variations-checkbox{
   margin-top: 4px;

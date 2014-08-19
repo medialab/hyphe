@@ -1,6 +1,11 @@
 'use strict';
 
 angular.module('hyphe.service_utils', [])
+  
+  /*
+  NB: If you have the use of utils in console, use this line:
+  utils = angular.element(document.body).injector().get('utils')
+  */
 
   .factory('utils', [function(){
     var ns = {} // Namespace
@@ -217,6 +222,8 @@ angular.module('hyphe.service_utils', [])
 
       if(url == '')
         return ''
+
+      // Add HTTP:// if needed
       var protocolSplit = url.split('://')
       if(protocolSplit.length == 1 || (protocolSplit.length > 1 && protocolSplit[0].length > 10)){
         url = 'http://'+url
@@ -651,8 +658,4 @@ angular.module('hyphe.service_utils', [])
 
     return ns
 
-    /*
-    NB: If you have the use of utils in console, use this line:
-    utils = angular.element(document.body).injector().get('utils')
-    */
   }])
