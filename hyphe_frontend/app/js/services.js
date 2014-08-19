@@ -321,18 +321,18 @@ angular.module('hyphe.services', [])
               ns.pending.push(query)
               query.call(
                   query.settings
-                  ,function(data){
+                  ,function(data, status, headers, config){
                     ns._move_pending_to_success(query)
-                    query.success(data)
+                    query.success(data, status, headers, config)
                     if(query.after){
                       query.after()
                     }
                     ns._atEachFetch(ns.list, ns.pending, ns.success, ns.fail)
                     ns._fetch()
                   }
-                  ,function(){
+                  ,function(data, status, headers, config){
                     ns._move_pending_to_fail(query)
-                    query.fail()
+                    query.fail(data, status, headers, config)
                     if(query.after){
                       query.after()
                     }

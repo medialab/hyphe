@@ -18,9 +18,12 @@
                     <td class="td-row-content">
                       <div ng-if="obj.status != 'loaded'" class="info-content">
                         <p class="loading-p" ng-class="{'text-muted':obj.status=='loading', 'text-info':obj.status=='pending', 'text-success':obj.status=='created'}">
-                          {{obj.status|titlecase}}
+                          <strong>{{obj.status|titlecase}}</strong>
+                          <span ng-if="obj.status == 'created' || obj.status == 'existing'">
+                            as {{obj.webEntityName}}
+                          </span>
                         </p>
-                        <p ng-if="obj.status == 'error' || obj.status == 'existing' || obj.status == 'created'">
+                        <p ng-if="obj.status == 'error'">
                           URL: <a ng-href="obj.url">{{obj.url}}</a>
                           <br/>
                           {{obj.infoMessage}}

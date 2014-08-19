@@ -117,11 +117,13 @@ angular.module('hyphe.service_hyphe_api', [])
               if(target){
                 successCallback(target)
               } else {
+                console.log('data', data, 'errorCallback', errorCallback)
                 errorCallback(data, status, headers, config)
-                // console.log('Error on query',data,status,headers)
               }
             })
-          .error(errorCallback)
+          .error(function(data, status, headers, config){
+            errorCallback(data, status, headers, config)
+          })
       }
     }
 

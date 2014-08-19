@@ -238,18 +238,21 @@ angular.module('hyphe.controllers', [])
     var queriesBatcher = new QueriesBatcher()
     $scope.urlList.forEach(function(obj){
       queriesBatcher.addQuery(
-          api.getLruParentWebentities   // Query call
-          ,{lru: obj.lru}               // Query settings
-          ,function(webentities){       // Success callback
+          api.getLruParentWebentities             // Query call
+          ,{lru: obj.lru}                         // Query settings
+          ,function(webentities){                 // Success callback
               obj.parentWebEntities = webentities
               obj.status = 'loaded'
             }
-          ,function(){                  // Fail callback
-              console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url)
+          ,function(data, status, headers){       // Fail callback
               obj.status = 'error'
-              obj.infoMessage = 'Not considered valid by the server'
+              console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url, data, 'status', status, 'headers', headers)
+              if(data && data[0].code == 'fail'){
+                obj.infoMessage = data[0].message
+                // obj.infoMessage = 'Not considered valid by the server'
+              }
             }
-          ,{                            // Options
+          ,{                                      // Options
               label: obj.lru
               ,before: function(){
                   obj.status = 'pending'
@@ -289,7 +292,7 @@ angular.module('hyphe.controllers', [])
           })
           if(webentityFound){
             obj.status = 'existing'
-            obj.infoMessage = 'Corresponds to ' + webentityFound.name
+            obj.webEntityName =  webentityFound.name
           }
         })
 
@@ -308,8 +311,8 @@ angular.module('hyphe.controllers', [])
         .forEach(function(obj){
           // Stack the query
           queriesBatcher.addQuery(
-              api.declareWebentity          // Query call
-              ,function(){                  // Query settings as a function
+              api.declareWebentity                  // Query call
+              ,function(){                          // Query settings as a function
                   // Compute prefix variations
                   obj.prefixes = utils.LRU_variations(utils.LRU_truncate(obj.lru, obj.prefixLength), {
                     wwwlessVariations: $scope.wwwVariations
@@ -324,16 +327,18 @@ angular.module('hyphe.controllers', [])
                     ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.prefixLength))
                   }
                 }
-              ,function(we){                // Success callback
+              ,function(we){                        // Success callback
                   obj.status = 'created'
-                  obj.infoMessage = 'Created as ' + we.name
+                  obj.webEntityName = we.name
                 }
-              ,function(){                  // Fail callback
-                  console.log('[row '+(obj.id+1)+'] Error while creating web entity with prefixes', obj)
+              ,function(data, status, headers){     // Fail callback
                   obj.status = 'error'
-                  obj.infoMessage = 'Server could not create web entity (maybe it was created above in the list)'
+                  console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url, data, 'status', status, 'headers', headers)
+                  if(data[0].code == 'fail'){
+                    obj.infoMessage = data[0].message
+                  }
                 }
-              ,{                            // Options
+              ,{                                    // Options
                   label: obj.lru
                   ,before: function(){
                       obj.status = 'pending'
