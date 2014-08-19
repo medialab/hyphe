@@ -21,6 +21,10 @@ h1.page-title{
   background-color: #FFF;
   padding-bottom: 300px;
 }
+.definition{
+  border-bottom: 1px dotted #777;
+  cursor: help;
+}
 
 
 /* ==========================================================================

@@ -153,8 +153,8 @@ angular.module('hyphe.directives', [])
         function applyBoundaries(x){
           if(x > steps[steps.length-1])
             x = steps[steps.length-1]
-          if(x < steps[1])
-            x = steps[1]
+          if(x < steps[2])
+            x = steps[2]
           return x
         }
 
@@ -184,6 +184,18 @@ angular.module('hyphe.directives', [])
     return {
       restrict: 'A'
       ,templateUrl: 'partials/sub/status.html'
+    }
+  }])
+
+  .directive('hypheGlossary', ['glossary', function(glossary){
+    return {
+      restrict: 'A'
+      ,link: function(scope, el, attrs) {
+        var def = glossary(el.text())
+        el.addClass('definition')
+        el.attr('title', def)
+        el.tooltip()
+      }
     }
   }])
 

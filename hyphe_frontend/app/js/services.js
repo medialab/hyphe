@@ -71,9 +71,24 @@ angular.module('hyphe.services', [])
   }])
   
   .factory('glossary', [function(){
+    var ns = this     // namespace
+    
+    ns.definitions = [
+      {
+        definition: 'A web entity is used in Hyphe to describe a website, an actor, or any set of pages that you consider as a whole'
+        ,entries: ['web entity', 'web entities']
+      }
+    ]
+
+    ns.entries = {}
+    ns.definitions.forEach(function(def, i){
+      def.entries.forEach(function(entry){
+        ns.entries[entry] = i
+      })
+    })
+
     return function(term){
-      // TODO
-      return term
+      return ns.definitions[ns.entries[term.toLocaleLowerCase()]].definition
     }
   }])
 

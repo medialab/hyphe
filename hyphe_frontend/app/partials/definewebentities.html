@@ -5,22 +5,13 @@
         <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sub/sidebar.html'">
         </div>
         <div class="col-lg-10 col-md-9 col-sm-8">
-          <div ng-if="urlList.length == 0" class="container-fluid main">
-            <div class="row">
-              <div class="col-md-12">
-                <div class="bg-warning">
-                  <h1 class="page-title">DEFINE WEB ENTITIES</h1>
-                  <p>
-                    A list of URLs should have been passed to this page. Try to <a href="#/importurls">IMPORT URLS</a>.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div ng-if="urlList.length > 0" class="container-fluid main">
+          <div class="container-fluid main">
             <div class="row">
               <div class="col-md-12">
                 <h1 class="page-title">DEFINE WEB ENTITIES</h1>
+                <p class="text-info">
+                  Check boundaries of <span hyphe-glossary>web entities</span> and create them in Hyphe
+                </p>
                 <table class="table table-striped sliders-table">
                   <tr ng-repeat="obj in urlList|paginate:page:paginationLength track by $index" ng-class="{active: $parent.activeRow == ($index+paginationLength*page) && obj.status=='loaded', danger:obj.status=='error'}" ng-click="$parent.activeRow = ($index+paginationLength*page)" ng-mouseover="$parent.activeRow = ($index+paginationLength*page)">
                     <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>

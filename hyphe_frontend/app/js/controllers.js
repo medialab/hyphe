@@ -19,9 +19,8 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('ImportUrls', ['$scope', 'FileLoader', 'glossary', 'Parser', 'extractURLs', 'droppableTextArea', 'store', function($scope, FileLoader, glossary, Parser, extractURLs, droppableTextArea, store) {
+  .controller('ImportUrls', ['$scope', 'FileLoader', 'Parser', 'extractURLs', 'droppableTextArea', 'store', function($scope, FileLoader, Parser, extractURLs, droppableTextArea, store) {
     $scope.currentPage = 'importurls'
-    $scope.glossary = glossary
     
     var parser = new Parser()
 
@@ -151,7 +150,9 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('DefineWebEntities', ['$scope', 'store', 'utils', 'api', 'QueriesBatcher', function($scope, store, utils, api, QueriesBatcher) {
+  .controller('DefineWebEntities', ['$scope', 'store', 'utils', 'api', 'QueriesBatcher', '$location', 
+    function($scope, store, utils, api, QueriesBatcher, $location) {
+    
     $scope.currentPage = 'definewebentities'
     $scope.activeRow = 0
 
@@ -224,7 +225,10 @@ angular.module('hyphe.controllers', [])
     } else {
 
       $scope.urlList = []
+    }
 
+    if($scope.urlList.length==0){
+      $location.path('/importurls')
     }
 
     // Fetching parent web entities
