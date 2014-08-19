@@ -306,28 +306,30 @@ angular.module('hyphe.controllers', [])
             return obj.status == 'loaded' && webentityFound === undefined
           })
         .forEach(function(obj){
-          // Compute prefix variations
-          var prefixes = utils.LRU_variations(utils.LRU_truncate(obj.lru, obj.prefixLength), {
-            wwwlessVariations: $scope.wwwVariations
-            ,wwwVariations: $scope.wwwVariations
-            ,httpVariations: $scope.httpsVariations
-            ,httpsVariations: $scope.httpsVariations
-            ,smallerVariations: false
-          })
-
           // Stack the query
           queriesBatcher.addQuery(
               api.declareWebentity          // Query call
-              ,{                            // Query settings
-                  prefixes: prefixes
-                  ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.prefixLength))
+              ,function(){                  // Query settings as a function
+                  // Compute prefix variations
+                  obj.prefixes = utils.LRU_variations(utils.LRU_truncate(obj.lru, obj.prefixLength), {
+                    wwwlessVariations: $scope.wwwVariations
+                    ,wwwVariations: $scope.wwwVariations
+                    ,httpVariations: $scope.httpsVariations
+                    ,httpsVariations: $scope.httpsVariations
+                    ,smallerVariations: false
+                  })
+
+                  return {
+                    prefixes: obj.prefixes
+                    ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.prefixLength))
+                  }
                 }
-              ,function(we){                  // Success callback
+              ,function(we){                // Success callback
                   obj.status = 'created'
                   obj.infoMessage = 'Created as ' + we.name
                 }
               ,function(){                  // Fail callback
-                  console.log('[row '+(obj.id+1)+'] Error while creating web entity with prefixes', prefixes, obj)
+                  console.log('[row '+(obj.id+1)+'] Error while creating web entity with prefixes', obj)
                   obj.status = 'error'
                   obj.infoMessage = 'Server could not create web entity (maybe it was created above in the list)'
                 }

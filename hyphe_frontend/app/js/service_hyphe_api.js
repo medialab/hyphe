@@ -93,23 +93,33 @@ angular.module('hyphe.service_hyphe_api', [])
 
     function buildApiCall(pseudo_route, params){
       return function(settings, successCallback, errorCallback){
-        settings = settings || {}
+        var s // settings
+        if(typeof(settings) == 'object'){
+          s = settings
+        } else if(typeof(settings) == 'function'){
+          s = settings()
+        } else {
+          s = {}
+        }
+        
         errorCallback = errorCallback || rpcError
         $http({
           method: 'POST'
           ,url: surl
           ,data: JSON.stringify({ //JSON RPC
               'method' : pseudo_route,
-              'params' : params(settings),
+              'params' : params(s),
             })
           ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
         })
           .success(function(data, status, headers, config){
               var target = data[0].result
-              if(target)
+              if(target){
                 successCallback(target)
-              else
+              } else {
                 errorCallback(data, status, headers, config)
+                // console.log('Error on query',data,status,headers)
+              }
             })
           .error(errorCallback)
       }
