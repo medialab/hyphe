@@ -197,9 +197,9 @@ angular.module('hyphe.controllers', [])
           })
         .map(function(obj){
             obj.url = utils.URL_fix(obj.url)
-            obj.lru = utils.URL_to_LRU(obj.url)
-            obj.json_lru = utils.URL_to_JSON_LRU(obj.url)
-            obj.pretty_lru = utils.URL_to_pretty_LRU(obj.url)
+            obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
+            obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
+            obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
               .map(function(stem){
                   var maxLength = 12
                   if(stem.length > maxLength+3){
