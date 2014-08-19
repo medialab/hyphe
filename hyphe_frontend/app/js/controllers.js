@@ -241,14 +241,13 @@ angular.module('hyphe.controllers', [])
           api.getLruParentWebentities   // Query call
           ,{lru: obj.lru}               // Query settings
           ,function(webentities){       // Success callback
-            console.log(webentities, 'for', obj.lru)
               obj.parentWebEntities = webentities
               obj.status = 'loaded'
             }
           ,function(){                  // Fail callback
               console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url)
               obj.status = 'error'
-              obj.errorMessage = 'Not considered valid by the server'
+              obj.infoMessage = 'Not considered valid by the server'
             }
           ,{                            // Options
               label: obj.lru
@@ -290,6 +289,7 @@ angular.module('hyphe.controllers', [])
           })
           if(webentityFound){
             obj.status = 'existing'
+            obj.infoMessage = 'Corresponds to ' + webentityFound.name
           }
         })
 
@@ -307,7 +307,7 @@ angular.module('hyphe.controllers', [])
           })
         .forEach(function(obj){
           // Compute prefix variations
-          var prefixes = utils.LRU_variations(obj.lru, {
+          var prefixes = utils.LRU_variations(utils.LRU_truncate(obj.lru, obj.prefixLength), {
             wwwlessVariations: $scope.wwwVariations
             ,wwwVariations: $scope.wwwVariations
             ,httpVariations: $scope.httpsVariations
@@ -322,13 +322,14 @@ angular.module('hyphe.controllers', [])
                   prefixes: prefixes
                   ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.prefixLength))
                 }
-              ,function(){                  // Success callback
+              ,function(we){                  // Success callback
                   obj.status = 'created'
+                  obj.infoMessage = 'Created as ' + we.name
                 }
               ,function(){                  // Fail callback
-                  console.log('[row '+(obj.id+1)+'] Error while creating web entity', obj)
+                  console.log('[row '+(obj.id+1)+'] Error while creating web entity with prefixes', prefixes, obj)
                   obj.status = 'error'
-                  obj.errorMessage = 'Server could not create web entity'
+                  obj.infoMessage = 'Server could not create web entity (maybe it was created above in the list)'
                 }
               ,{                            // Options
                   label: obj.lru

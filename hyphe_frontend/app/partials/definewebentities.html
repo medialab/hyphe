@@ -20,10 +20,10 @@
                         <p class="loading-p" ng-class="{'text-muted':obj.status=='loading', 'text-info':obj.status=='pending', 'text-success':obj.status=='created'}">
                           {{obj.status|titlecase}}
                         </p>
-                        <p ng-if="obj.status == 'error'">
+                        <p ng-if="obj.status == 'error' || obj.status == 'existing' || obj.status == 'created'">
                           URL: <a ng-href="obj.url">{{obj.url}}</a>
                           <br/>
-                          {{obj.errorMessage}}
+                          {{obj.infoMessage}}
                         </p>
                       </div>
                       <div ng-if="obj.status == 'loaded'" hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div>

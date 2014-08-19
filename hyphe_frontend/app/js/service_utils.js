@@ -209,7 +209,7 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.LRU_truncate = function(lru, length){
-      return lru.split('|').slice(0, length).join('|')
+      return lru.split('|').slice(0, length).join('|') + '|'
     }
 
     ns.URL_remove_http = function(url) {
