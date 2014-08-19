@@ -241,12 +241,14 @@ angular.module('hyphe.controllers', [])
           api.getLruParentWebentities   // Query call
           ,{lru: obj.lru}               // Query settings
           ,function(webentities){       // Success callback
+            console.log(webentities, 'for', obj.lru)
               obj.parentWebEntities = webentities
               obj.status = 'loaded'
             }
           ,function(){                  // Fail callback
               console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url)
               obj.status = 'error'
+              obj.errorMessage = 'Not considered valid by the server'
             }
           ,{                            // Options
               label: obj.lru
@@ -275,8 +277,23 @@ angular.module('hyphe.controllers', [])
 
     queriesBatcher.run()
 
+
     // Create web entities
     $scope.createWebEntities = function(){
+      // Mark all "existing"
+      $scope.urlList.forEach(function(obj){
+          var webentityFound
+          obj.parentWebEntities.forEach(function(we){
+            if(!webentityFound && we.stems_count == obj.prefixLength){
+              webentityFound = we
+            }
+          })
+          if(webentityFound){
+            obj.status = 'existing'
+          }
+        })
+
+      // Query the rest
       var queriesBatcher = new QueriesBatcher()
       $scope.urlList
         .filter(function(obj){
@@ -311,6 +328,7 @@ angular.module('hyphe.controllers', [])
               ,function(){                  // Fail callback
                   console.log('[row '+(obj.id+1)+'] Error while creating web entity', obj)
                   obj.status = 'error'
+                  obj.errorMessage = 'Server could not create web entity'
                 }
               ,{                            // Options
                   label: obj.lru

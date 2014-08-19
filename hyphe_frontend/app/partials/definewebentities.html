@@ -21,7 +21,9 @@
                           {{obj.status|titlecase}}
                         </p>
                         <p ng-if="obj.status == 'error'">
-                          <a ng-href="obj.url">{{obj.url}}</a> is not considered valid by the server
+                          URL: <a ng-href="obj.url">{{obj.url}}</a>
+                          <br/>
+                          {{obj.errorMessage}}
                         </p>
                       </div>
                       <div ng-if="obj.status == 'loaded'" hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div>
