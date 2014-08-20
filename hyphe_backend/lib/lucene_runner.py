@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, time, inspect
-import threading, subprocess, socket
+import os, time
+import subprocess
+from sys import stdout
+from socket import socket
+from threading import Thread
 from random import shuffle
-from datetime import datetime
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 from twisted.internet.task import LoopingCall
 from twisted.internet.defer import succeed
 from twisted.internet.threads import deferToThreadPool
@@ -20,22 +22,21 @@ def parse_log(line):
     linesplit = line.split(",")
     if len(linesplit) < 5:
         raise Exception(
-            "Log from MemoryStructure seems wrongly formatted: %s" % line)
+          "Log from MemoryStructure seems wrongly formatted: %s" % line)
     lineparsed = linesplit[:4]
     lineparsed.append(",".join(linesplit[4:]))
     return lineparsed
 
-class LuceneCorpus(threading.Thread):
+class LuceneCorpus(Thread):
 
     daemon = True
 
-    def __init__(self, factory, name, host="localhost",
-      maxram=256, timeout=1800):
-        threading.Thread.__init__(self)
+    def __init__(self, factory, name, host="localhost", ram=256, timeout=1800):
+        Thread.__init__(self)
         self.factory = factory
         self.status = "init"
         self.name = name
-        self.ram = maxram
+        self.ram = ram
         self.port = 0
         self.host = host
         self.proc = None
@@ -87,7 +88,7 @@ class LuceneCorpus(threading.Thread):
         if self.port not in self.factory.ports_free:
             self.factory.ports_free.append(self.port)
         self.factory.ram_free += self.ram
-        self.log("Stopped running")
+        self.log("MemoryStructure stopped")
         self.status = "stopped"
 
     def hard_restart(self):
@@ -100,8 +101,7 @@ class LuceneCorpus(threading.Thread):
                 if time.time() > stoptime:
                     self.log("Couldn't stop existing corpus", True)
                     return
-        self.status = "init"
-        self.run()
+        self.factory.start_corpus(self.name)
 
     def choose_port(self):
         self.port = 0
@@ -110,13 +110,13 @@ class LuceneCorpus(threading.Thread):
         shuffle(ports)
         for port in ports:
             try:
-                s = socket.socket()
+                s = socket()
                 s.bind((address, port))
                 s.close()
                 self.port = port
                 self.factory.ports_free.remove(port)
                 break
-            except Exception as e:
+            except:
                 pass
 
     def run(self):
@@ -124,19 +124,24 @@ class LuceneCorpus(threading.Thread):
         if not self.port:
             self.log("Couldn't find a port to attach MemoryStructure to", True)
             return
-        java_options = "-Xms%dm -Xmx%dm " % (max(256, self.ram/4), self.ram)
-        java_options += "-Xmn224m -XX:NewSize=224m -XX:MaxNewSize=224m " + \
-            "-XX:NewRatio=3 -XX:SurvivorRatio=6 -XX:PermSize=128m " + \
-            "-XX:MaxPermSize=128m -XX:+UseParallelGC -XX:ParallelGCThreads=2"
-        command = "java -server %s -jar %s corpus=%s thrift.port=%d" % \
-            (java_options, HYPHE_MS_JAR, self.name, self.port)
-        self.log("Starting MemoryStructure on port %s with %sMo ram" % \
-            (self.port, self.ram))
-        self.proc = subprocess.Popen(command.split(), stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
-        self.restart_thrift_clients()
+        if self.factory.ram_free < self.ram:
+            self.log("Couldn't find enough ram to start MemoryStructure", True)
+            return
         self.factory.ram_free -= self.ram
         self.status = "started"
+        java_options = "-Xms%dm -Xmx%dm " % (max(256, self.ram/4), self.ram)
+        java_options += "-Xmn224m -XX:NewSize=224m -XX:MaxNewSize=224m " + \
+          "-XX:NewRatio=3 -XX:SurvivorRatio=6 -XX:PermSize=128m " + \
+          "-XX:MaxPermSize=128m -XX:+UseParallelGC -XX:ParallelGCThreads=2"
+        command = "java -server %s -jar %s corpus=%s thrift.port=%d" % \
+          (java_options, HYPHE_MS_JAR, self.name, self.port)
+        self.log("Starting MemoryStructure on port " + \
+          "%s with %sMo ram for at least %ss (%sMo ram and %s ports left)" % \
+          (self.port, self.ram, self.timeout,
+           self.factory.ram_free, len(self.factory.ports_free)))
+        self.proc = subprocess.Popen(command.split(), stdout=subprocess.PIPE,
+          stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
+        self.restart_thrift_clients()
         while self.proc.poll() is None:
             line = self.proc.stdout.readline().strip('\n')
             if not line.strip():
@@ -150,12 +155,12 @@ class LuceneCorpus(threading.Thread):
                   msg.startswith("starting Thrift server"):
                     self.status = "ready"
                     self.lastcall = time.time()
-                    self.monitor.start(300)
+                    self.monitor.start(max(1,int(self.timeout/6)))
                     self.log("MemoryStructure ready")
                 elif ltype == "ERROR":
                     if msg.startswith("Lock obtain timed out") or \
                       "Could not create ServerSocket" in msg:
-                        self.log("Corpus seems like already running," + \
+                        self.log("WARNING: Corpus seems already running," + \
                           "trying to stop and restart it...")
                         self.hard_restart()
                         break
@@ -169,7 +174,7 @@ class LuceneCorpus(threading.Thread):
                         else:
                             self.log("Not enough ram available, " + \
                               "trying to restart with 256Mo more", True)
-                        self.run()
+                        self.factory.start_corpus(self.name)
                         break
 
                     self.log(msg, True)
@@ -194,6 +199,7 @@ class CorpusClient(ThriftPooledClient):
         def __thrift_proxy(*args):
             self.corpus.lastcall = time.time()
             fail = {"code": "fail", "corpus": self.corpus.name,
+                "corpus_status": self.corpus.status,
                 "message": "Corpus is not ready, please start it first"}
             if hasattr(self, 'threadpool'):
                 if self.corpus.status == "ready":
@@ -207,7 +213,8 @@ class CorpusClient(ThriftPooledClient):
 
 class CorpusFactory(object):
 
-    def __init__(self, host="localhost", port_range=[13500,13550], max_ram=2048):
+    def __init__(self, host="localhost",
+      port_range=[13500,13550], max_ram=2048):
         self.corpora = {}
         self.host = host
         self.ports_free = port_range
@@ -215,7 +222,7 @@ class CorpusFactory(object):
 
     def log(self, name, msg, error=False):
         logtype = "ERROR" if error else "INFO"
-        print("[%s - %s] %s" % (name, logtype, msg))
+        stdout.write("[%s - %s] %s\n" % (logtype, name, msg))
 
     def status_corpus(self, name):
         if name not in self.corpora:
@@ -225,33 +232,46 @@ class CorpusFactory(object):
     def test_corpus(self, name):
         return self.status_corpus(name) == "ready"
 
+    def stopped_corpus(self, name):
+        return name not in self.corpora or self.corpora[name].stopping()
+
     def start_corpus(self, name, **kwargs):
-        if self.test_corpus(name):
-            self.log(name, "Already started")
+        if self.test_corpus(name) or self.status_corpus(name) == "started":
+            self.log(name, "MemoryStructure already started")
             return True
         if not self.ports_free:
-            self.log(name, "Not enough free ports", True)
+            self.log(name, "Not enough available ports to start corpus", True)
+            self.corpora[name].status = "error"
             return False
-        if name not in self.corpora:
-            self.corpora[name] = LuceneCorpus(self, name, self.host, **kwargs)
-            self.corpora[name].start()
-        else:
-            while self.ram_free < self.corpora[name].ram and \
-              self.corpora[name].ram > 256:
-                self.corpora[name].ram -= 256
-            if self.ram_free < self.corpora[name].ram:
-                self.log(name, "Not enough free ram", True)
-                return False
-            self.corpora[name].run()
+        if name in self.corpora:
+            self.corpora[name].stop()
+            for arg in ["ram", "timeout"]:
+                kwargs[arg] = getattr(self.corpora[name], arg)
+            del(self.corpora[name])
+        self.corpora[name] = LuceneCorpus(self, name, self.host, **kwargs)
+        while self.ram_free < self.corpora[name].ram and \
+          self.corpora[name].ram > 256:
+            self.corpora[name].ram -= 256
+        if self.ram_free < self.corpora[name].ram:
+            self.log(name, "Not enough available ram to start corpus", True)
+            self.corpora[name].status = "error"
+            return False
+        self.corpora[name].start()
         return True
 
-    def stop_corpus(self, name):
-        if not self.test_corpus(name):
-            self.log(name, "Already stopped")
-            return True
+    def stop_corpus(self, name, quiet=False):
+        if self.stopped_corpus(name):
+            if not quiet:
+                self.log(name, "MemoryStructure already stopped")
+            return False
         if name in self.corpora:
             self.corpora[name].stop()
         return True
+
+    def stop(self):
+        for corpus in self.corpora:
+            self.stop_corpus(corpus, True)
+
 
 # TESTING
 if __name__ == '__main__':
@@ -261,34 +281,59 @@ if __name__ == '__main__':
         exit()
     ad = config['memoryStructure']['thrift.host']
     portrange = range(*config['memoryStructure']['thrift.portrange'])
-    factory = CorpusFactory(host=ad, port_range=portrange)
-    factory.start_corpus("test", timeout=10)
-    factory.log("test", factory.corpora["test"].client_sync.ping())
-    time.sleep(1)
-    factory.log("test", factory.corpora["test"].client_sync.ping())
-    factory.log("test", factory.corpora["test"].client_loop.ping())
-    factory.start_corpus("test-more-ram", maxram=512)
+    factory = CorpusFactory(host=ad, port_range=portrange, max_ram=1000)
+    assert(factory.start_corpus("test", timeout=10))
+    assert(factory.corpora["test"].client_sync.ping()['code'] == 'fail')
     time.sleep(2)
-    factory.log("test-more-ram", factory.corpora["test-more-ram"].client_sync.ping())
-    factory.log("test-more-ram", factory.corpora["test-more-ram"].client_loop.ping())
-    def printping(cl):
-        cl.log(cl.client_sync.ping())
-    def printping2(cl):
+    assert(factory.corpora["test"].status == "ready")
+    assert(len(factory.corpora["test"].client_sync.ping()) == 2)
+    assert(factory.corpora["test"].client_loop.ping().__class__ == defer.Deferred)
+    assert(factory.start_corpus("test-more-ram", ram=512))
+    time.sleep(1)
+    assert(not factory.start_corpus("test-not-enough-ram"))
+    time.sleep(1)
+    assert(factory.corpora["test-more-ram"].status == "ready")
+    assert(len(factory.corpora["test-more-ram"].client_sync.ping()) == 2)
+    assert(factory.corpora["test-more-ram"].client_loop.ping().__class__ == defer.Deferred)
+    assert(factory.corpora["test-not-enough-ram"].status == "error")
+    assert(factory.corpora["test-not-enough-ram"].client_sync.ping()["code"] == "fail")
+    assert(factory.corpora["test-not-enough-ram"].client_loop.ping().__class__ == defer.Deferred)
+    def ping(f, name, false=False):
+        cl = f.corpora[name]
+        res = cl.client_sync.ping()
+        test_ping(res, false)
+    def test_ping(res, false):
+        assert((len(res) == 2) != false)
+    def ping2(f, name, false=False):
+        cl = f.corpora[name]
         res = cl.client_pool.ping()
-        res.addCallback(cl.log)
-    def printping3(cl):
+        res.addCallback(test_ping, false)
+    def ping3(f, name, false=False):
+        cl = f.corpora[name]
         res = cl.client_loop.ping()
-        res.addCallback(cl.log)
-    reactor.callLater(1, printping3, factory.corpora["test"])
-    reactor.callLater(2, printping, factory.corpora["test"])
-    reactor.callLater(2, printping, factory.corpora["test-more-ram"])
-    reactor.callLater(3, printping2, factory.corpora["test"])
-    reactor.callLater(4, printping3, factory.corpora["test-more-ram"])
-    reactor.callLater(13, printping2, factory.corpora["test-more-ram"])
-    reactor.callLater(16, printping, factory.corpora["test"])
-    reactor.callLater(16, printping, factory.corpora["test-more-ram"])
-    reactor.callLater(22, factory.stop_corpus, "test")
-    reactor.callLater(22, factory.stop_corpus, "test-more-ram")
-    reactor.callLater(23, printping, factory.corpora["test-more-ram"])
-    reactor.callLater(25, reactor.stop)
+        res.addCallback(test_ping, false)
+    def teststop(f, name, false=False):
+        assert(f.stop_corpus(name) != false)
+    def success():
+        print "ALL TESTS SUCCESSFULL!"
+        reactor.stop()
+    reactor.callLater(1, ping3, factory, "test")
+    reactor.callLater(2, ping, factory, "test")
+    reactor.callLater(2, ping, factory, "test-more-ram")
+    reactor.callLater(3, ping2, factory, "test")
+    reactor.callLater(4, ping3, factory, "test-more-ram")
+    reactor.callLater(13, ping2, factory, "test-more-ram")
+    reactor.callLater(16, ping, factory, "test", false=True)
+    reactor.callLater(16, ping, factory, "test-more-ram")
+    reactor.callLater(22, teststop, factory, "test", false=True)
+    reactor.callLater(22, teststop, factory, "test-more-ram")
+    reactor.callLater(23, ping, factory, "test-more-ram", false=True)
+    reactor.callLater(24, teststop, factory, "test-more-ram", false=True)
+    reactor.callLater(25, factory.start_corpus, "test-more-ram")
+    reactor.callLater(26, ping2, factory, "test-more-ram")
+    reactor.callLater(27, ping2, factory, "test", false=True)
+    reactor.callLater(30, teststop, factory, "test-more-ram")
+    reactor.callLater(30, teststop, factory, "test", false=True)
+    reactor.callLater(32, factory.stop)
+    reactor.callLater(35, success)
     reactor.run()
