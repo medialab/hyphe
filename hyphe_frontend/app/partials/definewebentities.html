@@ -15,7 +15,7 @@
                 <table class="table table-striped sliders-table">
                   <tr
                     ng-repeat="obj in urlList|paginate:page:paginationLength track by $index"
-                    ng-class="{active: $parent.activeRow == ($index+paginationLength*page) && obj.status=='loaded', danger:obj.status=='error', selectable:obj.status=='error'}"
+                    ng-class="{active: $parent.activeRow == ($index+paginationLength*page) && obj.status=='loaded', danger:obj.status=='error', warning:obj.status=='conflict', selectable:obj.status=='error'}"
                     ng-click="$parent.activeRow = ($index+paginationLength*page)"
                     ng-mouseover="$parent.activeRow = ($index+paginationLength*page)"
                     >
@@ -57,6 +57,29 @@
 
                       </div>
 
+                      <!-- Conflicted -->
+                      <div ng-if="obj.status == 'conflict'" class="info-content">
+
+                        <p class="loading-p text-warning">
+                          
+                          <strong>{{obj.status|titlecase}}</strong> - web entity defined in a previous row
+
+                          <!-- Collapsing button -->
+                          <button type="button" class="btn btn-link btn-xs text-muted" data-toggle="collapse" data-target="#conflict-info-{{obj.id}}">more info</button>
+                        </p>
+
+                        <!-- Collapsed info -->
+                        <div id="conflict-info-{{obj.id}}" class="collapse">
+                          URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
+                          <br/>
+                          LRU prefixes:
+                          <ul>
+                            <li ng-repeat="lru in obj.prefixes">{{lru}}</li>
+                          </ul>
+                        </div>
+
+                      </div>
+
                       <!-- Error -->
                       <div ng-if="obj.status == 'error'" class="info-content">
                         
@@ -68,11 +91,11 @@
                         </p>
 
                         <!-- Collapsed info -->
-                        <p ng-if="obj.status == 'error'" id="error-info-{{obj.id}}" class="collapse">
+                        <div id="error-info-{{obj.id}}" class="collapse">
                           URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
                           <br/>
                           {{obj.infoMessage}}
-                        </p>
+                        </div>
                       </div>
 
                     </td>
@@ -95,10 +118,10 @@
               <div class="col-md-4 col-md-offset-4">
                 <div ng-if="createdList.length + existingList.length == 0 || retry">
                   <div class="text-center">
-                    <div ng-if="creating">
+                    <div ng-if="creating || loadingWebentities">
                       <div class="message">{{status.message}}</div>
                     </div>
-                    <div ng-if="!creating">
+                    <div ng-if="!(creating || loadingWebentities)">
                       <form class="form-inline">
                         <div class="form-group">
                           <div class="checkbox variations-checkbox">
@@ -128,14 +151,20 @@
               <div class="col-md-12">
                 <div ng-if="createdList.length + existingList.length > 0">
                   <hr/>
-                  <h1>You created <span >{{createdList.length}}</span> web entit{{createdList.length>1 ? 'ies' : 'y'}}</h1>
+                  <h1>You created {{createdList.length}} web entit{{createdList.length>1 ? 'ies' : 'y'}}</h1>
 
                   <table class="creation-bilan-table">
                     <tr>
-                      <td ng-if="urlList.length > 0" class="bg-danger text-danger">
-                        {{urlList.length}} URL{{urlList.length>1 ? 's' : ''}}
+                      <td ng-if="errorList.length > 0" class="bg-danger text-danger">
+                        {{errorList.length}} URL{{errorList.length>1 ? 's' : ''}}
                         <br/>
-                        {{urlList.length>1 ? 'were' : 'was'}} ignored
+                        {{errorList.length>1 ? 'were' : 'was'}} ignored
+                      </td>
+
+                      <td ng-if="conflictedList.length > 0" class="bg-warning text-warning">
+                        {{conflictedList.length}} web entit{{conflictedList.length>1 ? 'ies' : 'y'}}
+                        <br/>
+                        {{conflictedList.length>1 ? 'were' : 'was'}} previously defined
                       </td>
 
                       <td ng-if="createdList.length > 0" class="bg-success text-success">
@@ -151,8 +180,16 @@
                       </td>
                     </tr>
                     <tr>
-                      <td ng-if="urlList.length > 0" class="bg-danger">
+                      <td ng-if="errorList.length > 0" class="bg-danger">
                         <button class="btn btn-default">RETRY</button>
+                      </td>
+                       <td ng-if="conflictedList.length > 0" class="bg-warning">
+                        <div class="checkbox" ng-if="errorList.length > 0">
+                          <label>
+                            <input type="checkbox" ng-model="retryConflicted"> <span hyphe-glossary>retry as well</span>
+                          </label>
+                        </div>
+                        <button ng-if="errorList.length == 0" class="btn btn-primary">RETRY</button>
                       </td>
                       <td ng-if="createdList.length > 0" class="bg-success">
                         <button class="btn btn-primary">CRAWL WEB ENTITIES</button>

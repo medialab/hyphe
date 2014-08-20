@@ -319,27 +319,32 @@ angular.module('hyphe.services', [])
             
             if(query.call){
               ns.pending.push(query)
-              query.call(
-                  query.settings
-                  ,function(data, status, headers, config){
-                    ns._move_pending_to_success(query)
-                    query.success(data, status, headers, config)
-                    if(query.after){
-                      query.after()
+              var launched = 
+                query.call(
+                    query.settings
+                    ,function(data, status, headers, config){
+                      ns._move_pending_to_success(query)
+                      query.success(data, status, headers, config)
+                      if(query.after){
+                        query.after()
+                      }
+                      ns._atEachFetch(ns.list, ns.pending, ns.success, ns.fail)
+                      ns._fetch()
                     }
-                    ns._atEachFetch(ns.list, ns.pending, ns.success, ns.fail)
-                    ns._fetch()
-                  }
-                  ,function(data, status, headers, config){
-                    ns._move_pending_to_fail(query)
-                    query.fail(data, status, headers, config)
-                    if(query.after){
-                      query.after()
+                    ,function(data, status, headers, config){
+                      ns._move_pending_to_fail(query)
+                      query.fail(data, status, headers, config)
+                      if(query.after){
+                        query.after()
+                      }
+                      ns._atEachFetch(ns.list, ns.pending, ns.success, ns.fail)
+                      ns._fetch()
                     }
-                    ns._atEachFetch(ns.list, ns.pending, ns.success, ns.fail)
-                    ns._fetch()
-                  }
-                )
+                  )
+              if(!launched){
+                ns._move_pending_to_fail(query)
+                ns._fetch()
+              }
             } else {
               ns.fail.push(query)
               query.fail()
@@ -355,8 +360,11 @@ angular.module('hyphe.services', [])
           }
         } else {
           // No more queries
-          if(ns._atFinalization)
-            ns._atFinalization(ns.list, ns.pending, ns.success, ns.fail)
+          if(ns.pending.length == 0){
+            if(ns._atFinalization){
+              ns._atFinalization(ns.list, ns.pending, ns.success, ns.fail)
+            }
+          }
         }
       }
     }

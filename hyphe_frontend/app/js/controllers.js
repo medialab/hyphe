@@ -159,9 +159,14 @@ angular.module('hyphe.controllers', [])
     $scope.httpsVariations = true
     $scope.createdList = []
     $scope.existingList = []
+    $scope.conflictedList = []
+    $scope.errorList = []
     $scope.retry = false
+    $scope.loadingWebentities = false
     $scope.creating = false
-    
+    $scope.crawlExisting = false
+    $scope.retryConflicted = true
+
     // Build the basic list of web entities
     var list
     if(store.get('parsedUrls_type') == 'list'){
@@ -256,6 +261,7 @@ angular.module('hyphe.controllers', [])
     }
 
     // Fetching parent web entities
+    $scope.loadingWebentities = true
     var queriesBatcher = new QueriesBatcher()
     $scope.urlList.forEach(function(obj){
       queriesBatcher.addQuery(
@@ -295,6 +301,7 @@ angular.module('hyphe.controllers', [])
     })
 
     queriesBatcher.atFinalization(function(list,pending,success,fail){
+      $scope.loadingWebentities = false
       $scope.status = {}
     })
 
@@ -305,6 +312,9 @@ angular.module('hyphe.controllers', [])
     $scope.createWebEntities = function(){
       $scope.creating = true
       $scope.status = {message:'Creating web entities'}
+
+      // Keep track of created web entity prefixes
+      var createdPrefixes = {}
 
       // Mark all "existing"
       $scope.urlList.forEach(function(obj){
@@ -345,6 +355,19 @@ angular.module('hyphe.controllers', [])
                     ,httpVariations: $scope.httpsVariations
                     ,httpsVariations: $scope.httpsVariations
                     ,smallerVariations: false
+                  })
+
+                  if(obj.prefixes.some(function(lru){
+                    return createdPrefixes[lru]
+                  })){
+                    obj.status = 'conflict'
+                    obj.prefixes.forEach(function(lru){
+                      createdPrefixes[lru] = obj.id
+                    })
+                    return {_API_ABORT_QUERY:true}
+                  }
+                  obj.prefixes.forEach(function(lru){
+                    createdPrefixes[lru] = obj.id
                   })
 
                   return {
@@ -403,8 +426,17 @@ angular.module('hyphe.controllers', [])
               return false
             }
 
+            // Conflicted
+            if(obj.status == 'conflict'){
+              $scope.conflictedList.push(obj)
+              return true
+            }
+
             // The rest: errors
+            $scope.errorList.push(obj)
             return true
+
+            // NB: we return true because this way items stay in the list for monitoring
           })
 
         updatePagination()

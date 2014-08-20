@@ -102,6 +102,11 @@ angular.module('hyphe.service_hyphe_api', [])
           s = {}
         }
         
+        // Abort
+        if(s._API_ABORT_QUERY){
+          return false
+        }
+
         errorCallback = errorCallback || rpcError
         $http({
           method: 'POST'
@@ -124,6 +129,8 @@ angular.module('hyphe.service_hyphe_api', [])
           .error(function(data, status, headers, config){
             errorCallback(data, status, headers, config)
           })
+
+        return true
       }
     }
 
