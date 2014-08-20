@@ -498,6 +498,7 @@ angular.module('hyphe.controllers', [])
             return stem
           })
       obj.prefixLength = 3
+      obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
       obj.conflicts = []
       obj.status = 'loading'
       return obj

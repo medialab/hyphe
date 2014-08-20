@@ -377,7 +377,7 @@ angular.module('hyphe.services', [])
       ns.index = {}
 
       ns.addToLruIndex = function(obj){
-        var lru = utils.LRU_truncate(obj.lru, obj.prefixLength)
+        var lru = utils.LRU_truncate(obj.lru, obj.truePrefixLength)
         ,objId_list = ns.index[lru]
         if(objId_list){
           ns.addConflictsTo(objId_list,obj.id)
@@ -388,7 +388,7 @@ angular.module('hyphe.services', [])
       }
 
       ns.removeFromLruIndex = function(obj){
-        var lru = utils.LRU_truncate(obj.lru, obj.prefixLength)
+        var lru = utils.LRU_truncate(obj.lru, obj.truePrefixLength)
         ,objId_list = ns.index[lru]
         if(objId_list.length == 1){
           // No conflict
