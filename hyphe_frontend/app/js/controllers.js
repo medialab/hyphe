@@ -425,14 +425,14 @@ angular.module('hyphe.controllers', [])
         .filter(function(weId){return weId !== undefined})
 
       if(withExisting){
-        $scope.existing.forEach(function(obj){
+        $scope.existingList.forEach(function(obj){
           var weId = obj.webEntityId
           if(weId !== undefined){
             list.push(weId)
           }
         })
       }
-      
+
       store.set('weId_list_toCrawl', list)
       $location.path('/checkStartPages')
     }
@@ -518,9 +518,29 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('CheckStartPages', ['$scope', 'api', function($scope, api) {
+  .controller('CheckStartPages', ['$scope', 'api', 'store', 'utils', '$location'
+  ,function($scope, api, store, utils, $location) {
     $scope.currentPage = 'checkStartPages'
-    api.getWebentities({light: true}, function(data){
-      $scope.webEntities = data
-    })
+    
+    $scope.list = bootstrapList(store.get('weId_list_toCrawl'))
+
+    // Clean store
+    // store.remove('weId_list_toCrawl')
+
+    if($scope.list.length==0){
+      $location.path('/newCrawl')
+    }
+
+
+
+    function bootstrapList(weId_list){
+      var weId_list = weId_list || []
+      return weId_list.map(function(weId){
+        return {
+          weId: weId
+          ,status: 'loading'
+        }
+      })
+    }
+
   }])

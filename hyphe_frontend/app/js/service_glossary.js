@@ -7,6 +7,18 @@ angular.module('hyphe.service_glossary', [])
     
     ns.definitions = [
       {
+        title: 'Crawl'
+        ,definition: 'Process of harvesting text and links from the web'
+        ,entries: ['crawl', 'crawls', 'crawling']
+      },{
+        title: 'HTTPS Variations'
+        ,definition: 'URLs that differ only by using the secured protocol "https". Ex: https://google.com and http://google.com'
+        ,entries: ['https variation', 'https variations']
+      },{
+        title: 'Start Page'
+        ,definition: 'Hyphe crawls it to find links and other pages, step by step'
+        ,entries: ['start page', 'start pages']
+      },{
         title: 'Web Entity'
         ,definition: 'Used in Hyphe to describe a website, an actor, or any set of pages you consider as a whole'
         ,entries: ['web entity', 'web entities']
@@ -14,14 +26,6 @@ angular.module('hyphe.service_glossary', [])
         title: 'WWW Variations'
         ,definition: 'URLs that differ only by the presence of the www subdomain. Ex: www.google.com and google.com'
         ,entries: ['www variation', 'www variations']
-      },{
-        title: 'HTTPS Variations'
-        ,definition: 'URLs that differ only by using the secured protocol "https". Ex: https://google.com and http://google.com'
-        ,entries: ['https variation', 'https variations']
-      },{
-        title: 'Crawl'
-        ,definition: 'Process of harvesting text and links from the web'
-        ,entries: ['crawl', 'crawls', 'crawling']
       }
     ]
 
