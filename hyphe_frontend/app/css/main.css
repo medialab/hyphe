@@ -171,7 +171,7 @@ textarea.over-error{
 .sliders-table>tbody>tr.active>td{
   background-color: #EFEBE8;
 }
-.sliders-table>tbody>tr{
+.sliders-table>tbody>tr:not(.selectable){
   -webkit-user-select: none; /* Chrome/Safari */        
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* IE10+ */

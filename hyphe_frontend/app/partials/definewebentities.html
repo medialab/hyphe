@@ -13,34 +13,68 @@
                   Check definition of each <span hyphe-glossary>web entity</span> then create them
                 </p>
                 <table class="table table-striped sliders-table">
-                  <tr ng-repeat="obj in urlList|paginate:page:paginationLength track by $index" ng-class="{active: $parent.activeRow == ($index+paginationLength*page) && obj.status=='loaded', danger:obj.status=='error'}" ng-click="$parent.activeRow = ($index+paginationLength*page)" ng-mouseover="$parent.activeRow = ($index+paginationLength*page)">
+                  <tr
+                    ng-repeat="obj in urlList|paginate:page:paginationLength track by $index"
+                    ng-class="{active: $parent.activeRow == ($index+paginationLength*page) && obj.status=='loaded', danger:obj.status=='error', selectable:obj.status=='error'}"
+                    ng-click="$parent.activeRow = ($index+paginationLength*page)"
+                    ng-mouseover="$parent.activeRow = ($index+paginationLength*page)"
+                    >
+                    
                     <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>
+                    
                     <td class="td-row-content">
-                      <div ng-if="obj.status != 'loaded'" class="info-content">
-                        <p class="loading-p" ng-class="{'text-muted':obj.status=='loading', 'text-info':obj.status=='pending', 'text-success':obj.status=='created'}">
+
+                      <!-- Loading and pending-->
+                      <div ng-if="obj.status == 'loading' || obj.status == 'pending'" class="info-content">
+                        <p class="loading-p text-muted">
+                          {{obj.status|titlecase}}
+                        </p>
+                      </div>
+
+                      <!-- Loaded -->
+                      <div ng-if="obj.status == 'loaded'">
+                        
+                        <!-- The UX slider component -->
+                        <div hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div>
+                        
+                        <!-- Added when conflicts are anticipated -->
+                        <div ng-if="obj.conflicts.length > 0" class="conflicts">
+                          <small class="text-warning">
+                            <span class="glyphicon glyphicon-warning-sign"></span>
+                            Same web entity defined row{{obj.conflicts.length>1 ? 's' : ''}} <span ng-repeat="r in obj.conflicts track by $index">{{r+1}}{{ $index == obj.conflicts.length-1 ? '' : $index == obj.conflicts.length-2 ? ' and ' : ', '}}</span>
+                          </small>
+                        </div>
+                      </div>
+
+                      <!-- Created or Existing -->
+                      <div ng-if="obj.status == 'created' || obj.status == 'existing'" class="info-content">
+
+                        <p class="loading-p" ng-class="{'text-info':obj.status=='existing', 'text-success':obj.status=='created'}">
                           
                           <strong>{{obj.status|titlecase}}</strong>
-                          
-                          <button ng-if="obj.status == 'error'" type="button" class="btn btn-link btn-xs text-muted" data-toggle="collapse" data-target="#error-info-{{obj.id}}">more info</button>
-                          
-                          <span ng-if="obj.status == 'created' || obj.status == 'existing'">
-                            as {{obj.webEntityName}}
-                          </span>
+                          as {{obj.webEntityName}}
                         </p>
 
+                      </div>
+
+                      <!-- Error -->
+                      <div ng-if="obj.status == 'error'" class="info-content">
+                        
+                        <p class="loading-p text-danger">
+                          <strong>Error</strong>
+
+                          <!-- Collapsing button -->
+                          <button type="button" class="btn btn-link btn-xs text-muted" data-toggle="collapse" data-target="#error-info-{{obj.id}}">more info</button>
+                        </p>
+
+                        <!-- Collapsed info -->
                         <p ng-if="obj.status == 'error'" id="error-info-{{obj.id}}" class="collapse">
-                          URL: <a ng-href="obj.url">{{obj.url}}</a>
+                          URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
                           <br/>
                           {{obj.infoMessage}}
                         </p>
                       </div>
-                      <div ng-if="obj.status == 'loaded'" hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div>
-                      <div ng-if="obj.status == 'loaded' && obj.conflicts.length > 0" class="conflicts">
-                        <small class="text-warning">
-                          <span class="glyphicon glyphicon-warning-sign"></span>
-                          Same web entity defined row{{obj.conflicts.length>1 ? 's' : ''}} <span ng-repeat="r in obj.conflicts track by $index">{{r+1}}{{ $index == obj.conflicts.length-1 ? '' : $index == obj.conflicts.length-2 ? ' and ' : ', '}}</span>
-                        </small>
-                      </div>
+
                     </td>
                   </tr>
                 </table>
