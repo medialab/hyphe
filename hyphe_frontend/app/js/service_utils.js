@@ -173,21 +173,23 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.JSON_LRU_to_pretty_LRU = function(json_lru){
-      var pretty_lru = []
+      
       if(json_lru === undefined || !json_lru.scheme || json_lru.host.length < 2)
         return []
+
+      var pretty_lru = []
+      ,tld_length = ns.JSON_LRU_getTLD(json_lru).split('.').length
+      ,tld = ''
+
       pretty_lru.push(json_lru.scheme)
       json_lru.host.forEach(function(stem, i){
-        switch(i){
-          case 0:
-            pretty_lru.push('.'+explicit(stem))
-            break
-          case 1:
-            pretty_lru.push(explicit(stem))
-            break
-          default:
-            pretty_lru.push(explicit(stem)+'.')
-            break
+        if(i < tld_length){
+          tld = '.'+explicit(stem)+tld
+        } else if(i == tld_length){
+          pretty_lru.push(tld)
+          pretty_lru.push(explicit(stem))
+        } else {
+          pretty_lru.push(explicit(stem)+'.')
         }
       })
       json_lru.path.forEach(function(stem){
@@ -268,7 +270,11 @@ angular.module('hyphe.service_utils', [])
 
     ns.LRU_getTLD = function(lru){
       var json_lru = ns.LRU_to_JSON_LRU(lru)
-      ,host_split = json_lru.host.slice(0)
+      return(ns.JSON_LRU_getTLD(json_lru))
+    }
+
+    ns.JSON_LRU_getTLD = function(json_lru){
+      var host_split = json_lru.host.slice(0)
       ,tlds = ns.getTLDLists()
 
       function getLongestMatchingTLDSplit(tld_candidate_split){
@@ -412,11 +418,12 @@ angular.module('hyphe.service_utils', [])
 
     ns.nameURL = function(url){
       var json_lru = ns.URL_to_JSON_LRU(url)
+      ,tld_length = ns.JSON_LRU_getTLD(json_lru).split('.').length
       if(json_lru === undefined)
         return '<Impossible to Name>'
       var name = json_lru.host
-        .map(function(d,i){if(i==1){return ns.toDomainCase(d)} return d})
-        .filter(function(d,i){return d != 'www' && i>0})
+        .map(function(d,i){if(i==tld_length){return ns.toDomainCase(d)} return d})
+        .filter(function(d,i){return d != 'www' && i>tld_length-1})
         .reverse()
         .join('.')
       if(json_lru.path.length == 1 && json_lru.path[0].trim().length>0){

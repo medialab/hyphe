@@ -206,6 +206,7 @@ angular.module('hyphe.controllers', [])
         .map(function(obj){
             obj.url = utils.URL_fix(obj.url)
             obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
+            obj.tldLength = utils.LRU_getTLD(obj.lru).split('.').length
             obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
             obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
               .map(function(stem){
@@ -320,7 +321,7 @@ angular.module('hyphe.controllers', [])
       $scope.urlList.forEach(function(obj){
           var webentityFound
           obj.parentWebEntities.forEach(function(we){
-            if(!webentityFound && we.stems_count == obj.prefixLength){
+            if(!webentityFound && we.stems_count == obj.truePrefixLength){
               webentityFound = we
             }
           })
@@ -337,7 +338,7 @@ angular.module('hyphe.controllers', [])
         .filter(function(obj){
             var webentityFound
             obj.parentWebEntities.forEach(function(we){
-              if(!webentityFound && we.stems_count == obj.prefixLength){
+              if(!webentityFound && we.stems_count == obj.truePrefixLength){
                 webentityFound = we
               }
             })
@@ -349,7 +350,7 @@ angular.module('hyphe.controllers', [])
               api.declareWebentity                  // Query call
               ,function(){                          // Query settings as a function
                   // Compute prefix variations
-                  obj.prefixes = utils.LRU_variations(utils.LRU_truncate(obj.lru, obj.prefixLength), {
+                  obj.prefixes = utils.LRU_variations(utils.LRU_truncate(obj.lru, obj.truePrefixLength), {
                     wwwlessVariations: $scope.wwwVariations
                     ,wwwVariations: $scope.wwwVariations
                     ,httpVariations: $scope.httpsVariations
@@ -372,7 +373,7 @@ angular.module('hyphe.controllers', [])
 
                   return {
                     prefixes: obj.prefixes
-                    ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.prefixLength))
+                    ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
                   }
                 }
               ,function(we){                        // Success callback

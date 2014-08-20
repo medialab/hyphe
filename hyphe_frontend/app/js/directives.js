@@ -12,9 +12,10 @@ angular.module('hyphe.directives', [])
       ,link: function(scope, el, attrs) {
         
         scope.updateNameAndStatus = function(obj){
+          obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
           var webentityFound
           obj.parentWebEntities.forEach(function(we){
-            if(!webentityFound && we.stems_count == obj.prefixLength){
+            if(!webentityFound && we.stems_count == obj.truePrefixLength){
               webentityFound = we
             }
           })
@@ -23,7 +24,7 @@ angular.module('hyphe.directives', [])
             scope.statusText = 'Already exists'
             scope.status = 'exists'
           } else {
-            scope.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.prefixLength))
+            scope.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
             scope.statusText = 'New'
             scope.status = 'new'
           }
