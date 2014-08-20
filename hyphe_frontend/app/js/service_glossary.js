@@ -18,6 +18,10 @@ angular.module('hyphe.service_glossary', [])
         title: 'HTTPS Variations'
         ,definition: 'URLs that differ only by using the secured protocol "https". Ex: https://google.com and http://google.com'
         ,entries: ['https variation', 'https variations']
+      },{
+        title: 'Crawl'
+        ,definition: 'Process of harvesting text and links from the web'
+        ,entries: ['crawl', 'crawls', 'crawling']
       }
     ]
 
