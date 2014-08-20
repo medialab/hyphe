@@ -12,7 +12,7 @@ from threading import BoundedSemaphore
 from twisted.internet import reactor, defer
 from twisted.internet.defer import inlineCallbacks
 from twisted.internet.threads import deferToThreadPool
-from twisted.python.threadpool import ThreadPool 
+from twisted.python.threadpool import ThreadPool
 from thrift.transport import TTransport
 from thrift.transport.TSocket import TSocket
 from thrift.Thrift import TException
@@ -193,7 +193,7 @@ class ThriftPooledClient(object):
         error['message'] = error['message'].replace('127.0.0.1:%d' % self.port, 'MemoryStructure')
         return error
 
-
+#TODO: delete down there
 class ThriftSyncClient(ThriftPooledClient):
 
     def __init__(self, iface_cls,
