@@ -197,121 +197,68 @@ angular.module('hyphe.controllers', [])
     store.remove('parsedUrls_type')
     store.remove('parsedUrls_settings')
 
-    if(list){
-      // Consolidate the list of web entities
-      list = list
-        .filter(function(obj){
-            return obj.url && utils.URL_validate(obj.url)
-          })
-        .map(function(obj){
-            obj.url = utils.URL_fix(obj.url)
-            obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
-            obj.tldLength = utils.LRU_getTLD(obj.lru).split('.').length
-            obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
-            obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
-              .map(function(stem){
-                  var maxLength = 12
-                  if(stem.length > maxLength+3){
-                    return stem.substr(0,maxLength) + '...'
-                  }
-                  return stem
-                })
-            obj.prefixLength = 3
-            obj.conflicts = []
-            obj.status = 'loading'
-            return obj
-          })
-
-      // Pagination
-      $scope.page = 0
-      $scope.paginationLength = 50
-      $scope.pages = utils.getRange(Math.ceil(list.length/$scope.paginationLength))
-      var updatePagination = function(){
-        $scope.pages = utils.getRange(Math.ceil($scope.urlList.length/$scope.paginationLength))
-      }
-
-      $scope.goToPage = function(page){
-        if(page >= 0 && page < Math.ceil(list.length/$scope.paginationLength))
-          $scope.page = page
-      }
-
-      // Building an index of these objects to find them by id
-      var urlList_byId = {}
-      list.forEach(function(obj){
-        urlList_byId[obj.id] = obj
-      })
-
-      // Catching conflicts: we use this index of LRU prefixes set in the UI
-      $scope.conflictsIndex = new PrefixConflictsIndex(urlList_byId)
-      // NB: it is recorded in the model because the hyphePrefixSliderButton directives needs to access it
-
-      list.forEach(function(obj){
-        $scope.conflictsIndex.addToLruIndex(obj)
-      })
-
-      // Record list in model
-      $scope.urlList = list
-
-    } else {
-
-      $scope.urlList = []
-    }
+    // Build the list
+    bootstrapUrlList(list)
 
     if($scope.urlList.length==0){
       $location.path('/importurls')
     }
 
     // Fetching parent web entities
-    $scope.loadingWebentities = true
-    var queriesBatcher = new QueriesBatcher()
-    $scope.urlList.forEach(function(obj){
-      queriesBatcher.addQuery(
-          api.getLruParentWebentities             // Query call
-          ,{lru: obj.lru}                         // Query settings
-          ,function(webentities){                 // Success callback
-              obj.parentWebEntities = webentities
-              obj.status = 'loaded'
-            }
-          ,function(data, status, headers){       // Fail callback
-              obj.status = 'error'
-              console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url, data, 'status', status, 'headers', headers)
-              if(data && data[0].code == 'fail'){
-                obj.infoMessage = data[0].message
-                // obj.infoMessage = 'Not considered valid by the server'
+    var fetchParentWebEntities = function(){
+      $scope.loadingWebentities = true
+      var queriesBatcher = new QueriesBatcher()
+      $scope.urlList.forEach(function(obj){
+        queriesBatcher.addQuery(
+            api.getLruParentWebentities             // Query call
+            ,{lru: obj.lru}                         // Query settings
+            ,function(webentities){                 // Success callback
+                obj.parentWebEntities = webentities
+                obj.status = 'loaded'
               }
-            }
-          ,{                                      // Options
-              label: obj.lru
-              ,before: function(){
-                  obj.status = 'pending'
+            ,function(data, status, headers){       // Fail callback
+                obj.status = 'error'
+                console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url, data, 'status', status, 'headers', headers)
+                if(data && data[0].code == 'fail'){
+                  obj.infoMessage = data[0].message
+                  // obj.infoMessage = 'Not considered valid by the server'
                 }
-            }
-        )
-    })
+              }
+            ,{                                      // Options
+                label: obj.lru
+                ,before: function(){
+                    obj.status = 'pending'
+                  }
+              }
+          )
+      })
 
-    queriesBatcher.atEachFetch(function(list,pending,success,fail){
-      var summary = {
-        total: list.length + pending.length + success.length + fail.length
-        ,pending: pending.length
-        ,loaded: success.length + fail.length
-      }
-      ,percent = Math.round((summary.loaded / summary.total) * 100)
-      ,percent_pending = Math.round((summary.pending / summary.total) * 100)
-      ,msg = percent + '% loaded'
-      $scope.status = {message: msg, progress:percent, progressPending:percent_pending}
-    })
+      queriesBatcher.atEachFetch(function(list,pending,success,fail){
+        var summary = {
+          total: list.length + pending.length + success.length + fail.length
+          ,pending: pending.length
+          ,loaded: success.length + fail.length
+        }
+        ,percent = Math.round((summary.loaded / summary.total) * 100)
+        ,percent_pending = Math.round((summary.pending / summary.total) * 100)
+        ,msg = percent + '% loaded'
+        $scope.status = {message: msg, progress:percent, progressPending:percent_pending}
+      })
 
-    queriesBatcher.atFinalization(function(list,pending,success,fail){
-      $scope.loadingWebentities = false
-      $scope.status = {}
-    })
+      queriesBatcher.atFinalization(function(list,pending,success,fail){
+        $scope.loadingWebentities = false
+        $scope.status = {}
+      })
 
-    queriesBatcher.run()
+      queriesBatcher.run()
+    }
+    fetchParentWebEntities()
 
 
     // Create web entities
     $scope.createWebEntities = function(){
       $scope.creating = true
+      $scope.retry = false
       $scope.status = {message:'Creating web entities'}
 
       // Keep track of created web entity prefixes
@@ -411,7 +358,6 @@ angular.module('hyphe.controllers', [])
 
       // FINALIZATION
       queriesBatcher.atFinalization(function(list,pending,success,fail){
-        
         // Move treated web entities to other lists
         $scope.urlList = $scope.urlList.filter(function(obj){
             
@@ -453,11 +399,90 @@ angular.module('hyphe.controllers', [])
       queriesBatcher.run()
     }
 
-    function prepareToCrawl(){
+    $scope.doRetry = function(withConflictsFlag){
+      var withConflicts = $scope.retryConflicted || withConflictsFlag
+      $scope.conflictedList = []
+      $scope.existingList = []
+      $scope.retry = true
+
+      // Reinitialize
+      bootstrapUrlList($scope.urlList)
+
+      fetchParentWebEntities()
+    }
+    /*function prepareToCrawl(){
       store.set('weId_list_toCrawl', urlList.map(function(obj){return obj.webEntityId}).filter(function(d){return d !== undefined}))
       $location.path('/checkStartPages')
+    }*/
+
+    function bootstrapUrlList(list){
+      if(list){
+        // Consolidate the list of web entities
+        list = list
+          .filter(function(obj){
+              return obj.url && utils.URL_validate(obj.url)
+            })
+          .map(bootstrapPrefixObject)
+
+        // Pagination
+        initPagination(0, 50, list.length)
+
+        $scope.goToPage = function(page){
+          if(page >= 0 && page < Math.ceil(list.length/$scope.paginationLength))
+            $scope.page = page
+        }
+
+        // Building an index of these objects to find them by id
+        var urlList_byId = {}
+        list.forEach(function(obj){
+          urlList_byId[obj.id] = obj
+        })
+
+        // Catching conflicts: we use this index of LRU prefixes set in the UI
+        $scope.conflictsIndex = new PrefixConflictsIndex(urlList_byId)
+        // NB: it is recorded in the model because the hyphePrefixSliderButton directives needs to access it
+
+        list.forEach(function(obj){
+          $scope.conflictsIndex.addToLruIndex(obj)
+        })
+
+        // Record list in model
+        $scope.urlList = list
+
+      } else {
+
+        $scope.urlList = []
+      }
     }
 
+    function bootstrapPrefixObject(obj){
+      obj.url = utils.URL_fix(obj.url)
+      obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
+      obj.tldLength = utils.LRU_getTLD(obj.lru).split('.').length
+      obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
+      obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
+        .map(function(stem){
+            var maxLength = 12
+            if(stem.length > maxLength+3){
+              return stem.substr(0,maxLength) + '...'
+            }
+            return stem
+          })
+      obj.prefixLength = 3
+      obj.conflicts = []
+      obj.status = 'loading'
+      return obj
+    }
+
+    function initPagination(page, pl, l){
+      $scope.page = page
+      $scope.paginationLength = pl
+      $scope.pages = utils.getRange(Math.ceil(l/$scope.paginationLength))
+    }
+
+    function updatePagination(){
+      $scope.pages = utils.getRange(Math.ceil($scope.urlList.length/$scope.paginationLength))
+    }
   }])
 
 
