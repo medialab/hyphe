@@ -159,6 +159,8 @@ angular.module('hyphe.controllers', [])
     $scope.httpsVariations = true
     $scope.createdList = []
     $scope.existingList = []
+    $scope.retry = false
+    $scope.creating = false
     
     // Build the basic list of web entities
     var list
@@ -215,9 +217,12 @@ angular.module('hyphe.controllers', [])
           })
 
       // Pagination
+      $scope.page = 0
       $scope.paginationLength = 50
       $scope.pages = utils.getRange(Math.ceil(list.length/$scope.paginationLength))
-      $scope.page = 0
+      var updatePagination = function(){
+        $scope.pages = utils.getRange(Math.ceil($scope.urlList.length/$scope.paginationLength))
+      }
 
       $scope.goToPage = function(page){
         if(page >= 0 && page < Math.ceil(list.length/$scope.paginationLength))
@@ -298,6 +303,9 @@ angular.module('hyphe.controllers', [])
 
     // Create web entities
     $scope.createWebEntities = function(){
+      $scope.creating = true
+      $scope.status = {message:'Creating web entities'}
+
       // Mark all "existing"
       $scope.urlList.forEach(function(obj){
           var webentityFound
@@ -377,6 +385,7 @@ angular.module('hyphe.controllers', [])
         $scope.status = {message: msg, progress:percent, progressPending:percent_pending}
       })
 
+      // FINALIZATION
       queriesBatcher.atFinalization(function(list,pending,success,fail){
         
         // Move treated web entities to other lists
@@ -397,12 +406,15 @@ angular.module('hyphe.controllers', [])
             // The rest: errors
             return true
           })
-        
+
+        updatePagination()
+
         // Status message
         var count = $scope.createdList.length
         ,msg = count + ' web entit' + (count>1 ? 'ies' : 'y') + ' created'
         $scope.status = {message: msg}
         
+        $scope.creating = false
       })
 
       queriesBatcher.run()

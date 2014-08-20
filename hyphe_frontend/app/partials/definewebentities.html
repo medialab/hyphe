@@ -95,26 +95,31 @@
               <div class="col-md-4 col-md-offset-4">
                 <div ng-if="createdList.length + existingList.length == 0 || retry">
                   <div class="text-center">
-                    <form class="form-inline">
-                      <div class="form-group">
-                        <div class="checkbox variations-checkbox">
-                          <label>
-                            <input type="checkbox" ng-model="wwwVariations"> Include <span hyphe-glossary>www variations</span>
-                          </label>
+                    <div ng-if="creating">
+                      <div class="message">{{status.message}}</div>
+                    </div>
+                    <div ng-if="!creating">
+                      <form class="form-inline">
+                        <div class="form-group">
+                          <div class="checkbox variations-checkbox">
+                            <label>
+                              <input type="checkbox" ng-model="wwwVariations"> Include <span hyphe-glossary>www variations</span>
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div class="form-group">
-                        <div class="checkbox variations-checkbox">
-                          <label>
-                            <input type="checkbox" ng-model="httpsVariations"> Include <span hyphe-glossary>https variations</span>
-                          </label>
+                        <div class="form-group">
+                          <div class="checkbox variations-checkbox">
+                            <label>
+                              <input type="checkbox" ng-model="httpsVariations"> Include <span hyphe-glossary>https variations</span>
+                            </label>
+                          </div>
                         </div>
+                      </form>
+                      <br/>
+                      <div class="text-center">
+                        <button class="btn btn-primary" ng-click="createWebEntities()">CREATE WEB ENTITIES</button>
                       </div>
-                    </form>
-                  </div>
-                  <br/>
-                  <div class="text-center">
-                    <button class="btn btn-primary" ng-click="createWebEntities()">CREATE WEB ENTITIES</button>
+                    </div>
                   </div>
                 </div>
               </div>
