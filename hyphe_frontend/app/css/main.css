@@ -197,6 +197,7 @@ textarea.over-error{
   margin-top: 8px;
 }
 .conflicts{
+  padding-top: 4px;
   padding-left: 15px;
 }
 .variations-checkbox{

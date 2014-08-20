@@ -122,9 +122,9 @@ angular.module('hyphe.directives', [])
             }
           })
           if(scope.obj.prefixLength != closestStepId){
-            scope.lruIndex.removeFromLruIndex(scope.obj)
+            scope.conflictsIndex.removeFromLruIndex(scope.obj)
             scope.obj.prefixLength = closestStepId
-            scope.lruIndex.addToLruIndex(scope.obj)
+            scope.conflictsIndex.addToLruIndex(scope.obj)
             scope.updateNameAndStatus(scope.obj)
             scope.$apply()
           }
