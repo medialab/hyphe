@@ -18,12 +18,17 @@
                     <td class="td-row-content">
                       <div ng-if="obj.status != 'loaded'" class="info-content">
                         <p class="loading-p" ng-class="{'text-muted':obj.status=='loading', 'text-info':obj.status=='pending', 'text-success':obj.status=='created'}">
+                          
                           <strong>{{obj.status|titlecase}}</strong>
+                          
+                          <button ng-if="obj.status == 'error'" type="button" class="btn btn-link btn-xs text-muted" data-toggle="collapse" data-target="#error-info-{{obj.id}}">more info</button>
+                          
                           <span ng-if="obj.status == 'created' || obj.status == 'existing'">
                             as {{obj.webEntityName}}
                           </span>
                         </p>
-                        <p ng-if="obj.status == 'error'">
+
+                        <p ng-if="obj.status == 'error'" id="error-info-{{obj.id}}" class="collapse">
                           URL: <a ng-href="obj.url">{{obj.url}}</a>
                           <br/>
                           {{obj.infoMessage}}
@@ -54,32 +59,75 @@
             </div>
             <div class="row">
               <div class="col-md-4 col-md-offset-4">
-                <div class="text-center">
-                  <form class="form-inline">
-                    <div class="form-group">
-                      <div class="checkbox variations-checkbox">
-                        <label>
-                          <input type="checkbox" ng-model="wwwVariations"> Include <span hyphe-glossary>www variations</span>
-                        </label>
+                <div ng-if="createdList.length + existingList.length == 0 || retry">
+                  <div class="text-center">
+                    <form class="form-inline">
+                      <div class="form-group">
+                        <div class="checkbox variations-checkbox">
+                          <label>
+                            <input type="checkbox" ng-model="wwwVariations"> Include <span hyphe-glossary>www variations</span>
+                          </label>
+                        </div>
                       </div>
-                    </div>
-                    <div class="form-group">
-                      <div class="checkbox variations-checkbox">
-                        <label>
-                          <input type="checkbox" ng-model="httpsVariations"> Include <span hyphe-glossary>https variations</span>
-                        </label>
+                      <div class="form-group">
+                        <div class="checkbox variations-checkbox">
+                          <label>
+                            <input type="checkbox" ng-model="httpsVariations"> Include <span hyphe-glossary>https variations</span>
+                          </label>
+                        </div>
                       </div>
-                    </div>
-                  </form>
-                </div>
-                <br/>
-                <div class="text-center">
-                  <button class="btn btn-primary" ng-click="createWebEntities()">CREATE WEB ENTITIES</button>
-                  <div class="checkbox variations-checkbox">
-                    <label>
-                      <input type="checkbox" ng-model="jumpToCrawl">and prepare to <span hyphe-glossary>crawl</span>
-                    </label>
+                    </form>
                   </div>
+                  <br/>
+                  <div class="text-center">
+                    <button class="btn btn-primary" ng-click="createWebEntities()">CREATE WEB ENTITIES</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div ng-if="createdList.length + existingList.length > 0">
+                  <hr/>
+                  <h1>You created <span >{{createdList.length}}</span> web entit{{createdList.length>1 ? 'ies' : 'y'}}</h1>
+
+                  <table class="creation-bilan-table">
+                    <tr>
+                      <td ng-if="urlList.length > 0" class="bg-danger text-danger">
+                        {{urlList.length}} URL{{urlList.length>1 ? 's' : ''}}
+                        <br/>
+                        {{urlList.length>1 ? 'were' : 'was'}} ignored
+                      </td>
+
+                      <td ng-if="createdList.length > 0" class="bg-success text-success">
+                        {{createdList.length}} web entit{{createdList.length>1 ? 'ies' : 'y'}}
+                        <br/>
+                        {{createdList.length>1 ? 'were' : 'was'}} created
+                      </td>
+
+                      <td ng-if="existingList.length > 0" class="bg-info text-info">
+                        {{existingList.length}} web entit{{existingList.length>1 ? 'ies' : 'y'}}
+                        <br/>
+                        already existed
+                      </td>
+                    </tr>
+                    <tr>
+                      <td ng-if="urlList.length > 0" class="bg-danger">
+                        <button class="btn btn-default">RETRY</button>
+                      </td>
+                      <td ng-if="createdList.length > 0" class="bg-success">
+                        <button class="btn btn-primary">CRAWL WEB ENTITIES</button>
+                      </td>
+                      <td ng-if="existingList.length > 0" class="bg-info">
+                        <div class="checkbox" ng-if="createdList.length > 0">
+                          <label>
+                            <input type="checkbox" ng-model="crawlExisting"> <span hyphe-glossary>crawl as well</span>
+                          </label>
+                        </div>
+                        <button ng-if="createdList.length == 0" class="btn btn-primary">CRAWL WEB ENTITIES</button>
+                      </td>
+                    </tr>
+                  </table>
                 </div>
               </div>
             </div>

@@ -157,8 +157,9 @@ angular.module('hyphe.controllers', [])
     $scope.activeRow = 0
     $scope.wwwVariations = true
     $scope.httpsVariations = true
-    $scope.jumpToCrawl = true
-
+    $scope.createdList = []
+    $scope.existingList = []
+    
     // Build the basic list of web entities
     var list
     if(store.get('parsedUrls_type') == 'list'){
@@ -308,6 +309,7 @@ angular.module('hyphe.controllers', [])
           if(webentityFound){
             obj.status = 'existing'
             obj.webEntityName =  webentityFound.name
+            obj.webEntityId = webentityFound.id
           }
         })
 
@@ -376,10 +378,31 @@ angular.module('hyphe.controllers', [])
       })
 
       queriesBatcher.atFinalization(function(list,pending,success,fail){
-        $scope.status = {}
-        if($scope.jumpToCrawl){
-          prepareToCrawl()
-        }
+        
+        // Move treated web entities to other lists
+        $scope.urlList = $scope.urlList.filter(function(obj){
+            
+            // Existing
+            if(obj.status == 'existing'){
+              $scope.existingList.push(obj)
+              return false
+            }
+
+            // Created
+            if(obj.status == 'created'){
+              $scope.createdList.push(obj)
+              return false
+            }
+
+            // The rest: errors
+            return true
+          })
+        
+        // Status message
+        var count = $scope.createdList.length
+        ,msg = count + ' web entit' + (count>1 ? 'ies' : 'y') + ' created'
+        $scope.status = {message: msg}
+        
       })
 
       queriesBatcher.run()
