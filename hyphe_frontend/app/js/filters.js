@@ -30,5 +30,7 @@ angular.module('hyphe.filters', [])
       }
       return words.join(' ');
     }
-  }]);
+  }])
+
+;
 

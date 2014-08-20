@@ -30,8 +30,11 @@
                         </p>
                       </div>
                       <div ng-if="obj.status == 'loaded'" hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*page)}"></div>
-                      <div ng-if="obj.conflicts.length > 0" class="conflicts">
-                        Conflicts with rows <span ng-repeat="r in obj.conflicts">{{r+1}} </span>
+                      <div ng-if="obj.status == 'loaded' && obj.conflicts.length > 0" class="conflicts">
+                        <small class="text-warning">
+                          <span class="glyphicon glyphicon-warning-sign"></span>
+                          Same web entity declared row{{obj.conflicts.length>1 ? 's' : ''}} <span ng-repeat="r in obj.conflicts track by $index">{{r+1}}{{ $index == obj.conflicts.length-1 ? '' : $index == obj.conflicts.length-2 ? ' and ' : ', '}}</span>
+                        </small>
                       </div>
                     </td>
                   </tr>
