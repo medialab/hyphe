@@ -192,7 +192,7 @@
                         <button ng-if="errorList.length == 0" class="btn btn-primary" ng-click="doRetry(true)">RETRY</button>
                       </td>
                       <td ng-if="createdList.length > 0" class="bg-success">
-                        <button class="btn btn-primary">CRAWL WEB ENTITIES</button>
+                        <button class="btn btn-primary" ng-click="doCrawl()">CRAWL WEB ENTITIES</button>
                       </td>
                       <td ng-if="existingList.length > 0" class="bg-info">
                         <div class="checkbox" ng-if="createdList.length > 0">
@@ -200,7 +200,7 @@
                             <input type="checkbox" ng-model="crawlExisting"> <span hyphe-glossary>crawl as well</span>
                           </label>
                         </div>
-                        <button ng-if="createdList.length == 0" class="btn btn-primary">CRAWL WEB ENTITIES</button>
+                        <button ng-if="createdList.length == 0" class="btn btn-primary" ng-click="doCrawl(true)">CRAWL WEB ENTITIES</button>
                       </td>
                     </tr>
                   </table>

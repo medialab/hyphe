@@ -405,15 +405,37 @@ angular.module('hyphe.controllers', [])
       $scope.existingList = []
       $scope.retry = true
 
-      // Reinitialize
-      bootstrapUrlList($scope.urlList)
+      var list = $scope.urlList
+      if(!withConflicts){
+        list = list.filter(function(obj){
+          return obj.status != 'conlict'
+        })
+      }
 
+      // Reinitialize
+      bootstrapUrlList(list)
+
+      // Reload
       fetchParentWebEntities()
     }
-    /*function prepareToCrawl(){
-      store.set('weId_list_toCrawl', urlList.map(function(obj){return obj.webEntityId}).filter(function(d){return d !== undefined}))
+
+    $scope.doCrawl = function(withExisting){
+      var list = $scope.createdList
+        .map(function(obj){return obj.webEntityId})
+        .filter(function(weId){return weId !== undefined})
+
+      if(withExisting){
+        $scope.existing.forEach(function(obj){
+          var weId = obj.webEntityId
+          if(weId !== undefined){
+            list.push(weId)
+          }
+        })
+      }
+      
+      store.set('weId_list_toCrawl', list)
       $location.path('/checkStartPages')
-    }*/
+    }
 
     function bootstrapUrlList(list){
       if(list){
