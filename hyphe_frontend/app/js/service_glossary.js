@@ -16,7 +16,7 @@ angular.module('hyphe.service_glossary', [])
         ,entries: ['https variation', 'https variations']
       },{
         title: 'Start Page'
-        ,definition: 'Hyphe crawls it to find links and other pages, step by step'
+        ,definition: 'In a web entity, Hyphe crawls it to find links and other pages, step by step'
         ,entries: ['start page', 'start pages']
       },{
         title: 'Web Entity'

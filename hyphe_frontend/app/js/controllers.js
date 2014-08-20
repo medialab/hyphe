@@ -2,6 +2,11 @@
 
 /* Controllers */
 
+/*
+  Getting the scope from the console with our general template:
+  s = angular.element('body>div:first>div:first').scope();
+*/
+
 angular.module('hyphe.controllers', [])
 
   .controller('Login', ['$scope', function($scope) {
@@ -386,6 +391,8 @@ angular.module('hyphe.controllers', [])
             // NB: we return true because this way items stay in the list for monitoring
           })
 
+
+
         updatePagination()
 
         // Status message
@@ -402,7 +409,7 @@ angular.module('hyphe.controllers', [])
     $scope.doRetry = function(withConflictsFlag){
       var withConflicts = $scope.retryConflicted || withConflictsFlag
       $scope.conflictedList = []
-      $scope.existingList = []
+      $scope.errorList = []
       $scope.retry = true
 
       var list = $scope.urlList
@@ -503,7 +510,10 @@ angular.module('hyphe.controllers', [])
     }
 
     function updatePagination(){
-      $scope.pages = utils.getRange(Math.ceil($scope.urlList.length/$scope.paginationLength))
+      var max = Math.ceil($scope.urlList.length/$scope.paginationLength)
+      if($scope.page >= max)
+      $scope.page = max - 1
+      $scope.pages = utils.getRange(max)
     }
   }])
 
