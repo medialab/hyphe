@@ -3,6 +3,7 @@
 
 import os, time, inspect
 import threading, subprocess, socket
+from random import shuffle
 from datetime import datetime
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
@@ -11,10 +12,6 @@ from twisted.internet.threads import deferToThreadPool
 from hyphe_backend.lib.thriftpool import ThriftPooledClient
 from hyphe_backend.memorystructure import MemoryStructure as ms
 
-from hyphe_backend.lib import config_hci
-config = config_hci.load_config()
-if not config:
-    exit()
 
 HYPHE_MS_JAR = os.path.join(os.getcwd(), "hyphe_backend", "memorystructure",
     "MemoryStructureExecutable.jar")
@@ -32,9 +29,10 @@ class LuceneCorpus(threading.Thread):
 
     daemon = True
 
-    def __init__(self, name="test", maxram=512,
-                 host="localhost", timeout=1800):
+    def __init__(self, factory, name, host="localhost",
+      maxram=256, timeout=1800):
         threading.Thread.__init__(self)
+        self.factory = factory
         self.status = "init"
         self.name = name
         self.ram = maxram
@@ -67,8 +65,7 @@ class LuceneCorpus(threading.Thread):
             self.stop()
 
     def log(self, msg, error=False):
-        logtype = "ERROR" if error else "INFO"
-        print("[%s - %s] %s" % (self.name, logtype, msg))
+        self.factory.log(self.name, msg, error)
         if error:
             self.stop()
             self.status = "error"
@@ -87,6 +84,9 @@ class LuceneCorpus(threading.Thread):
         self.client_pool.close()
         if self.proc and not self.proc.poll():
             self.proc.terminate()
+        if self.port not in self.factory.ports_free:
+            self.factory.ports_free.append(self.port)
+        self.factory.ram_free += self.ram
         self.log("Stopped running")
         self.status = "stopped"
 
@@ -104,15 +104,20 @@ class LuceneCorpus(threading.Thread):
         self.run()
 
     def choose_port(self):
+        self.port = 0
         address = self.host.replace('localhost', '')
-        for port in range(*config['memoryStructure']['thrift.portrange']):
+        ports = list(self.factory.ports_free)
+        shuffle(ports)
+        for port in ports:
             try:
                 s = socket.socket()
                 s.bind((address, port))
                 s.close()
                 self.port = port
+                self.factory.ports_free.remove(port)
+                break
             except Exception as e:
-                next
+                pass
 
     def run(self):
         self.choose_port()
@@ -130,6 +135,7 @@ class LuceneCorpus(threading.Thread):
         self.proc = subprocess.Popen(command.split(), stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
         self.restart_thrift_clients()
+        self.factory.ram_free -= self.ram
         self.status = "started"
         while self.proc.poll() is None:
             line = self.proc.stdout.readline().strip('\n')
@@ -153,6 +159,19 @@ class LuceneCorpus(threading.Thread):
                           "trying to stop and restart it...")
                         self.hard_restart()
                         break
+        # TODO TEST ACTUAL HEAP SPACE STACK
+                    elif msg.startswith("JAVA HEAP SPACE"):
+                        self.status = "restarting"
+                        if self.factory.ram_free >= 256:
+                            self.log("Java heap space, trying to restart " + \
+                              "with 256Mo more ram", True)
+                            self.ram += 256
+                        else:
+                            self.log("Not enough ram available, " + \
+                              "trying to restart with 256Mo more", True)
+                        self.run()
+                        break
+
                     self.log(msg, True)
                 elif msg == "shutting down":
                     if not self.stopping():
@@ -186,25 +205,72 @@ class CorpusClient(ThriftPooledClient):
             return fail
         return __thrift_proxy
 
-class LuceneFactory(object):
+class CorpusFactory(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, host="localhost", port_range=[13500,13550], max_ram=2048):
+        self.corpora = {}
+        self.host = host
+        self.ports_free = port_range
+        self.ram_free = max_ram
+
+    def log(self, name, msg, error=False):
+        logtype = "ERROR" if error else "INFO"
+        print("[%s - %s] %s" % (name, logtype, msg))
+
+    def status_corpus(self, name):
+        if name not in self.corpora:
+            return None
+        return self.corpora[name].status
+
+    def test_corpus(self, name):
+        return self.status_corpus(name) == "ready"
+
+    def start_corpus(self, name, **kwargs):
+        if self.test_corpus(name):
+            self.log(name, "Already started")
+            return True
+        if not self.ports_free:
+            self.log(name, "Not enough free ports", True)
+            return False
+        if name not in self.corpora:
+            self.corpora[name] = LuceneCorpus(self, name, self.host, **kwargs)
+            self.corpora[name].start()
+        else:
+            while self.ram_free < self.corpora[name].ram and \
+              self.corpora[name].ram > 256:
+                self.corpora[name].ram -= 256
+            if self.ram_free < self.corpora[name].ram:
+                self.log(name, "Not enough free ram", True)
+                return False
+            self.corpora[name].run()
+        return True
+
+    def stop_corpus(self, name):
+        if not self.test_corpus(name):
+            self.log(name, "Already stopped")
+            return True
+        if name in self.corpora:
+            self.corpora[name].stop()
+        return True
 
 # TESTING
 if __name__ == '__main__':
+    from hyphe_backend.lib import config_hci
+    config = config_hci.load_config()
+    if not config:
+        exit()
     ad = config['memoryStructure']['thrift.host']
-    myclass = LuceneCorpus(host=ad, timeout=10)
-    myclass.start()
-    myclass.log(myclass.client_sync.ping())
+    portrange = range(*config['memoryStructure']['thrift.portrange'])
+    factory = CorpusFactory(host=ad, port_range=portrange)
+    factory.start_corpus("test", timeout=10)
+    factory.log("test", factory.corpora["test"].client_sync.ping())
     time.sleep(1)
-    myclass.log(myclass.client_sync.ping())
-    myclass.log(myclass.client_loop.ping())
-    myclass2 = LuceneCorpus("test-more-ram", 256, host=ad)
-    myclass2.start()
+    factory.log("test", factory.corpora["test"].client_sync.ping())
+    factory.log("test", factory.corpora["test"].client_loop.ping())
+    factory.start_corpus("test-more-ram", maxram=512)
     time.sleep(2)
-    myclass2.log(myclass2.client_sync.ping())
-    myclass2.log(myclass2.client_loop.ping())
+    factory.log("test-more-ram", factory.corpora["test-more-ram"].client_sync.ping())
+    factory.log("test-more-ram", factory.corpora["test-more-ram"].client_loop.ping())
     def printping(cl):
         cl.log(cl.client_sync.ping())
     def printping2(cl):
@@ -213,16 +279,16 @@ if __name__ == '__main__':
     def printping3(cl):
         res = cl.client_loop.ping()
         res.addCallback(cl.log)
-    reactor.callLater(1, printping3, myclass)
-    reactor.callLater(2, printping, myclass)
-    reactor.callLater(2, printping, myclass2)
-    reactor.callLater(3, printping2, myclass)
-    reactor.callLater(4, printping3, myclass2)
-    reactor.callLater(13, printping2, myclass2)
-    reactor.callLater(16, printping, myclass)
-    reactor.callLater(16, printping, myclass2)
-    reactor.callLater(22, myclass.stop)
-    reactor.callLater(22, myclass2.stop)
-    reactor.callLater(23, printping, myclass2)
+    reactor.callLater(1, printping3, factory.corpora["test"])
+    reactor.callLater(2, printping, factory.corpora["test"])
+    reactor.callLater(2, printping, factory.corpora["test-more-ram"])
+    reactor.callLater(3, printping2, factory.corpora["test"])
+    reactor.callLater(4, printping3, factory.corpora["test-more-ram"])
+    reactor.callLater(13, printping2, factory.corpora["test-more-ram"])
+    reactor.callLater(16, printping, factory.corpora["test"])
+    reactor.callLater(16, printping, factory.corpora["test-more-ram"])
+    reactor.callLater(22, factory.stop_corpus, "test")
+    reactor.callLater(22, factory.stop_corpus, "test-more-ram")
+    reactor.callLater(23, printping, factory.corpora["test-more-ram"])
     reactor.callLater(25, reactor.stop)
     reactor.run()
