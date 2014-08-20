@@ -157,6 +157,7 @@ angular.module('hyphe.controllers', [])
     $scope.activeRow = 0
     $scope.wwwVariations = true
     $scope.httpsVariations = true
+    $scope.jumpToCrawl = true
 
     // Build the basic list of web entities
     var list
@@ -344,6 +345,7 @@ angular.module('hyphe.controllers', [])
               ,function(we){                        // Success callback
                   obj.status = 'created'
                   obj.webEntityName = we.name
+                  obj.webEntityId = we.id
                 }
               ,function(data, status, headers){     // Fail callback
                   obj.status = 'error'
@@ -375,9 +377,35 @@ angular.module('hyphe.controllers', [])
 
       queriesBatcher.atFinalization(function(list,pending,success,fail){
         $scope.status = {}
+        if($scope.jumpToCrawl){
+          prepareToCrawl()
+        }
       })
 
       queriesBatcher.run()
     }
 
+    function prepareToCrawl(){
+      store.set('weId_list_toCrawl', urlList.map(function(obj){return obj.webEntityId}).filter(function(d){return d !== undefined}))
+      $location.path('/checkStartPages')
+    }
+
+  }])
+
+
+
+  .controller('NewCrawl', ['$scope', 'api', function($scope, api) {
+    $scope.currentPage = 'newCrawl'
+    api.getWebentities({light: true}, function(data){
+      $scope.webEntities = data
+    })
+  }])
+
+
+
+  .controller('CheckStartPages', ['$scope', 'api', function($scope, api) {
+    $scope.currentPage = 'checkStartPages'
+    api.getWebentities({light: true}, function(data){
+      $scope.webEntities = data
+    })
   }])

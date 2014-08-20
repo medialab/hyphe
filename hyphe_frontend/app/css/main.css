@@ -119,9 +119,13 @@ div.welcome-column h1{
     padding-right: 15px;
   }
 }
-.sidebar>li>a:hover{
+.sidebar>li:not(.inactive)>a:hover{
   background-color: #FFF;
   color: #1B4C6B;
+}
+.sidebar>li.inactive>a:hover{
+  background-color: #EFEBE8;
+  cursor: default;
 }
 .sidebar>li.active>a, .sidebar>li.active>a:hover{
   background-color: #FFF;

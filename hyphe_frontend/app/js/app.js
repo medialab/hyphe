@@ -18,5 +18,7 @@ config(['$routeProvider', function($routeProvider) {
   $routeProvider.when('/overview', {templateUrl: 'partials/overview.html', controller: 'Overview'});
   $routeProvider.when('/importurls', {templateUrl: 'partials/importurls.html', controller: 'ImportUrls'});
   $routeProvider.when('/definewebentities', {templateUrl: 'partials/definewebentities.html', controller: 'DefineWebEntities'});
+  $routeProvider.when('/newCrawl', {templateUrl: 'partials/newCrawl.html', controller: 'NewCrawl'});
+  $routeProvider.when('/checkStartPages', {templateUrl: 'partials/checkStartPages.html', controller: 'CheckStartPages'});
   $routeProvider.otherwise({redirectTo: '/login'});
 }]);
