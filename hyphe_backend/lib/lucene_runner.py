@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, time
+import os, time, inspect
 import subprocess
 from sys import stdout
 from socket import socket
@@ -9,7 +9,6 @@ from threading import Thread
 from random import shuffle
 from twisted.internet import reactor, defer
 from twisted.internet.task import LoopingCall
-from twisted.internet.defer import succeed
 from twisted.internet.threads import deferToThreadPool
 from hyphe_backend.lib.thriftpool import ThriftPooledClient
 from hyphe_backend.memorystructure import MemoryStructure as ms
@@ -51,13 +50,16 @@ class LuceneCorpus(Thread):
     def restart_thrift_clients(self):
         if self.client_sync:
             self.client_sync.close()
-        self.client_sync = CorpusClient(self)
+        self.client_sync = ThriftPooledClient(ms.Client, host=self.host,
+          port=self.port, pool_size=1, async=False)
         if self.client_pool:
             self.client_pool.close()
-        self.client_pool = CorpusClient(self, pool_size=5)
+        self.client_pool = ThriftPooledClient(ms.Client, host=self.host,
+          port=self.port, pool_size=5)
         if self.client_loop:
             self.client_loop.close()
-        self.client_loop = CorpusClient(self, async=True, timeout=7200000)
+        self.client_loop = ThriftPooledClient(ms.Client, host=self.host,
+          port=self.port, pool_size=1, async=True, network_timeout=7200000)
 
     def __check_timeout__(self):
         delay = time.time() - self.lastcall
@@ -185,31 +187,37 @@ class LuceneCorpus(Thread):
         if not self.stopping():
             self.log("MemoryStructure crashed", True)
 
-class CorpusClient(ThriftPooledClient):
+class CorpusClient(object):
 
-    def __init__(self, corpus, async=False, pool_size=1,
-                timeout=1800000):
-        self.corpus = corpus
-        ThriftPooledClient.__init__(self, iface_cls=ms.Client,
-            host=corpus.host, port=corpus.port,
-            pool_size=pool_size, async=async, network_timeout=timeout)
+    def __init__(self, factory, type_client):
+        self.factory = factory
+        self.type_client = type_client
+        for m in inspect.getmembers(ms.Client, predicate=inspect.ismethod):
+            setattr(self, m[0], self.__safe_call__(m[0]))
 
-    # Override thrift calls function to catch corpus down
-    def __create_thrift_proxy__(self, methodName):
-        def __thrift_proxy(*args):
-            self.corpus.lastcall = time.time()
-            fail = {"code": "fail", "corpus": self.corpus.name,
-                "corpus_status": self.corpus.status,
-                "message": "Corpus is not ready, please start it first"}
-            if hasattr(self, 'threadpool'):
-                if self.corpus.status == "ready":
-                    return deferToThreadPool(reactor, self.threadpool,
-                      self.__thrift_call__, methodName, *args)
-                return succeed(fail)
-            if self.corpus.status == "ready":
-                return self.__thrift_call__(methodName, *args)
+    def __safe_call__(self, call):
+        def __safe_call(*args, **kwargs):
+            client = None
+            try:
+                corpus = kwargs.pop("corpus")
+            except:
+                fail = {"code": "fail", "message": "corpus argument missing"}
+            else:
+                fail = {"code": "fail", "corpus": corpus,
+                  "corpus_status": self.factory.status_corpus(corpus),
+                  "message": "Corpus is not ready, please start it first"}
+                if corpus in self.factory.corpora:
+                    client = getattr(self.factory.corpora[corpus],
+                      "client_%s" % self.type_client)
+            if hasattr(client, 'threadpool'):
+                if self.factory.test_corpus(corpus):
+                    return deferToThreadPool(reactor, client.threadpool,
+                      client.__thrift_call__, call, *args, **kwargs)
+                return defer.succeed(fail)
+            if self.factory.test_corpus(corpus):
+                return client.__thrift_call__(call, *args, **kwargs)
             return fail
-        return __thrift_proxy
+        return __safe_call
 
 class CorpusFactory(object):
 
@@ -219,6 +227,8 @@ class CorpusFactory(object):
         self.host = host
         self.ports_free = port_range
         self.ram_free = max_ram
+        for typ in ["sync", "pool", "loop"]:
+            setattr(self, "client_%s" % typ, CorpusClient(self, typ))
 
     def log(self, name, msg, error=False):
         logtype = "ERROR" if error else "INFO"
@@ -239,16 +249,16 @@ class CorpusFactory(object):
         if self.test_corpus(name) or self.status_corpus(name) == "started":
             self.log(name, "MemoryStructure already started")
             return True
-        if not self.ports_free:
-            self.log(name, "Not enough available ports to start corpus", True)
-            self.corpora[name].status = "error"
-            return False
         if name in self.corpora:
             self.corpora[name].stop()
             for arg in ["ram", "timeout"]:
                 kwargs[arg] = getattr(self.corpora[name], arg)
             del(self.corpora[name])
         self.corpora[name] = LuceneCorpus(self, name, self.host, **kwargs)
+        if not self.ports_free:
+            self.log(name, "Not enough available ports to start corpus", True)
+            self.corpora[name].status = "error"
+            return False
         while self.ram_free < self.corpora[name].ram and \
           self.corpora[name].ram > 256:
             self.corpora[name].ram -= 256
@@ -283,40 +293,59 @@ if __name__ == '__main__':
     portrange = range(*config['memoryStructure']['thrift.portrange'])
     factory = CorpusFactory(host=ad, port_range=portrange, max_ram=1000)
     assert(factory.start_corpus("test", timeout=10))
-    assert(factory.corpora["test"].client_sync.ping()['code'] == 'fail')
+    assert(factory.client_sync.ping(corpus="test")['code'] == 'fail')
     time.sleep(2)
     assert(factory.corpora["test"].status == "ready")
-    assert(len(factory.corpora["test"].client_sync.ping()) == 2)
-    assert(factory.corpora["test"].client_loop.ping().__class__ == defer.Deferred)
+    assert(len(factory.client_sync.ping(corpus="test")) == 2)
+    assert(factory.client_loop.ping(corpus="test").__class__ == defer.Deferred)
     assert(factory.start_corpus("test-more-ram", ram=512))
     time.sleep(1)
     assert(not factory.start_corpus("test-not-enough-ram"))
     time.sleep(1)
     assert(factory.corpora["test-more-ram"].status == "ready")
-    assert(len(factory.corpora["test-more-ram"].client_sync.ping()) == 2)
-    assert(factory.corpora["test-more-ram"].client_loop.ping().__class__ == defer.Deferred)
+    assert(len(factory.client_sync.ping(corpus="test-more-ram")) == 2)
+    assert(factory.client_loop.ping(corpus="test-more-ram").__class__ == defer.Deferred)
     assert(factory.corpora["test-not-enough-ram"].status == "error")
-    assert(factory.corpora["test-not-enough-ram"].client_sync.ping()["code"] == "fail")
-    assert(factory.corpora["test-not-enough-ram"].client_loop.ping().__class__ == defer.Deferred)
+    assert(factory.client_sync.ping(corpus="test-not-enough-ram")["code"] == "fail")
+    assert(factory.client_loop.ping(corpus="test-not-enough-ram").__class__ == defer.Deferred)
+    assert(factory.client_sync.ping(corpus="test-not-created")["code"] == "fail")
+    assert(factory.client_loop.ping(corpus="test-not-created")["code"] == "fail")
     def ping(f, name, false=False):
-        cl = f.corpora[name]
-        res = cl.client_sync.ping()
-        test_ping(res, false)
-    def test_ping(res, false):
-        assert((len(res) == 2) != false)
+        res = f.client_sync.ping(corpus=name)
+        test_ping(res, f, name, false)
+    def test_ping(res, f, name, false):
+        try:
+            assert((len(res) == 2) != false)
+        except:
+            print "PING %s %s FAIL: %s" % (name, "DID NOT" if false else "", res)
+            stop(f)
     def ping2(f, name, false=False):
-        cl = f.corpora[name]
-        res = cl.client_pool.ping()
-        res.addCallback(test_ping, false)
+        res = f.client_pool.ping(corpus=name)
+        if type(res) == dict:
+            test_ping(res, f, name, false)
+        else:
+            res.addCallback(test_ping, f, name, false)
     def ping3(f, name, false=False):
-        cl = f.corpora[name]
-        res = cl.client_loop.ping()
-        res.addCallback(test_ping, false)
+        res = f.client_loop.ping(corpus=name)
+        if type(res) == dict:
+            test_ping(res, f, name, false)
+        else:
+            res.addCallback(test_ping, f, name, false)
     def teststop(f, name, false=False):
-        assert(f.stop_corpus(name) != false)
-    def success():
+        try:
+            assert(f.stop_corpus(name) != false)
+        except:
+            print "STOP %s %s FAIL" % (name, "DID NOT" if false else "")
+            stop(f)
+    def success(f):
         print "ALL TESTS SUCCESSFULL!"
-        reactor.stop()
+        stop(f)
+    def stop(f):
+        f.stop()
+        try:
+            reactor.stop()
+        except:
+            pass
     reactor.callLater(1, ping3, factory, "test")
     reactor.callLater(2, ping, factory, "test")
     reactor.callLater(2, ping, factory, "test-more-ram")
@@ -332,8 +361,10 @@ if __name__ == '__main__':
     reactor.callLater(25, factory.start_corpus, "test-more-ram")
     reactor.callLater(26, ping2, factory, "test-more-ram")
     reactor.callLater(27, ping2, factory, "test", false=True)
+    reactor.callLater(27, ping, factory, "test-not-created", false=True)
+    reactor.callLater(27, ping2, factory, "test-not-created", false=True)
+    reactor.callLater(27, ping3, factory, "test-not-created", false=True)
     reactor.callLater(30, teststop, factory, "test-more-ram")
     reactor.callLater(30, teststop, factory, "test", false=True)
-    reactor.callLater(32, factory.stop)
-    reactor.callLater(35, success)
+    reactor.callLater(35, success, factory)
     reactor.run()
