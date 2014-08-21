@@ -171,6 +171,9 @@ class LuceneCorpus(Thread):
                           "trying to restart anyway", True)
                     self.factory.start_corpus(self.name)
                     break
+            # skip tracebacks
+                elif line.startswith('\tat '):
+                    continue
                 self.log(line, True)
             else:
                 if lclass=="LRUIndex" and \

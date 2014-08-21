@@ -53,7 +53,7 @@ class Core(jsonrpc.JSONRPC):
     def close(self):
         self.store.close()
         for corpus in self.corpora:
-            self.jsonrpc_stop_corpus(corpus)
+            self.jsonrpc_stop_corpus(corpus, quiet=True)
 
     def render(self, request):
         request.setHeader("Access-Control-Allow-Origin", "*")
@@ -106,13 +106,13 @@ class Core(jsonrpc.JSONRPC):
         self.store._start_loop(corpus, noloop=noloop)
         return format_success("Corpus %s started" % corpus)
 
-    def jsonrpc_stop_corpus(self, corpus=DUMMY):
+    def jsonrpc_stop_corpus(self, corpus=DUMMY, quiet=False):
         if not corpus in self.corpora:
             return format_error("Corpus %s is not started" % corpus)
         if self.corpora[corpus]['jobs_loop'].running:
             self.corpora[corpus]['jobs_loop'].stop()
         self.store._stop_loop(corpus)
-        res = self.store.msclients.stop_corpus(corpus, corpus == DUMMY)
+        res = self.store.msclients.stop_corpus(corpus, quiet or corpus == DUMMY)
         if not res:
             return format_success("Corpus %s was already stopped" % corpus)
         return format_success("Corpus %s stopped" % corpus)
