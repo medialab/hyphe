@@ -546,12 +546,30 @@ angular.module('hyphe.controllers', [])
 
     function bootstrapList(weId_list){
       var weId_list = weId_list || []
-      return weId_list.map(function(weId){
+
+      // Pagination
+      initPagination(0, 50, weId_list.length)
+      
+      return weId_list.map(function(weId, i){
         return {
-          weId: weId
+          id:i
+          ,weId: weId
           ,status: 'loading'
         }
       })
+    }
+
+    function initPagination(page, pl, l){
+      $scope.page = page
+      $scope.paginationLength = pl
+      $scope.pages = utils.getRange(Math.ceil(l/$scope.paginationLength))
+    }
+
+    function updatePagination(){
+      var max = Math.ceil($scope.urlList.length/$scope.paginationLength)
+      if($scope.page >= max)
+      $scope.page = max - 1
+      $scope.pages = utils.getRange(max)
     }
 
   }])

@@ -12,9 +12,21 @@
                   CHECK START PAGES
                 </h1>
                 <p class="text-info">
-                  <span hyphe-glossary>Crawling</span> a <span hyphe-glossary>web entity</span> requires at least one <span hyphe-glossary>start page</span>
+                  <span hyphe-glossary>Crawling</span> requires a starting point: check that each <span hyphe-glossary>web entity</span> has a <span hyphe-glossary>start page</span>
                 </p>
-                
+                <table class="table table-striped table-startpages">
+                  <tr
+                    ng-repeat="obj in list|paginate:page:paginationLength track by $index"
+                    ng-click="$parent.activeRow = ($index+paginationLength*page)"
+                    >
+
+                    <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>
+
+                    <td class="td-row-content">
+                    </td>
+                    
+                  </tr>
+                </table>
               </div>
             </div>
           </div>
