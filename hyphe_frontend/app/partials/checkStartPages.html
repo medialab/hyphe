@@ -35,10 +35,16 @@
                               {{obj.status|titlecase}}
                             </div>
 
+                            <!-- Not loaded -->
+                            <div ng-if="obj.status == 'error'" class="bg-danger">
+                              {{obj.status|titlecase}}
+                              <p>{{obj.infoMessage}}</p>
+                            </div>
+
                             <!-- Loaded -->
                             <div ng-if="obj.status == 'loaded'">
                               <span ng-if="obj.webentity.startpages.length == 0" class="text-danger">No start page</span>
-                              <span ng-if="obj.webentity.startpages.length > 0" class="text-danger">{{obj.webentity.startpages.length}} start page(s)</span>
+                              <span ng-if="obj.webentity.startpages.length > 0">{{obj.webentity.startpages.length}} start page(s)</span>
                             </div>
                           </div>
                           <div class="col-md-4">
