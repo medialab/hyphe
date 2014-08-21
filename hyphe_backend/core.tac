@@ -25,7 +25,7 @@ from hyphe_backend.memorystructure import MemoryStructure as ms, constants as ms
 from hyphe_backend.lib import config_hci, urllru, gexf, user_agents
 from hyphe_backend.lib.utils import *
 from hyphe_backend.lib.jsonrpc_utils import *
-from hyphe_backend.lib.lucene_runner import CorpusFactory
+from hyphe_backend.lib.corpus import CorpusFactory
 
 config = config_hci.load_config()
 if not config:
