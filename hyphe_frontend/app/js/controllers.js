@@ -162,6 +162,8 @@ angular.module('hyphe.controllers', [])
     $scope.activeRow = 0
     $scope.wwwVariations = true
     $scope.httpsVariations = true
+    $scope.list = []
+    $scope.list_byId = {}
     $scope.createdList = []
     $scope.existingList = []
     $scope.conflictedList = []
@@ -176,12 +178,20 @@ angular.module('hyphe.controllers', [])
     var list
     if(store.get('parsedUrls_type') == 'list'){
       list = store.get('parsedUrls')
-        .map(function(url, i){return {id:i, url:url}})
+        .map(function(url, i){
+          return {
+              id: i
+              ,url: url
+            }
+        })
 
     } else if(store.get('parsedUrls_type') == 'table') {
       var settings = store.get('parsedUrls_settings')
-        ,table = store.get('parsedUrls')
+      ,table = store.get('parsedUrls')
+      
+      // Table headline
       $scope.headline = table.shift().filter(function(d,i){return i != settings.urlColId})
+      
       list = table.map(function(row, i){
         var meta = {}
         table[0].forEach(function(colName,j){
@@ -205,7 +215,7 @@ angular.module('hyphe.controllers', [])
     // Build the list
     bootstrapUrlList(list)
 
-    if($scope.urlList.length==0){
+    if($scope.list.length==0){
       $location.path('/importurls')
     }
 
@@ -213,7 +223,7 @@ angular.module('hyphe.controllers', [])
     var fetchParentWebEntities = function(){
       $scope.loadingWebentities = true
       var queriesBatcher = new QueriesBatcher()
-      $scope.urlList.forEach(function(obj){
+      $scope.list.forEach(function(obj){
         queriesBatcher.addQuery(
             api.getLruParentWebentities             // Query call
             ,{lru: obj.lru}                         // Query settings
@@ -226,7 +236,6 @@ angular.module('hyphe.controllers', [])
                 console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url, data, 'status', status, 'headers', headers)
                 if(data && data[0].code == 'fail'){
                   obj.infoMessage = data[0].message
-                  // obj.infoMessage = 'Not considered valid by the server'
                 }
               }
             ,{                                      // Options
@@ -270,7 +279,7 @@ angular.module('hyphe.controllers', [])
       var createdPrefixes = {}
 
       // Mark all "existing"
-      $scope.urlList.forEach(function(obj){
+      $scope.list.forEach(function(obj){
           var webentityFound
           obj.parentWebEntities.forEach(function(we){
             if(!webentityFound && we.stems_count == obj.truePrefixLength){
@@ -279,14 +288,13 @@ angular.module('hyphe.controllers', [])
           })
           if(webentityFound){
             obj.status = 'existing'
-            obj.webEntityName =  webentityFound.name
-            obj.webEntityId = webentityFound.id
+            obj.webentity = webentityFound
           }
         })
 
       // Query the rest
       var queriesBatcher = new QueriesBatcher()
-      $scope.urlList
+      $scope.list
         .filter(function(obj){
             var webentityFound
             obj.parentWebEntities.forEach(function(we){
@@ -330,8 +338,7 @@ angular.module('hyphe.controllers', [])
                 }
               ,function(we){                        // Success callback
                   obj.status = 'created'
-                  obj.webEntityName = we.name
-                  obj.webEntityId = we.id
+                  obj.webentity = we
                 }
               ,function(data, status, headers){     // Fail callback
                   obj.status = 'error'
@@ -364,7 +371,7 @@ angular.module('hyphe.controllers', [])
       // FINALIZATION
       queriesBatcher.atFinalization(function(list,pending,success,fail){
         // Move treated web entities to other lists
-        $scope.urlList = $scope.urlList.filter(function(obj){
+        $scope.list = $scope.list.filter(function(obj){
             
             // Existing
             if(obj.status == 'existing'){
@@ -412,7 +419,7 @@ angular.module('hyphe.controllers', [])
       $scope.errorList = []
       $scope.retry = true
 
-      var list = $scope.urlList
+      var list = $scope.list
       if(!withConflicts){
         list = list.filter(function(obj){
           return obj.status != 'conlict'
@@ -427,20 +434,26 @@ angular.module('hyphe.controllers', [])
     }
 
     $scope.doCrawl = function(withExisting){
+
+      function cleanObj(obj){
+        return {
+            webentity: obj.webentity
+            // ,meta: obj.meta
+          }
+      }
       var list = $scope.createdList
-        .map(function(obj){return obj.webEntityId})
-        .filter(function(weId){return weId !== undefined})
+        .map(cleanObj)
+        .filter(function(obj){return obj.webentity.id !== undefined})
 
       if(withExisting){
         $scope.existingList.forEach(function(obj){
-          var weId = obj.webEntityId
-          if(weId !== undefined){
-            list.push(weId)
+          if(obj.webentity.id !== undefined){
+            list.push(cleanObj(obj))
           }
         })
       }
 
-      store.set('weId_list_toCrawl', list)
+      store.set('webentities_toCrawl', list)
       $location.path('/checkStartPages')
     }
 
@@ -448,9 +461,11 @@ angular.module('hyphe.controllers', [])
       if(list){
         // Consolidate the list of web entities
         list = list
+          // Filter out invalid URLs
           .filter(function(obj){
               return obj.url && utils.URL_validate(obj.url)
             })
+          // Bootstrap the object
           .map(bootstrapPrefixObject)
 
         // Pagination
@@ -462,13 +477,12 @@ angular.module('hyphe.controllers', [])
         }
 
         // Building an index of these objects to find them by id
-        var urlList_byId = {}
         list.forEach(function(obj){
-          urlList_byId[obj.id] = obj
+          $scope.list_byId[obj.id] = obj
         })
 
         // Catching conflicts: we use this index of LRU prefixes set in the UI
-        $scope.conflictsIndex = new PrefixConflictsIndex(urlList_byId)
+        $scope.conflictsIndex = new PrefixConflictsIndex($scope.list_byId)
         // NB: it is recorded in the model because the hyphePrefixSliderButton directives needs to access it
 
         list.forEach(function(obj){
@@ -476,11 +490,11 @@ angular.module('hyphe.controllers', [])
         })
 
         // Record list in model
-        $scope.urlList = list
+        $scope.list = list
 
       } else {
 
-        $scope.urlList = []
+        $scope.list = []
       }
     }
 
@@ -511,7 +525,7 @@ angular.module('hyphe.controllers', [])
     }
 
     function updatePagination(){
-      var max = Math.ceil($scope.urlList.length/$scope.paginationLength)
+      var max = Math.ceil($scope.list.length/$scope.paginationLength)
       if($scope.page >= max)
       $scope.page = max - 1
       $scope.pages = utils.getRange(max)
@@ -534,10 +548,12 @@ angular.module('hyphe.controllers', [])
     $scope.currentPage = 'checkStartPages'
     
     // DEV MODE
-    $scope.list = bootstrapList(store.get('weId_list_toCrawl'))
+    // $scope.list = bootstrapList(store.get('webentities_toCrawl'))
+    var list = [{"id":0,"weId":{"webentity":{"lru":"s:http|h:com|h:24heuresactu|","stems_count":3,"name":"24heuresactu","id":"86f8ab4d-24a7-44c4-b4ac-5b94597927ad","$$hashKey":200}},"status":"loading"},{"id":1,"weId":{"webentity":{"lru":"s:http|h:com|h:365mots|","stems_count":3,"name":"365mots","id":"5a6877d5-c76a-4fab-9f10-31c0448088d6","$$hashKey":212}},"status":"loading"},{"id":2,"weId":{"webentity":{"lru":"s:http|h:com|h:60millions-mag|","stems_count":3,"name":"60millions-Mag","id":"720d37b0-61b5-4c7f-853a-8b77d3e0bc5d","$$hashKey":270}},"status":"loading"},{"id":3,"weId":{"webentity":{"lru":"s:http|h:fr|h:80propositions|","stems_count":3,"name":"80propositions","id":"328349a6-5e0d-441c-84fb-d6deea334ac8","$$hashKey":228}},"status":"loading"},{"id":4,"weId":{"webentity":{"lru":"s:http|h:net|h:acontrario|","stems_count":3,"name":"Acontrario","id":"b86b1fb8-e627-417b-8ffd-cb2b9ac42fe2","$$hashKey":244}},"status":"loading"},{"id":5,"weId":{"webentity":{"lru":"s:http|h:com|h:blogspot|h:perdre-la-raison|","stems_count":4,"name":"Perdre-La-Raison","id":"1ae8c609-36d8-4777-b7d0-3b39d1b3e7e2","$$hashKey":258}},"status":"loading"},{"id":6,"weId":{"webentity":{"lru":"s:http|h:org|h:aclefeu|","stems_count":3,"name":"Aclefeu","id":"b68d330b-0cd4-4e07-adc1-01b1d42e0e74","$$hashKey":286}},"status":"loading"},{"id":7,"weId":{"webentity":{"lru":"s:http|h:org|h:acrimed|","stems_count":3,"name":"Acrimed","id":"00d46fb0-2a5d-4f66-aab9-fac10ca11256","$$hashKey":302}},"status":"loading"},{"id":8,"weId":{"webentity":{"lru":"s:http|h:org|h:actupparis|","stems_count":3,"name":"Actupparis","id":"b732a439-e00e-4ad9-8287-755373fe7921","$$hashKey":318}},"status":"loading"},{"id":9,"weId":{"webentity":{"lru":"s:http|h:com|h:acteurspublics|","stems_count":3,"name":"Acteurspublics","id":"baa003d8-2941-43ee-a60b-99431a8d79e6","$$hashKey":334}},"status":"loading"},{"id":10,"weId":{"webentity":{"lru":"s:http|h:com|h:actu-environnement|","stems_count":3,"name":"Actu-Environnement","id":"9f757880-6d0c-4a6d-9b5a-291819a037e2","$$hashKey":350}},"status":"loading"},{"id":11,"weId":{"webentity":{"lru":"s:http|h:org|h:actuchomage|","stems_count":3,"name":"Actuchomage","id":"f5350b69-80c3-427d-b4e6-647679574762","$$hashKey":366}},"status":"loading"},{"id":12,"weId":{"webentity":{"lru":"s:http|h:fr|h:afev|","stems_count":3,"name":"Afev","id":"293c8afb-4920-484d-9228-0253d4430086","$$hashKey":382}},"status":"loading"},{"id":13,"weId":{"webentity":{"lru":"s:http|h:com|h:nouvelobs|","stems_count":3,"name":"Nouvelobs","id":"bcb2f904-967a-49fa-8182-1a8e6472b5ac","$$hashKey":398}},"status":"loading"},{"id":14,"weId":{"webentity":{"lru":"s:http|h:com|h:nouvelobs|","stems_count":3,"name":"Nouvelobs","id":"bcb2f904-967a-49fa-8182-1a8e6472b5ac","$$hashKey":411}},"status":"loading"},{"id":15,"weId":{"webentity":{"lru":"s:http|h:eu|h:euromemorandum|","stems_count":3,"name":"Euromemorandum","id":"3788c46d-48c8-42dc-ad0a-62fd7a5736c7","$$hashKey":425}},"status":"loading"},{"id":16,"weId":{"webentity":{"lru":"s:http|h:fr|h:ademe|","stems_count":3,"name":"Ademe","id":"4e724e2c-7491-470c-8e6b-31979c93d1f8","$$hashKey":435}},"status":"loading"},{"id":17,"weId":{"webentity":{"lru":"s:http|h:eu|h:europa|","stems_count":3,"name":"Europa","id":"0c11d51e-2492-42c3-a5a8-1ce8a63946a4","$$hashKey":448}},"status":"loading"},{"id":18,"weId":{"webentity":{"lru":"s:http|h:fr|h:anact|","stems_count":3,"name":"Anact","id":"4729ade7-0a4c-470b-b47c-bf5ecc9ff597","$$hashKey":459}},"status":"loading"},{"id":19,"weId":{"webentity":{"lru":"s:http|h:org|h:hypotheses|","stems_count":3,"name":"Hypotheses","id":"1a856fc8-2725-42dc-9437-ce5a101914f6","$$hashKey":474}},"status":"loading"},{"id":20,"weId":{"webentity":{"lru":"s:http|h:fr|h:agoravox|","stems_count":3,"name":"Agoravox","id":"419e79fb-3739-4edf-8f43-02acc9a3886a","$$hashKey":485}},"status":"loading"},{"id":21,"weId":{"webentity":{"lru":"s:http|h:org|h:aides|","stems_count":3,"name":"Aides","id":"23c20145-506b-4316-8ac1-516f1e0a5799","$$hashKey":501}},"status":"loading"},{"id":22,"weId":{"webentity":{"lru":"s:http|h:fr|h:alternatives-economiques|","stems_count":3,"name":"Alternatives-Economiques","id":"80c579ac-7959-460e-9e88-2c638e2e12c1","$$hashKey":517}},"status":"loading"},{"id":23,"weId":{"webentity":{"lru":"s:http|h:eu|h:alainlamassoure|","stems_count":3,"name":"Alainlamassoure","id":"4c9b2a78-5131-42b6-ab21-e643f3e9d031","$$hashKey":528}},"status":"loading"},{"id":24,"weId":{"webentity":{"lru":"s:http|h:net|h:lipietz|","stems_count":3,"name":"Lipietz","id":"14e7acf8-a691-431f-b98b-f17959ce2f6c","$$hashKey":542}},"status":"loading"},{"id":25,"weId":{"webentity":{"lru":"s:http|h:fr|h:parti-socialiste|","stems_count":3,"name":"Parti-Socialiste","id":"8b00cab2-bfe6-4af3-bb52-bddfd4c842d3","$$hashKey":555}},"status":"loading"},{"id":26,"weId":{"webentity":{"lru":"s:http|h:fr|h:blogspot|h:aliciabx|","stems_count":4,"name":"Aliciabx","id":"50465121-424a-4e16-98c9-0a3a333fb149","$$hashKey":569}},"status":"loading"},{"id":27,"weId":{"webentity":{"lru":"s:http|h:fr|h:alliancecentriste|","stems_count":3,"name":"Alliancecentriste","id":"f96935e7-c607-48f9-aae9-6a9a66337adc","$$hashKey":581}},"status":"loading"},{"id":28,"weId":{"webentity":{"lru":"s:http|h:eu|h:alde|","stems_count":3,"name":"Alde","id":"070f1b1a-3338-4833-b929-dfe8e20b8671","$$hashKey":598}},"status":"loading"},{"id":29,"weId":{"webentity":{"lru":"s:http|h:fr|h:centristesblog|","stems_count":3,"name":"Centristesblog","id":"fb7372b5-94bb-4a66-a59d-75580cde8d8e","$$hashKey":613}},"status":"loading"},{"id":30,"weId":{"webentity":{"lru":"s:http|h:fr|h:alliance-ecologiste-independante|","stems_count":3,"name":"Alliance-Ecologiste-Independante","id":"b3811b8e-56b4-4cd9-a1ca-4efe27499221","$$hashKey":624}},"status":"loading"},{"id":31,"weId":{"webentity":{"lru":"s:http|h:org|h:alliancegeostrategique|","stems_count":3,"name":"Alliancegeostrategique","id":"00529f6b-a104-4e4a-9d0e-7036b558dae0","$$hashKey":638}},"status":"loading"},{"id":32,"weId":{"webentity":{"lru":"s:http|h:eu|h:socialistsanddemocrats|","stems_count":3,"name":"Socialistsanddemocrats","id":"2b3148df-48eb-40a1-8b5d-ed4b91a7405f","$$hashKey":651}},"status":"loading"},{"id":33,"weId":{"webentity":{"lru":"s:http|h:fr|h:alliance-pour-une-france-juste|","stems_count":3,"name":"Alliance-Pour-Une-France-Juste","id":"e6bd50aa-54e8-4e13-8d09-09e0938b0143","$$hashKey":665}},"status":"loading"},{"id":34,"weId":{"webentity":{"lru":"s:http|h:org|h:allons-enfants|","stems_count":3,"name":"Allons-Enfants","id":"bf6733d4-c756-4354-9c2f-2c47f19fbdb1","$$hashKey":676}},"status":"loading"},{"id":35,"weId":{"webentity":{"lru":"s:http|h:org|h:alsacedabord|","stems_count":3,"name":"Alsacedabord","id":"5405c08a-1b31-4b31-a5ca-2e95a1d093f0","$$hashKey":692}},"status":"loading"},{"id":36,"weId":{"webentity":{"lru":"s:http|h:fr|h:alter-oueb|","stems_count":3,"name":"Alter-Oueb","id":"0681fcd3-e093-4a7c-a693-901a306438ac","$$hashKey":708}},"status":"loading"},{"id":37,"weId":{"webentity":{"lru":"s:http|h:org|h:altermondes|","stems_count":3,"name":"Altermondes","id":"fc510650-67a8-466e-af5a-57df0773e7bd","$$hashKey":724}},"status":"loading"},{"id":38,"weId":{"webentity":{"lru":"s:http|h:fr|h:alternative-liberale|","stems_count":3,"name":"Alternative-Liberale","id":"5d7c7533-6e91-4ac3-9ea5-6ead81c89f39","$$hashKey":741}},"status":"loading"}] 
+    $scope.list = bootstrapList(list)
     
     // Clean store
-    $store.remove('weId_list_toCrawl')
+    store.remove('webentities_toCrawl')
 
     if($scope.list.length==0){
       $location.path('/newCrawl')
@@ -567,7 +583,7 @@ angular.module('hyphe.controllers', [])
     }
 
     function updatePagination(){
-      var max = Math.ceil($scope.urlList.length/$scope.paginationLength)
+      var max = Math.ceil($scope.list.length/$scope.paginationLength)
       if($scope.page >= max)
       $scope.page = max - 1
       $scope.pages = utils.getRange(max)
