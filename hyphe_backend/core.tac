@@ -303,7 +303,7 @@ class Core(jsonrpc.JSONRPC):
         if WE['status'] == ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.DISCOVERED]:
             yield self.store.jsonrpc_set_webentity_status(webentity_id, ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.UNDECIDED], corpus=corpus)
         yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true", corpus=corpus)
-        res = yield self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], config['discoverPrefixes'], maxdepth, phantom_crawl)
+        res = yield self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], config['discoverPrefixes'], maxdepth, phantom_crawl, corpus=corpus)
         returnD(res)
 
     def jsonrpc_get_webentity_logs(self, webentity_id):
