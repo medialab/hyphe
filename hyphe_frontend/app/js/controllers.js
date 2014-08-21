@@ -713,8 +713,6 @@ angular.module('hyphe.controllers', [])
                 queriesBatcher.atFinalization(function(list,pending,success,fail){
                   if(fail.length == 0)
                     addStartPageAndReload(obj.id, url)
-                  else
-
                 })
 
                 queriesBatcher.run()
@@ -734,7 +732,7 @@ angular.module('hyphe.controllers', [])
                     $scope.status = {message:'Merge failed', background:'danger'}
                   }
                 )
-                
+
               }
             }
           }, function () {
