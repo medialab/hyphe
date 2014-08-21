@@ -40,6 +40,7 @@ class LuceneCorpus(Thread):
         self.ram = ram
         self.port = 0
         self.loglevel = loglevel
+        self.command = ""
         self.proc = None
         self.client_sync = None
         self.client_pool = None
@@ -136,18 +137,20 @@ class LuceneCorpus(Thread):
             return
         self.factory.ram_free -= self.ram
         self.status = "started"
-        java_options = "-Xms%dm -Xmx%dm " % (max(256, self.ram/4), self.ram)
-        java_options += "-Xmn224m -XX:NewSize=224m -XX:MaxNewSize=224m " + \
-          "-XX:NewRatio=3 -XX:SurvivorRatio=6 -XX:PermSize=128m " + \
-          "-XX:MaxPermSize=128m -XX:+UseParallelGC -XX:ParallelGCThreads=2"
-        command = "java -server %s -jar %s " % (java_options, HYPHE_MS_JAR)
-        command += "corpus=%s thrift.port=%d log.level=%s" % \
+        size = min(128, max(32, int(self.ram/4)))
+        java_options = "-Xms%dm -Xmx%dm " % (self.ram, self.ram)
+        java_options += "-XX:NewSize=%sm -XX:MaxNewSize=%sm " % (size, size)
+        java_options += "-XX:NewRatio=3 -XX:SurvivorRatio=6 "
+        java_options += "-XX:PermSize=%sm -XX:MaxPermSize=%sm " % (size, size)
+        java_options += "-XX:+UseParallelGC -XX:ParallelGCThreads=2"
+        self.command = "java -server %s -jar %s " % (java_options, HYPHE_MS_JAR)
+        self.command += "corpus=%s thrift.port=%d log.level=%s" % \
           (self.name, self.port, self.loglevel)
         self.log("Starting MemoryStructure on port " + \
           "%s with %sMo ram for at least %ss (%sMo ram and %s ports left)" % \
           (self.port, self.ram, self.timeout,
            self.factory.ram_free, len(self.factory.ports_free)))
-        self.proc = subprocess.Popen(command.split(), stdout=subprocess.PIPE,
+        self.proc = subprocess.Popen(self.command.split(), stdout=subprocess.PIPE,
           stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
         self.restart_thrift_clients()
         while self.proc.poll() is None:
@@ -157,6 +160,17 @@ class LuceneCorpus(Thread):
             try:
                 lts, ltype, lclass, lthread, msg = parse_log(line)
             except:
+                if "java.lang.OutOfMemoryError" in line:
+                    self.status = "restarting"
+                    if self.factory.ram_free >= 256:
+                        self.log("Java heap space, trying to restart " + \
+                          "with 256Mo more ram", True)
+                        self.ram += 256
+                    else:
+                        self.log("Not enough ram to increase corpus, " + \
+                          "trying to restart anyway", True)
+                    self.factory.start_corpus(self.name)
+                    break
                 self.log(line, True)
             else:
                 if lclass=="LRUIndex" and \
@@ -172,20 +186,11 @@ class LuceneCorpus(Thread):
                           "trying to stop and restart it...")
                         self.hard_restart()
                         break
-        # TODO TEST ACTUAL HEAP SPACE STACK
-                    elif msg.startswith("JAVA HEAP SPACE"):
-                        self.status = "restarting"
-                        if self.factory.ram_free >= 256:
-                            self.log("Java heap space, trying to restart " + \
-                              "with 256Mo more ram", True)
-                            self.ram += 256
-                        else:
-                            self.log("Not enough ram available, " + \
-                              "trying to restart with 256Mo more", True)
-                        self.factory.start_corpus(self.name)
-                        break
-
-                    self.log(msg, True)
+        # skip these errors as they are followed by a more explicit stacktrace
+                    elif "Unexpected throwable while invoking!" in msg:
+                        pass
+                    else:
+                        self.log(msg, True)
                 elif msg == "shutting down":
                     if not self.stopping():
                         self.status = "stopping"
@@ -252,6 +257,9 @@ class CorpusFactory(object):
 
     def stopped_corpus(self, name):
         return name not in self.corpora or self.corpora[name].stopping()
+
+    def total_running(self):
+        return len([0 for a in self.corpora if not self.stopped_corpus(a)])
 
     def start_corpus(self, name, **kwargs):
         if self.test_corpus(name) or self.status_corpus(name) == "started":

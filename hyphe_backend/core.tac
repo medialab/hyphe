@@ -51,9 +51,9 @@ class Core(jsonrpc.JSONRPC):
         self.store = Memory_Structure(self)
 
     def close(self):
+        self.store.close()
         for corpus in self.corpora:
             self.jsonrpc_stop_corpus(corpus)
-        self.store.close()
 
     def render(self, request):
         request.setHeader("Access-Control-Allow-Origin", "*")
@@ -83,6 +83,9 @@ class Core(jsonrpc.JSONRPC):
             return format_error("Could not deploy corpus' scrapyd spider")
         if not res:
             return res
+        res = self.store.ensureDefaultCreationRuleExists(corpus_id)
+        if not res:
+            return res
         res = self.jsonrpc_start_corpus(corpus_id, noloop=noloop)
         if not res:
             return res
@@ -104,6 +107,8 @@ class Core(jsonrpc.JSONRPC):
         return format_success("Corpus %s started" % corpus)
 
     def jsonrpc_stop_corpus(self, corpus=DUMMY):
+        if not corpus in self.corpora:
+            return format_error("Corpus %s is not started" % corpus)
         if self.corpora[corpus]['jobs_loop'].running:
             self.corpora[corpus]['jobs_loop'].stop()
         self.store._stop_loop(corpus)
@@ -114,6 +119,8 @@ class Core(jsonrpc.JSONRPC):
 
     def jsonrpc_reinitialize(self, corpus=DUMMY):
         """Reinitializes both crawl jobs and memory structure."""
+        if not corpus in self.corpora:
+            return format_error("Corpus %s is not started" % corpus)
         if self.corpora[corpus]['jobs_loop'].running:
             self.corpora[corpus]['jobs_loop'].stop()
         res = self.crawler.jsonrpc_reinitialize(corpus)
@@ -258,6 +265,8 @@ class Core(jsonrpc.JSONRPC):
         returnD(format_result("false"))
 
     def jsonrpc_get_status(self, corpus=DUMMY):
+        if not corpus in self.corpora:
+            return format_error("Corpus %s is not started" % corpus)
         crawls = self.crawler.jsonrpc_list(corpus)
         pages = self.db['%s.queue' % corpus].count()
         crawled = self.db['%s.pages' % corpus].count()
@@ -265,10 +274,16 @@ class Core(jsonrpc.JSONRPC):
         found_pages = sum([j['nb_pages'] for j in jobs])
         found_links = sum([j['nb_links'] for j in jobs])
         res = {
+          'hyphe': {
+            'running': self.store.msclients.total_running(),
+            'ports_left': len(self.store.msclients.ports_free),
+            'ram_left': self.store.msclients.ram_free
+          },
           'corpus': {
             'id': corpus,
-            'name': "CORPUSNAME TODO",
-            'status': self.store.msclients.status_corpus(corpus)
+            'name': "CORPUSNAME #TODO",
+            'status': self.store.msclients.status_corpus(corpus),
+            'ram': self.store.msclients.corpora[corpus].ram
           }, 'crawler': {
             'jobs_pending': len(crawls['result']['pending']),
             'jobs_running': len(crawls['result']['running']),
@@ -462,7 +477,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.db = self.parent.db
         self.corpora = self.parent.corpora
         self.msclients = CorpusFactory(config['memoryStructure']['thrift.host'],
-          port_range = config['memoryStructure']['thrift.portrange'],
+          port_range = range(*config['memoryStructure']['thrift.portrange']),
           max_ram = config['memoryStructure']['thrift.max_ram'],
           loglevel = config['memoryStructure']['log.level'])
 
@@ -470,6 +485,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.msclients.stop()
 
     def _start_loop(self, corpus=DUMMY, noloop=False):
+        self.handle_index_error(corpus)
         self.corpora[corpus]['webentities'] = []
         self.corpora[corpus]['total_webentities'] = -1
         self.corpora[corpus]['last_WE_update'] = 0
@@ -547,6 +563,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(handle_standard_results(res))
 
     def jsonrpc_delete_all_nodelinks(self, corpus=DUMMY):
+        if not corpus in self.corpora:
+            return format_error("Corpus %s is not started" % corpus)
         self.corpora[corpus]['recent_indexes'] += 1
         return handle_standard_results(self.msclients.sync.deleteNodeLinks(corpus=corpus))
 
@@ -676,6 +694,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None, corpus=DUMMY):
         WE = self.msclients.sync.getWebEntity(webentity_id, corpus=corpus)
+        if field_name == "metadataItems":
+            self.corpora[corpus]['recent_tagging'] = True
         if is_error(WE):
            return format_error("ERROR could not retrieve WebEntity with id %s" % webentity_id)
         try:
@@ -809,20 +829,17 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return self.update_webentity(webentity_id, "startpages", startpage_url, "pop", corpus=corpus)
 
     def jsonrpc_add_webentity_tag_value(self, webentity_id, tag_namespace, tag_key, tag_value, corpus=DUMMY):
-        self.corpora[corpus]['recent_tagging'] = True
         return self.update_webentity(webentity_id, "metadataItems", tag_value, "push", tag_key, tag_namespace, corpus=corpus)
 
     def jsonrpc_rm_webentity_tag_key(self, webentity_id, tag_namespace, tag_key, corpus=DUMMY):
         return self.jsonrpc_set_webentity_tag_values(webentity_id, tag_namespace, tag_key, [], corpus=corpus)
 
     def jsonrpc_rm_webentity_tag_value(self, webentity_id, tag_namespace, tag_key, tag_value, corpus=DUMMY):
-        self.corpora[corpus]['recent_tagging'] = True
         return self.update_webentity(webentity_id, "metadataItems", tag_value, "pop", tag_key, tag_namespace, corpus=corpus)
 
     def jsonrpc_set_webentity_tag_values(self, webentity_id, tag_namespace, tag_key, tag_values, corpus=DUMMY):
         if not isinstance(tag_values, list):
             tag_values = list(tag_values)
-        self.corpora[corpus]['recent_tagging'] = True
         return self.update_webentity(webentity_id, "metadataItems", tag_values, "update", tag_key, tag_namespace, corpus=corpus)
 
     def jsonrpc_merge_webentity_into_another(self, old_webentity_id, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False, corpus=DUMMY):
@@ -911,6 +928,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
             jobslog(jobid, "INDEX_"+indexing_statuses.BATCH_FINISHED, self.db, corpus=corpus)
 
     def jsonrpc_trigger_links(self, corpus=DUMMY):
+        if not corpus in self.corpora:
+            return format_error("Corpus %s is not started" % corpus)
         self.corpora[corpus]['recent_indexes'] += 105
         return format_result("Links generation should start soon")
 
@@ -918,12 +937,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def index_batch_loop(self, corpus=DUMMY):
         if self.corpora[corpus]['loop_running']:
             returnD(False)
+        if not self.msclients.test_corpus(corpus):
+            returnD(False)
         self.corpora[corpus]['loop_running'] = True
-        crashed = self.db['%s.jobs' % corpus].find_one({'indexing_status': indexing_statuses.BATCH_RUNNING})
+        crashed = self.db['%s.jobs' % corpus].find_one({'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'])
         if crashed:
             logger.msg("Indexing job declared as running but probably crashed ,trying to restart it.", system="WARNING - %s" % corpus)
-            self.db['%s.jobs' % corpus].update({'_id' : crashed}, {'$set': {'indexing_status': indexing_statuses.BATCH_CRASHED}})
-            jobslog(crashed, "INDEX_"+indexing_statuses.BATCH_CRASHED, self.db, corpus=corpus)
+            self.db['%s.jobs' % corpus].update({'_id' : crashed['_id']}, {'$set': {'indexing_status': indexing_statuses.BATCH_CRASHED}})
+            jobslog(crashed['_id'], "INDEX_"+indexing_statuses.BATCH_CRASHED, self.db, corpus=corpus)
             self.corpora[corpus]['loop_running'] = False
             returnD(False)
         oldest_page_in_queue = self.db['%s.queue' % corpus].find_one(sort=[('timestamp', pymongo.ASCENDING)], fields=['_job'], skip=random.randint(0, 2))
@@ -976,14 +997,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
             logger.msg("...loop run finished.", system="INFO - %s" % corpus)
         self.corpora[corpus]['loop_running'] = None
 
-    def handle_index_error(self, failure, corpus=DUMMY):
-        update_ids = [job['_id'] for job in self.db['%s.jobs' % corpus].find({'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'])]
+    def handle_index_error(self, corpus=DUMMY):
+        # clean possible previous index crashes
+        update_ids = [job['_id'] for job in self.db['%s.jobs' % corpus].find({'indexing_status': indexing_statuses.BATCH_CRASHED}, fields=['_id'])]
         if len(update_ids):
-            self.db['%s.jobs' % corpus].update({'_id' : {'$in': update_ids}}, {'$set': {'indexing_status': indexing_statuses.BATCH_CRASHED}}, multi=True)
-            jobslog(update_ids, "INDEX_"+indexing_statuses.BATCH_CRASHED, self.db, corpus=corpus)
-        failure.trap(Exception)
-        logger.msg(failure, system="ERROR - %s" % corpus)
-        return {'code': 'fail', 'message': failure}
+            self.db['%s.jobs' % corpus].update({'_id' : {'$in': update_ids}}, {'$set': {'indexing_status': indexing_statuses.PENDING}}, multi=True)
+            jobslog(update_ids, "INDEX_"+indexing_statuses.PENDING, self.db, corpus=corpus)
 
     def jsonrpc_get_precision_exceptions(self, corpus=DUMMY):
         exceptions = self.msclients.sync.getPrecisionExceptions(corpus=corpus)
@@ -1067,7 +1086,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if not (isinstance(kv, list) and len(kv) == 2 and ((isinstance(kv[0], unicode) and isinstance(kv[1], unicode)) or (isinstance(kv[0], str) and isinstance(kv[1], str)))):
                 returnD(format_error("ERROR: fieldKeywords must be a list of two-string-elements lists. %s" % fieldKeywords))
             fk.append([kv[0].encode('utf-8'), kv[1].encode('utf-8')])
-        WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus_corpus)
+        WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
         returnD(format_result(self.format_webentities(WEs, light=True, corpus=corpus)))
@@ -1370,11 +1389,8 @@ def test_connexions():
 # MONGO
     try:
         reactor.addSystemEventTrigger('before', 'shutdown', run.close)
-        # clean possible previous crash
-        update_ids = [job['_id'] for job in run.db['%s.jobs' % DUMMY].find({'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'])]
-        if len(update_ids):
-            run.db['%s.jobs' % DUMMY].update({'_id' : {'$in': update_ids}}, {'$set': {'indexing_status': indexing_statuses.BATCH_CRASHED}}, multi=True)
-            jobslog(update_ids, "INDEX_"+indexing_statuses.BATCH_CRASHED, run.db, corpus=DUMMY)
+        test = [job['_id'] for job in run.db['%s.jobs' % DUMMY].find()]
+
     except Exception as x:
         print "ERROR: Cannot connect to mongoDB, please check your server and the configuration in config.json."
         if config['DEBUG']:
@@ -1397,14 +1413,13 @@ def test_connexions():
         return None
 # INIT DUMMY CORPUS
     try:
-        now = time.time()
+        st = time.time()
         run.jsonrpc_create_corpus(noloop=True)
         res = run.store.msclients.sync.ping(corpus=DUMMY)
-        while is_error(res) and time.time() - now < 10:
+        while is_error(res) and time.time() < st + 10:
             time.sleep(0.3)
             res = run.store.msclients.sync.ping(corpus=DUMMY)
         if is_error(res):
-            print res
             raise Exception(res['message'])
     except Exception as x:
         print "ERROR: Cannot create dummy corpus %s" % DUMMY
