@@ -53,7 +53,8 @@ try:
         config['mongo-scrapy']['proxy_port'] = 3128
     curpath = os.path.abspath(getsourcefile(lambda _: None))
     config['mongo-scrapy']['hyphePath'] = os.path.sep.join(curpath.split(os.path.sep)[:-3])
-    config['mongo-scrapy']['project'] = project
+    config['mongo-scrapy']['db_name'] = config['mongo-scrapy']['db_name'].lower()
+    config['mongo-scrapy']['project'] = project.lower()
     for _to in ["", "idle_", "ajax_"]:
         config['mongo-scrapy']['phantom_%stimeout' % _to] = config['phantom']['%stimeout' % _to]
     with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):

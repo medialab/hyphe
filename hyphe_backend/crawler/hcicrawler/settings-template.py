@@ -1,6 +1,6 @@
 import os, uuid
 
-HYPHE_PROJECT = '{{project}}'
+HYPHE_PROJECT = '{{db_name}}.{{project}}'
 BOT_NAME = 'hcicrawler'
 
 SPIDER_MODULES = ['hcicrawler.spiders']

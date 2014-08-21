@@ -13,7 +13,7 @@ from twisted.python import log as logger
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
 from twisted.internet.threads import deferToThread
-from twisted.internet.defer import inlineCallbacks, returnValue as returnD
+from twisted.internet.defer import inlineCallbacks, returnValue as returnD, succeed
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.internet.error import DNSLookupError
 from twisted.application.internet import TCPServer
@@ -74,7 +74,7 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_ping(self):
         return format_result('pong')
 
-    def jsonrpc_create_corpus(self, name=DUMMY):
+    def jsonrpc_create_corpus(self, name=DUMMY, noloop=False):
         corpus_id = clean_corpus_id(name)
         self.crawler.init_indexes(corpus_id)
         try:
@@ -83,12 +83,12 @@ class Core(jsonrpc.JSONRPC):
             return format_error("Could not deploy corpus' scrapyd spider")
         if not res:
             return res
-        res = self.jsonrpc_start_corpus(corpus_id)
+        res = self.jsonrpc_start_corpus(corpus_id, noloop=noloop)
         if not res:
             return res
         return format_success({'corpus_id': corpus_id, 'corpus_status': self.store.msclients.status_corpus(corpus_id)})
 
-    def jsonrpc_start_corpus(self, corpus=DUMMY):
+    def jsonrpc_start_corpus(self, corpus=DUMMY, noloop=False):
         if corpus in self.corpora and self.store.msclients.test_corpus(corpus):
             return format_success("Corpus %s already ready" % corpus)
         res = self.store.msclients.start_corpus(corpus)
@@ -98,8 +98,9 @@ class Core(jsonrpc.JSONRPC):
           "index_loop": LoopingCall(self.store.index_batch_loop, corpus),
           "jobs_loop": LoopingCall(self.refresh_jobs, corpus)
         }
-        self.corpora[corpus]['jobs_loop'].start(1, False)
-        self.store._start_loop(corpus)
+        if not noloop:
+            reactor.callLater(5, self.corpora[corpus]['jobs_loop'].start, 1, False)
+        self.store._start_loop(corpus, noloop=noloop)
         return format_success("Corpus %s started" % corpus)
 
     def jsonrpc_stop_corpus(self, corpus=DUMMY):
@@ -263,17 +264,26 @@ class Core(jsonrpc.JSONRPC):
         jobs = list(self.db['%s.jobs' % corpus].find(fields=['nb_pages', 'nb_links']))
         found_pages = sum([j['nb_pages'] for j in jobs])
         found_links = sum([j['nb_links'] for j in jobs])
-        res = {'crawler': {'jobs_pending': len(crawls['result']['pending']),
-                           'jobs_running': len(crawls['result']['running']),
-                           'pages_crawled': crawled,
-                           'pages_found': found_pages,
-                           'links_found': found_links},
-               'memory_structure': {'job_running': self.store.corpora[corpus]['loop_running'],
-                                    'job_running_since': self.store.corpora[corpus]['loop_running_since']*1000,
-                                    'last_index': self.store.corpora[corpus]['last_index_loop']*1000,
-                                    'last_links_generation': self.store.corpora[corpus]['last_links_loop']*1000,
-                                    'pages_to_index': pages,
-                                    'webentities': self.store.corpora[corpus]['total_webentities']}}
+        res = {
+          'corpus': {
+            'id': corpus,
+            'name': "CORPUSNAME TODO",
+            'status': self.store.msclients.status_corpus(corpus)
+          }, 'crawler': {
+            'jobs_pending': len(crawls['result']['pending']),
+            'jobs_running': len(crawls['result']['running']),
+            'pages_crawled': crawled,
+            'pages_found': found_pages,
+            'links_found': found_links
+          }, 'memory_structure': {
+            'job_running': self.store.corpora[corpus]['loop_running'],
+            'job_running_since': self.store.corpora[corpus]['loop_running_since']*1000,
+            'last_index': self.store.corpora[corpus]['last_index_loop']*1000,
+            'last_links_generation': self.store.corpora[corpus]['last_links_loop']*1000,
+            'pages_to_index': pages,
+            'webentities': self.store.corpora[corpus]['total_webentities']
+          }
+        }
         return format_result(res)
 
     @inlineCallbacks
@@ -327,7 +337,7 @@ class Crawler(jsonrpc.JSONRPC):
         self.db['%s.jobs' % corpus].ensure_index([('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], safe=True)
 
     def deploy_spider(self, corpus=DUMMY):
-        output = subprocess.Popen(['bash', 'bin/deploy_scrapy_spider.sh', corpus_project(corpus), '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
+        output = subprocess.Popen(['bash', 'bin/deploy_scrapy_spider.sh', corpus, '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
         res = self.send_scrapy_query('listprojects')
         if is_error(res) or "projects" not in res['result'] or corpus_project(corpus) not in res['result']['projects']:
             return format_error(output)
@@ -459,7 +469,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def close(self):
         self.msclients.stop()
 
-    def _start_loop(self, corpus=DUMMY):
+    def _start_loop(self, corpus=DUMMY, noloop=False):
         self.corpora[corpus]['webentities'] = []
         self.corpora[corpus]['total_webentities'] = -1
         self.corpora[corpus]['last_WE_update'] = 0
@@ -467,15 +477,16 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['tags'] = {}
         self.corpora[corpus]['recent_tagging'] = True
         self.corpora[corpus]['precision_exceptions'] = []
-        deferToThread(self.jsonrpc_get_precision_exceptions, corpus=corpus)
+        if not noloop:
+            reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
         self.corpora[corpus]['loop_running_since'] = time.time()
         self.corpora[corpus]['last_links_loop'] = time.time()
         self.corpora[corpus]['last_index_loop'] = time.time()
         self.corpora[corpus]['recent_indexes'] = 0
         self.corpora[corpus]['loop_running'] = "Collecting WebEntities & WebEntityLinks"
-        if corpus != DUMMY:
-            reactor.callLater(0, self.jsonrpc_get_webentities, light=True, corelinks=True, corpus=corpus)
-            reactor.callLater(5, self.corpora[corpus]['index_loop'].start, 1, True)
+        if not noloop:
+            reactor.callLater(3, self.jsonrpc_get_webentities, light=True, corelinks=True, corpus=corpus)
+            reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
 
     def _stop_loop(self, corpus=DUMMY):
         if self.corpora[corpus]['index_loop'].running:
@@ -991,7 +1002,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def ramcache_webentities(self, corpus=DUMMY):
-        WEs = self.corpora[corpus]['webentities']
+        WEs = succeed(self.corpora[corpus]['webentities'])
         if WEs == [] or self.corpora[corpus]['recent_indexes'] or self.corpora[corpus]['last_links_loop'] > self.corpora[corpus]['last_WE_update']:
             WEs = yield self.msclients.pool.getWebEntities(corpus=corpus)
             if is_error(WEs):
@@ -1387,7 +1398,7 @@ def test_connexions():
 # INIT DUMMY CORPUS
     try:
         now = time.time()
-        run.jsonrpc_create_corpus()
+        run.jsonrpc_create_corpus(noloop=True)
         res = run.store.msclients.sync.ping(corpus=DUMMY)
         while is_error(res) and time.time() - now < 10:
             time.sleep(0.3)
