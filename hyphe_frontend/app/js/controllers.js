@@ -234,7 +234,7 @@ angular.module('hyphe.controllers', [])
             ,function(data, status, headers){       // Fail callback
                 obj.status = 'error'
                 console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url, data, 'status', status, 'headers', headers)
-                if(data && data[0].code == 'fail'){
+                if(data && data[0] && data[0].code == 'fail'){
                   obj.infoMessage = data[0].message
                 }
               }
@@ -343,7 +343,7 @@ angular.module('hyphe.controllers', [])
               ,function(data, status, headers){     // Fail callback
                   obj.status = 'error'
                   console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url, data, 'status', status, 'headers', headers)
-                  if(data[0].code == 'fail'){
+                  if(data && data[0] && data[0].code == 'fail'){
                     obj.infoMessage = data[0].message
                   }
                 }
@@ -604,7 +604,7 @@ angular.module('hyphe.controllers', [])
             ,function(data, status, headers){     // Fail callback
                 obj.status = 'error'
                 console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', data, 'status:', status)
-                if(data[0].code == 'fail'){
+                if(data && data[0] && data[0].code == 'fail'){
                   obj.infoMessage = data[0].message
                 }
               }
