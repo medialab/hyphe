@@ -55,7 +55,10 @@ class LuceneCorpus(Thread):
         self.client_sync = ThriftPooledClient(ms.Client, host=self.host,
           port=self.port, pool_size=1, async=False)
         if self.client_pool:
-            self.client_pool.close()
+            try:
+                self.client_pool.close()
+            except:
+                pass
         self.client_pool = ThriftPooledClient(ms.Client, host=self.host,
           port=self.port, pool_size=5)
         if self.client_loop:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re
+import re, types, time
 
 from hyphe_backend.lib import config_hci, jsonrpc_utils
 config = config_hci.load_config()

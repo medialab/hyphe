@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, sys, time, random, types, json, bson
+import time, random, json, bson
 import urllib, urllib2
 import pymongo
 import subprocess
@@ -10,21 +10,22 @@ from txjsonrpc.jsonrpc import Introspection
 from txjsonrpc.web import jsonrpc
 from twisted.web import server
 from twisted.python import log as logger
-from twisted.application import service, internet
-from twisted.internet import reactor, defer, task, threads
+from twisted.internet import reactor
+from twisted.internet.task import LoopingCall
+from twisted.internet.threads import deferToThread
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.internet.error import DNSLookupError
+from twisted.application.internet import TCPServer
+from twisted.application.service import Application
 from twisted.web.http_headers import Headers
 from twisted.web.client import Agent, ProxyAgent, _HTTP11ClientFactory
 _HTTP11ClientFactory.noisy = False
-from thrift.Thrift import TException
-from thrift.transport.TSocket import TSocket
 from hyphe_backend import processor
 from hyphe_backend.memorystructure import MemoryStructure as ms, constants as ms_const
 from hyphe_backend.lib import config_hci, urllru, gexf, user_agents
-from hyphe_backend.lib.utils import *
-from hyphe_backend.lib.jsonrpc_utils import *
+from hyphe_backend.lib.utils import Enum, urls_match_domainlist, clean_corpus_id, jobslog, format_result, handle_standard_results
+from hyphe_backend.lib.jsonrpc_utils import format_error, format_success, is_error, test_bool_arg
 from hyphe_backend.lib.corpus import CorpusFactory
 
 config = config_hci.load_config()
@@ -94,8 +95,8 @@ class Core(jsonrpc.JSONRPC):
         if not res:
             return format_error("Could not start corpus %s" % corpus)
         self.corpora[corpus] = {
-          "index_loop": task.LoopingCall(self.store.index_batch_loop, corpus),
-          "jobs_loop": task.LoopingCall(self.refresh_jobs, corpus)
+          "index_loop": LoopingCall(self.store.index_batch_loop, corpus),
+          "jobs_loop": LoopingCall(self.refresh_jobs, corpus)
         }
         self.corpora[corpus]['jobs_loop'].start(1, False)
         self.store._start_loop(corpus)
@@ -175,7 +176,7 @@ class Core(jsonrpc.JSONRPC):
             # Try to restart in phantom mode all regular crawls that seem to have failed (less than 3 pages found for a depth of at least 1)
             for job in self.db['%s.jobs' % corpus].find({'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.maxdepth': {'$gt': 0}}):
                 logger.msg("Crawl job %s seems to have failed, trying to restart it in phantom mode" % job['_id'], system="INFO - %s" % corpus)
-                self.jsonrpc_crawl_webentity(job['webentity_id'], job['crawl_arguments']['maxdepth'], False, False, True)
+                self.jsonrpc_crawl_webentity(job['webentity_id'], job['crawl_arguments']['maxdepth'], False, False, True, corpus=corpus)
                 jobslog(job['_id'], "CRAWL_RETRIED_AS_PHANTOM", self.db, corpus=corpus)
                 resdb = self.db['%s.jobs' % corpus].update({'_id': job['_id']}, {'$set': {'crawling_status': crawling_statuses.RETRIED}}, safe=True)
                 if (resdb['err']):
@@ -285,10 +286,10 @@ class Core(jsonrpc.JSONRPC):
         if maxdepth > config['mongo-scrapy']['maxdepth']:
             returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % config['mongo-scrapy']['maxdepth']))
         WE = yield self.store.get_webentity_with_pages_and_subWEs(webentity_id, use_all_pages_as_startpages, corpus=corpus)
-        if test_bool_arg(use_prefixes_as_startpages) and not test_bool_arg(use_all_pages_as_startpages):
-            WE['pages'] = [urllru.lru_to_url(lru) for lru in WE['lrus']]
         if is_error(WE):
             returnD(WE)
+        if test_bool_arg(use_prefixes_as_startpages) and not test_bool_arg(use_all_pages_as_startpages):
+            WE['pages'] = [urllru.lru_to_url(lru) for lru in WE['lrus']]
         if WE['status'] == ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.DISCOVERED]:
             yield self.store.jsonrpc_set_webentity_status(webentity_id, ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.UNDECIDED], corpus=corpus)
         yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true", corpus=corpus)
@@ -466,7 +467,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['tags'] = {}
         self.corpora[corpus]['recent_tagging'] = True
         self.corpora[corpus]['precision_exceptions'] = []
-        threads.deferToThread(self.jsonrpc_get_precision_exceptions, corpus=corpus)
+        deferToThread(self.jsonrpc_get_precision_exceptions, corpus=corpus)
         self.corpora[corpus]['loop_running_since'] = time.time()
         self.corpora[corpus]['last_links_loop'] = time.time()
         self.corpora[corpus]['last_index_loop'] = time.time()
@@ -540,7 +541,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def ensureDefaultCreationRuleExists(self, corpus=DUMMY):
         rules = self.msclients.sync.getWebEntityCreationRules(corpus=corpus)
-        if is_error(rules) or len(rules) == 0:
+        if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules) == 0):
             default_regexp = "(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|)(h:[^\\|]+\\|)+)"
             if corpus != DUMMY:
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
@@ -552,11 +553,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_reinitialize(self, corpus=DUMMY):
         try:
-            self.corpora[corpus]['index_loop'].stop()
+            if not self.msclients.test_corpus(corpus):
+                return format_error("Corpus %s is not started" % corpus)
+            if self.corpora[corpus]['index_loop'].running:
+                self.corpora[corpus]['index_loop'].stop()
             self.reset(corpus)
             self._start_loop(corpus)
             return format_result("MemoryStructure reinitialized")
-        except:
+        except Exception,e:
+            print type(e),e
             return format_error("Service initialization not finished. Please retry in a second.")
 
     def return_new_webentity(self, lru_prefix, new=False, source=None, corpus=DUMMY):
@@ -603,11 +608,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(cache_id):
             return cache_id
         res = self.msclients.sync.indexCache(cache_id, corpus=corpus)
-        print "T1", res
         if is_error(res):
             return res
         new = self.msclients.sync.createWebEntitiesFromCache(cache_id, corpus=corpus)
-        print "T2", new
         if is_error(new):
             return new
         return self.return_new_webentity(lru, new, 'page', corpus=corpus)
@@ -855,7 +858,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         nb_crawled_pages = len(ids)
         if (nb_crawled_pages > 0):
             page_items.rewind()
-            pages, links = yield threads.deferToThread(processor.generate_cache_from_pages_list, page_items, config["precisionLimit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0)
+            pages, links = yield deferToThread(processor.generate_cache_from_pages_list, page_items, config["precisionLimit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0)
             s=time.time()
             cache_id = yield self.msclients.loop.createCache(pages.values(), corpus=corpus)
             if is_error(cache_id):
@@ -1436,7 +1439,7 @@ if __name__ == '__main__':
     reactor.run()
 # ... or in the background when called with 'twistd -noy core.tac'
 elif __name__ == '__builtin__':
-    application = service.Application("Hyphe backend API Server")
-    server = internet.TCPServer(config['twisted']['port'], site)
+    application = Application("Hyphe backend API Server")
+    server = TCPServer(config['twisted']['port'], site)
     server.setServiceParent(application)
 
