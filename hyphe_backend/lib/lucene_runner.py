@@ -7,6 +7,7 @@ from sys import stdout
 from socket import socket
 from threading import Thread
 from random import shuffle
+from twisted.python import log
 from twisted.internet import reactor, defer
 from twisted.internet.task import LoopingCall
 from twisted.internet.threads import deferToThreadPool
@@ -30,14 +31,15 @@ class LuceneCorpus(Thread):
 
     daemon = True
 
-    def __init__(self, factory, name, host="localhost", ram=256, timeout=1800):
+    def __init__(self, factory, name, host="localhost", ram=256, timeout=1800, loglevel="INFO"):
         Thread.__init__(self)
         self.factory = factory
         self.status = "init"
         self.name = name
+        self.host = host
         self.ram = ram
         self.port = 0
-        self.host = host
+        self.loglevel = loglevel
         self.proc = None
         self.client_sync = None
         self.client_pool = None
@@ -135,8 +137,9 @@ class LuceneCorpus(Thread):
         java_options += "-Xmn224m -XX:NewSize=224m -XX:MaxNewSize=224m " + \
           "-XX:NewRatio=3 -XX:SurvivorRatio=6 -XX:PermSize=128m " + \
           "-XX:MaxPermSize=128m -XX:+UseParallelGC -XX:ParallelGCThreads=2"
-        command = "java -server %s -jar %s corpus=%s thrift.port=%d" % \
-          (java_options, HYPHE_MS_JAR, self.name, self.port)
+        command = "java -server %s -jar %s " % (java_options, HYPHE_MS_JAR)
+        command += "corpus=%s thrift.port=%d log.level=%s" % \
+          (self.name, self.port, self.loglevel)
         self.log("Starting MemoryStructure on port " + \
           "%s with %sMo ram for at least %ss (%sMo ram and %s ports left)" % \
           (self.port, self.ram, self.timeout,
@@ -201,6 +204,7 @@ class CorpusClient(object):
             try:
                 corpus = kwargs.pop("corpus")
             except:
+                corpus = ""
                 fail = {"code": "fail", "message": "corpus argument missing"}
             else:
                 fail = {"code": "fail", "corpus": corpus,
@@ -221,18 +225,19 @@ class CorpusClient(object):
 
 class CorpusFactory(object):
 
-    def __init__(self, host="localhost",
+    def __init__(self, host="localhost", loglevel="INFO",
       port_range=[13500,13550], max_ram=2048):
         self.corpora = {}
         self.host = host
+        self.loglevel = loglevel
         self.ports_free = port_range
         self.ram_free = max_ram
         for typ in ["sync", "pool", "loop"]:
-            setattr(self, "client_%s" % typ, CorpusClient(self, typ))
+            setattr(self, typ, CorpusClient(self, typ))
 
     def log(self, name, msg, error=False):
         logtype = "ERROR" if error else "INFO"
-        stdout.write("[%s - %s] %s\n" % (logtype, name, msg))
+        log.msg(msg, system="%s - %s" % (logtype, name))
 
     def status_corpus(self, name):
         if name not in self.corpora:
@@ -240,7 +245,7 @@ class CorpusFactory(object):
         return self.corpora[name].status
 
     def test_corpus(self, name):
-        return self.status_corpus(name) == "ready"
+        return name and self.status_corpus(name) == "ready"
 
     def stopped_corpus(self, name):
         return name not in self.corpora or self.corpora[name].stopping()
@@ -254,6 +259,7 @@ class CorpusFactory(object):
             for arg in ["ram", "timeout"]:
                 kwargs[arg] = getattr(self.corpora[name], arg)
             del(self.corpora[name])
+        kwargs["loglevel"] = self.loglevel
         self.corpora[name] = LuceneCorpus(self, name, self.host, **kwargs)
         if not self.ports_free:
             self.log(name, "Not enough available ports to start corpus", True)
@@ -291,27 +297,28 @@ if __name__ == '__main__':
         exit()
     ad = config['memoryStructure']['thrift.host']
     portrange = range(*config['memoryStructure']['thrift.portrange'])
-    factory = CorpusFactory(host=ad, port_range=portrange, max_ram=1000)
+    loglevel = config['memoryStructure']['log.level']
+    factory = CorpusFactory(host=ad, port_range=portrange, max_ram=1000, loglevel=loglevel)
     assert(factory.start_corpus("test", timeout=10))
-    assert(factory.client_sync.ping(corpus="test")['code'] == 'fail')
+    assert(factory.sync.ping(corpus="test")['code'] == 'fail')
     time.sleep(2)
     assert(factory.corpora["test"].status == "ready")
-    assert(len(factory.client_sync.ping(corpus="test")) == 2)
-    assert(factory.client_loop.ping(corpus="test").__class__ == defer.Deferred)
+    assert(len(factory.sync.ping(corpus="test")) == 2)
+    assert(factory.loop.ping(corpus="test").__class__ == defer.Deferred)
     assert(factory.start_corpus("test-more-ram", ram=512))
     time.sleep(1)
     assert(not factory.start_corpus("test-not-enough-ram"))
     time.sleep(1)
     assert(factory.corpora["test-more-ram"].status == "ready")
-    assert(len(factory.client_sync.ping(corpus="test-more-ram")) == 2)
-    assert(factory.client_loop.ping(corpus="test-more-ram").__class__ == defer.Deferred)
+    assert(len(factory.sync.ping(corpus="test-more-ram")) == 2)
+    assert(factory.loop.ping(corpus="test-more-ram").__class__ == defer.Deferred)
     assert(factory.corpora["test-not-enough-ram"].status == "error")
-    assert(factory.client_sync.ping(corpus="test-not-enough-ram")["code"] == "fail")
-    assert(factory.client_loop.ping(corpus="test-not-enough-ram").__class__ == defer.Deferred)
-    assert(factory.client_sync.ping(corpus="test-not-created")["code"] == "fail")
-    assert(factory.client_loop.ping(corpus="test-not-created")["code"] == "fail")
+    assert(factory.sync.ping(corpus="test-not-enough-ram")["code"] == "fail")
+    assert(factory.loop.ping(corpus="test-not-enough-ram").__class__ == defer.Deferred)
+    assert(factory.sync.ping(corpus="test-not-created")["code"] == "fail")
+    assert(factory.loop.ping(corpus="test-not-created")["code"] == "fail")
     def ping(f, name, false=False):
-        res = f.client_sync.ping(corpus=name)
+        res = f.sync.ping(corpus=name)
         test_ping(res, f, name, false)
     def test_ping(res, f, name, false):
         try:
@@ -320,13 +327,13 @@ if __name__ == '__main__':
             print "PING %s %s FAIL: %s" % (name, "DID NOT" if false else "", res)
             stop(f)
     def ping2(f, name, false=False):
-        res = f.client_pool.ping(corpus=name)
+        res = f.pool.ping(corpus=name)
         if type(res) == dict:
             test_ping(res, f, name, false)
         else:
             res.addCallback(test_ping, f, name, false)
     def ping3(f, name, false=False):
-        res = f.client_loop.ping(corpus=name)
+        res = f.loop.ping(corpus=name)
         if type(res) == dict:
             test_ping(res, f, name, false)
         else:
