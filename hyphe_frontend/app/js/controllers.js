@@ -543,15 +543,23 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('CheckStartPages', ['$scope', 'api', 'store', 'utils', '$location'
-  ,function($scope, api, store, utils, $location) {
+  .controller('CheckStartPages', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher'
+  ,function($scope, api, store, utils, $location, QueriesBatcher) {
     $scope.currentPage = 'checkStartPages'
-    
+
     // DEV MODE
     // $scope.list = bootstrapList(store.get('webentities_toCrawl'))
-    var list = [{"id":0,"weId":{"webentity":{"lru":"s:http|h:com|h:24heuresactu|","stems_count":3,"name":"24heuresactu","id":"86f8ab4d-24a7-44c4-b4ac-5b94597927ad","$$hashKey":200}},"status":"loading"},{"id":1,"weId":{"webentity":{"lru":"s:http|h:com|h:365mots|","stems_count":3,"name":"365mots","id":"5a6877d5-c76a-4fab-9f10-31c0448088d6","$$hashKey":212}},"status":"loading"},{"id":2,"weId":{"webentity":{"lru":"s:http|h:com|h:60millions-mag|","stems_count":3,"name":"60millions-Mag","id":"720d37b0-61b5-4c7f-853a-8b77d3e0bc5d","$$hashKey":270}},"status":"loading"},{"id":3,"weId":{"webentity":{"lru":"s:http|h:fr|h:80propositions|","stems_count":3,"name":"80propositions","id":"328349a6-5e0d-441c-84fb-d6deea334ac8","$$hashKey":228}},"status":"loading"},{"id":4,"weId":{"webentity":{"lru":"s:http|h:net|h:acontrario|","stems_count":3,"name":"Acontrario","id":"b86b1fb8-e627-417b-8ffd-cb2b9ac42fe2","$$hashKey":244}},"status":"loading"},{"id":5,"weId":{"webentity":{"lru":"s:http|h:com|h:blogspot|h:perdre-la-raison|","stems_count":4,"name":"Perdre-La-Raison","id":"1ae8c609-36d8-4777-b7d0-3b39d1b3e7e2","$$hashKey":258}},"status":"loading"},{"id":6,"weId":{"webentity":{"lru":"s:http|h:org|h:aclefeu|","stems_count":3,"name":"Aclefeu","id":"b68d330b-0cd4-4e07-adc1-01b1d42e0e74","$$hashKey":286}},"status":"loading"},{"id":7,"weId":{"webentity":{"lru":"s:http|h:org|h:acrimed|","stems_count":3,"name":"Acrimed","id":"00d46fb0-2a5d-4f66-aab9-fac10ca11256","$$hashKey":302}},"status":"loading"},{"id":8,"weId":{"webentity":{"lru":"s:http|h:org|h:actupparis|","stems_count":3,"name":"Actupparis","id":"b732a439-e00e-4ad9-8287-755373fe7921","$$hashKey":318}},"status":"loading"},{"id":9,"weId":{"webentity":{"lru":"s:http|h:com|h:acteurspublics|","stems_count":3,"name":"Acteurspublics","id":"baa003d8-2941-43ee-a60b-99431a8d79e6","$$hashKey":334}},"status":"loading"},{"id":10,"weId":{"webentity":{"lru":"s:http|h:com|h:actu-environnement|","stems_count":3,"name":"Actu-Environnement","id":"9f757880-6d0c-4a6d-9b5a-291819a037e2","$$hashKey":350}},"status":"loading"},{"id":11,"weId":{"webentity":{"lru":"s:http|h:org|h:actuchomage|","stems_count":3,"name":"Actuchomage","id":"f5350b69-80c3-427d-b4e6-647679574762","$$hashKey":366}},"status":"loading"},{"id":12,"weId":{"webentity":{"lru":"s:http|h:fr|h:afev|","stems_count":3,"name":"Afev","id":"293c8afb-4920-484d-9228-0253d4430086","$$hashKey":382}},"status":"loading"},{"id":13,"weId":{"webentity":{"lru":"s:http|h:com|h:nouvelobs|","stems_count":3,"name":"Nouvelobs","id":"bcb2f904-967a-49fa-8182-1a8e6472b5ac","$$hashKey":398}},"status":"loading"},{"id":14,"weId":{"webentity":{"lru":"s:http|h:com|h:nouvelobs|","stems_count":3,"name":"Nouvelobs","id":"bcb2f904-967a-49fa-8182-1a8e6472b5ac","$$hashKey":411}},"status":"loading"},{"id":15,"weId":{"webentity":{"lru":"s:http|h:eu|h:euromemorandum|","stems_count":3,"name":"Euromemorandum","id":"3788c46d-48c8-42dc-ad0a-62fd7a5736c7","$$hashKey":425}},"status":"loading"},{"id":16,"weId":{"webentity":{"lru":"s:http|h:fr|h:ademe|","stems_count":3,"name":"Ademe","id":"4e724e2c-7491-470c-8e6b-31979c93d1f8","$$hashKey":435}},"status":"loading"},{"id":17,"weId":{"webentity":{"lru":"s:http|h:eu|h:europa|","stems_count":3,"name":"Europa","id":"0c11d51e-2492-42c3-a5a8-1ce8a63946a4","$$hashKey":448}},"status":"loading"},{"id":18,"weId":{"webentity":{"lru":"s:http|h:fr|h:anact|","stems_count":3,"name":"Anact","id":"4729ade7-0a4c-470b-b47c-bf5ecc9ff597","$$hashKey":459}},"status":"loading"},{"id":19,"weId":{"webentity":{"lru":"s:http|h:org|h:hypotheses|","stems_count":3,"name":"Hypotheses","id":"1a856fc8-2725-42dc-9437-ce5a101914f6","$$hashKey":474}},"status":"loading"},{"id":20,"weId":{"webentity":{"lru":"s:http|h:fr|h:agoravox|","stems_count":3,"name":"Agoravox","id":"419e79fb-3739-4edf-8f43-02acc9a3886a","$$hashKey":485}},"status":"loading"},{"id":21,"weId":{"webentity":{"lru":"s:http|h:org|h:aides|","stems_count":3,"name":"Aides","id":"23c20145-506b-4316-8ac1-516f1e0a5799","$$hashKey":501}},"status":"loading"},{"id":22,"weId":{"webentity":{"lru":"s:http|h:fr|h:alternatives-economiques|","stems_count":3,"name":"Alternatives-Economiques","id":"80c579ac-7959-460e-9e88-2c638e2e12c1","$$hashKey":517}},"status":"loading"},{"id":23,"weId":{"webentity":{"lru":"s:http|h:eu|h:alainlamassoure|","stems_count":3,"name":"Alainlamassoure","id":"4c9b2a78-5131-42b6-ab21-e643f3e9d031","$$hashKey":528}},"status":"loading"},{"id":24,"weId":{"webentity":{"lru":"s:http|h:net|h:lipietz|","stems_count":3,"name":"Lipietz","id":"14e7acf8-a691-431f-b98b-f17959ce2f6c","$$hashKey":542}},"status":"loading"},{"id":25,"weId":{"webentity":{"lru":"s:http|h:fr|h:parti-socialiste|","stems_count":3,"name":"Parti-Socialiste","id":"8b00cab2-bfe6-4af3-bb52-bddfd4c842d3","$$hashKey":555}},"status":"loading"},{"id":26,"weId":{"webentity":{"lru":"s:http|h:fr|h:blogspot|h:aliciabx|","stems_count":4,"name":"Aliciabx","id":"50465121-424a-4e16-98c9-0a3a333fb149","$$hashKey":569}},"status":"loading"},{"id":27,"weId":{"webentity":{"lru":"s:http|h:fr|h:alliancecentriste|","stems_count":3,"name":"Alliancecentriste","id":"f96935e7-c607-48f9-aae9-6a9a66337adc","$$hashKey":581}},"status":"loading"},{"id":28,"weId":{"webentity":{"lru":"s:http|h:eu|h:alde|","stems_count":3,"name":"Alde","id":"070f1b1a-3338-4833-b929-dfe8e20b8671","$$hashKey":598}},"status":"loading"},{"id":29,"weId":{"webentity":{"lru":"s:http|h:fr|h:centristesblog|","stems_count":3,"name":"Centristesblog","id":"fb7372b5-94bb-4a66-a59d-75580cde8d8e","$$hashKey":613}},"status":"loading"},{"id":30,"weId":{"webentity":{"lru":"s:http|h:fr|h:alliance-ecologiste-independante|","stems_count":3,"name":"Alliance-Ecologiste-Independante","id":"b3811b8e-56b4-4cd9-a1ca-4efe27499221","$$hashKey":624}},"status":"loading"},{"id":31,"weId":{"webentity":{"lru":"s:http|h:org|h:alliancegeostrategique|","stems_count":3,"name":"Alliancegeostrategique","id":"00529f6b-a104-4e4a-9d0e-7036b558dae0","$$hashKey":638}},"status":"loading"},{"id":32,"weId":{"webentity":{"lru":"s:http|h:eu|h:socialistsanddemocrats|","stems_count":3,"name":"Socialistsanddemocrats","id":"2b3148df-48eb-40a1-8b5d-ed4b91a7405f","$$hashKey":651}},"status":"loading"},{"id":33,"weId":{"webentity":{"lru":"s:http|h:fr|h:alliance-pour-une-france-juste|","stems_count":3,"name":"Alliance-Pour-Une-France-Juste","id":"e6bd50aa-54e8-4e13-8d09-09e0938b0143","$$hashKey":665}},"status":"loading"},{"id":34,"weId":{"webentity":{"lru":"s:http|h:org|h:allons-enfants|","stems_count":3,"name":"Allons-Enfants","id":"bf6733d4-c756-4354-9c2f-2c47f19fbdb1","$$hashKey":676}},"status":"loading"},{"id":35,"weId":{"webentity":{"lru":"s:http|h:org|h:alsacedabord|","stems_count":3,"name":"Alsacedabord","id":"5405c08a-1b31-4b31-a5ca-2e95a1d093f0","$$hashKey":692}},"status":"loading"},{"id":36,"weId":{"webentity":{"lru":"s:http|h:fr|h:alter-oueb|","stems_count":3,"name":"Alter-Oueb","id":"0681fcd3-e093-4a7c-a693-901a306438ac","$$hashKey":708}},"status":"loading"},{"id":37,"weId":{"webentity":{"lru":"s:http|h:org|h:altermondes|","stems_count":3,"name":"Altermondes","id":"fc510650-67a8-466e-af5a-57df0773e7bd","$$hashKey":724}},"status":"loading"},{"id":38,"weId":{"webentity":{"lru":"s:http|h:fr|h:alternative-liberale|","stems_count":3,"name":"Alternative-Liberale","id":"5d7c7533-6e91-4ac3-9ea5-6ead81c89f39","$$hashKey":741}},"status":"loading"}] 
+    // console.log(JSON.stringify($scope.list))
+    var list = [{"id":0,"webentity":{"lru":"s:http|h:com|h:24heuresactu|","stems_count":3,"name":"24heuresactu","id":"bc95749f-29b9-4729-a0b4-c3f8ec4f70ba","$$hashKey":200},"status":"loading","collapsed":true},{"id":1,"webentity":{"lru":"s:http|h:com|h:365mots|","stems_count":3,"name":"365mots","id":"331f5458-b65d-4efc-8a4e-f58bc36ae0e2","$$hashKey":212},"status":"loading","collapsed":true},{"id":2,"webentity":{"lru":"s:http|h:com|h:60millions-mag|","stems_count":3,"name":"60millions-Mag","id":"5007fb4a-bdca-4e9f-ae7d-c9d37bba63fb","$$hashKey":244},"status":"loading","collapsed":true},{"id":3,"webentity":{"lru":"s:http|h:fr|h:80propositions|","stems_count":3,"name":"80propositions","id":"ee8f0376-99b3-44dc-a96c-1f2ba94e7f70","$$hashKey":270},"status":"loading","collapsed":true},{"id":4,"webentity":{"lru":"s:http|h:net|h:acontrario|","stems_count":3,"name":"Acontrario","id":"48ad5564-c8a3-4916-bbcd-c114bc3d7261","$$hashKey":228},"status":"loading","collapsed":true},{"id":5,"webentity":{"lru":"s:http|h:com|h:blogspot|h:perdre-la-raison|","stems_count":4,"name":"Perdre-La-Raison","id":"ee84cea1-c660-49a0-9b32-478b17c526eb","$$hashKey":258},"status":"loading","collapsed":true},{"id":6,"webentity":{"lru":"s:http|h:org|h:aclefeu|","stems_count":3,"name":"Aclefeu","id":"975375a4-462c-4e79-91d2-5df2ca620dae","$$hashKey":286},"status":"loading","collapsed":true},{"id":7,"webentity":{"lru":"s:http|h:org|h:acrimed|","stems_count":3,"name":"Acrimed","id":"6c590a5f-c5da-45ba-bc76-31a13246fadb","$$hashKey":302},"status":"loading","collapsed":true},{"id":8,"webentity":{"lru":"s:http|h:org|h:actupparis|","stems_count":3,"name":"Actupparis","id":"4b08cc28-0d25-4676-b191-09e5f3d47ba0","$$hashKey":318},"status":"loading","collapsed":true},{"id":9,"webentity":{"lru":"s:http|h:com|h:acteurspublics|","stems_count":3,"name":"Acteurspublics","id":"abdfee5b-b1a0-4eda-b158-9065b12525e8","$$hashKey":350},"status":"loading","collapsed":true},{"id":10,"webentity":{"lru":"s:http|h:com|h:actu-environnement|","stems_count":3,"name":"Actu-Environnement","id":"63260a07-f913-41f1-90fc-f4f3a9858a22","$$hashKey":334},"status":"loading","collapsed":true},{"id":11,"webentity":{"lru":"s:http|h:org|h:actuchomage|","stems_count":3,"name":"Actuchomage","id":"ea86a95b-1536-4bbf-92fc-b41c481d975a","$$hashKey":366},"status":"loading","collapsed":true},{"id":12,"webentity":{"lru":"s:http|h:fr|h:afev|","stems_count":3,"name":"Afev","id":"838d7638-d4af-4632-be90-86f263a7f5a9","$$hashKey":382},"status":"loading","collapsed":true},{"id":13,"webentity":{"lru":"s:http|h:com|h:nouvelobs|","stems_count":3,"name":"Nouvelobs","id":"130e6d45-a2f2-4ab3-a85f-5d6e3bf10cba","$$hashKey":398},"status":"loading","collapsed":true},{"id":14,"webentity":{"lru":"s:http|h:com|h:nouvelobs|","stems_count":3,"name":"Nouvelobs","id":"130e6d45-a2f2-4ab3-a85f-5d6e3bf10cba","$$hashKey":411},"status":"loading","collapsed":true},{"id":15,"webentity":{"lru":"s:http|h:eu|h:euromemorandum|","stems_count":3,"name":"Euromemorandum","id":"ef6d94ee-7da3-4b88-bfd7-a02e240bcc81","$$hashKey":425},"status":"loading","collapsed":true},{"id":16,"webentity":{"lru":"s:http|h:fr|h:ademe|","stems_count":3,"name":"Ademe","id":"00593063-54ea-4243-b94e-c9867076524f","$$hashKey":435},"status":"loading","collapsed":true},{"id":17,"webentity":{"lru":"s:http|h:eu|h:europa|","stems_count":3,"name":"Europa","id":"184f9d48-d307-4735-a882-5524e8922741","$$hashKey":448},"status":"loading","collapsed":true},{"id":18,"webentity":{"lru":"s:http|h:fr|h:anact|","stems_count":3,"name":"Anact","id":"2dcb385a-9b55-44fb-a894-0ab9fed2bd59","$$hashKey":459},"status":"loading","collapsed":true},{"id":19,"webentity":{"lru":"s:http|h:org|h:hypotheses|","stems_count":3,"name":"Hypotheses","id":"656ee592-fa5c-4cad-bdf7-44a4da2c2362","$$hashKey":474},"status":"loading","collapsed":true},{"id":20,"webentity":{"lru":"s:http|h:fr|h:agoravox|","stems_count":3,"name":"Agoravox","id":"cb33dad2-3f7b-4d9f-9d05-f15ba83a037b","$$hashKey":485},"status":"loading","collapsed":true},{"id":21,"webentity":{"lru":"s:http|h:org|h:aides|","stems_count":3,"name":"Aides","id":"7253c2b3-79ce-4726-aeef-a8ec30f6a612","$$hashKey":501},"status":"loading","collapsed":true},{"id":22,"webentity":{"lru":"s:http|h:fr|h:alternatives-economiques|","stems_count":3,"name":"Alternatives-Economiques","id":"eb0edb3d-8992-42fc-aad9-79703d730f67","$$hashKey":517},"status":"loading","collapsed":true},{"id":23,"webentity":{"lru":"s:http|h:eu|h:alainlamassoure|","stems_count":3,"name":"Alainlamassoure","id":"1d764f87-8636-481a-b534-2eea62244c7e","$$hashKey":528},"status":"loading","collapsed":true},{"id":24,"webentity":{"lru":"s:http|h:net|h:lipietz|","stems_count":3,"name":"Lipietz","id":"cb03ca54-7c3d-4cb0-bc22-fc7cba3e4b62","$$hashKey":542},"status":"loading","collapsed":true},{"id":25,"webentity":{"lru":"s:http|h:fr|h:parti-socialiste|","stems_count":3,"name":"Parti-Socialiste","id":"3f687491-13c9-4a52-9fc3-a3f9630cfd74","$$hashKey":555},"status":"loading","collapsed":true},{"id":26,"webentity":{"lru":"s:http|h:fr|h:blogspot|h:aliciabx|","stems_count":4,"name":"Aliciabx","id":"aec66ae4-4c51-446a-b811-95a3798acfcc","$$hashKey":569},"status":"loading","collapsed":true},{"id":27,"webentity":{"lru":"s:http|h:fr|h:alliancecentriste|","stems_count":3,"name":"Alliancecentriste","id":"cb82d4cb-5415-402b-96ba-735914495fbc","$$hashKey":581},"status":"loading","collapsed":true},{"id":28,"webentity":{"lru":"s:http|h:eu|h:alde|","stems_count":3,"name":"Alde","id":"5e14a436-b822-454f-900c-e53ba8591b1c","$$hashKey":598},"status":"loading","collapsed":true},{"id":29,"webentity":{"lru":"s:http|h:fr|h:centristesblog|","stems_count":3,"name":"Centristesblog","id":"6e219a67-e050-44c0-ab57-24ceddabce59","$$hashKey":613},"status":"loading","collapsed":true},{"id":30,"webentity":{"lru":"s:http|h:fr|h:alliance-ecologiste-independante|","stems_count":3,"name":"Alliance-Ecologiste-Independante","id":"b3797053-9409-46cd-887b-c8c92ba55a0a","$$hashKey":624},"status":"loading","collapsed":true},{"id":31,"webentity":{"lru":"s:http|h:org|h:alliancegeostrategique|","stems_count":3,"name":"Alliancegeostrategique","id":"e4a6bcea-8d3b-411b-a45a-1bc9d3fd1d66","$$hashKey":638},"status":"loading","collapsed":true},{"id":32,"webentity":{"lru":"s:http|h:eu|h:socialistsanddemocrats|","stems_count":3,"name":"Socialistsanddemocrats","id":"2872d824-aeb2-4eb9-97c8-6d0387f7098d","$$hashKey":651},"status":"loading","collapsed":true},{"id":33,"webentity":{"lru":"s:http|h:fr|h:alliance-pour-une-france-juste|","stems_count":3,"name":"Alliance-Pour-Une-France-Juste","id":"62dd0209-24dd-46bc-8eef-63717d49bc8d","$$hashKey":665},"status":"loading","collapsed":true},{"id":34,"webentity":{"lru":"s:http|h:org|h:allons-enfants|","stems_count":3,"name":"Allons-Enfants","id":"c126597e-860a-49ab-b261-8900b0a7012c","$$hashKey":676},"status":"loading","collapsed":true},{"id":35,"webentity":{"lru":"s:http|h:org|h:alsacedabord|","stems_count":3,"name":"Alsacedabord","id":"a5aad4eb-4524-4bf8-a85a-1d2720e41f8a","$$hashKey":692},"status":"loading","collapsed":true},{"id":36,"webentity":{"lru":"s:http|h:fr|h:alter-oueb|","stems_count":3,"name":"Alter-Oueb","id":"1adc3ed5-9d0f-469d-81f9-7440cdfc3b71","$$hashKey":708},"status":"loading","collapsed":true},{"id":37,"webentity":{"lru":"s:http|h:org|h:altermondes|","stems_count":3,"name":"Altermondes","id":"9ce99140-774f-4215-aa68-b0de5626636d","$$hashKey":724},"status":"loading","collapsed":true},{"id":38,"webentity":{"lru":"s:http|h:fr|h:alternative-liberale|","stems_count":3,"name":"Alternative-Liberale","id":"c8862789-51d9-47ce-a3f7-5a3354daaf14","$$hashKey":741},"status":"loading","collapsed":true}] 
     $scope.list = bootstrapList(list)
-    
+    console.log($scope.list)
+
+    // Build index
+    var list_byId = {}
+    $scope.list.forEach(function(obj){
+      list_byId[obj.id] = obj
+    })
+
     // Clean store
     store.remove('webentities_toCrawl')
 
@@ -559,19 +567,129 @@ angular.module('hyphe.controllers', [])
       $location.path('/newCrawl')
     }
 
+    // Get web entities (including start pages)
+    $scope.getWebentities = function(opt){
+      // Options
+      opt = opt || {}
+      // opt.skip_when_start_pages_exist
+      // opt.list
+
+      $scope.status = {message:'Loading Web Entities'}
+
+      var queriesBatcher = new QueriesBatcher()
+      ,listToQuery = opt.list || $scope.list
+
+      if(opt.skip_when_start_pages_exist){
+        listToQuery = listToQuery.filter(function(obj){
+          return obj.webentity.startpages === undefined
+        })
+      }
+
+      listToQuery.forEach(function(obj){
+        // Stack the query
+        queriesBatcher.addQuery(
+            api.getWebentities                    // Query call
+            ,{                                    // Query settings
+                id_list:[obj.webentity.id]
+              }
+            ,function(we_list){                   // Success callback
+                if(we_list.length > 0){
+                  obj.status = 'loaded'
+                  obj.webentity = we_list[0]
+                } else {
+                  obj.status = 'error'
+                  console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', we_list, 'status:', status)
+                }
+              }
+            ,function(data, status, headers){     // Fail callback
+                obj.status = 'error'
+                console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', data, 'status:', status)
+                if(data[0].code == 'fail'){
+                  obj.infoMessage = data[0].message
+                }
+              }
+            ,{                                    // Options
+                label: obj.webentity.id
+                ,before: function(){
+                    obj.status = 'pending'
+                  }
+              }
+          )
+      })
+
+      queriesBatcher.atEachFetch(function(list,pending,success,fail){
+        var summary = {
+          total: list.length + pending.length + success.length + fail.length
+          ,pending: pending.length
+          ,loaded: success.length + fail.length
+        }
+        ,percent = Math.round((summary.loaded / summary.total) * 100)
+        ,percent_pending = Math.round((summary.pending / summary.total) * 100)
+        ,msg = percent + '% loaded'
+        $scope.status = {message: msg, progress:percent, progressPending:percent_pending}
+      })
+
+      queriesBatcher.atFinalization(function(list,pending,success,fail){
+        // Status message
+        $scope.status = {}
+      })
+
+      queriesBatcher.run()
+    }
+    $scope.getWebentities()
+
+    // Declaring a start page
+    $scope.addStartPage = function(objId, apply){
+      var obj = list_byId[objId]
+      ,url = obj.currentStartPageInput
+
+      obj.startPageInvalid = !utils.URL_validate(url)
+
+      if(obj.startPageInvalid){
+        alert('This URL is not valid\n('+ url +' )')
+      } else {
+        var url_is_prefixed = checkUrlPrefixed(url, obj.webentity.lru_prefixes)
+        if(url_is_prefixed){
+          obj.status = 'loading'
+          api.addStartPage({
+              webentityId: obj.webentity.id
+              ,url: url
+            }
+            ,function(data){
+              console.log('start page added', data)
+            }
+            ,function(data, status, headers, config){
+              $scope.status = {message:'Start page could not be added', background:'danger'}
+            }
+          )
+        } else {
+          alert('This URL does not belong to this web entity')
+        }
+      }
+    }
+    
+
+    $scope.startPageValidate = function(objId){
+      var obj = list_byId[objId]
+      ,url = obj.currentStartPageInput
+
+      obj.startPageInvalid = !utils.URL_validate(url) && url != ''
+    }
 
 
-    function bootstrapList(weId_list){
-      var weId_list = weId_list || []
+    function bootstrapList(list){
+      list = list || []
 
       // Pagination
-      initPagination(0, 50, weId_list.length)
+      initPagination(0, 50, list.length)
       
-      return weId_list.map(function(weId, i){
+      // Clean and set exactly what we need
+      return list.map(function(obj, i){
         return {
           id:i
-          ,weId: weId
+          ,webentity: obj.webentity
           ,status: 'loading'
+          ,collapsed: true
         }
       })
     }
@@ -587,6 +705,16 @@ angular.module('hyphe.controllers', [])
       if($scope.page >= max)
       $scope.page = max - 1
       $scope.pages = utils.getRange(max)
+    }
+
+    function checkUrlPrefixed(url, lru_prefixes){
+      var lru = utils.URL_to_LRU(url)
+      ,lru_valid = false
+      lru_prefixes.forEach(function(lru_prefix){
+          if(lru.indexOf(lru_prefix) == 0)
+              lru_valid = true
+      })
+      return lru_valid
     }
 
   }])

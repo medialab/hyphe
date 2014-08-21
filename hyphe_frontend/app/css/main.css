@@ -224,10 +224,11 @@ textarea.over-error{
 /* ==========================================================================
    View: Check start pages
    ========================================================================== */
+
 .table-startpages>tbody>tr>td{
   border-top: 1px solid #F5F5F5;
 }
-.table-startpages>tbody>tr:not(.selectable){
+.table-startpages>tbody>tr{
   -webkit-user-select: none; /* Chrome/Safari */        
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* IE10+ */
@@ -237,6 +238,7 @@ textarea.over-error{
   width: 50px;
 }
 .table-startpages .td-row-content{
+  padding:0px;
   width: auto;
   overflow-x: auto;
   overflow-y: hidden;
@@ -246,11 +248,20 @@ textarea.over-error{
   font-size: 24px;
   font-weight: 300;
 }
-.table-startpages .title-container{
-  
+.table-startpages .row-top{
+  cursor: pointer;
+  padding-top: 16px;
+  padding-bottom: 16px;
 }
-
-
+.table-startpages .title-container{
+  font-family: 'Roboto', sans-serif;
+  font-weight:400;
+}
+/* Collapsible panel */
+.table-startpages .bottom-panel{
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
 
 
 

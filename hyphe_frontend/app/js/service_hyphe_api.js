@@ -89,6 +89,24 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
+    api.addStartPage = buildApiCall(
+        HYPHE_API.WEBENTITY.STARTPAGE.ADD
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.url
+            ]}
+      )
+
+    api.removeStartPage = buildApiCall(
+        HYPHE_API.WEBENTITY.STARTPAGE.REMOVE
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.url
+            ]}
+      )
+
 
 
     function buildApiCall(pseudo_route, params){
