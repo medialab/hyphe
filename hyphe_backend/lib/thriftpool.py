@@ -193,24 +193,3 @@ class ThriftPooledClient(object):
         error['message'] = error['message'].replace('127.0.0.1:%d' % self.port, 'MemoryStructure')
         return error
 
-#TODO: delete down there
-class ThriftSyncClient(ThriftPooledClient):
-
-    def __init__(self, iface_cls,
-                 host, port,
-                 retries = 3,
-                 network_timeout = DEFAULT_NETWORK_TIMEOUT,
-                 framed_transport = True,
-                 compact_protocol = False):
-        ThriftPooledClient.__init__(self, iface_cls=iface_cls, host=host, port=port, pool_size=1, retries=retries, network_timeout=network_timeout, framed_transport=framed_transport, compact_protocol=compact_protocol)
-
-class ThriftASyncClient(ThriftPooledClient):
-
-    def __init__(self, iface_cls,
-                 host, port,
-                 retries = 3,
-                 network_timeout = DEFAULT_NETWORK_TIMEOUT,
-                 framed_transport = True,
-                 compact_protocol = False):
-        ThriftPooledClient.__init__(self, iface_cls=iface_cls, host=host, port=port, pool_size=1, async=True, retries=retries, network_timeout=network_timeout, framed_transport=framed_transport, compact_protocol=compact_protocol)
-

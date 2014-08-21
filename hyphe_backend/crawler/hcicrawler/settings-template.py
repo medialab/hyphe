@@ -27,9 +27,9 @@ DOWNLOADER_MIDDLEWARES = {
 
 MONGO_HOST = '{{host}}'
 MONGO_PORT = {{mongo_port}}
-MONGO_DB = '{{project}}'
-MONGO_QUEUE_COL = '{{queueCol}}'
-MONGO_PAGESTORE_COL = '{{pageStoreCol}}'
+MONGO_DB = '{{db_name}}'
+MONGO_QUEUE_COL = '{{project}}.queue'
+MONGO_PAGESTORE_COL = '{{project}}.pages'
 
 PHANTOM = {
   "PATH": os.path.join('{{hyphePath}}', 'bin', 'hyphe-phantomjs-2.0.0'),

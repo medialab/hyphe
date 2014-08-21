@@ -7,7 +7,12 @@ import subprocess, json, pystache
 from shutil import copyfile
 from contextlib import nested
 
-verbose=len(sys.argv) == 2 and (sys.argv[1] == "-v" or sys.argv[1] == "--verbose")
+verbose = False
+for arg in [a for a in sys.argv[1:] if a.strip()]:
+    if arg == "-v" or arg == "--verbose":
+        verbose = True
+    else:
+        project = arg
 
 # Copy config.json from root to scrapy deployment dir
 if verbose:
@@ -48,6 +53,7 @@ try:
         config['mongo-scrapy']['proxy_port'] = 3128
     curpath = os.path.abspath(getsourcefile(lambda _: None))
     config['mongo-scrapy']['hyphePath'] = os.path.sep.join(curpath.split(os.path.sep)[:-3])
+    config['mongo-scrapy']['project'] = project
     for _to in ["", "idle_", "ajax_"]:
         config['mongo-scrapy']['phantom_%stimeout' % _to] = config['phantom']['%stimeout' % _to]
     with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):

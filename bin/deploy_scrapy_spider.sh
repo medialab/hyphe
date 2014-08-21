@@ -1,6 +1,7 @@
 #!/bin/bash
 
-option=$1
+project=$1
+option=$2
 
 if [ -z "$option" ] || [ "$option" != "--noenv" ]; then
   source $(which virtualenvwrapper.sh)
@@ -11,5 +12,5 @@ else
 fi
 
 cd hyphe_backend/crawler
-python deploy.py $option
+python deploy.py "$project" $option
 
