@@ -533,10 +533,11 @@ angular.module('hyphe.controllers', [])
   ,function($scope, api, store, utils, $location) {
     $scope.currentPage = 'checkStartPages'
     
+    // DEV MODE
     $scope.list = bootstrapList(store.get('weId_list_toCrawl'))
-
+    
     // Clean store
-    // store.remove('weId_list_toCrawl')
+    $store.remove('weId_list_toCrawl')
 
     if($scope.list.length==0){
       $location.path('/newCrawl')
