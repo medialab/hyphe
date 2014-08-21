@@ -543,8 +543,8 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('CheckStartPages', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher'
-  ,function($scope, api, store, utils, $location, QueriesBatcher) {
+  .controller('CheckStartPages', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', '$modal'
+  ,function($scope, api, store, utils, $location, QueriesBatcher, $modal) {
     $scope.currentPage = 'checkStartPages'
 
     // DEV MODE
@@ -640,16 +640,20 @@ angular.module('hyphe.controllers', [])
 
     // Declaring a start page
     $scope.addStartPage = function(objId, apply){
+
       var obj = list_byId[objId]
       ,url = obj.currentStartPageInput
 
       obj.startPageInvalid = !utils.URL_validate(url)
 
       if(obj.startPageInvalid){
+
         alert('This URL is not valid\n('+ url +' )')
+
       } else {
         var url_is_prefixed = checkUrlPrefixed(url, obj.webentity.lru_prefixes)
         if(url_is_prefixed){
+
           obj.status = 'loading'
           api.addStartPage({
               webentityId: obj.webentity.id
@@ -662,8 +666,30 @@ angular.module('hyphe.controllers', [])
               $scope.status = {message:'Start page could not be added', background:'danger'}
             }
           )
+
         } else {
-          alert('This URL does not belong to this web entity')
+
+          /* Instanciate and open the Modal */
+          var modalInstance = $modal.open({
+            templateUrl: 'partials/sub/startpagemodal.html'
+            ,size: 'lg'
+            ,controller: startPageModalCtrl
+            ,resolve: {
+              url: function () {
+                  return url
+                }
+              ,webentity: function () {
+                  return obj.webentity
+                }
+            }
+          })
+
+          modalInstance.result.then(function (feedback) {
+            
+          }, function () {
+            // On dismiss
+          })
+
         }
       }
     }
@@ -690,6 +716,7 @@ angular.module('hyphe.controllers', [])
           ,webentity: obj.webentity
           ,status: 'loading'
           ,collapsed: true
+          ,currentStartPageInput: "http://google.com"  // for test only
         }
       })
     }
@@ -717,4 +744,54 @@ angular.module('hyphe.controllers', [])
       return lru_valid
     }
 
+    function startPageModalCtrl($scope, $modalInstance, url, webentity) {
+      $scope.url = url
+      $scope.webentity = webentity
+
+      // Bootstraping the object for the Prefix Slider
+      var obj = {}
+      obj.url = utils.URL_fix(url)
+      obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
+      obj.tldLength = utils.LRU_getTLD(obj.lru).split('.').length
+      obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
+      obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
+        .map(function(stem){
+            var maxLength = 12
+            if(stem.length > maxLength+3){
+              return stem.substr(0,maxLength) + '...'
+            }
+            return stem
+          })
+      obj.prefixLength = 3
+      obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
+      obj.conflicts = []
+      obj.status = "loading"
+      $scope.obj = obj
+
+      // Load parent web entities
+      api.getLruParentWebentities({
+            lru: $scope.obj.lru
+          }
+          ,function(we_list){
+            $scope.obj.parentWebEntities = we_list
+            $scope.obj.status = 'loaded'
+          }
+          ,function(data, status, headers, config){
+            $scope.obj.status = 'error'
+            $scope.obj.errorMessage = 'Oops... The server query failed'
+          }
+        )
+
+      $scope.ok = function () {
+        var feedback = {}
+        $modalInstance.close(feedback);
+      };
+
+      $scope.cancel = function () {
+        $modalInstance.dismiss('cancel');
+      };
+    }
+
   }])
+
+

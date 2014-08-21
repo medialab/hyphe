@@ -11,6 +11,10 @@ angular.module('hyphe.service_glossary', [])
         ,definition: 'Process of harvesting text and links from the web'
         ,entries: ['crawl', 'crawls', 'crawling']
       },{
+        title: 'Boundaries of a Web Entity'
+        ,definition: 'Defines if a web entity is a whole domain, a subdomain, a page or a combination of those'
+        ,entries: ['boundaries', 'boundaries of a web entity', 'boundaries of web entities']
+      },{
         title: 'HTTPS Variations'
         ,definition: 'URLs that differ only by using the secured protocol "https". Ex: https://google.com and http://google.com'
         ,entries: ['https variation', 'https variations']

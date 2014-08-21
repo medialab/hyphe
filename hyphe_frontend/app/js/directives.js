@@ -11,6 +11,9 @@ angular.module('hyphe.directives', [])
       ,templateUrl: 'partials/sub/webentityslider.html'
       ,link: function(scope, el, attrs) {
         
+        // Options
+        var opt = scope.$eval(attrs.hyphePrefixSlider) || {}
+
         scope.updateNameAndStatus = function(obj){
           obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
           var webentityFound
@@ -21,12 +24,23 @@ angular.module('hyphe.directives', [])
           })
           if(webentityFound){
             scope.name = webentityFound.name
-            scope.statusText = 'Already exists'
-            scope.status = 'exists'
+            if(opt.editMode){
+              scope.statusText = 'Merge with ' + scope.webentity.name + '?'
+              scope.task = {type:'merge', webentity:webentityFound}
+            } else {
+              scope.statusText = 'Already exists'
+              scope.status = 'exists'
+            }
           } else {
-            scope.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
-            scope.statusText = 'New'
-            scope.status = 'new'
+            if(opt.editMode){
+              scope.name = 'No web entity defined with this prefix'
+              scope.task = {type:'addPrefix'}
+              scope.statusText = 'Add it to ' + scope.webentity.name + '?'
+            } else {
+              scope.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
+              scope.statusText = 'New'
+              scope.status = 'new'
+            }
           }
         }
 
@@ -52,18 +66,26 @@ angular.module('hyphe.directives', [])
 
         // Keeping an updated version of x-coordinates where the slider makes something happen
 	      var steps
+        
         scope.$watch(function(){  // Watch active state (!.blurred container)
             var container = el.parent().parent().parent().parent()
             return container.hasClass('blurred')
           }, updateCoordinates)
-        scope.$watch(function(){  // Watch coordinate changes
-            return el.parent().offset().left
-          }, updateCoordinates)
+        
+        // scope.$watch(function(){  // Watch coordinate changes
+        //     return el.parent().offset().left
+        //   }, updateCoordinates)
+        
         scope.$watch(function(){  // Watch obj changes
             return scope.obj
           }, updateCoordinates)
-				$(window).resize(updateCoordinates)
-	      
+        
+        scope.$watch(function(){  // Watch steps in DOM
+            return el.parent().find('table>tbody>tr>td.stem').length
+          }, updateCoordinates)
+
+        $(window).resize(updateCoordinates)
+
 	      var z_idx = el.css('z-index')
 	      ,drg_w = el.outerWidth()
         ,pos_x = el.offset().left + drg_w
@@ -123,10 +145,12 @@ angular.module('hyphe.directives', [])
             }
           })
           if(scope.obj.prefixLength != closestStepId){
-            scope.conflictsIndex.removeFromLruIndex(scope.obj)
+            if(scope.conflictsIndex)
+              scope.conflictsIndex.removeFromLruIndex(scope.obj)
             scope.obj.prefixLength = closestStepId
             scope.updateNameAndStatus(scope.obj)
-            scope.conflictsIndex.addToLruIndex(scope.obj)
+            if(scope.conflictsIndex)
+              scope.conflictsIndex.addToLruIndex(scope.obj)
             scope.$apply()
           }
         }
