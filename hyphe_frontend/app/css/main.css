@@ -270,6 +270,11 @@ textarea.over-error{
   margin-top: 12px;
   margin-bottom: 12px;
 }
+/* Modal */
+.start-page-modal .slider-container{
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 
 
 

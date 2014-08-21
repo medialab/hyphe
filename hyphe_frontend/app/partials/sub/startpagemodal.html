@@ -1,7 +1,7 @@
 <div class="modal-header">
   <h3 class="modal-title">Out of Boundaries!</h3>
 </div>
-<div class="modal-body">
+<div class="modal-body start-page-modal">
   <p class="text-info">
     The <span hyphe-glossary>start page</span> you proposed is not in the <span hyphe-glossary>boundaries</span> of the <span hyphe-glossary>web entity</span>
   </p>
@@ -12,7 +12,9 @@
   <div ng-if="obj.status=='error'" class="bg-danger">
     {{obj.errorMessage}}
   </div>
-  <div ng-if="obj.status=='loaded'" hyphe-prefix-slider="{editMode:true}"></div>
+  <div ng-if="obj.status=='loaded'" class="slider-container">
+    <div hyphe-prefix-slider="{editMode:true}"></div>
+  </div>
   <br/>
 </div>
 <div class="modal-footer">
