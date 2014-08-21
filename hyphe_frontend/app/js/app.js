@@ -3,15 +3,16 @@
 
 // Declare app level module which depends on filters, and services
 angular.module('hyphe', [
-  'ngRoute',
-  'hyphe.conf',
-  'hyphe.filters',
-  'hyphe.services',
-  'hyphe.service_utils',
-  'hyphe.service_hyphe_api',
-  'hyphe.service_glossary',
-  'hyphe.directives',
-  'hyphe.controllers'
+  'ngRoute'
+  ,'ui.bootstrap'
+  ,'hyphe.conf'
+  ,'hyphe.filters'
+  ,'hyphe.services'
+  ,'hyphe.service_utils'
+  ,'hyphe.service_hyphe_api'
+  ,'hyphe.service_glossary'
+  ,'hyphe.directives'
+  ,'hyphe.controllers'
 ]).
 config(['$routeProvider', function($routeProvider) {
   $routeProvider.when('/login', {templateUrl: 'partials/login.html', controller: 'Login'});
