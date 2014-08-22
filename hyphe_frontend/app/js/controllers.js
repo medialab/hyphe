@@ -234,7 +234,7 @@ angular.module('hyphe.controllers', [])
             ,function(data, status, headers){       // Fail callback
                 obj.status = 'error'
                 console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url, data, 'status', status, 'headers', headers)
-                if(data && data[0].code == 'fail'){
+                if(data && data[0] && data[0].code == 'fail'){
                   obj.infoMessage = data[0].message
                 }
               }
@@ -343,7 +343,7 @@ angular.module('hyphe.controllers', [])
               ,function(data, status, headers){     // Fail callback
                   obj.status = 'error'
                   console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url, data, 'status', status, 'headers', headers)
-                  if(data[0].code == 'fail'){
+                  if(data && data[0] && data[0].code == 'fail'){
                     obj.infoMessage = data[0].message
                   }
                 }
@@ -604,7 +604,7 @@ angular.module('hyphe.controllers', [])
             ,function(data, status, headers){     // Fail callback
                 obj.status = 'error'
                 console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', data, 'status:', status)
-                if(data[0].code == 'fail'){
+                if(data && data[0] && data[0].code == 'fail'){
                   obj.infoMessage = data[0].message
                 }
               }
@@ -654,18 +654,7 @@ angular.module('hyphe.controllers', [])
         var url_is_prefixed = checkUrlPrefixed(url, obj.webentity.lru_prefixes)
         if(url_is_prefixed){
 
-          obj.status = 'loading'
-          api.addStartPage({
-              webentityId: obj.webentity.id
-              ,url: url
-            }
-            ,function(data){
-              console.log('start page added', data)
-            }
-            ,function(data, status, headers, config){
-              $scope.status = {message:'Start page could not be added', background:'danger'}
-            }
-          )
+          addStartPageAndReload(obj.id, url)
 
         } else {
 
@@ -685,9 +674,74 @@ angular.module('hyphe.controllers', [])
           })
 
           modalInstance.result.then(function (feedback) {
-            
+            // On 'OK'
+            if(feedback.task){
+              if(feedback.task.type == 'addPrefix'){
+                
+                // Add Prefix
+                var prefix = feedback.prefix
+                ,wwwVariations = feedback.wwwVariations
+                ,httpsVariations = feedback.httpsVariations
+                ,prefixes = utils.LRU_variations(prefix, {
+                    wwwlessVariations: wwwVariations
+                    ,wwwVariations: wwwVariations
+                    ,httpVariations: httpsVariations
+                    ,httpsVariations: httpsVariations
+                    ,smallerVariations: false
+                  })
+                
+                var queriesBatcher = new QueriesBatcher()
+                prefixes.forEach(function(prefix){
+                  // Stack the query
+                  queriesBatcher.addQuery(
+                      api.addPrefix                         // Query call
+                      ,{                                    // Query settings
+                          webentityId: obj.webentity.id
+                          ,lru: prefix
+                        }
+                      ,function(){                          // Success callback
+                        }
+                      ,function(data, status, headers){     // Fail callback
+                          $scope.status = {message:'Prefix could not be added', background:'danger'}
+                        }
+                      ,{                                    // Options
+                          label: 'add '+prefix
+                        }
+                    )
+                })
+
+                queriesBatcher.atFinalization(function(list,pending,success,fail){
+                  if(fail.length == 0)
+                    addStartPageAndReload(obj.id, url)
+                })
+
+                queriesBatcher.run()
+
+              } else if(feedback.task.type == 'merge'){
+                
+                // Merge web entities
+                var webentity = feedback.task.webentity
+                $scope.status = {message:'Merging web entities'}
+                obj.status = 'merging'
+                api.webentitiesMerge({
+                    goodWebentityId: obj.webentity.id
+                    ,oldWebentityId: webentity.id
+                  }
+                  ,function(data){
+                    // If it is in the list, remove it...
+                    purgeWebentityFromList(webentity)
+
+                    addStartPageAndReload(obj.id, url)
+                  }
+                  ,function(data, status, headers, config){
+                    $scope.status = {message:'Merge failed', background:'danger'}
+                  }
+                )
+
+              }
+            }
           }, function () {
-            // On dismiss
+            // On dismiss: nothing happens
           })
 
         }
@@ -744,9 +798,80 @@ angular.module('hyphe.controllers', [])
       return lru_valid
     }
 
+    function addStartPageAndReload(rowId, url){
+      var obj = list_byId[rowId]
+      obj.status = 'loading'
+      _addStartPage(obj, url, function(){
+        reloadRow(obj.id)
+      })
+    }
+
+    function reloadRow(rowId){
+      var obj = list_byId[rowId]
+      obj.status = 'loading'
+      api.getWebentities({
+          id_list: [obj.webentity.id]
+        }
+        ,function(we_list){
+          if(we_list.length > 0){
+            obj.status = 'loaded'
+            obj.webentity = we_list[0]
+          } else {
+            obj.status = 'error'
+            console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', we_list, 'status:', status)
+          }
+        }
+        ,function(data, status, headers, config){
+          obj.status = 'error'
+          console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', data, 'status:', status)
+          if(data && data[0] && data[0].code == 'fail'){
+            obj.infoMessage = data[0].message
+          }
+        }
+      )
+    }
+
+    function _addStartPage(obj, url, callback){
+      api.addStartPage({
+          webentityId: obj.webentity.id
+          ,url: url
+        }
+        ,function(data){
+          if(callback)
+            callback(data)
+          else
+            obj.status = 'loaded'
+        }
+        ,function(data, status, headers, config){
+          $scope.status = {message:'Start page could not be added', background:'danger'}
+          if(callback)
+            callback(data)
+          else
+            obj.status = 'loaded'
+        }
+      )
+    }
+
+    function purgeWebentityFromList(webentity){
+      var objFound
+      $scope.list = $scope.list.filter(function(obj){
+        if(obj.webentity.id == webentity.id){
+          objFound = obj
+          return false
+        }
+        return true
+      })
+      if(objFound){
+        delete list_byId[objFound.id]
+      }
+    }
+
+    /* Modal controller */
     function startPageModalCtrl($scope, $modalInstance, url, webentity) {
       $scope.url = url
       $scope.webentity = webentity
+      $scope.wwwVariations = true
+      $scope.httpsVariations = true
 
       // Bootstraping the object for the Prefix Slider
       var obj = {}
@@ -783,7 +908,12 @@ angular.module('hyphe.controllers', [])
         )
 
       $scope.ok = function () {
-        var feedback = {}
+        var feedback = {
+          task:$scope.obj.task
+          ,prefix: utils.LRU_truncate($scope.obj.lru, $scope.obj.truePrefixLength)
+          ,wwwVariations: $scope.wwwVariations
+          ,httpsVariations: $scope.httpsVariations
+        }
         $modalInstance.close(feedback);
       };
 

@@ -25,8 +25,8 @@ angular.module('hyphe.directives', [])
           if(webentityFound){
             scope.name = webentityFound.name
             if(opt.editMode){
-              scope.statusText = 'Merge with ' + scope.webentity.name + '?'
-              scope.task = {type:'merge', webentity:webentityFound}
+              scope.statusText = 'Merge into ' + scope.webentity.name + '?'
+              scope.obj.task = {type:'merge', webentity:webentityFound}
             } else {
               scope.statusText = 'Already exists'
               scope.status = 'exists'
@@ -34,7 +34,7 @@ angular.module('hyphe.directives', [])
           } else {
             if(opt.editMode){
               scope.name = 'No web entity defined with this prefix'
-              scope.task = {type:'addPrefix'}
+              scope.obj.task = {type:'addPrefix'}
               scope.statusText = 'Add it to ' + scope.webentity.name + '?'
             } else {
               scope.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))

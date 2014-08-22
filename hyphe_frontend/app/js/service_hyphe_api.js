@@ -107,6 +107,42 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
+    api.addPrefix = buildApiCall(
+        HYPHE_API.WEBENTITY.PREFIX.ADD
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.lru
+            ]}
+      )
+
+    api.removePrefix = buildApiCall(
+        HYPHE_API.WEBENTITY.PREFIX.REMOVE
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.lru
+            ]}
+      )
+
+    api.webentitiesMerge = buildApiCall(
+        HYPHE_API.WEBENTITIES.MERGE
+        ,function(settings){
+
+          // Default settings
+          if(settings.mergeTags === undefined)
+            settings.mergeTags = true
+          if(settings.mergeStartPages === undefined)
+            settings.mergeStartPages = true
+          
+          return [
+              settings.oldWebentityId
+              ,settings.goodWebentityId
+              ,settings.mergeTags             // Include tags
+              ,settings.mergeStartPages       // Include Home and Startpages as Startpages
+            ]}
+      )
+
 
 
     function buildApiCall(pseudo_route, params){
