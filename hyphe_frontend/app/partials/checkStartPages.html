@@ -19,10 +19,20 @@
                     ng-repeat="obj in list|paginate:page:paginationLength track by $index"
                     >
 
-                    <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>
+                    <td
+                      class="td-row-id"
+                      >
+                      <div class="row-id">{{obj.id+1}}</div>
+                    </td>
 
-                    <td class="td-row-content">
-                      <div class="container-fluid row-top" ng-click="obj.collapsed = !obj.collapsed">
+                    <td
+                      class="td-row-content"
+                      >
+                      <div
+                        class="container-fluid row-top"
+                        ng-class="{'bg-warning': obj.status == 'merging', 'bg-danger': obj.status == 'error'}"
+                        ng-click="obj.collapsed = !obj.collapsed"
+                        >
                         <div class="row">
                           <div class="col-md-4">
                             <div class="title-container">
@@ -36,9 +46,14 @@
                             </div>
 
                             <!-- Not loaded -->
-                            <div ng-if="obj.status == 'error'" class="bg-danger">
+                            <div ng-if="obj.status == 'error'" class="text-danger">
                               {{obj.status|titlecase}}
                               <p>{{obj.infoMessage}}</p>
+                            </div>
+
+                            <!-- Merging -->
+                            <div ng-if="obj.status == 'merging'" class="text-warning">
+                              {{obj.status|titlecase}} (please wait)
                             </div>
 
                             <!-- Loaded -->

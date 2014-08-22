@@ -721,11 +721,16 @@ angular.module('hyphe.controllers', [])
                 
                 // Merge web entities
                 var webentity = feedback.task.webentity
+                $scope.status = {message:'Merging web entities'}
+                obj.status = 'merging'
                 api.webentitiesMerge({
                     goodWebentityId: obj.webentity.id
                     ,oldWebentityId: webentity.id
                   }
                   ,function(data){
+                    // If it is in the list, remove it...
+                    purgeWebentityFromList(webentity)
+
                     addStartPageAndReload(obj.id, url)
                   }
                   ,function(data, status, headers, config){
@@ -845,6 +850,20 @@ angular.module('hyphe.controllers', [])
             obj.status = 'loaded'
         }
       )
+    }
+
+    function purgeWebentityFromList(webentity){
+      var objFound
+      $scope.list = $scope.list.filter(function(obj){
+        if(obj.webentity.id == webentity.id){
+          objFound = obj
+          return false
+        }
+        return true
+      })
+      if(objFound){
+        delete list_byId[objFound.id]
+      }
     }
 
     /* Modal controller */
