@@ -27,6 +27,15 @@ h1, h2, h3, h4, h5, h6{
 }
 
 
+
+
+/* ==========================================================================
+   A tweak needed by Angular-UI-bootstrap
+   ========================================================================== */
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+
+
 /* ==========================================================================
    "No-gutter" option for bootstrap rows
    ========================================================================== */
@@ -38,6 +47,7 @@ h1, h2, h3, h4, h5, h6{
     padding-left:0;
   }
 }
+
 
 
 /* ==========================================================================
@@ -52,6 +62,7 @@ div.welcome-column h1{
   font-size: 52px;
   font-weight: 300;
 }
+
 
 
 /* ==========================================================================
@@ -87,6 +98,7 @@ div.welcome-column h1{
   padding-top: 12px;
   padding-bottom: 12px;
 }
+
 
 
 /* ==========================================================================
@@ -142,6 +154,7 @@ div.welcome-column h1{
 }
 
 
+
 /* ==========================================================================
    View: Import URLs
    ========================================================================== */
@@ -160,6 +173,7 @@ textarea.over-error{
   margin-bottom: 2px;
   font-weight: 300;
 }
+
 
 
 /* ==========================================================================
@@ -188,19 +202,19 @@ textarea.over-error{
   overflow-x: auto;
   overflow-y: hidden;
 }
-.row-id{
+.sliders-table .row-id{
   padding-top: 2px;
   font-size: 24px;
   font-weight: 300;
 }
-.info-content{
+.sliders-table .info-content{
   padding-left: 15px;
   padding-right: 15px;
 }
-.loading-p{
+.sliders-table .loading-p{
   margin-top: 8px;
 }
-.conflicts{
+.sliders-table .conflicts{
   padding-top: 4px;
   padding-left: 15px;
 }
@@ -212,6 +226,64 @@ textarea.over-error{
   text-align: center;
   padding: 20px 30px;
 }
+
+
+
+/* ==========================================================================
+   View: Check start pages
+   ========================================================================== */
+
+.table-startpages>tbody>tr>td{
+  border-top: 1px solid #F5F5F5;
+}
+.table-startpages>tbody>tr{
+  -webkit-user-select: none; /* Chrome/Safari */        
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
+  select: none;
+}
+.table-startpages .td-row-id{
+  width: 50px;
+}
+.table-startpages .td-row-content{
+  padding:0px;
+  width: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.table-startpages .row-id{
+  padding-top: 2px;
+  font-size: 24px;
+  font-weight: 300;
+}
+.table-startpages .row-top{
+  cursor: pointer;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+.table-startpages .title-container{
+  font-family: 'Roboto', sans-serif;
+  font-weight:400;
+}
+/* Collapsible panel */
+.table-startpages .bottom-panel{
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+/* Modal */
+.start-page-modal .slider-container{
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+
+
+
+
+
+
+
+
 
 /* ==========================================================================
    Module: Web Entity Slider

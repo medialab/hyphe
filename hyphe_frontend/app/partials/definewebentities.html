@@ -10,11 +10,11 @@
               <div class="col-md-12">
                 <h1 class="page-title">DEFINE WEB ENTITIES</h1>
                 <p class="text-info">
-                  Check definition of each <span hyphe-glossary>web entity</span> then create them
+                  Check the <span hyphe-glossary>boundaries</span> of each <span hyphe-glossary>web entity</span> before creating it
                 </p>
                 <table class="table table-striped sliders-table">
                   <tr
-                    ng-repeat="obj in urlList|paginate:page:paginationLength track by $index"
+                    ng-repeat="obj in list|paginate:page:paginationLength track by $index"
                     ng-class="{active: $parent.activeRow == ($index+paginationLength*page) && obj.status=='loaded', danger:obj.status=='error', warning:obj.status=='conflict', selectable:obj.status=='error'}"
                     ng-click="$parent.activeRow = ($index+paginationLength*page)"
                     ng-mouseover="$parent.activeRow = ($index+paginationLength*page)"

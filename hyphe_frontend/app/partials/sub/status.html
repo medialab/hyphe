@@ -1,4 +1,7 @@
-              <div class="topbar-status" ng-class="{'bg-primary':status.background=='primary', 'bg-success':status.background=='success', 'bg-info':status.background=='info', 'bg-warning':status.background=='warning', 'bg-danger':status.background=='danger'}">
+              <div
+                class="topbar-status"
+                ng-class="{'bg-primary':status.background=='primary', 'bg-success':status.background=='success', 'bg-info':status.background=='info', 'bg-warning':status.background=='warning', 'bg-danger':status.background=='danger'}"
+                >
                 <div class="message">{{status.message}}</div>
                 <div class="progress" ng-if="status.progress">
                   <div class="progress-bar" role="progressbar" aria-valuenow="{{status.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{status.progress}}%;">

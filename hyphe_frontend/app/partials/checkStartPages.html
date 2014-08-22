@@ -12,9 +12,95 @@
                   CHECK START PAGES
                 </h1>
                 <p class="text-info">
-                  <span hyphe-glossary>Crawling</span> a <span hyphe-glossary>web entity</span> requires at least one <span hyphe-glossary>start page</span>
+                  <span hyphe-glossary>Crawling</span> requires a starting point: check that each <span hyphe-glossary>web entity</span> has a <span hyphe-glossary>start page</span>
                 </p>
-                
+                <table class="table table-striped table-startpages">
+                  <tr
+                    ng-repeat="obj in list|paginate:page:paginationLength track by $index"
+                    >
+
+                    <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>
+
+                    <td class="td-row-content">
+                      <div class="container-fluid row-top" ng-click="obj.collapsed = !obj.collapsed">
+                        <div class="row">
+                          <div class="col-md-4">
+                            <div class="title-container">
+                              {{obj.webentity.name}}
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <!-- Not loaded -->
+                            <div ng-if="obj.status == 'loading' || obj.status == 'pending'" class="text-muted">
+                              {{obj.status|titlecase}}
+                            </div>
+
+                            <!-- Loaded -->
+                            <div ng-if="obj.status == 'loaded'">
+                              <span ng-if="obj.webentity.startpages.length == 0" class="text-danger">No start page</span>
+                              <span ng-if="obj.webentity.startpages.length > 0" class="text-danger">{{obj.webentity.startpages.length}} start page(s)</span>
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <div class="pull-right">
+                              <span ng-if="obj.collapsed" class="glyphicon glyphicon-chevron-down"></span>
+                              <span ng-if="!obj.collapsed" class="glyphicon glyphicon-chevron-up"></span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div ng-if="!obj.collapsed" class="bottom-panel">
+                        <div class="container-fluid">
+                          <div class="row" ng-repeat="page in obj.webentity.startpages">
+                            <div class="col-md-4">
+                              {{page}}
+                            </div>
+                            <div class="col-md-4">
+                            </div>
+                            <div class="col-md-4">
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-md-4">
+
+                              <div class="form-group has-feedback" ng-class="{'has-error':obj.startPageInvalid}">
+                                <label class="control-label sr-only" for="input{{obj.id}}">Start page URL</label>
+                                <input
+                                  type="text"
+                                  id="input{{obj.id}}"
+                                  class="form-control input-sm start-page-input"
+                                  ng-model="obj.currentStartPageInput"
+                                  ng-change="startPageValidate(obj.id)"
+                                  ng-press-enter="addStartPage(obj.id)"
+                                  ng-disabled="obj.status!='loaded'"
+                                  placeholder="Enter or type URL"
+                                >
+                                <span ng-if="obj.startPageInvalid" class="glyphicon glyphicon-warning-sign form-control-feedback"></span>
+                              </div>
+
+                            </div>
+                            <div class="col-md-4">
+                              <button
+                                type="button"
+                                class="btn btn-default btn-sm"
+                                ng-click="addStartPage(obj.id)"
+                                ng-disabled="obj.status!='loaded'"
+                              >
+                                <span class="glyphicon glyphicon-plus-sign"></span> ADD NEW START PAGE
+                              </button>
+                            </div>
+                            <div class="col-md-4">
+                              <div class="pull-right">
+                                <button type="button" ng-if="obj.webentity.startpages.length > 0" class="btn btn-link btn-sm"><span class="glyphicon glyphicon-repeat"></span> TEST AGAIN</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                  </tr>
+                </table>
               </div>
             </div>
           </div>
