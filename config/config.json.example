@@ -41,5 +41,6 @@
       "twitter.com"
     ]
   },
+  "MULTICORPUS": True,
   "DEBUG": 0
 }
