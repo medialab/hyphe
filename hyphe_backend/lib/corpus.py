@@ -13,6 +13,7 @@ from twisted.internet.task import LoopingCall
 from twisted.internet.threads import deferToThreadPool
 from hyphe_backend.lib.thriftpool import ThriftPooledClient
 from hyphe_backend.memorystructure import MemoryStructure as ms
+from hyphe_backend.lib.utils import format_error
 
 
 HYPHE_MS_JAR = os.path.join(os.getcwd(), "hyphe_backend", "memorystructure",
@@ -215,16 +216,17 @@ class CorpusClient(object):
                 corpus = kwargs.pop("corpus")
             except:
                 corpus = ""
-                fail = {"code": "fail", "message": "corpus argument missing"}
+                fail = format_error("corpus argument missing")
             else:
-                fail = {"code": "fail", "corpus": corpus,
-                  "corpus_status": self.factory.status_corpus(corpus),
-                  "message": "Corpus is not ready, please start it first"}
+                fail = format_error({"corpus_id": corpus,
+                  "ready": self.factory.test_corpus(corpus),
+                  "status": self.factory.status_corpus(corpus),
+                  "message": "Corpus is not started"})
                 if corpus in self.factory.corpora:
                     client = getattr(self.factory.corpora[corpus],
                       "client_%s" % type_client)
-                    if self.factory.status_corpus == "error":
-                        fail["corpus_error"] = self.factory.corpora[corpus].error
+                    if fail["message"]["status"] == "error":
+                        fail["message"]["message"] = self.factory.corpora[corpus].error
             if hasattr(client, 'threadpool'):
                 if self.factory.test_corpus(corpus):
                     return deferToThreadPool(reactor, client.threadpool,

@@ -16,7 +16,7 @@ from twisted.python.threadpool import ThreadPool
 from thrift.transport import TTransport
 from thrift.transport.TSocket import TSocket
 from thrift.Thrift import TException
-from hyphe_backend.lib.jsonrpc_utils import format_error
+from hyphe_backend.lib.utils import format_error
 
 DEFAULT_POOL_SIZE = 8
 DEFAULT_NETWORK_TIMEOUT = 1800000
