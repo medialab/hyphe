@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re, types, time
+import re, types, time, hashlib
 
 from hyphe_backend.lib import config_hci, jsonrpc_utils
 config = config_hci.load_config()
@@ -44,5 +44,15 @@ def format_result(res, nolog=True):
 def handle_standard_results(res):
     if jsonrpc_utils.is_error(res):
         return res
-    return jsonrpc_utils.format_success(res)
+    return format_result(res)
+
+SALT = hashlib.sha256(config['memoryStructure']['lucene.rootpath'] + \
+ str(config['memoryStructure']['thrift.max_ram'] * config["twisted"]["port"] * \
+     config['memoryStructure']['thrift.portrange'][1])
+).hexdigest()
+def salt(passwd):
+    passwd = passwd.strip().lower()
+    if not passwd:
+        return ""
+    return hashlib.sha256(passwd + SALT).hexdigest()
 

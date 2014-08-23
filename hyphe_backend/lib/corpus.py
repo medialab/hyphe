@@ -31,7 +31,7 @@ class LuceneCorpus(Thread):
 
     daemon = True
 
-    def __init__(self, factory, name, host="localhost", ram=256, timeout=1800, loglevel="INFO"):
+    def __init__(self, factory, name, host="localhost", ram=256, timeout=1800, loglevel="INFO", quiet=False):
         Thread.__init__(self)
         self.factory = factory
         self.status = "init"
@@ -40,29 +40,27 @@ class LuceneCorpus(Thread):
         self.ram = ram
         self.port = 0
         self.loglevel = loglevel
+        self.quiet = quiet
         self.command = ""
-        self.proc = None
+        self.error = None
+        self.processus = None
         self.client_sync = None
         self.client_pool = None
         self.client_loop = None
-        self.restart_thrift_clients()
         self.lastcall = time.time()
         self.timeout = timeout
         self.monitor = LoopingCall(self.__check_timeout__)
 
-    def restart_thrift_clients(self):
-        if self.client_sync:
+    def restart_thrift_clients(self, restart=True):
+        if self.client_sync and restart:
             self.client_sync.close()
         self.client_sync = ThriftPooledClient(ms.Client, host=self.host,
           port=self.port, pool_size=1, async=False)
-        if self.client_pool:
-            try:
-                self.client_pool.close()
-            except:
-                pass
+        if self.client_pool and restart:
+            self.client_pool.close()
         self.client_pool = ThriftPooledClient(ms.Client, host=self.host,
           port=self.port, pool_size=5)
-        if self.client_loop:
+        if self.client_loop and restart:
             self.client_loop.close()
         self.client_loop = ThriftPooledClient(ms.Client, host=self.host,
           port=self.port, pool_size=1, async=True, network_timeout=7200000)
@@ -74,10 +72,7 @@ class LuceneCorpus(Thread):
             self.stop()
 
     def log(self, msg, error=False):
-        self.factory.log(self.name, msg, error)
-        if error:
-            self.stop()
-            self.status = "error"
+        self.factory.log(self.name, msg, error, quiet=self.quiet)
 
     def stopping(self):
         return self.status in ["stopping", "stopped", "error"]
@@ -87,25 +82,29 @@ class LuceneCorpus(Thread):
             self.monitor.stop()
         if self.stopping():
             return
-        self.status = "stopping"
-        self.client_loop.close()
-        self.client_sync.close()
-        self.client_pool.close()
-        if self.proc and not self.proc.poll():
-            self.proc.terminate()
-        if self.port not in self.factory.ports_free:
+        self.status = "error" if self.error else "stopping"
+        if self.client_loop:
+            self.client_loop.close()
+        if self.client_sync:
+            self.client_sync.close()
+        if self.client_pool:
+            self.client_pool.close()
+        if self.processus and not self.processus.poll():
+            self.processus.terminate()
+        if self.port and self.port not in self.factory.ports_free:
             self.factory.ports_free.append(self.port)
-        self.factory.ram_free += self.ram
+            self.factory.ram_free += self.ram
         self.log("MemoryStructure stopped")
-        self.status = "stopped"
+        if not self.error:
+            self.status = "stopped"
 
     def hard_restart(self):
         self.status = "restarting"
-        command = lambda x: ['p%s' % x, '-f', ' corpus=%s ' % self.name]
-        subprocess.call(command("kill"))
+        pscommand = lambda x: ['p%s' % x, '-f', ' corpus=%s ' % self.name]
+        subprocess.call(pscommand("kill"))
         stoptime = time.time() + 30
         with open(os.devnull, "w") as fnull:
-            while not subprocess.call(command("grep"), stdout=fnull):
+            while not subprocess.call(pscommand("grep"), stdout=fnull):
                 if time.time() > stoptime:
                     self.log("Couldn't stop existing corpus", True)
                     return
@@ -128,14 +127,15 @@ class LuceneCorpus(Thread):
                 pass
 
     def run(self):
+        self.error = None
         self.choose_port()
         if not self.port:
             self.log("Couldn't find a port to attach MemoryStructure to", True)
             return
-        if self.factory.ram_free < self.ram:
+        self.factory.ram_free -= self.ram
+        if self.factory.ram_free < 0:
             self.log("Couldn't find enough ram to start MemoryStructure", True)
             return
-        self.factory.ram_free -= self.ram
         self.status = "started"
         size = min(128, max(32, int(self.ram/4)))
         java_options = "-Xms%dm -Xmx%dm " % (self.ram, self.ram)
@@ -150,25 +150,25 @@ class LuceneCorpus(Thread):
           "%s with %sMo ram for at least %ss (%sMo ram and %s ports left)" % \
           (self.port, self.ram, self.timeout,
            self.factory.ram_free, len(self.factory.ports_free)))
-        self.proc = subprocess.Popen(self.command.split(), stdout=subprocess.PIPE,
+        self.processus = subprocess.Popen(self.command.split(), stdout=subprocess.PIPE,
           stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
         self.restart_thrift_clients()
-        while self.proc.poll() is None:
-            line = self.proc.stdout.readline().strip('\n')
+        while self.processus.poll() is None:
+            line = self.processus.stdout.readline().strip('\n')
             if not line.strip():
                 continue
             try:
                 lts, ltype, lclass, lthread, msg = parse_log(line)
             except:
                 if "java.lang.OutOfMemoryError" in line:
-                    self.status = "restarting"
                     if self.factory.ram_free >= 256:
                         self.log("Java heap space, trying to restart " + \
                           "with 256Mo more ram", True)
                         self.ram += 256
                     else:
-                        self.log("Not enough ram to increase corpus, " + \
+                        self.log("Not enough ram to increase corpus size, " + \
                           "trying to restart anyway", True)
+                    self.status = "restarting"
                     self.factory.start_corpus(self.name)
                     break
             # skip tracebacks
@@ -205,11 +205,10 @@ class CorpusClient(object):
 
     def __init__(self, factory, type_client):
         self.factory = factory
-        self.type_client = type_client
         for m in inspect.getmembers(ms.Client, predicate=inspect.ismethod):
-            setattr(self, m[0], self.__safe_call__(m[0]))
+            setattr(self, m[0], self.__safe_call__(m[0], type_client))
 
-    def __safe_call__(self, call):
+    def __safe_call__(self, call, type_client):
         def __safe_call(*args, **kwargs):
             client = None
             try:
@@ -223,7 +222,9 @@ class CorpusClient(object):
                   "message": "Corpus is not ready, please start it first"}
                 if corpus in self.factory.corpora:
                     client = getattr(self.factory.corpora[corpus],
-                      "client_%s" % self.type_client)
+                      "client_%s" % type_client)
+                    if self.factory.status_corpus == "error":
+                        fail["corpus_error"] = self.factory.corpora[corpus].error
             if hasattr(client, 'threadpool'):
                 if self.factory.test_corpus(corpus):
                     return deferToThreadPool(reactor, client.threadpool,
@@ -246,14 +247,31 @@ class CorpusFactory(object):
         for typ in ["sync", "pool", "loop"]:
             setattr(self, typ, CorpusClient(self, typ))
 
-    def log(self, name, msg, error=False):
+    def log(self, name, msg, error=False, quiet=False):
+        if quiet and not error:
+            return
         logtype = "ERROR" if error else "INFO"
-        log.msg(msg, system="%s - %s" % (logtype, name))
+        if reactor.running:
+            log.msg(msg, system="%s - %s" % (logtype, name))
+        else:
+            print("[%s - %s] %s" % (logtype, name, msg))
+        if error and name in self.corpora:
+            self.corpora[name].status = "error"
+            self.corpora[name].error = msg
+            self.corpora[name].stop()
 
-    def status_corpus(self, name):
+    def status_corpus(self, name, simplify=False):
         if name not in self.corpora:
-            return None
-        return self.corpora[name].status
+            return "stopped"
+        if not simplify:
+            return self.corpora[name].status
+        if self.test_corpus(name):
+            return "ready"
+        if self.corpora[name].status == "error":
+            return "error"
+        if self.corpora[name].stopping():
+            return "stopped"
+        return "starting"
 
     def test_corpus(self, name):
         return name and self.status_corpus(name) == "ready"
@@ -264,9 +282,9 @@ class CorpusFactory(object):
     def total_running(self):
         return len([0 for a in self.corpora if not self.stopped_corpus(a)])
 
-    def start_corpus(self, name, **kwargs):
+    def start_corpus(self, name, quiet=False, **kwargs):
         if self.test_corpus(name) or self.status_corpus(name) == "started":
-            self.log(name, "MemoryStructure already started")
+            self.log(name, "MemoryStructure already started", quiet=quiet)
             return True
         if name in self.corpora:
             self.corpora[name].stop()
@@ -274,25 +292,22 @@ class CorpusFactory(object):
                 kwargs[arg] = getattr(self.corpora[name], arg)
             del(self.corpora[name])
         kwargs["loglevel"] = self.loglevel
-        self.corpora[name] = LuceneCorpus(self, name, self.host, **kwargs)
+        self.corpora[name] = LuceneCorpus(self, name, self.host, quiet=quiet, **kwargs)
         if not self.ports_free:
             self.log(name, "Not enough available ports to start corpus", True)
-            self.corpora[name].status = "error"
             return False
         while self.ram_free < self.corpora[name].ram and \
           self.corpora[name].ram > 256:
             self.corpora[name].ram -= 256
         if self.ram_free < self.corpora[name].ram:
             self.log(name, "Not enough available ram to start corpus", True)
-            self.corpora[name].status = "error"
             return False
         self.corpora[name].start()
         return True
 
     def stop_corpus(self, name, quiet=False):
         if self.stopped_corpus(name):
-            if not quiet:
-                self.log(name, "MemoryStructure already stopped")
+            self.log(name, "MemoryStructure already stopped", quiet=quiet)
             return False
         if name in self.corpora:
             self.corpora[name].stop()
@@ -326,7 +341,7 @@ if __name__ == '__main__':
     assert(factory.corpora["test-more-ram"].status == "ready")
     assert(len(factory.sync.ping(corpus="test-more-ram")) == 2)
     assert(factory.loop.ping(corpus="test-more-ram").__class__ == defer.Deferred)
-    assert(factory.corpora["test-not-enough-ram"].status == "error")
+    assert(factory.corpora["test-not-enough-ram"].error != None)
     assert(factory.sync.ping(corpus="test-not-enough-ram")["code"] == "fail")
     assert(factory.loop.ping(corpus="test-not-enough-ram").__class__ == defer.Deferred)
     assert(factory.sync.ping(corpus="test-not-created")["code"] == "fail")

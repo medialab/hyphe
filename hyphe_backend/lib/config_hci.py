@@ -13,7 +13,6 @@ def load_config(filename = 'config/config.json'):
             conf['proxy']['host'] = conf['mongo-scrapy']['proxy_host']
         if 'proxy_port' in conf['mongo-scrapy']:
             conf['proxy']['port'] = conf['mongo-scrapy']['proxy_port']
-
         if conf['DEBUG']:
             defer.setDebugging(True)
         return conf
@@ -23,3 +22,4 @@ def load_config(filename = 'config/config.json'):
     except ValueError as e:
         print 'ERROR: Config file is not valid JSON', e
         return False
+
