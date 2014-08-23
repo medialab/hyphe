@@ -11,6 +11,7 @@ else
   option=""
 fi
 
+add2virtualenv $(pwd)
 cd hyphe_backend/crawler
 python deploy.py "$project" $option
 

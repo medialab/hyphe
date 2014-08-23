@@ -3,12 +3,10 @@
 
 import re, types, time, hashlib
 
-from hyphe_backend.lib import config_hci
-config = config_hci.load_config()
+from hyphe_backend.lib.config_hci import load_config, DEFAULT_CORPUS
+config = load_config()
 if not config:
     exit()
-
-DEFAULT_CORPUS = "--hyphe--"
 
 
 class Enum(set):
@@ -87,7 +85,7 @@ def test_bool_arg(boolean):
 
 SALT = hashlib.sha256(config['memoryStructure']['lucene.rootpath'] + \
  str(config['memoryStructure']['thrift.max_ram'] * config["twisted"]["port"] * \
-     config['memoryStructure']['thrift.portrange'][1])
+     config['memoryStructure']['thrift.portrange'][-1])
 ).hexdigest()
 
 def salt(passwd):

@@ -56,48 +56,48 @@ HypheCommons.domino_init()
 
         	var div = $('<div/>')
 			div.append(
-						$('<strong/>').text(status.memory_structure.webentities + ' web entit'+((status.memory_structure.webentities>1)?('ies'):('y')))
+						$('<strong/>').text(status.corpus.memory_structure.webentities + ' web entit'+((status.corpus.memory_structure.webentities>1)?('ies'):('y')))
 					)
 				.append($('<br/>'))
 				.append($('<br/>'))
 
 			div.append(
-						$('<span/>').text(status.crawler.pages_crawled + ' page'+((status.crawler.pages_crawled>1)?('s'):(''))+' crawled')
+						$('<span/>').text(status.corpus.crawler.pages_crawled + ' page'+((status.corpus.crawler.pages_crawled>1)?('s'):(''))+' crawled')
 					)
 				.append($('<br/>'))
 
-			if(status.crawler.jobs_pending == 0 && status.crawler.jobs_running == 0){
+			if(status.corpus.crawler.jobs_pending == 0 && status.corpus.crawler.jobs_running == 0){
 				div.append(
 							$('<span/>').text('No crawl scheduled')
 						)
 					.append($('<br/>'))
 			} else {
 				div.append(
-							$('<span/>').text(status.crawler.jobs_running+' crawl job'+((status.crawler.jobs_running>1)?('s'):(''))+' running')
+							$('<span/>').text(status.corpus.crawler.jobs_running+' crawl job'+((status.corpus.crawler.jobs_running>1)?('s'):(''))+' running')
 						)
 					.append($('<br/>'))
 					.append(
-							$('<span/>').text(status.crawler.jobs_pending+' crawl job'+((status.crawler.jobs_pending>1)?('s'):(''))+' pending')
+							$('<span/>').text(status.corpus.crawler.jobs_pending+' crawl job'+((status.corpus.crawler.jobs_pending>1)?('s'):(''))+' pending')
 						)
 					.append($('<br/>'))
 			}
 			div.append($('<br/>'))
 
 			div.append(
-						$('<span/>').text('Last memory activity '+Utils.prettyDate((new Date()).setTime(status.memory_structure.job_running_since)))
-					)
-				.append($('<br/>'))
-				.append(
 						$('<span/>').text(
-								'Last content indexation '+Utils.prettyDate((new Date()).setTime(status.memory_structure.last_index))
-								+((status.memory_structure.pages_to_index>0)?(' ('+status.memory_structure.pages_to_index+' pages to index)'):(''))
+								'Last content indexation '+Utils.prettyDate((new Date()).setTime(status.corpus.memory_structure.last_index))
+								+((status.corpus.memory_structure.pages_to_index>0)?(' ('+status.corpus.memory_structure.pages_to_index+' pages to index)'):(''))
 							)
 					)
 				.append($('<br/>'))
 				.append(
-						$('<span/>').text('Last link built '+Utils.prettyDate((new Date()).setTime(status.memory_structure.last_links_generation)))
+						$('<span/>').text('Last link built '+Utils.prettyDate((new Date()).setTime(status.corpus.memory_structure.last_links_generation)))
 					)
 				.append($('<br/>'))
+            if(status.corpus.memory_structure.job_running) {
+                div.append($('<span/>').text('Server activity: '+status.corpus.memory_structure.job_running))
+                .append($('<br/>'))
+            }
 
         	element.append(div)
         }

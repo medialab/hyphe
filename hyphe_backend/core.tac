@@ -24,8 +24,8 @@ _HTTP11ClientFactory.noisy = False
 from hyphe_backend import processor
 from hyphe_backend.memorystructure import MemoryStructure as ms, constants as ms_const
 from hyphe_backend.lib import config_hci, urllru, gexf, user_agents
-from hyphe_backend.lib.corpus import CorpusFactory
 from hyphe_backend.lib.utils import *
+from hyphe_backend.lib.corpus import CorpusFactory
 
 
 # MAIN CORE API
@@ -38,7 +38,7 @@ class Core(jsonrpc.JSONRPC):
         jsonrpc.JSONRPC.__init__(self)
         self.db = pymongo.Connection(config['mongo-scrapy']['host'],config['mongo-scrapy']['mongo_port'])[config['mongo-scrapy']['db_name']]
         self.msclients = CorpusFactory(config['memoryStructure']['thrift.host'],
-          port_range = range(*config['memoryStructure']['thrift.portrange']),
+          port_range = config['memoryStructure']['thrift.portrange'],
           max_ram = config['memoryStructure']['thrift.max_ram'],
           loglevel = config['memoryStructure']['log.level'])
         self.corpora = {}
@@ -46,7 +46,14 @@ class Core(jsonrpc.JSONRPC):
         self.store = Memory_Structure(self)
         reactor.addSystemEventTrigger('before', 'shutdown', self.close)
 
+    def activate_monocorpus(self):
+        self.start_corpus(create_if_missing=True)
+        self.keepalive_default = LoopingCall(self.jsonrpc_ping, DEFAULT_CORPUS)
+        self.keepalive_default.start(300, False)
+
     def close(self):
+        if not config["MULTICORPUS"] and self.keepalive_default.running:
+            self.keepalive_default.stop()
         for corpus in self.corpora.keys():
             self.stop_corpus(corpus, quiet=True)
         self.msclients.stop()
@@ -680,8 +687,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.handle_index_error(corpus)
         self.corpora[corpus]['loop_running'] = "Collecting WebEntities & WebEntityLinks"
         self.corpora[corpus]['loop_running_since'] = now
-        self.corpora[corpus]['last_links_loop'] = now
-        self.corpora[corpus]['last_index_loop'] = now
         self.corpora[corpus]['last_WE_update'] = now
         self.corpora[corpus]['recent_indexes'] = 0
         self.corpora[corpus]['recent_tagging'] = True
@@ -1138,18 +1143,19 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def index_batch_loop(self, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus) or self.corpora[corpus]['loop_running']:
             returnD(False)
-        self.corpora[corpus]['loop_running'] = True
+        self.corpora[corpus]['loop_running'] = "Diagnosing"
         crashed = self.db['%s.jobs' % corpus].find_one({'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'])
         if crashed:
+            self.corpora[corpus]['loop_running'] = "Cleaning up crashed indexing"
             logger.msg("Indexing job declared as running but probably crashed ,trying to restart it.", system="WARNING - %s" % corpus)
             self.db['%s.jobs' % corpus].update({'_id' : crashed['_id']}, {'$set': {'indexing_status': indexing_statuses.BATCH_CRASHED}})
             jobslog(crashed['_id'], "INDEX_"+indexing_statuses.BATCH_CRASHED, self.db, corpus=corpus)
-            self.corpora[corpus]['loop_running'] = False
+            self.corpora[corpus]['loop_running'] = None
             returnD(False)
         oldest_page_in_queue = self.db['%s.queue' % corpus].find_one(sort=[('timestamp', pymongo.ASCENDING)], fields=['_job'], skip=random.randint(0, 2))
         # Run linking WebEntities on a regular basis when needed
         if self.corpora[corpus]['recent_indexes'] > 100 or (self.corpora[corpus]['recent_indexes'] and not oldest_page_in_queue) or (self.corpora[corpus]['recent_indexes'] and time.time() - self.corpora[corpus]['last_links_loop'] >= 3600):
-            self.corpora[corpus]['loop_running'] = "generating links"
+            self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
             self.corpora[corpus]['loop_running_since'] = time.time()
             s = time.time()
             logger.msg("Generating links between web entities...", system="INFO - %s" % corpus)
@@ -1157,7 +1163,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             res = yield self.msclients.loop.generateWebEntityLinks(corpus=corpus)
             if is_error(res):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
-                self.corpora[corpus]['loop_running'] = False
+                self.corpora[corpus]['loop_running'] = None
                 returnD(False)
             self.corpora[corpus]['webentities_links'] = res
             s = str(time.time() -s)
@@ -1167,9 +1173,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
             self.corpora[corpus]['last_links_loop'] = time.time()
         elif oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
+            self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
             job = self.db['%s.jobs' % corpus].find_one({'_id': oldest_page_in_queue['_job'], 'crawling_status': {'$ne': crawling_statuses.PENDING}, 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id'], sort=[('timestamp', pymongo.ASCENDING)])
             if not job:
-                self.corpora[corpus]['loop_running'] = False
+                self.corpora[corpus]['loop_running'] = None
                 returnD(False)
             jobid = job['_id']
             logger.msg("Indexing pages from job %s" % jobid, system="INFO - %s" % corpus)
@@ -1178,22 +1185,23 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 resdb = self.db['%s.jobs' % corpus].update({'_id': jobid}, {'$set': {'indexing_status': indexing_statuses.BATCH_RUNNING}}, safe=True)
                 if (resdb['err']):
                     logger.msg("ERROR updating job %s's indexing status" % jobid, resdb, system="ERROR - %s" % corpus)
-                    self.corpora[corpus]['loop_running'] = False
+                    self.corpora[corpus]['loop_running'] = None
                     returnD(False)
                 jobslog(jobid, "INDEX_"+indexing_statuses.BATCH_RUNNING, self.db, corpus=corpus)
-                self.corpora[corpus]['loop_running'] = "indexing"
                 self.corpora[corpus]['loop_running_since'] = time.time()
                 res = yield self.index_batch(page_items, jobid, corpus=corpus)
                 if is_error(res):
                     logger.msg(res['message'], system="ERROR - %s" % corpus)
-                    self.corpora[corpus]['loop_running'] = False
+                    self.corpora[corpus]['loop_running'] = None
                     returnD(False)
                 self.corpora[corpus]['recent_indexes'] += 1
                 self.corpora[corpus]['last_index_loop'] = time.time()
             else:
                 logger.msg("job %s found for index but no page corresponding found in queue." % jobid, system="WARNING - %s" % corpus)
-        if self.corpora[corpus]['loop_running'] != True:
-            logger.msg("...loop run finished.", system="INFO - %s" % corpus)
+        else:
+            self.corpora[corpus]['loop_running'] = None
+            returnD(False)
+        logger.msg("...loop run finished.", system="INFO - %s" % corpus)
         self.corpora[corpus]['loop_running'] = None
 
     def handle_index_error(self, corpus=DEFAULT_CORPUS):
@@ -1569,8 +1577,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
             logger.msg("...JSON network generated in %ss" % str(time.time()-s), system="INFO - %s" % corpus)
             returnD(res)
 
+
 def test_connexions():
 # TEST API SANITY
+    TEST_CORPUS = "--test-corpus--"
     try:
         run = Core()
     except Exception as x:
@@ -1578,44 +1588,32 @@ def test_connexions():
         if config['DEBUG']:
             print type(x), x
         return None
-# MONGO
-    try:
-        test = [job['_id'] for job in run.db['%s.jobs' % DEFAULT_CORPUS].find()]
-
-    except Exception as x:
-        print "ERROR: Cannot connect to mongoDB, please check your server and the configuration in config.json."
-        if config['DEBUG']:
-            print x
-        return None
 # SCRAPY
-    if 'phantom' not in config:
-        print "ERROR: Hyphe's newest version requires to set up phantom in your configuration, please copy paste and adapt it from config/config.json.example"
-        return None
-    res = run.crawler.send_scrapy_query('delproject', {'project': corpus_project(DEFAULT_CORPUS)})
+    res = run.crawler.send_scrapy_query('delproject', {'project': corpus_project(TEST_CORPUS)})
     if is_error(res):
         print "WARNING: Could not delete existing version of HCI's scrapy spider"
         print res['message']
         print "Trying to deploy anyway"
     try:
-        run.crawler.deploy_spider()
+        run.crawler.deploy_spider(TEST_CORPUS)
     except Exception as e:
         print "ERROR: Could not connect to scrapyd server to deploy spider, please check your server and the configuration in config.json."
         print e
         return None
-# INIT DEFAULT_CORPUS CORPUS
+# INIT TEST CORPUS
     try:
-        run.start_corpus(noloop=True, quiet=True, create_if_missing=True)
-        res = run.jsonrpc_ping(DEFAULT_CORPUS, timeout=10)
+        run.start_corpus(TEST_CORPUS, noloop=True, quiet=True, create_if_missing=True)
+        res = run.jsonrpc_ping(TEST_CORPUS, timeout=10)
         if is_error(res):
             raise Exception(res['message'])
     except Exception as x:
-        print "ERROR: Cannot create dummy corpus %s" % DEFAULT_CORPUS
+        print "ERROR: Cannot create dummy corpus %s" % TEST_CORPUS
         if config['DEBUG']:
             print x
         return None
 # INIT DEFAULT CREATION RULE
     try:
-        res = run.store.ensureDefaultCreationRuleExists()
+        res = run.store.ensureDefaultCreationRuleExists(TEST_CORPUS)
         if is_error(res):
             raise Exception(res['message'])
     except Exception as x:
@@ -1623,14 +1621,14 @@ def test_connexions():
         if config['DEBUG']:
             print x
         return None
-# CLEANUP DEFAULT_CORPUS CORPUS
+# CLEANUP TEST_CORPUS CORPUS
     try:
-        res = run.destroy_corpus(quiet=True)
+        res = run.destroy_corpus(TEST_CORPUS, quiet=True)
         if is_error(res):
             raise Exception(res['message'])
-        del(run.msclients.corpora[DEFAULT_CORPUS])
+        del(run.msclients.corpora[TEST_CORPUS])
     except Exception as x:
-        print "ERROR: Cannot close dummy corpus %s" % DEFAULT_CORPUS
+        print "ERROR: Cannot close dummy corpus %s" % TEST_CORPUS
         if config['DEBUG']:
             print x
         return None
@@ -1646,6 +1644,10 @@ core.putSubHandler('store', core.store)
 core.putSubHandler('system', Introspection(core))
 site = server.Site(core)
 
+# Activate default corpus automatically if in monocorpus
+if not config["MULTICORPUS"]:
+    reactor.callLater(5, core.activate_monocorpus)
+
 # Run as 'python core.tac' ...
 if __name__ == '__main__':
     reactor.listenTCP(config['twisted']['port'], site)
@@ -1655,4 +1657,3 @@ elif __name__ == '__builtin__':
     application = Application("Hyphe backend API Server")
     server = TCPServer(config['twisted']['port'], site)
     server.setServiceParent(application)
-

@@ -327,7 +327,7 @@ if __name__ == '__main__':
     if not config:
         exit()
     ad = config['memoryStructure']['thrift.host']
-    portrange = range(*config['memoryStructure']['thrift.portrange'])
+    portrange = config['memoryStructure']['thrift.portrange']
     loglevel = config['memoryStructure']['log.level']
     factory = CorpusFactory(host=ad, port_range=portrange, max_ram=1000, loglevel=loglevel)
     assert(factory.start_corpus("test", timeout=10))

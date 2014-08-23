@@ -45,7 +45,7 @@ public class ThriftServer {
      * @param args command line arguments
      */
     public static void main(String[]args) {
-        Map<String, String> commandargs = readCL(args);
+        THashMap<String, String> commandargs = readCL(args);
         corpus = commandargs.get("corpus");
         if(StringUtils.isEmpty(corpus)) {
             System.out.println("ERROR: memory structure cannot start without a corpus given in option as corpus=<corpus_name>");
@@ -175,10 +175,15 @@ public class ThriftServer {
 
         corpus = resolvedProperties.get("corpus");
         luceneDirectoryRoot = resolvedProperties.get("lucene.rootpath");
+        String luceneBackupRoot = resolvedProperties.get("lucene.path");
         if(StringUtils.isEmpty(luceneDirectoryRoot)) {
-            logger.warn("Could not find lucene.rootpath either from memorystructure.properties or from command line arguments.");
-            luceneDirectoryRoot = System.getProperty("user.home") + File.separator + "hyphe-memorystructure.lucene";
-            logger.warn("Using default: lucene.rootpath is " + luceneDirectoryRoot);
+            if(StringUtils.isEmpty(luceneBackupRoot)) {
+                logger.warn("Could not find lucene.rootpath either from memorystructure.properties or from command line arguments.");
+                luceneDirectoryRoot = System.getProperty("user.home") + File.separator + "hyphe-memorystructure.lucene";
+                logger.warn("Using default: lucene.rootpath is " + luceneDirectoryRoot);
+            } else {
+                luceneDirectoryRoot = luceneBackupRoot;
+            }
         }
         luceneDirectoryPath = luceneDirectoryRoot + File.separator + corpus;
 
