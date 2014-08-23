@@ -1,0 +1,150 @@
+#!/bin/bash
+# Bash service to start, stop or restart Hyphe's backend server
+
+USAGE="$0 <start|stop|restart> [--nologs]"
+HCIVENV=HCI
+cd "$(dirname "$0")"
+cd ..
+HCIPATH=$(pwd)
+
+STOP=false
+START=false
+case "$1" in
+  stop   )  STOP=true;;
+  restart)  STOP=true
+            START=true;;
+  start  )  START=true;;
+  *      )  echo "Usage: $USAGE"
+            exit 1;;
+esac
+
+LOGS=true
+if [ $# -gt 1 ] && [ "$2" == "--nologs" ]; then
+  LOGS=false
+fi
+
+mkdir -p log
+PID_FILE="twistd.pid"
+CORE_COMMAND="twistd -y $HCIPATH/hyphe_backend/core.tac -l $HCIPATH/log/hyphe-core.log"
+
+function test_and_stop_process {
+  COMMAND=$(echo $1 | sed 's/\(\s\+-X\S\+\)\+/.*/')
+  NOLOG=$2
+  if test -z "$PID_FILE" || test -z "$COMMAND"; then
+    return
+  fi
+  if ! test -f $PID_FILE; then
+    if test -z "$NOLOG"; then
+      echo "...$PID_FILE is missing, searching process..."
+    fi
+    PID=$(pgrep -f "$COMMAND")
+  else
+    PID=$(cat $PID_FILE)
+  fi
+  if test -z "$PID" || ! ps -p $PID -f | grep "$COMMAND" > /dev/null ; then
+    if test -z "$NOLOG"; then
+      echo "...does not seem like running."
+    fi
+    rm -f $PID_FILE
+    return
+  fi
+  count=0
+  killopts=""
+  delay=1
+  # First try to kill 5 times during 5 seconds then twice with "-9" during 10 more seconds
+  while ps -p $PID > /dev/null && [ $count -lt 7 ]; do
+    kill $killopts $PID
+    if ps -p $PID > /dev/null; then
+      sleep $delay
+      count=$(($count + 1))
+      if [ $count -eq 5 ]; then
+        killopts="-9"
+        delay=5
+      fi
+    fi
+  done
+  if ps -p $PID > /dev/null; then
+    echo "...could not stop. Please try to kill -15 $PID"
+    exit 1
+  elif test -z "$NOLOG"; then
+    echo "...stopped."
+  fi
+  rm -f $PID_FILE
+}
+
+function exit_on_error {
+  test_and_stop_process "$CORE_COMMAND" nolog
+  echo "ERROR: Could not start Hyphe's backend server properly. See log below:"
+  echo
+  tail -n 10 log/hyphe-*.log
+  exit 1
+}
+function exit_on_running {
+  if ! test -z "$1" && ps -p "$1" -f | grep "$2" > /dev/null; then
+    echo "...already running, please run bin/hyphe stop or bin/hyphe restart."
+    exit 1
+  fi
+}
+
+function test_core_started_in_log {
+  grep -v "\[-\] \.\.\.\|Deprecation" log/hyphe-core.log | tail -n 5 | grep "Starting factory <twisted.web.server" > /dev/null
+}
+function test_error_in_core_log {
+  tail -n 2 log/hyphe-core.log | grep -v "Deprecation" | grep -i "error\|exception" > /dev/null
+}
+
+if $STOP; then
+  echo "Stopping Hyphe's Python core JsonRPC API..."
+  test_and_stop_process "$CORE_COMMAND"
+  echo "Hyphe's backend is now stopped."
+  echo
+  find . -name *.pyc -type f -print | xargs rm -f
+fi
+
+if $START; then
+  echo "Starting Hyphe's Python core JsonRPC API..."
+  COMMAND=$(echo "$CORE_COMMAND" | sed 's/\(\s\+-X\S\+\)\+/.*/')
+  if test -z "$PID_FILE" || test -z "$COMMAND"; then
+    return
+  fi
+  PID=$(pgrep -f "$COMMAND")
+  exit_on_running "$PID" "$COMMAND"
+  if test -f $PID_FILE; then
+    PID=$(cat $PID_FILE)
+    exit_on_running "$PID" "$COMMAND"
+    echo "...removing lost $PID_FILE file..."
+    rm -f $PID_FILE
+  fi
+
+  deactivate > /dev/null 2>&1
+  source $(which virtualenvwrapper.sh) || ( echo "ERROR: You must install virtualenvwrapper to use this starter: sudo pip -q install virtualenvwrapper" && exit 1 )
+  workon $HCIVENV
+  $CORE_COMMAND 2>&1 || exit 1
+  echo "...started..."
+  sleep 5
+
+  TEST_STARTED=test_core_started_in_log
+  TEST_ERROR=test_error_in_core_log
+  TEST_TIME=25
+  ts=0
+  sleep 0.5
+  while [ $ts -lt $TEST_TIME ] && ! $TEST_STARTED; do
+    sleep 0.5
+    ts=$(($ts + 1))
+    if $TEST_ERROR; then
+      exit_on_error
+    fi
+  done
+  if $TEST_ERROR || ! $TEST_STARTED; then
+    exit_on_error
+  else
+    echo "...ready."
+  fi
+  echo
+  if $LOGS; then
+    echo "Displaying logs now. Ctrl+C will only stop logs display. Run bin/hyphe stop to stop the backend server..."
+    echo
+    tail -f log/hyphe-core.log
+  fi
+fi
+

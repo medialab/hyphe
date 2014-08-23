@@ -59,7 +59,7 @@ Hyphe relies on a web interface communicating with a server which must be runnin
 To start, stop or restart the server, run (again, NO SUDO):
 
 ```bash
-    bin/hyphe <start|restart|stop>
+    bin/hyphe <start|restart|stop> [--nologs]
 ```
 
 As soon as it is running, you can visit the web interface on your local machine with the following url: [http://localhost/hyphe](http://localhost/hyphe).
