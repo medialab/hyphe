@@ -36,6 +36,11 @@
                         <div class="row">
                           <div class="col-md-6">
                             <div class="title-container">
+                              <span
+                                class="{{obj.webentity.startpages|startPagesClass:lookups:'text'}}"
+                                >
+                                <span class="{{obj.webentity.startpages|startPagesIcon:lookups}}"></span>&nbsp;
+                              </span>
                               {{obj.webentity.name}}
                             </div>
                           </div>
@@ -58,8 +63,18 @@
 
                             <!-- Loaded -->
                             <div ng-if="obj.status == 'loaded'">
+                              
+                              <!-- No start page -->
                               <span ng-if="obj.webentity.startpages.length == 0" class="text-danger">No start page</span>
-                              <span ng-if="obj.webentity.startpages.length > 0">{{obj.webentity.startpages.length}} start page(s)</span>
+
+                              <!-- Summary for these start pages -->
+                              <span
+                                ng-if="obj.webentity.startpages.length > 0"
+                                class="{{obj.webentity.startpages|startPagesClass:lookups:'text'}}"
+                                >
+                                {{obj.webentity.startpages|startPagesSummary:lookups}}
+                              </span>
+
                             </div>
                           </div>
                           <div class="col-md-1">
