@@ -78,6 +78,9 @@
                             <div class="col-md-6">
                               <span class="url">
                                 {{page}}
+                                <a href="{{page}}" target="_blank">
+                                  <span class="glyphicon glyphicon-share-alt"></span>
+                                </a>
                               </span>
                               <button
                                 class="btn btn-link btn-xs pull-right"
@@ -88,7 +91,28 @@
                               </button>
                             </div>
                             <div class="col-md-6">
-                              {{lookups[page].httpStatus}}
+
+                              <!-- Lookup loading -->
+                              <span ng-if="lookups[page].status == 'loading' || lookups[page].status == 'pending'" class="text-muted">
+                                {{lookups[page].status|titlecase}}
+                              </span>
+
+                              <!-- Lookup error -->
+                              <span ng-if="lookups[page].status == 'error'" class="text-danger">
+                                The server lookup failed
+                              </span>
+
+                              <!-- Lookup loaded -->
+                              <span
+                                ng-if="lookups[page].status == 'loaded'"
+                                ng-class="{'text-success':lookups[page].httpStatus == 200, 'text-danger':lookups[page].httpStatus != 200}"
+                              >
+                                {{lookups[page].httpStatus|explicitHttpCode}}
+                                <span ng-if="lookups[page].httpStatus != 200">
+                                  (code {{lookups[page].httpStatus}})
+                                </span>
+                              </span>
+                              
                             </div>
                           </div>
 

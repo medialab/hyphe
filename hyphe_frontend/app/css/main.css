@@ -237,10 +237,7 @@ textarea.over-error{
   border-top: 1px solid #F5F5F5;
 }
 .table-startpages>tbody>tr{
-  -webkit-user-select: none; /* Chrome/Safari */        
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* IE10+ */
-  select: none;
+  
 }
 .table-startpages .td-row-id{
   width: 50px;
@@ -260,6 +257,10 @@ textarea.over-error{
   cursor: pointer;
   padding-top: 16px;
   padding-bottom: 16px;
+  -webkit-user-select: none; /* Chrome/Safari */        
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
+  select: none;
 }
 .table-startpages .title-container{
   font-family: 'Roboto', sans-serif;
