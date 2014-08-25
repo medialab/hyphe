@@ -36,6 +36,6 @@
       </div>
     </form>
   </div>
-  <button class="btn btn-primary" ng-click="ok()">OK</button>
-  <button class="btn btn-default" ng-click="cancel()">Cancel</button>
+  <button class="btn btn-primary" ng-click="ok()">{{obj.task.type == 'addPrefix' ? 'ADD PREFIX' : obj.task.type == 'merge' ? 'MERGE' : 'OK'}}</button>
+  <button class="btn btn-default" ng-click="cancel()">CANCEL</button>
 </div>
