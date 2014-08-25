@@ -440,7 +440,7 @@ class Core(jsonrpc.JSONRPC):
   # BASIC CRAWL METHODS
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None, use_all_pages_as_startpages=False, use_prefixes_as_startpages=False, phantom_crawl=False, corpus=DEFAULT_CORPUS):
+    def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], startpages="default", corpus=DEFAULT_CORPUS):
         """Tells scrapy to run crawl on a WebEntity defined by its id from memory structure."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
@@ -450,15 +450,21 @@ class Core(jsonrpc.JSONRPC):
             maxdepth = config['mongo-scrapy']['maxdepth']
         if maxdepth > config['mongo-scrapy']['maxdepth']:
             returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % config['mongo-scrapy']['maxdepth']))
-        WE = yield self.store.get_webentity_with_pages_and_subWEs(webentity_id, use_all_pages_as_startpages, corpus=corpus)
+        if startpages not in ["default", "startpages", "pages", "prefixes"]:
+            returnD(format_error('ERROR: startpages argument must be one of "startpages", "pages" or "prefixes"'))
+        WE = yield self.store.get_webentity_with_pages_and_subWEs(webentity_id, startpages, corpus=corpus)
         if is_error(WE):
             returnD(WE)
-        if test_bool_arg(use_prefixes_as_startpages) and not test_bool_arg(use_all_pages_as_startpages):
-            WE['pages'] = [urllru.lru_to_url(lru) for lru in WE['lrus']]
-        if WE['status'] == ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.DISCOVERED]:
-            yield self.store.jsonrpc_set_webentity_status(webentity_id, ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.UNDECIDED], corpus=corpus)
+        statusval = -1
+        for s in ms.WebEntityStatus._NAMES_TO_VALUES:
+            if status.lower() == s.lower():
+                statusval = s
+                break
+        if statusval == -1:
+            returnD(format_error("ERROR: status argument must be one of '%s'" % "','".join([s.lower() for s in ms.WebEntityStatus._NAMES_TO_VALUES])))
+        yield self.store.jsonrpc_set_webentity_status(webentity_id, statusval, corpus=corpus)
         yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true", corpus=corpus)
-        res = yield self.crawler.jsonrpc_start(webentity_id, WE['pages'], WE['lrus'], WE['subWEs'], config['discoverPrefixes'], maxdepth, phantom_crawl, corpus=corpus)
+        res = yield self.crawler.jsonrpc_start(webentity_id, WE['starts'], WE['lrus'], WE['subWEs'], config['discoverPrefixes'], maxdepth, phantom_crawl, corpus=corpus)
         returnD(res)
 
     def jsonrpc_get_webentity_logs(self, webentity_id, corpus=DEFAULT_CORPUS):
@@ -1529,19 +1535,22 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(format_result(res))
 
     @inlineCallbacks
-    def get_webentity_with_pages_and_subWEs(self, webentity_id, all_pages_as_startpoints=False, corpus=DEFAULT_CORPUS):
+    def get_webentity_with_pages_and_subWEs(self, webentity_id, startpages="default", corpus=DEFAULT_CORPUS):
         WE = yield self.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
         if is_error(WE):
             returnD(format_error("No WebEntity with id %s found" % webentity_id))
-        res = {'status': WE.status, 'lrus': list(WE.LRUSet), 'pages': [urllru.lru_to_url(lr) for lr in WE.LRUSet], 'subWEs': []}
-        if test_bool_arg(all_pages_as_startpoints):
+        res = {'status': WE.status, 'lrus': list(WE.LRUSet), 'subWEs': []}
+        startpages = startpages.lower()
+        if startpages == "pages":
             pages = yield self.msclients.pool.getWebEntityCrawledPages(WE.id, corpus=corpus)
             if is_error(pages):
                 returnD(pages)
             if pages:
-                res['pages'] = [p.url for p in pages]
+                res['starts'] = [p.url for p in pages]
+        elif startpages == "prefixes":
+            res['starts'] = [urllru.lru_to_url(lru) for lru in WE.LRUSet]
         else:
-            res['pages'] = list(WE.startpages)
+            res['starts'] = list(WE.startpages)
         subs = yield self.msclients.pool.getWebEntitySubWebEntities(WE.id, corpus=corpus)
         if is_error(subs):
             returnD(subs)
