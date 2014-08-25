@@ -34,12 +34,12 @@
                         ng-click="obj.collapsed = !obj.collapsed"
                         >
                         <div class="row">
-                          <div class="col-md-8 col-lg-6">
+                          <div class="col-md-6">
                             <div class="title-container">
                               {{obj.webentity.name}}
                             </div>
                           </div>
-                          <div class="col-md-3 col-lg-5">
+                          <div class="col-md-5">
                             <!-- Not loaded -->
                             <div ng-if="obj.status == 'loading' || obj.status == 'pending'" class="text-muted">
                               {{obj.status|titlecase}}
@@ -72,8 +72,10 @@
                       </div>
                       <div ng-if="!obj.collapsed" class="bottom-panel">
                         <div class="container-fluid">
+
+                          <!-- Rows for start pages -->
                           <div class="row startpage-row" ng-repeat="page in obj.webentity.startpages">
-                            <div class="col-md-8  col-lg-6">
+                            <div class="col-md-6">
                               <span class="url">
                                 {{page}}
                               </span>
@@ -85,12 +87,12 @@
                                 <span class="glyphicon glyphicon-remove"></span> REMOVE
                               </button>
                             </div>
-                            <div class="col-md-4 col-lg-6">
+                            <div class="col-md-6">
                             </div>
                           </div>
 
                           <div class="row actions-row">
-                            <div class="col-md-8 col-lg-6">
+                            <div class="col-md-6">
 
                               <div class="input-group" ng-class="{'has-error':obj.startPageInvalid}">
                                 <input
@@ -110,13 +112,13 @@
                                     ng-click="addStartPage(obj.id)"
                                     ng-disabled="obj.status!='loaded'"
                                   >
-                                    <span class="glyphicon glyphicon-plus"></span> ADD NEW START PAGE
+                                    <span class="glyphicon glyphicon-plus"></span> ADD NEW
                                   </button>
                                 </span>
                               </div>
                               
                             </div>
-                            <div class="col-md-4 col-lg-6">
+                            <div class="col-md-6">
                               <div class="pull-right">
                                 <button type="button" ng-if="obj.webentity.startpages.length > 0" class="btn btn-link btn-sm"><span class="glyphicon glyphicon-repeat"></span> TEST AGAIN</button>
                               </div>
