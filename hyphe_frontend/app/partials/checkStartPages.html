@@ -36,11 +36,17 @@
                         <div class="row">
                           <div class="col-md-6">
                             <div class="title-container">
-                              <span
-                                class="{{obj.webentity.startpages|startPagesClass:lookups:'text'}}"
-                                >
-                                <span class="{{obj.webentity.startpages|startPagesIcon:lookups}}"></span>&nbsp;
+
+                              <!-- Icon if start pages success -->
+                              <span ng-if="obj.startpagesSummary.status == 'success'">
+                                <span class="glyphicon glyphicon-ok-circle text-success"></span>&nbsp;
                               </span>
+                              
+                              <!-- Icon if start pages warning -->
+                              <span ng-if="obj.startpagesSummary.status == 'warning'">
+                                <span class="glyphicon glyphicon-warning-sign text-danger"></span>&nbsp;
+                              </span>
+                              
                               {{obj.webentity.name}}
                             </div>
                           </div>
@@ -68,11 +74,16 @@
                               <span ng-if="obj.webentity.startpages.length == 0" class="text-danger">No start page</span>
 
                               <!-- Summary for these start pages -->
-                              <span
-                                ng-if="obj.webentity.startpages.length > 0"
-                                class="{{obj.webentity.startpages|startPagesClass:lookups:'text'}}"
-                                >
-                                {{obj.webentity.startpages|startPagesSummary:lookups}}
+                              <span ng-if="obj.webentity.startpages.length > 0">
+                                <span ng-if="obj.startpagesSummary.status == 'loading'" class="text-muted">
+                                  Testing start pages
+                                </span>
+                                <span ng-if="obj.startpagesSummary.status == 'warning'" class="text-danger">
+                                  {{obj.startpagesSummary.warning}} warning{{obj.startpagesSummary.warning > 1 ? 's' : ''}}
+                                </span>
+                                <span ng-if="obj.startpagesSummary.status == 'success'" class="text-success">
+                                  {{obj.startpagesSummary.loaded}} start page{{obj.startpagesSummary.loaded > 1 ? 's' : ''}}
+                                </span>
                               </span>
 
                             </div>
@@ -97,6 +108,37 @@
                                   <span class="glyphicon glyphicon-share-alt"></span>
                                 </a>
                               </span>
+                            </div>
+                            <div class="col-md-4">
+                              <div class="lookup-result">
+
+                                <!-- Lookup loading -->
+                                <span ng-if="lookups[page].status == 'loading' || lookups[page].status == 'pending'" class="text-muted">
+                                  {{lookups[page].status|titlecase}}
+                                </span>
+
+                                <!-- Lookup error -->
+                                <span ng-if="lookups[page].status == 'error'" class="text-danger">
+                                  <span class="glyphicon glyphicon-warning-sign"></span>
+                                  The server lookup failed
+                                </span>
+
+                                <!-- Lookup loaded -->
+                                <span
+                                  ng-if="lookups[page].status == 'loaded'"
+                                  ng-class="{'text-success':lookups[page].httpStatus == 200, 'text-danger':lookups[page].httpStatus != 200}"
+                                >
+                                <span ng-if="lookups[page].httpStatus == 200" class="glyphicon glyphicon-ok-circle"></span>
+                                <span ng-if="lookups[page].httpStatus != 200" class="glyphicon glyphicon-warning-sign"></span>
+                                  {{lookups[page].httpStatus|explicitHttpCode}}
+                                  <span ng-if="lookups[page].httpStatus != 200">
+                                    (code {{lookups[page].httpStatus}})
+                                  </span>
+                                </span>
+                              </div>
+                              
+                            </div>
+                            <div class="col-md-2">
                               <button
                                 class="btn btn-link btn-xs pull-right"
                                 ng-click="removeStartPage(page, $parent.obj.id)"
@@ -104,30 +146,6 @@
                               >
                                 <span class="glyphicon glyphicon-remove"></span> REMOVE
                               </button>
-                            </div>
-                            <div class="col-md-6">
-
-                              <!-- Lookup loading -->
-                              <span ng-if="lookups[page].status == 'loading' || lookups[page].status == 'pending'" class="text-muted">
-                                {{lookups[page].status|titlecase}}
-                              </span>
-
-                              <!-- Lookup error -->
-                              <span ng-if="lookups[page].status == 'error'" class="text-danger">
-                                The server lookup failed
-                              </span>
-
-                              <!-- Lookup loaded -->
-                              <span
-                                ng-if="lookups[page].status == 'loaded'"
-                                ng-class="{'text-success':lookups[page].httpStatus == 200, 'text-danger':lookups[page].httpStatus != 200}"
-                              >
-                                {{lookups[page].httpStatus|explicitHttpCode}}
-                                <span ng-if="lookups[page].httpStatus != 200">
-                                  (code {{lookups[page].httpStatus}})
-                                </span>
-                              </span>
-                              
                             </div>
                           </div>
 
@@ -163,7 +181,7 @@
                                 type="button"
                                 class="btn btn-default btn-sm"
                                 ng-if="obj.webentity.startpages.length > 0"
-                                ng-click="reloadRow(obj.id)"
+                                ng-click="testAgain(obj.id)"
                               >
                                 <span class="glyphicon glyphicon-repeat"></span> TEST AGAIN
                               </button>

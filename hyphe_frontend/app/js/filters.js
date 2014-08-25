@@ -32,52 +32,6 @@ angular.module('hyphe.filters', [])
     }
   }])
 
-  .filter('startPagesSummary', [function () {
-    return function (startPages, lookups) {
-      startPages = startPages || []
-      var warnings = startPages.filter(function(url){
-        if(lookups[url])
-          return lookups[url].httpStatus != 200
-        return true
-      })
-      if(warnings.length > 0 || startPages.length == 0){
-        return warnings.length + ' warning' + ((warnings.length > 1)?('s'):(''))
-      }
-      return startPages.length + ' start page' + ((startPages.length > 1)?('s'):(''))
-    }
-  }])
-
-  .filter('startPagesClass', [function () {
-    return function (startPages, lookups, class_bootstrap_prefix) {
-      startPages = startPages || []
-      class_bootstrap_prefix = class_bootstrap_prefix || 'text'
-      var warnings = startPages.filter(function(url){
-        if(lookups[url])
-          return lookups[url].httpStatus != 200
-        return true
-      })
-      if(warnings.length > 0 || startPages.length == 0){
-        return class_bootstrap_prefix + '-danger'
-      }
-      return class_bootstrap_prefix + '-success'
-    }
-  }])
-
-  .filter('startPagesIcon', [function () {
-    return function (startPages, lookups) {
-      startPages = startPages || []
-      var warnings = startPages.filter(function(url){
-        if(lookups[url])
-          return lookups[url].httpStatus != 200
-        return true
-      })
-      if(warnings.length > 0 || startPages.length == 0){
-        return 'glyphicon glyphicon-warning-sign'
-      }
-      return 'glyphicon glyphicon-ok-circle'
-    }
-  }])
-
   .filter('explicitHttpCode', [function () {
     return function (code) {
       code = ''+code

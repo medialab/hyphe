@@ -445,6 +445,11 @@ angular.module('hyphe.controllers', [])
       var list = $scope.createdList
         .map(cleanObj)
         .filter(function(obj){return obj.webentity.id !== undefined})
+      
+      // Remove doublons
+      list = utils.extractCases(list, function(obj){
+        return obj.webentity.id
+      })
 
       if(withExisting){
         $scope.existingList.forEach(function(obj){
@@ -759,8 +764,17 @@ angular.module('hyphe.controllers', [])
       obj.startPageInvalid = !utils.URL_validate(url) && url != ''
     }
 
+    $scope.testAgain = function(rowId){
+      reloadRow(rowId)
+    }
+
     function bootstrapList(list){
       list = list || []
+
+      // Remove doublons
+      list = utils.extractCases(list, function(obj){
+        return obj.webentity.id
+      })
 
       // Pagination
       initPagination(0, 50, list.length)
@@ -772,6 +786,7 @@ angular.module('hyphe.controllers', [])
           ,webentity: obj.webentity
           ,status: 'loading'
           ,collapsed: true
+          ,startpagesSummary: {status: 'loading'}
         }
       })
     }
@@ -818,6 +833,13 @@ angular.module('hyphe.controllers', [])
     function reloadRow(rowId){
       var obj = list_byId[rowId]
       obj.status = 'loading'
+
+      // Reset the lookups
+      obj.webentity.startpages.forEach(function(url){
+        delete $scope.lookups[url]
+      })
+      updateRowForLookup(obj.id)
+
       api.getWebentities({
           id_list: [obj.webentity.id]
         }
@@ -904,7 +926,7 @@ angular.module('hyphe.controllers', [])
       // Add the new start pages to the lookup data if needed
       obj.webentity.startpages.forEach(function(sp){
         if($scope.lookups[sp] === undefined){
-          $scope.lookups[sp] = {status:'loading', url:sp}
+          $scope.lookups[sp] = {status:'loading', url:sp, rowId: obj.id}
           something_changed = true
         }
       })
@@ -935,11 +957,13 @@ angular.module('hyphe.controllers', [])
                   var lo = $scope.lookups[url]
                   lo.status = 'loaded'
                   lo.httpStatus = httpStatus
+                  updateRowForLookup(lo.rowId)
                 }
               ,function(data, status, headers){     // Fail callback
                   var lo = $scope.lookups[url]
                   lo.status = 'error'
                   lo.httpStatus = undefined
+                  updateRowForLookup(lo.rowId)
                 }
               ,{                                    // Options
                   label: 'lookup '+url
@@ -947,6 +971,7 @@ angular.module('hyphe.controllers', [])
                       var lo = $scope.lookups[url]
                       lo.status = 'pending'
                     }
+                  ,simultaneousQueries: 3
                 }
             )
         })
@@ -959,7 +984,7 @@ angular.module('hyphe.controllers', [])
           }
           ,percent = Math.round((summary.loaded / summary.total) * 100)
           ,percent_pending = Math.round((summary.pending / summary.total) * 100)
-          ,msg = percent + '% loaded'
+          ,msg = 'lookups ' + percent + '% loaded'
           console.log(msg)
         })
 
@@ -969,6 +994,36 @@ angular.module('hyphe.controllers', [])
 
         lookupQB.run()
       }
+    }
+
+    function updateRowForLookup(rowId){
+      var obj = list_byId[rowId]
+      ,loadedPages = obj.webentity.startpages.filter(function(url){
+        var lo = $scope.lookups[url]
+        return lo && (lo.status == 'loaded' || lo.status == 'error')
+      })
+      ,warningPages = loadedPages.filter(function(url){
+        var lo = $scope.lookups[url]
+        return lo.status == 'error' || lo.httpStatus != 200
+      })
+      
+      obj.startpagesSummary = {
+        loaded: loadedPages.length
+        ,loading: obj.webentity.startpages.length - loadedPages.length
+        ,warning: warningPages.length
+      }
+
+      if(obj.startpagesSummary.loading == 0){
+        if(obj.startpagesSummary.warning == 0){
+          obj.startpagesSummary.status = 'success'
+        } else {
+          obj.startpagesSummary.status = 'warning'
+          obj.collapsed = false
+        }
+      } else {
+        obj.startpagesSummary.status = 'loading'
+      }
+
     }
 
     /* Modal controller */

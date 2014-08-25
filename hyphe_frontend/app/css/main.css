@@ -276,6 +276,9 @@ textarea.over-error{
   font-family: 'Roboto Condensed', sans-serif;
   font-weight:400;
 }
+.table-startpages .lookup-result{
+  font-size: 12px;
+}
 /* Collapsible panel */
 .table-startpages .bottom-panel{
   margin-bottom: 24px;

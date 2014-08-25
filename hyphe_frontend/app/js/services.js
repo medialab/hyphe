@@ -255,7 +255,7 @@ angular.module('hyphe.services', [])
       var ns = this   // namespace
 
       ns.currentId = 0
-      ns.atTheSameTime = 10
+      ns.simultaneousQueries = 10
       ns.list = []
       ns.pending = []
       ns.success = []
@@ -277,6 +277,10 @@ angular.module('hyphe.services', [])
           query.label = options.label
         } else {
           query.label = 'query ' + query.id
+        }
+
+        if(options.simultaneousQueries && options.simultaneousQueries > 0){
+          ns.simultaneousQueries = options.simultaneousQueries
         }
 
         query.before = options.before
@@ -311,7 +315,7 @@ angular.module('hyphe.services', [])
 
       ns._fetch = function(){
         if(ns.list.length > 0){
-          if(ns.pending.length < ns.atTheSameTime){
+          if(ns.pending.length < ns.simultaneousQueries){
             var query = ns.list.shift() || {}
             
             if(query.before)
@@ -354,7 +358,7 @@ angular.module('hyphe.services', [])
               ns._atEachFetch(ns.list, ns.pending, ns.success, ns.fail)
               ns._fetch()
             }
-            if(ns.pending.length < ns.atTheSameTime){
+            if(ns.pending.length < ns.simultaneousQueries){
               ns._fetch()
             }
           }
