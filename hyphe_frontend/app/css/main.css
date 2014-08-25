@@ -265,10 +265,19 @@ textarea.over-error{
   font-family: 'Roboto', sans-serif;
   font-weight:400;
 }
+.table-startpages .actions-row{
+  margin-top: 18px;
+}
+.table-startpages .startpage-row{
+  margin-bottom: 6px;
+}
+.table-startpages .url{
+  font-family: 'Roboto Condensed', sans-serif;
+  font-weight:400;
+}
 /* Collapsible panel */
 .table-startpages .bottom-panel{
-  margin-top: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 24px;
 }
 /* Modal */
 .start-page-modal .slider-container{

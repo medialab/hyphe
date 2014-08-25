@@ -648,7 +648,7 @@ angular.module('hyphe.controllers', [])
 
       if(obj.startPageInvalid){
 
-        alert('This URL is not valid\n('+ url +' )')
+        alert('This URL is not valid:\n'+ url)
 
       } else {
         var url_is_prefixed = checkUrlPrefixed(url, obj.webentity.lru_prefixes)
@@ -748,6 +748,10 @@ angular.module('hyphe.controllers', [])
       }
     }
     
+    // Removing a start page
+    $scope.removeStartPage = function(url, objId){
+      removeStartPageAndReload(objId, url)
+    }
 
     $scope.startPageValidate = function(objId){
       var obj = list_byId[objId]
@@ -755,7 +759,6 @@ angular.module('hyphe.controllers', [])
 
       obj.startPageInvalid = !utils.URL_validate(url) && url != ''
     }
-
 
     function bootstrapList(list){
       list = list || []
@@ -770,7 +773,6 @@ angular.module('hyphe.controllers', [])
           ,webentity: obj.webentity
           ,status: 'loading'
           ,collapsed: true
-          ,currentStartPageInput: "http://google.com"  // for test only
         }
       })
     }
@@ -806,6 +808,14 @@ angular.module('hyphe.controllers', [])
       })
     }
 
+    function removeStartPageAndReload(rowId, url){
+      var obj = list_byId[rowId]
+      obj.status = 'loading'
+      _removeStartPage(obj, url, function(){
+        reloadRow(obj.id)
+      })
+    }
+
     function reloadRow(rowId){
       var obj = list_byId[rowId]
       obj.status = 'loading'
@@ -831,6 +841,7 @@ angular.module('hyphe.controllers', [])
       )
     }
 
+    // This function only performs the API call
     function _addStartPage(obj, url, callback){
       api.addStartPage({
           webentityId: obj.webentity.id
@@ -844,6 +855,28 @@ angular.module('hyphe.controllers', [])
         }
         ,function(data, status, headers, config){
           $scope.status = {message:'Start page could not be added', background:'danger'}
+          if(callback)
+            callback(data)
+          else
+            obj.status = 'loaded'
+        }
+      )
+    }
+
+    // This function only performs the API call
+    function _removeStartPage(obj, url, callback){
+      api.removeStartPage({
+          webentityId: obj.webentity.id
+          ,url: url
+        }
+        ,function(data){
+          if(callback)
+            callback(data)
+          else
+            obj.status = 'loaded'
+        }
+        ,function(data, status, headers, config){
+          $scope.status = {message:'Start page could not be removed', background:'danger'}
           if(callback)
             callback(data)
           else
