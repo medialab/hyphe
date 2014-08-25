@@ -547,6 +547,8 @@ angular.module('hyphe.controllers', [])
   ,function($scope, api, store, utils, $location, QueriesBatcher, $modal) {
     $scope.currentPage = 'checkStartPages'
 
+    $scope.lookups = {}
+
     // DEV MODE
     // $scope.list = bootstrapList(store.get('webentities_toCrawl'))
     // console.log(JSON.stringify($scope.list))
@@ -596,6 +598,7 @@ angular.module('hyphe.controllers', [])
                 if(we_list.length > 0){
                   obj.status = 'loaded'
                   obj.webentity = we_list[0]
+                  updateStartPageLookups(obj)
                 } else {
                   obj.status = 'error'
                   console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', we_list, 'status:', status)
@@ -826,6 +829,7 @@ angular.module('hyphe.controllers', [])
           if(we_list.length > 0){
             obj.status = 'loaded'
             obj.webentity = we_list[0]
+            updateStartPageLookups(obj)
           } else {
             obj.status = 'error'
             console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', we_list, 'status:', status)
@@ -896,6 +900,78 @@ angular.module('hyphe.controllers', [])
       })
       if(objFound){
         delete list_byId[objFound.id]
+      }
+    }
+
+    function updateStartPageLookups(obj){
+      var something_changed = false
+      // Add the new start pages to the lookup data if needed
+      obj.webentity.startpages.forEach(function(sp){
+        if($scope.lookups[sp] === undefined){
+          $scope.lookups[sp] = {status:'loading', url:sp}
+          something_changed = true
+        }
+      })
+      // Launch these lookups if needed
+      if(something_changed)
+        loopLookups()
+    }
+
+    function loopLookups(){
+      var unlookedUrls = []
+
+      for(var url in $scope.lookups){
+        var lo = $scope.lookups[url]  // Lookup Object
+        if(lo.status == 'loading'){
+          unlookedUrls.push(url)
+        }
+      }
+
+      if(unlookedUrls.length > 0){
+        var lookupQB = new QueriesBatcher()
+        unlookedUrls.forEach(function(url){
+          lookupQB.addQuery(
+              api.urlLookup                         // Query call
+              ,{                                    // Query settings
+                  url:url
+                }
+              ,function(httpStatus){                // Success callback
+                  var lo = $scope.lookups[url]
+                  lo.status = 'loaded'
+                  lo.httpStatus = httpStatus
+                }
+              ,function(data, status, headers){     // Fail callback
+                  var lo = $scope.lookups[url]
+                  lo.status = 'error'
+                  lo.httpStatus = undefined
+                }
+              ,{                                    // Options
+                  label: 'lookup '+url
+                  ,before: function(){
+                      var lo = $scope.lookups[url]
+                      lo.status = 'pending'
+                    }
+                }
+            )
+        })
+
+        lookupQB.atEachFetch(function(list,pending,success,fail){
+          var summary = {
+            total: list.length + pending.length + success.length + fail.length
+            ,pending: pending.length
+            ,loaded: success.length + fail.length
+          }
+          ,percent = Math.round((summary.loaded / summary.total) * 100)
+          ,percent_pending = Math.round((summary.pending / summary.total) * 100)
+          ,msg = percent + '% loaded'
+          console.log(msg)
+        })
+
+        lookupQB.atFinalization(function(list,pending,success,fail){
+          loopLookups()
+        })
+
+        lookupQB.run()
       }
     }
 

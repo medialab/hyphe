@@ -48,7 +48,7 @@
                             <!-- Not loaded -->
                             <div ng-if="obj.status == 'error'" class="text-danger">
                               {{obj.status|titlecase}}
-                              <p>{{obj.infoMessage}}</p>
+                              <p ng-if="obj.infoMessage && obj.infoMessage !== ''">{{obj.infoMessage}}</p>
                             </div>
 
                             <!-- Merging -->
@@ -88,6 +88,7 @@
                               </button>
                             </div>
                             <div class="col-md-6">
+                              {{lookups[page].httpStatus}}
                             </div>
                           </div>
 

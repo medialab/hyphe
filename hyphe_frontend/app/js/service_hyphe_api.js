@@ -89,6 +89,15 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
+    api.urlLookup = buildApiCall(
+        HYPHE_API.URL_LOOKUP
+        ,function(settings){
+          return [
+              settings.url
+              ,settings.timeout || 5
+            ]}
+      )
+
     api.addStartPage = buildApiCall(
         HYPHE_API.WEBENTITY.STARTPAGE.ADD
         ,function(settings){
