@@ -18,8 +18,8 @@
 	                					<tr>
 	                						<td class="webentity-spacer"></td>
 	                					</tr>
-	                					<tr class="webentity-row" ng-class="{selected: obj.prefixLength==webEntity.stems_count}">
-	                						<td class="webentity-stem" ng-repeat="i in getRange(webEntity.stems_count)"></td>
+	                					<tr class="webentity-row" ng-class="{selected: obj.prefixLength==webEntity.stems_count + 1 - obj.tldLength}">
+	                						<td class="webentity-stem" ng-repeat="i in getRange(webEntity.stems_count + 1 - obj.tldLength)"></td>
 	                					</tr>
 	                				</tbody>
                 				</table>

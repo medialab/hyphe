@@ -933,6 +933,12 @@ angular.module('hyphe.controllers', [])
       // Launch these lookups if needed
       if(something_changed)
         loopLookups()
+
+      // If there are no pages, there will be no lookup, but the status is still 'warning'
+      if(obj.webentity.startpages.length == 0){
+        obj.startpagesSummary.status = 'warning'
+        obj.collapsed = false
+      }
     }
 
     function loopLookups(){
@@ -976,18 +982,6 @@ angular.module('hyphe.controllers', [])
             )
         })
 
-        lookupQB.atEachFetch(function(list,pending,success,fail){
-          var summary = {
-            total: list.length + pending.length + success.length + fail.length
-            ,pending: pending.length
-            ,loaded: success.length + fail.length
-          }
-          ,percent = Math.round((summary.loaded / summary.total) * 100)
-          ,percent_pending = Math.round((summary.pending / summary.total) * 100)
-          ,msg = 'lookups ' + percent + '% loaded'
-          console.log(msg)
-        })
-
         lookupQB.atFinalization(function(list,pending,success,fail){
           loopLookups()
         })
@@ -1013,7 +1007,9 @@ angular.module('hyphe.controllers', [])
         ,warning: warningPages.length
       }
 
-      if(obj.startpagesSummary.loading == 0){
+      if(obj.webentity.startpages.length == 0){
+        obj.startpagesSummary.status = 'warning'
+      } else if(obj.startpagesSummary.loading == 0){
         if(obj.startpagesSummary.warning == 0){
           obj.startpagesSummary.status = 'success'
         } else {

@@ -25,6 +25,9 @@ h1, h2, h3, h4, h5, h6{
   border-bottom: 1px dotted #777;
   cursor: help;
 }
+.glyphicon.glyphicon-sm{
+  font-size: 11px;
+}
 
 
 
