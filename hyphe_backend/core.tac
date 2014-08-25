@@ -579,14 +579,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
             url, lru_prefix = urllru.url_clean_and_convert(url, False)
         except ValueError as e:
             return format_error(e)
-        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startpages)
+        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startPages)
 
     def jsonrpc_declare_webentity_by_lru(self, lru_prefix, name=None, status=None, startPages=[]):
-        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startpages)
+        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startPages)
 
     def jsonrpc_declare_webentity_by_lrus(self, list_lrus, name=None, status=None, startPages=[]):
-        if not isinstance(startPages, list):
-            startPages = [startPages]
         if not isinstance(list_lrus, list):
             list_lrus = [list_lrus]
         lru_prefixes_list = []
@@ -605,8 +603,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 name = urllru.url_shorten(url)
             lru_prefixes_list.append(lru)
         WE = ms.WebEntity(id=None, LRUSet=lru_prefixes_list, name=name)
-        if startpages:
-            WE.startpages = startpages
+        if startPages:
+            if not isinstance(startPages, list):
+                startPages = [startPages]
+            WE.startpages = startPages
         if status:
             for s in ms.WebEntityStatus._NAMES_TO_VALUES:
                 if status.lower() == s.lower():
