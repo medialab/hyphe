@@ -37,13 +37,13 @@ angular.module('hyphe.filters', [])
       code = ''+code
       switch(code){
         case('-1'):
-          return 'Hyphe cannot deal with this URL'
+          return 'Connection Refused'
           break
         case('0'):
           return 'Domain name cannot not be found'
           break
         case('200'):
-          return 'OK'
+          return 'Test Successful'
           break
         case('300'):
           return 'Redirection "Multiple Choices"'
@@ -243,8 +243,6 @@ angular.module('hyphe.filters', [])
         case('599'):
           return 'Server Error "Network connect timeout error"'
           break
-
-
       }
       return "Lookup Fail"
     }
