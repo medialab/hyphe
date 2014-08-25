@@ -32,6 +32,15 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('count', [function() {
+    return function(array, accessor) {
+      accessor = accessor || 'item'
+      return array.filter(function(item,i){
+        return eval(accessor) || false
+      }).length
+    }
+  }])
+
   .filter('explicitHttpCode', [function () {
     return function (code) {
       code = ''+code
@@ -40,7 +49,7 @@ angular.module('hyphe.filters', [])
           return 'Connection Refused'
           break
         case('0'):
-          return 'Domain name cannot not be found'
+          return 'Domain name cannot be found'
           break
         case('200'):
           return 'Test Successful'
@@ -188,6 +197,9 @@ angular.module('hyphe.filters', [])
           break
         case('499'):
           return 'Client Error "Client Closed Request / Token Required"'
+          break
+        case('500'):
+          return 'Server Error'
           break
         case('501'):
           return 'Server Error "Not Implemented"'

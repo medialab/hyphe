@@ -14,6 +14,31 @@
                 <p class="text-info">
                   <span hyphe-glossary>Crawling</span> requires a starting point: check that each <span hyphe-glossary>web entity</span> has a <span hyphe-glossary>start page</span>
                 </p>
+                
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-2 startpages-summary-cell text-danger" ng-if="(list|count:'item.startpagesSummary.status == \'warning\'') > 0">
+                <span class="glyphicon glyphicon-warning-sign"></span>
+                <br>
+                {{list|count:'item.startpagesSummary.status == "warning"'}} web entit{{(list|count:'item.startpagesSummary.status == "warning"') > 1 ? 'ies' : 'y'}} to check
+              </div>
+              <div class="col-md-2 startpages-summary-cell text-success" ng-if="(list|count:'item.startpagesSummary.status == \'success\'') > 0">
+                <span class="glyphicon glyphicon-ok-circle"></span>
+                <br>
+                {{list|count:'item.startpagesSummary.status == "success"'}} OK
+              </div>
+              <div class="col-md-2 startpages-summary-cell text-muted" ng-if="(list|count:'item.startpagesSummary.status == \'loading\'') > 0">
+                <span class="glyphicon glyphicon-time"></span>
+                <br>
+                {{list|count:'item.startpagesSummary.status == "loading"'}} being tested
+              </div>
+            </div>
+
+            <!-- Big Table -->
+            <div class="row">
+              <div class="col-md-12">
                 <table class="table table-striped table-startpages">
                   <tr
                     ng-repeat="obj in list|paginate:page:paginationLength track by $index"
