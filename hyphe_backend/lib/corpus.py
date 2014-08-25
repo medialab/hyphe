@@ -32,7 +32,7 @@ class LuceneCorpus(Thread):
 
     daemon = True
 
-    def __init__(self, factory, name, host="localhost", ram=256, timeout=1800, loglevel="INFO", quiet=False):
+    def __init__(self, factory, name, host="localhost", ram=256, timeout=3600, loglevel="INFO", quiet=False):
         Thread.__init__(self)
         self.factory = factory
         self.status = "init"
