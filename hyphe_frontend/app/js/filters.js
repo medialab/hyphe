@@ -198,6 +198,9 @@ angular.module('hyphe.filters', [])
         case('499'):
           return 'Client Error "Client Closed Request / Token Required"'
           break
+        case('500'):
+          return 'Server Error'
+          break
         case('501'):
           return 'Server Error "Not Implemented"'
           break
