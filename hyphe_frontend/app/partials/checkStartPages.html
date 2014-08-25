@@ -159,9 +159,14 @@
                               
                             </div>
                             <div class="col-md-6">
-                              <div class="pull-right">
-                                <button type="button" ng-if="obj.webentity.startpages.length > 0" class="btn btn-link btn-sm"><span class="glyphicon glyphicon-repeat"></span> TEST AGAIN</button>
-                              </div>
+                              <button
+                                type="button"
+                                class="btn btn-default btn-sm"
+                                ng-if="obj.webentity.startpages.length > 0"
+                                ng-click="reloadRow(obj.id)"
+                              >
+                                <span class="glyphicon glyphicon-repeat"></span> TEST AGAIN
+                              </button>
                             </div>
                           </div>
                         </div>

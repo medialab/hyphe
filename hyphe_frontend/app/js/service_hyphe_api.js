@@ -86,6 +86,7 @@ angular.module('hyphe.service_hyphe_api', [])
               settings.prefixes             // LRU list
               ,settings.name || ''          // Name
               ,'IN'                         // Status
+              ,settings.startPages || []    // Start pages
             ]}
       )
 
@@ -181,7 +182,7 @@ angular.module('hyphe.service_hyphe_api', [])
           ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
         })
           .success(function(data, status, headers, config){
-              var target = data[0].result
+              var target = (data[0] || {}).result
               if(target){
                 successCallback(target)
               } else {

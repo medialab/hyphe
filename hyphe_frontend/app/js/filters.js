@@ -36,7 +36,9 @@ angular.module('hyphe.filters', [])
     return function (startPages, lookups) {
       startPages = startPages || []
       var warnings = startPages.filter(function(url){
-        return lookups[url].httpStatus != 200
+        if(lookups[url])
+          return lookups[url].httpStatus != 200
+        return true
       })
       if(warnings.length > 0 || startPages.length == 0){
         return warnings.length + ' warning' + ((warnings.length > 1)?('s'):(''))
@@ -50,7 +52,9 @@ angular.module('hyphe.filters', [])
       startPages = startPages || []
       class_bootstrap_prefix = class_bootstrap_prefix || 'text'
       var warnings = startPages.filter(function(url){
-        return lookups[url].httpStatus != 200
+        if(lookups[url])
+          return lookups[url].httpStatus != 200
+        return true
       })
       if(warnings.length > 0 || startPages.length == 0){
         return class_bootstrap_prefix + '-danger'
@@ -63,7 +67,9 @@ angular.module('hyphe.filters', [])
     return function (startPages, lookups) {
       startPages = startPages || []
       var warnings = startPages.filter(function(url){
-        return lookups[url].httpStatus != 200
+        if(lookups[url])
+          return lookups[url].httpStatus != 200
+        return true
       })
       if(warnings.length > 0 || startPages.length == 0){
         return 'glyphicon glyphicon-warning-sign'
@@ -77,13 +83,13 @@ angular.module('hyphe.filters', [])
       code = ''+code
       switch(code){
         case('-1'):
-          return 'Hyphe cannot deal with this URL'
+          return 'Connection Refused'
           break
         case('0'):
           return 'Domain name cannot not be found'
           break
         case('200'):
-          return 'OK'
+          return 'Test Successful'
           break
         case('300'):
           return 'Redirection "Multiple Choices"'
