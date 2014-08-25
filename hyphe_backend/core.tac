@@ -110,6 +110,7 @@ class Core(jsonrpc.JSONRPC):
     def corpus_error(self, corpus=None):
         if not corpus:
             return format_error("Too many instances running already, please try again later")
+        self.stop_corpus(corpus, quiet=True)
         return format_error(self.jsonrpc_test_corpus(corpus)["result"])
 
     def factory_full(self):
@@ -218,18 +219,17 @@ class Core(jsonrpc.JSONRPC):
         return self.stop_corpus(corpus)
 
     def stop_corpus(self, corpus=DEFAULT_CORPUS, quiet=False):
-        if not self.corpus_ready(corpus):
-            return self.corpus_error(corpus)
-        if self.corpora[corpus]['jobs_loop'].running:
-            self.corpora[corpus]['jobs_loop'].stop()
-        if self.corpora[corpus]['index_loop'].running:
-            self.corpora[corpus]['index_loop'].stop()
-        self.update_corpus(corpus)
-        res = self.msclients.stop_corpus(corpus, quiet)
-        del(self.corpora[corpus]['tags'])
-        del(self.corpora[corpus]['webentities'])
-        del(self.corpora[corpus]['webentities_links'])
-        del(self.corpora[corpus]['precision_exceptions'])
+        if corpus in self.corpora:
+            if self.corpora[corpus]['jobs_loop'].running:
+                self.corpora[corpus]['jobs_loop'].stop()
+            if self.corpora[corpus]['index_loop'].running:
+                self.corpora[corpus]['index_loop'].stop()
+            self.update_corpus(corpus)
+            res = self.msclients.stop_corpus(corpus, quiet)
+            del(self.corpora[corpus]['tags'])
+            del(self.corpora[corpus]['webentities'])
+            del(self.corpora[corpus]['webentities_links'])
+            del(self.corpora[corpus]['precision_exceptions'])
         return self.jsonrpc_test_corpus(corpus)
 
     def jsonrpc_ping(self, corpus=None, timeout=3):
@@ -340,7 +340,8 @@ class Core(jsonrpc.JSONRPC):
         """Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks."""
         scrapyjobs = self.crawler.jsonrpc_list(corpus)
         if is_error(scrapyjobs):
-            logger.msg("Problem dialoguing with scrapyd server: %s" % scrapyjobs, system="ERROR - %s" % corpus)
+            if not (type(scrapyjobs["message"]) is dict and "status" in scrapyjobs["message"]):
+                logger.msg("Problem dialoguing with scrapyd server: %s" % scrapyjobs, system="WARNING - %s" % corpus)
             return
         scrapyjobs = scrapyjobs['result']
         self.corpora[corpus]['crawls_pending'] = len(scrapyjobs['pending'])
@@ -465,8 +466,8 @@ class Core(jsonrpc.JSONRPC):
         res = format_result(0)
         timeout = int(timeout)
         use_proxy = config['proxy']['host'] and not noproxy
-        url = urllru.url_clean(str(url))
         try:
+            url = urllru.url_clean(str(url))
             if use_proxy:
                 agent = ProxyAgent(TCP4ClientEndpoint(reactor, config['proxy']['host'], config['proxy']['port'], timeout=timeout))
             else:

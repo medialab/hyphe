@@ -223,6 +223,7 @@ class CorpusClient(object):
                   "status": self.factory.status_corpus(corpus),
                   "message": "Corpus is not started"})
                 if corpus in self.factory.corpora:
+                    self.factory.corpora[corpus].lastcall = time.time()
                     client = getattr(self.factory.corpora[corpus],
                       "client_%s" % type_client)
                     if fail["message"]["status"] == "error":

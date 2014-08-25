@@ -69,7 +69,7 @@ def format_error(error):
     return {'code': 'fail', 'message': msg}
 
 def is_error(res):
-    if (isinstance(res, dict) and "code" in res and res['code'] == 'fail') or isinstance(res, Exception):
+    if (isinstance(res, dict) and (("code" in res and res['code'] == 'fail') or ("status" in res and res["status"] == "error"))) or isinstance(res, Exception):
         return True
     return False
 
