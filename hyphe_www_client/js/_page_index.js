@@ -56,7 +56,7 @@ HypheCommons.domino_init()
 
         	var div = $('<div/>')
 			div.append(
-						$('<strong/>').text(status.corpus.memory_structure.webentities + ' web entit'+((status.corpus.memory_structure.webentities>1)?('ies'):('y')))
+						$('<strong/>').text(status.corpus.memory_structure.webentities.total + ' web entit'+((status.corpus.memory_structure.webentities.total>1)?('ies'):('y')))
 					)
 				.append($('<br/>'))
 				.append($('<br/>'))

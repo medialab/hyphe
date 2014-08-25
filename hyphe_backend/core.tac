@@ -303,6 +303,11 @@ class Core(jsonrpc.JSONRPC):
         status['corpus'].update(self.jsonrpc_test_corpus(corpus)["result"])
         if not self.corpus_ready(corpus):
             return format_result(status)
+        WEs_total = self.corpora[corpus]['total_webentities']
+        WEs_IN = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.IN])
+        WEs_OUT = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.OUT])
+        WEs_UND = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.UNDECIDED])
+        WEs_DISC = WEs_total - WEs_IN - WEs_OUT - WEs_UND
         corpus_status = {
           'name': self.corpora[corpus]['name'],
           'ram': self.msclients.corpora[corpus].ram,
@@ -320,7 +325,13 @@ class Core(jsonrpc.JSONRPC):
             'last_index': self.corpora[corpus]['last_index_loop']*1000,
             'last_links_generation': self.corpora[corpus]['last_links_loop']*1000,
             'pages_to_index': self.corpora[corpus]['pages_queued'],
-            'webentities': self.corpora[corpus]['total_webentities']
+            'webentities': {
+              'total': WEs_total,
+              'IN': WEs_IN,
+              'OUT': WEs_OUT,
+              'UNDECIDED': WEs_UND,
+              'DISCOVERED': WEs_DISC
+            }
           }
         }
         status['corpus'].update(corpus_status)
