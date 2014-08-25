@@ -1414,7 +1414,7 @@ public class LRUIndex {
                 if(logger.isDebugEnabled()) {
                     logger.debug("generating webentitylinks for webentity " + WE.getName() + " / " + WE.getId());
                 }
-                if (WE.getName().equals(Constants.DEFAULT_WEBENTITY)) {
+                if (WE.getName() == null || WE.getName().equals(Constants.DEFAULT_WEBENTITY)) {
                     continue;
                 }
                 // TODO: handle WebEntities with too many subWebEntities making queries with too many clauses
