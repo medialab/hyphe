@@ -49,7 +49,7 @@ angular.module('hyphe.filters', [])
           return 'Connection Refused'
           break
         case('0'):
-          return 'Domain name cannot not be found'
+          return 'Domain name cannot be found'
           break
         case('200'):
           return 'Test Successful'
