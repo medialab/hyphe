@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # PREPARE STARTER
-sed "s|##HCIPATH##|"`pwd`"|" bin/hyphe.example > bin/hyphe || exit 1
 chmod +x bin/hyphe
 
 # Build JAVA API with Thrift
