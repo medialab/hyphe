@@ -26,11 +26,26 @@ fi
 mkdir -p log
 PID_FILE="twistd.pid"
 CORE_COMMAND="twistd -y $HCIPATH/hyphe_backend/core.tac -l $HCIPATH/log/hyphe-core.log"
+JAVA_COMMAND="$HCIPATH/hyphe_backend/memorystructure/MemoryStructureExecutable.jar corpus="
+
+function kill_residual_memstruct {
+  count=0
+  # Wait 15 seconds before trying to kill "-9"
+  while pgrep -f "$JAVA_COMMAND" > /dev/null && [ $count -lt 15 ]; do
+    pkill -f "$JAVA_COMMAND"
+    sleep 1
+    count=$(($count + 1))
+    if [ $count -eq 15 ]; then
+      pkill -9 -f "$JAVA_COMMAND"
+    fi
+  done
+}
 
 function test_and_stop_process {
   COMMAND=$(echo $1 | sed 's/\(\s\+-X\S\+\)\+/.*/')
   NOLOG=$2
   if test -z "$PID_FILE" || test -z "$COMMAND"; then
+    kill_residual_memstruct
     return
   fi
   if ! test -f $PID_FILE; then
@@ -46,6 +61,7 @@ function test_and_stop_process {
       echo "...does not seem like running."
     fi
     rm -f $PID_FILE
+    kill_residual_memstruct
     return
   fi
   count=0
@@ -70,13 +86,14 @@ function test_and_stop_process {
     echo "...stopped."
   fi
   rm -f $PID_FILE
+  kill_residual_memstruct
 }
 
 function exit_on_error {
   test_and_stop_process "$CORE_COMMAND" nolog
   echo "ERROR: Could not start Hyphe's backend server properly. See log below:"
   echo
-  tail -n 10 log/hyphe-*.log
+  tail -n 10 log/hyphe-core.log
   exit 1
 }
 function exit_on_running {
