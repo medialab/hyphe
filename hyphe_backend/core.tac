@@ -410,7 +410,7 @@ class Core(jsonrpc.JSONRPC):
             # Try to restart in phantom mode all regular crawls that seem to have failed (less than 3 pages found for a depth of at least 1)
             for job in self.db['%s.jobs' % corpus].find({'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.maxdepth': {'$gt': 0}}):
                 logger.msg("Crawl job %s seems to have failed, trying to restart it in phantom mode" % job['_id'], system="INFO - %s" % corpus)
-                self.jsonrpc_crawl_webentity(job['webentity_id'], job['crawl_arguments']['maxdepth'], False, False, True, corpus=corpus)
+                reactor.callLater(1, self.jsonrpc_crawl_webentity, job['webentity_id'], job['crawl_arguments']['maxdepth'], True, corpus=corpus)
                 jobslog(job['_id'], "CRAWL_RETRIED_AS_PHANTOM", self.db, corpus=corpus)
                 resdb = self.db['%s.jobs' % corpus].update({'_id': job['_id']}, {'$set': {'crawling_status': crawling_statuses.RETRIED}}, safe=True)
                 if (resdb['err']):
