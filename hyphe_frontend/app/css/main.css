@@ -233,11 +233,18 @@ textarea.over-error{
    View: Check start pages
    ========================================================================== */
 
+.startpages-summary-cell{
+  font-size: 13px;
+  text-align: center;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+.startpages-summary-cell .glyphicon{
+  font-size: 20px;
+}
+
 .table-startpages>tbody>tr>td{
   border-top: 1px solid #F5F5F5;
-}
-.table-startpages>tbody>tr{
-  
 }
 .table-startpages .td-row-id{
   width: 50px;

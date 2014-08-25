@@ -32,6 +32,15 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('count', [function() {
+    return function(array, accessor) {
+      accessor = accessor || 'item'
+      return array.filter(function(item,i){
+        return eval(accessor) || false
+      }).length
+    }
+  }])
+
   .filter('explicitHttpCode', [function () {
     return function (code) {
       code = ''+code
