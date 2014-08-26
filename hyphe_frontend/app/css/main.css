@@ -241,6 +241,7 @@ textarea.over-error{
   text-align: center;
   margin-top: 12px;
   margin-bottom: 12px;
+  margin-right: 24px;
 }
 .startpages-summary-cell .glyphicon{
   font-size: 20px;
@@ -291,6 +292,7 @@ textarea.over-error{
 }
 .table-startpages .cautious-crawl-checkbox{
   margin-top: 4px;
+  margin-bottom: 0px;
 }
 
 /* Collapsible panel */
