@@ -20,13 +20,24 @@
 
             <div class="row">
               <div class="col-md-12">
-                <table>
+                <table class="table-summary">
                   <tr>
+
+                    <td ng-if="(list|count:'item.startpagesSummary.status == \'loading\'') > 0">
+                      <div class="startpages-summary-cell text-muted">
+                        <span class="glyphicon glyphicon-time"></span>
+                        <br>
+                        {{list|count:'item.startpagesSummary.status == "loading"'}} being tested
+                      </div>
+                    </td>
+                    
                     <td ng-if="(list|count:'item.startpagesSummary.status == \'warning\'') > 0">
                       <div class="startpages-summary-cell text-danger">
                         <span class="glyphicon glyphicon-warning-sign"></span>
                         <br>
-                        {{list|count:'item.startpagesSummary.status == "warning"'}} web entit{{(list|count:'item.startpagesSummary.status == "warning"') > 1 ? 'ies' : 'y'}} to check
+                        {{list|count:'item.startpagesSummary.status == "warning"'}} web entit{{(list|count:'item.startpagesSummary.status == "warning"') > 1 ? 'ies' : 'y'}}
+                        <br>
+                        to check
                       </div>
                     </td>
 
@@ -35,14 +46,6 @@
                         <span class="glyphicon glyphicon-ok-circle"></span>
                         <br>
                         {{list|count:'item.startpagesSummary.status == "success"'}} OK
-                      </div>
-                    </td>
-
-                    <td ng-if="(list|count:'item.startpagesSummary.status == \'loading\'') > 0">
-                      <div class="startpages-summary-cell text-muted">
-                        <span class="glyphicon glyphicon-time"></span>
-                        <br>
-                        {{list|count:'item.startpagesSummary.status == "loading"'}} being tested
                       </div>
                     </td>
 

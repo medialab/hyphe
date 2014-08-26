@@ -163,6 +163,7 @@ angular.module('hyphe.controllers', [])
     $scope.wwwVariations = true
     $scope.httpsVariations = true
     $scope.list = []
+    $scope.list_hidden = []
     $scope.list_byId = {}
     $scope.createdList = []
     $scope.existingList = []
@@ -554,7 +555,7 @@ angular.module('hyphe.controllers', [])
     $scope.currentPage = 'checkStartPages'
 
     $scope.lookups = {}
-
+    
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
 
     // Build index

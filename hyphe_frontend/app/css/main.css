@@ -235,7 +235,12 @@ textarea.over-error{
 /* ==========================================================================
    View: Check start pages
    ========================================================================== */
-
+.table-summary>tbody>tr>td{
+  vertical-align: top;
+}
+.table-summary .checkox{
+  margin: 0px;
+}
 .startpages-summary-cell{
   font-size: 13px;
   text-align: center;
@@ -251,7 +256,7 @@ textarea.over-error{
   border-top: 1px solid #F5F5F5;
 }
 .table-startpages .td-row-id{
-  width: 50px;
+  width: 58px;
 }
 .table-startpages .td-row-content{
   padding:0px;
