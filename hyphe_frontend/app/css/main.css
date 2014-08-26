@@ -28,6 +28,11 @@ h1, h2, h3, h4, h5, h6{
 .glyphicon.glyphicon-sm{
   font-size: 11px;
 }
+.definition-info{
+  opacity: 0.4;
+  vertical-align:super;
+  font-size: 10px;
+}
 
 
 
