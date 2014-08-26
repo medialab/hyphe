@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, time, uuid, sys
+import os, time, uuid, sys, re
 try:
     import json
 except:
@@ -153,6 +153,18 @@ class PagesCrawler(BaseSpider):
             bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
             response._set_body(bod_w_iframes.encode('utf-8'))
 
+    # Cleanup pages with base64 images embedded that make scrapy consider them not htmlresponses
+        if response.status == 200 and not isinstance(response, HtmlResponse):
+            try:
+                flags = response.flags
+                if "partial" in flags:
+                    flags.remove("partial")
+                flags.append("cleaned")
+                response = HtmlResponse(response.url, headers=response.headers, body=cleanupbase64images(response.body), flags=flags, request=response.request)
+                self.log("WARNING: page with base64 embedded images was cleaned-up for links extraction")
+            except:
+                pass
+
         if 300 < response.status < 400 or isinstance(response, HtmlResponse):
             return self.parse_html(response, lru)
         else:
@@ -263,3 +275,6 @@ def to_list(obj):
             return obj[2:-2].split("', '")
         return []
     return list(obj)
+
+re_cleanupbase64 = re.compile(r"src=['\"]data:image[^'\"]+['\"]", re.I|re.U)
+cleanupbase64images = lambda x: re_cleanupbase64.sub('src=""', x)
