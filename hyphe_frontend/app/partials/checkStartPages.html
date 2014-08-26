@@ -23,29 +23,29 @@
                 <table class="table-summary">
                   <tr>
 
-                    <td ng-if="(list|count:'item.startpagesSummary.status == \'loading\'') > 0">
+                    <td ng-if="httpStatusLoading > 0">
                       <div class="startpages-summary-cell text-muted">
                         <span class="glyphicon glyphicon-time"></span>
                         <br>
-                        {{list|count:'item.startpagesSummary.status == "loading"'}} being tested
+                        {{httpStatusLoading}} being tested
                       </div>
                     </td>
                     
-                    <td ng-if="(list|count:'item.startpagesSummary.status == \'warning\'') > 0">
+                    <td ng-if="httpStatusWarning > 0">
                       <div class="startpages-summary-cell text-danger">
                         <span class="glyphicon glyphicon-warning-sign"></span>
                         <br>
-                        {{list|count:'item.startpagesSummary.status == "warning"'}} web entit{{(list|count:'item.startpagesSummary.status == "warning"') > 1 ? 'ies' : 'y'}}
+                        {{httpStatusWarning}} web entit{{httpStatusWarning > 1 ? 'ies' : 'y'}}
                         <br>
                         to check
                       </div>
                     </td>
 
-                    <td ng-if="(list|count:'item.startpagesSummary.status == \'success\'') > 0">
+                    <td ng-if="httpStatusSuccess > 0">
                       <div class="startpages-summary-cell text-success">
                         <span class="glyphicon glyphicon-ok-circle"></span>
                         <br>
-                        {{list|count:'item.startpagesSummary.status == "success"'}} OK
+                        {{httpStatusSuccess}} OK
                       </div>
                     </td>
 
@@ -240,16 +240,18 @@
               </div>
             </div>
 
-            <div class="row" ng-if="(list|count:'item.startpagesSummary.status == \'warning\' || item.startpagesSummary.status == \'loading\'') > 0">
+            <div class="row" ng-if="httpStatusWarning + httpStatusLoading > 0">
               <div class="col-md-8 col-md-offset-2">
                 <div class="text-center">
-                  <p class="text-warning">
-                    <span class="glyphicon glyphicon-time" ng-if="(list|count:'item.startpagesSummary.status == \'loading\'') > 0"></span>
-                    {{list|count:'item.startpagesSummary.status == "loading"'}} web entities are still being tested
+                  <br>
+                  <br>
+                  <p class="text-warning" ng-if="httpStatusLoading > 0">
+                    <span class="glyphicon glyphicon-time"></span>
+                    {{httpStatusLoading}} web entit{{httpStatusLoading > 1 ? 'ies are' : 'y is'}} still being tested
                   </p>
-                  <p class="text-warning" ng-if="(list|count:'item.startpagesSummary.status == \'warning\'') > 0">
+                  <p class="text-danger" ng-if="httpStatusWarning > 0">
                     <span class="glyphicon glyphicon-warning-sign"></span>
-                    {{list|count:'item.startpagesSummary.status == "warning"'}} web entit{{(list|count:'item.startpagesSummary.status == "warning"') > 1 ? 'ies have warnings' : 'y has a warning'}}. <strong>You should fix it</strong> before launching a crawl.
+                    {{httpStatusWarning}} web entit{{httpStatusWarning > 1 ? 'ies have warnings' : 'y has a warning'}}. <strong>You should fix it</strong> before launching a crawl.
                   </p>
                   <hr/>
                 </div>
@@ -268,7 +270,7 @@
                       <label class="btn btn-default" ng-model="crawlDepth" btn-radio="1">1</label>
                       <label class="btn btn-default" ng-model="crawlDepth" btn-radio="2">2</label>
                       <label class="btn btn-default" ng-model="crawlDepth" btn-radio="3">3</label>
-                      <label class="btn btn-primary" ngClick="crawl()">LAUNCH CRAWL</label>
+                      <label class="btn btn-primary" ng-click="crawl()">LAUNCH CRAWL</label>
                     </div>
                     <button type="button" class="btn btn-default">ADVANCED CRAWL</button>
                   </div>

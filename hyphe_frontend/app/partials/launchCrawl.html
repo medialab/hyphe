@@ -8,14 +8,14 @@
           <div class="container-fluid main">
             <div class="row">
               <div class="col-md-12">
-                <h2>
-                  To be done later
-                </h2>
-                <p class="text-info">
-                  Test: show list of web entities ({{webEntities.length}})
-                </p>
+                <h1>
+                  LAUNCH CRAWL{{list.length>1 ? 'S' : ''}}
+                </h1>
+                <!-- <p class="text-info">
+                  <span hyphe-glossary="Crawling"></span> requires a starting point: check that each <span hyphe-glossary="web entity"></span> has a <span hyphe-glossary="start page"></span>
+                </p> -->
                 <ul>
-                  <li ng-repeat="we in webEntities">{{we.name}}</li>
+                  <li ng-repeat="obj in list">{{obj.webentity.name}}</li>
                 </ul>
               </div>
             </div>
