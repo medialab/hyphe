@@ -10,7 +10,6 @@ from scrapy.spider import BaseSpider
 from scrapy.http import Request, HtmlResponse
 from scrapy.linkextractor import IGNORED_EXTENSIONS
 from scrapy.utils.url import url_has_any_extension
-from scrapy.contrib.linkextractors.regex import RegexLinkExtractor
 from scrapy import log
 from scrapyd.config import Config as scrapyd_config
 try:
@@ -23,6 +22,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 import signal
 
+from hcicrawler.linkextractor import RegexpLinkExtractor
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url
 from hcicrawler.items import Page
 from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM
@@ -37,7 +37,7 @@ def timeout_alarm(*args):
 class PagesCrawler(BaseSpider):
 
     name = 'pages'
-    link_extractor = RegexLinkExtractor(canonicalize=False, deny_extensions=[])
+    link_extractor = RegexpLinkExtractor(canonicalize=False, deny_extensions=[])
     ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
 
     def __init__(self, **kw):
@@ -184,7 +184,8 @@ class PagesCrawler(BaseSpider):
         else:
             try:
                 links = self.link_extractor.extract_links(response)
-            except:
+            except Exception as e:
+                self.log("ERROR: links extractor crashed on %s: %s %s" % (response, type(e), e))
                 links = []
                 self.errors += 1
         for link in links:
