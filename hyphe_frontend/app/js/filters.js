@@ -16,7 +16,7 @@ angular.module('hyphe.filters', [])
   .filter('paginate', [function() {
     return function(array,page,paginationLength) {
     	return array.filter(function(d,i){
-        return i >= page * paginationLength && i < (page+1) * paginationLength
+        return i >= (page-1) * paginationLength && i < page * paginationLength
       })
     }
   }])

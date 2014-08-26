@@ -159,19 +159,28 @@ angular.module('hyphe.controllers', [])
     function($scope, store, utils, api, QueriesBatcher, $location, PrefixConflictsIndex) {
     
     $scope.currentPage = 'definewebentities'
-    $scope.activeRow = 0
-    $scope.wwwVariations = true
-    $scope.httpsVariations = true
+
     $scope.list = []
     $scope.list_hidden = []
     $scope.list_byId = {}
+    
+    $scope.activeRow = 0
+    
+    $scope.paginationPage = 1
+    $scope.paginationLength = 50    // How many items per page
+    $scope.paginationNumPages = 10  // How many pages to display in the pagination
+
+    $scope.wwwVariations = true
+    $scope.httpsVariations = true
+    
     $scope.createdList = []
     $scope.existingList = []
     $scope.conflictedList = []
     $scope.errorList = []
+    
     $scope.retry = false
-    $scope.loadingWebentities = false
     $scope.creating = false
+    $scope.loadingWebentities = false
     $scope.crawlExisting = false
     $scope.retryConflicted = true
 
@@ -400,10 +409,6 @@ angular.module('hyphe.controllers', [])
             // NB: we return true because this way items stay in the list for monitoring
           })
 
-
-
-        updatePagination()
-
         // Status message
         var count = $scope.createdList.length
         ,msg = count + ' web entit' + (count>1 ? 'ies' : 'y') + ' created'
@@ -475,14 +480,6 @@ angular.module('hyphe.controllers', [])
           // Bootstrap the object
           .map(bootstrapPrefixObject)
 
-        // Pagination
-        initPagination(0, 50, list.length)
-
-        $scope.goToPage = function(page){
-          if(page >= 0 && page < Math.ceil(list.length/$scope.paginationLength))
-            $scope.page = page
-        }
-
         // Building an index of these objects to find them by id
         list.forEach(function(obj){
           $scope.list_byId[obj.id] = obj
@@ -525,18 +522,6 @@ angular.module('hyphe.controllers', [])
       return obj
     }
 
-    function initPagination(page, pl, l){
-      $scope.page = page
-      $scope.paginationLength = pl
-      $scope.pages = utils.getRange(Math.ceil(l/$scope.paginationLength))
-    }
-
-    function updatePagination(){
-      var max = Math.ceil($scope.list.length/$scope.paginationLength)
-      if($scope.page >= max)
-      $scope.page = max - 1
-      $scope.pages = utils.getRange(max)
-    }
   }])
 
 
@@ -555,12 +540,17 @@ angular.module('hyphe.controllers', [])
     $scope.currentPage = 'checkStartPages'
 
     $scope.lookups = {}
-    $scope.crawlAnyway = false
+    
     $scope.crawlDepth = 1
+
     $scope.httpStatusLoading = 0
     $scope.httpStatusWarning = 0
     $scope.httpStatusSuccess = 0
     
+    $scope.paginationPage = 1
+    $scope.paginationLength = 50    // How many items per page
+    $scope.paginationNumPages = 10  // How many pages to display in the pagination
+
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
 
     // Build index
@@ -799,9 +789,6 @@ angular.module('hyphe.controllers', [])
         return obj.webentity.id
       })
 
-      // Pagination
-      initPagination(0, 50, list.length)
-      
       // Clean and set exactly what we need
       return list.map(function(obj, i){
         $scope.httpStatusLoading++
@@ -813,19 +800,6 @@ angular.module('hyphe.controllers', [])
           ,startpagesSummary: {status: 'loading'}
         }
       })
-    }
-
-    function initPagination(page, pl, l){
-      $scope.page = page
-      $scope.paginationLength = pl
-      $scope.pages = utils.getRange(Math.ceil(l/$scope.paginationLength))
-    }
-
-    function updatePagination(){
-      var max = Math.ceil($scope.list.length/$scope.paginationLength)
-      if($scope.page >= max)
-      $scope.page = max - 1
-      $scope.pages = utils.getRange(max)
     }
 
     function checkUrlPrefixed(url, lru_prefixes){
