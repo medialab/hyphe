@@ -289,6 +289,10 @@ textarea.over-error{
 .table-startpages .lookup-result{
   font-size: 12px;
 }
+.table-startpages .cautious-crawl-checkbox{
+  margin-top: 4px;
+}
+
 /* Collapsible panel */
 .table-startpages .bottom-panel{
   margin-bottom: 24px;
