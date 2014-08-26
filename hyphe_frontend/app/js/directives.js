@@ -217,17 +217,14 @@ angular.module('hyphe.directives', [])
   .directive('hypheGlossary', ['glossary', function(glossary){
     return {
       restrict: 'A'
+      ,templateUrl: 'partials/sub/glossary_expression.html'
+      ,scope: {
+        
+      }
       ,link: function(scope, el, attrs) {
-        var def = glossary(el.text())
-        if(def){
-          el.addClass('definition')
-          el.attr('data-toggle', 'popover')
-          el.attr('data-placement', 'top')
-          el.attr('title', def.title)
-          el.attr('data-content', def.definition)
-          el.attr('data-trigger', 'click hover')
-          el.popover()
-        }
+        scope.originalExpression = attrs.hypheGlossary
+        scope.def = glossary(scope.originalExpression)
+        
       }
     }
   }])

@@ -12,27 +12,45 @@
                   CHECK START PAGES
                 </h1>
                 <p class="text-info">
-                  <span hyphe-glossary>Crawling</span> requires a starting point: check that each <span hyphe-glossary>web entity</span> has a <span hyphe-glossary>start page</span>
+                  <span hyphe-glossary="Crawling"></span> requires a starting point: check that each <span hyphe-glossary="web entity"></span> has a <span hyphe-glossary="start page"></span>
                 </p>
                 
               </div>
             </div>
 
             <div class="row">
-              <div class="col-md-2 startpages-summary-cell text-danger" ng-if="(list|count:'item.startpagesSummary.status == \'warning\'') > 0">
-                <span class="glyphicon glyphicon-warning-sign"></span>
-                <br>
-                {{list|count:'item.startpagesSummary.status == "warning"'}} web entit{{(list|count:'item.startpagesSummary.status == "warning"') > 1 ? 'ies' : 'y'}} to check
-              </div>
-              <div class="col-md-2 startpages-summary-cell text-success" ng-if="(list|count:'item.startpagesSummary.status == \'success\'') > 0">
-                <span class="glyphicon glyphicon-ok-circle"></span>
-                <br>
-                {{list|count:'item.startpagesSummary.status == "success"'}} OK
-              </div>
-              <div class="col-md-2 startpages-summary-cell text-muted" ng-if="(list|count:'item.startpagesSummary.status == \'loading\'') > 0">
-                <span class="glyphicon glyphicon-time"></span>
-                <br>
-                {{list|count:'item.startpagesSummary.status == "loading"'}} being tested
+              <div class="col-md-12">
+                <table class="table-summary">
+                  <tr>
+
+                    <td ng-if="httpStatusLoading > 0">
+                      <div class="startpages-summary-cell text-muted">
+                        <span class="glyphicon glyphicon-time"></span>
+                        <br>
+                        {{httpStatusLoading}} being tested
+                      </div>
+                    </td>
+                    
+                    <td ng-if="httpStatusWarning > 0">
+                      <div class="startpages-summary-cell text-danger">
+                        <span class="glyphicon glyphicon-warning-sign"></span>
+                        <br>
+                        {{httpStatusWarning}} web entit{{httpStatusWarning > 1 ? 'ies' : 'y'}}
+                        <br>
+                        to check
+                      </div>
+                    </td>
+
+                    <td ng-if="httpStatusSuccess > 0">
+                      <div class="startpages-summary-cell text-success">
+                        <span class="glyphicon glyphicon-ok-circle"></span>
+                        <br>
+                        {{httpStatusSuccess}} OK
+                      </div>
+                    </td>
+
+                  </tr>
+                </table>
               </div>
             </div>
 
@@ -63,9 +81,9 @@
                             <div class="title-container">
 
                               <!-- Icon if start pages success -->
-                              <span ng-if="obj.startpagesSummary.status == 'success'">
+                              <!-- <span ng-if="obj.startpagesSummary.status == 'success'">
                                 <span class="glyphicon glyphicon-ok-circle text-success"></span>&nbsp;
-                              </span>
+                              </span> -->
                               
                               <!-- Icon if start pages warning -->
                               <span ng-if="obj.startpagesSummary.status == 'warning'">
@@ -127,9 +145,14 @@
                           <!-- Rows for start pages -->
                           <div class="row startpage-row" ng-repeat="page in obj.webentity.startpages">
                             <div class="col-md-6">
+                              <span ng-if="lookups[page].status == 'loaded'">
+                                <!-- <span ng-if="lookups[page].httpStatus == 200" class="glyphicon glyphicon-sm glyphicon-ok-circle text-success"></span> -->
+                                <span ng-if="lookups[page].httpStatus != 200" class="glyphicon glyphicon-sm glyphicon-warning-sign text-danger"></span>
+                              </span>
+                              <span ng-if="lookups[page].status == 'error'" class="glyphicon glyphicon-sm glyphicon-warning-sign text-danger"></span>
                               <span class="url">
                                 {{page}}
-                                <a href="{{page}}" target="_blank">
+                                <a href="{{page}}" target="_blank" title="Open in a new tab">
                                   <span class="glyphicon glyphicon-share-alt"></span>
                                 </a>
                               </span>
@@ -144,7 +167,6 @@
 
                                 <!-- Lookup error -->
                                 <span ng-if="lookups[page].status == 'error'" class="text-danger">
-                                  <span class="glyphicon glyphicon-warning-sign"></span>
                                   The server lookup failed
                                 </span>
 
@@ -153,8 +175,6 @@
                                   ng-if="lookups[page].status == 'loaded'"
                                   ng-class="{'text-success':lookups[page].httpStatus == 200, 'text-danger':lookups[page].httpStatus != 200}"
                                 >
-                                <span ng-if="lookups[page].httpStatus == 200" class="glyphicon glyphicon-ok-circle"></span>
-                                <span ng-if="lookups[page].httpStatus != 200" class="glyphicon glyphicon-warning-sign"></span>
                                   {{lookups[page].httpStatus|explicitHttpCode}}
                                   <span ng-if="lookups[page].httpStatus != 200">
                                     (code {{lookups[page].httpStatus}})
@@ -215,11 +235,63 @@
                         </div>
                       </div>
                     </td>
-
                   </tr>
                 </table>
               </div>
             </div>
+
+            <!-- Pagination -->
+            <!-- <div class="row">
+              <div class="col-md-12">
+                <div class="text-center">
+                  <ul class="pagination" ng-if="pages.length > 1">
+                    <li ng-class="{disabled: page == 0}"><a ng-click="goToPage(page - 1)" href>&laquo;</a></li>
+                    <li ng-repeat="p in pages" ng-class="{active: p == page+1}"><a ng-click="goToPage(p-1)" href>{{p}}<span class="sr-only" ng-if="p == page+1">(current)</span></a></li>
+                    <li ng-class="{disabled: page == pages.length - 1}"><a ng-click="goToPage(page + 1)" href>&raquo;</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div> -->
+
+            <!-- Launch crawl panel -->
+            <div class="row" ng-if="httpStatusWarning + httpStatusLoading > 0">
+              <div class="col-md-8 col-md-offset-2">
+                <div class="text-center">
+                  <br>
+                  <br>
+                  <p class="text-warning" ng-if="httpStatusLoading > 0">
+                    <span class="glyphicon glyphicon-time"></span>
+                    {{httpStatusLoading}} web entit{{httpStatusLoading > 1 ? 'ies are' : 'y is'}} still being tested
+                  </p>
+                  <p class="text-danger" ng-if="httpStatusWarning > 0">
+                    <span class="glyphicon glyphicon-warning-sign"></span>
+                    {{httpStatusWarning}} web entit{{httpStatusWarning > 1 ? 'ies have warnings' : 'y has a warning'}}. <strong>You should fix it</strong> before launching a crawl.
+                  </p>
+                  <hr/>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="text-center">
+                  <p>
+                    Set a <span hyphe-glossary="depth"/> and launch a <span hyphe-glossary="crawl"/>
+                  </p>
+                  <div>
+                    <div class="btn-group">
+                      <label class="btn btn-default" ng-model="crawlDepth" btn-radio="0">0</label>
+                      <label class="btn btn-default" ng-model="crawlDepth" btn-radio="1">1</label>
+                      <label class="btn btn-default" ng-model="crawlDepth" btn-radio="2">2</label>
+                      <label class="btn btn-default" ng-model="crawlDepth" btn-radio="3">3</label>
+                      <label class="btn btn-primary" ng-click="crawl()">LAUNCH CRAWL</label>
+                    </div>
+                    <button type="button" class="btn btn-default">ADVANCED CRAWL</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

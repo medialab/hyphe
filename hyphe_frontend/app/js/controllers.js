@@ -163,6 +163,7 @@ angular.module('hyphe.controllers', [])
     $scope.wwwVariations = true
     $scope.httpsVariations = true
     $scope.list = []
+    $scope.list_hidden = []
     $scope.list_byId = {}
     $scope.createdList = []
     $scope.existingList = []
@@ -554,7 +555,12 @@ angular.module('hyphe.controllers', [])
     $scope.currentPage = 'checkStartPages'
 
     $scope.lookups = {}
-
+    $scope.crawlAnyway = false
+    $scope.crawlDepth = 1
+    $scope.httpStatusLoading = 0
+    $scope.httpStatusWarning = 0
+    $scope.httpStatusSuccess = 0
+    
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
 
     // Build index
@@ -564,7 +570,7 @@ angular.module('hyphe.controllers', [])
     })
 
     // Clean store
-    // store.remove('webentities_toCrawl')
+    store.remove('webentities_toCrawl')
 
     if($scope.list.length==0){
       $location.path('/newCrawl')
@@ -768,6 +774,23 @@ angular.module('hyphe.controllers', [])
       reloadRow(rowId)
     }
 
+    $scope.crawl = function(){
+      console.log('crawl')
+
+      function cleanObj(obj){
+        return {
+            webentity: obj.webentity
+            ,depth: $scope.crawlDepth
+          }
+      }
+      var list = $scope.list
+        .map(cleanObj)
+        .filter(function(obj){return obj.webentity.id !== undefined})
+      
+      store.set('webentities_toCrawl', list)
+      $location.path('/launchCrawl')
+    }
+
     function bootstrapList(list){
       list = list || []
 
@@ -781,6 +804,7 @@ angular.module('hyphe.controllers', [])
       
       // Clean and set exactly what we need
       return list.map(function(obj, i){
+        $scope.httpStatusLoading++
         return {
           id:i
           ,webentity: obj.webentity
@@ -933,6 +957,12 @@ angular.module('hyphe.controllers', [])
       // Launch these lookups if needed
       if(something_changed)
         loopLookups()
+
+      // If there are no pages, there will be no lookup, but the status is still 'warning'
+      if(obj.webentity.startpages.length == 0){
+        obj.startpagesSummary.status = 'warning'
+        obj.collapsed = false
+      }
     }
 
     function loopLookups(){
@@ -976,18 +1006,6 @@ angular.module('hyphe.controllers', [])
             )
         })
 
-        lookupQB.atEachFetch(function(list,pending,success,fail){
-          var summary = {
-            total: list.length + pending.length + success.length + fail.length
-            ,pending: pending.length
-            ,loaded: success.length + fail.length
-          }
-          ,percent = Math.round((summary.loaded / summary.total) * 100)
-          ,percent_pending = Math.round((summary.pending / summary.total) * 100)
-          ,msg = 'lookups ' + percent + '% loaded'
-          console.log(msg)
-        })
-
         lookupQB.atFinalization(function(list,pending,success,fail){
           loopLookups()
         })
@@ -1013,15 +1031,32 @@ angular.module('hyphe.controllers', [])
         ,warning: warningPages.length
       }
 
-      if(obj.startpagesSummary.loading == 0){
+      // Old httpStatus
+      if(obj.startpagesSummary.status == 'warning'){
+        $scope.httpStatusWarning--
+      } else if(obj.startpagesSummary.status == 'success'){
+        $scope.httpStatusSuccess--
+      } else {
+        $scope.httpStatusLoading--
+      }
+
+      // New httpStatus
+      if(obj.webentity.startpages.length == 0){
+        obj.startpagesSummary.status = 'warning'
+        obj.collapsed = false
+        $scope.httpStatusWarning++
+      } else if(obj.startpagesSummary.loading == 0){
         if(obj.startpagesSummary.warning == 0){
           obj.startpagesSummary.status = 'success'
+          $scope.httpStatusSuccess++
         } else {
           obj.startpagesSummary.status = 'warning'
           obj.collapsed = false
+          $scope.httpStatusWarning++
         }
       } else {
         obj.startpagesSummary.status = 'loading'
+        $scope.httpStatusLoading++
       }
 
     }
@@ -1083,5 +1118,83 @@ angular.module('hyphe.controllers', [])
     }
 
   }])
+  
 
+
+  .controller('launchCrawl', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location',
+  function($scope, api, store, utils, QueriesBatcher, $location){
+    $scope.currentPage = 'launchCrawl'
+
+    $scope.list = bootstrapList(store.get('webentities_toCrawl'))
+    
+    // Clean store
+    store.remove('webentities_toCrawl')
+
+    if($scope.list.length==0){
+      $location.path('/newCrawl')
+    }
+
+    var queriesBatcher = new QueriesBatcher()
+    
+    $scope.list.forEach(function(obj){
+      // Stack the query
+      queriesBatcher.addQuery(
+          api.crawl                             // Query call
+          ,{                                    // Query settings
+              webentityId: obj.webentity.id
+              ,depth: obj.depth || 0
+              ,cautious: obj.cautiousCrawl || false
+            }
+          ,function(data){                      // Success callback
+              obj.status = 'scheduled'
+            }
+          ,function(data, status, headers){     // Fail callback
+              obj.status = 'error'
+            }
+          ,{                                    // Options
+              label: obj.webentity.id
+              ,before: function(){
+                  obj.status = 'pending'
+                }
+              ,simultaneousQueries: 3
+            }
+        )
+    })
+
+    queriesBatcher.atEachFetch(function(list,pending,success,fail){
+      var summary = {
+        total: list.length + pending.length + success.length + fail.length
+        ,pending: pending.length
+        ,loaded: success.length + fail.length
+      }
+      ,percent = Math.round((summary.loaded / summary.total) * 100)
+      ,percent_pending = Math.round((summary.pending / summary.total) * 100)
+      ,msg = percent + '% launched'
+      $scope.status = {message: msg, progress:percent, progressPending:percent_pending}
+    })
+
+    queriesBatcher.atFinalization(function(list,pending,success,fail){
+      // Status message
+      $scope.status = {}
+    })
+
+    queriesBatcher.run()
+
+    function bootstrapList(list){
+      list = list || []
+
+      // Clean and set exactly what we need
+      return list.map(function(obj, i){
+        return {
+          id:i
+          ,webentity: obj.webentity
+          ,depth: obj.depth
+          ,status: 'waiting'
+        }
+      })
+
+
+    }
+  }])
+;
 

@@ -7,9 +7,17 @@ angular.module('hyphe.service_glossary', [])
     
     ns.definitions = [
       {
+        title: 'Cautious Crawl'
+        ,definition: 'A mode using browser emulation to crawl, 100 times slower but required for some entities'
+        ,entries: ['cautious crawl', 'cautious crawls', 'cautious crawling']
+      },{
         title: 'Crawl'
         ,definition: 'Process of harvesting text and links from the web'
         ,entries: ['crawl', 'crawls', 'crawling']
+      },{
+        title: 'Crawl Depth'
+        ,definition: 'How many clicks from the start page(s) we harvest a web entity'
+        ,entries: ['depth', 'crawl depth']
       },{
         title: 'Boundaries of a Web Entity'
         ,definition: 'Defines if a web entity is a whole domain, a subdomain, a page or a combination of those'

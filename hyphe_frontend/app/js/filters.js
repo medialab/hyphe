@@ -32,12 +32,9 @@ angular.module('hyphe.filters', [])
     }
   }])
 
-  .filter('count', [function() {
-    return function(array, accessor) {
-      accessor = accessor || 'item'
-      return array.filter(function(item,i){
-        return eval(accessor) || false
-      }).length
+  .filter('uppercase', [function () {
+    return function (input) {
+      return input.toUpperCase()
     }
   }])
 
