@@ -5,7 +5,6 @@ BOT_NAME = 'hcicrawler'
 
 SPIDER_MODULES = ['hcicrawler.spiders']
 NEWSPIDER_MODULE = 'hcicrawler.spiders'
-#USER_AGENT = '%s/%s' % (BOT_NAME, BOT_VERSION)
 
 ITEM_PIPELINES = [
     'hcicrawler.pipelines.OutputStore',
@@ -21,6 +20,7 @@ REDIRECT_ENABLED = False
 
 PROXY = '{{proxy_host}}:%s' % {{proxy_port}}
 DOWNLOADER_MIDDLEWARES = {
+    'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware': 200,
     'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 110,
     'hcicrawler.middlewares.ProxyMiddleware': 100,
 }
