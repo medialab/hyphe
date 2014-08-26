@@ -221,7 +221,7 @@
                               </div>
                               
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                               <button
                                 type="button"
                                 class="btn btn-default btn-sm"
@@ -231,22 +231,51 @@
                                 <span class="glyphicon glyphicon-repeat"></span> TEST AGAIN
                               </button>
                             </div>
-                            <div class="col-md-3">
-                              <div class="checkbox cautious-crawl-checkbox pull-right">
-                                <label>
-                                  <input type="checkbox" ng-model="obj.cautiousCrawl"><span hyphe-glossary="Cautious crawl"></span>
-                                </label>
-                              </div>
-                            </div>
                           </div>
                         </div>
                       </div>
                     </td>
-
                   </tr>
                 </table>
               </div>
             </div>
+
+            <div class="row" ng-if="(list|count:'item.startpagesSummary.status == \'warning\' || item.startpagesSummary.status == \'loading\'') > 0">
+              <div class="col-md-8 col-md-offset-2">
+                <div class="text-center">
+                  <p class="text-warning">
+                    <span class="glyphicon glyphicon-time" ng-if="(list|count:'item.startpagesSummary.status == \'loading\'') > 0"></span>
+                    {{list|count:'item.startpagesSummary.status == "loading"'}} web entities are still being tested
+                  </p>
+                  <p class="text-warning" ng-if="(list|count:'item.startpagesSummary.status == \'warning\'') > 0">
+                    <span class="glyphicon glyphicon-warning-sign"></span>
+                    {{list|count:'item.startpagesSummary.status == "warning"'}} web entit{{(list|count:'item.startpagesSummary.status == "warning"') > 1 ? 'ies have warnings' : 'y has a warning'}}. <strong>You should fix it</strong> before launching a crawl.
+                  </p>
+                  <hr/>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div class="text-center">
+                  <p>
+                    Set a <span hyphe-glossary="depth"/> and launch a <span hyphe-glossary="crawl"/>
+                  </p>
+                  <div>
+                    <div class="btn-group">
+                      <label class="btn btn-default" ng-model="crawlDepth" btn-radio="0">0</label>
+                      <label class="btn btn-default" ng-model="crawlDepth" btn-radio="1">1</label>
+                      <label class="btn btn-default" ng-model="crawlDepth" btn-radio="2">2</label>
+                      <label class="btn btn-default" ng-model="crawlDepth" btn-radio="3">3</label>
+                      <label class="btn btn-primary" ngClick="crawl()">LAUNCH CRAWL</label>
+                    </div>
+                    <button type="button" class="btn btn-default">ADVANCED CRAWL</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

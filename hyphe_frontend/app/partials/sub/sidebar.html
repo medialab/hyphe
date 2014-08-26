@@ -4,6 +4,7 @@
                 <br/>
                 <ul class="nav nav-pills nav-stacked sidebar">
                   
+                  <!-- Overview -->
                   <li ng-class="{active: currentPage=='overview'}">
                     <a href="#/overview">
                       <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-asterisk"></span></span></td><td>OVERVIEW</td></tr></table>
@@ -12,12 +13,14 @@
 
                   <li class="spacer"></li>
                   
+                  <!-- Import URLs -->
                   <li ng-class="{active: currentPage=='importurls'}">
                     <a href="#/importurls">
                       <table><tr><td><span class="symbol">1</span></td><td>IMPORT URLS</td></tr></table>
                     </a>
                   </li>
                   
+                  <!-- Define Web Entities -->
                   <li ng-if="currentPage=='importurls' || currentPage=='definewebentities'" ng-class="{active: currentPage=='definewebentities'}" class="inactive">
                     <a href="#/definewebentities">
                       <table><tr><td><span class="symbol">&nbsp;</span></td><td>DEFINE WEB ENTITIES</td></tr></table>
@@ -26,20 +29,31 @@
                   
                   <li class="spacer"></li>
                   
+                  <!-- New Crawl -->
                   <li ng-class="{active: currentPage=='newCrawl'}">
                     <a href="#/newCrawl">
                       <table><tr><td><span class="symbol">2</span></td><td>CRAWL</td></tr></table>
                     </a>
                   </li>
                   
-                  <li ng-if="currentPage=='newCrawl' || currentPage=='checkStartPages'" ng-class="{active: currentPage=='checkStartPages'}" class="inactive">
+                  <!-- Check Start Pages -->
+                  <li ng-if="currentPage=='newCrawl' || currentPage=='checkStartPages' || currentPage=='launchCrawl'" ng-class="{active: currentPage=='checkStartPages'}" class="inactive">
                     <a href="#/checkStartPages">
                       <table><tr><td><span class="symbol">&nbsp;</span></td><td>CHECK START PAGES</td></tr></table>
                     </a>
                   </li>
                   
+                  <!-- Launch Crawl -->
+                  <li ng-if="currentPage=='newCrawl' || currentPage=='checkStartPages' || currentPage=='launchCrawl'" ng-class="{active: currentPage=='launchCrawl'}" class="inactive">
+                    <a href="#/checkStartPages">
+                      <table><tr><td><span class="symbol">&nbsp;</span></td><td>LAUNCH CRAWL</td></tr></table>
+                    </a>
+                  </li>
+                  
                   <li class="spacer"></li>
                   
+                  <!--
+
                   <li>
                     <a href="#">
                       <table><tr><td><span class="symbol">3</span></td><td>FILTER DISCOVERED WEB ENTITIES</td></tr></table>
@@ -79,6 +93,8 @@
                       <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-wrench"></span></td><td>PROJECT SETTINGS</td></tr></table>
                     </a>
                   </li>
+
+                   -->
                   
                   <li class="spacer"></li>
                 </ul>
