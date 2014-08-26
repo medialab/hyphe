@@ -256,6 +256,9 @@ textarea.over-error{
 .startpages-summary-cell .glyphicon{
   font-size: 20px;
 }
+.startpages-summary-cell.sorting{
+  padding-top: 10px;
+}
 
 .table-startpages>tbody>tr>td{
   border-top: 1px solid #F5F5F5;

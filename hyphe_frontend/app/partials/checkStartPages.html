@@ -49,6 +49,12 @@
                       </div>
                     </td>
 
+                    <td ng-if="httpStatusWarning > 0">
+                      <div class="startpages-summary-cell sorting">
+                        <button class="btn btn-default btn-sm" ng-click="sortWarnings()">SORT WARNINGS</button>
+                      </div>
+                    </td>
+
                   </tr>
                 </table>
               </div>
@@ -80,11 +86,6 @@
                           <div class="col-md-6">
                             <div class="title-container">
 
-                              <!-- Icon if start pages success -->
-                              <!-- <span ng-if="obj.startpagesSummary.status == 'success'">
-                                <span class="glyphicon glyphicon-ok-circle text-success"></span>&nbsp;
-                              </span> -->
-                              
                               <!-- Icon if start pages warning -->
                               <span ng-if="obj.startpagesSummary.status == 'warning'">
                                 <span class="glyphicon glyphicon-warning-sign text-danger"></span>&nbsp;

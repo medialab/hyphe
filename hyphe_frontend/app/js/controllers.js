@@ -291,7 +291,7 @@ angular.module('hyphe.controllers', [])
       // Mark all "existing"
       $scope.list.forEach(function(obj){
           var webentityFound
-          obj.parentWebEntities.forEach(function(we){
+          (obj.parentWebEntities || []).forEach(function(we){
             if(!webentityFound && we.stems_count == obj.truePrefixLength){
               webentityFound = we
             }
@@ -764,6 +764,17 @@ angular.module('hyphe.controllers', [])
       reloadRow(rowId)
     }
 
+    $scope.sortWarnings = function(){
+      var warnings = $scope.list.filter(function(obj){
+        return obj.startpagesSummary.status == 'warning'
+      })
+      ,others = $scope.list.filter(function(obj){
+        return obj.startpagesSummary.status != 'warning'
+      })
+      $scope.list = warnings.concat(others)
+      $scope.paginationPage = 1
+    }
+
     $scope.crawl = function(){
       console.log('crawl')
 
@@ -832,6 +843,19 @@ angular.module('hyphe.controllers', [])
       var obj = list_byId[rowId]
       obj.status = 'loading'
 
+      // Remove old status
+      if(obj.startpagesSummary.status == 'warning'){
+        $scope.httpStatusWarning--
+      } else if(obj.startpagesSummary.status == 'success'){
+        $scope.httpStatusSuccess--
+      } else {
+        $scope.httpStatusLoading--
+      }
+
+      // New status
+      $scope.httpStatusLoading++
+      obj.startpagesSummary.status == 'loading'
+      
       // Reset the lookups
       obj.webentity.startpages.forEach(function(url){
         delete $scope.lookups[url]
