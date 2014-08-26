@@ -327,7 +327,7 @@ textarea.over-error{
   padding: 6px;
 }
 .crawl-cell{
-  height: 100px;
+  height: 112px;
   padding:6px;
 }
 .crawl-cell-content{
@@ -340,15 +340,11 @@ textarea.over-error{
   border: 1px solid #31708f;
 }
 .crawl-cell p{
-  margin-bottom: 2px;
   white-space: nowrap;
 }
 .crawl-cell .title{
   font-family: 'Roboto', sans-serif;
   font-weight:400;
-}
-.crawl-cell .info{
-  font-size: 12px;
 }
 .crawl-cell .status{
   font-size: 24px;

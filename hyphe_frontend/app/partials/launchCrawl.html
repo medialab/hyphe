@@ -28,9 +28,6 @@
                   <p class="title">
                     {{obj.id+1}}. {{obj.webentity.name}}
                   </p>
-                  <p class="info">
-                    Depth {{obj.depth}}
-                  </p>
                   <p class="status text-center" ng-class="{'text-info':obj.status == 'waiting' || obj.status == 'pending', 'text-danger':obj.status == 'error', 'text-success':obj.status == 'scheduled'}">
                     {{obj.status|uppercase}}
                   </p>
