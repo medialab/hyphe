@@ -153,6 +153,17 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
+    api.crawl = buildApiCall(
+        HYPHE_API.WEBENTITY.CRAWL
+        ,function(settings){
+          return [
+            settings.webentityId
+            ,settings.depth
+            ,false
+            ,false
+            ,settings.cautious || false
+          ]}
+      )
 
 
     function buildApiCall(pseudo_route, params){

@@ -570,7 +570,7 @@ angular.module('hyphe.controllers', [])
     })
 
     // Clean store
-    // store.remove('webentities_toCrawl')
+    store.remove('webentities_toCrawl')
 
     if($scope.list.length==0){
       $location.path('/newCrawl')
@@ -1121,12 +1121,64 @@ angular.module('hyphe.controllers', [])
   
 
 
-  .controller('launchCrawl', ['$scope', 'api', 'store', 'utils',
-  function($scope, api, store, utils){
+  .controller('launchCrawl', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location',
+  function($scope, api, store, utils, QueriesBatcher, $location){
     $scope.currentPage = 'launchCrawl'
 
-    $scope.list = bootstrapList([{"id":0,"webentity":{"status":"IN","name":"Tumblr","tags":{"CORE":{"user_created_via":["lru"]}},"lru_prefixes":["s:http|h:com|h:tumblr|","s:https|h:com|h:tumblr|h:www|","s:https|h:com|h:tumblr|","s:http|h:com|h:tumblr|h:www|"],"crawling_status":"UNCRAWLED","startpages":["http://1jour1raison-aubry.tumblr.com"],"creation_date":"1409049275524","indexing_status":"UNINDEXED","last_modification_date":"1409049275542","homepage":null,"id":"072c5d07-7b52-413b-b31c-9ef220497aa6"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}},{"id":1,"webentity":{"status":"IN","name":"Tns-Sofres","tags":{"CORE":{"user_created_via":["lru"]}},"lru_prefixes":["s:https|h:com|h:tns-sofres|h:www|","s:http|h:com|h:tns-sofres|","s:http|h:com|h:tns-sofres|h:www|","s:https|h:com|h:tns-sofres|"],"crawling_status":"UNCRAWLED","startpages":["http://www.tns-sofres.com"],"creation_date":"1409049275157","indexing_status":"UNINDEXED","last_modification_date":"1409049275170","homepage":null,"id":"357b0135-c183-40d6-bdc2-80b94c90a720"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}},{"id":2,"webentity":{"status":"IN","name":"Twitter","tags":{"CORE":{"startpages_modified":["added https://twitter.com/toutMontebourg","removed http://twitter.com/toutMontebourg"],"user_created_via":["lru"],"recrawl_needed":["true","true"]}},"lru_prefixes":["s:http|h:com|h:twitter|","s:http|h:com|h:twitter|h:www|","s:https|h:com|h:twitter|","s:https|h:com|h:twitter|h:www|"],"crawling_status":"UNCRAWLED","startpages":["https://twitter.com/toutMontebourg"],"creation_date":"1409049275242","indexing_status":"UNINDEXED","last_modification_date":"1409055296023","homepage":null,"id":"66be66cb-f7c5-416d-a923-d10daf326423"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}},{"id":3,"webentity":{"status":"IN","name":"Trielec2012","tags":{"CORE":{"user_created_via":["lru"]}},"lru_prefixes":["s:https|h:fr|h:trielec2012|","s:http|h:fr|h:trielec2012|h:www|","s:http|h:fr|h:trielec2012|","s:https|h:fr|h:trielec2012|h:www|"],"crawling_status":"UNCRAWLED","startpages":["http://www.trielec2012.fr"],"creation_date":"1409049275428","indexing_status":"UNINDEXED","last_modification_date":"1409049275442","homepage":null,"id":"6827803f-a81a-48af-ba62-26ebd1702a18"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}},{"id":4,"webentity":{"status":"IN","name":"Lemonde","tags":{"CORE":{"user_created_via":["lru"]}},"lru_prefixes":["s:http|h:fr|h:lemonde|","s:https|h:fr|h:lemonde|h:www|","s:https|h:fr|h:lemonde|","s:http|h:fr|h:lemonde|h:www|"],"crawling_status":"UNCRAWLED","startpages":["http://crise.blog.lemonde.fr"],"creation_date":"1409049275596","indexing_status":"UNINDEXED","last_modification_date":"1409049275611","homepage":null,"id":"8af8df7a-4e94-4655-9ea4-1beda3605f57"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}},{"id":5,"webentity":{"status":"IN","name":"Tepsa","tags":{"CORE":{"startpages_modified":["added http://www.tepsa.eu/","removed http://www.tepsa.be"],"lruprefixes_modified":["added s:http|h:eu|h:tepsa|h:www|","added s:http|h:eu|h:tepsa|","added s:https|h:eu|h:tepsa|h:www|","added s:https|h:eu|h:tepsa|"],"user_created_via":["lru"],"recrawl_needed":["true","true","true","true","true","true"]}},"lru_prefixes":["s:https|h:be|h:tepsa|h:www|","s:http|h:be|h:tepsa|","s:http|h:eu|h:tepsa|h:www|","s:http|h:be|h:tepsa|h:www|","s:http|h:eu|h:tepsa|","s:https|h:eu|h:tepsa|h:www|","s:https|h:be|h:tepsa|","s:https|h:eu|h:tepsa|"],"crawling_status":"UNCRAWLED","startpages":["http://www.tepsa.eu/"],"creation_date":"1409049275299","indexing_status":"UNINDEXED","last_modification_date":"1409055315247","homepage":null,"id":"94d95282-fc67-4288-905d-8c9f7a98fe98"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}},{"id":6,"webentity":{"status":"IN","name":"Trop-Libre","tags":{"CORE":{"user_created_via":["lru"]}},"lru_prefixes":["s:https|h:fr|h:trop-libre|h:www|","s:http|h:fr|h:trop-libre|","s:https|h:fr|h:trop-libre|","s:http|h:fr|h:trop-libre|h:www|"],"crawling_status":"UNCRAWLED","startpages":["http://www.trop-libre.fr"],"creation_date":"1409049275459","indexing_status":"UNINDEXED","last_modification_date":"1409049275470","homepage":null,"id":"a637a48b-be41-47dd-9975-a87cf085c6f2"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}},{"id":7,"webentity":{"status":"IN","name":"Thierrydoukhan","tags":{"CORE":{"user_created_via":["lru"]}},"lru_prefixes":["s:http|h:fr|h:blogspot|h:thierrydoukhan|h:www|","s:http|h:fr|h:blogspot|h:thierrydoukhan|","s:https|h:fr|h:blogspot|h:thierrydoukhan|","s:https|h:fr|h:blogspot|h:thierrydoukhan|h:www|"],"crawling_status":"UNCRAWLED","startpages":["http://thierrydoukhan.blogspot.fr"],"creation_date":"1409049275186","indexing_status":"UNINDEXED","last_modification_date":"1409049275198","homepage":null,"id":"c2747b98-9e27-4301-bd72-211b0bc18153"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}},{"id":8,"webentity":{"status":"IN","name":"Over-Blog","tags":{"CORE":{"user_created_via":["lru"]}},"lru_prefixes":["s:http|h:net|h:over-blog|h:www|","s:http|h:net|h:over-blog|","s:https|h:net|h:over-blog|","s:https|h:net|h:over-blog|h:www|"],"crawling_status":"UNCRAWLED","startpages":["http://turandot.over-blog.net"],"creation_date":"1409049275488","indexing_status":"UNINDEXED","last_modification_date":"1409049275503","homepage":null,"id":"c4d7201d-f7ff-4b4d-abee-db5673a6646d"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}},{"id":9,"webentity":{"status":"IN","name":"Wordpress","tags":{"CORE":{"user_created_via":["lru"]}},"lru_prefixes":["s:http|h:com|h:wordpress|h:www|","s:http|h:com|h:wordpress|","s:https|h:com|h:wordpress|","s:https|h:com|h:wordpress|h:www|"],"crawling_status":"UNCRAWLED","startpages":["http://travauxpublics.wordpress.com"],"creation_date":"1409049275345","indexing_status":"UNINDEXED","last_modification_date":"1409049275357","homepage":null,"id":"e277f2e2-a0de-49bc-a722-8b5f7bbb91df"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}},{"id":10,"webentity":{"status":"IN","name":"Touteleurope","tags":{"CORE":{"user_created_via":["lru"]}},"lru_prefixes":["s:https|h:eu|h:touteleurope|h:www|","s:http|h:eu|h:touteleurope|h:www|","s:https|h:eu|h:touteleurope|","s:http|h:eu|h:touteleurope|"],"crawling_status":"UNCRAWLED","startpages":["http://www.touteleurope.eu"],"creation_date":"1409049275216","indexing_status":"UNINDEXED","last_modification_date":"1409049275227","homepage":null,"id":"f060d61e-f910-4317-b653-9eeeb5cd80d2"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}},{"id":11,"webentity":{"status":"IN","name":"Liberation","tags":{"CORE":{"user_created_via":["lru"]}},"lru_prefixes":["s:https|h:fr|h:liberation|h:www|","s:http|h:fr|h:liberation|","s:http|h:fr|h:liberation|h:www|","s:https|h:fr|h:liberation|"],"crawling_status":"UNCRAWLED","startpages":["http://traverses.blogs.liberation.fr/yves_michaud/"],"creation_date":"1409049275393","indexing_status":"UNINDEXED","last_modification_date":"1409049275408","homepage":null,"id":"f6e2c2c7-78b9-4bf2-9240-77eb208ce49b"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}},{"id":12,"webentity":{"status":"IN","name":"Trameverteetbleue","tags":{"CORE":{"user_created_via":["lru"]}},"lru_prefixes":["s:https|h:fr|h:trameverteetbleue|h:www|","s:https|h:fr|h:trameverteetbleue|","s:http|h:fr|h:trameverteetbleue|h:www|","s:http|h:fr|h:trameverteetbleue|"],"crawling_status":"UNCRAWLED","startpages":["http://www.trameverteetbleue.fr"],"creation_date":"1409049275268","indexing_status":"UNINDEXED","last_modification_date":"1409049275280","homepage":null,"id":"ff9c2c38-65d6-4532-a418-d156d77c1a04"},"status":"loaded","collapsed":true,"startpagesSummary":{"loaded":1,"loading":0,"warning":0,"status":"success"}}])
-    // $scope.list = bootstrapList(store.get('webentities_toCrawl'))
+    $scope.list = bootstrapList(store.get('webentities_toCrawl'))
+    
+    // Clean store
+    store.remove('webentities_toCrawl')
+
+    if($scope.list.length==0){
+      $location.path('/newCrawl')
+    }
+
+    var queriesBatcher = new QueriesBatcher()
+    
+    $scope.list.forEach(function(obj){
+      // Stack the query
+      queriesBatcher.addQuery(
+          api.crawl                             // Query call
+          ,{                                    // Query settings
+              webentityId: obj.webentity.id
+              ,depth: obj.depth || 0
+              ,cautious: obj.cautiousCrawl || false
+            }
+          ,function(data){                      // Success callback
+              obj.status = 'scheduled'
+            }
+          ,function(data, status, headers){     // Fail callback
+              obj.status = 'error'
+            }
+          ,{                                    // Options
+              label: obj.webentity.id
+              ,before: function(){
+                  obj.status = 'pending'
+                }
+              ,simultaneousQueries: 3
+            }
+        )
+    })
+
+    queriesBatcher.atEachFetch(function(list,pending,success,fail){
+      var summary = {
+        total: list.length + pending.length + success.length + fail.length
+        ,pending: pending.length
+        ,loaded: success.length + fail.length
+      }
+      ,percent = Math.round((summary.loaded / summary.total) * 100)
+      ,percent_pending = Math.round((summary.pending / summary.total) * 100)
+      ,msg = percent + '% launched'
+      $scope.status = {message: msg, progress:percent, progressPending:percent_pending}
+    })
+
+    queriesBatcher.atFinalization(function(list,pending,success,fail){
+      // Status message
+      $scope.status = {}
+    })
+
+    queriesBatcher.run()
 
     function bootstrapList(list){
       list = list || []
@@ -1136,7 +1188,8 @@ angular.module('hyphe.controllers', [])
         return {
           id:i
           ,webentity: obj.webentity
-          ,status: 'unlaunched'
+          ,depth: obj.depth
+          ,status: 'waiting'
         }
       })
 

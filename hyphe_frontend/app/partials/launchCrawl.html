@@ -14,9 +14,27 @@
                 <!-- <p class="text-info">
                   <span hyphe-glossary="Crawling"></span> requires a starting point: check that each <span hyphe-glossary="web entity"></span> has a <span hyphe-glossary="start page"></span>
                 </p> -->
-                <ul>
-                  <li ng-repeat="obj in list">{{obj.webentity.name}}</li>
-                </ul>
+              </div>
+            </div>
+            <div class="row crawl-cells-container">
+              <div
+                class="col-md-3 col-lg-2 crawl-cell"
+                ng-repeat="obj in list"
+              >
+                <div
+                  class="crawl-cell-content"
+                  ng-class="{'bg-waiting':obj.status == 'waiting', 'bg-info':obj.status == 'pending', 'bg-danger':obj.status == 'error', 'bg-success':obj.status == 'scheduled'}"
+                >
+                  <p class="title">
+                    {{obj.id+1}}. {{obj.webentity.name}}
+                  </p>
+                  <p class="info">
+                    Depth {{obj.depth}}
+                  </p>
+                  <p class="status text-center" ng-class="{'text-info':obj.status == 'waiting' || obj.status == 'pending', 'text-danger':obj.status == 'error', 'text-success':obj.status == 'scheduled'}">
+                    {{obj.status|uppercase}}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
