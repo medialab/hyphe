@@ -164,6 +164,36 @@ div.welcome-column h1{
 }
 
 
+
+/* ==========================================================================
+   View: Overview
+   ========================================================================== */
+.status-cells-container{
+  padding: 6px;
+}
+.status-cell{
+  padding:6px;
+}
+.status-cell-content{
+  height: 100%;
+  padding: 5px;
+  border: 1px solid #FFF;
+  
+  background-color: #EFEBE8;
+  overflow: hidden;
+}
+.status-cell .title{
+  text-align: center;
+  font-size: 24px;
+  font-weight:300;
+}
+.status-cell .content{
+  text-align: center;
+  font-size: 16px;
+}
+
+
+
 /* ==========================================================================
    View: Import URLs
    ========================================================================== */

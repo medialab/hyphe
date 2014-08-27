@@ -17,8 +17,12 @@ angular.module('hyphe.controllers', [])
 
   .controller('Overview', ['$scope', 'api', function($scope, api) {
     $scope.currentPage = 'overview'
-    api.getWebentities({light: true}, function(data){
-      $scope.webEntities = data
+
+    $scope.status
+
+    api.globalStatus({}, function(status){
+      $scope.status = status
+      console.log(status)
     })
   }])
 

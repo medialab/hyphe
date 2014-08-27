@@ -165,6 +165,13 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
+    api.globalStatus = buildApiCall(
+        HYPHE_API.STATUS.GET
+        ,function(settings){
+            return []
+          }
+      )
+
 
     function buildApiCall(pseudo_route, params){
       return function(settings, successCallback, errorCallback){
