@@ -195,6 +195,7 @@
                             </div>
                           </div>
 
+                          <!-- Bottom row of the collapsing panel -->
                           <div class="row actions-row">
                             <div class="col-md-6">
 
@@ -222,7 +223,7 @@
                               </div>
                               
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                               <button
                                 type="button"
                                 class="btn btn-default btn-sm"
@@ -230,6 +231,15 @@
                                 ng-click="testAgain(obj.id)"
                               >
                                 <span class="glyphicon glyphicon-repeat"></span> TEST AGAIN
+                              </button>
+                            </div>
+                            <div class="col-md-3">
+                              <button
+                                type="button"
+                                class="btn btn-default btn-sm pull-right"
+                                ng-click="removeRow(obj.id)"
+                              >
+                                <span class="glyphicon glyphicon-trash"></span> DON'T CRAWL
                               </button>
                             </div>
                           </div>

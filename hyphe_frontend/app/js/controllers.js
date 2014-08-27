@@ -161,7 +161,6 @@ angular.module('hyphe.controllers', [])
     $scope.currentPage = 'definewebentities'
 
     $scope.list = []
-    $scope.list_hidden = []
     $scope.list_byId = {}
     
     $scope.activeRow = 0
@@ -790,6 +789,27 @@ angular.module('hyphe.controllers', [])
       
       store.set('webentities_toCrawl', list)
       $location.path('/launchCrawl')
+    }
+
+    $scope.removeRow = function(objId){
+      var obj = list_byId[objId]
+
+      // Remove old status
+      if(obj.startpagesSummary.status == 'warning'){
+        $scope.httpStatusWarning--
+      } else if(obj.startpagesSummary.status == 'success'){
+        $scope.httpStatusSuccess--
+      } else {
+        $scope.httpStatusLoading--
+      }
+
+      $scope.list = $scope.list.filter(function(obj){
+        return obj.id != objId
+      })
+
+      delete list_byId[objId]
+
+
     }
 
     function bootstrapList(list){
