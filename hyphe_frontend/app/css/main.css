@@ -131,23 +131,15 @@ div.welcome-column h1{
   border-radius: 4px 0px 0px 4px;
   font-weight: 400;
 }
-@media (max-width: 768px) { /* xs screen only */
-  .sidebar>li>a{
-    border-radius: 4px 4px 4px 4px;
-  }
-  .sidebar-col{
-    padding-right: 15px;
-  }
-}
-.sidebar>li:not(.inactive)>a:hover{
+.sidebar>li:not(.inactive)>a:hover, .sidebar>li:not(.inactive)>a:focus{
   background-color: #FFF;
   color: #1B4C6B;
 }
-.sidebar>li.inactive>a:hover{
+.sidebar>li.inactive>a:hover, .sidebar>li.inactive>a:focus{
   background-color: #EFEBE8;
   cursor: default;
 }
-.sidebar>li.active>a, .sidebar>li.active>a:hover{
+.sidebar>li.active>a, .sidebar>li.active>a:hover, .sidebar>li.active>a, .sidebar>li.active>a:focus{
   background-color: #FFF;
   color: #000;
   font-weight: 600;
@@ -161,6 +153,15 @@ div.welcome-column h1{
   margin-top: 6px;
 }
 
+@media (max-width: 768px) { /* xs screen only */
+  .sidebar>li>a{
+    border-radius: 4px 4px 4px 4px;
+    padding: 2px 15px;
+  }
+  .sidebar-col{
+    padding-right: 15px;
+  }
+}
 
 
 /* ==========================================================================
@@ -187,45 +188,81 @@ textarea.over-error{
 /* ==========================================================================
    View: Define Web Entities
    ========================================================================== */
-.sliders-table>tbody>tr:not(.active)>td{
+.define-we-row{
+  padding-left: 64px;
   border-top: 1px solid #F5F5F5;
 }
-.sliders-table>tbody>tr.active>td{
+.define-we-row:nth-child(odd){
+  background-color: #f9f9f9;
+}
+.define-we-row:nth-child(even){
+  background-color: #ffffff;
+}
+.define-we-row.bg-primary{
+  color: #fff;
+  background-color: #428bca;
+}
+.define-we-row.bg-success{
+  background-color: #dff0d8;
+}
+.define-we-row.bg-info{
+  background-color: #d9edf7;
+}
+.define-we-row.bg-warning{
+  background-color: #fcf8e3;
+}
+.define-we-row.bg-danger{
+  background-color: #f2dede;
+}
+.define-we-row.active{
   background-color: #EFEBE8;
 }
-.sliders-table>tbody>tr:not(.selectable){
-  -webkit-user-select: none; /* Chrome/Safari */        
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* IE10+ */
+.define-we-row:not(.selectable){
   select: none;
 }
-.sliders-table>tbody>tr:not(.active){
+.define-we-row:not(.active){
   cursor: pointer;
 }
-.sliders-table .td-row-id{
-  width: 50px;
+
+.define-we-row .col-row-id{
+  width: 0%;
 }
-.sliders-table .td-row-content{
+.define-we-row .content-row-id{
+  margin-left: -64px;
+  width: 64px;
+  padding-left: 6px;
+  padding-top: 12px;
+  font-size: 24px;
+  font-weight: 300;
+}
+
+.define-we-row .row-content{
+  padding-top: 12px;
+  padding-bottom: 12px;
   width: auto;
   overflow-x: auto;
   overflow-y: hidden;
 }
-.sliders-table .row-id{
-  padding-top: 2px;
-  font-size: 24px;
-  font-weight: 300;
-}
-.sliders-table .info-content{
+.define-we-row .info-content{
   padding-left: 15px;
   padding-right: 15px;
 }
-.sliders-table .loading-p{
+.define-we-row .loading-p{
   margin-top: 8px;
 }
-.sliders-table .conflicts{
+.define-we-row .conflicts{
   padding-top: 4px;
   padding-left: 15px;
 }
+@media (max-width: 970px) { /* xs + sm */
+  .define-we-row{
+    padding-left: 0px;
+  }
+  .define-we-row .col-row-id{
+    display: none;
+  }
+}
+
 .variations-checkbox{
   margin-top: 4px;
   margin-right: 12px;
@@ -240,12 +277,53 @@ textarea.over-error{
 /* ==========================================================================
    View: Check start pages
    ========================================================================== */
+.check-sp-row{
+  padding-left: 64px;
+  border-top: 1px solid #F5F5F5;
+}
+.check-sp-row:nth-child(odd){
+  background-color: #f9f9f9;
+}
+.check-sp-row:nth-child(even){
+  background-color: #ffffff;
+}
+
+.check-sp-row .col-row-id{
+  width: 0%;
+}
+.check-sp-row .content-row-id{
+  margin-left: -64px;
+  width: 64px;
+  padding-left: 6px;
+  padding-top: 12px;
+  font-size: 24px;
+  font-weight: 300;
+}
+
+.check-sp-row .row-content{
+  width: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+@media (max-width: 970px) { /* xs + sm */
+  .check-sp-row{
+    padding-left: 0px;
+  }
+  .check-sp-row .col-row-id{
+    display: none;
+  }
+}
+
+
+
 .table-summary>tbody>tr>td{
   vertical-align: top;
 }
 .table-summary .checkox{
   margin: 0px;
 }
+
 .startpages-summary-cell{
   font-size: 13px;
   text-align: center;
@@ -256,57 +334,43 @@ textarea.over-error{
 .startpages-summary-cell .glyphicon{
   font-size: 20px;
 }
+.startpages-summary-cell.sorting{
+  padding-top: 10px;
+}
 
-.table-startpages>tbody>tr>td{
-  border-top: 1px solid #F5F5F5;
-}
-.table-startpages .td-row-id{
-  width: 58px;
-}
-.table-startpages .td-row-content{
-  padding:0px;
-  width: auto;
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-.table-startpages .row-id{
-  padding-top: 2px;
-  font-size: 24px;
-  font-weight: 300;
-}
-.table-startpages .row-top{
+.check-sp-row .row-top{
   cursor: pointer;
-  padding-top: 16px;
-  padding-bottom: 16px;
+  padding-top: 12px;
+  padding-bottom: 12px;
   -webkit-user-select: none; /* Chrome/Safari */        
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* IE10+ */
   select: none;
 }
-.table-startpages .title-container{
+.check-sp-row .title-container{
   font-family: 'Roboto', sans-serif;
   font-weight:400;
 }
-.table-startpages .actions-row{
+.check-sp-row .actions-row{
   margin-top: 18px;
 }
-.table-startpages .startpage-row{
+.check-sp-row .startpage-row{
   margin-bottom: 6px;
 }
-.table-startpages .url{
+.check-sp-row .url{
   font-family: 'Roboto Condensed', sans-serif;
   font-weight:400;
 }
-.table-startpages .lookup-result{
+.check-sp-row .lookup-result{
   font-size: 12px;
 }
-.table-startpages .cautious-crawl-checkbox{
+.check-sp-row .cautious-crawl-checkbox{
   margin-top: 4px;
   margin-bottom: 0px;
 }
 
 /* Collapsible panel */
-.table-startpages .bottom-panel{
+.check-sp-row .bottom-panel{
   margin-bottom: 24px;
 }
 /* Modal */
@@ -324,7 +388,7 @@ textarea.over-error{
   padding: 6px;
 }
 .crawl-cell{
-  height: 100px;
+  height: 112px;
   padding:6px;
 }
 .crawl-cell-content{
@@ -337,15 +401,11 @@ textarea.over-error{
   border: 1px solid #31708f;
 }
 .crawl-cell p{
-  margin-bottom: 2px;
   white-space: nowrap;
 }
 .crawl-cell .title{
   font-family: 'Roboto', sans-serif;
   font-weight:400;
-}
-.crawl-cell .info{
-  font-size: 12px;
 }
 .crawl-cell .status{
   font-size: 24px;
