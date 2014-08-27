@@ -532,8 +532,8 @@ angular.module('hyphe.controllers', [])
   .controller('NewCrawl', ['$scope', 'api', function($scope, api) {
     $scope.currentPage = 'newCrawl'
     
-    
-    
+
+
   }])
 
 
@@ -792,7 +792,7 @@ angular.module('hyphe.controllers', [])
         .filter(function(obj){return obj.webentity.id !== undefined})
       
       store.set('webentities_toCrawl', list)
-      $location.path('/launchCrawl')
+      $location.path('/scheduleCrawls')
     }
 
     $scope.removeRow = function(objId){
@@ -1142,9 +1142,9 @@ angular.module('hyphe.controllers', [])
   
 
 
-  .controller('launchCrawl', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location',
+  .controller('scheduleCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location',
   function($scope, api, store, utils, QueriesBatcher, $location){
-    $scope.currentPage = 'launchCrawl'
+    $scope.currentPage = 'scheduleCrawls'
 
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
     
@@ -1216,6 +1216,14 @@ angular.module('hyphe.controllers', [])
 
 
     }
+  }])
+
+.controller('monitorCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location',
+  function($scope, api, store, utils, QueriesBatcher, $location){
+    $scope.currentPage = 'monitorCrawls'
+
+
+
   }])
 ;
 

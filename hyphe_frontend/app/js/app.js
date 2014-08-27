@@ -21,6 +21,7 @@ config(['$routeProvider', function($routeProvider) {
   $routeProvider.when('/definewebentities', {templateUrl: 'partials/definewebentities.html', controller: 'DefineWebEntities'});
   $routeProvider.when('/newCrawl', {templateUrl: 'partials/newCrawl.html', controller: 'NewCrawl'});
   $routeProvider.when('/checkStartPages', {templateUrl: 'partials/checkStartPages.html', controller: 'CheckStartPages'});
-  $routeProvider.when('/launchCrawl', {templateUrl: 'partials/launchCrawl.html', controller: 'launchCrawl'});
+  $routeProvider.when('/scheduleCrawls', {templateUrl: 'partials/scheduleCrawls.html', controller: 'scheduleCrawls'});
+  $routeProvider.when('/monitorCrawls', {templateUrl: 'partials/monitorCrawls.html', controller: 'monitorCrawls'});
   $routeProvider.otherwise({redirectTo: '/login'});
 }]);
