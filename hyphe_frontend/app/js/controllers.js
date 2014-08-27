@@ -809,7 +809,6 @@ angular.module('hyphe.controllers', [])
 
       delete list_byId[objId]
 
-
     }
 
     function bootstrapList(list){

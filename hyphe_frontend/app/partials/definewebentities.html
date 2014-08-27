@@ -12,7 +12,103 @@
                 <p class="text-info">
                   Check the <span hyphe-glossary="boundaries"></span> of each <span hyphe-glossary="web entity"></span> before creating it
                 </p>
-                <table class="table table-striped sliders-table">
+                <div class="container-fluid">
+                  <div
+                    class="row no-gutter define-we-row"
+                    ng-repeat="obj in list|paginate:paginationPage:paginationLength track by $index"
+                    ng-class="{active: $parent.activeRow == ($index+paginationLength*paginationPage) && obj.status=='loaded', 'bg-danger':obj.status=='error', 'bg-warning':obj.status=='conflict', selectable:obj.status=='error'}"
+                    ng-click="$parent.activeRow = ($index+paginationLength*paginationPage)"
+                    ng-mouseover="$parent.activeRow = ($index+paginationLength*paginationPage)"
+                  >
+                    <div class="col-md-1 col-row-id">
+                      <div class="content-row-id">
+                        {{obj.id+1}}
+                      </div>
+                    </div>
+                    <div class="col-md-12">
+                      <div class="row-content">
+                        <!-- Loading and pending-->
+                        <div ng-if="obj.status == 'loading' || obj.status == 'pending'" class="info-content">
+                          <p class="loading-p text-muted">
+                            {{obj.status|titlecase}}
+                          </p>
+                        </div>
+
+                        <!-- Loaded -->
+                        <div ng-if="obj.status == 'loaded'">
+                          
+                          <!-- The UX slider component -->
+                          <div hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*paginationPage)}"></div>
+                          
+                          <!-- Added when conflicts are anticipated -->
+                          <div ng-if="obj.conflicts.length > 0" class="conflicts">
+                            <small class="text-warning">
+                              <span class="glyphicon glyphicon-warning-sign"></span>
+                              Same web entity defined row{{obj.conflicts.length>1 ? 's' : ''}} <span ng-repeat="r in obj.conflicts track by $index">{{r+1}}{{ $index == obj.conflicts.length-1 ? '' : $index == obj.conflicts.length-2 ? ' and ' : ', '}}</span>
+                            </small>
+                          </div>
+                        </div>
+
+                        <!-- Created or Existing -->
+                        <div ng-if="obj.status == 'created' || obj.status == 'existing'" class="info-content">
+
+                          <p class="loading-p" ng-class="{'text-info':obj.status=='existing', 'text-success':obj.status=='created'}">
+                            
+                            <strong>{{obj.status|titlecase}}</strong>
+                            as {{obj.webentity.name}}
+                          </p>
+
+                        </div>
+
+                        <!-- Conflicted -->
+                        <div ng-if="obj.status == 'conflict'" class="info-content">
+
+                          <p class="loading-p text-warning">
+                            
+                            <strong>{{obj.status|titlecase}}</strong> - web entity defined in a previous row
+
+                            <!-- Collapsing button -->
+                            <button type="button" class="btn btn-link btn-xs text-muted" data-toggle="collapse" data-target="#conflict-info-{{obj.id}}">more info</button>
+                          </p>
+
+                          <!-- Collapsed info -->
+                          <div id="conflict-info-{{obj.id}}" class="collapse">
+                            URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
+                            <br/>
+                            LRU prefixes:
+                            <ul>
+                              <li ng-repeat="lru in obj.prefixes">{{lru}}</li>
+                            </ul>
+                          </div>
+
+                        </div>
+
+                        <!-- Error -->
+                        <div ng-if="obj.status == 'error'" class="info-content">
+                          
+                          <p class="loading-p text-danger">
+                            <strong>Error</strong>
+
+                            <!-- Collapsing button -->
+                            <button type="button" class="btn btn-link btn-xs text-muted" data-toggle="collapse" data-target="#error-info-{{obj.id}}">more info</button>
+                          </p>
+
+                          <!-- Collapsed info -->
+                          <div id="error-info-{{obj.id}}" class="collapse">
+                            URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
+                            <br/>
+                            {{obj.infoMessage}}
+                          </div>
+                        </div>
+                      
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+
+                <table class="table table-striped sliders-table" ng-if="false">
                   <tr
                     ng-repeat="obj in list|paginate:paginationPage:paginationLength track by $index"
                     ng-class="{active: $parent.activeRow == ($index+paginationLength*paginationPage) && obj.status=='loaded', danger:obj.status=='error', warning:obj.status=='conflict', selectable:obj.status=='error'}"
@@ -20,7 +116,7 @@
                     ng-mouseover="$parent.activeRow = ($index+paginationLength*paginationPage)"
                     >
                     
-                    <td class="td-row-id"><div class="row-id">{{obj.id+1}}</div></td>
+                    <td class="td-row-id hidden-xs"><div class="row-id">{{obj.id+1}}</div></td>
                     
                     <td class="td-row-content">
 
