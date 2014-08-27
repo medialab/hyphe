@@ -43,6 +43,12 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('date', [function(){
+    return function(timestamp) {
+      return (new Date(timestamp)).toLocaleString()
+    }
+  }])
+
   .filter('explicitHttpCode', [function () {
     return function (code) {
       code = ''+code
