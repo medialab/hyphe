@@ -531,9 +531,9 @@ angular.module('hyphe.controllers', [])
 
   .controller('NewCrawl', ['$scope', 'api', function($scope, api) {
     $scope.currentPage = 'newCrawl'
-    api.getWebentities({light: true}, function(data){
-      $scope.webEntities = data
-    })
+    
+    
+    
   }])
 
 
