@@ -38,14 +38,6 @@ def clean_corpus_id(name):
 corpus_project = lambda x: ("%s.%s" % (config['mongo-scrapy']['db_name'], x)).lower()
 
 
-def jobslog(jobid, msg, db, timestamp=None, corpus=""):
-    if timestamp is None:
-        timestamp = int(time.time()*1000)
-    if isinstance(jobid, types.ListType):
-        return db['%s.logs' % corpus].insert([{'_job': _id, 'timestamp': timestamp, 'log': msg} for _id in jobid])
-    return db['%s.logs' % corpus].insert({'_job': jobid, 'timestamp': timestamp, 'log': msg})
-
-
 def format_success(res):
     return {'code': 'success', 'result': res}
 

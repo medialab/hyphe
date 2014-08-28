@@ -3,17 +3,16 @@
 
 import time, random, json, bson
 import urllib, urllib2
-import pymongo
 import subprocess
 from txjsonrpc import jsonrpclib
 from txjsonrpc.jsonrpc import Introspection
 from txjsonrpc.web import jsonrpc
 from twisted.web import server
 from twisted.python import log as logger
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 from twisted.internet.task import LoopingCall
 from twisted.internet.threads import deferToThread
-from twisted.internet.defer import inlineCallbacks, returnValue as returnD, succeed
+from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.internet.error import DNSLookupError
 from twisted.application.internet import TCPServer
@@ -22,10 +21,11 @@ from twisted.web.http_headers import Headers
 from twisted.web.client import Agent, ProxyAgent, _HTTP11ClientFactory
 _HTTP11ClientFactory.noisy = False
 from hyphe_backend import processor
-from hyphe_backend.memorystructure import MemoryStructure as ms, constants as ms_const
 from hyphe_backend.lib import config_hci, urllru, gexf, user_agents
 from hyphe_backend.lib.utils import *
+from hyphe_backend.lib.mongo import MongoDB, sortdesc
 from hyphe_backend.lib.corpus import CorpusFactory
+from hyphe_backend.memorystructure import MemoryStructure as ms, constants as ms_const
 
 
 # MAIN CORE API
@@ -36,7 +36,7 @@ class Core(jsonrpc.JSONRPC):
 
     def __init__(self):
         jsonrpc.JSONRPC.__init__(self)
-        self.db = pymongo.Connection(config['mongo-scrapy']['host'],config['mongo-scrapy']['mongo_port'])[config['mongo-scrapy']['db_name']]
+        self.db = MongoDB(config['mongo-scrapy'])
         self.msclients = CorpusFactory(config['memoryStructure']['thrift.host'],
           port_range = config['memoryStructure']['thrift.portrange'],
           max_ram = config['memoryStructure']['thrift.max_ram'],
@@ -46,16 +46,19 @@ class Core(jsonrpc.JSONRPC):
         self.store = Memory_Structure(self)
         reactor.addSystemEventTrigger('before', 'shutdown', self.close)
 
+    @inlineCallbacks
     def activate_monocorpus(self):
-        self.start_corpus(create_if_missing=True)
+        yield self.start_corpus(create_if_missing=True)
         self.keepalive_default = LoopingCall(self.jsonrpc_ping, DEFAULT_CORPUS)
         self.keepalive_default.start(300, False)
 
+    @inlineCallbacks
     def close(self):
         if not config["MULTICORPUS"] and self.keepalive_default.running:
             self.keepalive_default.stop()
         for corpus in self.corpora.keys():
-            self.stop_corpus(corpus, quiet=True)
+            yield self.stop_corpus(corpus, quiet=True)
+        yield self.db.close()
         self.msclients.stop()
 
   # OVERWRITE JSONRPC REQUEST HANDLING
@@ -96,13 +99,15 @@ class Core(jsonrpc.JSONRPC):
             res["message"] = msg
         return format_result(res)
 
+    @inlineCallbacks
     def jsonrpc_list_corpus(self):
         res = {}
-        for corpus in self.db["corpus"].find(sort=[("last_activity", pymongo.DESCENDING)]):
+        corpora = yield self.db.list_corpus()
+        for corpus in corpora:
             corpus["password"] = (corpus["password"] != "")
             corpus.update(self.jsonrpc_test_corpus(corpus.pop('_id'))["result"])
             res[corpus["corpus_id"]] = corpus
-        return format_result(res)
+        returnD(format_result(res))
 
     def corpus_ready(self, corpus):
         return corpus in self.corpora and self.msclients.test_corpus(corpus)
@@ -110,7 +115,7 @@ class Core(jsonrpc.JSONRPC):
     def corpus_error(self, corpus=None):
         if not corpus:
             return format_error("Too many instances running already, please try again later")
-        self.stop_corpus(corpus, quiet=True)
+        reactor.callLater(0, self.stop_corpus, corpus, quiet=True)
         return format_error(self.jsonrpc_test_corpus(corpus)["result"])
 
     def factory_full(self):
@@ -119,68 +124,56 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_create_corpus(self, name=DEFAULT_CORPUS, password="", options=None):
         return self.create_corpus(name, password, options=options)
 
+    @inlineCallbacks
     def create_corpus(self, name=DEFAULT_CORPUS, password="", options=None, noloop=False, quiet=False):
         if self.factory_full():
-            return self.corpus_error()
+            returnD(self.corpus_error())
 
         corpus = clean_corpus_id(name)
         corpus_idx = 1
-        while self.db['corpus'].find_one({"_id": corpus}):
+        existing = yield self.db.get_corpus(corpus)
+        while existing:
             corpus = "%s-%s" % (clean_corpus_id(name), corpus_idx)
             corpus_idx += 1
+            existing = yield self.db.get_corpus(corpus)
 
         self.corpora[corpus] = {"name": name}
 
-        now = time.time()
-        self.db["corpus"].insert({
-          "_id": corpus,
-          "name": name,
-          "password": salt(password),
-          "ram": 256,
-          "options": options,
-          "total_webentities": 0,
-          "total_crawls": 0,
-          "total_pages": 0,
-          "total_pages_crawled": 0,
-          "created_at": now,
-          "last_activity": now,
-          "last_index_loop": now,
-          "last_links_loop": now
-        })
-
-        self.crawler.init_indexes(corpus)
+        yield self.db.add_corpus(corpus, name, password, options)
         try:
             res = self.crawler.deploy_spider(corpus)
         except:
-            return format_error("Could not deploy corpus' scrapyd spider")
+            returnD(format_error("Could not deploy corpus' scrapyd spider"))
         if not res:
-            return res
-        res = self.store.ensureDefaultCreationRuleExists(corpus)
+            returnD(res)
+        res = self.store.ensureDefaultCreationRuleExists(corpus, quiet=quiet)
         if not res:
-            return res
+            returnD(res)
+        res = yield self.start_corpus(corpus, password=password, noloop=noloop, quiet=quiet)
+        returnD(handle_standard_results(res))
 
-        return handle_standard_results(self.start_corpus(corpus, password=password, noloop=noloop, quiet=quiet))
+    def jsonrpc_start_corpus(self, corpus=DEFAULT_CORPUS, password=""):
+        return self.start_corpus(corpus, password)
 
-    def jsonrpc_start_corpus(self, corpus=DEFAULT_CORPUS, password="", create_if_missing=False):
-        return self.start_corpus(corpus, password, create_if_missing=create_if_missing)
-
+    @inlineCallbacks
     def start_corpus(self, corpus=DEFAULT_CORPUS, password="", noloop=False, quiet=False, create_if_missing=False):
         if self.corpus_ready(corpus) or self.msclients.status_corpus(corpus, simplify=True) == "starting":
-            return self.jsonrpc_test_corpus(corpus, msg="Corpus already ready")
+            returnD(self.jsonrpc_test_corpus(corpus, msg="Corpus already ready"))
 
-        corpus_conf = self.db['corpus'].find_one({"_id": corpus})
+        corpus_conf = yield self.db.get_corpus(corpus)
         if not corpus_conf:
             if create_if_missing:
-                return self.create_corpus(corpus, password, noloop=noloop, quiet=quiet)
-            return format_error("No corpus existing with ID %s, please create it first!" % corpus)
+                res = yield self.create_corpus(corpus, password, noloop=noloop, quiet=quiet)
+                returnD(res)
+            returnD(format_error("No corpus existing with ID %s, please create it first!" % corpus))
         if corpus_conf['password'] and corpus_conf['password'] != salt(password):
-            return format_error("Wrong auth for password-protected corpus %s" % corpus)
+            returnD(format_error("Wrong auth for password-protected corpus %s" % corpus))
         if self.factory_full():
-            return self.corpus_error()
+            returnD(self.corpus_error())
 
         res = self.msclients.start_corpus(corpus, quiet, ram=corpus_conf['ram'])
         if not res:
-            return format_error(self.jsonrpc_test_corpus(corpus)["result"])
+            returnD(format_error(self.jsonrpc_test_corpus(corpus)["result"]))
         self.corpora[corpus] = {
           "name": corpus_conf["name"],
           "ram": corpus_conf["ram"],
@@ -199,12 +192,13 @@ class Core(jsonrpc.JSONRPC):
         }
         if not noloop:
             reactor.callLater(5, self.corpora[corpus]['jobs_loop'].start, 1, False)
-        self.store._start_loop(corpus, noloop=noloop)
-        self.update_corpus(corpus)
-        return self.jsonrpc_test_corpus(corpus)
+        yield self.store._start_loop(corpus, noloop=noloop)
+        yield self.update_corpus(corpus)
+        returnD(self.jsonrpc_test_corpus(corpus))
 
+    @inlineCallbacks
     def update_corpus(self, corpus=DEFAULT_CORPUS):
-        self.db["corpus"].update({"_id": corpus}, {"$set": {
+        yield self.db.update_corpus(corpus, {
           "ram": self.msclients.corpora[corpus].ram,
           "total_webentities": self.corpora[corpus]['total_webentities'],
           "total_crawls": self.corpora[corpus]['crawls'],
@@ -213,24 +207,26 @@ class Core(jsonrpc.JSONRPC):
           "last_index_loop": self.corpora[corpus]['last_index_loop'],
           "last_links_loop": self.corpora[corpus]['last_links_loop'],
           "last_activity": time.time()
-        }})
+        })
 
     def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS):
         return self.stop_corpus(corpus)
 
+    @inlineCallbacks
     def stop_corpus(self, corpus=DEFAULT_CORPUS, quiet=False):
         if corpus in self.corpora:
-            if self.corpora[corpus]['jobs_loop'].running:
-                self.corpora[corpus]['jobs_loop'].stop()
-            if self.corpora[corpus]['index_loop'].running:
-                self.corpora[corpus]['index_loop'].stop()
-            self.update_corpus(corpus)
-            res = self.msclients.stop_corpus(corpus, quiet)
-            del(self.corpora[corpus]['tags'])
-            del(self.corpora[corpus]['webentities'])
-            del(self.corpora[corpus]['webentities_links'])
-            del(self.corpora[corpus]['precision_exceptions'])
-        return self.jsonrpc_test_corpus(corpus)
+            for f in ["jobs_loop", "index_loop"]:
+                if f in self.corpora[corpus] and self.corpora[corpus][f].running:
+                    self.corpora[corpus][f].stop()
+            yield self.update_corpus(corpus)
+            self.msclients.stop_corpus(corpus, quiet)
+            for f in ["tags", "webentities", "webentities_links", "precision_exceptions"]:
+                if f in self.corpora[corpus]:
+                    del(self.corpora[corpus][f])
+        res = self.jsonrpc_test_corpus(corpus)
+        if "message" in res["result"]:
+            res["result"]["message"] = "Corpus stopped"
+        returnD(res)
 
     def jsonrpc_ping(self, corpus=None, timeout=3):
         if not corpus:
@@ -250,41 +246,45 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
         return self.reinitialize(corpus)
 
-    def reinitialize(self, corpus=DEFAULT_CORPUS, noloop=False):
+    @inlineCallbacks
+    def reinitialize(self, corpus=DEFAULT_CORPUS, noloop=False, quiet=False):
         """Reinitializes both crawl jobs and memory structure."""
-        res = self.crawler.reinitialize(corpus, recreate=(not noloop))
+        res = yield self.crawler.reinitialize(corpus, recreate=(not noloop), quiet=quiet)
         if is_error(res):
-            return res
-        res = self.store.reinitialize(corpus, noloop=noloop)
+            returnD(res)
+        res = yield self.store.reinitialize(corpus, noloop=noloop, quiet=quiet)
         if is_error(res):
-            return res
-        return format_result('Memory structure and crawling database contents emptied.')
+            returnD(res)
+        returnD(format_result('Memory structure and crawling database contents emptied.'))
 
     def jsonrpc_destroy_corpus(self, corpus=DEFAULT_CORPUS):
         return self.destroy_corpus(corpus)
 
+    @inlineCallbacks
     def destroy_corpus(self, corpus=DEFAULT_CORPUS, quiet=False):
-        res = self.reinitialize(corpus, noloop=True)
+        res = yield self.reinitialize(corpus, noloop=True, quiet=quiet)
         if is_error(res):
-            return res
-        res = self.stop_corpus(corpus, quiet)
+            returnD(res)
+        res = yield self.stop_corpus(corpus, quiet)
         if is_error(res):
-            return res
-        self.db["corpus"].remove({'_id': corpus})
-        return format_result("Corpus %s destroyed successfully" % corpus)
+            returnD(res)
+        yield self.db.delete_corpus(corpus)
+        returnD(format_result("Corpus %s destroyed successfully" % corpus))
 
+    @inlineCallbacks
     def jsonrpc_reset_all(self):
-        for corpus in self.db["corpus"].find(fields=['_id', 'password']):
-            res = self.start_corpus(corpus['_id'], password=corpus['password'], noloop=True, quiet=not config['DEBUG'])
+        corpora = yield self.db.list_corpus(fields=['_id', 'password'])
+        for corpus in corpora:
+            res = yield self.start_corpus(corpus['_id'], password=corpus['password'], noloop=True, quiet=not config['DEBUG'])
             if is_error(res):
-                return res
+                returnD(res)
             res = self.jsonrpc_ping(corpus['_id'], timeout=10)
             if is_error(res):
-                return res
-            res = self.destroy_corpus(corpus['_id'], quiet=not config['DEBUG'])
+                returnD(res)
+            res = yield self.destroy_corpus(corpus['_id'], quiet=not config['DEBUG'])
             if is_error(res):
-                return res
-        return format_result("All corpora and databases cleaned up")
+                returnD(res)
+        returnD(format_result("All corpora and databases cleaned up"))
 
   # CORE & CORPUS STATUS
 
@@ -339,103 +339,98 @@ class Core(jsonrpc.JSONRPC):
 
   # CRAWL JOBS MONITORING
 
+    @inlineCallbacks
     def jsonrpc_listjobs(self, list_ids=None, corpus=DEFAULT_CORPUS):
         if not self.corpus_ready(corpus):
-            return self.corpus_error(corpus)
+            returnD(self.corpus_error(corpus))
         query = {}
         if list_ids:
             query = {'_id': {'$in': list_ids}}
-        return format_result(list(self.db['%s.jobs' % corpus].find(query, sort=[('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])))
+        jobs = yield self.db.list_jobs(corpus, query)
+        returnD(format_result(list(jobs)))
 
+    @inlineCallbacks
     def refresh_jobs(self, corpus=DEFAULT_CORPUS):
         """Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks."""
         scrapyjobs = self.crawler.jsonrpc_list(corpus)
         if is_error(scrapyjobs):
             if not (type(scrapyjobs["message"]) is dict and "status" in scrapyjobs["message"]):
                 logger.msg("Problem dialoguing with scrapyd server: %s" % scrapyjobs, system="WARNING - %s" % corpus)
-            return
+            returnD(None)
         scrapyjobs = scrapyjobs['result']
         self.corpora[corpus]['crawls_pending'] = len(scrapyjobs['pending'])
         self.corpora[corpus]['crawls_running'] = len(scrapyjobs['running'])
-        self.corpora[corpus]['pages_queued'] = self.db['%s.queue' % corpus].count()
-        self.corpora[corpus]['pages_crawled'] = self.db['%s.pages' % corpus].count()
-        jobs = list(self.db['%s.jobs' % corpus].find(fields=['nb_pages', 'nb_links']))
+        self.corpora[corpus]['pages_queued'] = yield self.db.queue(corpus).count()
+        self.corpora[corpus]['pages_crawled'] = yield self.db.pages(corpus).count()
+        jobs = yield self.db.list_jobs(corpus, fields=['nb_pages', 'nb_links'])
         self.corpora[corpus]['crawls'] = len(jobs)
         self.corpora[corpus]['pages_found'] = sum([j['nb_pages'] for j in jobs])
         self.corpora[corpus]['links_found'] = sum([j['nb_links'] for j in jobs])
-        self.update_corpus(corpus)
+        yield self.update_corpus(corpus)
         # clean lost jobs
         if len(scrapyjobs['running']) + len(scrapyjobs['pending']) == 0:
-            resdb = self.db['%s.jobs' % corpus].update({'crawling_status': {'$in': [crawling_statuses.PENDING, crawling_statuses.RUNNING]}}, {'$set': {'crawling_status': crawling_statuses.FINISHED}}, multi=True, safe=True)
-            if (resdb['err']):
-                logger.msg("Pb while updating lost jobs crawling_statuses %s" % resdb, system="ERROR - %s" % corpus)
-                return
+            yield self.db.update_jobs(corpus, {'crawling_status': {'$in': [crawling_statuses.PENDING, crawling_statuses.RUNNING]}}, {'crawling_status': crawling_statuses.FINISHED})
         # clean canceled jobs
-        resdb = self.db['%s.jobs' % corpus].update({'crawling_status': crawling_statuses.CANCELED}, {'$set': {'indexing_status': indexing_statuses.CANCELED}}, multi=True, safe=True)
-        if (resdb['err']):
-            logger.msg("Pb while updating canceled jobs indexing_statuses %s" % resdb, system="ERROR - %s" % corpus)
-            return
+        yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.CANCELED}, {'indexing_status': indexing_statuses.CANCELED})
         # update jobs crawling status accordingly to crawler's statuses
         running_ids = [job['id'] for job in scrapyjobs['running']]
         for job_id in running_ids:
-            crawled_pages = self.db['%s.pages' % corpus].find({'_job': job_id}).count()
-            self.db['%s.jobs' % corpus].update({'_id': job_id}, {'$set': {'nb_crawled_pages': crawled_pages}})
-        update_ids = [job['_id'] for job in self.db['%s.jobs' % corpus].find({'_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, fields=['_id'])]
+            crawled_pages = yield self.db.count_pages(corpus, job_id)
+            yield self.db.update_jobs(corpus, job_id, {'nb_crawled_pages': crawled_pages})
+        res = yield self.db.list_jobs(corpus, {'_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, fields=['_id'])
+        update_ids = [job['_id'] for job in res]
         if len(update_ids):
-            resdb = self.db['%s.jobs' % corpus].update({'_id': {'$in': update_ids}}, {'$set': {'crawling_status': crawling_statuses.RUNNING}}, multi=True, safe=True)
-            if (resdb['err']):
-                logger.msg("Pb while updating running crawling jobs statuses %s %s" % (update_ids, resdb), system="ERROR - %s" % corpus)
-                return
-            jobslog(update_ids, "CRAWL_"+crawling_statuses.RUNNING, self.db, corpus=corpus)
+            yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.RUNNING})
+            yield self.db.add_log(corpus, update_ids, "CRAWL_"+crawling_statuses.RUNNING)
         # update crawling status for finished jobs
         finished_ids = [job['id'] for job in scrapyjobs['finished']]
-        update_ids = [job['_id'] for job in self.db['%s.jobs' % corpus].find({'_id': {'$in': finished_ids}, 'crawling_status': {'$nin': [crawling_statuses.RETRIED, crawling_statuses.CANCELED, crawling_statuses.FINISHED]}}, fields=['_id'])]
+        res = yield self.db.list_jobs(corpus, {'_id': {'$in': finished_ids}, 'crawling_status': {'$nin': [crawling_statuses.RETRIED, crawling_statuses.CANCELED, crawling_statuses.FINISHED]}}, fields=['_id'])
+        update_ids = [job['_id'] for job in res]
         if len(update_ids):
-            resdb = self.db['%s.jobs' % corpus].update({'_id': {'$in': update_ids}}, {'$set': {'crawling_status': crawling_statuses.FINISHED}}, multi=True, safe=True)
-            if (resdb['err']):
-                logger.msg("Pb while updating finished crawling jobs statuses %s %s" % (update_ids, resdb), system="ERROR - %s" % corpus)
-                return
-            jobslog(update_ids, "CRAWL_"+crawling_statuses.FINISHED, self.db, corpus=corpus)
+            yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.FINISHED})
+            yield self.db.add_log(corpus, update_ids, "CRAWL_"+crawling_statuses.FINISHED)
         # collect list of crawling jobs whose outputs is not fully indexed yet
-        jobs_in_queue = self.db['%s.queue' % corpus].distinct('_job')
+        jobs_in_queue = yield self.db.queue(corpus).distinct('_job')
         # set index finished for jobs with crawling finished and no page left in queue
-        finished_ids = set([job['_id'] for job in self.db['%s.jobs' % corpus].find({'crawling_status': crawling_statuses.FINISHED})] + finished_ids)
-        update_ids = [job['_id'] for job in self.db['%s.jobs' % corpus].find({'_id': {'$in': list(finished_ids-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$nin': [indexing_statuses.BATCH_RUNNING, indexing_statuses.FINISHED]}}, fields=['_id'])]
+        res = yield self.db.list_jobs(corpus, {'crawling_status': crawling_statuses.FINISHED})
+        finished_ids = set([job['_id'] for job in res] + finished_ids)
+        res = yield self.db.list_jobs(corpus, {'_id': {'$in': list(finished_ids-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$nin': [indexing_statuses.BATCH_RUNNING, indexing_statuses.FINISHED]}}, fields=['_id'])
+        update_ids = [job['_id'] for job in res]
         if len(update_ids):
-            resdb = self.db['%s.jobs' % corpus].update({'_id': {'$in': update_ids}}, {'$set': {'indexing_status': indexing_statuses.FINISHED}}, multi=True, safe=True)
-            if (resdb['err']):
-                logger.msg("Pb while updating finished indexing jobs statuses %s %s" % (update_ids, resdb), system="ERROR - %s" % corpus)
-                return
-            jobslog(update_ids, "INDEX_"+indexing_statuses.FINISHED, self.db, corpus=corpus)
+            yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.FINISHED})
+            yield self.db.add_log(corpus, update_ids, "INDEX_"+indexing_statuses.FINISHED)
             # Try to restart in phantom mode all regular crawls that seem to have failed (less than 3 pages found for a depth of at least 1)
-            for job in self.db['%s.jobs' % corpus].find({'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.maxdepth': {'$gt': 0}}):
+            res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.maxdepth': {'$gt': 0}})
+            for job in res:
                 logger.msg("Crawl job %s seems to have failed, trying to restart it in phantom mode" % job['_id'], system="INFO - %s" % corpus)
-                reactor.callLater(1, self.jsonrpc_crawl_webentity, job['webentity_id'], job['crawl_arguments']['maxdepth'], True, corpus=corpus)
-                jobslog(job['_id'], "CRAWL_RETRIED_AS_PHANTOM", self.db, corpus=corpus)
-                resdb = self.db['%s.jobs' % corpus].update({'_id': job['_id']}, {'$set': {'crawling_status': crawling_statuses.RETRIED}}, safe=True)
-                if (resdb['err']):
-                    logger.msg("Pb while updating finished indexing jobs statuses %s %s" % (jobs['_id'], resdb), system="ERROR - %s" % corpus)
-        return self.jsonrpc_listjobs(corpus=corpus)
+                yield self.jsonrpc_crawl_webentity(job['webentity_id'], job['crawl_arguments']['maxdepth'], True, corpus=corpus)
+                yield self.db.add_log(corpus, job['_id'], "CRAWL_RETRIED_AS_PHANTOM")
+                yield self.db.update_jobs(corpus, job['_id'], {'crawling_status': crawling_statuses.RETRIED})
+        res = yield self.jsonrpc_listjobs(corpus=corpus)
+        returnD(res)
 
   # BASIC PAGE DECLARATION (AND WEBENTITY CREATION)
 
+    @inlineCallbacks
     def jsonrpc_declare_page(self, url, corpus=DEFAULT_CORPUS):
         if not self.corpus_ready(corpus):
-            return self.corpus_error(corpus)
-        return handle_standard_results(self.store.declare_page(url, corpus=corpus))
+            returnD(self.corpus_error(corpus))
+        res = yield self.store.declare_page(url, corpus=corpus)
+        returnD(handle_standard_results(res))
 
+    @inlineCallbacks
     def jsonrpc_declare_pages(self, list_urls, corpus=DEFAULT_CORPUS):
         res = []
         errors = []
         for url in list_urls:
-            WE = self.jsonrpc_declare_page(url, corpus=corpus)
+            WE = yield self.jsonrpc_declare_page(url, corpus=corpus)
             if is_error(WE):
                 errors.append({'url': url, 'error': WE['message']})
             else:
                 res.append(WE['result'])
         if len(errors):
-            return {'code': 'fail', 'message': '%d urls failed, see details in "errors" field and successes in "results" field.' % len(errors), 'errors': errors, 'results': res}
-        return format_result(res)
+            returnD({'code': 'fail', 'message': '%d urls failed, see details in "errors" field and successes in "results" field.' % len(errors), 'errors': errors, 'results': res})
+        returnD(format_result(res))
 
   # BASIC CRAWL METHODS
 
@@ -467,14 +462,15 @@ class Core(jsonrpc.JSONRPC):
         res = yield self.crawler.jsonrpc_start(webentity_id, WE['starts'], WE['lrus'], WE['subWEs'], config['discoverPrefixes'], maxdepth, phantom_crawl, corpus=corpus)
         returnD(res)
 
+    @inlineCallbacks
     def jsonrpc_get_webentity_logs(self, webentity_id, corpus=DEFAULT_CORPUS):
         if not self.corpus_ready(corpus):
-            return self.corpus_error(corpus)
-        jobs = self.db['%s.jobs' % corpus].find({'webentity_id': webentity_id}, fields=['_id'], order=[('timestamp', pymongo.ASCENDING)])
-        if not jobs.count():
-            return format_error('No job found for WebEntity %s.' % webentity_id)
-        res = self.db['%s.logs' % corpus].find({'_job': {'$in': [a['_id'] for a in list(jobs)]}}, order=[('timestamp', pymongo.ASCENDING)])
-        return format_result([{'timestamp': log['timestamp'], 'job': log['_job'], 'log': log['log']} for log in list(res)])
+            returnD(self.corpus_error(corpus))
+        jobs = yield self.db.list_jobs(corpus, {'webentity_id': webentity_id}, fields=['_id'])
+        if not jobs:
+            returnD(format_error('No job found for WebEntity %s.' % webentity_id))
+        res = yield self.db.list_logs(corpus, [a['_id'] for a in list(jobs)])
+        returnD(format_result([{'timestamp': log['timestamp'], 'job': log['_job'], 'log': log['log']} for log in list(res)]))
 
   # HTTP LOOKUP METHODS
 
@@ -543,18 +539,6 @@ class Crawler(jsonrpc.JSONRPC):
         self.db = self.parent.db
         self.corpora = self.parent.corpora
 
-    def init_indexes(self, corpus=DEFAULT_CORPUS):
-        self.db['%s.pages' % corpus].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
-        self.db['%s.pages' % corpus].ensure_index([('_job', pymongo.ASCENDING)], safe=True)
-        self.db['%s.pages' % corpus].ensure_index([('url', pymongo.ASCENDING)], safe=True)
-        self.db['%s.queue' % corpus].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
-        self.db['%s.queue' % corpus].ensure_index([('_job', pymongo.ASCENDING), ('timestamp', pymongo.DESCENDING)], safe=True)
-        self.db['%s.logs' % corpus].ensure_index([('timestamp', pymongo.ASCENDING)], safe=True)
-        self.db['%s.jobs' % corpus].ensure_index([('crawling_status', pymongo.ASCENDING)], safe=True)
-        self.db['%s.jobs' % corpus].ensure_index([('indexing_status', pymongo.ASCENDING)], safe=True)
-        self.db['%s.jobs' % corpus].ensure_index([('webentity_id', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], safe=True)
-        self.db['%s.jobs' % corpus].ensure_index([('crawling_status', pymongo.ASCENDING), ('indexing_status', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)], safe=True)
-
     def deploy_spider(self, corpus=DEFAULT_CORPUS):
         output = subprocess.Popen(['bash', 'bin/deploy_scrapy_spider.sh', corpus, '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
         res = self.send_scrapy_query('listprojects')
@@ -562,47 +546,47 @@ class Crawler(jsonrpc.JSONRPC):
             return format_error(output)
         return format_result('Spider %s deployed' % corpus_project(corpus))
 
+    @inlineCallbacks
     def jsonrpc_cancel_all(self, corpus=DEFAULT_CORPUS):
         """Stops all current crawls."""
         list_jobs = self.jsonrpc_list(corpus)
         if is_error(list_jobs):
-            return list_jobs
+            returnD(list_jobs)
         list_jobs = list_jobs['result']
         for item in list_jobs['running'] + list_jobs['pending']:
-            res = self.jsonrpc_cancel(item['id'], corpus=corpus)
+            res = yield self.jsonrpc_cancel(item['id'], corpus=corpus)
             if config['DEBUG']:
                 logger.msg(res, system="DEBUG - %s" % corpus)
         while 'running' in list_jobs and len(list_jobs['running']):
             list_jobs = self.jsonrpc_list(corpus)
             if not is_error(list_jobs):
                 list_jobs = list_jobs['result']
-        return format_result('All crawling jobs canceled.')
+        returnD(format_result('All crawling jobs canceled.'))
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
         return self.reinitialize(corpus)
 
-    def reinitialize(self, corpus=DEFAULT_CORPUS, recreate=True):
+    @inlineCallbacks
+    def reinitialize(self, corpus=DEFAULT_CORPUS, recreate=True, quiet=False):
         """Cancels all current crawl jobs running or planned and empty mongodbs."""
         if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
-        logger.msg("Empty crawl list + mongodb queue", system="INFO - %s" % corpus)
+            returnD(self.parent.corpus_error(corpus))
+        if not quiet:
+            logger.msg("Empty crawl list + mongodb queue", system="INFO - %s" % corpus)
         if self.corpora[corpus]['jobs_loop'].running:
             self.corpora[corpus]['jobs_loop'].stop()
-        canceljobs = self.jsonrpc_cancel_all(corpus)
+        canceljobs = yield self.jsonrpc_cancel_all(corpus)
         if is_error(canceljobs):
-            return canceljobs
+            returnD(canceljobs)
         try:
-            self.db['%s.queue' % corpus].drop()
-            self.db['%s.pages' % corpus].drop()
-            self.db['%s.jobs' % corpus].drop()
-            self.db['%s.logs' % corpus].drop()
+            yield self.db.drop_corpus_collections(corpus)
             if recreate:
-                self.init_indexes(corpus)
+                yield self.db.init_corpus_indexes(corpus)
         except:
-            return format_error('Error while resetting mongoDB.')
+            returnD(format_error('Error while resetting mongoDB.'))
         if recreate:
             self.corpora[corpus]['jobs_loop'].start(1, False)
-        return format_result('Crawling database reset.')
+        returnD(format_result('Crawling database reset.'))
 
     def send_scrapy_query(self, action, arguments=None, tryout=0):
         url = self.scrapy_url+action+".json"
@@ -623,16 +607,17 @@ class Crawler(jsonrpc.JSONRPC):
         except Exception as e:
             return format_error(e)
 
+    @inlineCallbacks
     def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=config['discoverPrefixes'], maxdepth=config['mongo-scrapy']['maxdepth'], phantom_crawl=False, download_delay=config['mongo-scrapy']['download_delay'], corpus=DEFAULT_CORPUS):
         """Starts a crawl with scrapy from arguments using a list of urls and of lrus for prefixes."""
         if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
+            returnD(self.parent.corpus_error(corpus))
         if not phantom_crawl and urls_match_domainlist(starts, config['phantom']['whitelist_domains']):
             phantom_crawl = True
         if maxdepth > config['mongo-scrapy']['maxdepth']:
-            return format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % config['mongo-scrapy']['maxdepth'])
-        if len(starts) < 1:
-            return format_error('No startpage defined for crawling WebEntity %s.' % webentity_id)
+            returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % config['mongo-scrapy']['maxdepth']))
+        if not starts:
+            returnD(format_error('No startpage defined for crawling WebEntity %s.' % webentity_id))
         # preparation of the request to scrapyd
         args = {'project': corpus_project(corpus),
                   'spider': 'pages',
@@ -646,35 +631,30 @@ class Crawler(jsonrpc.JSONRPC):
                   'user_agent': user_agents.agents[random.randint(0, len(user_agents.agents) - 1)]}
         res = self.send_scrapy_query('schedule', args)
         if is_error(res):
-            return res
+            returnD(res)
         res = res['result']
         if 'jobid' in res:
             ts = int(time.time()*1000)
-            jobslog(res['jobid'], "CRAWL_ADDED", self.db, ts, corpus=corpus)
-            resdb = self.db['%s.jobs' % corpus].update({'_id': res['jobid']}, {'$set': {'webentity_id': webentity_id, 'nb_crawled_pages': 0, 'nb_pages': 0, 'nb_links': 0, 'crawl_arguments': args, 'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.PENDING, 'timestamp': ts}}, upsert=True, safe=True)
-            if (resdb['err']):
-                logger.msg("Pb while saving crawling job %s in database for WebEntity %s with arguments %s: %s" % (res['jobid'], webentity_id, args, resdb), system="ERROR - %s" % corpus)
-                return format_error(resdb['err'])
-        return format_result(res)
+            yield self.db.add_job(corpus, res['jobid'], webentity_id, args, ts)
+            yield self.db.add_log(corpus, res['jobid'], "CRAWL_ADDED", ts)
+        returnD(format_result(res))
 
+    @inlineCallbacks
     def jsonrpc_cancel(self, job_id, corpus=DEFAULT_CORPUS):
         """Cancels a scrapy job with id job_id."""
         if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
+            returnD(self.parent.corpus_error(corpus))
         logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
         args = {'project': corpus_project(corpus),
                   'job': job_id}
         res = self.send_scrapy_query('cancel', args)
         if is_error(res):
-            return res
+            returnD(res)
         res = res['result']
         if 'prevstate' in res:
-            resdb = self.db['%s.jobs' % corpus].update({'_id': job_id}, {'$set': {'crawling_status': crawling_statuses.CANCELED}}, safe=True)
-            if (resdb['err']):
-                 logger.msg("Pb while updating job %s in database: %s" % (job_id, resdb), system="ERROR - %s" % corpus)
-                 return format_error(resdb['err'])
-            jobslog(job_id, "CRAWL_"+crawling_statuses.CANCELED, self.db, corpus=corpus)
-        return format_result(res)
+            yield self.db.update_jobs(corpus, job_id, {'crawling_status': crawling_statuses.CANCELED})
+            yield self.db.add_log(corpus, job_id, "CRAWL_"+crawling_statuses.CANCELED)
+        returnD(format_result(res))
 
     def jsonrpc_list(self, corpus=DEFAULT_CORPUS):
         """Calls Scrappy monitoring API, returns list of scrapy jobs."""
@@ -682,13 +662,14 @@ class Crawler(jsonrpc.JSONRPC):
             return self.parent.corpus_error(corpus)
         return self.send_scrapy_query('listjobs', {'project': corpus_project(corpus)})
 
+    @inlineCallbacks
     def jsonrpc_get_job_logs(self, job_id, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
-        res = self.db['%s.logs' % corpus].find({'_job': job_id}, fields=['timestamp', 'log'], order=[('timestamp', pymongo.ASCENDING)])
-        if not res.count():
-            return format_error('No log found for job %s.' % job_id)
-        return format_result([{'timestamp': log['timestamp'], 'log': log['log']} for log in res])
+            returnD(self.parent.corpus_error(corpus))
+        res = yield self.db.list_logs(corpus, job_id)
+        if not res:
+            returnD(format_error('No log found for job %s.' % job_id))
+        returnD(format_result([{'timestamp': log['timestamp'], 'log': log['log']} for log in res]))
 
 
 class Memory_Structure(jsonrpc.JSONRPC):
@@ -700,9 +681,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora = self.parent.corpora
         self.msclients = self.parent.msclients
 
+    @inlineCallbacks
     def _start_loop(self, corpus=DEFAULT_CORPUS, noloop=False):
         now = time.time()
-        self.handle_index_error(corpus)
+        yield self.handle_index_error(corpus)
         self.corpora[corpus]['loop_running'] = "Collecting WebEntities & WebEntityLinks"
         self.corpora[corpus]['loop_running_since'] = now
         self.corpora[corpus]['last_WE_update'] = now
@@ -717,54 +699,61 @@ class Memory_Structure(jsonrpc.JSONRPC):
             reactor.callLater(3, self.jsonrpc_get_webentities, light=True, corelinks=True, corpus=corpus)
             reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
 
+    @inlineCallbacks
     def format_webentity(self, WE, jobs=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
-        if WE:
-            res = {'id': WE.id, 'name': WE.name}
-            if test_bool_arg(light):
-                return res
-            res['lru_prefixes'] = list(WE.LRUSet)
-            res['status'] = WE.status
-            res['creation_date'] = WE.creationDate
-            res['last_modification_date'] = WE.lastModificationDate
-            if test_bool_arg(semilight):
-                return res
-            res['homepage'] = WE.homepage
-            res['startpages'] = list(WE.startpages)
-            res['tags'] = {}
-            for tag, values in WE.metadataItems.iteritems():
-                res['tags'][tag] = {}
-                for key, val in values.iteritems():
-                    res['tags'][tag][key] = list(val)
-            if test_bool_arg(light_for_csv):
-                return {'id': WE.id, 'name': WE.name, 'status': WE.status,
-                        'prefixes': "|".join([urllru.lru_to_url(lru, nocheck=True) for lru in WE.LRUSet]),
-                        'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns != "CORE"])}
-            # pages = yield self.msclients.pool.getWebEntityCrawledPages(WE.id, corpus=corpus)
-            # nb_pages = len(pages)
-            # nb_links
-            job = None
-            if not jobs:
-                job = self.db['%s.jobs' % corpus].find_one({'webentity_id': WE.id}, fields=['crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.DESCENDING)])
-            elif WE.id in jobs:
-                job = jobs[WE.id]
-            if job:
-                res['crawling_status'] = job['crawling_status']
-                res['indexing_status'] = job['indexing_status']
-            else:
-                res['crawling_status'] = crawling_statuses.UNCRAWLED
-                res['indexing_status'] = indexing_statuses.UNINDEXED
-            return res
-        return None
+        if not WE:
+            returnD(None)
+        res = {'id': WE.id, 'name': WE.name}
+        if test_bool_arg(light):
+            returnD(res)
+        res['lru_prefixes'] = list(WE.LRUSet)
+        res['status'] = WE.status
+        res['creation_date'] = WE.creationDate
+        res['last_modification_date'] = WE.lastModificationDate
+        if test_bool_arg(semilight):
+            returnD(res)
+        res['homepage'] = WE.homepage
+        res['startpages'] = list(WE.startpages)
+        res['tags'] = {}
+        for tag, values in WE.metadataItems.iteritems():
+            res['tags'][tag] = {}
+            for key, val in values.iteritems():
+                res['tags'][tag][key] = list(val)
+        if test_bool_arg(light_for_csv):
+            returnD({'id': WE.id, 'name': WE.name, 'status': WE.status,
+                    'prefixes': "|".join([urllru.lru_to_url(lru, nocheck=True) for lru in WE.LRUSet]),
+                    'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns != "CORE"])})
+        # pages = yield self.msclients.pool.getWebEntityCrawledPages(WE.id, corpus=corpus)
+        # nb_pages = len(pages)
+        # nb_links
+        job = None
+        if not jobs:
+            job = yield self.db.list_jobs(corpus, {'webentity_id': WE.id}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('timestamp'), limit=1)
+        elif WE.id in jobs:
+            job = jobs[WE.id]
+        if job:
+            res['crawling_status'] = job['crawling_status']
+            res['indexing_status'] = job['indexing_status']
+        else:
+            res['crawling_status'] = crawling_statuses.UNCRAWLED
+            res['indexing_status'] = indexing_statuses.UNINDEXED
+        returnD(res)
 
+    @inlineCallbacks
     def format_webentities(self, WEs, jobs=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
-        return [self.format_webentity(WE, jobs, light, semilight, light_for_csv, corpus=corpus) for WE in WEs]
+        res = []
+        for WE in WEs:
+            fWE = yield self.format_webentity(WE, jobs, light, semilight, light_for_csv, corpus=corpus)
+            res.append(fWE)
+        returnD(res)
 
-    def reset(self, corpus=DEFAULT_CORPUS):
-        logger.msg("Empty memory structure content", system="INFO - %s" % corpus)
+    def reset(self, corpus=DEFAULT_CORPUS, quiet=False):
+        if not quiet:
+            logger.msg("Empty memory structure content", system="INFO - %s" % corpus)
         res = self.msclients.sync.clearIndex(corpus=corpus)
         if is_error(res):
             return res
-        return self.ensureDefaultCreationRuleExists(corpus)
+        return self.ensureDefaultCreationRuleExists(corpus, quiet=quiet)
 
     @inlineCallbacks
     def jsonrpc_get_all_nodelinks(self, corpus=DEFAULT_CORPUS):
@@ -777,11 +766,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['recent_indexes'] += 1
         return handle_standard_results(self.msclients.sync.deleteNodeLinks(corpus=corpus))
 
-    def ensureDefaultCreationRuleExists(self, corpus=DEFAULT_CORPUS):
+    def ensureDefaultCreationRuleExists(self, corpus=DEFAULT_CORPUS, quiet=False):
         rules = self.msclients.sync.getWebEntityCreationRules(corpus=corpus)
         if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules) == 0):
             default_regexp = "(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|)(h:[^\\|]+\\|)+)"
-            if corpus != DEFAULT_CORPUS:
+            if corpus != DEFAULT_CORPUS and not quiet:
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
             res = self.msclients.sync.addWebEntityCreationRule(ms.WebEntityCreationRule(default_regexp, ''), corpus=corpus)
             if is_error(res):
@@ -792,27 +781,29 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
         return self.reinitialize(corpus)
 
-    def reinitialize(self, corpus=DEFAULT_CORPUS, noloop=False):
+    @inlineCallbacks
+    def reinitialize(self, corpus=DEFAULT_CORPUS, noloop=False, quiet=False):
         if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
+            returnD(self.parent.corpus_error(corpus))
         if self.corpora[corpus]['index_loop'].running:
             self.corpora[corpus]['index_loop'].stop()
-        self.reset(corpus)
-        self._start_loop(corpus, noloop=noloop)
-        return format_result("MemoryStructure reinitialized")
+        self.reset(corpus, quiet=quiet)
+        yield self._start_loop(corpus, noloop=noloop)
+        returnD(format_result("MemoryStructure reinitialized"))
 
+    @inlineCallbacks
     def return_new_webentity(self, lru_prefix, new=False, source=None, corpus=DEFAULT_CORPUS):
         WE = self.msclients.sync.findWebEntityMatchingLRUPrefix(lru_prefix, corpus=corpus)
         if is_error(WE):
-            return WE
+            returnD(WE)
         if test_bool_arg(new):
             self.corpora[corpus]['recent_indexes'] += 1
             self.corpora[corpus]['total_webentities'] += 1
             if source:
                 self.jsonrpc_add_webentity_tag_value(WE.id, 'CORE', 'user_created_via', source)
-        WE = self.format_webentity(WE, corpus=corpus)
+        WE = yield self.format_webentity(WE, corpus=corpus)
         WE['created'] = True if new else False
-        return WE
+        returnD(WE)
 
     def handle_url_precision_exceptions(self, url, corpus=DEFAULT_CORPUS):
         lru = urllru.url_to_lru_clean(url, False)
@@ -829,28 +820,30 @@ class Memory_Structure(jsonrpc.JSONRPC):
             self.corpora[corpus]['precision_exceptions'].append(lru_prefix)
             return format_result("LRU Precision Exceptions handled")
 
+    @inlineCallbacks
     def declare_page(self, url, corpus=DEFAULT_CORPUS):
         try:
             url, lru = urllru.url_clean_and_convert(url)
         except ValueError as e:
-            return format_error(e)
+            returnD(format_error(e))
         res = self.handle_lru_precision_exceptions(lru, corpus=corpus)
         if is_error(res):
-            return res
+            returnD(res)
         is_node = urllru.lru_is_node(lru, config["precisionLimit"], self.corpora[corpus]['precision_exceptions'])
         is_full_precision = urllru.lru_is_full_precision(lru, self.corpora[corpus]['precision_exceptions'])
         t = str(int(time.time()*1000))
         page = ms.PageItem(url, lru, t, None, -1, None, ['USER'], is_full_precision, is_node, {})
         cache_id = self.msclients.sync.createCache([page], corpus=corpus)
         if is_error(cache_id):
-            return cache_id
+            returnD(cache_id)
         res = self.msclients.sync.indexCache(cache_id, corpus=corpus)
         if is_error(res):
-            return res
+            returnD(res)
         new = self.msclients.sync.createWebEntitiesFromCache(cache_id, corpus=corpus)
         if is_error(new):
-            return new
-        return self.return_new_webentity(lru, new, 'page', corpus=corpus)
+            returnD(new)
+        res = yield self.return_new_webentity(lru, new, 'page', corpus=corpus)
+        returnD(format_result(res))
 
     def jsonrpc_declare_webentity_by_lruprefix_as_url(self, url, name=None, status=None, startPages=[], corpus=DEFAULT_CORPUS):
         try:
@@ -862,9 +855,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_declare_webentity_by_lru(self, lru_prefix, name=None, status=None, startPages=[], corpus=DEFAULT_CORPUS):
         return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startPages, corpus=corpus)
 
+    @inlineCallbacks
     def jsonrpc_declare_webentity_by_lrus(self, list_lrus, name=None, status=None, startPages=[], corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
+            returnD(self.parent.corpus_error(corpus))
         if not isinstance(list_lrus, list):
             list_lrus = [list_lrus]
         lru_prefixes_list = []
@@ -875,10 +869,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 url, lru = urllru.lru_clean_and_convert(lru, False)
                 lru = urllru.lru_strip_path_trailing_slash(lru)
             except ValueError as e:
-                return format_error(e)
+                returnD(format_error(e))
             existing = self.msclients.sync.getWebEntityByLRUPrefix(lru, corpus=corpus)
             if not is_error(existing):
-                return format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (lru, existing))
+                returnD(format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (lru, existing)))
             if not name:
                 name = urllru.url_shorten(url)
             lru_prefixes_list.append(lru)
@@ -893,18 +887,18 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     WE.status = s
                     break
             if not WE.status:
-                return format_error('Status %s is not a valid WebEntity Status, please provide one of the following values: %s' % (status, ms.WebEntityStatus._NAMES_TO_VALUES.keys()))
+                returnD(format_error('Status %s is not a valid WebEntity Status, please provide one of the following values: %s' % (status, ms.WebEntityStatus._NAMES_TO_VALUES.keys())))
         res = self.msclients.sync.updateWebEntity(WE, corpus=corpus)
         if is_error(res):
-            return res
-        new_WE = self.return_new_webentity(WE.LRUSet[0], True, 'lru', corpus=corpus)
+            returnD(res)
+        new_WE = yield self.return_new_webentity(WE.LRUSet[0], True, 'lru', corpus=corpus)
         if is_error(new_WE):
-            return new_WE
+            returnD(new_WE)
         for lru in new_WE['lru_prefixes']:
             res = self.handle_lru_precision_exceptions(lru, corpus=corpus)
             if is_error(res):
-                return res
-        return format_result(new_WE)
+                returnD(res)
+        returnD(format_result(new_WE))
 
     def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
@@ -1109,51 +1103,47 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def index_batch(self, page_items, jobid, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
-            return
+            returnD(False)
         ids = [bson.ObjectId(str(record['_id'])) for record in page_items]
         nb_crawled_pages = len(ids)
-        if (nb_crawled_pages > 0):
-            page_items.rewind()
-            pages, links = yield deferToThread(processor.generate_cache_from_pages_list, page_items, config["precisionLimit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0)
-            s=time.time()
-            cache_id = yield self.msclients.loop.createCache(pages.values(), corpus=corpus)
-            if is_error(cache_id):
-                logger.msg(cache_id['message'], system="ERROR - %s" % corpus)
-                returnD(False)
-            nb_pages = yield self.msclients.loop.indexCache(cache_id, corpus=corpus)
-            if is_error(nb_pages):
-                logger.msg(nb_pages['message'], system="ERROR - %s" % corpus)
-                returnD(False)
-            logger.msg("..."+str(nb_pages)+" pages indexed in "+str(time.time()-s)+"s...", system="INFO - %s" % corpus)
-            s=time.time()
-            nb_links = len(links)
-            for link_list in [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]:
-                res = yield self.msclients.loop.saveNodeLinks([ms.NodeLink(source.encode('utf-8'),target.encode('utf-8'),weight) for source,target,weight in link_list], corpus=corpus)
-                if is_error(res):
-                    logger.msg(res['message'], system="ERROR - %s" % corpus)
-                    returnD(False)
-            logger.msg("..."+str(nb_links)+" links indexed in "+str(time.time()-s)+"s...", system="INFO - %s" % corpus)
-            s=time.time()
-            n_WE = yield self.msclients.loop.createWebEntitiesFromCache(cache_id, corpus=corpus)
-            if is_error(n_WE):
-                logger.msg(nb_WE['message'], system="ERROR - %s" % corpus)
-                returnD(False)
-            logger.msg("...%s web entities created in %s" % (n_WE, str(time.time()-s))+"s", system="INFO - %s" % corpus)
-            self.corpora[corpus]['total_webentities'] += n_WE
-            res = yield self.msclients.loop.deleteCache(cache_id, corpus=corpus)
+        if not nb_crawled_pages:
+            returnD(False)
+        pages, links = yield deferToThread(processor.generate_cache_from_pages_list, page_items, config["precisionLimit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0)
+        s=time.time()
+        cache_id = yield self.msclients.loop.createCache(pages.values(), corpus=corpus)
+        if is_error(cache_id):
+            logger.msg(cache_id['message'], system="ERROR - %s" % corpus)
+            returnD(False)
+        nb_pages = yield self.msclients.loop.indexCache(cache_id, corpus=corpus)
+        if is_error(nb_pages):
+            logger.msg(nb_pages['message'], system="ERROR - %s" % corpus)
+            returnD(False)
+        logger.msg("..."+str(nb_pages)+" pages indexed in "+str(time.time()-s)+"s...", system="INFO - %s" % corpus)
+        s=time.time()
+        nb_links = len(links)
+        for link_list in [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]:
+            res = yield self.msclients.loop.saveNodeLinks([ms.NodeLink(source.encode('utf-8'),target.encode('utf-8'),weight) for source,target,weight in link_list], corpus=corpus)
             if is_error(res):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
                 returnD(False)
-            resdb = self.db['%s.queue' % corpus].remove({'_id': {'$in': ids}}, safe=True)
-            if (resdb['err']):
-                logger.msg("Pb while cleaning queue in database for job %s: %s" % (jobid, resdb), system="ERROR - %s" % corpus)
-                returnD(False)
-            tot_crawled_pages = self.db['%s.pages' % corpus].find({'_job': jobid}).count()
-            res = self.db['%s.jobs' % corpus].find_and_modify({'_id': jobid}, update={'$inc': {'nb_pages': nb_pages, 'nb_links': nb_links}, '$set': {'nb_crawled_pages': tot_crawled_pages, 'indexing_status': indexing_statuses.BATCH_FINISHED}})
-            if not res:
-                logger.msg("ERROR updating job %s" % jobid, system="ERROR - %s" % corpus)
-                returnD(False)
-            jobslog(jobid, "INDEX_"+indexing_statuses.BATCH_FINISHED, self.db, corpus=corpus)
+        logger.msg("..."+str(nb_links)+" links indexed in "+str(time.time()-s)+"s...", system="INFO - %s" % corpus)
+        s=time.time()
+        n_WE = yield self.msclients.loop.createWebEntitiesFromCache(cache_id, corpus=corpus)
+        if is_error(n_WE):
+            logger.msg(nb_WE['message'], system="ERROR - %s" % corpus)
+            returnD(False)
+        logger.msg("...%s web entities created in %s" % (n_WE, str(time.time()-s))+"s", system="INFO - %s" % corpus)
+        self.corpora[corpus]['total_webentities'] += n_WE
+        res = yield self.msclients.loop.deleteCache(cache_id, corpus=corpus)
+        if is_error(res):
+            logger.msg(res['message'], system="ERROR - %s" % corpus)
+            returnD(False)
+        yield self.db.clean_queue(corpus, ids)
+        tot_crawled_pages = yield self.db.count_pages(corpus, jobid)
+        yield self.db.update_jobs(corpus, jobid, {'nb_crawled_pages': tot_crawled_pages, 'indexing_status': indexing_statuses.BATCH_FINISHED}, inc={'nb_pages': nb_pages, 'nb_links': nb_links})
+        yield self.db.add_log(corpus, jobid, "INDEX_"+indexing_statuses.BATCH_FINISHED)
+        returnD(True)
+
 
     def jsonrpc_trigger_links(self, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
@@ -1166,22 +1156,22 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not self.parent.corpus_ready(corpus) or self.corpora[corpus]['loop_running']:
             returnD(False)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
-        crashed = self.db['%s.jobs' % corpus].find_one({'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'])
+        crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
         if crashed:
             self.corpora[corpus]['loop_running'] = "Cleaning up crashed indexing"
             logger.msg("Indexing job declared as running but probably crashed ,trying to restart it.", system="WARNING - %s" % corpus)
-            self.db['%s.jobs' % corpus].update({'_id' : crashed['_id']}, {'$set': {'indexing_status': indexing_statuses.BATCH_CRASHED}})
-            jobslog(crashed['_id'], "INDEX_"+indexing_statuses.BATCH_CRASHED, self.db, corpus=corpus)
+            yield self.db.update_jobs(corpus, crashed['_id'], {'indexing_status': indexing_statuses.BATCH_CRASHED})
+            yield self.db.add_log(corpus, crashed['_id'], "INDEX_"+indexing_statuses.BATCH_CRASHED)
             self.corpora[corpus]['loop_running'] = None
             returnD(False)
-        oldest_page_in_queue = self.db['%s.queue' % corpus].find_one(sort=[('timestamp', pymongo.ASCENDING)], fields=['_job'], skip=random.randint(0, 2))
+        oldest_page_in_queue = yield self.db.get_queue(corpus, limit=1, fields=["_job"], skip=random.randint(0, 2))
         # Run linking WebEntities on a regular basis when needed
         if self.corpora[corpus]['recent_indexes'] > 100 or (self.corpora[corpus]['recent_indexes'] and not oldest_page_in_queue) or (self.corpora[corpus]['recent_indexes'] and time.time() - self.corpora[corpus]['last_links_loop'] >= 3600):
             self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
             self.corpora[corpus]['loop_running_since'] = time.time()
             s = time.time()
             logger.msg("Generating links between web entities...", system="INFO - %s" % corpus)
-            jobslog("WE_LINKS", "Starting WebEntity links generation...", self.db, corpus=corpus)
+            yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
             res = yield self.msclients.loop.generateWebEntityLinks(corpus=corpus)
             if is_error(res):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
@@ -1189,27 +1179,23 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 returnD(False)
             self.corpora[corpus]['webentities_links'] = res
             s = str(time.time() -s)
-            jobslog("WE_LINKS", "...finished WebEntity links generation (%ss)" %s, self.db, corpus=corpus)
+            yield self.db.add_log(corpus, "WE_LINKS", "...finished WebEntity links generation (%ss)" %s)
             logger.msg("...processed WebEntity links in %ss..." % s, system="INFO - %s" % corpus)
             self.corpora[corpus]['recent_indexes'] = 0
             self.corpora[corpus]['last_links_loop'] = time.time()
         elif oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
             self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
-            job = self.db['%s.jobs' % corpus].find_one({'_id': oldest_page_in_queue['_job'], 'crawling_status': {'$ne': crawling_statuses.PENDING}, 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id'], sort=[('timestamp', pymongo.ASCENDING)])
+            job = yield self.db.list_jobs(corpus, {'_id': oldest_page_in_queue['_job'], 'crawling_status': {'$ne': crawling_statuses.PENDING}, 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id'], limit=1)
             if not job:
                 self.corpora[corpus]['loop_running'] = None
                 returnD(False)
             jobid = job['_id']
             logger.msg("Indexing pages from job %s" % jobid, system="INFO - %s" % corpus)
-            page_items = self.db['%s.queue' % corpus].find({'_job': jobid}, limit=config['memoryStructure']['max_simul_pages_indexing'], sort=[('timestamp', pymongo.ASCENDING)])
-            if (page_items.count(with_limit_and_skip=True)) > 0:
-                resdb = self.db['%s.jobs' % corpus].update({'_id': jobid}, {'$set': {'indexing_status': indexing_statuses.BATCH_RUNNING}}, safe=True)
-                if (resdb['err']):
-                    logger.msg("ERROR updating job %s's indexing status" % jobid, resdb, system="ERROR - %s" % corpus)
-                    self.corpora[corpus]['loop_running'] = None
-                    returnD(False)
-                jobslog(jobid, "INDEX_"+indexing_statuses.BATCH_RUNNING, self.db, corpus=corpus)
+            page_items = yield self.db.get_queue(corpus, {'_job': jobid}, limit=config['memoryStructure']['max_simul_pages_indexing'])
+            if page_items:
+                yield self.db.update_jobs(corpus, jobid, {'indexing_status': indexing_statuses.BATCH_RUNNING})
+                yield self.db.add_log(corpus, jobid, "INDEX_"+indexing_statuses.BATCH_RUNNING)
                 self.corpora[corpus]['loop_running_since'] = time.time()
                 res = yield self.index_batch(page_items, jobid, corpus=corpus)
                 if is_error(res):
@@ -1226,12 +1212,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
         logger.msg("...loop run finished.", system="INFO - %s" % corpus)
         self.corpora[corpus]['loop_running'] = None
 
+    @inlineCallbacks
     def handle_index_error(self, corpus=DEFAULT_CORPUS):
         # clean possible previous index crashes
-        update_ids = [job['_id'] for job in self.db['%s.jobs' % corpus].find({'indexing_status': indexing_statuses.BATCH_CRASHED}, fields=['_id'])]
+        res = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_CRASHED}, fields=['_id'])
+        update_ids = [job['_id'] for job in res]
         if len(update_ids):
-            self.db['%s.jobs' % corpus].update({'_id' : {'$in': update_ids}}, {'$set': {'indexing_status': indexing_statuses.PENDING}}, multi=True)
-            jobslog(update_ids, "INDEX_"+indexing_statuses.PENDING, self.db, corpus=corpus)
+            yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.PENDING})
+            yield self.db.add_log(corpus, update_ids, "INDEX_"+indexing_statuses.PENDING)
 
     def jsonrpc_get_precision_exceptions(self, corpus=DEFAULT_CORPUS):
         exceptions = self.msclients.sync.getPrecisionExceptions(corpus=corpus)
@@ -1279,7 +1267,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 if is_error(res):
                     returnD(res)
                 WEs.extend(res)
-            for job in self.db['%s.jobs' % corpus].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)]):
+            res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
+            for job in res:
                 jobs[job['webentity_id']] = job
         else:
             if test_bool_arg(corelinks):
@@ -1288,7 +1277,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if is_error(WEs):
                 returnD(WEs)
             jobs = None
-        res = self.format_webentities(WEs, jobs, light, semilight, light_for_csv, corpus=corpus)
+        res = yield self.format_webentities(WEs, jobs, light, semilight, light_for_csv, corpus=corpus)
         if test_bool_arg(corelinks):
             logger.msg("...got WebEntities, collecting WebEntityLinks...", system="INFO - %s" % corpus)
             res = yield self.msclients.pool.getWebEntityLinks(corpus=corpus)
@@ -1318,7 +1307,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
-        returnD(format_result(self.format_webentities(WEs, light=True, corpus=corpus)))
+        res = yield self.format_webentities(WEs, light=True, corpus=corpus)
+        returnD(format_result(res))
 
     def jsonrpc_escape_search_query(self, query, corpus=DEFAULT_CORPUS):
         for char in ["\\", "+", "-", "!", "(", ")", ":", "^", "[", "]", "{", "}", "~", "*", "?"]:
@@ -1385,14 +1375,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(WE)
         if WE.name == ms_const.DEFAULT_WEBENTITY:
             returnD(format_error("No matching WebEntity found for lruprefix %s" % lru_prefix))
-        returnD(format_result(self.format_webentity(WE, corpus=corpus)))
+        res = yield self.format_webentity(WE, corpus=corpus)
+        returnD(format_result(res))
 
     def jsonrpc_get_webentity_for_url(self, url, corpus=DEFAULT_CORPUS):
         try:
             _, lru = urllru.url_clean_and_convert(url)
         except ValueError as e:
-            return format_error(e)
-        return self.jsonrpc_get_webentity_for_url_as_lru(lru, corpus=corpus)
+            returnD(format_error(e))
+        returnD(self.jsonrpc_get_webentity_for_url_as_lru(lru, corpus=corpus))
 
     @inlineCallbacks
     def jsonrpc_get_webentity_for_url_as_lru(self, lru, corpus=DEFAULT_CORPUS):
@@ -1405,7 +1396,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(WE)
         if WE.name == ms_const.DEFAULT_WEBENTITY:
             returnD(format_error("No matching WebEntity found for url %s" % url))
-        returnD(format_result(self.format_webentity(WE, corpus=corpus)))
+        res = yield self.format_webentity(WE, corpus=corpus)
+        returnD(format_result(res))
 
     @inlineCallbacks
     def ramcache_tags(self, corpus=DEFAULT_CORPUS):
@@ -1461,15 +1453,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         formatted_pages = [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
         returnD(format_result(formatted_pages))
 
-    @inlineCallbacks
     def jsonrpc_get_webentity_subwebentities(self, webentity_id, corpus=DEFAULT_CORPUS):
-        res = yield self.get_webentity_relative_webentities(webentity_id, "children", corpus=corpus)
-        returnD(res)
+        return self.get_webentity_relative_webentities(webentity_id, "children", corpus=corpus)
 
-    @inlineCallbacks
     def jsonrpc_get_webentity_parentwebentities(self, webentity_id, corpus=DEFAULT_CORPUS):
-        res = yield self.get_webentity_relative_webentities(webentity_id, "parents", corpus=corpus)
-        returnD(res)
+        return self.get_webentity_relative_webentities(webentity_id, "parents", corpus=corpus)
 
     @inlineCallbacks
     def get_webentity_relative_webentities(self, webentity_id, relative_type="children", corpus=DEFAULT_CORPUS):
@@ -1482,9 +1470,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
             WEs = yield self.msclients.pool.getWebEntityParentWebEntities(webentity_id, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
-        for job in self.db['%s.jobs' % corpus].find({'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'], sort=[('timestamp', pymongo.ASCENDING)]):
+        jobs = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
+        for job in jobs:
             jobs[job['webentity_id']] = job
-        res = self.format_webentities(WEs, jobs, corpus=corpus)
+        res = yield self.format_webentities(WEs, jobs, corpus=corpus)
         returnD(format_result(res))
 
     @inlineCallbacks
@@ -1603,9 +1592,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(res)
 
 
+TEST_CORPUS = "--test-corpus--"
 def test_connexions():
 # TEST API SANITY
-    TEST_CORPUS = "--test-corpus--"
     try:
         run = Core()
     except Exception as x:
@@ -1625,38 +1614,6 @@ def test_connexions():
         print "ERROR: Could not connect to scrapyd server to deploy spider, please check your server and the configuration in config.json."
         print e
         return None
-# INIT TEST CORPUS
-    try:
-        run.start_corpus(TEST_CORPUS, noloop=True, quiet=True, create_if_missing=True)
-        res = run.jsonrpc_ping(TEST_CORPUS, timeout=10)
-        if is_error(res):
-            raise Exception(res['message'])
-    except Exception as x:
-        print "ERROR: Cannot create dummy corpus %s" % TEST_CORPUS
-        if config['DEBUG']:
-            print x
-        return None
-# INIT DEFAULT CREATION RULE
-    try:
-        res = run.store.ensureDefaultCreationRuleExists(TEST_CORPUS)
-        if is_error(res):
-            raise Exception(res['message'])
-    except Exception as x:
-        print "ERROR: Cannot save default web entity into memory structure."
-        if config['DEBUG']:
-            print x
-        return None
-# CLEANUP TEST_CORPUS CORPUS
-    try:
-        res = run.destroy_corpus(TEST_CORPUS, quiet=True)
-        if is_error(res):
-            raise Exception(res['message'])
-        del(run.msclients.corpora[TEST_CORPUS])
-    except Exception as x:
-        print "ERROR: Cannot close dummy corpus %s" % TEST_CORPUS
-        if config['DEBUG']:
-            print x
-        return None
     return run
 
 core = test_connexions()
@@ -1669,9 +1626,30 @@ core.putSubHandler('store', core.store)
 core.putSubHandler('system', Introspection(core))
 site = server.Site(core)
 
+# TEST API
+def test_start(cor, corpus):
+    d = cor.start_corpus(corpus, quiet=True, noloop=True, create_if_missing=True)
+    d.addCallback(test_ping, cor, corpus)
+def test_ping(res, cor, corpus):
+    if is_error(res):
+        return stop_tests(res, cor, corpus)
+    d = defer.succeed(cor.jsonrpc_ping(corpus, timeout=5))
+    d.addCallback(test_destroy, cor, corpus)
+def test_destroy(res, cor, corpus):
+    if is_error(res):
+        return stop_tests(res, cor, corpus)
+    d = cor.destroy_corpus(corpus, quiet=True)
+    d.addCallback(stop_tests, cor, corpus)
+def stop_tests(res, cor, corpus):
+    if is_error(res):
+        print "ERROR: Cannot create dummy corpus %s: %s" % (corpus, res)
+        d = cor.close()
+        d.addCallback(reactor.stop)
+reactor.callLater(1, test_start, core, TEST_CORPUS)
+
 # Activate default corpus automatically if in monocorpus
 if not config["MULTICORPUS"]:
-    reactor.callLater(5, core.activate_monocorpus)
+    reactor.callLater(10, core.activate_monocorpus)
 
 # Run as 'python core.tac' ...
 if __name__ == '__main__':
