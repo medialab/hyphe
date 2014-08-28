@@ -1221,23 +1221,31 @@ angular.module('hyphe.controllers', [])
   function($scope, api, store, utils, QueriesBatcher, $location){
     $scope.currentPage = 'monitorCrawls'
     
+
+    $scope.crawlJobs
+    $scope.lastCrawlJobs
+    
+    $scope.timespan
     $scope.one_day_in_ms =  86400000    // =     24 * 60 * 60 * 1000
     $scope.one_hour_in_ms = 3600000     // =          60 * 60 * 1000
     $scope.one_week_in_ms = 604800000   // = 7 * 24 * 60 * 60 * 1000
 
+    $scope.webentityIndex = {}
+
     $scope.listLoaded = false
-    $scope.crawlJobs
-    $scope.lastCrawlJobs
-    $scope.timespan
-    $scope.status = {message: 'Loading crawl jobs'}
+    $scope.status = {message: 'Loading', progress:30}
 
     api.getCrawlJobs({}, function(crawlJobs){
-      $scope.status = {}
       $scope.listLoaded = true
       $scope.crawlJobs = crawlJobs
-      updateLastCrawlJobs()
+
+        // Sort by reverse chronological order
+        .sort(function(a,b){
+          return b.timestamp - a.timestamp
+        })
+
       console.log(crawlJobs)
-      loadRequiredWebentities()
+      updateLastCrawlJobs()
     }, function(){
       $scope.status = {message: 'Error loading crawl jobs'}
     })
@@ -1248,28 +1256,79 @@ angular.module('hyphe.controllers', [])
     }
 
     function loadRequiredWebentities(){
+      if($scope.timespan == 'all'){
+        // TODO
+      } else {
+        
+        var webentityId_list = $scope.lastCrawlJobs
+          
+          // Find web entities in the list of crawl jobs
+          .map(function(job){
+              return job.webentity_id
+            })
 
+          // Get those that are not indexed
+          .filter(function(weId){
+              return $scope.webentityIndex[weId] === undefined
+            })
+
+        // Batch query them!
+        loadWebentities(webentityId_list)
+      }
     }
 
     function updateLastCrawlJobs(){
       var now = Date.now()
       ,timespanMs
+      ,update = false
 
       switch($scope.timespan){
         case('day'):
           timespanMs = $scope.one_day_in_ms
+          update = true
           break
         case('hour'):
           timespanMs = $scope.one_hour_in_ms
+          update = true
           break
         case('week'):
           timespanMs = $scope.one_week_in_ms
+          update = true
+          break
+        default:
+          // We do not update (typically, timespan is 'all')
           break
       }
 
-      $scope.lastCrawlJobs = ($scope.crawlJobs || []).filter(function(job){
-        return now - job.timestamp < timespanMs
-      })
+      if(update){
+        $scope.lastCrawlJobs = ($scope.crawlJobs || []).filter(function(job){
+          return now - job.timestamp < timespanMs
+        })
+      }
+
+      loadRequiredWebentities()
+    }
+
+    function loadWebentities(list){
+      if(list.length > 0){
+        $scope.status = {message: 'Loading', progress:60}
+        api.getWebentities(
+          {
+            id_list: list
+            ,light: true
+          }
+          ,function(webentities){
+            $scope.status = {}
+            webentities.forEach(function(we){
+              $scope.webentityIndex[we.id] = we
+            })
+          }, function(){
+            $scope.status = {message: 'Error loading web entities', background:'danger'}
+          }
+        )
+      } else {
+        $scope.status = {}
+      }
     }
 
   }])

@@ -13,13 +13,29 @@
 	  >
 	    <div
 	      class="crawljob-cell-content"
-	      ng-class="{'bg-waiting':obj.status == 'waiting', 'bg-info':obj.status == 'pending', 'bg-danger':obj.status == 'error', 'bg-success':obj.status == 'scheduled'}"
+	      ng-class="{
+	      	'bg-danger':job.crawling_status == 'CRASHED'
+	      	,'bg-blank':job.crawling_status == 'CANCELED'
+	      	,'bg-info':job.crawling_status == 'RETRIED'
+	      	,'bg-primary':job.crawling_status == 'RUNNING' || (job.crawling_status == 'FINISHED' && (job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH FINISHED'))
+	      	,'bg-success': job.crawling_status == 'FINISHED' && job.indexing_status == 'FINISHED'}"
 	    >
 	      <p class="title">
-	        {{job.webentity_name ? 'Web Entity Loading' : job.webentity_name}}
+	        {{webentityIndex[job.webentity_id].name || 'Web Entity Loading'}}
 	      </p>
-	      
-	    </div>
+	      <p class="subtitle">
+	        Scheduled <span tooltip="{{job.timestamp|date}}">{{job.timestamp|prettyDate}}</span>
+	      </p>
+				<div
+					class="crawljob-animation"
+					water-loader="{{job.crawling_status == 'RUNNING' ? 'CRAWLING' : job.crawling_status != 'FINISHED' ? job.crawling_status : job.indexing_status == 'FINISHED' ? 'ACHIEVED' : job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH FINISHED' ? 'INDEXING' : 'INDEXING ' + job.indexing_status}}"
+					wl-message-only="{{job.crawling_status == 'PENDING' || job.crawling_status == 'CRASHED' || job.crawling_status == 'CANCELED' || job.crawling_status == 'RETRIED' || (job.crawling_status == 'FINISHED' && (job.indexing_status != 'RUNNING' && job.indexing_status != 'BATCH FINISHED'))}}"
+					wl-text-danger="job.crawling_status == 'CANCELED'"
+					wl-cog="{{job.crawling_status == 'FINISHED' && (job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH FINISHED') }}"
+				/>
+
+
+    </div>
 	  </div>
 	</div>
 </div>
