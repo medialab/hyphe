@@ -164,6 +164,36 @@ div.welcome-column h1{
 }
 
 
+
+/* ==========================================================================
+   View: Overview
+   ========================================================================== */
+.status-cells-container{
+  padding: 6px;
+}
+.status-cell{
+  padding:6px;
+}
+.status-cell-content{
+  height: 100%;
+  padding: 5px;
+  border: 1px solid #FFF;
+  
+  background-color: #EFEBE8;
+  overflow: hidden;
+}
+.status-cell .title{
+  text-align: center;
+  font-size: 24px;
+  font-weight:300;
+}
+.status-cell .content{
+  text-align: center;
+  font-size: 16px;
+}
+
+
+
 /* ==========================================================================
    View: Import URLs
    ========================================================================== */
@@ -414,6 +444,68 @@ textarea.over-error{
 
 
 
+/* ==========================================================================
+   View: Monitor Crawls
+   ========================================================================== */
+.crawljob-cells-container{
+  padding-top: 6px;
+  margin-left: -21px; /*15+6*/
+  margin-right: -21px;
+}
+.crawljob-cell{
+  height: 230px;
+  padding:6px;
+}
+.crawljob-cell-content{
+  height: 100%;
+  padding: 12px;
+  border: 1px solid #FFF;
+  overflow: hidden;
+  background-color: #EFEBE8;
+}
+.crawljob-cell-content.bg-blank{
+  border: 1px solid #31708f;
+  background-color: #FFF;
+}
+.crawljob-cell-content.bg-primary{
+  color: #fff;
+  background-color: #428bca;
+}
+.crawljob-cell-content.bg-success{
+  background-color: #dff0d8;
+}
+.crawljob-cell-content.bg-info{
+  background-color: #d9edf7;
+}
+.crawljob-cell-content.bg-warning{
+  background-color: #fcf8e3;
+}
+.crawljob-cell-content.bg-danger{
+  background-color: #f2dede;
+}
+.crawljob-cell p{
+  white-space: nowrap;
+  margin-bottom: 0px;
+}
+.crawljob-cell .crawljob-animation{
+  margin-top: 86px;
+}
+.crawljob-cell .title{
+  font-family: 'Roboto', sans-serif;
+  font-weight:400;
+}
+.crawljob-cell .subtitle{
+  font-size: 13px;
+  font-weight: 300;
+}
+.crawljob-cell .status{
+  font-size: 24px;
+  font-weight: 300;
+}
+
+
+
+
 
 
 
@@ -545,4 +637,104 @@ textarea.over-error{
 .blurred>.hyphe-prefix-slider .slider-button-container{
   left: 0px;
   opacity: 0;
+}
+
+
+
+/* ==========================================================================
+   Module: Water ball inspired from http://codepen.io/harukatruong/pen/kmjwt
+   ========================================================================== */
+
+.water-loader{
+  position: relative;
+}
+.water-loader, .water-loader:before, .water-loader:after {
+  margin: 0; padding: 0;
+  -webkit-box-sizing: border-box; box-sizing: border-box;
+}
+.water-loader .ball {
+  position: absolute;
+  top: 50%; left: 50%; margin: -80px 0 0 -60px;
+  width: 120px; height: 120px;
+  padding: 6px;
+  border-radius: 100%;
+  /*box-shadow: inset 0 0 20px -5px #fff, inset 0 -40px 40px -20px #fff;*/
+  border: 1px solid #FFF;
+}
+.water-loader .wave {
+  width: 100%; height: 100%;
+  border-radius: 100%;
+  background: url(../img/water.png);
+  -webkit-animation: wave-animation 1s infinite linear, loading-animation 10s infinite ease-in;
+          animation: wave-animation 1s infinite linear, loading-animation 10s infinite ease-in;
+  background-size: 200px 100px;
+  background-repeat: repeat-x;
+}
+.water-loader .delay {
+  -webkit-animation-delay: 0.3s;
+          animation-delay: 0.3s;
+}
+.water-loader-content {
+  margin-top: -68px;
+  text-align: center;
+  font-weight: 300;
+  font-size: 20px;
+}
+.water-loader-content.message-lonely{
+  margin-top: -35px;
+}
+@-webkit-keyframes wave-animation {
+  0% {background-position: 0 bottom;}
+  100% {background-position: 200px bottom;}
+}
+@keyframes wave-animation {
+  0% {background-position: 0 bottom;}
+  100% {background-position: 200px bottom;}
+}
+@-webkit-keyframes loading-animation {
+  0% {background-size: 200px 0px; opacity: 1;}
+  100% {background-size: 200px 200px; opacity: 0;}
+}
+@keyframes loading-animation {
+  0% {background-size: 200px 0px; opacity: 1;}
+  100% {background-size: 200px 200px; opacity: 0;}
+}
+
+/* cog */
+.water-loader .cog-container {
+  position: absolute;
+  top: 50%; left: 50%; margin: -86px 0 0 -60px;
+  width: 120px; height: 120px;
+  padding: 3px;
+}
+.water-loader .cog{
+  width: 115px; height: 115px;
+  border-radius: 100%;
+  border:4px solid #FFFFFF;
+  -webkit-animation: full-rotation 40s infinite linear;
+          animation: full-rotation 40s infinite linear;
+}
+.water-loader .cog:before {
+  content:"";
+  position:absolute;
+  bottom:-7px;
+  left:-7px;
+  width: 121px; height: 121px;
+  border:5px dotted #FFFFFF;
+  border-radius:100%;
+}
+.water-loader .cog:after {
+  content:"";
+  position:absolute;
+}
+@-webkit-keyframes full-rotation {
+  from {-webkit-transform: rotate(0deg);}
+  to   {-webkit-transform: rotate(359deg);}
+}
+@keyframes full-rotation {
+  from {-webkit-transform: rotate(0deg);}
+  to   {-webkit-transform: rotate(359deg);}
+}
+.water-loader-content.cog-message{
+  margin-top: -72px;
 }

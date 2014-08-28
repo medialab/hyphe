@@ -1,0 +1,72 @@
+<div ng-if="!listLoaded">
+	<br>
+	<p class="text-muted">
+		Loading crawl jobs
+	</p>
+</div>
+
+<div ng-if="lastCrawlJobs.length == 0">
+	<br>
+	<p class="text-info">
+		No crawl job
+	</p>
+</div>
+
+<div class="container-fluid" ng-if="listLoaded">
+	<div class="row crawljob-cells-container">
+	  <div
+	    class="col-md-4 col-lg-3 crawljob-cell"
+	    ng-repeat="job in lastCrawlJobs"
+	  >
+	    <div
+	      class="crawljob-cell-content"
+	      ng-class="{
+	      	'bg-danger':job.globalStatus == 'CRASHED'
+	      	,'bg-blank':job.globalStatus == 'CANCELED'
+	      	,'bg-info':job.globalStatus == 'RETRIED'
+	      	,'bg-primary':job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'INDEX PENDING'
+	      	,'bg-success': job.globalStatus == 'ACHIEVED'}"
+	    >
+	      <p class="title">
+	        {{webentityIndex[job.webentity_id].name || 'Web Entity Loading'}}
+	      </p>
+	      <p class="subtitle">
+	        Scheduled <span tooltip="{{job.timestamp|date}}">{{job.timestamp|prettyDate}}</span>
+	      </p>
+				<div
+					class="crawljob-animation"
+
+					water-loader="{{job.globalStatus}}"
+
+					wl-message-only="{{!(job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'INDEX PENDING')}}"
+
+					wl-text-danger="job.globalStatus == 'CANCELED'"
+
+					wl-cog="{{job.globalStatus == 'INDEXING' || job.globalStatus == 'INDEX PENDING'}}"
+				/>
+
+
+    </div>
+	  </div>
+	</div>
+</div>
+
+<!-- 
+<ul ng-if="listLoaded">
+	<li ng-repeat="job in crawlJobs">
+		<ul>
+			<li>id: {{job._id}}</li>
+			<li>
+				crawl arguments (TODO)
+			</li>
+			<li>crawling_status: {{job.crawling_status}}</li>
+			<li>indexing_status: {{job.indexing_status}}</li>
+			<li>nb_crawled_pages: {{job.nb_crawled_pages}}</li>
+			<li>nb_links: {{job.nb_links}}</li>
+			<li>nb_pages: {{job.nb_pages}}</li>
+			<li>timestamp: {{job.timestamp}}</li>
+			<li>webentity_id: {{job.webentity_id}}</li>
+		</ul>
+	</li>
+</ul>
+ -->

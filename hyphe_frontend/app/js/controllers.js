@@ -17,8 +17,12 @@ angular.module('hyphe.controllers', [])
 
   .controller('Overview', ['$scope', 'api', function($scope, api) {
     $scope.currentPage = 'overview'
-    api.getWebentities({light: true}, function(data){
-      $scope.webEntities = data
+
+    $scope.status
+
+    api.globalStatus({}, function(status){
+      $scope.status = status
+      console.log(status)
     })
   }])
 
@@ -527,9 +531,6 @@ angular.module('hyphe.controllers', [])
 
   .controller('NewCrawl', ['$scope', 'api', function($scope, api) {
     $scope.currentPage = 'newCrawl'
-    api.getWebentities({light: true}, function(data){
-      $scope.webEntities = data
-    })
   }])
 
 
@@ -788,7 +789,7 @@ angular.module('hyphe.controllers', [])
         .filter(function(obj){return obj.webentity.id !== undefined})
       
       store.set('webentities_toCrawl', list)
-      $location.path('/launchCrawl')
+      $location.path('/scheduleCrawls')
     }
 
     $scope.removeRow = function(objId){
@@ -1138,9 +1139,9 @@ angular.module('hyphe.controllers', [])
   
 
 
-  .controller('launchCrawl', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location',
+  .controller('scheduleCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location',
   function($scope, api, store, utils, QueriesBatcher, $location){
-    $scope.currentPage = 'launchCrawl'
+    $scope.currentPage = 'scheduleCrawls'
 
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
     
@@ -1212,6 +1213,215 @@ angular.module('hyphe.controllers', [])
 
 
     }
+  }])
+
+
+
+  .controller('monitorCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location',
+  function($scope, api, store, utils, QueriesBatcher, $location){
+    $scope.currentPage = 'monitorCrawls'
+    
+
+    $scope.crawlJobs
+    $scope.lastCrawlJobs
+    
+    $scope.timespan
+    $scope.one_day_in_ms =  86400000    // =     24 * 60 * 60 * 1000
+    $scope.one_hour_in_ms = 3600000     // =          60 * 60 * 1000
+    $scope.one_week_in_ms = 604800000   // = 7 * 24 * 60 * 60 * 1000
+
+    $scope.webentityIndex = {}
+
+    $scope.listLoaded = false
+    $scope.status = {message: 'Loading', progress:30}
+
+    api.getCrawlJobs({}, function(crawlJobs){
+      $scope.listLoaded = true
+      $scope.crawlJobs = crawlJobs
+
+        // Sort by reverse chronological order
+        .sort(function(a,b){
+          return b.timestamp - a.timestamp
+        })
+
+        // Enrich
+        .map(enrichJob)
+
+      updateLastCrawlJobs()
+      $scope.scheduleRefresh()
+  
+    }, function(){
+      $scope.status = {message: 'Error loading crawl jobs'}
+    })
+
+    $scope.setTimespan = function(timespan){
+      $scope.timespan = timespan
+      updateLastCrawlJobs()
+    }
+
+    // Loop to refresh crawl jobs
+    $scope.scheduleRefresh = function(){
+      var ms = 2000
+      
+      // If all achieved, we refresh only every minute
+      if(!($scope.lastCrawlJobs || []).some(function(job){return job.crawling_status != 'FINISHED' || job.indexing_status != 'FINISHED'})){
+        ms = 60000
+      }
+
+      setTimeout(function(){
+        if($scope.currentPage == 'monitorCrawls'){
+          console.log('refresh')
+          refreshCrawlJobs()
+        }
+      }, ms)
+    }
+
+    function enrichJob(job){
+      job.globalStatus = ''
+      if(job.crawling_status == 'RUNNING'){
+        job.globalStatus = 'CRAWLING'
+      } else if(job.crawling_status != 'FINISHED'){
+        job.globalStatus = job.crawling_status
+      } else if(job.indexing_status == 'FINISHED'){
+        job.globalStatus = 'ACHIEVED'
+      } else if(job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED'){
+        job.globalStatus = 'INDEXING'
+      } else if(job.indexing_status == 'PENDING'){
+        job.globalStatus = 'INDEX PENDING'
+      } else {
+        job.globalStatus = 'INDEXING ' + job.indexing_status
+      }
+      return job
+    }
+
+
+    function loadRequiredWebentities(){
+      if($scope.timespan == 'all'){
+        // TODO
+      } else {
+        
+        var webentityId_list = $scope.lastCrawlJobs
+          
+          // Find web entities in the list of crawl jobs
+          .map(function(job){
+              return job.webentity_id
+            })
+
+          // Get those that are not indexed
+          .filter(function(weId){
+              return $scope.webentityIndex[weId] === undefined
+            })
+
+        // Remove doublons
+        webentityId_list = utils.extractCases(webentityId_list)
+
+        // Batch query them!
+        loadWebentities(webentityId_list)
+      }
+    }
+
+    function updateLastCrawlJobs(){
+      var now = Date.now()
+      ,timespanMs
+      ,update = false
+
+      switch($scope.timespan){
+        case('day'):
+          timespanMs = $scope.one_day_in_ms
+          update = true
+          break
+        case('hour'):
+          timespanMs = $scope.one_hour_in_ms
+          update = true
+          break
+        case('week'):
+          timespanMs = $scope.one_week_in_ms
+          update = true
+          break
+        default:
+          // We do not update (typically, timespan is 'all')
+          break
+      }
+
+      if(update){
+        $scope.lastCrawlJobs = ($scope.crawlJobs || []).filter(function(job){
+          return now - job.timestamp < timespanMs
+        })
+      }
+
+      loadRequiredWebentities()
+    }
+
+    function loadWebentities(list){
+      if(list.length > 0){
+        $scope.status = {message: 'Loading', progress:60}
+        api.getWebentities(
+          {
+            id_list: list
+            ,light: true
+          }
+          ,function(webentities){
+            $scope.status = {}
+            webentities.forEach(function(we){
+              $scope.webentityIndex[we.id] = we
+            })
+          }, function(){
+            $scope.status = {message: 'Error loading web entities', background:'danger'}
+          }
+        )
+      } else {
+        $scope.status = {}
+      }
+    }
+
+    function refreshCrawlJobs(){
+      var currentTimespan = $scope.timespan
+      $scope.status = {message: 'Refreshing crawl jobs'}
+      if(currentTimespan == 'all'){
+        // TODO
+      } else {
+        var crawlJobs = $scope.lastCrawlJobs.map(function(job){return job._id})
+        
+        api.getCrawlJobs(
+          {id_list: crawlJobs}
+          ,function(crawlJobs){
+            if(currentTimespan == $scope.timespan){
+
+              // Enrich
+              crawlJobs = crawlJobs.map(enrichJob)
+
+              var crawljobsIndex = {}
+              crawlJobs.forEach(function(job){
+                crawljobsIndex[job._id] = job
+              })
+
+              var changes = []
+
+              $scope.lastCrawlJobs.forEach(function(job, i){
+                var updatedJob = crawljobsIndex[job._id]
+                if(updatedJob){
+                  if(updatedJob.globalStatus != job.globalStatus){
+                    changes.push({i:i, job:updatedJob})
+                  }
+                }
+              })
+
+              changes.forEach(function(change){
+                $scope.lastCrawlJobs[change.i] = change.job
+              })
+
+              $scope.status = {message: ''}
+
+              $scope.scheduleRefresh()
+            }
+          }
+          ,function(data, status, headers, config){
+            $scope.status = {message: 'Error refreshing crawl jobs'}
+          }
+        )
+      }
+    }
+
   }])
 ;
 

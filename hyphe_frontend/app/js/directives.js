@@ -241,4 +241,20 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+  .directive('waterLoader', [function(){
+    return {
+      restrict: 'A'
+      ,templateUrl: 'partials/sub/waterloader.html'
+      ,scope: {
+        
+      }
+      ,link: function(scope, el, attrs) {
+        scope.waterLoaderMessage = attrs.waterLoader || ''
+        scope.messageOnly = (attrs.wlMessageOnly == 'true')
+        scope.textDanger = (attrs.wlTextDanger == 'true')
+        scope.cog = (attrs.wlCog == 'true')
+      }
+    }
+  }])
+
 ;

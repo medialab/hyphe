@@ -4,20 +4,19 @@
 
 angular.module('hyphe.filters', [])
   
-  .filter('stripFirst', [function() {
-    return function(array) {
-      if(array.filter)
-        return array.filter(function(d,i){return i>0})
-      return array
-    }
-  }])
-  
-
   .filter('paginate', [function() {
     return function(array,page,paginationLength) {
     	return array.filter(function(d,i){
         return i >= (page-1) * paginationLength && i < page * paginationLength
       })
+    }
+  }])
+
+  .filter('stripFirst', [function() {
+    return function(array) {
+      if(array.filter)
+        return array.filter(function(d,i){return i>0})
+      return array
     }
   }])
 
@@ -35,6 +34,18 @@ angular.module('hyphe.filters', [])
   .filter('uppercase', [function () {
     return function (input) {
       return input.toUpperCase()
+    }
+  }])
+
+  .filter('prettyDate', ['utils', function(utils) {
+    return function(timestamp) {
+      return utils.prettyDate(timestamp)
+    }
+  }])
+
+  .filter('date', [function(){
+    return function(timestamp) {
+      return (new Date(timestamp)).toLocaleString()
     }
   }])
 
