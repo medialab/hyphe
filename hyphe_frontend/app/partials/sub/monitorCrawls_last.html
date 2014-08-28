@@ -21,11 +21,11 @@
 	    <div
 	      class="crawljob-cell-content"
 	      ng-class="{
-	      	'bg-danger':job.crawling_status == 'CRASHED'
-	      	,'bg-blank':job.crawling_status == 'CANCELED'
-	      	,'bg-info':job.crawling_status == 'RETRIED'
-	      	,'bg-primary':job.crawling_status == 'RUNNING' || (job.crawling_status == 'FINISHED' && (job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED' || job.indexing_status == 'PENDING'))
-	      	,'bg-success': job.crawling_status == 'FINISHED' && job.indexing_status == 'FINISHED'}"
+	      	'bg-danger':job.globalStatus == 'CRASHED'
+	      	,'bg-blank':job.globalStatus == 'CANCELED'
+	      	,'bg-info':job.globalStatus == 'RETRIED'
+	      	,'bg-primary':job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'INDEX PENDING'
+	      	,'bg-success': job.globalStatus == 'ACHIEVED'}"
 	    >
 	      <p class="title">
 	        {{webentityIndex[job.webentity_id].name || 'Web Entity Loading'}}
@@ -36,13 +36,13 @@
 				<div
 					class="crawljob-animation"
 
-					water-loader="{{job.crawling_status == 'RUNNING' ? 'CRAWLING' : job.crawling_status != 'FINISHED' ? job.crawling_status : job.indexing_status == 'FINISHED' ? 'ACHIEVED' : job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED' ? 'INDEXING' : job.indexing_status == 'PENDING' ? 'INDEX PENDING' : 'INDEXING ' + job.indexing_status}}"
+					water-loader="{{job.globalStatus}}"
 
-					wl-message-only="{{job.crawling_status == 'PENDING' || job.crawling_status == 'CRASHED' || job.crawling_status == 'CANCELED' || job.crawling_status == 'RETRIED' || (job.crawling_status == 'FINISHED' && job.indexing_status == 'FINISHED')}}"
+					wl-message-only="{{!(job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'INDEX PENDING')}}"
 
-					wl-text-danger="job.crawling_status == 'CANCELED'"
+					wl-text-danger="job.globalStatus == 'CANCELED'"
 
-					wl-cog="{{job.crawling_status == 'FINISHED' && (job.indexing_status == 'PENDING' || job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED' )}}"
+					wl-cog="{{job.globalStatus == 'INDEXING' || job.globalStatus == 'INDEX PENDING'}}"
 				/>
 
 

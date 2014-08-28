@@ -1244,6 +1244,9 @@ angular.module('hyphe.controllers', [])
           return b.timestamp - a.timestamp
         })
 
+        // Enrich
+        .map(enrichJob)
+
       updateLastCrawlJobs()
       $scope.scheduleRefresh()
   
@@ -1272,6 +1275,25 @@ angular.module('hyphe.controllers', [])
         }
       }, ms)
     }
+
+    function enrichJob(job){
+      job.globalStatus = ''
+      if(job.crawling_status == 'RUNNING'){
+        job.globalStatus = 'CRAWLING'
+      } else if(job.crawling_status != 'FINISHED'){
+        job.globalStatus = job.crawling_status
+      } else if(job.indexing_status == 'FINISHED'){
+        job.globalStatus = 'ACHIEVED'
+      } else if(job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED'){
+        job.globalStatus = 'INDEXING'
+      } else if(job.indexing_status == 'PENDING'){
+        job.globalStatus = 'INDEX PENDING'
+      } else {
+        job.globalStatus = 'INDEXING ' + job.indexing_status
+      }
+      return job
+    }
+
 
     function loadRequiredWebentities(){
       if($scope.timespan == 'all'){
@@ -1365,6 +1387,9 @@ angular.module('hyphe.controllers', [])
           ,function(crawlJobs){
             if(currentTimespan == $scope.timespan){
 
+              // Enrich
+              crawlJobs = crawlJobs.map(enrichJob)
+
               var crawljobsIndex = {}
               crawlJobs.forEach(function(job){
                 crawljobsIndex[job._id] = job
@@ -1375,8 +1400,7 @@ angular.module('hyphe.controllers', [])
               $scope.lastCrawlJobs.forEach(function(job, i){
                 var updatedJob = crawljobsIndex[job._id]
                 if(updatedJob){
-                  if(updatedJob.crawling_status != job.crawling_status || updatedJob.indexing_status != job.indexing_status){
-                    console.log('updating job ',job)
+                  if(updatedJob.globalStatus != job.globalStatus){
                     changes.push({i:i, job:updatedJob})
                   }
                 }
