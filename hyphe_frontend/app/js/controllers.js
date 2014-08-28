@@ -531,9 +531,6 @@ angular.module('hyphe.controllers', [])
 
   .controller('NewCrawl', ['$scope', 'api', function($scope, api) {
     $scope.currentPage = 'newCrawl'
-    
-
-
   }])
 
 
@@ -1218,11 +1215,62 @@ angular.module('hyphe.controllers', [])
     }
   }])
 
-.controller('monitorCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location',
+
+
+  .controller('monitorCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location',
   function($scope, api, store, utils, QueriesBatcher, $location){
     $scope.currentPage = 'monitorCrawls'
+    
+    $scope.one_day_in_ms =  86400000    // =     24 * 60 * 60 * 1000
+    $scope.one_hour_in_ms = 3600000     // =          60 * 60 * 1000
+    $scope.one_week_in_ms = 604800000   // = 7 * 24 * 60 * 60 * 1000
 
+    $scope.listLoaded = false
+    $scope.crawlJobs
+    $scope.lastCrawlJobs
+    $scope.timespan
+    $scope.status = {message: 'Loading crawl jobs'}
 
+    api.getCrawlJobs({}, function(crawlJobs){
+      $scope.status = {}
+      $scope.listLoaded = true
+      $scope.crawlJobs = crawlJobs
+      updateLastCrawlJobs()
+      console.log(crawlJobs)
+      loadRequiredWebentities()
+    }, function(){
+      $scope.status = {message: 'Error loading crawl jobs'}
+    })
+
+    $scope.setTimespan = function(timespan){
+      $scope.timespan = timespan
+      updateLastCrawlJobs()
+    }
+
+    function loadRequiredWebentities(){
+
+    }
+
+    function updateLastCrawlJobs(){
+      var now = Date.now()
+      ,timespanMs
+
+      switch($scope.timespan){
+        case('day'):
+          timespanMs = $scope.one_day_in_ms
+          break
+        case('hour'):
+          timespanMs = $scope.one_hour_in_ms
+          break
+        case('week'):
+          timespanMs = $scope.one_week_in_ms
+          break
+      }
+
+      $scope.lastCrawlJobs = ($scope.crawlJobs || []).filter(function(job){
+        return now - job.timestamp < timespanMs
+      })
+    }
 
   }])
 ;

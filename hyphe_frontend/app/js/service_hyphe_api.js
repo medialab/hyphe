@@ -172,6 +172,14 @@ angular.module('hyphe.service_hyphe_api', [])
           }
       )
 
+    api.getCrawlJobs = buildApiCall(
+        HYPHE_API.CRAWLJOBS.GET
+        ,function(settings){
+          return [
+            settings.id_list    // List of crawl jobs
+          ]}
+      )
+
 
     function buildApiCall(pseudo_route, params){
       return function(settings, successCallback, errorCallback){

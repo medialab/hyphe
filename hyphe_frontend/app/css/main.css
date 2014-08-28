@@ -444,6 +444,43 @@ textarea.over-error{
 
 
 
+/* ==========================================================================
+   View: Monitor Crawls
+   ========================================================================== */
+.crawljob-cells-container{
+  padding-top: 6px;
+  margin-left: -21px; /*15+6*/
+  margin-right: -21px;
+}
+.crawljob-cell{
+  height: 220px;
+  padding:6px;
+}
+.crawljob-cell-content{
+  height: 100%;
+  padding: 12px;
+  border: 1px solid #FFF;
+  overflow: hidden;
+  background-color: #EFEBE8;
+}
+.crawljob-cell-content.bg-waiting{
+  border: 1px solid #31708f;
+}
+.crawljob-cell p{
+  white-space: nowrap;
+}
+.crawljob-cell .title{
+  font-family: 'Roboto', sans-serif;
+  font-weight:400;
+}
+.crawljob-cell .status{
+  font-size: 24px;
+  font-weight: 300;
+}
+
+
+
+
 
 
 
