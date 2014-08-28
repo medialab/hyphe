@@ -5,6 +5,13 @@
 	</p>
 </div>
 
+<div ng-if="lastCrawlJobs.length == 0">
+	<br>
+	<p class="text-info">
+		No crawl job
+	</p>
+</div>
+
 <div class="container-fluid" ng-if="listLoaded">
 	<div class="row crawljob-cells-container">
 	  <div
@@ -17,7 +24,7 @@
 	      	'bg-danger':job.crawling_status == 'CRASHED'
 	      	,'bg-blank':job.crawling_status == 'CANCELED'
 	      	,'bg-info':job.crawling_status == 'RETRIED'
-	      	,'bg-primary':job.crawling_status == 'RUNNING' || (job.crawling_status == 'FINISHED' && (job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH FINISHED'))
+	      	,'bg-primary':job.crawling_status == 'RUNNING' || (job.crawling_status == 'FINISHED' && (job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED' || job.indexing_status == 'PENDING'))
 	      	,'bg-success': job.crawling_status == 'FINISHED' && job.indexing_status == 'FINISHED'}"
 	    >
 	      <p class="title">
@@ -28,10 +35,14 @@
 	      </p>
 				<div
 					class="crawljob-animation"
-					water-loader="{{job.crawling_status == 'RUNNING' ? 'CRAWLING' : job.crawling_status != 'FINISHED' ? job.crawling_status : job.indexing_status == 'FINISHED' ? 'ACHIEVED' : job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH FINISHED' ? 'INDEXING' : 'INDEXING ' + job.indexing_status}}"
-					wl-message-only="{{job.crawling_status == 'PENDING' || job.crawling_status == 'CRASHED' || job.crawling_status == 'CANCELED' || job.crawling_status == 'RETRIED' || (job.crawling_status == 'FINISHED' && (job.indexing_status != 'RUNNING' && job.indexing_status != 'BATCH FINISHED'))}}"
+
+					water-loader="{{job.crawling_status == 'RUNNING' ? 'CRAWLING' : job.crawling_status != 'FINISHED' ? job.crawling_status : job.indexing_status == 'FINISHED' ? 'ACHIEVED' : job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED' ? 'INDEXING' : job.indexing_status == 'PENDING' ? 'INDEX PENDING' : 'INDEXING ' + job.indexing_status}}"
+
+					wl-message-only="{{job.crawling_status == 'PENDING' || job.crawling_status == 'CRASHED' || job.crawling_status == 'CANCELED' || job.crawling_status == 'RETRIED' || (job.crawling_status == 'FINISHED' && job.indexing_status == 'FINISHED')}}"
+
 					wl-text-danger="job.crawling_status == 'CANCELED'"
-					wl-cog="{{job.crawling_status == 'FINISHED' && (job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH FINISHED') }}"
+
+					wl-cog="{{job.crawling_status == 'FINISHED' && (job.indexing_status == 'PENDING' || job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED' )}}"
 				/>
 
 

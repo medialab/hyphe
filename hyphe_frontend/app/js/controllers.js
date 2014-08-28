@@ -1244,8 +1244,9 @@ angular.module('hyphe.controllers', [])
           return b.timestamp - a.timestamp
         })
 
-      console.log(crawlJobs)
       updateLastCrawlJobs()
+      $scope.scheduleRefresh()
+  
     }, function(){
       $scope.status = {message: 'Error loading crawl jobs'}
     })
@@ -1253,6 +1254,23 @@ angular.module('hyphe.controllers', [])
     $scope.setTimespan = function(timespan){
       $scope.timespan = timespan
       updateLastCrawlJobs()
+    }
+
+    // Loop to refresh crawl jobs
+    $scope.scheduleRefresh = function(){
+      var ms = 2000
+      
+      // If all achieved, we refresh only every minute
+      if(!($scope.lastCrawlJobs || []).some(function(job){return job.crawling_status != 'FINISHED' || job.indexing_status != 'FINISHED'})){
+        ms = 60000
+      }
+
+      setTimeout(function(){
+        if($scope.currentPage == 'monitorCrawls'){
+          console.log('refresh')
+          refreshCrawlJobs()
+        }
+      }, ms)
     }
 
     function loadRequiredWebentities(){
@@ -1271,6 +1289,9 @@ angular.module('hyphe.controllers', [])
           .filter(function(weId){
               return $scope.webentityIndex[weId] === undefined
             })
+
+        // Remove doublons
+        webentityId_list = utils.extractCases(webentityId_list)
 
         // Batch query them!
         loadWebentities(webentityId_list)
@@ -1328,6 +1349,52 @@ angular.module('hyphe.controllers', [])
         )
       } else {
         $scope.status = {}
+      }
+    }
+
+    function refreshCrawlJobs(){
+      var currentTimespan = $scope.timespan
+      $scope.status = {message: 'Refreshing crawl jobs'}
+      if(currentTimespan == 'all'){
+        // TODO
+      } else {
+        var crawlJobs = $scope.lastCrawlJobs.map(function(job){return job._id})
+        
+        api.getCrawlJobs(
+          {id_list: crawlJobs}
+          ,function(crawlJobs){
+            if(currentTimespan == $scope.timespan){
+
+              var crawljobsIndex = {}
+              crawlJobs.forEach(function(job){
+                crawljobsIndex[job._id] = job
+              })
+
+              var changes = []
+
+              $scope.lastCrawlJobs.forEach(function(job, i){
+                var updatedJob = crawljobsIndex[job._id]
+                if(updatedJob){
+                  if(updatedJob.crawling_status != job.crawling_status || updatedJob.indexing_status != job.indexing_status){
+                    console.log('updating job ',job)
+                    changes.push({i:i, job:updatedJob})
+                  }
+                }
+              })
+
+              changes.forEach(function(change){
+                $scope.lastCrawlJobs[change.i] = change.job
+              })
+
+              $scope.status = {message: ''}
+
+              $scope.scheduleRefresh()
+            }
+          }
+          ,function(data, status, headers, config){
+            $scope.status = {message: 'Error refreshing crawl jobs'}
+          }
+        )
       }
     }
 
