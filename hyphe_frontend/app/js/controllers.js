@@ -1268,7 +1268,7 @@ angular.module('hyphe.controllers', [])
       var ms = 2000
       
       // If all achieved, we refresh only every minute
-      if($scope.showDetails || $scope.lastCrawlJobs.length == 0 || !$scope.lastCrawlJobs.some(function(job){return job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'INDEX PENDING'})){
+      if($scope.showDetails || $scope.lastCrawlJobs.length == 0 || !$scope.lastCrawlJobs.some(function(job){return job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'})){
         console.log('we will do a long refresh')
         ms = 60000
       }
@@ -1302,7 +1302,7 @@ angular.module('hyphe.controllers', [])
       } else if(job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED'){
         job.globalStatus = 'INDEXING'
       } else if(job.indexing_status == 'PENDING'){
-        job.globalStatus = 'INDEX PENDING'
+        job.globalStatus = 'WAITING'
       } else {
         job.globalStatus = 'INDEXING ' + job.indexing_status
       }
