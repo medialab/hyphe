@@ -8,7 +8,7 @@ angular.module('hyphe.service_glossary', [])
     ns.definitions = [
       {
         title: 'Cautious Crawl'
-        ,definition: 'A mode using browser emulation to crawl, 100 times slower but required for some entities. Auto-activated on some domains.'
+        ,definition: 'A mode using browser emulation to crawl, 20 times slower but required for some entities. Auto-activated on some domains.'
         ,entries: ['cautious crawl', 'cautious crawls', 'cautious crawling']
       },{
         title: 'Crawl'
