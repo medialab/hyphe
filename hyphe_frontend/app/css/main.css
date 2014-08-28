@@ -455,6 +455,13 @@ textarea.over-error{
 .crawljob-cell{
   height: 230px;
   padding:6px;
+
+  -webkit-user-select: none; /* Chrome/Safari */        
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
+  select: none;
+
+  cursor: pointer;
 }
 .crawljob-cell-content{
   height: 100%;
@@ -483,12 +490,17 @@ textarea.over-error{
 .crawljob-cell-content.bg-danger{
   background-color: #f2dede;
 }
+.crawljob-cell:hover .crawljob-cell-content{
+  background-color: #faf2cc;
+}
 .crawljob-cell p{
   white-space: nowrap;
   margin-bottom: 0px;
 }
 .crawljob-cell .crawljob-animation{
-  margin-top: 86px;
+  position: absolute;
+  left: 50%;
+  top: 62%;
 }
 .crawljob-cell .title{
   font-family: 'Roboto', sans-serif;
@@ -498,10 +510,17 @@ textarea.over-error{
   font-size: 13px;
   font-weight: 300;
 }
-.crawljob-cell .status{
-  font-size: 24px;
-  font-weight: 300;
+.crawljob-cell .stats{
+  width: 130px;
+  margin-left: -65px;
+  padding: 3px;
+  font-size: 10px;
+  text-align: center;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
 }
+
 
 
 
@@ -682,6 +701,8 @@ textarea.over-error{
 }
 .water-loader-content.message-lonely{
   margin-top: -35px;
+  width: 200px;
+  margin-left: -100px;
 }
 @-webkit-keyframes wave-animation {
   0% {background-position: 0 bottom;}

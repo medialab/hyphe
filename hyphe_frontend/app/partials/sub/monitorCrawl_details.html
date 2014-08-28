@@ -1,0 +1,135 @@
+<h2>
+  {{webentityIndex[detailedJob.webentity_id].name || 'Web Entity Loading'}} - <span class="text-muted" tooltip="{{detailedJob.timestamp|date}}">{{detailedJob.timestamp|prettyDate}}</span>
+</h2>
+
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-12">
+			
+			<h3>IDENTITY</h3>
+			<dl class="dl-horizontal">
+
+			  <dt>Project</dt>
+			  <dd>{{detailedJob.crawl_arguments.project}}</dd>
+
+			  <dt>Crawl job ID</dt>
+			  <dd>{{detailedJob._id}}</dd>
+
+			  <dt>Web entity ID</dt>
+			  <dd>{{detailedJob.webentity_id}}</dd>
+
+			  <dt>Web entity Name</dt>
+			  <dd>{{webentityIndex[detailedJob.webentity_id].name}}</dd>
+
+			</dl>
+
+			<h3>SETTINGS</h3>
+			<dl class="dl-horizontal">
+
+				<dt><span hyphe-glossary="Depth"/></dt>
+			  <dd><span class="badge">{{detailedJob.crawl_arguments.maxdepth}}</span></dd>
+
+				<dt><span hyphe-glossary="Cautious crawl"/></dt>
+			  <dd ng-if="detailedJob.crawl_arguments.phantom">
+					<span class="glyphicon glyphicon-bell"></span> YES
+				</dd>
+				<dd ng-if="!detailedJob.crawl_arguments.phantom">
+					No
+				</dd>
+			  
+			</dl>
+
+			<h3><span hyphe-glossary="START PAGES"/></h3>
+			<ul>
+				<li ng-repeat="url in detailedJob.crawl_arguments.start_urls">
+					{{url}}
+					<a href="{{url}}" target="_blank" title="Open in a new tab">
+			      <span class="glyphicon glyphicon-share-alt"></span>
+			    </a>
+				</li>
+			</ul>
+
+			<!-- <h3>WEB ENTITY <span hyphe-glossary="PREFIXES"/></h3>
+			<ul>
+				<li ng-repeat="lru in webentityIndex[detailedJob.webentity_id].lru_prefixes">
+					{{lru}}<span class="label" ng-repeat="stem in lru|prettyLRU">stem</span>
+				</li>
+			</ul>
+			 -->
+
+			<h3>ACTIVITY</h3>
+			<dl class="dl-horizontal">
+
+				<dt>Scheduled</dt>
+			  <dd><span tooltip="{{detailedJob.timestamp|date}}">{{detailedJob.timestamp|prettyDate}}</span></dd>
+
+				<dt>Status</dt>
+			  <dd>{{detailedJob.globalStatus}}</dd>
+
+				<dt>Harvesting Status</dt>
+			  <dd>{{detailedJob.crawling_status}}</dd>
+
+				<dt>Indexing Status</dt>
+			  <dd>{{detailedJob.indexing_status}}</dd>
+
+			</dl>
+
+			<h3>CONTENT</h3>
+			<dl class="dl-horizontal">
+
+				<dt>Crawled pages</dt>
+			  <dd>{{detailedJob.nb_crawled_pages}}</dd>
+
+				<dt>Discovered Pages</dt>
+			  <dd>{{detailedJob.nb_pages}}</dd>
+
+				<dt>Discovered Links</dt>
+			  <dd>{{detailedJob.nb_links}}</dd>
+
+			</dl>
+
+			<h3>DETAILED SETTINGS</h3>
+			<dl class="dl-horizontal">
+
+				<dt>User Agent</dt>
+			  <dd>{{detailedJob.crawl_arguments.user_agent}}</dd>
+
+				<dt>Spider Start</dt>
+			  <dd>{{detailedJob.crawl_arguments.spider}}</dd>
+
+				<dt>Additional Settings</dt>
+			  <dd>{{detailedJob.crawl_arguments.setting}}</dd>
+
+				<dt>Follow Prefixes</dt>
+			  <dd>
+			  	<ul class="list-unstyled">
+			  		<li ng-repeat="lru in detailedJob.crawl_arguments.follow_prefixes">
+			  			{{lru}}
+			  		</li>
+			  	</ul>
+			  </dd>
+
+			  <dt>No-Follow Prefixes</dt>
+			  <dd>
+			  	<ul class="list-unstyled">
+			  		<li ng-repeat="lru in detailedJob.crawl_arguments.nofollow_prefixes">
+			  			{{lru}}
+			  		</li>
+			  	</ul>
+			  </dd>
+
+			  <dt>Discover Prefixes</dt>
+			  <dd>
+			  	<ul class="list-unstyled">
+			  		<li ng-repeat="url in detailedJob.crawl_arguments.discover_prefixes">
+			  			{{url}}
+			  		</li>
+			  	</ul>
+			  </dd>
+			  
+			</dl>
+
+		</div>
+	</div>
+</div>
+

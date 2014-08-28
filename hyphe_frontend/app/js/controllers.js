@@ -1230,6 +1230,9 @@ angular.module('hyphe.controllers', [])
     $scope.one_hour_in_ms = 3600000     // =          60 * 60 * 1000
     $scope.one_week_in_ms = 604800000   // = 7 * 24 * 60 * 60 * 1000
 
+    $scope.showDetails = false
+    $scope.detailedJob
+
     $scope.webentityIndex = {}
 
     $scope.listLoaded = false
@@ -1251,11 +1254,12 @@ angular.module('hyphe.controllers', [])
       $scope.scheduleRefresh()
   
     }, function(){
-      $scope.status = {message: 'Error loading crawl jobs'}
+      $scope.status = {message: 'Error loading crawl jobs', background:'danger'}
     })
 
     $scope.setTimespan = function(timespan){
       $scope.timespan = timespan
+      $scope.showDetails = false
       updateLastCrawlJobs()
     }
 
@@ -1264,7 +1268,8 @@ angular.module('hyphe.controllers', [])
       var ms = 2000
       
       // If all achieved, we refresh only every minute
-      if(!($scope.lastCrawlJobs || []).some(function(job){return job.crawling_status != 'FINISHED' || job.indexing_status != 'FINISHED'})){
+      if($scope.showDetails || $scope.lastCrawlJobs.length == 0 || !$scope.lastCrawlJobs.some(function(job){return job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'INDEX PENDING'})){
+        console.log('we will do a long refresh')
         ms = 60000
       }
 
@@ -1276,6 +1281,12 @@ angular.module('hyphe.controllers', [])
       }, ms)
     }
 
+    $scope.displayDetails = function(job){
+      $scope.showDetails = true
+      $scope.detailedJob = job
+      console.log('Details of the job',job)
+    }
+
     function enrichJob(job){
       job.globalStatus = ''
       if(job.crawling_status == 'RUNNING'){
@@ -1283,7 +1294,11 @@ angular.module('hyphe.controllers', [])
       } else if(job.crawling_status != 'FINISHED'){
         job.globalStatus = job.crawling_status
       } else if(job.indexing_status == 'FINISHED'){
-        job.globalStatus = 'ACHIEVED'
+        if(job.nb_crawled_pages > 0){
+          job.globalStatus = 'ACHIEVED'
+        } else {
+          job.globalStatus = 'UNSUCCESSFUL'
+        }
       } else if(job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED'){
         job.globalStatus = 'INDEXING'
       } else if(job.indexing_status == 'PENDING'){
@@ -1401,13 +1416,22 @@ angular.module('hyphe.controllers', [])
                 var updatedJob = crawljobsIndex[job._id]
                 if(updatedJob){
                   if(updatedJob.globalStatus != job.globalStatus){
-                    changes.push({i:i, job:updatedJob})
+                    changes.push({type:'full', i:i, job:updatedJob})
+                  } else if(updatedJob.nb_crawled_pages != job.nb_crawled_pages) {
+                    changes.push({type:'stats', i:i, job:updatedJob})
                   }
                 }
               })
 
               changes.forEach(function(change){
-                $scope.lastCrawlJobs[change.i] = change.job
+                switch(change.type){
+                  case('full'):
+                    $scope.lastCrawlJobs[change.i] = change.job
+                    break
+                  case('stats'):
+                    $scope.lastCrawlJobs[change.i].nb_crawled_pages = change.job.nb_crawled_pages
+                    break
+                }
               })
 
               $scope.status = {message: ''}
