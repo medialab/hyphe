@@ -173,6 +173,7 @@ div.welcome-column h1{
 }
 .status-cell{
   padding:6px;
+  height: 200px;
 }
 .status-cell-content{
   height: 100%;
