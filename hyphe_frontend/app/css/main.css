@@ -493,7 +493,7 @@ textarea.over-error{
   background-color: #f2dede;
 }
 .crawljob-cell:hover .crawljob-cell-content{
-  background-color: #faf2cc;
+  opacity:0.85;
 }
 .crawljob-cell p{
   white-space: nowrap;
