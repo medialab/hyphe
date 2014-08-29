@@ -1144,7 +1144,8 @@ angular.module('hyphe.controllers', [])
     $scope.currentPage = 'scheduleCrawls'
 
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
-    
+    $scope.summary = {pending:0, success:0, error:0}
+
     // Clean store
     store.remove('webentities_toCrawl')
 
@@ -1155,6 +1156,9 @@ angular.module('hyphe.controllers', [])
     var queriesBatcher = new QueriesBatcher()
     
     $scope.list.forEach(function(obj){
+
+      $scope.summary.pending++
+
       // Stack the query
       queriesBatcher.addQuery(
           api.crawl                             // Query call
@@ -1164,9 +1168,13 @@ angular.module('hyphe.controllers', [])
               ,cautious: obj.cautiousCrawl || false
             }
           ,function(data){                      // Success callback
+              $scope.summary.pending--
+              $scope.summary.success++
               obj.status = 'scheduled'
             }
           ,function(data, status, headers){     // Fail callback
+              $scope.summary.pending--
+              $scope.summary.error++
               obj.status = 'error'
               obj.errorMessage = data[0].message
             }
@@ -1296,7 +1304,7 @@ angular.module('hyphe.controllers', [])
           // console.log('refresh (' + $scope.msTimeout/1000 + 's) (token ' + refreshToken + ')')
 
           // If all achieved, we slow down
-          if($scope.lastCrawlJobs.length == 0 || !$scope.lastCrawlJobs.some(function(job){return job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'})){
+          if($scope.lastCrawlJobs.length == 0 || !$scope.lastCrawlJobs.some(function(job){return job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING' || job.globalStatus == 'PENDING'})){
             $scope.msTimeout = Math.min($scope.msTimeout_max, $scope.msTimeout * 2)
           } else {
             $scope.msTimeout = $scope.msTimeout_min
