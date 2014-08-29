@@ -431,17 +431,18 @@ textarea.over-error{
   border: 1px solid #31708f;
 }
 .crawl-cell p{
-  white-space: nowrap;
+  margin-bottom: 0px;
 }
 .crawl-cell .title{
+  white-space: nowrap;
   font-family: 'Roboto', sans-serif;
   font-weight:400;
+  margin-bottom: 10px;
 }
 .crawl-cell .status{
   font-size: 24px;
   font-weight: 300;
 }
-
 
 
 /* ==========================================================================

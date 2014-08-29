@@ -1168,6 +1168,7 @@ angular.module('hyphe.controllers', [])
             }
           ,function(data, status, headers){     // Fail callback
               obj.status = 'error'
+              obj.errorMessage = data[0].message
             }
           ,{                                    // Options
               label: obj.webentity.id

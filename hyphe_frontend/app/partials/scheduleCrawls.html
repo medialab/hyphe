@@ -25,8 +25,11 @@
                   <p class="title">
                     {{obj.id+1}}. {{obj.webentity.name}}
                   </p>
-                  <p class="status text-center" ng-class="{'text-info':obj.status == 'waiting' || obj.status == 'pending', 'text-danger':obj.status == 'error', 'text-success':obj.status == 'scheduled'}">
+                  <p ng-if="obj.status != 'error'" class="status text-center" ng-class="{'text-info':obj.status == 'waiting' || obj.status == 'pending', 'text-danger':obj.status == 'error', 'text-success':obj.status == 'scheduled'}">
                     {{obj.status|uppercase}}
+                  </p>
+                  <p ng-if="obj.status == 'error'" class="error-message text-danger">
+                    ERROR - {{obj.errorMessage}}
                   </p>
                 </div>
               </div>
