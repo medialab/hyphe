@@ -43,6 +43,24 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('plural', [function(){
+    return function(plural) {
+      return (plural > 1 ? 's' : '')
+    }
+  }])
+
+  .filter('none', [function(){
+    return function(integer) {
+      return (integer == 0 ? 'None' : integer)
+    }
+  }])
+
+  .filter('no', [function(){
+    return function(integer) {
+      return (integer == 0 ? 'No' : integer)
+    }
+  }])
+
   .filter('date', [function(){
     return function(timestamp) {
       return (new Date(timestamp)).toLocaleString()

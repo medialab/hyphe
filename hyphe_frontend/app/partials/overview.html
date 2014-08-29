@@ -25,7 +25,13 @@
                     WEB ENTITIES
                   </p>
                   <p class="content">
-                    {{status.memory_structure.webentities}}
+                    {{status.corpus.memory_structure.webentities.total}}
+                  </p>
+                  <p class="content">
+                    {{status.corpus.memory_structure.webentities.IN|none}} IN &mdash; {{status.corpus.memory_structure.webentities.OUT|none}} OUT
+                  </p>
+                  <p class="content">
+                    {{status.corpus.memory_structure.webentities.UNDECIDED|none}} UNDECIDED
                   </p>
                 </div>
               </div>
@@ -35,14 +41,14 @@
                   <p class="title">
                     LAST ACTIVITY
                   </p>
-                  <p class="content">
-                    Last job <a href="#" tooltip="{{status.memory_structure.job_running_since|date}}">{{status.memory_structure.job_running_since|prettyDate}}</a>
+                  <p ng-show="status.corpus.memory_structure.job_running" class="content">
+                    Currently: {{status.corpus.memory_structure.job_running}}
                   </p>
                   <p class="content">
-                    Last indexation <a href="#" tooltip="{{status.memory_structure.last_index|date}}">{{status.memory_structure.last_index|prettyDate}}</a>
+                    Last indexation <a href="#" tooltip="{{status.corpus.memory_structure.last_index|date}}">{{status.corpus.memory_structure.last_index|prettyDate}}</a>
                   </p>
                   <p class="content">
-                    Last links generation <a href="#" tooltip="{{status.memory_structure.last_links_generation|date}}">{{status.memory_structure.last_links_generation|prettyDate}}</a>
+                    Last links generation <a href="#" tooltip="{{status.corpus.memory_structure.last_links_generation|date}}">{{status.corpus.memory_structure.last_links_generation|prettyDate}}</a>
                   </p>
                 </div>
               </div>
@@ -53,10 +59,13 @@
                     CRAWL JOBS
                   </p>
                   <p class="content">
-                    {{status.crawler.jobs_running == 0 ? 'None' : status.crawler.jobs_running}} running
+                    {{status.corpus.crawler.jobs_finished|none}} achieved
                   </p>
                   <p class="content">
-                    {{status.crawler.jobs_pending == 0 ? 'None' : status.crawler.jobs_pending}} pending
+                    {{status.corpus.crawler.jobs_running|none}} running
+                  </p>
+                  <p class="content">
+                    {{status.corpus.crawler.jobs_pending|none}} pending
                   </p>
                 </div>
               </div>
@@ -67,13 +76,13 @@
                     CONTENT CRAWLED
                   </p>
                   <p class="content">
-                    {{status.crawler.pages_crawled == 0 ? 'No' : status.crawler.pages_crawled}} page{{status.crawler.pages_crawled > 1 ? 's' : ''}} crawled
+                    {{status.corpus.crawler.pages_crawled|no}} page{{status.corpus.crawler.pages_crawled|plural}} crawled
                   </p>
                   <p class="content">
-                    {{status.crawler.links_found == 0 ? 'No' : status.crawler.links_found}} link{{status.crawler.links_found > 1 ? 's' : ''}} found
+                    {{status.corpus.crawler.links_found|no}} link{{status.corpus.crawler.links_found|plural}} found
                   </p>
                   <p class="content">
-                    {{status.crawler.pages_found == 0 ? 'No' : status.crawler.pages_found}} page{{status.crawler.pages_found > 1 ? 's' : ''}} found
+                    {{status.corpus.crawler.pages_found|no}} page{{status.corpus.crawler.pages_found|plural}} found
                   </p>
                 </div>
               </div>
@@ -84,7 +93,7 @@
                     PAGES TO INDEX
                   </p>
                   <p class="content">
-                    {{status.memory_structure.pages_to_index == 0 ? 'None' : status.memory_structure.pages_to_index}}
+                    {{status.corpus.memory_structure.pages_to_index|none}}
                   </p>
                 </div>
               </div>
