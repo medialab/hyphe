@@ -1277,6 +1277,8 @@ angular.module('hyphe.controllers', [])
 
       $scope.msTimeout = $scope.msTimeout_min
       $scope.scheduleRefresh()
+
+      feedMainListBack()
       
       updateLastCrawlJobs()
     }
@@ -1429,6 +1431,29 @@ angular.module('hyphe.controllers', [])
         )
       } else {
         $scope.status = {}
+      }
+    }
+
+    function feedMainListBack(){
+      var lastCrawljobsIndex = {}
+      ,changes = []
+
+      if($scope.lastCrawlJobs && $scope.lastCrawlJobs.length > 0){
+
+        $scope.lastCrawlJobs.forEach(function(job){
+          lastCrawljobsIndex[job._id] = job
+        })
+
+        $scope.crawlJobs.forEach(function(job, i){
+          var updatedJob = lastCrawljobsIndex[job._id]
+          if(updatedJob){
+            changes.push({i:i, job:updatedJob})
+          }
+        })
+
+        changes.forEach(function(change){
+          $scope.crawlJobs[change.i] = change.job
+        })
       }
     }
 
