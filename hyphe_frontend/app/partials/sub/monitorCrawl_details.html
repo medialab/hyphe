@@ -2,133 +2,129 @@
   {{webentityIndex[lastCrawlJobs[0].webentity_id].name || 'Web Entity Loading'}} - <span class="text-muted" tooltip="{{lastCrawlJobs[0].timestamp|date}}">{{lastCrawlJobs[0].timestamp|prettyDate}}</span>
 </h2>
 
-<div class="container-fluid">
-	<div class="row">
-		<div class="col-md-12">
-			
-			<h3>IDENTITY</h3>
-			<dl class="dl-horizontal">
+<br>
 
-			  <dt>Project</dt>
-			  <dd>{{lastCrawlJobs[0].crawl_arguments.project}}</dd>
+<button class="btn btn-danger" ng-click="abortCrawl(lastCrawlJobs[0]._id)"><span class="glyphicon glyphicon-trash"></span> ABORT CRAWL</button>
 
-			  <dt>Crawl job ID</dt>
-			  <dd>{{lastCrawlJobs[0]._id}}</dd>
+<h3>IDENTITY</h3>
+<dl class="dl-horizontal">
 
-			  <dt>Web entity ID</dt>
-			  <dd>{{lastCrawlJobs[0].webentity_id}}</dd>
+  <dt>Project</dt>
+  <dd>{{lastCrawlJobs[0].crawl_arguments.project}}</dd>
 
-			  <dt>Web entity Name</dt>
-			  <dd>{{webentityIndex[lastCrawlJobs[0].webentity_id].name}}</dd>
+  <dt>Crawl job ID</dt>
+  <dd>{{lastCrawlJobs[0]._id}}</dd>
 
-			</dl>
+  <dt>Web entity ID</dt>
+  <dd>{{lastCrawlJobs[0].webentity_id}}</dd>
 
-			<h3>ACTIVITY</h3>
-			<dl class="dl-horizontal">
+  <dt>Web entity Name</dt>
+  <dd>{{webentityIndex[lastCrawlJobs[0].webentity_id].name}}</dd>
 
-				<dt>Scheduled</dt>
-			  <dd><span tooltip="{{lastCrawlJobs[0].timestamp|date}}">{{lastCrawlJobs[0].timestamp|prettyDate}}</span></dd>
+</dl>
 
-				<dt>Status</dt>
-			  <dd><span  ng-class="{
-	      	'bg-danger':lastCrawlJobs[0].globalStatus == 'CRASHED'
-	      	,'bg-warning':lastCrawlJobs[0].globalStatus == 'UNSUCCESSFUL'
-	      	,'text-danger':lastCrawlJobs[0].globalStatus == 'CANCELED'
-	      	,'bg-info':lastCrawlJobs[0].globalStatus == 'RETRIED'
-	      	,'bg-primary':lastCrawlJobs[0].globalStatus == 'CRAWLING' || lastCrawlJobs[0].globalStatus == 'INDEXING' || lastCrawlJobs[0].globalStatus == 'WAITING'
-	      	,'bg-success': lastCrawlJobs[0].globalStatus == 'ACHIEVED'}"
-	      >{{lastCrawlJobs[0].globalStatus}}</span></dd>
+<h3>ACTIVITY</h3>
+<dl class="dl-horizontal">
 
-				<dt>Harvesting Status</dt>
-			  <dd>{{lastCrawlJobs[0].crawling_status}}</dd>
+	<dt>Scheduled</dt>
+  <dd><span tooltip="{{lastCrawlJobs[0].timestamp|date}}">{{lastCrawlJobs[0].timestamp|prettyDate}}</span></dd>
 
-				<dt>Indexing Status</dt>
-			  <dd>{{lastCrawlJobs[0].indexing_status}}</dd>
+	<dt>Status</dt>
+  <dd><span  ng-class="{
+  	'bg-danger':lastCrawlJobs[0].globalStatus == 'CRASHED'
+  	,'bg-warning':lastCrawlJobs[0].globalStatus == 'UNSUCCESSFUL'
+  	,'text-danger':lastCrawlJobs[0].globalStatus == 'CANCELED'
+  	,'bg-info':lastCrawlJobs[0].globalStatus == 'RETRIED'
+  	,'bg-primary':lastCrawlJobs[0].globalStatus == 'CRAWLING' || lastCrawlJobs[0].globalStatus == 'INDEXING' || lastCrawlJobs[0].globalStatus == 'WAITING'
+  	,'bg-success': lastCrawlJobs[0].globalStatus == 'ACHIEVED'}"
+  >{{lastCrawlJobs[0].globalStatus}}</span></dd>
 
-			</dl>
+	<dt>Harvesting Status</dt>
+  <dd>{{lastCrawlJobs[0].crawling_status}}</dd>
 
-			<h3>CONTENT</h3>
-			<dl class="dl-horizontal">
+	<dt>Indexing Status</dt>
+  <dd>{{lastCrawlJobs[0].indexing_status}}</dd>
 
-				<dt>Crawled pages</dt>
-			  <dd>{{lastCrawlJobs[0].nb_crawled_pages}}</dd>
+</dl>
 
-				<dt>Discovered Pages</dt>
-			  <dd>{{lastCrawlJobs[0].nb_pages}}</dd>
+<h3>CONTENT</h3>
+<dl class="dl-horizontal">
 
-				<dt>Discovered Links</dt>
-			  <dd>{{lastCrawlJobs[0].nb_links}}</dd>
+	<dt>Crawled pages</dt>
+  <dd>{{lastCrawlJobs[0].nb_crawled_pages}}</dd>
 
-			</dl>
+	<dt>Discovered Pages</dt>
+  <dd>{{lastCrawlJobs[0].nb_pages}}</dd>
 
-			<h3><span hyphe-glossary="START PAGES"/></h3>
-			<ul>
-				<li ng-repeat="url in lastCrawlJobs[0].crawl_arguments.start_urls">
-					{{url}}
-					<a href="{{url}}" target="_blank" title="Open in a new tab">
-			      <span class="glyphicon glyphicon-share-alt"></span>
-			    </a>
-				</li>
-			</ul>
+	<dt>Discovered Links</dt>
+  <dd>{{lastCrawlJobs[0].nb_links}}</dd>
 
-			<h3>SETTINGS</h3>
-			<dl class="dl-horizontal">
+</dl>
 
-				<dt><span hyphe-glossary="Depth"/></dt>
-			  <dd><span class="badge">{{lastCrawlJobs[0].crawl_arguments.maxdepth}}</span></dd>
+<h3><span hyphe-glossary="START PAGES"/></h3>
+<ul>
+	<li ng-repeat="url in lastCrawlJobs[0].crawl_arguments.start_urls">
+		{{url}}
+		<a href="{{url}}" target="_blank" title="Open in a new tab">
+      <span class="glyphicon glyphicon-share-alt"></span>
+    </a>
+	</li>
+</ul>
 
-				<dt><span hyphe-glossary="Cautious crawl"/></dt>
-			  <dd ng-if="lastCrawlJobs[0].crawl_arguments.phantom">
-					<span class="glyphicon glyphicon-bell"></span> YES
-				</dd>
-				<dd ng-if="!lastCrawlJobs[0].crawl_arguments.phantom">
-					No
-				</dd>
-			  
-			</dl>
+<h3>SETTINGS</h3>
+<dl class="dl-horizontal">
 
-			<h3>DETAILED SETTINGS</h3>
-			<dl class="dl-horizontal">
+	<dt><span hyphe-glossary="Depth"/></dt>
+  <dd><span class="badge">{{lastCrawlJobs[0].crawl_arguments.maxdepth}}</span></dd>
 
-				<dt>User Agent</dt>
-			  <dd>{{lastCrawlJobs[0].crawl_arguments.user_agent}}</dd>
+	<dt><span hyphe-glossary="Cautious crawl"/></dt>
+  <dd ng-if="lastCrawlJobs[0].crawl_arguments.phantom">
+		<span class="glyphicon glyphicon-bell"></span> YES
+	</dd>
+	<dd ng-if="!lastCrawlJobs[0].crawl_arguments.phantom">
+		No
+	</dd>
+  
+</dl>
 
-				<dt>Spider Start</dt>
-			  <dd>{{lastCrawlJobs[0].crawl_arguments.spider}}</dd>
+<h3>DETAILED SETTINGS</h3>
+<dl class="dl-horizontal">
 
-				<dt>Additional Settings</dt>
-			  <dd>{{lastCrawlJobs[0].crawl_arguments.setting}}</dd>
+	<dt>User Agent</dt>
+  <dd>{{lastCrawlJobs[0].crawl_arguments.user_agent}}</dd>
 
-				<dt>Follow Prefixes</dt>
-			  <dd>
-			  	<ul class="list-unstyled">
-			  		<li ng-repeat="lru in lastCrawlJobs[0].crawl_arguments.follow_prefixes">
-			  			{{lru}}
-			  		</li>
-			  	</ul>
-			  </dd>
+	<dt>Spider Start</dt>
+  <dd>{{lastCrawlJobs[0].crawl_arguments.spider}}</dd>
 
-			  <dt>No-Follow Prefixes</dt>
-			  <dd>
-			  	<ul class="list-unstyled">
-			  		<li ng-repeat="lru in lastCrawlJobs[0].crawl_arguments.nofollow_prefixes">
-			  			{{lru}}
-			  		</li>
-			  	</ul>
-			  </dd>
+	<dt>Additional Settings</dt>
+  <dd>{{lastCrawlJobs[0].crawl_arguments.setting}}</dd>
 
-			  <dt>Discover Prefixes</dt>
-			  <dd>
-			  	<ul class="list-unstyled">
-			  		<li ng-repeat="url in lastCrawlJobs[0].crawl_arguments.discover_prefixes">
-			  			{{url}}
-			  		</li>
-			  	</ul>
-			  </dd>
-			  
-			</dl>
+	<dt>Follow Prefixes</dt>
+  <dd>
+  	<ul class="list-unstyled">
+  		<li ng-repeat="lru in lastCrawlJobs[0].crawl_arguments.follow_prefixes">
+  			{{lru}}
+  		</li>
+  	</ul>
+  </dd>
 
-		</div>
-	</div>
-</div>
+  <dt>No-Follow Prefixes</dt>
+  <dd>
+  	<ul class="list-unstyled">
+  		<li ng-repeat="lru in lastCrawlJobs[0].crawl_arguments.nofollow_prefixes">
+  			{{lru}}
+  		</li>
+  	</ul>
+  </dd>
+
+  <dt>Discover Prefixes</dt>
+  <dd>
+  	<ul class="list-unstyled">
+  		<li ng-repeat="url in lastCrawlJobs[0].crawl_arguments.discover_prefixes">
+  			{{url}}
+  		</li>
+  	</ul>
+  </dd>
+  
+</dl>
 

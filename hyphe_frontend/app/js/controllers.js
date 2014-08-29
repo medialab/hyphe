@@ -1315,6 +1315,21 @@ angular.module('hyphe.controllers', [])
       }, $scope.msTimeout)
     }
 
+    $scope.abortCrawl = function(jobId){
+      $scope.status = {message: 'Aborting crawl jobs'}
+      api.abortCrawlJobs(
+        {id:jobId}
+        ,function(){
+          
+          $scope.setTimespan('day')
+          $scope.status = {}
+      
+        }, function(){
+          $scope.status = {message: 'Error aborting crawl job', background:'danger'}
+        }
+      )
+    }
+
     function enrichJob(job){
       job.globalStatus = ''
       if(job.crawling_status == 'RUNNING'){
