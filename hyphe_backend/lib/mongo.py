@@ -25,7 +25,10 @@ class MongoDB(object):
 
     @inlineCallbacks
     def close(self):
-        yield self.conn.disconnect()
+        try:
+            yield self.conn.disconnect()
+        except:
+            pass
 
     @inlineCallbacks
     def list_corpus(self, *args, **kwargs):

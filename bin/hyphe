@@ -93,7 +93,7 @@ function exit_on_error {
   test_and_stop_process "$CORE_COMMAND" nolog
   echo "ERROR: Could not start Hyphe's backend server properly. See log below:"
   echo
-  tail -n 10 log/hyphe-core.log
+  tail -n 20 log/hyphe-core.log
   exit 1
 }
 function exit_on_running {
@@ -104,10 +104,10 @@ function exit_on_running {
 }
 
 function test_core_started_in_log {
-  grep -v "\[-\] \.\.\.\|Deprecation" log/hyphe-core.log | tail -n 5 | grep "Starting factory <twisted.web.server" > /dev/null
+  grep -v "\[-\] \.\.\.\|Deprecation" log/hyphe-core.log | tail -n 5 | grep "Ready!" > /dev/null
 }
 function test_error_in_core_log {
-  tail -n 2 log/hyphe-core.log | grep -v "Deprecation" | grep -i "error\|exception" > /dev/null
+  tail -n 2 log/hyphe-core.log | grep -v "Deprecation" | grep "ERROR\|Exception" > /dev/null
 }
 
 if $STOP; then
@@ -138,7 +138,6 @@ if $START; then
   workon $HCIVENV
   $CORE_COMMAND 2>&1 || exit 1
   echo "...started..."
-  sleep 5
 
   TEST_STARTED=test_core_started_in_log
   TEST_ERROR=test_error_in_core_log

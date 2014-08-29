@@ -65,6 +65,11 @@ def is_error(res):
         return True
     return False
 
+def reformat_error(error):
+    error["code"] = "fail"
+    del(error["status"])
+    return error
+
 def handle_standard_results(res):
     if is_error(res):
         return res

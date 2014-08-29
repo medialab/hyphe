@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time, random, json, bson
-import urllib, urllib2
+from urllib import urlencode
 import subprocess
 from txjsonrpc import jsonrpclib
 from txjsonrpc.jsonrpc import Introspection
@@ -14,11 +14,12 @@ from twisted.internet.task import LoopingCall
 from twisted.internet.threads import deferToThread
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from twisted.internet.endpoints import TCP4ClientEndpoint
-from twisted.internet.error import DNSLookupError
+from twisted.internet.error import DNSLookupError, ConnectionRefusedError
 from twisted.application.internet import TCPServer
 from twisted.application.service import Application
 from twisted.web.http_headers import Headers
-from twisted.web.client import Agent, ProxyAgent, _HTTP11ClientFactory
+from twisted.web.client import getPage, Agent, ProxyAgent, HTTPClientFactory, _HTTP11ClientFactory
+HTTPClientFactory.noisy = False
 _HTTP11ClientFactory.noisy = False
 from hyphe_backend import processor
 from hyphe_backend.lib import config_hci, urllru, gexf, user_agents
@@ -45,6 +46,7 @@ class Core(jsonrpc.JSONRPC):
         self.crawler = Crawler(self)
         self.store = Memory_Structure(self)
         reactor.addSystemEventTrigger('before', 'shutdown', self.close)
+        self.keepalive_default = None
 
     @inlineCallbacks
     def activate_monocorpus(self):
@@ -54,7 +56,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def close(self):
-        if not config["MULTICORPUS"] and self.keepalive_default.running:
+        if not config["MULTICORPUS"] and self.keepalive_default and self.keepalive_default.running:
             self.keepalive_default.stop()
         for corpus in self.corpora.keys():
             yield self.stop_corpus(corpus, quiet=True)
@@ -141,7 +143,7 @@ class Core(jsonrpc.JSONRPC):
 
         yield self.db.add_corpus(corpus, name, password, options)
         try:
-            res = self.crawler.deploy_spider(corpus)
+            res = yield self.crawler.deploy_spider(corpus)
         except:
             returnD(format_error("Could not deploy corpus' scrapyd spider"))
         if not res:
@@ -352,7 +354,7 @@ class Core(jsonrpc.JSONRPC):
     @inlineCallbacks
     def refresh_jobs(self, corpus=DEFAULT_CORPUS):
         """Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks."""
-        scrapyjobs = self.crawler.jsonrpc_list(corpus)
+        scrapyjobs = yield self.crawler.jsonrpc_list(corpus)
         if is_error(scrapyjobs):
             if not (type(scrapyjobs["message"]) is dict and "status" in scrapyjobs["message"]):
                 logger.msg("Problem dialoguing with scrapyd server: %s" % scrapyjobs, system="WARNING - %s" % corpus)
@@ -539,17 +541,18 @@ class Crawler(jsonrpc.JSONRPC):
         self.db = self.parent.db
         self.corpora = self.parent.corpora
 
+    @inlineCallbacks
     def deploy_spider(self, corpus=DEFAULT_CORPUS):
         output = subprocess.Popen(['bash', 'bin/deploy_scrapy_spider.sh', corpus, '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
-        res = self.send_scrapy_query('listprojects')
-        if is_error(res) or "projects" not in res['result'] or corpus_project(corpus) not in res['result']['projects']:
-            return format_error(output)
-        return format_result('Spider %s deployed' % corpus_project(corpus))
+        res = yield self.send_scrapy_query('listprojects')
+        if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
+            returnD(format_error(output))
+        returnD(format_result('Spider %s deployed' % corpus_project(corpus)))
 
     @inlineCallbacks
     def jsonrpc_cancel_all(self, corpus=DEFAULT_CORPUS):
         """Stops all current crawls."""
-        list_jobs = self.jsonrpc_list(corpus)
+        list_jobs = yield self.jsonrpc_list(corpus)
         if is_error(list_jobs):
             returnD(list_jobs)
         list_jobs = list_jobs['result']
@@ -558,7 +561,7 @@ class Crawler(jsonrpc.JSONRPC):
             if config['DEBUG']:
                 logger.msg(res, system="DEBUG - %s" % corpus)
         while 'running' in list_jobs and len(list_jobs['running']):
-            list_jobs = self.jsonrpc_list(corpus)
+            list_jobs = yield self.jsonrpc_list(corpus)
             if not is_error(list_jobs):
                 list_jobs = list_jobs['result']
         returnD(format_result('All crawling jobs canceled.'))
@@ -588,24 +591,27 @@ class Crawler(jsonrpc.JSONRPC):
             self.corpora[corpus]['jobs_loop'].start(1, False)
         returnD(format_result('Crawling database reset.'))
 
+    @inlineCallbacks
     def send_scrapy_query(self, action, arguments=None, tryout=0):
-        url = self.scrapy_url+action+".json"
-        if action == 'listjobs':
-            url += '?'+'&'.join([par+'='+val for (par,val) in arguments.iteritems()])
-            req = urllib2.Request(url)
-        else:
-            data = None
+        url = "%s%s.json" % (self.scrapy_url, action)
+        method = "POST"
+        headers = None
+        if action.startswith('list'):
+            method = "GET"
             if arguments:
-                data = urllib.urlencode(arguments)
-            req = urllib2.Request(url, data)
+                url += '?'+'&'.join([k+'='+v for (k, v) in arguments.iteritems()])
+                arguments = None
+        elif arguments:
+            arguments = urlencode(arguments)
+            headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         try:
-            response = urllib2.urlopen(req)
-            result = json.loads(response.read())
-            return format_result(result)
-        except urllib2.URLError as e:
-            return format_error("Could not contact scrapyd server, maybe it's not started...")
+            res = yield getPage(url, method=method, postdata=arguments, headers=headers, timeout=10)
+            result = json.loads(res)
+            returnD(result)
+        except ConnectionRefusedError:
+            returnD(format_error("Could not contact scrapyd server, maybe it's not started..."))
         except Exception as e:
-            return format_error(e)
+            returnD(format_error(e))
 
     @inlineCallbacks
     def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=config['discoverPrefixes'], maxdepth=config['mongo-scrapy']['maxdepth'], phantom_crawl=False, download_delay=config['mongo-scrapy']['download_delay'], corpus=DEFAULT_CORPUS):
@@ -629,10 +635,9 @@ class Crawler(jsonrpc.JSONRPC):
                   'nofollow_prefixes': list(nofollow_prefixes),
                   'discover_prefixes': list(discover_prefixes),
                   'user_agent': user_agents.agents[random.randint(0, len(user_agents.agents) - 1)]}
-        res = self.send_scrapy_query('schedule', args)
+        res = yield self.send_scrapy_query('schedule', args)
         if is_error(res):
-            returnD(res)
-        res = res['result']
+            returnD(reformat_error(res))
         if 'jobid' in res:
             ts = int(time.time()*1000)
             yield self.db.add_job(corpus, res['jobid'], webentity_id, args, ts)
@@ -647,20 +652,23 @@ class Crawler(jsonrpc.JSONRPC):
         logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
         args = {'project': corpus_project(corpus),
                   'job': job_id}
-        res = self.send_scrapy_query('cancel', args)
+        res = yield self.send_scrapy_query('cancel', args)
         if is_error(res):
-            returnD(res)
-        res = res['result']
+            returnD(reformat_error(res))
         if 'prevstate' in res:
             yield self.db.update_jobs(corpus, job_id, {'crawling_status': crawling_statuses.CANCELED})
             yield self.db.add_log(corpus, job_id, "CRAWL_"+crawling_statuses.CANCELED)
         returnD(format_result(res))
 
+    @inlineCallbacks
     def jsonrpc_list(self, corpus=DEFAULT_CORPUS):
         """Calls Scrappy monitoring API, returns list of scrapy jobs."""
         if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
-        return self.send_scrapy_query('listjobs', {'project': corpus_project(corpus)})
+            returnD(self.parent.corpus_error(corpus))
+        res = yield self.send_scrapy_query('listjobs', {'project': corpus_project(corpus)})
+        if is_error(res):
+            returnD(reformat_error(res))
+        returnD(format_result(res))
 
     @inlineCallbacks
     def jsonrpc_get_job_logs(self, job_id, corpus=DEFAULT_CORPUS):
@@ -671,6 +679,9 @@ class Crawler(jsonrpc.JSONRPC):
             returnD(format_error('No log found for job %s.' % job_id))
         returnD(format_result([{'timestamp': log['timestamp'], 'log': log['log']} for log in res]))
 
+
+# MEMORYSTRUCTURE's DEDICATED API
+# accessible jsonrpc methods via "store."
 
 class Memory_Structure(jsonrpc.JSONRPC):
 
@@ -1592,64 +1603,62 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(res)
 
 
-TEST_CORPUS = "--test-corpus--"
-def test_connexions():
-# TEST API SANITY
-    try:
-        run = Core()
-    except Exception as x:
-        print "ERROR: Cannot start API, something should probbaly not have been pushed..."
-        if config['DEBUG']:
-            print type(x), x
-        return None
-# SCRAPY
-    res = run.crawler.send_scrapy_query('delproject', {'project': corpus_project(TEST_CORPUS)})
-    if is_error(res):
-        print "WARNING: Could not delete existing version of HCI's scrapy spider"
-        print res['message']
-        print "Trying to deploy anyway"
-    try:
-        run.crawler.deploy_spider(TEST_CORPUS)
-    except Exception as e:
-        print "ERROR: Could not connect to scrapyd server to deploy spider, please check your server and the configuration in config.json."
-        print e
-        return None
-    return run
-
-core = test_connexions()
-if not core:
+# TEST API
+try:
+    core = Core()
+except Exception as x:
+    print "ERROR: Cannot start API, something should probbaly not have been pushed..."
+    if config['DEBUG']:
+        print type(x), x
     exit(1)
+
+def test_scrapyd(cor, corpus):
+    d = cor.crawler.send_scrapy_query('delproject', {'project': corpus_project(corpus)})
+    d.addCallback(test_deploy, cor, corpus)
+def test_deploy(res, cor, corpus):
+    if is_error(res):
+        print "WARNING: Could not delete existing scrapy spider: %s" % res['message']
+        print "Trying to deploy anyway"
+    d = cor.crawler.deploy_spider(corpus)
+    d.addCallback(test_start, cor, corpus)
+def test_start(res, cor, corpus):
+    if is_error(res):
+        return stop_tests(res, cor, corpus, "Could not connect to scrapyd server to deploy spider, please check your server and the configuration in config.json.")
+    d = cor.start_corpus(corpus, quiet=True, noloop=True, create_if_missing=True)
+    d.addCallback(test_ping, cor, corpus)
+def test_ping(res, cor, corpus):
+    if is_error(res):
+        return stop_tests(res, cor, corpus, "Could not create corpus")
+    d = defer.succeed(cor.jsonrpc_ping(corpus, timeout=5))
+    d.addCallback(test_destroy, cor, corpus)
+def test_destroy(res, cor, corpus):
+    if is_error(res):
+        return stop_tests(res, cor, corpus, "Could not start corpus")
+    d = cor.destroy_corpus(corpus, quiet=True)
+    d.addCallback(stop_tests, cor, corpus)
+@inlineCallbacks
+def stop_tests(res, cor, corpus, msg=None):
+    if is_error(res):
+        if msg:
+            print "ERROR %s: %s" % (corpus, msg)
+        print res["message"]
+        yield cor.close()
+        if reactor.running:
+            reactor.stop()
+    else:
+        print "All tests passed. Ready!"
+
+reactor.callLater(1, test_scrapyd, core, "--test-corpus--")
+
+# Activate default corpus automatically if in monocorpus
+if not config["MULTICORPUS"]:
+    reactor.callLater(10, core.activate_monocorpus)
 
 # JSON-RPC interface
 core.putSubHandler('crawl', core.crawler)
 core.putSubHandler('store', core.store)
 core.putSubHandler('system', Introspection(core))
 site = server.Site(core)
-
-# TEST API
-def test_start(cor, corpus):
-    d = cor.start_corpus(corpus, quiet=True, noloop=True, create_if_missing=True)
-    d.addCallback(test_ping, cor, corpus)
-def test_ping(res, cor, corpus):
-    if is_error(res):
-        return stop_tests(res, cor, corpus)
-    d = defer.succeed(cor.jsonrpc_ping(corpus, timeout=5))
-    d.addCallback(test_destroy, cor, corpus)
-def test_destroy(res, cor, corpus):
-    if is_error(res):
-        return stop_tests(res, cor, corpus)
-    d = cor.destroy_corpus(corpus, quiet=True)
-    d.addCallback(stop_tests, cor, corpus)
-def stop_tests(res, cor, corpus):
-    if is_error(res):
-        print "ERROR: Cannot create dummy corpus %s: %s" % (corpus, res)
-        d = cor.close()
-        d.addCallback(reactor.stop)
-reactor.callLater(1, test_start, core, TEST_CORPUS)
-
-# Activate default corpus automatically if in monocorpus
-if not config["MULTICORPUS"]:
-    reactor.callLater(10, core.activate_monocorpus)
 
 # Run as 'python core.tac' ...
 if __name__ == '__main__':
