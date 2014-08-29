@@ -544,6 +544,13 @@ textarea.over-error{
 /* ==========================================================================
    Module: Web Entity Slider
    ========================================================================== */
+.hyphe-prefix-slider{
+  -webkit-user-select: none; /* Chrome/Safari */        
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
+  select: none;
+  cursor: default;
+}
 .hyphe-prefix-slider .name-container, .hyphe-prefix-slider .status-container{
   word-break:keep-all;
   white-space: nowrap;
