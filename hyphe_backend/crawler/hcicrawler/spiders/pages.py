@@ -1,26 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, time, uuid, sys, re
+import os, time, signal, re
 try:
     import json
 except:
     import simplejson as json
-from scrapy.spider import BaseSpider
-from scrapy.http import Request, HtmlResponse
-from scrapy.linkextractor import IGNORED_EXTENSIONS
-from scrapy.utils.url import url_has_any_extension
-from scrapy import log
-from scrapyd.config import Config as scrapyd_config
 try:
     from pymongo.binary import Binary
 except:
     from bson.binary import Binary
 
-from selenium import webdriver
+from scrapy import log
+from scrapy.spider import BaseSpider
+from scrapy.http import Request, HtmlResponse
+from scrapy.linkextractor import IGNORED_EXTENSIONS
+from scrapy.utils.url import url_has_any_extension
+from scrapyd.config import Config as scrapyd_config
+from scrapy.signals import spider_closed, spider_error
+from scrapy.xlib.pydispatch import dispatcher
+
+from selenium.webdriver import PhantomJS
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
-import signal
 
 from hcicrawler.linkextractor import RegexpLinkExtractor
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url
@@ -56,10 +58,12 @@ class PagesCrawler(BaseSpider):
             self.ph_idle_timeout = args.get('phantom_idle_timeout', PHANTOM['IDLE_TIMEOUT'])
             self.ph_ajax_timeout = args.get('phantom_ajax_timeout', PHANTOM['AJAX_TIMEOUT'])
         self.errors = 0
+        dispatcher.connect(self.closed, spider_closed)
+        dispatcher.connect(self.crashed, spider_error)
 
     def start_requests(self):
-        self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'])
-        self.log("ARGUMENTS : "+str(self.args))
+        self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'], log.INFO)
+        self.log("ARGUMENTS : "+str(self.args), log.INFO)
         if self.phantom:
             self.init_phantom()
         for url in self.start_urls:
@@ -72,7 +76,7 @@ class PagesCrawler(BaseSpider):
             self.name,
             "%s-phantom" % self.crawler.settings['JOBID']
         )
-        self.log("Using directory %s for PhantomJs crawl" % self.cachedir)
+        self.log("Using directory %s for PhantomJS crawl" % self.cachedir, log.INFO)
         os.makedirs(self.cachedir)
         phantom_args = []
         if PROXY and not PROXY.startswith(':'):
@@ -86,7 +90,7 @@ class PagesCrawler(BaseSpider):
         self.capabilities['takesScreenshot'] = False
         self.capabilities['phantomjs.page.settings.javascriptCanCloseWindows'] = False
         self.capabilities['phantomjs.page.settings.javascriptCanOpenWindows'] = False
-        self.phantom = webdriver.PhantomJS(
+        self.phantom = PhantomJS(
             executable_path=PHANTOM['PATH'],
             service_args=phantom_args,
             desired_capabilities=self.capabilities,
@@ -96,10 +100,14 @@ class PagesCrawler(BaseSpider):
         self.phantom.set_page_load_timeout(60)
         self.phantom.set_script_timeout(self.ph_timeout + 15)
 
+    def crashed(self, spider):
+        self.errors += 1
+        self.closed("CRASH")
+
     def closed(self, reason):
         if self.errors:
             self.log("%s error%s encountered during the crawl." %
-                (self.errors, 's' if self.errors > 1 else ''))
+                (self.errors, 's' if self.errors > 1 else ''), log.ERROR)
             logdir = os.path.join(
                 scrapyd_config().get('logs_dir'),
                 HYPHE_PROJECT,
@@ -107,12 +115,13 @@ class PagesCrawler(BaseSpider):
             )
         if self.phantom:
             self.phantom.quit()
-            for f in os.listdir(self.cachedir):
-                if self.errors:
-                    os.rename(os.path.join(self.cachedir, f), os.path.join(logdir, "%s-%s" % (self.crawler.settings['JOBID'], f)))
-                else:
-                    os.remove(os.path.join(self.cachedir, f))
-            os.rmdir(self.cachedir)
+            if os.path.isdir(self.cachedir):
+                for f in os.listdir(self.cachedir):
+                    if self.errors:
+                        os.rename(os.path.join(self.cachedir, f), os.path.join(logdir, "%s-%s" % (self.crawler.settings['JOBID'], f)))
+                    else:
+                        os.remove(os.path.join(self.cachedir, f))
+                os.rmdir(self.cachedir)
 
     def handle_response(self, response):
         lru = url_to_lru_clean(response.url)
@@ -127,7 +136,7 @@ class PagesCrawler(BaseSpider):
             response._set_body(bod_w_iframes.encode('utf-8'))
 
             # Try to scroll and unfold page
-            self.log("Start PhantomJS scrolling and unfolding")
+            self.log("Start PhantomJS scrolling and unfolding", log.INFO)
             with open(os.path.join(PHANTOM["JS_PATH"], "scrolldown_and_unfold.js")) as js:
                 try:
                     signal.signal(signal.SIGALRM, timeout_alarm)
@@ -138,16 +147,16 @@ class PagesCrawler(BaseSpider):
                     signal.alarm(0)
                     if timedout:
                         raise SeleniumTimeout
-                    self.log("Scrolling/Unfolding finished")
+                    self.log("Scrolling/Unfolding finished", log.INFO)
                 except SeleniumTimeout:
-                    self.log("Scrolling/Unfolding timed-out (%ss)" % self.ph_timeout)
+                    self.log("Scrolling/Unfolding timed-out (%ss)" % self.ph_timeout, log.WARNING)
                     self.errors += 1
                 except WebDriverException as e:
                     err = json.loads(e.msg)['errorMessage']
-                    self.log("Scrolling/Unfolding crashed: %s" % err)
+                    self.log("Scrolling/Unfolding crashed: %s" % err, log.ERROR)
                     self.errors += 1
                 except Exception as e:
-                    self.log("Scrolling/Unfolding crashed: %s %s" % (type(e), e))
+                    self.log("Scrolling/Unfolding crashed: %s %s" % (type(e), e), log.ERROR)
                     self.errors += 1
                     return self._make_raw_page(response, lru)
             bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
@@ -177,7 +186,7 @@ class PagesCrawler(BaseSpider):
             return p
         elif not "://www" in failure.request.url:
             return self._request(failure.request.url.replace('://', '://www.'))
-        self.log("ERROR : %s" % failure.getErrorMessage())
+        self.log("ERROR : %s" % failure.getErrorMessage(), log.ERROR)
         self.errors += 1
         return
 

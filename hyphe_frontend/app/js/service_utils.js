@@ -168,7 +168,7 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.LRU_to_pretty_LRU = function(lru){
-      var url = ns.LRU_to_JSON_LRU(lru)
+      var url = ns.LRU_to_URL(lru)
       return ns.URL_to_pretty_LRU(url)
     }
 

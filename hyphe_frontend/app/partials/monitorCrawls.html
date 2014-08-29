@@ -16,9 +16,10 @@
 
             <tabset>
               <tab heading="Last Hour" select="setTimespan('hour')"><div ng-include="'partials/sub/monitorCrawls_last.html'"></div></tab>
-              <tab heading="Today" select="setTimespan('day')"><div ng-include="'partials/sub/monitorCrawls_last.html'"></div></tab>
+              <tab heading="Today" select="setTimespan('day')" active="true"><div ng-include="'partials/sub/monitorCrawls_last.html'"></div></tab>
               <tab heading="This Week" select="setTimespan('week')"><div ng-include="'partials/sub/monitorCrawls_last.html'"></div></tab>
-              <tab heading="All Crawls" select="setTimespan('all')"><br>All the crawls (TODO)</tab>
+              <!-- <tab heading="All Crawls" select="setTimespan('all')"><br>All the crawls (TODO)</tab> -->
+              <tab heading="Details" active="showDetails" ng-if="showDetails"><div class="crawljob-details" ng-include="'partials/sub/monitorCrawl_details.html'"></div></tab>
             </tabset>
 
           </div>

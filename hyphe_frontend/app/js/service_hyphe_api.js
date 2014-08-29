@@ -180,6 +180,14 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
+    api.abortCrawlJobs = buildApiCall(
+        HYPHE_API.CRAWLJOB.CANCEL
+        ,function(settings){
+          return [
+            settings.id
+          ]}
+      )
+
 
     function buildApiCall(pseudo_route, params){
       return function(settings, successCallback, errorCallback){

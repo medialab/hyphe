@@ -5,7 +5,7 @@
 	</p>
 </div>
 
-<div ng-if="lastCrawlJobs.length == 0">
+<div ng-if="listLoaded && lastCrawlJobs.length == 0">
 	<br>
 	<p class="text-info">
 		No crawl job
@@ -17,14 +17,16 @@
 	  <div
 	    class="col-md-4 col-lg-3 crawljob-cell"
 	    ng-repeat="job in lastCrawlJobs"
+	    ng-click="displayDetails(job)"
 	  >
 	    <div
 	      class="crawljob-cell-content"
 	      ng-class="{
 	      	'bg-danger':job.globalStatus == 'CRASHED'
+	      	,'bg-warning':job.globalStatus == 'UNSUCCESSFUL'
 	      	,'bg-blank':job.globalStatus == 'CANCELED'
 	      	,'bg-info':job.globalStatus == 'RETRIED'
-	      	,'bg-primary':job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'INDEX PENDING'
+	      	,'bg-primary':job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'
 	      	,'bg-success': job.globalStatus == 'ACHIEVED'}"
 	    >
 	      <p class="title">
@@ -33,40 +35,29 @@
 	      <p class="subtitle">
 	        Scheduled <span tooltip="{{job.timestamp|date}}">{{job.timestamp|prettyDate}}</span>
 	      </p>
+	      <p class="subtitle" ng-if="job.crawl_arguments.phantom">
+					<span class="glyphicon glyphicon-bell"></span> Cautious crawl
+				</p>
+	      <p class="subtitle">
+	        Depth {{job.crawl_arguments.maxdepth}}
+	      </p>
 				<div
 					class="crawljob-animation"
 
 					water-loader="{{job.globalStatus}}"
 
-					wl-message-only="{{!(job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'INDEX PENDING')}}"
+					wl-message-only="{{!(job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING')}}"
 
-					wl-text-danger="job.globalStatus == 'CANCELED'"
+					wl-text-danger="{{job.globalStatus == 'CANCELED'}}"
 
-					wl-cog="{{job.globalStatus == 'INDEXING' || job.globalStatus == 'INDEX PENDING'}}"
+					wl-cog="{{job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'}}"
 				/>
+				<div class="stats" ng-class="{'bg-danger':job.globalStatus == 'UNSUCCESSFUL', 'bg-warning':(job.globalStatus == 'ACHIEVED' && job.nb_crawled_pages <= 3)}">
+					{{job.nb_crawled_pages}} page{{job.nb_crawled_pages > 1 ? 's' : ''}} crawled
+				</div>
 
 
     </div>
 	  </div>
 	</div>
 </div>
-
-<!-- 
-<ul ng-if="listLoaded">
-	<li ng-repeat="job in crawlJobs">
-		<ul>
-			<li>id: {{job._id}}</li>
-			<li>
-				crawl arguments (TODO)
-			</li>
-			<li>crawling_status: {{job.crawling_status}}</li>
-			<li>indexing_status: {{job.indexing_status}}</li>
-			<li>nb_crawled_pages: {{job.nb_crawled_pages}}</li>
-			<li>nb_links: {{job.nb_links}}</li>
-			<li>nb_pages: {{job.nb_pages}}</li>
-			<li>timestamp: {{job.timestamp}}</li>
-			<li>webentity_id: {{job.webentity_id}}</li>
-		</ul>
-	</li>
-</ul>
- -->

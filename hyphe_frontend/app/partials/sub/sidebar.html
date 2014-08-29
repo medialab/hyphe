@@ -37,15 +37,15 @@
                   </li>
                   
                   <!-- Check Start Pages -->
-                  <li ng-if="currentPage=='newCrawl' || currentPage=='checkStartPages' || currentPage=='launchCrawl'" ng-class="{active: currentPage=='checkStartPages'}" class="inactive">
+                  <li ng-if="currentPage=='newCrawl' || currentPage=='checkStartPages' || currentPage=='scheduleCrawls'" ng-class="{active: currentPage=='checkStartPages'}" class="inactive">
                     <a href="#/checkStartPages">
                       <table><tr><td><span class="symbol">&nbsp;</span></td><td>CHECK START PAGES</td></tr></table>
                     </a>
                   </li>
                   
                   <!-- Launch Crawl -->
-                  <li ng-if="currentPage=='newCrawl' || currentPage=='checkStartPages' || currentPage=='launchCrawl'" ng-class="{active: currentPage=='launchCrawl'}" class="inactive">
-                    <a href="#/checkStartPages">
+                  <li ng-if="currentPage=='newCrawl' || currentPage=='checkStartPages' || currentPage=='scheduleCrawls'" ng-class="{active: currentPage=='launchCrawl'}" class="inactive">
+                    <a href="#/scheduleCrawls">
                       <table><tr><td><span class="symbol">&nbsp;</span></td><td>SCHEDULE CRAWLS</td></tr></table>
                     </a>
                   </li>

@@ -8,7 +8,7 @@ angular.module('hyphe.service_glossary', [])
     ns.definitions = [
       {
         title: 'Cautious Crawl'
-        ,definition: 'A mode using browser emulation to crawl, 100 times slower but required for some entities'
+        ,definition: 'A mode using browser emulation to crawl, 20 times slower but required for some entities. Auto-activated on some domains.'
         ,entries: ['cautious crawl', 'cautious crawls', 'cautious crawling']
       },{
         title: 'Crawl'
@@ -23,13 +23,17 @@ angular.module('hyphe.service_glossary', [])
         ,definition: 'Defines if a web entity is a whole domain, a subdomain, a page or a combination of those'
         ,entries: ['boundaries', 'boundaries of a web entity', 'boundaries of web entities']
       },{
+        title: 'Prefix of a Web Entity'
+        ,definition: 'A sort of URL used to define the boundaries of a web entity: if a URL begins with the prefix, it belongs to this web entity'
+        ,entries: ['web entity prefix', 'web entity prefixes', 'web entities prefixes', 'prefix', 'prefixes']
+      },{
         title: 'HTTPS Variations'
         ,definition: 'URLs that differ only by using the secured protocol "https". Ex: https://google.com and http://google.com'
         ,entries: ['https variation', 'https variations']
       },{
         title: 'Start Page'
         ,definition: 'In a web entity, Hyphe crawls it to find links and other pages, step by step'
-        ,entries: ['start page', 'start pages']
+        ,entries: ['start page', 'start pages', 'start url', 'start urls']
       },{
         title: 'Web Entity'
         ,definition: 'Used in Hyphe to describe a website, an actor, or any set of pages you consider as a whole'
