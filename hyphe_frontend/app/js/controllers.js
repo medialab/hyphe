@@ -1231,12 +1231,17 @@ angular.module('hyphe.controllers', [])
     $scope.one_week_in_ms = 604800000   // = 7 * 24 * 60 * 60 * 1000
 
     $scope.showDetails = false
-    $scope.detailedJob
 
     $scope.webentityIndex = {}
 
     $scope.listLoaded = false
     $scope.status = {message: 'Loading', progress:30}
+
+    $scope.msTimeout_min = 2000
+    $scope.msTimeout_max = 60000
+
+    $scope.msTimeout = $scope.msTimeout_min
+    $scope.refreshToken = 0
 
     api.getCrawlJobs({}, function(crawlJobs){
       $scope.listLoaded = true
@@ -1260,31 +1265,45 @@ angular.module('hyphe.controllers', [])
     $scope.setTimespan = function(timespan){
       $scope.timespan = timespan
       $scope.showDetails = false
-      updateLastCrawlJobs()
-    }
 
-    // Loop to refresh crawl jobs
-    $scope.scheduleRefresh = function(){
-      var ms = 2000
+      $scope.msTimeout = $scope.msTimeout_min
+      $scope.scheduleRefresh()
       
-      // If all achieved, we refresh only every minute
-      if($scope.showDetails || $scope.lastCrawlJobs.length == 0 || !$scope.lastCrawlJobs.some(function(job){return job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'})){
-        console.log('we will do a long refresh')
-        ms = 60000
-      }
-
-      setTimeout(function(){
-        if($scope.currentPage == 'monitorCrawls'){
-          console.log('refresh')
-          refreshCrawlJobs()
-        }
-      }, ms)
+      updateLastCrawlJobs()
     }
 
     $scope.displayDetails = function(job){
       $scope.showDetails = true
-      $scope.detailedJob = job
-      console.log('Details of the job',job)
+      $scope.lastCrawlJobs = [job]
+
+      $scope.msTimeout = $scope.msTimeout_min
+      $scope.scheduleRefresh()
+      
+      // console.log('Details of the job',job)
+    }
+
+    // Loop to refresh crawl jobs
+    $scope.scheduleRefresh = function(){
+      $scope.refreshToken++
+      var refreshToken =  0 + $scope.refreshToken
+      
+      // console.log('schedule refresh with token ' + refreshToken + ' for ' + $scope.msTimeout/1000 + 's')
+      
+      setTimeout(function(){
+        if(refreshToken == $scope.refreshToken && $scope.currentPage == 'monitorCrawls'){
+          
+          // console.log('refresh (' + $scope.msTimeout/1000 + 's) (token ' + refreshToken + ')')
+
+          // If all achieved, we slow down
+          if($scope.lastCrawlJobs.length == 0 || !$scope.lastCrawlJobs.some(function(job){return job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'})){
+            $scope.msTimeout = Math.min($scope.msTimeout_max, $scope.msTimeout * 2)
+          } else {
+            $scope.msTimeout = $scope.msTimeout_min
+          }
+
+          refreshCrawlJobs()
+        }
+      }, $scope.msTimeout)
     }
 
     function enrichJob(job){
@@ -1405,34 +1424,47 @@ angular.module('hyphe.controllers', [])
               // Enrich
               crawlJobs = crawlJobs.map(enrichJob)
 
-              var crawljobsIndex = {}
-              crawlJobs.forEach(function(job){
-                crawljobsIndex[job._id] = job
-              })
+              
 
               var changes = []
 
-              $scope.lastCrawlJobs.forEach(function(job, i){
-                var updatedJob = crawljobsIndex[job._id]
-                if(updatedJob){
-                  if(updatedJob.globalStatus != job.globalStatus){
-                    changes.push({type:'full', i:i, job:updatedJob})
-                  } else if(updatedJob.nb_crawled_pages != job.nb_crawled_pages) {
-                    changes.push({type:'stats', i:i, job:updatedJob})
-                  }
-                }
-              })
+              if($scope.showDetails){
 
-              changes.forEach(function(change){
-                switch(change.type){
-                  case('full'):
-                    $scope.lastCrawlJobs[change.i] = change.job
-                    break
-                  case('stats'):
-                    $scope.lastCrawlJobs[change.i].nb_crawled_pages = change.job.nb_crawled_pages
-                    break
-                }
-              })
+                $scope.lastCrawlJobs = crawlJobs
+
+              } else {
+
+                var crawljobsIndex = {}
+                crawlJobs.forEach(function(job){
+                  crawljobsIndex[job._id] = job
+                })
+
+                $scope.lastCrawlJobs.forEach(function(job, i){
+                  var updatedJob = crawljobsIndex[job._id]
+                  if(updatedJob){
+                    if(updatedJob.globalStatus != job.globalStatus){
+                      changes.push({type:'full', i:i, job:updatedJob})
+                    } else if(updatedJob.nb_crawled_pages != job.nb_crawled_pages
+                        || updatedJob.nb_links != job.nb_links
+                      ) {
+                      changes.push({type:'stats', i:i, job:updatedJob})
+                    }
+                  }
+                })
+
+                changes.forEach(function(change){
+                  switch(change.type){
+                    case('full'):
+                      $scope.lastCrawlJobs[change.i] = change.job
+                      break
+                    case('stats'):
+                      $scope.lastCrawlJobs[change.i].nb_crawled_pages = change.job.nb_crawled_pages
+                      $scope.lastCrawlJobs[change.i].nb_links = change.job.nb_links
+                      $scope.lastCrawlJobs[change.i].nb_pages = change.job.nb_pages
+                      break
+                  }
+                })
+              }
 
               $scope.status = {message: ''}
 
