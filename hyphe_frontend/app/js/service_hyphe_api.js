@@ -159,8 +159,6 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
             settings.webentityId
             ,settings.depth
-            ,false
-            ,false
             ,settings.cautious || false
           ]}
       )
