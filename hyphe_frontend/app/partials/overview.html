@@ -25,13 +25,13 @@
                     WEB ENTITIES
                   </p>
                   <p class="content">
-                    {{status.corpus.memory_structure.webentities.total}}
+                    {{status.corpus.memory_structure.webentities.total|none}}
                   </p>
-                  <p class="content">
-                    {{status.corpus.memory_structure.webentities.IN|none}} IN &mdash; {{status.corpus.memory_structure.webentities.OUT|none}} OUT
+                  <p ng-show="status.corpus.memory_structure.webentities.total" class="content">
+                    {{status.corpus.memory_structure.webentities.IN}} IN &mdash; {{status.corpus.memory_structure.webentities.OUT}} OUT
                   </p>
-                  <p class="content">
-                    {{status.corpus.memory_structure.webentities.UNDECIDED|none}} UNDECIDED
+                  <p ng-show="status.corpus.memory_structure.webentities.total" class="content">
+                    {{status.corpus.memory_structure.webentities.UNDECIDED}} UNDECIDED
                   </p>
                 </div>
               </div>
