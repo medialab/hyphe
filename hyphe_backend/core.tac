@@ -599,7 +599,7 @@ class Crawler(jsonrpc.JSONRPC):
         if action.startswith('list'):
             method = "GET"
             if arguments:
-                url += '?'+'&'.join([k+'='+v for (k, v) in arguments.iteritems()])
+                url += '?'+'&'.join([str(k)+'='+str(v) for (k, v) in arguments.iteritems()])
                 arguments = None
         elif arguments:
             arguments = urlencode(arguments)
