@@ -494,7 +494,11 @@ class Core(jsonrpc.JSONRPC):
                       'User-Agent': [user_agents.agents[random.randint(0, len(user_agents.agents) -1)]]}
             response = yield agent.request(method, url, Headers(headers), None)
         except DNSLookupError as e:
-            res['message'] = "DNS not found for url %s : %s" % (url, e)
+            if use_proxy and config['proxy']['host'] in str(e):
+                res['message'] = "Proxy not responding"
+                res['result'] = -2
+            else:
+                res['message'] = "DNS not found for url %s : %s" % (url, e)
         except Exception as e:
             res['result'] = -1
             res['message'] = "Cannot process url %s : %s." % (url, e)
