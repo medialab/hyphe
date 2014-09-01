@@ -5,8 +5,10 @@ thrift
 
 selenium==2.42.1
 
+service_identity
+pyOpenSSL
 six>=1.7.3
-twisted>=13.0
+twisted>=14.0
 txJSON-RPC
 
 pymongo>=2.7

@@ -512,6 +512,9 @@ class Core(jsonrpc.JSONRPC):
                 assert(url.startswith("http:") and tryout == 4 and response.code == 403 and "IIS" in response.headers._rawHeaders['server'][0])
                 res['result'] = 301
             except:
+                if url.startswith("https") and response.code/100 == 4:
+                    res['result'] = response.code
+                    returnD(res)
                 if use_proxy or response.code in [403, 405, 500, 501, 503]:
                     if tryout == 5 and use_proxy:
                         noproxy = True
