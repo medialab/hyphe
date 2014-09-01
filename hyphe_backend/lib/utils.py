@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re, types, time, hashlib
+import os, re, types, time, hashlib
 
 from hyphe_backend.lib.config_hci import load_config, DEFAULT_CORPUS
 config = load_config()
@@ -81,11 +81,17 @@ def test_bool_arg(boolean):
     return (isinstance(boolean, bool) and boolean) or (isinstance(boolean, unicode) and str(boolean).lower() == 'true') or (isinstance(boolean, int) and boolean != 0)
 
 
-SALT = hashlib.sha256(config['memoryStructure']['lucene.rootpath'] + \
- str(config['memoryStructure']['thrift.max_ram'] * config["twisted"]["port"] * \
-     config['memoryStructure']['thrift.portrange'][-1])
-).hexdigest()
-
+saltfile = os.path.join("config", "salt")
+try:
+    with open(saltfile) as f:
+        SALT = f.read()
+except:
+    with open(os.path.join("config", "salt"), "w") as f:
+        SALT = hashlib.sha256(config['memoryStructure']['lucene.rootpath'] + \
+          str(config['memoryStructure']['thrift.max_ram'] * config["twisted"]["port"] * \
+          config['memoryStructure']['thrift.portrange'][-1])
+        ).hexdigest()
+        f.write(SALT)
 def salt(passwd):
     passwd = passwd.strip().lower()
     if not passwd:
