@@ -120,13 +120,14 @@
             </div>
             
             <div class="row">
-              <div class="col-md-4 col-md-offset-4">
+              <div class="col-md-6 col-md-offset-3">
                 <div ng-if="createdList.length + existingList.length == 0 || retry">
                   <div class="text-center">
                     <div ng-if="creating || loadingWebentities">
                       <div class="message">{{status.message}}</div>
                     </div>
                     <div ng-if="!(creating || loadingWebentities)">
+                      <br>
                       <form class="form-inline">
                         <div class="form-group">
                           <div class="checkbox variations-checkbox">
