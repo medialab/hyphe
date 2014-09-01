@@ -529,7 +529,7 @@ class Core(jsonrpc.JSONRPC):
         returnD(format_result(response.code))
 
     @inlineCallbacks
-    def jsonrpc_lookup(self, url, timeout=30, noproxy=False, corpus=None):
+    def jsonrpc_lookup(self, url, timeout=30, corpus=None):
         res = yield self.jsonrpc_lookup_httpstatus(url, timeout=timeout, corpus=corpus)
         if res['code'] == 'success' and (res['result'] == 200 or 300 < res['result'] < 400):
             returnD(format_result("true"))
