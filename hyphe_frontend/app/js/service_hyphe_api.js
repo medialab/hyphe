@@ -95,7 +95,7 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
               settings.url
-              ,settings.timeout || 5
+              ,settings.timeout
             ]}
       )
 
