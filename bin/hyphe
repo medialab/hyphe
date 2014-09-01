@@ -24,7 +24,7 @@ if [ $# -gt 1 ] && [ "$2" == "--nologs" ]; then
 fi
 
 mkdir -p log
-PID_FILE="twistd.pid"
+PID_FILE="hyphe-server.lock"
 CORE_COMMAND="twistd -y $HCIPATH/hyphe_backend/core.tac -l $HCIPATH/log/hyphe-core.log"
 JAVA_COMMAND="$HCIPATH/hyphe_backend/memorystructure/MemoryStructureExecutable.jar corpus="
 
