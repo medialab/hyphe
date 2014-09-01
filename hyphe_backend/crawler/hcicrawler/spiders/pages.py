@@ -31,8 +31,6 @@ from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM
 from hcicrawler.samples import DEFAULT_INPUT
 from hcicrawler.errors import error_name
 
-class TimeOut(Exception):
-    pass
 def timeout_alarm(*args):
     raise SeleniumTimeout
 
