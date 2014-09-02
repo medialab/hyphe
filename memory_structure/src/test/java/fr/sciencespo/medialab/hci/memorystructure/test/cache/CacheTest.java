@@ -179,8 +179,8 @@ public class CacheTest extends TestCase {
         }
         catch (MemoryStructureException x) {
             fail(x.getMessage());
-            x.printStackTrace();  
-        } 
+            x.printStackTrace();
+        }
         catch (IndexException x) {
             fail(x.getMessage());
             x.printStackTrace();
@@ -190,20 +190,9 @@ public class CacheTest extends TestCase {
             x.printStackTrace();
         }
 
-        
+
     }
 
-
-    
-    public void testIsNode() {
-        assertTrue("Unexpected isNode", LRUUtil.isPrecisionLimitNode("s:http|h:com|h:google"));
-        assertFalse("Unexpected isNode", LRUUtil.isPrecisionLimitNode("s:http|h:com|h:doodle|h:blog|p:english|p:2011|p:09|p:16|p:an-introduction-to-mongodb"));
-    }
-
-    public void testGetNode() {
-        assertEquals("Unexpected getNode", "s:http|h:com|h:google", LRUUtil.getPrecisionLimitNode("s:http|h:com|h:google"));
-        assertEquals("Unexpected getNode", "s:http|h:com|h:doodle|h:blog", LRUUtil.getPrecisionLimitNode("s:http|h:com|h:doodle|h:blog|p:english|p:2011|p:09|p:16|p:an-introduction-to-mongodb"));
-    }
 
         /**
          * Re-did Paul's Python test in Java.
@@ -243,12 +232,7 @@ public class CacheTest extends TestCase {
                 }
                 if(notYetInList) {
                     PageItem page = new PageItem();
-                    if(LRUUtil.isPrecisionLimitNode(pi.getLru())) {
-                        page.setLru(pi.getLru());
-                    }
-                    else {
-                        page.setLru(LRUUtil.getPrecisionLimitNode(pi.getLru()));
-                    }
+                    page.setLru(pi.getLru());
                     pages.add(page);
                 }
             }
@@ -267,9 +251,6 @@ public class CacheTest extends TestCase {
 
             for(Object o : links) {
                 NodeLink n = (NodeLink)o;
-                if(!LRUUtil.isPrecisionLimitNode(n.getTargetLRU())) {
-                    n.setTargetLRU(LRUUtil.getPrecisionLimitNode(n.getTargetLRU()));
-                }
                 // check not yet in list -- todo better with map
                 boolean notYetInList = true;
                 for(Object oo : pages) {
@@ -278,11 +259,6 @@ public class CacheTest extends TestCase {
                         notYetInList = false;
                         break;
                     }
-                }
-                if(notYetInList) {
-                    PageItem page = new PageItem();
-                    page.setLru(LRUUtil.getPrecisionLimitNode(n.getSourceLRU()));
-                    pages.add(page);
                 }
             }
 
@@ -360,7 +336,7 @@ public class CacheTest extends TestCase {
         defaultWebEntityCreationRule.setRegExp("(s:[a-zA-Z]+\\|(h:www|)?h:[a-zA-Z]+(\\|h:[^|]+)+)");
         try {
             lruIndex.indexWebEntityCreationRule(defaultWebEntityCreationRule);
-        } 
+        }
         catch (IndexException x) {
             fail(x.getMessage());
             x.printStackTrace();
@@ -2152,23 +2128,23 @@ public class CacheTest extends TestCase {
             logger.info("created webentities took " + b + "ms" );
 
             long c = System.currentTimeMillis();
-            logger.debug("creating webentities");            
+            logger.debug("creating webentities");
             cache.createWebEntities();
             logger.debug("finished creating webentities");
             long d = System.currentTimeMillis() - c;
             logger.info("created webentities took " + d + "ms" );
-            
+
             logger.info("# pageitems: " + pageItems.size() +" # webentities created: " + lruIndex.retrieveWebEntities().size());
-            
-        } 
+
+        }
         catch (MaxCacheSizeException x) {
             fail(x.getMessage());
             x.printStackTrace();
-        } 
+        }
         catch (MemoryStructureException x) {
             fail(x.getMessage());
             x.printStackTrace();
-        } 
+        }
         catch (IndexException x) {
             fail(x.getMessage());
             x.printStackTrace();

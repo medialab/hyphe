@@ -71,17 +71,6 @@ public class ThriftServer {
         }
     }
 
-
-    /**
-     * Reads precision limit from properties file.
-     *
-     * @return map of property names and values
-     */
-    public static int readPrecisionLimitFromProperties() {
-        THashMap<String, String> propertiesMap = readProperties(true);
-        return Integer.valueOf(propertiesMap.get("precisionLimit"));
-    }
-
     /**
      * Reads properties from file.
      *
@@ -100,7 +89,6 @@ public class ThriftServer {
             for(String key : propertyNames) {
                 propertiesMap.put(key, properties.getString(key));
             }
-            propertiesMap.put("precisionLimit", json.getString("precisionLimit"));
         }
         catch(JSONException x) {
             logger.warn("ERROR while parsing json in config.json");

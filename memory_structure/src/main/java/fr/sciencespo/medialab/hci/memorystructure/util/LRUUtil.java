@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
  */
 public class LRUUtil {
 
-    public static int PRECISION_LIMIT = ThriftServer.readPrecisionLimitFromProperties();
     public static final Pattern LRU_STEM_PATTERN = Pattern.compile("\\|[shtpqf]:");
 
     public static String getLimitedStemsLRU(String lru, int limit) {
@@ -31,18 +30,6 @@ public class LRUUtil {
         }
         return res;
     }
-
-    /*   UNUSED, this logic was moved to the python core API instead
-
-    public static String getPrecisionLimitNode(String lru) {
-        return getLimitedStemsLRU(lru, PRECISION_LIMIT);
-    }
-
-    public static boolean isPrecisionLimitNode(String lru) {
-        return lru.split("\\|").length <= PRECISION_LIMIT;
-    }
-
-    */
 
     public static String getLRUHead(String lru) {
         String[] ps = lru.split("\\|");
