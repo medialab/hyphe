@@ -171,7 +171,7 @@ angular.module('hyphe.controllers', [])
     
     $scope.paginationPage = 1
     $scope.paginationLength = 50    // How many items per page
-    $scope.paginationNumPages = 10  // How many pages to display in the pagination
+    $scope.paginationNumPages = 5  // How many pages to display in the pagination
 
     $scope.wwwVariations = true
     $scope.httpsVariations = true
@@ -553,7 +553,7 @@ angular.module('hyphe.controllers', [])
     
     $scope.paginationPage = 1
     $scope.paginationLength = 50    // How many items per page
-    $scope.paginationNumPages = 10  // How many pages to display in the pagination
+    $scope.paginationNumPages = 5  // How many pages to display in the pagination
 
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
 
@@ -1539,17 +1539,61 @@ angular.module('hyphe.controllers', [])
   .controller('listWebentities', ['$scope', 'api', function($scope, api) {
     $scope.currentPage = 'listWebentities'
 
-    $scope.list = [
-      1,2,3,4,5,6,7,8,9
-      ,10,11,12,13,14,15,16,17,18,19
-      ,20,21,22,23,24,25,26,27,28,29
-      ,30,31,32,33,34,35,36,37,38,39
-    ]
+    $scope.list
+    $scope.checkedList = []
+
+    $scope.loaded = false
 
     $scope.paginationPage = 1
-    $scope.paginationLength = 5
-    $scope.paginationNumPages = 5
+    $scope.paginationLength = 20   // How many items per page
+    $scope.paginationNumPages = 5  // How many pages to display in the pagination
 
+    $scope.sort = 'date'
+    $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
+
+    // Loading web entities
+    $scope.status = {message: 'Loading'}
+    api.getWebentities(
+      {semiLight: false}
+      ,function(webentities){
+        console.log('A web entity for dev:', webentities[0])
+        $scope.list = webentities.map(function(we, i){
+          var obj = {id:i, webentity:we, checked:false}
+          return obj
+        })
+        $scope.status = {}
+        $scope.loaded = true
+      }
+      ,function(){
+        $scope.status = {message: 'Error loading web entities', background: 'danger'}
+      }
+    )
+
+    $scope.toggleRow = function(rowId){
+      console.log('Toggle Row',rowId)
+      var obj = $scope.list[rowId]
+      console.log(obj)
+      if(obj.checked){
+        obj.checked = false
+        checkedList_remove(rowId)
+      } else {
+        obj.checked = true
+        checkedList_add(rowId)
+      }
+    }
+
+
+    // Functions
+    function checkedList_remove(rowId){
+      $scope.checkedList = $scope.checkedList.filter(function(d){
+        return d != rowId
+      })
+    }
+
+    function checkedList_add(rowId){
+      $scope.checkedList.push(rowId)
+    }
+    
   }])
 ;
 

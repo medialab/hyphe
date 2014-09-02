@@ -534,13 +534,13 @@ textarea.over-error{
    View: Web Entities List
    ========================================================================== */
 .webentities-list-table .cell-checkbox{
-  width: 40px;
+  width: 20px;
 }
 .webentities-list-table .cell-status{
-  width: 80px;
+  width: 120px;
 }
 .webentities-list-table .cell-last-crawled{
-  width: 100px;
+  width: 80px;
 }
 .webentities-list-table .cell-last-modif{
   width: 150px;
@@ -551,6 +551,16 @@ textarea.over-error{
 }
 .webentities-list-table .form-inline{
   padding-top: 6px;
+}
+.webentities-list-table .webentity-row{
+  cursor: pointer;
+  -webkit-user-select: none; /* Chrome/Safari */        
+     -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+               select: none;
+}
+.webentities-list-table tr.bg-selected{
+  background-color: #EFEBE8;
 }
 
 

@@ -14,64 +14,115 @@
               </div>
             </div>
 
-            <div class="panel panel-default webentities-list-table">
-              
-              <!-- Default panel contents -->
-              <div class="panel-heading">
+            <div ng-if="!loaded">
+              Loading, please wait
+            </div>
+            
+            <div ng-if="loaded">
+              <div class="panel panel-default webentities-list-table">
+                
+                <!-- Default panel contents -->
+                <div class="panel-heading">
 
-                <div class="input-group">
-                  <input type="text" class="form-control" placeholder="Type a query">
-                  <span class="input-group-btn">
-                    <button class="btn btn-default" type="button">Search</button>
-                  </span>
+                  <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Type a query">
+                    <span class="input-group-btn">
+                      <button class="btn btn-default" type="button">Search</button>
+                    </span>
+                  </div>
+
+                  <form class="form-inline" role="form">
+                    
+                    <!-- <div class="form-group">
+                      <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-remove"></span> Climate Change</button>
+                    </div> -->
+
+                    <div class="btn-group">
+                      <label class="btn btn-default" ng-model="statuses.in" btn-checkbox>IN</label>
+                      <label class="btn btn-default" ng-model="statuses.out" btn-checkbox>OUT</label>
+                      <label class="btn btn-default" ng-model="statuses.undecided" btn-checkbox>UNDECIDED</label>
+                      <label class="btn btn-default" ng-model="statuses.discovered" btn-checkbox>DISCOVERED</label>
+                    </div>
+
+                    <div class="form-group">
+                      <select class="form-control" ng-model="sort">
+                        <option value="name">Sort by Name</option>
+                        <option value="status">Sort by Status</option>
+                        <option value="crawled">Sort by Crawled</option>
+                        <option value="date">Sort by Date</option>
+                      </select>
+                    </div>
+
                 </div>
 
-                <form class="form-inline" role="form">
-                  
-                  <div class="form-group">
-                    <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-remove"></span> Climate Change</button>
-                  </div>
-                  
-                  <div class="form-group">
-                    <select class="form-control">
-                      <option>Sort by Name</option>
-                      <option>Sort by Status</option>
-                      <option>Sort by Crawled</option>
-                      <option>Sort by Date</option>
-                    </select>
-                  </div>
+                <table class="table table-condensed">
+                  <thead>
+                    <tr>
+                      <th class="cell-checkbox"></th>
+                      <th>{{list.length}} Web Entit{{list.length > 1 ? 'ies' : 'y'}}</th>
+                      <th class="cell-status">Status</th>
+                      <th class="cell-last-crawled">Crawled</th>
+                      <th class="cell-last-modif">Last modif.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+
+                    <!-- Rows -->
+                    <tr
+                      class="webentity-row"
+                      ng-repeat="obj in list|paginate:paginationPage:paginationLength track by $index"
+                      ng-click="toggleRow(obj.id)"
+                      ng-class="{'bg-selected':obj.checked}"
+                    >
+                      <td class="cell-checkbox" ng-click="toggleRow(obj.id)"><input type="checkbox" ng-model="obj.checked"></td>
+                      <td>{{obj.webentity.name}}</td>
+                      <td class="cell-status">{{obj.webentity.status}}</td>
+                      <td class="cell-last-crawled">
+                        <span tooltip="{{obj.webentity.crawling_status}}|{{obj.webentity.indexing_status}}">
+                          <span class="text-success" ng-if="obj.webentity.crawling_status == 'FINISHED'">YES</span>
+                          <span class="text-danger" ng-if="obj.webentity.crawling_status != 'FINISHED'">NO</span>
+                        </span>
+                      </td>
+                      <td class="cell-last-modif">
+                        <span tooltip="{{obj.webentity.last_modification_date|date}}">{{obj.webentity.last_modification_date|prettyDate}}</span>
+                      </td>
+                    </tr>
+
+                  </tbody>
+                </table>
 
               </div>
 
-              <table class="table table-condensed">
-                <thead>
-                  <tr>
-                    <!-- <th class="cell-checkbox"></th> -->
-                    <th>Web Entity</th>
-                    <th class="cell-status">Status</th>
-                    <th class="cell-last-crawled">Crawled</th>
-                    <th class="cell-last-modif">Last modif.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr ng-repeat="obj in list track by $index">
-                    <!-- <td class="cell-checkbox"><input type="checkbox"></td> -->
-                    <td>Webentity {{$index+1}}</td>
-                    <td class="cell-status">IN</td>
-                    <td class="cell-last-crawled">XXX</td>
-                    <td class="cell-last-modif">Today</td>
-                  </tr>
-                </tbody>
-              </table>
+
+              <!-- Pagination  -->
+              <div class="text-center">
+                <pagination total-items="list.length" ng-model="$parent.paginationPage" items-per-page="paginationLength" boundary-links="true" rotate="false" max-size="paginationNumPages" ng-if="list.length > paginationLength"></pagination>
+              </div>
+
+              <!-- Checked Actions -->
+              <div ng-if="checkedList.length > 0">
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    Actions with {{checkedList.length}} selected {{checkedList.length > 1 ? 'web entities' : 'web entity'}}
+                  </div>
+                  <div class="panel-body">
+                    <p>
+                      Set status TO DO
+                    </p>
+                    
+                    <p>
+                      Crawl TO DO
+                    </p>
+
+                    <p>
+                      Merge TO DO
+                    </p>
+
+                  </div>
+                </div>
+              </div>
 
             </div>
-
-
-            <!-- Pagination  -->
-            <div class="text-center">
-              <pagination total-items="list.length" ng-model="$parent.paginationPage" items-per-page="paginationLength" boundary-links="true" rotate="false" max-size="paginationNumPages" ng-if="list.length > paginationLength"></pagination>
-            </div>
-
           </div>
         </div>
       </div>
