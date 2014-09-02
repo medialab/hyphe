@@ -446,6 +446,7 @@ textarea.over-error{
 }
 
 
+
 /* ==========================================================================
    View: Monitor Crawls
    ========================================================================== */
@@ -525,6 +526,31 @@ textarea.over-error{
 
 .crawljob-details h3{
   padding-top: 32px;
+}
+
+
+
+/* ==========================================================================
+   View: Web Entities List
+   ========================================================================== */
+.webentities-list-table .cell-checkbox{
+  width: 40px;
+}
+.webentities-list-table .cell-status{
+  width: 80px;
+}
+.webentities-list-table .cell-last-crawled{
+  width: 100px;
+}
+.webentities-list-table .cell-last-modif{
+  width: 150px;
+}
+.webentities-list-table .panel-heading{
+  padding: 6px;
+  height: 88px;
+}
+.webentities-list-table .form-inline{
+  padding-top: 6px;
 }
 
 

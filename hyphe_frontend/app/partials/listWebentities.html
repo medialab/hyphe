@@ -1,0 +1,78 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/sub/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sub/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-12">
+                <h1>
+                  LIST WEB ENTITIES
+                </h1>
+              </div>
+            </div>
+
+            <div class="panel panel-default webentities-list-table">
+              
+              <!-- Default panel contents -->
+              <div class="panel-heading">
+
+                <div class="input-group">
+                  <input type="text" class="form-control" placeholder="Type a query">
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" type="button">Search</button>
+                  </span>
+                </div>
+
+                <form class="form-inline" role="form">
+                  
+                  <div class="form-group">
+                    <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-remove"></span> Climate Change</button>
+                  </div>
+                  
+                  <div class="form-group">
+                    <select class="form-control">
+                      <option>Sort by Name</option>
+                      <option>Sort by Status</option>
+                      <option>Sort by Crawled</option>
+                      <option>Sort by Date</option>
+                    </select>
+                  </div>
+
+              </div>
+
+              <table class="table table-condensed">
+                <thead>
+                  <tr>
+                    <!-- <th class="cell-checkbox"></th> -->
+                    <th>Web Entity</th>
+                    <th class="cell-status">Status</th>
+                    <th class="cell-last-crawled">Crawled</th>
+                    <th class="cell-last-modif">Last modif.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="obj in list track by $index">
+                    <!-- <td class="cell-checkbox"><input type="checkbox"></td> -->
+                    <td>Webentity {{$index+1}}</td>
+                    <td class="cell-status">IN</td>
+                    <td class="cell-last-crawled">XXX</td>
+                    <td class="cell-last-modif">Today</td>
+                  </tr>
+                </tbody>
+              </table>
+
+            </div>
+
+
+            <!-- Pagination  -->
+            <div class="text-center">
+              <pagination total-items="list.length" ng-model="$parent.paginationPage" items-per-page="paginationLength" boundary-links="true" rotate="false" max-size="paginationNumPages" ng-if="list.length > paginationLength"></pagination>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
