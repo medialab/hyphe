@@ -3,66 +3,51 @@
 angular.module('hyphe.service_hyphe_api', [])
 
   .factory('api', ['serverURL', '$http', function(surl, $http) {
-    var api = {}
-    ,HYPHE_API = {
-      WEBENTITIES:{
-        GET: 'store.get_webentities'
-        ,GET_LINKS: 'store.get_webentities_network_json'
-        ,CREATE_BY_LRU: 'store.declare_webentity_by_lru'
-        ,CREATE_BY_LRUS: 'store.declare_webentity_by_lrus'
-        ,MERGE: 'store.merge_webentity_into_another'
-      }
-      ,WEBENTITY:{
-        STARTPAGE:{
-          ADD:'store.add_webentity_startpage'
-          ,REMOVE:'store.rm_webentity_startpage'
-        }
+    var ns = {} // Namespace
+    ,API = {}
 
-        ,PREFIX:{
-          ADD:'store.add_webentity_lruprefix'
-          ,REMOVE:'store.rm_webentity_lruprefix'
-        }
-        
-        ,GET_PAGES:'store.get_webentity_pages'
-        ,GET_SUBWEBENTITIES:'store.get_webentity_subwebentities'
-        ,GET_PARENTWEBENTITIES:'store.get_webentity_parentwebentities'
+    API.WEBENTITY_LIST_GET                          = 'store.get_webentities'
+    API.WEBENTITY_LIST_GET_LINKS                    = 'store.get_webentities_network_json'
+    API.WEBENTITY_LIST_CREATE_BY_LRU                = 'store.declare_webentity_by_lru'
+    API.WEBENTITY_LIST_CREATE_BY_LRU_LIST           = 'store.declare_webentity_by_lrus'
+    API.WEBENTITY_LIST_MERGE                        = 'store.merge_webentity_into_another'
 
-        ,SET_NAME:'store.rename_webentity'
-        ,SET_STATUS: 'store.set_webentity_status'
-        ,SET_HOMEPAGE: 'store.set_webentity_homepage'
-        ,SET_TAG_VALUES: 'store.set_webentity_tag_values'
+    API.WEBENTITY_STARTPAGE_ADD                     = 'store.add_webentity_startpage'
+    API.WEBENTITY_STARTPAGE_REMOVE                  = 'store.rm_webentity_startpage'
 
-        ,CRAWL:'crawl_webentity'
+    API.WEBENTITY_PREFIX_ADD                        = 'store.add_webentity_lruprefix'
+    API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
+    
+    API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'
+    API.WEBENTITY_SUBWEBENTITY_LIST_GET             = 'store.get_webentity_subwebentities'
+    API.WEBENTITY_PARENTWEBENTITY_LIST_GET          = 'store.get_webentity_parentwebentities'
+    API.WEBENTITY_NAME_SET                          = 'store.rename_webentity'
+    API.WEBENTITY_STATUS_SET                        = 'store.set_webentity_status'
+    API.WEBENTITY_HOMEPAGE_SET                      = 'store.set_webentity_homepage'
+    API.WEBENTITY_TAG_VALUES_SET                    = 'store.set_webentity_tag_values'
+    API.WEBENTITY_CRAWL                             = 'crawl_webentity'
+    API.WEBENTITY_FETCH_BY_URL                      = 'store.get_webentity_for_url'
+    API.WEBENTITY_FETCH_BY_PREFIX_LRU               = 'store.get_webentity_by_lruprefix'
+    API.WEBENTITY_FETCH_BY_PREFIX_URL               = 'store.get_webentity_by_lruprefix_as_url'
 
-        ,FETCH_BY_URL: 'store.get_webentity_for_url'
-        ,FETCH_BY_PREFIX_LRU: 'store.get_webentity_by_lruprefix'
-        ,FETCH_BY_PREFIX_URL: 'store.get_webentity_by_lruprefix_as_url'
-      }
-      ,PREFIX:{
-        GET_PARENTWEBENTITIES:'store.get_lru_definedprefixes'
-      }
-      ,PAGES:{
-        DECLARE:'declare_pages'
-      }
-      ,PAGE:{
-        DECLARE:'declare_page'
-      }
-      ,CRAWLJOBS:{
-        GET:'listjobs'
-      }
-      ,CRAWLJOB:{
-        CANCEL:'crawl.cancel'
-      }
-      ,STATUS:{
-        GET:'get_status'
-      }
+    API.POTENTIAL_WEBENTITY_CONTAINER_LIST_GET      = 'store.get_lru_definedprefixes'
 
-      ,URL_LOOKUP:'lookup_httpstatus'
-      ,RESET:'reinitialize'
-    }
+    API.PAGE_LIST_DECLARE                           = 'declare_pages'
 
-    api.getWebentities = buildApiCall(
-        HYPHE_API.WEBENTITIES.GET
+    API.PAGE_DECLARE                                = 'declare_page'
+
+    API.CRAWLJOB_LIST_GET                           = 'listjobs'
+
+    API.CRAWLJOB_CANCEL                             = 'crawl.cancel'
+
+    API.STATUS_GET                                  = 'get_status'
+
+    API.URL_LOOKUP                                  = 'lookup_httpstatus'
+
+    API.RESET                                       = 'reinitialize'
+
+    ns.getWebentities = buildApiCall(
+        API.WEBENTITY_LIST_GET
         ,function(settings){
           return [
             settings.id_list                // List of webentities
@@ -71,16 +56,16 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
-    api.getLruParentWebentities = buildApiCall(
-        HYPHE_API.PREFIX.GET_PARENTWEBENTITIES
+    ns.getLruParentWebentities = buildApiCall(
+        API.POTENTIAL_WEBENTITY_CONTAINER_LIST_GET
         ,function(settings){
           return [
             settings.lru
           ]}
       )
 
-    api.declareWebentity = buildApiCall(
-        HYPHE_API.WEBENTITIES.CREATE_BY_LRUS
+    ns.declareWebentity = buildApiCall(
+        API.WEBENTITY_LIST_CREATE_BY_LRU_LIST
         ,function(settings){
           return [
               settings.prefixes             // LRU list
@@ -90,8 +75,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
-    api.urlLookup = buildApiCall(
-        HYPHE_API.URL_LOOKUP
+    ns.urlLookup = buildApiCall(
+        API.URL_LOOKUP
         ,function(settings){
           return [
               settings.url
@@ -99,8 +84,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
-    api.addStartPage = buildApiCall(
-        HYPHE_API.WEBENTITY.STARTPAGE.ADD
+    ns.addStartPage = buildApiCall(
+        API.WEBENTITY_STARTPAGE_ADD
         ,function(settings){
           return [
               settings.webentityId
@@ -108,8 +93,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
-    api.removeStartPage = buildApiCall(
-        HYPHE_API.WEBENTITY.STARTPAGE.REMOVE
+    ns.removeStartPage = buildApiCall(
+        API.WEBENTITY_STARTPAGE_REMOVE
         ,function(settings){
           return [
               settings.webentityId
@@ -117,8 +102,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
-    api.addPrefix = buildApiCall(
-        HYPHE_API.WEBENTITY.PREFIX.ADD
+    ns.addPrefix = buildApiCall(
+        API.WEBENTITY_PREFIX_ADD
         ,function(settings){
           return [
               settings.webentityId
@@ -126,8 +111,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
-    api.removePrefix = buildApiCall(
-        HYPHE_API.WEBENTITY.PREFIX.REMOVE
+    ns.removePrefix = buildApiCall(
+        API.WEBENTITY_PREFIX_REMOVE
         ,function(settings){
           return [
               settings.webentityId
@@ -135,8 +120,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
-    api.webentitiesMerge = buildApiCall(
-        HYPHE_API.WEBENTITIES.MERGE
+    ns.webentitiesMerge = buildApiCall(
+        API.WEBENTITY_LIST_MERGE
         ,function(settings){
 
           // Default settings
@@ -153,8 +138,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
-    api.crawl = buildApiCall(
-        HYPHE_API.WEBENTITY.CRAWL
+    ns.crawl = buildApiCall(
+        API.WEBENTITY_CRAWL
         ,function(settings){
           return [
             settings.webentityId
@@ -165,29 +150,30 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
-    api.globalStatus = buildApiCall(
-        HYPHE_API.STATUS.GET
+    ns.globalStatus = buildApiCall(
+        API.STATUS_GET
         ,function(settings){
             return []
           }
       )
 
-    api.getCrawlJobs = buildApiCall(
-        HYPHE_API.CRAWLJOBS.GET
+    ns.getCrawlJobs = buildApiCall(
+        API.CRAWLJOB_LIST_GET
         ,function(settings){
           return [
             settings.id_list    // List of crawl jobs
           ]}
       )
 
-    api.abortCrawlJobs = buildApiCall(
-        HYPHE_API.CRAWLJOB.CANCEL
+    ns.abortCrawlJobs = buildApiCall(
+        API.CRAWLJOB_CANCEL
         ,function(settings){
           return [
             settings.id
           ]}
       )
 
+    return ns
 
     function buildApiCall(pseudo_route, params){
       return function(settings, successCallback, errorCallback){
@@ -231,8 +217,6 @@ angular.module('hyphe.service_hyphe_api', [])
         return true
       }
     }
-
-    return api
 
     function rpcError(data, status, headers, config) {
       // called asynchronously if an error occurs
