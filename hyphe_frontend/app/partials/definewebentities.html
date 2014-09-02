@@ -187,23 +187,23 @@
                     </tr>
                     <tr>
                       <td ng-if="errorList.length > 0" class="bg-danger">
-                        <button class="btn btn-default" ng-click="doRetry()">RETRY</button>
+                        <button class="btn btn-default" ng-click="doRetry(retryConflicted)">RETRY</button>
                       </td>
                        <td ng-if="conflictedList.length > 0" class="bg-warning">
                         <div class="checkbox" ng-if="errorList.length > 0">
                           <label>
-                            <input type="checkbox" ng-model="retryConflicted"> <span hyphe-glossary="retry as well"></span>
+                            <input type="checkbox" ng-model="$parent.$parent.retryConflicted"> <span hyphe-glossary="retry as well"></span>
                           </label>
                         </div>
                         <button ng-if="errorList.length == 0" class="btn btn-primary" ng-click="doRetry(true)">RETRY</button>
                       </td>
                       <td ng-if="createdList.length > 0" class="bg-success">
-                        <button class="btn btn-primary" ng-click="doCrawl()">CRAWL WEB ENTITIES</button>
+                        <button class="btn btn-primary" ng-click="doCrawl(crawlExisting)">CRAWL WEB ENTITIES</button>
                       </td>
                       <td ng-if="existingList.length > 0" class="bg-info">
                         <div class="checkbox" ng-if="createdList.length > 0">
                           <label>
-                            <input type="checkbox" ng-model="crawlExisting"> <span hyphe-glossary="crawl as well"></span>
+                            <input type="checkbox" ng-model="$parent.$parent.crawlExisting"> <span hyphe-glossary="crawl as well"></span>
                           </label>
                         </div>
                         <button ng-if="createdList.length == 0" class="btn btn-primary" ng-click="doCrawl(true)">CRAWL WEB ENTITIES</button>

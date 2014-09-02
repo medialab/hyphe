@@ -443,7 +443,7 @@ angular.module('hyphe.controllers', [])
       fetchParentWebEntities()
     }
 
-    $scope.doCrawl = function(withExisting){
+    $scope.doCrawl = function(crawlExisting){
 
       function cleanObj(obj){
         return {
@@ -460,7 +460,7 @@ angular.module('hyphe.controllers', [])
         return obj.webentity.id
       })
 
-      if(withExisting){
+      if(crawlExisting){
         $scope.existingList.forEach(function(obj){
           if(obj.webentity.id !== undefined){
             list.push(cleanObj(obj))
@@ -468,8 +468,12 @@ angular.module('hyphe.controllers', [])
         })
       }
 
-      store.set('webentities_toCrawl', list)
-      $location.path('/checkStartPages')
+      if(list.length > 0){
+        store.set('webentities_toCrawl', list)
+        $location.path('/checkStartPages')
+      } else {
+        $scope.status = {message:'No Web Entity to send', background:'danger'}
+      }
     }
 
     function bootstrapUrlList(list){
@@ -562,10 +566,6 @@ angular.module('hyphe.controllers', [])
     // Clean store
     store.remove('webentities_toCrawl')
 
-    if($scope.list.length==0){
-      $location.path('/newCrawl')
-    }
-
     // Get web entities (including start pages)
     $scope.getWebentities = function(opt){
       // Options
@@ -636,7 +636,12 @@ angular.module('hyphe.controllers', [])
 
       queriesBatcher.run()
     }
-    $scope.getWebentities()
+
+    if($scope.list.length==0){
+      $location.path('/newCrawl')
+    } else {
+      $scope.getWebentities()
+    }
 
     // Declaring a start page
     $scope.addStartPage = function(objId, apply){
