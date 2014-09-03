@@ -197,7 +197,7 @@ class LuceneCorpus(Thread):
                     elif "Unexpected throwable while invoking!" in msg:
                         pass
                     else:
-                        self.log(msg, True)
+                        self.log(msg)
                 elif msg == "shutting down":
                     if not self.stopping():
                         self.status = "stopping"
