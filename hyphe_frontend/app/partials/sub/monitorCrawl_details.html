@@ -87,6 +87,18 @@
   
 </dl>
 
+<div ng-if="lastCrawlJobs[0].crawl_arguments.phantom">
+<h3>CAUTIOUS CRAWL SETTINGS</h3>
+<dl class="dl-horizontal">
+	<dt>Page Timeout</dt>
+  <dd>{{lastCrawlJobs[0].crawl_arguments.phantom_timeout}}</dd>
+	<dt>Ajax queries Timeout</dt>
+  <dd>{{lastCrawlJobs[0].crawl_arguments.phantom_ajax_timeout}}</dd>
+	<dt>Idle Timeout</dt>
+  <dd>{{lastCrawlJobs[0].crawl_arguments.phantom_idle_timeout}}</dd>
+</dl>
+</div>
+
 <h3>DETAILED SETTINGS</h3>
 <dl class="dl-horizontal">
 

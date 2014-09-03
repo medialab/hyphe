@@ -137,6 +137,8 @@ class Core(jsonrpc.JSONRPC):
             else:
                 redeploy = True
         oldram = self.corpora[corpus]["options"]["ram"]
+        if "phantom" in options:
+            self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
         self.corpora[corpus]["options"].update(options)
         yield self.update_corpus(corpus, ram_check=False)
         if redeploy:
@@ -203,6 +205,8 @@ class Core(jsonrpc.JSONRPC):
         if options:
             try:
                 config_hci.check_conf_sanity(options, config_hci.CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True)
+                if "phantom" in options:
+                    self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
                 self.corpora[corpus]["options"].update(options)
             except Exception as e:
                 returnD(format_error(e))
@@ -506,7 +510,7 @@ class Core(jsonrpc.JSONRPC):
   # BASIC CRAWL METHODS
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id, depth=None, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], startpages="default", corpus=DEFAULT_CORPUS):
+    def jsonrpc_crawl_webentity(self, webentity_id, depth=None, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], startpages="default", phantom_timeouts={}, corpus=DEFAULT_CORPUS):
         """Tells scrapy to run crawl on a WebEntity defined by its id from memory structure."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
@@ -516,6 +520,7 @@ class Core(jsonrpc.JSONRPC):
             depth = self.corpora[corpus]["options"]['max_depth']
         if depth > self.corpora[corpus]["options"]['max_depth']:
             returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % self.corpora[corpus]["options"]['max_depth']))
+        phantom_timeouts.update(self.corpora[corpus]["options"]["phantom"])
         if startpages not in ["default", "startpages", "pages", "prefixes"]:
             returnD(format_error('ERROR: startpages argument must be one of "startpages", "pages" or "prefixes"'))
         WE = yield self.store.get_webentity_with_pages_and_subWEs(webentity_id, startpages, corpus=corpus)
@@ -530,7 +535,7 @@ class Core(jsonrpc.JSONRPC):
             returnD(format_error("ERROR: status argument must be one of '%s'" % "','".join([s.lower() for s in ms.WebEntityStatus._NAMES_TO_VALUES])))
         yield self.store.jsonrpc_set_webentity_status(webentity_id, statusval, corpus=corpus)
         yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true", corpus=corpus)
-        res = yield self.crawler.jsonrpc_start(webentity_id, WE['starts'], WE['lrus'], WE['subWEs'], self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, corpus=corpus)
+        res = yield self.crawler.jsonrpc_start(webentity_id, WE['starts'], WE['lrus'], WE['subWEs'], self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
@@ -693,7 +698,7 @@ class Crawler(jsonrpc.JSONRPC):
             returnD(format_error(e))
 
     @inlineCallbacks
-    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=None, phantom_crawl=False, download_delay=config['mongo-scrapy']['download_delay'], corpus=DEFAULT_CORPUS):
+    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=None, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], corpus=DEFAULT_CORPUS):
         """Starts a crawl with scrapy from arguments using a list of urls and of lrus for prefixes."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -708,16 +713,22 @@ class Crawler(jsonrpc.JSONRPC):
         if not starts:
             returnD(format_error('No startpage defined for crawling WebEntity %s.' % webentity_id))
         # preparation of the request to scrapyd
-        args = {'project': corpus_project(corpus),
-                  'spider': 'pages',
-                  'phantom': phantom_crawl,
-                  'setting': 'DOWNLOAD_DELAY=' + str(download_delay),
-                  'maxdepth': depth,
-                  'start_urls': list(starts),
-                  'follow_prefixes': list(follow_prefixes),
-                  'nofollow_prefixes': list(nofollow_prefixes),
-                  'discover_prefixes': list(follow_redirects),
-                  'user_agent': user_agents.agents[random.randint(0, len(user_agents.agents) - 1)]}
+        args = {
+          'project': corpus_project(corpus),
+          'spider': 'pages',
+          'phantom': phantom_crawl,
+          'setting': 'DOWNLOAD_DELAY=' + str(download_delay),
+          'maxdepth': depth,
+          'start_urls': list(starts),
+          'follow_prefixes': list(follow_prefixes),
+          'nofollow_prefixes': list(nofollow_prefixes),
+          'discover_prefixes': list(follow_redirects),
+          'user_agent': user_agents.agents[random.randint(0, len(user_agents.agents) - 1)]
+        }
+        if phantom_crawl:
+            phantom_timeouts.update(self.corpora[corpus]["options"]["phantom"])
+            for t in ["", "ajax_", "idle_"]:
+                args['phantom_%stimeout' % t] = phantom_timeouts["%stimeout"]
         res = yield self.send_scrapy_query('schedule', args)
         if is_error(res):
             returnD(reformat_error(res))
