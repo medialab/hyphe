@@ -26,10 +26,10 @@
                 <br/>
                 <div ng-show="dataText!=''">
                   <ul class="nav nav-tabs" role="tablist">
+                    <li ng-class="{active: parsingOption=='text'}"><a href="" ng-click="parsingOption='text'">Parse as text</a></li>
                     <li ng-class="{active: parsingOption=='csv'}"><a href="" ng-click="parsingOption='csv'">Parse as CSV</a></li>
                     <li ng-class="{active: parsingOption=='scsv'}"><a href="" ng-click="parsingOption='scsv'">Parse as SCSV</a></li>
                     <li ng-class="{active: parsingOption=='tsv'}"><a href="" ng-click="parsingOption='tsv'">Parse as TSV</a></li>
-                    <li ng-class="{active: parsingOption=='text'}"><a href="" ng-click="parsingOption='text'">Parse as text</a></li>
                   </ul>
                   
                   <div ng-show="parsingOption=='csv' || parsingOption=='tsv' || parsingOption=='scsv'">

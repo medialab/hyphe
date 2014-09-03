@@ -12,6 +12,8 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_LIST_CREATE_BY_LRU_LIST           = 'store.declare_webentity_by_lrus'
     API.WEBENTITY_LIST_MERGE                        = 'store.merge_webentity_into_another'
 
+    API.WEBENTITY_LIST_SEARCH_ADVANCED              = 'store.advanced_search_webentities'
+
     API.WEBENTITY_STARTPAGE_ADD                     = 'store.add_webentity_startpage'
     API.WEBENTITY_STARTPAGE_REMOVE                  = 'store.rm_webentity_startpage'
 
@@ -53,6 +55,15 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.id_list                // List of webentities
             ,settings.light || false        // Mode light
             ,settings.semiLight || false    // Mode semi-light
+          ]}
+      )
+
+    ns.searchWebentities = buildApiCall(
+        API.WEBENTITY_LIST_SEARCH_ADVANCED
+        ,function(settings){
+          return [
+            settings.allFieldsKeywords      // List of kw searched everywhere
+            ,settings.fieldKeywords         // List of [field,kw] pairs for field search
           ]}
       )
 

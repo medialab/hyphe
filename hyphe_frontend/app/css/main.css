@@ -59,6 +59,26 @@ h1, h2, h3, h4, h5, h6{
 
 
 /* ==========================================================================
+   Big Bullet Numbers
+   ========================================================================== */
+.big-bullet-number{
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  position: absolute;
+  font-size: 20px;
+  font-weight: 300;
+  text-align: center;
+  color: #000;
+  background-color: #EFEBE8;
+  margin-top: 2px;
+}
+
+
+
+
+
+/* ==========================================================================
    Login page
    ========================================================================== */
 
@@ -533,6 +553,9 @@ textarea.over-error{
 /* ==========================================================================
    View: Web Entities List
    ========================================================================== */
+.webentities-list-table{
+  margin-bottom: 0px;
+}
 .webentities-list-table .cell-checkbox{
   width: 20px;
 }
@@ -562,7 +585,42 @@ textarea.over-error{
 .webentities-list-table tr.bg-selected{
   background-color: #EFEBE8;
 }
-
+.webentities-list-actions{
+  margin-top: 12px;
+}
+.selected-webentities-container{
+  border: 1px solid #DDD;
+  overflow-y: scroll;
+  height: 200px;
+}
+.webentities-list-actions .panel-body{
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.selected-webentities-container table{
+  width: 100%;
+}
+.selected-webentities-container tr{
+  /*background-color: #EFEBE8;*/
+  border-bottom: 1px solid #DDD;
+}
+.selected-webentities-container table td.webentity-name{
+  padding: 6px;
+}
+.selected-webentities-container table td.remove-button{
+  width: 80px;
+}
+.webentities-list-actions h3{
+  margin-top: 0px;
+  margin-bottom: 12px;
+}
+.webentities-list-actions .actions-container .row{
+  padding-left: 40px;
+  margin-bottom: 12px;
+}
+.webentities-list-actions .actions-container .big-bullet-number{
+  margin-left: -40px;
+}
 
 
 
