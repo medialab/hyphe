@@ -45,7 +45,6 @@ class MongoDB(object):
           "_id": corpus,
           "name": name,
           "password": salt(password),
-          "ram": 256,
           "options": options,
           "total_webentities": 0,
           "total_crawls": 0,

@@ -1,6 +1,7 @@
 bin/hyphe
 bin/hyphe-phantomjs-1.9.7
 config/config.json*
+config/salt
 *.pid
 *.pyc
 pip-log.txt

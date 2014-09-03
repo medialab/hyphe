@@ -131,6 +131,9 @@ class LuceneCorpus(Thread):
         self.error = None
         self.choose_port()
         if not self.port:
+            time.sleep(1)
+            self.choose_port()
+        if not self.port:
             self.log("Couldn't find a port to attach MemoryStructure to", True)
             return
         self.factory.ram_free -= self.ram
@@ -292,7 +295,8 @@ class CorpusFactory(object):
         if name in self.corpora:
             self.corpora[name].stop()
             for arg in ["ram", "timeout"]:
-                kwargs[arg] = getattr(self.corpora[name], arg)
+                if arg not in kwargs:
+                    kwargs[arg] = getattr(self.corpora[name], arg)
             del(self.corpora[name])
         kwargs["loglevel"] = self.loglevel
         self.corpora[name] = LuceneCorpus(self, name, self.host, quiet=quiet, **kwargs)

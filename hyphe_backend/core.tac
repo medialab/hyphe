@@ -107,9 +107,51 @@ class Core(jsonrpc.JSONRPC):
         corpora = yield self.db.list_corpus()
         for corpus in corpora:
             corpus["password"] = (corpus["password"] != "")
+            del(corpus["options"])
             corpus.update(self.jsonrpc_test_corpus(corpus.pop('_id'))["result"])
             res[corpus["corpus_id"]] = corpus
         returnD(format_result(res))
+
+    def jsonrpc_get_corpus_options(self, corpus=DEFAULT_CORPUS):
+        if not self.corpus_ready(corpus):
+            return self.corpus_error(corpus)
+        return format_result(self.corpora[corpus]["options"])
+
+    @inlineCallbacks
+    def jsonrpc_set_corpus_options(self, corpus=DEFAULT_CORPUS, options=None):
+        if not self.corpus_ready(corpus):
+            returnD(self.corpus_error(corpus))
+        try:
+            config_hci.check_conf_sanity(options, config_hci.CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True)
+        except Exception as e:
+            returnD(format_error(e))
+        redeploy = False
+        if "precision_limit" in options:
+            returnD(format_error("Precision limit of a corpus can only be set when the corpus is created"))
+        if "proxy" in options or ("phantom" in options and (\
+          "timeout" in options["phantom"] or \
+          "ajax_timeout" in options["phantom"] or \
+          "idle_timeout" in options["phantom"])):
+            if self.corpora[corpus]['crawls_running']:
+                returnD(format_error("Please stop currently running crawls before modifiying the crawler's settings"))
+            else:
+                redeploy = True
+        oldram = self.corpora[corpus]["options"]["ram"]
+        self.corpora[corpus]["options"].update(options)
+        yield self.update_corpus(corpus, ram_check=False)
+        if redeploy:
+            res = yield self.crawler.jsonrpc_deploy_crawler(corpus)
+            if is_error(res):
+                returnD(res)
+        if "ram" in options and options["ram"] != oldram:
+            res = yield self.stop_corpus(corpus, quiet=True)
+            if is_error(res):
+                returnD(res)
+            corpus_conf = yield self.db.get_corpus(corpus)
+            res = yield self.start_corpus(corpus, password=corpus_conf["password"])
+            if is_error(res):
+                returnD(res)
+        returnD(format_result(self.corpora[corpus]["options"]))
 
     def corpus_ready(self, corpus):
         return corpus in self.corpora and self.msclients.test_corpus(corpus)
@@ -139,13 +181,37 @@ class Core(jsonrpc.JSONRPC):
             corpus_idx += 1
             existing = yield self.db.get_corpus(corpus)
 
-        self.corpora[corpus] = {"name": name}
+        self.corpora[corpus] = {
+          "name": name,
+          "options": {
+            "ram": 256,
+            "max_depth": config["mongo-scrapy"]["maxdepth"],
+            "precision_limit": config["precisionLimit"],
+            "follow_redirects": config["discoverPrefixes"],
+            "proxy": {
+              "host": config["mongo-scrapy"]["proxy_host"],
+              "port": config["mongo-scrapy"]["proxy_port"]
+            },
+            "phantom": {
+              "timeout": config["phantom"]["timeout"],
+              "idle_timeout": config["phantom"]["idle_timeout"],
+              "ajax_timeout": config["phantom"]["ajax_timeout"],
+              "whitelist_domains": config["phantom"]["whitelist_domains"]
+            }
+          }
+        }
+        if options:
+            try:
+                config_hci.check_conf_sanity(options, config_hci.CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True)
+                self.corpora[corpus]["options"].update(options)
+            except Exception as e:
+                returnD(format_error(e))
 
-        yield self.db.add_corpus(corpus, name, password, options)
+        yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"])
         try:
-            res = yield self.crawler.deploy_spider(corpus)
+            res = yield self.crawler.jsonrpc_deploy_crawler(corpus)
         except:
-            returnD(format_error("Could not deploy corpus' scrapyd spider"))
+            returnD(format_error("Could not deploy crawler for corpus"))
         if not res:
             returnD(res)
         res = self.store.ensureDefaultCreationRuleExists(corpus, quiet=quiet)
@@ -173,12 +239,12 @@ class Core(jsonrpc.JSONRPC):
         if self.factory_full():
             returnD(self.corpus_error())
 
-        res = self.msclients.start_corpus(corpus, quiet, ram=corpus_conf['ram'])
+        res = self.msclients.start_corpus(corpus, quiet, ram=corpus_conf['options']['ram'])
         if not res:
             returnD(format_error(self.jsonrpc_test_corpus(corpus)["result"]))
         self.corpora[corpus] = {
           "name": corpus_conf["name"],
-          "ram": corpus_conf["ram"],
+          "options": corpus_conf["options"],
           "total_webentities": corpus_conf['total_webentities'],
           "crawls": corpus_conf['total_crawls'],
           "crawls_running": 0,
@@ -199,9 +265,11 @@ class Core(jsonrpc.JSONRPC):
         returnD(self.jsonrpc_test_corpus(corpus))
 
     @inlineCallbacks
-    def update_corpus(self, corpus=DEFAULT_CORPUS):
+    def update_corpus(self, corpus=DEFAULT_CORPUS, ram_check=True):
+        if ram_check:
+            self.corpora[corpus]["options"]["ram"] = self.msclients.corpora[corpus].ram
         yield self.db.update_corpus(corpus, {
-          "ram": self.msclients.corpora[corpus].ram,
+          "options": self.corpora[corpus]["options"],
           "total_webentities": self.corpora[corpus]['total_webentities'],
           "total_crawls": self.corpora[corpus]['crawls'],
           "total_pages": self.corpora[corpus]['pages_found'],
@@ -220,8 +288,9 @@ class Core(jsonrpc.JSONRPC):
             for f in ["jobs_loop", "index_loop"]:
                 if f in self.corpora[corpus] and self.corpora[corpus][f].running:
                     self.corpora[corpus][f].stop()
-            yield self.update_corpus(corpus)
-            self.msclients.stop_corpus(corpus, quiet)
+            if corpus in self.msclients.corpora:
+                yield self.update_corpus(corpus, ram_check=False)
+                self.msclients.stop_corpus(corpus, quiet)
             for f in ["tags", "webentities", "webentities_links", "precision_exceptions"]:
                 if f in self.corpora[corpus]:
                     del(self.corpora[corpus][f])
@@ -312,7 +381,7 @@ class Core(jsonrpc.JSONRPC):
         WEs_DISC = WEs_total - WEs_IN - WEs_OUT - WEs_UND
         corpus_status = {
           'name': self.corpora[corpus]['name'],
-          'ram': self.msclients.corpora[corpus].ram,
+          'options': self.corpora[corpus]['options'],
           'crawler': {
             'jobs_finished': self.corpora[corpus]['crawls'] - self.corpora[corpus]['crawls_pending'] - self.corpora[corpus]['crawls_running'],
             'jobs_pending': self.corpora[corpus]['crawls_pending'],
@@ -437,16 +506,16 @@ class Core(jsonrpc.JSONRPC):
   # BASIC CRAWL METHODS
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id, maxdepth=None, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], startpages="default", corpus=DEFAULT_CORPUS):
+    def jsonrpc_crawl_webentity(self, webentity_id, depth=None, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], startpages="default", corpus=DEFAULT_CORPUS):
         """Tells scrapy to run crawl on a WebEntity defined by its id from memory structure."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         try:
-            maxdepth = int(maxdepth)
+            depth = int(depth)
         except:
-            maxdepth = config['mongo-scrapy']['maxdepth']
-        if maxdepth > config['mongo-scrapy']['maxdepth']:
-            returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % config['mongo-scrapy']['maxdepth']))
+            depth = self.corpora[corpus]["options"]['max_depth']
+        if depth > self.corpora[corpus]["options"]['max_depth']:
+            returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % self.corpora[corpus]["options"]['max_depth']))
         if startpages not in ["default", "startpages", "pages", "prefixes"]:
             returnD(format_error('ERROR: startpages argument must be one of "startpages", "pages" or "prefixes"'))
         WE = yield self.store.get_webentity_with_pages_and_subWEs(webentity_id, startpages, corpus=corpus)
@@ -461,7 +530,7 @@ class Core(jsonrpc.JSONRPC):
             returnD(format_error("ERROR: status argument must be one of '%s'" % "','".join([s.lower() for s in ms.WebEntityStatus._NAMES_TO_VALUES])))
         yield self.store.jsonrpc_set_webentity_status(webentity_id, statusval, corpus=corpus)
         yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true", corpus=corpus)
-        res = yield self.crawler.jsonrpc_start(webentity_id, WE['starts'], WE['lrus'], WE['subWEs'], config['discoverPrefixes'], maxdepth, phantom_crawl, corpus=corpus)
+        res = yield self.crawler.jsonrpc_start(webentity_id, WE['starts'], WE['lrus'], WE['subWEs'], self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
@@ -483,11 +552,11 @@ class Core(jsonrpc.JSONRPC):
     def lookup_httpstatus(self, url, timeout=5, deadline=0, tryout=0, noproxy=False, corpus=None):
         res = format_result(0)
         timeout = int(timeout)
-        use_proxy = config['proxy']['host'] and not noproxy
+        use_proxy = self.corpora[corpus]["options"]['proxy']['host'] and not noproxy
         try:
             url = urllru.url_clean(str(url))
             if use_proxy:
-                agent = ProxyAgent(TCP4ClientEndpoint(reactor, config['proxy']['host'], config['proxy']['port'], timeout=timeout))
+                agent = ProxyAgent(TCP4ClientEndpoint(reactor, self.corpora[corpus]["options"]['proxy']['host'], self.corpora[corpus]["options"]['proxy']['port'], timeout=timeout))
             else:
                 agent = Agent(reactor, connectTimeout=timeout)
             method = "HEAD"
@@ -497,7 +566,7 @@ class Core(jsonrpc.JSONRPC):
                       'User-Agent': [user_agents.agents[random.randint(0, len(user_agents.agents) -1)]]}
             response = yield agent.request(method, url, Headers(headers), None)
         except DNSLookupError as e:
-            if use_proxy and config['proxy']['host'] in str(e):
+            if use_proxy and self.corpora[corpus]["options"]['proxy']['host'] in str(e):
                 res['message'] = "Proxy not responding"
                 res['result'] = -2
             else:
@@ -550,12 +619,14 @@ class Crawler(jsonrpc.JSONRPC):
         self.corpora = self.parent.corpora
 
     @inlineCallbacks
-    def deploy_spider(self, corpus=DEFAULT_CORPUS):
+    def jsonrpc_deploy_crawler(self, corpus=DEFAULT_CORPUS):
         output = subprocess.Popen(['bash', 'bin/deploy_scrapy_spider.sh', corpus, '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
         res = yield self.send_scrapy_query('listprojects')
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
+            logger.msg("Couldn't deploy crawler", system="ERROR - %s" % corpus)
             returnD(format_error(output))
-        returnD(format_result('Spider %s deployed' % corpus_project(corpus)))
+        logger.msg("Successfully deployed crawler", system="INFO - %s" % corpus)
+        returnD(format_result('Crawler %s deployed' % corpus_project(corpus)))
 
     @inlineCallbacks
     def jsonrpc_cancel_all(self, corpus=DEFAULT_CORPUS):
@@ -622,14 +693,18 @@ class Crawler(jsonrpc.JSONRPC):
             returnD(format_error(e))
 
     @inlineCallbacks
-    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, discover_prefixes=config['discoverPrefixes'], maxdepth=config['mongo-scrapy']['maxdepth'], phantom_crawl=False, download_delay=config['mongo-scrapy']['download_delay'], corpus=DEFAULT_CORPUS):
+    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=None, phantom_crawl=False, download_delay=config['mongo-scrapy']['download_delay'], corpus=DEFAULT_CORPUS):
         """Starts a crawl with scrapy from arguments using a list of urls and of lrus for prefixes."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        if not phantom_crawl and urls_match_domainlist(starts, config['phantom']['whitelist_domains']):
+        if not phantom_crawl and urls_match_domainlist(starts, self.corpora[corpus]["options"]['phantom']['whitelist_domains']):
             phantom_crawl = True
-        if maxdepth > config['mongo-scrapy']['maxdepth']:
-            returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % config['mongo-scrapy']['maxdepth']))
+        if not follow_redirects:
+            follow_redirects = self.corpora[corpus]["options"]["follow_redirects"]
+        if not depth:
+            depth = self.corpora[corpus]["options"]["max_depth"]
+        if depth > self.corpora[corpus]["options"]['max_depth']:
+            returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % self.corpora[corpus]["options"]['max_depth']))
         if not starts:
             returnD(format_error('No startpage defined for crawling WebEntity %s.' % webentity_id))
         # preparation of the request to scrapyd
@@ -637,11 +712,11 @@ class Crawler(jsonrpc.JSONRPC):
                   'spider': 'pages',
                   'phantom': phantom_crawl,
                   'setting': 'DOWNLOAD_DELAY=' + str(download_delay),
-                  'maxdepth': maxdepth,
+                  'maxdepth': depth,
                   'start_urls': list(starts),
                   'follow_prefixes': list(follow_prefixes),
                   'nofollow_prefixes': list(nofollow_prefixes),
-                  'discover_prefixes': list(discover_prefixes),
+                  'discover_prefixes': list(follow_redirects),
                   'user_agent': user_agents.agents[random.randint(0, len(user_agents.agents) - 1)]}
         res = yield self.send_scrapy_query('schedule', args)
         if is_error(res):
@@ -832,7 +907,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not self.parent.corpus_ready(corpus):
             return self.parent.corpus_error(corpus)
         lru_head = urllru.lru_get_head(lru_prefix, self.corpora[corpus]['precision_exceptions'])
-        if not urllru.lru_is_node(lru_prefix, config["precisionLimit"], lru_head=lru_head) and lru_prefix != lru_head:
+        if not urllru.lru_is_node(lru_prefix, self.corpora[corpus]["options"]["precision_limit"], lru_head=lru_head) and lru_prefix != lru_head:
             res = self.msclients.sync.addPrecisionExceptions([lru_prefix], corpus=corpus)
             if is_error(res):
                 return res
@@ -848,7 +923,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = self.handle_lru_precision_exceptions(lru, corpus=corpus)
         if is_error(res):
             returnD(res)
-        is_node = urllru.lru_is_node(lru, config["precisionLimit"], self.corpora[corpus]['precision_exceptions'])
+        is_node = urllru.lru_is_node(lru, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'])
         is_full_precision = urllru.lru_is_full_precision(lru, self.corpora[corpus]['precision_exceptions'])
         t = str(int(time.time()*1000))
         page = ms.PageItem(url, lru, t, None, -1, None, ['USER'], is_full_precision, is_node, {})
@@ -1127,7 +1202,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         nb_crawled_pages = len(ids)
         if not nb_crawled_pages:
             returnD(False)
-        pages, links = yield deferToThread(processor.generate_cache_from_pages_list, page_items, config["precisionLimit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0)
+        pages, links = yield deferToThread(processor.generate_cache_from_pages_list, page_items, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0)
         s=time.time()
         cache_id = yield self.msclients.loop.createCache(pages.values(), corpus=corpus)
         if is_error(cache_id):
@@ -1620,23 +1695,23 @@ except Exception as x:
         print type(x), x
     exit(1)
 
-def test_scrapyd(cor, corpus):
+def test_start(cor, corpus):
+    d = cor.start_corpus(corpus, quiet=True, noloop=True, create_if_missing=True)
+    d.addCallback(test_scrapyd, cor, corpus)
+def test_scrapyd(res, cor, corpus):
+    if is_error(res):
+        return stop_tests(res, cor, corpus, "Could not create corpus")
     d = cor.crawler.send_scrapy_query('delproject', {'project': corpus_project(corpus)})
     d.addCallback(test_deploy, cor, corpus)
 def test_deploy(res, cor, corpus):
     if is_error(res):
         print "WARNING: Could not delete existing scrapy spider: %s" % res['message']
         print "Trying to deploy anyway"
-    d = cor.crawler.deploy_spider(corpus)
-    d.addCallback(test_start, cor, corpus)
-def test_start(res, cor, corpus):
-    if is_error(res):
-        return stop_tests(res, cor, corpus, "Could not connect to scrapyd server to deploy spider, please check your server and the configuration in config.json.")
-    d = cor.start_corpus(corpus, quiet=True, noloop=True, create_if_missing=True)
+    d = cor.crawler.jsonrpc_deploy_crawler(corpus)
     d.addCallback(test_ping, cor, corpus)
 def test_ping(res, cor, corpus):
     if is_error(res):
-        return stop_tests(res, cor, corpus, "Could not create corpus")
+        return stop_tests(res, cor, corpus, "Could not connect to scrapyd server to deploy spider, please check your server and the configuration in config.json.")
     d = defer.succeed(cor.jsonrpc_ping(corpus, timeout=5))
     d.addCallback(test_destroy, cor, corpus)
 def test_destroy(res, cor, corpus):
@@ -1656,7 +1731,7 @@ def stop_tests(res, cor, corpus, msg=None):
     else:
         print "All tests passed. Ready!"
 
-reactor.callLater(1, test_scrapyd, core, "--test-corpus--")
+reactor.callLater(1, test_start, core, "--test-corpus--")
 
 # Activate default corpus automatically if in monocorpus
 if not config["MULTICORPUS"]:

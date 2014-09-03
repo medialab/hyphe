@@ -32,6 +32,19 @@ config = config_hci.load_config()
 if not config:
     exit()
 
+# Get corpus project's config in DB to replace default global conf
+from pymongo import Connection
+corpus_conf = Connection(config["mongo-scrapy"]["host"], config["mongo-scrapy"]["mongo_port"])[config["mongo-scrapy"]["db_name"]]["corpus"].find_one({"_id": project})
+if corpus_conf:
+    corpus_conf = corpus_conf["options"]
+    config["phantom"].update(corpus_conf["phantom"])
+    if corpus_conf["proxy"]["host"]:
+        config["mongo-scrapy"]["proxy_host"] = corpus_conf["proxy"]["host"]
+    if corpus_conf["proxy"]["port"]:
+        config["mongo-scrapy"]["proxy_port"] = corpus_conf["proxy"]["port"]
+else:
+    print "WARNING: trying to deploy a crawler for a corpus project missing in DB"
+
 # Copy LRU library from HCI lib/
 if verbose:
     print "Importing urllru.py library from HCI hyphe_backend/lib to hcicrawler..."
@@ -47,10 +60,6 @@ except IOError as e:
 if verbose:
     print "Rendering settings.py with mongo-scrapy config values from config.json..."
 try:
-    if 'proxy_host' not in config['mongo-scrapy']:
-        config['mongo-scrapy']['proxy_host'] = ''
-    if 'proxy_port' not in config['mongo-scrapy']:
-        config['mongo-scrapy']['proxy_port'] = 3128
     curpath = os.path.abspath(getsourcefile(lambda _: None))
     config['mongo-scrapy']['hyphePath'] = os.path.sep.join(curpath.split(os.path.sep)[:-3])
     config['mongo-scrapy']['db_name'] = config['mongo-scrapy']['db_name'].lower()

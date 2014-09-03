@@ -93,8 +93,8 @@ except:
         ).hexdigest()
         f.write(SALT)
 def salt(passwd):
-    passwd = passwd.strip().lower()
-    if not passwd:
+    if not passwd or not passwd.strip().lower():
         return ""
+    passwd = passwd.strip().lower()
     return hashlib.sha256(passwd + SALT).hexdigest()
 

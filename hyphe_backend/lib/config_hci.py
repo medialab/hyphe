@@ -26,19 +26,19 @@ def load_config():
     if "MULTICORPUS" not in conf or not conf["MULTICORPUS"]:
         conf["MULTICORPUS"] = False
 
+  # Set default noproxy setting if missing
+    if "mongo-scrapy" in conf:
+        if 'proxy_host' not in conf['mongo-scrapy']:
+            conf['mongo-scrapy']['proxy_host'] = ''
+        if 'proxy_port' not in conf['mongo-scrapy']:
+            conf['mongo-scrapy']['proxy_port'] = 3128
+
   # Check sanity
     try:
-        check_conf_sanity(conf)
+        check_conf_sanity(conf, GLOBAL_CONF_SCHEMA)
     except Exception as e:
         print e
         return False
-
-
-  # Handle proxy conf
-    conf['proxy'] = {'host': '', 'port': 3128}
-    if conf['mongo-scrapy']['proxy_host']:
-        conf['proxy']['host'] = conf['mongo-scrapy']['proxy_host']
-        conf['proxy']['port'] = conf['mongo-scrapy']['proxy_port']
 
 
   # Test MongoDB server
@@ -109,7 +109,7 @@ def load_config():
     return conf
 
 
-config_schema = {
+GLOBAL_CONF_SCHEMA = {
   "mongo-scrapy": {
     "type": dict,
     "int_fields": ["mongo_port", "proxy_port", "scrapy_port", "maxdepth", "max_simul_requests", "max_simul_requests_per_host"],
@@ -161,56 +161,88 @@ config_schema = {
   }
 }
 
-error_config = lambda x, ns: Exception("ERROR in %s while reading %s:\n%s" % (CONFIG_FILE, "field %s" % ns if ns else "", x))
+CORPUS_CONF_SCHEMA = {
+  "ram":              {"type": int},
+  "max_depth":        {"type": int},
+  "precision_limit":  {"type": int},
+  "follow_redirects": {"type": list},
+  "proxy": {
+    "type": dict,
+    "str_fields": ["host"],
+    "int_fields": ["port"]
+  },
+  "phantom": {
+    "type": dict,
+    "int_fields": ["timeout", "idle_timeout", "ajax_timeout"],
+    "extra_fields": {
+      "whitelist_domains": list
+    }
+  }
+}
 
-def check_conf_sanity(conf):
-    for ns, rules in config_schema.iteritems():
+
+error_config = lambda x, ns, nm: Exception("ERROR in %s while reading %s:\n%s" % (nm, "field %s" % ns if ns else "", x))
+
+def check_conf_sanity(conf, schema, name=CONFIG_FILE, soft=False):
+    for ns, rules in schema.iteritems():
         if ns not in conf:
-            raise(error_config("field %s missing" % ns, ""))
-        test_type(conf[ns], rules["type"], ns)
+            if soft:
+                continue
+            raise(error_config("field %s missing" % ns, "", name))
+        test_type(conf[ns], rules["type"], ns, name=name)
         if rules["type"] == dict:
             for f in rules.get("int_fields", []):
                 if f not in conf[ns]:
-                    raise(error_config("int field %s missing" % f, ns))
-                test_type(conf[ns][f], int, f, ns)
+                    if soft:
+                        continue
+                    raise(error_config("int field %s missing" % f, ns, name))
+                test_type(conf[ns][f], int, f, ns, name=name)
             for f in rules.get("str_fields", []):
                 if f not in conf[ns]:
-                    raise(error_config("string field %s missing" % f, ns))
-                test_type(conf[ns][f], str, f, ns)
+                    if soft:
+                        continue
+                    raise(error_config("string field %s missing" % f, ns, name))
+                test_type(conf[ns][f], str, f, ns, name=name)
             for f, otyp in rules.get("extra_fields", {}).iteritems():
                 if f not in conf[ns]:
-                    raise(error_config("%s field %s missing" % (otyp, f), ns))
-                test_type(conf[ns][f], otyp, f, ns)
+                    if soft:
+                        continue
+                    raise(error_config("%s field %s missing" % (otyp, f), ns, name))
+                test_type(conf[ns][f], otyp, f, ns, name=name)
+            if "MULTICORPUS" not in conf:
+                continue
             corpustype = "%scorpus" % ("multi" if conf["MULTICORPUS"] else "mono")
             for f, otyp in rules.get(corpustype, {}).iteritems():
                 if f not in conf[ns]:
-                    raise(error_config("%s field %s missing for mode %s" % (otyp, f, corpustype.upper()), ns))
-                test_type(conf[ns][f], otyp, f, ns)
+                    if soft:
+                        continue
+                    raise(error_config("%s field %s missing for mode %s" % (otyp, f, corpustype.upper()), ns, name))
+                test_type(conf[ns][f], otyp, f, ns, name=name)
 
-def test_type(obj, otype, ns, ns2=""):
+def test_type(obj, otype, ns, ns2="", name=CONFIG_FILE):
     if type(otype) == list:
         if obj not in otype:
-            raise(error_config("field %s should be one of %s" % (ns, ", ".join(otype)), ns2))
+            raise(error_config("field %s should be one of %s" % (ns, ", ".join(otype)), ns2, name))
     elif otype == str or otype == "path":
         if type(obj) not in [str, bytes, unicode]:
-            raise(error_config("field %s should be a string" % ns, ns2))
+            raise(error_config("field %s should be a string" % ns, ns2, name))
         if otype == "path":
             try:
                 test_and_make_dir(obj)
             except:
-                raise(error_config("field %s should be a writable directory path" % ns, ns2))
+                raise(error_config("field %s should be a writable directory path" % ns, ns2, name))
     elif otype == "range":
         if not (type(obj) in (list, tuple) and len(obj) == 2 and type(obj[0]) == int and type(obj[1]) == int):
-            raise(error_config("field %s should be a list of two int values" % ns, ns2))
+            raise(error_config("field %s should be a list of two int values" % ns, ns2, name))
     elif otype == float:
         if type(obj) not in [float, int]:
-            raise(error_config("field %s should a number" % ns, ns2))
+            raise(error_config("field %s should a number" % ns, ns2, name))
     elif otype != bool and type(obj) != otype:
-        raise(error_config("field %s should be of type %s" % (ns, str(otype)), ns2))
+        raise(error_config("field %s should be of type %s" % (ns, str(otype)), ns2, name))
     if otype == list:
         for e in obj:
             if type(e) not in [str, bytes, unicode]:
-                raise(error_config("%s should be a list of strings" % ns, ns2))
+                raise(error_config("%s should be a list of strings" % ns, ns2, name))
 
 def test_and_make_dir(path):
     try:
