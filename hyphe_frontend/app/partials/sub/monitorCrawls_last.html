@@ -35,6 +35,9 @@
 	      <p class="subtitle">
 	        Scheduled <span tooltip="{{job.created_at|date}}">{{job.created_at|prettyDate}}</span>
 	      </p>
+	      <p ng-if="job.finished_at" class="subtitle">
+	        Finished in {{job.finished_at - job.created_at|duration}}
+	      </p>
 	      <p class="subtitle" ng-if="job.crawl_arguments.phantom">
 					<span class="glyphicon glyphicon-bell"></span> Cautious crawl
 				</p>
