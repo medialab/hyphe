@@ -1582,6 +1582,8 @@ angular.module('hyphe.controllers', [])
           ,fieldKeywords: field_kw
         }
         ,function(webentities){
+          $scope.paginationPage = 1
+
           $scope.list = webentities.map(function(we, i){
             var obj = {id:i, webentity:we, checked:$scope.checkedList.some(function(weId){return weId == we.id})}
             return obj
@@ -1637,9 +1639,9 @@ angular.module('hyphe.controllers', [])
       if(query === undefined)
         return undefined
       escapedChars.forEach(function(character){
-        query = '*' + query.replace(character, '\\'+character) + '*'
+        query = query.replace(character, '\\'+character)
       })
-      return query
+      return '*' + query + '*'
       // return query.replace(' ', '?')
     }
     

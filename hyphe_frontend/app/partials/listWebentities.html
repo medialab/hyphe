@@ -80,7 +80,7 @@
                     <!-- Rows -->
                     <tr
                       class="webentity-row"
-                      ng-repeat="obj in list|paginate:paginationPage:paginationLength track by $index"
+                      ng-repeat="obj in list|paginate:$parent.paginationPage:paginationLength track by $index"
                       ng-click="toggleRow(obj.id)"
                       ng-class="{'bg-selected':obj.checked}"
                     >
@@ -106,7 +106,7 @@
 
               <!-- Pagination  -->
               <div class="text-center">
-                <pagination total-items="list.length" ng-model="$parent.paginationPage" items-per-page="paginationLength" boundary-links="true" rotate="false" max-size="paginationNumPages" ng-if="list.length > paginationLength"></pagination>
+                <pagination total-items="list.length" ng-model="$parent.$parent.paginationPage" items-per-page="paginationLength" boundary-links="true" rotate="false" max-size="paginationNumPages" ng-if="list.length > paginationLength"></pagination>
               </div>
 
               <!-- Checked Actions -->
