@@ -52,9 +52,9 @@ class PagesCrawler(BaseSpider):
         self.user_agent = args['user_agent']
         self.phantom = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
         if self.phantom:
-            self.ph_timeout = args.get('phantom_timeout', PHANTOM['TIMEOUT'])
-            self.ph_idle_timeout = args.get('phantom_idle_timeout', PHANTOM['IDLE_TIMEOUT'])
-            self.ph_ajax_timeout = args.get('phantom_ajax_timeout', PHANTOM['AJAX_TIMEOUT'])
+            self.ph_timeout = int(args.get('phantom_timeout', PHANTOM['TIMEOUT']))
+            self.ph_idle_timeout = int(args.get('phantom_idle_timeout', PHANTOM['IDLE_TIMEOUT']))
+            self.ph_ajax_timeout = int(args.get('phantom_ajax_timeout', PHANTOM['AJAX_TIMEOUT']))
         self.errors = 0
         dispatcher.connect(self.closed, spider_closed)
         dispatcher.connect(self.crashed, spider_error)

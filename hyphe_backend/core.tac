@@ -728,7 +728,7 @@ class Crawler(jsonrpc.JSONRPC):
         if phantom_crawl:
             phantom_timeouts.update(self.corpora[corpus]["options"]["phantom"])
             for t in ["", "ajax_", "idle_"]:
-                args['phantom_%stimeout' % t] = phantom_timeouts["%stimeout"]
+                args['phantom_%stimeout' % t] = phantom_timeouts["%stimeout" % t]
         res = yield self.send_scrapy_query('schedule', args)
         if is_error(res):
             returnD(reformat_error(res))
