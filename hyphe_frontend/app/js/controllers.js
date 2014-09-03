@@ -1322,10 +1322,13 @@ angular.module('hyphe.controllers', [])
       }, $scope.msTimeout)
     }
 
-    $scope.abortCrawl = function(jobId){
+    $scope.abortCrawl = function(job){
       $scope.status = {message: 'Aborting crawl jobs'}
+      
+      job.crawling_status = 'CANCELED'
+
       api.abortCrawlJobs(
-        {id:jobId}
+        {id:job._id}
         ,function(){
           
           $scope.setTimespan('day')
