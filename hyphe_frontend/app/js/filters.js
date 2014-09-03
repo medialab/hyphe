@@ -63,7 +63,7 @@ angular.module('hyphe.filters', [])
 
   .filter('date', [function(){
     return function(timestamp) {
-      return (new Date(timestamp)).toLocaleString()
+      return (new Date(+timestamp)).toLocaleString()
     }
   }])
 

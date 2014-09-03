@@ -446,6 +446,7 @@ textarea.over-error{
 }
 
 
+
 /* ==========================================================================
    View: Monitor Crawls
    ========================================================================== */
@@ -525,6 +526,41 @@ textarea.over-error{
 
 .crawljob-details h3{
   padding-top: 32px;
+}
+
+
+
+/* ==========================================================================
+   View: Web Entities List
+   ========================================================================== */
+.webentities-list-table .cell-checkbox{
+  width: 20px;
+}
+.webentities-list-table .cell-status{
+  width: 120px;
+}
+.webentities-list-table .cell-last-crawled{
+  width: 80px;
+}
+.webentities-list-table .cell-last-modif{
+  width: 150px;
+}
+.webentities-list-table .panel-heading{
+  padding: 6px;
+  height: 88px;
+}
+.webentities-list-table .form-inline{
+  padding-top: 6px;
+}
+.webentities-list-table .webentity-row{
+  cursor: pointer;
+  -webkit-user-select: none; /* Chrome/Safari */        
+     -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+               select: none;
+}
+.webentities-list-table tr.bg-selected{
+  background-color: #EFEBE8;
 }
 
 
