@@ -1263,7 +1263,7 @@ angular.module('hyphe.controllers', [])
 
         // Sort by reverse chronological order
         .sort(function(a,b){
-          return b.timestamp - a.timestamp
+          return b.created_at - a.created_at
         })
 
         // Enrich
@@ -1410,7 +1410,7 @@ angular.module('hyphe.controllers', [])
 
       if(update){
         $scope.lastCrawlJobs = ($scope.crawlJobs || []).filter(function(job){
-          return now - job.timestamp < timespanMs
+          return now - job.created_at < timespanMs
         })
       }
 

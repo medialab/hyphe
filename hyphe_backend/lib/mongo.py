@@ -81,8 +81,8 @@ class MongoDB(object):
         yield self.logs(corpus).ensure_index(sortasc('timestamp'), background=True, safe=True)
         yield self.jobs(corpus).ensure_index(sortasc('crawling_status'), background=True, safe=True)
         yield self.jobs(corpus).ensure_index(sortasc('indexing_status'), background=True, safe=True)
-        yield self.jobs(corpus).ensure_index(sortasc('webentity_id') + sortasc('timestamp'), background=True, safe=True)
-        yield self.jobs(corpus).ensure_index(sortasc('crawling_status') + sortasc('indexing_status') + sortasc('timestamp'), background=True, safe=True)
+        yield self.jobs(corpus).ensure_index(sortasc('webentity_id') + sortasc('created_at'), background=True, safe=True)
+        yield self.jobs(corpus).ensure_index(sortasc('crawling_status') + sortasc('indexing_status') + sortasc('created_at'), background=True, safe=True)
 
     def _get_coll(self, corpus, name):
         return self.db["%s.%s" % (corpus, name)]
@@ -127,8 +127,13 @@ class MongoDB(object):
     def list_jobs(self, corpus, *args, **kwargs):
         kwargs["safe"] = True
         if "filter" not in kwargs:
-            kwargs["filter"] = sortasc("crawling_status") + sortasc("indexing_status") + sortasc("timestamp")
+            kwargs["filter"] = sortasc("crawling_status") + sortasc("indexing_status") + sortasc("created_at")
         jobs = yield self.jobs(corpus).find(*args, **kwargs)
+        for j in jobs:
+            if "created_at" not in j and "timestamp" in j:
+                j["created_at"] = j["timestamp"]
+                for k in ['start', 'crawl', 'finish']:
+                    j["%sed_at" % k] = None
         if jobs and "limit" in kwargs and kwargs["limit"] == 1:
             jobs = jobs[0]
         returnD(jobs)
@@ -146,7 +151,10 @@ class MongoDB(object):
           "crawl_arguments": args,
           "crawling_status": crawling_statuses.PENDING,
           "indexing_status": indexing_statuses.PENDING,
-          "timestamp": timestamp
+          "created_at": timestamp,
+          "started_at": None,
+          "crawled_at": None,
+          "finished_at": None
         }, safe=True)
 
     @inlineCallbacks

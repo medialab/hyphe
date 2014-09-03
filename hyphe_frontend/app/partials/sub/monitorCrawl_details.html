@@ -1,5 +1,5 @@
 <h2>
-  {{webentityIndex[lastCrawlJobs[0].webentity_id].name || 'Web Entity Loading'}} - <span class="text-muted" tooltip="{{lastCrawlJobs[0].timestamp|date}}">{{lastCrawlJobs[0].timestamp|prettyDate}}</span>
+  {{webentityIndex[lastCrawlJobs[0].webentity_id].name || 'Web Entity Loading'}} - <span class="text-muted" tooltip="{{lastCrawlJobs[0].created_at|date}}">{{lastCrawlJobs[0].created_at|prettyDate}}</span>
 </h2>
 
 <br>
@@ -27,7 +27,7 @@
 <dl class="dl-horizontal">
 
 	<dt>Scheduled</dt>
-  <dd><span tooltip="{{lastCrawlJobs[0].timestamp|date}}">{{lastCrawlJobs[0].timestamp|prettyDate}}</span></dd>
+  <dd><span tooltip="{{lastCrawlJobs[0].created_at|date}}">{{lastCrawlJobs[0].created_at|prettyDate}}</span></dd>
 
 	<dt>Status</dt>
   <dd><span  ng-class="{

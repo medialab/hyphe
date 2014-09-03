@@ -33,7 +33,7 @@
 	        {{webentityIndex[job.webentity_id].name || 'Web Entity Loading'}}
 	      </p>
 	      <p class="subtitle">
-	        Scheduled <span tooltip="{{job.timestamp|date}}">{{job.timestamp|prettyDate}}</span>
+	        Scheduled <span tooltip="{{job.created_at|date}}">{{job.created_at|prettyDate}}</span>
 	      </p>
 	      <p class="subtitle" ng-if="job.crawl_arguments.phantom">
 					<span class="glyphicon glyphicon-bell"></span> Cautious crawl

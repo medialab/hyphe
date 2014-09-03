@@ -261,7 +261,7 @@ HypheCommons.domino_init()
                 ,webEntitites_idDisplayed = []
 
             jobs.sort(function(a,b){
-                return b.timestamp - a.timestamp
+                return b.created_at - a.created_at
             })
             if(!showFinished){
                 jobs = jobs.filter(function(job, i){
@@ -405,7 +405,7 @@ HypheCommons.domino_init()
                         )
                     ).append(
                         $('<p/>').append(
-                            $('<span/>').text('Launched '+Utils.prettyDate((new Date()).setTime(crawlJob.timestamp)).toLowerCase())
+                            $('<span/>').text('Launched '+Utils.prettyDate((new Date()).setTime(crawlJob.created_at)).toLowerCase())
                         ).append(
                             $('<br/>')
                         ).append(

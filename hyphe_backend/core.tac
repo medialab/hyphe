@@ -444,9 +444,9 @@ class Core(jsonrpc.JSONRPC):
         yield self.update_corpus(corpus)
         # clean lost jobs
         if len(scrapyjobs['running']) + len(scrapyjobs['pending']) == 0:
-            yield self.db.update_jobs(corpus, {'crawling_status': {'$in': [crawling_statuses.PENDING, crawling_statuses.RUNNING]}}, {'crawling_status': crawling_statuses.FINISHED})
+            yield self.db.update_jobs(corpus, {'crawling_status': {'$in': [crawling_statuses.PENDING, crawling_statuses.RUNNING]}}, {'crawling_status': crawling_statuses.FINISHED, "finished_at": time.time()})
         # clean canceled jobs
-        yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.CANCELED}, {'indexing_status': indexing_statuses.CANCELED})
+        yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.CANCELED, 'indexing_status': {"$ne": indexing_statuses.CANCELED}}, {'indexing_status': indexing_statuses.CANCELED, 'finished_at': time.time()})
         # update jobs crawling status accordingly to crawler's statuses
         running_ids = [job['id'] for job in scrapyjobs['running']]
         for job_id in running_ids:
@@ -455,14 +455,14 @@ class Core(jsonrpc.JSONRPC):
         res = yield self.db.list_jobs(corpus, {'_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, fields=['_id'])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
-            yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.RUNNING})
+            yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.RUNNING, 'started_at': time.time()})
             yield self.db.add_log(corpus, update_ids, "CRAWL_"+crawling_statuses.RUNNING)
         # update crawling status for finished jobs
         finished_ids = [job['id'] for job in scrapyjobs['finished']]
         res = yield self.db.list_jobs(corpus, {'_id': {'$in': finished_ids}, 'crawling_status': {'$nin': [crawling_statuses.RETRIED, crawling_statuses.CANCELED, crawling_statuses.FINISHED]}}, fields=['_id'])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
-            yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.FINISHED})
+            yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.FINISHED, 'crawled_at': time.time()})
             yield self.db.add_log(corpus, update_ids, "CRAWL_"+crawling_statuses.FINISHED)
         # collect list of crawling jobs whose outputs is not fully indexed yet
         jobs_in_queue = yield self.db.queue(corpus).distinct('_job')
@@ -472,7 +472,7 @@ class Core(jsonrpc.JSONRPC):
         res = yield self.db.list_jobs(corpus, {'_id': {'$in': list(finished_ids-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$nin': [indexing_statuses.BATCH_RUNNING, indexing_statuses.FINISHED]}}, fields=['_id'])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
-            yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.FINISHED})
+            yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.FINISHED, 'finished_at': time.time()})
             yield self.db.add_log(corpus, update_ids, "INDEX_"+indexing_statuses.FINISHED)
             # Try to restart in phantom mode all regular crawls that seem to have failed (less than 3 pages found for a depth of at least 1)
             res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.maxdepth': {'$gt': 0}})
@@ -833,7 +833,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         # nb_links
         job = None
         if not jobs:
-            job = yield self.db.list_jobs(corpus, {'webentity_id': WE.id}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('timestamp'), limit=1)
+            job = yield self.db.list_jobs(corpus, {'webentity_id': WE.id}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
         elif WE.id in jobs:
             job = jobs[WE.id]
         if job:
