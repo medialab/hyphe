@@ -550,11 +550,11 @@ class Core(jsonrpc.JSONRPC):
 
   # HTTP LOOKUP METHODS
 
-    def jsonrpc_lookup_httpstatus(self, url, timeout=30, corpus=None):
+    def jsonrpc_lookup_httpstatus(self, url, timeout=30, corpus=DEFAULT_CORPUS):
         return self.lookup_httpstatus(url, deadline=time.time()+timeout, corpus=corpus)
 
     @inlineCallbacks
-    def lookup_httpstatus(self, url, timeout=5, deadline=0, tryout=0, noproxy=False, corpus=None):
+    def lookup_httpstatus(self, url, timeout=5, deadline=0, tryout=0, noproxy=False, corpus=DEFAULT_CORPUS):
         res = format_result(0)
         timeout = int(timeout)
         use_proxy = self.corpora[corpus]["options"]['proxy']['host'] and not noproxy
@@ -603,7 +603,7 @@ class Core(jsonrpc.JSONRPC):
         returnD(format_result(response.code))
 
     @inlineCallbacks
-    def jsonrpc_lookup(self, url, timeout=30, corpus=None):
+    def jsonrpc_lookup(self, url, timeout=30, corpus=DEFAULT_CORPUS):
         res = yield self.jsonrpc_lookup_httpstatus(url, timeout=timeout, corpus=corpus)
         if res['code'] == 'success' and (res['result'] == 200 or 300 < res['result'] < 400):
             returnD(format_result("true"))
