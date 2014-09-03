@@ -116,17 +116,77 @@
                     Selection: <strong>{{checkedList.length}} {{checkedList.length > 1 ? 'web entities' : 'web entity'}}</strong>
                   </div>
                   <div class="panel-body">
-                    <p>
-                      Set status TO DO
-                    </p>
-                    
-                    <p>
-                      Crawl TO DO
-                    </p>
+                    <div class="container-fluid">
+                      <div class="row">
+                        
+                        <!-- List preview -->
+                        <div class="col-lg-5 col-sm-6">
+                          <div class="selected-webentities-container">
+                            <table>
+                              <tr
+                                ng-repeat="id in checkedList"
+                              >
+                                <td class="webentity-name">
+                                  {{webentitiesCheckStack[id].name}}
+                                </td>
+                                <td class="remove-button">
+                                  <button
+                                    class="btn btn-xs btn-link"
+                                  > 
+                                    <span class="glyphicon glyphicon-remove"></span>
+                                    REMOVE
+                                  </button>
+                                </td>
+                              </tr>
+                            </table>
+                          </div>
+                          <button
+                            class="btn btn-default btn-link pull-right"
+                          > 
+                            <span class="glyphicon glyphicon-remove"></span>
+                            REMOVE ALL
+                          </button>
 
-                    <p>
-                      Merge TO DO
-                    </p>
+                        </div>
+
+                        <div class="col-lg-7 col-sm-6">
+                          <div class="actions-container">
+                            <h3>Actions</h3>
+                            
+                            <div class="row">
+                              <div class="col-sm-6">
+                                <div class="big-bullet-number">1</div>
+                                <select class="form-control" ng-model="selected_setStatus">
+                                  <option value="UNDECIDED">Set to UNDECIDED</option>
+                                  <option value="IN">Set to IN</option>
+                                  <option value="OUT">Set to OUT</option>
+                                </select>
+                              </div>
+                              <div class="col-sm-6">
+                                <button class="btn btn-default">SET STATUS</button>
+                              </div>
+                            </div>
+
+                            <div class="row">
+                              <div class="col-sm-12">
+                                <div class="big-bullet-number">2</div>
+                                <button class="btn btn-default">CRAWL</button>
+                              </div>
+                            </div>
+
+                            <div class="row">
+                              <div class="col-sm-12">
+                                <div class="big-bullet-number">3</div>
+                                <button class="btn btn-default">MERGE</button>
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                    
 
                   </div>
                 </div>

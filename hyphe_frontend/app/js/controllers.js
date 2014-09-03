@@ -1555,6 +1555,8 @@ angular.module('hyphe.controllers', [])
     $scope.sort = 'date'
     $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
 
+    $scope.selected_setStatus = 'UNDECIDED'
+
     $scope.loadWebentities = function(query){
       $scope.status = {message: 'Loading'}
 
@@ -1585,7 +1587,11 @@ angular.module('hyphe.controllers', [])
           $scope.paginationPage = 1
 
           $scope.list = webentities.map(function(we, i){
-            var obj = {id:i, webentity:we, checked:$scope.checkedList.some(function(weId){return weId == we.id})}
+            var obj = {
+              id:i
+              ,webentity:we
+              ,checked:$scope.checkedList.some(function(weId){return weId == we.id})
+            }
             return obj
           })
           $scope.status = {}
