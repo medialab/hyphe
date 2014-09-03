@@ -280,7 +280,7 @@ class Core(jsonrpc.JSONRPC):
           "total_pages_crawled": self.corpora[corpus]['pages_crawled'],
           "last_index_loop": self.corpora[corpus]['last_index_loop'],
           "last_links_loop": self.corpora[corpus]['last_links_loop'],
-          "last_activity": time.time()
+          "last_activity": now_ts()
         })
 
     def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS):
@@ -444,9 +444,9 @@ class Core(jsonrpc.JSONRPC):
         yield self.update_corpus(corpus)
         # clean lost jobs
         if len(scrapyjobs['running']) + len(scrapyjobs['pending']) == 0:
-            yield self.db.update_jobs(corpus, {'crawling_status': {'$in': [crawling_statuses.PENDING, crawling_statuses.RUNNING]}}, {'crawling_status': crawling_statuses.FINISHED, "finished_at": time.time()})
+            yield self.db.update_jobs(corpus, {'crawling_status': {'$in': [crawling_statuses.PENDING, crawling_statuses.RUNNING]}}, {'crawling_status': crawling_statuses.FINISHED, "finished_at": now_ts()})
         # clean canceled jobs
-        yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.CANCELED, 'indexing_status': {"$ne": indexing_statuses.CANCELED}}, {'indexing_status': indexing_statuses.CANCELED, 'finished_at': time.time()})
+        yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.CANCELED, 'indexing_status': {"$ne": indexing_statuses.CANCELED}}, {'indexing_status': indexing_statuses.CANCELED, 'finished_at': now_ts()})
         # update jobs crawling status accordingly to crawler's statuses
         running_ids = [job['id'] for job in scrapyjobs['running']]
         for job_id in running_ids:
@@ -455,14 +455,14 @@ class Core(jsonrpc.JSONRPC):
         res = yield self.db.list_jobs(corpus, {'_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, fields=['_id'])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
-            yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.RUNNING, 'started_at': time.time()})
+            yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.RUNNING, 'started_at': now_ts()})
             yield self.db.add_log(corpus, update_ids, "CRAWL_"+crawling_statuses.RUNNING)
         # update crawling status for finished jobs
         finished_ids = [job['id'] for job in scrapyjobs['finished']]
         res = yield self.db.list_jobs(corpus, {'_id': {'$in': finished_ids}, 'crawling_status': {'$nin': [crawling_statuses.RETRIED, crawling_statuses.CANCELED, crawling_statuses.FINISHED]}}, fields=['_id'])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
-            yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.FINISHED, 'crawled_at': time.time()})
+            yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.FINISHED, 'crawled_at': now_ts()})
             yield self.db.add_log(corpus, update_ids, "CRAWL_"+crawling_statuses.FINISHED)
         # collect list of crawling jobs whose outputs is not fully indexed yet
         jobs_in_queue = yield self.db.queue(corpus).distinct('_job')
@@ -472,7 +472,7 @@ class Core(jsonrpc.JSONRPC):
         res = yield self.db.list_jobs(corpus, {'_id': {'$in': list(finished_ids-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$nin': [indexing_statuses.BATCH_RUNNING, indexing_statuses.FINISHED]}}, fields=['_id'])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
-            yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.FINISHED, 'finished_at': time.time()})
+            yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.FINISHED, 'finished_at': now_ts()})
             yield self.db.add_log(corpus, update_ids, "INDEX_"+indexing_statuses.FINISHED)
             # Try to restart in phantom mode all regular crawls that seem to have failed (less than 3 pages found for a depth of at least 1)
             res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.maxdepth': {'$gt': 0}})
@@ -733,7 +733,7 @@ class Crawler(jsonrpc.JSONRPC):
         if is_error(res):
             returnD(reformat_error(res))
         if 'jobid' in res:
-            ts = int(time.time()*1000)
+            ts = now_ts()
             yield self.db.add_job(corpus, res['jobid'], webentity_id, args, ts)
             yield self.db.add_log(corpus, res['jobid'], "CRAWL_ADDED", ts)
         returnD(format_result(res))
@@ -788,7 +788,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def _start_loop(self, corpus=DEFAULT_CORPUS, noloop=False):
-        now = time.time()
+        now = now_ts()
         yield self.handle_index_error(corpus)
         self.corpora[corpus]['loop_running'] = "Collecting WebEntities & WebEntityLinks"
         self.corpora[corpus]['loop_running_since'] = now
@@ -936,7 +936,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(res)
         is_node = urllru.lru_is_node(lru, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'])
         is_full_precision = urllru.lru_is_full_precision(lru, self.corpora[corpus]['precision_exceptions'])
-        t = str(int(time.time()*1000))
+        t = str(now_ts())
         page = ms.PageItem(url, lru, t, None, -1, None, ['USER'], is_full_precision, is_node, {})
         cache_id = self.msclients.sync.createCache([page], corpus=corpus)
         if is_error(cache_id):
@@ -1271,9 +1271,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(False)
         oldest_page_in_queue = yield self.db.get_queue(corpus, limit=1, fields=["_job"], skip=random.randint(0, 2))
         # Run linking WebEntities on a regular basis when needed
-        if self.corpora[corpus]['recent_indexes'] > 100 or (self.corpora[corpus]['recent_indexes'] and not oldest_page_in_queue) or (self.corpora[corpus]['recent_indexes'] and time.time() - self.corpora[corpus]['last_links_loop'] >= 3600):
+        if self.corpora[corpus]['recent_indexes'] > 100 or (self.corpora[corpus]['recent_indexes'] and not oldest_page_in_queue) or (self.corpora[corpus]['recent_indexes'] and time.time() - self.corpora[corpus]['last_links_loop']/1000 >= 3600):
             self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
-            self.corpora[corpus]['loop_running_since'] = time.time()
+            self.corpora[corpus]['loop_running_since'] = now_ts()
             s = time.time()
             logger.msg("Generating links between web entities...", system="INFO - %s" % corpus)
             yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
@@ -1287,7 +1287,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             yield self.db.add_log(corpus, "WE_LINKS", "...finished WebEntity links generation (%ss)" %s)
             logger.msg("...processed WebEntity links in %ss..." % s, system="INFO - %s" % corpus)
             self.corpora[corpus]['recent_indexes'] = 0
-            self.corpora[corpus]['last_links_loop'] = time.time()
+            self.corpora[corpus]['last_links_loop'] = now_ts()
         elif oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
             self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
@@ -1301,14 +1301,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if page_items:
                 yield self.db.update_jobs(corpus, jobid, {'indexing_status': indexing_statuses.BATCH_RUNNING})
                 yield self.db.add_log(corpus, jobid, "INDEX_"+indexing_statuses.BATCH_RUNNING)
-                self.corpora[corpus]['loop_running_since'] = time.time()
+                self.corpora[corpus]['loop_running_since'] = now_ts()
                 res = yield self.index_batch(page_items, jobid, corpus=corpus)
                 if is_error(res):
                     logger.msg(res['message'], system="ERROR - %s" % corpus)
                     self.corpora[corpus]['loop_running'] = None
                     returnD(False)
                 self.corpora[corpus]['recent_indexes'] += 1
-                self.corpora[corpus]['last_index_loop'] = time.time()
+                self.corpora[corpus]['last_index_loop'] = now_ts()
             else:
                 logger.msg("job %s found for index but no page corresponding found in queue." % jobid, system="WARNING - %s" % corpus)
         else:
@@ -1348,7 +1348,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             WEs = yield self.msclients.pool.getWebEntities(corpus=corpus)
             if is_error(WEs):
                 returnD(WEs)
-            self.corpora[corpus]['last_WE_update'] = time.time()
+            self.corpora[corpus]['last_WE_update'] = now_ts()
             self.corpora[corpus]['webentities'] = WEs
         self.corpora[corpus]['total_webentities'] = len(WEs)
         returnD(WEs)

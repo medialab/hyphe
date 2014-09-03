@@ -18,6 +18,8 @@ class Enum(set):
 crawling_statuses = Enum(['UNCRAWLED', 'PENDING', 'RUNNING', 'FINISHED', 'CANCELED', 'RETRIED'])
 indexing_statuses = Enum(['UNINDEXED', 'PENDING', 'BATCH_RUNNING', 'BATCH_FINISHED', 'BATCH_CRASHED', 'FINISHED', 'CANCELED'])
 
+def now_ts():
+    return int(time.time()*1000)
 
 def urls_match_domainlist(urls, domlist):
     for url in urls:

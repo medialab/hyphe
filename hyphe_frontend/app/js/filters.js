@@ -67,6 +67,18 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('duration', [function(){
+    return function(milliseconds) {
+      if (milliseconds > 3600000){
+        return Math.round(milliseconds/3600000) + " hours"
+      }
+      if (milliseconds > 60000){
+        return Math.round(milliseconds/60000) + " minutes"
+      }
+      return Math.round(milliseconds/1000) + " seconds"
+    }
+  }])
+
   .filter('explicitHttpCode', [function () {
     return function (code) {
       code = ''+code

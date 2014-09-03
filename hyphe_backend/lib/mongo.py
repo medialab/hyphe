@@ -6,7 +6,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from txmongo import MongoConnection, connection as mongo_connection
 mongo_connection._Connection.noisy = False
 from txmongo.filter import sort as mongosort, ASCENDING, DESCENDING
-from hyphe_backend.lib.utils import crawling_statuses, indexing_statuses, salt
+from hyphe_backend.lib.utils import crawling_statuses, indexing_statuses, salt, now_ts
 
 def sortasc(field):
     return mongosort(ASCENDING(field))
@@ -40,7 +40,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def add_corpus(self, corpus, name, password, options):
-        now = time.time()
+        now = now_ts()
         yield self.db["corpus"].insert({
           "_id": corpus,
           "name": name,
@@ -118,7 +118,7 @@ class MongoDB(object):
     @inlineCallbacks
     def add_log(self, corpus, job, msg, timestamp=None):
         if not timestamp:
-            timestamp = int(time.time()*1000)
+            timestamp = now_ts()
         if type(job) != list:
             job = [job]
         yield self.logs(corpus).insert([{'_job': _id, 'timestamp': timestamp, 'log': msg} for _id in job], multi=True, safe=True)
@@ -141,7 +141,7 @@ class MongoDB(object):
     @inlineCallbacks
     def add_job(self, corpus, job_id, webentity_id, args, timestamp=None):
         if not timestamp:
-            timestamp = int(time.time()*1000)
+            timestamp = now_ts()
         yield self.jobs(corpus).insert({
           "_id": job_id,
           "webentity_id": webentity_id,

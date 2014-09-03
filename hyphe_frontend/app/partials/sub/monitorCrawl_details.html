@@ -29,6 +29,24 @@
 	<dt>Scheduled</dt>
   <dd><span tooltip="{{lastCrawlJobs[0].created_at|date}}">{{lastCrawlJobs[0].created_at|prettyDate}}</span></dd>
 
+<div ng-if="lastCrawlJobs[0].started_at">
+	<dt>Started harvesting</dt>
+  <dd><span tooltip="{{lastCrawlJobs[0].started_at|date}}">{{lastCrawlJobs[0].started_at|prettyDate}}</span></dd>
+</div>
+
+<div ng-if="lastCrawlJobs[0].crawled_at">
+	<dt>Finished harvesting</dt>
+  <dd><span tooltip="{{lastCrawlJobs[0].crawled_at|date}}">{{lastCrawlJobs[0].crawled_at|prettyDate}}</span></dd>
+</div>
+
+<div ng-if="lastCrawlJobs[0].finished_at">
+	<dt>Finished indexing</dt>
+  <dd><span tooltip="{{lastCrawlJobs[0].finished_at|date}}">{{lastCrawlJobs[0].finished_at|prettyDate}}</span></dd>
+
+	<dt>Total duration</dt>
+  <dd>{{(lastCrawlJobs[0].finished_at - lastCrawlJobs[0].created_at)|duration}}</dd>
+</div>
+
 	<dt>Status</dt>
   <dd><span  ng-class="{
   	'bg-danger':lastCrawlJobs[0].globalStatus == 'CRASHED'
