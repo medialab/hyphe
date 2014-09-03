@@ -33,7 +33,7 @@ angular.module('hyphe.controllers', [])
     
     var parser = new Parser()
 
-    $scope.parsingOption = 'csv'
+    $scope.parsingOption = 'text'
 
     $scope.dataText = ''
     $scope.table
