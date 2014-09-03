@@ -25,33 +25,43 @@
                 <div class="panel-heading">
 
                   <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Type a query">
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Type a query"
+                      ng-model="$parent.query"
+                      ng-press-enter="doQuery()"
+                    >
                     <span class="input-group-btn">
-                      <button class="btn btn-default" type="button">Search</button>
+                      <button
+                        class="btn btn-default"
+                        type="button"
+                        ng-click="doQuery()"
+                      >Search</button>
                     </span>
                   </div>
 
                   <form class="form-inline" role="form">
                     
-                    <!-- <div class="form-group">
-                      <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-remove"></span> Climate Change</button>
-                    </div> -->
-
-                    <div class="btn-group">
-                      <label class="btn btn-default" ng-model="statuses.in" btn-checkbox>IN</label>
-                      <label class="btn btn-default" ng-model="statuses.out" btn-checkbox>OUT</label>
-                      <label class="btn btn-default" ng-model="statuses.undecided" btn-checkbox>UNDECIDED</label>
-                      <label class="btn btn-default" ng-model="statuses.discovered" btn-checkbox>DISCOVERED</label>
+                    <div class="form-group" ng-if="lastQuery && lastQuery != ''">
+                      <button type="button" class="btn btn-primary" ng-click="clearQuery()"><span class="glyphicon glyphicon-remove"></span> {{lastQuery}}</button>
                     </div>
 
-                    <div class="form-group">
+                    <div class="btn-group">
+                      <label class="btn btn-default" ng-model="statuses.in" ng-change="doQuery()" btn-checkbox>IN</label>
+                      <label class="btn btn-default" ng-model="statuses.out" ng-change="doQuery()" btn-checkbox>OUT</label>
+                      <label class="btn btn-default" ng-model="statuses.undecided" ng-change="doQuery()" btn-checkbox>UNDECIDED</label>
+                      <label class="btn btn-default" ng-model="statuses.discovered" ng-change="doQuery()" btn-checkbox>DISCOVERED</label>
+                    </div>
+
+                    <!-- <div class="form-group">
                       <select class="form-control" ng-model="sort">
                         <option value="name">Sort by Name</option>
                         <option value="status">Sort by Status</option>
                         <option value="crawled">Sort by Crawled</option>
                         <option value="date">Sort by Date</option>
                       </select>
-                    </div>
+                    </div> -->
 
                 </div>
 
@@ -100,10 +110,10 @@
               </div>
 
               <!-- Checked Actions -->
-              <div ng-if="checkedList.length > 0">
-                <div class="panel panel-default">
+              <div ng-if="checkedList.length > 0" class="webentities-list-actions">
+                <div class="panel panel-primary">
                   <div class="panel-heading">
-                    Actions with {{checkedList.length}} selected {{checkedList.length > 1 ? 'web entities' : 'web entity'}}
+                    Selection: <strong>{{checkedList.length}} {{checkedList.length > 1 ? 'web entities' : 'web entity'}}</strong>
                   </div>
                   <div class="panel-body">
                     <p>

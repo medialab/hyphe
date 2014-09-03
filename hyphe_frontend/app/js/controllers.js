@@ -1541,6 +1541,8 @@ angular.module('hyphe.controllers', [])
 
     $scope.list
     $scope.checkedList = []
+    $scope.webentitiesCheckStack = {} // Web entities once checked
+                                      // NB: will contain false positives
 
     $scope.loaded = false
 
@@ -1548,50 +1550,97 @@ angular.module('hyphe.controllers', [])
     $scope.paginationLength = 20   // How many items per page
     $scope.paginationNumPages = 5  // How many pages to display in the pagination
 
+    $scope.query
+    $scope.lastQuery
     $scope.sort = 'date'
     $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
 
-    // Loading web entities
-    $scope.status = {message: 'Loading'}
-    api.getWebentities(
-      {semiLight: false}
-      ,function(webentities){
-        console.log('A web entity for dev:', webentities[0])
-        $scope.list = webentities.map(function(we, i){
-          var obj = {id:i, webentity:we, checked:false}
-          return obj
-        })
-        $scope.status = {}
-        $scope.loaded = true
-      }
-      ,function(){
-        $scope.status = {message: 'Error loading web entities', background: 'danger'}
-      }
-    )
+    $scope.loadWebentities = function(query){
+      $scope.status = {message: 'Loading'}
+
+      // Set last query
+      $scope.lastQuery = $scope.query
+
+      // Get filtering settings
+      var field_kw = [
+          [
+            'status'
+            ,['in','out','undecided','discovered']
+              .filter(function(s){
+                  return $scope.statuses[s]
+                })
+              .map(function(s){
+                  return s.toUpperCase()
+                })
+              .join(' ')
+          ]
+        ]
+
+      api.searchWebentities(
+        {
+          allFieldsKeywords: query || ['*']
+          ,fieldKeywords: field_kw
+        }
+        ,function(webentities){
+          $scope.list = webentities.map(function(we, i){
+            var obj = {id:i, webentity:we, checked:$scope.checkedList.some(function(weId){return weId == we.id})}
+            return obj
+          })
+          $scope.status = {}
+          $scope.loaded = true
+        }
+        ,function(){
+          $scope.status = {message: 'Error loading web entities', background: 'danger'}
+        }
+      )
+    }
 
     $scope.toggleRow = function(rowId){
-      console.log('Toggle Row',rowId)
       var obj = $scope.list[rowId]
-      console.log(obj)
       if(obj.checked){
         obj.checked = false
-        checkedList_remove(rowId)
+        checkedList_remove(obj.webentity.id)
       } else {
         obj.checked = true
-        checkedList_add(rowId)
+        checkedList_add(obj.webentity.id, obj.webentity)
       }
     }
+
+    $scope.doQuery = function(){
+      var query = cleanQuery($scope.query)
+      console.log('Query:',query)
+      $scope.loadWebentities(query)
+    }
+
+    $scope.clearQuery = function(){
+      $scope.query = undefined
+      $scope.loadWebentities()
+    }
+
+    $scope.loadWebentities()
 
 
     // Functions
-    function checkedList_remove(rowId){
+    function checkedList_remove(weId){
       $scope.checkedList = $scope.checkedList.filter(function(d){
-        return d != rowId
+        return d != weId
       })
     }
 
-    function checkedList_add(rowId){
-      $scope.checkedList.push(rowId)
+    function checkedList_add(weId, we){
+      $scope.checkedList.push(weId)
+      $scope.webentitiesCheckStack[weId] = we
+    }
+
+    var escapedChars = ['\\', '+', '-', '!', '(', ')', ':', '^', '[', ']', '{', '}', '~', '*', '?']
+    function cleanQuery(query){
+      if(query === undefined)
+        return undefined
+      escapedChars.forEach(function(character){
+        query = '*' + query.replace(character, '\\'+character) + '*'
+      })
+      return query
+      // return query.replace(' ', '?')
     }
     
   }])

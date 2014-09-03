@@ -533,6 +533,9 @@ textarea.over-error{
 /* ==========================================================================
    View: Web Entities List
    ========================================================================== */
+.webentities-list-table{
+  margin-bottom: 0px;
+}
 .webentities-list-table .cell-checkbox{
   width: 20px;
 }
@@ -562,6 +565,10 @@ textarea.over-error{
 .webentities-list-table tr.bg-selected{
   background-color: #EFEBE8;
 }
+.webentities-list-actions{
+  margin-top: 12px;
+}
+
 
 
 
