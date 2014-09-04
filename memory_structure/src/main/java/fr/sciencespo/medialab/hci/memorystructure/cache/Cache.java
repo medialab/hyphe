@@ -159,8 +159,8 @@ public class Cache {
         if(logger.isDebugEnabled()) {
             logger.trace("cache contains # " + pageLRUs.size() + " pages");
         }
-        String LRUPrefix;
-        WebEntity WEcandidate, existing;
+        String LRUPrefix, LRUVariation;
+        WebEntity WEcandidate, existing, existingVariation;
         THashMap<String, WebEntity> WEcandidates;
         for(String pageLRU : pageLRUs) {
             if(logger.isDebugEnabled()) {
@@ -184,9 +184,31 @@ public class Cache {
             if (!doneLRUPrefixes.contains(LRUPrefix)) {
                 WEcandidate = WEcandidates.get(LRUPrefix);
                 existing = lruIndex.retrieveWebEntityByLRUPrefix(LRUPrefix);
+                
                 // store new webentity in index
                 if (existing == null && WEcandidate != null) {
-                    createdWebEntitiesCount++;
+                	LRUVariation = LRUUtil.HTTPVariationLRU(LRUPrefix);
+                	if (LRUVariation != null) {
+                        existingVariation = lruIndex.retrieveWebEntityByLRUPrefix(LRUVariation);
+                        if (existingVariation == null) {
+                        	WEcandidate.addToLRUSet(LRUVariation);
+                        }
+                	}
+                	LRUVariation = LRUUtil.HTTPWWWVariationLRU(LRUPrefix);
+                	if (LRUVariation != null) {
+                        existingVariation = lruIndex.retrieveWebEntityByLRUPrefix(LRUVariation);
+                        if (existingVariation == null) {
+                        	WEcandidate.addToLRUSet(LRUVariation);
+                        }
+                	}
+                	LRUVariation = LRUUtil.WWWVariationLRU(LRUPrefix);
+                	if (LRUVariation != null) {
+                        existingVariation = lruIndex.retrieveWebEntityByLRUPrefix(LRUVariation);
+                        if (existingVariation == null) {
+                        	WEcandidate.addToLRUSet(LRUVariation);
+                        }
+                	}
+                	createdWebEntitiesCount++;
                     logger.debug("indexing new webentity for prefix " + LRUPrefix);
                     lruIndex.indexWebEntity(WEcandidate, false, true);
                 }

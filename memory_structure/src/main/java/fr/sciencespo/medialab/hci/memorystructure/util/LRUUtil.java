@@ -1,6 +1,5 @@
 package fr.sciencespo.medialab.hci.memorystructure.util;
 
-import fr.sciencespo.medialab.hci.memorystructure.thrift.ThriftServer;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 
 import org.apache.commons.lang.StringUtils;
@@ -67,6 +66,46 @@ public class LRUUtil {
             }
         }
         return false;
+    }
+
+    public static String HTTPVariationLRU(String lru) {
+    	String variation = null;
+        if (lru.startsWith("s:https|")) {
+            variation = lru.replaceFirst("s:https\\|", "s:http|");
+        } else if (lru.startsWith("s:http|")) {
+            variation = lru.replaceFirst("s:http\\|", "s:https|");
+        }
+    	return variation;
+    }
+
+    public static String WWWVariationLRU(String lru) {
+    	String[] ps = lru.split("\\|");
+        int i = 0, j;
+        String lastSubdomain = "";
+        while (i < ps.length) {
+            if (ps[i].startsWith("h:")) {
+                lastSubdomain = ps[i];
+            }
+            i++;
+        }
+        if (lastSubdomain != "") {
+            i = lru.lastIndexOf(lastSubdomain);
+            j = i + lastSubdomain.length() + 1;
+            if (lastSubdomain.equals("h:www")) {
+                return lru.substring(0, i) + lru.substring(j);
+            } else {
+                return lru.substring(0, j) + "h:www|" + lru.substring(j);
+            }
+        }
+        return null;
+    }
+
+    public static String HTTPWWWVariationLRU(String lru) {
+    	String httpVariation = HTTPVariationLRU(lru);
+    	if (httpVariation != null) {
+    		return WWWVariationLRU(httpVariation);
+    	}
+    	return null;
     }
 
     /**
