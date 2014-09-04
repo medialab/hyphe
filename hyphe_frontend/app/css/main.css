@@ -833,35 +833,18 @@ textarea.over-error{
   position: absolute;
   top: 50%; left: 50%; margin: -86px 0 0 -60px;
   width: 120px; height: 120px;
-  padding: 3px;
 }
 .water-loader .cog{
-  width: 115px; height: 115px;
-  border-radius: 100%;
-  border:4px solid #FFFFFF;
   -webkit-animation: full-rotation 40s infinite linear;
           animation: full-rotation 40s infinite linear;
-}
-.water-loader .cog:before {
-  content:"";
-  position:absolute;
-  bottom:-7px;
-  left:-7px;
-  width: 121px; height: 121px;
-  border:5px dotted #FFFFFF;
-  border-radius:100%;
-}
-.water-loader .cog:after {
-  content:"";
-  position:absolute;
 }
 @-webkit-keyframes full-rotation {
   from {-webkit-transform: rotate(0deg);}
   to   {-webkit-transform: rotate(359deg);}
 }
 @keyframes full-rotation {
-  from {-webkit-transform: rotate(0deg);}
-  to   {-webkit-transform: rotate(359deg);}
+  from {transform: rotate(0deg);}
+  to   {transform: rotate(359deg);}
 }
 .water-loader-content.cog-message{
   margin-top: -72px;
