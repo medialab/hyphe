@@ -176,7 +176,7 @@ class LuceneCorpus(Thread):
                     self.factory.start_corpus(self.name)
                     break
             # skip tracebacks
-                elif line.startswith('\tat '):
+                elif line.startswith('\tat ') or line.startswith('java.'):
                     continue
                 self.log(line, True)
             else:
