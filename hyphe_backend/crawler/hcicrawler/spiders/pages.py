@@ -68,21 +68,19 @@ class PagesCrawler(BaseSpider):
             yield self._request(url)
 
     def init_phantom(self):
-        self.cachedir = os.path.join(
+        self.prefixfiles = os.path.join(
             scrapyd_config().get('logs_dir'),
             HYPHE_PROJECT,
             self.name,
-            "%s-phantom" % self.crawler.settings['JOBID']
+            self.crawler.settings['JOBID']
         )
-        self.log("Using directory %s for PhantomJS crawl" % self.cachedir, log.INFO)
-        os.makedirs(self.cachedir)
+        self.log("Using path %s for PhantomJS crawl" % self.prefixfiles, log.INFO)
         phantom_args = []
         if PROXY and not PROXY.startswith(':'):
             phantom_args.append('--proxy=%s' % PROXY)
-        phantom_args.append('--cookies-file=%s' % os.path.join(self.cachedir, 'cookie.txt'))
+        phantom_args.append('--cookies-file=%s-phantomjs-cookie.txt' % self.prefixfiles)
         phantom_args.append('--ignore-ssl-errors=true')
         phantom_args.append('--load-images=false')
-        phantom_args.append('--local-storage-path=%s' % self.cachedir)
         self.capabilities = dict(DesiredCapabilities.PHANTOMJS)
         self.capabilities['phantomjs.page.settings.userAgent'] = self.user_agent
         self.capabilities['takesScreenshot'] = False
@@ -92,7 +90,7 @@ class PagesCrawler(BaseSpider):
             executable_path=PHANTOM['PATH'],
             service_args=phantom_args,
             desired_capabilities=self.capabilities,
-            service_log_path=os.path.join(self.cachedir, 'phantomjs.log')
+            service_log_path="%s-phantomjs.log" % self.prefixfiles
         )
         self.phantom.implicitly_wait(10)
         self.phantom.set_page_load_timeout(60)
@@ -106,20 +104,13 @@ class PagesCrawler(BaseSpider):
         if self.errors:
             self.log("%s error%s encountered during the crawl." %
                 (self.errors, 's' if self.errors > 1 else ''), log.ERROR)
-            logdir = os.path.join(
-                scrapyd_config().get('logs_dir'),
-                HYPHE_PROJECT,
-                self.name
-            )
         if self.phantom:
             self.phantom.quit()
-            if os.path.isdir(self.cachedir):
-                for f in os.listdir(self.cachedir):
-                    if self.errors:
-                        os.rename(os.path.join(self.cachedir, f), os.path.join(logdir, "%s-%s" % (self.crawler.settings['JOBID'], f)))
-                    else:
-                        os.remove(os.path.join(self.cachedir, f))
-                os.rmdir(self.cachedir)
+            if not self.errors:
+                for f in ["phantomjs-cookie.txt", "phantomjs.log"]:
+                    fi = "%s-%s" % (self.prefixfiles, f)
+                    if os.path.exists(fi) and not self.errors:
+                        os.remove(fi)
 
     def handle_response(self, response):
         lru = url_to_lru_clean(response.url)
