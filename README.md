@@ -109,11 +109,11 @@ All of this steps are adaptable to Debian and CentOS as can be read in the ```bi
 Install possible missing required basics:
 
 ```bash
-    sudo apt-get install curl wget git python-dev python-pip apache2 libapache2-mod-proxy-html php5 fontconfig libfreetype6 libfreetype6-dev libfontconfig libstdc++6
+    sudo apt-get install curl wget git python-dev python-pip apache2 libapache2-mod-proxy-html php5 fontconfig libfreetype6 libfreetype6-dev libfontconfig libstdc++6 libffi-dev
 ```
 Or from CentOS:
 ```bash
-    sudo yum install curl git python-devel python-setuptools python-pip httpd php fontconfig freetype libfreetype.so.6 libfontconfig.so.1 #libstdc++.so.6
+    sudo yum install curl git python-devel python-setuptools python-pip httpd php fontconfig freetype libfreetype.so.6 libfontconfig.so.1 libffi-devel openssl-devel #libstdc++.so.6
 ```
 
 #### 2.2) Install [MongoDB](http://www.mongodb.org/), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) and [PhantomJS](http://phantomjs.org/):

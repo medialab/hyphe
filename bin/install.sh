@@ -8,7 +8,7 @@ if cat /etc/issue 2> /dev/null | grep -i "debian\|ubuntu" > /dev/null; then
   centos=false
   repos_tool='apt-get'
   repos_updt='update'
-  python_dev='python-dev'
+  python_dev='python-dev libffi-dev'
   apache='apache2'
   apache_path='apache2/sites-available'
   apache_pack='apache2 libapache2-mod-proxy-html'
@@ -23,7 +23,7 @@ else
   centos=true
   repos_tool='yum'
   repos_updt='check-update'
-  python_dev='python-devel python-setuptools'
+  python_dev='python-devel python-setuptools libffi-devel openssl-devel'
   apache='httpd'
   apache_path='httpd/conf.d'
   apache_pack='httpd'
@@ -179,8 +179,8 @@ echo
 sudo pip -q install virtualenv >> install.log || exit 1
 sudo pip -q install virtualenvwrapper >> install.log || exit 1
 source $(which virtualenvwrapper.sh)
-mkvirtualenv --no-site-packages HCI
-workon HCI
+mkvirtualenv --no-site-packages hyphe
+workon hyphe
 pip install -r requirements.txt >> install.log || exit 1
 add2virtualenv $(pwd)
 deactivate

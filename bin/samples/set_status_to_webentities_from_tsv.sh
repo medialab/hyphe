@@ -1,6 +1,6 @@
 #!/bin/bash
 source $(which virtualenvwrapper.sh)
-workon HCI
+workon hyphe
 
 TSVFILE=$1
 

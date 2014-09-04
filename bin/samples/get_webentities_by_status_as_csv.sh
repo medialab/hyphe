@@ -1,6 +1,6 @@
 #!/bin/bash
 source $(which virtualenvwrapper.sh)
-workon HCI
+workon hyphe
 
 status=$(echo $1 | sed 's/^\(.*\)$/\U\1/')
 if [ -z "$status" ]; then

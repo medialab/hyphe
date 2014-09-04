@@ -1,6 +1,6 @@
 #!/bin/bash
 source $(which virtualenvwrapper.sh)
-workon HCI
+workon hyphe
 
 keyword=$(echo $1 | sed 's/^\(.*\)$/\1/')
 statuses=$(echo $2 | sed 's/^\(.*\)$/\U\1/')

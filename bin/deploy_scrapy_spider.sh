@@ -5,7 +5,7 @@ option=$2
 
 if [ -z "$option" ] || [ "$option" != "--noenv" ]; then
   source $(which virtualenvwrapper.sh)
-  workon HCI
+  workon hyphe
   add2virtualenv $(pwd)
   option="--verbose"
 else

@@ -2,7 +2,7 @@
 # Bash service to start, stop or restart Hyphe's backend server
 
 USAGE="$0 <start|stop|restart> [--nologs]"
-HCIVENV=HCI
+HCIVENV=hyphe
 cd "$(dirname "$0")"
 cd ..
 HCIPATH=$(pwd)
