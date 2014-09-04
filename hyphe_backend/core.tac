@@ -415,12 +415,18 @@ class Core(jsonrpc.JSONRPC):
   # CRAWL JOBS MONITORING
 
     @inlineCallbacks
-    def jsonrpc_listjobs(self, list_ids=None, corpus=DEFAULT_CORPUS):
+    def jsonrpc_listjobs(self, list_ids=None, from_ts=None, to_ts=None, corpus=DEFAULT_CORPUS):
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         query = {}
         if list_ids:
             query = {'_id': {'$in': list_ids}}
+        if from_ts or to_ts:
+            query["created_at"] = {}
+        if from_ts:
+            query["created_at"]["$gte"] = from_ts * 1000
+        if to_ts:
+            query["created_at"]["$lte"] = to_ts * 1000
         jobs = yield self.db.list_jobs(corpus, query)
         returnD(format_result(list(jobs)))
 
