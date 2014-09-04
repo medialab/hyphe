@@ -706,7 +706,7 @@ class Crawler(jsonrpc.JSONRPC):
             phantom_crawl = True
         if not follow_redirects:
             follow_redirects = self.corpora[corpus]["options"]["follow_redirects"]
-        if not depth:
+        if depth is None:
             depth = self.corpora[corpus]["options"]["max_depth"]
         if depth > self.corpora[corpus]["options"]['max_depth']:
             returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % self.corpora[corpus]["options"]['max_depth']))
