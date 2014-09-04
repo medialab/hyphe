@@ -1617,6 +1617,22 @@ angular.module('hyphe.controllers', [])
       }
     }
 
+    $scope.uncheck = function(weId){
+      checkedList_remove(weId)
+      $scope.list.some(function(obj){
+        if(obj.webentity.id == weId){
+          obj.checked = false
+          return true
+        }
+      })
+    }
+
+    $scope.uncheckAll = function(){
+      while($scope.checkedList.length > 0){
+        $scope.uncheck($scope.checkedList[0])
+      }
+    }
+
     $scope.doQuery = function(){
       var query = cleanQuery($scope.query)
       console.log('Query:',query)
