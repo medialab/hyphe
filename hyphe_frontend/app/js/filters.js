@@ -70,12 +70,15 @@ angular.module('hyphe.filters', [])
   .filter('duration', [function(){
     return function(milliseconds) {
       if (milliseconds > 3600000){
-        return Math.round(milliseconds/3600000) + " hours"
+        var h = Math.round(milliseconds/3600000)
+        return h + " hour" + ((h > 1) ? 's' : '')
       }
       if (milliseconds > 60000){
-        return Math.round(milliseconds/60000) + " minutes"
+        var m = Math.round(milliseconds/60000)
+        return m + " minute" + ((m > 1) ? 's' : '')
       }
-      return Math.round(milliseconds/1000) + " seconds"
+      var s = Math.round(milliseconds/1000)
+      return s + " second" + ((s > 1) ? 's' : '')
     }
   }])
 
