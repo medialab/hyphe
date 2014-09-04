@@ -433,4 +433,37 @@ angular.module('hyphe.services', [])
       return ns
     }
   }])
+
+  .factory('refreshScheduler', ['$route', function($route){
+    var ns = {}
+
+    ns.msTimeout_min = 2000
+    ns.msTimeout_max = 60000
+
+    ns.msTimeout = ns.msTimeout_min
+
+    ns.refreshToken = 0
+    
+    ns.schedule = function(slowdown, callback){
+      ns.refreshToken++
+
+      var thisToken = ns.refreshToken
+      
+      setTimeout(function(){
+        if(thisToken == ns.refreshToken && $route.current.loadedTemplateUrl == "partials/monitorCrawls.html"){
+        
+          // If all achieved, we slow down
+          if(slowdown()){
+            ns.msTimeout = Math.min(ns.msTimeout_max, ns.msTimeout * 2)
+          } else {
+            ns.msTimeout = ns.msTimeout_min
+          }
+
+          callback()
+        }
+      }, ns.msTimeout)
+    }
+
+    return ns
+  }])
 ;

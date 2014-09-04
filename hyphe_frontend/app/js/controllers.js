@@ -1284,8 +1284,8 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('monitorCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location',
-  function($scope, api, store, utils, QueriesBatcher, $location){
+  .controller('monitorCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location', 'refreshScheduler',
+  function($scope, api, store, utils, QueriesBatcher, $location, refreshScheduler){
     $scope.currentPage = 'monitorCrawls'
     
 
@@ -1303,12 +1303,6 @@ angular.module('hyphe.controllers', [])
 
     $scope.listLoaded = false
     $scope.status = {message: 'Loading', progress:30}
-
-    $scope.msTimeout_min = 2000
-    $scope.msTimeout_max = 60000
-
-    $scope.msTimeout = $scope.msTimeout_min
-    $scope.refreshToken = 0
 
     api.getCrawlJobs({}, function(crawlJobs){
       $scope.listLoaded = true
@@ -1353,28 +1347,14 @@ angular.module('hyphe.controllers', [])
 
     // Loop to refresh crawl jobs
     $scope.scheduleRefresh = function(){
-      $scope.refreshToken++
-      var refreshToken =  0 + $scope.refreshToken
-      
-      // console.log('schedule refresh with token ' + refreshToken + ' for ' + $scope.msTimeout/1000 + 's')
-      
-      setTimeout(function(){
-        if(refreshToken == $scope.refreshToken && $scope.currentPage == 'monitorCrawls'){
-          
-          // console.log('refresh (' + $scope.msTimeout/1000 + 's) (token ' + refreshToken + ')')
-
-          // If all achieved, we slow down
-          if($scope.lastCrawlJobs.length == 0 || !$scope.lastCrawlJobs.some(function(job){return job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING' || job.globalStatus == 'PENDING'})){
-            $scope.msTimeout = Math.min($scope.msTimeout_max, $scope.msTimeout * 2)
-          } else {
-            $scope.msTimeout = $scope.msTimeout_min
-          }
-
-          refreshCrawlJobs()
+        refreshScheduler.schedule(
+        function(){ // Slowdown Condition
+          return $scope.lastCrawlJobs.length == 0 || !$scope.lastCrawlJobs.some(function(job){return job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING' || job.globalStatus == 'PENDING'})
         }
-      }, $scope.msTimeout)
+        ,refreshCrawlJobs // Callback
+      )
     }
-
+    
     $scope.abortCrawl = function(job){
       $scope.status = {message: 'Aborting crawl jobs'}
       
