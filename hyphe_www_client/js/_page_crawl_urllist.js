@@ -197,7 +197,7 @@ $.fn.editable.defaults.mode = 'popup';
                     })
                     D.request('urlLookup', {
                         url: d.data.url
-                        ,timeout: 5
+                        ,timeout: 30
                     })
                 }
             },{

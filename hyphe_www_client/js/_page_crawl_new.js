@@ -367,7 +367,7 @@ HypheCommons.domino_init()
                     })
                     this.request('urlLookup', {
                         url: d.data.url
-                        ,timeout: 5
+                        ,timeout: 30
                     })
                 }
             },{
