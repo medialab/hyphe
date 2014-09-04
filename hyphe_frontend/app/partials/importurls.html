@@ -21,18 +21,26 @@
             </div>
             <div class="row">
               <div class="col-md-12">
-                <textarea id="droppable-text-area" class="form-control" rows="5" placeholder="Paste your data or drop a file here" ng-class="dropClass" ng-model="dataText"></textarea>
+                <textarea
+                  rows="5"
+                  id="droppable-text-area"
+                  class="form-control"
+                  placeholder="Paste your data or drop a file here"
+                  ng-class="dropClass"
+                  ng-model="dataText"
+                  ng-paste='handlePaste()'
+                ></textarea>
 
                 <br/>
                 <div ng-show="dataText!=''">
                   <ul class="nav nav-tabs" role="tablist">
-                    <li ng-class="{active: parsingOption=='text'}"><a href="" ng-click="parsingOption='text'">Parse as text</a></li>
-                    <li ng-class="{active: parsingOption=='csv'}"><a href="" ng-click="parsingOption='csv'">Parse as CSV</a></li>
-                    <li ng-class="{active: parsingOption=='scsv'}"><a href="" ng-click="parsingOption='scsv'">Parse as SCSV</a></li>
-                    <li ng-class="{active: parsingOption=='tsv'}"><a href="" ng-click="parsingOption='tsv'">Parse as TSV</a></li>
+                    <li ng-class="{active: parsingOption=='text'}"><a href="" ng-click="parsingOption='text'; settingsTouched = true">Parse as text</a></li>
+                    <li ng-class="{active: parsingOption=='csv'}"><a href="" ng-click="parsingOption='csv'; settingsTouched = true">Parse as CSV</a></li>
+                    <li ng-class="{active: parsingOption=='scsv'}"><a href="" ng-click="parsingOption='scsv'; settingsTouched = true">Parse as SCSV</a></li>
+                    <li ng-class="{active: parsingOption=='tsv'}"><a href="" ng-click="parsingOption='tsv'; settingsTouched = true">Parse as TSV</a></li>
                   </ul>
                   
-                  <div ng-show="parsingOption=='csv' || parsingOption=='tsv' || parsingOption=='scsv'">
+                  <div ng-if="parsingOption=='csv' || parsingOption=='tsv' || parsingOption=='scsv'">
                     <div class="row">
                       <div class="col-md-8">
                         <br/>
@@ -64,7 +72,7 @@
                         <br/>
                         <div class="checkbox">
                           <label>
-                            <input type="checkbox" ng-model="headline"> First line has column names
+                            <input type="checkbox" ng-model="headline" ng-click="settingsTouched = true"> First line has column names
                           </label>
                         </div>
 

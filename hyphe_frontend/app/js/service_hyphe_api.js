@@ -48,6 +48,8 @@ angular.module('hyphe.service_hyphe_api', [])
 
     API.RESET                                       = 'reinitialize'
 
+    API.CORPUS_LIST_GET                             = 'list_corpus'
+
     ns.getWebentities = buildApiCall(
         API.WEBENTITY_LIST_GET
         ,function(settings){
@@ -160,6 +162,13 @@ angular.module('hyphe.service_hyphe_api', [])
 
     ns.globalStatus = buildApiCall(
         API.STATUS_GET
+        ,function(settings){
+            return []
+          }
+      )
+
+    ns.getCorpusList = buildApiCall(
+        API.CORPUS_LIST_GET
         ,function(settings){
             return []
           }
