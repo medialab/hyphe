@@ -863,10 +863,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
             fWE = yield self.format_webentity(WE, jobs, light, semilight, light_for_csv, corpus=corpus)
             res.append(fWE)
         if (sort):
-            key = sort.lstrip("-")
-            reverse = (key != sort)
-            if key in res[0]:
-                res = sorted(res, key=lambda x: x[key], reverse=reverse)
+            if type(sort) != list:
+                sort = [sort]
+            for sortkey in reversed(sort):
+                key = sortkey.lstrip("-")
+                reverse = (key != sortkey)
+                if key in res[0]:
+                    res = sorted(res, key=lambda x: x[key], reverse=reverse)
         returnD(res)
 
     @inlineCallbacks
