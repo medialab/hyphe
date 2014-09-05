@@ -650,6 +650,8 @@ class Crawler(jsonrpc.JSONRPC):
             res = yield self.jsonrpc_cancel(item['id'], corpus=corpus)
             if config['DEBUG']:
                 logger.msg(res, system="DEBUG - %s" % corpus)
+            # Send second cancel call to force scrapyd to kill fast
+            res = yield self.jsonrpc_cancel(item['id'], corpus=corpus)
         while 'running' in list_jobs and len(list_jobs['running']):
             list_jobs = yield self.jsonrpc_list(corpus)
             if not is_error(list_jobs):
@@ -749,9 +751,13 @@ class Crawler(jsonrpc.JSONRPC):
         """Cancels a scrapy job with id job_id."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
+        existing = yield self.db.list_jobs(corpus, {"_id": job_id})
+        if not existing:
+            returnD(format_error("No job found with id %s" % job_id))
+        elif existing[0]["crawling_status"] in [crawling_statuses.FINISHED, crawling_statuses.CANCELED, crawling_statuses.RETRIED]:
+            returnD(format_error("Job %s is already not running anymore" % job_id))
         logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
-        args = {'project': corpus_project(corpus),
-                  'job': job_id}
+        args = {'project': corpus_project(corpus), 'job': job_id}
         res = yield self.send_scrapy_query('cancel', args)
         if is_error(res):
             returnD(reformat_error(res))
@@ -858,14 +864,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
             res.append(fWE)
         returnD(res)
 
-    def reset(self, corpus=DEFAULT_CORPUS, quiet=False):
-        if not quiet:
-            logger.msg("Empty memory structure content", system="INFO - %s" % corpus)
-        res = self.msclients.sync.clearIndex(corpus=corpus)
-        if is_error(res):
-            return res
-        return self.ensureDefaultCreationRuleExists(corpus, quiet=quiet)
-
     @inlineCallbacks
     def jsonrpc_get_all_nodelinks(self, corpus=DEFAULT_CORPUS):
         res = yield self.msclients.pool.getNodeLinks(corpus=corpus)
@@ -898,7 +896,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(self.parent.corpus_error(corpus))
         if self.corpora[corpus]['index_loop'].running:
             self.corpora[corpus]['index_loop'].stop()
-        self.reset(corpus, quiet=quiet)
+        if not quiet:
+            logger.msg("Empty memory structure content", system="INFO - %s" % corpus)
+        res = self.msclients.sync.clearIndex(corpus=corpus)
+        if is_error(res):
+            returnD(res)
+        self.ensureDefaultCreationRuleExists(corpus, quiet=quiet)
         yield self._start_loop(corpus, noloop=noloop)
         returnD(format_result("MemoryStructure reinitialized"))
 
