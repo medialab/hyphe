@@ -1269,6 +1269,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def index_batch_loop(self, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus) or self.corpora[corpus]['loop_running']:
             returnD(False)
+        yield self.ramcache_webentities(corpus)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
         crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
         if crashed:
