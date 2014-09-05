@@ -857,11 +857,16 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(res)
 
     @inlineCallbacks
-    def format_webentities(self, WEs, jobs=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
+    def format_webentities(self, WEs, jobs=None, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
         res = []
         for WE in WEs:
             fWE = yield self.format_webentity(WE, jobs, light, semilight, light_for_csv, corpus=corpus)
             res.append(fWE)
+        if (sort):
+            key = sort.lstrip("-")
+            reverse = (key != sort)
+            if key in res[0]:
+                res = sorted(res, key=lambda x: x[key], reverse=reverse)
         returnD(res)
 
     @inlineCallbacks
@@ -1367,7 +1372,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return self.jsonrpc_get_webentities([we_id], corpus=corpus)
 
     @inlineCallbacks
-    def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, corelinks=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, corelinks=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         jobs = {}
@@ -1392,7 +1397,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if is_error(WEs):
                 returnD(WEs)
             jobs = None
-        res = yield self.format_webentities(WEs, jobs, light, semilight, light_for_csv, corpus=corpus)
+        res = yield self.format_webentities(WEs, jobs, light, semilight, light_for_csv, sort=sort, corpus=corpus)
         if test_bool_arg(corelinks):
             logger.msg("...got WebEntities, collecting WebEntityLinks...", system="INFO - %s" % corpus)
             res = yield self.msclients.pool.getWebEntityLinks(corpus=corpus)
@@ -1404,7 +1409,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(format_result(res))
 
     @inlineCallbacks
-    def jsonrpc_advanced_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], corpus=DEFAULT_CORPUS):
+    def jsonrpc_advanced_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, corpus=DEFAULT_CORPUS):
         afk = []
         fk = []
         if isinstance(allFieldsKeywords, unicode):
@@ -1422,7 +1427,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
-        res = yield self.format_webentities(WEs, light=True, corpus=corpus)
+        res = yield self.format_webentities(WEs, light=True, sort=sort, corpus=corpus)
         returnD(format_result(res))
 
     def jsonrpc_escape_search_query(self, query, corpus=DEFAULT_CORPUS):
@@ -1430,47 +1435,47 @@ class Memory_Structure(jsonrpc.JSONRPC):
             query = query.replace(char, "\\%s" % char)
         return query.replace(' ', '?')
 
-    def _optionnal_field_search(self, query, field=None, corpus=DEFAULT_CORPUS):
+    def _optionnal_field_search(self, query, field=None, sort=None, corpus=DEFAULT_CORPUS):
         if field:
             if not isinstance(field, unicode):
                 field = unicode(field)
-            return self.jsonrpc_advanced_search_webentities([], [[field, query]], corpus=corpus)
-        return self.jsonrpc_advanced_search_webentities([query], corpus=corpus)
+            return self.jsonrpc_advanced_search_webentities([], [[field, query]], sort=sort, corpus=corpus)
+        return self.jsonrpc_advanced_search_webentities([query], sort=sort, corpus=corpus)
 
-    def jsonrpc_exact_search_webentities(self, query, field=None, corpus=DEFAULT_CORPUS):
+    def jsonrpc_exact_search_webentities(self, query, field=None, sort=None, corpus=DEFAULT_CORPUS):
         query = self.jsonrpc_escape_search_query(query)
-        return self._optionnal_field_search(query, field, corpus=corpus)
+        return self._optionnal_field_search(query, field, sort=sort, corpus=corpus)
 
-    def jsonrpc_prefixed_search_webentities(self, query, field=None, corpus=DEFAULT_CORPUS):
+    def jsonrpc_prefixed_search_webentities(self, query, field=None, sort=None, corpus=DEFAULT_CORPUS):
         query = "%s*" % self.jsonrpc_escape_search_query(query)
-        return self._optionnal_field_search(query, field, corpus=corpus)
+        return self._optionnal_field_search(query, field, sort=sort, corpus=corpus)
 
-    def jsonrpc_postfixed_search_webentities(self, query, field=None, corpus=DEFAULT_CORPUS):
+    def jsonrpc_postfixed_search_webentities(self, query, field=None, sort=None, corpus=DEFAULT_CORPUS):
         query = "*%s" % self.jsonrpc_escape_search_query(query)
-        return self._optionnal_field_search(query, field, corpus=corpus)
+        return self._optionnal_field_search(query, field, sort=sort, corpus=corpus)
 
-    def jsonrpc_free_search_webentities(self, query, field=None, corpus=DEFAULT_CORPUS):
+    def jsonrpc_free_search_webentities(self, query, field=None, sort=None, corpus=DEFAULT_CORPUS):
         query = "*%s*" % self.jsonrpc_escape_search_query(query)
-        return self._optionnal_field_search(query, field, corpus=corpus)
+        return self._optionnal_field_search(query, field, sort=sort, corpus=corpus)
 
-    def jsonrpc_get_webentities_by_status(self, status, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentities_by_status(self, status, sort=None, corpus=DEFAULT_CORPUS):
         status = status.lower()
         valid_statuses = [s.lower() for s in ms.WebEntityStatus._NAMES_TO_VALUES]
         if status not in valid_statuses:
             returnD(format_error("ERROR: status argument must be one of %s" % ",".join(valid_statuses)))
-        return self.jsonrpc_exact_search_webentities(status, 'STATUS', corpus=corpus)
+        return self.jsonrpc_exact_search_webentities(status, 'STATUS', sort=sort, corpus=corpus)
 
-    def jsonrpc_get_webentities_by_name(self, name, corpus=DEFAULT_CORPUS):
-        return self.jsonrpc_exact_search_webentities(name, 'NAME', corpus=corpus)
+    def jsonrpc_get_webentities_by_name(self, name, sort=None, corpus=DEFAULT_CORPUS):
+        return self.jsonrpc_exact_search_webentities(name, 'NAME', sort=sort, corpus=corpus)
 
-    def jsonrpc_get_webentities_by_tag_value(self, value, corpus=DEFAULT_CORPUS):
-        return self.jsonrpc_exact_search_webentities(value, 'TAG_VALUE', corpus=corpus)
+    def jsonrpc_get_webentities_by_tag_value(self, value, sort=None, corpus=DEFAULT_CORPUS):
+        return self.jsonrpc_exact_search_webentities(value, 'TAG_VALUE', sort=sort, corpus=corpus)
 
-    def jsonrpc_get_webentities_by_tag_category(self, category, corpus=DEFAULT_CORPUS):
-        return self.jsonrpc_exact_search_webentities(category, 'TAG_CATEGORY', corpus=corpus)
+    def jsonrpc_get_webentities_by_tag_category(self, category, sort=None, corpus=DEFAULT_CORPUS):
+        return self.jsonrpc_exact_search_webentities(category, 'TAG_CATEGORY', sort=sort, corpus=corpus)
 
-    def jsonrpc_get_webentities_by_user_tag(self, category, value, corpus=DEFAULT_CORPUS):
-        return self.jsonrpc_exact_search_webentities("USER:%s=%s" % (category, value), 'TAG', corpus=corpus)
+    def jsonrpc_get_webentities_by_user_tag(self, category, value, sort=None, corpus=DEFAULT_CORPUS):
+        return self.jsonrpc_exact_search_webentities("USER:%s=%s" % (category, value), 'TAG', sort=sort, corpus=corpus)
 
     def jsonrpc_get_webentity_by_lruprefix_as_url(self, url, corpus=DEFAULT_CORPUS):
         try:
