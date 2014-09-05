@@ -1425,7 +1425,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             afk.append(k.encode('utf-8'))
         for kv in fieldKeywords:
             if not (isinstance(kv, list) and len(kv) == 2 and kv[0] and kv[1] and ((isinstance(kv[0], unicode) and isinstance(kv[1], unicode)) or (isinstance(kv[0], str) and isinstance(kv[1], str)))):
-                returnD(format_error(" ERROR: fieldKeywords must be a list of two-string-elements lists. %s" % fieldKeywords))
+                returnD(format_error("ERROR: fieldKeywords must be a list of two-string-elements lists. %s" % fieldKeywords))
             fk.append([kv[0].encode('utf-8'), kv[1].encode('utf-8')])
         WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus=corpus)
         if is_error(WEs):
