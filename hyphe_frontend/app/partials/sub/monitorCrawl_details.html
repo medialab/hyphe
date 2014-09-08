@@ -13,7 +13,7 @@
 <button
   ng-if="!(lastCrawlJobs[0].crawling_status == 'RUNNING' || lastCrawlJobs[0].crawling_status == 'PENDING')"
   class="btn btn-default"
-  ng-click="reCrawl(lastCrawlJobs[0]._id)"
+  ng-click="reCrawl(lastCrawlJobs[0].webentity_id)"
 ><span class="glyphicon glyphicon-repeat"></span> RECRAWL</button>
 
 <h3>IDENTITY</h3>

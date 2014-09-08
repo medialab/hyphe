@@ -1383,6 +1383,19 @@ angular.module('hyphe.controllers', [])
       )
     }
 
+    $scope.reCrawl = function(weId){
+      var webentity = $scope.webentityIndex[weId]
+      ,obj = {webentity:webentity}
+      
+      if(webentity !== undefined){
+        store.set('webentities_toCrawl', [obj])
+        $location.path('/checkStartPages')
+      } else {
+        $scope.status = {message:'No Web Entity to send', background:'danger'}
+      }
+    }
+
+    // functions
     function enrichJob(job){
       job.globalStatus = ''
       if(job.crawling_status == 'RUNNING'){
