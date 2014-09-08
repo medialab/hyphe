@@ -259,4 +259,17 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+  .directive('spinner', [function(){
+    return {
+      restrict: 'E'
+      ,templateUrl: 'partials/sub/spinner.html'
+      ,scope: {
+        
+      }
+      ,link: function(scope, el, attrs) {
+        scope.text = el.textContent
+      }
+    }
+  }])
+
 ;
