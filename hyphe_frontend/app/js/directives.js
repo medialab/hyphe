@@ -101,6 +101,7 @@ angular.module('hyphe.directives', [])
         // functions used in this directive
 
         function startDrag(e) {
+          updateSteps()
           drg_w = el.outerWidth()
           pos_x = el.offset().left + drg_w - e.pageX
           z_idx = el.css('z-index')
@@ -118,6 +119,7 @@ angular.module('hyphe.directives', [])
         }
 
         function updateDrag(e) {
+          updateSteps()
           var x = e.pageX + pos_x - drg_w
 
           // magnetic steps
