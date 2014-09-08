@@ -241,6 +241,7 @@ textarea.over-error{
    ========================================================================== */
 .define-we-row{
   padding-left: 64px;
+  padding-right: 94px;
   border-top: 1px solid #F5F5F5;
 }
 .define-we-row:nth-child(odd){
@@ -275,7 +276,7 @@ textarea.over-error{
   cursor: pointer;
 }
 
-.define-we-row .col-row-id{
+.define-we-row .col-row-id, .define-we-row .col-row-remove{
   width: 0%;
 }
 .define-we-row .content-row-id{
@@ -285,6 +286,12 @@ textarea.over-error{
   padding-top: 12px;
   font-size: 24px;
   font-weight: 300;
+}
+.define-we-row .content-row-remove{
+  margin-right: -94px;
+  width: 94px;
+  padding-top: 12px;
+  padding-right: 6px;
 }
 
 .define-we-row .row-content{

@@ -25,8 +25,10 @@
                         {{obj.id+1}}
                       </div>
                     </div>
+
                     <div class="col-md-12">
                       <div class="row-content">
+
                         <!-- Loading and pending-->
                         <div ng-if="obj.status == 'loading' || obj.status == 'pending'" class="info-content">
                           <p class="loading-p text-muted">
@@ -47,6 +49,7 @@
                               Same web entity defined row{{obj.conflicts.length>1 ? 's' : ''}} <span ng-repeat="r in obj.conflicts track by $index">{{r+1}}{{ $index == obj.conflicts.length-1 ? '' : $index == obj.conflicts.length-2 ? ' and ' : ', '}}</span>
                             </small>
                           </div>
+
                         </div>
 
                         <!-- Created or Existing -->
@@ -101,6 +104,18 @@
                           </div>
                         </div>
                       
+                      </div>
+                    </div>
+
+                    <div class="col-md-1 col-row-remove">
+                      <div class="content-row-remove">
+                        <button
+                          class="btn btn-link btn-xs pull-right"
+                          ng-click="removeLine(obj.id)"
+                          ng-show="$parent.activeRow == ($index+paginationLength*paginationPage) && obj.status=='loaded'"
+                        >
+                          <span class="glyphicon glyphicon-remove"></span> REMOVE
+                        </button>
                       </div>
                     </div>
 

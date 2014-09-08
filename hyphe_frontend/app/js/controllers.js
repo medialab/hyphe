@@ -529,6 +529,16 @@ angular.module('hyphe.controllers', [])
       }
     }
 
+    $scope.removeLine = function(objId){
+      $scope.list = $scope.list.filter(function(obj){
+        return obj.id != objId
+      })
+      delete $scope.list_byId[objId]
+    }
+
+
+    // Functions
+
     function bootstrapUrlList(list){
       if(list){
         // Consolidate the list of web entities
@@ -1354,7 +1364,7 @@ angular.module('hyphe.controllers', [])
         ,refreshCrawlJobs // Callback
       )
     }
-    
+
     $scope.abortCrawl = function(job){
       $scope.status = {message: 'Aborting crawl jobs'}
       
