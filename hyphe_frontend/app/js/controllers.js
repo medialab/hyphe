@@ -607,6 +607,7 @@ angular.module('hyphe.controllers', [])
     $scope.currentPage = 'checkStartPages'
 
     $scope.lookups = {}
+    $scope.secondaryLookups = {}
     
     $scope.crawlDepth = 1
 
@@ -1042,7 +1043,7 @@ angular.module('hyphe.controllers', [])
       })
       // Launch these lookups if needed
       if(something_changed)
-        loopLookups()
+        launchLookups()
 
       // If there are no pages, there will be no lookup, but the status is still 'warning'
       if(obj.webentity.startpages.length == 0){
@@ -1051,7 +1052,7 @@ angular.module('hyphe.controllers', [])
       }
     }
 
-    function loopLookups(){
+    function launchLookups(){
       var unlookedUrls = []
 
       for(var url in $scope.lookups){
@@ -1071,14 +1072,22 @@ angular.module('hyphe.controllers', [])
                 }
               ,function(httpStatus){                // Success callback
                   var lo = $scope.lookups[url]
-                  lo.status = 'loaded'
                   lo.httpStatus = httpStatus
+
+                  if(httpStatus == 200){
+                    lo.status = 'loaded'
+                  } else {
+                    lo.status = 'variations pending'
+                    rescheduleVariationsLookups(url)
+                  }
+                  
                   updateRowForLookup(lo.rowId)
                 }
               ,function(data, status, headers){     // Fail callback
                   var lo = $scope.lookups[url]
-                  lo.status = 'error'
+                  lo.status = 'variations pending'
                   lo.httpStatus = undefined
+                  rescheduleVariationsLookups(url)
                   updateRowForLookup(lo.rowId)
                 }
               ,{                                    // Options
@@ -1093,11 +1102,106 @@ angular.module('hyphe.controllers', [])
         })
 
         lookupQB.atFinalization(function(list,pending,success,fail){
-          loopLookups()
+          launchLookups()
         })
 
         lookupQB.run()
       }
+    }
+    
+    function rescheduleVariationsLookups(url){
+      var lo = $scope.lookups[url]
+      ,obj = list_byId[lo.rowId]
+      ,lru = utils.URL_to_LRU(url)
+      ,variations = utils.LRU_variations(
+          lru
+          ,{
+            wwwlessVariations: true
+            ,wwwVariations: true
+            ,httpVariations: true
+            ,httpsVariations: true
+            ,smallerVariations: false
+          }
+        )
+        .filter(function(vlru){
+          // We check that each vlru is actually prefixed in the web entity
+          return obj.webentity.lru_prefixes.some(function(p){
+            return vlru.indexOf(p) == 0
+          })
+        })
+        .map(utils.LRU_to_URL)
+        .filter(function(vurl){
+          // We check that each vurl is not already a start page
+          return !obj.webentity.startpages.some(function(sp){
+            return sp == vurl
+          })
+        })
+
+      var slo_obj = {}
+      variations.forEach(function(vurl){
+        slo_obj[vurl] = {status:'loading', url:vurl, rowId: obj.id, originalUrl: url}
+      })
+      $scope.secondaryLookups[url] = slo_obj
+
+      var secondaryLookupQB = new QueriesBatcher()
+      variations.forEach(function(vurl){
+        secondaryLookupQB.addQuery(
+          api.urlLookup                         // Query call
+          ,{                                    // Query settings
+              url:vurl
+            }
+          ,function(httpStatus){                // Success callback
+              var slo = $scope.secondaryLookups[url][vurl]
+              slo.status = httpStatus
+            }
+          ,function(data, status, headers){     // Fail callback
+              var slo = $scope.secondaryLookups[url][vurl]
+              slo.status = 'error'
+            }
+          ,{                                    // Options
+              label: 'secondary lookup '+vurl
+              ,before: function(){
+                  var slo = $scope.secondaryLookups[url][vurl]
+                  slo.status = 'pending'
+                }
+              ,simultaneousQueries: 1
+            }
+        )
+      })
+  
+      secondaryLookupQB.atFinalization(function(list,pending,success,fail){
+        console.log('All secondary lookups done for '+url,$scope.secondaryLookups[url])
+
+        var successfulVariation
+        for(var vurl in $scope.secondaryLookups[url]){
+          var slo = $scope.secondaryLookups[url][vurl]
+          if(slo.status == 200){
+            successfulVariation = vurl
+          }
+        }
+
+        if(successfulVariation){
+          // We replace the original start page with the new one
+          console.log('A better start page found. ' + url + ' will be replaced by ' + successfulVariation)
+          _addStartPage(obj, successfulVariation, function(){
+            _removeStartPage(obj, url, function(){
+              reloadRow(obj.id)
+            })
+          })
+        } else {
+          // The lookup failed. We use the status from the original lookup.
+          var lo = $scope.lookups[url]
+          if(lo.httpStatus === undefined){
+            lo.status = 'error'
+          } else {
+            lo.status = 'loaded'
+          }
+          updateRowForLookup(lo.rowId)
+        }
+      })
+
+      secondaryLookupQB.run()
+
     }
 
     function updateRowForLookup(rowId){
@@ -1590,7 +1694,6 @@ angular.module('hyphe.controllers', [])
         )
       }
     }
-
   }])
 
 
