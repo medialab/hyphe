@@ -158,14 +158,18 @@
                             <div class="row no-gutter">
                               <div class="col-md-7">
                                 <div class="big-bullet-number">1</div>
-                                <select class="form-control" ng-model="selected_setStatus">
-                                  <option value="UNDECIDED">Set to UNDECIDED</option>
-                                  <option value="IN">Set to IN</option>
-                                  <option value="OUT">Set to OUT</option>
+                                <select class="form-control" ng-model="$parent.$parent.selected_setStatus">
+                                  <option value="none">set to...</option>
+                                  <option value="IN">IN</option>
+                                  <option value="OUT">OUT</option>
+                                  <option value="UNDECIDED">UNDECIDED</option>
                                 </select>
                               </div>
                               <div class="col-md-5">
-                                <button class="btn btn-default">SET STATUS</button>
+                                <button
+                                  class="btn btn-default"
+                                  ng-disabled="selected_setStatus == 'none'"
+                                >SET STATUS</button>
                               </div>
                             </div>
 
@@ -180,9 +184,22 @@
                             </div>
 
                             <div class="row no-gutter">
-                              <div class="col-sm-12">
+                              <div class="col-md-7">
                                 <div class="big-bullet-number">3</div>
-                                <button class="btn btn-default">MERGE</button>
+                                <select class="form-control" ng-model="$parent.$parent.selected_mergeTarget">
+                                  <option value="none">merge into...</option>
+                                  <option
+                                    ng-repeat="id in checkedList"
+                                    value="{{id}}"
+                                  >{{webentitiesCheckStack[id].name}}</option>
+                                </td>
+                                </select>
+                              </div>
+                              <div class="col-md-5">
+                                <button
+                                  class="btn btn-default"
+                                  ng-disabled="selected_mergeTarget == 'none'"
+                                >MERGE</button>
                               </div>
                             </div>
 

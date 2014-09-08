@@ -1602,7 +1602,8 @@ angular.module('hyphe.controllers', [])
     $scope.sort = 'date'
     $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
 
-    $scope.selected_setStatus = 'UNDECIDED'
+    $scope.selected_setStatus = 'none'
+    $scope.selected_mergeTarget = 'none'
 
     $scope.loadWebentities = function(query){
       $scope.status = {message: 'Loading'}
