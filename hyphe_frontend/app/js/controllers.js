@@ -1582,7 +1582,8 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('listWebentities', ['$scope', 'api', function($scope, api) {
+  .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location',
+  function($scope, api, utils, store, $location) {
     $scope.currentPage = 'listWebentities'
 
     $scope.list
@@ -1685,6 +1686,33 @@ angular.module('hyphe.controllers', [])
     $scope.clearQuery = function(){
       $scope.query = undefined
       $scope.loadWebentities()
+    }
+
+    $scope.doCrawl = function(crawlExisting){
+
+      function buildObj(we){
+        return {
+            webentity: we
+          }
+      }
+      var list = $scope.checkedList
+        .map(function(id){
+          return $scope.webentitiesCheckStack[id]
+        })
+        .map(buildObj)
+        .filter(function(obj){return obj.webentity.id !== undefined})
+      
+      // Remove doublons
+      list = utils.extractCases(list, function(obj){
+        return obj.webentity.id
+      })
+
+      if(list.length > 0){
+        store.set('webentities_toCrawl', list)
+        $location.path('/checkStartPages')
+      } else {
+        $scope.status = {message:'No Web Entity to send', background:'danger'}
+      }
     }
 
     $scope.loadWebentities()
