@@ -33,6 +33,22 @@
 
 </dl>
 
+<h3>SETTINGS</h3>
+<dl class="dl-horizontal">
+
+  <dt><span hyphe-glossary="Depth"/></dt>
+  <dd><span class="badge">{{lastCrawlJobs[0].crawl_arguments.maxdepth}}</span></dd>
+
+  <dt><span hyphe-glossary="Cautious crawl"/></dt>
+  <dd ng-if="lastCrawlJobs[0].crawl_arguments.phantom">
+    <span class="glyphicon glyphicon-bell"></span> YES
+  </dd>
+  <dd ng-if="!lastCrawlJobs[0].crawl_arguments.phantom">
+    No
+  </dd>
+  
+</dl>
+
 <h3>ACTIVITY</h3>
 <dl class="dl-horizontal">
 
@@ -102,22 +118,6 @@
     </a>
 	</li>
 </ul>
-
-<h3>SETTINGS</h3>
-<dl class="dl-horizontal">
-
-	<dt><span hyphe-glossary="Depth"/></dt>
-  <dd><span class="badge">{{lastCrawlJobs[0].crawl_arguments.maxdepth}}</span></dd>
-
-	<dt><span hyphe-glossary="Cautious crawl"/></dt>
-  <dd ng-if="lastCrawlJobs[0].crawl_arguments.phantom">
-		<span class="glyphicon glyphicon-bell"></span> YES
-	</dd>
-	<dd ng-if="!lastCrawlJobs[0].crawl_arguments.phantom">
-		No
-	</dd>
-  
-</dl>
 
 <div ng-if="lastCrawlJobs[0].crawl_arguments.phantom">
 <h3>CAUTIOUS CRAWL SETTINGS</h3>
