@@ -1707,6 +1707,8 @@ angular.module('hyphe.controllers', [])
     $scope.webentitiesCheckStack = {} // Web entities once checked
                                       // NB: will contain false positives
 
+    $scope.randomEasterEgg = Math.floor(Math.random()*4)
+
     $scope.loaded = false
 
     $scope.paginationPage = 1

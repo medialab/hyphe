@@ -103,6 +103,15 @@
 
               </div>
 
+              <!-- Easter Egg -->
+              <div ng-if="!statuses.in && !statuses.out && !statuses.undecided && !statuses.discovered">
+                <h3 class="text-info">You chose to display nothing. Enjoy some user mockery! :&nbsp;)</h3>
+                <img ng-if="randomEasterEgg == 0" src="img/egg_linda.gif">
+                <img ng-if="randomEasterEgg == 1" src="img/egg_iamretard.gif">
+                <img ng-if="randomEasterEgg == 2" src="img/egg_howdevpictureusers.gif">
+                <img ng-if="randomEasterEgg == 3" src="img/egg_userandphone.gif">
+              </div>
+
 
               <!-- Pagination  -->
               <div class="text-center">
