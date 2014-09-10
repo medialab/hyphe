@@ -40,7 +40,7 @@ angular.module('hyphe.service_glossary', [])
         ,entries: ['start page', 'start pages', 'start url', 'start urls']
       },{
         title: 'Timestamp'
-        ,definition: 'A number encoding a moment, ie. the count in milliseconds since 00:00:00 UTC on January 1, 1970'
+        ,definition: 'A number encoding a date and time, ie. the count in milliseconds since 00:00:00 UTC on January 1, 1970'
         ,entries: ['timestamp', 'timestamps']
       },{
         title: 'Web Entity'
