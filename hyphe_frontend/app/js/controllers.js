@@ -1873,5 +1873,10 @@ angular.module('hyphe.controllers', [])
     }
     
   }])
+
+.controller('export', ['$scope', 'api', 'utils', '$location',
+  function($scope, api, utils, $location) {
+
+  }])
 ;
 
