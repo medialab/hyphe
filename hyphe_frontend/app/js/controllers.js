@@ -1707,9 +1707,10 @@ angular.module('hyphe.controllers', [])
     $scope.webentitiesCheckStack = {} // Web entities once checked
                                       // NB: will contain false positives
 
-    $scope.randomEasterEgg = Math.floor(Math.random()*4)
+    $scope.randomEasterEgg
 
     $scope.loaded = false
+    $scope.loading = false  // This flag prevents multiple simultaneous queries
 
     $scope.paginationPage = 1
     $scope.paginationLength = 20   // How many items per page
@@ -1725,6 +1726,7 @@ angular.module('hyphe.controllers', [])
 
     $scope.loadWebentities = function(query){
       $scope.status = {message: 'Loading'}
+      $scope.loading = true
 
       // Set last query
       $scope.lastQuery = $scope.query
@@ -1762,9 +1764,12 @@ angular.module('hyphe.controllers', [])
           })
           $scope.status = {}
           $scope.loaded = true
+          $scope.loading = false
         }
         ,function(){
+          $scope.list = []
           $scope.status = {message: 'Error loading web entities', background: 'danger'}
+          $scope.loading = false
         }
       )
     }
@@ -1797,9 +1802,12 @@ angular.module('hyphe.controllers', [])
     }
 
     $scope.doQuery = function(){
-      var query = cleanQuery($scope.query)
-      console.log('Query:',query)
-      $scope.loadWebentities(query)
+      if(!$scope.loading){
+        refreshEasterEgg()  // yes, yes...
+        var query = cleanQuery($scope.query)
+        console.log('Query:',query)
+        $scope.loadWebentities(query)
+      }
     }
 
     $scope.clearQuery = function(){
@@ -1858,6 +1866,10 @@ angular.module('hyphe.controllers', [])
       })
       return '*' + query + '*'
       // return query.replace(' ', '?')
+    }
+
+    function refreshEasterEgg(){
+      $scope.randomEasterEgg = Math.floor(Math.random()*4)
     }
     
   }])
