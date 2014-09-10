@@ -11,9 +11,257 @@
                 <h1>
                   EXPORT WEB ENTITIES
                 </h1>
-                <p class="bg-warning text-danger">
-                  Note: This page has not been implemented yet
+
+                <div class="bulleted-title">
+                  <div class="big-bullet-number">1</div>
+                  <h3>
+                    Filter web entities by status
+                  </h3>
+                </div>
+
+                <br>
+
+                <div class="btn-group">
+                  <label
+                    class="btn btn-default"
+                    ng-model="statuses.in"
+                    btn-checkbox
+                  >IN</label>
+
+                  <label
+                    class="btn btn-default"
+                    ng-model="statuses.out"
+                    btn-checkbox
+                  >OUT</label>
+
+                  <label
+                    class="btn btn-default"
+                    ng-model="statuses.undecided"
+                    btn-checkbox
+                  >UNDECIDED</label>
+
+                  <label
+                    class="btn btn-default"
+                    ng-model="statuses.discovered"
+                    btn-checkbox
+                  >DISCOVERED</label>
+
+                </div>
+
+                <br>
+                <br>
+                <br>
+
+                <div class="bulleted-title">
+                  <div class="big-bullet-number">2</div>
+                  <h3>
+                    Select columns to export
+                  </h3>
+                </div>
+
+                <br>
+
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-3">
+
+                <p>
+                  <span class="text-muted">Identity</span>
                 </p>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.id.val" type="checkbox">
+                    {{columns.id.name}}
+                    <span class="text-muted">
+                      (<span hyphe-glossary="web entity identifier"/>)
+                    </span>
+                  </label>
+                </div>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.name.val" type="checkbox">
+                    {{columns.name.name}}
+                  </label>
+                </div>
+
+                <br>
+                
+                <p>
+                  <span class="text-muted">Status</span>
+                </p>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.status.val" type="checkbox">
+                    {{columns.status.name}}
+                  </label>
+                </div>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.crawling_status.val" type="checkbox">
+                    {{columns.crawling_status.name}}
+                  </label>
+                </div>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.indexing_status.val" type="checkbox">
+                    {{columns.indexing_status.name}}
+                  </label>
+                </div>
+
+                <br>
+
+              </div>
+              <div class="col-md-3">
+
+                <p>
+                  <span class="text-muted">URLs</span>
+                </p>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.prefixes.val" type="checkbox">
+                    {{columns.prefixes.name}}
+                    <span class="text-muted">
+                      (URLs separated by spaces)
+                    </span>
+                  </label>
+                </div>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.prefixes_lru.val" type="checkbox">
+                    {{columns.prefixes_lru.name}}
+                    <span class="text-muted">
+                      (<span hyphe-glossary="LRUs"/> separated by spaces)
+                    </span>
+                  </label>
+                </div>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.start_pages.val" type="checkbox">
+                    <span hyphe-glossary="START PAGES"/>
+                  </label>
+                </div>
+
+                <br>
+                
+              </div>
+              <div class="col-md-3">
+
+                <p>
+                  <span class="text-muted">Dates</span>
+                </p>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.creation_date.val" type="checkbox">
+                    CREATION DATE
+                  </label>
+                </div>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.creation_date_timestamp.val" type="checkbox">
+                    CREATION as <span hyphe-glossary="TIMESTAMP"/>
+                  </label>
+                </div>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.last_modification_date.val" type="checkbox">
+                    LAST MODIFICATION DATE
+                  </label>
+                </div>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.last_modification_date_timestamp.val" type="checkbox">
+                    LAST MODIFICATION as <span hyphe-glossary="TIMESTAMP"/>
+                  </label>
+                </div>
+
+                <br>
+
+              </div>
+              <div class="col-md-3">
+
+
+                <p>
+                  <span class="text-muted">Technical Info</span>
+                </p>
+
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="columns.core_tags.val" type="checkbox">
+                    {{columns.core_tags.name}}
+                  </label>
+                </div>
+
+                <br>
+
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-12">
+                
+                <div class="bulleted-title">
+                  <div class="big-bullet-number">3</div>
+                  <h3>
+                    File format
+                  </h3>
+                </div>
+
+                <br>
+
+                <div class="radio">
+                  <label>
+                    <input type="radio" ng-model="fileFormat" name="optionsRadios" value="CSV" checked>
+                    CSV - comma-separated values
+                  </label>
+                </div>
+
+                <div class="radio">
+                  <label>
+                    <input type="radio" ng-model="fileFormat" name="optionsRadios" value="SCSV" checked>
+                    SCSV - semicolon-separated values
+                  </label>
+                </div>
+
+                <div class="radio">
+                  <label>
+                    <input type="radio" ng-model="fileFormat" name="optionsRadios" value="TSV" checked>
+                    TSV - tabulation-separated values
+                  </label>
+                </div>
+
+                <div class="radio">
+                  <label>
+                    <input type="radio" ng-model="fileFormat" name="optionsRadios" value="JSON" checked>
+                    JSON
+                  </label>
+                </div>
+
+                <div class="radio">
+                  <label>
+                    <input type="radio" ng-model="fileFormat" name="optionsRadios" value="MD" checked>
+                    MD - Markdown readable as text
+                  </label>
+                </div>
+
+                <br>
+
+                <button class="btn btn-primary"><span class="glyphicon glyphicon-download"/> DOWNLOAD {{fileFormat}}</button>
+
+
               </div>
             </div>
 

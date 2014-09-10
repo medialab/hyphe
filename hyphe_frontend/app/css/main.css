@@ -632,6 +632,19 @@ textarea.over-error{
 
 
 
+/* ==========================================================================
+   View: Export
+   ========================================================================== */
+.bulleted-title{
+  margin-left: 42px;
+}
+.bulleted-title .big-bullet-number{
+  margin-left: -42px;
+  margin-top: -1px;
+}
+
+
+
 
 
 

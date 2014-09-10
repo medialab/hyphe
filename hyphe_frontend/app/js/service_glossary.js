@@ -23,6 +23,10 @@ angular.module('hyphe.service_glossary', [])
         ,definition: 'Defines if a web entity is a whole domain, a subdomain, a page or a combination of those'
         ,entries: ['boundaries', 'boundaries of a web entity', 'boundaries of web entities']
       },{
+        title: 'LRU'
+        ,definition: 'Equivalent of an URL but reordered from the most generic to the most specific part. Used for web entity prefixes.'
+        ,entries: ['lru', 'lrus', 'reverse url', 'reverse urls']
+      },{
         title: 'Prefix of a Web Entity'
         ,definition: 'A sort of URL used to define the boundaries of a web entity: if a URL begins with the prefix, it belongs to this web entity'
         ,entries: ['web entity prefix', 'web entity prefixes', 'web entities prefixes', 'prefix', 'prefixes']
@@ -35,9 +39,17 @@ angular.module('hyphe.service_glossary', [])
         ,definition: 'In a web entity, Hyphe crawls it to find links and other pages, step by step'
         ,entries: ['start page', 'start pages', 'start url', 'start urls']
       },{
+        title: 'Timestamp'
+        ,definition: 'A number encoding a moment, ie. the count in milliseconds since 00:00:00 UTC on January 1, 1970'
+        ,entries: ['timestamp', 'timestamps']
+      },{
         title: 'Web Entity'
         ,definition: 'Used in Hyphe to describe a website, an actor, or any set of pages you consider as a whole'
         ,entries: ['web entity', 'web entities']
+      },{
+        title: 'Web Entity Identifier'
+        ,definition: 'Sequence of characters identifying a web entity. Necessary because different web entities may have the same name.'
+        ,entries: ['web entity identifier', 'web entities identifiers']
       },{
         title: 'WWW Variations'
         ,definition: 'URLs that differ only by the presence of the www subdomain. Ex: www.google.com and google.com'
