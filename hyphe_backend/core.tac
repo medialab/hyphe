@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time, random, json, bson
+import time, random, json
 from urllib import urlencode
 import subprocess
 from txjsonrpc import jsonrpclib
@@ -298,6 +298,7 @@ class Core(jsonrpc.JSONRPC):
             for f in ["tags", "webentities", "webentities_links", "precision_exceptions"]:
                 if f in self.corpora[corpus]:
                     del(self.corpora[corpus][f])
+        yield self.db.clean_WEs_query(corpus)
         res = self.jsonrpc_test_corpus(corpus)
         if "message" in res["result"]:
             res["result"]["message"] = "Corpus stopped"
@@ -813,7 +814,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['precision_exceptions'] = []
         if not noloop:
             reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
-            reactor.callLater(3, self.jsonrpc_get_webentities, light=True, corelinks=True, corpus=corpus)
+            reactor.callLater(3, self.ramcache_webentities, corelinks=True, corpus=corpus)
             reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
 
     @inlineCallbacks
@@ -1226,7 +1227,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def index_batch(self, page_items, jobid, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(False)
-        ids = [bson.ObjectId(str(record['_id'])) for record in page_items]
+        ids = [str(record['_id']) for record in page_items]
         nb_crawled_pages = len(ids)
         if not nb_crawled_pages:
             returnD(False)
@@ -1277,7 +1278,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def index_batch_loop(self, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus) or self.corpora[corpus]['loop_running']:
             returnD(False)
-        yield self.ramcache_webentities(corpus)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
         crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
         if crashed:
@@ -1332,6 +1332,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         else:
             self.corpora[corpus]['loop_running'] = None
             returnD(False)
+        yield self.ramcache_webentities(corpus=corpus)
         logger.msg("...loop run finished.", system="INFO - %s" % corpus)
         self.corpora[corpus]['loop_running'] = None
 
@@ -1360,7 +1361,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return format_result("Precision Exceptions %s removed." % list_exceptions)
 
     @inlineCallbacks
-    def ramcache_webentities(self, corpus=DEFAULT_CORPUS):
+    def ramcache_webentities(self, corelinks=False, corpus=DEFAULT_CORPUS):
+        if test_bool_arg(corelinks):
+            logger.msg("Collecting WebEntities...", system="INFO - %s" % corpus)
         WEs = self.corpora[corpus]['webentities']
         if WEs == [] or self.corpora[corpus]['recent_indexes'] or self.corpora[corpus]['last_links_loop'] > self.corpora[corpus]['last_WE_update']:
             WEs = yield self.msclients.pool.getWebEntities(corpus=corpus)
@@ -1369,15 +1372,77 @@ class Memory_Structure(jsonrpc.JSONRPC):
             self.corpora[corpus]['last_WE_update'] = now_ts()
             self.corpora[corpus]['webentities'] = WEs
         self.corpora[corpus]['total_webentities'] = len(WEs)
+        if test_bool_arg(corelinks):
+            logger.msg("...got WebEntities, collecting WebEntityLinks...", system="INFO - %s" % corpus)
+            res = yield self.msclients.pool.getWebEntityLinks(corpus=corpus)
+            if is_error(res):
+                returnD(res)
+            self.corpora[corpus]['webentities_links'] = res
+            logger.msg("...got WebEntityLinks.", system="INFO - %s" % corpus)
+            self.corpora[corpus]['loop_running'] = False
         returnD(WEs)
 
     def jsonrpc_get_webentity(self, we_id, corpus=DEFAULT_CORPUS):
         return self.jsonrpc_get_webentities([we_id], corpus=corpus)
 
+    def format_WE_page(self, total, count, page, WEs, token=None):
+        res = {
+            "total_results": total,
+            "count": count,
+            "page": page,
+            "webentities": WEs,
+            "token": token,
+            "last_page": (total+1)/count,
+            "previous_page": None,
+            "next_page": None
+        }
+        if page > 0:
+            res["previous_page"] = min(res["last_page"], page - 1)
+        if (page+1)*count < total:
+            res["next_page"] = page + 1
+        return res
+
     @inlineCallbacks
-    def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, corelinks=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
+    def paginate_webentities(self, WEs, count, page, light=False, semilight=False, sort=None, corpus=DEFAULT_CORPUS):
+        subset = WEs[page*count:(page+1)*count]
+        ids = [w["id"] for w in WEs]
+        res = self.format_WE_page(len(ids), count, page, subset)
+        query_args = {
+          "count": count,
+          "light": light,
+          "semilight": semilight,
+          "sort": sort
+        }
+        res["token"] = yield self.db.save_WEs_query(corpus, ids, query_args)
+        returnD(res)
+
+    @inlineCallbacks
+    def jsonrpc_get_webentities_page(self, token, page, corpus=DEFAULT_CORPUS):
+        try:
+            page = int(page)
+        except:
+            returnD(format_error("page argument must be an integer"))
+        ids = yield self.db.get_WEs_query(corpus, token)
+        if not ids:
+            returnD(format_error("No previous query found for token %s on corpus %s" % (token, corpus)))
+        count = ids["query"]["count"]
+        query_ids = ids["webentities"][page*count:(page+1)*count]
+        if not query_ids:
+            returnD(self.format_WE_page(ids["total"], ids["query"]["count"], page, [], token=token))
+        res = yield self.jsonrpc_get_webentities(query_ids, light=ids["query"]["light"], semilight=ids["query"]["semilight"], sort=ids["query"]["sort"], count=ids["query"]["count"], corpus=corpus)
+        if is_error(res):
+            returnD(res)
+        returnD(self.format_WE_page(ids["total"], ids["query"]["count"], page, res["result"], token=token))
+
+    @inlineCallbacks
+    def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, light_for_csv=False, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
+        try:
+            page = int(page)
+            count = int(count)
+        except:
+            returnD(format_error("page and count arguments must be integers"))
         jobs = {}
         if isinstance(list_ids, unicode):
             list_ids = [list_ids] if list_ids else []
@@ -1394,25 +1459,28 @@ class Memory_Structure(jsonrpc.JSONRPC):
             for job in res:
                 jobs[job['webentity_id']] = job
         else:
-            if test_bool_arg(corelinks):
-                logger.msg("Collecting WebEntities...", system="INFO - %s" % corpus)
-            WEs = yield self.ramcache_webentities(corpus)
+            WEs = yield self.ramcache_webentities(corpus=corpus)
             if is_error(WEs):
                 returnD(WEs)
             jobs = None
-        res = yield self.format_webentities(WEs, jobs, light, semilight, light_for_csv, sort=sort, corpus=corpus)
-        if test_bool_arg(corelinks):
-            logger.msg("...got WebEntities, collecting WebEntityLinks...", system="INFO - %s" % corpus)
-            res = yield self.msclients.pool.getWebEntityLinks(corpus=corpus)
-            if is_error(res):
-                returnD(res)
-            self.corpora[corpus]['webentities_links'] = res
-            logger.msg("...got WebEntityLinks.", system="INFO - %s" % corpus)
-            self.corpora[corpus]['loop_running'] = False
+        res = yield self.format_webentities(WEs, jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
+        if n_WEs:
+            returnD(format_result(res))
+        if len(WEs) > count and not light_for_csv:
+            res = yield self.paginate_webentities(res, count, page, light=light, semilight=semilight, sort=sort, corpus=corpus)
+        else:
+            res = self.format_WE_page(len(res), count, page, res)
         returnD(format_result(res))
 
     @inlineCallbacks
-    def jsonrpc_advanced_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, corpus=DEFAULT_CORPUS):
+    def jsonrpc_advanced_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        try:
+            page = int(page)
+            count = int(count)
+        except:
+            returnD(format_error("page and count arguments must be integers"))
         afk = []
         fk = []
         if isinstance(allFieldsKeywords, unicode):
@@ -1430,7 +1498,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
-        res = yield self.format_webentities(WEs, light=True, sort=sort, corpus=corpus)
+        res = yield self.format_webentities(WEs, sort=sort, corpus=corpus)
+        if len(WEs) > count:
+            res = yield self.paginate_webentities(res, count, page, sort=sort, corpus=corpus)
+        else:
+            res = self.format_WE_page(len(res), count, page, res)
         returnD(format_result(res))
 
     def jsonrpc_escape_search_query(self, query, corpus=DEFAULT_CORPUS):
@@ -1683,7 +1755,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 returnD(False)
             self.corpora[corpus]['webentities_links'] = links
         if outformat == "gexf":
-            WEs = yield self.ramcache_webentities(corpus)
+            WEs = yield self.ramcache_webentities(corpus=corpus)
             if is_error(WEs):
                 logger.msg(WEs['message'], system="ERROR - %s" % corpus)
                 returnD(False)

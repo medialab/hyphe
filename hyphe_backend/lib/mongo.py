@@ -6,6 +6,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from txmongo import MongoConnection, connection as mongo_connection
 mongo_connection._Connection.noisy = False
 from txmongo.filter import sort as mongosort, ASCENDING, DESCENDING
+from bson import ObjectId
 from hyphe_backend.lib.utils import crawling_statuses, indexing_statuses, salt, now_ts
 
 def sortasc(field):
@@ -54,7 +55,7 @@ class MongoDB(object):
           "last_activity": now,
           "last_index_loop": now,
           "last_links_loop": now
-        })
+        }, safe=True)
         yield self.init_corpus_indexes(corpus)
 
 
@@ -83,6 +84,7 @@ class MongoDB(object):
         yield self.jobs(corpus).ensure_index(sortasc('indexing_status'), background=True, safe=True)
         yield self.jobs(corpus).ensure_index(sortasc('webentity_id') + sortasc('created_at'), background=True, safe=True)
         yield self.jobs(corpus).ensure_index(sortasc('crawling_status') + sortasc('indexing_status') + sortasc('created_at'), background=True, safe=True)
+        yield self.queries(corpus).ensure_index(sortasc('_id'), background=True, safe=True)
 
     def _get_coll(self, corpus, name):
         return self.db["%s.%s" % (corpus, name)]
@@ -95,6 +97,8 @@ class MongoDB(object):
         return self._get_coll(corpus, "jobs")
     def logs(self, corpus):
         return self._get_coll(corpus, "logs")
+    def queries(self, corpus):
+        return self._get_coll(corpus, "queries")
 
     @inlineCallbacks
     def drop_corpus_collections(self, corpus):
@@ -102,6 +106,7 @@ class MongoDB(object):
         yield self.pages(corpus).drop(safe=True)
         yield self.jobs(corpus).drop(safe=True)
         yield self.logs(corpus).drop(safe=True)
+        yield self.queries(corpus).drop(safe=True)
 
     @inlineCallbacks
     def list_logs(self, corpus, job, **kwargs):
@@ -188,9 +193,26 @@ class MongoDB(object):
     @inlineCallbacks
     def clean_queue(self, corpus, specs, **kwargs):
         if type(specs) == list:
-            specs = {"_id": {"$in": specs}}
+            specs = {"_id": {"$in": [ObjectId(_i) for _i in specs]}}
         elif type(specs) in [str, unicode, bytes]:
-            specs = {"_id": specs}
+            specs = {"_id": ObjectId(specs)}
         kwargs["safe"] = True
         yield self.queue(corpus).remove(specs, **kwargs)
 
+    @inlineCallbacks
+    def save_WEs_query(self, corpus, ids, query_options):
+        res = yield self.queries(corpus).insert({
+          "webentities": ids,
+          "total": len(ids),
+          "query": query_options
+        }, safe=True)
+        returnD(str(res))
+
+    @inlineCallbacks
+    def get_WEs_query(self, corpus, token):
+        res = yield self.queries(corpus).find_one({"_id": ObjectId(token)}, safe=True)
+        returnD(res)
+
+    @inlineCallbacks
+    def clean_WEs_query(self, corpus):
+        yield self.queries(corpus).remove({}, safe=True)
