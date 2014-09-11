@@ -1749,10 +1749,10 @@ angular.module('hyphe.controllers', [])
           allFieldsKeywords: query || ['*']
           ,fieldKeywords: field_kw
         }
-        ,function(webentities){
+        ,function(result){
           $scope.paginationPage = 1
 
-          $scope.list = webentities.map(function(we, i){
+          $scope.list = result.webentities.map(function(we, i){
             var obj = {
               id:i
               ,webentity:we

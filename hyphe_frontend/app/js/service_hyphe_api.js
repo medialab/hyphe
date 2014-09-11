@@ -57,6 +57,8 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.id_list                // List of webentities
             ,settings.light || false        // Mode light
             ,settings.semiLight || false    // Mode semi-light
+            ,["-status", "name"]            // Ordering
+            ,5000                           // Results per page
           ]}
       )
 
@@ -66,6 +68,8 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
             settings.allFieldsKeywords      // List of kw searched everywhere
             ,settings.fieldKeywords         // List of [field,kw] pairs for field search
+            ,"name"                         // Ordering
+            ,5000                           // Results per page
           ]}
       )
 

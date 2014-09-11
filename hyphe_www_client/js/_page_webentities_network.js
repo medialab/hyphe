@@ -117,9 +117,15 @@ HypheCommons.domino_init()
                 ,setter: 'webentities'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
-                        'params' : [],
+                        'params' : [
+                            null
+                            ,false
+                            ,false
+                            ,"name"             // sort order
+                            ,50000              // max results
+                        ],
                     })}
-                ,path:'0.result'
+                ,path:'0.result.webentities'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             }
 

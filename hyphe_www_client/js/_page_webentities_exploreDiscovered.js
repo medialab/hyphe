@@ -73,14 +73,16 @@ HypheCommons.domino_init()
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
-                            settings.id_list    // List of webentities
+                            null                // List of webentities
                             ,(settings.light && !settings.semilight) || false
                             ,settings.semilight || false
+                            ,"name"             // sort order
+                            ,50000              // max results
                         ],
                     })}
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
                 ,success: function(data, input){
-                    var webentitiesUpdated = data[0].result
+                    var webentitiesUpdated = data[0].result.webentities
                         ,webentities_byId = this.get('webentitiesById')
                     webentitiesUpdated.forEach(function(we){
                         webentities_byId[we.id] = we

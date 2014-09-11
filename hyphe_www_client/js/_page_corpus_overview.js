@@ -127,11 +127,17 @@ domino.settings('maxDepth', 1000)
                 id: 'getWebentities'
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
-                        'params' : [],
+                        'params' : [
+                            null
+                            ,false
+                            ,false
+                            ,"name"             // sort order
+                            ,50000              // max results
+                        ],
                     })}
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
                 ,success: function(data, input){
-                        var webentities = data[0].result
+                        var webentities = data[0].result.webentities
                             ,webentities_byId = this.get('webentities_byId')
                         
                         webentities.forEach(function(we){

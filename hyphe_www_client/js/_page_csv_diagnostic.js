@@ -70,6 +70,8 @@ HypheCommons.domino_init()
                             settings.id_list    // List of webentities
                             ,(settings.light && !settings.semilight) || false
                             ,settings.semilight || false
+                            ,"name"             // sort order
+                            ,50000              // max results
                         ],
                     })}
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error

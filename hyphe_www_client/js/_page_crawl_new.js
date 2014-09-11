@@ -109,12 +109,15 @@ HypheCommons.domino_init()
                             settings.id_list    // List of webentities
                             ,(settings.light && !settings.semilight) || false
                             ,settings.semilight || false
+                            ,"name"             // sort order
+                            ,50000              // max results
                         ],
                     })}
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
                 ,success: function(data, input){
                     var webentitiesUpdated = data[0].result
                         ,webentities_byId = this.get('webentitiesById')
+                    if (!input.id_list) webentitiesUpdated = webentitiesUpdated.webentities
                     webentitiesUpdated.forEach(function(we){
                         webentities_byId[we.id] = we
                     })

@@ -46,10 +46,14 @@ HypheCommons.domino_init()
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
-                            settings.id_list    // List of webentities
+                            null                // List of webentities
+                            ,false
+                            ,false
+                            ,"name"             // sort order
+                            ,50000              // max results
                         ],
                     })}
-                ,path:'0.result'
+                ,path:'0.result.webentities'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'getWebentitiesLight'
@@ -57,11 +61,14 @@ HypheCommons.domino_init()
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
-                            settings.id_list    // List of webentities
+                            null                // List of webentities
                             ,true               // Mode light
+                            ,false
+                            ,"name"             // sort order
+                            ,50000              // max results
                         ],
                     })}
-                ,path:'0.result'
+                ,path:'0.result.webentities'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'getWebentitiesSemilight'
@@ -69,12 +76,14 @@ HypheCommons.domino_init()
                 ,data: function(settings){ return JSON.stringify({ //JSON RPC
                         'method' : HYPHE_API.WEBENTITIES.GET,
                         'params' : [
-                            settings.id_list        // List of webentities
+                            null                    // List of webentities
                             ,false                  // Mode light
                             ,true                   // Mode semi-light
+                            ,"name"                 // sort order
+                            ,50000                  // max results
                         ],
                     })}
-                ,path:'0.result'
+                ,path:'0.result.webentities'
                 ,url: rpc_url, contentType: rpc_contentType, type: rpc_type, expect: rpc_expect, error: rpc_error
             },{
                 id: 'setWebentityStatus'
