@@ -1435,7 +1435,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(self.format_WE_page(ids["total"], ids["query"]["count"], page, res["result"], token=token))
 
     @inlineCallbacks
-    def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, light_for_csv=False, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, sort=None, count=100, page=0, light_for_csv=False, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         try:
@@ -1510,47 +1510,47 @@ class Memory_Structure(jsonrpc.JSONRPC):
             query = query.replace(char, "\\%s" % char)
         return query.replace(' ', '?')
 
-    def _optionnal_field_search(self, query, field=None, sort=None, corpus=DEFAULT_CORPUS):
+    def _optionnal_field_search(self, query, field=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         if field:
             if not isinstance(field, unicode):
                 field = unicode(field)
-            return self.jsonrpc_advanced_search_webentities([], [[field, query]], sort=sort, corpus=corpus)
-        return self.jsonrpc_advanced_search_webentities([query], sort=sort, corpus=corpus)
+            return self.jsonrpc_advanced_search_webentities([], [[field, query]], sort=sort, count=count, page=page, corpus=corpus)
+        return self.jsonrpc_advanced_search_webentities([query], sort=sort, count=count, page=page, corpus=corpus)
 
-    def jsonrpc_exact_search_webentities(self, query, field=None, sort=None, corpus=DEFAULT_CORPUS):
+    def jsonrpc_exact_search_webentities(self, query, field=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         query = self.jsonrpc_escape_search_query(query)
-        return self._optionnal_field_search(query, field, sort=sort, corpus=corpus)
+        return self._optionnal_field_search(query, field, sort=sort, count=count, page=page, corpus=corpus)
 
-    def jsonrpc_prefixed_search_webentities(self, query, field=None, sort=None, corpus=DEFAULT_CORPUS):
+    def jsonrpc_prefixed_search_webentities(self, query, field=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         query = "%s*" % self.jsonrpc_escape_search_query(query)
-        return self._optionnal_field_search(query, field, sort=sort, corpus=corpus)
+        return self._optionnal_field_search(query, field, sort=sort, count=count, page=page, corpus=corpus)
 
-    def jsonrpc_postfixed_search_webentities(self, query, field=None, sort=None, corpus=DEFAULT_CORPUS):
+    def jsonrpc_postfixed_search_webentities(self, query, field=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         query = "*%s" % self.jsonrpc_escape_search_query(query)
-        return self._optionnal_field_search(query, field, sort=sort, corpus=corpus)
+        return self._optionnal_field_search(query, field, sort=sort, count=count, page=page, corpus=corpus)
 
-    def jsonrpc_free_search_webentities(self, query, field=None, sort=None, corpus=DEFAULT_CORPUS):
+    def jsonrpc_free_search_webentities(self, query, field=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         query = "*%s*" % self.jsonrpc_escape_search_query(query)
-        return self._optionnal_field_search(query, field, sort=sort, corpus=corpus)
+        return self._optionnal_field_search(query, field, sort=sort, count=count, page=page, corpus=corpus)
 
-    def jsonrpc_get_webentities_by_status(self, status, sort=None, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentities_by_status(self, status, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         status = status.lower()
         valid_statuses = [s.lower() for s in ms.WebEntityStatus._NAMES_TO_VALUES]
         if status not in valid_statuses:
-            returnD(format_error("ERROR: status argument must be one of %s" % ",".join(valid_statuses)))
-        return self.jsonrpc_exact_search_webentities(status, 'STATUS', sort=sort, corpus=corpus)
+            return format_error("ERROR: status argument must be one of %s" % ",".join(valid_statuses))
+        return self.jsonrpc_exact_search_webentities(status, 'STATUS', sort=sort, count=count, page=page, corpus=corpus)
 
-    def jsonrpc_get_webentities_by_name(self, name, sort=None, corpus=DEFAULT_CORPUS):
-        return self.jsonrpc_exact_search_webentities(name, 'NAME', sort=sort, corpus=corpus)
+    def jsonrpc_get_webentities_by_name(self, name, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+        return self.jsonrpc_exact_search_webentities(name, 'NAME', sort=sort, count=count, page=page, corpus=corpus)
 
-    def jsonrpc_get_webentities_by_tag_value(self, value, sort=None, corpus=DEFAULT_CORPUS):
-        return self.jsonrpc_exact_search_webentities(value, 'TAG_VALUE', sort=sort, corpus=corpus)
+    def jsonrpc_get_webentities_by_tag_value(self, value, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+        return self.jsonrpc_exact_search_webentities(value, 'TAG_VALUE', sort=sort, count=count, page=page, corpus=corpus)
 
-    def jsonrpc_get_webentities_by_tag_category(self, category, sort=None, corpus=DEFAULT_CORPUS):
-        return self.jsonrpc_exact_search_webentities(category, 'TAG_CATEGORY', sort=sort, corpus=corpus)
+    def jsonrpc_get_webentities_by_tag_category(self, category, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+        return self.jsonrpc_exact_search_webentities(category, 'TAG_CATEGORY', sort=sort, count=count, page=page, corpus=corpus)
 
-    def jsonrpc_get_webentities_by_user_tag(self, category, value, sort=None, corpus=DEFAULT_CORPUS):
-        return self.jsonrpc_exact_search_webentities("USER:%s=%s" % (category, value), 'TAG', sort=sort, corpus=corpus)
+    def jsonrpc_get_webentities_by_user_tag(self, category, value, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+        return self.jsonrpc_exact_search_webentities("USER:%s=%s" % (category, value), 'TAG', sort=sort, count=count, page=page, corpus=corpus)
 
     def jsonrpc_get_webentity_by_lruprefix_as_url(self, url, corpus=DEFAULT_CORPUS):
         try:

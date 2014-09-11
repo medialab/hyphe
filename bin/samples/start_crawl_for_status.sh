@@ -15,8 +15,9 @@ if [ -z "$depth" ]; then
   depth=1
 fi
 
-./hyphe_backend/test_client.py inline store.get_webentities |
+./hyphe_backend/test_client.py inline store.get_webentities "" False False "name" 100000 |
   grep result |
+  sed "s/^.* u'webentities': \[//" |
   sed "s/{u'status'/\n{u'status'/g" |
   grep "u'status': u'$statuses'" > /tmp/webentities_to_crawl.list
 

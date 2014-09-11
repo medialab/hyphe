@@ -10,11 +10,12 @@ if [ -z "$OLDSTATUS" ] || [ -z "$NEWSTATUS" ] || [ "$OLDSTATUS" == "$NEWSTATUS" 
   exit
 fi
 
-./hyphe_backend/test_client.py inline store.get_webentities_by_status "$OLDSTATUS" |
+./hyphe_backend/test_client.py inline store.get_webentities_by_status "$OLDSTATUS" "name" 100000 |
   grep result |
-  sed "s/}, {u'id'/}\n{u'id'/g" |
+  sed "s/^.* u'webentities': \[//" |
+  sed "s/}, {u'/}\n{u'/g" |
   sed "s/^.*'id': u'//" |
-  sed "s/', u'.*$//" |
+  sed "s/'.*$//" |
   while read id; do
     ./hyphe_backend/test_client.py store.set_webentity_status "$id" "$NEWSTATUS"
   done

@@ -15,8 +15,9 @@ if [ -z "$statuses" ]; then
   exit
 fi
 
-./hyphe_backend/test_client.py inline store.get_webentities |
+./hyphe_backend/test_client.py inline store.get_webentities "" False False "name" 100000 |
   grep result |
+  sed "s/^.* u'webentities': \[//" |
   sed "s/{u'status'/\n{u'status'/g" |
   grep "'$keyword'" |
   sed "s/^.*'id': u'//" |

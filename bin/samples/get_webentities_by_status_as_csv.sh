@@ -9,8 +9,9 @@ if [ -z "$status" ]; then
 fi
 
 echo "status,lru_prefixes,id,name,tags"
-./hyphe_backend/test_client.py inline store.get_webentities "" False False "" False True |
+./hyphe_backend/test_client.py inline store.get_webentities "" False False "name" 100000 0 True |
   grep result |
+  sed "s/^.* u'webentities': \[//" |
   sed "s/{u'status'/\n{u'status'/g" |
   grep -i "u'status': u'$status'" |
   sed "s/', u'[^']*': u'/\",\"/g" |
