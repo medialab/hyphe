@@ -24,5 +24,6 @@ angular.module('hyphe', [
   $routeProvider.when('/scheduleCrawls', {templateUrl: 'partials/scheduleCrawls.html', controller: 'scheduleCrawls'});
   $routeProvider.when('/monitorCrawls', {templateUrl: 'partials/monitorCrawls.html', controller: 'monitorCrawls'});
   $routeProvider.when('/listWebentities', {templateUrl: 'partials/listWebentities.html', controller: 'listWebentities'});
+  $routeProvider.when('/export', {templateUrl: 'partials/export.html', controller: 'export'});
   $routeProvider.otherwise({redirectTo: '/login'});
 }]);

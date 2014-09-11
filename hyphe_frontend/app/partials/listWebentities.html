@@ -48,10 +48,38 @@
                     </div>
 
                     <div class="btn-group">
-                      <label class="btn btn-default" ng-model="statuses.in" ng-change="doQuery()" btn-checkbox>IN</label>
-                      <label class="btn btn-default" ng-model="statuses.out" ng-change="doQuery()" btn-checkbox>OUT</label>
-                      <label class="btn btn-default" ng-model="statuses.undecided" ng-change="doQuery()" btn-checkbox>UNDECIDED</label>
-                      <label class="btn btn-default" ng-model="statuses.discovered" ng-change="doQuery()" btn-checkbox>DISCOVERED</label>
+                      <label
+                        class="btn btn-default"
+                        ng-model="statuses.in"
+                        ng-change="doQuery()"
+                        ng-class="{disabled:loading}"
+                        btn-checkbox
+                      >IN</label>
+
+                      <label
+                        class="btn btn-default"
+                        ng-model="statuses.out"
+                        ng-change="doQuery()"
+                        ng-class="{disabled:loading}"
+                        btn-checkbox
+                      >OUT</label>
+
+                      <label
+                        class="btn btn-default"
+                        ng-model="statuses.undecided"
+                        ng-change="doQuery()"
+                        ng-class="{disabled:loading}"
+                        btn-checkbox
+                      >UNDECIDED</label>
+
+                      <label
+                        class="btn btn-default"
+                        ng-model="statuses.discovered"
+                        ng-change="doQuery()"
+                        ng-class="{disabled:loading}"
+                        btn-checkbox
+                      >DISCOVERED</label>
+
                     </div>
 
                     <!-- <div class="form-group">

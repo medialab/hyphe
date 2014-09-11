@@ -1707,9 +1707,10 @@ angular.module('hyphe.controllers', [])
     $scope.webentitiesCheckStack = {} // Web entities once checked
                                       // NB: will contain false positives
 
-    $scope.randomEasterEgg = Math.floor(Math.random()*4)
+    $scope.randomEasterEgg
 
     $scope.loaded = false
+    $scope.loading = false  // This flag prevents multiple simultaneous queries
 
     $scope.paginationPage = 1
     $scope.paginationLength = 20   // How many items per page
@@ -1725,6 +1726,7 @@ angular.module('hyphe.controllers', [])
 
     $scope.loadWebentities = function(query){
       $scope.status = {message: 'Loading'}
+      $scope.loading = true
 
       // Set last query
       $scope.lastQuery = $scope.query
@@ -1762,9 +1764,12 @@ angular.module('hyphe.controllers', [])
           })
           $scope.status = {}
           $scope.loaded = true
+          $scope.loading = false
         }
         ,function(){
+          $scope.list = []
           $scope.status = {message: 'Error loading web entities', background: 'danger'}
+          $scope.loading = false
         }
       )
     }
@@ -1797,9 +1802,12 @@ angular.module('hyphe.controllers', [])
     }
 
     $scope.doQuery = function(){
-      var query = cleanQuery($scope.query)
-      console.log('Query:',query)
-      $scope.loadWebentities(query)
+      if(!$scope.loading){
+        refreshEasterEgg()  // yes, yes...
+        var query = cleanQuery($scope.query)
+        console.log('Query:',query)
+        $scope.loadWebentities(query)
+      }
     }
 
     $scope.clearQuery = function(){
@@ -1859,6 +1867,145 @@ angular.module('hyphe.controllers', [])
       return '*' + query + '*'
       // return query.replace(' ', '?')
     }
+
+    function refreshEasterEgg(){
+      $scope.randomEasterEgg = Math.floor(Math.random()*4)
+    }
+    
+  }])
+
+.controller('export', ['$scope', 'api', 'utils', '$location',
+  function($scope, api, utils, $location) {
+    $scope.currentPage = 'export'
+
+    $scope.list
+
+    $scope.statuses = {in:true, out:false, undecided:false, discovered:false}
+    $scope.columns = {
+      id: {
+        name: 'ID'
+        ,accessor: 'id'
+        ,type: 'string'
+        ,val: true
+      }
+      ,name: {
+        name: 'NAME'
+        ,accessor: 'name'
+        ,type: 'string'
+        ,val: true
+      }
+      ,prefixes: {
+        name: 'PREFIXES'
+        ,accessor: 'lru_prefixes'
+        ,type: 'array of lru'
+        ,val: true
+      }
+      ,prefixes_lru: {
+        name: 'PREFIXES AS LRU'
+        ,accessor: 'lru_prefixes'
+        ,type: 'array of string'
+        ,val: false
+      }
+      ,start_pages: {
+        name: 'START PAGES'
+        ,accessor: 'start_pages'
+        ,type: 'array of string'
+        ,val: false
+      }
+      ,status: {
+        name: 'STATUS'
+        ,accessor: 'status'
+        ,type: 'string'
+        ,val: true
+      }
+      ,crawling_status: {
+        name: 'CRAWLING STATUS'
+        ,accessor: 'crawling_status'
+        ,type: 'string'
+        ,val: true
+      }
+      ,indexing_status: {
+        name: 'INDEXING STATUS'
+        ,accessor: 'indexing_status'
+        ,type: 'string'
+        ,val: false
+      }
+      ,creation_date: {
+        name: 'CREATION DATE'
+        ,accessor: 'creation_date'
+        ,type: 'timestamp'
+        ,val: false
+      }
+      ,last_modification_date: {
+        name: 'LAST MODIFICATION DATE'
+        ,accessor: 'last_modification_date'
+        ,type: 'timestamp'
+        ,val: true
+      }
+      ,creation_date_timestamp: {
+        name: 'CREATION DATE AS TIMESTAMP'
+        ,accessor: 'creation_date'
+        ,type: 'string'
+        ,val: false
+      }
+      ,last_modification_date_timestamp: {
+        name: 'LAST MODIFICATION DATE AS TIMESTAMP'
+        ,accessor: 'last_modification_date'
+        ,type: 'string'
+        ,val: false
+      }
+      ,core_tags: {
+        name: 'TECHNICAL TAGS'
+        ,accessor: 'tags.CORE'
+        ,type: 'array of string'
+        ,val: false
+      }
+    }
+    $scope.fileFormat = 'CSV'
+
+
+    $scope.loadWebentities = function(){
+      $scope.status = {message: 'Loading'}
+      $scope.loading = true
+
+      // Get filtering settings
+      var field_kw = [
+        [
+          'status'
+          ,['in','out','undecided','discovered']
+            .filter(function(s){
+                return $scope.statuses[s]
+              })
+            .map(function(s){
+                return s.toUpperCase()
+              })
+            .join(' ')
+        ]
+      ]
+
+      api.searchWebentities(
+        {
+          allFieldsKeywords: ['*']
+          ,fieldKeywords: field_kw
+        }
+        ,function(webentities){
+          $scope.paginationPage = 1
+
+          $scope.list = webentities
+          $scope.status = {}
+          $scope.loaded = true
+          $scope.loading = false
+
+          console.log($scope.list[0])
+        }
+        ,function(){
+          $scope.list = []
+          $scope.status = {message: 'Error loading web entities', background: 'danger'}
+          $scope.loading = false
+        }
+      )
+    }
+
     
   }])
 ;
