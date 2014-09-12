@@ -1878,10 +1878,13 @@ def test_last(res, cor, corpus):
     stop_tests(None, cor, corpus)
 @inlineCallbacks
 def stop_tests(res, cor, corpus, msg=None):
-    if is_error(res):
+    if is_error(res) or str(type(res)) == "<type 'instance'>":
         if msg:
             print "ERROR %s: %s" % (corpus, msg)
-        print res["message"]
+        if type(res) == dict:
+            print res["message"]
+        else:
+            print "ERROR", res
         yield cor.close()
         if reactor.running:
             reactor.stop()
