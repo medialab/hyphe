@@ -248,7 +248,6 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["last_links_loop"] = now
         self.corpora[corpus]["index_loop"] = LoopingCall(self.store.index_batch_loop, corpus)
         self.corpora[corpus]["jobs_loop"] = LoopingCall(self.refresh_jobs, corpus)
-        self.corpora[corpus]["recent_indexes"] = 0
 
     @inlineCallbacks
     def start_corpus(self, corpus=DEFAULT_CORPUS, password="", noloop=False, quiet=False, create_if_missing=False):
@@ -278,7 +277,6 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
         self.corpora[corpus]["last_index_loop"] = corpus_conf['last_index_loop']
         self.corpora[corpus]["last_links_loop"] = corpus_conf['last_links_loop']
-        self.corpora[corpus]["reset"] = False
         if not noloop:
             reactor.callLater(5, self.corpora[corpus]['jobs_loop'].start, 1, False)
         yield self.store._init_loop(corpus, noloop=noloop)
@@ -850,18 +848,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def _init_loop(self, corpus=DEFAULT_CORPUS, noloop=False):
         now = now_ts()
         yield self.handle_index_error(corpus)
-        self.corpora[corpus]['loop_running'] = "Collecting WebEntities & WebEntityLinks"
+        self.corpora[corpus]['loop_running'] = None
         self.corpora[corpus]['loop_running_since'] = now
         self.corpora[corpus]['last_WE_update'] = now
         self.corpora[corpus]['recent_indexes'] = 0
         self.corpora[corpus]['recent_tagging'] = True
-        self.corpora[corpus]['tags'] = {}
-        self.corpora[corpus]['webentities'] = []
-        self.corpora[corpus]['webentities_links'] = []
-        self.corpora[corpus]['precision_exceptions'] = []
         if not noloop:
             reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
-            reactor.callLater(3, self.ramcache_webentities, corelinks=True, corpus=corpus)
             reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
 
     @inlineCallbacks
@@ -947,17 +940,17 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return format_result('Default creation rule was already created')
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
-        self.corpora[corpus]["reset"] = True
         return self.reinitialize(corpus)
 
     @inlineCallbacks
     def reinitialize(self, corpus=DEFAULT_CORPUS, noloop=False, quiet=False):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        if self.corpora[corpus]['index_loop'].running:
-            self.corpora[corpus]['index_loop'].stop()
         if not quiet:
             logger.msg("Empty memory structure content", system="INFO - %s" % corpus)
+        while self.corpora[corpus]['loop_running']:
+            if self.corpora[corpus]['index_loop'].running:
+                self.corpora[corpus]['index_loop'].stop()
         res = self.msclients.sync.clearIndex(corpus=corpus)
         if is_error(res):
             returnD(res)
@@ -1377,9 +1370,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     logger.msg(res['message'], system="ERROR - %s" % corpus)
                     self.corpora[corpus]['loop_running'] = None
                     returnD(False)
-                if self.corpora[corpus]['reset']:
-                    self.corpora[corpus]['reset'] = False
-                    yield self.reinitialize(corpus, noloop=True, quiet=True)
                 self.corpora[corpus]['recent_indexes'] += 1
                 self.corpora[corpus]['last_index_loop'] = now_ts()
             else:
