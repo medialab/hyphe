@@ -85,13 +85,13 @@ HypheCommons.domino_init()
 
 			div.append(
 						$('<span/>').text(
-								'Last content indexation '+Utils.prettyDate((new Date()).setTime(status.corpus.memory_structure.last_index/1000))
+								'Last content indexation '+Utils.prettyDate((new Date()).setTime(status.corpus.memory_structure.last_index))
 								+((status.corpus.memory_structure.pages_to_index>0)?(' ('+status.corpus.memory_structure.pages_to_index+' pages to index)'):(''))
 							)
 					)
 				.append($('<br/>'))
 				.append(
-						$('<span/>').text('Last link built '+Utils.prettyDate((new Date()).setTime(status.corpus.memory_structure.last_links_generation/1000)))
+						$('<span/>').text('Last link built '+Utils.prettyDate((new Date()).setTime(status.corpus.memory_structure.last_links_generation)))
 					)
 				.append($('<br/>'))
             if(status.corpus.memory_structure.job_running) {
