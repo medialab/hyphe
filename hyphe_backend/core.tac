@@ -142,7 +142,7 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["options"].update(options)
         yield self.update_corpus(corpus, ram_check=False)
         if redeploy:
-            res = yield self.crawler.jsonrpc_deploy_crawler(corpus)
+            res = yield self.crawler.deploy_crawler(corpus)
             if is_error(res):
                 returnD(res)
         if "ram" in options and options["ram"] != oldram:
@@ -213,7 +213,7 @@ class Core(jsonrpc.JSONRPC):
 
         yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"])
         try:
-            res = yield self.crawler.jsonrpc_deploy_crawler(corpus)
+            res = yield self.crawler.deploy_crawler(corpus, quiet=quiet)
         except:
             returnD(format_error("Could not deploy crawler for corpus"))
         if not res:
@@ -630,14 +630,18 @@ class Crawler(jsonrpc.JSONRPC):
         self.db = self.parent.db
         self.corpora = self.parent.corpora
 
-    @inlineCallbacks
     def jsonrpc_deploy_crawler(self, corpus=DEFAULT_CORPUS):
+        return self.deploy_crawler(corpus)
+
+    @inlineCallbacks
+    def deploy_crawler(self, corpus=DEFAULT_CORPUS, quiet=False):
         output = subprocess.Popen(['bash', 'bin/deploy_scrapy_spider.sh', corpus, '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
         res = yield self.send_scrapy_query('listprojects')
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
             logger.msg("Couldn't deploy crawler", system="ERROR - %s" % corpus)
             returnD(format_error(output))
-        logger.msg("Successfully deployed crawler", system="INFO - %s" % corpus)
+        if not quiet:
+            logger.msg("Successfully deployed crawler", system="INFO - %s" % corpus)
         returnD(format_result('Crawler %s deployed' % corpus_project(corpus)))
 
     @inlineCallbacks
@@ -645,7 +649,7 @@ class Crawler(jsonrpc.JSONRPC):
         """Stops all current crawls."""
         list_jobs = yield self.jsonrpc_list(corpus)
         if is_error(list_jobs):
-            returnD(list_jobs)
+            returnD('No crawler deployed, hence no job to cancel')
         list_jobs = list_jobs['result']
         for item in list_jobs['running'] + list_jobs['pending']:
             res = yield self.jsonrpc_cancel(item['id'], corpus=corpus)
@@ -1798,28 +1802,30 @@ except Exception as x:
 
 def test_start(cor, corpus):
     d = cor.start_corpus(corpus, quiet=True, noloop=True, create_if_missing=True)
-    d.addCallback(test_scrapyd, cor, corpus)
-def test_scrapyd(res, cor, corpus):
-    if is_error(res):
-        return stop_tests(res, cor, corpus, "Could not create corpus")
-    d = cor.crawler.send_scrapy_query('delproject', {'project': corpus_project(corpus)})
-    d.addCallback(test_deploy, cor, corpus)
-def test_deploy(res, cor, corpus):
-    if is_error(res):
-        print "WARNING: Could not delete existing scrapy spider: %s" % res['message']
-        print "Trying to deploy anyway"
-    d = cor.crawler.jsonrpc_deploy_crawler(corpus)
     d.addCallback(test_ping, cor, corpus)
+    d.addErrback(stop_tests, cor, corpus)
 def test_ping(res, cor, corpus):
     if is_error(res):
-        return stop_tests(res, cor, corpus, "Could not connect to scrapyd server to deploy spider, please check your server and the configuration in config.json.")
+        return stop_tests(res, cor, corpus, "Could not create corpus")
     d = defer.succeed(cor.jsonrpc_ping(corpus, timeout=5))
     d.addCallback(test_destroy, cor, corpus)
+    d.addErrback(stop_tests, cor, corpus)
 def test_destroy(res, cor, corpus):
     if is_error(res):
         return stop_tests(res, cor, corpus, "Could not start corpus")
     d = cor.destroy_corpus(corpus, quiet=True)
-    d.addCallback(stop_tests, cor, corpus)
+    d.addCallback(test_scrapyd, cor, corpus)
+    d.addErrback(stop_tests, cor, corpus)
+def test_scrapyd(res, cor, corpus):
+    if is_error(res):
+        return stop_tests(res, cor, corpus, "Could not stop and destroy corpus")
+    d = cor.crawler.send_scrapy_query('delproject', {'project': corpus_project(corpus)})
+    d.addCallback(test_last, cor, corpus)
+    d.addErrback(stop_tests, cor, corpus)
+def test_last(res, cor, corpus):
+    if is_error(res):
+        print "WARNING: Could not delete existing scrapy spider: %s" % res['message']
+    stop_tests(None, cor, corpus)
 @inlineCallbacks
 def stop_tests(res, cor, corpus, msg=None):
     if is_error(res):
