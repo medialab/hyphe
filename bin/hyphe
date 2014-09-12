@@ -25,7 +25,7 @@ fi
 
 mkdir -p log
 PID_FILE="hyphe-server.lock"
-CORE_COMMAND="twistd -y $HCIPATH/hyphe_backend/core.tac -l $HCIPATH/log/hyphe-core.log"
+CORE_COMMAND="twistd -y $HCIPATH/hyphe_backend/core.tac -l $HCIPATH/log/hyphe-core.log --pidfile $PID_FILE"
 JAVA_COMMAND="$HCIPATH/hyphe_backend/memorystructure/MemoryStructureExecutable.jar corpus="
 
 function kill_residual_memstruct {
