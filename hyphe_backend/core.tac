@@ -160,7 +160,8 @@ class Core(jsonrpc.JSONRPC):
     def corpus_error(self, corpus=None):
         if not corpus:
             return format_error("Too many instances running already, please try again later")
-        reactor.callLater(0, self.stop_corpus, corpus, quiet=True)
+        if corpus in self.corpora and not self.msclients.starting_corpus(corpus):
+            reactor.callLater(0, self.stop_corpus, corpus, quiet=True)
         return format_error(self.jsonrpc_test_corpus(corpus)["result"])
 
     def factory_full(self):

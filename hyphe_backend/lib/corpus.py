@@ -282,6 +282,9 @@ class CorpusFactory(object):
     def test_corpus(self, name):
         return name and self.status_corpus(name) == "ready"
 
+    def starting_corpus(self, name):
+        return name and self.status_corpus(name, True) == "starting"
+
     def stopped_corpus(self, name):
         return name not in self.corpora or self.corpora[name].stopping()
 
