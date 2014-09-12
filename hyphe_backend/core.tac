@@ -1157,6 +1157,24 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_set_webentity_status(self, webentity_id, status, corpus=DEFAULT_CORPUS):
         return self.update_webentity(webentity_id, "status", status, corpus=corpus)
 
+    @inlineCallbacks
+    def jsonrpc_set_webentities_status(self, webentity_ids, status, corpus=DEFAULT_CORPUS):
+        if type(webentity_ids) != list or type(webentity_ids[0]) not in [str, unicode, bytes]:
+            returnD(format_error("ERROR: webentity_ids must be a list of webentity ids"))
+        results = yield DeferredList([self.jsonrpc_set_webentity_status(webentity_id, status, corpus=corpus) for webentity_id in webentity_ids], consumeErrors=True)
+        res = []
+        errors = []
+        for bl, WE in results:
+            if not bl:
+                errors.append(WE)
+            elif is_error(WE):
+                errors.append(WE["message"])
+            else:
+                res.append(WE["result"])
+        if len(errors):
+            returnD({'code': 'fail', 'message': '%d webentities failed, see details in "errors" field and successes in "results" field.' % len(errors), 'errors': errors, 'results': res})
+        returnD(format_result(res))
+
     def jsonrpc_set_webentity_homepage(self, webentity_id, homepage, corpus=DEFAULT_CORPUS):
         try:
             homepage, _ = urllru.url_clean_and_convert(url)
