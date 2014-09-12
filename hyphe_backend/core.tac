@@ -804,7 +804,7 @@ class Crawler(jsonrpc.JSONRPC):
                 returnD(format_error("No job found with id %s" % job_id))
             elif existing[0]["crawling_status"] in [crawling_statuses.FINISHED, crawling_statuses.CANCELED, crawling_statuses.RETRIED]:
                 returnD(format_error("Job %s is already not running anymore" % job_id))
-        logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
+            logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
         args = {'project': corpus_project(corpus), 'job': job_id}
         res = yield self.send_scrapy_query('cancel', args)
         if is_error(res):
