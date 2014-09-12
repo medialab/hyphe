@@ -12,7 +12,7 @@ from twisted.python import log as logger
 from twisted.internet import reactor, defer
 from twisted.internet.task import LoopingCall
 from twisted.internet.threads import deferToThread
-from twisted.internet.defer import inlineCallbacks, returnValue as returnD
+from twisted.internet.defer import DeferredList, inlineCallbacks, returnValue as returnD
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.internet.error import DNSLookupError, ConnectionRefusedError
 from twisted.application.internet import TCPServer
@@ -58,8 +58,7 @@ class Core(jsonrpc.JSONRPC):
     def close(self):
         if not config["MULTICORPUS"] and self.keepalive_default and self.keepalive_default.running:
             self.keepalive_default.stop()
-        for corpus in self.corpora.keys():
-            yield self.stop_corpus(corpus, quiet=True)
+        yield DeferredList([self.stop_corpus(corpus, quiet=True) for corpus in self.corpora.keys()], consumeErrors=True)
         yield self.db.close()
         self.msclients.stop()
 
@@ -348,19 +347,26 @@ class Core(jsonrpc.JSONRPC):
         returnD(format_result("Corpus %s destroyed successfully" % corpus))
 
     @inlineCallbacks
-    def jsonrpc_reset_all(self):
+    def jsonrpc_clear_all(self):
         corpora = yield self.db.list_corpus(fields=['_id', 'password'])
-        for corpus in corpora:
-            res = yield self.start_corpus(corpus['_id'], password=corpus['password'], noloop=True, quiet=not config['DEBUG'])
-            if is_error(res):
-                returnD(res)
-            res = self.jsonrpc_ping(corpus['_id'], timeout=10)
-            if is_error(res):
-                returnD(res)
-            res = yield self.destroy_corpus(corpus['_id'], quiet=not config['DEBUG'])
-            if is_error(res):
+        results = yield DeferredList([self.delete_corpus(corpus) for corpus in corpora], consumeErrors=True)
+        for bl, res in results:
+            if not bl or is_error(res):
                 returnD(res)
         returnD(format_result("All corpora and databases cleaned up"))
+
+    @inlineCallbacks
+    def delete_corpus(self, corpus_metas):
+        res = yield self.start_corpus(corpus_metas['_id'], password=corpus_metas['password'], noloop=True, quiet=not config['DEBUG'])
+        if is_error(res):
+            returnD(res)
+        res = self.jsonrpc_ping(corpus['_id'], timeout=10)
+        if is_error(res):
+            returnD(res)
+        res = yield self.destroy_corpus(corpus['_id'], quiet=not config['DEBUG'])
+        if is_error(res):
+            returnD(res)
+        returnD("Corpus %s cleaned up" % corpus)
 
   # CORE & CORPUS STATUS
 
@@ -442,9 +448,18 @@ class Core(jsonrpc.JSONRPC):
         scrapyjobs = scrapyjobs['result']
         self.corpora[corpus]['crawls_pending'] = len(scrapyjobs['pending'])
         self.corpora[corpus]['crawls_running'] = len(scrapyjobs['running'])
-        self.corpora[corpus]['pages_queued'] = yield self.db.queue(corpus).count()
-        self.corpora[corpus]['pages_crawled'] = yield self.db.pages(corpus).count()
-        jobs = yield self.db.list_jobs(corpus, fields=['nb_pages', 'nb_links'])
+        results = yield DeferredList([
+            self.db.queue(corpus).count(),
+            self.db.pages(corpus).count(),
+            self.db.list_jobs(corpus, fields=['nb_pages', 'nb_links'])
+        ], consumeErrors=True)
+        for bl, res in results:
+            if not bl:
+                logger.msg("Problem dialoguing with MongoDB: %s" % res, system="WARNING - %s" % corpus)
+                returnD(None)
+        self.corpora[corpus]['pages_queued'] = results[0][1]
+        self.corpora[corpus]['pages_crawled'] = results[1][1]
+        jobs = results[2][1]
         self.corpora[corpus]['crawls'] = len(jobs)
         self.corpora[corpus]['pages_found'] = sum([j['nb_pages'] for j in jobs])
         self.corpora[corpus]['links_found'] = sum([j['nb_links'] for j in jobs])
@@ -456,9 +471,11 @@ class Core(jsonrpc.JSONRPC):
         yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.CANCELED, 'indexing_status': {"$ne": indexing_statuses.CANCELED}}, {'indexing_status': indexing_statuses.CANCELED, 'finished_at': now_ts()})
         # update jobs crawling status accordingly to crawler's statuses
         running_ids = [job['id'] for job in scrapyjobs['running']]
-        for job_id in running_ids:
-            crawled_pages = yield self.db.count_pages(corpus, job_id)
-            yield self.db.update_jobs(corpus, job_id, {'nb_crawled_pages': crawled_pages})
+        yield DeferredList([self.db.update_job_pages(corpus, job_id) for job_id in running_ids], consumeErrors=True)
+        for bl, res in results:
+            if not bl:
+                logger.msg("Problem dialoguing with MongoDB: %s" % res, system="WARNING - %s" % corpus)
+                returnD(None)
         res = yield self.db.list_jobs(corpus, {'_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, fields=['_id'])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
@@ -488,8 +505,6 @@ class Core(jsonrpc.JSONRPC):
                 yield self.jsonrpc_crawl_webentity(job['webentity_id'], job['crawl_arguments']['maxdepth'], True, corpus=corpus)
                 yield self.db.add_log(corpus, job['_id'], "CRAWL_RETRIED_AS_PHANTOM")
                 yield self.db.update_jobs(corpus, job['_id'], {'crawling_status': crawling_statuses.RETRIED})
-        res = yield self.jsonrpc_listjobs(corpus=corpus)
-        returnD(res)
 
   # BASIC PAGE DECLARATION (AND WEBENTITY CREATION)
 
@@ -504,10 +519,10 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_declare_pages(self, list_urls, corpus=DEFAULT_CORPUS):
         res = []
         errors = []
-        for url in list_urls:
-            WE = yield self.jsonrpc_declare_page(url, corpus=corpus)
-            if is_error(WE):
-                errors.append({'url': url, 'error': WE['message']})
+        results = yield DeferredList([self.jsonrpc_declare_page(url, corpus=corpus) for url in list_urls], consumeErrors=True)
+        for bl, WE in results:
+            if not bl or is_error(WE):
+                errors.append({'url': url, 'error': WE})
             else:
                 res.append(WE['result'])
         if len(errors):
@@ -864,10 +879,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def format_webentities(self, WEs, jobs=None, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
         res = []
-        for WE in WEs:
-            fWE = yield self.format_webentity(WE, jobs, light, semilight, light_for_csv, corpus=corpus)
-            res.append(fWE)
-        if (sort):
+        results = yield DeferredList([self.format_webentity(WE, jobs, light, semilight, light_for_csv, corpus=corpus) for WE in WEs], consumeErrors=True)
+        for bl, fWE in results:
+            if not bl:
+                logger.msg("Problem formatting WE: %s" % fWE, system="WARNING - %s" % corpus)
+            else:
+                res.append(fWE)
+        if res and sort:
             if type(sort) != list:
                 sort = [sort]
             for sortkey in reversed(sort):
@@ -1248,9 +1266,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         logger.msg("..."+str(nb_pages)+" pages indexed in "+str(time.time()-s)+"s...", system="INFO - %s" % corpus)
         s=time.time()
         nb_links = len(links)
-        for link_list in [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]:
-            res = yield self.msclients.loop.saveNodeLinks([ms.NodeLink(source.encode('utf-8'),target.encode('utf-8'),weight) for source,target,weight in link_list], corpus=corpus)
-            if is_error(res):
+        link_lists = [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]
+        results = yield DeferredList([self.msclients.loop.saveNodeLinks([ms.NodeLink(source.encode('utf-8'),target.encode('utf-8'),weight) for source,target,weight in link_list], corpus=corpus) for link_list in link_lists], consumeErrors=True)
+        for bl, res in results:
+            if not bl or is_error(res):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
                 returnD(False)
         logger.msg("..."+str(nb_links)+" links indexed in "+str(time.time()-s)+"s...", system="INFO - %s" % corpus)
@@ -1366,24 +1385,28 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def ramcache_webentities(self, corelinks=False, corpus=DEFAULT_CORPUS):
-        if test_bool_arg(corelinks):
-            logger.msg("Collecting WebEntities...", system="INFO - %s" % corpus)
         WEs = self.corpora[corpus]['webentities']
+        deflist = []
         if WEs == [] or self.corpora[corpus]['recent_indexes'] or self.corpora[corpus]['last_links_loop'] > self.corpora[corpus]['last_WE_update']:
-            WEs = yield self.msclients.pool.getWebEntities(corpus=corpus)
-            if is_error(WEs):
+            deflist.append(self.msclients.pool.getWebEntities(corpus=corpus))
+            if test_bool_arg(corelinks):
+                logger.msg("Collecting WebEntities and WebEntityLinks...", system="INFO - %s" % corpus)
+                deflist.append(self.msclients.pool.getWebEntityLinks(corpus=corpus))
+        if deflist:
+            results = yield DeferredList(deflist, consumeErrors=True)
+            WEs = results[0][1]
+            if not results[0][0] or is_error(WEs):
                 returnD(WEs)
             self.corpora[corpus]['last_WE_update'] = now_ts()
             self.corpora[corpus]['webentities'] = WEs
-        self.corpora[corpus]['total_webentities'] = len(WEs)
-        if test_bool_arg(corelinks):
-            logger.msg("...got WebEntities, collecting WebEntityLinks...", system="INFO - %s" % corpus)
-            res = yield self.msclients.pool.getWebEntityLinks(corpus=corpus)
-            if is_error(res):
-                returnD(res)
-            self.corpora[corpus]['webentities_links'] = res
-            logger.msg("...got WebEntityLinks.", system="INFO - %s" % corpus)
+            self.corpora[corpus]['total_webentities'] = len(WEs)
+        if len(deflist) > 1:
+            WElinks = results[1][1]
+            if not results[1][0] or is_error(WElinks):
+                returnD(WElinks)
+            self.corpora[corpus]['webentities_links'] = WElinks
             self.corpora[corpus]['loop_running'] = False
+            logger.msg("...ramcached.", system="INFO - %s" % corpus)
         returnD(WEs)
 
     def jsonrpc_get_webentity(self, we_id, corpus=DEFAULT_CORPUS):
@@ -1454,9 +1477,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if n_WEs:
             MAX_WE_AT_ONCE = 100
             WEs = []
-            for sublist_ids in [list_ids[MAX_WE_AT_ONCE*i : MAX_WE_AT_ONCE*(i+1)] for i in range((n_WEs-1)/MAX_WE_AT_ONCE + 1)]:
-                res = yield self.msclients.pool.getWebEntitiesByIDs(sublist_ids, corpus=corpus)
-                if is_error(res):
+            sublists = [list_ids[MAX_WE_AT_ONCE*i : MAX_WE_AT_ONCE*(i+1)] for i in range((n_WEs-1)/MAX_WE_AT_ONCE + 1)]
+            results = yield DeferredList([self.msclients.pool.getWebEntitiesByIDs(sublist_ids, corpus=corpus) for sublist_ids in sublists], consumeErrors=True)
+            for bl, res in results:
+                if not bl or is_error(res):
                     returnD(res)
                 WEs.extend(res)
             res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])

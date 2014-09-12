@@ -181,6 +181,11 @@ class MongoDB(object):
         returnD(tot)
 
     @inlineCallbacks
+    def update_job_pages(self, corpus, job_id):
+        crawled_pages = yield self.count_pages(corpus, job_id)
+        yield self.update_jobs(corpus, job_id, {'nb_crawled_pages': crawled_pages})
+
+    @inlineCallbacks
     def get_queue(self, corpus, specs={}, **kwargs):
         if "filter" not in kwargs:
             kwargs["filter"] = sortasc('timestamp')
