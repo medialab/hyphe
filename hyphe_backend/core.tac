@@ -278,6 +278,7 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
         self.corpora[corpus]["last_index_loop"] = corpus_conf['last_index_loop']
         self.corpora[corpus]["last_links_loop"] = corpus_conf['last_links_loop']
+        self.corpora[corpus]["reset"] = False
         if not noloop:
             reactor.callLater(5, self.corpora[corpus]['jobs_loop'].start, 1, False)
         yield self.store._init_loop(corpus, noloop=noloop)
@@ -689,24 +690,20 @@ class Crawler(jsonrpc.JSONRPC):
         returnD(format_result('Crawler %s deployed' % corpus_project(corpus)))
 
     @inlineCallbacks
-    def force_cancel(self, corpus, job_id):
-        yield self.jsonrpc_cancel(job_id, corpus=corpus)
-        # Send second cancel call to force scrapyd to kill fast
-        yield self.jsonrpc_cancel(job_id, corpus=corpus)
-
-    @inlineCallbacks
     def jsonrpc_cancel_all(self, corpus=DEFAULT_CORPUS):
         """Stops all current crawls."""
         list_jobs = yield self.jsonrpc_list(corpus)
         if is_error(list_jobs):
             returnD('No crawler deployed, hence no job to cancel')
         list_jobs = list_jobs['result']
-        yield DeferredList([self.force_cancel(corpus, item['id']) for item in list_jobs['running'] + list_jobs['pending']], consumeErrors=True)
+        force = False
         while 'running' in list_jobs and (list_jobs['running'] + list_jobs['pending']):
+            yield DeferredList([self.cancel(item['id'], corpus=corpus, force=force) for item in list_jobs['running'] + list_jobs['pending']], consumeErrors=True)
             list_jobs = yield self.jsonrpc_list(corpus)
             if is_error(list_jobs):
                 returnD(list_jobs)
             list_jobs = list_jobs['result']
+            force = True
         returnD(format_result('All crawling jobs canceled.'))
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
@@ -793,22 +790,26 @@ class Crawler(jsonrpc.JSONRPC):
             yield self.db.add_log(corpus, res['jobid'], "CRAWL_ADDED", ts)
         returnD(format_result(res))
 
+    def jsonrpc_cancel(self, job_id, corpus=DEFAULT_CORPUS, force=True):
+        return self.cancel(job_id, corpus=corpus)
+
     @inlineCallbacks
-    def jsonrpc_cancel(self, job_id, corpus=DEFAULT_CORPUS):
+    def cancel(self, job_id, corpus=DEFAULT_CORPUS, force=True):
         """Cancels a scrapy job with id job_id."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         existing = yield self.db.list_jobs(corpus, {"_id": job_id})
-        if not existing:
-            returnD(format_error("No job found with id %s" % job_id))
-        elif existing[0]["crawling_status"] in [crawling_statuses.FINISHED, crawling_statuses.CANCELED, crawling_statuses.RETRIED]:
-            returnD(format_error("Job %s is already not running anymore" % job_id))
+        if not force:
+            if not existing:
+                returnD(format_error("No job found with id %s" % job_id))
+            elif existing[0]["crawling_status"] in [crawling_statuses.FINISHED, crawling_statuses.CANCELED, crawling_statuses.RETRIED]:
+                returnD(format_error("Job %s is already not running anymore" % job_id))
         logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
         args = {'project': corpus_project(corpus), 'job': job_id}
         res = yield self.send_scrapy_query('cancel', args)
         if is_error(res):
             returnD(reformat_error(res))
-        if 'prevstate' in res:
+        if 'prevstate' in res and not force:
             yield self.db.update_jobs(corpus, job_id, {'crawling_status': crawling_statuses.CANCELED})
             yield self.db.add_log(corpus, job_id, "CRAWL_"+crawling_statuses.CANCELED)
         returnD(format_result(res))
@@ -946,6 +947,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return format_result('Default creation rule was already created')
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
+        self.corpora[corpus]["reset"] = True
         return self.reinitialize(corpus)
 
     @inlineCallbacks
@@ -1375,6 +1377,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     logger.msg(res['message'], system="ERROR - %s" % corpus)
                     self.corpora[corpus]['loop_running'] = None
                     returnD(False)
+                if self.corpora[corpus]['reset']:
+                    self.corpora[corpus]['reset'] = False
+                    yield self.reinitialize(corpus, noloop=True, quiet=True)
                 self.corpora[corpus]['recent_indexes'] += 1
                 self.corpora[corpus]['last_index_loop'] = now_ts()
             else:
