@@ -855,6 +855,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['last_WE_update'] = now
         self.corpora[corpus]['recent_indexes'] = 0
         self.corpora[corpus]['recent_tagging'] = True
+        self.corpora[corpus]['stall'] = False
         if not noloop:
             reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
             reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
@@ -969,7 +970,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             self.corpora[corpus]['recent_indexes'] += 1
             self.corpora[corpus]['total_webentities'] += 1
             if source:
-                yield self.jsonrpc_add_webentity_tag_value(WE.id, 'CORE', 'user_created_via', source)
+                yield self.jsonrpc_add_webentity_tag_value(WE.id, 'CORE', 'user_created_via', source, corpus=corpus)
         WE = yield self.format_webentity(WE, corpus=corpus)
         WE['created'] = True if new else False
         returnD(WE)
@@ -1075,7 +1076,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(self.parent.corpus_error(corpus))
         WE = yield self.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
         if is_error(WE):
-           returnD(format_error("ERROR could not retrieve WebEntity with id %s" % webentity_id))
+            returnD(format_error("ERROR could not retrieve WebEntity with id %s" % webentity_id))
         if field_name == "metadataItems":
             self.corpora[corpus]['recent_tagging'] = True
         try:
@@ -1137,7 +1138,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(format_error("ERROR while updating WebEntity : %s" % x))
 
     @inlineCallbacks
-    def batch_webentities_edit(self, command, webentity_ids, corpus, *args):
+    def batch_webentities_edit(self, command, webentity_ids, corpus, *args, **kwargs):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if type(webentity_ids) != list or type(webentity_ids[0]) not in [str, unicode, bytes]:
@@ -1146,7 +1147,18 @@ class Memory_Structure(jsonrpc.JSONRPC):
             func = getattr(self, "jsonrpc_%s" % command)
         except Exception as e:
             returnD(format_error("ERROR: %s is not a valid store command" % command))
-        results = yield DeferredList([func(webentity_id, *args, corpus=corpus) for webentity_id in webentity_ids], consumeErrors=True)
+        self.corpora[corpus]["stall"] = True
+        async = True
+        if "async" in kwargs:
+            async = test_bool_arg(kwargs.pop("async"))
+        kwargs["corpus"] = corpus
+        if async:
+            results = yield DeferredList([func(webentity_id, *args, **kwargs) for webentity_id in webentity_ids], consumeErrors=True)
+        else:
+            results = []
+            for webentity_id in webentity_ids:
+                res = yield func(webentity_id, *args, **kwargs)
+                results.append((True, res))
         res = []
         errors = []
         for bl, WE in results:
@@ -1156,6 +1168,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 errors.append(WE["message"])
             else:
                 res.append(WE["result"])
+        self.corpora[corpus]["stall"] = False
         if len(errors):
             returnD({'code': 'fail', 'message': '%d webentities failed, see details in "errors" field and successes in "results" field.' % len(errors), 'errors': errors, 'results': res})
         returnD(format_result(res))
@@ -1273,28 +1286,33 @@ class Memory_Structure(jsonrpc.JSONRPC):
         old_WE = yield self.msclients.pool.getWebEntity(old_webentity_id, corpus=corpus)
         if is_error(old_WE):
             returnD(format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id))
-        res = []
         if test_bool_arg(include_home_and_startpages_as_startpages):
-            a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, old_WE.homepage)
-            res.append(a)
+            a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, old_WE.homepage, corpus=corpus)
+            if is_error(a):
+                returnD(format_error('ERROR adding homepage %s from %s to %s' % (old_WE.homepage, old_webentity_id, good_webentity_id)))
             for page in old_WE.startpages:
-                a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, page)
-                res.append(a)
+                a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, page, corpus=corpus)
+                if is_error(a):
+                    returnD(format_error('ERROR adding startpage %s from %s to %s' % (old_WE.homepage, old_webentity_id, good_webentity_id)))
         if test_bool_arg(include_tags):
             for tag_namespace in old_WE.metadataItems.keys():
                 for tag_key in old_WE.metadataItems[tag_namespace].keys():
                     for tag_val in old_WE.metadataItems[tag_namespace][tag_key]:
-                        a = yield self.jsonrpc_add_webentity_tag_value(good_webentity_id, tag_namespace, tag_key, tag_val)
-                        res.append(a)
+                        a = yield self.jsonrpc_add_webentity_tag_value(good_webentity_id, tag_namespace, tag_key, tag_val, corpus=corpus)
+                        if is_error(a):
+                            returnD(format_error('ERROR adding tag %s:%s=%s from %s to %s' % (tag_namespace, tag_key, tag_val, old_webentity_id, good_webentity_id)))
         for lru in old_WE.LRUSet:
-            a = yield self.jsonrpc_rm_webentity_lruprefix(old_webentity_id, lru)
-            res.append(a)
-            b = yield self.jsonrpc_add_webentity_lruprefix(good_webentity_id, lru, corpus=corpus)
-            res.append(b)
+            a = yield self.jsonrpc_add_webentity_lruprefix(good_webentity_id, lru, corpus=corpus)
+            if is_error(a):
+                print a
+                returnD(format_error('ERROR adding LRU prefix %s from %s to %s' % (lru, old_webentity_id, good_webentity_id)))
         yield self.add_backend_tags(good_webentity_id, "alias_added", old_WE.name)
         self.corpora[corpus]['total_webentities'] -= 1
         self.corpora[corpus]['recent_indexes'] += 1
-        returnD(format_result(res))
+        returnD(format_result("Merged %s into %s" % (old_webentity_id, good_webentity_id)))
+
+    def jsonrpc_merge_webentities_into_another(self, old_webentity_ids, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False, corpus=DEFAULT_CORPUS):
+        return self.batch_webentities_edit("merge_webentity_into_another", old_webentity_ids, corpus, good_webentity_id, include_tags=include_tags, include_home_and_startpages_as_startpages=include_home_and_startpages_as_startpages, async=False)
 
     def jsonrpc_delete_webentity(self, webentity_id, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
@@ -1376,7 +1394,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(False)
         oldest_page_in_queue = yield self.db.get_queue(corpus, limit=1, fields=["_job"], skip=random.randint(0, 2))
         # Run linking WebEntities on a regular basis when needed
-        if self.corpora[corpus]['recent_indexes'] > 100 or (self.corpora[corpus]['recent_indexes'] and not oldest_page_in_queue) or (self.corpora[corpus]['recent_indexes'] and time.time() - self.corpora[corpus]['last_links_loop']/1000 >= 3600):
+        if not self.corpora[corpus]['stall'] and (self.corpora[corpus]['recent_indexes'] > 100 or (self.corpora[corpus]['recent_indexes'] and not oldest_page_in_queue) or (self.corpora[corpus]['recent_indexes'] and time.time() - self.corpora[corpus]['last_links_loop']/1000 >= 3600)):
             self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
             self.corpora[corpus]['loop_running_since'] = now_ts()
             s = time.time()
