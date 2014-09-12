@@ -1136,6 +1136,30 @@ class Memory_Structure(jsonrpc.JSONRPC):
         except Exception as x:
             returnD(format_error("ERROR while updating WebEntity : %s" % x))
 
+    @inlineCallbacks
+    def batch_webentities_edit(self, command, webentity_ids, corpus, *args):
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        if type(webentity_ids) != list or type(webentity_ids[0]) not in [str, unicode, bytes]:
+            returnD(format_error("ERROR: webentity_ids must be a list of webentity ids"))
+        try:
+            func = getattr(self, "jsonrpc_%s" % command)
+        except Exception as e:
+            returnD(format_error("ERROR: %s is not a valid store command" % command))
+        results = yield DeferredList([func(webentity_id, *args, corpus=corpus) for webentity_id in webentity_ids], consumeErrors=True)
+        res = []
+        errors = []
+        for bl, WE in results:
+            if not bl:
+                errors.append(WE)
+            elif is_error(WE):
+                errors.append(WE["message"])
+            else:
+                res.append(WE["result"])
+        if len(errors):
+            returnD({'code': 'fail', 'message': '%d webentities failed, see details in "errors" field and successes in "results" field.' % len(errors), 'errors': errors, 'results': res})
+        returnD(format_result(res))
+
     def jsonrpc_rename_webentity(self, webentity_id, new_name, corpus=DEFAULT_CORPUS):
         if not new_name or new_name == "":
             return format_error("ERROR: please specify a value for the WebEntity's name")
@@ -1157,23 +1181,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_set_webentity_status(self, webentity_id, status, corpus=DEFAULT_CORPUS):
         return self.update_webentity(webentity_id, "status", status, corpus=corpus)
 
-    @inlineCallbacks
     def jsonrpc_set_webentities_status(self, webentity_ids, status, corpus=DEFAULT_CORPUS):
-        if type(webentity_ids) != list or type(webentity_ids[0]) not in [str, unicode, bytes]:
-            returnD(format_error("ERROR: webentity_ids must be a list of webentity ids"))
-        results = yield DeferredList([self.jsonrpc_set_webentity_status(webentity_id, status, corpus=corpus) for webentity_id in webentity_ids], consumeErrors=True)
-        res = []
-        errors = []
-        for bl, WE in results:
-            if not bl:
-                errors.append(WE)
-            elif is_error(WE):
-                errors.append(WE["message"])
-            else:
-                res.append(WE["result"])
-        if len(errors):
-            returnD({'code': 'fail', 'message': '%d webentities failed, see details in "errors" field and successes in "results" field.' % len(errors), 'errors': errors, 'results': res})
-        returnD(format_result(res))
+        return self.batch_webentities_edit("set_webentity_status", webentity_ids, corpus, status)
 
     def jsonrpc_set_webentity_homepage(self, webentity_id, homepage, corpus=DEFAULT_CORPUS):
         try:
@@ -1242,6 +1251,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     def jsonrpc_add_webentity_tag_value(self, webentity_id, tag_namespace, tag_key, tag_value, corpus=DEFAULT_CORPUS):
         return self.update_webentity(webentity_id, "metadataItems", tag_value, "push", tag_key, tag_namespace, corpus=corpus)
+
+    def jsonrpc_add_webentities_tag_value(self, webentity_ids, tag_namespace, tag_key, tag_value, corpus=DEFAULT_CORPUS):
+        return self.batch_webentities_edit("add_webentity_tag_value", webentity_ids, corpus, tag_namespace, tag_key, tag_value)
 
     def jsonrpc_rm_webentity_tag_key(self, webentity_id, tag_namespace, tag_key, corpus=DEFAULT_CORPUS):
         return self.jsonrpc_set_webentity_tag_values(webentity_id, tag_namespace, tag_key, [], corpus=corpus)
