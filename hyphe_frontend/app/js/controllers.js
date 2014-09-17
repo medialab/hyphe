@@ -1606,15 +1606,21 @@ angular.module('hyphe.controllers', [])
     }
 
     function feedMainListBack(){
+
+      // This function sends back last jobs to the main list,
+      // because we have up to date information on them
+      
       var lastCrawljobsIndex = {}
       ,changes = []
 
       if($scope.lastCrawlJobs && $scope.lastCrawlJobs.length > 0){
 
+        // Index last crawl jobs by id
         $scope.lastCrawlJobs.forEach(function(job){
           lastCrawljobsIndex[job._id] = job
         })
 
+        // In the main jobs list, when a job is known (is indexed), then we update it
         $scope.crawlJobs.forEach(function(job, i){
           var updatedJob = lastCrawljobsIndex[job._id]
           if(updatedJob){
@@ -1643,8 +1649,6 @@ angular.module('hyphe.controllers', [])
 
               // Enrich
               crawlJobs = crawlJobs.map(enrichJob)
-
-              
 
               var changes = []
 

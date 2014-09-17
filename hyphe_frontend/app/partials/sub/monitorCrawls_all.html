@@ -16,18 +16,18 @@
     <tr>
       <th>Web entity Name</th>
       <th>Depth</th>
-      <th>Cautious</th>
-      <th>Status</th>
-      <th>Crawled / Discovered Pages</th>
-      <th>Scheduled</th>
-      <th>Duration</th>
+      <th class="hidden-xs">Cautious</th>
+      <th class="hidden-xs">Status</th>
+      <th class="hidden-xs hidden-sm">Crawled / Discovered Pages</th>
+      <th class="hidden-xs hidden-sm">Scheduled</th>
+      <th class="hidden-xs hidden-sm">Duration</th>
     </tr>
   </thead>
   <tbody>
 
     <!-- Rows -->
     <tr
-      ng-repeat="job in lastCrawlJobs|paginate:$parent.paginationPage:paginationLength track by $index"
+      ng-repeat="job in crawlJobs|paginate:$parent.paginationPage:paginationLength track by $index"
       ng-click="displayDetails(job)"
       class="crawljob-row-content"
       ng-class="{
@@ -40,7 +40,7 @@
     >
       <td>{{webentityIndex[job.webentity_id].name}}</td>
       <td>{{job.crawl_arguments.maxdepth}}</td>
-      <td>
+      <td class="hidden-xs">
         <div ng-if="job.crawl_arguments.phantom">
           <span class="glyphicon glyphicon-bell"></span> YES
         </div>
@@ -48,11 +48,11 @@
           No
         </div>
       </td>
-      <td><span>{{job.globalStatus}}</span>
+      <td class="hidden-xs"><span>{{job.globalStatus}}</span>
       </td>
-      <td>{{job.nb_crawled_pages}} / {{job.nb_pages}}</td>
-      <td><span tooltip="{{job.created_at|date}}">{{job.created_at|prettyDate}}</span></td>
-      <td><div ng-if="job.finished_at - job.created_at > 0">{{(job.finished_at - job.created_at)|duration}}</div></td>
+      <td class="hidden-xs hidden-sm">{{job.nb_crawled_pages}} / {{job.nb_pages}}</td>
+      <td class="hidden-xs hidden-sm"><span tooltip="{{job.created_at|date}}">{{job.created_at|prettyDate}}</span></td>
+      <td class="hidden-xs hidden-sm"><div ng-if="job.finished_at - job.created_at > 0">{{(job.finished_at - job.created_at)|duration}}</div></td>
     </tr>
 
   </tbody>
@@ -60,5 +60,5 @@
 
 <!-- Pagination  -->
 <div class="text-center">
-  <pagination total-items="lastCrawlJobs.length" ng-model="$parent.$parent.paginationPage" items-per-page="paginationLength" boundary-links="true" rotate="false" max-size="paginationNumPages" ng-if="lastCrawlJobs.length > paginationLength"></pagination>
+  <pagination total-items="crawlJobs.length" ng-model="$parent.$parent.paginationPage" items-per-page="paginationLength" boundary-links="true" rotate="false" max-size="paginationNumPages" ng-if="crawlJobs.length > paginationLength"></pagination>
 </div>
