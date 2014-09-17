@@ -258,14 +258,35 @@
 
                   <div class="radio">
                     <label>
-                      <input type="radio" ng-model="$parent.fileFormat" name="optionsRadios" value="MD" checked>
-                      MD - Markdown readable as text
+                      <input type="radio" ng-model="$parent.fileFormat" name="optionsRadios" value="TEXT" checked>
+                      TEXT / MD - Markdown readable as text
                     </label>
                   </div>
 
                   <br>
 
-                  <button class="btn btn-primary" ng-click="download()"><span class="glyphicon glyphicon-download"/> DOWNLOAD {{fileFormat}}</button>
+                  <div class="bulleted-title">
+                    <div class="big-bullet-number">4</div>
+                    <h3>
+                      Name and Download
+                    </h3>
+                  </div>
+
+                  <br>
+
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 col-lg-4">
+
+                  <div class="input-group">
+                    <input type="text" class="form-control" ng-model="projectName">
+                    <span class="input-group-btn">
+                      <button class="btn btn-primary" ng-click="download()"><span class="glyphicon glyphicon-download"/> DOWNLOAD {{fileFormat}}</button>
+                    </span>
+                  </div>
+                  
                 </div>
               </div>
             </div>

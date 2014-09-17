@@ -2121,43 +2121,45 @@ angular.module('hyphe.controllers', [])
         $scope.working = false
         $scope.status = {message: "File downloaded", background:'success'}
 
-      } else if($scope.fileFormat == 'MD'){
-          
-        /*var json = {
-          exportTimestamp: +(new Date().getTime())
-          ,webentities: $scope.resultsList.map(function(we){
-              var result = {}
-              for(var colKey in $scope.columns){
-                var colObj = $scope.columns[colKey]
-                if(colObj.val){
-                  var value = we
-                  colObj.accessor.split('.').forEach(function(accessor){
-                    value = value[accessor]
-                  })
-                  var tv
-                  if(value === undefined){
-                    tv = ''
-                  } else {
-                    tv = translateValue(value, colObj.type, 'JSON')
-                  }
-                  if(tv === undefined){
-                    console.log(value,we,colObj,'could not be transferred')
-                  } else {
-                    result[colObj.name] = tv
-                  }
-                }
+      } else if($scope.fileFormat == 'TEXT'){
+        
+        var fileContent = []
+
+        // Title
+        fileContent.push($scope.projectName + '\n' + $scope.projectName.replace(/./gi,'=') + '\nExported ' + (new Date()).toLocaleString() + '\n\n' )
+
+        $scope.resultsList.forEach(function(we){
+          var content = '\n\n\n\n' + we.name + '\n' + we.name.replace(/./gi, '-')
+          for(var colKey in $scope.columns){
+            var colObj = $scope.columns[colKey]
+            if(colObj.val){
+
+              var value = we
+              colObj.accessor.split('.').forEach(function(accessor){
+                value = value[accessor]
+              })
+
+              var tv
+              if(value === undefined){
+                tv = ''
+              } else {
+                tv = translateValue(value, colObj.type, 'MD')
               }
-              return result
-            })
+              if(tv === undefined){
+                console.log(value,we,colObj,'could not be transferred')
+              } else {
+                content += '\n\n#### ' + colObj.name + '\n' + tv
+              }
+            }
+          }
+          fileContent.push(content)
+        })
 
-        }
-
-        var blob = new Blob([JSON.stringify(json)], {type: "application/json;charset=utf-8"})
-        saveAs(blob, $scope.projectName + ".json")
+        var blob = new Blob(fileContent, {type: "text/x-markdown; charset=UTF-8"})
+        saveAs(blob, $scope.projectName + " MarkDown.txt")
 
         $scope.working = false
         $scope.status = {message: "File downloaded", background:'success'}
-        */
 
       } else if($scope.fileFormat == 'CSV' || $scope.fileFormat == 'SCSV' || $scope.fileFormat == 'TSV'){
 
@@ -2268,7 +2270,13 @@ angular.module('hyphe.controllers', [])
         if(value instanceof Array){
           if(mode == 'JSON'){
             return value
-          } else  {
+          } else if(mode == 'MD'){
+            return value
+              .map(function(d){
+                return '* ' + d
+              })
+              .join('\n')
+          } else {
             return value
               .join(array_separator)
           }
@@ -2282,6 +2290,13 @@ angular.module('hyphe.controllers', [])
           if(mode == 'JSON'){
             return value
               .map(utils.LRU_to_URL)
+          } else if(mode == 'MD'){
+            return value
+              .map(utils.LRU_to_URL)
+              .map(function(d){
+                return '* ' + d
+              })
+              .join('\n')
           } else {
             return value
               .map(utils.LRU_to_URL)
@@ -2295,7 +2310,9 @@ angular.module('hyphe.controllers', [])
 
         if(mode == 'JSON'){
           return value
-        } else  {
+        } else if(mode == 'MD'){
+          return '```sh\n' + JSON.stringify(value) + '\n```'
+        } else {
           return JSON.stringify(value)
         }
 
