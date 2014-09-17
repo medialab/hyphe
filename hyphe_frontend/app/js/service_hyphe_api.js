@@ -186,6 +186,16 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
+      ns.webentitiesSetStatus = buildApiCall(
+        API.WEBENTITY_LIST_STATUS_SET
+        ,function(settings){
+          
+          return [
+              settings.webentityId_list
+              ,settings.status
+            ]}
+      )
+
     ns.crawl = buildApiCall(
         API.WEBENTITY_CRAWL
         ,function(settings){

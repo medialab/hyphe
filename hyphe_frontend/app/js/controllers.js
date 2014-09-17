@@ -1870,6 +1870,30 @@ angular.module('hyphe.controllers', [])
       }
     }
 
+    $scope.doSetStatus = function(){
+      if($scope.selected_setStatus !== 'none' && !$scope.loading){
+
+        $scope.loading = true
+        
+        var status = $scope.selected_setStatus
+        ,list = $scope.checkedList
+      
+        $scope.status = {message:'Set web entities\' status'}
+        api.webentitiesSetStatus({
+            webentityId_list: list
+            ,status: status
+          }
+          ,function(data){
+            reset()
+          }
+          ,function(data, status, headers, config){
+            $scope.status = {message:'Set status failed', background:'danger'}
+            $scope.loading = false
+          }
+        )
+      }
+    }
+
     $scope.loadWebentities()
 
 
