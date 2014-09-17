@@ -11,7 +11,8 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_LIST_GET_LINKS                    = 'store.get_webentities_network_json'
     API.WEBENTITY_LIST_CREATE_BY_LRU                = 'store.declare_webentity_by_lru'
     API.WEBENTITY_LIST_CREATE_BY_LRU_LIST           = 'store.declare_webentity_by_lrus'
-    API.WEBENTITY_LIST_MERGE                        = 'store.merge_webentity_into_another'
+    API.WEBENTITY_LIST_STATUS_SET                   = 'store.set_webentities_status'
+    API.WEBENTITY_LIST_MERGE_INTO                   = 'store.merge_webentities_into_another'
 
     API.WEBENTITY_LIST_SEARCH_ADVANCED              = 'store.advanced_search_webentities'
 
@@ -32,6 +33,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_FETCH_BY_URL                      = 'store.get_webentity_for_url'
     API.WEBENTITY_FETCH_BY_PREFIX_LRU               = 'store.get_webentity_by_lruprefix'
     API.WEBENTITY_FETCH_BY_PREFIX_URL               = 'store.get_webentity_by_lruprefix_as_url'
+    API.WEBENTITY_MERGE_INTO                        = 'store.merge_webentity_into_another'
 
     API.POTENTIAL_WEBENTITY_CONTAINER_LIST_GET      = 'store.get_lru_definedprefixes'
 
@@ -148,8 +150,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
-    ns.webentitiesMerge = buildApiCall(
-        API.WEBENTITY_LIST_MERGE
+    ns.webentityMergeInto = buildApiCall(
+        API.WEBENTITY_MERGE_INTO
         ,function(settings){
 
           // Default settings
@@ -160,6 +162,24 @@ angular.module('hyphe.service_hyphe_api', [])
           
           return [
               settings.oldWebentityId
+              ,settings.goodWebentityId
+              ,settings.mergeTags             // Include tags
+              ,settings.mergeStartPages       // Include Home and Startpages as Startpages
+            ]}
+      )
+
+    ns.webentitiesMergeInto = buildApiCall(
+        API.WEBENTITY_LIST_MERGE_INTO
+        ,function(settings){
+
+          // Default settings
+          if(settings.mergeTags === undefined)
+            settings.mergeTags = true
+          if(settings.mergeStartPages === undefined)
+            settings.mergeStartPages = true
+          
+          return [
+              settings.oldWebentityId_list
               ,settings.goodWebentityId
               ,settings.mergeTags             // Include tags
               ,settings.mergeStartPages       // Include Home and Startpages as Startpages

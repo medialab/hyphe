@@ -267,7 +267,7 @@ angular.module('hyphe.directives', [])
         text: '='
       }
       ,link: function(scope, el, attrs) {
-        scope.text = scope.text || 'LOADING'
+        
       }
     }
   }])

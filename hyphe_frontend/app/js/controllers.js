@@ -792,9 +792,9 @@ angular.module('hyphe.controllers', [])
                 var webentity = feedback.task.webentity
                 $scope.status = {message:'Merging web entities'}
                 obj.status = 'merging'
-                api.webentitiesMerge({
-                    goodWebentityId: obj.webentity.id
-                    ,oldWebentityId: webentity.id
+                api.webentityMergeInto({
+                    oldWebentityId: webentity.id
+                    ,goodWebentityId: obj.webentity.id
                   }
                   ,function(data){
                     // If it is in the list, remove it...
@@ -1843,10 +1843,53 @@ angular.module('hyphe.controllers', [])
       }
     }
 
+    $scope.doMerge = function(){
+      if($scope.selected_mergeTarget !== 'none' && !$scope.loading){
+
+        $scope.loading = true
+        
+        var target = $scope.selected_mergeTarget
+        ,list = $scope.checkedList
+          .filter(function(id){
+            return id != target
+          })
+        $scope.status = {message:'Merging web entities'}
+        api.webentitiesMergeInto({
+            oldWebentityId_list: list
+            ,goodWebentityId: target
+            // ,mergeStartPages: false
+          }
+          ,function(data){
+            reset()
+          }
+          ,function(data, status, headers, config){
+            $scope.status = {message:'Merge failed', background:'danger'}
+            $scope.loading = false
+          }
+        )
+      }
+    }
+
     $scope.loadWebentities()
 
 
     // Functions
+    function reset(){
+      $scope.list
+
+      $scope.checkedList = []
+
+      $scope.loaded = false
+      $scope.loading = false  // This flag prevents multiple simultaneous queries
+
+      $scope.paginationPage = 1
+
+      $scope.selected_setStatus = 'none'
+      $scope.selected_mergeTarget = 'none'
+
+      $scope.doQuery()
+    }
+
     function checkedList_remove(weId){
       $scope.checkedList = $scope.checkedList.filter(function(d){
         return d != weId
