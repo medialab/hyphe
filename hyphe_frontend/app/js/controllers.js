@@ -1700,6 +1700,7 @@ angular.module('hyphe.controllers', [])
 
   .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location',
   function($scope, api, utils, store, $location) {
+    
     $scope.currentPage = 'listWebentities'
 
     $scope.list
@@ -1876,6 +1877,9 @@ angular.module('hyphe.controllers', [])
 
 .controller('export', ['$scope', 'api', 'utils', '$location',
   function($scope, api, utils, $location) {
+    
+    var queryBatchSize = 1000
+
     $scope.currentPage = 'export'
 
     $scope.list
@@ -1908,7 +1912,7 @@ angular.module('hyphe.controllers', [])
       }
       ,start_pages: {
         name: 'START PAGES'
-        ,accessor: 'start_pages'
+        ,accessor: 'startpages'
         ,type: 'array of string'
         ,val: false
       }
@@ -1957,53 +1961,243 @@ angular.module('hyphe.controllers', [])
       ,core_tags: {
         name: 'TECHNICAL TAGS'
         ,accessor: 'tags.CORE'
-        ,type: 'array of string'
+        ,type: 'json'
         ,val: false
       }
     }
     $scope.fileFormat = 'CSV'
 
+    $scope.working = false
+    $scope.statusPending = []
+    $scope.resultsList = []
 
-    $scope.loadWebentities = function(){
-      $scope.status = {message: 'Loading'}
-      $scope.loading = true
+    $scope.download = function(){
+      $scope.working = true
+      $scope.resultsList = []
+      $scope.queriesToDo = {'in':{total:undefined,stack:[]}, 'out':{total:undefined,stack:[]}, 'undecided':{total:undefined,stack:[]}, 'discovered':{total:undefined,stack:[]}}
+      
+      if($scope.statuses.in){
+        $scope.queriesToDo.in.stack.push(0)
+      } else {
+        $scope.queriesToDo.in.total = 0
+      }
+      if($scope.statuses.out){
+        $scope.queriesToDo.out.stack.push(0)
+      } else {
+        $scope.queriesToDo.out.total = 0
+      }
+      if($scope.statuses.undecided){
+        $scope.queriesToDo.undecided.stack.push(0)
+      } else {
+        $scope.queriesToDo.undecided.total = 0
+      }
+      if($scope.statuses.discovered){
+        $scope.queriesToDo.discovered.stack.push(0)
+      } else {
+        $scope.queriesToDo.discovered.total = 0
+      }
 
-      // Get filtering settings
-      var field_kw = [
-        [
-          'status'
-          ,['in','out','undecided','discovered']
-            .filter(function(s){
-                return $scope.statuses[s]
+      loadWebentities()
+    }
+
+    // Functions
+
+    function loadWebentities(){
+      if($scope.queriesToDo.in.stack.length + $scope.queriesToDo.out.stack.length + $scope.queriesToDo.undecided.stack.length + $scope.queriesToDo.discovered.stack.length>0){
+        
+        var totalQueries = 0  // We do an estimation when we don't know
+        totalQueries += $scope.queriesToDo.in.total || 10
+        totalQueries += $scope.queriesToDo.out.total || 10
+        totalQueries += $scope.queriesToDo.undecided.total || 10
+        totalQueries += $scope.queriesToDo.discovered.total || 100
+        
+        var doneQueries = 0
+        if($scope.queriesToDo.in.stack.length > 0)
+          doneQueries += $scope.queriesToDo.in.stack[0]
+        if($scope.queriesToDo.out.stack.length > 0)
+          doneQueries += $scope.queriesToDo.out.stack[0]
+        if($scope.queriesToDo.undecided.stack.length > 0)
+          doneQueries += $scope.queriesToDo.undecided.stack[0]
+        if($scope.queriesToDo.discovered.stack.length > 0)
+          doneQueries += $scope.queriesToDo.discovered.stack[0]
+        
+        var percent = Math.floor(100 * doneQueries / totalQueries)
+        ,msg = percent + '% loaded'
+        $scope.status = {message: msg, progress:percent}
+
+        /*console.log(percent + '%' + '\nSummary: ' + doneQueries + ' / ' + totalQueries
+          + '\nIN:', $scope.queriesToDo.in.stack.join(' ') + ' / ' + $scope.queriesToDo.in.total
+          + '\nOUT:', $scope.queriesToDo.out.stack.join(' ') + ' / ' + $scope.queriesToDo.out.total
+          + '\nUNDECIDED:', $scope.queriesToDo.undecided.stack.join(' ') + ' / ' + $scope.queriesToDo.undecided.total
+          + '\nDISCOVERED:', $scope.queriesToDo.discovered.stack.join(' ') + ' / ' + $scope.queriesToDo.discovered.total
+        )*/
+
+        var status
+        ,page
+        if($scope.queriesToDo.in.stack.length > 0){
+          status = 'IN'
+          page = $scope.queriesToDo.in.stack.shift()
+        } else if($scope.queriesToDo.out.stack.length > 0){
+          status = 'OUT'
+          page = $scope.queriesToDo.out.stack.shift()
+        } else if($scope.queriesToDo.undecided.stack.length > 0){
+          status = 'UNDECIDED'
+          page = $scope.queriesToDo.undecided.stack.shift()
+        } else if($scope.queriesToDo.discovered.stack.length > 0){
+          status = 'DISCOVERED'
+          page = $scope.queriesToDo.discovered.stack.shift()
+        }
+        
+
+        api.getWebentities_byStatus({
+            status:status
+            ,count:queryBatchSize
+            ,page:page
+          }
+          ,function(result){
+            
+            // update queries totals
+            var queriesTotal = 1 + Math.floor(result.total_results/queryBatchSize)
+            $scope.queriesToDo[status.toLowerCase()].total = queriesTotal
+            $scope.queriesToDo[status.toLowerCase()].stack = []
+            for(var p = page+1; p<queriesTotal; p++){
+              $scope.queriesToDo[status.toLowerCase()].stack.push(p)
+            }
+
+            $scope.resultsList = $scope.resultsList.concat(result.webentities)
+            
+            loadWebentities()
+          }
+          ,function(data, status, headers, config){
+            $scope.status = {message: 'Loading error', background:'danger'}
+          }
+        )
+
+      } else {
+        finalize()
+      }
+    }
+
+    function finalize(){
+      $scope.status = {message:'Processing...'}
+      console.log('Finalize',$scope.resultsList)
+
+      if($scope.fileFormat == 'CSV' || $scope.fileFormat == 'SCSV' || $scope.fileFormat == 'TSV'){
+
+        // Build Headline
+        var headline = []
+        for(var colKey in $scope.columns){
+          var colObj = $scope.columns[colKey]
+          if(colObj.val){
+            headline.push(colObj.name)
+          }
+        }
+
+        // Build Table Content
+        var tableContent = []
+        $scope.resultsList.forEach(function(we){
+          var row = []
+
+          for(var colKey in $scope.columns){
+            var colObj = $scope.columns[colKey]
+            if(colObj.val){
+              var value = we
+              colObj.accessor.split('.').forEach(function(accessor){
+                value = value[accessor]
               })
-            .map(function(s){
-                return s.toUpperCase()
-              })
-            .join(' ')
-        ]
-      ]
+              var tv
+              if(value === undefined){
+                tv = ''
+              } else {
+                tv = translateValue(value, colObj.type)
+              }
+              if(tv === undefined){
+                console.log(value,we,colObj,'could not be transferred')
+              }
+              row.push(tv)
+            }
+          }
 
-      api.searchWebentities(
-        {
-          allFieldsKeywords: ['*']
-          ,fieldKeywords: field_kw
-        }
-        ,function(webentities){
-          $scope.paginationPage = 1
+          tableContent.push(row)
+        })
 
-          $scope.list = webentities
-          $scope.status = {}
-          $scope.loaded = true
-          $scope.loading = false
 
-          console.log($scope.list[0])
+        // Parsing
+        var fileContent = []
+        ,csvElement = function(txt){
+          txt = ''+txt //cast
+          return '"'+txt.replace(/"/gi, '""')+'"'
         }
-        ,function(){
-          $scope.list = []
-          $scope.status = {message: 'Error loading web entities', background: 'danger'}
-          $scope.loading = false
+
+        if($scope.fileFormat == 'CSV'){
+
+          fileContent.push(
+            headline.map(csvElement).join(',')
+          )
+          tableContent.forEach(function(row){
+            fileContent.push('\n' + row.map(csvElement).join(','))
+          })
+
+          var blob = new Blob(fileContent, {type: "text/csv;charset=utf-8"});
+          saveAs(blob, "Project.csv");
+
+        } else if($scope.fileFormat == 'SCSV'){
+
+          fileContent.push(
+            headline.map(csvElement).join(';')
+          )
+          tableContent.forEach(function(row){
+            fileContent.push('\n' + row.map(csvElement).join(';'))
+          })
+
+          var blob = new Blob(fileContent, {type: "text/csv;charset=utf-8"});
+          saveAs(blob, "Project SEMICOLON.csv");
+
+        } else if($scope.fileFormat == 'TSV'){
+
+          fileContent.push(
+            headline.map(csvElement).join('\t')
+          )
+          tableContent.forEach(function(row){
+            fileContent.push('\n' + row.map(csvElement).join('\t'))
+          })
+
+          var blob = new Blob(fileContent, {type: "text/tsv;charset=utf-8"});
+          saveAs(blob, "Project.tsv");
+
         }
-      )
+
+        $scope.working = false
+        $scope.status = {message: "File downloaded", background:'success'}
+      }
+
+    }
+
+    function translateValue(value, type){
+      var array_separator = ' '
+
+      if(type == 'string'){
+        return value
+      
+      } else if(type == 'timestamp'){
+        return (new Date(+value)).toLocaleString()
+      
+      } else if(type == 'array of string'){
+        if(value instanceof Array)
+          return value
+            .join(array_separator)
+        else
+          console.log(value,'is not an array')
+      } else if(type == 'array of lru'){
+        if(value instanceof Array)
+          return value
+            .map(utils.LRU_to_URL)
+            .join(array_separator)
+        else
+          console.log(value,'is not an array')
+      } else if(type == 'json'){
+        return JSON.stringify(value)
+      }
     }
 
     

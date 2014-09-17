@@ -264,10 +264,10 @@ angular.module('hyphe.directives', [])
       restrict: 'E'
       ,templateUrl: 'partials/sub/spinner.html'
       ,scope: {
-        
+        text: '='
       }
       ,link: function(scope, el, attrs) {
-        scope.text = el.textContent
+        scope.text = scope.text || 'LOADING'
       }
     }
   }])

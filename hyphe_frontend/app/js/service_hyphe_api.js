@@ -7,6 +7,7 @@ angular.module('hyphe.service_hyphe_api', [])
     ,API = {}
 
     API.WEBENTITY_LIST_GET                          = 'store.get_webentities'
+    API.WEBENTITY_LIST_GET_BY_STATUS                = 'store.get_webentities_by_status'
     API.WEBENTITY_LIST_GET_LINKS                    = 'store.get_webentities_network_json'
     API.WEBENTITY_LIST_CREATE_BY_LRU                = 'store.declare_webentity_by_lru'
     API.WEBENTITY_LIST_CREATE_BY_LRU_LIST           = 'store.declare_webentity_by_lrus'
@@ -59,6 +60,17 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.semiLight || false    // Mode semi-light
             ,["-status", "name"]            // Ordering
             ,5000                           // Results per page
+          ]}
+      )
+
+    ns.getWebentities_byStatus = buildApiCall(
+        API.WEBENTITY_LIST_GET_BY_STATUS
+        ,function(settings){
+          return [
+            settings.status
+            ,settings.sort || ''
+            ,settings.count || 100
+            ,settings.page || 0
           ]}
       )
 
