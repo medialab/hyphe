@@ -1882,6 +1882,8 @@ angular.module('hyphe.controllers', [])
 
     $scope.currentPage = 'export'
 
+    $scope.projectName = 'Project'
+
     $scope.list
 
     $scope.statuses = {in:true, out:false, undecided:false, discovered:false}
@@ -2082,7 +2084,82 @@ angular.module('hyphe.controllers', [])
       $scope.status = {message:'Processing...'}
       console.log('Finalize',$scope.resultsList)
 
-      if($scope.fileFormat == 'CSV' || $scope.fileFormat == 'SCSV' || $scope.fileFormat == 'TSV'){
+      if($scope.fileFormat == 'JSON'){
+          
+        var json = {
+          exportTimestamp: +(new Date().getTime())
+          ,webentities: $scope.resultsList.map(function(we){
+              var result = {}
+              for(var colKey in $scope.columns){
+                var colObj = $scope.columns[colKey]
+                if(colObj.val){
+                  var value = we
+                  colObj.accessor.split('.').forEach(function(accessor){
+                    value = value[accessor]
+                  })
+                  var tv
+                  if(value === undefined){
+                    tv = ''
+                  } else {
+                    tv = translateValue(value, colObj.type, 'JSON')
+                  }
+                  if(tv === undefined){
+                    console.log(value,we,colObj,'could not be transferred')
+                  } else {
+                    result[colObj.name] = tv
+                  }
+                }
+              }
+              return result
+            })
+
+        }
+
+        var blob = new Blob([JSON.stringify(json)], {type: "application/json;charset=utf-8"})
+        saveAs(blob, $scope.projectName + ".json")
+
+        $scope.working = false
+        $scope.status = {message: "File downloaded", background:'success'}
+
+      } else if($scope.fileFormat == 'MD'){
+          
+        /*var json = {
+          exportTimestamp: +(new Date().getTime())
+          ,webentities: $scope.resultsList.map(function(we){
+              var result = {}
+              for(var colKey in $scope.columns){
+                var colObj = $scope.columns[colKey]
+                if(colObj.val){
+                  var value = we
+                  colObj.accessor.split('.').forEach(function(accessor){
+                    value = value[accessor]
+                  })
+                  var tv
+                  if(value === undefined){
+                    tv = ''
+                  } else {
+                    tv = translateValue(value, colObj.type, 'JSON')
+                  }
+                  if(tv === undefined){
+                    console.log(value,we,colObj,'could not be transferred')
+                  } else {
+                    result[colObj.name] = tv
+                  }
+                }
+              }
+              return result
+            })
+
+        }
+
+        var blob = new Blob([JSON.stringify(json)], {type: "application/json;charset=utf-8"})
+        saveAs(blob, $scope.projectName + ".json")
+
+        $scope.working = false
+        $scope.status = {message: "File downloaded", background:'success'}
+        */
+
+      } else if($scope.fileFormat == 'CSV' || $scope.fileFormat == 'SCSV' || $scope.fileFormat == 'TSV'){
 
         // Build Headline
         var headline = []
@@ -2139,7 +2216,7 @@ angular.module('hyphe.controllers', [])
           })
 
           var blob = new Blob(fileContent, {type: "text/csv;charset=utf-8"});
-          saveAs(blob, "Project.csv");
+          saveAs(blob, $scope.projectName + ".csv");
 
         } else if($scope.fileFormat == 'SCSV'){
 
@@ -2151,7 +2228,7 @@ angular.module('hyphe.controllers', [])
           })
 
           var blob = new Blob(fileContent, {type: "text/csv;charset=utf-8"});
-          saveAs(blob, "Project SEMICOLON.csv");
+          saveAs(blob, $scope.projectName + " SEMICOLON.csv");
 
         } else if($scope.fileFormat == 'TSV'){
 
@@ -2163,7 +2240,7 @@ angular.module('hyphe.controllers', [])
           })
 
           var blob = new Blob(fileContent, {type: "text/tsv;charset=utf-8"});
-          saveAs(blob, "Project.tsv");
+          saveAs(blob, $scope.projectName + ".tsv");
 
         }
 
@@ -2173,30 +2250,55 @@ angular.module('hyphe.controllers', [])
 
     }
 
-    function translateValue(value, type){
+    function translateValue(value, type, mode){
+      
+      mode = mode || 'TEXT'
+
       var array_separator = ' '
 
       if(type == 'string'){
         return value
       
       } else if(type == 'timestamp'){
+
         return (new Date(+value)).toLocaleString()
       
       } else if(type == 'array of string'){
-        if(value instanceof Array)
-          return value
-            .join(array_separator)
-        else
+
+        if(value instanceof Array){
+          if(mode == 'JSON'){
+            return value
+          } else  {
+            return value
+              .join(array_separator)
+          }
+        } else {
           console.log(value,'is not an array')
+        }
+
       } else if(type == 'array of lru'){
-        if(value instanceof Array)
-          return value
-            .map(utils.LRU_to_URL)
-            .join(array_separator)
-        else
+
+        if(value instanceof Array){
+          if(mode == 'JSON'){
+            return value
+              .map(utils.LRU_to_URL)
+          } else {
+            return value
+              .map(utils.LRU_to_URL)
+              .join(array_separator)
+          }
+        } else {
           console.log(value,'is not an array')
+        }
+
       } else if(type == 'json'){
-        return JSON.stringify(value)
+
+        if(mode == 'JSON'){
+          return value
+        } else  {
+          return JSON.stringify(value)
+        }
+
       }
     }
 
