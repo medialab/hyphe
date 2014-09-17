@@ -555,6 +555,13 @@ textarea.over-error{
   padding-top: 32px;
 }
 
+.crawljob-row-content{
+  cursor: pointer;
+  font-size: 12px;
+}
+.crawljob-row-content:hover{
+  opacity:0.85;
+}
 
 
 /* ==========================================================================

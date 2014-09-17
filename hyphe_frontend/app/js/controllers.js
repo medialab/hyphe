@@ -1402,7 +1402,6 @@ angular.module('hyphe.controllers', [])
   function($scope, api, store, utils, QueriesBatcher, $location, refreshScheduler){
     $scope.currentPage = 'monitorCrawls'
     
-
     $scope.crawlJobs
     $scope.lastCrawlJobs
     
@@ -1417,6 +1416,10 @@ angular.module('hyphe.controllers', [])
 
     $scope.listLoaded = false
     $scope.status = {message: 'Loading', progress:30}
+
+    $scope.paginationPage = 1
+    $scope.paginationLength = 3   // How many items per page
+    $scope.paginationNumPages = 5  // How many pages to display in the pagination
 
     api.getCrawlJobs({}, function(crawlJobs){
       $scope.listLoaded = true
