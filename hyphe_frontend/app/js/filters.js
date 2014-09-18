@@ -12,6 +12,15 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('truncate', [function() {
+    return function(array,limit) {
+      limit = limit || 100
+      return array.filter(function(d,i){
+        return i < limit
+      })
+    }
+  }])
+
   .filter('stripFirst', [function() {
     return function(array) {
       if(array.filter)

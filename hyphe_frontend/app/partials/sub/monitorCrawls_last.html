@@ -58,9 +58,11 @@
 				<div class="stats" ng-class="{'bg-danger':job.globalStatus == 'UNSUCCESSFUL', 'bg-warning':(job.globalStatus == 'ACHIEVED' && job.nb_crawled_pages <= 3)}">
 					{{job.nb_crawled_pages}} page{{job.nb_crawled_pages > 1 ? 's' : ''}} crawled
 				</div>
-
-
-    </div>
+    	</div>
 	  </div>
 	</div>
+</div>
+
+<div ng-if="lastCrawlJobsSuppl > 0">
+	<div class="alert alert-info" role="alert">{{lastCrawlJobsSuppl}} other crawl jobs are not displayed. <a href class="alert-link" ng-click="setTimespan('all')">You can display them in "All Crawls"</a></div>
 </div>
