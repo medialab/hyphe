@@ -1806,14 +1806,14 @@ angular.module('hyphe.controllers', [])
 
     $scope.query
     $scope.lastQuery
-    $scope.sort = 'date'
+    $scope.sort = 'name'
     $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
 
     $scope.selected_setStatus = 'none'
     $scope.selected_mergeTarget = 'none'
 
     $scope.pageChanged = function(){
-      console.log($scope.paginationPage)
+      
       $scope.status = {message: 'Loading'}
       $scope.loading = true
 
@@ -1845,10 +1845,20 @@ angular.module('hyphe.controllers', [])
       )
     }
 
+    $scope.sortChanged = function(){
+      if($scope.lastQuery === undefined){
+        $scope.loadWebentities()
+      } else {
+        $scope.loadWebentities($scope.lastQuery)
+      }
+    }
+
     $scope.loadWebentities = function(query){
       $scope.status = {message: 'Loading'}
       $scope.loading = true
 
+      $scope.paginationPage = 1
+      
       // Set last query
       $scope.lastQuery = $scope.query
 
@@ -1871,7 +1881,7 @@ angular.module('hyphe.controllers', [])
         {
           allFieldsKeywords: query || ['*']
           ,fieldKeywords: field_kw
-          ,sortField: 'name'
+          ,sortField: $scope.sort
           ,count: $scope.paginationLength
           ,page: $scope.paginationPage - 1
         }

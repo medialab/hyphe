@@ -77,14 +77,17 @@
 
                   </div>
 
-                  <!-- <div class="form-group">
-                    <select class="form-control" ng-model="sort">
+                  <div class="form-group">
+                    <select
+                      class="form-control"
+                      ng-change="sortChanged()"
+                      ng-model="sort"
+                    >
                       <option value="name">Sort by Name</option>
                       <option value="status">Sort by Status</option>
-                      <option value="crawled">Sort by Crawled</option>
                       <option value="date">Sort by Date</option>
                     </select>
-                  </div> -->
+                  </div>
 
               </div>
 
@@ -150,7 +153,7 @@
               boundary-links="true"
               rotate="false"
               max-size="paginationNumPages"
-              ng-if="fullListLength > paginationLength"
+              ng-if="fullListLength > paginationLength && !loading"
               ng-change="pageChanged()"
             ></pagination>
             </div>
@@ -204,7 +207,7 @@
                           <div class="row no-gutter">
                             <div class="col-md-7">
                               <div class="big-bullet-number">1</div>
-                              <select class="form-control" ng-model="$parent.$parent.selected_setStatus">
+                              <select class="form-control" ng-model="$parent.selected_setStatus">
                                 <option value="none">set to...</option>
                                 <option value="IN">IN</option>
                                 <option value="OUT">OUT</option>
@@ -234,7 +237,7 @@
                           <div class="row no-gutter">
                             <div class="col-md-7">
                               <div class="big-bullet-number">3</div>
-                              <select class="form-control" ng-model="$parent.$parent.selected_mergeTarget">
+                              <select class="form-control" ng-model="$parent.selected_mergeTarget">
                                 <option value="none">merge into...</option>
                                 <option
                                   ng-repeat="id in checkedList"
