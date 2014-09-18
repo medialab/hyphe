@@ -15,6 +15,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_LIST_MERGE_INTO                   = 'store.merge_webentities_into_another'
 
     API.WEBENTITY_LIST_SEARCH_ADVANCED              = 'store.advanced_search_webentities'
+    API.WEBENTITY_LIST_SEARCH_GET_PAGE              = 'store.get_webentities_page'
 
     API.WEBENTITY_STARTPAGE_ADD                     = 'store.add_webentity_startpage'
     API.WEBENTITY_STARTPAGE_REMOVE                  = 'store.rm_webentity_startpage'
@@ -82,8 +83,18 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
             settings.allFieldsKeywords      // List of kw searched everywhere
             ,settings.fieldKeywords         // List of [field,kw] pairs for field search
-            ,"name"                         // Ordering
-            ,5000                           // Results per page
+            ,settings.sortField || "name"   // Ordering
+            ,settings.count || 1000         // Results per page
+            ,settings.page || 0             // Page
+          ]}
+      )
+
+    ns.getResultsPage = buildApiCall(
+        API.WEBENTITY_LIST_SEARCH_GET_PAGE
+        ,function(settings){
+          return [
+            settings.token
+            ,settings.page
           ]}
       )
 
@@ -269,13 +280,26 @@ angular.module('hyphe.service_hyphe_api', [])
           .success(function(data, status, headers, config){
               var target = (data[0] || {}).result
               if(target){
+                // console.log('[OK]', data)
                 successCallback(target)
               } else {
-                console.log('data', data, 'errorCallback', errorCallback)
-                errorCallback(data, status, headers, config)
+                // START TEMP FIX
+                if(data[0] && data[0].webentities){
+                  console.log('[TEMP FIX AT WORK]', data)
+                  successCallback(data[0])
+                } else {
+                  console.log('[Error: unexpected]', data)
+                  errorCallback(data, status, headers, config)
+                }
+                // END TEMP FIX
+
+                // ORIGINAL
+                // console.log('[Error: unexpected]', data)
+                // errorCallback(data, status, headers, config)
               }
             })
           .error(function(data, status, headers, config){
+            console.log('[Error: fail]', data)
             errorCallback(data, status, headers, config)
           })
 

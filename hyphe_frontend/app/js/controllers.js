@@ -1788,19 +1788,21 @@ angular.module('hyphe.controllers', [])
     
     $scope.currentPage = 'listWebentities'
 
-    $scope.list
+    $scope.list = []
     $scope.checkedList = []
     $scope.webentitiesCheckStack = {} // Web entities once checked
                                       // NB: will contain false positives
 
     $scope.randomEasterEgg
 
-    $scope.loaded = false
     $scope.loading = false  // This flag prevents multiple simultaneous queries
 
     $scope.paginationPage = 1
     $scope.paginationLength = 20   // How many items per page
     $scope.paginationNumPages = 5  // How many pages to display in the pagination
+    
+    $scope.fullListLength = 0
+    $scope.currentSearchToken
 
     $scope.query
     $scope.lastQuery
@@ -1809,6 +1811,39 @@ angular.module('hyphe.controllers', [])
 
     $scope.selected_setStatus = 'none'
     $scope.selected_mergeTarget = 'none'
+
+    $scope.pageChanged = function(){
+      console.log($scope.paginationPage)
+      $scope.status = {message: 'Loading'}
+      $scope.loading = true
+
+      api.getResultsPage(
+        {
+          token: $scope.currentSearchToken
+          ,page: $scope.paginationPage - 1
+        }
+        ,function(result){
+
+          $scope.currentSearchToken = result.token
+
+          $scope.list = result.webentities.map(function(we, i){
+            var obj = {
+              id:i
+              ,webentity:we
+              ,checked:$scope.checkedList.some(function(weId){return weId == we.id})
+            }
+            return obj
+          })
+          $scope.status = {}
+          $scope.loading = false
+        }
+        ,function(){
+          $scope.list = []
+          $scope.status = {message: 'Error loading results page', background: 'danger'}
+          $scope.loading = false
+        }
+      )
+    }
 
     $scope.loadWebentities = function(query){
       $scope.status = {message: 'Loading'}
@@ -1836,9 +1871,15 @@ angular.module('hyphe.controllers', [])
         {
           allFieldsKeywords: query || ['*']
           ,fieldKeywords: field_kw
+          ,sortField: 'name'
+          ,count: $scope.paginationLength
+          ,page: $scope.paginationPage - 1
         }
         ,function(result){
           $scope.paginationPage = 1
+
+          $scope.fullListLength = result.total_results
+          $scope.currentSearchToken = result.token
 
           $scope.list = result.webentities.map(function(we, i){
             var obj = {
@@ -1849,7 +1890,6 @@ angular.module('hyphe.controllers', [])
             return obj
           })
           $scope.status = {}
-          $scope.loaded = true
           $scope.loading = false
         }
         ,function(){
@@ -1988,7 +2028,6 @@ angular.module('hyphe.controllers', [])
 
       $scope.checkedList = []
 
-      $scope.loaded = false
       $scope.loading = false  // This flag prevents multiple simultaneous queries
 
       $scope.paginationPage = 1

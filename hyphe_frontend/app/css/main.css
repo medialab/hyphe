@@ -38,9 +38,12 @@ h1, h2, h3, h4, h5, h6{
 
 
 /* ==========================================================================
-   A tweak needed by Angular-UI-bootstrap
+   Tweaks needed by Angular-UI-bootstrap
    ========================================================================== */
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+label.btn.btn-default.disabled.active{
+  box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+}
 
 
 
@@ -567,6 +570,9 @@ textarea.over-error{
 /* ==========================================================================
    View: Web Entities List
    ========================================================================== */
+.loading-container{
+  padding: 24px;
+}
 .webentities-list-table{
   margin-bottom: 0px;
 }
