@@ -11,14 +11,22 @@
 	</p>
 </div>
 
-<table class="table table-condensed" ng-if="listLoaded && lastCrawlJobs.length > 0">
+<table class="table table-condensed fixed" ng-if="listLoaded && lastCrawlJobs.length > 0">
+  <col width="" />
+  <col width="60px"/>
+  <col width="80px" class="hidden-xs" />
+  <col width="80px" class="hidden-xs" />
+  <col width="100px" class="hidden-xs hidden-sm" />
+  <col width="120px" class="hidden-xs hidden-sm" />
+  <col width="100px" class="hidden-xs hidden-sm" />
+
   <thead>
     <tr>
       <th>Web entity Name</th>
       <th>Depth</th>
       <th class="hidden-xs">Cautious</th>
       <th class="hidden-xs">Status</th>
-      <th class="hidden-xs hidden-sm">Crawled / Discovered Pages</th>
+      <th class="hidden-xs hidden-sm"><small>Crawled / Discovered Pages</small></th>
       <th class="hidden-xs hidden-sm">Scheduled</th>
       <th class="hidden-xs hidden-sm">Duration</th>
     </tr>
