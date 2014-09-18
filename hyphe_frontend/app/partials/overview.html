@@ -97,7 +97,35 @@
                   </p>
                 </div>
               </div>
-            
+
+              <div class="col-md-4 col-lg-3 status-cell">
+                <div class="status-cell-content">
+                  <p class="title">
+                    CORPUS
+                  </p>
+                  <p class="content" ng-if="webentities === undefined">
+                    loading...
+                  </p>
+                  <p class="content" ng-if="webentities !== undefined">
+                    {{webentities.length}} web entities
+                  </p>
+                </div>
+              </div>
+              
+              <div class="col-md-4 col-lg-3 status-cell">
+                <div class="status-cell-content">
+                  <p class="title">
+                    NETWORK
+                  </p>
+                  <p class="content" ng-if="network === undefined">
+                    loading...
+                  </p>
+                  <p class="content" ng-if="network !== undefined">
+                    {{network.length}} Links
+                  </p>
+                </div>
+              </div>
+              
             </div>
 
           </div>

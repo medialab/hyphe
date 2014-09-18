@@ -15,6 +15,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_LIST_MERGE_INTO                   = 'store.merge_webentities_into_another'
 
     API.WEBENTITY_LIST_SEARCH_ADVANCED              = 'store.advanced_search_webentities'
+    API.WEBENTITY_LIST_SEARCH_EXACT                 = 'store.exact_search_webentities'
     API.WEBENTITY_LIST_SEARCH_GET_PAGE              = 'store.get_webentities_page'
 
     API.WEBENTITY_STARTPAGE_ADD                     = 'store.add_webentity_startpage'
@@ -84,6 +85,18 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.allFieldsKeywords      // List of kw searched everywhere
             ,settings.fieldKeywords         // List of [field,kw] pairs for field search
             ,settings.sortField || "name"   // Ordering
+            ,settings.count || 1000         // Results per page
+            ,settings.page || 0             // Page
+          ]}
+      )
+
+    ns.searchWebentities_exact = buildApiCall(
+        API.WEBENTITY_LIST_SEARCH_EXACT
+        ,function(settings){
+          return [
+            settings.query
+            ,settings.field
+            ,settings.sortField             // Ordering
             ,settings.count || 1000         // Results per page
             ,settings.page || 0             // Page
           ]}
@@ -197,10 +210,9 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
-      ns.webentitiesSetStatus = buildApiCall(
+    ns.webentitiesSetStatus = buildApiCall(
         API.WEBENTITY_LIST_STATUS_SET
         ,function(settings){
-          
           return [
               settings.webentityId_list
               ,settings.status
@@ -248,6 +260,12 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.id
           ]}
       )
+
+    ns.getNetwork = buildApiCall(
+        API.WEBENTITY_LIST_GET_LINKS
+        ,function(settings){return []}
+      )
+
 
     return ns
 

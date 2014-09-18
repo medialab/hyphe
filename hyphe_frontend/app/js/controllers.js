@@ -19,16 +19,61 @@ angular.module('hyphe.controllers', [])
     $scope.currentPage = 'overview'
 
     $scope.status
+    $scope.network
+    $scope.webentities
 
-    api.globalStatus({}, function(status){
-      $scope.status = status
-      console.log(status)
-    })
+    // Init
+    loadStatus()
+
+    // Functions
+    function loadStatus(){
+      api.globalStatus({}, function(status){
+        $scope.status = status
+        console.log('status', status)
+        loadCorpus()
+      },function(data, status, headers, config){
+        $scope.status = {message: 'Error loading status', background:'danger'}
+      })
+    }
+
+    function loadCorpus(){
+      api.searchWebentities_exact(
+        {
+          query: 'IN'
+          ,field: 'status'
+          ,count: 1000
+        }
+        ,function(result){
+          console.log(result)
+          $scope.webentities = result.webentities
+          loadNetwork()
+        }
+        ,function(data, status, headers, config){
+          $scope.status = {message: 'Error loading web entities', background:'danger'}
+        }
+      )
+    }
+
+    function loadNetwork(){
+      api.getNetwork(
+        {}
+        ,function(network){
+          console.log(network)
+          $scope.network = network
+        }
+        ,function(data, status, headers, config){
+          $scope.status = {message: 'Error loading network', background:'danger'}
+        }
+      )
+    }
+
+
   }])
 
 
 
-  .controller('ImportUrls', ['$scope', 'FileLoader', 'Parser', 'extractURLs', 'droppableTextArea', 'store', function($scope, FileLoader, Parser, extractURLs, droppableTextArea, store) {
+  .controller('ImportUrls', ['$scope', 'FileLoader', 'Parser', 'extractURLs', 'droppableTextArea', 'store'
+  ,function($scope, FileLoader, Parser, extractURLs, droppableTextArea, store) {
     $scope.currentPage = 'importurls'
     
     var parser = new Parser()
@@ -212,8 +257,8 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('DefineWebEntities', ['$scope', 'store', 'utils', 'api', 'QueriesBatcher', '$location', 'PrefixConflictsIndex',
-    function($scope, store, utils, api, QueriesBatcher, $location, PrefixConflictsIndex) {
+  .controller('DefineWebEntities', ['$scope', 'store', 'utils', 'api', 'QueriesBatcher', '$location', 'PrefixConflictsIndex'
+  ,function($scope, store, utils, api, QueriesBatcher, $location, PrefixConflictsIndex) {
     
     $scope.currentPage = 'definewebentities'
 
@@ -596,7 +641,8 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('NewCrawl', ['$scope', 'api', function($scope, api) {
+  .controller('NewCrawl', ['$scope', 'api'
+  ,function($scope, api) {
     $scope.currentPage = 'newCrawl'
   }])
 
@@ -1311,8 +1357,8 @@ angular.module('hyphe.controllers', [])
   
 
 
-  .controller('scheduleCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location',
-  function($scope, api, store, utils, QueriesBatcher, $location){
+  .controller('scheduleCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location'
+  ,function($scope, api, store, utils, QueriesBatcher, $location){
     $scope.currentPage = 'scheduleCrawls'
 
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
@@ -1398,8 +1444,8 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('monitorCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location', 'refreshScheduler',
-  function($scope, api, store, utils, QueriesBatcher, $location, refreshScheduler){
+  .controller('monitorCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location', 'refreshScheduler'
+  ,function($scope, api, store, utils, QueriesBatcher, $location, refreshScheduler){
     $scope.currentPage = 'monitorCrawls'
     
     $scope.crawlJobs
@@ -1783,8 +1829,8 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location',
-  function($scope, api, utils, store, $location) {
+  .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location'
+  ,function($scope, api, utils, store, $location) {
     
     $scope.currentPage = 'listWebentities'
 
@@ -1858,7 +1904,7 @@ angular.module('hyphe.controllers', [])
       $scope.loading = true
 
       $scope.paginationPage = 1
-      
+
       // Set last query
       $scope.lastQuery = $scope.query
 
@@ -2076,8 +2122,8 @@ angular.module('hyphe.controllers', [])
     
   }])
 
-.controller('export', ['$scope', 'api', 'utils', '$location',
-  function($scope, api, utils, $location) {
+.controller('export', ['$scope', 'api', 'utils', '$location'
+,function($scope, api, utils, $location) {
     
     var queryBatchSize = 1000
 
@@ -2519,8 +2565,6 @@ angular.module('hyphe.controllers', [])
 
       }
     }
-
-    
   }])
 ;
 
