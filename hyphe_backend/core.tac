@@ -1287,9 +1287,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(old_WE):
             returnD(format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id))
         if test_bool_arg(include_home_and_startpages_as_startpages):
-            a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, old_WE.homepage, corpus=corpus)
-            if is_error(a):
-                returnD(format_error('ERROR adding homepage %s from %s to %s' % (old_WE.homepage, old_webentity_id, good_webentity_id)))
+            if old_WE.homepage:
+                a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, old_WE.homepage, corpus=corpus)
+                if is_error(a):
+                    returnD(format_error('ERROR adding homepage %s from %s to %s' % (old_WE.homepage, old_webentity_id, good_webentity_id)))
             for page in old_WE.startpages:
                 a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, page, corpus=corpus)
                 if is_error(a):
