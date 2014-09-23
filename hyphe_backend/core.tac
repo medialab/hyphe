@@ -1509,7 +1509,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             res["previous_page"] = min(res["last_page"], page - 1)
         if (page+1)*count < total:
             res["next_page"] = page + 1
-        return res
+        return format_result(res)
 
     @inlineCallbacks
     def paginate_webentities(self, WEs, count, page, light=False, semilight=False, sort=None, corpus=DEFAULT_CORPUS):
@@ -1522,7 +1522,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
           "semilight": semilight,
           "sort": sort
         }
-        res["token"] = yield self.db.save_WEs_query(corpus, ids, query_args)
+        res["result"]["token"] = yield self.db.save_WEs_query(corpus, ids, query_args)
         returnD(res)
 
     @inlineCallbacks
@@ -1578,9 +1578,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(format_result(res))
         if len(WEs) > count and not light_for_csv:
             res = yield self.paginate_webentities(res, count, page, light=light, semilight=semilight, sort=sort, corpus=corpus)
+            returnD(res)
         else:
-            res = self.format_WE_page(len(res), count, page, res)
-        returnD(format_result(res))
+            returnD(self.format_WE_page(len(res), count, page, res))
 
     @inlineCallbacks
     def jsonrpc_advanced_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
@@ -1611,9 +1611,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = yield self.format_webentities(WEs, sort=sort, corpus=corpus)
         if len(WEs) > count:
             res = yield self.paginate_webentities(res, count, page, sort=sort, corpus=corpus)
+            returnD(res)
         else:
-            res = self.format_WE_page(len(res), count, page, res)
-        returnD(format_result(res))
+            returnD(self.format_WE_page(len(res), count, page, res))
 
     def jsonrpc_escape_search_query(self, query, corpus=DEFAULT_CORPUS):
         for char in ["\\", "+", "-", "!", "(", ")", ":", "^", "[", "]", "{", "}", "~", "*", "?"]:
