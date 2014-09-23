@@ -301,19 +301,8 @@ angular.module('hyphe.service_hyphe_api', [])
                 // console.log('[OK]', data)
                 successCallback(target)
               } else {
-                // START TEMP FIX
-                if(data[0] && data[0].webentities){
-                  console.log('[TEMP FIX AT WORK]', data)
-                  successCallback(data[0])
-                } else {
-                  console.log('[Error: unexpected]', data)
-                  errorCallback(data, status, headers, config)
-                }
-                // END TEMP FIX
-
-                // ORIGINAL
-                // console.log('[Error: unexpected]', data)
-                // errorCallback(data, status, headers, config)
+                console.log('[Error: unexpected]', data)
+                errorCallback(data, status, headers, config)
               }
             })
           .error(function(data, status, headers, config){
