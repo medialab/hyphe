@@ -78,13 +78,22 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
+    ns.setSort = function(sortField) {
+        if (!sortField){
+            return "name"
+        } else if (sortField != "name" && sortField != "-name"){
+            return [sortField, "name"]
+        }
+        return sortField
+    }
+
     ns.searchWebentities = buildApiCall(
         API.WEBENTITY_LIST_SEARCH_ADVANCED
         ,function(settings){
           return [
             settings.allFieldsKeywords      // List of kw searched everywhere
             ,settings.fieldKeywords         // List of [field,kw] pairs for field search
-            ,settings.sortField || "name"   // Ordering
+            ,ns.setSort(settings.sortField) // Ordering
             ,settings.count || 1000         // Results per page
             ,settings.page || 0             // Page
           ]}
@@ -96,7 +105,7 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
             settings.query
             ,settings.field
-            ,settings.sortField             // Ordering
+            ,ns.setSort(settings.sortField) // Ordering
             ,settings.count || 1000         // Results per page
             ,settings.page || 0             // Page
           ]}
