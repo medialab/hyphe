@@ -459,9 +459,9 @@ class Core(jsonrpc.JSONRPC):
         if from_ts or to_ts:
             query["created_at"] = {}
         if from_ts:
-            query["created_at"]["$gte"] = from_ts * 1000
+            query["created_at"]["$gte"] = from_ts
         if to_ts:
-            query["created_at"]["$lte"] = to_ts * 1000
+            query["created_at"]["$lte"] = to_ts
         jobs = yield self.db.list_jobs(corpus, query)
         returnD(format_result(list(jobs)))
 
