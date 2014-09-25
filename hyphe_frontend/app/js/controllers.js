@@ -15,12 +15,27 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('Overview', ['$scope', 'api', function($scope, api) {
+  .controller('Overview', ['$scope', 'api', 'utils'
+  ,function($scope, api, utils) {
     $scope.currentPage = 'overview'
 
     $scope.status
-    $scope.network
+    $scope.links
     $scope.webentities
+    $scope.network
+
+    $scope.sigmaInstance
+    $scope.spatializationRunning = false
+
+    $scope.toggleSpatialization = function(){
+      if($scope.spatializationRunning){
+        $scope.sigmaInstance.stopForceAtlas2()
+        $scope.spatializationRunning = false
+      } else {
+        $scope.sigmaInstance.startForceAtlas2()
+        $scope.spatializationRunning = true
+      }
+    }
 
     // Init
     loadStatus()
@@ -46,7 +61,7 @@ angular.module('hyphe.controllers', [])
         ,function(result){
           console.log(result)
           $scope.webentities = result.webentities
-          loadNetwork()
+          loadLinks()
         }
         ,function(data, status, headers, config){
           $scope.status = {message: 'Error loading web entities', background:'danger'}
@@ -54,19 +69,140 @@ angular.module('hyphe.controllers', [])
       )
     }
 
-    function loadNetwork(){
+    function loadLinks(){
       api.getNetwork(
         {}
-        ,function(network){
-          console.log(network)
-          $scope.network = network
+        ,function(links){
+          $scope.links = links
+          buildNetwork()
+          initSigma()
         }
         ,function(data, status, headers, config){
-          $scope.status = {message: 'Error loading network', background:'danger'}
+          $scope.status = {message: 'Error loading links', background:'danger'}
         }
       )
     }
 
+    function initSigma(){
+      $scope.sigmaInstance = sigma.init(document.getElementById('sigma-example')).drawingProperties({
+        defaultLabelColor: '#666'
+        ,edgeColor: 'default'
+        ,defaultEdgeType: 'curve'
+        ,defaultEdgeColor: '#ccc'
+        ,defaultNodeColor: '#999'
+      })
+
+      // Populate
+      $scope.network.nodes.forEach(function(node){
+        $scope.sigmaInstance.addNode(node.id,{
+          'x': Math.random()
+          ,'y': Math.random()
+          ,label: node.label
+          ,size: 1 + Math.log(1 + 0.1 * ( node.inEdges.length + node.outEdges.length ) )
+          ,'color': node.color
+        })
+      })
+      $scope.network.edges.forEach(function(link, i){
+        $scope.sigmaInstance.addEdge(i,link.sourceID,link.targetID)
+      })
+
+      $scope.toggleSpatialization()
+    }
+
+    function buildNetwork(){
+      $scope.network = {}
+      var statusColors = {
+        IN:             "#000000"
+        ,OUT:           "#FFFFFF"
+        ,DISCOVERED:    "#FF846F"
+        ,UNDECIDED:     "#768C9D"
+      }
+
+      $scope.network.attributes = []
+
+      $scope.network.nodesAttributes = [
+        {id:'attr_status', title:'Status', type:'string'}
+        ,{id:'attr_crawling', title:'Crawling status', type:'string'}
+        ,{id:'attr_indexing', title:'Indexing status', type:'string'}
+        ,{id:'attr_creation', title:'Creation', type:'integer'}
+        ,{id:'attr_modification', title:'Last modification', type:'integer'}
+      ]
+        
+      // Extract categories from nodes
+      var categories = []
+      $scope.webentities.forEach(function(we){
+        for(var namespace in we.tags){
+          if(namespace == 'CORPUS' || namespace == 'USER'){
+            var tagging = we.tags[namespace]
+            for(var category in tagging){
+              var values = tagging[category]
+              categories.push(namespace+': '+category)
+            }
+          }
+        }
+      })
+
+      categories = utils.extractCases(categories)
+      categories.forEach(function(cat){
+        $scope.network.nodesAttributes.push({id:'attr_'+$.md5(cat), title:cat, type:'string'})
+      })
+
+      var existingNodes = {} // This index is useful to filter edges with unknown nodes
+
+      $scope.network.nodes = $scope.webentities.map(function(we){
+        var color = statusColors[we.status] || '#FF0000'
+          ,tagging = []
+        for(var namespace in we.tags){
+          if(namespace == 'CORPUS' || namespace == 'USER'){
+            for(category in we.tags[namespace]){
+              var values = we.tags[namespace][category]
+              tagging.push({cat:namespace+': '+category, values:values})
+            }
+          }
+        }
+        existingNodes[we.id] = true
+        return {
+          id: we.id
+          ,label: we.name
+          ,color: color
+          ,attributes: [
+            {attr:'attr_status', val: we.status || 'error' }
+            ,{attr:'attr_crawling', val: we.crawling_status || '' }
+            ,{attr:'attr_indexing', val: we.indexing_status || '' }
+            ,{attr:'attr_creation', val: we.creation_date || 'unknown' }
+            ,{attr:'attr_modification', val: we.last_modification_date || 'unknown' }
+            ,{attr:'attr_home', val: we.homepage || '' }
+          ].concat(tagging.map(function(catvalues){
+            return {attr:'attr_'+$.md5(catvalues.cat), val:catvalues.values.join(' | ')}
+          }))
+        }
+      })
+      
+      $scope.network.edgesAttributes = [
+        {id:'attr_count', title:'Hyperlinks Count', type:'integer'}
+      ]
+
+      $scope.network.edges = $scope.links
+      .filter(function(link){
+        // Check that nodes exist
+        return existingNodes[link[0]] && existingNodes[link[1]]
+      })
+      .map(function(link){
+        return {
+          sourceID: link[0]
+          ,targetID: link[1]
+          ,attributes: [
+            {attr:'attr_count', val:link[2]}
+          ]
+        }
+      })
+
+      console.log('Network', $scope.network)
+      json_graph_api.buildIndexes($scope.network)
+
+      // console.log('Web entities', $scope.webentities)
+      // console.log('Links', $scope.links)
+    }
 
   }])
 

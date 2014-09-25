@@ -115,19 +115,26 @@
               <div class="col-md-4 col-lg-3 status-cell">
                 <div class="status-cell-content">
                   <p class="title">
-                    NETWORK
+                    LINKS
                   </p>
                   <p class="content" ng-if="network === undefined">
                     loading...
                   </p>
                   <p class="content" ng-if="network !== undefined">
-                    {{network.length}} Links
+                    {{links.length}} Links
                   </p>
                 </div>
               </div>
-              
+
             </div>
 
+            <div class="row">
+              <div class="col-md-12">
+
+                <div class="sigma-parent"><div class="sigma-expand" id="sigma-example"></div></div>
+
+              </div>
+            </div>
           </div>
         </div>
       </div>
