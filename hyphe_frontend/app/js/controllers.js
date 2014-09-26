@@ -1796,8 +1796,8 @@ angular.module('hyphe.controllers', [])
 
           // Settings
           {
-            from: (now - timespanMs) / 1000 // These /1000 is needed by the API
-            ,to: now / 1000
+            from: (now - timespanMs)
+            ,to: now
           }
 
           // Success callback
