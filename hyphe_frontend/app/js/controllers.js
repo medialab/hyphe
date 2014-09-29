@@ -119,7 +119,7 @@ angular.module('hyphe.controllers', [])
           $scope.corpusList.push(list[id])
         }
         $scope.corpusList_byId = list
-        console.log('list',list)
+        // console.log('list',list)
 
       },function(data, status, headers, config){
         $scope.corpusList = ''
@@ -175,7 +175,7 @@ angular.module('hyphe.controllers', [])
     }
 
     function loadCorpus(){
-      api.searchWebentities_exact(
+      /*api.searchWebentities_exact(
         {
           query: 'IN'
           ,field: 'status'
@@ -189,7 +189,7 @@ angular.module('hyphe.controllers', [])
         ,function(data, status, headers, config){
           $scope.status = {message: 'Error loading web entities', background:'danger'}
         }
-      )
+      )*/
     }
 
     function loadLinks(){
