@@ -326,14 +326,14 @@ angular.module('hyphe.controllers', [])
       // console.log('Web entities', $scope.webentities)
       // console.log('Links', $scope.links)
     }
-
   }])
 
 
 
-  .controller('ImportUrls', ['$scope', 'FileLoader', 'Parser', 'extractURLs', 'droppableTextArea', 'store'
-  ,function($scope, FileLoader, Parser, extractURLs, droppableTextArea, store) {
+  .controller('ImportUrls', ['$scope', 'FileLoader', 'Parser', 'extractURLs', 'droppableTextArea', 'store', 'corpus'
+  ,function($scope, FileLoader, Parser, extractURLs, droppableTextArea, store, corpus) {
     $scope.currentPage = 'importurls'
+    $scope.corpusName = corpus.getName()
     
     var parser = new Parser()
 
@@ -516,10 +516,10 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('DefineWebEntities', ['$scope', 'store', 'utils', 'api', 'QueriesBatcher', '$location', 'PrefixConflictsIndex'
-  ,function($scope, store, utils, api, QueriesBatcher, $location, PrefixConflictsIndex) {
-    
+  .controller('DefineWebEntities', ['$scope', 'store', 'utils', 'api', 'QueriesBatcher', '$location', 'PrefixConflictsIndex', 'corpus'
+  ,function($scope, store, utils, api, QueriesBatcher, $location, PrefixConflictsIndex, corpus) {
     $scope.currentPage = 'definewebentities'
+    $scope.corpusName = corpus.getName()
 
     $scope.list = []
     $scope.list_byId = {}
@@ -895,21 +895,22 @@ angular.module('hyphe.controllers', [])
       obj.status = 'loading'
       return obj
     }
-
   }])
 
 
 
-  .controller('NewCrawl', ['$scope', 'api'
-  ,function($scope, api) {
+  .controller('NewCrawl', ['$scope', 'api', 'corpus'
+  ,function($scope, api, corpus) {
     $scope.currentPage = 'newCrawl'
+    $scope.corpusName = corpus.getName()
   }])
 
 
 
-  .controller('CheckStartPages', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', '$modal'
-  ,function($scope, api, store, utils, $location, QueriesBatcher, $modal) {
+  .controller('CheckStartPages', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', '$modal', 'corpus'
+  ,function($scope, api, store, utils, $location, QueriesBatcher, $modal, corpus) {
     $scope.currentPage = 'checkStartPages'
+    $scope.corpusName = corpus.getName()
 
     $scope.lookups = {}
     $scope.secondaryLookups = {}
@@ -1611,14 +1612,14 @@ angular.module('hyphe.controllers', [])
         $modalInstance.dismiss('cancel');
       };
     }
-
   }])
   
 
 
-  .controller('scheduleCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location'
-  ,function($scope, api, store, utils, QueriesBatcher, $location){
+  .controller('scheduleCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location', 'corpus'
+  ,function($scope, api, store, utils, QueriesBatcher, $location, corpus){
     $scope.currentPage = 'scheduleCrawls'
+    $scope.corpusName = corpus.getName()
 
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
     $scope.summary = {pending:0, success:0, error:0}
@@ -1703,9 +1704,10 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('monitorCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location', 'refreshScheduler'
-  ,function($scope, api, store, utils, QueriesBatcher, $location, refreshScheduler){
+  .controller('monitorCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location', 'refreshScheduler', 'corpus'
+  ,function($scope, api, store, utils, QueriesBatcher, $location, refreshScheduler, corpus){
     $scope.currentPage = 'monitorCrawls'
+    $scope.corpusName = corpus.getName()
     
     $scope.crawlJobs
     $scope.lastCrawlJobs
@@ -2088,10 +2090,10 @@ angular.module('hyphe.controllers', [])
 
 
 
-  .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location'
-  ,function($scope, api, utils, store, $location) {
-    
+  .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location', 'corpus'
+  ,function($scope, api, utils, store, $location, corpus) {
     $scope.currentPage = 'listWebentities'
+    $scope.corpusName = corpus.getName()
 
     $scope.list = []
     $scope.checkedList = []
@@ -2378,17 +2380,16 @@ angular.module('hyphe.controllers', [])
     function refreshEasterEgg(){
       $scope.randomEasterEgg = Math.floor(Math.random()*4)
     }
-    
   }])
 
-.controller('export', ['$scope', 'api', 'utils', '$location'
-,function($scope, api, utils, $location) {
-    
+.controller('export', ['$scope', 'api', 'utils', '$location', 'corpus'
+,function($scope, api, utils, $location, corpus) {
+    $scope.currentPage = 'export'
+    $scope.corpusName = corpus.getName()
+
     var queryBatchSize = 1000
 
-    $scope.currentPage = 'export'
-
-    $scope.projectName = 'Project'
+    $scope.projectName = $scope.corpusName
 
     $scope.list
 
