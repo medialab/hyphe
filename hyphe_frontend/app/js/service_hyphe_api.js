@@ -54,6 +54,8 @@ angular.module('hyphe.service_hyphe_api', [])
     API.RESET                                       = 'reinitialize'
 
     API.CORPUS_LIST_GET                             = 'list_corpus'
+    API.CORPUS_CREATE                               = 'create_corpus'
+    API.CORPUS_START                                = 'start_corpus'
 
     ns.getWebentities = buildApiCall(
         API.WEBENTITY_LIST_GET
@@ -249,6 +251,27 @@ angular.module('hyphe.service_hyphe_api', [])
         API.CORPUS_LIST_GET
         ,function(settings){
             return []
+          }
+      )
+
+    ns.createCorpus = buildApiCall(
+        API.CORPUS_CREATE
+        ,function(settings){
+            return [
+              settings.name
+              ,settings.password
+              ,settings.options || []
+            ]
+          }
+      )
+
+    ns.startCorpus = buildApiCall(
+        API.CORPUS_START
+        ,function(settings){
+            return [
+              settings.id
+              ,settings.password
+            ]
           }
       )
 

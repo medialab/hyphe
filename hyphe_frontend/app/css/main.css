@@ -84,21 +84,6 @@ label.btn.btn-default.disabled.active{
 
 
 /* ==========================================================================
-   Login page
-   ========================================================================== */
-
-div.welcome-column{
-	margin-top: 120px;
-	text-align: center;
-}
-div.welcome-column h1{
-  font-size: 52px;
-  font-weight: 300;
-}
-
-
-
-/* ==========================================================================
    Top bar
    ========================================================================== */
 .topbar{
@@ -186,6 +171,51 @@ div.welcome-column h1{
   .sidebar-col{
     padding-right: 15px;
   }
+}
+
+
+
+/* ==========================================================================
+   View: Login
+   ========================================================================== */
+
+div.welcome-column{
+	margin-top: 60px;
+	text-align: center;
+  margin-bottom: 200px;
+}
+div.welcome-column h1{
+  font-size: 52px;
+  font-weight: 300;
+}
+.project-list-container{
+  max-height: 220px;
+  /*border: 1px solid #E7E3E0;*/
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.project-list-container .item{
+  border-bottom: 1px solid #E7E3E0;
+  background-color: #F7F3F0;
+  padding: 6px;
+  -webkit-user-select: none; /* Chrome/Safari */        
+   -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+ */
+             select: none;
+  cursor: pointer;
+}
+.project-list-container .item:hover{
+  background-color: #FCF9F6;
+}
+.project-list-container .item-name{
+  font-size: 16px;
+}
+.project-list-container .item-stats{
+  font-size: 15px;
+  font-weight: 300;
+}
+.project-list-container .item-date{
+  font-size: 9px;
 }
 
 
@@ -293,7 +323,10 @@ textarea.over-error{
   background-color: #EFEBE8;
 }
 .define-we-row:not(.selectable){
-  select: none;
+  -webkit-user-select: none; /* Chrome/Safari */        
+     -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+               select: none;
 }
 .define-we-row:not(.active){
   cursor: pointer;
@@ -911,7 +944,10 @@ textarea.over-error{
 /* ==========================================================================
    Module: Spinner - from http://codepen.io/mandelid/pen/vwKoe
    ========================================================================== */
-
+.spinner-container.center{
+  margin-left:auto; 
+  margin-right:auto;
+}
 .spinner-container .spinner {
   display: inline-block;
   width: 50px;

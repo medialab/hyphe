@@ -267,7 +267,9 @@ angular.module('hyphe.directives', [])
         text: '='
       }
       ,link: function(scope, el, attrs) {
-        
+        if(el.hasClass('center')){
+          el.find('.spinner-container').addClass('center')
+        }
       }
     }
   }])

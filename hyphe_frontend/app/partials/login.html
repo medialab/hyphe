@@ -1,20 +1,107 @@
     <div class="container-fluid">
       <div class="row">
-        <div class="col-md-5">
-        </div>
-        <div class="col-md-2">
+        <div class="col-md-4 col-md-offset-4">
           <div class="welcome-column">
             <img src="img/hyphe logo med.png"/ title="hyphe-logo">
             <h1>hyphe</h1>
             <br/>
             <br/>
-            <p>
-              <a class="btn btn-primary" href="#/overview">Access project</a>
-            </p>
-            <p class="text-info">Currently there is a single project in each hyphe instance</p>
+            <div collapse="uiMode !== 'default'">
+              <h3>Select your project</h3>
+
+              <input type="text" class="form-control" ng-model="search_query" placeholder="Search a project">
+              <div class="project-list-container">
+                <div ng-if="corpusList === undefined">loading...</div>
+                <div ng-if="corpusList !== undefined">
+                  <div class="item" ng-repeat="corpus in corpusList|search:search_query:['name']" ng-click="selectCorpus(corpus.corpus_id)">
+                    <div class="item-name">
+                      {{corpus.name}}
+                    </div>
+                    <div class="item-stats text-muted">
+                      {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + 'web entities'}}
+                    </div>
+                    <div class="item-date text-info">
+                      Created
+                      <span tooltip="{{corpus.created_at|date}}" tooltip-placement="bottom">{{corpus.created_at|prettyDate}}</span>
+                      -
+                      Used
+                      <span tooltip="{{corpus.last_activity|date}}" tooltip-placement="bottom">{{corpus.last_activity|prettyDate}}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <br>
+              <p class="text-info">- or -</p>
+              
+              <button class="btn btn-link" ng-show="uiMode == 'default'" ng-click="uiMode = 'new'"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;NEW PROJECT</button>
+            </div>
+
+            <div collapse="uiMode !== 'new'">
+              <h3>New Project</h3>
+              <br>
+              <div ng-if="!starting">
+                <input type="text" class="form-control" ng-model="$parent.new_project_name" placeholder="Project Name">
+                <br>
+                <input type="password" class="form-control" ng-model="$parent.new_project_password" placeholder="Password">
+                <input type="password" class="form-control" ng-model="$parent.new_project_password_2" placeholder="Enter Password Again">
+                <br>
+                <p ng-if="new_project_message.length > 0">
+                  <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{new_project_message}}
+                </p>
+                <button class="btn btn-primary btn-block" ng-click="createCorpus()">CREATE PROJECT</button>
+
+                <br>
+                <p ng-if="login_message.length > 0">
+                  <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
+                </p>
+
+                <button class="btn btn-link" ng-click="$parent.uiMode = 'default'"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
+              </div>
+
+              <div ng-if="starting">
+                <spinner class="center" text="'CREATING CORPUS'"/>
+              </div>
+            </div>
+            
+            <div collapse="uiMode !== 'login'">
+              <h3>{{corpus.name}}</h3>
+
+              <div class="text-muted">
+                {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + 'web entities'}}
+              </div>
+
+              <div class="text-info">
+                Created
+                <span tooltip="{{corpus.created_at|date}}">{{corpus.created_at|prettyDate}}</span>
+                -
+                Used
+                <span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span>
+              </div>
+
+              <br>
+              <div ng-if="!starting">
+                <input type="password" class="form-control" ng-model="$parent.login_password" placeholder="Password">
+                <button class="btn btn-primary btn-block" ng-click="logIn()">OPEN PROJECT</button>
+
+                <br>
+                <p ng-if="login_message.length > 0">
+                  <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
+                </p>
+
+                <button class="btn btn-link" ng-click="$parent.uiMode = 'default'"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
+              </div>
+
+              <div ng-if="starting">
+                <spinner class="center" text="'STARTING CORPUS'"/>
+              </div>
+            
+            </div>
+
           </div>
+
+
         </div>
-        <div class="col-md-5">
-        </div>
+
       </div>
     </div>

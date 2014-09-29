@@ -9,15 +9,139 @@
 
 angular.module('hyphe.controllers', [])
 
-  .controller('Login', ['$scope', function($scope) {
+  .controller('Login', ['$scope', 'api', 'utils', '$location', 'corpus'
+  ,function($scope, api, utils, $location, corpus) {
   	$scope.currentPage = 'login'
+
+    $scope.corpusList
+    $scope.corpusList_byId = {}
+
+    $scope.uiMode = 'default'
+    $scope.new_project_message = ''
+    $scope.new_project_name = ''
+    $scope.new_project_password = ''
+    $scope.new_project_password_2 = ''
+    $scope.login_password = ''
+
+    $scope.starting = false
+
+    $scope.createCorpus = function(){
+      var isValid = true
+
+      if($scope.new_project_name.length == 0){
+        isValid = false
+        $scope.new_project_message = 'A name is required'
+      } else if($scope.new_project_password.length == 0 && $scope.new_project_password_2.length == 0){
+        isValid = false
+        $scope.new_project_message = 'A password is required'
+      } else if($scope.new_project_password.length > 0 && $scope.new_project_password_2.length == 0){
+        isValid = false
+        $scope.new_project_message = 'Password verification required'
+      } else if($scope.new_project_password !== $scope.new_project_password_2){
+        isValid = false
+        $scope.new_project_message = 'Passwords do not match'
+      }
+      
+      if(isValid){
+        $scope.starting = true
+        $scope.new_project_message = ''
+        createCorpus($scope.new_project_name, $scope.new_project_password)
+      }
+    }
+
+    $scope.selectCorpus = function(id){
+      $scope.uiMode = 'login'
+      $scope.corpus = $scope.corpusList_byId[id]
+    }
+
+    $scope.logIn = function(){
+      var isValid = true
+
+      if($scope.login_password.length == 0){
+        isValid = false
+        $scope.login_message = 'Password required'
+      }
+      
+      if(isValid){
+        $scope.login_message = ''
+        $scope.starting = true
+        startCorpus($scope.corpus.corpus_id, $scope.login_password)
+      }
+    }
+
+    // Init
+    loadCorpusList()
+
+    function startCorpus(id, password){
+      api.startCorpus({
+        id: id
+        ,password: password
+      }, function(){
+
+        $scope.starting = false
+        $scope.login_message = ''
+        openCorpus($scope.corpus.corpus_id, $scope.corpus.name)
+
+      },function(data, status, headers, config){
+        
+        $scope.starting = false
+        $scope.login_message = 'Error creating corpus'
+
+      })
+    }
+
+    function createCorpus(name, password){
+      api.createCorpus({
+        name: name
+        ,password: password
+      }, function(data){
+        $scope.starting = false
+
+        // TEMPORARY TWEAK WAITING FOR BACKEND FIX
+        data = data.result
+        // END TEMP FIX
+
+        $scope.new_project_message = ''
+        openCorpus(data.corpus_id, $scope.new_project_name)
+
+      },function(data, status, headers, config){
+        $scope.starting = false
+
+        $scope.new_project_message = 'Error creating corpus'
+
+      })
+    }
+
+    function loadCorpusList(){
+      api.getCorpusList({}, function(list){
+        $scope.corpusList = []
+        for(var id in list){
+          $scope.corpusList.push(list[id])
+        }
+        $scope.corpusList_byId = list
+        console.log('list',list)
+
+      },function(data, status, headers, config){
+        $scope.corpusList = ''
+        console.log('Error loading corpus list')
+      })
+    }
+
+    function openCorpus(id, name){
+      console.log('OPEN CORPUS', id)
+      corpus.setId(id)
+      corpus.setName(name)
+      $location.path('/overview')
+    }
+
   }])
 
 
 
-  .controller('Overview', ['$scope', 'api', 'utils'
-  ,function($scope, api, utils) {
+  .controller('Overview', ['$scope', 'api', 'utils', 'corpus'
+  ,function($scope, api, utils, corpus) {
     $scope.currentPage = 'overview'
+    $scope.corpusName = corpus.getName()
 
     $scope.status
     $scope.links

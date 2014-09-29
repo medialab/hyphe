@@ -91,6 +91,25 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('search', [function(){
+    return function(list,query,accessors) {
+      var dig
+      if(accessors === undefined){
+        dig = function(d){return d}
+      } else {
+        dig = function(d){
+          return accessors.map(function(a){
+            return d[a]
+          }).join('|')
+        }
+      }
+
+      return list.filter(function(item){
+        return dig(item).match(query)
+      })
+    }
+  }])
+
   .filter('explicitHttpCode', [function () {
     return function (code) {
       code = ''+code

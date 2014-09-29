@@ -71,7 +71,7 @@ angular.module('hyphe.services', [])
   }])
 
   .factory('store', [function(){
-  	var savedData = {}
+    var savedData = {}
     
     function set(key, data){
       savedData[key] = data
@@ -90,9 +90,31 @@ angular.module('hyphe.services', [])
     }
   }])
 
+  .factory('corpus', [function(){
+  	var ns = this    // Namsepace
+    
+    ns.id = undefined
+    ns.name = 'NO PROJECT'
+
+    ns.setId = function(id){
+      ns.id = id
+    }
+    ns.getId = function(){
+      return ns.id
+    }
+    ns.setName = function(name){
+      ns.name = name
+    }
+    ns.getName = function(){
+      return ns.name
+    }
+
+    return ns
+  }])
+
   .factory('Parser', [function(){
   	return function(){
-  		var ns = this
+  		var ns = this    // Namsepace
 
   		ns.parseCSV = function(data){
         return ns.CSVToArray(data, ',')
