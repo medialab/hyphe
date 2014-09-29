@@ -67,6 +67,7 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.sort || ["-status", "name"]            // Ordering
             ,settings.count || 1000                          // Results per page
             ,settings.page || 0                              // Results page
+            ,settings.csvLight || false                      // Mode light special for CSV
             ,corpus.getId()
           ]}
       )

@@ -923,7 +923,7 @@ angular.module('hyphe.controllers', [])
     
     $scope.paginationPage = 1
     $scope.paginationLength = 50    // How many items per page
-    $scope.paginationNumPages = 5  // How many pages to display in the pagination
+    $scope.paginationNumPages = 5   // How many pages to display in the pagination
 
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
 
