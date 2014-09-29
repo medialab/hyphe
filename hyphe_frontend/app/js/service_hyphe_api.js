@@ -2,7 +2,7 @@
 
 angular.module('hyphe.service_hyphe_api', [])
 
-  .factory('api', ['serverURL', '$http', function(surl, $http) {
+  .factory('api', ['serverURL', '$http', 'corpus', function(surl, $http, corpus) {
     var ns = {} // Namespace
     ,API = {}
 
@@ -61,11 +61,13 @@ angular.module('hyphe.service_hyphe_api', [])
         API.WEBENTITY_LIST_GET
         ,function(settings){
           return [
-            settings.id_list                // List of webentities
-            ,settings.light || false        // Mode light
-            ,settings.semiLight || false    // Mode semi-light
-            ,["-status", "name"]            // Ordering
-            ,5000                           // Results per page
+            settings.id_list                                 // List of webentities
+            ,settings.light || false                         // Mode light
+            ,settings.semiLight || false                     // Mode semi-light
+            ,settings.sort || ["-status", "name"]            // Ordering
+            ,settings.count || 1000                          // Results per page
+            ,settings.page || 0                              // Results page
+            ,corpus.getId()
           ]}
       )
 
@@ -77,6 +79,7 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.sort || ''
             ,settings.count || 100
             ,settings.page || 0
+            ,corpus.getId()
           ]}
       )
 
@@ -98,6 +101,7 @@ angular.module('hyphe.service_hyphe_api', [])
             ,ns.setSort(settings.sortField) // Ordering
             ,settings.count || 1000         // Results per page
             ,settings.page || 0             // Page
+            ,corpus.getId()
           ]}
       )
 
@@ -110,6 +114,7 @@ angular.module('hyphe.service_hyphe_api', [])
             ,ns.setSort(settings.sortField) // Ordering
             ,settings.count || 1000         // Results per page
             ,settings.page || 0             // Page
+            ,corpus.getId()
           ]}
       )
 
@@ -119,6 +124,7 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
             settings.token
             ,settings.page
+            ,corpus.getId()
           ]}
       )
 
@@ -127,6 +133,7 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
             settings.lru
+            ,corpus.getId()
           ]}
       )
 
@@ -138,6 +145,7 @@ angular.module('hyphe.service_hyphe_api', [])
               ,settings.name || ''          // Name
               ,'IN'                         // Status
               ,settings.startPages || []    // Start pages
+              ,corpus.getId()
             ]}
       )
 
@@ -146,6 +154,8 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
               settings.url
+              ,settings.timeout || 30
+              ,corpus.getId()
             ]}
       )
 
@@ -155,6 +165,7 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
               settings.webentityId
               ,settings.url
+              ,corpus.getId()
             ]}
       )
 
@@ -164,6 +175,7 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
               settings.webentityId
               ,settings.url
+              ,corpus.getId()
             ]}
       )
 
@@ -173,6 +185,7 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
               settings.webentityId
               ,settings.lru
+              ,corpus.getId()
             ]}
       )
 
@@ -182,6 +195,7 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
               settings.webentityId
               ,settings.lru
+              ,corpus.getId()
             ]}
       )
 
@@ -200,6 +214,7 @@ angular.module('hyphe.service_hyphe_api', [])
               ,settings.goodWebentityId
               ,settings.mergeTags             // Include tags
               ,settings.mergeStartPages       // Include Home and Startpages as Startpages
+              ,corpus.getId()
             ]}
       )
 
@@ -218,6 +233,7 @@ angular.module('hyphe.service_hyphe_api', [])
               ,settings.goodWebentityId
               ,settings.mergeTags             // Include tags
               ,settings.mergeStartPages       // Include Home and Startpages as Startpages
+              ,corpus.getId()
             ]}
       )
 
@@ -227,6 +243,7 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
               settings.webentityId_list
               ,settings.status
+              ,corpus.getId()
             ]}
       )
 
@@ -237,13 +254,17 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.webentityId
             ,settings.depth
             ,settings.cautious || false
+            ,settings.status || 'IN'
+            ,settings.startpages || 'default'
+            ,{}                                 // phantom timeouts
+            ,corpus.getId()
           ]}
       )
 
     ns.globalStatus = buildApiCall(
         API.STATUS_GET
         ,function(settings){
-            return []
+            return [corpus.getId()]
           }
       )
 
@@ -282,6 +303,7 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.id_list    // List of crawl jobs
             ,settings.from || null
             ,settings.to || null
+            ,corpus.getId()
           ]}
       )
 
@@ -290,12 +312,14 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
             settings.id
+            ,corpus.getId()
           ]}
       )
 
+
     ns.getNetwork = buildApiCall(
         API.WEBENTITY_LIST_GET_LINKS
-        ,function(settings){return []}
+        ,function(settings){return [corpus.getId()]}
       )
 
 
