@@ -175,7 +175,7 @@ angular.module('hyphe.controllers', [])
     }
 
     function loadCorpus(){
-      /*api.searchWebentities_exact(
+      api.searchWebentities_exact(
         {
           query: 'IN'
           ,field: 'status'
@@ -189,7 +189,7 @@ angular.module('hyphe.controllers', [])
         ,function(data, status, headers, config){
           $scope.status = {message: 'Error loading web entities', background:'danger'}
         }
-      )*/
+      )
     }
 
     function loadLinks(){
@@ -207,7 +207,36 @@ angular.module('hyphe.controllers', [])
     }
 
     function initSigma(){
-      $scope.sigmaInstance = sigma.init(document.getElementById('sigma-example')).drawingProperties({
+      $scope.sigmaInstance = new sigma('sigma-example');
+      
+      $scope.sigmaInstance.settings({
+        defaultLabelColor: '#666'
+        ,edgeColor: 'default'
+        ,defaultEdgeType: 'curve'
+        ,defaultEdgeColor: '#ccc'
+        ,defaultNodeColor: '#999'
+      });
+
+      // Populate
+      $scope.network.nodes.forEach(function(node){
+        $scope.sigmaInstance.graph.addNode({
+          id: node.id
+          ,label: node.label
+          ,'x': Math.random()
+          ,'y': Math.random()
+          ,'size': 1 + Math.log(1 + 0.1 * ( node.inEdges.length + node.outEdges.length ) )
+          ,'color': node.color
+        })
+      })
+      $scope.network.edges.forEach(function(link, i){
+        $scope.sigmaInstance.graph.addEdge({
+          'id': 'e'+i
+          ,'source': link.sourceID
+          ,'target': link.targetID
+        })
+      })
+
+      /*$scope.sigmaInstance = sigma.init(document.getElementById('sigma-example')).drawingProperties({
         defaultLabelColor: '#666'
         ,edgeColor: 'default'
         ,defaultEdgeType: 'curve'
@@ -227,7 +256,7 @@ angular.module('hyphe.controllers', [])
       })
       $scope.network.edges.forEach(function(link, i){
         $scope.sigmaInstance.addEdge(i,link.sourceID,link.targetID)
-      })
+      })*/
 
       $scope.toggleSpatialization()
     }
