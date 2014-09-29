@@ -93,20 +93,28 @@ angular.module('hyphe.services', [])
   .factory('corpus', [function(){
   	var ns = this    // Namsepace
     
+    ns.ssKeys = {id:'hyphe-corpus-id', name:'hyphe-corpus-name'}
+
     ns.id = undefined
-    ns.name = 'NO PROJECT'
+    ns.name = undefined
 
     ns.setId = function(id){
+      sessionStorage[ns.ssKeys.id] = id
       ns.id = id
     }
     ns.getId = function(){
-      return ns.id
+      if(ns.id !== undefined)
+        return ns.id
+      return sessionStorage[ns.ssKeys.id]
     }
     ns.setName = function(name){
+      sessionStorage[ns.ssKeys.name] = name
       ns.name = name
     }
     ns.getName = function(){
-      return ns.name
+      if(ns.name !== undefined)
+        return ns.name
+      return sessionStorage[ns.ssKeys.name]
     }
 
     return ns

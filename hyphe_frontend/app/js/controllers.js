@@ -128,7 +128,6 @@ angular.module('hyphe.controllers', [])
     }
 
     function openCorpus(id, name){
-      console.log('OPEN CORPUS', id)
       corpus.setId(id)
       corpus.setName(name)
       $location.path('/overview')
