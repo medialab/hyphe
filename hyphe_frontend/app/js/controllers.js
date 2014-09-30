@@ -168,7 +168,7 @@ angular.module('hyphe.controllers', [])
       api.globalStatus({}, function(status){
         $scope.status = status
         console.log('status', status)
-        // loadCorpus()
+        loadCorpus()
       },function(data, status, headers, config){
         $scope.status = {message: 'Error loading status', background:'danger'}
       })
@@ -215,6 +215,8 @@ angular.module('hyphe.controllers', [])
         ,defaultEdgeType: 'curve'
         ,defaultEdgeColor: '#ccc'
         ,defaultNodeColor: '#999'
+        ,minNodeSize: 0.3
+        ,maxNodeSize: 5
       });
 
       // Populate
@@ -239,6 +241,11 @@ angular.module('hyphe.controllers', [])
       // Force Atlas 2 settings
       $scope.sigmaInstance.configForceAtlas2({
         slowDown: 10
+        ,barnesHut: true
+        ,worker: false
+        ,scalingRatio: 10
+        ,strongGravityMode: true
+        ,gravity: 0.1
       })
 
       $scope.toggleSpatialization()
