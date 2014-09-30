@@ -221,6 +221,8 @@ angular.module('hyphe.controllers', [])
         ,defaultNodeColor: '#999'
         ,minNodeSize: 0.3
         ,maxNodeSize: 5
+        ,zoomMax: 5
+        ,zoomMin: 0.002
       });
 
       // Populate
