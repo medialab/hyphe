@@ -168,7 +168,7 @@ angular.module('hyphe.controllers', [])
       api.globalStatus({}, function(status){
         $scope.status = status
         console.log('status', status)
-        loadCorpus()
+        // loadCorpus()
       },function(data, status, headers, config){
         $scope.status = {message: 'Error loading status', background:'danger'}
       })
@@ -236,27 +236,10 @@ angular.module('hyphe.controllers', [])
         })
       })
 
-      /*$scope.sigmaInstance = sigma.init(document.getElementById('sigma-example')).drawingProperties({
-        defaultLabelColor: '#666'
-        ,edgeColor: 'default'
-        ,defaultEdgeType: 'curve'
-        ,defaultEdgeColor: '#ccc'
-        ,defaultNodeColor: '#999'
+      // Force Atlas 2 settings
+      $scope.sigmaInstance.configForceAtlas2({
+        slowDown: 10
       })
-
-      // Populate
-      $scope.network.nodes.forEach(function(node){
-        $scope.sigmaInstance.addNode(node.id,{
-          'x': Math.random()
-          ,'y': Math.random()
-          ,label: node.label
-          ,size: 1 + Math.log(1 + 0.1 * ( node.inEdges.length + node.outEdges.length ) )
-          ,'color': node.color
-        })
-      })
-      $scope.network.edges.forEach(function(link, i){
-        $scope.sigmaInstance.addEdge(i,link.sourceID,link.targetID)
-      })*/
 
       $scope.toggleSpatialization()
     }
