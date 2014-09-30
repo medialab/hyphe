@@ -99,10 +99,12 @@ angular.module('hyphe.filters', [])
       } else {
         dig = function(d){
           return accessors.map(function(a){
-            return d[a]
+            return d[a].toLowerCase()
           }).join('|')
         }
       }
+
+      query = (''+query).toLowerCase()
 
       return list.filter(function(item){
         return dig(item).match(query)

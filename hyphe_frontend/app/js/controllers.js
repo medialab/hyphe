@@ -24,6 +24,7 @@ angular.module('hyphe.controllers', [])
     $scope.login_password = ''
 
     $scope.starting = false
+    $scope.search_query = ''
 
     $scope.createCorpus = function(){
       var isValid = true
@@ -132,7 +133,6 @@ angular.module('hyphe.controllers', [])
       corpus.setName(name)
       $location.path('/overview')
     }
-
   }])
 
 
@@ -2393,9 +2393,11 @@ angular.module('hyphe.controllers', [])
       $scope.randomEasterEgg = Math.floor(Math.random()*4)
     }
   }])
+  
 
-.controller('export', ['$scope', 'api', 'utils', '$location', 'corpus'
-,function($scope, api, utils, $location, corpus) {
+
+  .controller('export', ['$scope', 'api', 'utils', '$location', 'corpus'
+  ,function($scope, api, utils, $location, corpus) {
     $scope.currentPage = 'export'
     $scope.corpusName = corpus.getName()
 

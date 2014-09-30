@@ -9,7 +9,7 @@
             <div collapse="uiMode !== 'default'">
               <h3>Select your project</h3>
 
-              <input type="text" class="form-control" ng-model="search_query" placeholder="Search a project">
+              <input type="text" class="form-control" ng-model="search_query" placeholder="Search a project" ng-if="corpusList !== undefined">
               <div class="project-list-container">
                 <div ng-if="corpusList === undefined">loading...</div>
                 <div ng-if="corpusList !== undefined">
