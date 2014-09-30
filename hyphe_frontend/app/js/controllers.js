@@ -150,6 +150,10 @@ angular.module('hyphe.controllers', [])
     $scope.sigmaInstance
     $scope.spatializationRunning = false
 
+    $scope.$on("$destroy", function(){
+        killSigma()
+    })
+    
     $scope.toggleSpatialization = function(){
       if($scope.spatializationRunning){
         $scope.sigmaInstance.stopForceAtlas2()
@@ -242,13 +246,17 @@ angular.module('hyphe.controllers', [])
       $scope.sigmaInstance.configForceAtlas2({
         slowDown: 10
         ,barnesHut: true
-        ,worker: false
+        ,worker: true
         ,scalingRatio: 10
         ,strongGravityMode: true
         ,gravity: 0.1
       })
 
       $scope.toggleSpatialization()
+    }
+
+    function killSigma(){
+      $scope.sigmaInstance.kill()
     }
 
     function buildNetwork(){
