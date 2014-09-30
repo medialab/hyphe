@@ -2857,5 +2857,37 @@ angular.module('hyphe.controllers', [])
       }
     }
   }])
+
+
+
+  .controller('settings', ['$scope', 'api', 'utils', '$location', 'corpus'
+  ,function($scope, api, utils, $location, corpus) {
+    $scope.currentPage = 'settings'
+    $scope.corpusName = corpus.getName()
+
+    $scope.options = {}
+    $scope.loading = true
+
+    init()
+
+    function init(){
+      $scope.status = {message: "Loading"}
+      api.getCorpusOptions({
+          id: corpus.getId()
+        }, function(options){
+
+          console.log('options', options)
+          $scope.options = options
+          $scope.loading = false
+          $scope.status = {}
+
+        },function(data, status, headers, config){
+          
+          $scope.status = {message: "Error while getting options", background:'danger'}
+
+        })
+    }
+
+  }])
 ;
 

@@ -1,0 +1,77 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/sub/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sub/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-12">
+                <h1>
+                  SETTINGS
+                </h1>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div ng-if="!loading">
+
+                  <h3>CRAWLING</h3>
+                  <dl class="dl-horizontal">
+
+                    <dt>Maximum Depth</dt>
+                    <dd>{{options.max_depth}}</dd>
+                    
+                    <dt>Precision Limit</dt>
+                    <dd>{{options.precision_limit}}</dd>
+
+                  </dl>
+
+                  <h3>SERVER</h3>
+                  <dl class="dl-horizontal">
+
+                    <dt>Proxy Host</dt>
+                    <dd>{{options.proxy.host}}</dd>
+
+                    <dt>Proxy Port</dt>
+                    <dd>{{options.proxy.port}}</dd>
+                    
+                    <dt>Memory</dt>
+                    <dd>{{options.ram}} Mo</dd>
+                    
+                  </dl>
+                  
+                  <h3>CAUTIOUS CRAWL</h3>
+                  <dl class="dl-horizontal">
+
+                    <dt>Timeout</dt>
+                    <dd>{{options.phantom.timeout}}</dd>
+
+                    <dt>Ajax Timeout</dt>
+                    <dd>{{options.phantom.ajax_timeout}}</dd>
+                    
+                    <dt>Idle Timeout</dt>
+                    <dd>{{options.phantom.idle_timeout}}</dd>
+
+                  </dl>
+
+                  <h3>CAUTIOUS DOMAINS</h3>
+                  <ul>
+                    <li ng-repeat="domain in options.phantom.whitelist_domains">{{domain}}</li>
+                  </ul>
+
+                  <h3>REDIRECTION DOMAINS</h3>
+                  <ul>
+                    <li ng-repeat="domain in options.follow_redirects">{{domain}}</li>
+                  </ul>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>

@@ -25,5 +25,6 @@ angular.module('hyphe', [
   $routeProvider.when('/monitorCrawls', {templateUrl: 'partials/monitorCrawls.html', controller: 'monitorCrawls'});
   $routeProvider.when('/listWebentities', {templateUrl: 'partials/listWebentities.html', controller: 'listWebentities'});
   $routeProvider.when('/export', {templateUrl: 'partials/export.html', controller: 'export'});
+  $routeProvider.when('/settings', {templateUrl: 'partials/settings.html', controller: 'settings'});
   $routeProvider.otherwise({redirectTo: '/login'});
 }]);
