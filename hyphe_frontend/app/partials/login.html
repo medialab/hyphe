@@ -9,7 +9,7 @@
             <div collapse="uiMode !== 'default'">
               <h3>Select your project</h3>
 
-              <input type="text" class="form-control" ng-model="search_query" placeholder="Search a project" ng-if="corpusList !== undefined">
+              <input type="text" class="form-control search-project" ng-model="$parent.search_query" placeholder="Search a project" ng-if="corpusList !== undefined" ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)">
               <div class="project-list-container">
                 <div ng-if="corpusList === undefined">loading...</div>
                 <div ng-if="corpusList !== undefined">
@@ -81,7 +81,7 @@
 
               <br>
               <div ng-if="!starting">
-                <input type="password" class="form-control" ng-model="$parent.login_password" placeholder="Password">
+                <input type="password" class="form-control" ng-model="$parent.login_password" placeholder="Password" ng-press-enter="logIn()">
                 <button class="btn btn-primary btn-block" ng-click="logIn()">OPEN PROJECT</button>
 
                 <br>

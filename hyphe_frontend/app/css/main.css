@@ -217,6 +217,9 @@ div.welcome-column h1{
 .project-list-container .item-date{
   font-size: 9px;
 }
+input.search-project{
+  margin-bottom: 4px;
+}
 
 
 
