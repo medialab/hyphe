@@ -216,8 +216,8 @@ angular.module('hyphe.controllers', [])
       $scope.sigmaInstance.settings({
         defaultLabelColor: '#666'
         ,edgeColor: 'default'
-        ,defaultEdgeType: 'curve'
-        ,defaultEdgeColor: '#ccc'
+        // ,defaultEdgeType: 'curve'
+        ,defaultEdgeColor: '#D1C9C3'
         ,defaultNodeColor: '#999'
         ,minNodeSize: 0.3
         ,maxNodeSize: 5
