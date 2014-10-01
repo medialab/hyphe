@@ -385,13 +385,13 @@ class Core(jsonrpc.JSONRPC):
         res = yield self.start_corpus(corpus_metas['_id'], password=corpus_metas['password'], noloop=True, quiet=not config['DEBUG'])
         if is_error(res):
             returnD(res)
-        res = self.jsonrpc_ping(corpus['_id'], timeout=10)
+        res = self.jsonrpc_ping(corpus_metas['_id'], timeout=10)
         if is_error(res):
             returnD(res)
-        res = yield self.destroy_corpus(corpus['_id'], quiet=not config['DEBUG'])
+        res = yield self.destroy_corpus(corpus_metas['_id'], quiet=not config['DEBUG'])
         if is_error(res):
             returnD(res)
-        returnD("Corpus %s cleaned up" % corpus)
+        returnD("Corpus %s cleaned up" % corpus_metas['_id'])
 
   # CORE & CORPUS STATUS
 
