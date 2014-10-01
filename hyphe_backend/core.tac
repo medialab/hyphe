@@ -222,7 +222,7 @@ class Core(jsonrpc.JSONRPC):
         if not res:
             returnD(res)
         res = yield self.start_corpus(corpus, password=password, noloop=noloop, quiet=quiet)
-        returnD(handle_standard_results(res))
+        returnD(res)
 
     def jsonrpc_start_corpus(self, corpus=DEFAULT_CORPUS, password=""):
         return self.start_corpus(corpus, password)
