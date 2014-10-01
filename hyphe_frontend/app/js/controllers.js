@@ -2889,6 +2889,18 @@ angular.module('hyphe.controllers', [])
     $scope.options = {}
     $scope.loading = true
 
+    $scope.destroy = function(){
+      if (confirm('Are you sure you want to PERMANENTLY destroy this corpus?')) {
+        api.destroyCorpus({
+          id:corpus.getId()
+        }, function(){
+          $location.path('/')
+        }, function(){
+          $scope.status = {message: "Error destroying project", background:'danger'}
+        })
+      }
+    }
+
     init()
 
     function init(){

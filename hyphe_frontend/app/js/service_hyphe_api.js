@@ -56,6 +56,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.CORPUS_LIST_GET                             = 'list_corpus'
     API.CORPUS_CREATE                               = 'create_corpus'
     API.CORPUS_START                                = 'start_corpus'
+    API.CORPUS_DESTROY                              = 'destroy_corpus'
     API.CORPUS_OPTIONS_GET                          = 'get_corpus_options'
     API.CORPUS_OPTIONS_SET                          = 'set_corpus_options'
     API.CORPUS_TEST                                 = 'test_corpus'
@@ -329,12 +330,21 @@ angular.module('hyphe.service_hyphe_api', [])
           }
       )
 
-     ns.pingCorpus = buildApiCall(
+    ns.pingCorpus = buildApiCall(
         API.CORPUS_PING
         ,function(settings){
             return [
               settings.id
               ,settings.timeout || 3    // Seconds before returning false
+            ]
+          }
+      )
+
+    ns.destroyCorpus = buildApiCall(
+        API.CORPUS_DESTROY
+        ,function(settings){
+            return [
+              settings.id
             ]
           }
       )
