@@ -116,7 +116,9 @@ label.btn.btn-default.disabled.active{
   padding-top: 12px;
   padding-bottom: 12px;
 }
-
+.topbar .close-button{
+  cursor: pointer;
+}
 
 
 /* ==========================================================================

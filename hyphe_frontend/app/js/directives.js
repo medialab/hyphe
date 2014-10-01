@@ -274,4 +274,26 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+  .directive('ngCloseCorpus', ['$location', 'corpus', 'api', function($location, corpus, api){
+    return {
+      restrict: 'A'
+      /*,scope: {
+        text: '='
+      }*/
+      ,link: function($scope, el, attrs) {
+        el.click(function(){
+          $scope.status = {message: 'Closing corpus'}
+          api.stopCorpus({
+            id: corpus.getId()
+          }, function(){
+            $scope.status = {}
+            $location.path('/')
+          }, function(){
+            $scope.status = {message: 'Error while closing corpus', background: 'danger'}
+          })
+        })
+      }
+    }
+  }])
+
 ;
