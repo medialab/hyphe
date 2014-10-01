@@ -256,11 +256,6 @@ angular.module('hyphe.controllers', [])
     }
 
     function killSigma(){
-      if($scope.spatializationRunning){
-        $scope.sigmaInstance.stopForceAtlas2()
-        $scope.spatializationRunning = false
-      }
-      $scope.sigmaInstance.killForceAtlas2()
       $scope.sigmaInstance.kill()
     }
 
