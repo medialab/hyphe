@@ -120,7 +120,7 @@ angular.module('hyphe.controllers', [])
           $scope.corpusList.push(list[id])
         }
         $scope.corpusList_byId = list
-        // console.log('list',list)
+        console.log('list',list)
 
       },function(data, status, headers, config){
         $scope.corpusList = ''
@@ -151,7 +151,7 @@ angular.module('hyphe.controllers', [])
     $scope.spatializationRunning = false
 
     $scope.$on("$destroy", function(){
-        killSigma()
+      killSigma()
     })
     
     $scope.toggleSpatialization = function(){
@@ -216,7 +216,6 @@ angular.module('hyphe.controllers', [])
       $scope.sigmaInstance.settings({
         defaultLabelColor: '#666'
         ,edgeColor: 'default'
-        // ,defaultEdgeType: 'curve'
         ,defaultEdgeColor: '#D1C9C3'
         ,defaultNodeColor: '#999'
         ,minNodeSize: 0.3
@@ -247,7 +246,6 @@ angular.module('hyphe.controllers', [])
       // Force Atlas 2 settings
       $scope.sigmaInstance.configForceAtlas2({
         slowDown: 10
-        ,barnesHut: true
         ,worker: true
         ,scalingRatio: 10
         ,strongGravityMode: true
