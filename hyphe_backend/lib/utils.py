@@ -35,7 +35,7 @@ def urls_match_domainlist(urls, domlist):
 
 re_clean_corpus = re.compile(r'[^a-z0-9_\-]+',)
 def clean_corpus_id(name):
-    return re_clean_corpus.sub('-', name.lower().strip("\s\n\r\t"))[:16]
+    return re_clean_corpus.sub('-', name.lower().strip("\n\r\t").strip())[:16]
 
 corpus_project = lambda x: ("%s.%s" % (config['mongo-scrapy']['db_name'], x)).lower()
 
