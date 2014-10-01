@@ -2,7 +2,7 @@
 
 angular.module('hyphe.service_hyphe_api', [])
 
-  .factory('api', ['serverURL', '$http', 'corpus', function(surl, $http, corpus) {
+  .factory('api', ['serverURL', '$http', 'corpus', '$location', function(surl, $http, corpus, $location) {
     var ns = {} // Namespace
     ,API = {}
 
@@ -379,8 +379,13 @@ angular.module('hyphe.service_hyphe_api', [])
                 // console.log('[OK]', data)
                 successCallback(target)
               } else {
-                console.log('[Error: unexpected]', data)
-                errorCallback(data, status, headers, config)
+                if(data[0] && data[0].message && data[0].message.status && data[0].message.status != "ready"){
+                  // Corpus shut down
+                  $location.path('/')
+                } else {
+                  console.log('[Error: unexpected]', data)
+                  errorCallback(data, status, headers, config)
+                }
               }
             })
           .error(function(data, status, headers, config){
