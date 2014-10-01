@@ -15,7 +15,7 @@
                 <div ng-if="corpusList !== undefined">
                   <div class="item" ng-repeat="corpus in corpusList|search:search_query:['name']" ng-click="selectCorpus(corpus.corpus_id)">
                     <div class="item-name">
-                      {{corpus.name}}
+                      {{corpus.name}} <span class="glyphicon glyphicon-lock" ng-if="corpus.password"></span>
                     </div>
                     <div class="item-stats text-muted">
                       {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + '  web entities'}}
@@ -30,7 +30,7 @@
                   </div>
                 </div>
               </div>
-
+              
               <br>
               <p class="text-info">- or -</p>
               
@@ -41,10 +41,15 @@
               <h3>New Project</h3>
               <br>
               <div ng-if="!starting">
-                <input type="text" class="form-control" ng-model="$parent.new_project_name" placeholder="Project Name">
+                <input type="text" class="form-control" ng-model="$parent.new_project_name" placeholder="Project Name" ng-press-enter="createCorpus()">
                 <br>
-                <input type="password" class="form-control" ng-model="$parent.new_project_password" placeholder="Password">
-                <input type="password" class="form-control" ng-model="$parent.new_project_password_2" placeholder="Enter Password Again">
+                <div class="checkbox variations-checkbox">
+                  <label>
+                    <input type="checkbox" ng-model="passwordProtected"> <span class="glyphicon glyphicon-lock"></span> Protected</span>
+                  </label>
+                </div>
+                <input type="password" class="form-control" ng-model="$parent.new_project_password" placeholder="Password" ng-if="passwordProtected">
+                <input type="password" class="form-control" ng-model="$parent.new_project_password_2" placeholder="Enter Password Again" ng-if="passwordProtected">
                 <br>
                 <p ng-if="new_project_message.length > 0">
                   <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{new_project_message}}

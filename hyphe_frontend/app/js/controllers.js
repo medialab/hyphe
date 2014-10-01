@@ -22,6 +22,7 @@ angular.module('hyphe.controllers', [])
     $scope.new_project_password = ''
     $scope.new_project_password_2 = ''
     $scope.login_password = ''
+    $scope.passwordProtected = false
 
     $scope.starting = false
     $scope.search_query = ''
@@ -32,10 +33,10 @@ angular.module('hyphe.controllers', [])
       if($scope.new_project_name.length == 0){
         isValid = false
         $scope.new_project_message = 'A name is required'
-      } else if($scope.new_project_password.length == 0 && $scope.new_project_password_2.length == 0){
+      } else if($scope.new_project_password.length == 0 && $scope.new_project_password_2.length == 0 && $scope.passwordProtected){
         isValid = false
         $scope.new_project_message = 'A password is required'
-      } else if($scope.new_project_password.length > 0 && $scope.new_project_password_2.length == 0){
+      } else if($scope.new_project_password.length > 0 && $scope.new_project_password_2.length == 0 && $scope.passwordProtected){
         isValid = false
         $scope.new_project_message = 'Password verification required'
       } else if($scope.new_project_password !== $scope.new_project_password_2){
@@ -53,12 +54,15 @@ angular.module('hyphe.controllers', [])
     $scope.selectCorpus = function(id){
       $scope.uiMode = 'login'
       $scope.corpus = $scope.corpusList_byId[id]
+      if(!$scope.corpus.password){
+        $scope.logIn()
+      }
     }
 
     $scope.logIn = function(){
       var isValid = true
 
-      if($scope.login_password.length == 0){
+      if($scope.login_password.length == 0 && $scope.corpus.password){
         isValid = false
         $scope.login_message = 'Password required'
       }
@@ -79,14 +83,12 @@ angular.module('hyphe.controllers', [])
         ,password: password
       }, function(){
 
-        $scope.starting = false
-        $scope.login_message = ''
         openCorpus($scope.corpus.corpus_id, $scope.corpus.name)
 
       },function(data, status, headers, config){
         
         $scope.starting = false
-        $scope.login_message = 'Error creating corpus'
+        $scope.login_message = 'Wrong Password'
 
       })
     }
@@ -96,13 +98,7 @@ angular.module('hyphe.controllers', [])
         name: name
         ,password: password
       }, function(data){
-        $scope.starting = false
-
-        // TEMPORARY TWEAK WAITING FOR BACKEND FIX
-        data = data.result
-        // END TEMP FIX
-
-        $scope.new_project_message = ''
+        
         openCorpus(data.corpus_id, $scope.new_project_name)
 
       },function(data, status, headers, config){
@@ -120,6 +116,16 @@ angular.module('hyphe.controllers', [])
           $scope.corpusList.push(list[id])
         }
         $scope.corpusList_byId = list
+        $scope.corpusList.sort(function(a,b){
+          if (a.name > b.name) {
+            return 1;
+          }
+          if (a.name < b.name) {
+            return -1;
+          }
+          // a must be equal to b
+          return 0;
+        })
         console.log('list',list)
 
       },function(data, status, headers, config){
@@ -129,10 +135,27 @@ angular.module('hyphe.controllers', [])
     }
 
     function openCorpus(id, name){
-      corpus.setId(id)
-      corpus.setName(name)
-      $location.path('/overview')
+      // Ping until corpus started
+      api.pingCorpus({
+        id: id
+        ,timeout: 10
+      },function(data){
+
+        $scope.starting = false
+        corpus.setId(id)
+        corpus.setName(name)
+        $location.path('/overview')
+      
+      }, function(){
+
+        $scope.starting = false
+        $scope.new_project_message = 'Error starting corpus'
+
+      })
+      
     }
+
+
   }])
 
 
