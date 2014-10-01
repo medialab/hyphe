@@ -57,6 +57,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.CORPUS_CREATE                               = 'create_corpus'
     API.CORPUS_START                                = 'start_corpus'
     API.CORPUS_STOP                                 = 'stop_corpus'
+    API.CORPUS_RESET                                = 'reinitialize'
     API.CORPUS_DESTROY                              = 'destroy_corpus'
     API.CORPUS_OPTIONS_GET                          = 'get_corpus_options'
     API.CORPUS_OPTIONS_SET                          = 'set_corpus_options'
@@ -352,6 +353,15 @@ angular.module('hyphe.service_hyphe_api', [])
 
     ns.destroyCorpus = buildApiCall(
         API.CORPUS_DESTROY
+        ,function(settings){
+            return [
+              settings.id
+            ]
+          }
+      )
+
+    ns.resetCorpus = buildApiCall(
+        API.CORPUS_RESET
         ,function(settings){
             return [
               settings.id

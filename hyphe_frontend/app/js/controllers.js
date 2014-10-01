@@ -2901,6 +2901,18 @@ angular.module('hyphe.controllers', [])
       }
     }
 
+    $scope.resetCorpus = function(){
+      if (confirm('Are you sure you want to reset this corpus?')) {
+        api.resetCorpus({
+          id:corpus.getId()
+        }, function(){
+          $location.path('/overview')
+        }, function(){
+          $scope.status = {message: "Error resetting project", background:'danger'}
+        })
+      }
+    }
+
     init()
 
     function init(){
