@@ -696,14 +696,12 @@ class Crawler(jsonrpc.JSONRPC):
         if is_error(list_jobs):
             returnD('No crawler deployed, hence no job to cancel')
         list_jobs = list_jobs['result']
-        force = False
         while 'running' in list_jobs and (list_jobs['running'] + list_jobs['pending']):
-            yield DeferredList([self.cancel(item['id'], corpus=corpus, force=force) for item in list_jobs['running'] + list_jobs['pending']], consumeErrors=True)
+            yield DeferredList([self.jsonrpc_cancel(item['id'], corpus=corpus) for item in list_jobs['running'] + list_jobs['pending']], consumeErrors=True)
             list_jobs = yield self.jsonrpc_list(corpus)
             if is_error(list_jobs):
                 returnD(list_jobs)
             list_jobs = list_jobs['result']
-            force = True
         returnD(format_result('All crawling jobs canceled.'))
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
@@ -790,28 +788,27 @@ class Crawler(jsonrpc.JSONRPC):
             yield self.db.add_log(corpus, res['jobid'], "CRAWL_ADDED", ts)
         returnD(format_result(res))
 
-    def jsonrpc_cancel(self, job_id, corpus=DEFAULT_CORPUS, force=True):
-        return self.cancel(job_id, corpus=corpus)
-
     @inlineCallbacks
-    def cancel(self, job_id, corpus=DEFAULT_CORPUS, force=True):
+    def jsonrpc_cancel(self, job_id, corpus=DEFAULT_CORPUS):
         """Cancels a scrapy job with id job_id."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         existing = yield self.db.list_jobs(corpus, {"_id": job_id})
-        if not force:
-            if not existing:
-                returnD(format_error("No job found with id %s" % job_id))
-            elif existing[0]["crawling_status"] in [crawling_statuses.FINISHED, crawling_statuses.CANCELED, crawling_statuses.RETRIED]:
-                returnD(format_error("Job %s is already not running anymore" % job_id))
-            logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
+        if not existing:
+            returnD(format_error("No job found with id %s" % job_id))
+        elif existing[0]["crawling_status"] in [crawling_statuses.FINISHED, crawling_statuses.CANCELED, crawling_statuses.RETRIED]:
+            returnD(format_error("Job %s is already not running anymore" % job_id))
+        logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
         args = {'project': corpus_project(corpus), 'job': job_id}
         res = yield self.send_scrapy_query('cancel', args)
         if is_error(res):
             returnD(reformat_error(res))
-        if 'prevstate' in res and not force:
+        if 'prevstate' in res:
             yield self.db.update_jobs(corpus, job_id, {'crawling_status': crawling_statuses.CANCELED})
             yield self.db.add_log(corpus, job_id, "CRAWL_"+crawling_statuses.CANCELED)
+        res = yield self.send_scrapy_query('cancel', args)
+        if is_error(res):
+            returnD(reformat_error(res))
         returnD(format_result(res))
 
     @inlineCallbacks
