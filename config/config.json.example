@@ -30,6 +30,8 @@
                        "http://goo.gl",
                        "http://fb.me",
                        "http://on.fb.me",
+                       "http://l.facebook.com",
+                       "https://www.facebook.com/l.php",
                        "http://ur1.ca",
                        "http://ow.ly"],
   "phantom": {

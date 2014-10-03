@@ -259,6 +259,12 @@ def lru_get_node(lru, precision_limit = 1, precision_exceptions = [], lru_head =
     stems.insert(0, lru_head.strip("|"))
     return add_trailing_pipe("|".join(stems))
 
+def has_prefix(lru, prefixes):
+    if prefixes:
+        return any((lru.startswith(p) for p in prefixes))
+    return False
+
+
 # TESTS
 #url = "http://medialab.sciences-po.fr/hci"
 #lru = urlTokenizer(url)

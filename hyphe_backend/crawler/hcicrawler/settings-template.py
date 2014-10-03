@@ -7,6 +7,7 @@ SPIDER_MODULES = ['hcicrawler.spiders']
 NEWSPIDER_MODULE = 'hcicrawler.spiders'
 
 ITEM_PIPELINES = [
+    'hcicrawler.pipelines.ResolveLinks',
     'hcicrawler.pipelines.OutputStore',
     'hcicrawler.pipelines.RemoveBody',
     'hcicrawler.pipelines.OutputQueue',

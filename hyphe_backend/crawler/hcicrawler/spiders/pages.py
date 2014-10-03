@@ -25,7 +25,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 
 from hcicrawler.linkextractor import RegexpLinkExtractor
-from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url
+from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix
 from hcicrawler.items import Page
 from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM
 from hcicrawler.samples import DEFAULT_INPUT
@@ -48,7 +48,7 @@ class PagesCrawler(BaseSpider):
         self.maxdepth = int(args['maxdepth'])
         self.follow_prefixes = to_list(args['follow_prefixes'])
         self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
-        self.discover_prefixes = to_list(args['discover_prefixes'])
+        self.discover_prefixes = [url_to_lru_clean(u) for u in to_list(args['discover_prefixes'])]
         self.user_agent = args['user_agent']
         self.phantom = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
         if self.phantom:
@@ -118,13 +118,13 @@ class PagesCrawler(BaseSpider):
         if self.phantom:
             self.phantom.get(response.url)
 
-            # Collect whole DOM of the webpage including embedded iframes
+          # Collect whole DOM of the webpage including embedded iframes
             with open(os.path.join(PHANTOM["JS_PATH"], "get_iframes_content.js")) as js:
                 get_bod_w_iframes = js.read()
             bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
             response._set_body(bod_w_iframes.encode('utf-8'))
 
-            # Try to scroll and unfold page
+          # Try to scroll and unfold page
             self.log("Start PhantomJS scrolling and unfolding", log.INFO)
             with open(os.path.join(PHANTOM["JS_PATH"], "scrolldown_and_unfold.js")) as js:
                 try:
@@ -151,7 +151,7 @@ class PagesCrawler(BaseSpider):
             bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
             response._set_body(bod_w_iframes.encode('utf-8'))
 
-    # Cleanup pages with base64 images embedded that make scrapy consider them not htmlresponses
+      # Cleanup pages with base64 images embedded that make scrapy consider them not htmlresponses
         if response.status == 200 and not isinstance(response, HtmlResponse):
             try:
                 flags = response.flags
@@ -195,7 +195,7 @@ class PagesCrawler(BaseSpider):
             try:
                 links = self.link_extractor.extract_links(response)
             except Exception as e:
-                self.log("ERROR: links extractor crashed on %s: %s %s" % (response, type(e), e))
+                self.log("ERROR: links extractor crashed on %s: %s %s" % (response, type(e), e), log.ERROR)
                 links = []
                 self.errors += 1
         for link in links:
@@ -206,9 +206,9 @@ class PagesCrawler(BaseSpider):
             try:
                 lrulink = url_to_lru_clean(url)
             except ValueError, e:
-                self.log("Error converting URL to LRU: %s" % e, log.ERROR)
+                self.log("Error converting URL %s to LRU: %s" % (url, e), log.ERROR)
                 continue
-            lrulinks.append(lrulink)
+            lrulinks.append((url, lrulink))
             if self._should_follow(response.meta['depth'], lru, lrulink) and \
                     not url_has_any_extension(url, self.ignored_exts):
                 yield self._request(url)
@@ -245,14 +245,10 @@ class PagesCrawler(BaseSpider):
         return p
 
     def _should_follow(self, depth, fromlru, tolru):
-        # this condition is documented here (please keep updated)
-        # http://jiminy.medialab.sciences-po.fr/hci/index.php/Crawler#Link_following
         c1 = depth < self.maxdepth
-        c2 = self.has_prefix(tolru, self.follow_prefixes + self.discover_prefixes)
-        c3 = not(self.has_prefix(tolru, self.nofollow_prefixes))
-        c4 = not(self.has_prefix(fromlru, self.discover_prefixes))
-        #self.log("%s %s %s %s %s %s" % (depth, c1, c2, c3, c4, tolru)) # DEBUG
-        return c1 and c2 and c3 and c4
+        c2 = has_prefix(tolru, self.follow_prefixes)
+        c3 = not(has_prefix(tolru, self.nofollow_prefixes))
+        return c1 and c2 and c3
 
     def _request(self, url, **kw):
         kw['meta'] = {'handle_httpstatus_all': True}
@@ -262,15 +258,11 @@ class PagesCrawler(BaseSpider):
             kw['method'] = 'HEAD'
         return Request(url, **kw)
 
-    def has_prefix(self, string, prefixes):
-        if prefixes:
-            return any((string.startswith(p) for p in prefixes))
-        return False
 
 def to_list(obj):
     if isinstance(obj, basestring):
-        if obj.startswith("['") and obj.endswith("']"):
-            return obj[2:-2].split("', '")
+        if obj.startswith("[") and obj.endswith("]"):
+            return eval(obj)
         return []
     return list(obj)
 
