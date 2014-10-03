@@ -142,9 +142,9 @@ It will be removed from the repository when the official 2.0 release is made. Un
     # Update the sources list
     sudo apt-get update
 
-    # Install MongoDB and ScrapyD with pymongo and selenium
+    # Install MongoDB and ScrapyD with txmongo and selenium
     sudo apt-get install mongodb-10gen
-    sudo pip install pymongo
+    sudo pip install txmongo>=0.5
     sudo pip install selenium==2.42.1
     sudo apt-get install scrapyd
 ```
@@ -167,7 +167,7 @@ enabled=1" > mongodb.repo.tmp
  * Install python's required libraries for the ScrapyD spiders and the local PhantomJS binary:
 
 ```bash
-    sudo pip install pymongo
+    sudo pip install txmongo>=0.5
     sudo pip install selenium==2.42.1
 ```
 

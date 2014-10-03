@@ -111,8 +111,8 @@ fi
 echo "Install and start ScrapyD..."
 echo "----------------------------"
 echo
-# Install pymongo and selenium as global dependencies for ScrapyD spiders to be able to use it
-sudo pip -q install pymongo >> install.log || exit 1
+# Install txmongo and selenium as global dependencies for ScrapyD spiders to be able to use it
+sudo pip -q install txmongo>=0.5 >> install.log || exit 1
 sudo pip -q install selenium==2.42.1 >> install.log || exit 1
 if $centos; then
   python -c "import scrapy" > /dev/null 2>&1

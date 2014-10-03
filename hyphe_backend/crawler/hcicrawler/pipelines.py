@@ -1,7 +1,10 @@
-import pymongo
 from scrapy import log
-from twisted.internet import defer
-from hcicrawler.mongo import MongoPageQueue, MongoPageStore
+
+from twisted.internet.defer import inlineCallbacks, returnValue
+from txmongo import MongoConnection, connection as mongo_connection
+mongo_connection._Connection.noisy = False
+from txmongo.filter import sort as mongosort, ASCENDING
+
 from hcicrawler.urllru import url_to_lru_clean, has_prefix
 from hcicrawler.resolver import ResolverAgent
 
@@ -13,44 +16,44 @@ class RemoveBody(object):
         return item
 
 
-class OutputQueue(object):
+class MongoOutput(object):
 
-    def __init__(self, mongo_host, mongo_port, mongo_db, mongo_col, jobid):
-        col = pymongo.Connection(mongo_host, mongo_port)[mongo_db][mongo_col]
-        self.q = MongoPageQueue(col, jobid)
-
-    @classmethod
-    def from_crawler(cls, crawler):
-        mongo_host = crawler.settings['MONGO_HOST']
-        mongo_port = crawler.settings['MONGO_PORT']
-        mongo_db = crawler.settings['MONGO_DB']
-        mongo_col = crawler.settings['MONGO_QUEUE_COL']
-        jobid = crawler.settings['JOBID']
-        return cls(mongo_host, mongo_port, mongo_db, mongo_col, jobid)
-
-    def process_item(self, item, spider):
-        self.q.push(dict(item))
-        return item
-
-
-class OutputStore(object):
-
-    def __init__(self, mongo_host, mongo_port, mongo_db, mongo_col, jobid):
-        col = pymongo.Connection(mongo_host, mongo_port)[mongo_db][mongo_col]
-        self.store = MongoPageStore(col, jobid)
+    def __init__(self, host, port, db, queue_col, page_col, jobid):
+        store = MongoConnection(host, port)[db]
+        self.jobid = jobid
+        self.pageStore = store[page_col]
+        self.queueStore = store[queue_col]
+        self.queueStore.ensure_index(mongosort(ASCENDING('_job')), background=True)
 
     @classmethod
     def from_crawler(cls, crawler):
-        mongo_host = crawler.settings['MONGO_HOST']
-        mongo_port = crawler.settings['MONGO_PORT']
-        mongo_db = crawler.settings['MONGO_DB']
-        mongo_col = crawler.settings['MONGO_PAGESTORE_COL']
+        host = crawler.settings['MONGO_HOST']
+        port = crawler.settings['MONGO_PORT']
+        db = crawler.settings['MONGO_DB']
+        queue_col = crawler.settings['MONGO_QUEUE_COL']
+        page_col = crawler.settings['MONGO_PAGESTORE_COL']
         jobid = crawler.settings['JOBID']
-        return cls(mongo_host, mongo_port, mongo_db, mongo_col, jobid)
+        return cls(host, port, db, queue_col, page_col, jobid)
 
+
+class OutputQueue(MongoOutput):
+
+    @inlineCallbacks
     def process_item(self, item, spider):
-        self.store.store("%s/%s" % (item['lru'], item['size']), dict(item))
-        return item
+        d = dict(item)
+        d['_job'] = self.jobid
+        yield self.queueStore.insert(d, safe=True)
+        returnValue(item)
+
+class OutputStore(MongoOutput):
+
+    @inlineCallbacks
+    def process_item(self, item, spider):
+        d = dict(item)
+        d['_id'] = "%s/%s" % (item['lru'], item['size'])
+        d['_job'] = self.jobid
+        yield self.pageStore.update({'_id': d['_id']}, d, upsert=True, safe=True)
+        returnValue(item)
 
 
 class ResolveLinks(object):
@@ -71,7 +74,7 @@ class ResolveLinks(object):
             return cls(*proxy.split(":"))
         return cls()
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def process_item(self, item, spider):
         lrulinks = []
         for url, lru in item["lrulinks"]:
@@ -83,7 +86,7 @@ class ResolveLinks(object):
                     spider.log("Error resolving redirects from URL %s: %s %s" % (url, type(e), e), log.INFO)
             lrulinks.append(lru)
         item["lrulinks"] = lrulinks
-        defer.returnValue(item)
+        returnValue(item)
 
     def _should_resolve(self, lru, spider):
         c1 = has_prefix(lru, spider.discover_prefixes)
