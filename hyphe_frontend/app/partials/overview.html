@@ -25,13 +25,13 @@
                     WEB ENTITIES
                   </p>
                   <p class="content">
-                    {{status.corpus.memory_structure.webentities.total|none}}
+                    {{corpusStatus.corpus.memory_structure.webentities.total|none}}
                   </p>
-                  <p ng-show="status.corpus.memory_structure.webentities.total" class="content">
-                    {{status.corpus.memory_structure.webentities.IN}} IN &mdash; {{status.corpus.memory_structure.webentities.OUT}} OUT
+                  <p ng-show="corpusStatus.corpus.memory_structure.webentities.total" class="content">
+                    {{corpusStatus.corpus.memory_structure.webentities.IN}} IN &mdash; {{corpusStatus.corpus.memory_structure.webentities.OUT}} OUT
                   </p>
-                  <p ng-show="status.corpus.memory_structure.webentities.total" class="content">
-                    {{status.corpus.memory_structure.webentities.UNDECIDED}} UNDECIDED
+                  <p ng-show="corpusStatus.corpus.memory_structure.webentities.total" class="content">
+                    {{corpusStatus.corpus.memory_structure.webentities.UNDECIDED}} UNDECIDED
                   </p>
                 </div>
               </div>
@@ -41,14 +41,14 @@
                   <p class="title">
                     LAST ACTIVITY
                   </p>
-                  <p ng-show="status.corpus.memory_structure.job_running" class="content">
-                    Currently: {{status.corpus.memory_structure.job_running}}
+                  <p ng-show="corpusStatus.corpus.memory_structure.job_running" class="content">
+                    Currently: {{corpusStatus.corpus.memory_structure.job_running}}
                   </p>
                   <p class="content">
-                    Last indexation <a href="#" tooltip="{{status.corpus.memory_structure.last_index|date}}">{{status.corpus.memory_structure.last_index|prettyDate}}</a>
+                    Last indexation <a href="#" tooltip="{{corpusStatus.corpus.memory_structure.last_index|date}}">{{corpusStatus.corpus.memory_structure.last_index|prettyDate}}</a>
                   </p>
                   <p class="content">
-                    Last links generation <a href="#" tooltip="{{status.corpus.memory_structure.last_links_generation|date}}">{{status.corpus.memory_structure.last_links_generation|prettyDate}}</a>
+                    Last links generation <a href="#" tooltip="{{corpusStatus.corpus.memory_structure.last_links_generation|date}}">{{corpusStatus.corpus.memory_structure.last_links_generation|prettyDate}}</a>
                   </p>
                 </div>
               </div>
@@ -59,13 +59,13 @@
                     CRAWL JOBS
                   </p>
                   <p class="content">
-                    {{status.corpus.crawler.jobs_finished|none}} achieved
+                    {{corpusStatus.corpus.crawler.jobs_finished|none}} achieved
                   </p>
                   <p class="content">
-                    {{status.corpus.crawler.jobs_running|none}} running
+                    {{corpusStatus.corpus.crawler.jobs_running|none}} running
                   </p>
                   <p class="content">
-                    {{status.corpus.crawler.jobs_pending|none}} pending
+                    {{corpusStatus.corpus.crawler.jobs_pending|none}} pending
                   </p>
                 </div>
               </div>
@@ -76,13 +76,13 @@
                     CONTENT CRAWLED
                   </p>
                   <p class="content">
-                    {{status.corpus.crawler.pages_crawled|no}} page{{status.corpus.crawler.pages_crawled|plural}} crawled
+                    {{corpusStatus.corpus.crawler.pages_crawled|no}} page{{corpusStatus.corpus.crawler.pages_crawled|plural}} crawled
                   </p>
                   <p class="content">
-                    {{status.corpus.crawler.links_found|no}} link{{status.corpus.crawler.links_found|plural}} found
+                    {{corpusStatus.corpus.crawler.links_found|no}} link{{corpusStatus.corpus.crawler.links_found|plural}} found
                   </p>
                   <p class="content">
-                    {{status.corpus.crawler.pages_found|no}} page{{status.corpus.crawler.pages_found|plural}} found
+                    {{corpusStatus.corpus.crawler.pages_found|no}} page{{corpusStatus.corpus.crawler.pages_found|plural}} found
                   </p>
                 </div>
               </div>
@@ -93,49 +93,13 @@
                     PAGES TO INDEX
                   </p>
                   <p class="content">
-                    {{status.corpus.memory_structure.pages_to_index|none}}
-                  </p>
-                </div>
-              </div>
-
-              <div class="col-md-4 col-lg-3 status-cell">
-                <div class="status-cell-content">
-                  <p class="title">
-                    CORPUS
-                  </p>
-                  <p class="content" ng-if="webentities === undefined">
-                    loading...
-                  </p>
-                  <p class="content" ng-if="webentities !== undefined">
-                    {{webentities.length}} web entities
-                  </p>
-                </div>
-              </div>
-              
-              <div class="col-md-4 col-lg-3 status-cell">
-                <div class="status-cell-content">
-                  <p class="title">
-                    LINKS
-                  </p>
-                  <p class="content" ng-if="network === undefined">
-                    loading...
-                  </p>
-                  <p class="content" ng-if="network !== undefined">
-                    {{links.length}} Links
+                    {{corpusStatus.corpus.memory_structure.pages_to_index|none}}
                   </p>
                 </div>
               </div>
 
             </div>
 
-            <div class="row">
-              <div class="col-md-12">
-
-                <div class="sigma-parent"><div class="sigma-expand" id="sigma-example"></div></div>
-
-              </div>
-            </div>
-            
           </div>
         </div>
       </div>

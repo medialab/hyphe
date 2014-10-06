@@ -26,5 +26,6 @@ angular.module('hyphe', [
   $routeProvider.when('/listWebentities', {templateUrl: 'partials/listWebentities.html', controller: 'listWebentities'});
   $routeProvider.when('/export', {templateUrl: 'partials/export.html', controller: 'export'});
   $routeProvider.when('/settings', {templateUrl: 'partials/settings.html', controller: 'settings'});
+  $routeProvider.when('/network', {templateUrl: 'partials/network.html', controller: 'network'});
   $routeProvider.otherwise({redirectTo: '/login'});
 }]);
