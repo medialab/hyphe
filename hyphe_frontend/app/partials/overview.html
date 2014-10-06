@@ -11,91 +11,43 @@
                 <h1>
                   OVERVIEW
                 </h1>
-                <p class="bg-warning text-danger">
-                  Note: This page has not been implemented yet
-                </p>
-              </div>
-            </div>
 
-            <div class="row status-cells-container">
+                <div class="round-cell-content">
+                  <p class="title">
+                    IN
+                  </p>
+                  <p class="content">
+                    {{corpusStatus.corpus.memory_structure.webentities.IN|none}}
+                  </p>
+                </div>
               
-              <div class="col-md-4 col-lg-3 status-cell">
-                <div class="status-cell-content">
+                <div class="round-cell-content">
                   <p class="title">
-                    WEB ENTITIES
+                    OUT
                   </p>
                   <p class="content">
-                    {{corpusStatus.corpus.memory_structure.webentities.total|none}}
-                  </p>
-                  <p ng-show="corpusStatus.corpus.memory_structure.webentities.total" class="content">
-                    {{corpusStatus.corpus.memory_structure.webentities.IN}} IN &mdash; {{corpusStatus.corpus.memory_structure.webentities.OUT}} OUT
-                  </p>
-                  <p ng-show="corpusStatus.corpus.memory_structure.webentities.total" class="content">
-                    {{corpusStatus.corpus.memory_structure.webentities.UNDECIDED}} UNDECIDED
+                    {{corpusStatus.corpus.memory_structure.webentities.OUT|none}}
                   </p>
                 </div>
-              </div>
-
-              <div class="col-md-4 col-lg-3 status-cell">
-                <div class="status-cell-content">
+            
+                <div class="round-cell-content">
                   <p class="title">
-                    LAST ACTIVITY
-                  </p>
-                  <p ng-show="corpusStatus.corpus.memory_structure.job_running" class="content">
-                    Currently: {{corpusStatus.corpus.memory_structure.job_running}}
+                    DISCOVERED
                   </p>
                   <p class="content">
-                    Last indexation <a href="#" tooltip="{{corpusStatus.corpus.memory_structure.last_index|date}}">{{corpusStatus.corpus.memory_structure.last_index|prettyDate}}</a>
-                  </p>
-                  <p class="content">
-                    Last links generation <a href="#" tooltip="{{corpusStatus.corpus.memory_structure.last_links_generation|date}}">{{corpusStatus.corpus.memory_structure.last_links_generation|prettyDate}}</a>
+                    {{corpusStatus.corpus.memory_structure.webentities.DISCOVERED|none}}
                   </p>
                 </div>
-              </div>
-
-              <div class="col-md-4 col-lg-3 status-cell">
-                <div class="status-cell-content">
+            
+                <div class="round-cell-content">
                   <p class="title">
-                    CRAWL JOBS
+                    UNDECIDED
                   </p>
                   <p class="content">
-                    {{corpusStatus.corpus.crawler.jobs_finished|none}} achieved
-                  </p>
-                  <p class="content">
-                    {{corpusStatus.corpus.crawler.jobs_running|none}} running
-                  </p>
-                  <p class="content">
-                    {{corpusStatus.corpus.crawler.jobs_pending|none}} pending
+                    {{corpusStatus.corpus.memory_structure.webentities.UNDECIDED|none}}
                   </p>
                 </div>
-              </div>
-
-              <div class="col-md-4 col-lg-3 status-cell">
-                <div class="status-cell-content">
-                  <p class="title">
-                    CONTENT CRAWLED
-                  </p>
-                  <p class="content">
-                    {{corpusStatus.corpus.crawler.pages_crawled|no}} page{{corpusStatus.corpus.crawler.pages_crawled|plural}} crawled
-                  </p>
-                  <p class="content">
-                    {{corpusStatus.corpus.crawler.links_found|no}} link{{corpusStatus.corpus.crawler.links_found|plural}} found
-                  </p>
-                  <p class="content">
-                    {{corpusStatus.corpus.crawler.pages_found|no}} page{{corpusStatus.corpus.crawler.pages_found|plural}} found
-                  </p>
-                </div>
-              </div>
-
-              <div class="col-md-4 col-lg-3 status-cell">
-                <div class="status-cell-content">
-                  <p class="title">
-                    PAGES TO INDEX
-                  </p>
-                  <p class="content">
-                    {{corpusStatus.corpus.memory_structure.pages_to_index|none}}
-                  </p>
-                </div>
+                
               </div>
 
             </div>

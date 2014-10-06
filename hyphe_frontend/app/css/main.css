@@ -253,6 +253,34 @@ input.search-project{
   font-size: 16px;
 }
 
+.round-cell-content{
+  width: 160px;
+  height: 160px;
+  border-radius: 80px 80px 80px 80px;
+  padding-top: 54px;
+  border: 1px solid #FFF;
+  
+  background-color: #EFEBE8;
+  overflow: hidden;
+  display: inline-block;
+}
+.round-cell-content .title{
+  text-align: center;
+  font-size: 20px;
+  font-weight:300;
+}
+.round-cell-content .content{
+  text-align: center;
+  font-size: 16px;
+}
+
+
+
+
+/* ==========================================================================
+   View: Network
+   ========================================================================== */
+
 /* Sigma */
 .sigma-parent {
   position: relative;
@@ -270,6 +298,7 @@ input.search-project{
   top: 0;
   left: 0;
 }
+
 
 
 
