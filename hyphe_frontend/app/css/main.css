@@ -280,6 +280,44 @@ input.search-project{
 /* ==========================================================================
    View: Network
    ========================================================================== */
+.network-settings-column .panel-heading{
+  background-color: #EFEBE8;
+}
+
+.network-settings-column .panel.panel-default{
+  border-color: #EFEBE8;
+  border-radius : 0px;
+}
+
+.network-settings-column p{
+  padding-top: 6px;
+}
+
+.network-settings-column .key-item{
+  padding: 4px 8px 3px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #EFEBE8;
+  display: inline-block;
+}
+.network-settings-column .key-item div.dot{
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  border-radius: 6px;
+}
+.network-settings-column .key-item div.dot.dot-in{
+  background-color: #000000;
+}
+.network-settings-column .key-item div.dot.dot-out{
+  background-color: #FFFFFF;
+}
+.network-settings-column .key-item div.dot.dot-undecided{
+  background-color: #869CAD;
+}
+.network-settings-column .key-item div.dot.dot-discovered{
+  background-color: #FF846F;
+}
 
 /* Sigma */
 .sigma-parent {
@@ -288,8 +326,16 @@ input.search-project{
   background-color: #EFEBE8;
   
   margin-bottom: 20px;
-  height: 400px;
+  height: 220px;
 }
+
+@media (min-height: 400px) {.sigma-parent {height: 320px;}}
+@media (min-height: 500px) {.sigma-parent {height: 420px;}}
+@media (min-height: 600px) {.sigma-parent {height: 520px;}}
+@media (min-height: 700px) {.sigma-parent {height: 620px;}}
+@media (min-height: 800px) {.sigma-parent {height: 720px;}}
+@media (min-height: 900px) {.sigma-parent {height: 820px;}}
+
 
 .sigma-expand {
   position: absolute;

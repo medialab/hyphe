@@ -7,20 +7,66 @@
         <div class="col-lg-10 col-md-9 col-sm-8">
           <div class="container-fluid main">
             <div class="row">
-              <div class="col-md-12">
-                <h1>
-                  NETWORK
-                </h1>
-                <p class="bg-warning text-danger">
-                  Note: This page has not been implemented yet
-                </p>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-12">
+              <div class="col-md-8">
+
+                <br>
 
                 <div class="sigma-parent"><div class="sigma-expand" id="sigma-example"></div></div>
 
+              </div>
+              <div class="col-md-4 network-settings-column">
+                <h1>
+                  NETWORK
+                </h1>
+                <accordion close-others="true">
+                  <accordion-group heading="Corpus in progress" is-open="displayMode.corpus">
+
+                    <div class="key-item">
+                      <div class="dot dot-in"></div>
+                      IN
+                    </div>
+                    <div class="key-item">
+                      <div class="dot dot-undecided"></div>
+                      UNDECIDED
+                    </div>
+
+                    <p class="text-info">
+                      We display web entities that are in your corpus (IN) or that you will eventually add (UNDECIDED)
+                    </p>
+
+                    <button class="btn btn-default"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
+
+                  </accordion-group>
+                  <accordion-group heading="Full network" is-open="displayMode.full">
+                    
+                    <div class="key-item">
+                      <div class="dot dot-in"></div>
+                      IN
+                    </div>
+                    <div class="key-item">
+                      <div class="dot dot-out"></div>
+                      OUT
+                    </div>
+                    <div class="key-item">
+                      <div class="dot dot-undecided"></div>
+                      UNDECIDED
+                    </div>
+                    <div class="key-item">
+                      <div class="dot dot-discovered"></div>
+                      DISCOVERED
+                    </div>
+                    
+                    <p class="text-info">
+                      We display all web entities even those that are not in the corpus (OUT) or not crawled (DISCOVERED)
+                    </p>
+
+                    <button class="btn btn-default"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
+
+                  </accordion-group>
+                  <accordion-group heading="Custom" is-open="displayMode.custom">
+                    What you want
+                  </accordion-group>
+                </accordion>
               </div>
             </div>
             

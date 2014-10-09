@@ -2752,6 +2752,8 @@ angular.module('hyphe.controllers', [])
     $scope.sigmaInstance
     $scope.spatializationRunning = false
 
+    $scope.displayMode = {corpus:true, full:false, custom:false, in:true, undecided: true, discovered: false, out: true}
+
     $scope.$on("$destroy", function(){
       killSigma()
     })
@@ -2792,7 +2794,7 @@ angular.module('hyphe.controllers', [])
         ,function(links){
           $scope.links = links
           buildNetwork()
-          initSigma()
+          // initSigma()
         }
         ,function(data, status, headers, config){
           $scope.status = {message: 'Error loading links', background:'danger'}
@@ -2855,7 +2857,7 @@ angular.module('hyphe.controllers', [])
         IN:             "#000000"
         ,OUT:           "#FFFFFF"
         ,DISCOVERED:    "#FF846F"
-        ,UNDECIDED:     "#768C9D"
+        ,UNDECIDED:     "#869CAD"
       }
 
       $scope.network.attributes = []
