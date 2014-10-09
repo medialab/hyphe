@@ -2036,7 +2036,7 @@ angular.module('hyphe.controllers', [])
               .join(' ')
           ]
         ]
-      console.log('field_kw', field_kw)
+
       api.searchWebentities(
         {
           allFieldsKeywords: query || ['*']
