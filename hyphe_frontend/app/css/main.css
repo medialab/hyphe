@@ -294,6 +294,7 @@ input.search-project{
 }
 
 .network-settings-column .key-item{
+  margin-top: 4px;
   padding: 4px 8px 3px 4px;
   font-size: 12px;
   font-weight: 600;

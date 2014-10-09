@@ -64,7 +64,32 @@
 
                   </accordion-group>
                   <accordion-group heading="Custom" is-open="displayMode.custom">
-                    What you want
+                    
+                    <button class="btn btn-default">
+                      <div class="key-item">
+                        <div class="dot dot-in"></div>
+                        IN
+                      </div>
+                    </button>
+                    <div class="key-item">
+                      <div class="dot dot-out"></div>
+                      OUT
+                    </div>
+                    <div class="key-item">
+                      <div class="dot dot-undecided"></div>
+                      UNDECIDED
+                    </div>
+                    <div class="key-item">
+                      <div class="dot dot-discovered"></div>
+                      DISCOVERED
+                    </div>
+                    
+                    <p class="text-info">
+                      We display all web entities even those that are not in the corpus (OUT) or not crawled (DISCOVERED)
+                    </p>
+
+                    <button class="btn btn-default"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
+
                   </accordion-group>
                 </accordion>
               </div>
