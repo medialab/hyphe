@@ -37,7 +37,7 @@
                       We display web entities that are in your corpus (IN) or that you will eventually add (UNDECIDED)
                     </p>
 
-                    <button class="btn btn-default"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
+                    <button class="btn btn-default" ng-click="downloadNetwork()"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
 
                   </accordion-group>
                   <accordion-group heading="Full network" ng-click="updateDisplayMode()" is-open="displayMode.full">
@@ -63,7 +63,7 @@
                       We display all web entities even those that are not in the corpus (OUT) or not crawled (DISCOVERED)
                     </p>
 
-                    <button class="btn btn-default"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
+                    <button class="btn btn-default" ng-click="downloadNetwork()"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
 
                   </accordion-group>
                   <!-- <accordion-group heading="Custom" is-open="displayMode.custom">
@@ -91,7 +91,7 @@
                       We display all web entities even those that are not in the corpus (OUT) or not crawled (DISCOVERED)
                     </p>
 
-                    <button class="btn btn-default"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
+                    <button class="btn btn-default" ng-click="downloadNetwork()"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
 
                   </accordion-group> -->
                 </accordion>

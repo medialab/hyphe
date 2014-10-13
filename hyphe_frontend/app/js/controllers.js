@@ -2784,16 +2784,25 @@ angular.module('hyphe.controllers', [])
         if($scope.networkMode != 'corpus'){
           $scope.networkMode = 'corpus'
           killSigma()
+          buildNetwork()
           initSigma()
         }
       } else if($scope.displayMode.full){
         if($scope.networkMode != 'full'){
           $scope.networkMode = 'full'
           killSigma()
+          buildNetwork()
           initSigma()
         }
       }
       // console.log('UPDATE D M', $scope.displayMode)
+    }
+
+    $scope.downloadNetwork = function(){
+      var network = $scope.network
+
+      var blob = new Blob(json_graph_api.buildGEXF(network), {'type':'text/gexf+xml;charset=utf-8'});
+      saveAs(blob, $scope.corpusName + ".gexf");
     }
 
     // Init
@@ -2839,17 +2848,6 @@ angular.module('hyphe.controllers', [])
     function initSigma(){
       $scope.sigmaInstance = new sigma('sigma-example');
       
-      var nodeFilter
-
-      if($scope.networkMode == 'corpus'){
-        nodeFilter = function(n){
-          return n.attributes_byId['attr_status'] == 'IN'
-            || n.attributes_byId['attr_status'] == 'UNDECIDED'
-        }
-      } else {
-        nodeFilter = function(n){return true}
-      }
-
       $scope.sigmaInstance.settings({
         defaultLabelColor: '#666'
         ,edgeColor: 'default'
@@ -2865,7 +2863,6 @@ angular.module('hyphe.controllers', [])
 
       // Populate
       $scope.network.nodes
-        .filter(nodeFilter)
         .forEach(function(node){
           nodesIndex[node.id] = node
           $scope.sigmaInstance.graph.addNode({
@@ -2878,9 +2875,6 @@ angular.module('hyphe.controllers', [])
           })
         })
       $scope.network.edges
-        .filter(function(e){
-          return nodesIndex[e.sourceID] && nodesIndex[e.targetID]
-        })
         .forEach(function(link, i){
           $scope.sigmaInstance.graph.addEdge({
             'id': 'e'+i
@@ -2924,7 +2918,7 @@ angular.module('hyphe.controllers', [])
         ,{id:'attr_creation', title:'Creation', type:'integer'}
         ,{id:'attr_modification', title:'Last modification', type:'integer'}
       ]
-        
+      
       // Extract categories from nodes
       var categories = []
       $scope.webentities.forEach(function(we){
@@ -2946,7 +2940,9 @@ angular.module('hyphe.controllers', [])
 
       var existingNodes = {} // This index is useful to filter edges with unknown nodes
 
-      $scope.network.nodes = $scope.webentities.map(function(we){
+      $scope.network.nodes = $scope.webentities.filter(function(we){
+        return we.status == 'IN' || we.status == 'UNDECIDED' || $scope.networkMode == 'full'
+      }).map(function(we){
         var color = statusColors[we.status] || '#FF0000'
           ,tagging = []
         for(var namespace in we.tags){
