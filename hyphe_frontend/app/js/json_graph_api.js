@@ -168,8 +168,8 @@ var json_graph_api = {
 				content.push("\n" +  '<viz:size value="'+node.size+'"></viz:size>');
 			if(node.x && node.y)
 				content.push("\n" +  '<viz:position x="'+node.x+'" y="'+(-node.y)+'"></viz:position>');
-			if(node.color)
-				content.push("\n" +  '<viz:color r="'+Math.round(node.color.r)+'" g="'+Math.round(node.color.g)+'" b="'+Math.round(node.color.b)+'"></viz:color>');
+			// if(node.color)
+			// 	content.push("\n" +  '<viz:color r="'+Math.round(node.color.r)+'" g="'+Math.round(node.color.g)+'" b="'+Math.round(node.color.b)+'"></viz:color>');
 			
 			content.push("\n" +  '</node>');
 			
