@@ -2752,7 +2752,8 @@ angular.module('hyphe.controllers', [])
     $scope.sigmaInstance
     $scope.spatializationRunning = false
 
-    $scope.displayMode = {corpus:true, full:false, custom:false, in:true, undecided: true, discovered: false, out: true}
+    $scope.displayMode = {corpus:true, full:false, custom:false}
+    $scope.networkMode = 'loading'
 
     $scope.$on("$destroy", function(){
       killSigma()
@@ -2768,18 +2769,45 @@ angular.module('hyphe.controllers', [])
       }
     }
 
+    $scope.runSpatialization = function(){
+      $scope.spatializationRunning = true
+      $scope.sigmaInstance.startForceAtlas2()
+    }
+
+    $scope.stopSpatialization = function(){
+      $scope.spatializationRunning = false
+      $scope.sigmaInstance.stopForceAtlas2()
+    }
+
+    $scope.updateDisplayMode = function(){
+      if($scope.displayMode.corpus){
+        if($scope.networkMode != 'corpus'){
+          $scope.networkMode = 'corpus'
+          killSigma()
+          initSigma()
+        }
+      } else if($scope.displayMode.full){
+        if($scope.networkMode != 'full'){
+          $scope.networkMode = 'full'
+          killSigma()
+          initSigma()
+        }
+      }
+      // console.log('UPDATE D M', $scope.displayMode)
+    }
+
     // Init
     loadCorpus()
 
     function loadCorpus(){
-      api.searchWebentities_exact(
+      $scope.status = {message: 'Loading web entities'}
+      api.getWebentities(
         {
-          query: 'IN'
-          ,field: 'status'
-          ,count: 1000
+          count: 10000
         }
         ,function(result){
           $scope.webentities = result.webentities
+          $scope.status = {}
           loadLinks()
         }
         ,function(data, status, headers, config){
@@ -2789,12 +2817,18 @@ angular.module('hyphe.controllers', [])
     }
 
     function loadLinks(){
+      $scope.networkMode = 'linksLoading'
+      $scope.status = {message: 'Loading links'}
       api.getNetwork(
         {}
         ,function(links){
           $scope.links = links
           buildNetwork()
-          // initSigma()
+          $scope.status = {}
+
+          $scope.networkMode = 'corpus'
+
+          initSigma()
         }
         ,function(data, status, headers, config){
           $scope.status = {message: 'Error loading links', background:'danger'}
@@ -2805,6 +2839,17 @@ angular.module('hyphe.controllers', [])
     function initSigma(){
       $scope.sigmaInstance = new sigma('sigma-example');
       
+      var nodeFilter
+
+      if($scope.networkMode == 'corpus'){
+        nodeFilter = function(n){
+          return n.attributes_byId['attr_status'] == 'IN'
+            || n.attributes_byId['attr_status'] == 'UNDECIDED'
+        }
+      } else {
+        nodeFilter = function(n){return true}
+      }
+
       $scope.sigmaInstance.settings({
         defaultLabelColor: '#666'
         ,edgeColor: 'default'
@@ -2816,24 +2861,33 @@ angular.module('hyphe.controllers', [])
         ,zoomMin: 0.002
       });
 
+      var nodesIndex = {}
+
       // Populate
-      $scope.network.nodes.forEach(function(node){
-        $scope.sigmaInstance.graph.addNode({
-          id: node.id
-          ,label: node.label
-          ,'x': Math.random()
-          ,'y': Math.random()
-          ,'size': 1 + Math.log(1 + 0.1 * ( node.inEdges.length + node.outEdges.length ) )
-          ,'color': node.color
+      $scope.network.nodes
+        .filter(nodeFilter)
+        .forEach(function(node){
+          nodesIndex[node.id] = node
+          $scope.sigmaInstance.graph.addNode({
+            id: node.id
+            ,label: node.label
+            ,'x': Math.random()
+            ,'y': Math.random()
+            ,'size': 1 + Math.log(1 + 0.1 * ( node.inEdges.length + node.outEdges.length ) )
+            ,'color': node.color
+          })
         })
-      })
-      $scope.network.edges.forEach(function(link, i){
-        $scope.sigmaInstance.graph.addEdge({
-          'id': 'e'+i
-          ,'source': link.sourceID
-          ,'target': link.targetID
+      $scope.network.edges
+        .filter(function(e){
+          return nodesIndex[e.sourceID] && nodesIndex[e.targetID]
         })
-      })
+        .forEach(function(link, i){
+          $scope.sigmaInstance.graph.addEdge({
+            'id': 'e'+i
+            ,'source': link.sourceID
+            ,'target': link.targetID
+          })
+        })
 
       // Force Atlas 2 settings
       $scope.sigmaInstance.configForceAtlas2({
@@ -2844,10 +2898,11 @@ angular.module('hyphe.controllers', [])
         ,gravity: 0.1
       })
 
-      $scope.toggleSpatialization()
+      $scope.runSpatialization()
     }
 
     function killSigma(){
+      $scope.stopSpatialization()
       $scope.sigmaInstance.kill()
     }
 
@@ -2939,8 +2994,9 @@ angular.module('hyphe.controllers', [])
         }
       })
 
-      console.log('Network', $scope.network)
       json_graph_api.buildIndexes($scope.network)
+
+      console.log('Network', $scope.network)
 
       // console.log('Web entities', $scope.webentities)
       // console.log('Links', $scope.links)

@@ -6,10 +6,10 @@
             <h1>hyphe</h1>
             <br/>
             <br/>
-            <div collapse="uiMode !== 'default'">
+            <div collapse="uiMode !== 'default' || (uiMode == 'default' && corpusList.length == 0)">
               <h3>Select your project</h3>
 
-              <input type="text" class="form-control search-project" ng-model="$parent.search_query" placeholder="Search a project" ng-if="corpusList !== undefined" ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)">
+              <input type="text" class="form-control search-project" ng-model="$parent.search_query" placeholder="Search a project" ng-if="corpusList !== undefined && corpusList.length > 3" ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)">
               <div class="project-list-container">
                 <div ng-if="corpusList === undefined">loading...</div>
                 <div ng-if="corpusList !== undefined">
@@ -37,7 +37,7 @@
               <button class="btn btn-link" ng-show="uiMode == 'default'" ng-click="uiMode = 'new'"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;NEW PROJECT</button>
             </div>
 
-            <div collapse="uiMode !== 'new'">
+            <div collapse="uiMode !== 'new' && corpusList.length > 0">
               <h3>New Project</h3>
               <br>
               <div ng-if="!starting">
