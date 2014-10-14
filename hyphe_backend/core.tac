@@ -218,9 +218,6 @@ class Core(jsonrpc.JSONRPC):
             returnD(format_error("Could not deploy crawler for corpus"))
         if not res:
             returnD(res)
-        res = self.store.ensureDefaultCreationRuleExists(corpus, quiet=quiet)
-        if not res:
-            returnD(res)
         res = yield self.start_corpus(corpus, password=password, noloop=noloop, quiet=quiet)
         returnD(res)
 
@@ -856,6 +853,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not noloop:
             reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
             reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
+        self.ensureDefaultCreationRuleExists(corpus, quiet=noloop)
 
     @inlineCallbacks
     def format_webentity(self, WE, jobs=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
@@ -954,7 +952,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = self.msclients.sync.clearIndex(corpus=corpus)
         if is_error(res):
             returnD(res)
-        self.ensureDefaultCreationRuleExists(corpus, quiet=quiet)
         yield self._init_loop(corpus, noloop=noloop)
         returnD(format_result("MemoryStructure reinitialized"))
 
