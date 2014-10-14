@@ -406,7 +406,7 @@ class Core(jsonrpc.JSONRPC):
           }
         }
         status['corpus'].update(self.jsonrpc_test_corpus(corpus)["result"])
-        if not self.corpus_ready(corpus):
+        if not self.corpus_ready(corpus) or "webentities" not in self.corpora[corpus]:
             return format_result(status)
         WEs_total = self.corpora[corpus]['total_webentities']
         WEs_IN = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.IN])
