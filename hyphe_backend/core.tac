@@ -938,7 +938,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['recent_indexes'] += 1
         return handle_standard_results(self.msclients.sync.deleteNodeLinks(corpus=corpus))
 
-    def ensureDefaultCreationRuleExists(self, corpus=DEFAULT_CORPUS, quiet=False):
+    def ensureDefaultCreationRuleExists(self, corpus=DEFAULT_CORPUS, quiet=False, retry=True):
         rules = self.msclients.sync.getWebEntityCreationRules(corpus=corpus)
         if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules) == 0):
             default_regexp = "(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|)(h:[^\\|]+\\|)+)"
@@ -946,6 +946,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
             res = self.msclients.sync.addWebEntityCreationRule(ms.WebEntityCreationRule(default_regexp, ''), corpus=corpus)
             if is_error(res):
+                logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
+                if retry:
+                    logger.msg("Retrying WE creation rule creation...", system="ERROR - %s" % corpus)
+                    return ensureDefaultCreationRuleExists(corpus, quiet=quiet, retry=False)
                 return res
             return format_result('Default creation rule created')
         return format_result('Default creation rule was already created')
