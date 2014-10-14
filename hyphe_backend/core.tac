@@ -316,20 +316,21 @@ class Core(jsonrpc.JSONRPC):
             res["result"]["message"] = "Corpus stopped"
         returnD(res)
 
+    @inlineCallbacks
     def jsonrpc_ping(self, corpus=None, timeout=3):
         if not corpus:
-            return format_result('pong')
+            returnD(format_result('pong'))
         if not self.corpus_ready(corpus) and self.msclients.status_corpus(corpus, simplify=True) != "starting":
-            return self.corpus_error(corpus)
+            returnD(self.corpus_error(corpus))
 
         st = time.time()
         res = self.msclients.sync.ping(corpus=corpus)
         while is_error(res) and time.time() < st + timeout:
-            time.sleep(0.1)
+            yield deferredSleep(0.5)
             res = self.msclients.sync.ping(corpus=corpus)
         if is_error(res):
-            return res
-        return format_result('pong')
+            returnD(res)
+        returnD(format_result('pong'))
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
         return self.reinitialize(corpus)
@@ -382,7 +383,7 @@ class Core(jsonrpc.JSONRPC):
         res = yield self.start_corpus(corpus_metas['_id'], password=corpus_metas['password'], noloop=True, quiet=not config['DEBUG'])
         if is_error(res):
             returnD(res)
-        res = self.jsonrpc_ping(corpus_metas['_id'], timeout=10)
+        res = yield self.jsonrpc_ping(corpus_metas['_id'], timeout=10)
         if is_error(res):
             returnD(res)
         res = yield self.destroy_corpus(corpus_metas['_id'], quiet=not config['DEBUG'])
@@ -1908,7 +1909,7 @@ def test_start(cor, corpus):
 def test_ping(res, cor, corpus):
     if is_error(res):
         return stop_tests(res, cor, corpus, "Could not create corpus")
-    d = defer.succeed(cor.jsonrpc_ping(corpus, timeout=5))
+    d = cor.jsonrpc_ping(corpus, timeout=5)
     d.addCallback(test_destroy, cor, corpus)
     d.addErrback(stop_tests, cor, corpus)
 def test_destroy(res, cor, corpus):
