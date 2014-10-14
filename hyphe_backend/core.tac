@@ -866,7 +866,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not noloop:
             reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
             reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
-        self.ensureDefaultCreationRuleExists(corpus, quiet=noloop)
+        yield self.ensureDefaultCreationRuleExists(corpus, quiet=noloop)
 
     @inlineCallbacks
     def format_webentity(self, WE, jobs=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
@@ -938,21 +938,26 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['recent_indexes'] += 1
         return handle_standard_results(self.msclients.sync.deleteNodeLinks(corpus=corpus))
 
+    @inlineCallbacks
     def ensureDefaultCreationRuleExists(self, corpus=DEFAULT_CORPUS, quiet=False, retry=True):
-        rules = self.msclients.sync.getWebEntityCreationRules(corpus=corpus)
+        res = yield self.parent.jsonrpc_ping(corpus, timeout=15)
+        if is_error(res):
+            logger.msg("Could not start corpus fast enough to create WE creation rule...", system="ERROR - %s" % corpus)
+            returnD(res)
+        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
         if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules) == 0):
             default_regexp = "(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|)(h:[^\\|]+\\|)+)"
             if corpus != DEFAULT_CORPUS and not quiet:
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
-            res = self.msclients.sync.addWebEntityCreationRule(ms.WebEntityCreationRule(default_regexp, ''), corpus=corpus)
+            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(default_regexp, ''), corpus=corpus)
             if is_error(res):
                 logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
                 if retry:
                     logger.msg("Retrying WE creation rule creation...", system="ERROR - %s" % corpus)
-                    return ensureDefaultCreationRuleExists(corpus, quiet=quiet, retry=False)
-                return res
-            return format_result('Default creation rule created')
-        return format_result('Default creation rule was already created')
+                    returnD(ensureDefaultCreationRuleExists(corpus, quiet=quiet, retry=False))
+                returnD(res)
+            returnD(format_result('Default creation rule created'))
+        returnD(format_result('Default creation rule was already created'))
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
         return self.reinitialize(corpus)
