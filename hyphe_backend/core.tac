@@ -230,6 +230,10 @@ class Core(jsonrpc.JSONRPC):
         now = now_ts()
         self.corpora[corpus]["webentities"] = []
         self.corpora[corpus]["total_webentities"] = 0
+        self.corpora[corpus]["webentities_in"] = 0
+        self.corpora[corpus]["webentities_out"] = 0
+        self.corpora[corpus]["webentities_undecided"] = 0
+        self.corpora[corpus]["webentities_discovered"] = 0
         self.corpora[corpus]["tags"] = {}
         self.corpora[corpus]["webentities_links"] = []
         self.corpora[corpus]["precision_exceptions"] = []
@@ -269,6 +273,10 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["name"] = corpus_conf["name"]
         self.corpora[corpus]["options"] = corpus_conf["options"]
         self.corpora[corpus]["total_webentities"] = corpus_conf['total_webentities']
+        self.corpora[corpus]["webentities_in"] = corpus_conf['webentities_in']
+        self.corpora[corpus]["webentities_out"] = corpus_conf['webentities_out']
+        self.corpora[corpus]["webentities_undecided"] = corpus_conf['webentities_undecided']
+        self.corpora[corpus]["webentities_discovered"] = corpus_conf['webentities_discovered']
         self.corpora[corpus]["crawls"] = corpus_conf['total_crawls']
         self.corpora[corpus]["pages_found"] = corpus_conf['total_pages']
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
@@ -287,6 +295,10 @@ class Core(jsonrpc.JSONRPC):
         yield self.db.update_corpus(corpus, {
           "options": self.corpora[corpus]["options"],
           "total_webentities": self.corpora[corpus]['total_webentities'],
+          "webentities_in": self.corpora[corpus]['webentities_in'],
+          "webentities_out": self.corpora[corpus]['webentities_out'],
+          "webentities_undecided": self.corpora[corpus]['webentities_undecided'],
+          "webentities_discovered": self.corpora[corpus]['webentities_discovered'],
           "total_crawls": self.corpora[corpus]['crawls'],
           "total_pages": self.corpora[corpus]['pages_found'],
           "total_pages_crawled": self.corpora[corpus]['pages_crawled'],
@@ -408,11 +420,11 @@ class Core(jsonrpc.JSONRPC):
         status['corpus'].update(self.jsonrpc_test_corpus(corpus)["result"])
         if not self.corpus_ready(corpus) or "webentities" not in self.corpora[corpus]:
             return format_result(status)
-        WEs_total = self.corpora[corpus]['total_webentities']
-        WEs_IN = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.IN])
-        WEs_OUT = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.OUT])
-        WEs_UND = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.UNDECIDED])
-        WEs_DISC = WEs_total - WEs_IN - WEs_OUT - WEs_UND
+        if self.corpora[corpus]['webentities']:
+            self.corpora[corpus]['webentities_in'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.IN])
+            self.corpora[corpus]['webentities_out'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.OUT])
+            self.corpora[corpus]['webentities_undecided'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.UNDECIDED])
+            self.corpora[corpus]['webentities_discovered'] = self.corpora[corpus]['total_webentities'] - self.corpora[corpus]['webentities_in'] - self.corpora[corpus]['webentities_out'] - self.corpora[corpus]['webentities_undecided']
         if not self.corpora[corpus]['crawls']:
             self.corpora[corpus]['crawls_pending'] = 0
             self.corpora[corpus]['crawls_running'] = 0
@@ -434,11 +446,11 @@ class Core(jsonrpc.JSONRPC):
             'last_links_generation': self.corpora[corpus]['last_links_loop'],
             'pages_to_index': self.corpora[corpus]['pages_queued'],
             'webentities': {
-              'total': WEs_total,
-              'IN': WEs_IN,
-              'OUT': WEs_OUT,
-              'UNDECIDED': WEs_UND,
-              'DISCOVERED': WEs_DISC
+              'total': self.corpora[corpus]['total_webentities'],
+              'IN': self.corpora[corpus]['webentities_in'],
+              'OUT': self.corpora[corpus]['webentities_out'],
+              'UNDECIDED': self.corpora[corpus]['webentities_undecided'],
+              'DISCOVERED': self.corpora[corpus]['webentities_discovered']
             }
           }
         }
@@ -1380,6 +1392,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not self.parent.corpus_ready(corpus) or self.corpora[corpus]['loop_running']:
             returnD(False)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
+        yield self.ramcache_webentities(corpus=corpus)
         crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
         if crashed:
             self.corpora[corpus]['loop_running'] = "Cleaning up crashed indexing"
@@ -1433,7 +1446,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         else:
             self.corpora[corpus]['loop_running'] = None
             returnD(False)
-        yield self.ramcache_webentities(corpus=corpus)
         logger.msg("...loop run finished.", system="INFO - %s" % corpus)
         self.corpora[corpus]['loop_running'] = None
 
