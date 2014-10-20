@@ -8,7 +8,7 @@ angular.module('hyphe.directives', [])
   .directive('hyphePrefixSlider', ['utils', function(utils){
     return {
       restrict: 'A'
-      ,templateUrl: 'partials/sub/webentityslider.html'
+      ,templateUrl: 'partials/webentityslider.html'
       ,link: function(scope, el, attrs) {
         
         // Options
@@ -212,14 +212,14 @@ angular.module('hyphe.directives', [])
   .directive('hypheStatus', ['utils', function(utils){
     return {
       restrict: 'A'
-      ,templateUrl: 'partials/sub/status.html'
+      ,templateUrl: 'partials/status.html'
     }
   }])
 
   .directive('hypheGlossary', ['glossary', function(glossary){
     return {
       restrict: 'A'
-      ,templateUrl: 'partials/sub/glossary_expression.html'
+      ,templateUrl: 'partials/glossary_expression.html'
       ,scope: {
         
       }
@@ -246,7 +246,7 @@ angular.module('hyphe.directives', [])
   .directive('waterLoader', [function(){
     return {
       restrict: 'A'
-      ,templateUrl: 'partials/sub/waterloader.html'
+      ,templateUrl: 'partials/waterloader.html'
       ,scope: {
         
       }
@@ -262,7 +262,7 @@ angular.module('hyphe.directives', [])
   .directive('spinner', [function(){
     return {
       restrict: 'E'
-      ,templateUrl: 'partials/sub/spinner.html'
+      ,templateUrl: 'partials/spinner.html'
       ,scope: {
         text: '='
       }
