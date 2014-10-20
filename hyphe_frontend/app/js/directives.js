@@ -282,6 +282,13 @@ angular.module('hyphe.directives', [])
       }*/
       ,link: function($scope, el, attrs) {
         el.click(function(){
+
+          $location.path('/')
+          $scope.$apply()
+          
+          // Note: currently, this button does not close the corpus
+
+          /*
           $scope.status = {message: 'Closing corpus'}
           api.stopCorpus({
             id: corpus.getId()
@@ -291,6 +298,7 @@ angular.module('hyphe.directives', [])
           }, function(){
             $scope.status = {message: 'Error while closing corpus', background: 'danger'}
           })
+          */
         })
       }
     }
