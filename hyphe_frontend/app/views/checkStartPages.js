@@ -58,16 +58,16 @@ angular.module('hyphe.checkstartpagesController', [])
               }
             ,function(we_list){                   // Success callback
                 if(we_list.length > 0){
-                  obj.status = 'loaded'
+                  obj_setStatus(obj, 'loaded')
                   obj.webentity = we_list[0]
                   updateStartPageLookups(obj)
                 } else {
-                  obj.status = 'error'
+                  obj_setStatus(obj, 'error')
                   console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', we_list, 'status:', status)
                 }
               }
             ,function(data, status, headers){     // Fail callback
-                obj.status = 'error'
+                obj_setStatus(obj, 'error')
                 console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', data, 'status:', status)
                 if(data && data[0] && data[0].code == 'fail'){
                   obj.infoMessage = data[0].message
@@ -76,7 +76,7 @@ angular.module('hyphe.checkstartpagesController', [])
             ,{                                    // Options
                 label: obj.webentity.id
                 ,before: function(){
-                    obj.status = 'pending'
+                    obj_setStatus(obj, 'pending')
                   }
               }
           )
@@ -109,7 +109,7 @@ angular.module('hyphe.checkstartpagesController', [])
     }
 
     // Declaring a start page
-    $scope.addStartPage = function(objId, apply){
+    $scope.addStartPage = function(objId){
 
       var obj = list_byId[objId]
       ,url = obj.currentStartPageInput
@@ -130,7 +130,7 @@ angular.module('hyphe.checkstartpagesController', [])
 
           /* Instanciate and open the Modal */
           var modalInstance = $modal.open({
-            templateUrl: 'partials/sub/startpagemodal.html'
+            templateUrl: 'partials/startpagemodal.html'
             ,size: 'lg'
             ,controller: startPageModalCtrl
             ,resolve: {
@@ -192,7 +192,7 @@ angular.module('hyphe.checkstartpagesController', [])
                 // Merge web entities
                 var webentity = feedback.task.webentity
                 $scope.status = {message:'Merging web entities'}
-                obj.status = 'merging'
+                obj_setStatus(obj, 'merging')
                 api.webentityMergeInto({
                     oldWebentityId: webentity.id
                     ,goodWebentityId: obj.webentity.id
@@ -263,6 +263,7 @@ angular.module('hyphe.checkstartpagesController', [])
     }
 
     $scope.removeRow = function(objId){
+      console.log('remove row',objId)
       var obj = list_byId[objId]
 
       // Remove old status
@@ -297,6 +298,7 @@ angular.module('hyphe.checkstartpagesController', [])
           id:i
           ,webentity: obj.webentity
           ,status: 'loading'
+          ,touched: false
           ,collapsed: true
           ,startpagesSummary: {status: 'loading'}
         }
@@ -315,7 +317,8 @@ angular.module('hyphe.checkstartpagesController', [])
 
     function addStartPageAndReload(rowId, url){
       var obj = list_byId[rowId]
-      obj.status = 'loading'
+      obj_setStatus(obj, 'loading')
+      obj.touched = true
       _addStartPage(obj, url, function(){
         reloadRow(obj.id)
       })
@@ -323,7 +326,8 @@ angular.module('hyphe.checkstartpagesController', [])
 
     function removeStartPageAndReload(rowId, url){
       var obj = list_byId[rowId]
-      obj.status = 'loading'
+      obj_setStatus(obj, 'loading')
+      obj.touched = true
       _removeStartPage(obj, url, function(){
         reloadRow(obj.id)
       })
@@ -331,20 +335,10 @@ angular.module('hyphe.checkstartpagesController', [])
 
     function reloadRow(rowId){
       var obj = list_byId[rowId]
-      obj.status = 'loading'
-
-      // Remove old status
-      if(obj.startpagesSummary.status == 'warning'){
-        $scope.httpStatusWarning--
-      } else if(obj.startpagesSummary.status == 'success'){
-        $scope.httpStatusSuccess--
-      } else {
-        $scope.httpStatusLoading--
-      }
+      obj_setStatus(obj, 'loading')
 
       // New status
-      $scope.httpStatusLoading++
-      obj.startpagesSummary.status == 'loading'
+      obj_setSummaryStatus(obj, 'loading')
       
       // Reset the lookups
       obj.webentity.startpages.forEach(function(url){
@@ -357,16 +351,16 @@ angular.module('hyphe.checkstartpagesController', [])
         }
         ,function(we_list){
           if(we_list.length > 0){
-            obj.status = 'loaded'
+            obj_setStatus(obj, 'loaded')
             obj.webentity = we_list[0]
             updateStartPageLookups(obj)
           } else {
-            obj.status = 'error'
+            obj_setStatus(obj, 'error')
             console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', we_list, 'status:', status)
           }
         }
         ,function(data, status, headers, config){
-          obj.status = 'error'
+          obj_setStatus(obj, 'error')
           console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', data, 'status:', status)
           if(data && data[0] && data[0].code == 'fail'){
             obj.infoMessage = data[0].message
@@ -385,14 +379,14 @@ angular.module('hyphe.checkstartpagesController', [])
           if(callback)
             callback(data)
           else
-            obj.status = 'loaded'
+            obj_setStatus(obj, 'loaded')
         }
         ,function(data, status, headers, config){
           $scope.status = {message:'Start page could not be added', background:'danger'}
           if(callback)
             callback(data)
           else
-            obj.status = 'loaded'
+            obj_setStatus(obj, 'loaded')
         }
       )
     }
@@ -407,14 +401,14 @@ angular.module('hyphe.checkstartpagesController', [])
           if(callback)
             callback(data)
           else
-            obj.status = 'loaded'
+            obj_setStatus(obj, 'loaded')
         }
         ,function(data, status, headers, config){
           $scope.status = {message:'Start page could not be removed', background:'danger'}
           if(callback)
             callback(data)
           else
-            obj.status = 'loaded'
+            obj_setStatus(obj, 'loaded')
         }
       )
     }
@@ -446,10 +440,17 @@ angular.module('hyphe.checkstartpagesController', [])
       if(something_changed)
         launchLookups()
 
-      // If there are no pages, there will be no lookup, but the status is still 'warning'
+      // If there are no pages, it depends
       if(obj.webentity.startpages.length == 0){
-        obj.startpagesSummary.status = 'warning'
-        obj.collapsed = false
+        if(obj.touched){
+          // The object was modified: there will be no lookup, but the status is still 'warning'
+          obj_setSummaryStatus(obj, 'warning')
+          obj.collapsed = false
+        } else {
+          // The object has not been touched: we will try the prefixes as lookups
+          obj_setStatus(obj, 'loading')
+          reschedulePrefixLookups(obj)
+        }
       }
     }
 
@@ -510,6 +511,93 @@ angular.module('hyphe.checkstartpagesController', [])
       }
     }
     
+    function reschedulePrefixLookups(obj){
+      var prefixes = obj.webentity.lru_prefixes.map(utils.LRU_to_URL)
+
+      var slo_obj = {}      // Secondary lookup object
+      prefixes.forEach(function(vurl){
+        slo_obj[vurl] = {status:'loading', url:vurl, rowId: obj.id}
+      })
+      $scope.secondaryLookups[obj.id] = slo_obj
+
+      var secondaryLookupQB = new QueriesBatcher()
+      prefixes.forEach(function(vurl){
+        secondaryLookupQB.addQuery(
+          api.urlLookup                         // Query call
+          ,{                                    // Query settings
+              url:vurl
+            }
+          ,function(httpStatus){                // Success callback
+              var slo = $scope.secondaryLookups[obj.id][vurl]
+              slo.status = httpStatus
+            }
+          ,function(data, status, headers){     // Fail callback
+              var slo = $scope.secondaryLookups[obj.id][vurl]
+              slo.status = 'error'
+            }
+          ,{                                    // Options
+              label: 'secondary prefix lookup '+vurl
+              ,before: function(){
+                  var slo = $scope.secondaryLookups[obj.id][vurl]
+                  slo.status = 'pending'
+                }
+              ,simultaneousQueries: 1
+            }
+        )
+      })
+  
+      secondaryLookupQB.atFinalization(function(list,pending,success,fail){
+        console.log('All secondary prefix lookups done for '+obj.id,$scope.secondaryLookups[obj.id])
+
+        var successfulVariations = []
+        for(var vurl in $scope.secondaryLookups[obj.id]){
+          var slo = $scope.secondaryLookups[obj.id][vurl]
+          if(slo.status == 200){
+            successfulVariations.push(vurl)
+          }
+        }
+
+        if(successfulVariations.length == 0){
+          // The lookup failed
+          obj_setSummaryStatus(obj, 'warning')
+          obj.collapsed = false
+        } else {
+          // Add all successful start pages
+          var batchAddStartPages = new QueriesBatcher()
+
+          successfulVariations.forEach(function(url){
+            batchAddStartPages.addQuery(
+              api.addStartPage                         // Query call
+              ,{                                      // Query settings
+                  webentityId: obj.webentity.id
+                  ,url:url
+                }
+              ,function(httpStatus){                // Success callback
+                  
+                }
+              ,function(data, status, headers){     // Fail callback
+                  $scope.status = {message:'Start page could not be added', background:'danger'}
+                  console.log('[Error] could not add prefix as startpage',url,obj)
+                }
+              ,{                                    // Options
+                  label: 'adding start page '+url
+                  ,simultaneousQueries: 1
+                }
+            )
+          })
+
+          batchAddStartPages.atFinalization(function(list,pending,success,fail){
+            console.log('All start pages added for '+obj.id, $scope.secondaryLookups[obj.id])
+            reloadRow(obj.id)
+          })
+
+          batchAddStartPages.run()
+        }
+      })
+
+      secondaryLookupQB.run()
+    }
+
     function rescheduleVariationsLookups(url){
       var lo = $scope.lookups[url]
       ,obj = list_byId[lo.rowId]
@@ -602,7 +690,6 @@ angular.module('hyphe.checkstartpagesController', [])
       })
 
       secondaryLookupQB.run()
-
     }
 
     function updateRowForLookup(rowId){
@@ -616,40 +703,132 @@ angular.module('hyphe.checkstartpagesController', [])
         return lo.status == 'error' || lo.httpStatus != 200
       })
       
+      obj_setSummaryStatus(obj, 'loading')
       obj.startpagesSummary = {
         loaded: loadedPages.length
         ,loading: obj.webentity.startpages.length - loadedPages.length
         ,warning: warningPages.length
+        ,status: 'loading'
       }
 
-      // Old httpStatus
-      if(obj.startpagesSummary.status == 'warning'){
-        $scope.httpStatusWarning--
-      } else if(obj.startpagesSummary.status == 'success'){
-        $scope.httpStatusSuccess--
-      } else {
-        $scope.httpStatusLoading--
-      }
-
-      // New httpStatus
       if(obj.webentity.startpages.length == 0){
-        obj.startpagesSummary.status = 'warning'
+        obj_setSummaryStatus(obj, 'warning')
         obj.collapsed = false
-        $scope.httpStatusWarning++
       } else if(obj.startpagesSummary.loading == 0){
         if(obj.startpagesSummary.warning == 0){
-          obj.startpagesSummary.status = 'success'
-          $scope.httpStatusSuccess++
+          obj_setSummaryStatus(obj, 'success')
+          obj.collapsed = true
         } else {
-          obj.startpagesSummary.status = 'warning'
+          obj_setSummaryStatus(obj, 'warning')
           obj.collapsed = false
-          $scope.httpStatusWarning++
         }
       } else {
-        obj.startpagesSummary.status = 'loading'
-        $scope.httpStatusLoading++
+        obj_setSummaryStatus(obj, 'loading')
+      }
+    }
+
+    function obj_setStatus(obj, status){
+      switch(obj.status){
+        case('warning'):
+          $scope.httpStatusWarning--
+          break
+        case('error'):
+          $scope.httpStatusWarning--
+          break
+        case('loaded'):
+          switch(obj.startpagesSummary.status){
+            case('success'):
+              $scope.httpStatusSuccess--
+              break
+            case('warning'):
+              $scope.httpStatusWarning--
+              break
+            default:
+              $scope.httpStatusLoading--
+          }
+          break
+        default:
+          $scope.httpStatusLoading--
       }
 
+      obj.status = status
+
+      switch(status){
+        case('warning'):
+          $scope.httpStatusWarning++
+          break
+        case('error'):
+          $scope.httpStatusWarning++
+          break
+        case('loaded'):
+          switch(obj.startpagesSummary.status){
+            case('success'):
+              $scope.httpStatusSuccess++
+              break
+            case('warning'):
+              $scope.httpStatusWarning++
+              break
+            default:
+              $scope.httpStatusLoading++
+          }
+          break
+        default:
+          $scope.httpStatusLoading++
+      }
+    }
+
+    function obj_setSummaryStatus(obj, summaryStatus){
+      switch(obj.status){
+        case('warning'):
+          $scope.httpStatusWarning--
+          break
+        case('error'):
+          $scope.httpStatusWarning--
+          break
+        case('loaded'):
+          switch(obj.startpagesSummary.status){
+            case('success'):
+              $scope.httpStatusSuccess--
+              break
+            case('warning'):
+              $scope.httpStatusWarning--
+              break
+            default:
+              $scope.httpStatusLoading--
+              break
+          }
+          break
+        default:
+          $scope.httpStatusLoading--
+          break
+      }
+
+      obj.startpagesSummary.status = summaryStatus
+
+      switch(obj.status){
+        case('warning'):
+          $scope.httpStatusWarning++
+          break
+        case('error'):
+          $scope.httpStatusWarning++
+          break
+        case('loaded'):
+          switch(summaryStatus){
+            case('success'):
+              $scope.httpStatusSuccess++
+              break
+            case('warning'):
+              $scope.httpStatusWarning++
+              break
+            default:
+              $scope.httpStatusLoading++
+              break
+          }
+          break
+        default:
+          $scope.httpStatusLoading++
+          break
+      }
     }
 
     /* Modal controller */
@@ -659,7 +838,7 @@ angular.module('hyphe.checkstartpagesController', [])
       $scope.wwwVariations = true
       $scope.httpsVariations = true
 
-      // Bootstraping the object for the Prefix Slider
+      // Bootstrapping the object for the Prefix Slider
       var obj = {}
       obj.url = utils.URL_fix(url)
       obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
@@ -676,7 +855,7 @@ angular.module('hyphe.checkstartpagesController', [])
       obj.prefixLength = 3
       obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
       obj.conflicts = []
-      obj.status = "loading"
+      obj_setStatus(obj, 'loading')
       $scope.obj = obj
 
       // Load parent web entities
@@ -707,4 +886,5 @@ angular.module('hyphe.checkstartpagesController', [])
         $modalInstance.dismiss('cancel');
       };
     }
+
   }])
