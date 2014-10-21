@@ -23,7 +23,7 @@ angular.module('hyphe.directives', [])
             }
           })
           if(webentityFound){
-            scope.name = webentityFound.name
+            obj.name = webentityFound.name
             if(opt.editMode){
               scope.statusText = 'Merge into ' + scope.webentity.name + '?'
               scope.obj.task = {type:'merge', webentity:webentityFound}
@@ -33,11 +33,11 @@ angular.module('hyphe.directives', [])
             }
           } else {
             if(opt.editMode){
-              scope.name = 'No web entity defined with this prefix'
+              obj.name = 'No web entity defined with this prefix'
               scope.obj.task = {type:'addPrefix'}
               scope.statusText = 'Add it to ' + scope.webentity.name + '?'
             } else {
-              scope.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
+              obj.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
               scope.statusText = 'New'
               scope.status = 'new'
             }
