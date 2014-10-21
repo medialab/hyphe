@@ -111,7 +111,7 @@
                     ng-click="toggleRow(obj.id)"
                     ng-class="{'bg-selected':obj.checked}"
                   >
-                    <td class="cell-checkbox" ng-click="toggleRow(obj.id)"><input type="checkbox" ng-model="obj.checked"></td>
+                    <td class="cell-checkbox"><input type="checkbox" ng-checked="obj.checked"></td>
                     <td>{{obj.webentity.name}}</td>
                     <td class="cell-status">{{obj.webentity.status}}</td>
                     <td class="cell-last-crawled">
