@@ -223,6 +223,13 @@ input.search-project{
   margin-bottom: 4px;
 }
 
+div.welcome-column table{
+  background-color: #FFF;
+}
+div.welcome-column table td{
+  text-align: left;
+}
+
 
 
 /* ==========================================================================

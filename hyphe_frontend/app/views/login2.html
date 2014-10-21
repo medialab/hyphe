@@ -8,6 +8,41 @@
             <br/>
 
             <table class="table">
+              <tr>
+                <th>
+                  Project
+                </th>
+                <th>
+                  Status
+                </th>
+                <th>
+                  Password
+                </th>
+                <th>
+                  <small>
+                    Created
+                  </small>
+                </th>
+                <th>
+                  <small>
+                    Last<br>activity
+                  </small>
+                </th>
+                <th>
+                  <small>
+                    Last<br>indexation
+                  </small>
+                </th>
+                <th>
+                  <small>
+                    Last<br>link<br>generation
+                  </small>
+                </th>
+                <th>Crawls</th>
+                <th>Pages</th>
+                <th>Crawled<br>pages</th>
+                <th>Web entities</th>
+              </tr>
               <tr ng-repeat="corpus in corpusList">
                 <td>
                   <strong>
@@ -20,29 +55,42 @@
                   <br>
                   <small><code>id: {{corpus.corpus_id}}</code></small>
                 </td>
-                <td>
-                  Created <span tooltip="{{corpus.created_at|date}}">{{corpus.created_at|prettyDate}}</span>
-                  <br>
-                  Last activity <span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span>
-                  <br>
-                  Last indexation <span tooltip="{{corpus.last_index_loop|date}}">{{corpus.last_index_loop|prettyDate}}</span>
-                  <br>
-                  Last link building <span tooltip="{{corpus.last_links_loop|date}}">{{corpus.last_links_loop|prettyDate}}</span>
-                </td>
+                <td>{{corpus.status}}</td>
                 <td>
                   <span ng-if="corpus.password"><span class="glyphicon glyphicon-lock"></span> Protected</span>
                   <span ng-if="!corpus.password">Not protected</span>
                 </td>
-                <td></td>
-                <td>{{corpus.status}}</td>
+                <td>
+                  <small>
+                    <span tooltip="{{corpus.created_at|date}}">{{corpus.created_at|prettyDate}}</span>
+                  </small>
+                </td>
+                <td>
+                  <small>
+                    <span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span>
+                  </small>
+                </td>
+                <td>
+                  <small>
+                    <span tooltip="{{corpus.last_index_loop|date}}">{{corpus.last_index_loop|prettyDate}}</span>
+                  </small>
+                </td>
+                <td>
+                  <small>
+                    <span tooltip="{{corpus.last_links_loop|date}}">{{corpus.last_links_loop|prettyDate}}</span>
+                  </small>
+                </td>
                 <td>{{corpus.total_crawls}}</td>
                 <td>{{corpus.total_pages}}</td>
                 <td>{{corpus.total_pages_crawled}}</td>
-                <td>{{corpus.total_webentities}}</td>
-                <td>{{corpus.webentities_discovered}}</td>
-                <td>{{corpus.webentities_in}}</td>
-                <td>{{corpus.webentities_out}}</td>
-                <td>{{corpus.webentities_undecided}}</td>
+                <td>
+                  <span class="label label-default">IN {{corpus.webentities_in}}</span>
+                  <span class="label label-default">UND. {{corpus.webentities_undecided}}</span>
+                  <span class="label label-default">OUT {{corpus.webentities_out}}</span>
+                  <span class="label label-default">DIS. {{corpus.webentities_discovered}}</span>
+                  /
+                  <span class="label label-primary">{{corpus.total_webentities}} TOTAL</span>
+                </td>
               </tr>
             </table>
 
