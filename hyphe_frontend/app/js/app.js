@@ -16,6 +16,7 @@ angular.module('hyphe', [
 ])
 .config(['$routeProvider', function($routeProvider) {
   $routeProvider.when('/login', {templateUrl: 'views/login.html', controller: 'Login'});
+  $routeProvider.when('/login2', {templateUrl: 'views/login2.html', controller: 'Login2'});
   $routeProvider.when('/overview', {templateUrl: 'views/overview.html', controller: 'Overview'});
   $routeProvider.when('/importurls', {templateUrl: 'views/importurls.html', controller: 'ImportUrls'});
   $routeProvider.when('/definewebentities', {templateUrl: 'views/definewebentities.html', controller: 'DefineWebEntities'});

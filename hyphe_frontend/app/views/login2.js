@@ -1,0 +1,62 @@
+'use strict';
+
+angular.module('hyphe.login2Controller', [])
+
+  .controller('Login2', ['$scope', 'api', 'utils', '$location', 'corpus'
+  ,function($scope, api, utils, $location, corpus) {
+    $scope.currentPage = 'login'
+
+    $scope.corpusList
+    $scope.corpusList_byId = {}
+
+    // Init
+    loadCorpusList()
+
+    function loadCorpusList(){
+      api.getCorpusList({}, function(list){
+        $scope.corpusList = []
+        for(var id in list){
+          $scope.corpusList.push(list[id])
+        }
+        $scope.corpusList_byId = list
+        $scope.corpusList.sort(function(a,b){
+          if (a.name > b.name) {
+            return 1;
+          }
+          if (a.name < b.name) {
+            return -1;
+          }
+          // a must be equal to b
+          return 0;
+        })
+        console.log('list',list)
+
+      },function(data, status, headers, config){
+        $scope.corpusList = ''
+        console.log('Error loading corpus list')
+      })
+    }
+
+    function openCorpus(id, name){
+      // Ping until corpus started
+      api.pingCorpus({
+        id: id
+        ,timeout: 10
+      },function(data){
+
+        $scope.starting = false
+        corpus.setId(id)
+        corpus.setName(name)
+        $location.path('/overview')
+      
+      }, function(){
+
+        $scope.starting = false
+        $scope.new_project_message = 'Error starting corpus'
+
+      })
+      
+    }
+
+
+  }])
