@@ -223,14 +223,21 @@ input.search-project{
   margin-bottom: 4px;
 }
 
-div.welcome-column table{
+div.welcome-column table.table{
   background-color: #FFF;
 }
-div.welcome-column table td{
+div.welcome-column table.table td{
   text-align: left;
 }
-
-
+div.welcome-column .project-name{
+  font-size: 24px;
+}
+div.welcome-column dt{
+  width:  110px;
+}
+div.welcome-column dd{
+  margin-left:130px;
+}
 
 /* ==========================================================================
    View: Overview
