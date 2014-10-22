@@ -1041,7 +1041,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if not is_error(existing):
                 returnD(format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (lru, existing)))
             if not name:
-                name = urllru.url_shorten(url)
+                name = urllru.name_url(url)
             lru_prefixes_list.append(lru)
         WE = ms.WebEntity(id=None, LRUSet=lru_prefixes_list, name=name)
         if startPages:

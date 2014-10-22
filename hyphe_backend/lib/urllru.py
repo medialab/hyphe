@@ -69,6 +69,22 @@ titlize_url_regexp = re.compile(r'(https?://|[./#])', re.I)
 def url_shorten(url):
     return titlize_url_regexp.sub(' ', uri_decode(url)).strip().title().encode('utf-8')
 
+def name_url(url):
+    name = ""
+    host = []
+    pathdone = False
+    for (k,v,stem) in split_lru_in_stems(url_to_lru_clean(url)):
+        if k == "h" and v != "www" and (host or len(v) > 3):
+            host.insert(0, v.title())
+        elif k == "p":
+            path = " %s/%s" % ("/..." if pathdone else "", v)
+            pathdone = True
+        elif k == "q":
+            name += ' ?%s' % v
+        elif k == "f":
+            name += ' #%s' % v
+    return ".".join(host) + path + name
+
 def url_to_lru(url, encode_utf8=True):
     """
     Convert a URL to a LRU
