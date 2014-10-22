@@ -417,7 +417,7 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.nameURL = function(url){
-      var json_lru = ns.URL_to_JSON_LRU(url)
+      var json_lru = ns.URL_to_JSON_LRU(ns.URL_stripLastSlash(url))
       ,tld_length = ns.JSON_LRU_getTLD(json_lru).split('.').length
       if(json_lru === undefined)
         return '<Impossible to Name> ' + url
