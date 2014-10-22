@@ -72,10 +72,13 @@ def url_shorten(url):
 def name_url(url):
     name = ""
     host = []
+    lasthost = ""
     pathdone = False
     for (k,v,_) in split_lru_in_stems(url_to_lru_clean(url)):
-        if k == "h" and v != "www" and (host or len(v) > 3):
-            host.insert(0, v.title())
+        if k == "h" and v != "www":
+            lasthost = v.title()
+            if host or len(lasthost) > 3:
+                host.insert(0, lasthost)
         elif k == "p" and v:
             path = " %s/%s" % ("/..." if pathdone else "", v)
             pathdone = True
@@ -83,6 +86,8 @@ def name_url(url):
             name += ' ?%s' % v
         elif k == "f" and v:
             name += ' #%s' % v
+    if not host and lasthost:
+        host = [lasthost]
     return ".".join(host) + path + name
 
 def url_to_lru(url, encode_utf8=True):
