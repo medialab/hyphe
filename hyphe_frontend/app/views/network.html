@@ -1,0 +1,104 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-8">
+
+                <br>
+
+                <div class="sigma-parent" ng-if="networkMode != 'loading'"><div class="sigma-expand" id="sigma-example"></div></div>
+                <div ng-if="networkMode == 'loading'">
+                  <spinner text="'LOADING NETWORK'"/>
+                </div>
+
+              </div>
+              <div class="col-md-4 network-settings-column">
+                <h1>
+                  NETWORK
+                </h1>
+                <accordion close-others="true">
+                  <accordion-group heading="Corpus in progress" ng-click="updateDisplayMode()" is-open="displayMode.corpus">
+
+                    <div class="key-item">
+                      <div class="dot dot-in"></div>
+                      IN
+                    </div>
+                    <div class="key-item">
+                      <div class="dot dot-undecided"></div>
+                      UNDECIDED
+                    </div>
+
+                    <p class="text-info">
+                      We display web entities that are in your corpus (IN) or that you will eventually add (UNDECIDED)
+                    </p>
+
+                    <button class="btn btn-default" ng-click="downloadNetwork()"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
+
+                  </accordion-group>
+                  <accordion-group heading="Full network" ng-click="updateDisplayMode()" is-open="displayMode.full">
+                    
+                    <div class="key-item">
+                      <div class="dot dot-in"></div>
+                      IN
+                    </div>
+                    <div class="key-item">
+                      <div class="dot dot-out"></div>
+                      OUT
+                    </div>
+                    <div class="key-item">
+                      <div class="dot dot-undecided"></div>
+                      UNDECIDED
+                    </div>
+                    <div class="key-item">
+                      <div class="dot dot-discovered"></div>
+                      DISCOVERED
+                    </div>
+                    
+                    <p class="text-info">
+                      We display all web entities even those that are not in the corpus (OUT) or not crawled (DISCOVERED)
+                    </p>
+
+                    <button class="btn btn-default" ng-click="downloadNetwork()"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
+
+                  </accordion-group>
+                  <!-- <accordion-group heading="Custom" is-open="displayMode.custom">
+                    
+                    <button class="btn btn-default">
+                      <div class="key-item">
+                        <div class="dot dot-in"></div>
+                        IN
+                      </div>
+                    </button>
+                    <div class="key-item">
+                      <div class="dot dot-out"></div>
+                      OUT
+                    </div>
+                    <div class="key-item">
+                      <div class="dot dot-undecided"></div>
+                      UNDECIDED
+                    </div>
+                    <div class="key-item">
+                      <div class="dot dot-discovered"></div>
+                      DISCOVERED
+                    </div>
+                    
+                    <p class="text-info">
+                      We display all web entities even those that are not in the corpus (OUT) or not crawled (DISCOVERED)
+                    </p>
+
+                    <button class="btn btn-default" ng-click="downloadNetwork()"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
+
+                  </accordion-group> -->
+                </accordion>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>

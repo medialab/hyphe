@@ -420,7 +420,7 @@ angular.module('hyphe.service_utils', [])
       var json_lru = ns.URL_to_JSON_LRU(url)
       ,tld_length = ns.JSON_LRU_getTLD(json_lru).split('.').length
       if(json_lru === undefined)
-        return '<Impossible to Name>'
+        return '<Impossible to Name> ' + url
       var name = json_lru.host
         .map(function(d,i){if(i==tld_length){return ns.toDomainCase(d)} return d})
         .filter(function(d,i){return d != 'www' && i>tld_length-1})

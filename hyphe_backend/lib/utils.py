@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import os, re, types, time, hashlib
-
+from twisted.internet.task import deferLater
+from twisted.internet import reactor
 from hyphe_backend.lib.config_hci import load_config, DEFAULT_CORPUS
 config = load_config()
 if not config:
@@ -32,6 +33,8 @@ def urls_match_domainlist(urls, domlist):
                 return True
     return False
 
+def deferredSleep(sleep=5):
+    return deferLater(reactor, sleep, lambda : None)
 
 re_clean_corpus = re.compile(r'[^a-z0-9_\-]+',)
 def clean_corpus_id(name):

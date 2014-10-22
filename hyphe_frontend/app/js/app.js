@@ -15,16 +15,18 @@ angular.module('hyphe', [
   ,'hyphe.controllers'
 ])
 .config(['$routeProvider', function($routeProvider) {
-  $routeProvider.when('/login', {templateUrl: 'partials/login.html', controller: 'Login'});
-  $routeProvider.when('/overview', {templateUrl: 'partials/overview.html', controller: 'Overview'});
-  $routeProvider.when('/importurls', {templateUrl: 'partials/importurls.html', controller: 'ImportUrls'});
-  $routeProvider.when('/definewebentities', {templateUrl: 'partials/definewebentities.html', controller: 'DefineWebEntities'});
-  $routeProvider.when('/newCrawl', {templateUrl: 'partials/newCrawl.html', controller: 'NewCrawl'});
-  $routeProvider.when('/checkStartPages', {templateUrl: 'partials/checkStartPages.html', controller: 'CheckStartPages'});
-  $routeProvider.when('/scheduleCrawls', {templateUrl: 'partials/scheduleCrawls.html', controller: 'scheduleCrawls'});
-  $routeProvider.when('/monitorCrawls', {templateUrl: 'partials/monitorCrawls.html', controller: 'monitorCrawls'});
-  $routeProvider.when('/listWebentities', {templateUrl: 'partials/listWebentities.html', controller: 'listWebentities'});
-  $routeProvider.when('/export', {templateUrl: 'partials/export.html', controller: 'export'});
-  $routeProvider.when('/settings', {templateUrl: 'partials/settings.html', controller: 'settings'});
+  $routeProvider.when('/login', {templateUrl: 'views/login.html', controller: 'Login'});
+  $routeProvider.when('/login2', {templateUrl: 'views/login2.html', controller: 'Login2'});
+  $routeProvider.when('/overview', {templateUrl: 'views/overview.html', controller: 'Overview'});
+  $routeProvider.when('/importurls', {templateUrl: 'views/importurls.html', controller: 'ImportUrls'});
+  $routeProvider.when('/definewebentities', {templateUrl: 'views/definewebentities.html', controller: 'DefineWebEntities'});
+  $routeProvider.when('/newCrawl', {templateUrl: 'views/newCrawl.html', controller: 'NewCrawl'});
+  $routeProvider.when('/checkStartPages', {templateUrl: 'views/checkStartPages.html', controller: 'CheckStartPages'});
+  $routeProvider.when('/scheduleCrawls', {templateUrl: 'views/scheduleCrawls.html', controller: 'scheduleCrawls'});
+  $routeProvider.when('/monitorCrawls', {templateUrl: 'views/monitorCrawls.html', controller: 'monitorCrawls'});
+  $routeProvider.when('/listWebentities', {templateUrl: 'views/listWebentities.html', controller: 'listWebentities'});
+  $routeProvider.when('/export', {templateUrl: 'views/export.html', controller: 'export'});
+  $routeProvider.when('/settings', {templateUrl: 'views/settings.html', controller: 'settings'});
+  $routeProvider.when('/network', {templateUrl: 'views/network.html', controller: 'network'});
   $routeProvider.otherwise({redirectTo: '/login'});
 }]);

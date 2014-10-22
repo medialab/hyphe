@@ -1,0 +1,58 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-12">
+                <h1>
+                  OVERVIEW
+                </h1>
+
+                <div class="round-cell-content">
+                  <p class="title">
+                    IN
+                  </p>
+                  <p class="content">
+                    {{corpusStatus.corpus.memory_structure.webentities.IN|none}}
+                  </p>
+                </div>
+              
+                <div class="round-cell-content">
+                  <p class="title">
+                    OUT
+                  </p>
+                  <p class="content">
+                    {{corpusStatus.corpus.memory_structure.webentities.OUT|none}}
+                  </p>
+                </div>
+            
+                <div class="round-cell-content">
+                  <p class="title">
+                    DISCOVERED
+                  </p>
+                  <p class="content">
+                    {{corpusStatus.corpus.memory_structure.webentities.DISCOVERED|none}}
+                  </p>
+                </div>
+            
+                <div class="round-cell-content">
+                  <p class="title">
+                    UNDECIDED
+                  </p>
+                  <p class="content">
+                    {{corpusStatus.corpus.memory_structure.webentities.UNDECIDED|none}}
+                  </p>
+                </div>
+                
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>

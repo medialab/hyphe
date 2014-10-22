@@ -8,7 +8,7 @@ angular.module('hyphe.directives', [])
   .directive('hyphePrefixSlider', ['utils', function(utils){
     return {
       restrict: 'A'
-      ,templateUrl: 'partials/sub/webentityslider.html'
+      ,templateUrl: 'partials/webentityslider.html'
       ,link: function(scope, el, attrs) {
         
         // Options
@@ -23,7 +23,7 @@ angular.module('hyphe.directives', [])
             }
           })
           if(webentityFound){
-            scope.name = webentityFound.name
+            obj.name = webentityFound.name
             if(opt.editMode){
               scope.statusText = 'Merge into ' + scope.webentity.name + '?'
               scope.obj.task = {type:'merge', webentity:webentityFound}
@@ -33,11 +33,11 @@ angular.module('hyphe.directives', [])
             }
           } else {
             if(opt.editMode){
-              scope.name = 'No web entity defined with this prefix'
+              obj.name = 'No web entity defined with this prefix'
               scope.obj.task = {type:'addPrefix'}
               scope.statusText = 'Add it to ' + scope.webentity.name + '?'
             } else {
-              scope.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
+              obj.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
               scope.statusText = 'New'
               scope.status = 'new'
             }
@@ -212,14 +212,14 @@ angular.module('hyphe.directives', [])
   .directive('hypheStatus', ['utils', function(utils){
     return {
       restrict: 'A'
-      ,templateUrl: 'partials/sub/status.html'
+      ,templateUrl: 'partials/status.html'
     }
   }])
 
   .directive('hypheGlossary', ['glossary', function(glossary){
     return {
       restrict: 'A'
-      ,templateUrl: 'partials/sub/glossary_expression.html'
+      ,templateUrl: 'partials/glossary_expression.html'
       ,scope: {
         
       }
@@ -246,7 +246,7 @@ angular.module('hyphe.directives', [])
   .directive('waterLoader', [function(){
     return {
       restrict: 'A'
-      ,templateUrl: 'partials/sub/waterloader.html'
+      ,templateUrl: 'partials/waterloader.html'
       ,scope: {
         
       }
@@ -262,7 +262,7 @@ angular.module('hyphe.directives', [])
   .directive('spinner', [function(){
     return {
       restrict: 'E'
-      ,templateUrl: 'partials/sub/spinner.html'
+      ,templateUrl: 'partials/spinner.html'
       ,scope: {
         text: '='
       }
@@ -282,6 +282,13 @@ angular.module('hyphe.directives', [])
       }*/
       ,link: function($scope, el, attrs) {
         el.click(function(){
+
+          $location.path('/')
+          $scope.$apply()
+          
+          // Note: currently, this button does not close the corpus
+
+          /*
           $scope.status = {message: 'Closing corpus'}
           api.stopCorpus({
             id: corpus.getId()
@@ -291,6 +298,7 @@ angular.module('hyphe.directives', [])
           }, function(){
             $scope.status = {message: 'Error while closing corpus', background: 'danger'}
           })
+          */
         })
       }
     }

@@ -218,9 +218,6 @@ class Core(jsonrpc.JSONRPC):
             returnD(format_error("Could not deploy crawler for corpus"))
         if not res:
             returnD(res)
-        res = self.store.ensureDefaultCreationRuleExists(corpus, quiet=quiet)
-        if not res:
-            returnD(res)
         res = yield self.start_corpus(corpus, password=password, noloop=noloop, quiet=quiet)
         returnD(res)
 
@@ -233,6 +230,10 @@ class Core(jsonrpc.JSONRPC):
         now = now_ts()
         self.corpora[corpus]["webentities"] = []
         self.corpora[corpus]["total_webentities"] = 0
+        self.corpora[corpus]["webentities_in"] = 0
+        self.corpora[corpus]["webentities_out"] = 0
+        self.corpora[corpus]["webentities_undecided"] = 0
+        self.corpora[corpus]["webentities_discovered"] = 0
         self.corpora[corpus]["tags"] = {}
         self.corpora[corpus]["webentities_links"] = []
         self.corpora[corpus]["precision_exceptions"] = []
@@ -272,6 +273,10 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["name"] = corpus_conf["name"]
         self.corpora[corpus]["options"] = corpus_conf["options"]
         self.corpora[corpus]["total_webentities"] = corpus_conf['total_webentities']
+        self.corpora[corpus]["webentities_in"] = corpus_conf['webentities_in']
+        self.corpora[corpus]["webentities_out"] = corpus_conf['webentities_out']
+        self.corpora[corpus]["webentities_undecided"] = corpus_conf['webentities_undecided']
+        self.corpora[corpus]["webentities_discovered"] = corpus_conf['webentities_discovered']
         self.corpora[corpus]["crawls"] = corpus_conf['total_crawls']
         self.corpora[corpus]["pages_found"] = corpus_conf['total_pages']
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
@@ -290,6 +295,10 @@ class Core(jsonrpc.JSONRPC):
         yield self.db.update_corpus(corpus, {
           "options": self.corpora[corpus]["options"],
           "total_webentities": self.corpora[corpus]['total_webentities'],
+          "webentities_in": self.corpora[corpus]['webentities_in'],
+          "webentities_out": self.corpora[corpus]['webentities_out'],
+          "webentities_undecided": self.corpora[corpus]['webentities_undecided'],
+          "webentities_discovered": self.corpora[corpus]['webentities_discovered'],
           "total_crawls": self.corpora[corpus]['crawls'],
           "total_pages": self.corpora[corpus]['pages_found'],
           "total_pages_crawled": self.corpora[corpus]['pages_crawled'],
@@ -319,20 +328,21 @@ class Core(jsonrpc.JSONRPC):
             res["result"]["message"] = "Corpus stopped"
         returnD(res)
 
+    @inlineCallbacks
     def jsonrpc_ping(self, corpus=None, timeout=3):
         if not corpus:
-            return format_result('pong')
+            returnD(format_result('pong'))
         if not self.corpus_ready(corpus) and self.msclients.status_corpus(corpus, simplify=True) != "starting":
-            return self.corpus_error(corpus)
+            returnD(self.corpus_error(corpus))
 
         st = time.time()
         res = self.msclients.sync.ping(corpus=corpus)
         while is_error(res) and time.time() < st + timeout:
-            time.sleep(0.1)
+            yield deferredSleep(0.5)
             res = self.msclients.sync.ping(corpus=corpus)
         if is_error(res):
-            return res
-        return format_result('pong')
+            returnD(res)
+        returnD(format_result('pong'))
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
         return self.reinitialize(corpus)
@@ -385,7 +395,7 @@ class Core(jsonrpc.JSONRPC):
         res = yield self.start_corpus(corpus_metas['_id'], password=corpus_metas['password'], noloop=True, quiet=not config['DEBUG'])
         if is_error(res):
             returnD(res)
-        res = self.jsonrpc_ping(corpus_metas['_id'], timeout=10)
+        res = yield self.jsonrpc_ping(corpus_metas['_id'], timeout=10)
         if is_error(res):
             returnD(res)
         res = yield self.destroy_corpus(corpus_metas['_id'], quiet=not config['DEBUG'])
@@ -408,13 +418,13 @@ class Core(jsonrpc.JSONRPC):
           }
         }
         status['corpus'].update(self.jsonrpc_test_corpus(corpus)["result"])
-        if not self.corpus_ready(corpus):
+        if not self.corpus_ready(corpus) or "webentities" not in self.corpora[corpus]:
             return format_result(status)
-        WEs_total = self.corpora[corpus]['total_webentities']
-        WEs_IN = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.IN])
-        WEs_OUT = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.OUT])
-        WEs_UND = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.UNDECIDED])
-        WEs_DISC = WEs_total - WEs_IN - WEs_OUT - WEs_UND
+        if self.corpora[corpus]['webentities']:
+            self.corpora[corpus]['webentities_in'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.IN])
+            self.corpora[corpus]['webentities_out'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.OUT])
+            self.corpora[corpus]['webentities_undecided'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.UNDECIDED])
+            self.corpora[corpus]['webentities_discovered'] = self.corpora[corpus]['total_webentities'] - self.corpora[corpus]['webentities_in'] - self.corpora[corpus]['webentities_out'] - self.corpora[corpus]['webentities_undecided']
         if not self.corpora[corpus]['crawls']:
             self.corpora[corpus]['crawls_pending'] = 0
             self.corpora[corpus]['crawls_running'] = 0
@@ -436,11 +446,11 @@ class Core(jsonrpc.JSONRPC):
             'last_links_generation': self.corpora[corpus]['last_links_loop'],
             'pages_to_index': self.corpora[corpus]['pages_queued'],
             'webentities': {
-              'total': WEs_total,
-              'IN': WEs_IN,
-              'OUT': WEs_OUT,
-              'UNDECIDED': WEs_UND,
-              'DISCOVERED': WEs_DISC
+              'total': self.corpora[corpus]['total_webentities'],
+              'IN': self.corpora[corpus]['webentities_in'],
+              'OUT': self.corpora[corpus]['webentities_out'],
+              'UNDECIDED': self.corpora[corpus]['webentities_undecided'],
+              'DISCOVERED': self.corpora[corpus]['webentities_discovered']
             }
           }
         }
@@ -856,6 +866,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not noloop:
             reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
             reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
+        yield self.ensureDefaultCreationRuleExists(corpus, quiet=noloop)
 
     @inlineCallbacks
     def format_webentity(self, WE, jobs=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
@@ -927,17 +938,26 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['recent_indexes'] += 1
         return handle_standard_results(self.msclients.sync.deleteNodeLinks(corpus=corpus))
 
-    def ensureDefaultCreationRuleExists(self, corpus=DEFAULT_CORPUS, quiet=False):
-        rules = self.msclients.sync.getWebEntityCreationRules(corpus=corpus)
+    @inlineCallbacks
+    def ensureDefaultCreationRuleExists(self, corpus=DEFAULT_CORPUS, quiet=False, retry=True):
+        res = yield self.parent.jsonrpc_ping(corpus, timeout=15)
+        if is_error(res):
+            logger.msg("Could not start corpus fast enough to create WE creation rule...", system="ERROR - %s" % corpus)
+            returnD(res)
+        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
         if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules) == 0):
             default_regexp = "(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|)(h:[^\\|]+\\|)+)"
             if corpus != DEFAULT_CORPUS and not quiet:
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
-            res = self.msclients.sync.addWebEntityCreationRule(ms.WebEntityCreationRule(default_regexp, ''), corpus=corpus)
+            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(default_regexp, ''), corpus=corpus)
             if is_error(res):
-                return res
-            return format_result('Default creation rule created')
-        return format_result('Default creation rule was already created')
+                logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
+                if retry:
+                    logger.msg("Retrying WE creation rule creation...", system="ERROR - %s" % corpus)
+                    returnD(ensureDefaultCreationRuleExists(corpus, quiet=quiet, retry=False))
+                returnD(res)
+            returnD(format_result('Default creation rule created'))
+        returnD(format_result('Default creation rule was already created'))
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
         return self.reinitialize(corpus)
@@ -954,7 +974,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = self.msclients.sync.clearIndex(corpus=corpus)
         if is_error(res):
             returnD(res)
-        self.ensureDefaultCreationRuleExists(corpus, quiet=quiet)
         yield self._init_loop(corpus, noloop=noloop)
         returnD(format_result("MemoryStructure reinitialized"))
 
@@ -1382,6 +1401,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not self.parent.corpus_ready(corpus) or self.corpora[corpus]['loop_running']:
             returnD(False)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
+        yield self.ramcache_webentities(corpus=corpus)
         crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
         if crashed:
             self.corpora[corpus]['loop_running'] = "Cleaning up crashed indexing"
@@ -1435,7 +1455,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         else:
             self.corpora[corpus]['loop_running'] = None
             returnD(False)
-        yield self.ramcache_webentities(corpus=corpus)
         logger.msg("...loop run finished.", system="INFO - %s" % corpus)
         self.corpora[corpus]['loop_running'] = None
 
@@ -1911,7 +1930,7 @@ def test_start(cor, corpus):
 def test_ping(res, cor, corpus):
     if is_error(res):
         return stop_tests(res, cor, corpus, "Could not create corpus")
-    d = defer.succeed(cor.jsonrpc_ping(corpus, timeout=5))
+    d = cor.jsonrpc_ping(corpus, timeout=5)
     d.addCallback(test_destroy, cor, corpus)
     d.addErrback(stop_tests, cor, corpus)
 def test_destroy(res, cor, corpus):
