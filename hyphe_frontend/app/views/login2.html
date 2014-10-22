@@ -22,24 +22,31 @@
               <tr ng-repeat="corpus in corpusList">
 
                 <td>
-                  <strong class="project-name">
-                    {{corpus.name}}
-                  </strong>
-                  <br>
-                  <span ng-if="corpus.ready" class="text-success">
-                    <span class="glyphicon glyphicon-ok-sign"></span> ready
-                  </span>
-                  <small ng-if="!corpus.ready">not ready</small>
-                  <br>
-                  <small><code>id: {{corpus.corpus_id}}</code></small>
+                  <p>
+                    <strong class="project-name">
+                      {{corpus.name}}
+                    </strong>
+                  </p>
+                  <p>
+                    <span class="label label-warning"><span ng-if="corpus.password"><span class="glyphicon glyphicon-lock"></span> Password Protected</span></span>
+                    
+                    <span class="label label-success"><span ng-if="!corpus.password">Not protected</span></span>
+                    </span>
+                  </p>
+                  <p>
+                    <code>{{corpus.corpus_id}}</code>
+                  </p>
                 </td>
 
                 <td>
-                  <span class="label label-primary">{{corpus.status}}</span>
+                  
 
-                  <span class="label label-default">
-                    <span class="label label-warning"><span ng-if="corpus.password"><span class="glyphicon glyphicon-lock"></span> Password Protected</span></span>
-                    <span ng-if="!corpus.password">Not protected</span>
+                  <span ng-if="corpus.ready" class="text-success">
+                    <span class="glyphicon glyphicon-ok-sign"></span> ready
+                  </span>
+                  <span ng-if="!corpus.ready" class="text-warning">
+                    <span class="glyphicon glyphicon-exclamation-sign"></span>
+                    {{corpus.status}}
                   </span>
 
                 </td>
@@ -80,18 +87,20 @@
                 <td>
                   <dl class="dl-horizontal">
 
-                    <dt>IN</dt>
+                    <dt>in</dt>
                     <dd>{{corpus.webentities_in}}</dd>
 
-                    <dt>UNDECIDED</dt>
+                    <dt>undecided</dt>
                     <dd>{{corpus.webentities_undecided}}</dd>
 
-                    <dt>OUT</dt>
+                    <dt>out</dt>
                     <dd>{{corpus.webentities_out}}</dd>
 
-                    <dt>DISCOVERED</dt>
+                    <dt>discovered</dt>
                     <dd>{{corpus.webentities_discovered}}</dd>
 
+                    <hr>
+                    
                     <dt>TOTAL</dt>
                     <dd>{{corpus.total_webentities}}</dd>
 
@@ -100,9 +109,9 @@
 
                 <td>
                   <div class="btn-group btn-group-sm">
-                    <button class="btn btn-default">START</button>
-                    <button class="btn btn-default">STOP</button>
-                    <button class="btn btn-default">OPEN</button>
+                    <button class="btn btn-default" ng-click="startCorpus(corpus.corpus_id, corpus.password)">START</button>
+                    <button class="btn btn-default" ng-click="stopCorpus(corpus.corpus_id)">STOP</button>
+                    <button class="btn btn-default" ng-click="openCorpus(corpus.corpus_id, corpus.name)">OPEN</button>
                   </div>
                   <button class="btn btn-sm btn-danger">DESTROY</button>
                 </td>

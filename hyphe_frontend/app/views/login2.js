@@ -9,6 +9,22 @@ angular.module('hyphe.login2Controller', [])
     $scope.corpusList
     $scope.corpusList_byId = {}
 
+    $scope.startCorpus = function(id, password){
+      if(password){
+        startCorpus(id, prompt("Password?"," "))
+      } else {
+        startCorpus(id, '')
+      }
+    }
+
+    $scope.stopCorpus = function(id){
+      stopCorpus(id)
+    }
+
+    $scope.openCorpus = function(id, name){
+      openCorpus(id, name)
+    }
+
     // Init
     loadCorpusList()
 
@@ -57,6 +73,34 @@ angular.module('hyphe.login2Controller', [])
       })
       
     }
+
+    function startCorpus(id, password){
+      api.startCorpus({
+        id: id
+        ,password: password
+      }, function(){
+
+        loadCorpusList()
+        // openCorpus($scope.corpus.corpus_id, $scope.corpus.name)
+
+      },function(data, status, headers, config){
+        alert('Error: possibly a wrong password')
+      })
+    }
+
+    function stopCorpus(id){
+      api.stopCorpus({
+        id: id
+      }, function(){
+
+        loadCorpusList()
+
+      },function(data, status, headers, config){
+        alert('Error')
+      })
+    }
+
+
 
 
   }])
