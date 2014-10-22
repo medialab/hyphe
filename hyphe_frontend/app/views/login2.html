@@ -2,95 +2,111 @@
       <div class="row">
         <div class="col-md-12">
           <div class="welcome-column">
-            <img src="img/hyphe logo med.png"/ title="hyphe-logo">
+            <a href="#/login">
+              <img src="img/hyphe logo med.png"/ title="hyphe-logo">
+            </a>
             <h1>hyphe</h1>
             <br/>
             <br/>
 
             <table class="table">
               <tr>
-                <th>
-                  Project
-                </th>
-                <th>
-                  Status
-                </th>
-                <th>
-                  Password
-                </th>
-                <th>
-                  <small>
-                    Created
-                  </small>
-                </th>
-                <th>
-                  <small>
-                    Last<br>activity
-                  </small>
-                </th>
-                <th>
-                  <small>
-                    Last<br>indexation
-                  </small>
-                </th>
-                <th>
-                  <small>
-                    Last<br>link<br>generation
-                  </small>
-                </th>
-                <th>Crawls</th>
-                <th>Pages</th>
-                <th>Crawled<br>pages</th>
-                <th>Web entities</th>
+                <th>Project</th>
+                <th>Status</th>
+                <th><dl class="dl-horizontal"><dt>Time</dt></dl></th>
+                <th><dl class="dl-horizontal"><dt>Crawl</dt></dl></th>
+                <th><dl class="dl-horizontal"><dt>Web Entities</dt></dl></th>
+                <th>Actions</th>
               </tr>
+              
               <tr ng-repeat="corpus in corpusList">
+
                 <td>
-                  <strong>
+                  <strong class="project-name">
                     {{corpus.name}}
-                    <span ng-if="corpus.ready">
-                      <span class="glyphicon glyphicon-ok-sign"></span>
-                    </span>
-                    <small ng-if="!corpus.ready"> (not ready)</small>
                   </strong>
+                  <br>
+                  <span ng-if="corpus.ready" class="text-success">
+                    <span class="glyphicon glyphicon-ok-sign"></span> ready
+                  </span>
+                  <small ng-if="!corpus.ready">not ready</small>
                   <br>
                   <small><code>id: {{corpus.corpus_id}}</code></small>
                 </td>
-                <td>{{corpus.status}}</td>
+
                 <td>
-                  <span ng-if="corpus.password"><span class="glyphicon glyphicon-lock"></span> Protected</span>
-                  <span ng-if="!corpus.password">Not protected</span>
+                  <span class="label label-primary">{{corpus.status}}</span>
+
+                  <span class="label label-default">
+                    <span class="label label-warning"><span ng-if="corpus.password"><span class="glyphicon glyphicon-lock"></span> Password Protected</span></span>
+                    <span ng-if="!corpus.password">Not protected</span>
+                  </span>
+
                 </td>
+
                 <td>
-                  <small>
-                    <span tooltip="{{corpus.created_at|date}}">{{corpus.created_at|prettyDate}}</span>
-                  </small>
+                  <dl class="dl-horizontal">
+
+                    <dt>created</dt>
+                    <dd><span tooltip="{{corpus.created_at|date}}">{{corpus.created_at|prettyDate}}</span></dd>
+
+                    <dt>last activity</dt>
+                    <dd><span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span></dd>
+
+                    <dt>last index</dt>
+                    <dd><span tooltip="{{corpus.last_index_loop|date}}">{{corpus.last_index_loop|prettyDate}}</span></dd>
+
+                    <dt>last links</dt>
+                    <dd><span tooltip="{{corpus.last_links_loop|date}}">{{corpus.last_links_loop|prettyDate}}</span></dd>
+
+                  </dl>
                 </td>
+
                 <td>
-                  <small>
-                    <span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span>
-                  </small>
+                  <dl class="dl-horizontal">
+
+                    <dt>Crawls</dt>
+                    <dd>{{corpus.total_crawls}}</dd>
+
+                    <dt>Crawled pages</dt>
+                    <dd>{{corpus.total_pages_crawled}}</dd>
+
+                    <dt>Pages</dt>
+                    <dd>{{corpus.total_pages}}</dd>
+
+                  </dl>
                 </td>
+
                 <td>
-                  <small>
-                    <span tooltip="{{corpus.last_index_loop|date}}">{{corpus.last_index_loop|prettyDate}}</span>
-                  </small>
+                  <dl class="dl-horizontal">
+
+                    <dt>IN</dt>
+                    <dd>{{corpus.webentities_in}}</dd>
+
+                    <dt>UNDECIDED</dt>
+                    <dd>{{corpus.webentities_undecided}}</dd>
+
+                    <dt>OUT</dt>
+                    <dd>{{corpus.webentities_out}}</dd>
+
+                    <dt>DISCOVERED</dt>
+                    <dd>{{corpus.webentities_discovered}}</dd>
+
+                    <dt>TOTAL</dt>
+                    <dd>{{corpus.total_webentities}}</dd>
+
+                  </dl>
                 </td>
+
                 <td>
-                  <small>
-                    <span tooltip="{{corpus.last_links_loop|date}}">{{corpus.last_links_loop|prettyDate}}</span>
-                  </small>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-default">START</button>
+                    <button class="btn btn-default">STOP</button>
+                    <button class="btn btn-default">OPEN</button>
+                  </div>
+                  <button class="btn btn-sm btn-danger">DESTROY</button>
                 </td>
-                <td>{{corpus.total_crawls}}</td>
-                <td>{{corpus.total_pages}}</td>
-                <td>{{corpus.total_pages_crawled}}</td>
-                <td>
-                  <span class="label label-default">IN {{corpus.webentities_in}}</span>
-                  <span class="label label-default">UND. {{corpus.webentities_undecided}}</span>
-                  <span class="label label-default">OUT {{corpus.webentities_out}}</span>
-                  <span class="label label-default">DIS. {{corpus.webentities_discovered}}</span>
-                  /
-                  <span class="label label-primary">{{corpus.total_webentities}} TOTAL</span>
-                </td>
+
               </tr>
             </table>
 
