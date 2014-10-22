@@ -121,7 +121,7 @@ public class Cache {
         Matcher matcher = Pattern.compile(rule.getRegExp(), Pattern.CASE_INSENSITIVE).matcher(pageLRU);
         if(matcher.find()) {
             LRUPrefix = matcher.group();
-            name = StringUtil.toTitle(LRUUtil.revertLRU(LRUUtil.stripLRUScheme(LRUPrefix)));
+            name = LRUUtil.nameLRU(LRUPrefix);
             if(logger.isDebugEnabled()) {
                 logger.debug("page " + pageLRU + " matches prefix " + LRUPrefix + " -> " + name);
             }

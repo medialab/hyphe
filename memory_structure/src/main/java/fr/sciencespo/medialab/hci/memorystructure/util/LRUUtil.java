@@ -1,8 +1,11 @@
 package fr.sciencespo.medialab.hci.memorystructure.util;
 
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
+import fr.sciencespo.medialab.hci.memorystructure.util.StringUtil;
 
 import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -123,11 +126,11 @@ public class LRUUtil {
         if(StringUtils.isEmpty(lru)) {
             return null;
         }
-        String key, scheme = "", host = "", port = "", path = "", query = "", fragment = "";
+        String lruElement, key, scheme = "", host = "", port = "", path = "", query = "", fragment = "";
         Scanner scanner = new Scanner(lru);
         scanner.useDelimiter("\\|");
         while(scanner.hasNext()) {
-            String lruElement = scanner.next();
+        	lruElement = scanner.next();
             key = lruElement.substring(0, lruElement.indexOf(':')+1);
             lruElement = lruElement.substring(lruElement.indexOf(':')+1).trim();
             if(StringUtils.isNotEmpty(lruElement) || key.equals("p:")) {
@@ -149,7 +152,7 @@ public class LRUUtil {
                     } else {
                         query += "&" + lruElement;
                     }
-                } else if(lruElement.startsWith("f:")) {
+                } else if(key.equals("f:")) {
                     fragment = "#" + lruElement;
                 }
             }
@@ -158,4 +161,32 @@ public class LRUUtil {
         return scheme + host + port + path + query + fragment;
     }
 
+
+    public static String nameLRU(String lru) {
+    	String lruElement, key, name = "", path = "";
+    	ArrayList<String> host = new ArrayList<String>();
+    	boolean pathDone = false;
+    	Scanner scanner = new Scanner(lru);
+        scanner.useDelimiter("\\|");
+        while(scanner.hasNext()) {
+        	lruElement = scanner.next();
+        	key = lruElement.substring(0, lruElement.indexOf(':')+1);
+            lruElement = lruElement.substring(lruElement.indexOf(':')+1).trim();
+            if(StringUtils.isNotEmpty(lruElement)) {
+            	if(key.equals("h:") && ! lruElement.equals("www") && (host.size() > 0 || lruElement.length() > 3)) {
+            		host.add(0, StringUtil.toProperCase(lruElement));
+                } else if(key.equals("p:")) {
+                    path = (pathDone ? "/..." : "") + "/" + lruElement;
+                    pathDone = true;
+                } else if(key.equals("q:")) {
+                    name += " ?" + lruElement;
+                } else if(key.equals("f:")) {
+                    name += " #" + lruElement;
+                }
+            }
+        }
+        scanner.close();
+    	return StringUtils.join(host, '.') + path + name;
+    }
+    
 }
