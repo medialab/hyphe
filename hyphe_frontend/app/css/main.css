@@ -806,6 +806,12 @@ textarea.over-error{
 .webentities-list-table .cell-last-modif{
   width: 150px;
 }
+.webentities-list-table .cell-cited{
+  width: 80px;
+}
+.webentities-list-table .cell-action{
+  width: 140px;
+}
 .webentities-list-table .panel-heading{
   padding: 6px;
   height: 88px;
