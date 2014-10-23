@@ -236,6 +236,7 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["webentities_discovered"] = 0
         self.corpora[corpus]["tags"] = {}
         self.corpora[corpus]["webentities_links"] = []
+        self.corpora[corpus]["webentities_ranks"] = []
         self.corpora[corpus]["precision_exceptions"] = []
         self.corpora[corpus]["crawls"] = 0
         self.corpora[corpus]["crawls_running"] = 0
@@ -319,7 +320,7 @@ class Core(jsonrpc.JSONRPC):
             if corpus in self.msclients.corpora:
                 yield self.update_corpus(corpus, ram_check=False)
                 self.msclients.stop_corpus(corpus, quiet)
-            for f in ["tags", "webentities", "webentities_links", "precision_exceptions"]:
+            for f in ["tags", "webentities", "webentities_links", "webentities_ranks", "precision_exceptions"]:
                 if f in self.corpora[corpus]:
                     del(self.corpora[corpus][f])
         yield self.db.clean_WEs_query(corpus)
@@ -906,6 +907,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         else:
             res['crawling_status'] = crawling_statuses.UNCRAWLED
             res['indexing_status'] = indexing_statuses.UNINDEXED
+        res["indegree"] = self.corpora[corpus]["webentities_ranks"].get(WE.id, {"indegree": 0})["indegree"]
         returnD(res)
 
     @inlineCallbacks
@@ -1389,6 +1391,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
         yield self.db.add_log(corpus, jobid, "INDEX_"+indexing_statuses.BATCH_FINISHED)
         returnD(True)
 
+    def rank_webentities(self, corpus=DEFAULT_CORPUS):
+        ranks = {}
+        for link in self.corpora[corpus]['webentities_links']:
+            if link.targetId not in ranks:
+                ranks[link.targetId] = {"indegree": 0}
+            ranks[link.targetId]["indegree"] += 1
+        self.corpora[corpus]['webentities_ranks'] = ranks
 
     def jsonrpc_trigger_links(self, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
@@ -1424,6 +1433,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 self.corpora[corpus]['loop_running'] = None
                 returnD(False)
             self.corpora[corpus]['webentities_links'] = res
+            self.rank_webentities(corpus)
             s = str(time.time() -s)
             yield self.db.add_log(corpus, "WE_LINKS", "...finished WebEntity links generation (%ss)" %s)
             logger.msg("...processed WebEntity links in %ss..." % s, system="INFO - %s" % corpus)
@@ -1504,6 +1514,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if not results[1][0] or is_error(WElinks):
                 returnD(WElinks)
             self.corpora[corpus]['webentities_links'] = WElinks
+            self.rank_webentities(corpus)
             self.corpora[corpus]['loop_running'] = False
             logger.msg("...ramcached.", system="INFO - %s" % corpus)
         returnD(WEs)
@@ -1881,6 +1892,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 logger.msg(links['message'], system="ERROR - %s" % corpus)
                 returnD(False)
             self.corpora[corpus]['webentities_links'] = links
+            deferToThread(self.rank_webentities, corpus)
         if outformat == "gexf":
             WEs = yield self.ramcache_webentities(corpus=corpus)
             if is_error(WEs):
