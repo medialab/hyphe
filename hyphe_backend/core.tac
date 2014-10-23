@@ -1611,6 +1611,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_advanced_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+        indegree_filter = False
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         try:
@@ -1620,23 +1621,28 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(format_error("page and count arguments must be integers"))
         afk = []
         fk = []
-        if isinstance(allFieldsKeywords, unicode):
+        if type(allFieldsKeywords) is unicode:
             allFieldsKeywords = [allFieldsKeywords]
-        if not (isinstance(allFieldsKeywords, list) and isinstance(fieldKeywords, list)):
+        if not (type(allFieldsKeywords) is list and type(fieldKeywords) is list):
             returnD(format_error("ERROR: Both arguments must be lists."))
         for k in allFieldsKeywords:
-            if not (k and isinstance(k, unicode)):
+            if not (k and type(k) in [str, unicode]):
                 returnD(format_error("ERROR: allFieldsKeywords must be a list of strings."))
             afk.append(k.encode('utf-8'))
         for kv in fieldKeywords:
-            if not (isinstance(kv, list) and len(kv) == 2 and kv[0] and kv[1] and ((isinstance(kv[0], unicode) and isinstance(kv[1], unicode)) or (isinstance(kv[0], str) and isinstance(kv[1], str)))):
-                returnD(format_error("ERROR: fieldKeywords must be a list of two-string-elements lists. %s" % fieldKeywords))
-            fk.append([kv[0].encode('utf-8'), kv[1].encode('utf-8')])
+            if type(kv) is list and len(kv) == 2 and kv[0] and kv[1] and type(kv[0]) in [str, unicode] and type(kv[1]) in [str, unicode]:
+                fk.append([kv[0].encode('utf-8'), kv[1].encode('utf-8')])
+            elif type(kv) is list and len(kv) == 2 and kv[0] and kv[1] and type(kv[0]) in [str, unicode] and type(kv[1]) is list and len(kv[1]) == 2 and type(kv[1][0]) in [int, float] and type(kv[1][1]) in [int, float]:
+                indegree_filter = kv[1]
+            else:
+                returnD(format_error('ERROR: fieldKeywords must be a list of two-string-elements lists or ["indegree", [min_int, max_int]]. %s' % fieldKeywords))
         WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
         res = yield self.format_webentities(WEs, sort=sort, corpus=corpus)
-        if len(WEs) > count:
+        if indegree_filter:
+            res = [w for w in res if w["indegree"] >= indegree_filter[0] and w["indegree"] <= indegree_filter[1]]
+        if len(res) > count:
             res = yield self.paginate_webentities(res, count, page, sort=sort, corpus=corpus)
             returnD(res)
         else:
