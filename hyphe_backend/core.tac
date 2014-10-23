@@ -1571,6 +1571,23 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(self.format_WE_page(ids["total"], ids["query"]["count"], page, res["result"], token=token))
 
     @inlineCallbacks
+    def jsonrpc_get_webentities_ranking_stats(self, pagination_token, ranking_field="indegree", corpus=DEFAULT_CORPUS):
+        ranking_fields = ["indegree"]
+        ranking_field = ranking_field.lower().strip()
+        if ranking_field not in ranking_fields:
+            returnD(format_error("ranking_field must be one of %s" % ", ".join(ranking_fields)))
+        ids = yield self.db.get_WEs_query(corpus, pagination_token)
+        if not ids:
+            returnD(format_error("No previous query found for token %s on corpus %s" % (pagination_token, corpus)))
+        histogram = {}
+        for wid in ids["webentities"]:
+            rank = self.corpora[corpus]["webentities_ranks"].get(wid, {ranking_field: 0})[ranking_field]
+            if rank not in histogram:
+                histogram[rank] = 0
+            histogram[rank] += 1
+        returnD(format_result(histogram))
+
+    @inlineCallbacks
     def jsonrpc_get_webentities(self, list_ids=None, light=False, semilight=False, sort=None, count=100, page=0, light_for_csv=False, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -1639,14 +1656,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
-        res = yield self.format_webentities(WEs, sort=sort, corpus=corpus)
+        jobs = {}
+        res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
+        for job in res:
+            jobs[job['webentity_id']] = job
+        res = yield self.format_webentities(WEs, jobs, sort=sort, corpus=corpus)
         if indegree_filter:
             res = [w for w in res if w["indegree"] >= indegree_filter[0] and w["indegree"] <= indegree_filter[1]]
-        if len(res) > count:
-            res = yield self.paginate_webentities(res, count, page, sort=sort, corpus=corpus)
-            returnD(res)
-        else:
-            returnD(self.format_WE_page(len(res), count, page, res))
+        res = yield self.paginate_webentities(res, count, page, sort=sort, corpus=corpus)
+        returnD(res)
 
     def jsonrpc_escape_search_query(self, query, corpus=DEFAULT_CORPUS):
         for char in ["\\", "+", "-", "!", "(", ")", ":", "^", "[", "]", "{", "}", "~", "*", "?"]:
