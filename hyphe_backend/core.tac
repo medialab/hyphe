@@ -236,7 +236,7 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["webentities_discovered"] = 0
         self.corpora[corpus]["tags"] = {}
         self.corpora[corpus]["webentities_links"] = []
-        self.corpora[corpus]["webentities_ranks"] = []
+        self.corpora[corpus]["webentities_ranks"] = {}
         self.corpora[corpus]["precision_exceptions"] = []
         self.corpora[corpus]["crawls"] = 0
         self.corpora[corpus]["crawls_running"] = 0
