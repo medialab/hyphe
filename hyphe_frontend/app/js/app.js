@@ -28,5 +28,6 @@ angular.module('hyphe', [
   $routeProvider.when('/export', {templateUrl: 'views/export.html', controller: 'export'});
   $routeProvider.when('/settings', {templateUrl: 'views/settings.html', controller: 'settings'});
   $routeProvider.when('/network', {templateUrl: 'views/network.html', controller: 'network'});
+  $routeProvider.when('/prospect', {templateUrl: 'views/prospect.html', controller: 'prospect'});
   $routeProvider.otherwise({redirectTo: '/login'});
 }]);

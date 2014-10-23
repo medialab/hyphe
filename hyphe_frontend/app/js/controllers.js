@@ -21,6 +21,7 @@ angular.module('hyphe.controllers', [
     ,'hyphe.exportController'
     ,'hyphe.settingsController'
     ,'hyphe.networkController'
+    ,'hyphe.prospectController'
   ])
 
 ;

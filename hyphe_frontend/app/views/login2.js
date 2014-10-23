@@ -25,6 +25,14 @@ angular.module('hyphe.login2Controller', [])
       openCorpus(id, name)
     }
 
+    $scope.destroyCorpus = function(id){
+      destroyCorpus(id)
+    }
+
+    $scope.resetCorpus = function(id){
+      resetCorpus(id)
+    }
+
     // Init
     loadCorpusList()
 
@@ -99,7 +107,30 @@ angular.module('hyphe.login2Controller', [])
         alert('Error')
       })
     }
+    
+    function destroyCorpus(id){
+      api.destroyCorpus({
+        id: id
+      }, function(){
 
+        loadCorpusList()
+
+      },function(data, status, headers, config){
+        alert('Error')
+      })
+    }
+
+    function resetCorpus(id){
+      api.resetCorpus({
+        id: id
+      }, function(){
+
+        loadCorpusList()
+
+      },function(data, status, headers, config){
+        alert('Error')
+      })
+    }
 
 
 

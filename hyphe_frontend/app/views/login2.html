@@ -109,11 +109,15 @@
 
                 <td>
                   <div class="btn-group btn-group-sm">
-                    <button class="btn btn-default" ng-click="startCorpus(corpus.corpus_id, corpus.password)">START</button>
-                    <button class="btn btn-default" ng-click="stopCorpus(corpus.corpus_id)">STOP</button>
-                    <button class="btn btn-default" ng-click="openCorpus(corpus.corpus_id, corpus.name)">OPEN</button>
+                    <button class="btn" ng-click="startCorpus(corpus.corpus_id, corpus.password)" ng-class="{disabled: corpus.ready, 'btn-default': corpus.ready, 'btn-primary':!corpus.ready}">START</button>
+                    <button class="btn btn-default" ng-click="stopCorpus(corpus.corpus_id)" ng-class="{disabled: !corpus.ready}">STOP</button>
+                    <button class="btn btn-default" ng-click="openCorpus(corpus.corpus_id, corpus.name)" ng-class="{disabled: !corpus.ready}">OPEN</button>
                   </div>
-                  <button class="btn btn-sm btn-danger">DESTROY</button>
+
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-sm btn-danger" ng-click="destroyCorpus(corpus.corpus_id)">DESTROY</button>
+                    <button class="btn btn-sm btn-danger" ng-click="resetCorpus(corpus.corpus_id)" ng-class="{disabled: !corpus.ready}">RESET</button>
+                  </div>
                 </td>
 
               </tr>
