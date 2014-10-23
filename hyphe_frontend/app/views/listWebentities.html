@@ -19,28 +19,7 @@
               <!-- Default panel contents -->
               <div class="panel-heading">
 
-                <div class="input-group">
-                  <input
-                    type="text"
-                    class="form-control"
-                    placeholder="Type a query"
-                    ng-model="query"
-                    ng-press-enter="doQuery()"
-                  >
-                  <span class="input-group-btn">
-                    <button
-                      class="btn btn-default"
-                      type="button"
-                      ng-click="doQuery()"
-                    >Search</button>
-                  </span>
-                </div>
-
-                <form class="form-inline" role="form">
-                  
-                  <div class="form-group" ng-if="lastQuery && lastQuery != ''">
-                    <button type="button" class="btn btn-primary" ng-click="clearQuery()"><span class="glyphicon glyphicon-remove"></span> {{lastQuery}}</button>
-                  </div>
+                <form class="form-inline search-ariane-string" role="form">
 
                   <div class="btn-group">
                     <label
@@ -77,7 +56,16 @@
 
                   </div>
 
-                  <div class="form-group">
+                  <div class="form-group" ng-if="lastQuery && lastQuery != ''">
+                    <button type="button" class="btn btn-primary" ng-click="clearQuery()"><span class="glyphicon glyphicon-remove"></span> {{lastQuery}}</button>
+                  </div>
+
+                  <div class="form-group search-ariane-string-text">
+                    <span class="glyphicon glyphicon-chevron-right"></span>
+                    {{fullListLength}} WEB ENTIT{{fullListLength > 1 ? 'IES' : 'Y'}}
+                  </div>
+
+                  <!-- <div class="form-group">
                     <select
                       class="form-control"
                       ng-change="sortChanged()"
@@ -87,7 +75,26 @@
                       <option value="status">Sort by Status</option>
                       <option value="date">Sort by Date</option>
                     </select>
-                  </div>
+                  </div> -->
+                  
+                </form>
+
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Type a query"
+                    ng-model="query"
+                    ng-press-enter="doQuery()"
+                  >
+                  <span class="input-group-btn">
+                    <button
+                      class="btn btn-default"
+                      type="button"
+                      ng-click="doQuery()"
+                    >Search</button>
+                  </span>
+                </div>
 
               </div>
 

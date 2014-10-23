@@ -282,6 +282,8 @@ angular.module('hyphe.listwebentitiesController', [])
     function cleanQuery(query){
       if(query === undefined)
         return undefined
+      if(query == '')
+        return ''
       escapedChars.forEach(function(character){
         query = query.replace(character, '\\'+character)
       })

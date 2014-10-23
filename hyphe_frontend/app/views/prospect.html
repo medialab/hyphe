@@ -16,7 +16,119 @@
 
             <div class="row">
               <div class="col-md-8">
-                
+                <div class="panel panel-default webentities-list-table">
+              
+                  <!-- Default panel contents -->
+                  <div class="panel-heading">
+                    
+                    <form class="form-inline search-ariane-string" role="form">
+                      
+                      <div class="form-group" ng-if="lastQuery && lastQuery != ''">
+                        <button type="button" class="btn btn-primary" ng-click="clearQuery()"><span class="glyphicon glyphicon-remove"></span> {{lastQuery}}</button>
+                      </div>
+
+                      <div class="form-group search-ariane-string-text">
+                        <span class="glyphicon glyphicon-chevron-right"></span>
+                          {{fullListLength}} DISCOVERED WEB ENTIT{{fullListLength > 1 ? 'IES' : 'Y'}}
+                      </div>
+                    </form>
+
+                    <div class="input-group">
+                      <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Type a query"
+                        ng-model="query"
+                        ng-press-enter="doQuery()"
+                      >
+                      <span class="input-group-btn">
+                        <button
+                          class="btn btn-default"
+                          type="button"
+                          ng-click="doQuery()"
+                        >Search</button>
+                      </span>
+                    </div>
+
+                  </div>
+
+                  <table class="table table-condensed">
+                    <thead>
+                      <tr ng-if="!loading">
+                        <th>{{fullListLength}} Web Entit{{fullListLength > 1 ? 'ies' : 'y'}}</th>
+                        <th class="cell-cited">Cited</th>
+                        <th class="cell-action"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+
+                      <!-- Rows -->
+                      <tr
+                        class="webentity-row"
+                        ng-if="!loading"
+                        ng-repeat="obj in list track by $index"
+                        ng-click="toggleRow(obj.id)"
+                        ng-class="{'bg-selected':obj.checked}"
+                      >
+                        <td>{{obj.webentity.name}}</td>
+                        <td class="cell-cited">{{obj.webentity.indegree}}</td>
+                        <td class="cell-cited">
+                          
+                          <div class="btn-group ">
+
+                            <label
+                              class="btn btn-default btn-xs"
+                              ng-model="obj.statuses.in"
+                              ng-change="setStatus('IN')"
+                              ng-class="{disabled:loading}"
+                              btn-checkbox
+                            >IN</label>
+
+                            <label
+                              class="btn btn-default btn-xs"
+                              ng-model="obj.statuses.out"
+                              ng-change="setStatus('OUT')"
+                              ng-class="{disabled:loading}"
+                              btn-checkbox
+                            >OUT</label>
+
+                            <label
+                              class="btn btn-default btn-xs"
+                              ng-model="obj.statuses.undecided"
+                              ng-change="setStatus('UNDECIDED')"
+                              ng-class="{disabled:loading}"
+                              btn-checkbox
+                            >UND.</label>
+
+                          </div>
+
+                          <button class="btn btn-xs btn-link" title="Explore Web Entity"><span class="glyphicon glyphicon-share"></span></button>
+
+                        </td>
+                      </tr>
+
+                    </tbody>
+                  </table>
+
+                  <div class="loading-container" ng-if="loading">
+                    <spinner text="'LOADING'"/>
+                  </div>
+
+                </div>
+
+                <!-- Pagination  -->
+                <div class="text-center">
+                  <pagination
+                  total-items="fullListLength"
+                  ng-model="$parent.paginationPage"
+                  items-per-page="paginationLength"
+                  boundary-links="true"
+                  rotate="false"
+                  max-size="paginationNumPages"
+                  ng-if="fullListLength > paginationLength && !loading"
+                  ng-change="pageChanged()"
+                ></pagination>
+                </div>
 
 
               </div>
