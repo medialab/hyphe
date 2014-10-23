@@ -98,7 +98,7 @@ angular.module('hyphe.listwebentitiesController', [])
 
       api.searchWebentities(
         {
-          allFieldsKeywords: query || ['*']
+          allFieldsKeywords: query || []
           ,fieldKeywords: field_kw
           ,sortField: $scope.sort
           ,count: $scope.paginationLength
@@ -282,6 +282,8 @@ angular.module('hyphe.listwebentitiesController', [])
     function cleanQuery(query){
       if(query === undefined)
         return undefined
+      if(query == '')
+        return ''
       escapedChars.forEach(function(character){
         query = query.replace(character, '\\'+character)
       })
