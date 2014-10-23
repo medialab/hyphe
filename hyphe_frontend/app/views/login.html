@@ -6,101 +6,109 @@
             <h1>hyphe</h1>
             <br/>
             <br/>
-            <div collapse="uiMode !== 'default' || (uiMode == 'default' && corpusList.length == 0)">
-              <h3>Select your project</h3>
+            <div ng-if="disconnected">
+              <p class="text-danger">
+                YOU ARE DISCONNECTED FROM HYPHE &nbsp; &nbsp;:-(
+              </p>
+            </div>
 
-              <input type="text" class="form-control search-project" ng-model="$parent.search_query" placeholder="Search a project" ng-if="corpusList !== undefined && corpusList.length > 3" ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)">
-              <div class="project-list-container">
-                <div ng-if="corpusList === undefined">loading...</div>
-                <div ng-if="corpusList !== undefined">
-                  <div class="item" ng-repeat="corpus in corpusList|search:search_query:['name']" ng-click="selectCorpus(corpus.corpus_id)">
-                    <div class="item-name">
-                      {{corpus.name}} <span class="glyphicon glyphicon-lock" ng-if="corpus.password"></span>
-                    </div>
-                    <div class="item-stats text-muted">
-                      {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + '  web entities'}}
-                    </div>
-                    <div class="item-date text-info">
-                      Created
-                      <span tooltip="{{corpus.created_at|date}}" tooltip-placement="bottom">{{corpus.created_at|prettyDate}}</span>
-                      -
-                      Used
-                      <span tooltip="{{corpus.last_activity|date}}" tooltip-placement="bottom">{{corpus.last_activity|prettyDate}}</span>
+            <div ng-if="!disconnected && !loading">
+              <div collapse="uiMode !== 'default' || (uiMode == 'default' && corpusList.length == 0)">
+                <h3>Select your project</h3>
+
+                <input type="text" class="form-control search-project" ng-model="$parent.search_query" placeholder="Search a project" ng-if="corpusList !== undefined && corpusList.length > 3" ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)">
+                <div class="project-list-container">
+                  <div ng-if="corpusList === undefined">loading...</div>
+                  <div ng-if="corpusList !== undefined">
+                    <div class="item" ng-repeat="corpus in corpusList|search:search_query:['name']" ng-click="selectCorpus(corpus.corpus_id)">
+                      <div class="item-name">
+                        {{corpus.name}} <span class="glyphicon glyphicon-lock" ng-if="corpus.password"></span>
+                      </div>
+                      <div class="item-stats text-muted">
+                        {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + '  web entities'}}
+                      </div>
+                      <div class="item-date text-info">
+                        Created
+                        <span tooltip="{{corpus.created_at|date}}" tooltip-placement="bottom">{{corpus.created_at|prettyDate}}</span>
+                        -
+                        Used
+                        <span tooltip="{{corpus.last_activity|date}}" tooltip-placement="bottom">{{corpus.last_activity|prettyDate}}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              
-              <br>
-              <p class="text-info">- or -</p>
-              
-              <button class="btn btn-link" ng-show="uiMode == 'default'" ng-click="uiMode = 'new'"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;NEW PROJECT</button>
-            </div>
-
-            <div collapse="uiMode !== 'new' && corpusList.length > 0">
-              <h3>New Project</h3>
-              <br>
-              <div ng-if="!starting">
-                <input type="text" class="form-control" ng-model="$parent.new_project_name" placeholder="Project Name" ng-press-enter="createCorpus()">
+                
                 <br>
-                <div class="checkbox variations-checkbox">
-                  <label>
-                    <input type="checkbox" ng-model="passwordProtected"> <span class="glyphicon glyphicon-lock"></span> Protected</span>
-                  </label>
+                <p class="text-info">- or -</p>
+                
+                <button class="btn btn-link" ng-show="uiMode == 'default'" ng-click="uiMode = 'new'"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;NEW PROJECT</button>
+              </div>
+
+              <div collapse="uiMode !== 'new' && corpusList.length > 0">
+                <h3>New Project</h3>
+                <br>
+                <div ng-if="!starting">
+                  <input type="text" class="form-control" ng-model="$parent.new_project_name" placeholder="Project Name" ng-press-enter="createCorpus()">
+                  <br>
+                  <div class="checkbox variations-checkbox">
+                    <label>
+                      <input type="checkbox" ng-model="passwordProtected"> <span class="glyphicon glyphicon-lock"></span> Protected</span>
+                    </label>
+                  </div>
+                  <input type="password" class="form-control" ng-model="$parent.$parent.new_project_password" placeholder="Password" ng-if="passwordProtected">
+                  <input type="password" class="form-control" ng-model="$parent.$parent.new_project_password_2" placeholder="Enter Password Again" ng-if="passwordProtected">
+                  <br>
+                  <p ng-if="new_project_message.length > 0">
+                    <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{new_project_message}}
+                  </p>
+                  <button class="btn btn-primary btn-block" ng-click="createCorpus()">CREATE PROJECT</button>
+
+                  <br>
+                  <p ng-if="login_message.length > 0">
+                    <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
+                  </p>
+
+                  <button class="btn btn-link" ng-click="$parent.uiMode = 'default'"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
                 </div>
-                <input type="password" class="form-control" ng-model="$parent.$parent.new_project_password" placeholder="Password" ng-if="passwordProtected">
-                <input type="password" class="form-control" ng-model="$parent.$parent.new_project_password_2" placeholder="Enter Password Again" ng-if="passwordProtected">
-                <br>
-                <p ng-if="new_project_message.length > 0">
-                  <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{new_project_message}}
-                </p>
-                <button class="btn btn-primary btn-block" ng-click="createCorpus()">CREATE PROJECT</button>
 
-                <br>
-                <p ng-if="login_message.length > 0">
-                  <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
-                </p>
-
-                <button class="btn btn-link" ng-click="$parent.uiMode = 'default'"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
+                <div ng-if="starting">
+                  <spinner class="center" text="'CREATING CORPUS'"/>
+                </div>
               </div>
+              
+              <div collapse="uiMode !== 'login'">
+                <h3>{{corpus.name}}</h3>
 
-              <div ng-if="starting">
-                <spinner class="center" text="'CREATING CORPUS'"/>
-              </div>
-            </div>
-            
-            <div collapse="uiMode !== 'login'">
-              <h3>{{corpus.name}}</h3>
+                <div class="text-muted">
+                  {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + ' web entities'}}
+                </div>
 
-              <div class="text-muted">
-                {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + ' web entities'}}
-              </div>
-
-              <div class="text-info">
-                Created
-                <span tooltip="{{corpus.created_at|date}}">{{corpus.created_at|prettyDate}}</span>
-                -
-                Used
-                <span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span>
-              </div>
-
-              <br>
-              <div ng-if="!starting">
-                <input type="password" class="form-control" ng-model="$parent.login_password" placeholder="Password" ng-press-enter="logIn()">
-                <button class="btn btn-primary btn-block" ng-click="logIn()">OPEN PROJECT</button>
+                <div class="text-info">
+                  Created
+                  <span tooltip="{{corpus.created_at|date}}">{{corpus.created_at|prettyDate}}</span>
+                  -
+                  Used
+                  <span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span>
+                </div>
 
                 <br>
-                <p ng-if="login_message.length > 0">
-                  <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
-                </p>
+                <div ng-if="!starting">
+                  <input type="password" class="form-control" ng-model="$parent.login_password" placeholder="Password" ng-press-enter="logIn()">
+                  <button class="btn btn-primary btn-block" ng-click="logIn()">OPEN PROJECT</button>
 
-                <button class="btn btn-link" ng-click="$parent.uiMode = 'default'"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
-              </div>
+                  <br>
+                  <p ng-if="login_message.length > 0">
+                    <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
+                  </p>
 
-              <div ng-if="starting">
-                <spinner class="center" text="'STARTING CORPUS'"/>
+                  <button class="btn btn-link" ng-click="$parent.uiMode = 'default'"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
+                </div>
+
+                <div ng-if="starting">
+                  <spinner class="center" text="'STARTING CORPUS'"/>
+                </div>
+              
               </div>
-            
             </div>
 
           </div>

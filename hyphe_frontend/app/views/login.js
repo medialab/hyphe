@@ -9,6 +9,9 @@ angular.module('hyphe.loginController', [])
     $scope.corpusList
     $scope.corpusList_byId = {}
 
+    $scope.disconnected = false
+    $scope.loading = true
+
     $scope.uiMode = 'default'
     $scope.new_project_message = ''
     $scope.new_project_name = ''
@@ -104,6 +107,8 @@ angular.module('hyphe.loginController', [])
 
     function loadCorpusList(){
       api.getCorpusList({}, function(list){
+        $scope.disconnected = false
+        $scope.loading = false
         $scope.corpusList = []
         for(var id in list){
           $scope.corpusList.push(list[id])
@@ -123,6 +128,8 @@ angular.module('hyphe.loginController', [])
 
       },function(data, status, headers, config){
         $scope.corpusList = ''
+        $scope.disconnected = true
+        $scope.loading = false
         console.log('Error loading corpus list')
       })
     }
