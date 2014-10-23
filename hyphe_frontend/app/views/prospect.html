@@ -28,8 +28,10 @@
                       </div>
 
                       <div class="form-group search-ariane-string-text">
-                        <span class="glyphicon glyphicon-chevron-right"></span>
+                        <span class="glyphicon glyphicon-chevron-right" ng-if="!loading && lastQuery && lastQuery != ''"></span>
+                        <span ng-if="!loading">
                           {{fullListLength}} DISCOVERED WEB ENTIT{{fullListLength > 1 ? 'IES' : 'Y'}}
+                        </span>
                       </div>
                     </form>
 
@@ -54,7 +56,7 @@
 
                   <table class="table table-condensed">
                     <thead>
-                      <tr ng-if="!loading">
+                      <tr ng-if="!loading && fullListLength > 0">
                         <th>{{fullListLength}} Web Entit{{fullListLength > 1 ? 'ies' : 'y'}}</th>
                         <th class="cell-cited">Cited</th>
                         <th class="cell-action"></th>
@@ -110,7 +112,11 @@
                     </tbody>
                   </table>
 
-                  <div class="loading-container" ng-if="loading">
+                  <div class="webentities-list-noresult-container" ng-if="!loading && fullListLength == 0">
+                    <span class="text-info">No result</span>
+                  </div>
+
+                  <div class="webentities-list-loading-container" ng-if="loading">
                     <spinner text="'LOADING'"/>
                   </div>
 

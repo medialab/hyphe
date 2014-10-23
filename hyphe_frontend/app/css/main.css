@@ -719,9 +719,6 @@ textarea.over-error{
 /* ==========================================================================
    View: Web Entities List
    ========================================================================== */
-.loading-container{
-  padding: 24px;
-}
 .webentities-list-actions{
   margin-top: 12px;
 }
@@ -788,6 +785,12 @@ textarea.over-error{
 /* ==========================================================================
    Factored between different views: Web Entity List
    ========================================================================== */
+.webentities-list-loading-container{
+  padding: 24px;
+}
+.webentities-list-noresult-container{
+  padding: 12px;
+}
 .webentities-list-table{
   margin-bottom: 0px;
 }
@@ -813,6 +816,9 @@ textarea.over-error{
 }
 .webentities-list-table .search-ariane-string-text{
   font-weight: 600;
+  padding-top: 6px;
+  padding-left: 2px;
+  padding-bottom: 6px;
 }
 .webentities-list-table .search-ariane-string-text .glyphicon{
   color: #BABABA;
@@ -827,6 +833,11 @@ textarea.over-error{
 .webentities-list-table tr.bg-selected{
   background-color: #EFEBE8;
 }
+
+
+
+
+
 
 
 
