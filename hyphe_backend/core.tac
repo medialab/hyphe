@@ -421,11 +421,6 @@ class Core(jsonrpc.JSONRPC):
         status['corpus'].update(self.jsonrpc_test_corpus(corpus)["result"])
         if not self.corpus_ready(corpus) or "webentities" not in self.corpora[corpus]:
             return format_result(status)
-        if self.corpora[corpus]['webentities']:
-            self.corpora[corpus]['webentities_in'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.IN])
-            self.corpora[corpus]['webentities_out'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.OUT])
-            self.corpora[corpus]['webentities_undecided'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.UNDECIDED])
-            self.corpora[corpus]['webentities_discovered'] = self.corpora[corpus]['total_webentities'] - self.corpora[corpus]['webentities_in'] - self.corpora[corpus]['webentities_out'] - self.corpora[corpus]['webentities_undecided']
         if not self.corpora[corpus]['crawls']:
             self.corpora[corpus]['crawls_pending'] = 0
             self.corpora[corpus]['crawls_running'] = 0
@@ -1410,7 +1405,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not self.parent.corpus_ready(corpus) or self.corpora[corpus]['loop_running']:
             returnD(False)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
-        yield self.ramcache_webentities(corpus=corpus)
+        yield self.ramcache_webentities(corpus=corpus, corelinks=(not self.corpora[corpus]['webentities_links']))
         crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
         if crashed:
             self.corpora[corpus]['loop_running'] = "Cleaning up crashed indexing"
@@ -1509,6 +1504,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
             self.corpora[corpus]['last_WE_update'] = now_ts()
             self.corpora[corpus]['webentities'] = WEs
             self.corpora[corpus]['total_webentities'] = len(WEs)
+            self.corpora[corpus]['webentities_in'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.IN])
+            self.corpora[corpus]['webentities_out'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.OUT])
+            self.corpora[corpus]['webentities_undecided'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.UNDECIDED])
+            self.corpora[corpus]['webentities_discovered'] = self.corpora[corpus]['total_webentities'] - self.corpora[corpus]['webentities_in'] - self.corpora[corpus]['webentities_out'] - self.corpora[corpus]['webentities_undecided']
         if len(deflist) > 1:
             WElinks = results[1][1]
             if not results[1][0] or is_error(WElinks):
