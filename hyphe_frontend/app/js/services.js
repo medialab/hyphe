@@ -97,24 +97,26 @@ angular.module('hyphe.services', [])
 
     ns.id = undefined
     ns.name = undefined
+    // ns.storage = sessionStorage
+    ns.storage = localStorage
 
     ns.setId = function(id){
-      sessionStorage[ns.ssKeys.id] = id
+      ns.storage[ns.ssKeys.id] = id
       ns.id = id
     }
     ns.getId = function(){
       if(ns.id !== undefined)
         return ns.id
-      return sessionStorage[ns.ssKeys.id]
+      return ns.storage[ns.ssKeys.id]
     }
     ns.setName = function(name){
-      sessionStorage[ns.ssKeys.name] = name
+      ns.storage[ns.ssKeys.name] = name
       ns.name = name
     }
     ns.getName = function(){
       if(ns.name !== undefined)
         return ns.name
-      return sessionStorage[ns.ssKeys.name]
+      return ns.storage[ns.ssKeys.name]
     }
 
     return ns
