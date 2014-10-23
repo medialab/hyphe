@@ -163,7 +163,7 @@ public class LRUUtil {
 
 
     public static String nameLRU(String lru) {
-    	String lruElement, key, name = "", path = "", lastHost;
+    	String lruElement, key, name = "", path = "", lastHost = "";
     	ArrayList<String> host = new ArrayList<String>();
     	boolean pathDone = false;
     	Scanner scanner = new Scanner(lru);
@@ -173,9 +173,9 @@ public class LRUUtil {
         	key = lruElement.substring(0, lruElement.indexOf(':')+1);
             lruElement = lruElement.substring(lruElement.indexOf(':')+1).trim();
             if(StringUtils.isNotEmpty(lruElement)) {
-            	if(key.equals("h:") && ! lruElement.equals("www") {
+            	if(key.equals("h:") && ! lruElement.equals("www")) {
                     lastHost = StringUtil.toProperCase(lruElement);
-                    if (host.size() > 0 || lastHost.length() > 3)) {
+                    if (host.size() > 0 || lastHost.length() > 3) {
                         host.add(0, lastHost);
                     }
                 } else if(key.equals("p:")) {
