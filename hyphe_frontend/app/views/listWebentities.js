@@ -98,7 +98,7 @@ angular.module('hyphe.listwebentitiesController', [])
 
       api.searchWebentities(
         {
-          allFieldsKeywords: query || ['*']
+          allFieldsKeywords: query || []
           ,fieldKeywords: field_kw
           ,sortField: $scope.sort
           ,count: $scope.paginationLength
