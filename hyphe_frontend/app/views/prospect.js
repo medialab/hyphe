@@ -25,6 +25,7 @@ angular.module('hyphe.prospectController', [])
       
       $scope.status = {message: 'Loading'}
       $scope.loading = true
+      $scope.rangeObj = {loading:true}
 
       api.getResultsPage(
         {

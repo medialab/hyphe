@@ -304,4 +304,19 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+  .directive('rangeselector', [function(){
+    return {
+      restrict: 'E'
+      ,templateUrl: 'partials/rangeSelector.html'
+      ,scope: {
+        rangeObj: '='
+      }
+      ,link: function(scope, el, attrs) {
+        if(el.hasClass('center')){
+          el.find('.spinner-container').addClass('center')
+        }
+      }
+    }
+  }])
+
 ;

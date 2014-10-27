@@ -772,6 +772,16 @@ textarea.over-error{
 
 
 
+/* ==========================================================================
+   View: Prospect
+   ========================================================================== */
+.prospect-range-selector{
+  margin-top: 6px;
+}
+
+
+
+
 
 
 
@@ -816,6 +826,9 @@ textarea.over-error{
   padding: 6px;
   height: 88px;
 }
+.webentities-list-table .panel-heading-withrange{
+  height: 174px;
+}
 .webentities-list-table .search-ariane-string{
   padding-bottom: 6px;
   height: 40px;
@@ -829,7 +842,7 @@ textarea.over-error{
 .webentities-list-table .search-ariane-string-text .glyphicon{
   color: #BABABA;
 }
-.webentities-list-table .webentity-row{
+.webentities-list-table .webentity-row .webentity-row-selectable{
   cursor: pointer;
   -webkit-user-select: none; /* Chrome/Safari */        
      -moz-user-select: none; /* Firefox */
@@ -1097,4 +1110,25 @@ textarea.over-error{
   font-weight: 300;
   padding-left: 6px;
   margin-top: -10px;
+}
+
+
+
+
+
+/* ==========================================================================
+   Module: Range Selector
+   ========================================================================== */
+.range-selector-container{
+  height: 80px;
+
+  background-color: #FFF;
+  border: 1px solid #CCC;
+  border-radius: 4px;
+  width: 100%;
+  padding: 6px 12px;
+
+  -webkit-box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
+     -moz-box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
+          box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
 }
