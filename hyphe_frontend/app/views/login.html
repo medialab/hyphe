@@ -48,7 +48,7 @@
                 <h3>New Project</h3>
                 <br>
                 <div ng-if="!starting">
-                  <input type="text" class="form-control" ng-model="$parent.new_project_name" placeholder="Project Name" ng-press-enter="createCorpus()">
+                  <input type="text" class="form-control" ng-model="$parent.$parent.new_project_name" placeholder="Project Name" ng-press-enter="createCorpus()">
                   <br>
                   <div class="checkbox variations-checkbox">
                     <label>

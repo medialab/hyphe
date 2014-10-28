@@ -25,7 +25,7 @@ angular.module('hyphe.loginController', [])
 
     $scope.createCorpus = function(){
       var isValid = true
-
+      
       if($scope.new_project_name.length == 0){
         isValid = false
         $scope.new_project_message = 'A name is required'
