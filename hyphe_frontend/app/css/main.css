@@ -212,11 +212,16 @@ div.welcome-column h1{
 .project-list-container .item-name{
   font-size: 16px;
 }
+.project-list-container .item-status{
+  font-size: 12px;
+  font-weight: 300;
+}
 .project-list-container .item-stats{
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 300;
 }
 .project-list-container .item-date{
+  margin-top: 4px;
   font-size: 9px;
 }
 input.search-project{
@@ -238,6 +243,8 @@ div.welcome-column dt{
 div.welcome-column dd{
   margin-left:130px;
 }
+
+
 
 /* ==========================================================================
    View: Overview

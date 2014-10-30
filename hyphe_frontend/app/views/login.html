@@ -22,7 +22,9 @@
                   <div ng-if="corpusList !== undefined">
                     <div class="item" ng-repeat="corpus in corpusList|search:search_query:['name']" ng-click="selectCorpus(corpus.corpus_id)">
                       <div class="item-name">
-                        {{corpus.name}} <span class="glyphicon glyphicon-lock" ng-if="corpus.password"></span>
+                        <span class="item-status text-muted" ng-if="corpus.password"  tooltip="Password Protected"><span class="glyphicon glyphicon-lock"></span></span>
+                        {{corpus.name}}
+                        <span class="item-status text-muted" ng-if="corpus.ready"  tooltip="In Operation"><span class="glyphicon glyphicon-play"></span></span>
                       </div>
                       <div class="item-stats text-muted">
                         {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + '  web entities'}}
@@ -93,7 +95,7 @@
 
                 <br>
                 <div ng-if="!starting">
-                  <input type="password" class="form-control" ng-model="$parent.login_password" placeholder="Password" ng-press-enter="logIn()">
+                  <input type="password" class="form-control" ng-model="$parent.$parent.login_password" placeholder="Password" ng-press-enter="logIn()">
                   <button class="btn btn-primary btn-block" ng-click="logIn()">OPEN PROJECT</button>
 
                   <br>
