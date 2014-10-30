@@ -235,7 +235,7 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["webentities_undecided"] = 0
         self.corpora[corpus]["webentities_discovered"] = 0
         self.corpora[corpus]["tags"] = {}
-        self.corpora[corpus]["webentities_links"] = []
+        self.corpora[corpus]["webentities_links"] = None
         self.corpora[corpus]["webentities_ranks"] = {}
         self.corpora[corpus]["precision_exceptions"] = []
         self.corpora[corpus]["crawls"] = 0
@@ -1405,7 +1405,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not self.parent.corpus_ready(corpus) or self.corpora[corpus]['loop_running']:
             returnD(False)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
-        yield self.ramcache_webentities(corpus=corpus, corelinks=(not self.corpora[corpus]['webentities_links']))
+        yield self.ramcache_webentities(corpus=corpus, corelinks=(self.corpora[corpus]['webentities_links'] == None))
         crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
         if crashed:
             self.corpora[corpus]['loop_running'] = "Cleaning up crashed indexing"
@@ -1909,7 +1909,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(self.parent.corpus_error(corpus))
         s = time.time()
         logger.msg("Generating %s WebEntities network..." % outformat, system="INFO - %s" % corpus)
-        if self.corpora[corpus]['webentities_links'] == []:
+        if self.corpora[corpus]['webentities_links'] == None:
             links = yield self.msclients.loop.getWebEntityLinks(corpus=corpus)
             if is_error(links):
                 logger.msg(links['message'], system="ERROR - %s" % corpus)
