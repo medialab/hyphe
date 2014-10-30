@@ -211,7 +211,7 @@ angular.module('hyphe.listwebentitiesController', [])
         api.webentitiesMergeInto({
             oldWebentityId_list: list
             ,goodWebentityId: target
-            // ,mergeStartPages: false
+            ,mergeStartPages: true
           }
           ,function(data){
             reset()
