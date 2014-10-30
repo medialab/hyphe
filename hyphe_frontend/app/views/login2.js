@@ -34,6 +34,7 @@ angular.module('hyphe.login2Controller', [])
     }
 
     // Init
+    getStatus()
     loadCorpusList()
 
     function loadCorpusList(){
@@ -130,6 +131,18 @@ angular.module('hyphe.login2Controller', [])
       },function(data, status, headers, config){
         alert('Error')
       })
+    }
+
+    function getStatus(){
+      
+      api.globalStatus({},function(status){
+
+        console.log('Global Status', status.hyphe)
+      
+      }, function(){
+
+      })
+      
     }
 
 

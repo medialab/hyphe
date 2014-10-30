@@ -20,6 +20,8 @@ angular.module('hyphe.loginController', [])
     $scope.login_password = ''
     $scope.passwordProtected = false
 
+    $scope.freeSlots
+
     $scope.starting = false
     $scope.search_query = ''
 
@@ -71,6 +73,7 @@ angular.module('hyphe.loginController', [])
     }
 
     // Init
+    getStatus()
     loadCorpusList()
 
     function startCorpus(id, password){
@@ -150,6 +153,18 @@ angular.module('hyphe.loginController', [])
 
         $scope.starting = false
         $scope.new_project_message = 'Error starting corpus'
+
+      })
+      
+    }
+
+    function getStatus(){
+      
+      api.globalStatus({},function(status){
+
+        console.log('Global Status', status.hyphe)
+      
+      }, function(){
 
       })
       
