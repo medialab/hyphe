@@ -52,11 +52,11 @@
                   <br>
                   <div class="checkbox variations-checkbox">
                     <label>
-                      <input type="checkbox" ng-model="passwordProtected"> <span class="glyphicon glyphicon-lock"></span> Protected</span>
+                      <input type="checkbox" ng-model="$parent.$parent.passwordProtected"> <span class="glyphicon glyphicon-lock"></span> Protected</span>
                     </label>
                   </div>
-                  <input type="password" class="form-control" ng-model="$parent.$parent.new_project_password" placeholder="Password" ng-if="passwordProtected">
-                  <input type="password" class="form-control" ng-model="$parent.$parent.new_project_password_2" placeholder="Enter Password Again" ng-if="passwordProtected">
+                  <input type="password" class="form-control" ng-model="$parent.$parent.$parent.new_project_password" placeholder="Password" ng-if="passwordProtected">
+                  <input type="password" class="form-control" ng-model="$parent.$parent.$parent.new_project_password_2" placeholder="Enter Password Again" ng-if="passwordProtected">
                   <br>
                   <p ng-if="new_project_message.length > 0">
                     <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{new_project_message}}
