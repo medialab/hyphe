@@ -1372,7 +1372,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         s=time.time()
         n_WE = yield self.msclients.loop.createWebEntitiesFromCache(cache_id, corpus=corpus)
         if is_error(n_WE):
-            logger.msg(nb_WE['message'], system="ERROR - %s" % corpus)
+            logger.msg(n_WE['message'], system="ERROR - %s" % corpus)
             returnD(False)
         logger.msg("...%s web entities created in %s" % (n_WE, str(time.time()-s))+"s", system="INFO - %s" % corpus)
         self.corpora[corpus]['total_webentities'] += n_WE
