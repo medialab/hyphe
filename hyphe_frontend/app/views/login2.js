@@ -8,6 +8,7 @@ angular.module('hyphe.login2Controller', [])
 
     $scope.corpusList
     $scope.corpusList_byId = {}
+    $scope.globalStatus
 
     $scope.startCorpus = function(id, password){
       if(password){
@@ -138,7 +139,8 @@ angular.module('hyphe.login2Controller', [])
       api.globalStatus({},function(status){
 
         console.log('Global Status', status.hyphe)
-      
+        $scope.globalStatus = status.hyphe
+        
       }, function(){
 
       })
