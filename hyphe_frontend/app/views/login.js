@@ -20,7 +20,7 @@ angular.module('hyphe.loginController', [])
     $scope.login_password = ''
     $scope.passwordProtected = false
 
-    $scope.freeSlots
+    $scope.globalStatus = false
 
     $scope.starting = false
     $scope.search_query = ''
@@ -50,10 +50,12 @@ angular.module('hyphe.loginController', [])
     }
 
     $scope.selectCorpus = function(id){
-      $scope.uiMode = 'login'
-      $scope.corpus = $scope.corpusList_byId[id]
-      if(!$scope.corpus.password){
-        $scope.logIn()
+      if(!($scope.globalStatus && $scope.globalStatus.ports_left == 0 && !$scope.corpusList_byId[id].ready)){
+        $scope.uiMode = 'login'
+        $scope.corpus = $scope.corpusList_byId[id]
+        if(!$scope.corpus.password){
+          $scope.logIn()
+        }
       }
     }
 
@@ -163,7 +165,8 @@ angular.module('hyphe.loginController', [])
       api.globalStatus({},function(status){
 
         console.log('Global Status', status.hyphe)
-      
+        $scope.globalStatus = status.hyphe
+
       }, function(){
 
       })

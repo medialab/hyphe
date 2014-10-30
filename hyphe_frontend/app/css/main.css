@@ -206,9 +206,13 @@ div.welcome-column h1{
              select: none;
   cursor: pointer;
 }
-.project-list-container .item:hover{
+.project-list-container .item.item-blocked{
+  cursor: no-drop;
+}
+.project-list-container .item.item-ok:hover{
   background-color: #FCF9F6;
 }
+
 .project-list-container .item-name{
   font-size: 16px;
 }
