@@ -1501,9 +1501,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def ramcache_webentities(self, corelinks=False, corpus=DEFAULT_CORPUS):
         WEs = self.corpora[corpus]['webentities']
         deflist = []
+        also_links = test_bool_arg(corelinks)
         if WEs == [] or self.corpora[corpus]['recent_indexes'] or self.corpora[corpus]['last_links_loop'] > self.corpora[corpus]['last_WE_update']:
-            deflist.append(self.msclients.pool.getWebEntities(corpus=corpus))
-            if test_bool_arg(corelinks):
+            deflist.append(self.msclients.pool.getWebEntities(corpus=corpus, _nokeepalive=True))
+            if also_links:
                 logger.msg("Collecting WebEntities and WebEntityLinks...", system="INFO - %s" % corpus)
                 deflist.append(self.msclients.pool.getWebEntityLinks(corpus=corpus))
         if deflist:

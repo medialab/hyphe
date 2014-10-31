@@ -32,7 +32,7 @@ class LuceneCorpus(Thread):
 
     daemon = True
 
-    def __init__(self, factory, name, host="localhost", ram=256, timeout=3600, loglevel="INFO", quiet=False):
+    def __init__(self, factory, name, host="localhost", ram=256, keepalive=1800, loglevel="INFO", quiet=False):
         Thread.__init__(self)
         self.factory = factory
         self.status = "init"
@@ -49,7 +49,7 @@ class LuceneCorpus(Thread):
         self.client_pool = None
         self.client_loop = None
         self.lastcall = time.time()
-        self.timeout = timeout
+        self.keepalive = keepalive
         self.monitor = LoopingCall(self.__check_timeout__)
 
     def restart_thrift_clients(self, restart=True):
@@ -68,7 +68,7 @@ class LuceneCorpus(Thread):
 
     def __check_timeout__(self):
         delay = time.time() - self.lastcall
-        if self.status == "ready" and self.timeout < delay:
+        if self.status == "ready" and self.keepalive < delay:
             self.log("Stopping after %ss of inactivity" % int(delay))
             self.stop()
 
@@ -152,7 +152,7 @@ class LuceneCorpus(Thread):
           (self.name, self.port, self.loglevel)
         self.log("Starting MemoryStructure on port " + \
           "%s with %sMo ram for at least %ss (%sMo ram and %s ports left)" % \
-          (self.port, self.ram, self.timeout,
+          (self.port, self.ram, self.keepalive,
            self.factory.ram_free, len(self.factory.ports_free)))
         self.processus = subprocess.Popen(self.command.split(), stdout=subprocess.PIPE,
           stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
@@ -184,7 +184,7 @@ class LuceneCorpus(Thread):
                   msg.startswith("starting Thrift server"):
                     self.status = "ready"
                     self.lastcall = time.time()
-                    self.monitor.start(max(1,int(self.timeout/6)))
+                    self.monitor.start(max(1,int(self.keepalive/6)))
                     self.log("MemoryStructure ready")
                 elif ltype == "ERROR":
                     if msg.startswith("Lock obtain timed out") or \
@@ -215,6 +215,9 @@ class CorpusClient(object):
     def __safe_call__(self, call, type_client):
         def __safe_call(*args, **kwargs):
             client = None
+            keepalive = True
+            if "_nokeepalive" in kwargs:
+                keepalive = not kwargs.pop("_nokeepalive")
             try:
                 corpus = kwargs.pop("corpus")
             except:
@@ -226,7 +229,8 @@ class CorpusClient(object):
                   "status": self.factory.status_corpus(corpus),
                   "message": "Corpus is not started"})
                 if corpus in self.factory.corpora:
-                    self.factory.corpora[corpus].lastcall = time.time()
+                    if keepalive:
+                        self.factory.corpora[corpus].lastcall = time.time()
                     client = getattr(self.factory.corpora[corpus],
                       "client_%s" % type_client)
                     if fail["message"]["status"] == "error":
@@ -297,7 +301,7 @@ class CorpusFactory(object):
             return True
         if name in self.corpora:
             self.corpora[name].stop()
-            for arg in ["ram", "timeout"]:
+            for arg in ["ram", "keepalive"]:
                 if arg not in kwargs:
                     kwargs[arg] = getattr(self.corpora[name], arg)
             del(self.corpora[name])
@@ -338,7 +342,7 @@ if __name__ == '__main__':
     portrange = config['memoryStructure']['thrift.portrange']
     loglevel = config['memoryStructure']['log.level']
     factory = CorpusFactory(host=ad, port_range=portrange, max_ram=1000, loglevel=loglevel)
-    assert(factory.start_corpus("test", timeout=10))
+    assert(factory.start_corpus("test", keepalive=10))
     assert(factory.sync.ping(corpus="test")['code'] == 'fail')
     time.sleep(2)
     assert(factory.corpora["test"].status == "ready")
