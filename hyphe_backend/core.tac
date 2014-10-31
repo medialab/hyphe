@@ -139,7 +139,7 @@ class Core(jsonrpc.JSONRPC):
         if "phantom" in options:
             self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
         self.corpora[corpus]["options"].update(options)
-        yield self.update_corpus(corpus, ram_check=False)
+        yield self.update_corpus(corpus, force_ram=True)
         if redeploy:
             res = yield self.crawler.deploy_crawler(corpus)
             if is_error(res):
@@ -290,8 +290,8 @@ class Core(jsonrpc.JSONRPC):
         returnD(self.jsonrpc_test_corpus(corpus))
 
     @inlineCallbacks
-    def update_corpus(self, corpus=DEFAULT_CORPUS, ram_check=True):
-        if ram_check:
+    def update_corpus(self, corpus=DEFAULT_CORPUS, force_ram=False):
+        if not force_ram:
             self.corpora[corpus]["options"]["ram"] = self.msclients.corpora[corpus].ram
         yield self.db.update_corpus(corpus, {
           "options": self.corpora[corpus]["options"],
@@ -318,7 +318,7 @@ class Core(jsonrpc.JSONRPC):
                 if f in self.corpora[corpus] and self.corpora[corpus][f].running:
                     self.corpora[corpus][f].stop()
             if corpus in self.msclients.corpora:
-                yield self.update_corpus(corpus, ram_check=False)
+                yield self.update_corpus(corpus)
                 self.msclients.stop_corpus(corpus, quiet)
             for f in ["tags", "webentities", "webentities_links", "webentities_ranks", "precision_exceptions"]:
                 if f in self.corpora[corpus]:
@@ -1409,7 +1409,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
         if crashed:
             self.corpora[corpus]['loop_running'] = "Cleaning up crashed indexing"
-            logger.msg("Indexing job declared as running but probably crashed ,trying to restart it.", system="WARNING - %s" % corpus)
+            logger.msg("Indexing job declared as running but probably crashed, trying to restart it.", system="WARNING - %s" % corpus)
             yield self.db.update_jobs(corpus, crashed['_id'], {'indexing_status': indexing_statuses.BATCH_CRASHED})
             yield self.db.add_log(corpus, crashed['_id'], "INDEX_"+indexing_statuses.BATCH_CRASHED)
             self.corpora[corpus]['loop_running'] = None
