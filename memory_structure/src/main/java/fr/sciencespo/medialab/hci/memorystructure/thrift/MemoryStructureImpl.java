@@ -52,6 +52,8 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             logger.error(x.getMessage());
             x.printStackTrace();
             throw new TException(x.getMessage(), x);
+        } finally {
+            logger.info("closed");
         }
     }
 

@@ -164,7 +164,7 @@ class LuceneCorpus(Thread):
             try:
                 lts, ltype, lclass, lthread, msg = parse_log(line)
             except:
-                if "java.lang.OutOfMemoryError" in line:
+                if line.startswith("java.lang.OutOfMemoryError"):
                     if self.factory.ram_free >= 256:
                         self.log("Java heap space, trying to restart " + \
                           "with 256Mo more ram", True)
@@ -198,7 +198,7 @@ class LuceneCorpus(Thread):
                         pass
                     else:
                         self.log(msg)
-                elif msg == "shutting down":
+                elif msg == "closed":
                     if not self.stopping():
                         self.status = "stopping"
                         self.log(msg)
