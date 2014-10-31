@@ -108,6 +108,7 @@ class LuceneCorpus(Thread):
             while not subprocess.call(pscommand("grep"), stdout=fnull):
                 if time.time() > stoptime:
                     self.log("Couldn't stop existing corpus", True)
+                    self.stop()
                     return
         self.factory.start_corpus(self.name)
 
@@ -135,10 +136,12 @@ class LuceneCorpus(Thread):
             self.choose_port()
         if not self.port:
             self.log("Couldn't find a port to attach MemoryStructure to", True)
+            self.stop()
             return
         self.factory.ram_free -= self.ram
         if self.factory.ram_free < 0:
             self.log("Couldn't find enough ram to start MemoryStructure", True)
+            self.stop()
             return
         self.status = "started"
         size = min(128, max(32, int(self.ram/4)))
@@ -172,13 +175,13 @@ class LuceneCorpus(Thread):
                     else:
                         self.log("Not enough ram to increase corpus size, " + \
                           "trying to restart anyway", True)
-                    self.status = "restarting"
-                    self.factory.start_corpus(self.name)
+                    self.hard_restart()
                     break
             # skip tracebacks
                 elif line.startswith('\tat ') or line.startswith('java.'):
                     continue
                 self.log(line, True)
+                self.stop()
             else:
                 if lclass=="LRUIndex" and \
                   msg.startswith("starting Thrift server"):
@@ -204,6 +207,7 @@ class LuceneCorpus(Thread):
                         self.log(msg)
         if not self.stopping():
             self.log("MemoryStructure crashed", True)
+            self.stop()
 
 class CorpusClient(object):
 
@@ -268,7 +272,6 @@ class CorpusFactory(object):
         if error and name in self.corpora:
             self.corpora[name].status = "error"
             self.corpora[name].error = msg
-            self.corpora[name].stop()
 
     def status_corpus(self, name, simplify=False):
         if name not in self.corpora:
