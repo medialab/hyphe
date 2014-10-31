@@ -3,8 +3,8 @@
 
 import os, time, inspect
 import subprocess
+import socket
 from sys import stdout
-from socket import socket
 from threading import Thread
 from random import shuffle
 from twisted.python import log
@@ -81,6 +81,10 @@ class LuceneCorpus(Thread):
     def stop(self):
         if self.monitor.running:
             self.monitor.stop()
+        if self.port and self.port not in self.factory.ports_free:
+            self.factory.ports_free.append(self.port)
+            self.factory.ram_free += self.ram
+            self.port = None
         if self.stopping():
             return
         self.status = "error" if self.error else "stopping"
@@ -92,9 +96,6 @@ class LuceneCorpus(Thread):
             self.client_pool.close()
         if self.processus and not self.processus.poll():
             self.processus.terminate()
-        if self.port and self.port not in self.factory.ports_free:
-            self.factory.ports_free.append(self.port)
-            self.factory.ram_free += self.ram
         self.log("MemoryStructure stopped")
         if not self.error:
             self.status = "stopped"
@@ -113,26 +114,24 @@ class LuceneCorpus(Thread):
         self.factory.start_corpus(self.name)
 
     def choose_port(self):
-        self.port = 0
         address = self.host.replace('localhost', '')
         ports = list(self.factory.ports_free)
         shuffle(ports)
+        s = socket.socket()
         for port in ports:
             try:
-                s = socket()
-                s.bind((address, port))
+                s.connect((address, port))
                 s.close()
+            except socket.error:
                 self.port = port
                 self.factory.ports_free.remove(port)
                 break
-            except:
-                pass
 
     def run(self):
+        self.port = 0
         self.error = None
-        self.choose_port()
-        if not self.port:
-            time.sleep(1)
+        stoptime = time.time() + 5
+        while not self.port and time.time() < stoptime:
             self.choose_port()
         if not self.port:
             self.log("Couldn't find a port to attach MemoryStructure to", True)
@@ -252,7 +251,7 @@ class CorpusClient(object):
 class CorpusFactory(object):
 
     def __init__(self, host="localhost", loglevel="INFO",
-      port_range=[13500,13550], max_ram=2048):
+      port_range=range(13500,13520), max_ram=2048):
         self.corpora = {}
         self.host = host
         self.loglevel = loglevel
