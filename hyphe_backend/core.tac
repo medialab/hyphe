@@ -155,12 +155,16 @@ class Core(jsonrpc.JSONRPC):
         returnD(format_result(self.corpora[corpus]["options"]))
 
     def corpus_ready(self, corpus):
-        return corpus in self.corpora and self.msclients.test_corpus(corpus)
+        if not self.msclients.test_corpus(corpus):
+            return False
+        if corpus not in self.corpora:
+            self.prepare_corpus(corpus)
+        return True
 
     def corpus_error(self, corpus=None):
         if not corpus:
             return format_error("Too many instances running already, please try again later")
-        if corpus in self.corpora and not self.msclients.starting_corpus(corpus):
+        if corpus in self.corpora and not self.msclients.starting_corpus(corpus) and not self.msclients.stopped_corpus(corpus):
             reactor.callLater(0, self.stop_corpus, corpus, quiet=True)
         return format_error(self.jsonrpc_test_corpus(corpus)["result"])
 
@@ -270,7 +274,14 @@ class Core(jsonrpc.JSONRPC):
         res = self.msclients.start_corpus(corpus, quiet, ram=corpus_conf['options']['ram'])
         if not res:
             returnD(format_error(self.jsonrpc_test_corpus(corpus)["result"]))
+        yield self.prepare_corpus(corpus, corpus_conf, noloop)
+        returnD(self.jsonrpc_test_corpus(corpus))
+
+    @inlineCallbacks
+    def prepare_corpus(self, corpus=DEFAULT_CORPUS, corpus_conf=None, noloop=False):
         self.init_corpus(corpus)
+        if not corpus_conf:
+            corpus_conf = yield self.db.get_corpus(corpus)
         self.corpora[corpus]["name"] = corpus_conf["name"]
         self.corpora[corpus]["options"] = corpus_conf["options"]
         self.corpora[corpus]["total_webentities"] = corpus_conf['total_webentities']
@@ -287,7 +298,6 @@ class Core(jsonrpc.JSONRPC):
             reactor.callLater(5, self.corpora[corpus]['jobs_loop'].start, 1, False)
         yield self.store._init_loop(corpus, noloop=noloop)
         yield self.update_corpus(corpus)
-        returnD(self.jsonrpc_test_corpus(corpus))
 
     @inlineCallbacks
     def update_corpus(self, corpus=DEFAULT_CORPUS, force_ram=False):
