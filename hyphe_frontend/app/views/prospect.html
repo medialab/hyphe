@@ -78,30 +78,30 @@
                         <td class="cell-cited">{{obj.webentity.indegree}}</td>
                         <td class="cell-cited">
                           
-                          <div class="btn-group ">
+                          <div class="btn-group">
 
                             <label
                               class="btn btn-default btn-xs"
-                              ng-model="obj.statuses.in"
+                              ng-model="obj.status"
+                              btn-radio="'IN'"
                               ng-change="setStatus(obj, 'IN')"
                               ng-class="{disabled:loading}"
-                              btn-checkbox
                             >IN</label>
 
                             <label
                               class="btn btn-default btn-xs"
-                              ng-model="obj.statuses.out"
+                              ng-model="obj.status"
+                              btn-radio="'OUT'"
                               ng-change="setStatus(obj, 'OUT')"
                               ng-class="{disabled:loading}"
-                              btn-checkbox
                             >OUT</label>
 
                             <label
                               class="btn btn-default btn-xs"
-                              ng-model="obj.statuses.undecided"
+                              ng-model="obj.status"
+                              btn-radio="'UNDECIDED'"
                               ng-change="setStatus(obj, 'UNDECIDED')"
                               ng-class="{disabled:loading}"
-                              btn-checkbox
                             >UND.</label>
 
                           </div>

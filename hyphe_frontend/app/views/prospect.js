@@ -33,15 +33,13 @@ angular.module('hyphe.prospectController', [])
           ,page: $scope.paginationPage - 1
         }
         ,function(result){
-          console.log(result)
-
           $scope.currentSearchToken = result.token
 
           $scope.list = result.webentities.map(function(we, i){
             var obj = {
               id:i
               ,webentity:we
-              ,statuses: {in:we.status == 'IN', out:we.status == 'OUT', undecided:we.status == 'UNDECIDED', discovered:'DISCOVERED'}
+              ,status: we.status  // object status is the status visible in UI
             }
             return obj
           })
@@ -90,7 +88,6 @@ angular.module('hyphe.prospectController', [])
           ,page: $scope.paginationPage - 1
         }
         ,function(result){
-          console.log(result)
           $scope.paginationPage = 1
 
           $scope.fullListLength = result.total_results
@@ -100,7 +97,7 @@ angular.module('hyphe.prospectController', [])
             var obj = {
               id:i
               ,webentity:we
-              ,statuses: {in:we.status == 'IN', out:we.status == 'OUT', undecided:we.status == 'UNDECIDED', discovered:'DISCOVERED'}
+              ,status: we.status  // object status is the status visible in UI
             }
             return obj
           })
@@ -156,12 +153,6 @@ angular.module('hyphe.prospectController', [])
     }
 
     $scope.setStatus = function(obj, status){
-      for(var s in obj.statuses){
-        if(s != status.toLowerCase()){
-          obj.statuses[s] = false
-        }
-      }
-      console.log('Set status')
       api.webentitiesSetStatus(
         {
           webentityId_list: [obj.webentity.id]
@@ -169,20 +160,13 @@ angular.module('hyphe.prospectController', [])
         }
         ,function(result){
           // We do nothing in case of success, since we already updated the UI
-          console.log('...status set')
         }
         ,function(){
-          console.log('error')
           // In case of error, we undo the modification in the UI
-          obj.statuses.in = false
-          obj.statuses.out = false
-          obj.statuses.undecided = false
-          obj.statuses.discovered = true
-
+          obj.status = 'discovered'
           $scope.status = {message: 'Error setting status', background:'danger'}
         }
       )
-
     }
 
     // Init
