@@ -83,7 +83,7 @@
                             <label
                               class="btn btn-default btn-xs"
                               ng-model="obj.statuses.in"
-                              ng-change="setStatus('IN')"
+                              ng-change="setStatus(obj, 'IN')"
                               ng-class="{disabled:loading}"
                               btn-checkbox
                             >IN</label>
@@ -91,7 +91,7 @@
                             <label
                               class="btn btn-default btn-xs"
                               ng-model="obj.statuses.out"
-                              ng-change="setStatus('OUT')"
+                              ng-change="setStatus(obj, 'OUT')"
                               ng-class="{disabled:loading}"
                               btn-checkbox
                             >OUT</label>
@@ -99,7 +99,7 @@
                             <label
                               class="btn btn-default btn-xs"
                               ng-model="obj.statuses.undecided"
-                              ng-change="setStatus('UNDECIDED')"
+                              ng-change="setStatus(obj, 'UNDECIDED')"
                               ng-class="{disabled:loading}"
                               btn-checkbox
                             >UND.</label>
