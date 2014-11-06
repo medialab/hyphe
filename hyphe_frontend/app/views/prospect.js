@@ -2,8 +2,8 @@
 
 angular.module('hyphe.prospectController', [])
 
-  .controller('prospect', ['$scope', 'api', 'utils', 'corpus'
-  ,function($scope, api, utils, corpus) {
+  .controller('prospect', ['$scope', 'api', 'utils', 'corpus', 'store', '$location'
+  ,function($scope, api, utils, corpus, store, $location) {
     $scope.currentPage = 'prospect'
     $scope.corpusName = corpus.getName()
 
