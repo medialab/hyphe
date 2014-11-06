@@ -98,7 +98,7 @@ label.btn.btn-default.disabled.active{
   background-color: #F9F3EA;
 }
 .flatpanel .flatpanel-body{
-  background-color: #f5f5f5;
+  background-color: #F8F8F8;
   /*padding: 12px;*/
 }
 .flatpanel .flatpanel-textblock{
@@ -756,17 +756,9 @@ textarea.over-error{
 /* ==========================================================================
    View: Web Entities List
    ========================================================================== */
-.webentities-list-actions{
-  margin-top: 12px;
-}
 .selected-webentities-container{
-  /*border: 1px solid #DDD;*/
-  overflow-y: scroll;
-  height: 200px;
-}
-.webentities-list-actions .panel-body{
-  padding-left: 0px;
-  padding-right: 0px;
+  overflow-y: auto;
+  max-height: 200px;
 }
 .selected-webentities-container table{
   width: 100%;
@@ -781,18 +773,7 @@ textarea.over-error{
 .selected-webentities-container table td.remove-button{
   width: 20px;
 }
-.webentities-list-actions h3{
-  margin-top: 0px;
-  margin-bottom: 12px;
-}
-.webentities-list-actions .actions-container .row{
-  padding-left: 55px;
-  margin-bottom: 12px;
-  padding-right: 15px;
-}
-.webentities-list-actions .actions-container .big-bullet-number{
-  margin-left: -40px;
-}
+
 
 
 
@@ -887,7 +868,13 @@ textarea.over-error{
                select: none;
 }
 .webentities-list-table tr.bg-selected{
-  background-color: #EFEBE8;
+  background-color: #EEEDFF;
+}
+.selection-background{
+  background-color: #EEEDFF;
+}
+.flatpanel-body form.action{
+  margin-top: 6px;
 }
 
 
