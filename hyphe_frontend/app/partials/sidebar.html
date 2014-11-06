@@ -52,10 +52,10 @@
 
                   <li ng-if="currentPage=='newCrawl' || currentPage=='checkStartPages' || currentPage=='scheduleCrawls'" class="spacer"></li>
                   
-                  <!-- Web entities list -->
-                  <li ng-class="{active: currentPage=='listWebentities'}">
-                    <a href="#/listWebentities">
-                      <table><tr><td><span class="symbol">3</span></td><td>LIST WEB ENTITIES</td></tr></table>
+                  <!-- Prospect -->
+                  <li ng-class="{active: currentPage=='prospect'}">
+                    <a href="#/prospect">
+                      <table><tr><td><span class="symbol">3</span></td><td>PROSPECT</td></tr></table>
                     </a>
                   </li>
                   
@@ -67,6 +67,14 @@
 
                   <li class="spacer"></li>
 
+                  <!-- Web entities list -->
+                  <li ng-class="{active: currentPage=='listWebentities'}">
+                    <a href="#/listWebentities">
+                      <table><tr><td><span class="symbol">&nbsp;</span></td><td>LIST WEB ENTITIES</td></tr></table>
+                    </a>
+                  </li>
+
+                  <!-- Visualize Network -->
                   <li ng-class="{active: currentPage=='network'}">
                     <a href="#/network">
                       <table><tr><td><span class="symbol">&nbsp;</span></td><td>VISUALIZE NETWORK</td></tr></table>
