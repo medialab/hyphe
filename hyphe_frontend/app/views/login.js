@@ -89,7 +89,11 @@ angular.module('hyphe.loginController', [])
       },function(data, status, headers, config){
         
         $scope.starting = false
-        $scope.login_message = 'Wrong Password'
+        if(data && data[0] && data[0].message.match(/^Wrong auth.*/)){
+          $scope.login_message = 'Wrong Password'
+        } else {
+          $scope.login_message = 'An error occurred'
+        }
 
       })
     }
