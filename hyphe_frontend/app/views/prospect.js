@@ -25,6 +25,11 @@ angular.module('hyphe.prospectController', [])
     $scope.setToOutCollapsed = true
     $scope.setToUndecidedCollapsed = true
 
+    $scope.setIndex = {}
+    $scope.setToIn = 0
+    $scope.setToOut = 0
+    $scope.setToUndecided = 0
+
     $scope.pageChanged = function(){
       
       $scope.status = {message: 'Loading'}
@@ -116,33 +121,6 @@ angular.module('hyphe.prospectController', [])
       )
     }
 
-    $scope.toggleRow = function(rowId){
-      var obj = $scope.list[rowId]
-      if(obj.checked){
-        obj.checked = false
-        checkedList_remove(obj.webentity.id)
-      } else {
-        obj.checked = true
-        checkedList_add(obj.webentity.id, obj.webentity)
-      }
-    }
-
-    $scope.uncheck = function(weId){
-      checkedList_remove(weId)
-      $scope.list.some(function(obj){
-        if(obj.webentity.id == weId){
-          obj.checked = false
-          return true
-        }
-      })
-    }
-
-    $scope.uncheckAll = function(){
-      while($scope.checkedList.length > 0){
-        $scope.uncheck($scope.checkedList[0])
-      }
-    }
-
     $scope.doQuery = function(){
       if(!$scope.loading){
         var query = cleanQuery($scope.query)
@@ -168,9 +146,13 @@ angular.module('hyphe.prospectController', [])
         ,function(){
           // In case of error, we undo the modification in the UI
           obj.status = 'discovered'
+          delete $scope.setIndex[obj.webentity.id]
           $scope.status = {message: 'Error setting status', background:'danger'}
         }
       )
+
+      $scope.setIndex[obj.webentity.id] = {webentity: obj.webentity, status: status}
+      updateStatusCounts()
     }
 
     // Init
@@ -190,6 +172,27 @@ angular.module('hyphe.prospectController', [])
       $scope.selected_mergeTarget = 'none'
 
       $scope.doQuery()
+    }
+
+    function updateStatusCounts(){
+      $scope.setToIn = 0
+      $scope.setToOut = 0
+      $scope.setToUndecided = 0
+
+      for(var weid in $scope.setIndex){
+        var o = $scope.setIndex[weid]
+        switch(o.status){
+          case('IN'):
+            $scope.setToIn++
+            break
+          case('OUT'):
+            $scope.setToOut++
+            break
+          case('UNDECIDED'):
+            $scope.setToUndecided++
+            break
+        }
+      }
     }
 
     var escapedChars = ['\\', '+', '-', '!', '(', ')', ':', '^', '[', ']', '{', '}', '~', '*', '?']
