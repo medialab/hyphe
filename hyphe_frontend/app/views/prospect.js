@@ -21,6 +21,10 @@ angular.module('hyphe.prospectController', [])
     $scope.query
     $scope.lastQuery
 
+    $scope.setToInCollapsed = false
+    $scope.setToOutCollapsed = true
+    $scope.setToUndecidedCollapsed = true
+
     $scope.pageChanged = function(){
       
       $scope.status = {message: 'Loading'}

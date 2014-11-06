@@ -81,6 +81,29 @@ label.btn.btn-default.disabled.active{
 
 
 
+/* ==========================================================================
+   Flat Panel
+   ========================================================================== */
+.flatpanel{
+  background-color: #EFEBE8;
+  margin-bottom: 12px;
+}
+.flatpanel .flatpanel-heading{
+  padding: 12px;
+}
+.flatpanel .flatpanel-heading.flatpanel-clickable{
+  cursor: pointer;
+}
+.flatpanel .flatpanel-heading.flatpanel-clickable:hover{
+  background-color: #F9F3EA;
+}
+.flatpanel .flatpanel-body{
+  background-color: #f5f5f5;
+  padding: 12px;
+}
+
+
+
 
 
 /* ==========================================================================
