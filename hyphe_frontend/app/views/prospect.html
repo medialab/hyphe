@@ -152,9 +152,37 @@
                     </div>
                   </div>
                   <div class="flatpanel-body" collapse="setToInCollapsed">
-                    Blabli
 
-                    blabla
+                    <div class="flatpanel-textblock text-muted" ng-if="setToIn == 0">empty</div>
+
+                    <div class="selected-webentities-container" ng-if="setToIn > 0">
+                      <table>
+                        <tr
+                          ng-repeat="(k,obj) in setIndex"
+                          ng-if="obj.status == 'IN'"
+                        >
+                          <td class="webentity-name">
+                            {{obj.webentity.name}}
+                          </td>
+                          <td class="remove-button">
+                            <button
+                              class="btn btn-xs btn-link"
+                              ng-click="removeFromSetIndex(k)"
+                            > 
+                              <span class="glyphicon glyphicon-remove"></span>
+                            </button>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+
+                    <div class="flatpanel-textblock" ng-if="setToIn > 0">
+                      <button
+                        class="btn btn-default"
+                        ng-click="doCrawl('IN')"
+                      >CRAWL</button>
+                    </div>
+
                   </div>
                 </div>
 
@@ -167,6 +195,37 @@
                     </div>
                   </div>
                   <div class="flatpanel-body" collapse="setToOutCollapsed">
+                    
+                    <div class="flatpanel-textblock text-muted" ng-if="setToOut == 0">empty</div>
+
+                    <div class="selected-webentities-container" ng-if="setToOut > 0">
+                      <table>
+                        <tr
+                          ng-repeat="(k,obj) in setIndex"
+                          ng-if="obj.status == 'OUT'"
+                        >
+                          <td class="webentity-name">
+                            {{obj.webentity.name}}
+                          </td>
+                          <td class="remove-button">
+                            <button
+                              class="btn btn-xs btn-link"
+                              ng-click="removeFromSetIndex(k)"
+                            > 
+                              <span class="glyphicon glyphicon-remove"></span>
+                            </button>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+
+                    <div class="flatpanel-textblock" ng-if="setToOut > 0">
+                      <button
+                        class="btn btn-default"
+                        ng-click="doCrawl('OUT')"
+                      >CRAWL</button>
+                    </div>
+
                   </div>
                 </div>
 
@@ -179,6 +238,37 @@
                     </div>
                   </div>
                   <div class="flatpanel-body" collapse="setToUndecidedCollapsed">
+                    
+                    <div class="flatpanel-textblock text-muted" ng-if="setToUndecided == 0">empty</div>
+
+                    <div class="selected-webentities-container" ng-if="setToUndecided > 0">
+                      <table>
+                        <tr
+                          ng-repeat="(k,obj) in setIndex"
+                          ng-if="obj.status == 'UNDECIDED'"
+                        >
+                          <td class="webentity-name">
+                            {{obj.webentity.name}}
+                          </td>
+                          <td class="remove-button">
+                            <button
+                              class="btn btn-xs btn-link"
+                              ng-click="removeFromSetIndex(k)"
+                            > 
+                              <span class="glyphicon glyphicon-remove"></span>
+                            </button>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+
+                    <div class="flatpanel-textblock" ng-if="setToUndecided > 0">
+                      <button
+                        class="btn btn-default"
+                        ng-click="doCrawl('UNDECIDED')"
+                      >CRAWL</button>
+                    </div>
+
                   </div>
                 </div>
 

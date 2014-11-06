@@ -147,12 +147,44 @@ angular.module('hyphe.prospectController', [])
           // In case of error, we undo the modification in the UI
           obj.status = 'discovered'
           delete $scope.setIndex[obj.webentity.id]
+          updateStatusCounts()
           $scope.status = {message: 'Error setting status', background:'danger'}
         }
       )
 
       $scope.setIndex[obj.webentity.id] = {webentity: obj.webentity, status: status}
       updateStatusCounts()
+    }
+
+    $scope.removeFromSetIndex = function(id){
+      delete $scope.setIndex[id]
+      updateStatusCounts()
+    }
+
+    $scope.doCrawl = function(status){
+
+      function buildObj(we){
+        return {
+            webentity: we
+          }
+      }
+      var list = []
+      for(var id in $scope.setIndex){
+        if($scope.setIndex[id].status == status)
+          list.push(buildObj($scope.setIndex[id].webentity))
+      }
+      
+      // Remove doublons
+      list = utils.extractCases(list, function(obj){
+        return obj.webentity.id
+      })
+
+      if(list.length > 0){
+        store.set('webentities_toCrawl', list)
+        $location.path('/checkStartPages')
+      } else {
+        $scope.status = {message:'No Web Entity to send', background:'danger'}
+      }
     }
 
     // Init
@@ -179,8 +211,8 @@ angular.module('hyphe.prospectController', [])
       $scope.setToOut = 0
       $scope.setToUndecided = 0
 
-      for(var weid in $scope.setIndex){
-        var o = $scope.setIndex[weid]
+      for(var id in $scope.setIndex){
+        var o = $scope.setIndex[id]
         switch(o.status){
           case('IN'):
             $scope.setToIn++

@@ -99,6 +99,9 @@ label.btn.btn-default.disabled.active{
 }
 .flatpanel .flatpanel-body{
   background-color: #f5f5f5;
+  /*padding: 12px;*/
+}
+.flatpanel .flatpanel-textblock{
   padding: 12px;
 }
 
@@ -757,7 +760,7 @@ textarea.over-error{
   margin-top: 12px;
 }
 .selected-webentities-container{
-  border: 1px solid #DDD;
+  /*border: 1px solid #DDD;*/
   overflow-y: scroll;
   height: 200px;
 }
@@ -776,7 +779,7 @@ textarea.over-error{
   padding: 6px;
 }
 .selected-webentities-container table td.remove-button{
-  width: 80px;
+  width: 20px;
 }
 .webentities-list-actions h3{
   margin-top: 0px;
