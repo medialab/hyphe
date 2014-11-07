@@ -62,6 +62,8 @@ for a in sys.argv[startargs:]:
                 args.append([])
             else:
                 args.append([a])
+        elif a == "False" or a == "True":
+            args.append(eval(a))
         else:
             args.append(a)
         is_array = False
