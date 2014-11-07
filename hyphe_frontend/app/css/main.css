@@ -82,6 +82,15 @@ label.btn.btn-default.disabled.active{
 
 
 /* ==========================================================================
+   Modifying Bootstrap Panel
+   ========================================================================== */
+.panel-heading.hyphe-gray{
+  background-color: #EFEBE8;
+}
+
+
+
+/* ==========================================================================
    Flat Panel
    ========================================================================== */
 .flatpanel{
@@ -200,6 +209,9 @@ label.btn.btn-default.disabled.active{
     padding-right: 15px;
   }
 }
+
+
+
 
 
 
@@ -868,10 +880,10 @@ textarea.over-error{
                select: none;
 }
 .webentities-list-table tr.bg-selected{
-  background-color: #EEEDFF;
+  background-color: #EAEAFF;
 }
 .selection-background{
-  background-color: #EEEDFF;
+  background-color: #EAEAFF;
 }
 .flatpanel-body form.action{
   margin-top: 6px;
