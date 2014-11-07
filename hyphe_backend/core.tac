@@ -271,6 +271,7 @@ class Core(jsonrpc.JSONRPC):
         if self.factory_full():
             returnD(self.corpus_error())
 
+        yield self.db.init_corpus_indexes(corpus)
         res = self.msclients.start_corpus(corpus, quiet, ram=corpus_conf['options']['ram'])
         if not res:
             returnD(format_error(self.jsonrpc_test_corpus(corpus)["result"]))
@@ -737,7 +738,6 @@ class Crawler(jsonrpc.JSONRPC):
             returnD(canceljobs)
         yield self.db.drop_corpus_collections(corpus)
         if recreate:
-            yield self.db.init_corpus_indexes(corpus)
             self.corpora[corpus]['jobs_loop'].start(10, False)
         returnD(format_result('Crawling database reset.'))
 
