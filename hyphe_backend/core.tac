@@ -214,13 +214,16 @@ class Core(jsonrpc.JSONRPC):
                 self.corpora[corpus]["options"].update(options)
             except Exception as e:
                 returnD(format_error(e))
-
+        if not quiet:
+            logger.msg("New corpus created", system="INFO - %s" % corpus)
         yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"])
         try:
             res = yield self.crawler.deploy_crawler(corpus, quiet=quiet)
-        except:
+        except Exception as e:
+            logger.msg("Could not deploy crawler for new corpus: %s %s" % (type(e), e), system="ERROR - %s" % corpus)
             returnD(format_error("Could not deploy crawler for corpus"))
         if not res:
+            logger.msg("Could not deploy crawler for new corpus", system="ERROR - %s" % corpus)
             returnD(res)
         res = yield self.start_corpus(corpus, password=password, noloop=noloop, quiet=quiet)
         returnD(res)
@@ -270,8 +273,12 @@ class Core(jsonrpc.JSONRPC):
         if corpus_conf['password'] and corpus_conf['password'] != salt(password):
             returnD(format_error("Wrong auth for password-protected corpus %s" % corpus))
         if self.factory_full():
+            if not quiet:
+                logger.msg("Could not start extra corpus, all slots busy", system="WARNING - %s" % corpus)
             returnD(self.corpus_error())
 
+        if not quiet:
+            logger.msg("Starting corpus...", system="INFO - %s" % corpus)
         yield self.db.init_corpus_indexes(corpus)
         res = self.msclients.start_corpus(corpus, quiet, ram=corpus_conf['options']['ram'])
         if not res:
@@ -339,6 +346,8 @@ class Core(jsonrpc.JSONRPC):
         res = self.jsonrpc_test_corpus(corpus)
         if "message" in res["result"]:
             res["result"]["message"] = "Corpus stopped"
+        if is_error(res):
+            logger.msg("Could not stop corpus: %s" % res, system="ERROR - %s" % corpus)
         returnD(res)
 
     @inlineCallbacks
@@ -363,6 +372,8 @@ class Core(jsonrpc.JSONRPC):
     @inlineCallbacks
     def reinitialize(self, corpus=DEFAULT_CORPUS, noloop=False, quiet=False):
         """Reinitializes both crawl jobs and memory structure."""
+        if not quiet:
+            logger.msg("Resetting corpus...", system="INFO - %s" % corpus)
         if corpus in self.corpora:
             if self.corpora[corpus]["stats_loop"].running:
                 self.corpora[corpus]["stats_loop"].stop()
@@ -374,11 +385,13 @@ class Core(jsonrpc.JSONRPC):
         yield self.db.queue(corpus).drop(safe=True)
         res = yield self.crawler.reinitialize(corpus, recreate=(not noloop), quiet=quiet)
         if is_error(res):
+            logger.msg("Problem while reinitializing crawler... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
         self.init_corpus(corpus)
         yield self.db.queue(corpus).drop(safe=True)
         res = yield self.store.reinitialize(corpus, noloop=noloop, quiet=quiet)
         if is_error(res):
+            logger.msg("Problem while reinitializing memory structure... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
         returnD(format_result('Memory structure and crawling database contents emptied.'))
 
@@ -387,6 +400,8 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def destroy_corpus(self, corpus=DEFAULT_CORPUS, quiet=False):
+        if not quiet:
+            logger.msg("Destroying corpus...", system="INFO - %s" % corpus)
         res = yield self.reinitialize(corpus, noloop=True, quiet=quiet)
         if is_error(res):
             returnD(res)
@@ -401,10 +416,11 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_clear_all(self):
+        logger.msg("CLEAR_ALL: destroying all corpora...", system="INFO")
         corpora = yield self.db.list_corpus(fields=['_id', 'password'])
-        results = yield DeferredList([self.delete_corpus(corpus) for corpus in corpora], consumeErrors=True)
-        for bl, res in results:
-            if not bl or is_error(res):
+        for corpus in corpora:
+            res = yield self.delete_corpus(corpus)
+            if is_error(res):
                 returnD(res)
         returnD(format_result("All corpora and databases cleaned up"))
 
@@ -717,7 +733,7 @@ class Crawler(jsonrpc.JSONRPC):
         proj = corpus_project(corpus)
         res = yield self.send_scrapy_query("delproject", {"project": proj})
         if is_error(res):
-            logger.msg("Couldn't destroy scrapyd spider", system="ERROR - %s" % corpus)
+            logger.msg("Couldn't destroy scrapyd spider: %s" % res, system="ERROR - %s" % corpus)
             returnD(format_error(res))
         if not quiet:
             logger.msg("Successfully destroyed crawler", system="INFO - %s" % corpus)
