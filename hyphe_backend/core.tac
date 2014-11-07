@@ -252,6 +252,7 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["last_WE_update"] = now
         self.corpora[corpus]["last_index_loop"] = now
         self.corpora[corpus]["last_links_loop"] = now
+        self.corpora[corpus]["stats_loop"] = LoopingCall(self.store.save_webentities_stats, corpus)
         self.corpora[corpus]["index_loop"] = LoopingCall(self.store.index_batch_loop, corpus)
         self.corpora[corpus]["jobs_loop"] = LoopingCall(self.refresh_jobs, corpus)
 
@@ -325,7 +326,7 @@ class Core(jsonrpc.JSONRPC):
     @inlineCallbacks
     def stop_corpus(self, corpus=DEFAULT_CORPUS, quiet=False):
         if corpus in self.corpora:
-            for f in ["jobs_loop", "index_loop"]:
+            for f in ["jobs_loop", "index_loop", "stats_loop"]:
                 if f in self.corpora[corpus] and self.corpora[corpus][f].running:
                     self.corpora[corpus][f].stop()
             if corpus in self.msclients.corpora:
@@ -363,6 +364,8 @@ class Core(jsonrpc.JSONRPC):
     def reinitialize(self, corpus=DEFAULT_CORPUS, noloop=False, quiet=False):
         """Reinitializes both crawl jobs and memory structure."""
         if corpus in self.corpora:
+            if self.corpora[corpus]["stats_loop"].running:
+                self.corpora[corpus]["stats_loop"].stop()
             if self.corpora[corpus]["index_loop"].running:
                 self.corpora[corpus]["index_loop"].stop()
             if self.corpora[corpus]["jobs_loop"].running:
@@ -886,6 +889,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not noloop:
             reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
             reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
+            reactor.callLater(30, self.corpora[corpus]['stats_loop'].start, 300, True)
         yield self.ensureDefaultCreationRuleExists(corpus, quiet=noloop)
 
     @inlineCallbacks
@@ -994,6 +998,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(self.parent.corpus_error(corpus))
         if not quiet:
             logger.msg("Empty memory structure content", system="INFO - %s" % corpus)
+        if self.corpora[corpus]['stats_loop'].running:
+            self.corpora[corpus]['stats_loop'].stop()
         while self.corpora[corpus]['loop_running']:
             if self.corpora[corpus]['index_loop'].running:
                 self.corpora[corpus]['index_loop'].stop()
@@ -1547,6 +1553,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
             self.corpora[corpus]['loop_running'] = False
             logger.msg("...ramcached.", system="INFO - %s" % corpus)
         returnD(WEs)
+
+    @inlineCallbacks
+    def save_webentities_stats(self, corpus=DEFAULT_CORPUS):
+        yield self.db.save_stats(corpus, self.corpora[corpus])
+
+    @inlineCallbacks
+    def jsonrpc_get_webentities_stats(self, corpus=DEFAULT_CORPUS):
+        res = yield self.db.get_stats(corpus)
+        returnD(res)
 
     def jsonrpc_get_webentity(self, we_id, corpus=DEFAULT_CORPUS):
         return self.jsonrpc_get_webentities([we_id], corpus=corpus)

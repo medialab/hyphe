@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from txmongo import MongoConnection, connection as mongo_connection
 mongo_connection._Connection.noisy = False
@@ -91,6 +90,7 @@ class MongoDB(object):
         yield self.jobs(corpus).ensure_index(sortasc('webentity_id') + sortasc("crawling_status") + sortasc("indexing_status") + sortasc('created_at'), background=True, safe=True)
         yield self.jobs(corpus).ensure_index(sortasc('crawling_status') + sortasc('indexing_status') + sortasc('created_at'), background=True, safe=True)
         yield self.queries(corpus).ensure_index(sortasc('_id'), background=True, safe=True)
+        yield self.stats(corpus).ensure_index(sortasc('timestamp'), background=True, safe=True)
 
     def _get_coll(self, corpus, name):
         return self.db["%s.%s" % (corpus, name)]
@@ -105,6 +105,8 @@ class MongoDB(object):
         return self._get_coll(corpus, "logs")
     def queries(self, corpus):
         return self._get_coll(corpus, "queries")
+    def stats(self, corpus):
+        return self._get_coll(corpus, "stats")
 
     @inlineCallbacks
     def drop_corpus_collections(self, corpus):
@@ -113,6 +115,7 @@ class MongoDB(object):
         yield self.jobs(corpus).drop(safe=True)
         yield self.logs(corpus).drop(safe=True)
         yield self.queries(corpus).drop(safe=True)
+        yield self.stats(corpus).drop(safe=True)
 
     @inlineCallbacks
     def list_logs(self, corpus, job, **kwargs):
@@ -227,3 +230,19 @@ class MongoDB(object):
     @inlineCallbacks
     def clean_WEs_query(self, corpus):
         yield self.queries(corpus).remove({}, safe=True)
+
+    @inlineCallbacks
+    def save_stats(self, corpus, corpus_metas):
+        yield self.stats(corpus).insert({
+          "timestamp": now_ts(),
+          "total": corpus_metas["total_webentities"],
+          "in": corpus_metas['webentities_in'],
+          "out": corpus_metas['webentities_out'],
+          "discovered": corpus_metas['webentities_discovered'],
+          "undecided": corpus_metas['webentities_undecided']
+        }, safe=True)
+
+    @inlineCallbacks
+    def get_stats(self, corpus):
+        res = yield self.stats(corpus).find(filter=sortasc("timestamp"))
+        returnD(res)
