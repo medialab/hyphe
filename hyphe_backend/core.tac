@@ -875,7 +875,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         yield self.ensureDefaultCreationRuleExists(corpus, quiet=noloop)
 
     @inlineCallbacks
-    def format_webentity(self, WE, jobs=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
+    def format_webentity(self, WE, jobs={}, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
         if not WE:
             returnD(None)
         res = {'id': WE.id, 'name': WE.name}
@@ -902,7 +902,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         # nb_pages = len(pages)
         # nb_links
         job = None
-        if not jobs:
+        if not jobs and not light_for_csv:
             job = yield self.db.list_jobs(corpus, {'webentity_id': WE.id}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
         elif WE.id in jobs:
             job = jobs[WE.id]
@@ -916,7 +916,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(res)
 
     @inlineCallbacks
-    def format_webentities(self, WEs, jobs=None, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
+    def format_webentities(self, WEs, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
+        jobs = {}
+        if not light_for_csv:
+            res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
+            for job in res:
+                jobs[job['webentity_id']] = job
         res = []
         results = yield DeferredList([self.format_webentity(WE, jobs, light, semilight, light_for_csv, corpus=corpus) for WE in WEs], consumeErrors=True)
         for bl, fWE in results:
@@ -1607,7 +1612,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
             count = int(count)
         except:
             returnD(format_error("page and count arguments must be integers"))
-        jobs = {}
         if isinstance(list_ids, unicode):
             list_ids = [list_ids] if list_ids else []
         n_WEs = len(list_ids) if list_ids else 0
@@ -1620,15 +1624,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 if not bl or is_error(res):
                     returnD(res)
                 WEs.extend(res)
-            res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
-            for job in res:
-                jobs[job['webentity_id']] = job
         else:
             WEs = yield self.ramcache_webentities(corpus=corpus)
             if is_error(WEs):
                 returnD(WEs)
-            jobs = None
-        res = yield self.format_webentities(WEs, jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
+        res = yield self.format_webentities(WEs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
         if n_WEs:
             returnD(format_result(res))
         if len(WEs) > count and not light_for_csv:
@@ -1667,11 +1667,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
-        jobs = {}
-        res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
-        for job in res:
-            jobs[job['webentity_id']] = job
-        res = yield self.format_webentities(WEs, jobs, sort=sort, corpus=corpus)
+        res = yield self.format_webentities(WEs, sort=sort, corpus=corpus)
         if indegree_filter:
             res = [w for w in res if w["indegree"] >= indegree_filter[0] and w["indegree"] <= indegree_filter[1]]
         res = yield self.paginate_webentities(res, count, page, sort=sort, corpus=corpus)
@@ -1830,17 +1826,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def get_webentity_relative_webentities(self, webentity_id, relative_type="children", corpus=DEFAULT_CORPUS):
         if relative_type != "children" and relative_type != "parents":
             returnD(format_error("ERROR: must set relative type as children or parents"))
-        jobs = {}
         if relative_type == "children":
             WEs = yield self.msclients.pool.getWebEntitySubWebEntities(webentity_id, corpus=corpus)
         else:
             WEs = yield self.msclients.pool.getWebEntityParentWebEntities(webentity_id, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
-        jobs = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
-        for job in jobs:
-            jobs[job['webentity_id']] = job
-        res = yield self.format_webentities(WEs, jobs, corpus=corpus)
+        res = yield self.format_webentities(WEs, corpus=corpus)
         returnD(format_result(res))
 
     @inlineCallbacks
