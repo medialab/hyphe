@@ -482,8 +482,8 @@ angular.module('hyphe.services', [])
       var thisToken = ns.refreshToken
       
       setTimeout(function(){
-        if(thisToken == ns.refreshToken && $route.current.loadedTemplateUrl == "partials/monitorCrawls.html"){
-        
+        if(thisToken == ns.refreshToken && $route.current.loadedTemplateUrl == "views/monitorCrawls.html"){
+          
           // If all achieved, we slow down
           if(slowdown()){
             ns.msTimeout = Math.min(ns.msTimeout_max, ns.msTimeout * 2)
