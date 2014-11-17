@@ -872,7 +872,7 @@ textarea.over-error{
 .webentities-list-table .search-ariane-string-text .glyphicon{
   color: #BABABA;
 }
-.webentities-list-table .webentity-row .webentity-row-selectable{
+.webentities-list-table .webentity-row.webentity-row-selectable{
   cursor: pointer;
   -webkit-user-select: none; /* Chrome/Safari */        
      -moz-user-select: none; /* Firefox */
