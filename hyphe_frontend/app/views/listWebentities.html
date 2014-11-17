@@ -107,8 +107,9 @@
                       <tr ng-if="!loading && fullListLength > 0">
                         <th class="cell-checkbox"></th>
                         <th>Name</th>
+                        <th class="cell-prefixes hidden-xs hidden-sm">Prefixes</th>
                         <th class="cell-status">Status</th>
-                        <th class="cell-last-crawled">Crawled</th>
+                        <th class="cell-last-crawled hidden-xs hidden-sm hidden-md">Crawled</th>
                         <th class="cell-last-modif">Last modif.</th>
                       </tr>
                     </thead>
@@ -123,9 +124,14 @@
                         ng-class="{'bg-selected':obj.checked}"
                       >
                         <td class="cell-checkbox"><input type="checkbox" ng-checked="obj.checked"></td>
-                        <td>{{obj.webentity.name}}</td>
+                        <td>
+                          {{obj.webentity.name}}
+                        </td>
+                        <td class="cell-prefixes hidden-xs hidden-sm prefix-div-container">
+                          <div ng-repeat="lru in obj.webentity.lru_prefixes" tooltip="{{lru|lru_to_url}}" class="prefix-div" ng-click="popLru(lru); $event.stopPropagation();"></div>
+                        </td>
                         <td class="cell-status">{{obj.webentity.status}}</td>
-                        <td class="cell-last-crawled">
+                        <td class="cell-last-crawled hidden-xs hidden-sm hidden-md">
                           <span tooltip="{{obj.webentity.crawling_status}}|{{obj.webentity.indexing_status}}">
                             <span class="text-success" ng-if="obj.webentity.crawling_status == 'FINISHED'">YES</span>
                             <span class="text-danger" ng-if="obj.webentity.crawling_status != 'FINISHED'">NO</span>

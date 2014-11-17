@@ -120,6 +120,8 @@ angular.module('hyphe.listwebentitiesController', [])
           })
           $scope.status = {}
           $scope.loading = false
+
+          console.log($scope.list)
         }
         ,function(){
           $scope.list = []
@@ -246,6 +248,10 @@ angular.module('hyphe.listwebentitiesController', [])
           }
         )
       }
+    }
+
+    $scope.popLru = function(lru){
+      window.open(utils.LRU_to_URL(lru), '_blank');
     }
 
     $scope.loadWebentities()

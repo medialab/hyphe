@@ -112,6 +112,12 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('lru_to_url', ['utils', function(utils){
+    return function(lru) {
+      return utils.LRU_to_URL(lru)
+    }
+  }])
+
   .filter('explicitHttpCode', [function () {
     return function (code) {
       code = ''+code

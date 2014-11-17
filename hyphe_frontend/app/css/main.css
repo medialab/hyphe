@@ -837,6 +837,9 @@ textarea.over-error{
 .webentities-list-table .cell-checkbox{
   width: 20px;
 }
+.webentities-list-table .cell-prefixes{
+  width: 80px;
+}
 .webentities-list-table .cell-status{
   width: 120px;
 }
@@ -887,6 +890,17 @@ textarea.over-error{
 }
 .flatpanel-body form.action{
   margin-top: 6px;
+}
+.webentities-list-table .prefix-div-container{
+  line-height: 0px;
+}
+.webentities-list-table .prefix-div{
+  width: 12px;
+  height: 12px;
+  background-color: #EFEBE8;
+  margin-right: 3px;
+  margin-bottom: 3px;
+  display: inline-block;
 }
 
 
