@@ -936,7 +936,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         # nb_pages = len(pages)
         # nb_links
         job = None
-        if not jobs and not light_for_csv:
+        if not jobs and not light_for_csv and WE.status != "DISCOVERED":
             job = yield self.db.list_jobs(corpus, {'webentity_id': WE.id}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
         elif WE.id in jobs:
             job = jobs[WE.id]
@@ -953,7 +953,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def format_webentities(self, WEs, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
         jobs = {}
         if not light_for_csv:
-            res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
+            res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs if WE.status != "DISCOVERED"]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
             for job in res:
                 jobs[job['webentity_id']] = job
         res = []
