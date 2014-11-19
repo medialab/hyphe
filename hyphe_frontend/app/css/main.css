@@ -892,7 +892,7 @@ textarea.over-error{
   margin-top: 6px;
 }
 .webentities-list-table .prefix-div-container{
-  padding-top: 6px;
+  padding-top: 7px;
   line-height: 0px;
 }
 .webentities-list-table .prefix-div{
@@ -902,9 +902,13 @@ textarea.over-error{
   margin-right: 3px;
   margin-top: 3px;
   display: inline-block;
+  cursor: pointer;
 }
 .webentities-list-table tr.bg-selected .prefix-div{
   background-color: #FFF;
+}
+.webentities-list-table .prefix-div:hover, .webentities-list-table tr.bg-selected .prefix-div:hover{
+  background-color: #428bca;
 }
 
 

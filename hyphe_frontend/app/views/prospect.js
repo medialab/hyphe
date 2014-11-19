@@ -190,7 +190,11 @@ angular.module('hyphe.prospectController', [])
     $scope.openPreview = function(obj){
       var lru = obj.webentity.lru_prefixes[0]
       if(lru)
-        window.open(utils.LRU_to_URL(lru), '_blank');
+        $scope.popLru(lru)
+    }
+
+    $scope.popLru = function(lru){
+      window.open(utils.LRU_to_URL(lru), '_blank');
     }
 
     // Init
