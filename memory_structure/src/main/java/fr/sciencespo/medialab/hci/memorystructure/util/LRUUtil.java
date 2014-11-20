@@ -179,7 +179,7 @@ public class LRUUtil {
                         host.add(0, lastHost);
                     }
                 } else if(key.equals("p:")) {
-                    path = (pathDone ? "/..." : "") + "/" + lruElement;
+                    path = (pathDone ? " /..." : "") + " /" + lruElement;
                     pathDone = true;
                 } else if(key.equals("q:")) {
                     name += " ?" + lruElement;

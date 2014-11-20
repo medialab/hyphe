@@ -1019,7 +1019,7 @@ public class LRUIndex {
      */
     public List<WebEntity> retrieveUserDefinedWebEntities() throws IndexException {
         if (logger.isDebugEnabled()) {
-            logger.debug("retrieveUderDefinedWebEntities");
+            logger.debug("retrieveUserDefinedWebEntities");
         }
         return retrieveWebEntitiesByQuery(LuceneQueryFactory.getLinkedWebEntitiesQuery());
     }
