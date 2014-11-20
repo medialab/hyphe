@@ -22,7 +22,7 @@ from twisted.web.client import getPage, Agent, ProxyAgent, HTTPClientFactory, _H
 HTTPClientFactory.noisy = False
 _HTTP11ClientFactory.noisy = False
 from hyphe_backend import processor
-from hyphe_backend.lib import config_hci, urllru, gexf, user_agents
+from hyphe_backend.lib import config_hci, urllru, gexf, user_agents, creationrules
 from hyphe_backend.lib.utils import *
 from hyphe_backend.lib.mongo import MongoDB, sortdesc
 from hyphe_backend.lib.corpus import CorpusFactory
@@ -992,10 +992,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(res)
         rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
         if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules) == 0):
-            default_regexp = "(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|)(h:[^\\|]+\\|)+)"
             if corpus != DEFAULT_CORPUS and not quiet:
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
-            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(default_regexp, ''), corpus=corpus)
+            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.DEFAULT, ''), corpus=corpus)
             if is_error(res):
                 logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
                 if retry:
@@ -1004,6 +1003,23 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 returnD(res)
             returnD(format_result('Default creation rule created'))
         returnD(format_result('Default creation rule was already created'))
+
+    @inlineCallbacks
+    def jsonrpc_define_webentity_creationrule(self, lru_prefix, regexp, corpus=DEFAULT_CORPUS):
+        try:
+            _, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
+        except ValueError as e:
+            returnD(format_error(e))
+        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
+        print rules
+        if lru_prefix in [a.LRU.decode("utf-8") for a in rules]:
+            returnD("Error: a CreationRule was already defined for prefix %s" % lru_prefix)
+
+        regexp = creationrules.getPreset(regexp)
+        res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(regexp, lru_prefix), corpus=corpus)
+        if is_error(res):
+            returnD(format_error("Could not save CreationRule %s for prefix %s: %s" % (regexp, prefix, res)))
+        returnD(format_result("Webentity creation rule added"))
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
         return self.reinitialize(corpus)
