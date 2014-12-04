@@ -1419,12 +1419,7 @@ public class LRUIndex {
                 if (WE.getName() == null || WE.getName().equals(Constants.DEFAULT_WEBENTITY)) {
                     continue;
                 }
-                // TODO: handle WebEntities with too many subWebEntities making queries with too many clauses
                 final List<WebEntity> subWEs = retrieveWebEntitySubWebEntities(WE);
-                if (subWEs != null && subWEs.size() > 500) {
-                    logger.warn("Skipping links generation for WebEntity " + WE.getId() + " (" + WE.getName() + ")");
-                    continue;
-                }
                 List<NodeLink> links = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksByTargetWebEntityQuery(WE, subWEs));
                 if (links.size() > 0) {
                     webEntityLinksMap = new THashMap<String, WebEntityLink>();
@@ -1526,12 +1521,8 @@ public class LRUIndex {
                 if (WE.getName().equals(Constants.DEFAULT_WEBENTITY)) {
                     continue;
                 }
+                
                 final List<WebEntity> subWEs = retrieveWebEntitySubWebEntities(WE);
-                // TODO: handle WebEntities with too many subWebEntities making queries with too many clauses
-                if (subWEs != null && subWEs.size() > 500) {
-                    logger.warn("Skipping links generation for WebEntity " + WE.getId() + " (" + WE.getName() + ")");
-                    continue;
-                }
                 if (logger.isDebugEnabled()) {
                     logger.trace("generating webentitynodelinks for webentity " + WE.getName() + " / " + WE.getId() + " (" + subWEs.size() + " subs)");
                 }
@@ -1584,10 +1575,6 @@ public class LRUIndex {
                     continue;
                 }
                 List<WebEntity> subWEs = retrieveWebEntitySubWebEntities(WE);
-                if (subWEs != null && subWEs.size() > 500) {
-                    logger.warn("Skipping links generation for WebEntity " + WE.getId() + " (" + WE.getName() + ")");
-                    continue;
-                }
                 if(logger.isDebugEnabled()) {
                     logger.debug("generating webentitylinks for webentity " + WE.getName() + " / " + WE.getId());
                 }
