@@ -899,9 +899,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['loop_running'] = None
         self.corpora[corpus]['loop_running_since'] = now
         self.corpora[corpus]['last_WE_update'] = now
-        self.corpora[corpus]['recent_indexes'] = 0
+        self.corpora[corpus]['recent_changes'] = 0
         self.corpora[corpus]['recent_tagging'] = True
-        self.corpora[corpus]['stall'] = False
         if not noloop:
             reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
             reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
@@ -978,12 +977,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = yield self.msclients.pool.getNodeLinks(corpus=corpus)
         returnD(handle_standard_results(res))
 
-    def jsonrpc_delete_all_nodelinks(self, corpus=DEFAULT_CORPUS):
-        if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
-        self.corpora[corpus]['recent_indexes'] += 1
-        return handle_standard_results(self.msclients.sync.deleteNodeLinks(corpus=corpus))
-
     @inlineCallbacks
     def ensureDefaultCreationRuleExists(self, corpus=DEFAULT_CORPUS, quiet=False, retry=True):
         res = yield self.parent.jsonrpc_ping(corpus, timeout=15)
@@ -1048,7 +1041,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(WE):
             returnD(WE)
         if test_bool_arg(new):
-            self.corpora[corpus]['recent_indexes'] += 1
+            self.corpora[corpus]['recent_changes'] += 1
             self.corpora[corpus]['total_webentities'] += 1
             if source:
                 yield self.jsonrpc_add_webentity_tag_value(WE.id, 'CORE', 'user_created_via', source, corpus=corpus)
@@ -1206,13 +1199,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 res = yield self.msclients.pool.updateWebEntity(WE, corpus=corpus)
                 if is_error(res):
                     returnD(res)
-                self.corpora[corpus]['recent_indexes'] += 1
+                self.corpora[corpus]['recent_changes'] += 1
                 returnD(format_result("%s field of WebEntity %s updated." % (field_name, res)))
             else:
                 res = yield self.msclients.pool.deleteWebEntity(WE, corpus=corpus)
                 if is_error(res):
                     returnD(res)
-                self.corpora[corpus]['recent_indexes'] += 1
+                self.corpora[corpus]['recent_changes'] += 1
                 self.corpora[corpus]['total_webentities'] -= 1
                 returnD(format_result("webentity %s had no LRUprefix left and was removed." % webentity_id))
         except Exception as x:
@@ -1228,7 +1221,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
             func = getattr(self, "jsonrpc_%s" % command)
         except Exception as e:
             returnD(format_error("ERROR: %s is not a valid store command" % command))
-        self.corpora[corpus]["stall"] = True
         async = True
         if "async" in kwargs:
             async = test_bool_arg(kwargs.pop("async"))
@@ -1249,7 +1241,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 errors.append(WE["message"])
             else:
                 res.append(WE["result"])
-        self.corpora[corpus]["stall"] = False
         if len(errors):
             returnD({'code': 'fail', 'message': '%d webentities failed, see details in "errors" field and successes in "results" field.' % len(errors), 'errors': errors, 'results': res})
         returnD(format_result(res))
@@ -1306,7 +1297,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 returnD(res)
         yield self.add_backend_tags(webentity_id, "lruprefixes_modified", "added %s" % lru_prefix, corpus=corpus)
         res = yield self.update_webentity(webentity_id, "LRUSet", lru_prefix, "push", corpus=corpus)
-        self.corpora[corpus]['recent_indexes'] += 1
+        self.corpora[corpus]['recent_changes'] += 1
         returnD(res)
 
     @inlineCallbacks
@@ -1320,7 +1311,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(format_error(e))
         yield self.add_backend_tags(webentity_id, "lruprefixes_modified", "removed %s" % lru_prefix, corpus=corpus)
         res = yield self.update_webentity(webentity_id, "LRUSet", lru_prefix, "pop", corpus=corpus)
-        self.corpora[corpus]['recent_indexes'] += 1
+        self.corpora[corpus]['recent_changes'] += 1
         returnD(res)
 
     @inlineCallbacks
@@ -1389,7 +1380,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 returnD(format_error('ERROR adding LRU prefix %s from %s to %s' % (lru, old_webentity_id, good_webentity_id)))
         yield self.add_backend_tags(good_webentity_id, "alias_added", old_WE.name)
         self.corpora[corpus]['total_webentities'] -= 1
-        self.corpora[corpus]['recent_indexes'] += 1
+        self.corpora[corpus]['recent_changes'] += 1
         returnD(format_result("Merged %s into %s" % (old_webentity_id, good_webentity_id)))
 
     def jsonrpc_merge_webentities_into_another(self, old_webentity_ids, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False, corpus=DEFAULT_CORPUS):
@@ -1405,7 +1396,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(res):
             return res
         self.corpora[corpus]['total_webentities'] -= 1
-        self.corpora[corpus]['recent_indexes'] += 1
+        self.corpora[corpus]['recent_changes'] += 1
         return format_result("WebEntity %s (%s) was removed" % (webentity_id, WE.name))
 
     @inlineCallbacks
@@ -1461,11 +1452,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
             ranks[link.targetId]["indegree"] += 1
         self.corpora[corpus]['webentities_ranks'] = ranks
 
-    def jsonrpc_trigger_links(self, corpus=DEFAULT_CORPUS):
+    def jsonrpc_trigger_links_reset(self, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             return self.parent.corpus_error(corpus)
-        self.corpora[corpus]['recent_indexes'] += 105
-        return format_result("Links generation should start soon")
+        self.corpora[corpus]['recent_changes'] += 1
+        self.corpora[corpus]['last_links_loop'] = 0
+        return format_result("Links global re-generation should start soon")
 
     @inlineCallbacks
     def index_batch_loop(self, corpus=DEFAULT_CORPUS):
@@ -1482,26 +1474,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             self.corpora[corpus]['loop_running'] = None
             returnD(False)
         oldest_page_in_queue = yield self.db.get_queue(corpus, limit=1, fields=["_job"], skip=random.randint(0, 2))
-        # Run linking WebEntities on a regular basis when needed
-        if not self.corpora[corpus]['stall'] and (self.corpora[corpus]['recent_indexes'] > 100 or (self.corpora[corpus]['recent_indexes'] and not oldest_page_in_queue) or (self.corpora[corpus]['recent_indexes'] and time.time() - self.corpora[corpus]['last_links_loop']/1000 >= 3600)):
-            self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
-            self.corpora[corpus]['loop_running_since'] = now_ts()
-            s = time.time()
-            logger.msg("Generating links between web entities...", system="INFO - %s" % corpus)
-            yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
-            res = yield self.msclients.loop.generateWebEntityLinks(corpus=corpus)
-            if is_error(res):
-                logger.msg(res['message'], system="ERROR - %s" % corpus)
-                self.corpora[corpus]['loop_running'] = None
-                returnD(False)
-            self.corpora[corpus]['webentities_links'] = res
-            self.rank_webentities(corpus)
-            s = str(time.time() -s)
-            yield self.db.add_log(corpus, "WE_LINKS", "...finished WebEntity links generation (%ss)" %s)
-            logger.msg("...processed WebEntity links in %ss..." % s, system="INFO - %s" % corpus)
-            self.corpora[corpus]['recent_indexes'] = 0
-            self.corpora[corpus]['last_links_loop'] = now_ts()
-        elif oldest_page_in_queue:
+        if oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
             self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
             job = yield self.db.list_jobs(corpus, {'_id': oldest_page_in_queue['_job'], 'crawling_status': {'$ne': crawling_statuses.PENDING}, 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id'], limit=1)
@@ -1520,28 +1493,35 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     logger.msg(res['message'], system="ERROR - %s" % corpus)
                     self.corpora[corpus]['loop_running'] = None
                     returnD(False)
-                self.corpora[corpus]['recent_indexes'] += 1
-                self.corpora[corpus]['last_index_loop'] = now_ts()
-                s = time.time()
-                self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
-                self.corpora[corpus]['loop_running_since'] = now_ts()
-                yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
-                res = yield self.msclients.loop.updateWebEntityLinks(self.corpora[corpus]['last_links_loop'], corpus=corpus)
-                if is_error(res):
-                    logger.msg(res['message'], system="ERROR - %s" % corpus)
-                    self.corpora[corpus]['loop_running'] = None
-                self.corpora[corpus]['last_links_loop'] = res
-                logger.msg("...processed new WebEntity links in %ss..." % (time.time() - s), system="INFO - %s" % corpus)
-                s = time.time()
-                self.corpora[corpus]['webentities_links'] = yield self.msclients.loop.getWebEntityLinks(corpus=corpus)
-                self.rank_webentities(corpus)
-                logger.msg("...loaded updated WebEntity links in %ss..." % (time.time() - s), system="INFO - %s" % corpus)
+                self.corpora[corpus]['recent_changes'] += 1
             else:
                 logger.msg("job %s found for index but no page corresponding found in queue." % jobid, system="WARNING - %s" % corpus)
-        else:
-            self.corpora[corpus]['loop_running'] = None
-            returnD(False)
-        logger.msg("...loop run finished.", system="INFO - %s" % corpus)
+        # Run linking WebEntities on a regular basis when needed
+        if self.corpora[corpus]['recent_changes']:
+            s = time.time()
+            self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
+            self.corpora[corpus]['loop_running_since'] = now_ts()
+            self.corpora[corpus]['last_index_loop'] = now_ts()
+            self.corpora[corpus]['recent_changes'] = 0
+            yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
+            res = yield self.msclients.loop.updateWebEntityLinks(self.corpora[corpus]['last_links_loop'], corpus=corpus)
+            if is_error(res):
+                logger.msg(res['message'], system="ERROR - %s" % corpus)
+                self.corpora[corpus]['loop_running'] = None
+                returnD(None)
+            self.corpora[corpus]['last_links_loop'] = res
+            logger.msg("...processed new WebEntity links in %ss..." % (time.time() - s), system="INFO - %s" % corpus)
+            yield self.db.add_log(corpus, "WE_LINKS", "...finished WebEntity links generation (%ss)" % (time.time() - s))
+            s = time.time()
+            res = yield self.msclients.loop.getWebEntityLinks(corpus=corpus)
+            if is_error(res):
+                logger.msg(res['message'], system="ERROR - %s" % corpus)
+                self.corpora[corpus]['loop_running'] = None
+                returnD(None)
+            self.corpora[corpus]['webentities_links'] = res
+            self.rank_webentities(corpus)
+            logger.msg("...loaded, ranked and updated WebEntity links in %ss..." % (time.time() - s), system="INFO - %s" % corpus)
+            logger.msg("...loop run finished.", system="INFO - %s" % corpus)
         self.corpora[corpus]['loop_running'] = None
 
     @inlineCallbacks
@@ -1573,7 +1553,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WEs = self.corpora[corpus]['webentities']
         deflist = []
         also_links = test_bool_arg(corelinks)
-        if WEs == [] or self.corpora[corpus]['recent_indexes'] or self.corpora[corpus]['last_links_loop']*1000 > self.corpora[corpus]['last_WE_update']:
+        if WEs == [] or self.corpora[corpus]['recent_changes'] or self.corpora[corpus]['last_links_loop']*1000 > self.corpora[corpus]['last_WE_update']:
             deflist.append(self.msclients.pool.getWebEntities(corpus=corpus, _nokeepalive=True))
             if also_links:
                 logger.msg("Collecting WebEntities and WebEntityLinks...", system="INFO - %s" % corpus)
