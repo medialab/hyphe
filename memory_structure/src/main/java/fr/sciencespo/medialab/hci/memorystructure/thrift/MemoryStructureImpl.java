@@ -790,6 +790,26 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
+     * Run the process to update the WebEntityLinks from the definition of the WebEntities and the list of NodeLinks modified since given timestamp.
+     *
+     * @return new timestamp to use the next time
+     * @throws TException hmm
+     */
+    @Override
+    public int updateWebEntityLinks(int lastTimestamp) throws MemoryStructureException, TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("updateWebEntityLinks");
+        }
+        try {
+            return lruIndex.updateWebEntityLinks(lastTimestamp);
+        } catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+    }
+
+    /**
      * Returns a list of WebEntityLinks having a specific webentity as source
      *
      * @param id id of web entity

@@ -27,6 +27,8 @@ import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
@@ -1359,7 +1361,7 @@ public class LRUIndex {
      * @throws IndexException hmm
      */
     public List<WebEntityLink> generateWebEntityLinks() throws IndexException {
-        final long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         try {
             final TopDocs results = indexSearcher.search(LuceneQueryFactory.getWebEntitiesQuery(), null, 1);
             List<WebEntityLink> res;
@@ -1463,7 +1465,7 @@ public class LRUIndex {
                             tmpMap.put(shortLRU, sourceId);
                             tmpMapMap.put(sourceNode, tmpMap);
                             lruToWebEntityMap.put(sourcePrefix, tmpMapMap);
-                            final String now = new Date().toString();
+                            final String now = String.valueOf(System.currentTimeMillis()/1000);
                             WebEntityLink webEntityLink = webEntityLinksMap.remove(sourceId);
                             if (webEntityLink == null) {
                                 webEntityLink = new WebEntityLink();
@@ -1480,7 +1482,7 @@ public class LRUIndex {
                         webEntityLinks.addAll(webEntityLinksMap.values());
                     }
                     if (intern_weight > 0) {
-                        final String now = new Date().toString();
+                        final String now = String.valueOf(System.currentTimeMillis()/1000);
                         webEntityLinks.add(new WebEntityLink(WE.getId(), WE.getId(), intern_weight, now, now));
                     }
                 }
@@ -1554,7 +1556,7 @@ public class LRUIndex {
                         }
                     }
                     if (intern_weight > 0) {
-                        String now = new Date().toString();
+                        String now = String.valueOf(System.currentTimeMillis()/1000);
                         webEntityLinks.add(new WebEntityLink(WE.getId(), WE.getId(), intern_weight, now, now));
                     }
                     if (webEntityNodeLinks.size() > 0) {
@@ -1598,7 +1600,7 @@ public class LRUIndex {
                     final ScoreDoc[] linksScoreDocs = linksResults.scoreDocs;
                     for (ScoreDoc linkDoc : linksScoreDocs) {
                         final WebEntityNodeLink link = IndexConfiguration.convertLuceneDocumentToWebEntityNodeLink(indexSearcher.doc(linkDoc.doc));
-                        final String now = new Date().toString();
+                        final String now = String.valueOf(System.currentTimeMillis()/1000);
                         sourceId = link.getSourceId();
                         WebEntityLink webEntityLink = webEntityLinksMap.remove(sourceId);
                         if (webEntityLink == null) {
@@ -1625,6 +1627,180 @@ public class LRUIndex {
             }
             logger.info(webEntityLinks.size()+" webentitylinks saved");
             return webEntityLinks;
+        } catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x.getMessage(), x);
+        }
+    }
+
+    private WebEntity mapLRUtoWebEntity(final String LRU, THashMap<String, THashMap<String, THashMap<String, WebEntity>>> lruToWebEntityMap) throws IndexException {
+    	String Prefix = LRUUtil.getLRUHead(LRU);
+        String Node = LRUUtil.getLimitedStemsLRU(LRU, 1).replace(Prefix, "");
+        String shortLRU = LRU.replace(Prefix, "").replace(Node, "");
+       
+        THashMap<String, THashMap<String, WebEntity>> tmpMapMap = lruToWebEntityMap.remove(Prefix);
+    	if (tmpMapMap == null) {
+            tmpMapMap = new THashMap<String, THashMap<String, WebEntity>>();
+        }
+
+    	THashMap<String, WebEntity> tmpMap = tmpMapMap.remove(Node);
+        if (tmpMap == null) {
+            tmpMap = new THashMap<String, WebEntity>();
+        }
+
+        WebEntity WE = tmpMap.remove(shortLRU);
+        if (WE == null) {
+    		WE = retrieveWebEntityMatchingLRU(LRU);
+        	if (WE == null) {
+                logger.warn("Warning couldn't retrieve WE for LRU " + LRU);
+            }
+        }
+        
+        if (WE != null) {
+        	tmpMap.put(shortLRU, WE);
+        	tmpMapMap.put(Node, tmpMap);
+        	lruToWebEntityMap.put(Prefix, tmpMapMap);
+        }
+        return WE;
+    }
+    
+    private void addWELink(final String sourceId, final String targetId, final int weight, THashMap<String, THashMap<String, WebEntityLink>> webEntityLinksMap) throws IndexException {
+	    final String now = String.valueOf(System.currentTimeMillis()/1000);
+	    THashMap<String, WebEntityLink> tmpMap = webEntityLinksMap.remove(sourceId);
+    	if (tmpMap == null) {
+            tmpMap = new THashMap<String, WebEntityLink>();
+        }
+	    WebEntityLink webEntityLink = tmpMap.remove(targetId);
+	    if (webEntityLink == null) {
+	        webEntityLink = new WebEntityLink();
+	        webEntityLink.setCreationDate(now);
+	        webEntityLink.setSourceId(sourceId);
+	        webEntityLink.setTargetId(targetId);
+	    }
+	    webEntityLink.setLastModificationDate(now);
+	    webEntityLink.setWeight(webEntityLink.getWeight() + weight);
+	    tmpMap.put(targetId, webEntityLink);
+	    webEntityLinksMap.put(sourceId, tmpMap);
+    }
+    
+    /**
+     * Runs the generation of new and modified WebEntityLinks from the combination of newly modified WebEntities and the list of new NodeLinks.
+     * Method update via Map:
+     *
+     * @throws IndexException hmm
+     */
+    public int updateWebEntityLinks(final int lastTimestamp) throws IndexException {
+        try {
+            if(logger.isDebugEnabled()) {
+            	logger.trace("updateWebEntityLinks");
+            }
+            THashSet<WebEntity> SourceWEsTodo = new THashSet<WebEntity>();
+            THashSet<WebEntity> TargetWEsTodo = new THashSet<WebEntity>();
+            List <WebEntity> WEsTodo = retrieveWebEntitiesByQuery(LuceneQueryFactory.getWebEntitiesModifiedSince(lastTimestamp));
+            SourceWEsTodo.addAll(WEsTodo);
+            TargetWEsTodo.addAll(WEsTodo);
+
+            int newTimestamp = (int) (System.currentTimeMillis()/1000);
+            
+            logger.info("Total # of new and recently modified webentities in index is " + WEsTodo.size());
+            THashMap<String, THashMap<String, THashMap<String, WebEntity>>> lruToWebEntityMap = new THashMap<String, THashMap<String, THashMap<String, WebEntity>>>();
+            final Query linksQuery = LuceneQueryFactory.getNodeLinksModifiedSince(lastTimestamp);
+            TopDocs linksResults = indexSearcher.search(linksQuery, null, 1);
+            SortField sortSources = new SortField(IndexConfiguration.FieldName.SOURCE.name(), SortField.STRING, true);
+            SortField sortTargets = new SortField(IndexConfiguration.FieldName.TARGET.name(), SortField.STRING, true);
+            Sort sort = new Sort(sortSources, sortTargets);
+            final int totalLinksResults = linksResults.totalHits;
+            if (totalLinksResults > 0) {
+                logger.info("Total # of new NodeLinks in index is " + totalLinksResults);
+                linksResults = indexSearcher.search(linksQuery, null, totalLinksResults, sort);
+                final ScoreDoc[] scoreDocs = linksResults.scoreDocs;
+                for (ScoreDoc doc : scoreDocs) {
+                    final NodeLink link = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(doc.doc));
+                    SourceWEsTodo.add(mapLRUtoWebEntity(link.getSourceLRU(), lruToWebEntityMap));
+                    TargetWEsTodo.add(mapLRUtoWebEntity(link.getTargetLRU(), lruToWebEntityMap));
+                }
+            }
+            if(logger.isDebugEnabled()) {
+            	logger.trace("Total # of WebEntities to re-link is " + (SourceWEsTodo.size() + TargetWEsTodo.size()) + ". Start processing...");
+            }
+            
+            WebEntity sourceWE, targetWE;
+            THashSet<String> WELinksDone = new THashSet<String>();
+            THashMap<String, THashMap<String, WebEntityLink>> webEntityLinksMap = new THashMap<String, THashMap<String, WebEntityLink>>();
+            for (WebEntity WE : SourceWEsTodo) {
+	            if(logger.isDebugEnabled()) {
+	                logger.debug("generating webentitylinks having webentity " + WE.getName() + " as source");
+	            }
+	            if (WE.getName() == null || WE.getName().equals(Constants.DEFAULT_WEBENTITY)) {
+	                continue;
+	            }
+	            final List<WebEntity> subWEs = retrieveWebEntitySubWebEntities(WE);
+	            final List<NodeLink> links = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksBySourceWebEntityQuery(WE, subWEs));
+	            if (links.size() > 0) {
+	                for (NodeLink link : links) {
+	                	targetWE = mapLRUtoWebEntity(link.getTargetLRU(), lruToWebEntityMap);
+	                	if (targetWE == null) {
+	                		continue;
+	                	}
+	                	WELinksDone.add(WE.getId()+"/"+targetWE.getId());
+	                    addWELink(WE.getId(), targetWE.getId(), link.getWeight(), webEntityLinksMap);
+	                }
+	            }
+            }
+            
+            for (WebEntity WE : TargetWEsTodo) {
+	            if(logger.isDebugEnabled()) {
+	            	logger.debug("generating webentitylinks having webentity " + WE.getName() + " as target");
+	            }
+	            if (WE.getName() == null || WE.getName().equals(Constants.DEFAULT_WEBENTITY)) {
+	                continue;
+	            }
+	            final List<WebEntity> subWEs = retrieveWebEntitySubWebEntities(WE);
+	            final List<NodeLink> links = retrieveNodeLinksByQuery(LuceneQueryFactory.getNodeLinksByTargetWebEntityQuery(WE, subWEs));
+	            if (links.size() > 0) {
+	                for (NodeLink link : links) {
+	                	sourceWE = mapLRUtoWebEntity(link.getSourceLRU(), lruToWebEntityMap);
+	                	if (sourceWE == null || WELinksDone.contains(sourceWE.getId()+"/"+WE.getId())) {
+	                		continue;
+	                	}
+	                    addWELink(sourceWE.getId(), WE.getId(), link.getWeight(), webEntityLinksMap);
+	                }
+	            }
+            }
+
+            if(logger.isDebugEnabled()) {
+            	logger.trace("Deleting preexisting corresponding webentitylinks");
+            }
+            List<String> deleteIDs = new ArrayList<String>();
+        	if (SourceWEsTodo.size() > 0) {
+        		for (WebEntity we : SourceWEsTodo) {
+        			deleteIDs.add(we.getId());
+        		}
+        		deleteObjectsFromQuery(LuceneQueryFactory.getWebEntityLinksWithSourceInQuery(deleteIDs), true);
+        	}
+        	if (TargetWEsTodo.size() > 0) {
+        		deleteIDs.clear();
+        		for (WebEntity we : TargetWEsTodo) {
+        			deleteIDs.add(we.getId());
+        		}
+            	deleteObjectsFromQuery(LuceneQueryFactory.getWebEntityLinksWithTargetInQuery(deleteIDs), true);
+        	}
+
+            if(logger.isDebugEnabled()) {
+            	logger.debug("Saving updated WebEntityLinks");
+            }
+            List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
+            if (webEntityLinksMap.size() > 0) {
+            	for (THashMap<String, WebEntityLink> tmpMap : webEntityLinksMap.values()) {
+            		webEntityLinks.addAll(tmpMap.values());
+            	}
+                @SuppressWarnings({"unchecked"})
+                final List<Object> webEntityLinksList = new ArrayList(webEntityLinks);
+                batchIndex(webEntityLinksList);
+            }
+            logger.info(webEntityLinks.size()+" webentitylinks saved");
+            return newTimestamp;
         } catch(IOException x) {
             logger.error(x.getMessage());
             x.printStackTrace();

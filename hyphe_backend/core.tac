@@ -254,7 +254,7 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["links_found"] = 0
         self.corpora[corpus]["last_WE_update"] = now
         self.corpora[corpus]["last_index_loop"] = now
-        self.corpora[corpus]["last_links_loop"] = now
+        self.corpora[corpus]["last_links_loop"] = 0
         self.corpora[corpus]["stats_loop"] = LoopingCall(self.store.save_webentities_stats, corpus)
         self.corpora[corpus]["index_loop"] = LoopingCall(self.store.index_batch_loop, corpus)
         self.corpora[corpus]["jobs_loop"] = LoopingCall(self.refresh_jobs, corpus)
@@ -1006,12 +1006,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_define_webentity_creationrule(self, lru_prefix, regexp, corpus=DEFAULT_CORPUS):
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
         try:
             _, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
         except ValueError as e:
             returnD(format_error(e))
         rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
-        print rules
         if lru_prefix in [a.LRU.decode("utf-8") for a in rules]:
             returnD("Error: a CreationRule was already defined for prefix %s" % lru_prefix)
 
@@ -1385,7 +1386,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         for lru in old_WE.LRUSet:
             a = yield self.jsonrpc_add_webentity_lruprefix(good_webentity_id, lru, corpus=corpus)
             if is_error(a):
-                print a
                 returnD(format_error('ERROR adding LRU prefix %s from %s to %s' % (lru, old_webentity_id, good_webentity_id)))
         yield self.add_backend_tags(good_webentity_id, "alias_added", old_WE.name)
         self.corpora[corpus]['total_webentities'] -= 1
@@ -1522,6 +1522,20 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     returnD(False)
                 self.corpora[corpus]['recent_indexes'] += 1
                 self.corpora[corpus]['last_index_loop'] = now_ts()
+                s = time.time()
+                self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
+                self.corpora[corpus]['loop_running_since'] = now_ts()
+                yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
+                res = yield self.msclients.loop.updateWebEntityLinks(self.corpora[corpus]['last_links_loop'], corpus=corpus)
+                if is_error(res):
+                    logger.msg(res['message'], system="ERROR - %s" % corpus)
+                    self.corpora[corpus]['loop_running'] = None
+                self.corpora[corpus]['last_links_loop'] = res
+                logger.msg("...processed new WebEntity links in %ss..." % (time.time() - s), system="INFO - %s" % corpus)
+                s = time.time()
+                self.corpora[corpus]['webentities_links'] = yield self.msclients.loop.getWebEntityLinks(corpus=corpus)
+                self.rank_webentities(corpus)
+                logger.msg("...loaded updated WebEntity links in %ss..." % (time.time() - s), system="INFO - %s" % corpus)
             else:
                 logger.msg("job %s found for index but no page corresponding found in queue." % jobid, system="WARNING - %s" % corpus)
         else:
@@ -1559,7 +1573,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WEs = self.corpora[corpus]['webentities']
         deflist = []
         also_links = test_bool_arg(corelinks)
-        if WEs == [] or self.corpora[corpus]['recent_indexes'] or self.corpora[corpus]['last_links_loop'] > self.corpora[corpus]['last_WE_update']:
+        if WEs == [] or self.corpora[corpus]['recent_indexes'] or self.corpora[corpus]['last_links_loop']*1000 > self.corpora[corpus]['last_WE_update']:
             deflist.append(self.msclients.pool.getWebEntities(corpus=corpus, _nokeepalive=True))
             if also_links:
                 logger.msg("Collecting WebEntities and WebEntityLinks...", system="INFO - %s" % corpus)
