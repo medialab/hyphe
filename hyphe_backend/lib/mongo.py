@@ -57,7 +57,7 @@ class MongoDB(object):
           "created_at": now,
           "last_activity": now,
           "last_index_loop": now,
-          "last_links_loop": now
+          "last_links_loop": 0
         }, safe=True)
         yield self.init_corpus_indexes(corpus)
 
