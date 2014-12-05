@@ -15,7 +15,7 @@ PRESETS = {
   "page": "(.*)$"
 }
 
-SUBDOMN = "(%s(%s)?%s(%s)" % (SCHEME, PORT, HOST, HOST)) + "{%d})"
+SUBDOMN = ("(%s(%s)?%s(%s)" % (SCHEME, PORT, HOST, HOST)) + "{%d})"
 
 re_subdomN = re.compile(r"subdomain-(\d+)$")
 
