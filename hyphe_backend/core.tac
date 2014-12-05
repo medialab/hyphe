@@ -1199,7 +1199,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 res = yield self.msclients.pool.updateWebEntity(WE, corpus=corpus)
                 if is_error(res):
                     returnD(res)
-                self.corpora[corpus]['recent_changes'] += 1
+                if field_name == 'LRUSet':
+                    self.corpora[corpus]['recent_changes'] += 1
                 returnD(format_result("%s field of WebEntity %s updated." % (field_name, res)))
             else:
                 res = yield self.msclients.pool.deleteWebEntity(WE, corpus=corpus)
@@ -1496,19 +1497,19 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 self.corpora[corpus]['recent_changes'] += 1
             else:
                 logger.msg("job %s found for index but no page corresponding found in queue." % jobid, system="WARNING - %s" % corpus)
+            self.corpora[corpus]['last_index_loop'] = now_ts()
         # Run linking WebEntities on a regular basis when needed
-        if self.corpora[corpus]['recent_changes']:
+        if self.corpora[corpus]['recent_changes'] and self.corpora[corpus]['last_links_loop'] + 5 < now_ts()/1000:
             s = time.time()
             self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
             self.corpora[corpus]['loop_running_since'] = now_ts()
-            self.corpora[corpus]['last_index_loop'] = now_ts()
-            self.corpora[corpus]['recent_changes'] = 0
             yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
             res = yield self.msclients.loop.updateWebEntityLinks(self.corpora[corpus]['last_links_loop'], corpus=corpus)
             if is_error(res):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
                 returnD(None)
+            self.corpora[corpus]['recent_changes'] = 0
             self.corpora[corpus]['last_links_loop'] = res
             logger.msg("...processed new WebEntity links in %ss..." % (time.time() - s), system="INFO - %s" % corpus)
             yield self.db.add_log(corpus, "WE_LINKS", "...finished WebEntity links generation (%ss)" % (time.time() - s))

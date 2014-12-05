@@ -1709,7 +1709,7 @@ public class LRUIndex {
                 }
             }
             if(logger.isDebugEnabled()) {
-            	logger.trace("Total # of WebEntities to re-link is " + (SourceWEsTodo.size() + TargetWEsTodo.size()) + ". Start processing...");
+            	logger.trace("Total # of WebEntities to re-link is " + (SourceWEsTodo.size() + " source WEs & " + TargetWEsTodo.size()) + " target WEs. Start processing...");
             }
             
             WebEntity sourceWE, targetWE;
