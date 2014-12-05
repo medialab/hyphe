@@ -10,10 +10,14 @@ PATH = "p:[^\\|]+\\|"
 DEFAULT = "(%s(%s)?%s(%s)+)" % (SCHEME, PORT, HOST, HOST)
 
 PRESETS = {
-  "subdomain": DEFAULT,
+  "subdomains": DEFAULT,
   "domain": "(%s(%s)?%s%s)" % (SCHEME, PORT, HOST, HOST),
   "page": "(.*)$"
 }
+
+SUBDOMN = "(%s(%s)?%s(%s)" % (SCHEME, PORT, HOST, HOST)) + "{%d})"
+
+re_subdomN = re.compile(r"subdomain-(\d+)$")
 
 PATHN = ("(%s(%s)?%s(%s)+(%s)" % (SCHEME, PORT, HOST, HOST, PATH)) + "{%d})"
 
@@ -23,6 +27,9 @@ def getPreset(name):
     key = name.lower()
     if key in PRESETS.keys():
         return PRESETS[keys]
+    subdomN = re_subdomN.match(key)
+    if subdomN:
+        return SUBDOMN % int(subdomN.group(1))
     pathN = re_pathN.match(key)
     if pathN:
         return PATHN % int(pathN.group(1))
