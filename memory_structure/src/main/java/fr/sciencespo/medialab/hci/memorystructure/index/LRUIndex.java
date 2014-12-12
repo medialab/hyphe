@@ -1717,7 +1717,7 @@ public class LRUIndex {
                         curDoc = doc;
                         link = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(doc.doc));
                         SourceWEsTodo.add(mapLRUtoWebEntityId(link.getSourceLRU(), lruToWebEntityMap));
-                        //TargetWEsTodo.add(mapLRUtoWebEntityId(link.getTargetLRU(), lruToWebEntityMap));
+                        TargetWEsTodo.add(mapLRUtoWebEntityId(link.getTargetLRU(), lruToWebEntityMap));
                     }
                 }
             }
@@ -1777,7 +1777,7 @@ public class LRUIndex {
 	            if(logger.isDebugEnabled()) {
 	            	logger.debug("generating webentitylinks having webentity " + WE.getName() + " as target");
 	            }
-	            if (WE.getName() == null || WE.getName().equals(Constants.DEFAULT_WEBENTITY)) {
+	            if (WE.getName() == null || WE.getName().equals(Constants.DEFAULT_WEBENTITY) || WE.getCreationDate().equals(WE.getLastModificationDate())) {
 	                continue;
 	            }
 	            final List<WebEntity> subWEs = retrieveWebEntitySubWebEntities(WE);
