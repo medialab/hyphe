@@ -494,12 +494,18 @@ class Core(jsonrpc.JSONRPC):
         query = {}
         if list_ids:
             query = {'_id': {'$in': list_ids}}
-        if from_ts or to_ts:
-            query["created_at"] = {}
-        if from_ts:
-            query["created_at"]["$gte"] = from_ts
         if to_ts:
+            query["created_at"] = {}
             query["created_at"]["$lte"] = to_ts
+            if from_ts:
+                query["created_at"]["$gte"] = from_ts
+        elif from_ts:
+            query["$or"] = [
+              {"created_at": {"$gte": from_ts}},
+              {"indexing_status": {"$nin": [
+                indexing_statuses.CANCELED, indexing_statuses.FINISHED
+              ]}}
+            ]
         jobs = yield self.db.list_jobs(corpus, query)
         returnD(format_result(list(jobs)))
 

@@ -220,7 +220,7 @@ angular.module('hyphe.monitorcrawlsController', [])
           // Settings
           {
             from: (now - timespanMs)
-            ,to: now
+            ,to: null
           }
 
           // Success callback
@@ -373,9 +373,6 @@ angular.module('hyphe.monitorcrawlsController', [])
     function lastCrawlJobs_build(now, timespanMs){
       $scope.lastCrawlJobsSuppl = 0
       $scope.lastCrawlJobs = ($scope.crawlJobs || [])
-        .filter(function(job){
-          return now - job.created_at < timespanMs
-        })
         .filter(function(job,i){
           if(i < $scope.lastCrawlJobsMax)
             return true
