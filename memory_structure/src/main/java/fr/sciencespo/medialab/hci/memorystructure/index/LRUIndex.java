@@ -1717,7 +1717,7 @@ public class LRUIndex {
                         curDoc = doc;
                         link = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(doc.doc));
                         SourceWEsTodo.add(mapLRUtoWebEntityId(link.getSourceLRU(), lruToWebEntityMap));
-                        TargetWEsTodo.add(mapLRUtoWebEntityId(link.getTargetLRU(), lruToWebEntityMap));
+                        //TargetWEsTodo.add(mapLRUtoWebEntityId(link.getTargetLRU(), lruToWebEntityMap));
                     }
                 }
             }
@@ -1753,6 +1753,9 @@ public class LRUIndex {
                             linksResults = indexSearcher.searchAfter(curDoc, sourceLinksQuery, null, nextBatch);
                         } else {
                             linksResults = indexSearcher.search(sourceLinksQuery, null, nextBatch);
+                        }
+                        if (linksResults.scoreDocs.length == 0) {
+                            break;
                         }
                         for (ScoreDoc doc : linksResults.scoreDocs) {
                             processedLinkResults++;
@@ -1796,7 +1799,6 @@ public class LRUIndex {
                             link = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(doc.doc));
                             sourceWEid = mapLRUtoWebEntityId(link.getSourceLRU(), lruToWebEntityMap);
                             if (sourceWEid == null || WELinksDone.contains(sourceWEid+"/"+WEid)) {
-                                logger.info("skip already done");
                                 continue;
                             }
                             addWELink(sourceWEid, WEid, link.getWeight(), webEntityLinksMap);
