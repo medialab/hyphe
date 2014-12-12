@@ -345,6 +345,14 @@ public class LuceneQueryFactory {
         return getLRULinksByWebEntity(typeEqualNodeLink, webEntity, subWebEntities, IndexConfiguration.FieldName.TARGET);
     }
 
+    protected static Query getNodeLinksByTargetWebEntityQuery(WebEntity webEntity, List<WebEntity> subWebEntities, List<String> filterSourceLRUs) {
+        BooleanQuery q = (BooleanQuery) getLRULinksByWebEntity(typeEqualNodeLink, webEntity, subWebEntities, IndexConfiguration.FieldName.TARGET);
+        for(String filterSource : filterSourceLRUs) {
+            q.add(new PrefixQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), filterSource)), BooleanClause.Occur.MUST_NOT);
+        }
+        return q;
+    }
+
     protected static Query getWebEntityNodeLinksByTargetWebEntityQuery(WebEntity webEntity, List<WebEntity> subWebEntities) {
         return getLRULinksByWebEntity(typeEqualWebEntityNodeLink, webEntity, subWebEntities, IndexConfiguration.FieldName.TARGET);
     }
@@ -378,7 +386,7 @@ public class LuceneQueryFactory {
         q.add(new TermQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), "CRAWL")), BooleanClause.Occur.MUST);
         return q;
     }
-    
+
     /**
      * Make Query to find all NodeLinks fitting within a webEntity's prefixes but not its subWebEntities
      *
