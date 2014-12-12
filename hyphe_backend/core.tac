@@ -1503,9 +1503,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             else:
                 logger.msg("job %s found for index but no page corresponding found in queue." % jobid, system="WARNING - %s" % corpus)
             self.corpora[corpus]['last_index_loop'] = now_ts()
-        # Run linking WebEntities on a regular basis when needed
-        if self.corpora[corpus]['recent_changes'] and self.corpora[corpus]['last_links_loop'] + 5 < now_ts()/1000:
-            s = time.time()
+        # Run linking WebEntities on a regular basis when needed and not overloaded
+        s = time.time()
+        if self.corpora[corpus]['recent_changes'] and self.corpora[corpus]['last_links_loop'] + min(1800, max(5, self.corpora[corpus]['pages_queued'] * 20 / config['memoryStructure']['max_simul_pages_indexing'])) < s:
             self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
             self.corpora[corpus]['loop_running_since'] = now_ts()
             yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
@@ -1514,11 +1514,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
                 returnD(None)
-            self.corpora[corpus]['recent_changes'] = 0
             self.corpora[corpus]['last_links_loop'] = res
-            logger.msg("...processed new WebEntity links in %ss..." % (time.time() - s), system="INFO - %s" % corpus)
             yield self.db.add_log(corpus, "WE_LINKS", "...finished WebEntity links generation (%ss)" % (time.time() - s))
-            s = time.time()
             res = yield self.msclients.loop.getWebEntityLinks(corpus=corpus)
             if is_error(res):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
@@ -1526,8 +1523,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 returnD(None)
             self.corpora[corpus]['webentities_links'] = res
             self.rank_webentities(corpus)
-            logger.msg("...loaded, ranked and updated WebEntity links in %ss..." % (time.time() - s), system="INFO - %s" % corpus)
-            logger.msg("...loop run finished.", system="INFO - %s" % corpus)
+            self.corpora[corpus]['recent_changes'] = 0
+            logger.msg("...processed new WebEntity links in %ss." % (time.time() - s), system="INFO - %s" % corpus)
         self.corpora[corpus]['loop_running'] = None
 
     @inlineCallbacks
