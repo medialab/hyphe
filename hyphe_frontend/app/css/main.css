@@ -857,14 +857,13 @@ textarea.over-error{
 }
 .webentities-list-table .panel-heading{
   padding: 6px;
-  height: 88px;
 }
 .webentities-list-table .panel-heading-withrange{
   height: 174px;
 }
 .webentities-list-table .search-ariane-string{
   padding-bottom: 6px;
-  height: 40px;
+  min-height: 40px;
 }
 .webentities-list-table .search-ariane-string-text{
   font-weight: 600;
