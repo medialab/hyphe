@@ -1651,8 +1651,8 @@ public class LRUIndex {
         }
         return WEid;
     }
-    
-    private void addWELink(final String sourceId, final String targetId, final int weight, THashMap<String, THashMap<String, WebEntityLink>> webEntityLinksMap) throws IndexException {
+
+    private void addWELink(final String sourceId, final String targetId, final int weight, THashMap<String, THashMap<String, WebEntityLink>> webEntityLinksMap) {
 	    final String now = String.valueOf(System.currentTimeMillis()/1000);
 	    THashMap<String, WebEntityLink> tmpMap = webEntityLinksMap.remove(sourceId);
     	if (tmpMap == null) {
@@ -1711,6 +1711,9 @@ public class LRUIndex {
                         linksResults = indexSearcher.searchAfter(curDoc, linksQuery, null, nextBatch);
                     } else {
                         linksResults = indexSearcher.search(linksQuery, null, nextBatch);
+                    }
+                    if (linksResults.scoreDocs.length == 0) {
+                        break;
                     }
                     for (ScoreDoc doc : linksResults.scoreDocs) {
                         processedLinkResults++;
@@ -1792,6 +1795,9 @@ public class LRUIndex {
                             linksResults = indexSearcher.searchAfter(curDoc, targetLinksQuery, null, nextBatch);
                         } else {
                             linksResults = indexSearcher.search(targetLinksQuery, null, nextBatch);
+                        }
+                        if (linksResults.scoreDocs.length == 0) {
+                            break;
                         }
                         for (ScoreDoc doc : linksResults.scoreDocs) {
                             processedLinkResults++;
