@@ -24,6 +24,7 @@
     "port" : 6978
   },
   "precisionLimit": 2,
+  "defaultCreationRule": "domain",
   "discoverPrefixes": ["http://bit.ly",
                        "http://t.co",
                        "http://tinyurl.com",

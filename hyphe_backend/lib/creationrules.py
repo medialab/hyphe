@@ -35,3 +35,6 @@ def getPreset(name):
         return PATHN % int(pathN.group(1))
     return name
 
+def testPreset(name):
+    key = name.lower()
+    return key in PRESETS.keys() or re_subdomN.match(key) or re_pathN.match(key)

@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
+import os, types
 import simplejson as json
 from pymongo import Connection
 from twisted.internet import defer
 DEFAULT_CORPUS = "--hyphe--"
 CONFIG_FILE = os.path.join('config', 'config.json')
+from hyphe_backend.lib import creationrules
 
 def load_config():
 
@@ -146,6 +147,8 @@ GLOBAL_CONF_SCHEMA = {
   }, "twisted": {
     "type": dict,
     "int_fields": ["port"]
+  }, "defaultCreationRule": {
+    "type": creationrules.testPreset,
   }, "precisionLimit": {
     "type": int
   }, "discoverPrefixes": {
@@ -220,7 +223,10 @@ def check_conf_sanity(conf, schema, name=CONFIG_FILE, soft=False):
                 test_type(conf[ns][f], otyp, f, ns, name=name)
 
 def test_type(obj, otype, ns, ns2="", name=CONFIG_FILE):
-    if type(otype) == list:
+    if type(otype) == types.FunctionType:
+        if not otype(obj):
+            raise(error_config("field %s should respect function %s.%s" % (ns, otype.__module__, otype.__name__), ns2, name))
+    elif type(otype) == list:
         if obj not in otype:
             raise(error_config("field %s should be one of %s" % (ns, ", ".join(otype)), ns2, name))
     elif otype == str or otype == "path":

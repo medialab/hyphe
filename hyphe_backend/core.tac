@@ -125,8 +125,8 @@ class Core(jsonrpc.JSONRPC):
         except Exception as e:
             returnD(format_error(e))
         redeploy = False
-        if "precision_limit" in options:
-            returnD(format_error("Precision limit of a corpus can only be set when the corpus is created"))
+        if "precision_limit" in options or "default_creation_rule" in options:
+            returnD(format_error("Precision limit and default WE creation rule of a corpus can only be set when the corpus is created"))
         if "proxy" in options or ("phantom" in options and (\
           "timeout" in options["phantom"] or \
           "ajax_timeout" in options["phantom"] or \
@@ -192,6 +192,7 @@ class Core(jsonrpc.JSONRPC):
           "options": {
             "ram": 256,
             "max_depth": config["mongo-scrapy"]["maxdepth"],
+            "default_creation_rule": config["defaultCreationRule"],
             "precision_limit": config["precisionLimit"],
             "follow_redirects": config["discoverPrefixes"],
             "proxy": {
@@ -992,7 +993,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules) == 0):
             if corpus != DEFAULT_CORPUS and not quiet:
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
-            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.PRESETS["domain"], ''), corpus=corpus)
+            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(self.corpora[corpus]["default_creation_rule"]), ''), corpus=corpus)
             if is_error(res):
                 logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
                 if retry:
