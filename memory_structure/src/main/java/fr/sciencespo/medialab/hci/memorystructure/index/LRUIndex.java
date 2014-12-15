@@ -1638,7 +1638,7 @@ public class LRUIndex {
 
         String WEid = tmpMap.remove(shortLRU);
         if (WEid == null) {
-    		WEid = retrieveWebEntityMatchingLRU(LRU).getId();
+    		WEid = retrieveWebEntityIdMatchingLRU(LRU);
         	if (WEid == null) {
                 logger.warn("Warning couldn't retrieve WE for LRU " + LRU);
             }
@@ -1695,6 +1695,7 @@ public class LRUIndex {
             logger.info("Total # of new and recently modified webentities in index is " + WEsTodo.size());
             THashMap<String, THashMap<String, THashMap<String, String>>> lruToWebEntityMap = new THashMap<String, THashMap<String, THashMap<String, String>>>();
             NodeLink link; ScoreDoc curDoc = null;
+            String id;
 
             final Query linksQuery = LuceneQueryFactory.getNodeLinksModifiedSince(lastTimestamp);
             TopDocs linksResults = indexSearcher.search(linksQuery, null, 1);
@@ -1719,8 +1720,14 @@ public class LRUIndex {
                         processedLinkResults++;
                         curDoc = doc;
                         link = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(doc.doc));
-                        SourceWEsTodo.add(mapLRUtoWebEntityId(link.getSourceLRU(), lruToWebEntityMap));
-                        TargetWEsTodo.add(mapLRUtoWebEntityId(link.getTargetLRU(), lruToWebEntityMap));
+                        id = mapLRUtoWebEntityId(link.getSourceLRU(), lruToWebEntityMap);
+                        if (id != null) {
+                            SourceWEsTodo.add(id);
+                        }
+                        id = mapLRUtoWebEntityId(link.getTargetLRU(), lruToWebEntityMap);
+                        if (id != null) {
+                            TargetWEsTodo.add(id);
+                        }
                     }
                 }
             }
