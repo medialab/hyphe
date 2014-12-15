@@ -68,18 +68,6 @@
                           {{fullListLength}} WEB ENTIT{{fullListLength > 1 ? 'IES' : 'Y'}}
                         </span>
                       </div>
-
-                      <!-- <div class="form-group">
-                        <select
-                          class="form-control"
-                          ng-change="sortChanged()"
-                          ng-model="sort"
-                        >
-                          <option value="name">Sort by Name</option>
-                          <option value="status">Sort by Status</option>
-                          <option value="date">Sort by Date</option>
-                        </select>
-                      </div> -->
                       
                     </form>
 
@@ -106,11 +94,32 @@
                     <thead>
                       <tr ng-if="!loading && fullListLength > 0">
                         <th class="cell-checkbox"></th>
-                        <th>Name</th>
+                        <th class="cell-name pointable" ng-click="toggleSort('name')">
+                          <span class="glyphicon glyphicon-arrow-down" ng-if="sort == 'name' && sortAsc"></span>
+                          <span class="glyphicon glyphicon-arrow-up" ng-if="sort == 'name' && !sortAsc"></span>
+                          Name
+                        </th>
                         <th class="cell-prefixes hidden-xs hidden-sm">Prefixes</th>
-                        <th class="cell-status">Status</th>
-                        <th class="cell-last-crawled hidden-xs hidden-sm hidden-md">Crawled</th>
-                        <th class="cell-last-modif">Last modif.</th>
+                        <th class="cell-status pointable" ng-click="toggleSort('status')">
+                          <span class="glyphicon glyphicon-arrow-down" ng-if="sort == 'status' && sortAsc"></span>
+                          <span class="glyphicon glyphicon-arrow-up" ng-if="sort == 'status' && !sortAsc"></span>
+                          Status
+                        </th>
+                        <th class="cell-last-crawled hidden-xs hidden-sm hidden-md pointable" ng-click="toggleSort('crawling_status')">
+                          <span class="glyphicon glyphicon-arrow-down" ng-if="sort == 'crawling_status' && sortAsc"></span>
+                          <span class="glyphicon glyphicon-arrow-up" ng-if="sort == 'crawling_status' && !sortAsc"></span>
+                          Crawled
+                        </th>
+                        <th class="cell-cited hidden-xs hidden-sm hidden-md pointable" ng-click="toggleSort('indegree')">
+                          <span class="glyphicon glyphicon-arrow-down" ng-if="sort == 'indegree' && sortAsc"></span>
+                          <span class="glyphicon glyphicon-arrow-up" ng-if="sort == 'indegree' && !sortAsc"></span>
+                          Cited
+                        </th>
+                        <th class="cell-last-modif pointable" ng-click="toggleSort('last_modification_date')">
+                          <span class="glyphicon glyphicon-arrow-down" ng-if="sort == 'last_modification_date' && sortAsc"></span>
+                          <span class="glyphicon glyphicon-arrow-up" ng-if="sort == 'last_modification_date' && !sortAsc"></span>
+                          Last modif.
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -136,6 +145,9 @@
                             <span class="text-success" ng-if="obj.webentity.crawling_status == 'FINISHED'">YES</span>
                             <span class="text-danger" ng-if="obj.webentity.crawling_status != 'FINISHED'">NO</span>
                           </span>
+                        </td>
+                        <td class="cell-cited hidden-xs hidden-sm hidden-md">
+                          {{obj.webentity.indegree}}
                         </td>
                         <td class="cell-last-modif">
                           <span tooltip="{{obj.webentity.last_modification_date|date}}">{{obj.webentity.last_modification_date|prettyDate}}</span>

@@ -36,7 +36,9 @@ h1, h2, h3, h4, h5, h6{
 table.fixed{
   table-layout:fixed
 }
-
+.pointable{
+  cursor: pointer;
+}
 
 
 /* ==========================================================================
@@ -844,13 +846,13 @@ textarea.over-error{
   width: 120px;
 }
 .webentities-list-table .cell-last-crawled{
-  width: 80px;
+  width: 90px;
 }
 .webentities-list-table .cell-last-modif{
   width: 150px;
 }
 .webentities-list-table .cell-cited{
-  width: 60px;
+  width: 80px;
 }
 .webentities-list-table .cell-action{
   width: 140px;
