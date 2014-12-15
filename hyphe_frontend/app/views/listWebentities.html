@@ -110,6 +110,11 @@
                           <span class="glyphicon glyphicon-arrow-up" ng-if="sort == 'crawling_status' && !sortAsc"></span>
                           Crawled
                         </th>
+                        <th class="cell-cited hidden-xs hidden-sm hidden-md pointable" ng-click="toggleSort('indegree')">
+                          <span class="glyphicon glyphicon-arrow-down" ng-if="sort == 'indegree' && sortAsc"></span>
+                          <span class="glyphicon glyphicon-arrow-up" ng-if="sort == 'indegree' && !sortAsc"></span>
+                          Cited
+                        </th>
                         <th class="cell-last-modif pointable" ng-click="toggleSort('last_modification_date')">
                           <span class="glyphicon glyphicon-arrow-down" ng-if="sort == 'last_modification_date' && sortAsc"></span>
                           <span class="glyphicon glyphicon-arrow-up" ng-if="sort == 'last_modification_date' && !sortAsc"></span>
@@ -140,6 +145,9 @@
                             <span class="text-success" ng-if="obj.webentity.crawling_status == 'FINISHED'">YES</span>
                             <span class="text-danger" ng-if="obj.webentity.crawling_status != 'FINISHED'">NO</span>
                           </span>
+                        </td>
+                        <td class="cell-cited hidden-xs hidden-sm hidden-md">
+                          {{obj.webentity.indegree}}
                         </td>
                         <td class="cell-last-modif">
                           <span tooltip="{{obj.webentity.last_modification_date|date}}">{{obj.webentity.last_modification_date|prettyDate}}</span>
