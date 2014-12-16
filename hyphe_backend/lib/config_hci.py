@@ -34,6 +34,10 @@ def load_config():
         if 'proxy_port' not in conf['mongo-scrapy']:
             conf['mongo-scrapy']['proxy_port'] = 3128
 
+  # Set default creation rule if missing
+    if "defaultCreationRule" not in conf:
+        conf["defaultCreationRule"] = "domain"
+
   # Check sanity
     try:
         check_conf_sanity(conf, GLOBAL_CONF_SCHEMA)

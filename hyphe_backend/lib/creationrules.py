@@ -26,7 +26,7 @@ re_pathN = re.compile(r"path-(\d+)$")
 def getPreset(name):
     key = name.lower()
     if key in PRESETS.keys():
-        return PRESETS[keys]
+        return PRESETS[key]
     subdomN = re_subdomN.match(key)
     if subdomN:
         return SUBDOMN % int(subdomN.group(1))

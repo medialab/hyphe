@@ -993,7 +993,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules) == 0):
             if corpus != DEFAULT_CORPUS and not quiet:
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
-            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(self.corpora[corpus]["default_creation_rule"]), ''), corpus=corpus)
+            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(self.corpora[corpus]["options"].get("default_creation_rule", "domain")), ''), corpus=corpus)
             if is_error(res):
                 logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
                 if retry:
