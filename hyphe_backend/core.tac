@@ -975,7 +975,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 key = sortkey.lstrip("-")
                 reverse = (key != sortkey)
                 if key in res[0]:
-                    res = sorted(res, key=lambda x: x[key], reverse=reverse)
+                    res = sorted(res, key=lambda x: x[key].upper() if type(x[key]) in [str, unicode] else x[key], reverse=reverse)
         returnD(res)
 
     @inlineCallbacks
