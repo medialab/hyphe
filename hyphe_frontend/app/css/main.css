@@ -36,7 +36,9 @@ h1, h2, h3, h4, h5, h6{
 table.fixed{
   table-layout:fixed
 }
-
+.pointable{
+  cursor: pointer;
+}
 
 
 /* ==========================================================================
@@ -834,6 +836,12 @@ textarea.over-error{
 .webentities-list-table{
   margin-bottom: 0px;
 }
+.webentities-list-table .glyphicon-muted{
+  color: #CCC;
+}
+.webentities-list-table .table-glyphicon{
+  font-size: 12px;
+}
 .webentities-list-table .cell-checkbox{
   width: 20px;
 }
@@ -844,27 +852,26 @@ textarea.over-error{
   width: 120px;
 }
 .webentities-list-table .cell-last-crawled{
-  width: 80px;
+  width: 90px;
 }
 .webentities-list-table .cell-last-modif{
   width: 150px;
 }
 .webentities-list-table .cell-cited{
-  width: 60px;
+  width: 80px;
 }
 .webentities-list-table .cell-action{
   width: 140px;
 }
 .webentities-list-table .panel-heading{
   padding: 6px;
-  height: 88px;
 }
 .webentities-list-table .panel-heading-withrange{
   height: 174px;
 }
 .webentities-list-table .search-ariane-string{
   padding-bottom: 6px;
-  height: 40px;
+  min-height: 40px;
 }
 .webentities-list-table .search-ariane-string-text{
   font-weight: 600;
@@ -892,7 +899,7 @@ textarea.over-error{
   margin-top: 6px;
 }
 .webentities-list-table .prefix-div-container{
-  padding-top: 6px;
+  padding-top: 7px;
   line-height: 0px;
 }
 .webentities-list-table .prefix-div{
@@ -902,9 +909,13 @@ textarea.over-error{
   margin-right: 3px;
   margin-top: 3px;
   display: inline-block;
+  cursor: pointer;
 }
 .webentities-list-table tr.bg-selected .prefix-div{
   background-color: #FFF;
+}
+.webentities-list-table .prefix-div:hover, .webentities-list-table tr.bg-selected .prefix-div:hover{
+  background-color: #428bca;
 }
 
 

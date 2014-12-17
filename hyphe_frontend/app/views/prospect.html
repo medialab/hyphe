@@ -62,7 +62,8 @@
                     <thead>
                       <tr ng-if="!loading && fullListLength > 0">
                         <th>Name</th>
-                        <th class="cell-cited">Cited</th>
+                        <th class="cell-prefixes hidden-xs hidden-sm">Prefixes</th>
+                        <th class="cell-cited"><span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt"></span> Cited</th>
                         <th class="cell-action"></th>
                       </tr>
                     </thead>
@@ -75,6 +76,9 @@
                         ng-repeat="obj in list track by $index"
                       >
                         <td>{{obj.webentity.name}}</td>
+                        <td class="cell-prefixes hidden-xs hidden-sm prefix-div-container">
+                          <div ng-repeat="lru in obj.webentity.lru_prefixes" tooltip="{{lru|lru_to_url}}" class="prefix-div" ng-click="popLru(lru); $event.stopPropagation();"></div>
+                        </td>
                         <td class="cell-cited">{{obj.webentity.indegree}}</td>
                         <td class="cell-cited">
                           
@@ -106,7 +110,7 @@
 
                           </div>
 
-                          <button class="btn btn-xs btn-link" title="Explore Web Entity" ng-click="openPreview(obj)"><span class="glyphicon glyphicon-share"></span></button>
+                          <!-- <button class="btn btn-xs btn-link" title="Explore Web Entity" ng-click="openPreview(obj)"><span class="glyphicon glyphicon-share"></span></button> -->
 
                         </td>
                       </tr>

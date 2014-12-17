@@ -15,6 +15,7 @@ import fr.sciencespo.medialab.hci.memorystructure.util.LRUUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.NumericField;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.index.FieldInfo;
 
@@ -110,7 +111,7 @@ public class IndexConfiguration {
         return WebEntityStatus.DISCOVERED.name();
     }
 
-    private static Document addDocumentField(Document document, FieldName name, String value, boolean store, boolean index, boolean tokenize) {
+    private static Document addDocumentField(Document document, FieldName name, String value, boolean store, boolean index, boolean tokenize, boolean integer) {
         Field.Store fieldStore = Field.Store.YES;
         if (! store) {
             fieldStore = Field.Store.NO;
@@ -121,29 +122,39 @@ public class IndexConfiguration {
         } else if (tokenize) {
             fieldIndex = Field.Index.ANALYZED_NO_NORMS;
         }
-        Field field = new Field(name.name(), value, fieldStore, fieldIndex, Field.TermVector.NO);
-        if (! tokenize) {
-            field.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+        if (integer) {
+        	NumericField field = new NumericField(name.name(), fieldStore, index);
+        	field.setIntValue(Integer.parseInt(value));
+            document.add(field);
+        } else {
+        	Field field = new Field(name.name(), value, fieldStore, fieldIndex, Field.TermVector.NO);
+	        if (! tokenize) {
+	            field.setIndexOptions(FieldInfo.IndexOptions.DOCS_ONLY);
+	        }
+	        field.setOmitNorms(true);
+            document.add(field);
         }
-        field.setOmitNorms(true);
-        document.add(field);
         return document;
     }
 
     private static Document addDocumentUnstoredField(Document document, FieldName name, String value) {
-        return addDocumentField(document, name, value, false, true, true);
+        return addDocumentField(document, name, value, false, true, true, false);
     }
 
     private static Document addDocumentUnindexedField(Document document, FieldName name, String value) {
-        return addDocumentField(document, name, value, true, false, false);
+        return addDocumentField(document, name, value, true, false, false, false);
     }
 
     private static Document addDocumentUntokenizedField(Document document, FieldName name, String value) {
-        return addDocumentField(document, name, value, true, true, false);
+        return addDocumentField(document, name, value, true, true, false, false);
     }
 
     private static Document addDocumentTokenizedField(Document document, FieldName name, String value) {
-        return addDocumentField(document, name, value, true, true, true);
+        return addDocumentField(document, name, value, true, true, true, false);
+    }
+
+    private static Document addIntField(Document document, FieldName name, String value) {
+        return addDocumentField(document, name, value, true, true, false, true);
     }
 
     /**
@@ -154,12 +165,12 @@ public class IndexConfiguration {
      * @return
      */
     private static Document setDocumentDates(Document document, String creationDate) {
-        String currentDate = String.valueOf(System.currentTimeMillis());
+        String currentDate = String.valueOf(System.currentTimeMillis()/1000);
         if (creationDate == null) {
             creationDate = currentDate;
         }
-        document = addDocumentUnindexedField(document, FieldName.DATECREA, creationDate);
-        document = addDocumentUnindexedField(document, FieldName.DATEMODIF, currentDate);
+        document = addIntField(document, FieldName.DATECREA, creationDate);
+        document = addIntField(document, FieldName.DATEMODIF, currentDate);
         return document;
     }
 

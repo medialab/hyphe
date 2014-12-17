@@ -16,6 +16,8 @@ angular.module('hyphe.listwebentitiesController', [])
 
     $scope.loading = false  // This flag prevents multiple simultaneous queries
 
+    $scope.pageChecked = false
+
     $scope.paginationPage = 1
     $scope.paginationLength = 20   // How many items per page
     $scope.paginationNumPages = 5  // How many pages to display in the pagination
@@ -26,6 +28,7 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.query
     $scope.lastQuery
     $scope.sort = 'name'
+    $scope.sortAsc = true
     $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
 
     $scope.selected_setStatus = 'none'
@@ -34,6 +37,7 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.pageChanged = function(){
       
       $scope.status = {message: 'Loading'}
+      $scope.pageChecked = false
       $scope.loading = true
 
       api.getResultsPage(
@@ -45,15 +49,20 @@ angular.module('hyphe.listwebentitiesController', [])
 
           $scope.currentSearchToken = result.token
 
+          var allChecked = true
           $scope.list = result.webentities.map(function(we, i){
-            var obj = {
+            var checked = $scope.checkedList.some(function(weId){return weId == we.id})
+            ,obj = {
               id:i
               ,webentity:we
-              ,checked:$scope.checkedList.some(function(weId){return weId == we.id})
+              ,checked:checked
             }
+            if(!checked)
+              allChecked = false
             return obj
           })
           $scope.status = {}
+          $scope.pageChecked = allChecked
           $scope.loading = false
         }
         ,function(){
@@ -64,7 +73,23 @@ angular.module('hyphe.listwebentitiesController', [])
       )
     }
 
-    $scope.sortChanged = function(){
+    $scope.toggleSort = function(field){
+      if($scope.sort == field){
+        if($scope.sort == 'name'){
+            $scope.sortAsc = !$scope.sortAsc
+        } else {
+          if($scope.sortAsc){
+            $scope.sortAsc = !$scope.sortAsc
+          } else {
+            // Reset
+            $scope.sort = 'name'
+            $scope.sortAsc = true
+          }
+        }
+      } else {
+        $scope.sort = field
+        $scope.sortAsc = true
+      }
       if($scope.lastQuery === undefined){
         $scope.loadWebentities()
       } else {
@@ -100,7 +125,7 @@ angular.module('hyphe.listwebentitiesController', [])
         {
           allFieldsKeywords: query || []
           ,fieldKeywords: field_kw
-          ,sortField: $scope.sort
+          ,sortField: (($scope.sortAsc) ? ($scope.sort) : ('-' + $scope.sort))
           ,count: $scope.paginationLength
           ,page: $scope.paginationPage - 1
         }
@@ -252,6 +277,22 @@ angular.module('hyphe.listwebentitiesController', [])
 
     $scope.popLru = function(lru){
       window.open(utils.LRU_to_URL(lru), '_blank');
+    }
+
+    $scope.updatePageSelection = function(){
+      if($scope.pageChecked){
+        $scope.list.forEach(function(obj){
+          if(!obj.checked){
+            obj.checked = true
+            checkedList_add(obj.webentity.id, obj.webentity)
+          }
+        })
+      } else {
+        $scope.list.forEach(function(obj){
+          obj.checked = false
+          checkedList_remove(obj.webentity.id)
+        })
+      }
     }
 
     $scope.loadWebentities()

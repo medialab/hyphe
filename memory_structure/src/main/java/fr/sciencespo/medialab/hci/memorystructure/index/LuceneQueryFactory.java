@@ -6,14 +6,16 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityStatus;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.PrefixQuery;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.queryParser.MultiFieldQueryParser;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,6 +47,26 @@ public class LuceneQueryFactory {
         BooleanQuery q = new BooleanQuery();
         q.add(new TermQuery(objectTypeQueryTerm), BooleanClause.Occur.MUST);
         q.add(new TermQuery(new Term(fieldName.name(), fieldValue)), BooleanClause.Occur.MUST);
+        return q;
+    }
+
+    protected static Query getObjectItemsByFieldQuery(Term objectTypeQueryTerm, IndexConfiguration.FieldName fieldName, List<String> fieldValues) {
+        BooleanQuery q = new BooleanQuery();
+        q.add(new TermQuery(objectTypeQueryTerm), BooleanClause.Occur.MUST);
+        BooleanQuery q1 = new BooleanQuery();
+        if (fieldValues != null) {
+        	for (String fieldValue : fieldValues) {
+        		q1.add(new TermQuery(new Term(fieldName.name(), fieldValue)), BooleanClause.Occur.SHOULD);
+        	}
+        }
+        q.add(q1, BooleanClause.Occur.MUST);
+        return q;
+    }
+
+    protected static BooleanQuery getObjectsModifiedSince(Integer timestamp) {
+    	BooleanQuery q = new BooleanQuery();
+        Query q1 = NumericRangeQuery.newIntRange(IndexConfiguration.FieldName.DATEMODIF.name(), timestamp, Integer.MAX_VALUE, true, false);
+        q.add(q1, BooleanClause.Occur.MUST);
         return q;
     }
 
@@ -108,6 +130,12 @@ public class LuceneQueryFactory {
         return q;
     }
 
+    protected static Query getNodeLinksModifiedSince(Integer timestamp) {
+    	BooleanQuery q = getObjectsModifiedSince(timestamp);
+        q.add(getNodeLinksQuery(), BooleanClause.Occur.MUST);
+        return q;
+    }
+
     // -- WEBENTITIES
 
     protected static Query getWebEntitiesQuery() {
@@ -124,20 +152,17 @@ public class LuceneQueryFactory {
 
     // Returns all WebEntities if ids is null or empty list
     protected static Query getWebEntitiesByIdsQuery(List<String> IDs) {
-        BooleanQuery q = new BooleanQuery();
-        q.add(getWebEntitiesQuery(), BooleanClause.Occur.MUST);
-        BooleanQuery qIds = new BooleanQuery();
-        if (IDs != null) {
-            for (String id : IDs) {
-                qIds.add(new TermQuery(new Term(IndexConfiguration.FieldName.ID.name(), id)), BooleanClause.Occur.SHOULD);
-            }
-        }
-        q.add(qIds, BooleanClause.Occur.MUST);
-        return q;
+    	return getObjectItemsByFieldQuery(typeEqualWebEntity, IndexConfiguration.FieldName.ID, IDs);
     }
 
     protected static Query getWebEntityByLRUPrefixQuery(String LRUPrefix) {
         return getWebEntitiesByFieldQuery(IndexConfiguration.FieldName.LRU, LRUPrefix);
+    }
+
+    protected static Query getWebEntitiesModifiedSince(Integer timestamp) {
+    	BooleanQuery q = getObjectsModifiedSince(timestamp);
+        q.add(getWebEntitiesQuery(), BooleanClause.Occur.MUST);
+        return q;
     }
 
     // -- WEBENTITYNODELINKS
@@ -181,6 +206,16 @@ public class LuceneQueryFactory {
         q.add(getWebEntityLinksBySourceWebEntityQuery(sourceID), BooleanClause.Occur.MUST);
         q.add(new TermQuery(new Term(IndexConfiguration.FieldName.TARGET.name(), targetID)), BooleanClause.Occur.MUST);
         return q;
+    }
+
+    // Returns all WebEntityLinks if sourceWebEntities is null or empty list
+    protected static Query getWebEntityLinksWithSourceInQuery(List<String> sourceWebEntityIDs) {
+    	return getObjectItemsByFieldQuery(typeEqualWebEntityLink, IndexConfiguration.FieldName.SOURCE, sourceWebEntityIDs);
+    }
+
+    // Returns all WebEntityLinks if targetWebEntities is null or empty list
+    protected static Query getWebEntityLinksWithTargetInQuery(List<String> targetWebEntityIDs) {
+    	return getObjectItemsByFieldQuery(typeEqualWebEntityLink, IndexConfiguration.FieldName.TARGET, targetWebEntityIDs);
     }
 
     // -- WEBENTITYCREATIONRULES
@@ -266,6 +301,7 @@ public class LuceneQueryFactory {
      */
     private static BooleanQuery addWebEntityButNotSubWebEntitiesToQuery(BooleanQuery q, IndexConfiguration.FieldName field, WebEntity webEntity, List<WebEntity> subWebEntities) {
         BooleanQuery prefixesMatchQuery = new BooleanQuery();
+        BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
         for(String webEntityPrefix : webEntity.getLRUSet()) {
             prefixesMatchQuery.add(new PrefixQuery(new Term(field.name(), webEntityPrefix)), BooleanClause.Occur.SHOULD);
         }
@@ -309,6 +345,14 @@ public class LuceneQueryFactory {
         return getLRULinksByWebEntity(typeEqualNodeLink, webEntity, subWebEntities, IndexConfiguration.FieldName.TARGET);
     }
 
+    protected static Query getNodeLinksByTargetWebEntityQuery(WebEntity webEntity, List<WebEntity> subWebEntities, List<String> filterSourceLRUs) {
+        BooleanQuery q = (BooleanQuery) getLRULinksByWebEntity(typeEqualNodeLink, webEntity, subWebEntities, IndexConfiguration.FieldName.TARGET);
+        for(String filterSource : filterSourceLRUs) {
+            q.add(new PrefixQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), filterSource)), BooleanClause.Occur.MUST_NOT);
+        }
+        return q;
+    }
+
     protected static Query getWebEntityNodeLinksByTargetWebEntityQuery(WebEntity webEntity, List<WebEntity> subWebEntities) {
         return getLRULinksByWebEntity(typeEqualWebEntityNodeLink, webEntity, subWebEntities, IndexConfiguration.FieldName.TARGET);
     }
@@ -342,7 +386,7 @@ public class LuceneQueryFactory {
         q.add(new TermQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), "CRAWL")), BooleanClause.Occur.MUST);
         return q;
     }
-    
+
     /**
      * Make Query to find all NodeLinks fitting within a webEntity's prefixes but not its subWebEntities
      *

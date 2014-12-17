@@ -293,6 +293,11 @@ list<WebEntityLink> getWebEntityLinks() throws (1:MemoryStructureException x)
  */
 list<WebEntityLink> generateWebEntityLinks() throws (1:MemoryStructureException x)
 
+/**
+ * Run process to generate latest WebEntityLinks from WebEntities and NodeLinks.
+ */
+i32 updateWebEntityLinks(1:i32 id) throws (1:MemoryStructureException x)
+
 /** getWebEntityLinksByWebEntitySource
  * @param 1 id: id of web entity
  * @return a List of WebEntityLink Objects whose source id are this
