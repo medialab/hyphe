@@ -136,9 +136,6 @@ public class Cache {
         webEntity.setLRUSet(new HashSet<String>());
         webEntity.addToLRUSet(LRUPrefix);
         webEntity.setStatus(WebEntityStatus.DISCOVERED.name());
-        String now = String.valueOf(System.currentTimeMillis()/1000);
-        webEntity.setCreationDate(now);
-        webEntity.setLastModificationDate(now);
         return webEntity;
     }
 
@@ -184,7 +181,7 @@ public class Cache {
             if (!doneLRUPrefixes.contains(LRUPrefix)) {
                 WEcandidate = WEcandidates.get(LRUPrefix);
                 existing = lruIndex.retrieveWebEntityByLRUPrefix(LRUPrefix);
-                
+
                 // store new webentity in index
                 if (existing == null && WEcandidate != null) {
                 	LRUVariation = LRUUtil.HTTPVariationLRU(LRUPrefix);

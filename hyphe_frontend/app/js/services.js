@@ -91,7 +91,7 @@ angular.module('hyphe.services', [])
   }])
 
   .factory('corpus', [function(){
-  	var ns = this    // Namsepace
+  	var ns = this    // Namespace
     
     ns.ssKeys = {id:'hyphe-corpus-id', name:'hyphe-corpus-name'}
 

@@ -26,6 +26,7 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.query
     $scope.lastQuery
     $scope.sort = 'name'
+    $scope.sortAsc = true
     $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
 
     $scope.selected_setStatus = 'none'
@@ -64,7 +65,23 @@ angular.module('hyphe.listwebentitiesController', [])
       )
     }
 
-    $scope.sortChanged = function(){
+    $scope.toggleSort = function(field){
+      if($scope.sort == field){
+        if($scope.sort == 'name'){
+            $scope.sortAsc = !$scope.sortAsc
+        } else {
+          if($scope.sortAsc){
+            $scope.sortAsc = !$scope.sortAsc
+          } else {
+            // Reset
+            $scope.sort = 'name'
+            $scope.sortAsc = true
+          }
+        }
+      } else {
+        $scope.sort = field
+        $scope.sortAsc = true
+      }
       if($scope.lastQuery === undefined){
         $scope.loadWebentities()
       } else {
@@ -100,7 +117,7 @@ angular.module('hyphe.listwebentitiesController', [])
         {
           allFieldsKeywords: query || []
           ,fieldKeywords: field_kw
-          ,sortField: $scope.sort
+          ,sortField: (($scope.sortAsc) ? ($scope.sort) : ('-' + $scope.sort))
           ,count: $scope.paginationLength
           ,page: $scope.paginationPage - 1
         }

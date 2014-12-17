@@ -125,8 +125,8 @@ class Core(jsonrpc.JSONRPC):
         except Exception as e:
             returnD(format_error(e))
         redeploy = False
-        if "precision_limit" in options:
-            returnD(format_error("Precision limit of a corpus can only be set when the corpus is created"))
+        if "precision_limit" in options or "default_creation_rule" in options:
+            returnD(format_error("Precision limit and default WE creation rule of a corpus can only be set when the corpus is created"))
         if "proxy" in options or ("phantom" in options and (\
           "timeout" in options["phantom"] or \
           "ajax_timeout" in options["phantom"] or \
@@ -192,6 +192,7 @@ class Core(jsonrpc.JSONRPC):
           "options": {
             "ram": 256,
             "max_depth": config["mongo-scrapy"]["maxdepth"],
+            "default_creation_rule": config["defaultCreationRule"],
             "precision_limit": config["precisionLimit"],
             "follow_redirects": config["discoverPrefixes"],
             "proxy": {
@@ -494,12 +495,18 @@ class Core(jsonrpc.JSONRPC):
         query = {}
         if list_ids:
             query = {'_id': {'$in': list_ids}}
-        if from_ts or to_ts:
-            query["created_at"] = {}
-        if from_ts:
-            query["created_at"]["$gte"] = from_ts
         if to_ts:
+            query["created_at"] = {}
             query["created_at"]["$lte"] = to_ts
+            if from_ts:
+                query["created_at"]["$gte"] = from_ts
+        elif from_ts:
+            query["$or"] = [
+              {"created_at": {"$gte": from_ts}},
+              {"indexing_status": {"$nin": [
+                indexing_statuses.CANCELED, indexing_statuses.FINISHED
+              ]}}
+            ]
         jobs = yield self.db.list_jobs(corpus, query)
         returnD(format_result(list(jobs)))
 
@@ -968,7 +975,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 key = sortkey.lstrip("-")
                 reverse = (key != sortkey)
                 if key in res[0]:
-                    res = sorted(res, key=lambda x: x[key], reverse=reverse)
+                    res = sorted(res, key=lambda x: x[key].upper() if type(x[key]) in [str, unicode] else x[key], reverse=reverse)
         returnD(res)
 
     @inlineCallbacks
@@ -986,7 +993,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules) == 0):
             if corpus != DEFAULT_CORPUS and not quiet:
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
-            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.DEFAULT, ''), corpus=corpus)
+            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(self.corpora[corpus]["options"].get("default_creation_rule", "domain")), ''), corpus=corpus)
             if is_error(res):
                 logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
                 if retry:
@@ -1497,9 +1504,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             else:
                 logger.msg("job %s found for index but no page corresponding found in queue." % jobid, system="WARNING - %s" % corpus)
             self.corpora[corpus]['last_index_loop'] = now_ts()
-        # Run linking WebEntities on a regular basis when needed
-        if self.corpora[corpus]['recent_changes'] and self.corpora[corpus]['last_links_loop'] + 5 < now_ts()/1000:
-            s = time.time()
+        # Run linking WebEntities on a regular basis when needed and not overloaded
+        s = time.time()
+        if self.corpora[corpus]['recent_changes'] and self.corpora[corpus]['last_links_loop'] + min(1800, max(5, self.corpora[corpus]['pages_queued'] * 20 / config['memoryStructure']['max_simul_pages_indexing'])) < s:
             self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
             self.corpora[corpus]['loop_running_since'] = now_ts()
             yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
@@ -1508,11 +1515,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
                 returnD(None)
-            self.corpora[corpus]['recent_changes'] = 0
             self.corpora[corpus]['last_links_loop'] = res
-            logger.msg("...processed new WebEntity links in %ss..." % (time.time() - s), system="INFO - %s" % corpus)
             yield self.db.add_log(corpus, "WE_LINKS", "...finished WebEntity links generation (%ss)" % (time.time() - s))
-            s = time.time()
             res = yield self.msclients.loop.getWebEntityLinks(corpus=corpus)
             if is_error(res):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
@@ -1520,8 +1524,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 returnD(None)
             self.corpora[corpus]['webentities_links'] = res
             self.rank_webentities(corpus)
-            logger.msg("...loaded, ranked and updated WebEntity links in %ss..." % (time.time() - s), system="INFO - %s" % corpus)
-            logger.msg("...loop run finished.", system="INFO - %s" % corpus)
+            self.corpora[corpus]['recent_changes'] = 0
+            logger.msg("...processed new WebEntity links in %ss." % (time.time() - s), system="INFO - %s" % corpus)
         self.corpora[corpus]['loop_running'] = None
 
     @inlineCallbacks
