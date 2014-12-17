@@ -6,6 +6,7 @@ angular.module('hyphe', [
   'ngRoute'
   ,'ui.bootstrap'
   ,'hyphe.conf'
+  ,'hyphe.analytics'
   ,'hyphe.filters'
   ,'hyphe.services'
   ,'hyphe.service_utils'
@@ -13,6 +14,8 @@ angular.module('hyphe', [
   ,'hyphe.service_glossary'
   ,'hyphe.directives'
   ,'hyphe.controllers'
+  ,'angulartics'
+  ,'angulartics.google.analytics'
 ])
 .config(['$routeProvider', function($routeProvider) {
   $routeProvider.when('/login', {templateUrl: 'views/login.html', controller: 'Login'});
@@ -30,4 +33,17 @@ angular.module('hyphe', [
   $routeProvider.when('/network', {templateUrl: 'views/network.html', controller: 'network'});
   $routeProvider.when('/prospect', {templateUrl: 'views/prospect.html', controller: 'prospect'});
   $routeProvider.otherwise({redirectTo: '/login'});
+}]);
+
+angular.module('hyphe.analytics', [])
+.run(['googleAnalyticsId', function(googleAnalyticsId) {
+
+  if(googleAnalyticsId) {
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', googleAnalyticsId, 'auto');
+  }
+  
 }]);
