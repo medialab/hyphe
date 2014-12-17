@@ -1016,9 +1016,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
             logger.msg("Empty memory structure content", system="INFO - %s" % corpus)
         if self.corpora[corpus]['stats_loop'].running:
             self.corpora[corpus]['stats_loop'].stop()
-        while self.corpora[corpus]['loop_running']:
-            if self.corpora[corpus]['index_loop'].running:
-                self.corpora[corpus]['index_loop'].stop()
+        if self.corpora[corpus]['index_loop'].running:
+            self.corpora[corpus]['index_loop'].stop()
         res = self.msclients.sync.clearIndex(corpus=corpus)
         if is_error(res):
             returnD(res)
