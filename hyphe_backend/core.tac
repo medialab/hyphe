@@ -334,7 +334,7 @@ class Core(jsonrpc.JSONRPC):
     @inlineCallbacks
     def stop_corpus(self, corpus=DEFAULT_CORPUS, quiet=False):
         if corpus in self.corpora:
-            for f in ["jobs_loop", "index_loop", "stats_loop"]:
+            for f in ["stats_loop", "jobs_loop", "index_loop"]:
                 if f in self.corpora[corpus] and self.corpora[corpus][f].running:
                     self.corpora[corpus][f].stop()
             if corpus in self.msclients.corpora:
@@ -977,11 +977,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 if key in res[0]:
                     res = sorted(res, key=lambda x: x[key].upper() if type(x[key]) in [str, unicode] else x[key], reverse=reverse)
         returnD(res)
-
-    @inlineCallbacks
-    def jsonrpc_get_all_nodelinks(self, corpus=DEFAULT_CORPUS):
-        res = yield self.msclients.pool.getNodeLinks(corpus=corpus)
-        returnD(handle_standard_results(res))
 
     @inlineCallbacks
     def ensureDefaultCreationRuleExists(self, corpus=DEFAULT_CORPUS, quiet=False, retry=True):

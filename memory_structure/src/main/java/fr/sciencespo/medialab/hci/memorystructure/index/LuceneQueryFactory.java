@@ -15,7 +15,6 @@ import org.apache.lucene.queryParser.MultiFieldQueryParser;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

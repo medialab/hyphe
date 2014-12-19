@@ -74,6 +74,7 @@ class MongoDB(object):
     @inlineCallbacks
     def delete_corpus(self, corpus):
         yield self.db["corpus"].remove({'_id': corpus}, safe=True)
+        yield self.drop_corpus_collections(corpus)
 
     @inlineCallbacks
     def init_corpus_indexes(self, corpus):
