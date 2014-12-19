@@ -7,21 +7,24 @@ PORT = "t:[0-9]+\\|"
 HOST = "h:[^\\|]+\\|"
 PATH = "p:[^\\|]+\\|"
 
-DEFAULT = "(%s(%s)?%s(%s)+)" % (SCHEME, PORT, HOST, HOST)
+DEFAULT = "%s(%s)?%s(%s)" % (SCHEME, PORT, HOST, HOST)
 
 PRESETS = {
-  "subdomains": DEFAULT,
-  "domain": "(%s(%s)?%s%s)" % (SCHEME, PORT, HOST, HOST),
+  "subdomain": "(%s+)" % DEFAULT,
+  "domain": "(%s)" % DEFAULT,
+#  "domain": "(%s+)(%s)?" % (DEFAULT, HOST),    # experiment to catch always everything but one host
   "page": "(.*)$"
 }
 
-SUBDOMN = ("(%s(%s)?%s(%s)" % (SCHEME, PORT, HOST, HOST)) + "{%d})"
+SUBDOMN = ("(%s" % DEFAULT) + "{%d})"
 
 re_subdomN = re.compile(r"subdomain-(\d+)$")
 
-PATHN = ("(%s(%s)?%s(%s)+(%s)" % (SCHEME, PORT, HOST, HOST, PATH)) + "{%d})"
+PATHN = ("(%s+(%s)" % (DEFAULT, PATH)) + "{%d})"
 
 re_pathN = re.compile(r"path-(\d+)$")
+
+re_regN = re.compile(r"\{(\d+)\}\)$")
 
 def getPreset(name):
     key = name.lower()
@@ -29,12 +32,31 @@ def getPreset(name):
         return PRESETS[key]
     subdomN = re_subdomN.match(key)
     if subdomN:
-        return SUBDOMN % int(subdomN.group(1))
+        return SUBDOMN % (int(subdomN.group(1)) + 1)
     pathN = re_pathN.match(key)
     if pathN:
         return PATHN % int(pathN.group(1))
     return name
 
+def getName(regexp):
+    for k, v in PRESETS.items():
+        if regexp == v:
+            return k
+    digit = re_regN.search(regexp)
+    if regexp.startswith("(%s" % DEFAULT) and digit:
+        sreg = regexp.replace("(%s" % DEFAULT, "")
+        lev = int(digit.group(1))
+        typ = "path"
+        if sreg.startswith("+(%s)" % PATH):
+            typ = "path"
+        else:
+            lev -= 1
+            typ = "subdomain"
+        return "%s-%s" % (typ, lev)
+    return 'unknown regexp'
+
 def testPreset(name):
+    if type(name) not in [str, unicode, bytes]:
+        return False
     key = name.lower()
     return key in PRESETS.keys() or re_subdomN.match(key) or re_pathN.match(key)

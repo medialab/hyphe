@@ -126,7 +126,7 @@ class Core(jsonrpc.JSONRPC):
             returnD(format_error(e))
         redeploy = False
         if "precision_limit" in options or "default_creation_rule" in options:
-            returnD(format_error("Precision limit and default WE creation rule of a corpus can only be set when the corpus is created"))
+            returnD(format_error("Precision limit and default WE creation rules of a corpus can only be set when the corpus is created"))
         if "proxy" in options or ("phantom" in options and (\
           "timeout" in options["phantom"] or \
           "ajax_timeout" in options["phantom"] or \
@@ -1000,21 +1000,52 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     logger.msg("Retrying WE creation rule creation...", system="ERROR - %s" % corpus)
                     returnD(ensureDefaultCreationRuleExists(corpus, quiet=quiet, retry=False))
                 returnD(res)
+            actions = []
+            for prf, regexp in config.get("creationRules", {}).items():
+                for prefix in ["http://%s" % prf, "https://%s" % prf]:
+                    lru = urllru.url_to_lru_clean(prefix)
+                    actions.append(self.jsonrpc_add_webentity_creationrule(lru, creationrules.getPreset(regexp), corpus))
+            results = yield DeferredList(actions, consumeErrors=True)
+            for bl, res in results:
+                if not bl:
+                    returnD(res)
             returnD(format_result('Default creation rule created'))
         returnD(format_result('Default creation rule was already created'))
 
     @inlineCallbacks
-    def jsonrpc_define_webentity_creationrule(self, lru_prefix, regexp, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentity_creationrules(self, corpus=DEFAULT_CORPUS):
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
+        if is_error(rules):
+            returnD(format_error(rules))
+        returnD(format_result([{"prefix": r.LRU, "regexp": r.regExp, "name": creationrules.getName(r.regExp)} for r in rules]))
+
+    @inlineCallbacks
+    def jsonrpc_delete_webentity_creationrule(self, lru_prefix, corpus=DEFAULT_CORPUS):
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
+        for wecr in rules:
+            if lru_prefix == wecr.LRU:
+                res = yield self.msclients.pool.removeWebEntityCreationRule(wecr, corpus=corpus)
+                if is_error(res):
+                    returnD(format_error(res))
+                returnD(format_result('WebEntityCreationRule for prefix %s deleted.' % lru_prefix))
+        returnD(format_error("No existing WebEntityCreationRule found for prefix %s." % lru_prefix))
+
+    @inlineCallbacks
+    def jsonrpc_add_webentity_creationrule(self, lru_prefix, regexp, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         try:
             _, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
         except ValueError as e:
             returnD(format_error(e))
-        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
-        if lru_prefix in [a.LRU.decode("utf-8") for a in rules]:
-            returnD("Error: a CreationRule was already defined for prefix %s" % lru_prefix)
-
+#        Safe version against choosen force overwrite
+#        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
+#        if lru_prefix in [a.LRU.decode("utf-8") for a in rules]:
+#            returnD(format_error("A CreationRule was already defined for prefix %s" % lru_prefix)
         regexp = creationrules.getPreset(regexp)
         res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(regexp, lru_prefix), corpus=corpus)
         if is_error(res):
@@ -1543,7 +1574,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['precision_exceptions'] = exceptions
         return format_result(exceptions)
 
-    def jsonrpc_remove_precision_exceptions(self, list_exceptions, corpus=DEFAULT_CORPUS):
+    def jsonrpc_delete_precision_exceptions(self, list_exceptions, corpus=DEFAULT_CORPUS):
         res = self.msclients.sync.removePrecisionExceptions(list_exceptions, corpus=corpus)
         if is_error(res):
             return res
@@ -2058,7 +2089,7 @@ reactor.callLater(1, test_start, core, "--test-corpus--")
 
 # Activate default corpus automatically if in monocorpus
 if not config["MULTICORPUS"]:
-    reactor.callLater(10, core.activate_monocorpus)
+    reactor.callLater(15, core.activate_monocorpus)
 
 # JSON-RPC interface
 core.putSubHandler('crawl', core.crawler)

@@ -34,9 +34,11 @@ def load_config():
         if 'proxy_port' not in conf['mongo-scrapy']:
             conf['mongo-scrapy']['proxy_port'] = 3128
 
-  # Set default creation rule if missing
+  # Set default creation rules if missing
     if "defaultCreationRule" not in conf:
         conf["defaultCreationRule"] = "domain"
+    if "creationRules" not in conf:
+        conf["creationRules"] = {}
 
   # Check sanity
     try:
@@ -153,6 +155,10 @@ GLOBAL_CONF_SCHEMA = {
     "int_fields": ["port"]
   }, "defaultCreationRule": {
     "type": creationrules.testPreset,
+  }, "creationRules": {
+    "type": dict,
+    "keys": str,
+    "values": creationrules.testPreset
   }, "precisionLimit": {
     "type": int
   }, "discoverPrefixes": {
@@ -172,6 +178,7 @@ CORPUS_CONF_SCHEMA = {
   "ram":              {"type": int},
   "max_depth":        {"type": int},
   "precision_limit":  {"type": int},
+  "defaultCreationRule": {"type": creationrules.testPreset},
   "follow_redirects": {"type": list},
   "proxy": {
     "type": dict,
@@ -216,6 +223,12 @@ def check_conf_sanity(conf, schema, name=CONFIG_FILE, soft=False):
                         continue
                     raise(error_config("%s field %s missing" % (otyp, f), ns, name))
                 test_type(conf[ns][f], otyp, f, ns, name=name)
+            if 'keys' in rules:
+                for k in conf[ns]:
+                    test_type(k, rules["keys"], k, ns, name=name)
+            if 'values' in rules:
+                for k in conf[ns]:
+                    test_type(conf[ns][k], rules["values"], k, ns, name=name)
             if "MULTICORPUS" not in conf:
                 continue
             corpustype = "%scorpus" % ("multi" if conf["MULTICORPUS"] else "mono")
