@@ -5,8 +5,9 @@
 angular.module('hyphe', [
   'ngRoute'
   ,'ui.bootstrap'
-  // ,'angulartics'
-  // ,'angulartics.google.analytics'
+  ,'angulartics'
+  ,'angulartics.google.analytics'
+  ,'hyphe.analytics'
   ,'hyphe.conf'
   ,'hyphe.filters'
   ,'hyphe.services'
@@ -36,11 +37,10 @@ angular.module('hyphe', [
   $routeProvider.otherwise({redirectTo: '/login'});
 }])
 
-/*// Analytics
+// Analytics
 .config(['$analyticsProvider', function ($analyticsProvider) {
   $analyticsProvider.virtualPageviews(true);
-  console.log('Analytics provider', $analyticsProvider)
-}]);*/
+}])
 
 angular.module('hyphe.analytics', [])
 .run(['googleAnalyticsId', function(googleAnalyticsId) {
@@ -51,13 +51,8 @@ angular.module('hyphe.analytics', [])
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
     ga('create', googleAnalyticsId, 'auto');
-    ga('send', 'pageview');
   }
+
 }])
 
-/*.run(['$analytics', function($analytics) {
-  window.a = $analytics
-  $analytics.pageTrack('/test/url');
-  console.log('Analytics', $analytics)
-}])*/
   
