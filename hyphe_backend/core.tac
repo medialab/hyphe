@@ -1935,7 +1935,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if not is_error(WE):
                 WEs.append({
                     "lru": prefix,
-                    "stems_count": len(urllru.split_lru_in_stems(prefix)),
+                    "stems_count": len(urllru.split_lru_in_stems(prefix, False)),
                     "id": WE.id,
                     "name": WE.name
                 })
