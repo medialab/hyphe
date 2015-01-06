@@ -31,3 +31,8 @@ angular.module('hyphe.webentityController', [])
       )
     }
   }])
+
+  .controller('webentity.summary', ['$scope', 'api', 'utils'
+  ,function($scope, api, utils) {
+    
+  }])
