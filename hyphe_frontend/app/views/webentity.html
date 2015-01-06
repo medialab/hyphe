@@ -15,16 +15,25 @@
 
                 <br>
                 <br>
-
+                
                 <tabset>
-                  <tab heading="Summary" active="true">
+                  
+                  <tab heading="Summary">
                     <div ng-include="'partials/webentity_summary'"></div>
                   </tab>
-                  <tab heading="Explorer">TO DO</tab>
+                  
+                  <tab heading="Explorer" active="explorerActive" disabled="webentity.loading">
+                    <div ng-if="explorerActive" ng-include="'partials/webentity_explorer'"></div>
+                  </tab>
+                  
                   <tab heading="Pages Network">TO DO</tab>
+                  
                   <tab heading="Ego Network">TO DO</tab>
+                  
                   <tab heading="Tags" disabled="true">TO DO</tab>
+                  
                   <tab heading="Advanced">TO DO</tab>
+                
                 </tabset>
                 
                 

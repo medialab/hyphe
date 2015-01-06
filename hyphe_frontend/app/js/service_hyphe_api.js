@@ -187,6 +187,18 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
+    ns.getPages = buildApiCall(
+        API.WEBENTITY_PAGE_LIST_GET
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.crawledOnly || false
+              ,corpus.getId()
+            ]}
+      )
+
+
+
     ns.addPrefix = buildApiCall(
         API.WEBENTITY_PREFIX_ADD
         ,function(settings){
