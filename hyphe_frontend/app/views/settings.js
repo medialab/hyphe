@@ -6,6 +6,7 @@ angular.module('hyphe.settingsController', [])
   ,function($scope, api, utils, $location, corpus) {
     $scope.currentPage = 'settings'
     $scope.corpusName = corpus.getName()
+    $scope.corpusId = corpus.getId()
 
     $scope.options = {}
     $scope.loading = true

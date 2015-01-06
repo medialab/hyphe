@@ -6,6 +6,7 @@ angular.module('hyphe.importurlsController', [])
   ,function($scope, FileLoader, Parser, extractURLs, droppableTextArea, store, corpus) {
     $scope.currentPage = 'importurls'
     $scope.corpusName = corpus.getName()
+    $scope.corpusId = corpus.getId()
     
     var parser = new Parser()
 

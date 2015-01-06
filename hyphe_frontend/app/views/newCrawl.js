@@ -6,4 +6,5 @@ angular.module('hyphe.newcrawlController', [])
   ,function($scope, api, corpus) {
     $scope.currentPage = 'newCrawl'
     $scope.corpusName = corpus.getName()
+    $scope.corpusId = corpus.getId()
   }])

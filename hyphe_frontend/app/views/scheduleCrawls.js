@@ -6,6 +6,7 @@ angular.module('hyphe.schedulecrawlController', [])
   ,function($scope, api, store, utils, QueriesBatcher, $location, corpus){
     $scope.currentPage = 'scheduleCrawls'
     $scope.corpusName = corpus.getName()
+    $scope.corpusId = corpus.getId()
 
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
     $scope.summary = {pending:0, success:0, error:0}

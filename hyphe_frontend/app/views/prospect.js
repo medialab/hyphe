@@ -6,6 +6,7 @@ angular.module('hyphe.prospectController', [])
   ,function($scope, api, utils, corpus, store, $location) {
     $scope.currentPage = 'prospect'
     $scope.corpusName = corpus.getName()
+    $scope.corpusId = corpus.getId()
 
     $scope.list = []
     

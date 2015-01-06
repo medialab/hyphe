@@ -6,6 +6,7 @@ angular.module('hyphe.exportController', [])
   ,function($scope, api, utils, $location, corpus) {
     $scope.currentPage = 'export'
     $scope.corpusName = corpus.getName()
+    $scope.corpusId = corpus.getId()
 
     var queryBatchSize = 1000
 

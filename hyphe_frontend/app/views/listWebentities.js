@@ -6,6 +6,7 @@ angular.module('hyphe.listwebentitiesController', [])
   ,function($scope, api, utils, store, $location, corpus) {
     $scope.currentPage = 'listWebentities'
     $scope.corpusName = corpus.getName()
+    $scope.corpusId = corpus.getId()
 
     $scope.list = []
     $scope.checkedList = []

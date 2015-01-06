@@ -6,6 +6,7 @@ angular.module('hyphe.monitorcrawlsController', [])
   ,function($scope, api, store, utils, QueriesBatcher, $location, refreshScheduler, corpus){
     $scope.currentPage = 'monitorCrawls'
     $scope.corpusName = corpus.getName()
+    $scope.corpusId = corpus.getId()
     
     $scope.crawlJobs
     $scope.lastCrawlJobs

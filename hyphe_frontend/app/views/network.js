@@ -6,6 +6,7 @@ angular.module('hyphe.networkController', [])
   ,function($scope, api, utils, corpus) {
     $scope.currentPage = 'network'
     $scope.corpusName = corpus.getName()
+    $scope.corpusId = corpus.getId()
 
     $scope.links
     $scope.webentities

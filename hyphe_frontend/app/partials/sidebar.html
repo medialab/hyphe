@@ -6,7 +6,7 @@
                   
                   <!-- Overview -->
                   <li ng-class="{active: currentPage=='overview'}">
-                    <a href="#/overview">
+                    <a href="#/project/{{corpusId}}/overview">
                       <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-asterisk"></span></span></td><td>OVERVIEW</td></tr></table>
                     </a>
                   </li>
@@ -15,14 +15,14 @@
                   
                   <!-- Import URLs -->
                   <li ng-class="{active: currentPage=='importurls'}">
-                    <a href="#/importurls">
+                    <a href="#/project/{{corpusId}}/importurls">
                       <table><tr><td><span class="symbol">1</span></td><td>IMPORT URLS</td></tr></table>
                     </a>
                   </li>
                   
                   <!-- Define Web Entities -->
                   <li ng-if="currentPage=='importurls' || currentPage=='definewebentities'" ng-class="{active: currentPage=='definewebentities'}" class="inactive">
-                    <a href="#/definewebentities">
+                    <a href="#/project/{{corpusId}}/definewebentities">
                       <table><tr><td><span class="symbol">&nbsp;</span></td><td>DEFINE WEB ENTITIES</td></tr></table>
                     </a>
                   </li>
@@ -31,21 +31,21 @@
                   
                   <!-- New Crawl -->
                   <li ng-class="{active: currentPage=='newCrawl'}">
-                    <a href="#/newCrawl">
+                    <a href="#/project/{{corpusId}}/newCrawl">
                       <table><tr><td><span class="symbol">2</span></td><td>CRAWL</td></tr></table>
                     </a>
                   </li>
                   
                   <!-- Check Start Pages -->
                   <li ng-if="currentPage=='newCrawl' || currentPage=='checkStartPages' || currentPage=='scheduleCrawls'" ng-class="{active: currentPage=='checkStartPages'}" class="inactive">
-                    <a href="#/checkStartPages">
+                    <a href="#/project/{{corpusId}}/checkStartPages">
                       <table><tr><td><span class="symbol">&nbsp;</span></td><td>CHECK START PAGES</td></tr></table>
                     </a>
                   </li>
                   
                   <!-- Launch Crawl -->
                   <li ng-if="currentPage=='newCrawl' || currentPage=='checkStartPages' || currentPage=='scheduleCrawls'" ng-class="{active: currentPage=='launchCrawl'}" class="inactive">
-                    <a href="#/scheduleCrawls">
+                    <a href="#/project/{{corpusId}}/scheduleCrawls">
                       <table><tr><td><span class="symbol">&nbsp;</span></td><td>SCHEDULE CRAWLS</td></tr></table>
                     </a>
                   </li>
@@ -54,13 +54,13 @@
                   
                   <!-- Prospect -->
                   <li ng-class="{active: currentPage=='prospect'}">
-                    <a href="#/prospect">
+                    <a href="#/project/{{corpusId}}/prospect">
                       <table><tr><td><span class="symbol">3</span></td><td>PROSPECT</td></tr></table>
                     </a>
                   </li>
                   
                   <li ng-class="{active: currentPage=='export'}">
-                    <a href="#/export">
+                    <a href="#/project/{{corpusId}}/export">
                       <table><tr><td><span class="symbol">4</span></td><td>EXPORT WEB ENTITIES</td></tr></table>
                     </a>
                   </li>
@@ -69,14 +69,14 @@
 
                   <!-- Web entities list -->
                   <li ng-class="{active: currentPage=='listWebentities'}">
-                    <a href="#/listWebentities">
+                    <a href="#/project/{{corpusId}}/listWebentities">
                       <table><tr><td><span class="symbol">&nbsp;</span></td><td>LIST WEB ENTITIES</td></tr></table>
                     </a>
                   </li>
 
                   <!-- Visualize Network -->
                   <li ng-class="{active: currentPage=='network'}">
-                    <a href="#/network">
+                    <a href="#/project/{{corpusId}}/network">
                       <table><tr><td><span class="symbol">&nbsp;</span></td><td>VISUALIZE NETWORK</td></tr></table>
                     </a>
                   </li>
@@ -87,19 +87,19 @@
                   <!--
 
                   <li>
-                    <a href="#">
+                    <a href="#/project/{{corpusId}}">
                       <table><tr><td><span class="symbol">3</span></td><td>FILTER DISCOVERED WEB ENTITIES</td></tr></table>
                     </a>
                   </li>
                   
                   <li>
-                    <a href="#">
+                    <a href="#/project/{{corpusId}}">
                       <table><tr><td><span class="symbol">4</span></td><td>LIST WEB ENTITIES</td></tr></table>
                     </a>
                   </li>
                   
                   <li>
-                    <a href="#">
+                    <a href="#/project/{{corpusId}}">
                       <table><tr><td><span class="symbol">5</span></td><td>EXPORT WEB ENTITIES</td></tr></table>
                     </a>
                   </li>
@@ -109,13 +109,13 @@
 
                   <!-- Monitor crawls -->
                   <li ng-class="{active: currentPage=='monitorCrawls'}">
-                    <a href="#/monitorCrawls">
+                    <a href="#/project/{{corpusId}}/monitorCrawls">
                       <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-time"></span></td><td>MONITOR CRAWLS</td></tr></table>
                     </a>
                   </li>
 
                   <li ng-class="{active: currentPage=='settings'}">
-                    <a href="#/settings">
+                    <a href="#/project/{{corpusId}}/settings">
                       <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-wrench"></span></td><td>SETTINGS</td></tr></table>
                     </a>
                   </li>
@@ -123,7 +123,7 @@
 
                   <!--
                   <li>
-                    <a href="#">
+                    <a href="#/project/{{corpusId}}">
                       <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-list"></span></td><td>PROJECT HISTORY</td></tr></table>
                     </a>
                   </li>
@@ -131,7 +131,7 @@
                   <li class="spacer"></li>
                   
                   <li>
-                    <a href="#">
+                    <a href="#/project/{{corpusId}}">
                       <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-wrench"></span></td><td>PROJECT SETTINGS</td></tr></table>
                     </a>
                   </li>

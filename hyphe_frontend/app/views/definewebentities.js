@@ -6,6 +6,7 @@ angular.module('hyphe.definewebentitiesController', [])
   ,function($scope, store, utils, api, QueriesBatcher, $location, PrefixConflictsIndex, corpus) {
     $scope.currentPage = 'definewebentities'
     $scope.corpusName = corpus.getName()
+    $scope.corpusId = corpus.getId()
 
     $scope.list = []
     $scope.list_byId = {}

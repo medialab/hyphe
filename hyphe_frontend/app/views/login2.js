@@ -71,9 +71,8 @@ angular.module('hyphe.login2Controller', [])
       },function(data){
 
         $scope.starting = false
-        corpus.setId(id)
         corpus.setName(name)
-        $location.path('/overview')
+        $location.path('/project/'+id+'/overview')
       
       }, function(){
 

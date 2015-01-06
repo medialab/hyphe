@@ -22,19 +22,19 @@ angular.module('hyphe', [
 .config(['$routeProvider', function($routeProvider) {
   $routeProvider.when('/login', {templateUrl: 'views/login.html', controller: 'Login'});
   $routeProvider.when('/login2', {templateUrl: 'views/login2.html', controller: 'Login2'});
-  $routeProvider.when('/overview', {templateUrl: 'views/overview.html', controller: 'Overview'});
-  $routeProvider.when('/importurls', {templateUrl: 'views/importurls.html', controller: 'ImportUrls'});
-  $routeProvider.when('/definewebentities', {templateUrl: 'views/definewebentities.html', controller: 'DefineWebEntities'});
-  $routeProvider.when('/newCrawl', {templateUrl: 'views/newCrawl.html', controller: 'NewCrawl'});
-  $routeProvider.when('/checkStartPages', {templateUrl: 'views/checkStartPages.html', controller: 'CheckStartPages'});
-  $routeProvider.when('/scheduleCrawls', {templateUrl: 'views/scheduleCrawls.html', controller: 'scheduleCrawls'});
-  $routeProvider.when('/monitorCrawls', {templateUrl: 'views/monitorCrawls.html', controller: 'monitorCrawls'});
-  $routeProvider.when('/listWebentities', {templateUrl: 'views/listWebentities.html', controller: 'listWebentities'});
-  $routeProvider.when('/export', {templateUrl: 'views/export.html', controller: 'export'});
-  $routeProvider.when('/settings', {templateUrl: 'views/settings.html', controller: 'settings'});
-  $routeProvider.when('/network', {templateUrl: 'views/network.html', controller: 'network'});
-  $routeProvider.when('/prospect', {templateUrl: 'views/prospect.html', controller: 'prospect'});
-  $routeProvider.when('/webentity/:webentityId', {templateUrl: 'views/webentity.html', controller: 'webentity'});
+  $routeProvider.when('/project/:corpusId/overview', {templateUrl: 'views/overview.html', controller: 'Overview'});
+  $routeProvider.when('/project/:corpusId/importurls', {templateUrl: 'views/importurls.html', controller: 'ImportUrls'});
+  $routeProvider.when('/project/:corpusId/definewebentities', {templateUrl: 'views/definewebentities.html', controller: 'DefineWebEntities'});
+  $routeProvider.when('/project/:corpusId/newCrawl', {templateUrl: 'views/newCrawl.html', controller: 'NewCrawl'});
+  $routeProvider.when('/project/:corpusId/checkStartPages', {templateUrl: 'views/checkStartPages.html', controller: 'CheckStartPages'});
+  $routeProvider.when('/project/:corpusId/scheduleCrawls', {templateUrl: 'views/scheduleCrawls.html', controller: 'scheduleCrawls'});
+  $routeProvider.when('/project/:corpusId/monitorCrawls', {templateUrl: 'views/monitorCrawls.html', controller: 'monitorCrawls'});
+  $routeProvider.when('/project/:corpusId/listWebentities', {templateUrl: 'views/listWebentities.html', controller: 'listWebentities'});
+  $routeProvider.when('/project/:corpusId/export', {templateUrl: 'views/export.html', controller: 'export'});
+  $routeProvider.when('/project/:corpusId/settings', {templateUrl: 'views/settings.html', controller: 'settings'});
+  $routeProvider.when('/project/:corpusId/network', {templateUrl: 'views/network.html', controller: 'network'});
+  $routeProvider.when('/project/:corpusId/prospect', {templateUrl: 'views/prospect.html', controller: 'prospect'});
+  $routeProvider.when('/project/:corpusId/webentity/:webentityId', {templateUrl: 'views/webentity.html', controller: 'webentity'});
   $routeProvider.otherwise({redirectTo: '/login'});
 }])
 

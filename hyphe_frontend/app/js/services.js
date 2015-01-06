@@ -90,33 +90,35 @@ angular.module('hyphe.services', [])
     }
   }])
 
-  .factory('corpus', [function(){
+  .factory('corpus', ['$routeParams', function($routeParams){
+    // NB: corpus id now stored in route
+
   	var ns = this    // Namespace
     
-    ns.ssKeys = {id:'hyphe-corpus-id', name:'hyphe-corpus-name'}
+    ns.storageKeys = {/*id:'hyphe-corpus-id', */name:'hyphe-corpus-name'}
 
-    ns.id = undefined
+    // ns.id = undefined
     ns.name = undefined
-    // ns.storage = sessionStorage
-    ns.storage = localStorage
+    ns.storage = localStorage // alternative: sessionStorage
 
-    ns.setId = function(id){
-      ns.storage[ns.ssKeys.id] = id
+    /*ns.setId = function(id){
+      ns.storage[ns.storageKeys.id] = id
       ns.id = id
-    }
+    }*/
     ns.getId = function(){
-      if(ns.id !== undefined)
+      return $routeParams.corpusId
+      /*if(ns.id !== undefined)
         return ns.id
-      return ns.storage[ns.ssKeys.id]
+      return ns.storage[ns.storageKeys.id]*/
     }
     ns.setName = function(name){
-      ns.storage[ns.ssKeys.name] = name
+      ns.storage[ns.storageKeys.name] = name
       ns.name = name
     }
     ns.getName = function(){
       if(ns.name !== undefined)
         return ns.name
-      return ns.storage[ns.ssKeys.name]
+      return ns.storage[ns.storageKeys.name]
     }
 
     return ns
