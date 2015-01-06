@@ -34,6 +34,7 @@ angular.module('hyphe', [
   $routeProvider.when('/settings', {templateUrl: 'views/settings.html', controller: 'settings'});
   $routeProvider.when('/network', {templateUrl: 'views/network.html', controller: 'network'});
   $routeProvider.when('/prospect', {templateUrl: 'views/prospect.html', controller: 'prospect'});
+  $routeProvider.when('/webentity/:webentityId', {templateUrl: 'views/webentity.html', controller: 'webentity'});
   $routeProvider.otherwise({redirectTo: '/login'});
 }])
 

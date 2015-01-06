@@ -845,6 +845,9 @@ textarea.over-error{
 .webentities-list-table .cell-checkbox{
   width: 20px;
 }
+.webentities-list-table .cell-edit{
+  width: 20px;
+}
 .webentities-list-table .cell-prefixes{
   width: 80px;
 }

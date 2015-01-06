@@ -122,6 +122,7 @@
                           <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort == 'last_modification_date' && !sortAsc"></span>
                           Last modif.
                         </th>
+                        <th class="cell-edit"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -153,6 +154,9 @@
                         </td>
                         <td class="cell-last-modif">
                           <span tooltip="{{obj.webentity.last_modification_date*1000|date}}">{{obj.webentity.last_modification_date*1000|prettyDate}}</span>
+                        </td>
+                        <td class="cell-edit">
+                          <a class="btn btn-link btn-xs" tooltip="Edit web entity" href="#/webentity/{{obj.webentity.id}}"><span class="glyphicon glyphicon-pencil"></span></a>
                         </td>
                       </tr>
 
