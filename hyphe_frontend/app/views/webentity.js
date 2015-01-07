@@ -72,16 +72,36 @@ angular.module('hyphe.webentityController', [])
         ,function(result){
 
           $scope.pages = result
+
+          // console.log('PAGES for '+$scope.webentity.name, $scope.pages)
+
+          loadSubWebentities()
+
+        }
+        ,function(){
+          $scope.status = {message: 'Error loading pages', background: 'danger'}
+        }
+      )
+    }
+
+    function loadSubWebentities(){
+
+      api.getSubWebentities({
+          webentityId:$scope.webentity.id
+        }
+        ,function(result){
+
+          $scope.subWebentities = result
           $scope.loading = false
 
-          console.log('PAGES for '+$scope.webentity.name, $scope.pages)
+          console.log('SUB-WE for '+$scope.webentity.name, $scope.subWebentities)
 
           buildExplorerTree()
           updateExplorer()
 
         }
         ,function(){
-          $scope.status = {message: 'Error loading pages', background: 'danger'}
+          $scope.status = {message: 'Error loading sub web entities', background: 'danger'}
         }
       )
     }

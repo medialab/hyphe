@@ -197,6 +197,23 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
+    ns.getSubWebentities = buildApiCall(
+        API.WEBENTITY_SUBWEBENTITY_LIST_GET
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,corpus.getId()
+            ]}
+      )
+
+    ns.getParentWebentities = buildApiCall(
+        API.WEBENTITY_PARENTWEBENTITY_LIST_GET
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,corpus.getId()
+            ]}
+      )
 
 
     ns.addPrefix = buildApiCall(
