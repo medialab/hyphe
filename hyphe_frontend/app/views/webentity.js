@@ -47,6 +47,7 @@ angular.module('hyphe.webentityController', [])
 
     $scope.pages
     $scope.subWebentities
+    $scope.parentWebentities
 
     $scope.path
     $scope.items
@@ -67,14 +68,14 @@ angular.module('hyphe.webentityController', [])
     // Functions
     function loadPages(){
 
+      $scope.status = {message: 'Loading'}
+
       api.getPages({
           webentityId:$scope.webentity.id
         }
         ,function(result){
 
           $scope.pages = result
-
-          // console.log('PAGES for '+$scope.webentity.name, $scope.pages)
 
           loadSubWebentities()
 
@@ -93,9 +94,25 @@ angular.module('hyphe.webentityController', [])
         ,function(result){
 
           $scope.subWebentities = result
-          $scope.loading = false
+          
+          loadParentWebentities()
 
-          console.log('SUB-WE for '+$scope.webentity.name, $scope.subWebentities)
+        }
+        ,function(){
+          $scope.status = {message: 'Error loading sub web entities', background: 'danger'}
+        }
+      )
+    }
+
+    function loadParentWebentities(){
+
+      api.getParentWebentities({
+          webentityId:$scope.webentity.id
+        }
+        ,function(result){
+
+          $scope.parentWebentities = result
+          $scope.loading = false
 
           buildExplorerTree()
           updateExplorer()

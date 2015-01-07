@@ -31,7 +31,7 @@
     </ol>
 
     
-
+    <!-- Explorer Table -->
     <table class="table table-condensed table-explorer">
       <thead>
         <tr>
@@ -95,6 +95,7 @@
       </tbody>
     </table>
 
+    <!-- External prefixes -->
     <table class="table table-condensed table-explorer" ng-if="items_webentities.length > 0">
       <thead>
         <tr>
@@ -121,6 +122,29 @@
           </td>
           
           <td class="cell-webentity"><a href="#/project/{{corpusId}}/webentity/{{obj.data.id}}">{{obj.data.name}}</a></td>
+          
+          <td class="cell-action"></td>
+        
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Related (parent) web entities -->
+    <table class="table table-condensed table-explorer" ng-if="path.length == 0 && parentWebentities.length > 0">
+      <thead>
+        <tr>
+          <th>Related web entities</th>
+          <th>prefixes</th>
+          <th class="cell-action"></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr
+          ng-repeat="obj in parentWebentities track by $index"
+        >
+          <td><a href="#/project/{{corpusId}}/webentity/{{obj.id}}">{{obj.name}}</a></td>
+          <td><span ng-repeat="lru in obj.lru_prefixes">{{lru|lru_to_url}}<br/></span></td>
           
           <td class="cell-action"></td>
         
