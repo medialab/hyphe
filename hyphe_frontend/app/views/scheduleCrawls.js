@@ -15,7 +15,7 @@ angular.module('hyphe.schedulecrawlController', [])
     store.remove('webentities_toCrawl')
 
     if($scope.list.length==0){
-      $location.path('/newCrawl')
+      $location.path('/project/'+$scope.getId+'/newCrawl')
     }
 
     var queriesBatcher = new QueriesBatcher()
