@@ -9,21 +9,34 @@
   <div ng-if="!loading">
 
     <ol class="breadcrumb">
+
+      <!-- Home -->
       <li>
-        <a ng-if="path.length > 0" href ng-click="goTo()"><span class="glyphicon glyphicon-home"></span> {{webentity.name}}</a>
-        <span ng-if="path.length == 0"><span class="glyphicon glyphicon-home"></span> {{webentity.name}}</span>
+        <span ng-if="path.length == 0">
+          <span class="glyphicon glyphicon-home"></span> {{webentity.name}}
+        </span>
+        <span ng-if="path.length > 0">
+          <a href ng-click="goToParent()"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>
+          &nbsp;
+          <a href ng-click="goTo()"><span class="glyphicon glyphicon-home"></span> {{webentity.name}}</a>
+        </span>
       </li>
+
+      <!-- Path elements > Home -->
       <li ng-repeat="obj in path track by $index">
         <a  ng-if="path.length > $index+1" href ng-click="goTo(obj.node)">{{obj.label}}</a>
         <span ng-if="path.length == $index+1">{{obj.label}}</span>
       </li>
-      <!-- <li class="active">Data</li> -->
+      
     </ol>
+
+    
 
     <table class="table table-condensed table-explorer">
       <thead>
         <tr>
-          <th>Web entity content</th>
+          <th></th>
+          <th class="cell-type">Type</th>
           <th class="cell-info">Info</th>
           <th class="cell-action"></th>
         </tr>
@@ -33,9 +46,51 @@
         <tr
           ng-repeat="obj in items track by $index"
         >
-          <td><span class="pointable" ng-click="goTo(obj.node)" title="{{obj.url}}">{{obj.label}}</span></td>
-          <td class="cell-info">{{obj.pagesCount == 0 ? 'No page' : obj.pagesCount == 1 ? '1 page' : obj.pagesCount+' pages'}}</td>
+          <td> <!-- Label column -->
+
+            <!-- case: prefix -->
+            <div ng-if="obj.type == 'prefix'">
+              <a href ng-click="goTo(obj.node)" title="{{obj.url}}">
+                <span class="glyphicon glyphicon-briefcase" tooltip="Prefix"></span>
+                {{obj.label}}
+              </a>
+            </div>
+
+            <!-- case: folder -->
+            <div ng-if="obj.type == 'folder'">
+              <a href ng-click="goTo(obj.node)" title="{{obj.url}}">
+                <span class="glyphicon glyphicon-folder-close" tooltip="Folder"></span>
+                {{obj.label}}
+              </a>
+            </div>
+
+            <!-- case: page -->
+            <div ng-if="obj.type == 'page'">
+              <span title="{{obj.url}}">
+                <span class="glyphicon glyphicon-file" tooltip="Page"></span>
+                {{obj.label}}
+                <a href="{{obj.data.url}}" class="btn btn-link btn-xs" target="_blank"><span class="glyphicon glyphicon-share-alt"></span></a>
+              </span>
+            </div>
+            
+          </td>
+          
+          <td class="cell-type">{{obj.type}}</td>
+          
+          <td class="cell-info">
+            
+            <span ng-if="obj.type == 'prefix' || obj.type == 'folder'">
+              {{obj.pagesCount == 0 ? 'No page' : obj.pagesCount == 1 ? '1 page' : obj.pagesCount+' pages'}}
+            </span>
+
+            <span ng-if="obj.type == 'page'">
+              {{obj.crawled ? 'crawled' : 'not crawled'}}
+            </span>
+
+          </td>
+          
           <td class="cell-action"></td>
+        
         </tr>
       </tbody>
     </table>

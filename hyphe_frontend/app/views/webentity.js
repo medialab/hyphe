@@ -59,16 +59,22 @@ angular.module('hyphe.webentityController', [])
       updateExplorer()
     }
 
+    $scope.goToParent = function(){
+      $scope.goTo(currentNode.parent)
+    }
+
     // Functions
     function loadPages(){
-      console.log('loading pages...')
+
       api.getPages({
           webentityId:$scope.webentity.id
         }
         ,function(result){
-          console.log('...pages loaded')
+
           $scope.pages = result
           $scope.loading = false
+
+          console.log('PAGES for '+$scope.webentity.name, $scope.pages)
 
           buildExplorerTree()
           updateExplorer()
@@ -81,23 +87,29 @@ angular.module('hyphe.webentityController', [])
     }
     
     function updateExplorer(){
+      $scope.items = []
+      $scope.items_webentities = []
+
       if(!currentNode){
         
         // Home: display prefixes
         
-        $scope.items = []
-        $scope.items_webentities = []
-        
         for(var p in tree.prefix){
-          var item = {
-            label: utils.LRU_to_URL(p)
-            ,lru: p
-            ,url: utils.LRU_to_URL(p)
-            ,node: tree.prefix[p]
-            ,pagesCount: tree.prefix[p].pagesCount
-            ,data: tree.prefix[p].data || {}
+          if(tree.prefix[p].data.prefix){
+            pushPrefix(
+              utils.LRU_to_URL(p)         // label
+              ,utils.LRU_to_URL(p)        // url
+              ,tree.prefix[p]             // node
+              ,tree.prefix[p].pagesCount  // page count
+            )
           }
-          $scope.items.push(item)
+          if(tree.prefix[p].data.page){
+            pushPage(
+              utils.LRU_to_URL(p)         // label
+              ,utils.LRU_to_URL(p)        // url
+              ,tree.prefix[p].data.page   // page data
+            )
+          }
         }
 
         // Path
@@ -107,19 +119,23 @@ angular.module('hyphe.webentityController', [])
 
         // Display the children
 
-        $scope.items = []
-        $scope.items_webentities = []
-
         for(var stem in currentNode.children){
-          var item = {
-            label: cleanStem(stem)
-            ,lru: currentNode.children[stem].lru
-            ,url: utils.LRU_to_URL(currentNode.children[stem].lru)
-            ,node: currentNode.children[stem]
-            ,pagesCount: currentNode.children[stem].pagesCount
-            ,data: currentNode.children[stem].data || {}
+          var childNode = currentNode.children[stem]
+          if(childNode.data.page){
+            pushPage(
+              cleanStem(stem, true)             // label
+              ,utils.LRU_to_URL(childNode.lru)  // url
+              ,childNode.data.page              // page data
+            )
           }
-          $scope.items.push(item)
+          if(Object.keys(childNode.children).length>0){
+            pushFolder(
+              cleanStem(stem, true)             // label
+              ,utils.LRU_to_URL(childNode.lru)  // url
+              ,childNode                        // node
+              ,childNode.pagesCount             // page data
+            )
+          }
         }
 
         // Path
@@ -127,7 +143,7 @@ angular.module('hyphe.webentityController', [])
         var ancestor = currentNode
         while(ancestor !== undefined){
           var item = {
-            label: cleanStem(ancestor.stem)
+            label: cleanStem(ancestor.stem, false)
             ,node: ancestor
             ,pagesCount: ancestor.pagesCount
             ,data: ancestor.data || {}
@@ -137,19 +153,58 @@ angular.module('hyphe.webentityController', [])
         }
         
       }
+
+      $scope.items.sort(function(a,b){
+        if(a.sortlabel < b.sortlabel) return -1
+        if(a.sortlabel > b.sortlabel) return 1
+        return 0
+      })
+
+      function pushPrefix(label, url, node, pageCount){
+        $scope.items.push({
+          type:'prefix'
+          ,label: label
+          ,sortlabel: url+' 0'
+          ,url: url
+          ,node: node
+          ,pagesCount: pageCount
+        })
+      }
+
+      function pushFolder(label, url, node, pageCount){
+        $scope.items.push({
+          type:'folder'
+          ,label: label
+          ,sortlabel: url+' 1'
+          ,url: url
+          ,node: node
+          ,pagesCount: pageCount
+        })
+      }
+
+      function pushPage(label, url, data){
+        $scope.items.push({
+          type:'page'
+          ,label: label
+          ,sortlabel: url+' 2'
+          ,url: url
+          ,data: data
+          ,crawled: data.sources.some(function(d){return d == 'CRAWL'})
+        })
+      }
+      
     }
 
     function buildExplorerTree(){
-      console.log('pages', $scope.pages)
-
-      // Init tree.
+      
+      // Init tree
       // It is a weird structure because it starts with prefixes, which we do not split in stems.
       tree = {prefix:{}}
       
       var prefixes = $scope.webentity.lru_prefixes
 
       $scope.webentity.lru_prefixes.forEach(function(p){
-        tree.prefix[p] = {children:{}, pagesCount:0, lru:p, stem:p}
+        tree.prefix[p] = {children:{}, pagesCount:0, lru:p, stem:p, data:{}}
       })
 
       
@@ -197,14 +252,16 @@ angular.module('hyphe.webentityController', [])
             if(stem.length == 0){
               throw('Empty stem')
             }
-            currentNode.children[stem] = currentNode.children[stem] || {children:{}, pagesCount:0, parent:currentNode, lru:currentNode.lru+stem, stem:stem}
+            currentNode.children[stem] = currentNode.children[stem] || {children:{}, pagesCount:0, parent:currentNode, lru:currentNode.lru+stem, stem:stem, data:{}}
             currentNode = currentNode.children[stem]
             stub = stub.substr(stem.length, stub.length)
 
           }
 
           // Copy properties
-          currentNode.data = properties
+          for(var k in properties){
+            currentNode.data[k] = properties[k]
+          }
 
         } catch(e){
           console.log('Unable to push branch in explorer tree', 'lru: '+lru, e)
@@ -224,13 +281,38 @@ angular.module('hyphe.webentityController', [])
       
     }
 
-    function cleanStem(stem){
+    function cleanStem(stem, detailed){
       if(stem.match(/.*\|.*\|/gi)){
         return utils.LRU_to_URL(stem)
       } else {
-        return stem.substr(2, stem.length-3)
+        stem = stem
+          .replace(/[\n\r]/gi, '<line break>')
+          .replace(/^$/gi, '<empty>')
+          .replace(/^ $/, '<space>')
+          .replace(/(  +)/, ' <spaces> ')
+        
+        if(detailed){
+          switch(stem[0]){
+            case('h'):
+              return stem.substr(2, stem.length-3) + '.'
+              break
+            case('p'):
+              return '/' + stem.substr(2, stem.length-3)
+              break
+            case('q'):
+              return '?' + stem.substr(2, stem.length-3)
+              break
+            case('f'):
+              return '#' + stem.substr(2, stem.length-3)
+              break
+            default:
+              return '.' + stem.substr(2, stem.length-3)
+              break
+          }
+        } else {
+          return stem.substr(2, stem.length-3)
+        }
       }
     }
-    
 
   }])
