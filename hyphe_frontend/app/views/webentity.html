@@ -22,17 +22,19 @@
                     <div ng-include="'partials/webentity_summary'"></div>
                   </tab>
                   
-                  <tab heading="Explorer" active="explorerActive" disabled="webentity.loading">
-                    <div ng-if="explorerActive" ng-include="'partials/webentity_explorer'"></div>
+                  <!-- <tab heading="Explorer" active="explorerActive" disabled="webentity.loading"> -->
+                  <tab heading="Explorer" active="true" disabled="false">
+                    <!-- <div ng-if="explorerActive" ng-include="'partials/webentity_explorer'"></div> -->
+                    <div ng-include="'partials/webentity_explorer'"></div>
                   </tab>
                   
-                  <tab heading="Pages Network">TO DO</tab>
+                  <tab heading="Pages Network" disabled="true">TO DO</tab>
                   
-                  <tab heading="Ego Network">TO DO</tab>
+                  <tab heading="Ego Network" disabled="true">TO DO</tab>
                   
                   <tab heading="Tags" disabled="true">TO DO</tab>
                   
-                  <tab heading="Advanced">TO DO</tab>
+                  <tab heading="Advanced" disabled="true">TO DO</tab>
                 
                 </tabset>
                 

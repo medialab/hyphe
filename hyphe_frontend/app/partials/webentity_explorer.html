@@ -8,6 +8,38 @@
 
   <div ng-if="!loading">
 
+    <ol class="breadcrumb">
+      <li>
+        <a ng-if="path.length > 0" href ng-click="goTo()"><span class="glyphicon glyphicon-home"></span> {{webentity.name}}</a>
+        <span ng-if="path.length == 0"><span class="glyphicon glyphicon-home"></span> {{webentity.name}}</span>
+      </li>
+      <li ng-repeat="obj in path track by $index">
+        <a  ng-if="path.length > $index+1" href ng-click="goTo(obj.node)">{{obj.label}}</a>
+        <span ng-if="path.length == $index+1">{{obj.label}}</span>
+      </li>
+      <!-- <li class="active">Data</li> -->
+    </ol>
+
+    <table class="table table-condensed table-explorer">
+      <thead>
+        <tr>
+          <th>Web entity content</th>
+          <th class="cell-info">Info</th>
+          <th class="cell-action"></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr
+          ng-repeat="obj in items track by $index"
+        >
+          <td><span class="pointable" ng-click="goTo(obj.node)" title="{{obj.url}}">{{obj.label}}</span></td>
+          <td class="cell-info">{{obj.pagesCount == 0 ? 'No page' : obj.pagesCount == 1 ? '1 page' : obj.pagesCount+' pages'}}</td>
+          <td class="cell-action"></td>
+        </tr>
+      </tbody>
+    </table>
+
   </div>
 
 </div>
