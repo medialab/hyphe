@@ -46,6 +46,7 @@ angular.module('hyphe.webentityController', [])
     $scope.loading = true
 
     $scope.pages
+    $scope.subWebentities
 
     $scope.path
     $scope.items
@@ -148,6 +149,13 @@ angular.module('hyphe.webentityController', [])
               ,childNode.data.page              // page data
             )
           }
+          if(childNode.data.webentity){
+            pushWebentityPrefix(
+              cleanStem(stem, true)             // label
+              ,utils.LRU_to_URL(childNode.lru)  // url
+              ,childNode.data.webentity              // data
+            )
+          }
           if(Object.keys(childNode.children).length>0){
             pushFolder(
               cleanStem(stem, true)             // label
@@ -210,6 +218,16 @@ angular.module('hyphe.webentityController', [])
           ,url: url
           ,data: data
           ,crawled: data.sources.some(function(d){return d == 'CRAWL'})
+        })
+      }
+
+      function pushWebentityPrefix(label, url, data){
+        $scope.items_webentities.push({
+          type:'subwe_prefix'
+          ,label: label
+          ,sortlabel: url
+          ,url: url
+          ,data: data
         })
       }
       
@@ -297,6 +315,12 @@ angular.module('hyphe.webentityController', [])
         pushBranch(page.lru, {page:page}, true)
       })
 
+      $scope.subWebentities.forEach(function(we){
+        we.lru_prefixes.forEach(function(lru){
+          pushBranch(lru, {webentity:we}, false)
+        })
+      })
+
       console.log('tree', tree)
       
     }
@@ -305,32 +329,33 @@ angular.module('hyphe.webentityController', [])
       if(stem.match(/.*\|.*\|/gi)){
         return utils.LRU_to_URL(stem)
       } else {
-        stem = stem
+        var type = stem.substr(0, 1)
+        stem = stem.substr(2, stem.length-3)
           .replace(/[\n\r]/gi, '<line break>')
           .replace(/^$/gi, '<empty>')
           .replace(/^ $/, '<space>')
           .replace(/(  +)/, ' <spaces> ')
         
         if(detailed){
-          switch(stem[0]){
+          switch(type){
             case('h'):
-              return stem.substr(2, stem.length-3) + '.'
+              return stem + '.'
               break
             case('p'):
-              return '/' + stem.substr(2, stem.length-3)
+              return '/' + stem
               break
             case('q'):
-              return '?' + stem.substr(2, stem.length-3)
+              return '?' + stem
               break
             case('f'):
-              return '#' + stem.substr(2, stem.length-3)
+              return '#' + stem
               break
             default:
-              return '.' + stem.substr(2, stem.length-3)
+              return '.' + stem
               break
           }
         } else {
-          return stem.substr(2, stem.length-3)
+          return stem
         }
       }
     }

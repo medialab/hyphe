@@ -35,7 +35,7 @@
     <table class="table table-condensed table-explorer">
       <thead>
         <tr>
-          <th></th>
+          <th>Pages</th>
           <th class="cell-type">Type</th>
           <th class="cell-info">Info</th>
           <th class="cell-action"></th>
@@ -51,7 +51,7 @@
             <!-- case: prefix -->
             <div ng-if="obj.type == 'prefix'">
               <a href ng-click="goTo(obj.node)" title="{{obj.url}}">
-                <span class="glyphicon glyphicon-briefcase" tooltip="Prefix"></span>
+                <span class="glyphicon glyphicon-briefcase" tooltip="This prefix contains {{obj.pagesCount == 0 ? 'no page' : obj.pagesCount == 1 ? '1 page' : obj.pagesCount+' pages'}}"></span>
                 {{obj.label}}
               </a>
             </div>
@@ -59,7 +59,7 @@
             <!-- case: folder -->
             <div ng-if="obj.type == 'folder'">
               <a href ng-click="goTo(obj.node)" title="{{obj.url}}">
-                <span class="glyphicon glyphicon-folder-close" tooltip="Folder"></span>
+                <span class="glyphicon glyphicon-folder-close" tooltip="This folder contains {{obj.pagesCount == 0 ? 'no page' : obj.pagesCount == 1 ? '1 page' : obj.pagesCount+' pages'}}"></span>
                 {{obj.label}}
               </a>
             </div>
@@ -88,6 +88,39 @@
             </span>
 
           </td>
+          
+          <td class="cell-action"></td>
+        
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="table table-condensed table-explorer" ng-if="items_webentities.length > 0">
+      <thead>
+        <tr>
+          <th>External prefixes</th>
+          <th class="cell-webentity">Web entity</th>
+          <th class="cell-action"></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr
+          ng-repeat="obj in items_webentities track by $index"
+        >
+          <td> <!-- Label column -->
+
+            <div>
+              <span title="{{obj.url}}">
+                <span class="glyphicon glyphicon-briefcase" tooltip="Prefix of {{obj.data.name}}"></span>
+                {{obj.label}}
+                
+              </span>
+            </div>
+            
+          </td>
+          
+          <td class="cell-webentity"><a href="#/project/{{corpusId}}/webentity/{{obj.data.id}}">{{obj.data.name}}</a></td>
           
           <td class="cell-action"></td>
         
