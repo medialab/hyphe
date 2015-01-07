@@ -73,7 +73,7 @@ angular.module('hyphe.definewebentitiesController', [])
     bootstrapUrlList(list)
 
     if($scope.list.length==0){
-      $location.path('/importurls')
+      $location.path('/project/'+$scope.corpusId+'/importurls')
     }
 
     // Fetching parent web entities
@@ -314,7 +314,7 @@ angular.module('hyphe.definewebentitiesController', [])
 
       if(list.length > 0){
         store.set('webentities_toCrawl', list)
-        $location.path('/checkStartPages')
+        $location.path('/project/'+$scope.corpusId+'/checkStartPages')
       } else {
         $scope.status = {message:'No Web Entity to send', background:'danger'}
       }

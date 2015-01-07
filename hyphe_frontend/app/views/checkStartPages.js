@@ -104,7 +104,7 @@ angular.module('hyphe.checkstartpagesController', [])
     }
 
     if($scope.list.length==0){
-      $location.path('/newCrawl')
+      $location.path('/project/'+$scope.corpusId+'/newCrawl')
     } else {
       $scope.getWebentities()
     }
@@ -260,7 +260,7 @@ angular.module('hyphe.checkstartpagesController', [])
         .filter(function(obj){return obj.webentity.id !== undefined})
       
       store.set('webentities_toCrawl', list)
-      $location.path('/scheduleCrawls')
+      $location.path('/project/'+$scope.corpusId+'/scheduleCrawls')
     }
 
     $scope.removeRow = function(objId){
