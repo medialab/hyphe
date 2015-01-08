@@ -66,7 +66,6 @@ angular.module('hyphe.webentityController', [])
     }
 
     $scope.newWebEntity = function(obj){
-      console.log('NEW WEB ENTITY on',obj)
       $scope.status = {message: 'Declaring web entity'}
       api.declareWebentity({
           prefixes:
@@ -85,6 +84,21 @@ angular.module('hyphe.webentityController', [])
         }
         ,function(){
           $scope.status = {message: 'Web entity could not be declared', background: 'danger'}
+        }
+      )
+    }
+
+    $scope.removePrefix = function(obj){
+      $scope.status = {message: 'Removing prefix'}
+      api.removePrefix({
+          webentityId: $scope.webentity.id
+          ,lru: obj.lru
+        }
+        ,function(result){
+          $route.reload();
+        }
+        ,function(){
+          $scope.status = {message: 'Prefix could not be removed', background: 'danger'}
         }
       )
     }
