@@ -61,6 +61,15 @@ angular.module('hyphe.webentityController', [])
     $scope.items_prefixes
     $scope.items_webentities
 
+    $scope.sort_pages = 'sortlabel'
+    $scope.sort_asc_pages = true
+    $scope.sort_folders = 'sortlabel'
+    $scope.sort_asc_folders = true
+    $scope.sort_prefixes = 'pagesCount'
+    $scope.sort_asc_prefixes = false
+    $scope.sort_webentities = 'sortlabel'
+    $scope.sort_asc_webentities = true
+
     // Init
     fetchWebentity($routeParams.webentityId)
     
@@ -124,6 +133,42 @@ angular.module('hyphe.webentityController', [])
           $scope.status = {message: 'Web entities could not be merged', background: 'danger'}
         }
       )
+    }
+
+    $scope.toogleSortPrefixes = function(field){
+      if($scope.sort_prefixes == field){
+        $scope.sort_asc_prefixes = !$scope.sort_asc_prefixes
+      } else {
+        $scope.sort_asc_prefixes = true
+        $scope.sort_prefixes = field
+      }
+    }
+
+    $scope.toogleSortFolders = function(field){
+      if($scope.sort_folders == field){
+        $scope.sort_asc_folders = !$scope.sort_asc_folders
+      } else {
+        $scope.sort_asc_folders = true
+        $scope.sort_folders = field
+      }
+    }
+
+    $scope.toogleSortPages = function(field){
+      if($scope.sort_pages == field){
+        $scope.sort_asc_pages = !$scope.sort_asc_pages
+      } else {
+        $scope.sort_asc_pages = true
+        $scope.sort_pages = field
+      }
+    }
+
+    $scope.toogleSortWebentities = function(field){
+      if($scope.sort_webentities == field){
+        $scope.sort_asc_webentities = !$scope.sort_asc_webentities
+      } else {
+        $scope.sort_asc_webentities = true
+        $scope.sort_webentities = field
+      }
     }
 
     // Functions
@@ -290,38 +335,13 @@ angular.module('hyphe.webentityController', [])
           ancestor = ancestor.parent
         }
         $scope.pathUrl = utils.LRU_to_URL(currentNode.lru)
-        console.log('GAGA', currentNode)
         
       }
-
-      $scope.items_prefixes.sort(function(a,b){
-        if(a.sortlabel < b.sortlabel) return -1
-        if(a.sortlabel > b.sortlabel) return 1
-        return 0
-      })
-
-      $scope.items_folders.sort(function(a,b){
-        if(a.sortlabel < b.sortlabel) return -1
-        if(a.sortlabel > b.sortlabel) return 1
-        return 0
-      })
-
-      $scope.items_pages.sort(function(a,b){
-        if(a.sortlabel < b.sortlabel) return -1
-        if(a.sortlabel > b.sortlabel) return 1
-        return 0
-      })
-
-      $scope.items_webentities.sort(function(a,b){
-        if(a.sortlabel < b.sortlabel) return -1
-        if(a.sortlabel > b.sortlabel) return 1
-        return 0
-      })
 
       function pushPrefix(label, url, lru, node, pageCount){
         $scope.items_prefixes.push({
           label: label
-          ,sortlabel: url+' 0'
+          ,sortlabel: label
           ,url: url
           ,lru: lru
           ,node: node
@@ -332,7 +352,7 @@ angular.module('hyphe.webentityController', [])
       function pushFolder(label, url, lru, node, pageCount, isPrefix, type){
         $scope.items_folders.push({
           label: label
-          ,sortlabel: url+' 1'
+          ,sortlabel: label
           ,url: url
           ,lru: lru
           ,node: node
@@ -345,7 +365,7 @@ angular.module('hyphe.webentityController', [])
       function pushPage(label, url, lru, data, isPrefix, type){
         $scope.items_pages.push({
           label: label
-          ,sortlabel: url+' 2'
+          ,sortlabel: label
           ,url: url
           ,lru: lru
           ,data: data
@@ -358,10 +378,11 @@ angular.module('hyphe.webentityController', [])
       function pushWebentityPrefix(label, url, lru, data){
         $scope.items_webentities.push({
           label: label
-          ,sortlabel: url
+          ,sortlabel: label
           ,url: url
           ,lru: lru
           ,data: data
+          ,webentityname: data.name
         })
       }
       
@@ -484,7 +505,7 @@ angular.module('hyphe.webentityController', [])
           return 'Query'
           break
         case('f'):
-          return 'Fragmt'
+          return 'Fragment'
           break
       }
     }
