@@ -38,8 +38,8 @@ angular.module('hyphe.webentityController', [])
 
   }])
 
-  .controller('webentity.explorer', ['$scope', 'api', 'utils'
-  ,function($scope, api, utils) {
+  .controller('webentity.explorer', ['$scope', 'api', 'utils', '$route'
+  ,function($scope, api, utils, $route) {
     var tree
     ,currentNode
 
@@ -63,6 +63,30 @@ angular.module('hyphe.webentityController', [])
 
     $scope.goToParent = function(){
       $scope.goTo(currentNode.parent)
+    }
+
+    $scope.newWebEntity = function(obj){
+      console.log('NEW WEB ENTITY on',obj)
+      $scope.status = {message: 'Declaring web entity'}
+      api.declareWebentity({
+          prefixes:
+            utils.LRU_variations(obj.lru, {
+                wwwlessVariations: true
+                ,wwwVariations: true
+                ,httpVariations: true
+                ,httpsVariations: true
+                ,smallerVariations: false
+              })
+          ,name: utils.nameLRU(obj.lru)
+          ,startPages: [obj.url]
+        }
+        ,function(result){
+          $route.reload();
+        }
+        ,function(){
+          $scope.status = {message: 'Web entity could not be declared', background: 'danger'}
+        }
+      )
     }
 
     // Functions
@@ -137,6 +161,7 @@ angular.module('hyphe.webentityController', [])
             pushPrefix(
               utils.LRU_to_URL(p)         // label
               ,utils.LRU_to_URL(p)        // url
+              ,p                          // lru
               ,tree.prefix[p]             // node
               ,tree.prefix[p].pagesCount  // page count
             )
@@ -145,7 +170,9 @@ angular.module('hyphe.webentityController', [])
             pushPage(
               utils.LRU_to_URL(p)         // label
               ,utils.LRU_to_URL(p)        // url
+              ,p                          // lru
               ,tree.prefix[p].data.page   // page data
+              ,tree.prefix[p].data.prefix // is a prefix
             )
           }
         }
@@ -163,22 +190,27 @@ angular.module('hyphe.webentityController', [])
             pushPage(
               cleanStem(stem, true)             // label
               ,utils.LRU_to_URL(childNode.lru)  // url
+              ,childNode.lru                    // lru
               ,childNode.data.page              // page data
+              ,!!childNode.data.webentity       // is a prefix
             )
           }
           if(childNode.data.webentity){
             pushWebentityPrefix(
               cleanStem(stem, true)             // label
               ,utils.LRU_to_URL(childNode.lru)  // url
-              ,childNode.data.webentity              // data
+              ,childNode.lru                    // lru
+              ,childNode.data.webentity         // data
             )
           }
           if(Object.keys(childNode.children).length>0){
             pushFolder(
               cleanStem(stem, true)             // label
               ,utils.LRU_to_URL(childNode.lru)  // url
+              ,childNode.lru                    // lru
               ,childNode                        // node
               ,childNode.pagesCount             // page data
+              ,!!childNode.data.webentity       // is a prefix
             )
           }
         }
@@ -205,45 +237,51 @@ angular.module('hyphe.webentityController', [])
         return 0
       })
 
-      function pushPrefix(label, url, node, pageCount){
+      function pushPrefix(label, url, lru, node, pageCount){
         $scope.items.push({
           type:'prefix'
           ,label: label
           ,sortlabel: url+' 0'
           ,url: url
+          ,lru: lru
           ,node: node
           ,pagesCount: pageCount
         })
       }
 
-      function pushFolder(label, url, node, pageCount){
+      function pushFolder(label, url, lru, node, pageCount, isPrefix){
         $scope.items.push({
           type:'folder'
           ,label: label
           ,sortlabel: url+' 1'
           ,url: url
+          ,lru: lru
           ,node: node
           ,pagesCount: pageCount
+          ,isPrefix: isPrefix
         })
       }
 
-      function pushPage(label, url, data){
+      function pushPage(label, url, lru, data, isPrefix){
         $scope.items.push({
           type:'page'
           ,label: label
           ,sortlabel: url+' 2'
           ,url: url
+          ,lru: lru
           ,data: data
+          ,isPrefix: isPrefix
           ,crawled: data.sources.some(function(d){return d == 'CRAWL'})
         })
       }
 
-      function pushWebentityPrefix(label, url, data){
+      function pushWebentityPrefix(label, url, lru, data){
         $scope.items_webentities.push({
           type:'subwe_prefix'
           ,label: label
           ,sortlabel: url
           ,url: url
+          ,lru: lru
           ,data: data
         })
       }

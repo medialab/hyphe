@@ -90,7 +90,13 @@
           </td>
           
           <td class="cell-action">
-            <button class="btn btn-default btn-xs" ng-click="newWebEntity(obj)">NEW WEB ENTITY</button>
+            <span ng-if="(obj.type == 'page' || obj.type == 'folder')">
+              <button ng-if="!obj.isPrefix" class="btn btn-default btn-xs" ng-click="newWebEntity(obj)">NEW WEB ENTITY</button>
+              <!-- <button ng-if= "obj.isPrefix" class="btn btn-default btn-xs disabled">NEW WEB ENTITY</button> -->
+            </span>
+            <span ng-if="obj.type == 'prefix'">
+              <button class="btn btn-default btn-xs" ng-click="removePrefix(obj)">REMOVE PREFIX</button>
+            </span>
           </td>
         
         </tr>
@@ -115,9 +121,8 @@
 
             <div>
               <span title="{{obj.url}}">
-                <span class="glyphicon glyphicon-briefcase" tooltip="Prefix of {{obj.data.name}}"></span>
+                <span class="glyphicon glyphicon-briefcase" tooltip="Prefix of another web entity"></span>
                 {{obj.label}}
-                
               </span>
             </div>
             
@@ -125,7 +130,7 @@
           
           <td class="cell-webentity"><a href="#/project/{{corpusId}}/webentity/{{obj.data.id}}">{{obj.data.name}}</a></td>
           
-          <td class="cell-action"></td>
+          <td class="cell-action"><button class="btn btn-default btn-xs" ng-click="mergeIntoCurrent(obj)">MERGE INTO THIS</button></td>
         
         </tr>
       </tbody>
@@ -148,7 +153,7 @@
           <td><a href="#/project/{{corpusId}}/webentity/{{obj.id}}">{{obj.name}}</a></td>
           <td><span ng-repeat="lru in obj.lru_prefixes">{{lru|lru_to_url}}<br/></span></td>
           
-          <td class="cell-action"></td>
+          <td class="cell-action"><button class="btn btn-default btn-xs" ng-click="mergeIntoCurrent(obj)">MERGE INTO THIS</button></td>
         
         </tr>
       </tbody>
