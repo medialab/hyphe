@@ -813,6 +813,21 @@ textarea.over-error{
 
 
 
+/* ==========================================================================
+   View: Web entity
+   ========================================================================== */
+.table-explorer .cell-type{
+  width: 80px;
+}
+.table-explorer .cell-info{
+  width: 100px;
+}
+.table-explorer .cell-action{
+  width: 80px;
+}
+
+
+
 
 
 
