@@ -103,6 +103,21 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
+    $scope.mergeIntoCurrent = function(old_id){
+      $scope.status = {message: 'Merging web entities'}
+      api.webentityMergeInto({
+          oldWebentityId: old_id
+          ,goodWebentityId: $scope.webentity.id
+        }
+        ,function(result){
+          $route.reload();
+        }
+        ,function(){
+          $scope.status = {message: 'Web entities could not be merged', background: 'danger'}
+        }
+      )
+    }
+
     // Functions
     function loadPages(){
 
