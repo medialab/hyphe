@@ -33,14 +33,18 @@ angular.module('hyphe.webentityController', [])
     }
   }])
 
-  .controller('webentity.summary', ['$scope', 'api', 'utils'
-  ,function($scope, api, utils) {
 
-  }])
+  
+  .controller('webentity.explorer', ['$scope', 'api', 'utils', '$route', 'corpus', '$routeParams'
+  ,function($scope, api, utils, $route, corpus, $routeParams) {
+    $scope.currentPage = 'webentity.explorer'
+    $scope.corpusName = corpus.getName()
+    $scope.corpusId = corpus.getId()
 
-  .controller('webentity.explorer', ['$scope', 'api', 'utils', '$route'
-  ,function($scope, api, utils, $route) {
+    $scope.explorerActive = false
     
+    $scope.webentity = {id:$routeParams.webentityId, loading:true}
+
     var tree
     ,currentNode
 
@@ -55,8 +59,8 @@ angular.module('hyphe.webentityController', [])
     $scope.items_webentities
 
     // Init
-    loadPages()
-
+    fetchWebentity($routeParams.webentityId)
+    
     $scope.goTo = function(node){
       currentNode = node
       updateExplorer()
@@ -120,10 +124,27 @@ angular.module('hyphe.webentityController', [])
     }
 
     // Functions
-    function loadPages(){
+    function fetchWebentity(id){
 
       $scope.status = {message: 'Loading'}
+      
+      api.getWebentities({
+          id_list:[id]
+          ,crawledOnly: false
+        }
+        ,function(result){
+          $scope.webentity = result[0]
+          $scope.webentity.loading = false
+          
+          loadPages()
+        }
+        ,function(){
+          $scope.status = {message: 'Error loading web entity', background: 'danger'}
+        }
+      )
+    }
 
+    function loadPages(){
       api.getPages({
           webentityId:$scope.webentity.id
         }
@@ -170,6 +191,8 @@ angular.module('hyphe.webentityController', [])
 
           buildExplorerTree()
           updateExplorer()
+
+          $scope.status = {message: ''}
 
         }
         ,function(){

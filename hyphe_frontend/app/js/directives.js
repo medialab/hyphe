@@ -274,6 +274,18 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+  .directive('webentityTabs', [function(){
+    return {
+      restrict: 'E'
+      ,templateUrl: 'partials/webentity_tabs.html'
+      ,link: function(scope, el, attrs) {
+        /*if(el.hasClass('tab')){
+          // el.find('.spinner-container').addClass('center')
+        }*/
+      }
+    }
+  }])
+
   .directive('ngCloseCorpus', ['$location', 'corpus', 'api', function($location, corpus, api){
     return {
       restrict: 'A'
@@ -312,9 +324,7 @@ angular.module('hyphe.directives', [])
         rangeObj: '='
       }
       ,link: function(scope, el, attrs) {
-        if(el.hasClass('center')){
-          el.find('.spinner-container').addClass('center')
-        }
+        
       }
     }
   }])

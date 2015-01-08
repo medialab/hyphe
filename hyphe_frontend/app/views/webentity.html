@@ -16,26 +16,53 @@
                 <br>
                 <br>
                 
-                <tabset>
-                  
-                  <tab heading="Summary">
-                    <div ng-include="'partials/webentity_summary'"></div>
-                  </tab>
-                  
-                  <tab heading="Explorer" active="explorerActive" disabled="webentity.loading">
-                    <div ng-if="explorerActive" ng-include="'partials/webentity_explorer'"></div>
-                  </tab>
-                  
-                  <tab heading="Pages Network" disabled="true">TO DO</tab>
-                  
-                  <tab heading="Ego Network" disabled="true">TO DO</tab>
-                  
-                  <tab heading="Tags" disabled="true">TO DO</tab>
-                  
-                  <tab heading="Advanced" disabled="true">TO DO</tab>
+                <webentity-tabs></webentity-tabs>
                 
-                </tabset>
-                
+                <!-- DUMMY SUMMARY -->
+                <h3>Dummy Summary</h3>
+
+                <dl class="dl-horizontal">
+
+                  <dt>crawling_status</dt>
+                  <dd>{{webentity['crawling_status']}}</dd>
+
+                  <dt>creation_date</dt>
+                  <dd>{{webentity['creation_date']}}</dd>
+
+                  <dt>homepage</dt>
+                  <dd>{{webentity['homepage']}}</dd>
+
+                  <dt>id</dt>
+                  <dd>{{webentity['id']}}</dd>
+
+                  <dt>indegree</dt>
+                  <dd>{{webentity['indegree']}}</dd>
+
+                  <dt>indexing_status</dt>
+                  <dd>{{webentity['indexing_status']}}</dd>
+
+                  <dt>last_modification_date</dt>
+                  <dd>{{webentity['last_modification_date']}}</dd>
+
+                  <dt>loading</dt>
+                  <dd>{{webentity['loading']}}</dd>
+
+                  <dt>lru_prefixes</dt>
+                  <dd>{{webentity['lru_prefixes']}}</dd>
+
+                  <dt>name</dt>
+                  <dd>{{webentity['name']}}</dd>
+
+                  <dt>startpages</dt>
+                  <dd>{{webentity['startpages']}}</dd>
+
+                  <dt>status</dt>
+                  <dd>{{webentity['status']}}</dd>
+
+                  <dt>tags</dt>
+                  <dd>{{webentity['tags']}}</dd>
+
+                </dl>
                 
               </div>
 
