@@ -17,9 +17,6 @@ angular.module('hyphe.definewebentitiesController', [])
     $scope.paginationLength = 50    // How many items per page
     $scope.paginationNumPages = 5  // How many pages to display in the pagination
 
-    $scope.wwwVariations = true
-    $scope.httpsVariations = true
-    
     $scope.createdList = []
     $scope.existingList = []
     $scope.conflictedList = []
@@ -168,10 +165,10 @@ angular.module('hyphe.definewebentitiesController', [])
               ,function(){                          // Query settings as a function
                   // Compute prefix variations
                   obj.prefixes = utils.LRU_variations(utils.LRU_truncate(obj.lru, obj.truePrefixLength), {
-                    wwwlessVariations: $scope.wwwVariations
-                    ,wwwVariations: $scope.wwwVariations
-                    ,httpVariations: $scope.httpsVariations
-                    ,httpsVariations: $scope.httpsVariations
+                    wwwlessVariations: true
+                    ,wwwVariations: true
+                    ,httpVariations: true
+                    ,httpsVariations: true
                     ,smallerVariations: false
                   })
 
