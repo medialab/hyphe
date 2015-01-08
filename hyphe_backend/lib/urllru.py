@@ -70,8 +70,9 @@ def url_shorten(url):
     return titlize_url_regexp.sub(' ', uri_decode(url)).strip().title().encode('utf-8')
 
 def name_url(url):
-    name = ""
     host = []
+    path = ""
+    name = ""
     lasthost = ""
     pathdone = False
     for (k,v,_) in split_lru_in_stems(url_to_lru_clean(url)):

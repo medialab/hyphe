@@ -1825,12 +1825,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = yield self.format_webentity(WE, corpus=corpus)
         returnD(format_result(res))
 
+    @inlineCallbacks
     def jsonrpc_get_webentity_for_url(self, url, corpus=DEFAULT_CORPUS):
         try:
             _, lru = urllru.url_clean_and_convert(url)
         except ValueError as e:
             returnD(format_error(e))
-        returnD(self.jsonrpc_get_webentity_for_url_as_lru(lru, corpus=corpus))
+        res = yield self.jsonrpc_get_webentity_for_url_as_lru(lru, corpus=corpus)
+        returnD(res)
 
     @inlineCallbacks
     def jsonrpc_get_webentity_for_url_as_lru(self, lru, corpus=DEFAULT_CORPUS):
