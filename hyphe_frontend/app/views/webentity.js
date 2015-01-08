@@ -40,6 +40,7 @@ angular.module('hyphe.webentityController', [])
 
   .controller('webentity.explorer', ['$scope', 'api', 'utils', '$route'
   ,function($scope, api, utils, $route) {
+    
     var tree
     ,currentNode
 

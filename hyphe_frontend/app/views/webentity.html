@@ -22,10 +22,8 @@
                     <div ng-include="'partials/webentity_summary'"></div>
                   </tab>
                   
-                  <!-- <tab heading="Explorer" active="explorerActive" disabled="webentity.loading"> -->
-                  <tab heading="Explorer" active="true" disabled="false">
-                    <!-- <div ng-if="explorerActive" ng-include="'partials/webentity_explorer'"></div> -->
-                    <div ng-include="'partials/webentity_explorer'"></div>
+                  <tab heading="Explorer" active="explorerActive" disabled="webentity.loading">
+                    <div ng-if="explorerActive" ng-include="'partials/webentity_explorer'"></div>
                   </tab>
                   
                   <tab heading="Pages Network" disabled="true">TO DO</tab>
