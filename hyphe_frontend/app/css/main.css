@@ -826,7 +826,9 @@ textarea.over-error{
   width: 160px;
   text-align: right;
 }
-
+.breadcrumb-subtitled{
+  margin-bottom: 0px;
+}
 
 
 

@@ -26,17 +26,15 @@
 
                 <div ng-if="!loading">
 
-                  <ol class="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-subtitled">
 
                     <!-- Home -->
                     <li>
                       <span ng-if="path.length == 0">
-                        <span class="glyphicon glyphicon-home"></span> {{webentity.name}}
+                        <span class="glyphicon glyphicon-home"></span> Web Entity
                       </span>
                       <span ng-if="path.length > 0">
-                        <a href ng-click="goToParent()"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>
-                        &nbsp;
-                        <a href ng-click="goTo()"><span class="glyphicon glyphicon-home"></span> {{webentity.name}}</a>
+                        <a href ng-click="goTo()"><span class="glyphicon glyphicon-home"></span> Web Entity</a>
                       </span>
                     </li>
 
@@ -48,80 +46,14 @@
                     
                   </ol>
 
+                  <p><small class="text-muted" ng-if="pathUrl != ''">{{pathUrl}} <a href="{{pathUrl}}" class="btn btn-link btn-xs" target="_blank"><span class="glyphicon glyphicon-share-alt"></span></a></small></p>
+
+                  <button class="btn btn-default btn-sm" ng-click="goToParent()"><span class="glyphicon glyphicon-circle-arrow-left"></span> BACK</button>
                   
-                  <!-- Explorer Table -->
-                  <table class="table table-condensed table-explorer">
-                    <thead>
-                      <tr>
-                        <th>Pages</th>
-                        <th class="cell-type">Type</th>
-                        <th class="cell-info">Info</th>
-                        <th class="cell-action"></th>
-                      </tr>
-                    </thead>
+                  <br>
+                  <br>
 
-                    <tbody>
-                      <tr
-                        ng-repeat="obj in items track by $index"
-                      >
-                        <td> <!-- Label column -->
-
-                          <!-- case: prefix -->
-                          <div ng-if="obj.type == 'prefix'">
-                            <a href ng-click="goTo(obj.node)" title="{{obj.url}}">
-                              <span class="glyphicon glyphicon-briefcase" tooltip="This prefix contains {{obj.pagesCount == 0 ? 'no page' : obj.pagesCount == 1 ? '1 page' : obj.pagesCount+' pages'}}"></span>
-                              {{obj.label}}
-                            </a>
-                          </div>
-
-                          <!-- case: folder -->
-                          <div ng-if="obj.type == 'folder'">
-                            <a href ng-click="goTo(obj.node)" title="{{obj.url}}">
-                              <span class="glyphicon glyphicon-folder-close" tooltip="This folder contains {{obj.pagesCount == 0 ? 'no page' : obj.pagesCount == 1 ? '1 page' : obj.pagesCount+' pages'}}"></span>
-                              {{obj.label}}
-                            </a>
-                          </div>
-
-                          <!-- case: page -->
-                          <div ng-if="obj.type == 'page'">
-                            <span title="{{obj.url}}">
-                              <span class="glyphicon glyphicon-file" tooltip="Page"></span>
-                              {{obj.label}}
-                              <a href="{{obj.data.url}}" class="btn btn-link btn-xs" target="_blank"><span class="glyphicon glyphicon-share-alt"></span></a>
-                            </span>
-                          </div>
-                          
-                        </td>
-                        
-                        <td class="cell-type">{{obj.type}}</td>
-                        
-                        <td class="cell-info">
-                          
-                          <span ng-if="obj.type == 'prefix' || obj.type == 'folder'">
-                            {{obj.pagesCount == 0 ? 'No page' : obj.pagesCount == 1 ? '1 page' : obj.pagesCount+' pages'}}
-                          </span>
-
-                          <span ng-if="obj.type == 'page'">
-                            {{obj.crawled ? 'crawled' : 'not crawled'}}
-                          </span>
-
-                        </td>
-                        
-                        <td class="cell-action">
-                          <span ng-if="(obj.type == 'page' || obj.type == 'folder')">
-                            <button ng-if="!obj.isPrefix" class="btn btn-default btn-xs" ng-click="newWebEntity(obj)">NEW WEB ENTITY</button>
-                            <!-- <button ng-if= "obj.isPrefix" class="btn btn-default btn-xs disabled">NEW WEB ENTITY</button> -->
-                          </span>
-                          <span ng-if="obj.type == 'prefix'">
-                            <button class="btn btn-default btn-xs" ng-click="removePrefix(obj)">REMOVE PREFIX</button>
-                          </span>
-                        </td>
-                      
-                      </tr>
-                    </tbody>
-                  </table>
-
-                  <!-- External prefixes -->
+                  <!-- TABLE: EXTERNAL PREFIXES -->
                   <table class="table table-condensed table-explorer" ng-if="items_webentities.length > 0">
                     <thead>
                       <tr>
@@ -146,13 +78,147 @@
                           
                         </td>
                         
-                        <td class="cell-webentity"><a href="#/project/{{corpusId}}/webentity/{{obj.data.id}}">{{obj.data.name}}</a></td>
+                        <td class="cell-webentity"><a href="#/project/{{corpusId}}/webentity/{{obj.data.id}}/explorer">{{obj.data.name}}</a></td>
                         
                         <td class="cell-action"><button class="btn btn-default btn-xs" ng-click="mergeIntoCurrent(obj.data.id)">MERGE INTO THIS</button></td>
                       
                       </tr>
                     </tbody>
                   </table>
+
+                  <!-- TABLE: PREFIX -->
+                  <table class="table table-condensed table-explorer" ng-if="items_prefixes.length > 0">
+                    <thead>
+                      <tr>
+                        <th>Prefixes of {{webentity.name}}</th>
+                        <th class="cell-info">Pages</th>
+                        <th class="cell-action"></th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr
+                        ng-repeat="obj in items_prefixes track by $index"
+                      >
+                        <td> <!-- Label column -->
+
+                          <div>
+                            <a href ng-click="goTo(obj.node)" title="{{obj.url}}">
+                              <span class="glyphicon glyphicon-briefcase" tooltip="This prefix contains {{obj.pagesCount == 0 ? 'no page' : obj.pagesCount == 1 ? '1 page' : obj.pagesCount+' pages'}}"></span>
+                              {{obj.label}}
+                            </a>
+                          </div>
+                          
+                        </td>
+                        
+                        <td class="cell-info">
+                          
+                          <span>
+                            {{obj.pagesCount == 0 ? 'None' : obj.pagesCount}}
+                          </span>
+
+                        </td>
+                        
+                        <td class="cell-action">
+                          <button class="btn btn-default btn-xs" ng-click="removePrefix(obj)">REMOVE PREFIX</button>
+                        </td>
+                      
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <!-- TABLE: FOLDER -->
+                  <table class="table table-condensed table-explorer" ng-if="items_folders.length > 0">
+                    <thead>
+                      <tr>
+                        <th>Folders</th>
+                        <th class="cell-type">Type</th>
+                        <th class="cell-info">Pages</th>
+                        <th class="cell-action"></th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr
+                        ng-repeat="obj in items_folders track by $index"
+                      >
+                        <td> <!-- Label column -->
+
+                          <div>
+                            <a href ng-click="goTo(obj.node)" title="{{obj.url}}">
+                              <span class="glyphicon glyphicon-folder-close" tooltip="This folder contains {{obj.pagesCount == 0 ? 'no page' : obj.pagesCount == 1 ? '1 page' : obj.pagesCount+' pages'}}"></span>
+                              {{obj.label}}
+                            </a>
+                          </div>
+                          
+                        </td>
+                        
+                        <td class="cell-type">{{obj.type}}</td>
+                        
+                        <td class="cell-info">
+                          
+                          <span>
+                            {{obj.pagesCount == 0 ? 'None' : obj.pagesCount}}
+                          </span>
+
+                        </td>
+                        
+                        <td class="cell-action">
+                          
+                            <button ng-if="!obj.isPrefix" class="btn btn-default btn-xs" ng-click="newWebEntity(obj)">NEW WEB ENTITY</button>
+                          
+                        </td>
+                      
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <!-- TABLE: PAGE -->
+                  <table class="table table-condensed table-explorer" ng-if="items_pages.length > 0">
+                    <thead>
+                      <tr>
+                        <th>Pages</th>
+                        <th class="cell-type">Type</th>
+                        <th class="cell-info">Info</th>
+                        <th class="cell-action"></th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr
+                        ng-repeat="obj in items_pages track by $index"
+                      >
+                        <td> <!-- Label column -->
+
+                          <!-- case: page -->
+                        
+                          <span title="{{obj.url}}">
+                            <span class="glyphicon glyphicon-file" tooltip="Page"></span>
+                            {{obj.label}}
+                            <a href="{{obj.data.url}}" class="btn btn-link btn-xs" target="_blank"><span class="glyphicon glyphicon-share-alt"></span></a>
+                          </span>
+                          
+                        </td>
+                        
+                        <td class="cell-type">{{obj.type}}</td>
+                        
+                        <td class="cell-info">
+                          
+                          <span>
+                            {{obj.crawled ? 'crawled' : 'not crawled'}}
+                          </span>
+
+                        </td>
+                        
+                        <td class="cell-action">
+                          <button ng-if="!obj.isPrefix" class="btn btn-default btn-xs" ng-click="newWebEntity(obj)">NEW WEB ENTITY</button>
+                        </td>
+                      
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  
 
                   <!-- Related (parent) web entities -->
                   <table class="table table-condensed table-explorer" ng-if="path.length == 0 && parentWebentities.length > 0">
@@ -168,7 +234,7 @@
                       <tr
                         ng-repeat="obj in parentWebentities track by $index"
                       >
-                        <td><a href="#/project/{{corpusId}}/webentity/{{obj.id}}">{{obj.name}}</a></td>
+                        <td><a href="#/project/{{corpusId}}/webentity/{{obj.id}}/explorer">{{obj.name}}</a></td>
                         <td><span ng-repeat="lru in obj.lru_prefixes">{{lru|lru_to_url}}<br/></span></td>
                         
                         <td class="cell-action"><button class="btn btn-default btn-xs" ng-click="mergeIntoCurrent(obj.id)">MERGE INTO THIS</button></td>
