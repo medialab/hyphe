@@ -823,7 +823,8 @@ textarea.over-error{
   width: 100px;
 }
 .table-explorer .cell-action{
-  width: 80px;
+  width: 160px;
+  text-align: right;
 }
 
 
