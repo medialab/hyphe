@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from uuid import uuid1 as uuid
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from txmongo import MongoConnection, connection as mongo_connection
 mongo_connection._Connection.noisy = False
@@ -154,11 +155,13 @@ class MongoDB(object):
         returnD(jobs)
 
     @inlineCallbacks
-    def add_job(self, corpus, job_id, webentity_id, args, timestamp=None):
+    def add_job(self, corpus, webentity_id, args, timestamp=None):
         if not timestamp:
             timestamp = now_ts()
+        _id = str(uuid())
         yield self.jobs(corpus).insert({
-          "_id": job_id,
+          "_id": _id,
+          "crawljob_id": None,
           "webentity_id": webentity_id,
           "nb_crawled_pages": 0,
           "nb_pages": 0,
@@ -167,10 +170,18 @@ class MongoDB(object):
           "crawling_status": crawling_statuses.PENDING,
           "indexing_status": indexing_statuses.PENDING,
           "created_at": timestamp,
+          "scheduled_at": None,
           "started_at": None,
           "crawled_at": None,
           "finished_at": None
         }, safe=True)
+        returnD(_id)
+
+    @inlineCallbacks
+    def update_job(self, corpus, job_id, crawl_id, timestamp=None):
+        if not timestamp:
+            timestamp = now_ts()
+        yield self.jobs(corpus).update({"_id": job_id}, {"$set": {"crawljob_id": crawl_id, "scheduled_at": timestamp}}, safe=True)
 
     @inlineCallbacks
     def update_jobs(self, corpus, specs, modifs, **kwargs):
@@ -186,6 +197,11 @@ class MongoDB(object):
         yield self.jobs(corpus).update(specs, update, **kwargs)
 
     @inlineCallbacks
+    def get_waiting_jobs(self, corpus):
+        jobs = yield self.jobs(corpus).find({"crawljob_id": None}, fields=["created_at", "crawl_arguments"])
+        returnD((corpus, jobs))
+
+    @inlineCallbacks
     def count_pages(self, corpus, job, **kwargs):
         tot = yield self.pages(corpus).count({"_job": job}, **kwargs)
         returnD(tot)
@@ -193,7 +209,7 @@ class MongoDB(object):
     @inlineCallbacks
     def update_job_pages(self, corpus, job_id):
         crawled_pages = yield self.count_pages(corpus, job_id)
-        yield self.update_jobs(corpus, job_id, {'nb_crawled_pages': crawled_pages})
+        yield self.update_jobs(corpus, {"crawljob_id": job_id}, {'nb_crawled_pages': crawled_pages})
 
     @inlineCallbacks
     def get_queue(self, corpus, specs={}, **kwargs):

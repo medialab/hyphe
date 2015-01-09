@@ -1,29 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time, random, json
-from urllib import urlencode
+import time, random
 import subprocess
 from txjsonrpc import jsonrpclib
 from txjsonrpc.jsonrpc import Introspection
 from txjsonrpc.web import jsonrpc
 from twisted.web import server
 from twisted.python import log as logger
-from twisted.internet import reactor, defer
+from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
 from twisted.internet.threads import deferToThread
 from twisted.internet.defer import DeferredList, inlineCallbacks, returnValue as returnD
 from twisted.internet.endpoints import TCP4ClientEndpoint
-from twisted.internet.error import DNSLookupError, ConnectionRefusedError
+from twisted.internet.error import DNSLookupError
 from twisted.application.internet import TCPServer
 from twisted.application.service import Application
 from twisted.web.http_headers import Headers
-from twisted.web.client import getPage, Agent, ProxyAgent, HTTPClientFactory, _HTTP11ClientFactory
+from twisted.web.client import Agent, ProxyAgent, HTTPClientFactory, _HTTP11ClientFactory
 HTTPClientFactory.noisy = False
 _HTTP11ClientFactory.noisy = False
 from hyphe_backend import processor
 from hyphe_backend.lib import config_hci, urllru, gexf, user_agents, creationrules
 from hyphe_backend.lib.utils import *
+from hyphe_backend.lib.jobsqueue import JobsQueue
 from hyphe_backend.lib.mongo import MongoDB, sortdesc
 from hyphe_backend.lib.corpus import CorpusFactory
 from hyphe_backend.memorystructure import MemoryStructure as ms, constants as ms_const
@@ -517,7 +517,7 @@ class Core(jsonrpc.JSONRPC):
                 logger.msg("Problem dialoguing with scrapyd server: %s" % scrapyjobs, system="WARNING - %s" % corpus)
             returnD(None)
         scrapyjobs = scrapyjobs['result']
-        self.corpora[corpus]['crawls_pending'] = len(scrapyjobs['pending'])
+        self.corpora[corpus]['crawls_pending'] = len(scrapyjobs['pending']) + self.crawler.crawlqueue.count_waiting_jobs(corpus)
         self.corpora[corpus]['crawls_running'] = len(scrapyjobs['running'])
         results = yield DeferredList([
             self.db.queue(corpus).count(),
@@ -537,7 +537,7 @@ class Core(jsonrpc.JSONRPC):
         yield self.update_corpus(corpus)
         # clean lost jobs
         if len(scrapyjobs['running']) + len(scrapyjobs['pending']) == 0:
-            yield self.db.update_jobs(corpus, {'crawling_status': {'$in': [crawling_statuses.PENDING, crawling_statuses.RUNNING]}}, {'crawling_status': crawling_statuses.FINISHED, "finished_at": now_ts()})
+            yield self.db.update_jobs(corpus, {'crawling_status': {'$in': [crawling_statuses.RUNNING]}}, {'crawling_status': crawling_statuses.FINISHED, "finished_at": now_ts()})
         # clean canceled jobs
         yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.CANCELED, 'indexing_status': {"$ne": indexing_statuses.CANCELED}}, {'indexing_status': indexing_statuses.CANCELED, 'finished_at': now_ts()})
         # update jobs crawling status accordingly to crawler's statuses
@@ -547,14 +547,14 @@ class Core(jsonrpc.JSONRPC):
             if not bl:
                 logger.msg("Problem dialoguing with MongoDB: %s" % res, system="WARNING - %s" % corpus)
                 returnD(None)
-        res = yield self.db.list_jobs(corpus, {'_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, fields=['_id'])
+        res = yield self.db.list_jobs(corpus, {'crawljob_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, fields=['_id'])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
             yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.RUNNING, 'started_at': now_ts()})
             yield self.db.add_log(corpus, update_ids, "CRAWL_"+crawling_statuses.RUNNING)
         # update crawling status for finished jobs
         finished_ids = [job['id'] for job in scrapyjobs['finished']]
-        res = yield self.db.list_jobs(corpus, {'_id': {'$in': finished_ids}, 'crawling_status': {'$nin': [crawling_statuses.RETRIED, crawling_statuses.CANCELED, crawling_statuses.FINISHED]}}, fields=['_id'])
+        res = yield self.db.list_jobs(corpus, {'crawljob_id': {'$in': finished_ids}, 'crawling_status': {'$nin': [crawling_statuses.RETRIED, crawling_statuses.CANCELED, crawling_statuses.FINISHED]}}, fields=['_id'])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
             yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.FINISHED, 'crawled_at': now_ts()})
@@ -562,9 +562,9 @@ class Core(jsonrpc.JSONRPC):
         # collect list of crawling jobs whose outputs is not fully indexed yet
         jobs_in_queue = yield self.db.queue(corpus).distinct('_job')
         # set index finished for jobs with crawling finished and no page left in queue
-        res = yield self.db.list_jobs(corpus, {'crawling_status': crawling_statuses.FINISHED})
-        finished_ids = set([job['_id'] for job in res] + finished_ids)
-        res = yield self.db.list_jobs(corpus, {'_id': {'$in': list(finished_ids-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$nin': [indexing_statuses.BATCH_RUNNING, indexing_statuses.FINISHED]}}, fields=['_id'])
+        res = yield self.db.list_jobs(corpus, {'crawling_status': crawling_statuses.FINISHED, '$exists': {'crawljob_id': True}})
+        finished_ids = set([job['crawljob_id'] for job in res] + finished_ids)
+        res = yield self.db.list_jobs(corpus, {'crawljob_id': {'$in': list(finished_ids-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$nin': [indexing_statuses.BATCH_RUNNING, indexing_statuses.FINISHED]}}, fields=['_id'])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
             yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.FINISHED, 'finished_at': now_ts()})
@@ -710,13 +710,12 @@ class Core(jsonrpc.JSONRPC):
 
 class Crawler(jsonrpc.JSONRPC):
 
-    scrapy_url = 'http://%s:%s/' % (config['mongo-scrapy']['host'], config['mongo-scrapy']['scrapy_port'])
-
     def __init__(self, parent=None):
         jsonrpc.JSONRPC.__init__(self)
         self.parent = parent
         self.db = self.parent.db
         self.corpora = self.parent.corpora
+        self.crawlqueue = JobsQueue(config["mongo-scrapy"])
 
     def jsonrpc_deploy_crawler(self, corpus=DEFAULT_CORPUS):
         return self.deploy_crawler(corpus)
@@ -724,7 +723,7 @@ class Crawler(jsonrpc.JSONRPC):
     @inlineCallbacks
     def deploy_crawler(self, corpus=DEFAULT_CORPUS, quiet=False):
         output = subprocess.Popen(['bash', 'bin/deploy_scrapy_spider.sh', corpus, '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
-        res = yield self.send_scrapy_query("listprojects")
+        res = yield self.crawlqueue.send_scrapy_query("listprojects")
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
             logger.msg("Couldn't deploy crawler", system="ERROR - %s" % corpus)
             returnD(format_error(output))
@@ -735,7 +734,7 @@ class Crawler(jsonrpc.JSONRPC):
     @inlineCallbacks
     def delete_crawler(self, corpus=DEFAULT_CORPUS, quiet=False):
         proj = corpus_project(corpus)
-        res = yield self.send_scrapy_query("delproject", {"project": proj})
+        res = yield self.crawlqueue.send_scrapy_query("delproject", {"project": proj})
         if is_error(res):
             logger.msg("Couldn't destroy scrapyd spider: %s" % res, system="ERROR - %s" % corpus)
         elif not quiet:
@@ -744,6 +743,7 @@ class Crawler(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_cancel_all(self, corpus=DEFAULT_CORPUS):
         """Stops all current crawls."""
+        self.crawlqueue.cancel_corpus_jobs(corpus)
         list_jobs = yield self.jsonrpc_list(corpus)
         if is_error(list_jobs):
             returnD('No crawler deployed, hence no job to cancel')
@@ -777,28 +777,6 @@ class Crawler(jsonrpc.JSONRPC):
         returnD(format_result('Crawling database reset.'))
 
     @inlineCallbacks
-    def send_scrapy_query(self, action, arguments=None, tryout=0):
-        url = "%s%s.json" % (self.scrapy_url, action)
-        method = "POST"
-        headers = None
-        if action.startswith('list'):
-            method = "GET"
-            if arguments:
-                url += '?'+'&'.join([str(k)+'='+str(v) for (k, v) in arguments.iteritems()])
-                arguments = None
-        elif arguments:
-            arguments = urlencode(arguments)
-            headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        try:
-            res = yield getPage(url, method=method, postdata=arguments, headers=headers, timeout=10)
-            result = json.loads(res)
-            returnD(result)
-        except ConnectionRefusedError:
-            returnD(format_error("Could not contact scrapyd server, maybe it's not started..."))
-        except Exception as e:
-            returnD(format_error(e))
-
-    @inlineCallbacks
     def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=None, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], corpus=DEFAULT_CORPUS):
         """Starts a crawl with scrapy from arguments using a list of urls and of lrus for prefixes."""
         if not self.parent.corpus_ready(corpus):
@@ -830,13 +808,7 @@ class Crawler(jsonrpc.JSONRPC):
             phantom_timeouts.update(self.corpora[corpus]["options"]["phantom"])
             for t in ["", "ajax_", "idle_"]:
                 args['phantom_%stimeout' % t] = phantom_timeouts["%stimeout" % t]
-        res = yield self.send_scrapy_query('schedule', args)
-        if is_error(res):
-            returnD(reformat_error(res))
-        if 'jobid' in res:
-            ts = now_ts()
-            yield self.db.add_job(corpus, res['jobid'], webentity_id, args, ts)
-            yield self.db.add_log(corpus, res['jobid'], "CRAWL_ADDED", ts)
+        res = yield self.crawlqueue.add_job(args, corpus, webentity_id)
         returnD(format_result(res))
 
     @inlineCallbacks
@@ -850,16 +822,17 @@ class Crawler(jsonrpc.JSONRPC):
         elif existing[0]["crawling_status"] in [crawling_statuses.FINISHED, crawling_statuses.CANCELED, crawling_statuses.RETRIED]:
             returnD(format_error("Job %s is already not running anymore" % job_id))
         logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
-        args = {'project': corpus_project(corpus), 'job': job_id}
-        res = yield self.send_scrapy_query('cancel', args)
-        if is_error(res):
-            returnD(reformat_error(res))
-        if 'prevstate' in res:
-            yield self.db.update_jobs(corpus, job_id, {'crawling_status': crawling_statuses.CANCELED})
-            yield self.db.add_log(corpus, job_id, "CRAWL_"+crawling_statuses.CANCELED)
-        res = yield self.send_scrapy_query('cancel', args)
-        if is_error(res):
-            returnD(reformat_error(res))
+        if job_id in self.crawlqueue.queue:
+            del(self.crawlqueue.queue[job_id])
+            res = "ok"
+        else:
+            args = {'project': corpus_project(corpus), 'job': existing[0]["crawljob_id"]}
+            res = yield self.crawlqueue.send_scrapy_query('cancel', args)
+            if is_error(res):
+                returnD(reformat_error(res))
+            yield self.crawlqueue.send_scrapy_query('cancel', args)
+        yield self.db.update_jobs(corpus, job_id, {'crawling_status': crawling_statuses.CANCELED})
+        yield self.db.add_log(corpus, job_id, "CRAWL_"+crawling_statuses.CANCELED)
         returnD(format_result(res))
 
     @inlineCallbacks
@@ -867,7 +840,7 @@ class Crawler(jsonrpc.JSONRPC):
         """Calls Scrappy monitoring API, returns list of scrapy jobs."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        res = yield self.send_scrapy_query('listjobs', {'project': corpus_project(corpus)})
+        res = yield self.crawlqueue.send_scrapy_query('listjobs', {'project': corpus_project(corpus)})
         if is_error(res):
             returnD(reformat_error(res))
         returnD(format_result(res))
@@ -1428,7 +1401,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return format_result("WebEntity %s (%s) was removed" % (webentity_id, WE.name))
 
     @inlineCallbacks
-    def index_batch(self, page_items, jobid, corpus=DEFAULT_CORPUS):
+    def index_batch(self, page_items, job, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(False)
         ids = [str(record['_id']) for record in page_items]
@@ -1467,9 +1440,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             logger.msg(res['message'], system="ERROR - %s" % corpus)
             returnD(False)
         yield self.db.clean_queue(corpus, ids)
-        tot_crawled_pages = yield self.db.count_pages(corpus, jobid)
-        yield self.db.update_jobs(corpus, jobid, {'nb_crawled_pages': tot_crawled_pages, 'indexing_status': indexing_statuses.BATCH_FINISHED}, inc={'nb_pages': nb_pages, 'nb_links': nb_links})
-        yield self.db.add_log(corpus, jobid, "INDEX_"+indexing_statuses.BATCH_FINISHED)
+        tot_crawled_pages = yield self.db.count_pages(corpus, job['crawljob_id'])
+        yield self.db.update_jobs(corpus, job['_id'], {'nb_crawled_pages': tot_crawled_pages, 'indexing_status': indexing_statuses.BATCH_FINISHED}, inc={'nb_pages': nb_pages, 'nb_links': nb_links})
+        yield self.db.add_log(corpus, job['_id'], "INDEX_"+indexing_statuses.BATCH_FINISHED)
         returnD(True)
 
     def rank_webentities(self, corpus=DEFAULT_CORPUS):
@@ -1505,25 +1478,24 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
             self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
-            job = yield self.db.list_jobs(corpus, {'_id': oldest_page_in_queue['_job'], 'crawling_status': {'$ne': crawling_statuses.PENDING}, 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id'], limit=1)
+            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'crawling_status': {'$ne': crawling_statuses.PENDING}, 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id', 'crawljob_id'], limit=1)
             if not job:
                 self.corpora[corpus]['loop_running'] = None
                 returnD(False)
-            jobid = job['_id']
-            logger.msg("Indexing pages from job %s" % jobid, system="INFO - %s" % corpus)
-            page_items = yield self.db.get_queue(corpus, {'_job': jobid}, limit=config['memoryStructure']['max_simul_pages_indexing'])
+            logger.msg("Indexing pages from job %s" % job['_id'], system="INFO - %s" % corpus)
+            page_items = yield self.db.get_queue(corpus, {'_job': job['crawljob_id']}, limit=config['memoryStructure']['max_simul_pages_indexing'])
             if page_items:
-                yield self.db.update_jobs(corpus, jobid, {'indexing_status': indexing_statuses.BATCH_RUNNING})
-                yield self.db.add_log(corpus, jobid, "INDEX_"+indexing_statuses.BATCH_RUNNING)
+                yield self.db.update_jobs(corpus, job['_id'], {'indexing_status': indexing_statuses.BATCH_RUNNING})
+                yield self.db.add_log(corpus, job['_id'], "INDEX_"+indexing_statuses.BATCH_RUNNING)
                 self.corpora[corpus]['loop_running_since'] = now_ts()
-                res = yield self.index_batch(page_items, jobid, corpus=corpus)
+                res = yield self.index_batch(page_items, job, corpus=corpus)
                 if is_error(res):
                     logger.msg(res['message'], system="ERROR - %s" % corpus)
                     self.corpora[corpus]['loop_running'] = None
                     returnD(False)
                 self.corpora[corpus]['recent_changes'] += 1
             else:
-                logger.msg("job %s found for index but no page corresponding found in queue." % jobid, system="WARNING - %s" % corpus)
+                logger.msg("job %s found for index but no page corresponding found in queue." % job['_id'], system="WARNING - %s" % corpus)
             self.corpora[corpus]['last_index_loop'] = now_ts()
         # Run linking WebEntities on a regular basis when needed and not overloaded
         s = time.time()
