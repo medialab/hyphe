@@ -118,6 +118,23 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('sortByField', [function(){
+    return function(list,field,asc){
+      var result = list.slice(0)
+      
+      result.sort(function(a,b){
+        if(a[field] < b[field]) return -1
+        if(a[field] > b[field]) return 1
+        return 0
+      })
+
+      if(asc)
+        return result
+      else
+        return result.reverse()
+    }
+  }])
+
   .filter('explicitHttpCode', [function () {
     return function (code) {
       code = ''+code

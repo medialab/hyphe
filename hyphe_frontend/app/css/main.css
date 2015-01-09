@@ -39,6 +39,15 @@ table.fixed{
 .pointable{
   cursor: pointer;
 }
+/* Glyphicons in table headers*/
+.table-glyphicon{
+  font-size: 12px;
+}
+.glyphicon-muted{
+  color: #CCC;
+}
+
+
 
 
 /* ==========================================================================
@@ -853,12 +862,6 @@ textarea.over-error{
 }
 .webentities-list-table{
   margin-bottom: 0px;
-}
-.webentities-list-table .glyphicon-muted{
-  color: #CCC;
-}
-.webentities-list-table .table-glyphicon{
-  font-size: 12px;
 }
 .webentities-list-table .cell-checkbox{
   width: 20px;

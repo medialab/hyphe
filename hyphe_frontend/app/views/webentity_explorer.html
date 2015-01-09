@@ -53,19 +53,30 @@
                   <br>
                   <br>
 
+
                   <!-- TABLE: EXTERNAL PREFIXES -->
                   <table class="table table-condensed table-explorer" ng-if="items_webentities.length > 0">
                     <thead>
                       <tr>
-                        <th>Prefixes of other web entities</th>
-                        <th class="cell-webentity">Web entity</th>
+                        <th class="pointable" ng-click="toogleSortWebentities('sortlabel')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_webentities != 'sortlabel'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_webentities == 'sortlabel' && sort_asc_webentities"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_webentities == 'sortlabel' && !sort_asc_webentities"></span>
+                          Prefixes of other web entities
+                        </th>
+                        <th class="cell-webentity pointable" ng-click="toogleSortWebentities('webentityname')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_webentities != 'webentityname'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_webentities == 'webentityname' && sort_asc_webentities"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_webentities == 'webentityname' && !sort_asc_webentities"></span>
+                          Web entity
+                        </th>
                         <th class="cell-action"></th>
                       </tr>
                     </thead>
 
                     <tbody>
                       <tr
-                        ng-repeat="obj in items_webentities track by $index"
+                        ng-repeat="obj in items_webentities|sortByField:sort_webentities:sort_asc_webentities track by $index"
                       >
                         <td> <!-- Label column -->
 
@@ -90,15 +101,25 @@
                   <table class="table table-condensed table-explorer" ng-if="items_prefixes.length > 0">
                     <thead>
                       <tr>
-                        <th>Prefixes of {{webentity.name}}</th>
-                        <th class="cell-info">Pages</th>
+                        <th class="pointable" ng-click="toogleSortPrefixes('sortlabel')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_prefixes != 'sortlabel'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_prefixes == 'sortlabel' && sort_asc_prefixes"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_prefixes == 'sortlabel' && !sort_asc_prefixes"></span>
+                          Prefixes of {{webentity.name}}
+                        </th>
+                        <th class="cell-info pointable" ng-click="toogleSortPrefixes('pagesCount')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_prefixes != 'pagesCount'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_prefixes == 'pagesCount' && sort_asc_prefixes"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_prefixes == 'pagesCount' && !sort_asc_prefixes"></span>
+                          Pages
+                        </th>
                         <th class="cell-action"></th>
                       </tr>
                     </thead>
 
                     <tbody>
                       <tr
-                        ng-repeat="obj in items_prefixes track by $index"
+                        ng-repeat="obj in items_prefixes|sortByField:sort_prefixes:sort_asc_prefixes track by $index"
                       >
                         <td> <!-- Label column -->
 
@@ -113,8 +134,11 @@
                         
                         <td class="cell-info">
                           
-                          <span>
-                            {{obj.pagesCount == 0 ? 'None' : obj.pagesCount}}
+                          <span ng-if="obj.pagesCount == 0" class="text-muted">
+                            None
+                          </span>
+                          <span ng-if="obj.pagesCount > 0">
+                            {{obj.pagesCount}}
                           </span>
 
                         </td>
@@ -131,16 +155,31 @@
                   <table class="table table-condensed table-explorer" ng-if="items_folders.length > 0">
                     <thead>
                       <tr>
-                        <th>Folders</th>
-                        <th class="cell-type">Type</th>
-                        <th class="cell-info">Pages</th>
+                        <th class="pointable" ng-click="toogleSortFolders('sortlabel')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_folders != 'sortlabel'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_folders == 'sortlabel' && sort_asc_folders"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_folders == 'sortlabel' && !sort_asc_folders"></span>
+                          Folders
+                        </th>
+                        <th class="cell-type pointable" ng-click="toogleSortFolders('type')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_folders != 'type'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_folders == 'type' && sort_asc_folders"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_folders == 'type' && !sort_asc_folders"></span>
+                          Type
+                        </th>
+                        <th class="cell-info pointable" ng-click="toogleSortFolders('pagesCount')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_folders != 'pagesCount'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_folders == 'pagesCount' && sort_asc_folders"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_folders == 'pagesCount' && !sort_asc_folders"></span>
+                          Pages
+                        </th>
                         <th class="cell-action"></th>
                       </tr>
                     </thead>
 
                     <tbody>
                       <tr
-                        ng-repeat="obj in items_folders track by $index"
+                        ng-repeat="obj in items_folders|sortByField:sort_folders:sort_asc_folders track by $index"
                       >
                         <td> <!-- Label column -->
 
@@ -157,8 +196,11 @@
                         
                         <td class="cell-info">
                           
-                          <span>
-                            {{obj.pagesCount == 0 ? 'None' : obj.pagesCount}}
+                          <span ng-if="obj.pagesCount == 0" class="text-muted">
+                            None
+                          </span>
+                          <span ng-if="obj.pagesCount > 0">
+                            {{obj.pagesCount}}
                           </span>
 
                         </td>
@@ -177,16 +219,31 @@
                   <table class="table table-condensed table-explorer" ng-if="items_pages.length > 0">
                     <thead>
                       <tr>
-                        <th>Pages</th>
-                        <th class="cell-type">Type</th>
-                        <th class="cell-info">Info</th>
+                        <th class="pointable" ng-click="toogleSortPages('sortlabel')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_pages != 'sortlabel'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_pages == 'sortlabel' && sort_asc_pages"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_pages == 'sortlabel' && !sort_asc_pages"></span>
+                          Pages
+                        </th>
+                        <th class="cell-type pointable" ng-click="toogleSortPages('type')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_pages != 'type'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_pages == 'type' && sort_asc_pages"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_pages == 'type' && !sort_asc_pages"></span>
+                          Type
+                        </th>
+                        <th class="cell-info pointable" ng-click="toogleSortPages('crawled')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_pages != 'crawled'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_pages == 'crawled' && sort_asc_pages"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_pages == 'crawled' && !sort_asc_pages"></span>
+                          Info
+                        </th>
                         <th class="cell-action"></th>
                       </tr>
                     </thead>
 
                     <tbody>
                       <tr
-                        ng-repeat="obj in items_pages track by $index"
+                        ng-repeat="obj in items_pages|sortByField:sort_pages:sort_asc_pages track by $index"
                       >
                         <td> <!-- Label column -->
 
