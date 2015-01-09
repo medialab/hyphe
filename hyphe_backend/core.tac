@@ -410,8 +410,6 @@ class Core(jsonrpc.JSONRPC):
         if is_error(res):
             returnD(res)
         res = yield self.crawler.delete_crawler(corpus, quiet)
-        if is_error(res):
-            returnD(res)
         yield self.db.delete_corpus(corpus)
         returnD(format_result("Corpus %s destroyed successfully" % corpus))
 
@@ -444,8 +442,8 @@ class Core(jsonrpc.JSONRPC):
         status = {
           'hyphe': {
             'corpus_running': self.msclients.total_running(),
-            'crawls_running': sum([c['crawls_running'] for c in self.corpora.values()]),
-            'crawls_pending': sum([c['crawls_pending'] for c in self.corpora.values()]),
+            'crawls_running': sum([c['crawls_running'] for c in self.corpora.values() if "crawls_running" in c]),
+            'crawls_pending': sum([c['crawls_pending'] for c in self.corpora.values() if "crawls_pending" in c]),
             'ports_left': len(self.msclients.ports_free),
             'ram_left': self.msclients.ram_free
           },
@@ -740,10 +738,8 @@ class Crawler(jsonrpc.JSONRPC):
         res = yield self.send_scrapy_query("delproject", {"project": proj})
         if is_error(res):
             logger.msg("Couldn't destroy scrapyd spider: %s" % res, system="ERROR - %s" % corpus)
-            returnD(format_error(res))
-        if not quiet:
+        elif not quiet:
             logger.msg("Successfully destroyed crawler", system="INFO - %s" % corpus)
-        returnD(format_result("Crawler %s destroyed" % corpus_project(corpus)))
 
     @inlineCallbacks
     def jsonrpc_cancel_all(self, corpus=DEFAULT_CORPUS):
