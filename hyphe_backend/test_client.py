@@ -56,7 +56,7 @@ for a in sys.argv[startargs:]:
         is_array = True
     else:
         if is_array:
-            if a.startswith('[') and a.endswith(']'):
+            if (a.startswith('[') and a.endswith(']')) or (a.startswith('{') and a.endswith('}')):
                 args.append(eval(a))
             elif not len(a):
                 args.append([])
