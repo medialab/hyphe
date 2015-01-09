@@ -104,7 +104,7 @@ function exit_on_running {
 }
 
 function test_core_started_in_log {
-  grep -v "\[-\] \.\.\.\|Deprecation" log/hyphe-core.log | tail -n 5 | grep "Ready!" > /dev/null
+  grep -v "\[-\] \.\.\.\|Deprecation" log/hyphe-core.log | grep -v "\[DEBUG - " | tail -n 5 | grep "Ready!" > /dev/null
 }
 function test_error_in_core_log {
   tail -n 2 log/hyphe-core.log | grep -v "Deprecation" | grep "ERROR\|Exception" > /dev/null
