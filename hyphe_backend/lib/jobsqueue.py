@@ -114,13 +114,13 @@ class JobsQueue(object):
         if not len(self.queue):
             returnD(None)
 
-        # Add some random wait to allow possible concurrent Hyphe instance
-        # to compete for ScrapyD's slots
-        yield deferredSleep(1./randint(4,20))
         status = yield self.get_scrapyd_status()
         if status["pending"] > 0:
             returnD(None)
-
+        # Add some random wait to allow possible concurrent Hyphe instance
+        # to compete for ScrapyD's empty slots
+        yield deferredSleep(1./randint(4,20))
+        
         job_id, job = sorted(self.queue.items(), key=self.sortjobs)[0]
         res = yield self.send_scrapy_query('schedule', job["crawl_arguments"])
         ts = now_ts()
