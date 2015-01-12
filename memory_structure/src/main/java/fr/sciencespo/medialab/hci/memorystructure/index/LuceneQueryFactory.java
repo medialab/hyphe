@@ -207,6 +207,10 @@ public class LuceneQueryFactory {
         return q;
     }
 
+    protected static Query getWebEntityLinksByWebEntityQuery(String weID) {
+    	return getWebEntityLinkBySourceAndTargetWebEntitiesQuery(weID, weID);
+    }
+
     // Returns all WebEntityLinks if sourceWebEntities is null or empty list
     protected static Query getWebEntityLinksWithSourceInQuery(List<String> sourceWebEntityIDs) {
     	return getObjectItemsByFieldQuery(typeEqualWebEntityLink, IndexConfiguration.FieldName.SOURCE, sourceWebEntityIDs);

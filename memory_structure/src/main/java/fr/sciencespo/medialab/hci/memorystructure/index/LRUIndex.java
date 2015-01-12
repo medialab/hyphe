@@ -840,6 +840,7 @@ public class LRUIndex {
         }
         // Commit as soon as ran
         deleteObjectsFromQuery(LuceneQueryFactory.getWebEntityByIdQuery(webEntity.getId()), true);
+        deleteObjectsFromQuery(LuceneQueryFactory.getWebEntityLinksByWebEntityQuery(webEntity.getId()), true);
     }
 
     /**
