@@ -15,33 +15,58 @@ angular.module('hyphe.networkController', [])
     $scope.sigmaInstance
     $scope.spatializationRunning = false
 
-    $scope.networkMode = 'loading'
-
+    $scope.loading = true
+    $scope.settingsChanged = false
+    
+    // Different presets for settings
     $scope.presets = {
       corpus: {
         status: true
+        ,settings:{
+          show_in: true
+          ,show_undecided: true
+          ,show_out: false
+          ,show_discovered: false
+          ,discoveredMinDegree: 0
+        }
       }
       ,full: {
         status: false
+        ,settings:{
+          show_in: true
+          ,show_undecided: true
+          ,show_out: true
+          ,show_discovered: true
+          ,discoveredMinDegree: 0
+        }
       }
       ,prospection: {
         status: false
+        ,settings:{
+          show_in: true
+          ,show_undecided: true
+          ,show_out: false
+          ,show_discovered: true
+          ,discoveredMinDegree: 3
+        }
       }
     }
 
-    var settings_mem = {
-      show_in: true
-      ,show_undecided: true
-      ,show_out: false
-      ,show_discovered: false
-      ,discoveredMinDegree: 0
+    // Actual active settings
+    var settings = {
+      show_in: $scope.presets.corpus.settings.show_in
+      ,show_undecided: $scope.presets.corpus.settings.show_undecided
+      ,show_out: $scope.presets.corpus.settings.show_out
+      ,show_discovered: $scope.presets.corpus.settings.show_discovered
+      ,discoveredMinDegree: $scope.presets.corpus.settings.discoveredMinDegree
     }
 
-    $scope.discoveredMinDegree =  settings_mem.discoveredMinDegree
-    $scope.show_in =              settings_mem.show_in
-    $scope.show_undecided =       settings_mem.show_undecided
-    $scope.show_out =             settings_mem.show_out
-    $scope.show_discovered =      settings_mem.show_discovered
+    // What is displayed (before validate or cancel)
+    $scope.discoveredMinDegree =  settings.discoveredMinDegree
+    $scope.show_in =              settings.show_in
+    $scope.show_undecided =       settings.show_undecided
+    $scope.show_out =             settings.show_out
+    $scope.show_discovered =      settings.show_discovered
 
     $scope.$on("$destroy", function(){
       killSigma()
@@ -74,8 +99,51 @@ angular.module('hyphe.networkController', [])
       saveAs(blob, $scope.corpusName + ".gexf");
     }
 
-    $scope.settingsChanged = function(){
-      console.log('SETTINGS CHANGED')
+    $scope.touchSettings = function(){
+
+      // Check if difference with current settings
+      var difference = false
+      for(var k in settings){
+        if(settings[k] != $scope[k]){
+          difference = true
+        }
+      }
+      $scope.settingsChanged = difference
+
+      // Check status of preset buttons
+      for(var p in $scope.presets){
+        var presetDifference = false
+        for(var k in settings){
+          if($scope.presets[p].settings[k] != $scope[k]){
+            presetDifference = true
+          }
+        }
+        $scope.presets[p].status = !presetDifference
+      }
+    }
+
+    $scope.applyPreset = function(p){
+      for(var k in settings){
+        $scope[k] = $scope.presets[p].settings[k]
+      }
+      $scope.touchSettings()
+    }
+
+    $scope.revertSettings = function(){
+      for(var k in settings){
+        $scope[k] = settings[k]
+      }
+      $scope.touchSettings()
+    }
+
+    $scope.applySettings = function(){
+      for(var k in settings){
+        settings[k] = $scope[k]
+      }
+      $scope.touchSettings()
+      killSigma()
+      buildNetwork()
+      initSigma()
     }
 
     $scope.initSigma = initSigma
@@ -83,6 +151,7 @@ angular.module('hyphe.networkController', [])
     // Init
     loadCorpus()
 
+    // Functions
     function loadCorpus(){
       $scope.status = {message: 'Loading web entities'}
       api.getWebentities(
@@ -108,7 +177,7 @@ angular.module('hyphe.networkController', [])
           buildNetwork()
           $scope.status = {}
 
-          $scope.networkMode = 'corpus'
+          $scope.loading = false
 
         }
         ,function(data, status, headers, config){
@@ -215,7 +284,10 @@ angular.module('hyphe.networkController', [])
                               // ...and when the backend gives several instances of the same web entity
 
       $scope.network.nodes = $scope.webentities.filter(function(we){
-        return we.status == 'IN' || we.status == 'UNDECIDED' || $scope.networkMode == 'full'
+        return (we.status == 'IN' && settings.show_in)
+            || (we.status == 'UNDECIDED' && settings.show_undecided)
+            || (we.status == 'OUT' && settings.show_out)
+            || (we.status == 'DISCOVERED' && settings.show_discovered && we.indegree >= settings.discoveredMinDegree)
       }).map(function(we){
         if(existingNodes[we.id] === undefined){
           var color = statusColors[we.status] || '#FF0000'
@@ -268,9 +340,6 @@ angular.module('hyphe.networkController', [])
 
       json_graph_api.buildIndexes($scope.network)
 
-      console.log('Network', $scope.network)
-
-      // console.log('Web entities', $scope.webentities)
-      // console.log('Links', $scope.links)
+      // console.log('Network', $scope.network)
     }
   }])

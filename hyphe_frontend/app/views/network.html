@@ -11,8 +11,8 @@
 
                 <br>
 
-                <div class="sigma-parent" ng-if="networkMode != 'loading'" ng-init="initSigma()"><div class="sigma-expand" id="sigma-example"></div></div>
-                <div ng-if="networkMode == 'loading'">
+                <div class="sigma-parent" ng-if="!loading" ng-init="initSigma()"><div class="sigma-expand" id="sigma-example"></div></div>
+                <div ng-if="loading">
                   <spinner text="'LOADING NETWORK'"/>
                 </div>
 
@@ -33,37 +33,37 @@
                         <label
                           class="btn btn-default btn-sm"
                           ng-model="presets.corpus.status"
-                          ng-change="doQuery()"
-                          ng-class="{disabled:networkMode == 'loading'}"
+                          ng-change="applyPreset('corpus')"
+                          ng-class="{disabled:loading}"
                           btn-checkbox
                         >CORPUS ONLY</label>
 
                         <label
                           class="btn btn-default btn-sm"
                           ng-model="presets.full.status"
-                          ng-change="doQuery()"
-                          ng-class="{disabled:networkMode == 'loading'}"
+                          ng-change="applyPreset('full')"
+                          ng-class="{disabled:loading}"
                           btn-checkbox
                         >FULL DATA</label>
 
                         <label
                           class="btn btn-default btn-sm"
                           ng-model="presets.prospection.status"
-                          ng-change="doQuery()"
-                          ng-class="{disabled:networkMode == 'loading'}"
+                          ng-change="applyPreset('prospection')"
+                          ng-class="{disabled:loading}"
                           btn-checkbox
                         >PROSPECTION</label>
 
                       </div>
                     </div>
 
-                    <div class="flatpanel-textblock">
+                    <div class="flatpanel-textblock flatpanel-separated">
                       <div class="row">
                         <div class="col-lg-4">
                           
                             <div class="checkbox">
                               <label>
-                                <input type="checkbox" ng-change="settingsChanged()" ng-disabled="networkMode == 'loading'" ng-model="show_in"> IN
+                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_in"> IN
                               </label>
                             
                           </div>
@@ -75,7 +75,7 @@
                           
                             <div class="checkbox">
                               <label>
-                                <input type="checkbox" ng-change="settingsChanged()" ng-disabled="networkMode == 'loading'" ng-model="show_undecided"> UNDECIDED
+                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_undecided"> UNDECIDED
                               </label>
                             </div>
                           
@@ -87,7 +87,7 @@
                           
                             <div class="checkbox">
                               <label>
-                                <input type="checkbox" ng-change="settingsChanged()" ng-disabled="networkMode == 'loading'" ng-model="show_out"> OUT
+                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_out"> OUT
                               </label>
                             </div>
                           
@@ -98,19 +98,19 @@
                           
                             <div class="checkbox">
                               <label>
-                                <input type="checkbox" ng-change="settingsChanged()" ng-disabled="networkMode == 'loading'" ng-model="show_discovered"> DISCOVERED
+                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_discovered"> DISCOVERED
                               </label>
                             </div>
                           
                         </div>
                         <div class="col-lg-8">
                           
-                            <select class="form-control" ng-change="settingsChanged()" ng-disabled="networkMode == 'loading'" ng-model="discoveredMinDegree">
+                            <select class="form-control" ng-change="touchSettings()" ng-disabled="loading" ng-model="discoveredMinDegree">
                               <option value="0">Display every discovered</option>
-                              <option value="2">Cited by 2+ w.e. only</option>
-                              <option value="3">Cited by 3+ w.e. only</option>
-                              <option value="4">Cited by 4+ w.e. only</option>
-                              <option value="5">Cited by 5+ w.e. only</option>
+                              <option value="2">Cited by 2+ entities only</option>
+                              <option value="3">Cited by 3+ entities only</option>
+                              <option value="4">Cited by 4+ entities only</option>
+                              <option value="5">Cited by 5+ entities only</option>
                             </select>
                             
                         </div>
@@ -118,9 +118,9 @@
 
                     </div>
 
-                    <div class="flatpanel-textblock">
-                      <button class="btn btn-default"><span class="glyphicon glyphicon-remove"></span> CANCEL</button>
-                      <button class="btn btn-primary"><span class="glyphicon glyphicon-ok"></span> APPLY CHANGES</button>
+                    <div class="flatpanel-textblock flatpanel-right flatpanel-separated" collapse="!settingsChanged">
+                      <button class="btn btn-default" ng-click="revertSettings()"><span class="glyphicon glyphicon-remove"></span> CANCEL</button>
+                      <button class="btn btn-primary" ng-click="applySettings()"><span class="glyphicon glyphicon-ok"></span> APPLY CHANGES</button>
                     </div>
 
                   </div>

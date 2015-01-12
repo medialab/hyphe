@@ -124,6 +124,12 @@ label.btn.btn-default.disabled.active{
 .flatpanel .flatpanel-textblock{
   padding: 12px;
 }
+.flatpanel .flatpanel-right{
+  text-align: right;
+}
+.flatpanel .flatpanel-separated{
+  border-top: 1px solid #eee;
+}
 
 
 
