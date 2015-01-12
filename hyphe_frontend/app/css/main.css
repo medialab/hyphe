@@ -424,12 +424,13 @@ div.welcome-column dd{
                select: none;
 }
 
-@media (min-height: 400px) {.sigma-parent {height: 320px;}}
-@media (min-height: 500px) {.sigma-parent {height: 420px;}}
-@media (min-height: 600px) {.sigma-parent {height: 520px;}}
-@media (min-height: 700px) {.sigma-parent {height: 620px;}}
-@media (min-height: 800px) {.sigma-parent {height: 720px;}}
-@media (min-height: 900px) {.sigma-parent {height: 820px;}}
+@media (min-height: 400px) {.sigma-parent {height: 210px;}}
+@media (min-height: 500px) {.sigma-parent {height: 310px;}}
+@media (min-height: 600px) {.sigma-parent {height: 410px;}}
+@media (min-height: 700px) {.sigma-parent {height: 510px;}}
+@media (min-height: 800px) {.sigma-parent {height: 610px;}}
+@media (min-height: 900px) {.sigma-parent {height: 710px;}}
+@media (min-height:1000px) {.sigma-parent {height: 810px;}}
 
 
 .sigma-expand {
