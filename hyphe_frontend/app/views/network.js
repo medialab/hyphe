@@ -284,6 +284,7 @@ angular.module('hyphe.networkController', [])
         ,{id:'attr_indexing', title:'Indexing status', type:'string'}
         ,{id:'attr_creation', title:'Creation', type:'integer'}
         ,{id:'attr_modification', title:'Last modification', type:'integer'}
+        ,{id:'attr_hyphe_indegree', title:'Hyphe Indegree', type:'integer'}
       ]
       
       // Extract categories from nodes
@@ -337,6 +338,7 @@ angular.module('hyphe.networkController', [])
               ,{attr:'attr_creation', val: we.creation_date || 'unknown' }
               ,{attr:'attr_modification', val: we.last_modification_date || 'unknown' }
               ,{attr:'attr_home', val: we.homepage || '' }
+              ,{attr:'attr_hyphe_indegree', val: we.indegree || '0' }
             ].concat(tagging.map(function(catvalues){
               return {attr:'attr_'+$.md5(catvalues.cat), val:catvalues.values.join(' | ')}
             }))
