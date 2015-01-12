@@ -93,7 +93,7 @@
                   <table class="table table-condensed">
                     <thead>
                       <tr ng-if="!loading && fullListLength > 0">
-                        <th class="cell-checkbox"><input type="checkbox" ng-model="$parent.pageChecked" ng-change="updatePageSelection()" tooltip="{{$parent.pageChecked ? 'Uncheck' : 'Check'}} all page"></th>
+                        <th class="cell-checkbox"><input type="checkbox" ng-model="$parent.$parent.pageChecked" ng-change="updatePageSelection()" tooltip="{{$parent.pageChecked ? 'Uncheck' : 'Check'}} all on this page"></th>
                         <th class="cell-name pointable" ng-click="toggleSort('name')">
                           <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort != 'name'"></span>
                           <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort == 'name' && sortAsc"></span>
