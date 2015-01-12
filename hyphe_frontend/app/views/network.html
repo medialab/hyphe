@@ -18,83 +18,114 @@
 
               </div>
               <div class="col-md-4 network-settings-column">
-                <h1>
-                  NETWORK {{networkMode}}
-                </h1>
-                <accordion close-others="true">
-                  <accordion-group heading="Corpus in progress" ng-click="updateDisplayMode()" is-open="displayMode.corpus">
 
-                    <div class="key-item">
-                      <div class="dot dot-in"></div>
-                      IN
-                    </div>
-                    <div class="key-item">
-                      <div class="dot dot-undecided"></div>
-                      UNDECIDED
-                    </div>
+                <br>
 
-                    <p class="text-info">
-                      We display web entities that are in your corpus (IN) or that you will eventually add (UNDECIDED)
-                    </p>
-
-                    <button class="btn btn-default" ng-click="downloadNetwork()"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
-
-                  </accordion-group>
-                  <accordion-group heading="Full network" ng-click="updateDisplayMode()" is-open="displayMode.full">
+                <div class="flatpanel">
+                  <div class="flatpanel-heading">
+                    FILTERS
+                  </div>
+                  <div class="flatpanel-body">
                     
-                    <div class="key-item">
-                      <div class="dot dot-in"></div>
-                      IN
-                    </div>
-                    <div class="key-item">
-                      <div class="dot dot-out"></div>
-                      OUT
-                    </div>
-                    <div class="key-item">
-                      <div class="dot dot-undecided"></div>
-                      UNDECIDED
-                    </div>
-                    <div class="key-item">
-                      <div class="dot dot-discovered"></div>
-                      DISCOVERED
-                    </div>
-                    
-                    <p class="text-info">
-                      We display all web entities even those that are not in the corpus (OUT) or not crawled (DISCOVERED)
-                    </p>
+                    <div class="flatpanel-textblock">
+                      <h5>Presets</h5>
+                      <div class="btn-group">
+                        <label
+                          class="btn btn-default btn-sm"
+                          ng-model="presets.corpus.status"
+                          ng-change="doQuery()"
+                          ng-class="{disabled:networkMode == 'loading'}"
+                          btn-checkbox
+                        >CORPUS ONLY</label>
 
-                    <button class="btn btn-default" ng-click="downloadNetwork()"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
+                        <label
+                          class="btn btn-default btn-sm"
+                          ng-model="presets.full.status"
+                          ng-change="doQuery()"
+                          ng-class="{disabled:networkMode == 'loading'}"
+                          btn-checkbox
+                        >FULL DATA</label>
 
-                  </accordion-group>
-                  <!-- <accordion-group heading="Custom" is-open="displayMode.custom">
-                    
-                    <button class="btn btn-default">
-                      <div class="key-item">
-                        <div class="dot dot-in"></div>
-                        IN
+                        <label
+                          class="btn btn-default btn-sm"
+                          ng-model="presets.prospection.status"
+                          ng-change="doQuery()"
+                          ng-class="{disabled:networkMode == 'loading'}"
+                          btn-checkbox
+                        >PROSPECTION</label>
+
                       </div>
-                    </button>
-                    <div class="key-item">
-                      <div class="dot dot-out"></div>
-                      OUT
                     </div>
-                    <div class="key-item">
-                      <div class="dot dot-undecided"></div>
-                      UNDECIDED
-                    </div>
-                    <div class="key-item">
-                      <div class="dot dot-discovered"></div>
-                      DISCOVERED
-                    </div>
-                    
-                    <p class="text-info">
-                      We display all web entities even those that are not in the corpus (OUT) or not crawled (DISCOVERED)
-                    </p>
 
-                    <button class="btn btn-default" ng-click="downloadNetwork()"><span class="glyphicon glyphicon-download"></span> DOWNLOAD GEXF</button>
+                    <div class="flatpanel-textblock">
+                      <div class="row">
+                        <div class="col-lg-4">
+                          
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" ng-change="settingsChanged()" ng-disabled="networkMode == 'loading'" ng-model="show_in"> IN
+                              </label>
+                            
+                          </div>
+                        </div>
+                      </div>
 
-                  </accordion-group> -->
-                </accordion>
+                      <div class="row">
+                        <div class="col-lg-4">
+                          
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" ng-change="settingsChanged()" ng-disabled="networkMode == 'loading'" ng-model="show_undecided"> UNDECIDED
+                              </label>
+                            </div>
+                          
+                        </div>
+                      </div>
+
+                      <div class="row">
+                        <div class="col-lg-4">
+                          
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" ng-change="settingsChanged()" ng-disabled="networkMode == 'loading'" ng-model="show_out"> OUT
+                              </label>
+                            </div>
+                          
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-lg-4">
+                          
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" ng-change="settingsChanged()" ng-disabled="networkMode == 'loading'" ng-model="show_discovered"> DISCOVERED
+                              </label>
+                            </div>
+                          
+                        </div>
+                        <div class="col-lg-8">
+                          
+                            <select class="form-control" ng-change="settingsChanged()" ng-disabled="networkMode == 'loading'" ng-model="discoveredMinDegree">
+                              <option value="0">Display every discovered</option>
+                              <option value="2">Cited by 2+ w.e. only</option>
+                              <option value="3">Cited by 3+ w.e. only</option>
+                              <option value="4">Cited by 4+ w.e. only</option>
+                              <option value="5">Cited by 5+ w.e. only</option>
+                            </select>
+                            
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div class="flatpanel-textblock">
+                      <button class="btn btn-default"><span class="glyphicon glyphicon-remove"></span> CANCEL</button>
+                      <button class="btn btn-primary"><span class="glyphicon glyphicon-ok"></span> APPLY CHANGES</button>
+                    </div>
+
+                  </div>
+                </div>
+
               </div>
             </div>
             

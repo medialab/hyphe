@@ -15,8 +15,33 @@ angular.module('hyphe.networkController', [])
     $scope.sigmaInstance
     $scope.spatializationRunning = false
 
-    $scope.displayMode = {corpus:true, full:false, custom:false}
     $scope.networkMode = 'loading'
+
+    $scope.presets = {
+      corpus: {
+        status: true
+      }
+      ,full: {
+        status: false
+      }
+      ,prospection: {
+        status: false
+      }
+    }
+
+    var settings_mem = {
+      show_in: true
+      ,show_undecided: true
+      ,show_out: false
+      ,show_discovered: false
+      ,discoveredMinDegree: 0
+    }
+
+    $scope.discoveredMinDegree =  settings_mem.discoveredMinDegree
+    $scope.show_in =              settings_mem.show_in
+    $scope.show_undecided =       settings_mem.show_undecided
+    $scope.show_out =             settings_mem.show_out
+    $scope.show_discovered =      settings_mem.show_discovered
 
     $scope.$on("$destroy", function(){
       killSigma()
@@ -42,30 +67,15 @@ angular.module('hyphe.networkController', [])
       $scope.sigmaInstance.stopForceAtlas2()
     }
 
-    $scope.updateDisplayMode = function(){
-      if($scope.displayMode.corpus){
-        if($scope.networkMode != 'corpus'){
-          $scope.networkMode = 'corpus'
-          killSigma()
-          buildNetwork()
-          initSigma()
-        }
-      } else if($scope.displayMode.full){
-        if($scope.networkMode != 'full'){
-          $scope.networkMode = 'full'
-          killSigma()
-          buildNetwork()
-          initSigma()
-        }
-      }
-      // console.log('UPDATE D M', $scope.displayMode)
-    }
-
     $scope.downloadNetwork = function(){
       var network = $scope.network
 
       var blob = new Blob(json_graph_api.buildGEXF(network), {'type':'text/gexf+xml;charset=utf-8'});
       saveAs(blob, $scope.corpusName + ".gexf");
+    }
+
+    $scope.settingsChanged = function(){
+      console.log('SETTINGS CHANGED')
     }
 
     $scope.initSigma = initSigma
