@@ -55,13 +55,46 @@
                     </div>
                   </div>
                 </div>
+
+                <div class="network-key" ng-if="!loading">
+                  <div class="row">
+                    <div class="col-md-4">
+                      <h4>WEB ENTITY STATUS</h4>
+                      <p ng-if="show_in">
+                        <span class="dot dot-in"></span>&nbsp;IN
+                      </p>
+                      <p ng-if="show_undecided">
+                        <span class="dot dot-undecided"></span>&nbsp;UNDECIDED
+                      </p>
+                      <p ng-if="show_out">
+                        <span class="dot dot-out"></span>&nbsp;OUT
+                      </p>
+                      <p ng-if="show_discovered">
+                        <span class="dot dot-discovered"></span>&nbsp;DISCOVERED
+                        <span class="text-info" ng-if="discoveredMinDegree>0"><br>Cited by {{discoveredMinDegree}}+ entities only</span>
+                      </p>
+                    </div>
+                    <div class="col-md-4">
+                      <h4>SIZE</h4>
+                      <p>
+                        <span class="dot dot-small"></span>&nbsp;<span class="dot dot-medium"></span>&nbsp;<span class="dot dot-big"></span> Small web entities are linked to few others, big entities are linked with many others
+                      </p>
+                    </div>
+                    <div class="col-md-4">
+                      <h4>LINKS</h4>
+                      <p>
+                        <span class="line-link"></span> Hypertext link between entities
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 
                 <div ng-if="loading">
                   <spinner text="'LOADING NETWORK'"/>
                 </div>
 
               </div>
-              <div class="col-md-4 network-settings-column">
+              <div class="col-md-4">
 
                 <br>
 

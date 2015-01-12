@@ -197,6 +197,10 @@ angular.module('hyphe.networkController', [])
         {}
         ,function(links){
           $scope.links = links
+
+          /*window.links = links
+          console.log('LINKS', links)*/
+
           buildNetwork()
           $scope.status = {}
 

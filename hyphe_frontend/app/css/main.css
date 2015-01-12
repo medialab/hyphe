@@ -360,45 +360,55 @@ div.welcome-column dd{
 /* ==========================================================================
    View: Network
    ========================================================================== */
-.network-settings-column .panel-heading{
-  background-color: #EFEBE8;
+.network-key{
+  background-color: #F5F1EF;
+  /*background-color: #F8F8F8;*/
+  border-top: 2px solid #FFF;
+  padding: 12px;
 }
-
-.network-settings-column .panel.panel-default{
-  border-color: #EFEBE8;
-  border-radius : 0px;
-}
-
-.network-settings-column p{
-  padding-top: 6px;
-}
-
-.network-settings-column .key-item{
-  margin-top: 4px;
-  padding: 4px 8px 3px 4px;
-  font-size: 12px;
-  font-weight: 600;
-  background-color: #EFEBE8;
+.network-key span.line-link{
   display: inline-block;
+  width: 36px;
+  height: 6px;
+  border-top: 3px solid #D1C9C3;
 }
-.network-settings-column .key-item div.dot{
+.network-key span.dot{
   width: 12px;
   height: 12px;
   display: inline-block;
   border-radius: 6px;
 }
-.network-settings-column .key-item div.dot.dot-in{
+.network-key span.dot.dot-small{
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background-color: #999;
+}
+.network-key span.dot.dot-medium{
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #999;
+}
+.network-key span.dot.dot-big{
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  background-color: #999;
+}
+.network-key span.dot.dot-in{
   background-color: #000000;
 }
-.network-settings-column .key-item div.dot.dot-out{
+.network-key span.dot.dot-out{
   background-color: #FFFFFF;
 }
-.network-settings-column .key-item div.dot.dot-undecided{
+.network-key span.dot.dot-undecided{
   background-color: #869CAD;
 }
-.network-settings-column .key-item div.dot.dot-discovered{
+.network-key span.dot.dot-discovered{
   background-color: #FF846F;
 }
+
 
 /* Sigma */
 .sigma-parent {
@@ -406,7 +416,6 @@ div.welcome-column dd{
   
   background-color: #EFEBE8;
   
-  margin-bottom: 20px;
   height: 220px;
 
   -webkit-user-select: none; /* Chrome/Safari */        
