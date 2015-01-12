@@ -1,0 +1,30 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-12">
+                <h1>
+                  {{webentity.name}}
+                </h1>
+                <span class="text-info">Explore and edit this web entity</span>
+
+                <br>
+                <br>
+                
+                <webentity-tabs></webentity-tabs>
+                
+                
+                
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>

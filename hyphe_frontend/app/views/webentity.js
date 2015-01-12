@@ -33,6 +33,52 @@ angular.module('hyphe.webentityController', [])
     }
   }])
 
+  .controller('webentity.pagesNetwork', ['$scope', 'api', 'utils', 'corpus', '$routeParams'
+  ,function($scope, api, utils, corpus, $routeParams) {
+    $scope.currentPage = 'webentity.pagesNetwork'
+    $scope.corpusName = corpus.getName()
+    $scope.corpusId = corpus.getId()
+
+    $scope.explorerActive = false
+    
+    $scope.webentity = {id:$routeParams.webentityId, loading:true}
+
+    // Init
+    fetchWebentity($routeParams.webentityId)
+
+    // Functions
+    function fetchWebentity(id){
+      $scope.status = {message: 'loading'}
+      api.getWebentities({
+          id_list:[id]
+          ,crawledOnly: false
+        }
+        ,function(result){
+          $scope.webentity = result[0]
+          loadNetwork()
+        }
+        ,function(){
+          $scope.status = {message: 'Error loading web entity', background: 'danger'}
+        }
+      )
+    }
+
+    function loadNetwork(){
+      api.getPagesNetwork({
+          webentityId:$scope.webentity.id
+        }
+        ,function(result){
+          console.log('PAGES NETWORK', result)
+          $scope.status = {}
+          $scope.webentity.loading = false
+        }
+        ,function(){
+          $scope.status = {message: 'Error loading web entity', background: 'danger'}
+        }
+      )
+    }
+  }])
+
 
 
   .controller('webentity.explorer', ['$scope', 'api', 'utils', '$route', 'corpus', '$routeParams', '$location'

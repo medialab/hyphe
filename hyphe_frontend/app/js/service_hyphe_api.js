@@ -25,6 +25,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
     
     API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'
+    API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_nodelinks_network_json'
     API.WEBENTITY_SUBWEBENTITY_LIST_GET             = 'store.get_webentity_subwebentities'
     API.WEBENTITY_PARENTWEBENTITY_LIST_GET          = 'store.get_webentity_parentwebentities'
     API.WEBENTITY_NAME_SET                          = 'store.rename_webentity'
@@ -193,6 +194,17 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
               settings.webentityId
               ,settings.crawledOnly || false
+              ,corpus.getId()
+            ]}
+      )
+
+    ns.getPagesNetwork = buildApiCall(
+        API.WEBENTITY_PAGES_NETWORK_GET
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,'json' // output format
+              ,false  // include external links
               ,corpus.getId()
             ]}
       )
