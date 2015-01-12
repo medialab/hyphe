@@ -72,6 +72,29 @@ angular.module('hyphe.networkController', [])
       killSigma()
     })
     
+    $scope.sigmaRecenter = function(){
+      var c = $scope.sigmaInstance.cameras[0]
+      c.goTo({
+        ratio: 1
+        ,x: 0
+        ,y: 0
+      })
+    }
+
+    $scope.sigmaZoom = function(){
+      var c = $scope.sigmaInstance.cameras[0]
+      c.goTo({
+        ratio: c.ratio / c.settings('zoomingRatio')
+      })
+    }
+
+    $scope.sigmaUnzoom = function(){
+      var c = $scope.sigmaInstance.cameras[0]
+      c.goTo({
+        ratio: c.ratio * c.settings('zoomingRatio')
+      })
+    }
+
     $scope.toggleSpatialization = function(){
       if($scope.spatializationRunning){
         $scope.sigmaInstance.stopForceAtlas2()
@@ -188,6 +211,8 @@ angular.module('hyphe.networkController', [])
 
     function initSigma(){
       $scope.sigmaInstance = new sigma('sigma-example');
+
+      window.s = $scope.sigmaInstance // For debugging purpose
       
       $scope.sigmaInstance.settings({
         defaultLabelColor: '#666'
