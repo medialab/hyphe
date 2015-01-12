@@ -35,8 +35,8 @@ angular.module('hyphe.webentityController', [])
 
 
 
-  .controller('webentity.explorer', ['$scope', 'api', 'utils', '$route', 'corpus', '$routeParams'
-  ,function($scope, api, utils, $route, corpus, $routeParams) {
+  .controller('webentity.explorer', ['$scope', 'api', 'utils', '$route', 'corpus', '$routeParams', '$location'
+  ,function($scope, api, utils, $route, corpus, $routeParams, $location) {
     $scope.currentPage = 'webentity.explorer'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
@@ -72,7 +72,7 @@ angular.module('hyphe.webentityController', [])
 
     // Init
     fetchWebentity($routeParams.webentityId)
-    
+
     $scope.goTo = function(node){
       currentNode = node
       updateExplorer()
@@ -238,7 +238,6 @@ angular.module('hyphe.webentityController', [])
           $scope.loading = false
 
           buildExplorerTree()
-          updateExplorer()
 
           $scope.status = {message: ''}
 
@@ -338,6 +337,10 @@ angular.module('hyphe.webentityController', [])
         
       }
 
+      // Record path in location
+      $location.search({'p':$scope.path.map(function(d){return d.node.stem}).join('/')})
+
+      // Internal functions
       function pushPrefix(label, url, lru, node, pageCount){
         $scope.items_prefixes.push({
           label: label
@@ -477,6 +480,16 @@ angular.module('hyphe.webentityController', [])
       })
 
       console.log('tree', tree)
+
+      // Now we get current node from path if possible
+      var path = $location.search()['p'].split('/')
+      var candidateNode = tree.prefix[path[0]]
+      for(var i in path){
+        if(i>0 && candidateNode !== undefined){
+          candidateNode = candidateNode.children[path[i]]
+        }
+      }
+      $scope.goTo(candidateNode)
       
     }
 
