@@ -124,6 +124,12 @@ label.btn.btn-default.disabled.active{
 .flatpanel .flatpanel-textblock{
   padding: 12px;
 }
+.flatpanel .flatpanel-right{
+  text-align: right;
+}
+.flatpanel .flatpanel-separated{
+  border-top: 1px solid #eee;
+}
 
 
 
@@ -402,6 +408,11 @@ div.welcome-column dd{
   
   margin-bottom: 20px;
   height: 220px;
+
+  -webkit-user-select: none; /* Chrome/Safari */        
+     -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+               select: none;
 }
 
 @media (min-height: 400px) {.sigma-parent {height: 320px;}}
@@ -418,6 +429,21 @@ div.welcome-column dd{
   height: 100%;
   top: 0;
   left: 0;
+}
+.sigma-tools {
+  /*border: 1px solid #d2d2d2;*/
+
+  position: absolute;
+  top: 12px;
+  left: 12px;
+
+  -webkit-box-shadow: 0px 1px 5px rgba(50, 20, 0, 0.20);
+  -moz-box-shadow: 0px 1px 5px rgba(50, 20, 0, 0.20);
+  box-shadow: 0px 1px 5px rgba(50, 20, 0, 0.20);
+}
+.sigma-tools .btn-link{
+  background-color: #FFF;
+  
 }
 
 
