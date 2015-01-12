@@ -479,10 +479,10 @@ angular.module('hyphe.webentityController', [])
         })
       })
 
-      console.log('tree', tree)
+      // console.log('tree', tree)
 
       // Now we get current node from path if possible
-      var path = $location.search()['p'].split('/')
+      var path = ($location.search()['p'] || '').split('/')
       var candidateNode = tree.prefix[path[0]]
       for(var i in path){
         if(i>0 && candidateNode !== undefined){
