@@ -402,6 +402,11 @@ div.welcome-column dd{
   
   margin-bottom: 20px;
   height: 220px;
+
+  -webkit-user-select: none; /* Chrome/Safari */        
+     -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+               select: none;
 }
 
 @media (min-height: 400px) {.sigma-parent {height: 320px;}}

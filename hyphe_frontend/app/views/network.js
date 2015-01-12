@@ -68,6 +68,8 @@ angular.module('hyphe.networkController', [])
       saveAs(blob, $scope.corpusName + ".gexf");
     }
 
+    $scope.initSigma = initSigma
+
     // Init
     loadCorpus()
 
@@ -79,7 +81,6 @@ angular.module('hyphe.networkController', [])
         }
         ,function(result){
           $scope.webentities = result.webentities
-          $scope.status = {}
           loadLinks()
         }
         ,function(data, status, headers, config){
@@ -89,7 +90,6 @@ angular.module('hyphe.networkController', [])
     }
 
     function loadLinks(){
-      $scope.networkMode = 'linksLoading'
       $scope.status = {message: 'Loading links'}
       api.getNetwork(
         {}
@@ -100,7 +100,6 @@ angular.module('hyphe.networkController', [])
 
           $scope.networkMode = 'corpus'
 
-          initSigma()
         }
         ,function(data, status, headers, config){
           $scope.status = {message: 'Error loading links', background:'danger'}
@@ -125,6 +124,7 @@ angular.module('hyphe.networkController', [])
       var nodesIndex = {}
 
       // Populate
+      window.g = $scope.network
       $scope.network.nodes
         .forEach(function(node){
           nodesIndex[node.id] = node
@@ -201,36 +201,39 @@ angular.module('hyphe.networkController', [])
         $scope.network.nodesAttributes.push({id:'attr_'+$.md5(cat), title:cat, type:'string'})
       })
 
-      var existingNodes = {} // This index is useful to filter edges with unknown nodes
+      var existingNodes = {}  // This index is useful to filter edges with unknown nodes
+                              // ...and when the backend gives several instances of the same web entity
 
       $scope.network.nodes = $scope.webentities.filter(function(we){
         return we.status == 'IN' || we.status == 'UNDECIDED' || $scope.networkMode == 'full'
       }).map(function(we){
-        var color = statusColors[we.status] || '#FF0000'
-          ,tagging = []
-        for(var namespace in we.tags){
-          if(namespace == 'CORPUS' || namespace == 'USER'){
-            for(category in we.tags[namespace]){
-              var values = we.tags[namespace][category]
-              tagging.push({cat:namespace+': '+category, values:values})
+        if(existingNodes[we.id] === undefined){
+          var color = statusColors[we.status] || '#FF0000'
+            ,tagging = []
+          for(var namespace in we.tags){
+            if(namespace == 'CORPUS' || namespace == 'USER'){
+              for(category in we.tags[namespace]){
+                var values = we.tags[namespace][category]
+                tagging.push({cat:namespace+': '+category, values:values})
+              }
             }
           }
-        }
-        existingNodes[we.id] = true
-        return {
-          id: we.id
-          ,label: we.name
-          ,color: color
-          ,attributes: [
-            {attr:'attr_status', val: we.status || 'error' }
-            ,{attr:'attr_crawling', val: we.crawling_status || '' }
-            ,{attr:'attr_indexing', val: we.indexing_status || '' }
-            ,{attr:'attr_creation', val: we.creation_date || 'unknown' }
-            ,{attr:'attr_modification', val: we.last_modification_date || 'unknown' }
-            ,{attr:'attr_home', val: we.homepage || '' }
-          ].concat(tagging.map(function(catvalues){
-            return {attr:'attr_'+$.md5(catvalues.cat), val:catvalues.values.join(' | ')}
-          }))
+          existingNodes[we.id] = true
+          return {
+            id: we.id
+            ,label: we.name
+            ,color: color
+            ,attributes: [
+              {attr:'attr_status', val: we.status || 'error' }
+              ,{attr:'attr_crawling', val: we.crawling_status || '' }
+              ,{attr:'attr_indexing', val: we.indexing_status || '' }
+              ,{attr:'attr_creation', val: we.creation_date || 'unknown' }
+              ,{attr:'attr_modification', val: we.last_modification_date || 'unknown' }
+              ,{attr:'attr_home', val: we.homepage || '' }
+            ].concat(tagging.map(function(catvalues){
+              return {attr:'attr_'+$.md5(catvalues.cat), val:catvalues.values.join(' | ')}
+            }))
+          }
         }
       })
       
