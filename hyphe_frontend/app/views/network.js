@@ -2,8 +2,8 @@
 
 angular.module('hyphe.networkController', [])
 
-  .controller('network', ['$scope', 'api', 'utils', 'corpus'
-  ,function($scope, api, utils, corpus) {
+  .controller('network', ['$scope', 'api', 'utils', 'corpus', '$window'
+  ,function($scope, api, utils, corpus, $window) {
     $scope.currentPage = 'network'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
@@ -14,6 +14,7 @@ angular.module('hyphe.networkController', [])
 
     $scope.sigmaInstance
     $scope.spatializationRunning = false
+    $scope.overNode = false
 
     $scope.loading = true
     $scope.settingsChanged = false
@@ -261,6 +262,27 @@ angular.module('hyphe.networkController', [])
         ,scalingRatio: 10
         ,strongGravityMode: true
         ,gravity: 0.1
+      })
+
+      // Bind interactions
+      $scope.sigmaInstance.bind('overNode', function(e) {
+        if(Object.keys(e.data.captor).length > 0){  // Sigma bug turnaround
+          $scope.overNode = true
+          $scope.$apply()
+        }
+      })
+
+      $scope.sigmaInstance.bind('outNode', function(e) {
+        if(Object.keys(e.data.captor).length > 0){  // Sigma bug turnaround
+          $scope.overNode = false
+          $scope.$apply()
+        }
+      })
+
+      $scope.sigmaInstance.bind('clickNode', function(e) {
+        var weId = e.data.node.id
+        ,path = '#/project/' + $scope.corpusId + '/webentity/' + weId
+        $window.location.assign(path)
       })
 
       $scope.runSpatialization()
