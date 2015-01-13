@@ -977,13 +977,16 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(format_result('Default creation rule was already created'))
 
     @inlineCallbacks
-    def jsonrpc_get_webentity_creationrules(self, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentity_creationrules(self, prefix=None, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
         if is_error(rules):
             returnD(format_error(rules))
-        returnD(format_result([{"prefix": r.LRU, "regexp": r.regExp, "name": creationrules.getName(r.regExp)} for r in rules]))
+        results = [{"prefix": r.LRU, "regexp": r.regExp, "name": creationrules.getName(r.regExp)} for r in rules if not prefix or r.LRU == prefix]
+        if prefix:
+            results = results[0]
+        returnD(format_result(results)
 
     @inlineCallbacks
     def jsonrpc_delete_webentity_creationrule(self, lru_prefix, corpus=DEFAULT_CORPUS):
