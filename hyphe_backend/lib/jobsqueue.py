@@ -103,10 +103,6 @@ class JobsQueue(object):
         yield self.db.add_log(corpus, job_id, "CRAWL_ADDED", ts)
         returnD(job_id)
 
-    # Order jobs by corpus with less currently running crawls then age
-    sortjobs = lambda x: \
-        float("%s.%s" % (status.get(x[1]["corpus"], 0), x[1]["timestamp"]))
-
     @inlineCallbacks
     def depile(self):
         if self.queue is None:
@@ -120,8 +116,11 @@ class JobsQueue(object):
         # Add some random wait to allow possible concurrent Hyphe instance
         # to compete for ScrapyD's empty slots
         yield deferredSleep(1./randint(4,20))
-        
-        job_id, job = sorted(self.queue.items(), key=self.sortjobs)[0]
+
+        # Order jobs by corpus with less currently running crawls then age
+        ordered = sorted(self.queue.items(), key=lambda x: \
+          float("%s.%s" % (status.get(x[1]["corpus"], 0), x[1]["timestamp"])))
+        job_id, job = ordered[0]
         res = yield self.send_scrapy_query('schedule', job["crawl_arguments"])
         ts = now_ts()
         if is_error(res):
