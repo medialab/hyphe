@@ -377,24 +377,22 @@ div.welcome-column dd{
   height: 12px;
   display: inline-block;
   border-radius: 6px;
+  background-color: #999;
 }
 .network-key span.dot.dot-small{
   width: 6px;
   height: 6px;
   border-radius: 3px;
-  background-color: #999;
 }
 .network-key span.dot.dot-medium{
   width: 10px;
   height: 10px;
   border-radius: 5px;
-  background-color: #999;
 }
 .network-key span.dot.dot-big{
   width: 16px;
   height: 16px;
   border-radius: 8px;
-  background-color: #999;
 }
 .network-key span.dot.dot-in{
   background-color: #000000;

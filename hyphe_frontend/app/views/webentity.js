@@ -39,9 +39,66 @@ angular.module('hyphe.webentityController', [])
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
-    $scope.explorerActive = false
-    
     $scope.webentity = {id:$routeParams.webentityId, loading:true}
+
+    $scope.network
+    $scope.sigmaInstance
+    $scope.spatializationRunning = false
+    $scope.overNode = false
+
+    $scope.$on("$destroy", function(){
+      killSigma()
+    })
+    
+    $scope.sigmaRecenter = function(){
+      var c = $scope.sigmaInstance.cameras[0]
+      c.goTo({
+        ratio: 1
+        ,x: 0
+        ,y: 0
+      })
+    }
+
+    $scope.sigmaZoom = function(){
+      var c = $scope.sigmaInstance.cameras[0]
+      c.goTo({
+        ratio: c.ratio / c.settings('zoomingRatio')
+      })
+    }
+
+    $scope.sigmaUnzoom = function(){
+      var c = $scope.sigmaInstance.cameras[0]
+      c.goTo({
+        ratio: c.ratio * c.settings('zoomingRatio')
+      })
+    }
+
+    $scope.toggleSpatialization = function(){
+      if($scope.spatializationRunning){
+        $scope.sigmaInstance.stopForceAtlas2()
+        $scope.spatializationRunning = false
+      } else {
+        $scope.sigmaInstance.startForceAtlas2()
+        $scope.spatializationRunning = true
+      }
+    }
+
+    $scope.runSpatialization = function(){
+      $scope.spatializationRunning = true
+      $scope.sigmaInstance.startForceAtlas2()
+    }
+
+    $scope.stopSpatialization = function(){
+      $scope.spatializationRunning = false
+      $scope.sigmaInstance.stopForceAtlas2()
+    }
+
+    $scope.downloadNetwork = function(){
+      var network = $scope.network
+
+      var blob = new Blob(json_graph_api.buildGEXF(network), {'type':'text/gexf+xml;charset=utf-8'});
+      saveAs(blob, $scope.corpusName + ".gexf");
+    }
 
     // Init
     fetchWebentity($routeParams.webentityId)
@@ -68,14 +125,145 @@ angular.module('hyphe.webentityController', [])
           webentityId:$scope.webentity.id
         }
         ,function(result){
-          console.log('PAGES NETWORK', result)
           $scope.status = {}
           $scope.webentity.loading = false
+
+          buildNetwork(result)
+          initSigma()
         }
         ,function(){
           $scope.status = {message: 'Error loading web entity', background: 'danger'}
         }
       )
+    }
+
+    function buildNetwork(json){
+      var nIndex = {}
+      json.forEach(function(d){
+        nIndex[d[0]] = true
+        nIndex[d[1]] = true
+      })
+
+      $scope.network = {}
+
+      $scope.network.attributes = []
+
+      $scope.network.nodesAttributes = [
+        {id:'attr_lru', title:'LRU', type:'string'}
+        ,{id:'attr_url', title:'URL', type:'string'}
+      ]
+      
+      $scope.network.nodes = []
+      var nodesId_byLru = {}
+      ,count = 0
+      for(var lru in nIndex){
+        var id = 'n' + count++
+        ,url = utils.LRU_to_URL(lru)
+        nodesId_byLru[lru] = id
+        $scope.network.nodes.push({
+          id: id
+          ,label: url
+          ,color: '#999999'
+          ,attributes: [
+            {attr:'attr_lru', val: lru }
+            ,{attr:'attr_url', val: url }
+          ]
+        })
+      }
+
+      $scope.network.edgesAttributes = [
+        {id:'attr_w', title:'Hyphe Weight', type:'integer'}
+      ]
+
+      $scope.network.edges = json
+        .map(function(d){
+          return {
+            sourceID: nodesId_byLru[d[0]]
+            ,targetID: nodesId_byLru[d[1]]
+            ,attributes: [
+              {attr:'attr_w', val:d[2]}
+            ]
+          }
+        })
+
+      json_graph_api.buildIndexes($scope.network)
+    }
+
+    function initSigma(){
+      $scope.sigmaInstance = new sigma('sigma-example');
+
+      $scope.sigmaInstance.settings({
+        defaultLabelColor: '#666'
+        ,edgeColor: 'default'
+        ,defaultEdgeColor: '#D1C9C3'
+        ,defaultNodeColor: '#999'
+        ,minNodeSize: 0.3
+        ,maxNodeSize: 5
+        ,zoomMax: 5
+        ,zoomMin: 0.002
+      });
+
+      var nodesIndex = {}
+
+      // Populate
+      window.g = $scope.network
+      $scope.network.nodes
+        .forEach(function(node){
+          nodesIndex[node.id] = node
+          $scope.sigmaInstance.graph.addNode({
+            id: node.id
+            ,label: node.label
+            ,'x': Math.random()
+            ,'y': Math.random()
+            ,'size': 1 + Math.log(1 + 0.1 * ( node.inEdges.length + node.outEdges.length ) )
+            ,'color': node.color
+          })
+        })
+      $scope.network.edges
+        .forEach(function(link, i){
+          $scope.sigmaInstance.graph.addEdge({
+            'id': 'e'+i
+            ,'source': link.sourceID
+            ,'target': link.targetID
+          })
+        })
+
+      // Force Atlas 2 settings
+      $scope.sigmaInstance.configForceAtlas2({
+        slowDown: 10
+        ,worker: true
+        ,scalingRatio: 10
+        ,strongGravityMode: true
+        ,gravity: 0.1
+      })
+
+      // Bind interactions
+      $scope.sigmaInstance.bind('overNode', function(e) {
+        if(Object.keys(e.data.captor).length > 0){  // Sigma bug turnaround
+          $scope.overNode = true
+          $scope.$apply()
+        }
+      })
+
+      $scope.sigmaInstance.bind('outNode', function(e) {
+        if(Object.keys(e.data.captor).length > 0){  // Sigma bug turnaround
+          $scope.overNode = false
+          $scope.$apply()
+        }
+      })
+
+      $scope.sigmaInstance.bind('clickNode', function(e) {
+        var weId = e.data.node.id
+        ,path = '#/project/' + $scope.corpusId + '/webentity/' + weId
+        $window.location.assign(path)
+      })
+
+      $scope.runSpatialization()
+    }
+
+    function killSigma(){
+      $scope.stopSpatialization()
+      $scope.sigmaInstance.kill()
     }
   }])
 
