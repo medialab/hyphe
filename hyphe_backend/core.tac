@@ -986,7 +986,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         results = [{"prefix": r.LRU, "regexp": r.regExp, "name": creationrules.getName(r.regExp)} for r in rules if not prefix or r.LRU == prefix]
         if prefix:
             results = results[0]
-        returnD(format_result(results)
+        returnD(format_result(results))
 
     @inlineCallbacks
     def jsonrpc_delete_webentity_creationrule(self, lru_prefix, corpus=DEFAULT_CORPUS):
