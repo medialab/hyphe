@@ -1362,6 +1362,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         old_WE = yield self.msclients.pool.getWebEntity(old_webentity_id, corpus=corpus)
         if is_error(old_WE):
             returnD(format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id))
+        for lru in old_WE.LRUSet:
+            a = yield self.jsonrpc_add_webentity_lruprefix(good_webentity_id, lru, corpus=corpus)
+            if is_error(a):
+                returnD(format_error('ERROR adding LRU prefix %s from %s to %s' % (lru, old_webentity_id, good_webentity_id)))
         if test_bool_arg(include_home_and_startpages_as_startpages):
             if old_WE.homepage:
                 a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, old_WE.homepage, corpus=corpus)
@@ -1378,10 +1382,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
                         a = yield self.jsonrpc_add_webentity_tag_value(good_webentity_id, tag_namespace, tag_key, tag_val, corpus=corpus)
                         if is_error(a):
                             returnD(format_error('ERROR adding tag %s:%s=%s from %s to %s' % (tag_namespace, tag_key, tag_val, old_webentity_id, good_webentity_id)))
-        for lru in old_WE.LRUSet:
-            a = yield self.jsonrpc_add_webentity_lruprefix(good_webentity_id, lru, corpus=corpus)
-            if is_error(a):
-                returnD(format_error('ERROR adding LRU prefix %s from %s to %s' % (lru, old_webentity_id, good_webentity_id)))
         yield self.add_backend_tags(good_webentity_id, "alias_added", old_WE.name)
         self.corpora[corpus]['total_webentities'] -= 1
         self.corpora[corpus]['recent_changes'] += 1

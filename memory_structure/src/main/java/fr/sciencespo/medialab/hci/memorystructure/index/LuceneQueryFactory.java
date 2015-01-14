@@ -208,7 +208,13 @@ public class LuceneQueryFactory {
     }
 
     protected static Query getWebEntityLinksByWebEntityQuery(String weID) {
-    	return getWebEntityLinkBySourceAndTargetWebEntitiesQuery(weID, weID);
+        BooleanQuery q = new BooleanQuery();
+        q.add(getWebEntityLinksQuery(), BooleanClause.Occur.MUST);
+        BooleanQuery q1 = new BooleanQuery();
+        q1.add(new TermQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), weID)), BooleanClause.Occur.SHOULD);
+        q1.add(new TermQuery(new Term(IndexConfiguration.FieldName.TARGET.name(), weID)), BooleanClause.Occur.SHOULD);
+        q.add(q1, BooleanClause.Occur.MUST);
+    	return q;
     }
 
     // Returns all WebEntityLinks if sourceWebEntities is null or empty list

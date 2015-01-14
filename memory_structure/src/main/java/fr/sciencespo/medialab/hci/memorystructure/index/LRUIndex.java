@@ -839,8 +839,8 @@ public class LRUIndex {
             logger.debug("deleting webEntity with id " + webEntity.getId());
         }
         // Commit as soon as ran
-        deleteObjectsFromQuery(LuceneQueryFactory.getWebEntityByIdQuery(webEntity.getId()), true);
         deleteObjectsFromQuery(LuceneQueryFactory.getWebEntityLinksByWebEntityQuery(webEntity.getId()), true);
+        deleteObjectsFromQuery(LuceneQueryFactory.getWebEntityByIdQuery(webEntity.getId()), true);
     }
 
     /**
@@ -1683,6 +1683,7 @@ public class LRUIndex {
             if(logger.isDebugEnabled()) {
             	logger.trace("updateWebEntityLinks");
             }
+            reloadIndexIfChange();
             THashSet<String> SourceWEsTodo = new THashSet<String>();
             THashSet<String> TargetWEsTodo = new THashSet<String>();
             List <WebEntity> WEsTodo = retrieveWebEntitiesByQuery(LuceneQueryFactory.getWebEntitiesModifiedSince(lastTimestamp));
@@ -1743,11 +1744,11 @@ public class LRUIndex {
             THashMap<String, THashMap<String, WebEntityLink>> webEntityLinksMap = new THashMap<String, THashMap<String, WebEntityLink>>();
             for (String WEid : SourceWEsTodo) {
                 WE = retrieveWebEntity(WEid);
+	            if (WE == null || WE.getName() == null || WE.getName().equals(Constants.DEFAULT_WEBENTITY)) {
+	                continue;
+	            }
 	            if(logger.isDebugEnabled()) {
 	                logger.debug("generating webentitylinks having webentity " + WE.getName() + " as source");
-	            }
-	            if (WE.getName() == null || WE.getName().equals(Constants.DEFAULT_WEBENTITY)) {
-	                continue;
 	            }
                 for (String lru : WE.getLRUSet()) {
                     SourceLRUsDone.add(lru);
@@ -1785,11 +1786,11 @@ public class LRUIndex {
 
             for (String WEid : TargetWEsTodo) {
                 WE = retrieveWebEntity(WEid);
+	            if (WE == null || WE.getName() == null || WE.getName().equals(Constants.DEFAULT_WEBENTITY) || WE.getCreationDate().equals(WE.getLastModificationDate())) {
+	                continue;
+	            }
 	            if(logger.isDebugEnabled()) {
 	            	logger.debug("generating webentitylinks having webentity " + WE.getName() + " as target");
-	            }
-	            if (WE.getName() == null || WE.getName().equals(Constants.DEFAULT_WEBENTITY) || WE.getCreationDate().equals(WE.getLastModificationDate())) {
-	                continue;
 	            }
 	            final List<WebEntity> subWEs = retrieveWebEntitySubWebEntities(WE);
 	            final Query targetLinksQuery = LuceneQueryFactory.getNodeLinksByTargetWebEntityQuery(WE, subWEs, SourceLRUsDone);
