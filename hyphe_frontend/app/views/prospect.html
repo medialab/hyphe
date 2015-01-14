@@ -75,7 +75,7 @@
                         ng-if="!loading"
                         ng-repeat="obj in list track by $index"
                       >
-                        <td>{{obj.webentity.name}}</td>
+                        <td>{{obj.webentity.name}} <webentity-link corpus-id="corpusId" webentity-id="obj.webentity.id"></td>
                         <td class="cell-prefixes hidden-xs hidden-sm prefix-div-container">
                           <div ng-repeat="lru in obj.webentity.lru_prefixes" tooltip="{{lru|lru_to_url}}" class="prefix-div" ng-click="popLru(lru); $event.stopPropagation();"></div>
                         </td>
