@@ -13,13 +13,13 @@
                 </h1>
 
                 <div class="alert alert-success" role="alert" ng-if="summary.success > 0 && summary.pending == 0 && summary.error == 0">
-                  <strong>Done!</strong> {{summary.success == 1 ? 'Crawl' : 'All crawls'}} successfully scheduled. Now you can <a href="#/projects/{{corpusId}}/monitorCrawls" class="alert-link"><span class="glyphicon glyphicon-time"></span> MONITOR CRAWLS</a>.
+                  <strong>Done!</strong> {{summary.success == 1 ? 'Crawl' : 'All crawls'}} successfully scheduled. Now you can <a href="#/project/{{corpusId}}/monitorCrawls" class="alert-link"><span class="glyphicon glyphicon-time"></span> MONITOR CRAWLS</a>.
                 </div>
 
                 <div class="alert alert-danger" role="alert" ng-if="summary.pending == 0 && summary.error > 0">
                   <strong>Oops!</strong> {{summary.error}} crawl{{summary.error > 1 ? 's were' : ' was'}} not scheduled.
                   <span ng-if="summary.success > 0">
-                    But {{summary.success}} crawl{{summary.success > 1 ? 's were' : 'was'}}, and now you can <a href="#/projects/{{corpusId}}/monitorCrawls" class="alert-link"><span class="glyphicon glyphicon-time"></span> MONITOR {{summary.success > 1 ? 'THEM' : 'IT'}}</a>.
+                    But {{summary.success}} crawl{{summary.success > 1 ? 's were' : 'was'}}, and now you can <a href="#/project/{{corpusId}}/monitorCrawls" class="alert-link"><span class="glyphicon glyphicon-time"></span> MONITOR {{summary.success > 1 ? 'THEM' : 'IT'}}</a>.
                   </span>
                 </div>
 
