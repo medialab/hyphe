@@ -16,7 +16,7 @@ angular.module('hyphe.settingsController', [])
         api.destroyCorpus({
           id:corpus.getId()
         }, function(){
-          $location.path('/project/'+$scope.corpusId++'/')
+          $location.path('/project/'+$scope.corpusId+'/')
         }, function(){
           $scope.status = {message: "Error destroying project", background:'danger'}
         })
@@ -28,7 +28,7 @@ angular.module('hyphe.settingsController', [])
         api.resetCorpus({
           id:corpus.getId()
         }, function(){
-          $location.path('/project/'+$scope.corpusId++'/overview')
+          $location.path('/project/'+$scope.corpusId+'/overview')
         }, function(){
           $scope.status = {message: "Error resetting project", background:'danger'}
         })
