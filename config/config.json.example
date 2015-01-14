@@ -41,6 +41,7 @@
     "dailymotion.com/user": "path-2",
     "youtube.com/user": "path-2",
     "co.uk": "subdomain-1",
+    "org.uk": "subdomain-1",
     "gouv.fr": "subdomain-1"
   },
   "discoverPrefixes": ["http://bit.ly",
