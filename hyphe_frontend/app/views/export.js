@@ -2,8 +2,8 @@
 
 angular.module('hyphe.exportController', [])
 
-  .controller('export', ['$scope', 'api', 'utils', '$location', 'corpus'
-  ,function($scope, api, utils, $location, corpus) {
+  .controller('export', ['$scope', 'api', 'utils', 'corpus'
+  ,function($scope, api, utils, corpus) {
     $scope.currentPage = 'export'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()

@@ -101,7 +101,7 @@ angular.module('hyphe.monitorcrawlsController', [])
       
       if(webentity !== undefined){
         store.set('webentities_toCrawl', [obj])
-        $location.path('/checkStartPages')
+        $location.path('/project/'+$scope.corpusId+'/checkStartPages')
       } else {
         $scope.status = {message:'No Web Entity to send', background:'danger'}
       }
