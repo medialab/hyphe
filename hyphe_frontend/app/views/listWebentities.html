@@ -122,7 +122,6 @@
                           <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort == 'last_modification_date' && !sortAsc"></span>
                           Last modif.
                         </th>
-                        <th class="cell-edit"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -138,6 +137,7 @@
                         <td class="cell-checkbox"><input type="checkbox" ng-checked="obj.checked"></td>
                         <td>
                           {{obj.webentity.name}}
+                          <webentity-link corpus-id="corpusId" webentity-id="obj.webentity.id">
                         </td>
                         <td class="cell-prefixes hidden-xs hidden-sm prefix-div-container">
                           <div ng-repeat="lru in obj.webentity.lru_prefixes" tooltip="{{lru|lru_to_url}}" class="prefix-div" ng-click="popLru(lru); $event.stopPropagation();"></div>
@@ -154,9 +154,6 @@
                         </td>
                         <td class="cell-last-modif">
                           <span tooltip="{{obj.webentity.last_modification_date*1000|date}}">{{obj.webentity.last_modification_date*1000|prettyDate}}</span>
-                        </td>
-                        <td class="cell-edit">
-                          <a class="btn btn-link btn-xs" tooltip="Edit web entity" href="#/project/{{corpusId}}/webentity/{{obj.webentity.id}}"><span class="glyphicon glyphicon-pencil"></span></a>
                         </td>
                       </tr>
 

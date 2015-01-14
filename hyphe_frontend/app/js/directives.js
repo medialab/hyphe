@@ -216,6 +216,17 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+  .directive('webentityLink', [function(){
+    return {
+      restrict: 'E'
+      ,templateUrl: 'partials/webentitylink.html'
+      ,scope: {
+        webentityId: '='
+        ,corpusId: '='
+      }
+    }
+  }])
+
   .directive('hypheGlossary', ['glossary', function(glossary){
     return {
       restrict: 'A'

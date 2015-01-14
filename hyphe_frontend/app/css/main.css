@@ -36,15 +36,21 @@ h1, h2, h3, h4, h5, h6{
 table.fixed{
   table-layout:fixed
 }
+
 .pointable{
   cursor: pointer;
 }
+
 /* Glyphicons in table headers*/
 .table-glyphicon{
   font-size: 12px;
 }
 .glyphicon-muted{
   color: #CCC;
+}
+
+.btn-muted{
+  color: #EFEBE8;
 }
 
 
@@ -898,9 +904,6 @@ textarea.over-error{
   margin-bottom: 0px;
 }
 .webentities-list-table .cell-checkbox{
-  width: 20px;
-}
-.webentities-list-table .cell-edit{
   width: 20px;
 }
 .webentities-list-table .cell-prefixes{
