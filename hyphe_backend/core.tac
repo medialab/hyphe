@@ -1362,27 +1362,33 @@ class Memory_Structure(jsonrpc.JSONRPC):
         old_WE = yield self.msclients.pool.getWebEntity(old_webentity_id, corpus=corpus)
         if is_error(old_WE):
             returnD(format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id))
+        yield self.add_backend_tags(good_webentity_id, "alias_added", old_WE.name)
+        new_WE = yield self.msclients.pool.getWebEntity(good_webentity_id, corpus=corpus)
+        if is_error(new_WE):
+            returnD(format_error('ERROR retrieving WebEntity with id %s' % good_webentity_id))
         for lru in old_WE.LRUSet:
-            a = yield self.jsonrpc_add_webentity_lruprefix(good_webentity_id, lru, corpus=corpus)
-            if is_error(a):
-                returnD(format_error('ERROR adding LRU prefix %s from %s to %s' % (lru, old_webentity_id, good_webentity_id)))
+            new_WE.LRUSet.add(lru)
         if test_bool_arg(include_home_and_startpages_as_startpages):
             if old_WE.homepage:
-                a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, old_WE.homepage, corpus=corpus)
-                if is_error(a):
-                    returnD(format_error('ERROR adding homepage %s from %s to %s' % (old_WE.homepage, old_webentity_id, good_webentity_id)))
+                new_WE.homepage = old_WE.homepage
             for page in old_WE.startpages:
-                a = yield self.jsonrpc_add_webentity_startpage(good_webentity_id, page, corpus=corpus)
-                if is_error(a):
-                    returnD(format_error('ERROR adding startpage %s from %s to %s' % (old_WE.homepage, old_webentity_id, good_webentity_id)))
+                new_WE.startpages.add(page)
         if test_bool_arg(include_tags):
             for tag_namespace in old_WE.metadataItems.keys():
+                if tag_namespace not in new_WE.metadataItems:
+                    new_WE.metadataItems[tag_namespace] = {}
                 for tag_key in old_WE.metadataItems[tag_namespace].keys():
+                    if tag_key not in new_WE.metadataItems[tag_namespace]:
+                        new_WE.metadataItems[tag_namespace][tag_key] = []
                     for tag_val in old_WE.metadataItems[tag_namespace][tag_key]:
-                        a = yield self.jsonrpc_add_webentity_tag_value(good_webentity_id, tag_namespace, tag_key, tag_val, corpus=corpus)
-                        if is_error(a):
-                            returnD(format_error('ERROR adding tag %s:%s=%s from %s to %s' % (tag_namespace, tag_key, tag_val, old_webentity_id, good_webentity_id)))
-        yield self.add_backend_tags(good_webentity_id, "alias_added", old_WE.name)
+                        if tag_val not in new_WE.metadataItems[tag_namespace][tag_key]:
+                            new_WE.metadataItems[tag_namespace][tag_key].append(tag_val)
+        res = self.msclients.sync.deleteWebEntity(old_WE, corpus=corpus)
+        if is_error(res):
+            returnD(res)
+        res = self.msclients.sync.updateWebEntity(new_WE, corpus=corpus)
+        if is_error(res):
+            returnD(res)
         self.corpora[corpus]['total_webentities'] -= 1
         self.corpora[corpus]['recent_changes'] += 1
         returnD(format_result("Merged %s into %s" % (old_webentity_id, good_webentity_id)))
@@ -1511,7 +1517,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
                 returnD(None)
-            self.corpora[corpus]['last_links_loop'] = res
+            self.corpora[corpus]['last_links_loop'] = res - 30
             yield self.db.add_log(corpus, "WE_LINKS", "...finished WebEntity links generation (%ss)" % (time.time() - s))
             res = yield self.msclients.loop.getWebEntityLinks(corpus=corpus)
             if is_error(res):
