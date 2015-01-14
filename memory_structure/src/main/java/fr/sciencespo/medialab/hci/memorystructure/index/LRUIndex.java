@@ -1683,6 +1683,8 @@ public class LRUIndex {
             if(logger.isDebugEnabled()) {
             	logger.trace("updateWebEntityLinks");
             }
+            int nextBatch, processedLinkResults, totalLinksResults, newTimestamp = (int) (System.currentTimeMillis()/1000);
+
             reloadIndexIfChange();
             THashSet<String> SourceWEsTodo = new THashSet<String>();
             THashSet<String> TargetWEsTodo = new THashSet<String>();
@@ -1691,8 +1693,6 @@ public class LRUIndex {
                 SourceWEsTodo.add(WE.getId());
                 TargetWEsTodo.add(WE.getId());
             }
-
-            int nextBatch, processedLinkResults, totalLinksResults, newTimestamp = (int) (System.currentTimeMillis()/1000);
 
             logger.info("Total # of new and recently modified webentities in index is " + WEsTodo.size());
             THashMap<String, THashMap<String, THashMap<String, String>>> lruToWebEntityMap = new THashMap<String, THashMap<String, THashMap<String, String>>>();
