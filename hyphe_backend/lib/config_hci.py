@@ -40,6 +40,10 @@ def load_config():
     if "creationRules" not in conf:
         conf["creationRules"] = {}
 
+  # Auto unset phantomJs autoretry if missing
+    if "phantom" in conf and "autoretry" not in conf["phantom"]:
+        conf["phantom"]["autoretry"] = False
+
   # Check sanity
     try:
         check_conf_sanity(conf, GLOBAL_CONF_SCHEMA)
@@ -167,7 +171,8 @@ GLOBAL_CONF_SCHEMA = {
     "type": dict,
     "int_fields": ["timeout", "idle_timeout", "ajax_timeout"],
     "extra_fields": {
-      "whitelist_domains": list
+      "whitelist_domains": list,
+      "autoretry": bool
     }
   }, "DEBUG": {
     "type": bool
@@ -189,7 +194,8 @@ CORPUS_CONF_SCHEMA = {
     "type": dict,
     "int_fields": ["timeout", "idle_timeout", "ajax_timeout"],
     "extra_fields": {
-      "whitelist_domains": list
+      "whitelist_domains": list,
+      "autoretry": bool
     }
   }
 }

@@ -29,6 +29,7 @@
     "twitter.com": "path-1",
     "twitter.com/hashtag": "path-2",
     "facebook.com": "path-1",
+    "facebook.com/pages": "path-2",
     "plus.google.com": "path-1",
     "linkedin.com": "path-2",
     "viadeo.com/user": "path-2",
@@ -55,6 +56,7 @@
                        "http://ur1.ca",
                        "http://ow.ly"],
   "phantom": {
+    "autoretry": false,
     "timeout": 600,
     "idle_timeout": 20,
     "ajax_timeout": 15,
