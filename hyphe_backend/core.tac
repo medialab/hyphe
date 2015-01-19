@@ -570,7 +570,7 @@ class Core(jsonrpc.JSONRPC):
         if len(update_ids):
             yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.FINISHED, 'finished_at': now_ts()})
             yield self.db.add_log(corpus, update_ids, "INDEX_"+indexing_statuses.FINISHED)
-            if self.corpora[corpus]['options']['phantom']['autoretry']:
+            if self.corpora[corpus]['options']['phantom'].get('autoretry', False):
                 # Try to restart in phantom mode all regular crawls that seem to have failed (less than 3 pages found for a depth of at least 1)
                 res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.maxdepth': {'$gt': 0}})
                 for job in res:

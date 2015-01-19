@@ -379,8 +379,8 @@ angular.module('hyphe.networkController', [])
 
       $scope.network.edges = $scope.links
       .filter(function(link){
-        // Check that nodes exist
-        return existingNodes[link[0]] && existingNodes[link[1]]
+        // Check that nodes exist and remove autolinks
+        return existingNodes[link[0]] && existingNodes[link[1]] && link[0] !== link[1]
       })
       .map(function(link){
         return {
