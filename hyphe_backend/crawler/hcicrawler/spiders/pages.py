@@ -48,7 +48,8 @@ class PagesCrawler(BaseSpider):
         self.maxdepth = int(args['maxdepth'])
         self.follow_prefixes = to_list(args['follow_prefixes'])
         self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
-        self.discover_prefixes = [url_to_lru_clean(u) for u in to_list(args['discover_prefixes'])]
+        self.discover_prefixes = [url_to_lru_clean("http%s://%s" % (https, u.replace('http://', '').replace('https://', ''))) for u in to_list(args['discover_prefixes']) for https in ['', 's']]
+        self.resolved_links = {}
         self.user_agent = args['user_agent']
         self.phantom = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
         if self.phantom:

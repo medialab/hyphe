@@ -59,13 +59,12 @@ class OutputStore(MongoOutput):
 class ResolveLinks(object):
 
     def __init__(self, proxy_host=None, proxy_port=None):
-        proxy = None
+        self.proxy = None
         if proxy_host and proxy_port:
-            proxy = {
+            self.proxy = {
               "host": proxy_host,
               "port": int(proxy_port)
             }
-        self.agent = ResolverAgent(proxy=proxy)
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -79,11 +78,18 @@ class ResolveLinks(object):
         lrulinks = []
         for url, lru in item["lrulinks"]:
             if self._should_resolve(lru, spider):
-                try:
-                    rurl = yield self.agent.resolve(url)
-                    lru = url_to_lru_clean(rurl)
-                except Exception, e:
-                    spider.log("Error resolving redirects from URL %s: %s %s" % (url, type(e), e), log.INFO)
+                if url in spider.resolved_links:
+                    lru = spider.resolved_links[url]
+                else:
+                    try:
+                        agent = ResolverAgent(proxy=self.proxy)
+                        rurl = yield agent.resolve(url)
+                        if rurl == url and has_prefix(lru, spider.discover_prefixes):
+                            rurl = yield agent.resolve(url)
+                        lru = url_to_lru_clean(rurl)
+                        spider.resolved_links[url] = lru
+                    except Exception, e:
+                        spider.log("Error resolving redirects from URL %s: %s %s" % (url, type(e), e), log.INFO)
             lrulinks.append(lru)
         item["lrulinks"] = lrulinks
         returnValue(item)

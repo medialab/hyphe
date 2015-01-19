@@ -45,16 +45,18 @@
     "org.uk": "subdomain-1",
     "gouv.fr": "subdomain-1"
   },
-  "discoverPrefixes": ["http://bit.ly",
-                       "http://t.co",
-                       "http://tinyurl.com",
-                       "http://goo.gl",
-                       "http://fb.me",
-                       "http://on.fb.me",
-                       "http://l.facebook.com",
-                       "https://www.facebook.com/l.php",
-                       "http://ur1.ca",
-                       "http://ow.ly"],
+  "discoverPrefixes": [
+    "bit.ly",
+    "t.co",
+    "tinyurl.com",
+    "goo.gl",
+    "fb.me",
+    "on.fb.me",
+    "l.facebook.com",
+    "www.facebook.com/l.php",
+    "ur1.ca",
+    "ow.ly"
+  ],
   "phantom": {
     "autoretry": false,
     "timeout": 600,
