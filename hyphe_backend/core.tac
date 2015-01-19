@@ -1561,7 +1561,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WEs = self.corpora[corpus]['webentities']
         deflist = []
         also_links = test_bool_arg(corelinks)
-        if WEs == [] or self.corpora[corpus]['recent_changes'] or self.corpora[corpus]['last_links_loop']*1000 > self.corpora[corpus]['last_WE_update']:
+        if WEs == [] or self.corpora[corpus]['recent_changes'] or (self.corpora[corpus]['last_links_loop']+30)*1000 > self.corpora[corpus]['last_WE_update']:
             deflist.append(self.msclients.pool.getWebEntities(corpus=corpus, _nokeepalive=True))
             if also_links:
                 logger.msg("Collecting WebEntities and WebEntityLinks...", system="INFO - %s" % corpus)
