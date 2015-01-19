@@ -957,6 +957,30 @@ public class LRUIndex {
             throw new IndexException(x.getMessage(), x);
         }
     }
+    
+    /**
+     * Retrieves for a WebEntity the prefix matching a LRU
+     * (meaning the WebEntity contains this LRU, returns null otherwise)
+     *
+     * @param WebEntity WE
+     * @param LRU
+     * @return Longest prefix from WebEntity starting as LRU
+     * @throws IndexException hmm
+     */
+    public String retrieveWebEntityPrefixMatchingLRU(WebEntity WE, String LRU) {
+        if(logger.isDebugEnabled()) {
+            logger.debug("retrieveWebEntityPrefixMatchingLRU: " + LRU);
+        }
+        String result = null;
+        if (WE != null) {
+        	for (String prefix : WE.getLRUSet()) {
+        		if (LRU.startsWith(prefix) && (result == null || result.length() < prefix.length())) {
+        			result = prefix;
+        		}
+        	}
+        }
+        return result;
+    }
 
     /**
      * Retrieves the ID of the unique WebEntity matching a LRU

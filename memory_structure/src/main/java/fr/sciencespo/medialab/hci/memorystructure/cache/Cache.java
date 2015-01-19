@@ -161,14 +161,18 @@ public class Cache {
         THashMap<String, WebEntity> WEcandidates;
         for(String pageLRU : pageLRUs) {
             if(logger.isDebugEnabled()) {
-                logger.trace("createWebEntities for page " + pageLRU);
+            	logger.trace("createWebEntities for page " + pageLRU);
             }
             WEcandidates = new THashMap<String, WebEntity>();
+            existing = lruIndex.retrieveWebEntityMatchingLRU(pageLRU);
+            if (existing != null) {
+            	WEcandidates.put(lruIndex.retrieveWebEntityPrefixMatchingLRU(existing, pageLRU), existing);
+            }
             for(WebEntityCreationRule rule : webEntityCreationRules) {
                 // only apply rule to page with lru that match the rule lruprefix (or if this is the default rule)
                 if (pageLRU.startsWith(rule.getLRU()) || rule.getLRU().equals(Constants.DEFAULT_WEBENTITY_CREATION_RULE)) {
                     if(logger.isDebugEnabled()) {
-                        logger.debug("page " + pageLRU + " matches rule " + rule.getLRU());
+                    	logger.debug("page " + pageLRU + " matches rule " + rule.getLRU());
                     }
                     WEcandidate = applyWebEntityCreationRule(rule, pageLRU);
                     if (WEcandidate != null && WEcandidate.getLRUSet().size() > 0) {
@@ -206,8 +210,10 @@ public class Cache {
                         }
                 	}
                 	createdWebEntitiesCount++;
-                    logger.debug("indexing new webentity for prefix " + LRUPrefix);
-                    lruIndex.indexWebEntity(WEcandidate, false, true);
+                	if (logger.isDebugEnabled()) {
+                		logger.debug("indexing new webentity for prefix " + LRUPrefix);
+                	}
+                	lruIndex.indexWebEntity(WEcandidate, false, true);
                 }
                 doneLRUPrefixes.add(LRUPrefix);
             }
