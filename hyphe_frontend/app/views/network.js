@@ -180,7 +180,8 @@ angular.module('hyphe.networkController', [])
       $scope.status = {message: 'Loading web entities'}
       api.getWebentities(
         {
-          count: 10000
+           sort: []
+          ,count: 100000
         }
         ,function(result){
           $scope.webentities = result.webentities
