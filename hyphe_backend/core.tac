@@ -885,7 +885,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         yield self.ensureDefaultCreationRuleExists(corpus, quiet=noloop)
 
     @inlineCallbacks
-    def format_webentity(self, WE, jobs={}, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
+    def format_webentity(self, WE, jobs={}, light=False, semilight=False, light_for_csv=False, paginate=False, corpus=DEFAULT_CORPUS):
         if not WE:
             returnD(None)
         res = {'id': WE.id, 'name': WE.name}
@@ -895,6 +895,19 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res['status'] = WE.status
         res['creation_date'] = WE.creationDate
         res['last_modification_date'] = WE.lastModificationDate
+        res["indegree"] = self.corpora[corpus]["webentities_ranks"].get(WE.id, {"indegree": 0})["indegree"]
+        if not paginate:
+            job = None
+            if not jobs and not light_for_csv and WE.status != "DISCOVERED":
+                job = yield self.db.list_jobs(corpus, {'webentity_id': WE.id}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
+            elif WE.id in jobs:
+                job = jobs[WE.id]
+            if job:
+                res['crawling_status'] = job['crawling_status']
+                res['indexing_status'] = job['indexing_status']
+            else:
+                res['crawling_status'] = crawling_statuses.UNCRAWLED
+                res['indexing_status'] = indexing_statuses.UNINDEXED
         if test_bool_arg(semilight):
             returnD(res)
         res['homepage'] = WE.homepage
@@ -908,32 +921,17 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD({'id': WE.id, 'name': WE.name, 'status': WE.status,
                     'prefixes': "|".join([urllru.lru_to_url(lru, nocheck=True) for lru in WE.LRUSet]),
                     'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns != "CORE"])})
-        # pages = yield self.msclients.pool.getWebEntityCrawledPages(WE.id, corpus=corpus)
-        # nb_pages = len(pages)
-        # nb_links
-        job = None
-        if not jobs and not light_for_csv and WE.status != "DISCOVERED":
-            job = yield self.db.list_jobs(corpus, {'webentity_id': WE.id}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
-        elif WE.id in jobs:
-            job = jobs[WE.id]
-        if job:
-            res['crawling_status'] = job['crawling_status']
-            res['indexing_status'] = job['indexing_status']
-        else:
-            res['crawling_status'] = crawling_statuses.UNCRAWLED
-            res['indexing_status'] = indexing_statuses.UNINDEXED
-        res["indegree"] = self.corpora[corpus]["webentities_ranks"].get(WE.id, {"indegree": 0})["indegree"]
         returnD(res)
 
     @inlineCallbacks
-    def format_webentities(self, WEs, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
+    def format_webentities(self, WEs, light=False, semilight=False, light_for_csv=False, sort=None, paginate=False, corpus=DEFAULT_CORPUS):
         jobs = {}
-        if not light_for_csv:
+        if not (light_for_csv or paginate):
             res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs if WE.status != "DISCOVERED"]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
             for job in res:
                 jobs[job['webentity_id']] = job
         res = []
-        results = yield DeferredList([self.format_webentity(WE, jobs, light, semilight, light_for_csv, corpus=corpus) for WE in WEs], consumeErrors=True)
+        results = yield DeferredList([self.format_webentity(WE, jobs, light, semilight, light_for_csv, paginate, corpus=corpus) for WE in WEs], consumeErrors=True)
         for bl, fWE in results:
             if not bl:
                 logger.msg("Problem formatting WE: %s" % fWE, system="WARNING - %s" % corpus)
@@ -1600,7 +1598,20 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_get_webentity(self, we_id, corpus=DEFAULT_CORPUS):
         return self.jsonrpc_get_webentities([we_id], corpus=corpus)
 
-    def format_WE_page(self, total, count, page, WEs, token=None):
+    @inlineCallbacks
+    def format_WE_page(self, total, count, page, WEs, token=None, corpus=DEFAULT_CORPUS):
+        jobs = {}
+        res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE["id"] for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
+        for job in res:
+            jobs[job['webentity_id']] = job
+        for WE in WEs:
+            if WE["id"] in jobs:
+                WE['crawling_status'] = jobs[WE["id"]]['crawling_status']
+                WE['indexing_status'] = jobs[WE["id"]]['indexing_status']
+            else:
+                WE['crawling_status'] = crawling_statuses.UNCRAWLED
+                WE['indexing_status'] = indexing_statuses.UNINDEXED
+
         res = {
             "total_results": total,
             "count": count,
@@ -1615,13 +1626,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
             res["previous_page"] = min(res["last_page"], page - 1)
         if (page+1)*count < total:
             res["next_page"] = page + 1
-        return format_result(res)
+        returnD(format_result(res))
 
     @inlineCallbacks
     def paginate_webentities(self, WEs, count, page, light=False, semilight=False, sort=None, corpus=DEFAULT_CORPUS):
         subset = WEs[page*count:(page+1)*count]
         ids = [w["id"] for w in WEs]
-        res = self.format_WE_page(len(ids), count, page, subset)
+        res = yield self.format_WE_page(len(ids), count, page, subset, corpus=corpus)
         query_args = {
           "count": count,
           "light": light,
@@ -1643,11 +1654,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
         count = ids["query"]["count"]
         query_ids = ids["webentities"][page*count:(page+1)*count]
         if not query_ids:
-            returnD(self.format_WE_page(ids["total"], ids["query"]["count"], page, [], token=token))
+            res = yield self.format_WE_page(ids["total"], ids["query"]["count"], page, [], token=token, corpus=corpus)
+            returnD(res)
         res = yield self.jsonrpc_get_webentities(query_ids, light=ids["query"]["light"], semilight=ids["query"]["semilight"], sort=ids["query"]["sort"], count=ids["query"]["count"], corpus=corpus)
+
         if is_error(res):
             returnD(res)
-        returnD(self.format_WE_page(ids["total"], ids["query"]["count"], page, res["result"], token=token))
+        respage = yield self.format_WE_page(ids["total"], ids["query"]["count"], page, res["result"], token=token, corpus=corpus)
+        returnD(respage)
 
     @inlineCallbacks
     def jsonrpc_get_webentities_ranking_stats(self, pagination_token, ranking_field="indegree", corpus=DEFAULT_CORPUS):
@@ -1691,14 +1705,16 @@ class Memory_Structure(jsonrpc.JSONRPC):
             WEs = yield self.ramcache_webentities(corpus=corpus)
             if is_error(WEs):
                 returnD(WEs)
-        res = yield self.format_webentities(WEs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
+        paginate = (len(WEs) > count and not light_for_csv)
+        res = yield self.format_webentities(WEs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, paginate=paginate, corpus=corpus)
         if n_WEs:
             returnD(format_result(res))
-        if len(WEs) > count and not light_for_csv:
+        if paginate:
             res = yield self.paginate_webentities(res, count, page, light=light, semilight=semilight, sort=sort, corpus=corpus)
             returnD(res)
         else:
-            returnD(self.format_WE_page(len(res), count, page, res))
+            respage = yield self.format_WE_page(len(res), count, page, res, corpus=corpus)
+            returnD(respage)
 
     @inlineCallbacks
     def jsonrpc_advanced_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
@@ -1730,7 +1746,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
-        res = yield self.format_webentities(WEs, sort=sort, corpus=corpus)
+        res = yield self.format_webentities(WEs, sort=sort, semilight=True, paginate=True, corpus=corpus)
         if indegree_filter:
             res = [w for w in res if w["indegree"] >= indegree_filter[0] and w["indegree"] <= indegree_filter[1]]
         res = yield self.paginate_webentities(res, count, page, sort=sort, corpus=corpus)
