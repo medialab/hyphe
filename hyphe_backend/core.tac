@@ -826,7 +826,7 @@ class Crawler(jsonrpc.JSONRPC):
         logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
         if job_id in self.crawlqueue.queue:
             del(self.crawlqueue.queue[job_id])
-            res = "ok"
+            res = "pending job %s removed from queue" %s job_id
         else:
             args = {'project': corpus_project(corpus), 'job': existing[0]["crawljob_id"]}
             res = yield self.crawlqueue.send_scrapy_query('cancel', args)
