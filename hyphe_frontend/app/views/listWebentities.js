@@ -79,7 +79,7 @@ angular.module('hyphe.listwebentitiesController', [])
         if($scope.sort == 'name'){
             $scope.sortAsc = !$scope.sortAsc
         } else {
-          if($scope.sortAsc){
+          if(!$scope.sortAsc) {
             $scope.sortAsc = !$scope.sortAsc
           } else {
             // Reset
@@ -89,7 +89,7 @@ angular.module('hyphe.listwebentitiesController', [])
         }
       } else {
         $scope.sort = field
-        $scope.sortAsc = true
+        $scope.sortAsc = ($scope.sort == 'name')
       }
       if($scope.lastQuery === undefined){
         $scope.loadWebentities()
