@@ -20,6 +20,7 @@ h1, h2, h3, h4, h5, h6{
 .main{
   background-color: #FFF;
   padding-bottom: 300px;
+  padding-top: 50px;
 }
 .definition{
   border-bottom: 1px dotted #777;
@@ -113,6 +114,8 @@ label.btn.btn-default.disabled.active{
 .flatpanel{
   background-color: #EFEBE8;
   margin-bottom: 12px;
+  position: fixed;
+  min-width: 25%;
 }
 .flatpanel .flatpanel-heading{
   padding: 12px;
@@ -144,6 +147,13 @@ label.btn.btn-default.disabled.active{
 /* ==========================================================================
    Top bar
    ========================================================================== */
+.header{
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 50px;
+  z-index: 1000;
+}
 .topbar{
   background-color: #EFEBE8;
   font-size: 18px;
@@ -186,6 +196,9 @@ label.btn.btn-default.disabled.active{
   background-color: #EFEBE8;
   border-radius: 0px 0px 6px 0px;
   padding-right: 0px;
+  padding-top: 50px;
+  position: fixed;
+  left: 0;
 }
 .sidebar span.symbol{
   float: left;
