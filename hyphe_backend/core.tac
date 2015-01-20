@@ -575,7 +575,7 @@ class Core(jsonrpc.JSONRPC):
                 res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.maxdepth': {'$gt': 0}})
                 for job in res:
                     logger.msg("Crawl job %s seems to have failed, trying to restart it in phantom mode" % job['_id'], system="INFO - %s" % corpus)
-                    yield self.jsonrpc_crawl_webentity(job['webentity_id'], job['crawl_arguments']['maxdepth'], True, corpus=corpus)
+                    yield self.jsonrpc_crawl_webentity(job['webentity_id'], max(job['crawl_arguments']['maxdepth'], 2), True, corpus=corpus)
                     yield self.db.add_log(corpus, job['_id'], "CRAWL_RETRIED_AS_PHANTOM")
                     yield self.db.update_jobs(corpus, job['_id'], {'crawling_status': crawling_statuses.RETRIED})
 
