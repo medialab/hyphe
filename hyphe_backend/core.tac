@@ -263,17 +263,18 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def start_corpus(self, corpus=DEFAULT_CORPUS, password="", noloop=False, quiet=False, create_if_missing=False):
-        if self.corpus_ready(corpus) or self.msclients.status_corpus(corpus, simplify=True) == "starting":
-            returnD(self.jsonrpc_test_corpus(corpus, msg="Corpus already ready"))
-
         corpus_conf = yield self.db.get_corpus(corpus)
         if not corpus_conf:
             if create_if_missing:
                 res = yield self.create_corpus(corpus, password, noloop=noloop, quiet=quiet)
                 returnD(res)
             returnD(format_error("No corpus existing with ID %s, please create it first!" % corpus))
-        if corpus_conf['password'] and corpus_conf['password'] not in [password, salt(password)]:
+        if corpus_conf['password'] and corpus_conf['password'] not in [password, salt(password)] and password != config.get("ADMIN_PASSWORD", None):
             returnD(format_error("Wrong auth for password-protected corpus %s" % corpus))
+
+        if self.corpus_ready(corpus) or self.msclients.status_corpus(corpus, simplify=True) == "starting":
+            returnD(self.jsonrpc_test_corpus(corpus, msg="Corpus already ready"))
+
         if self.factory_full():
             if not quiet:
                 logger.msg("Could not start extra corpus, all slots busy", system="WARNING - %s" % corpus)
@@ -826,7 +827,7 @@ class Crawler(jsonrpc.JSONRPC):
         logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
         if job_id in self.crawlqueue.queue:
             del(self.crawlqueue.queue[job_id])
-            res = "pending job %s removed from queue" %s job_id
+            res = "pending job %s removed from queue" % job_id
         else:
             args = {'project': corpus_project(corpus), 'job': existing[0]["crawljob_id"]}
             res = yield self.crawlqueue.send_scrapy_query('cancel', args)

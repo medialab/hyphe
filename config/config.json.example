@@ -68,5 +68,6 @@
     ]
   },
   "MULTICORPUS": true,
+  "ADMIN_PASSWORD": None,
   "DEBUG": 0
 }
