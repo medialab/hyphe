@@ -133,10 +133,10 @@ It will be removed from the repository when the official 2.0 release is made. Un
 ```bash
     # Install the GPG keys for these package repositories:
     curl -s http://docs.mongodb.org/10gen-gpg-key.asc | sudo apt-key add -
-    curl -s http://archive.scrapy.org/ubuntu/archive.key | sudo apt-key add -
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 627220E7
 
     # Edit the /etc/apt/sources.list with your favorite text editor and add the following lines if they are not already present:
-    deb http://archive.scrapy.org/ubuntu $(lsb_release -cs) main
+    deb http://archive.scrapy.org/ubuntu scrapy main
     deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen
 
     # Update the sources list
@@ -193,6 +193,8 @@ enabled=1" > mongodb.repo.tmp
 
 #### 2.3) Prepare the Java / [Thrift](http://thrift.apache.org/) environment:
 
+- Java:
+
 Any instance require at least the Java JRE 6 installed. You can test it by running ```java -version``` and in case it is missing run:
 
 ```bash
@@ -219,6 +221,8 @@ export PATH=${M2_HOME}/bin:${PATH}" > /tmp/maven.sh
     source /etc/profile.d/maven.sh
 ```
 
+- Thrift:
+
 Then download and install Thrift:
 ```bash
     wget http://archive.apache.org/dist/thrift/0.8.0/thrift-0.8.0.tar.gz
@@ -238,8 +242,8 @@ It is recommended to use virtualenv with virtualenvwrapper:
     sudo pip install virtualenv
     sudo pip install virtualenvwrapper
     source $(which virtualenvwrapper.sh)
-    mkvirtualenv --no-site-packages HCI
-    workon HCI
+    mkvirtualenv --no-site-packages hyphe
+    workon hyphe
     pip install -r requirements.txt
     add2virtualenv $(pwd)
     deactivate
@@ -264,13 +268,6 @@ This will need to be ran again every time the Java code in the memory_structure 
     sudo service scrapyd restart
 ```
 
-* Define the server path in the starter:
-
-```bash
-    sed "s|##HCIPATH##|"`pwd`"|" bin/hyphe.example > bin/hyphe
-    chmod +x bin/hyphe
-```
-
 * Copy and adapt the sample `config.json.example` to `config.json` in the `config` directory:
 
 ```bash
@@ -287,20 +284,27 @@ This will need to be ran again every time the Java code in the memory_structure 
 
 #### 3.2) Set the frontend webapp configuration
 
-* Copy and adapt the sample `_config_default` directory to `_config` in the `hyphe_www_client` directory:
+* Install frontend's javascript dependencies:
+ - Download abd install node: http://nodejs.org/download/
+ - Install and use bower:
+```bash
+    sudo npm install -g bower
+    cd hyphe_frontend
+    bower install
+```
+
+* Copy and adapt the `conf_default.js` file to `conf.js` in the `hyphe_frontend/app/conf` directory:
 
 ```bash
-    cp -r hyphe_www_client/_config{_default,}
-    sed "s|##WEBPATH##|/hyphe|" > hyphe_www_client/_config/config.js > hyphe_www_client/_config/config.js.new
-    mv hyphe_www_client/_config/config.js{.new,}
+    cp hyphe_frontend/app/conf/conf{_default,}.js
 ```
 
 * Prepare Hyphe's Apache configuration:
 
 ```bash
-    sed "s|##HCIPATH##|"`pwd`"|" hyphe_www_client/_config/apache2_example.conf |
+    sed "s|##HCIPATH##|"`pwd`"|" config/apache2_example.conf |
       sed "s|##TWISTEDPORT##|6978|" |
-      sed "s|##WEBPATH##|/hyphe|" > hyphe_www_client/_config/apache2.conf
+      sed "s|##WEBPATH##|/hyphe|" > config/apache2.conf
 ```
 
 * Install the VirtualHost:
@@ -335,7 +339,7 @@ On some distributions, if you installed from a /home directory, you may need to 
 [See related sections in the simple install.](#3-run-hyphe)
 
 
-## Extra info for developers:
+## Extra info for developers: WARNING THE FOLLOWING IS MOSTLY DEPRECATED
 ### Run only the Core API server
 
 Hyphe relies on a [JsonRPC](http://www.jsonrpc.org/) API that can be controlled easily through the web interface or called directly from a JsonRPC client.

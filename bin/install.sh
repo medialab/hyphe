@@ -70,13 +70,13 @@ enabled=1" > mongodb.repo.tmp
     sudo mv mongodb.repo.tmp /etc/yum.repos.d/mongodb.repo
   fi
 else
-  curl -s http://archive.scrapy.org/ubuntu/archive.key | sudo apt-key add -
+  sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 627220E7
   sudo cp /etc/apt/sources.list{,.hyphebackup-`date +%Y%m%d-%H%M`}
   if ! which scrapyd > /dev/null && ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
     cp /etc/apt/sources.list /tmp/sources.list
     echo >> /tmp/sources.list
     echo "# SCRAPYD repository, automatically added by Hyphe's install" >> /tmp/sources.list
-    echo "deb http://archive.scrapy.org/ubuntu $(lsb_release -cs) main" >> /tmp/sources.list
+    echo "deb http://archive.scrapy.org/ubuntu scrapy main" >> /tmp/sources.list
     sudo mv /tmp/sources.list /etc/apt/sources.list
   fi
   if ! which mongod > /dev/null; then
