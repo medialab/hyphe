@@ -427,14 +427,14 @@ angular.module('hyphe.service_utils', [])
         .reverse()
         .join('.')
       if(json_lru.path.length == 1 && json_lru.path[0].trim().length>0){
-        name += ' /' + json_lru.path[0]
+        name += ' /' + decodeURIComponent(json_lru.path[0])
       } else if(json_lru.path.length > 1) {
-        name += ' /.../' + json_lru.path[json_lru.path.length-1]
+        name += ' /.../' + decodeURIComponent(json_lru.path[json_lru.path.length-1])
       }
       if(json_lru.query && json_lru.query.length > 0)
-        name += ' ?'+json_lru.query
+        name += ' ?' + decodeURIComponent(json_lru.query)
       if(json_lru.fragment && json_lru.fragment.length > 0)
-        name += ' #'+json_lru.fragment
+        name += ' #' + decodeURIComponent(json_lru.fragment)
       return name
     }
 

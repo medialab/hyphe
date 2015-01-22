@@ -5,6 +5,7 @@ import fr.sciencespo.medialab.hci.memorystructure.util.StringUtil;
 
 import org.apache.commons.lang.StringUtils;
 
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -163,7 +164,7 @@ public class LRUUtil {
 
 
     public static String nameLRU(String lru) {
-    	String lruElement, key, name = "", path = "", lastHost = "";
+    	String lruElement, key, name = "", path = "", lastHost = "", piece;
     	ArrayList<String> host = new ArrayList<String>();
     	boolean pathDone = false;
     	Scanner scanner = new Scanner(lru);
@@ -172,6 +173,7 @@ public class LRUUtil {
         	lruElement = scanner.next();
         	key = lruElement.substring(0, lruElement.indexOf(':')+1);
             lruElement = lruElement.substring(lruElement.indexOf(':')+1).trim();
+            piece = URLDecoder.decode(lruElement);
             if(StringUtils.isNotEmpty(lruElement)) {
             	if(key.equals("h:") && ! lruElement.equals("www")) {
                     lastHost = StringUtil.toProperCase(lruElement);
@@ -179,12 +181,12 @@ public class LRUUtil {
                         host.add(0, lastHost);
                     }
                 } else if(key.equals("p:")) {
-                    path = (pathDone ? " /..." : "") + " /" + lruElement;
+                    path = (pathDone ? " /..." : "") + " /" + piece;
                     pathDone = true;
                 } else if(key.equals("q:")) {
-                    name += " ?" + lruElement;
+                    name += " ?" + piece;
                 } else if(key.equals("f:")) {
-                    name += " #" + lruElement;
+                    name += " #" + piece;
                 }
             }
         }
