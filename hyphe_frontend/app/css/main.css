@@ -113,7 +113,6 @@ label.btn.btn-default.disabled.active{
    ========================================================================== */
 .flatpanel{
   background-color: #EFEBE8;
-  margin-bottom: 12px;
   position: fixed;
   min-width: 25%;
 }
@@ -138,6 +137,9 @@ label.btn.btn-default.disabled.active{
 }
 .flatpanel .flatpanel-separated{
   border-top: 1px solid #eee;
+}
+.flatpanel .flatpanel-whitespace{
+  border-top: 12px solid #fff;
 }
 
 
