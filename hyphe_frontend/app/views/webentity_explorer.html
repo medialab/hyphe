@@ -46,10 +46,12 @@
                     
                   </ol>
 
-                  <p><small class="text-muted" ng-if="pathUrl != ''">{{pathUrl}} <a href="{{pathUrl}}" class="btn btn-link btn-xs" target="_blank"><span class="glyphicon glyphicon-share-alt"></span></a></small></p>
+                  <div ng-if="pathUrl != ''">
+                    <p><small class="text-muted">{{pathUrl}} <a href="{{pathUrl}}" class="btn btn-link btn-xs" target="_blank"><span class="glyphicon glyphicon-share-alt"></span></a></small></p>
 
-                  <button class="btn btn-default btn-sm" ng-click="goToParent()"><span class="glyphicon glyphicon-circle-arrow-left"></span> BACK</button>
-                  
+                    <button class="btn btn-default btn-sm" ng-click="goToParent()"><span class="glyphicon glyphicon-circle-arrow-left"></span> BACK</button>
+                  </div>
+
                   <br>
                   <br>
 
