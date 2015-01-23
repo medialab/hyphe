@@ -113,7 +113,7 @@ angular.module('hyphe.networkController', [])
 
     $scope.stopSpatialization = function(){
       $scope.spatializationRunning = false
-      $scope.sigmaInstance.stopForceAtlas2()
+      $scope.sigmaInstance.killForceAtlas2()
     }
 
     $scope.downloadNetwork = function(){
@@ -200,7 +200,7 @@ angular.module('hyphe.networkController', [])
         ,function(links){
           $scope.links = links
 
-          /*window.links = links
+          /*$window.links = links
           console.log('LINKS', links)*/
 
           buildNetwork()
@@ -218,7 +218,7 @@ angular.module('hyphe.networkController', [])
     function initSigma(){
       $scope.sigmaInstance = new sigma('sigma-example');
 
-      window.s = $scope.sigmaInstance // For debugging purpose
+      $window.s = $scope.sigmaInstance // For debugging purpose
       
       $scope.sigmaInstance.settings({
         defaultLabelColor: '#666'
@@ -234,7 +234,7 @@ angular.module('hyphe.networkController', [])
       var nodesIndex = {}
 
       // Populate
-      window.g = $scope.network
+      $window.g = $scope.network
       $scope.network.nodes
         .forEach(function(node){
           nodesIndex[node.id] = node

@@ -33,8 +33,8 @@ angular.module('hyphe.webentityController', [])
     }
   }])
 
-  .controller('webentity.pagesNetwork', ['$scope', 'api', 'utils', 'corpus', '$routeParams'
-  ,function($scope, api, utils, corpus, $routeParams) {
+  .controller('webentity.pagesNetwork', ['$scope', 'api', 'utils', 'corpus', '$routeParams', '$window'
+  ,function($scope, api, utils, corpus, $routeParams, $window) {
     $scope.currentPage = 'webentity.pagesNetwork'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
@@ -206,7 +206,7 @@ angular.module('hyphe.webentityController', [])
       var nodesIndex = {}
 
       // Populate
-      window.g = $scope.network
+      $window.g = $scope.network
       $scope.network.nodes
         .forEach(function(node){
           nodesIndex[node.id] = node
@@ -253,9 +253,7 @@ angular.module('hyphe.webentityController', [])
       })
 
       $scope.sigmaInstance.bind('clickNode', function(e) {
-        var weId = e.data.node.id
-        ,path = '#/project/' + $scope.corpusId + '/webentity/' + weId
-        $window.location.assign(path)
+        $window.open(e.data.node.label, '_blank')
       })
 
       $scope.runSpatialization()
