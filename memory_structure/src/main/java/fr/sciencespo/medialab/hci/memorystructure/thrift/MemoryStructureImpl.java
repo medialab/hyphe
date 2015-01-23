@@ -275,6 +275,26 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
     }
 
+    /**
+     * Returns theoretical LRUPrefix for a LRUPage according to WebEntity CreationRules.
+     *
+     * @return LRUPrefix
+     * @throws TException hmm
+     */
+    @Override
+    public String getPrefixForLRU(String pageLRU) throws TException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getPrefixForLRU");
+        }
+        try {
+            return lruIndex.findWERulePrefixForPageUrl(pageLRU);
+        } catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new TException(x.getMessage(), x);
+        }
+    }
+
 
     // -- NODELINKS
 

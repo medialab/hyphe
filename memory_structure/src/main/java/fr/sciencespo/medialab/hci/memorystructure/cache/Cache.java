@@ -102,44 +102,6 @@ public class Cache {
     }
 
     /**
-     * Applies web entity creation rule to a page. If the rule is the default rule, or if the page lru matches the rule
-     * lruprefix, a match is attempted between page lru and rule regular expression. If there is a match, a web entity
-     * is created.
-     *
-     * @param rule web entity creation rule
-     * @param page page
-     * @return created web entity or null
-     */
-    public WebEntity applyWebEntityCreationRule(WebEntityCreationRule rule, String pageLRU) {
-        if(rule == null || pageLRU == null) {
-            return null;
-        }
-        if(logger.isDebugEnabled()) {
-            logger.debug("applyWebEntityCreationRule " + rule.getRegExp());
-        }
-        String name, LRUPrefix;
-        Matcher matcher = Pattern.compile(rule.getRegExp(), Pattern.CASE_INSENSITIVE).matcher(pageLRU);
-        if(matcher.find()) {
-            LRUPrefix = matcher.group();
-            name = LRUUtil.nameLRU(LRUPrefix);
-            if(logger.isDebugEnabled()) {
-                logger.debug("page " + pageLRU + " matches prefix " + LRUPrefix + " -> " + name);
-            }
-        }
-        // Sets LRUs that don't match any CreationRule RegExp to default scheme only entity
-        else {
-            LRUPrefix = pageLRU.substring(0, pageLRU.indexOf('|'));
-            name = Constants.DEFAULT_WEBENTITY;
-        }
-        WebEntity webEntity = new WebEntity();
-        webEntity.setName(name);
-        webEntity.setLRUSet(new HashSet<String>());
-        webEntity.addToLRUSet(LRUPrefix);
-        webEntity.setStatus(WebEntityStatus.DISCOVERED.name());
-        return webEntity;
-    }
-
-    /**
      * Creates web entities for the pages in the cache.
      *
      * @return number of new web entities
@@ -149,7 +111,6 @@ public class Cache {
     public int createWebEntities() throws MemoryStructureException, IndexException {
         logger.trace("createWebEntities");
         int createdWebEntitiesCount = 0;
-        List<WebEntityCreationRule> webEntityCreationRules = lruIndex.retrieveWebEntityCreationRules();
         THashSet<String> pageLRUs = new THashSet<String>();
         pageLRUs.addAll(this.pageItems.keySet());
         THashSet<String> doneLRUPrefixes = new THashSet<String>();
@@ -163,25 +124,8 @@ public class Cache {
             if(logger.isDebugEnabled()) {
             	logger.trace("createWebEntities for page " + pageLRU);
             }
-            WEcandidates = new THashMap<String, WebEntity>();
-            existing = lruIndex.retrieveWebEntityMatchingLRU(pageLRU);
-            if (existing != null) {
-            	WEcandidates.put(lruIndex.retrieveWebEntityPrefixMatchingLRU(existing, pageLRU), existing);
-            }
-            for(WebEntityCreationRule rule : webEntityCreationRules) {
-                // only apply rule to page with lru that match the rule lruprefix (or if this is the default rule)
-                if (pageLRU.startsWith(rule.getLRU()) || rule.getLRU().equals(Constants.DEFAULT_WEBENTITY_CREATION_RULE)) {
-                    if(logger.isDebugEnabled()) {
-                    	logger.debug("page " + pageLRU + " matches rule " + rule.getLRU());
-                    }
-                    WEcandidate = applyWebEntityCreationRule(rule, pageLRU);
-                    if (WEcandidate != null && WEcandidate.getLRUSet().size() > 0) {
-                        LRUPrefix = (String)(WEcandidate.getLRUSet().toArray())[0];
-                        WEcandidates.put(LRUPrefix, WEcandidate);
-                    }
-                }
-            }
-            LRUPrefix = (String) (StringUtil.findLongestString(WEcandidates.keySet())).toArray()[0];
+            WEcandidates = lruIndex.findWECandidatesForPageUrl(pageLRU);
+            LRUPrefix = lruIndex.findWERulePrefixForPageUrl(WEcandidates, pageLRU);
             if (!doneLRUPrefixes.contains(LRUPrefix)) {
                 WEcandidate = WEcandidates.get(LRUPrefix);
                 existing = lruIndex.retrieveWebEntityByLRUPrefix(LRUPrefix);

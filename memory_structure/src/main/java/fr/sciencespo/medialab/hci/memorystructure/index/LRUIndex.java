@@ -1,6 +1,7 @@
 package fr.sciencespo.medialab.hci.memorystructure.index;
 
 import fr.sciencespo.medialab.hci.memorystructure.thrift.Constants;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.NodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
@@ -8,8 +9,10 @@ import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityNodeLink;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityLink;
+import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityStatus;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
 import fr.sciencespo.medialab.hci.memorystructure.util.LRUUtil;
+import fr.sciencespo.medialab.hci.memorystructure.util.StringUtil;
 import fr.sciencespo.medialab.hci.memorystructure.index.LowercasedKeywordAnalyzer;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -56,6 +59,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.set.hash.THashSet;
 
@@ -2123,6 +2128,98 @@ public class LRUIndex {
             x.printStackTrace();
             throw new IndexException(x.getMessage(), x);
         }
+    }
+
+    /**
+     * Applies web entity creation rule to a page. If the rule is the default rule, or if the page lru matches the rule
+     * lruprefix, a match is attempted between page lru and rule regular expression. If there is a match, a web entity
+     * is created.
+     *
+     * @param rule web entity creation rule
+     * @param page page
+     * @return created web entity or null
+     */
+    public WebEntity applyWebEntityCreationRule(WebEntityCreationRule rule, String pageLRU) {
+        if(rule == null || pageLRU == null) {
+            return null;
+        }
+        if(logger.isDebugEnabled()) {
+            logger.debug("applyWebEntityCreationRule " + rule.getRegExp());
+        }
+        String name, LRUPrefix;
+        Matcher matcher = Pattern.compile(rule.getRegExp(), Pattern.CASE_INSENSITIVE).matcher(pageLRU);
+        if(matcher.find()) {
+            LRUPrefix = matcher.group();
+            name = LRUUtil.nameLRU(LRUPrefix);
+            if(logger.isDebugEnabled()) {
+                logger.debug("page " + pageLRU + " matches prefix " + LRUPrefix + " -> " + name);
+            }
+        }
+        // Sets LRUs that don't match any CreationRule RegExp to default scheme only entity
+        else {
+            LRUPrefix = pageLRU.substring(0, pageLRU.indexOf('|'));
+            name = Constants.DEFAULT_WEBENTITY;
+        }
+        WebEntity webEntity = new WebEntity();
+        webEntity.setName(name);
+        webEntity.setLRUSet(new HashSet<String>());
+        webEntity.addToLRUSet(LRUPrefix);
+        webEntity.setStatus(WebEntityStatus.DISCOVERED.name());
+        return webEntity;
+    }
+
+    /**
+     * Identify the WebEntity possible candidates for a page according to current webentity creation rules.
+     *
+     * @param pageLRU of a page to apply creationrules to
+     * @return WECandidates for pageLRU according to Creation Rules
+     * @throws MemoryStructureException hmm
+     * @throws IndexException hmm
+     */
+    public THashMap<String, WebEntity> findWECandidatesForPageUrl(String pageLRU) throws IndexException {
+    	THashMap<String, WebEntity> WEcandidates = new THashMap<String, WebEntity>();
+        WebEntity WEcandidate, existing = retrieveWebEntityMatchingLRU(pageLRU);
+        if (existing != null) {
+        	WEcandidates.put(retrieveWebEntityPrefixMatchingLRU(existing, pageLRU), existing);
+        }
+        for(WebEntityCreationRule rule : retrieveWebEntityCreationRules()) {
+            // only apply rule to page with lru that match the rule lruprefix (or if this is the default rule)
+            if (pageLRU.startsWith(rule.getLRU()) || rule.getLRU().equals(Constants.DEFAULT_WEBENTITY_CREATION_RULE)) {
+                if(logger.isDebugEnabled()) {
+                	logger.debug("page " + pageLRU + " matches rule " + rule.getLRU());
+                }
+                WEcandidate = applyWebEntityCreationRule(rule, pageLRU);
+                if (WEcandidate != null && WEcandidate.getLRUSet().size() > 0) {
+                    WEcandidates.put((String)(WEcandidate.getLRUSet().toArray())[0], WEcandidate);
+                }
+            }
+        }
+        return WEcandidates;
+    }
+
+    /**
+     * Identify the prefix for a page according to current webentity creation rules.
+     *
+     * @param pageLRU of a page to apply creationrules to
+     * @return LRUPrefix for pageLRU according to Creation Rules
+     * @throws MemoryStructureException hmm
+     * @throws IndexException hmm
+     */
+    public String findWERulePrefixForPageUrl(THashMap<String, WebEntity> WEcandidates, String pageLRU) throws IndexException {
+    	return (String) (StringUtil.findLongestString(WEcandidates.keySet())).toArray()[0];
+    }
+
+    /**
+     * Identify the prefix for a page according to current webentity creation rules.
+     *
+     * @param pageLRU of a page to apply creationrules to
+     * @return LRUPrefix for pageLRU according to Creation Rules
+     * @throws MemoryStructureException hmm
+     * @throws IndexException hmm
+     */
+    public String findWERulePrefixForPageUrl(String pageLRU) throws IndexException {
+    	THashMap<String, WebEntity> WEcandidates = findWECandidatesForPageUrl(pageLRU);
+    	return findWERulePrefixForPageUrl(WEcandidates, pageLRU);
     }
 
 }

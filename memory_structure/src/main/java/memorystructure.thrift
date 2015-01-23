@@ -149,6 +149,12 @@ void savePageItems(1:list<PageItem> pageItems) throws (1:MemoryStructureExceptio
  */
 list<PageItem> findPageItemsMatchingLRUPrefix(1:string prefix) throws (1:MemoryStructureException me)
 
+/** getPrefixForLRU
+  * @param 1 pageLRU to applt creationrules to
+  * @return a prefix string of the theoretical resulting webentity
+ */
+string getPrefixForLRU(1:string prefix) throws (1:MemoryStructureException me)
+
 
 // -- NODELINKS
 

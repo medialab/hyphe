@@ -1027,6 +1027,62 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.jsonrpc_get_webentity_creationrules(corpus=corpus)
         returnD(format_result("Webentity creation rule added"))
 
+    @inlineCallbacks
+    def jsonrpc_simulate_creationrules_for_urls(self, pageURLs, corpus=DEFAULT_CORPUS):
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        if isinstance(pageURLs, list):
+            results = yield DeferredList([self.jsonrpc_simulate_creationrules_for_urls(pageURL, corpus) for pageURL in pageURLs], consumeErrors=True)
+            res = {}
+            errors = []
+            for bl, val in results:
+                if not bl:
+                    errors.append(val)
+                elif is_error(val):
+                    errors.append(val["message"])
+                else:
+                    res.update(val["result"])
+            if len(errors):
+                returnD({'code': 'fail', 'message': '%d webentities failed, see details in "errors" field and successes in "results" field.' % len(errors), 'errors': errors, 'results': res})
+            returnD(format_result(res))
+        url = pageURLs
+        try:
+            _, pageLRU = urllru.url_clean_and_convert(url)
+        except ValueError as e:
+            returnD(format_error(e))
+        res = yield self.jsonrpc_simulate_creationrules_for_lrus(pageLRU, corpus)
+        if is_error(res):
+            returnD(res)
+        returnD(format_result({url: res['result'].values()[0]}))
+
+    @inlineCallbacks
+    def jsonrpc_simulate_creationrules_for_lrus(self, pageLRUs, corpus=DEFAULT_CORPUS):
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        if isinstance(pageLRUs, list):
+            results = yield DeferredList([self.jsonrpc_simulate_creationrules_for_lrus(pageLRU, corpus) for pageLRU in pageLRUs], consumeErrors=True)
+            res = {}
+            errors = []
+            for bl, val in results:
+                if not bl:
+                    errors.append(val)
+                elif is_error(val):
+                    errors.append(val["message"])
+                else:
+                    res.update(val["result"])
+            if len(errors):
+                returnD({'code': 'fail', 'message': '%d webentities failed, see details in "errors" field and successes in "results" field.' % len(errors), 'errors': errors, 'results': res})
+            returnD(format_result(res))
+        pageLRU = pageLRUs
+        try:
+            _, lru = urllru.lru_clean_and_convert(pageLRU)
+        except ValueError as e:
+            returnD(format_error(e))
+        prefix = yield self.msclients.pool.getPrefixForLRU(lru, corpus=corpus)
+        if is_error(prefix):
+            returnD(prefix)
+        returnD(format_result({pageLRU: prefix}))
+
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
         return self.reinitialize(corpus)
 
