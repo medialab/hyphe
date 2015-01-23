@@ -70,6 +70,11 @@
                     <li ng-repeat="domain in options.follow_redirects">{{domain}}</li>
                   </ul>
 
+                  <h3>WEBENTITY CREATION RULES</h3>
+                  <ul>
+                    <li ng-repeat="rule in creationrules">{{rule.domain}} : {{rule.type}}{{rule.https ? ' (https)' : ''}}</li>
+                  </ul>
+
                 </div>
               </div>
             </div>

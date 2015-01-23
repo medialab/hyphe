@@ -246,6 +246,7 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["tags"] = {}
         self.corpora[corpus]["webentities_links"] = None
         self.corpora[corpus]["webentities_ranks"] = {}
+        self.corpora[corpus]["creation_rules"] = []
         self.corpora[corpus]["precision_exceptions"] = []
         self.corpora[corpus]["crawls"] = 0
         self.corpora[corpus]["crawls_running"] = 0
@@ -481,7 +482,9 @@ class Core(jsonrpc.JSONRPC):
               'UNDECIDED': self.corpora[corpus]['webentities_undecided'],
               'DISCOVERED': self.corpora[corpus]['webentities_discovered']
             }
-          }
+          },
+          'creation_rules': sorted(self.corpora[corpus]['creation_rules'],
+            key=lambda x: x['prefix'][x['prefix'].find("h:"):]+x['prefix'][:x['prefix'].find('|')])
         }
         status['corpus'].update(corpus_status)
         return format_result(status)
@@ -954,8 +957,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(res):
             logger.msg("Could not start corpus fast enough to create WE creation rule...", system="ERROR - %s" % corpus)
             returnD(res)
-        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
-        if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules) == 0):
+        rules = yield self.jsonrpc_get_webentity_creationrules(corpus=corpus)
+        if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules['result']) == 0):
             if corpus != DEFAULT_CORPUS and not quiet:
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
             res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(self.corpora[corpus]["options"].get("default_creation_rule", "domain")), ''), corpus=corpus)
@@ -987,6 +990,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         results = [{"prefix": r.LRU, "regexp": r.regExp, "name": creationrules.getName(r.regExp)} for r in rules if not prefix or r.LRU == prefix]
         if prefix:
             results = results[0]
+        else:
+            self.corpora[corpus]["creation_rules"] = results
         returnD(format_result(results))
 
     @inlineCallbacks
@@ -1000,6 +1005,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 if is_error(res):
                     returnD(format_error(res))
                 returnD(format_result('WebEntityCreationRule for prefix %s deleted.' % lru_prefix))
+        self.jsonrpc_get_webentity_creationrules(corpus=corpus)
         returnD(format_error("No existing WebEntityCreationRule found for prefix %s." % lru_prefix))
 
     @inlineCallbacks
@@ -1018,6 +1024,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(regexp, lru_prefix), corpus=corpus)
         if is_error(res):
             returnD(format_error("Could not save CreationRule %s for prefix %s: %s" % (regexp, prefix, res)))
+        self.jsonrpc_get_webentity_creationrules(corpus=corpus)
         returnD(format_result("Webentity creation rule added"))
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):

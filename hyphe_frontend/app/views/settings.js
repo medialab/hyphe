@@ -39,12 +39,18 @@ angular.module('hyphe.settingsController', [])
 
     function init(){
       $scope.status = {message: "Loading"}
-      api.getCorpusOptions({
-          id: corpus.getId()
-        }, function(options){
+      api.globalStatus({
+        }, function(corpus_status){
 
-          console.log('options', options)
-          $scope.options = options
+          console.log('status', corpus_status)
+          $scope.options = corpus_status.corpus.options
+          $scope.creationrules = corpus_status.corpus.creation_rules.map(function(rule){
+            return {
+               domain: utils.LRU_to_URL(rule.prefix).replace(/^https?:\/\//, '') || "DEFAULT RULE"
+              ,type: rule.name
+              ,https: rule.prefix.indexOf('s:https') == 0
+            }
+          })
           $scope.loading = false
           $scope.status = {}
 
