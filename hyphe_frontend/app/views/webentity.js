@@ -105,7 +105,7 @@ angular.module('hyphe.webentityController', [])
 
     // Functions
     function fetchWebentity(id){
-      $scope.status = {message: 'loading'}
+      $scope.status = {message: 'Loading Webentity pages'}
       api.getWebentities({
           id_list:[id]
           ,crawledOnly: false

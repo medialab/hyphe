@@ -35,11 +35,13 @@
                   <h3>SERVER</h3>
                   <dl class="dl-horizontal">
 
-                    <dt>Proxy Host</dt>
-                    <dd>{{options.proxy.host}}</dd>
+                    <div ng-if='options.proxy.host'>
+                      <dt>Proxy Host</dt>
+                      <dd>{{options.proxy.host}}</dd>
 
-                    <dt>Proxy Port</dt>
-                    <dd>{{options.proxy.port}}</dd>
+                      <dt>Proxy Port</dt>
+                      <dd>{{options.proxy.port}}</dd>
+                    </div>
                     
                     <dt>Memory</dt>
                     <dd>{{options.ram}} Mo</dd>
