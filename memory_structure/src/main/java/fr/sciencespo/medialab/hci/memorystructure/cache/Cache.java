@@ -2,23 +2,14 @@ package fr.sciencespo.medialab.hci.memorystructure.cache;
 
 import fr.sciencespo.medialab.hci.memorystructure.index.IndexException;
 import fr.sciencespo.medialab.hci.memorystructure.index.LRUIndex;
-import fr.sciencespo.medialab.hci.memorystructure.thrift.Constants;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.MemoryStructureException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.ObjectNotFoundException;
 import fr.sciencespo.medialab.hci.memorystructure.thrift.PageItem;
-import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntity;
-import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityCreationRule;
-import fr.sciencespo.medialab.hci.memorystructure.thrift.WebEntityStatus;
 import fr.sciencespo.medialab.hci.memorystructure.util.DynamicLogger;
-import fr.sciencespo.medialab.hci.memorystructure.util.StringUtil;
-import fr.sciencespo.medialab.hci.memorystructure.util.LRUUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashSet;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.set.hash.THashSet;
 
@@ -110,59 +101,12 @@ public class Cache {
      */
     public int createWebEntities() throws MemoryStructureException, IndexException {
         logger.trace("createWebEntities");
-        int createdWebEntitiesCount = 0;
         THashSet<String> pageLRUs = new THashSet<String>();
         pageLRUs.addAll(this.pageItems.keySet());
-        THashSet<String> doneLRUPrefixes = new THashSet<String>();
         if(logger.isDebugEnabled()) {
             logger.trace("cache contains # " + pageLRUs.size() + " pages");
         }
-        String LRUPrefix, LRUVariation;
-        WebEntity WEcandidate, existing, existingVariation;
-        THashMap<String, WebEntity> WEcandidates;
-        for(String pageLRU : pageLRUs) {
-            if(logger.isDebugEnabled()) {
-            	logger.trace("createWebEntities for page " + pageLRU);
-            }
-            WEcandidates = lruIndex.findWECandidatesForPageUrl(pageLRU);
-            LRUPrefix = lruIndex.findWERulePrefixForPageUrl(WEcandidates, pageLRU);
-            if (!doneLRUPrefixes.contains(LRUPrefix)) {
-                WEcandidate = WEcandidates.get(LRUPrefix);
-                existing = lruIndex.retrieveWebEntityByLRUPrefix(LRUPrefix);
-
-                // store new webentity in index
-                if (existing == null && WEcandidate != null) {
-                	LRUVariation = LRUUtil.HTTPVariationLRU(LRUPrefix);
-                	if (LRUVariation != null) {
-                        existingVariation = lruIndex.retrieveWebEntityByLRUPrefix(LRUVariation);
-                        if (existingVariation == null) {
-                        	WEcandidate.addToLRUSet(LRUVariation);
-                        }
-                	}
-                	LRUVariation = LRUUtil.HTTPWWWVariationLRU(LRUPrefix);
-                	if (LRUVariation != null) {
-                        existingVariation = lruIndex.retrieveWebEntityByLRUPrefix(LRUVariation);
-                        if (existingVariation == null) {
-                        	WEcandidate.addToLRUSet(LRUVariation);
-                        }
-                	}
-                	LRUVariation = LRUUtil.WWWVariationLRU(LRUPrefix);
-                	if (LRUVariation != null) {
-                        existingVariation = lruIndex.retrieveWebEntityByLRUPrefix(LRUVariation);
-                        if (existingVariation == null) {
-                        	WEcandidate.addToLRUSet(LRUVariation);
-                        }
-                	}
-                	createdWebEntitiesCount++;
-                	if (logger.isDebugEnabled()) {
-                		logger.debug("indexing new webentity for prefix " + LRUPrefix);
-                	}
-                	lruIndex.indexWebEntity(WEcandidate, false, true);
-                }
-                doneLRUPrefixes.add(LRUPrefix);
-            }
-        }
-        return createdWebEntitiesCount;
+        return lruIndex.createWebEntities(pageLRUs);
     }
 
     public void clear() {

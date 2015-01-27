@@ -47,7 +47,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -2222,4 +2221,101 @@ public class LRUIndex {
     	return findWERulePrefixForPageUrl(WEcandidates, pageLRU);
     }
 
+    /**
+     * Creates web entities for a list of pages
+     *
+     * @param pageLRUs a list of LRUs to reindex as hashset of strings
+     * @return number of new web entities
+     * @throws MemoryStructureException hmm
+     * @throws IndexException hmm
+     */
+    public int createWebEntities(THashSet<String> pageLRUs) throws MemoryStructureException, IndexException {
+        int createdWebEntitiesCount = 0;
+        THashSet<String> doneLRUPrefixes = new THashSet<String>();
+        String LRUPrefix, LRUVariation;
+        WebEntity WEcandidate, existing, existingVariation;
+        THashMap<String, WebEntity> WEcandidates;
+        for(String pageLRU : pageLRUs) {
+            if(logger.isDebugEnabled()) {
+            	logger.trace("createWebEntities for page " + pageLRU);
+            }
+            WEcandidates = findWECandidatesForPageUrl(pageLRU);
+            LRUPrefix = findWERulePrefixForPageUrl(WEcandidates, pageLRU);
+            if (!doneLRUPrefixes.contains(LRUPrefix)) {
+                WEcandidate = WEcandidates.get(LRUPrefix);
+                existing = retrieveWebEntityByLRUPrefix(LRUPrefix);
+
+                // store new webentity in index
+                if (existing == null && WEcandidate != null) {
+                	LRUVariation = LRUUtil.HTTPVariationLRU(LRUPrefix);
+                	if (LRUVariation != null) {
+                        existingVariation = retrieveWebEntityByLRUPrefix(LRUVariation);
+                        if (existingVariation == null) {
+                        	WEcandidate.addToLRUSet(LRUVariation);
+                        }
+                	}
+                	LRUVariation = LRUUtil.HTTPWWWVariationLRU(LRUPrefix);
+                	if (LRUVariation != null) {
+                        existingVariation = retrieveWebEntityByLRUPrefix(LRUVariation);
+                        if (existingVariation == null) {
+                        	WEcandidate.addToLRUSet(LRUVariation);
+                        }
+                	}
+                	LRUVariation = LRUUtil.WWWVariationLRU(LRUPrefix);
+                	if (LRUVariation != null) {
+                        existingVariation = retrieveWebEntityByLRUPrefix(LRUVariation);
+                        if (existingVariation == null) {
+                        	WEcandidate.addToLRUSet(LRUVariation);
+                        }
+                	}
+                	createdWebEntitiesCount++;
+                	if (logger.isDebugEnabled()) {
+                		logger.debug("indexing new webentity for prefix " + LRUPrefix);
+                	}
+                	indexWebEntity(WEcandidate, false, true);
+                }
+                doneLRUPrefixes.add(LRUPrefix);
+            }
+        }
+        return createdWebEntitiesCount;
+    }
+
+    /**
+     * Reindex PageItems matching a LRU prefix in order to retro-apply a new creation rule
+     * 
+     * @param prefix
+     * @return number of new web entities
+     * @throws IndexException, IOException
+     */
+    public int reindexPageItemsMatchingLRUPrefix(String prefix) throws IndexException, IOException, MemoryStructureException {
+    	int new_WEs = 0, totalPages, donePages, nextBatch;
+    	ScoreDoc curDoc = null;
+    	THashSet<String> pages;
+    	final Query query = LuceneQueryFactory.getPageItemByLRUPrefixQuery(prefix);
+    	TopDocs lucenePages = indexSearcher.search(query, null, 1);
+        totalPages = lucenePages.totalHits;
+        if (totalPages > 0) {
+            donePages = 0;
+            while (donePages < totalPages) {
+                nextBatch = Math.min(totalPages - donePages, 50000);
+                if (donePages > 0) {
+                    lucenePages = indexSearcher.searchAfter(curDoc, query, null, nextBatch);
+                } else {
+                	lucenePages = indexSearcher.search(query, null, nextBatch);
+                }
+                if (lucenePages.scoreDocs.length == 0) {
+                    break;
+                }
+                pages = new THashSet<String>();
+                for (ScoreDoc doc : lucenePages.scoreDocs) {
+                    donePages++;
+                    curDoc = doc;
+                    pages.add((IndexConfiguration.convertLuceneDocumentToPageItem(indexSearcher.doc(doc.doc)).getLru()));
+                }
+                new_WEs += createWebEntities(pages);
+            }
+        }
+        return new_WEs;
+    }
+    
 }

@@ -149,6 +149,13 @@ void savePageItems(1:list<PageItem> pageItems) throws (1:MemoryStructureExceptio
  */
 list<PageItem> findPageItemsMatchingLRUPrefix(1:string prefix) throws (1:MemoryStructureException me)
 
+/** reindexPageItemsMatchingLRUPrefix
+  * Reindex PageItems matching a LRU prefix in order to retro-apply a new creation rule
+  * @param 1 prefix to reindex
+  * @return an int indicating the number of new webentities created
+ */
+i32 reindexPageItemsMatchingLRUPrefix(1:string prefix) throws (1:MemoryStructureException me)
+
 /** getPrefixForLRU
   * @param 1 pageLRU to applt creationrules to
   * @return a prefix string of the theoretical resulting webentity

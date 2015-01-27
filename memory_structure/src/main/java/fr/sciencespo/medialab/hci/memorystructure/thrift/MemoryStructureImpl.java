@@ -276,6 +276,33 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     }
 
     /**
+     * Reindex PageItems matching a LRU prefix in order to retro-apply a new creation rule
+     *
+     * @return the total of new webentities created
+     */
+    @Override
+    public int reindexPageItemsMatchingLRUPrefix(String prefix) throws MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("findPageItemsMatchingLRUPrefix");
+        }
+        try {
+        	return lruIndex.reindexPageItemsMatchingLRUPrefix(prefix);
+        } catch (IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IOException.class.getName());
+        } catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        } finally {
+            if(logger.isDebugEnabled()) {
+                logger.debug("findPageItemsMatchingLRUPrefix end");
+            }
+        }
+    }
+
+    /**
      * Returns theoretical LRUPrefix for a LRUPage according to WebEntity CreationRules.
      *
      * @return LRUPrefix

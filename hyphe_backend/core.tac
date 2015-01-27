@@ -1009,22 +1009,21 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(format_error("No existing WebEntityCreationRule found for prefix %s." % lru_prefix))
 
     @inlineCallbacks
-    def jsonrpc_add_webentity_creationrule(self, lru_prefix, regexp, corpus=DEFAULT_CORPUS):
+    def jsonrpc_add_webentity_creationrule(self, lru_prefix, regexp, apply_to_existing_pages=False, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         try:
             _, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
         except ValueError as e:
             returnD(format_error(e))
-#        Safe version against choosen force overwrite
-#        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
-#        if lru_prefix in [a.LRU.decode("utf-8") for a in rules]:
-#            returnD(format_error("A CreationRule was already defined for prefix %s" % lru_prefix)
         regexp = creationrules.getPreset(regexp)
         res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(regexp, lru_prefix), corpus=corpus)
         if is_error(res):
             returnD(format_error("Could not save CreationRule %s for prefix %s: %s" % (regexp, prefix, res)))
         self.jsonrpc_get_webentity_creationrules(corpus=corpus)
+        if apply_to_existing_pages:
+            news = yield self.msclients.pool.reindexPageItemsMatchingLRUPrefix(lru_prefix, corpus=corpus)
+            returnD(format_result("Webentity creation rule added and applied: %s new webentities created" % news))
         returnD(format_result("Webentity creation rule added"))
 
     @inlineCallbacks
