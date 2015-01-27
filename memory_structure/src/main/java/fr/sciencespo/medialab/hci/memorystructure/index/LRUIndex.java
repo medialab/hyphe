@@ -30,8 +30,8 @@ import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.SortField;
+//import org.apache.lucene.search.Sort;
+//import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
@@ -1729,9 +1729,11 @@ public class LRUIndex {
 
             final Query linksQuery = LuceneQueryFactory.getNodeLinksModifiedSince(lastTimestamp);
             TopDocs linksResults = indexSearcher.search(linksQuery, null, 1);
+            /* searchAfter in Lucene 3.5 does not allow sorting :( to include when migrating to 4.0
             SortField sortSources = new SortField(IndexConfiguration.FieldName.SOURCE.name(), SortField.STRING, true);
             SortField sortTargets = new SortField(IndexConfiguration.FieldName.TARGET.name(), SortField.STRING, true);
             Sort sort = new Sort(sortSources, sortTargets);
+             */
             totalLinksResults = linksResults.totalHits;
             if (totalLinksResults > 0) {
                 logger.info("Total # of new NodeLinks in index is " + totalLinksResults);

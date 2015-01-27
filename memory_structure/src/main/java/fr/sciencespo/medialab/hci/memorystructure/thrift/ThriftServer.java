@@ -199,7 +199,7 @@ public class ThriftServer {
                     logger.info("Memory Structure shutdown hook");
                     memoryStructureImpl.shutdown();
                 }
-                catch (TException x) {
+                catch (MemoryStructureException x) {
                     logger.error(x.getMessage());
                     x.printStackTrace();
                 }

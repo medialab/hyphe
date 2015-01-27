@@ -123,19 +123,19 @@ string createCache(1:list<PageItem> pageItems) throws (1:MemoryStructureExceptio
  * @param 1 cacheId : id of the cache containing the PageItems to be indexed
  * @return number of indexed PageItems
  */
-i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+i32 indexCache(1:string cacheId) throws (1:MemoryStructureException me)
 
 /** createWebEntitiesFromCache
  * @param 1 cacheId : id of the cache
  * @return number of indexed PageItems
  */
-i32 createWebEntitiesFromCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+i32 createWebEntitiesFromCache(1:string cacheId) throws (1:MemoryStructureException me)
 
 // deleteCache
 /**
  * @param 1 cacheId : id of the cache
  */
-void deleteCache(1:string cacheId) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+void deleteCache(1:string cacheId) throws (1:MemoryStructureException me)
 
 /** savePageItems
  * Saves pages in the index WITHOUT USING THE CACHE.
@@ -157,10 +157,10 @@ list<PageItem> findPageItemsMatchingLRUPrefix(1:string prefix) throws (1:MemoryS
 i32 reindexPageItemsMatchingLRUPrefix(1:string prefix) throws (1:MemoryStructureException me)
 
 /** getPrefixForLRU
-  * @param 1 pageLRU to applt creationrules to
+  * @param 1 pageLRU to apply creationrules to
   * @return a prefix string of the theoretical resulting webentity
  */
-string getPrefixForLRU(1:string prefix) throws (1:MemoryStructureException me)
+string getPrefixForLRU(1:string pageLRU) throws (1:MemoryStructureException me)
 
 
 // -- NODELINKS
@@ -216,7 +216,7 @@ list<WebEntity> getWebEntitiesByIDs(1: list<string> listIDs) throws (1:MemoryStr
 * @param 1 id of the webentity
 * @return a WebEntity Object
 **/
-WebEntity getWebEntity(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+WebEntity getWebEntity(1: string id) throws (1:MemoryStructureException me)
 
 // updateWebEntity
 /**
@@ -236,28 +236,28 @@ void deleteWebEntity(1: WebEntity webEntity) throws (1:MemoryStructureException 
 * @param 1 id of the webentity
 * @return a List of WebEntity Objects
 **/
-list<WebEntity> getWebEntitySubWebEntities(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+list<WebEntity> getWebEntitySubWebEntities(1: string id) throws (1:MemoryStructureException me)
 
 // getWebEntityParentWebEntities: get parent webentities of a webentity
 /**
 * @param 1 id of the webentity
 * @return a List of WebEntity Objects
 **/
-list<WebEntity> getWebEntityParentWebEntities(1: string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+list<WebEntity> getWebEntityParentWebEntities(1: string id) throws (1:MemoryStructureException me)
 
 // getWebEntityPages pages belonging to one webentity
 /**
  * @param 1 id
  * @return a List of Page Objects having urls within the prefixes of the webentity (may be empty)
  */
-list<PageItem> getWebEntityPages(1:string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+list<PageItem> getWebEntityPages(1:string id) throws (1:MemoryStructureException me)
 
 // getWebEntityCrawledPages pages belonging to one webentity which have been crawled
 /**
  * @param 1 id
  * @return a List of Page Objects having urls within the prefixes of the webentity and coming from actual crawls (may be empty)
  */
-list<PageItem> getWebEntityCrawledPages(1:string id) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+list<PageItem> getWebEntityCrawledPages(1:string id) throws (1:MemoryStructureException me)
 
 // getWebEntityNodeLinks: get all NodeLinks for a specific WebEntity
 /**
@@ -265,7 +265,7 @@ list<PageItem> getWebEntityCrawledPages(1:string id) throws (1:MemoryStructureEx
  * @param 2 includeFrontier: boolean to decide whether external links from other webentities to the specific one whoudl be included or not
  * @return a List of NodeLink Objects having source or target within the prefixes of the webentity (may be empty)
  */
-list<NodeLink> getWebentityNodeLinks(1: string webEntityId, 2: bool includeFrontier) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+list<NodeLink> getWebentityNodeLinks(1: string webEntityId, 2: bool includeFrontier) throws (1:MemoryStructureException me)
 
 /** getWebEntityByLRUPrefix
  * @param 1 prefix to search for
@@ -330,7 +330,7 @@ list<WebEntityLink> getWebEntityLinksByWebEntityTarget(1:string id) throws (1:Me
 /**
  * @return the List of WebEntityCreationRules Objects in index
  */
-list<WebEntityCreationRule> getWebEntityCreationRules()
+list<WebEntityCreationRule> getWebEntityCreationRules() throws (1:MemoryStructureException me)
 
 // addWebEntityCreationRule
 /**
@@ -344,7 +344,7 @@ void addWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule) thr
 /**
  * @param 1 webEntityCreationRule : WebEntityCreationRule to delete
  */
-void removeWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule)
+void removeWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule) throws (1:MemoryStructureException me)
 
 
 // -- PRECISIONEXCEPTIONS
@@ -353,19 +353,19 @@ void removeWebEntityCreationRule(1:WebEntityCreationRule webEntityCreationRule)
 /**
  * @return the List of LRU prefixes defining precision exceptions
  */
-list<string> getPrecisionExceptions() throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+list<string> getPrecisionExceptions() throws (1:MemoryStructureException me)
 
 // addPrecisionExceptions: mark LRUs as precision exceptions
 /**
  * @param 1 listLRUs : list of LRUs to add as precision exceptions
  */
-void addPrecisionExceptions(1:list<string> listLRUs) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+void addPrecisionExceptions(1:list<string> listLRUs) throws (1:MemoryStructureException me)
 
 // removePrecisionExceptions: remove LRUs as precision exceptions
 /**
  * @param 1 LRUs : list of LRUs to remove from precision exceptions
  */
-void removePrecisionExceptions(1:list<string> listLRUs) throws (1:MemoryStructureException me, 2:ObjectNotFoundException x)
+void removePrecisionExceptions(1:list<string> listLRUs) throws (1:MemoryStructureException me)
 
 
 }
