@@ -23,6 +23,15 @@ angular.module('hyphe.checkstartpagesController', [])
 
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
 
+    $scope.depthRange = [0,1]
+    api.getCorpusOptions({
+      id: $scope.corpusId
+    }, function(options){
+      $scope.depthRange = Array.apply(0, Array(options.max_depth + 1)).map(function(a,i){return i})
+    }, function(){
+      $scope.status = {message: "Error while getting options", background: 'danger'}
+    })
+
     // Build index
     var list_byId = {}
     $scope.list.forEach(function(obj){
