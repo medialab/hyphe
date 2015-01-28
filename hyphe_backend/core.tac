@@ -1272,6 +1272,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 res = yield self.msclients.pool.deleteWebEntity(WE, corpus=corpus)
                 if is_error(res):
                     returnD(res)
+                yield self.db.update_jobs(corpus, {'webentity_id': WE.id}, {'webentity_id': None, 'previous_webentity_id': WE.id, 'previous_webentity_name': WE.name})
                 self.corpora[corpus]['recent_changes'] += 1
                 self.corpora[corpus]['total_webentities'] -= 1
                 returnD(format_result("webentity %s had no LRUprefix left and was removed." % webentity_id))
@@ -1449,6 +1450,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = self.msclients.sync.deleteWebEntity(old_WE, corpus=corpus)
         if is_error(res):
             returnD(res)
+        yield self.db.update_jobs(corpus, {'webentity_id': old_WE.id}, {'webentity_id': new_WE.id, 'previous_webentity_id': old_WE.id, 'previous_webentity_name': old_WE.name})
         res = self.msclients.sync.updateWebEntity(new_WE, corpus=corpus)
         if is_error(res):
             returnD(res)
@@ -1459,18 +1461,20 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_merge_webentities_into_another(self, old_webentity_ids, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False, corpus=DEFAULT_CORPUS):
         return self.batch_webentities_edit("merge_webentity_into_another", old_webentity_ids, corpus, good_webentity_id, include_tags=include_tags, include_home_and_startpages_as_startpages=include_home_and_startpages_as_startpages, async=False)
 
+    @inlineCallbacks
     def jsonrpc_delete_webentity(self, webentity_id, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
+            returnD(self.parent.corpus_error(corpus))
         WE = self.msclients.sync.getWebEntity(webentity_id, corpus=corpus)
         if is_error(WE):
-            return format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id)
+            returnD(format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id))
         res = self.msclients.sync.deleteWebEntity(WE, corpus=corpus)
         if is_error(res):
-            return res
+            returnD(res)
+        yield self.db.update_jobs(corpus, {'webentity_id': WE.id}, {'webentity_id': None, 'previous_webentity_id': WE.id, 'previous_webentity_name': WE.name})
         self.corpora[corpus]['total_webentities'] -= 1
         self.corpora[corpus]['recent_changes'] += 1
-        return format_result("WebEntity %s (%s) was removed" % (webentity_id, WE.name))
+        returnD(format_result("WebEntity %s (%s) was removed" % (webentity_id, WE.name)))
 
     @inlineCallbacks
     def index_batch(self, page_items, job, corpus=DEFAULT_CORPUS):
