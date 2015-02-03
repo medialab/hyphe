@@ -972,7 +972,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             for prf, regexp in config.get("creationRules", {}).items():
                 for prefix in ["http://%s" % prf, "https://%s" % prf]:
                     lru = urllru.url_to_lru_clean(prefix)
-                    actions.append(self.jsonrpc_add_webentity_creationrule(lru, creationrules.getPreset(regexp), corpus=corpus))
+                    actions.append(self.jsonrpc_add_webentity_creationrule(lru, creationrules.getPreset(regexp, lru), corpus=corpus))
             results = yield DeferredList(actions, consumeErrors=True)
             for bl, res in results:
                 if not bl:
@@ -987,7 +987,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
         if is_error(rules):
             returnD(format_error(rules))
-        results = [{"prefix": r.LRU, "regexp": r.regExp, "name": creationrules.getName(r.regExp)} for r in rules if not prefix or r.LRU == prefix]
+        results = [{"prefix": r.LRU, "regexp": r.regExp, "name": creationrules.getName(r.regExp, r.LRU)} for r in rules if not prefix or r.LRU == prefix]
         if prefix:
             results = results[0]
         else:
@@ -1016,7 +1016,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             _, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
         except ValueError as e:
             returnD(format_error(e))
-        regexp = creationrules.getPreset(regexp)
+        regexp = creationrules.getPreset(regexp, lru_prefix)
         res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(regexp, lru_prefix), corpus=corpus)
         if is_error(res):
             returnD(format_error("Could not save CreationRule %s for prefix %s: %s" % (regexp, prefix, res)))
