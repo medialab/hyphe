@@ -972,7 +972,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             for prf, regexp in config.get("creationRules", {}).items():
                 for prefix in ["http://%s" % prf, "https://%s" % prf]:
                     lru = urllru.url_to_lru_clean(prefix)
-                    actions.append(self.jsonrpc_add_webentity_creationrule(lru, creationrules.getPreset(regexp), corpus))
+                    actions.append(self.jsonrpc_add_webentity_creationrule(lru, creationrules.getPreset(regexp), corpus=corpus))
             results = yield DeferredList(actions, consumeErrors=True)
             for bl, res in results:
                 if not bl:
