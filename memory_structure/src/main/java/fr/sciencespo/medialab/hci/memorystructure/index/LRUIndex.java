@@ -961,7 +961,7 @@ public class LRUIndex {
             throw new IndexException(x.getMessage(), x);
         }
     }
-    
+
     /**
      * Retrieves for a WebEntity the prefix matching a LRU
      * (meaning the WebEntity contains this LRU, returns null otherwise)
@@ -2158,7 +2158,7 @@ public class LRUIndex {
         }
         // Sets LRUs that don't match any CreationRule RegExp to default scheme only entity
         else {
-            LRUPrefix = pageLRU.substring(0, pageLRU.indexOf('|'));
+            LRUPrefix = pageLRU.substring(0, pageLRU.indexOf('|')+1);
             name = Constants.DEFAULT_WEBENTITY;
         }
         WebEntity webEntity = new WebEntity();
@@ -2284,7 +2284,7 @@ public class LRUIndex {
 
     /**
      * Reindex PageItems matching a LRU prefix in order to retro-apply a new creation rule
-     * 
+     *
      * @param prefix
      * @return number of new web entities
      * @throws IndexException, IOException
@@ -2319,5 +2319,5 @@ public class LRUIndex {
         }
         return new_WEs;
     }
-    
+
 }
