@@ -963,7 +963,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             logger.debug("addWebEntityCreationRule");
         }
         try {
-            lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
+            lruIndex.addWebEntityCreationRule(webEntityCreationRule);
             if(logger.isDebugEnabled()) {
                 logger.debug("addWebEntityCreationRule finished indexing webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
             }

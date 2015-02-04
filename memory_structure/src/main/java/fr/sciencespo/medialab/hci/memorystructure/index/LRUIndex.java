@@ -1917,6 +1917,35 @@ public class LRUIndex {
     // WEBENTITYCREATIONRULES
 
     /**
+     * Add or update a WebEntityCreationRule and its variations to the index if they are not already linked to another rule.
+     *
+     * @param webEntityCreationRule
+     * @throws IndexException hmm
+     */
+    public void addWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws IndexException{
+        if(webEntityCreationRule == null) {
+            throw new IndexException("webEntityCreationRule is null");
+        }
+        try {
+            indexWebEntityCreationRule(webEntityCreationRule);
+            String variations[] = {
+                LRUUtil.HTTPVariationLRU(webEntityCreationRule.getLRU()),
+                LRUUtil.HTTPWWWVariationLRU(webEntityCreationRule.getLRU()),
+                LRUUtil.WWWVariationLRU(webEntityCreationRule.getLRU())
+            };
+            for (String LRUVariation : variations) {
+                if (indexSearcher.search(LuceneQueryFactory.getWebEntityCreationRuleByLRUQuery(LRUVariation), null, 1).totalHits == 0) {
+                    indexWebEntityCreationRule(new WebEntityCreationRule(webEntityCreationRule.getRegExp(), LRUVariation,webEntityCreationRule.getCreationDate(), webEntityCreationRule.getLastModificationDate()));
+                }
+            }
+        } catch(IOException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new IndexException(x);
+        }
+    }
+
+    /**
      * Add or update a single WebEntityCreationRule to the index. If the rule's LRU is empty, it is set as the
      * default rule. If there exists already a rule with this rule's LRU, it is updated.
      *
@@ -2234,7 +2263,7 @@ public class LRUIndex {
     public int createWebEntities(THashSet<String> pageLRUs) throws MemoryStructureException, IndexException {
         int createdWebEntitiesCount = 0;
         THashSet<String> doneLRUPrefixes = new THashSet<String>();
-        String LRUPrefix, LRUVariation;
+        String LRUPrefix;
         WebEntity WEcandidate, existing, existingVariation;
         THashMap<String, WebEntity> WEcandidates;
         for(String pageLRU : pageLRUs) {
@@ -2249,25 +2278,17 @@ public class LRUIndex {
 
                 // store new webentity in index
                 if (existing == null && WEcandidate != null) {
-                	LRUVariation = LRUUtil.HTTPVariationLRU(LRUPrefix);
-                	if (LRUVariation != null) {
-                        existingVariation = retrieveWebEntityByLRUPrefix(LRUVariation);
-                        if (existingVariation == null) {
-                        	WEcandidate.addToLRUSet(LRUVariation);
-                        }
-                	}
-                	LRUVariation = LRUUtil.HTTPWWWVariationLRU(LRUPrefix);
-                	if (LRUVariation != null) {
-                        existingVariation = retrieveWebEntityByLRUPrefix(LRUVariation);
-                        if (existingVariation == null) {
-                        	WEcandidate.addToLRUSet(LRUVariation);
-                        }
-                	}
-                	LRUVariation = LRUUtil.WWWVariationLRU(LRUPrefix);
-                	if (LRUVariation != null) {
-                        existingVariation = retrieveWebEntityByLRUPrefix(LRUVariation);
-                        if (existingVariation == null) {
-                        	WEcandidate.addToLRUSet(LRUVariation);
+                    String variations[] = {
+                        LRUUtil.HTTPVariationLRU(LRUPrefix),
+                        LRUUtil.HTTPWWWVariationLRU(LRUPrefix),
+                        LRUUtil.WWWVariationLRU(LRUPrefix)
+                    };
+                    for (String LRUVariation : variations) {
+                        if (LRUVariation != null) {
+                            existingVariation = retrieveWebEntityByLRUPrefix(LRUVariation);
+                            if (existingVariation == null) {
+                                WEcandidate.addToLRUSet(LRUVariation);
+                            }
                         }
                 	}
                 	createdWebEntitiesCount++;
