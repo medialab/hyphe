@@ -370,7 +370,11 @@ angular.module('hyphe.networkController', [])
               return {attr:'attr_'+$.md5(catvalues.cat), val:catvalues.values.join(' | ')}
             }))
           }
+        } else {
+          console.log('Duplicate id in web entities list', we.id)
         }
+      }).filter(function(n){
+        return n!== undefined
       })
       
       $scope.network.edgesAttributes = [
@@ -391,7 +395,6 @@ angular.module('hyphe.networkController', [])
           ]
         }
       })
-
       json_graph_api.buildIndexes($scope.network)
 
       // console.log('Network', $scope.network)
