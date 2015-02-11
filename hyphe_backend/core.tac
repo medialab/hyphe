@@ -567,7 +567,7 @@ class Core(jsonrpc.JSONRPC):
         # collect list of crawling jobs whose outputs is not fully indexed yet
         jobs_in_queue = yield self.db.queue(corpus).distinct('_job')
         # set index finished for jobs with crawling finished and no page left in queue
-        res = yield self.db.list_jobs(corpus, {'crawling_status': crawling_statuses.FINISHED, '$exists': {'crawljob_id': True}})
+        res = yield self.db.list_jobs(corpus, {'crawling_status': crawling_statuses.FINISHED, 'crawljob_id': {'$exists': True}})
         finished_ids = set([job['crawljob_id'] for job in res] + finished_ids)
         res = yield self.db.list_jobs(corpus, {'crawljob_id': {'$in': list(finished_ids-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$nin': [indexing_statuses.BATCH_RUNNING, indexing_statuses.FINISHED]}}, fields=['_id'])
         update_ids = [job['_id'] for job in res]
