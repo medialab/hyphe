@@ -90,7 +90,7 @@
 
                     <tbody>
                       <tr
-                        ng-repeat="obj in items_webentities|sortByField:sort_webentities:sort_asc_webentities track by $index"
+                        ng-repeat="obj in items_webentities|sortByField:sort_webentities:sort_asc_webentities|paginate:items_webentity:pagination_items_per_page track by $index"
                       >
                         <td> <!-- Label column -->
 
@@ -110,6 +110,15 @@
                       </tr>
                     </tbody>
                   </table>
+                  <pagination
+                    ng-if="items_webentities.length > pagination_items_per_page"
+                    ng-model="$parent.items_webentity"
+                    total-items="items_webentities.length"
+                    items-per-page="pagination_items_per_page"
+                    max-size="pagination_max_size"
+                    class="pagination-sm"
+                    boundary-links="true"
+                  ></pagination>
 
                   <!-- TABLE: PREFIX -->
                   <table class="table table-condensed table-explorer" ng-if="items_prefixes.length > 0">
@@ -321,7 +330,7 @@
 
                     <tbody>
                       <tr
-                        ng-repeat="obj in parentWebentities|paginate:items_webentity:pagination_items_per_page track by $index"
+                        ng-repeat="obj in parentWebentities track by $index"
                       >
                         <td><a href="#/project/{{corpusId}}/webentity/{{obj.id}}/explorer">{{obj.name}}</a></td>
                         <td><span ng-repeat="lru in obj.lru_prefixes">{{lru|lru_to_url}}<br/></span></td>
@@ -331,15 +340,6 @@
                       </tr>
                     </tbody>
                   </table>
-                  <pagination
-                    ng-if="items_webentities.length > pagination_items_per_page"
-                    ng-model="$parent.items_webentity"
-                    total-items="items_webentities.length"
-                    items-per-page="pagination_items_per_page"
-                    max-size="pagination_max_size"
-                    class="pagination-sm"
-                    boundary-links="true"
-                  ></pagination>
 
 
                 </div>
