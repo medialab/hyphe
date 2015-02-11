@@ -542,7 +542,7 @@ angular.module('hyphe.webentityController', [])
         count++
       }
       if(count < 3){
-        $scope.status = {message: 'Loading', progress:count*33}
+        $scope.status = {message: 'Loading ' + count + '/3', progress:count*33}
       } else {
         $scope.loading = false
 
