@@ -92,7 +92,6 @@ class MongoDB(object):
         yield self.jobs(corpus).ensure_index(sortasc('webentity_id') + sortdesc('created_at'), background=True, safe=True)
         yield self.jobs(corpus).ensure_index(sortasc('webentity_id') + sortasc("crawling_status") + sortasc("indexing_status") + sortasc('created_at'), background=True, safe=True)
         yield self.jobs(corpus).ensure_index(sortasc('crawling_status') + sortasc('indexing_status') + sortasc('created_at'), background=True, safe=True)
-        yield self.queries(corpus).ensure_index(sortasc('_id'), background=True, safe=True)
         yield self.stats(corpus).ensure_index(sortasc('timestamp'), background=True, safe=True)
 
     def _get_coll(self, corpus, name):
