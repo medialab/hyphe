@@ -19,7 +19,7 @@ class JobsQueue(object):
         self.scrapyd = 'http://%s:%s/' % (config['host'], config['scrapy_port'])
         self.queue = None
         self.depiler = LoopingCall(self.depile)
-        self.depiler.start(0.5, True)
+        self.depiler.start(1, True)
 
     @inlineCallbacks
     def init_queue(self):
@@ -82,7 +82,7 @@ class JobsQueue(object):
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         try:
             res = yield getPage(url, method=method, postdata=arguments, \
-              headers=headers, timeout=10)
+              headers=headers, timeout=30)
             result = loadjson(res)
             returnD(result)
         except ConnectionRefusedError:
