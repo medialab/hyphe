@@ -989,7 +989,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(format_error(rules))
         results = [{"prefix": r.LRU, "regexp": r.regExp, "name": creationrules.getName(r.regExp, r.LRU)} for r in rules if not prefix or r.LRU == prefix]
         if prefix:
-            results = results[0]
+            if results:
+                results = results[0]
+            else:
+                results = None
         else:
             self.corpora[corpus]["creation_rules"] = results
         returnD(format_result(results))
