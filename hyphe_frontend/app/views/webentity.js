@@ -530,7 +530,20 @@ angular.module('hyphe.webentityController', [])
     }
 
     function checkTripleLoading(){
-      if($scope.pages !== undefined && $scope.subWebentities !== undefined && $scope.parentWebentities !== undefined){
+      var count = 0
+
+      if($scope.pages !== undefined){
+        count++
+      }
+      if($scope.subWebentities !== undefined){
+        count++
+      }
+      if($scope.parentWebentities !== undefined){
+        count++
+      }
+      if(count < 3){
+        $scope.status = {message: 'Loading', progress:count*33}
+      } else {
         $scope.loading = false
 
         buildExplorerTree()
