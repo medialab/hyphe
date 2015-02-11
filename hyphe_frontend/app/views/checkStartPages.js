@@ -8,6 +8,9 @@ angular.module('hyphe.checkstartpagesController', [])
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
+    var timeout = 20
+    ,secondaryTimeout = 5
+    
     $scope.lookups = {}
     $scope.secondaryLookups = {}
     
@@ -480,7 +483,8 @@ angular.module('hyphe.checkstartpagesController', [])
           lookupQB.addQuery(
               api.urlLookup                         // Query call
               ,{                                    // Query settings
-                  url:url
+                  url: url
+                  ,timeout: timeout
                 }
               ,function(httpStatus){                // Success callback
                   var lo = $scope.lookups[url]
@@ -669,7 +673,8 @@ angular.module('hyphe.checkstartpagesController', [])
         secondaryLookupQB.addQuery(
           api.urlLookup                         // Query call
           ,{                                    // Query settings
-              url:vurl
+              url: vurl
+              ,timeout: secondaryTimeout
             }
           ,function(httpStatus){                // Success callback
               var slo = $scope.secondaryLookups[url][vurl]
