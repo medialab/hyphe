@@ -298,7 +298,7 @@
                   <div>
                     <form class="form-inline" role="form">
                       <div class="form-group">
-                        <select class="form-control" ng-model="crawlDepth">
+                        <select class="form-control" ng-model="$parent.crawlDepth">
                           <option ng-repeat="depth in depthRange" value="{{depth}}" ng-selected="{{depth == crawlDepth}}">Depth: {{depth}} click{{depth | plural}}</option>
                         </select>
                       </div>
