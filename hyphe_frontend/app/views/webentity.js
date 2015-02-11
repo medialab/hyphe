@@ -293,6 +293,10 @@ angular.module('hyphe.webentityController', [])
     $scope.items_prefixes
     $scope.items_webentities
 
+    $scope.pagination_max_size = 7
+    $scope.pagination_items_per_page = 20
+    $scope.items_page = 1
+
     $scope.sort_pages = 'sortlabel'
     $scope.sort_asc_pages = true
     $scope.sort_folders = 'sortlabel'

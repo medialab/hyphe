@@ -24,7 +24,7 @@
                   <spinner text="'LOADING'"/>
                 </div>
 
-                <div ng-if="!loading">
+                <div ng-if="!loading" class="webentity-explorer">
 
                   <ol class="breadcrumb breadcrumb-subtitled">
 
@@ -245,7 +245,7 @@
 
                     <tbody>
                       <tr
-                        ng-repeat="obj in items_pages|sortByField:sort_pages:sort_asc_pages track by $index"
+                        ng-repeat="obj in items_pages|sortByField:sort_pages:sort_asc_pages|paginate:items_page:pagination_items_per_page track by $index"
                       >
                         <td> <!-- Label column -->
 
@@ -276,6 +276,15 @@
                       </tr>
                     </tbody>
                   </table>
+                  <pagination
+                    ng-if="items_pages.length > pagination_items_per_page"
+                    ng-model="$parent.items_page"
+                    total-items="items_pages.length"
+                    items-per-page="pagination_items_per_page"
+                    max-size="pagination_max_size"
+                    class="pagination-sm"
+                    boundary-links="true"
+                  ></pagination>
 
                   
 

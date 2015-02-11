@@ -893,8 +893,10 @@ textarea.over-error{
 .breadcrumb-subtitled{
   margin-bottom: 0px;
 }
-
-
+/* Web entity explorer */
+.webentity-explorer .pagination{
+  margin-top: -10px;
+}
 
 
 
