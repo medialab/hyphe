@@ -38,6 +38,10 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_FETCH_BY_PREFIX_URL               = 'store.get_webentity_by_lruprefix_as_url'
     API.WEBENTITY_MERGE_INTO                        = 'store.merge_webentity_into_another'
 
+    API.WE_CREATION_RULE_ADD                        = 'store.add_webentity_creationrule'
+    API.WE_CREATION_RULE_REMOVE                     = 'store.delete_webentity_creationrule'
+    API.WE_CREATION_RULE_LIST_GET                   = 'store.get_webentity_creationrules'
+
     API.POTENTIAL_WEBENTITY_CONTAINER_LIST_GET      = 'store.get_lru_definedprefixes'
 
     API.PAGE_LIST_DECLARE                           = 'declare_pages'
@@ -436,6 +440,36 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){return [corpus.getId()]}
       )
 
+    
+    ns.getWECreationRules = buildApiCall(
+        API.WE_CREATION_RULE_LIST_GET
+        ,function(settings){
+          return [
+            settings.prefix    // lru_prefix
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.addWECreationRules = buildApiCall(
+        API.WE_CREATION_RULE_ADD
+        ,function(settings){
+          return [
+            settings.prefix                               // lru_prefix
+            ,settings.regexp                              // Regexp rule
+            ,settings.apply_to_existing_pages || false
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.removeWECreationRules = buildApiCall(
+        API.WE_CREATION_RULE_REMOVE
+        ,function(settings){
+          return [
+            settings.prefix    // lru_prefix
+            ,corpus.getId()
+          ]}
+      )
+
 
     return ns
 
@@ -467,7 +501,7 @@ angular.module('hyphe.service_hyphe_api', [])
         })
           .success(function(data, status, headers, config){
               var target = (data[0] || {}).result
-              if(target){
+              if(target !== undefined){
                 // console.log('[OK]', data)
                 successCallback(target)
               } else {

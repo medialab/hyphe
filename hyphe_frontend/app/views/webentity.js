@@ -293,6 +293,9 @@ angular.module('hyphe.webentityController', [])
     $scope.items_prefixes
     $scope.items_webentities
 
+    $scope.creationRuleLoaded = false
+    $scope.creationRule = null
+
     $scope.pagination_max_size = 7
     $scope.pagination_items_per_page = 20
     $scope.items_page = 1
@@ -409,6 +412,46 @@ angular.module('hyphe.webentityController', [])
       }
     }
 
+    $scope.addWECreationRule = function(){
+      $scope.status = {message: 'Loading'}
+      $scope.loading = true
+
+      api.addWECreationRules({
+          prefix: currentNode.lru
+          ,regexp: 'prefix+1'
+          ,apply_to_existing_pages: true
+        }
+        ,function(result){
+
+          $scope.status = {message: ''}
+          $scope.loading = false
+          updateExplorer()
+        }
+        ,function(){
+          $scope.status = {message: 'Error adding creation rule', background: 'danger'}
+        }
+      )
+    }
+
+    $scope.removeWECreationRule = function(){
+      $scope.status = {message: 'Loading'}
+      $scope.loading = true
+
+      api.removeWECreationRules({
+          prefix: currentNode.lru
+        }
+        ,function(result){
+
+          $scope.status = {message: ''}
+          $scope.loading = false
+          updateExplorer()
+        }
+        ,function(){
+          $scope.status = {message: 'Error removing creation rule', background: 'danger'}
+        }
+      )
+    }
+
     // Functions
     function fetchWebentity(id){
 
@@ -422,7 +465,10 @@ angular.module('hyphe.webentityController', [])
           $scope.webentity = result[0]
           $scope.webentity.loading = false
           
+          // Triple loading
           loadPages()
+          loadSubWebentities()
+          loadParentWebentities()
         }
         ,function(){
           $scope.status = {message: 'Error loading web entity', background: 'danger'}
@@ -438,7 +484,7 @@ angular.module('hyphe.webentityController', [])
 
           $scope.pages = result
 
-          loadSubWebentities()
+          checkTripleLoading()
 
         }
         ,function(){
@@ -456,7 +502,7 @@ angular.module('hyphe.webentityController', [])
 
           $scope.subWebentities = result
           
-          loadParentWebentities()
+          checkTripleLoading()
 
         }
         ,function(){
@@ -473,15 +519,41 @@ angular.module('hyphe.webentityController', [])
         ,function(result){
 
           $scope.parentWebentities = result
-          $scope.loading = false
-
-          buildExplorerTree()
-
-          $scope.status = {message: ''}
+          
+          checkTripleLoading()
 
         }
         ,function(){
           $scope.status = {message: 'Error loading sub web entities', background: 'danger'}
+        }
+      )
+    }
+
+    function checkTripleLoading(){
+      if($scope.pages !== undefined && $scope.subWebentities !== undefined && $scope.parentWebentities !== undefined){
+        $scope.loading = false
+
+        buildExplorerTree()
+
+        $scope.status = {message: ''}
+      }
+    }
+
+    function loadWECreationRules(lru){
+
+      $scope.creationRuleLoaded = false
+      
+      api.getWECreationRules({
+          prefix:lru
+        }
+        ,function(result){
+
+          $scope.creationRuleLoaded = true
+          $scope.creationRule = result
+
+        }
+        ,function(){
+          $scope.status = {message: 'Error loading w.e. creation rule', background: 'danger'}
         }
       )
     }
@@ -520,6 +592,9 @@ angular.module('hyphe.webentityController', [])
         // Path
         $scope.path = []
         $scope.pathUrl = ''
+
+        $scope.creationRuleLoaded = true
+        $scope.creationRule = null
 
       } else {
 
@@ -573,6 +648,9 @@ angular.module('hyphe.webentityController', [])
         }
         $scope.pathUrl = utils.LRU_to_URL(currentNode.lru)
         
+        // Web entity creation rule
+        loadWECreationRules(currentNode.lru)
+
       }
 
       // Record path in location
@@ -757,6 +835,9 @@ angular.module('hyphe.webentityController', [])
           break
         case('f'):
           return 'Fragment'
+          break
+        default:
+          return 'Misc.'
           break
       }
     }
