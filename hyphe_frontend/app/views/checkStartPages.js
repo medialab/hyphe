@@ -8,6 +8,9 @@ angular.module('hyphe.checkstartpagesController', [])
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
+    var timeout = 20
+    ,secondaryTimeout = 5
+    
     $scope.lookups = {}
     $scope.secondaryLookups = {}
     
@@ -480,7 +483,8 @@ angular.module('hyphe.checkstartpagesController', [])
           lookupQB.addQuery(
               api.urlLookup                         // Query call
               ,{                                    // Query settings
-                  url:url
+                  url: url
+                  ,timeout: timeout
                 }
               ,function(httpStatus){                // Success callback
                   var lo = $scope.lookups[url]
@@ -567,8 +571,30 @@ angular.module('hyphe.checkstartpagesController', [])
           }
         }
 
+        // If no prefix is valid, we try to find the redirections
+        if(successfulVariations.length == 0){
+          for(var invurl in $scope.secondaryLookups[obj.id]){
+            var slo = $scope.secondaryLookups[obj.id][invurl]
+            if(!!(''+slo.status).match(/30./gi)){ // If code 30x, redirection, we keep
+              successfulVariations.push(invurl)
+            }
+          }
+        }
+
+        // If still nothing, just add the shortest prefix
+        if(successfulVariations.length == 0){
+          for(var invurl in $scope.secondaryLookups[obj.id]){
+            if(successfulVariations.length == 0){
+              successfulVariations = [invurl]
+            } else if(invurl.length < successfulVariations[0].length){
+              successfulVariations = [invurl]
+            }
+          }
+        }
+
         if(successfulVariations.length == 0){
           // The lookup failed
+          obj_setStatus(obj, 'loaded')
           obj_setSummaryStatus(obj, 'warning')
           obj.collapsed = false
         } else {
@@ -577,8 +603,8 @@ angular.module('hyphe.checkstartpagesController', [])
 
           successfulVariations.forEach(function(url){
             batchAddStartPages.addQuery(
-              api.addStartPage                         // Query call
-              ,{                                      // Query settings
+              api.addStartPage                      // Query call
+              ,{                                    // Query settings
                   webentityId: obj.webentity.id
                   ,url:url
                 }
@@ -647,7 +673,8 @@ angular.module('hyphe.checkstartpagesController', [])
         secondaryLookupQB.addQuery(
           api.urlLookup                         // Query call
           ,{                                    // Query settings
-              url:vurl
+              url: vurl
+              ,timeout: secondaryTimeout
             }
           ,function(httpStatus){                // Success callback
               var slo = $scope.secondaryLookups[url][vurl]
