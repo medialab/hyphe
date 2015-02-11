@@ -50,6 +50,18 @@
                     <p><small class="text-muted">{{pathUrl}} <a href="{{pathUrl}}" class="btn btn-link btn-xs" target="_blank"><span class="glyphicon glyphicon-share-alt"></span></a></small></p>
 
                     <button class="btn btn-default btn-sm" ng-click="goToParent()"><span class="glyphicon glyphicon-circle-arrow-left"></span> BACK</button>
+                    
+                    <button
+                      class="btn btn-default btn-sm pull-right"
+                      ng-if="creationRuleLoaded && creationRule == null"
+                      ng-click="addWECreationRule()"
+                    >ADD A RULE TO SPLIT THIS IN DIFFERENT WEB ENTITIES</button>
+
+                    <button
+                      class="btn btn-default btn-sm pull-right btn-warning"
+                      ng-if="creationRuleLoaded && creationRule != null"
+                      ng-click="removeWECreationRule()"
+                    >REMOVE WEB ENTITY CREATION RULE</button>
                   </div>
 
                   <br>
