@@ -32,13 +32,17 @@ else
   apache_pack='httpd'
   java='java-1.6.0-openjdk'
 fi
+echo "Log available in install.log"
 echo "-----------------------"
+echo
 
 # Install possible missing packages
 echo "Install dependencies..."
 echo "-----------------------"
 echo
+echo " ...updating sources repositories..."
 sudo $repos_tool $repos_updt > /dev/null || isCentOS || exitAndLog install.log "updating repositories sources list"
+echo " ...installing packages..."
 sudo $repos_tool -y install curl wget git python-pip $packages $apache_pack >> install.log || exitAndLog install.log "installing packages"
 if isCentOS; then
   pip > /dev/null || alias pip="python-pip"
@@ -50,7 +54,7 @@ echo
 # Check SELinux
 if test -x /usr/sbin/sestatus && sestatus | grep "enabled" > /dev/null; then
   echo "WARNING: SELinux is enabled on your machine and may cause issues with mongo, twisted and thrift"
-  echo "info on issues with MongoDB can be found here http://docs.mongodb.org/manual/tutorial/install-mongodb-on-red-hat-centos-or-fedora-linux/#run-mongodb"
+  echo "info on issues with MongoDB can be found herehttp://docs.mongodb.org/manual/tutorial/install-mongodb-on-red-hat-centos-or-fedora-linux/#run-mongodb" 
   echo
 fi
 
@@ -60,6 +64,7 @@ echo "--------------------------"
 echo
 if isCentOS; then
   if ! which mongod > /dev/null 2>&1 && ! test -f /etc/yum.repos.d/mongodb.repo; then
+    echo " ...preparing Mongo repository..."
     echo "[mongodb]
 name=MongoDB Repository
 baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64/
@@ -71,8 +76,8 @@ else
   sudo cp /etc/apt/sources.list{,.hyphebackup-`date +%Y%m%d-%H%M`}
   # Prepare MongoDB install
   if ! which mongod > /dev/null 2>&1 ; then
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-    curl -s http://docs.mongodb.org/10gen-gpg-key.asc | sudo apt-key add -
+    echo " ...preparing Mongo repository..."
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10 >> install.loga 2>&1 || exitAndLog install.log "downloading Mongo GPG key"
     if ! grep "downloads-distro.mongodb.org" /etc/apt/sources.list > /dev/null; then
       cp /etc/apt/sources.list /tmp/sources.list
       echo >> /tmp/sources.list
@@ -83,14 +88,18 @@ else
   fi
   # Prepare ScrapyD install
   if ! which scrapyd > /dev/null 2>&1 && ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 627220E7
-    cp /etc/apt/sources.list /tmp/sources.list
-    echo >> /tmp/sources.list
-    echo "# SCRAPYD repository, automatically added by Hyphe's install" >> /tmp/sources.list
-    echo "deb http://archive.scrapy.org/ubuntu scrapy main" >> /tmp/sources.list
-    sudo mv /tmp/sources.list /etc/apt/sources.list
+    echo " ...preparing ScrapyD repository..."
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 627220E7 >> install.log 2>&1 || exitAndLog install.log "downloading Scrapy GPG key"
+    if ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
+      cp /etc/apt/sources.list /tmp/sources.list
+      echo >> /tmp/sources.list
+      echo "# SCRAPYD repository, automatically added by Hyphe's install" >> /tmp/sources.list
+      echo "deb http://archive.scrapy.org/ubuntu scrapy main" >> /tmp/sources.list
+      sudo mv /tmp/sources.list /etc/apt/sources.list
+    fi
   fi
 fi
+echo " ...updating sources repositories..."
 sudo $repos_tool $repos_updt >> install.log || isCentOS || exitAndLog install.log "updating repositories sources list"
 echo
 
@@ -105,7 +114,6 @@ if ! which mongod > /dev/null 2>&1 ; then
     sudo chkconfig mongod on
     sudo service mongod restart || exitAndLog install.log "starting MongoDB"
   fi
-  echo
 fi
 
 # Install ScrapyD
@@ -116,6 +124,7 @@ if isCentOS; then
   python -c "import scrapy" > /dev/null 2>&1
   if [ $? -ne 0 ]; then
     pyversion=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
+    echo " ...installing Scrapy for $pyversion..."
     if [ "$pyversion" == "2.6" ]; then
       sudo pip -q install Scrapy==0.18 >> install.log || exitAndLog install.log "installing Scrapy"
     else
@@ -125,7 +134,9 @@ if isCentOS; then
   # Under CentOS, use homemade ScrapyD RPM until officially validated and published
   # Use sudo rpm -e scrapyd to remove
   if ! which scrapyd > /dev/null 2>&1 ; then
+    echo " ...downloading homemade RPM for CentOS..."
     wget -q https://github.com/medialab/scrapyd/raw/medialab/rpms/scrapyd-1.0.1-2.el6.x86_64.rpm
+    echo " ...installing RPM package..."
     sudo rpm -i scrapyd-1.0.1-2.el6.x86_64.rpm >> install.log || exitAndLog install.log "installing ScrapyD"
     rm -f scrapyd-1.0.1-2.el6.x86_64.rpm
   fi
@@ -150,7 +161,10 @@ echo
 
 # Install local PhantomJS
 if ! test -f bin/hyphe-phantomjs-2.0.0; then
+  echo "Install PhantomJS..."
+  echo "---------------------"
   ./bin/install_phantom.sh >> install.log || exitAndLog install.log "installing PhantomJS"
+  echo
 fi
 
 # Install JAVA if necessary
@@ -166,7 +180,7 @@ if ! test -d hyphe_backend/memorystructure; then
   echo "Install from source requires Thrift & Maven install to build Lucene Java server and Python API"
   echo "Trying now. Please install from releases for faster install or to avoid this"
   if ! which thrift > /dev/null 2>&1 || ! which mvn > /dev/null 2>&1 ; then
-    ./bin/install_thrift.sh >> install.log || exitAndLog install.log "installing Thrift"
+    ./bin/install_thrift.sh 2> install.log || exitAndLog install.log "installing Thrift"
   fi
   if isCentOS; then
     source /etc/profile.d/maven.sh
@@ -176,8 +190,15 @@ if ! test -d hyphe_backend/memorystructure; then
 fi
 
 # Install txmongo and selenium as global dependencies for ScrapyD spiders to be able to use it
+echo "Install txMongo"
+echo "---------------"
 sudo pip -q install "txmongo>=0.5" >> install.log || exitAndLog install.log "installing txmongo"
+echo
+
+echo "Install Selenium"
+echo "---------------"
 sudo pip -q install "selenium==2.42.1" >> install.log || exitAndLog install.log "installing selenium"
+echo
 
 # Install Hyphe's VirtualEnv
 echo "Install VirtualEnv..."
@@ -188,22 +209,25 @@ sudo pip -q install virtualenvwrapper >> install.log || exitAndLog install.log "
 source $(which virtualenvwrapper.sh)
 mkvirtualenv --no-site-packages hyphe
 workon hyphe
+echo "...installing python dependencies..."
 pip install -r requirements.txt >> install.log || exitAndLog install.log "installing python dependencies"
 add2virtualenv $(pwd)
 deactivate
 echo
 
-mkdir -p log lucene-data
+# Prepare default config
 echo "Prepare config and install Apache virtualhost..."
-
-# Copy default config
 echo "------------------------------------------------"
 echo
-cp hyphe_frontend/app/conf/conf{_default,}.js
+echo "...create directories..."
+mkdir -p log lucene-data
+echo "...copy backend and frontend default configs..."
 sed "s|##HYPHEPATH##|"`pwd`"|" config/config.json.example > config/config.json || exitAndLog install.log "configuring hyphe"
+cp hyphe_frontend/app/conf/conf{_default,}.js
 
-# Prepare apache config
+# apache config
 apache_name="hyphe"
+echo "...configuring apache..."
 sed "s|##WEBPATH##|$apache_name|" hyphe_frontend/app/conf/conf_default.js > hyphe_frontend/app/conf/conf.js || exitAndLog install.log "configuring frontend"
 
 if ! grep "$(pwd)/hyphe_frontend" /etc/$apache_path/$apache_name*.conf > /dev/null 2>&1; then
@@ -218,11 +242,13 @@ if ! grep "$(pwd)/hyphe_frontend" /etc/$apache_path/$apache_name*.conf > /dev/nu
   sudo ln -s `pwd`/config/apache2.conf /etc/$apache_path/$apache_name.conf || exitAndLog install.log "installing $apache_name configuration"
 fi
 if ! isCentOS; then
+  echo "...activating mod proxy for apache..."
   sudo a2ensite "$apache_name".conf || exitAndLog install.log "activating apache config"
   sudo a2enmod proxy
   sudo a2enmod proxy_http
 else
   if ! grep "^\s*LoadModule.*mod_proxy_http" /etc/httpd/conf/httpd.conf > /dev/null; then
+    echo
     echo "WARNING: apache/httpd's mod_proxy and mod_proxy_http need to be activated for Hyphe to work. It usually is by default on CentOS but appears not here. Please do so and restart apache."
     echo "You should then be all set to run \"bin/hyphe start\" and access it at http://localhost/$apache_name"
     echo
@@ -232,6 +258,7 @@ fi
 sudo service $apache reload
 echo
 if curl -sL http://localhost/$apache_name/ | grep '403 Forbidden' > /dev/null 2>&1; then
+  echo
   echo "WARNING: apache/httpd says FORBIDDEN, read access (r+x) to $(pwd) must be opened to the \"apache|httpd|www-data\" group"
   echo "sudo chmod -R g+rx DIR; sudo chown -R :apache DIR"
   echo "If you installed from a /home directory, you may need to do this to your /home/<USER> dir"

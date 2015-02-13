@@ -2,9 +2,11 @@ exitAndLog() {
   echo
   echo "ERROR while $2"
   echo
-  echo "---------------------"
-  cat "$1"
-  echo
+  if [ "$1" != /dev/null ]; then 
+    echo "---------------------"
+    echo "Read $1 to find out what happened"
+    echo
+  fi
   exit 1
 }
 
