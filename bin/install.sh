@@ -271,5 +271,5 @@ fi
 
 echo "Installation complete!"
 echo "----------------------"
-echo "You can now run bash \"bin/hyphe start\" and access Hyphe at http://localhost/$apache_name"
+echo "You can now run \"bin/hyphe start\" and access Hyphe at http://localhost/$apache_name"
 echo
