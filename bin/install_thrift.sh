@@ -27,22 +27,22 @@ fi
 if ! which thrift > /dev/null 2>&1; then
   echo "Install Thrift..."
   echo "## Install Thrift"
-  echo "...downloading..."
+  echo " ...downloading..."
   wget -q http://archive.apache.org/dist/thrift/0.8.0/thrift-0.8.0.tar.gz || exitAndLog /dev/null "[Thrift] download failed"
   tar xf thrift-0.8.0.tar.gz > /dev/null
   rm -rf thrift-0.8.0.tar.gz
   cd thrift-0.8.0
-  echo "...configuring (log in thrift-0.8.0/configure.log)..."
+  echo " ...configuring (log in thrift-0.8.0/configure.log)..."
   ./configure --with-java --without-erlang --without-php > configure.log || exitAndLog configure.log "[Thrift] configure failed"
   if ! grep "Building Java Library.* : yes" configure.log && ! grep "Building Python Library.* : yes" configure.log; then
     echo "[Thrift] configure could not prepare installation for python and java. Read configure.log to find out why"
     exit 1
   fi
-  echo "...building (log in thrift-0.8.0/make.log)..."
+  echo " ...building (log in thrift-0.8.0/make.log)..."
   make > make.log || exitAndLog make.log "[Thrift] make failed"
-  echo "...installing..."
+  echo " ...installing..."
   sudo make install || exitAndLog /dev/null "[Thrift] make install failed"
-  echo "...done."
+  echo " ...done."
   cd ..
 
   echo

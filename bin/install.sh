@@ -209,7 +209,7 @@ sudo pip -q install virtualenvwrapper >> install.log || exitAndLog install.log "
 source $(which virtualenvwrapper.sh)
 mkvirtualenv --no-site-packages hyphe
 workon hyphe
-echo "...installing python dependencies..."
+echo " ...installing python dependencies..."
 pip install -r requirements.txt >> install.log || exitAndLog install.log "installing python dependencies"
 add2virtualenv $(pwd)
 deactivate
@@ -219,15 +219,15 @@ echo
 echo "Prepare config and install Apache virtualhost..."
 echo "------------------------------------------------"
 echo
-echo "...create directories..."
+echo " ...create directories..."
 mkdir -p log lucene-data
-echo "...copy backend and frontend default configs..."
+echo " ...copy backend and frontend default configs..."
 sed "s|##HYPHEPATH##|"`pwd`"|" config/config.json.example > config/config.json || exitAndLog install.log "configuring hyphe"
 cp hyphe_frontend/app/conf/conf{_default,}.js
 
 # apache config
 apache_name="hyphe"
-echo "...configuring apache..."
+echo " ...configuring apache..."
 sed "s|##WEBPATH##|$apache_name|" hyphe_frontend/app/conf/conf_default.js > hyphe_frontend/app/conf/conf.js || exitAndLog install.log "configuring frontend"
 
 if ! grep "$(pwd)/hyphe_frontend" /etc/$apache_path/$apache_name*.conf > /dev/null 2>&1; then
@@ -242,7 +242,7 @@ if ! grep "$(pwd)/hyphe_frontend" /etc/$apache_path/$apache_name*.conf > /dev/nu
   sudo ln -s `pwd`/config/apache2.conf /etc/$apache_path/$apache_name.conf || exitAndLog install.log "installing $apache_name configuration"
 fi
 if ! isCentOS; then
-  echo "...activating mod proxy for apache..."
+  echo " ...activating mod proxy for apache..."
   sudo a2ensite "$apache_name".conf || exitAndLog install.log "activating apache config"
   sudo a2enmod proxy
   sudo a2enmod proxy_http
