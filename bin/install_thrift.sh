@@ -45,5 +45,6 @@ if ! which thrift > /dev/null 2>&1; then
   cd ..
 
   echo
-  echo "Thrift successfully installed for python and java"
+  echo " Thrift successfully installed for python and java"
+  echo
 fi

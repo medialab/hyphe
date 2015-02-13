@@ -185,6 +185,7 @@ if ! test -d hyphe_backend/memorystructure; then
   if isCentOS; then
     source /etc/profile.d/maven.sh
   fi
+  echo " ...building hyphe's Lucene MemoryStructure with Thrift..."
   ./bin/build_thrift.sh >> install.log || exitAndLog install.log "building hyphe's memory structure with Thrift"
   echo
 fi
