@@ -32,8 +32,8 @@ else
   apache_pack='httpd'
   java='java-1.6.0-openjdk'
 fi
-echo "Log available in install.log"
 echo "-----------------------"
+echo "Log available in install.log"
 echo
 
 # Install possible missing packages
@@ -177,10 +177,10 @@ echo
 if ! test -d hyphe_backend/memorystructure; then
   echo "Install Thrift..."
   echo "-----------------"
-  echo "Install from source requires Thrift & Maven install to build Lucene Java server and Python API"
-  echo "Trying now. Please install from releases for faster install or to avoid this"
+  echo " Install from source requires Thrift & Maven install to build Lucene Java server and Python API"
+  echo " Trying now. Please install from releases for faster install or to avoid this"
   if ! which thrift > /dev/null 2>&1 || ! which mvn > /dev/null 2>&1 ; then
-    ./bin/install_thrift.sh 2> install.log || exitAndLog install.log "installing Thrift"
+    ./bin/install_thrift.sh || exitAndLog /dev/null "installing Thrift"
   fi
   if isCentOS; then
     source /etc/profile.d/maven.sh
@@ -243,9 +243,9 @@ if ! grep "$(pwd)/hyphe_frontend" /etc/$apache_path/$apache_name*.conf > /dev/nu
 fi
 if ! isCentOS; then
   echo " ...activating mod proxy for apache..."
-  sudo a2ensite "$apache_name".conf || exitAndLog install.log "activating apache config"
-  sudo a2enmod proxy
-  sudo a2enmod proxy_http
+  sudo a2ensite "$apache_name".conf >> install.log 2>&1 || exitAndLog install.log "activating apache config"
+  sudo a2enmod proxy >> install.log 2>&1 || exitAndLog install.log "activating mod proxy"
+  sudo a2enmod proxy_http >> install.log 2>&1 || exitAndLog install.log "activating mod proxy_http"
 else
   if ! grep "^\s*LoadModule.*mod_proxy_http" /etc/httpd/conf/httpd.conf > /dev/null; then
     echo
