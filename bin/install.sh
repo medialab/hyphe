@@ -256,7 +256,7 @@ else
     exit 1
   fi
 fi
-sudo service $apache reload
+sudo service $apache reload || exitAndLog /dev/null "reloading apache"
 echo
 if curl -sL http://localhost/$apache_name/ | grep '403 Forbidden' > /dev/null 2>&1; then
   echo
