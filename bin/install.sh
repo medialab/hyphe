@@ -59,7 +59,7 @@ echo "Add source repositories..."
 echo "--------------------------"
 echo
 if isCentOS; then
-  if ! which mongod > /dev/null && ! test -f /etc/yum.repos.d/mongodb.repo; then
+  if ! which mongod > /dev/null 2>&1 && ! test -f /etc/yum.repos.d/mongodb.repo; then
     echo "[mongodb]
 name=MongoDB Repository
 baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64/
@@ -70,7 +70,7 @@ enabled=1" > mongodb.repo.tmp
 else
   sudo cp /etc/apt/sources.list{,.hyphebackup-`date +%Y%m%d-%H%M`}
   # Prepare MongoDB install
-  if ! which mongod > /dev/null; then
+  if ! which mongod > /dev/null 2>&1 ; then
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
     curl -s http://docs.mongodb.org/10gen-gpg-key.asc | sudo apt-key add -
     if ! grep "downloads-distro.mongodb.org" /etc/apt/sources.list > /dev/null; then
@@ -82,7 +82,7 @@ else
     fi
   fi
   # Prepare ScrapyD install
-  if ! which scrapyd > /dev/null && ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
+  if ! which scrapyd > /dev/null 2>&1 && ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 627220E7
     cp /etc/apt/sources.list /tmp/sources.list
     echo >> /tmp/sources.list
@@ -95,7 +95,7 @@ sudo $repos_tool $repos_updt >> install.log || isCentOS || exitAndLog install.lo
 echo
 
 # Install MongoDB
-if ! which mongod > /dev/null; then
+if ! which mongod > /dev/null 2>&1 ; then
   echo "Install and start MongoDB..."
   echo "----------------------------"
   echo
@@ -124,7 +124,7 @@ if isCentOS; then
   fi
   # Under CentOS, use homemade ScrapyD RPM until officially validated and published
   # Use sudo rpm -e scrapyd to remove
-  if ! which scrapyd > /dev/null 2>&1; then
+  if ! which scrapyd > /dev/null 2>&1 ; then
     wget -q https://github.com/medialab/scrapyd/raw/medialab/rpms/scrapyd-1.0.1-2.el6.x86_64.rpm
     sudo rpm -i scrapyd-1.0.1-2.el6.x86_64.rpm >> install.log || exitAndLog install.log "installing ScrapyD"
     rm -f scrapyd-1.0.1-2.el6.x86_64.rpm
@@ -199,7 +199,7 @@ echo "Prepare config and install Apache virtualhost..."
 # Copy default config
 echo "------------------------------------------------"
 echo
-cp build/hyphe/hyphe_frontend/app/conf/conf{_default,}.js
+cp hyphe_frontend/app/conf/conf{_default,}.js
 sed "s|##HYPHEPATH##|"`pwd`"|" config/config.json.example > config/config.json || exitAndLog install.log "configuring hyphe"
 
 # Prepare apache config
@@ -232,10 +232,11 @@ fi
 sudo service $apache reload
 echo
 if curl -sL http://localhost/$apache_name/ | grep '403 Forbidden' > /dev/null 2>&1; then
-  echo "WARNING: apache/httpd says FORBIDDEN, read access (r+x) to $(pwd) must be opened to the `apache|httpd|www-data` group"
+  echo "WARNING: apache/httpd says FORBIDDEN, read access (r+x) to $(pwd) must be opened to the \"apache|httpd|www-data\" group"
   echo "sudo chmod -R g+rx DIR; sudo chown -R :apache DIR"
   echo "If you installed from a /home directory, you may need to do this to your /home/<USER> dir"
   echo "Or you can move the current install to another directory (/srv, /opt, ...), give it the rights and reinstall, this should be quick now"
+  echo "You should then be all set to run \"bin/hyphe start\" and access it at http://localhost/$apache_name"
   echo
   exit 1
 fi
