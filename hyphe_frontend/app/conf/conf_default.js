@@ -6,7 +6,7 @@
 
 angular.module('hyphe.conf', [])
 
-  .constant('serverURL', 'http://localhost/hyphe-api/')
+  .constant('serverURL', '/##WEBPATH##-api/')
   .constant('googleAnalyticsId', '')
 
 

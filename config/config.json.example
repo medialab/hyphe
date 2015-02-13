@@ -6,7 +6,7 @@
     "proxy_port": 3128,
     "db_name": "hyphe",
     "scrapy_port" : 6800,
-    "maxdepth" : 2,
+    "maxdepth" : 3,
     "download_delay" : 0.5,
     "max_simul_requests" : 36,
     "max_simul_requests_per_host" : 12
@@ -15,13 +15,13 @@
     "thrift.host": "localhost",
     "thrift.portrange": [13500, 13509],
     "thrift.max_ram": 2560,
-    "lucene.rootpath": "##HCIPATH##/lucene-data",
+    "lucene.rootpath": "##HYPHEPATH##/lucene-data",
     "log.level": "INFO",
     "max_simul_pages_indexing": 100,
     "max_simul_links_indexing": 10000
   },
-  "twisted" : {
-    "port" : 6978
+  "twisted": {
+    "port": 6978
   },
   "precisionLimit": 2,
   "defaultCreationRule": "domain",
@@ -68,6 +68,6 @@
     ]
   },
   "MULTICORPUS": true,
-  "ADMIN_PASSWORD": None,
+  "ADMIN_PASSWORD": null,
   "DEBUG": 0
 }

@@ -1,13 +1,10 @@
 #!/bin/bash
 
-centos=true
-if cat /etc/issue 2> /dev/null | grep -i "debian\|ubuntu" > /dev/null; then
-  centos=false  
-fi
+source bin/common.sh
 
 # Install Java dependencies if required (openJDK6, ant, maven)
 echo "Install Java dependencies"
-if $centos; then
+if isCentOS; then
   sudo yum -y install java-1.6.0-openjdk-devel > /dev/null || ( echo "[java] install failed" && exit 1 )
   sudo yum -y install ant > /dev/null || ( echo "[ant] install failed" && exit 1 )
   # Install Maven from online binary since no yum repository exists

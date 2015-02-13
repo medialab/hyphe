@@ -1,6 +1,6 @@
-# Hyphe / Hypertext Corpus Initiative
+# hyphe: a "research-oriented" web crawler
 
-Welcome to Hyphe: the Hypertext Corpus Initiative (HCI) project, developped by [SciencesPo's médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Equipex project](http://www.sciencespo.fr/dime-shs/).
+Welcome to hyphe: developped by [SciencesPo's médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Equipex project](http://www.sciencespo.fr/dime-shs/).
 
 Hyphe aims at providing a tool to crawl data from the web to generate networks between what we call WebEntities, which can be singles pages as well as a website or a combination of such.
 
@@ -14,6 +14,8 @@ The project relies on the following main components:
  * hyphe_www_client: a JavaScript web interface to constitute and explore web corpuses through the backend API
 
 You can try a restricted version of Hyphe at the following url: [http://hyphe.medialab.sciences-po.fr/demo/](http://hyphe.medialab.sciences-po.fr/demo/)
+
+DISCLAIMER: hyphe has greatly changed between versions 0.1 and 0.2. Although migrating from an older version was insured as best as possible, it is highly recommended to completely reinstall from scratch. Older corpora can be reran by exporting the list of webentities from the old version and recrawl it from that list of urls in the new version.
 
 _Note:_ MongoDB being limited to 2Go databases on 32bit systems, it is recommanded to always install Hyphe on a 64bit machine.
 

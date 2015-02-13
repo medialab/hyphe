@@ -141,7 +141,7 @@ if $START; then
 
   TEST_STARTED=test_core_started_in_log
   TEST_ERROR=test_error_in_core_log
-  TEST_TIME=25
+  TEST_TIME=60
   ts=0
   sleep 0.5
   while [ $ts -lt $TEST_TIME ] && ! $TEST_STARTED; do
