@@ -52,6 +52,12 @@ angular.module('hyphe.exportController', [])
         ,type: 'string'
         ,val: true
       }
+      ,indegree: {
+        name: 'INDEGREE'
+        ,accessor: 'indegree'
+        ,type: 'string'
+        ,val: true
+      }
       ,crawling_status: {
         name: 'CRAWLING STATUS'
         ,accessor: 'crawling_status'
