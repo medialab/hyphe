@@ -3,6 +3,7 @@
 
 import time, random
 import subprocess
+from json import loads as loadjson
 from txjsonrpc import jsonrpclib
 from txjsonrpc.jsonrpc import Introspection
 from txjsonrpc.web import jsonrpc
@@ -70,7 +71,10 @@ class Core(jsonrpc.JSONRPC):
         if request.getHeader("x-forwarded-for"):
             from_ip = " from %s" % request.getHeader("x-forwarded-for")
         if config['DEBUG']:
-            logger.msg(request.content.read(), system="DEBUG - QUERY%s" % from_ip)
+            args = loadjson(request.content.read())
+            if args["method"] in ["start_corpus", "create_corpus"]:
+                args["params"][1] = "********"
+            logger.msg(args, system="DEBUG - QUERY%s" % from_ip)
 # TODO   catch corpus arg here and return corpus_error if needed
         return jsonrpc.JSONRPC.render(self, request)
 
