@@ -7,13 +7,14 @@ source bin/common.sh
 
 if ! isCentOS; then
   if isDebian; then
-    echo "Install for Debian"
-    mongorepo="debian-sysvinit"
-    scrapyd="scrapyd-0.17"
+    echo 'Install for Debian'
+    mongorepo='debian-sysvinit'
+    installer='dpkg'
+    scrapyd='scrapyd_1.0~r0_all.deb'
+    scrapyd_path='https://github.com/medialab/scrapyd/raw/medialab-debian/debs'
   else
-    echo "Install for Ubuntu"
-    mongorepo="ubuntu-upstart"
-    scrapyd="scrapyd"
+    echo 'Install for Ubuntu'
+    mongorepo='ubuntu-upstart'
   fi
   repos_tool='apt-get'
   repos_updt='update'
@@ -31,6 +32,9 @@ else
   apache_path='httpd/conf.d'
   apache_pack='httpd'
   java='java-1.6.0-openjdk'
+  installer='rpm'
+  scrapyd='scrapyd-1.0.1-3.el6.x86_64.rpm'
+  scrapyd_path='https://github.com/medialab/scrapyd/raw/medialab-centos/rpms'
 fi
 echo "-----------------------"
 echo "Log available in install.log"
@@ -120,28 +124,32 @@ fi
 echo "Install and start ScrapyD..."
 echo "----------------------------"
 echo
-if isCentOS; then
+if ! isCentOS && ! isDebian; then
+  sudo apt-get -y install scrapyd >> install.log || exitAndLog install.log "installing ScrapyD"
+else
   python -c "import scrapy" > /dev/null 2>&1
   if [ $? -ne 0 ]; then
     pyversion=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
     echo " ...installing Scrapy for $pyversion..."
-    if [ "$pyversion" == "2.6" ]; then
-      sudo pip -q install Scrapy==0.18 >> install.log || exitAndLog install.log "installing Scrapy"
+    if isDebian; then
+      sudo apt-get -y install scrapy-0.18 >> install.log || exitAndLog install.log "installing Scrapy"
     else
-      sudo pip -q install Scrapy >> install.log || exitAndLog install.log "installing Scrapy"
+      if [ "$pyversion" == "2.6" ]; then
+        sudo pip -q install Scrapy==0.18 >> install.log || exitAndLog install.log "installing Scrapy"
+      else
+        sudo pip -q install Scrapy >> install.log || exitAndLog install.log "installing Scrapy"
+      fi
     fi
   fi
-  # Under CentOS, use homemade ScrapyD RPM until officially validated and published
-  # Use sudo rpm -e scrapyd to remove
+  # Under CentOS & Debian, use homemade ScrapyD RPM & DEB until officially validated and published
+  # Use `sudo rpm -e scrapyd` or `sudo dpkg -r scrapyd` to remove
   if ! which scrapyd > /dev/null 2>&1 ; then
-    echo " ...downloading homemade RPM for CentOS..."
-    wget -q https://github.com/medialab/scrapyd/raw/medialab/rpms/scrapyd-1.0.1-2.el6.x86_64.rpm
-    echo " ...installing RPM package..."
-    sudo rpm -i scrapyd-1.0.1-2.el6.x86_64.rpm >> install.log || exitAndLog install.log "installing ScrapyD"
-    rm -f scrapyd-1.0.1-2.el6.x86_64.rpm
+    echo " ...downloading homemade ScrapyD package $scrapyd..."
+    wget -q "$scrapyd_path/$scrapyd"
+    echo " ...installing package..."
+    sudo $installer -i $scrapyd >> install.log || exitAndLog install.log "installing ScrapyD"
+    rm -f $scrapyd
   fi
-else
-  sudo apt-get -y install $scrapyd >> install.log || exitAndLog install.log "installing ScrapyD"
 fi
 #possible config via : vi config/scrapyd.config
 sudo rm -f /etc/scrapyd/conf.d/100-hyphe
