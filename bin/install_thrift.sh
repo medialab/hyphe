@@ -20,7 +20,8 @@ export PATH=/usr/local/maven/bin:${PATH}" > /tmp/maven.sh
     rm -rf apache-maven-3.1.1*
   fi
 else
-  sudo apt-get -y install build-essential openjdk-6-jdk ant maven > /tmp/javadeps.log || exitAndLog /tmp/javadeps.log "[apt] java dependencies install failed"
+  sudo apt-get -y install build-essential openjdk-6-jdk ant > /tmp/javadeps.log || exitAndLog /tmp/javadeps.log "[apt] java dependencies install failed"
+  sudo apt-get -y install maven > /tmp/javadeps.log 2>&1 || sudo apt-get -y install maven2 > /tmp/javadeps.log || exitAndLog /tmp/javadeps.log "[apt] maven install failed"
 fi
 
 # Install Thrift
