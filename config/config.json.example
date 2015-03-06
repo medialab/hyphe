@@ -63,8 +63,6 @@
     "idle_timeout": 20,
     "ajax_timeout": 15,
     "whitelist_domains": [
-      "facebook.com",
-      "twitter.com"
     ]
   },
   "MULTICORPUS": true,
