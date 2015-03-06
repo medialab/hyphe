@@ -47,7 +47,7 @@ echo
 echo " ...updating sources repositories..."
 sudo $repos_tool $repos_updt > /dev/null || isCentOS || exitAndLog install.log "updating repositories sources list"
 echo " ...installing packages..."
-sudo $repos_tool -y install curl wget git python-pip $packages $apache_pack >> install.log || exitAndLog install.log "installing packages"
+sudo $repos_tool -y install curl wget python-pip $packages $apache_pack >> install.log || exitAndLog install.log "installing packages"
 if isCentOS; then
   pip > /dev/null || alias pip="python-pip"
   sudo chkconfig --levels 235 httpd on || exitAndLog install.log "setting httpd's autoreboot"
@@ -91,7 +91,7 @@ else
     fi
   fi
   # Prepare ScrapyD install
-  if ! which scrapyd > /dev/null 2>&1 && ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
+  if ! isDebian && ! which scrapyd > /dev/null 2>&1 && ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
     echo " ...preparing ScrapyD repository..."
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 627220E7 >> install.log 2>&1 || exitAndLog install.log "downloading Scrapy GPG key"
     if ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
@@ -124,39 +124,35 @@ fi
 echo "Install and start ScrapyD..."
 echo "----------------------------"
 echo
-if ! isCentOS && ! isDebian; then
-  sudo apt-get -y install scrapyd >> install.log || exitAndLog install.log "installing ScrapyD"
-else
-  python -c "import scrapy" > /dev/null 2>&1
-  if [ $? -ne 0 ]; then
-    pyversion=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-    echo " ...installing Scrapy for $pyversion..."
-    if isDebian; then
-      sudo apt-get -y install scrapy-0.18 >> install.log || exitAndLog install.log "installing Scrapy"
-    else
-      if [ "$pyversion" == "2.6" ]; then
-        sudo pip -q install Scrapy==0.18 >> install.log || exitAndLog install.log "installing Scrapy"
-      else
-        sudo pip -q install Scrapy >> install.log || exitAndLog install.log "installing Scrapy"
-      fi
-    fi
-  fi
+if ! which scrapyd > /dev/null 2>&1 ; then
+  if ! isCentOS && ! isDebian; then
+    sudo apt-get -y install scrapyd >> install.log || exitAndLog install.log "installing ScrapyD"
+  else
   # Under CentOS & Debian, use homemade ScrapyD RPM & DEB until officially validated and published
   # Use `sudo rpm -e scrapyd` or `sudo dpkg -r scrapyd` to remove
-  if ! which scrapyd > /dev/null 2>&1 ; then
+    python -c "import scrapy" > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+      echo " ...installing Scrapy..."
+      sudo pip -q install Scrapy==0.18 >> install.log || exitAndLog install.log "installing Scrapy"
+    fi
     echo " ...downloading homemade ScrapyD package $scrapyd..."
-    wget -q "$scrapyd_path/$scrapyd"
+    wget -q "$scrapyd_path/$scrapyd" --no-check-certificate
     echo " ...installing package..."
     sudo $installer -i $scrapyd >> install.log || exitAndLog install.log "installing ScrapyD"
     rm -f $scrapyd
   fi
+else
+  echo "...already installed..."
 fi
+echo "...setting config..."
 #possible config via : vi config/scrapyd.config
 sudo rm -f /etc/scrapyd/conf.d/100-hyphe
 sudo ln -s `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe || exitAndLog install.log "configuring ScrapyD"
 sudo pkill -9 -f scrapyd
-sudo service scrapyd start
+echo "...restarting daemon..."
+sudo service scrapyd start || sudo /etc/init.d/scrapyd start
 # test scrapyd server
+echo "...testing..."
 count=0
 while ! curl -s "http://localhost:6800/listprojects.json" > /dev/null 2>&1 && [ $count -lt 30 ]; do
   sleep 2
