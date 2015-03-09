@@ -21,7 +21,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_STARTPAGE_ADD                     = 'store.add_webentity_startpage'
     API.WEBENTITY_STARTPAGE_REMOVE                  = 'store.rm_webentity_startpage'
 
-    API.WEBENTITY_PREFIX_ADD                        = 'store.add_webentity_lruprefix'
+    API.WEBENTITY_PREFIX_ADD                        = 'store.add_webentity_lruprefixes'
     API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
     
     API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'

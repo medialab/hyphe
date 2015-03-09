@@ -173,32 +173,17 @@ angular.module('hyphe.checkstartpagesController', [])
                     ,smallerVariations: false
                   })
                 
-                var queriesBatcher = new QueriesBatcher()
-                prefixes.forEach(function(prefix){
-                  // Stack the query
-                  queriesBatcher.addQuery(
-                      api.addPrefix                         // Query call
-                      ,{                                    // Query settings
-                          webentityId: obj.webentity.id
-                          ,lru: prefix
-                        }
-                      ,function(){                          // Success callback
-                        }
-                      ,function(data, status, headers){     // Fail callback
-                          $scope.status = {message:'Prefix could not be added', background:'danger'}
-                        }
-                      ,{                                    // Options
-                          label: 'add '+prefix
-                        }
-                    )
-                })
-
-                queriesBatcher.atFinalization(function(list,pending,success,fail){
-                  if(fail.length == 0)
+                // Query call
+                api.addPrefix({                         // Query settings
+                    webentityId: obj.webentity.id
+                    ,lru: prefixes
+                  }
+                  ,function(){                          // Success callback
                     addStartPageAndReload(obj.id, url)
-                })
-
-                queriesBatcher.run()
+                  }
+                  ,function(data, status, headers){     // Fail callback
+                    $scope.status = {message:'Prefix could not be added', background:'danger'}
+                  })
 
               } else if(feedback.task.type == 'merge'){
                 
