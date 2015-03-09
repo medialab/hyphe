@@ -112,7 +112,7 @@
                   </table>
                   <pagination
                     ng-if="items_webentities.length > pagination_items_per_page"
-                    ng-model="$parent.items_webentity"
+                    ng-model="$parent.$parent.items_webentity"
                     total-items="items_webentities.length"
                     items-per-page="pagination_items_per_page"
                     max-size="pagination_max_size"
@@ -239,7 +239,7 @@
                   </table>
                   <pagination
                     ng-if="items_folders.length > pagination_items_per_page"
-                    ng-model="$parent.items_folder"
+                    ng-model="$parent.$parent.items_folder"
                     total-items="items_folders.length"
                     items-per-page="pagination_items_per_page"
                     max-size="pagination_max_size"
@@ -308,7 +308,7 @@
                   </table>
                   <pagination
                     ng-if="items_pages.length > pagination_items_per_page"
-                    ng-model="$parent.items_page"
+                    ng-model="$parent.$parent.items_page"
                     total-items="items_pages.length"
                     items-per-page="pagination_items_per_page"
                     max-size="pagination_max_size"

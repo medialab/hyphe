@@ -316,6 +316,9 @@ angular.module('hyphe.webentityController', [])
 
     $scope.goTo = function(node){
       currentNode = node
+      $scope.items_page = 1
+      $scope.items_folder = 1
+      $scope.items_webentity = 1
       updateExplorer()
     }
 
