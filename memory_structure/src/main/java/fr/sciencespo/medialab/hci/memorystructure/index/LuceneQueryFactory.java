@@ -15,6 +15,7 @@ import org.apache.lucene.queryParser.MultiFieldQueryParser;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -208,11 +209,19 @@ public class LuceneQueryFactory {
     }
 
     protected static Query getWebEntityLinksByWebEntityQuery(String weID) {
+    	final List<String> list = new ArrayList<String>();
+    	list.add(weID);
+    	return getWebEntityLinksByWebEntitiesQuery(list);
+    }
+
+    protected static Query getWebEntityLinksByWebEntitiesQuery(List<String> weIDs) {
         BooleanQuery q = new BooleanQuery();
         q.add(getWebEntityLinksQuery(), BooleanClause.Occur.MUST);
         BooleanQuery q1 = new BooleanQuery();
-        q1.add(new TermQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), weID)), BooleanClause.Occur.SHOULD);
-        q1.add(new TermQuery(new Term(IndexConfiguration.FieldName.TARGET.name(), weID)), BooleanClause.Occur.SHOULD);
+        for (String weID : weIDs) {
+        	q1.add(new TermQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), weID)), BooleanClause.Occur.SHOULD);
+        	q1.add(new TermQuery(new Term(IndexConfiguration.FieldName.TARGET.name(), weID)), BooleanClause.Occur.SHOULD);
+        }
         q.add(q1, BooleanClause.Occur.MUST);
     	return q;
     }
@@ -358,6 +367,22 @@ public class LuceneQueryFactory {
         BooleanQuery q = (BooleanQuery) getLRULinksByWebEntity(typeEqualNodeLink, webEntity, subWebEntities, IndexConfiguration.FieldName.TARGET);
         for(String filterSource : filterSourceLRUs) {
             q.add(new PrefixQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), filterSource)), BooleanClause.Occur.MUST_NOT);
+        }
+        return q;
+    }
+
+    protected static Query getNodeLinksMatchingPrefixesQuery(List<String> prefixes) {
+        BooleanQuery q = new BooleanQuery();
+        q.add(getNodeLinksQuery(), BooleanClause.Occur.MUST);
+        BooleanQuery q1 = new BooleanQuery();
+        for(String lru : prefixes) {
+            q1.add(new PrefixQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), lru)), BooleanClause.Occur.SHOULD);
+            q1.add(new PrefixQuery(new Term(IndexConfiguration.FieldName.TARGET.name(), lru)), BooleanClause.Occur.SHOULD);
+        }
+
+        q.add(q1, BooleanClause.Occur.MUST);
+        if(logger.isDebugEnabled()) {
+            logger.debug("Lucene query: " + q.toString());
         }
         return q;
     }
