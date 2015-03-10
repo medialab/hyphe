@@ -249,6 +249,40 @@ label.btn.btn-default.disabled.active{
 }
 
 
+/* ==========================================================================
+   Dashboard
+   ========================================================================== */
+.dashboard-cells-container{
+  padding: 6px;
+}
+.dashboard-cell{
+  height: 240px;
+  padding:6px;
+  font-family: 'Roboto', sans-serif;
+}
+.dashboard-cell-content{
+  background-color: #EFEBE8;
+  height: 100%;
+  padding: 5px;
+  border: 1px solid #FFF;
+  overflow: hidden;
+}
+.dashboard-cell p.dashboard-cell-title{
+  text-align: center;
+  padding-top: 12px;
+  font-size: 32px;
+  font-weight: 300;
+  color: #ADABA9;
+}
+.dashboard-cell p.dashboard-cell-single-line{
+  text-align: center;
+  padding-top: 16px;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+
+
 
 
 
@@ -896,6 +930,10 @@ textarea.over-error{
 /* Web entity explorer */
 .webentity-explorer .pagination{
   margin-top: -10px;
+}
+.webentity-dashboard-container{
+  margin-left: -12px;
+  margin-right: -12px;
 }
 
 
