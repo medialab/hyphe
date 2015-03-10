@@ -72,7 +72,7 @@ class Core(jsonrpc.JSONRPC):
             from_ip = " from %s" % request.getHeader("x-forwarded-for")
         if config['DEBUG']:
             args = loadjson(request.content.read())
-            if args["method"] in ["start_corpus", "create_corpus"]:
+            if args["method"] in ["start_corpus", "create_corpus"] and len(args["params"]) > 1:
                 args["params"][1] = "********"
             logger.msg(args, system="DEBUG - QUERY%s" % from_ip)
 # TODO   catch corpus arg here and return corpus_error if needed
