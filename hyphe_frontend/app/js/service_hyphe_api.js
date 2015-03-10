@@ -42,6 +42,8 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WE_CREATION_RULE_REMOVE                     = 'store.delete_webentity_creationrule'
     API.WE_CREATION_RULE_LIST_GET                   = 'store.get_webentity_creationrules'
 
+    API.LINKS_RESET                                 = 'store.trigger_links_reset'
+
     API.POTENTIAL_WEBENTITY_CONTAINER_LIST_GET      = 'store.get_lru_definedprefixes'
 
     API.PAGE_LIST_DECLARE                           = 'declare_pages'
@@ -169,6 +171,14 @@ angular.module('hyphe.service_hyphe_api', [])
               settings.url
               ,settings.timeout || 30
               ,corpus.getId()
+            ]}
+      )
+
+    ns.resetLinks = buildApiCall(
+        API.LINKS_RESET
+        ,function(settings){
+          return [
+              corpus.getId()
             ]}
       )
 
