@@ -54,7 +54,6 @@ public class ThriftServer {
         System.setProperty("corpus", corpus);
         logger = new DynamicLogger(ThriftServer.class);
         try {
-            DynamicLogger.setLogLevel("INFO");
             logger.info("starting Thrift server");
             initializeMemoryStructure(args);
             initializeThriftServer();
@@ -146,6 +145,7 @@ public class ThriftServer {
             logger.warn("Using default: log.level is " + logLevel);
         }
         DynamicLogger.setLogLevel(logLevel);
+        logger.info("log.level:" + logLevel);
 
         if (logger.isDebugEnabled()) {
             logger.debug("command line properties take precedence; result is:");
