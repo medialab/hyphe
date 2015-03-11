@@ -210,7 +210,7 @@ public class LuceneQueryFactory {
 
     protected static Query getWebEntityLinksByWebEntityQuery(String weID) {
     	final List<String> list = new ArrayList<String>();
-    	list.add(weID);
+        list.add(weID);
     	return getWebEntityLinksByWebEntitiesQuery(list);
     }
 
@@ -319,7 +319,6 @@ public class LuceneQueryFactory {
      */
     private static BooleanQuery addWebEntityButNotSubWebEntitiesToQuery(BooleanQuery q, IndexConfiguration.FieldName field, WebEntity webEntity, List<WebEntity> subWebEntities) {
         BooleanQuery prefixesMatchQuery = new BooleanQuery();
-        BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
         for(String webEntityPrefix : webEntity.getLRUSet()) {
             prefixesMatchQuery.add(new PrefixQuery(new Term(field.name(), webEntityPrefix)), BooleanClause.Occur.SHOULD);
         }
@@ -379,11 +378,7 @@ public class LuceneQueryFactory {
             q1.add(new PrefixQuery(new Term(IndexConfiguration.FieldName.SOURCE.name(), lru)), BooleanClause.Occur.SHOULD);
             q1.add(new PrefixQuery(new Term(IndexConfiguration.FieldName.TARGET.name(), lru)), BooleanClause.Occur.SHOULD);
         }
-
         q.add(q1, BooleanClause.Occur.MUST);
-        if(logger.isDebugEnabled()) {
-            logger.debug("Lucene query: " + q.toString());
-        }
         return q;
     }
 

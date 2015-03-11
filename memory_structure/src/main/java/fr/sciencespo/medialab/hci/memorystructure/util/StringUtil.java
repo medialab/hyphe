@@ -1,6 +1,8 @@
 package fr.sciencespo.medialab.hci.memorystructure.util;
 
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.lang.String;
 import java.lang.StringBuffer;
@@ -62,6 +64,15 @@ public class StringUtil {
             }
         }
         return longests;
+    }
+
+    public static <T> List<List<T>> chunkArray(List<T> list, int chunksSize) {
+        List<List<T>> chunks = new ArrayList<List<T>>();
+        final int size = list.size();
+        for (int i = 0; i < size; i += chunksSize) {
+            chunks.add(new ArrayList<T>(list.subList(i, Math.min(size, i + chunksSize))));
+        }
+        return chunks;
     }
 
 }

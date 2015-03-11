@@ -30,8 +30,7 @@ import org.apache.lucene.index.TieredMergePolicy;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-//import org.apache.lucene.search.Sort;
-//import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
@@ -45,8 +44,10 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,7 @@ import java.util.regex.Pattern;
 
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.set.hash.THashSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 /**
  *
@@ -163,6 +165,7 @@ public class LRUIndex {
             }
             logger.info("opening Lucene FileSytemDirectory: " + indexDirectory.getAbsolutePath());
             FSDirectory diskDirectory = FSDirectory.open(indexDirectory);
+            BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
             logger.trace("creating IndexWriter");
             this.indexWriter = createIndexWriter(diskDirectory);
             logger.trace("creating IndexReader");
@@ -1724,9 +1727,13 @@ public class LRUIndex {
             NodeLink link; ScoreDoc curDoc = null;
             String id;
 
+            TIntHashSet doneNodeLinks = new TIntHashSet();
             Query linksQuery = LuceneQueryFactory.getNodeLinksModifiedSince(lastTimestamp);
             TopDocs linksResults = indexSearcher.search(linksQuery, null, 1);
             totalLinksResults = linksResults.totalHits;
+            String sourceWEid, targetWEid;
+            WebEntity WE;
+            THashMap<String, THashMap<String, WebEntityLink>> webEntityLinksMap = new THashMap<String, THashMap<String, WebEntityLink>>();
             if (totalLinksResults > 0) {
                 logger.info("Total # of new NodeLinks in index is " + totalLinksResults);
                 processedLinkResults = 0;
@@ -1744,79 +1751,85 @@ public class LRUIndex {
                         processedLinkResults++;
                         curDoc = doc;
                         link = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(doc.doc));
-                        id = mapLRUtoWebEntityId(link.getSourceLRU(), lruToWebEntityMap);
-                        if (id != null) {
-                            WEIdsTodo.add(id);
+                        sourceWEid = mapLRUtoWebEntityId(link.getSourceLRU(), lruToWebEntityMap);
+                        if (sourceWEid != null) {
+                            WEIdsTodo.add(sourceWEid);
                         }
-                        id = mapLRUtoWebEntityId(link.getTargetLRU(), lruToWebEntityMap);
-                        if (id != null) {
-                            WEIdsTodo.add(id);
+                        targetWEid = mapLRUtoWebEntityId(link.getTargetLRU(), lruToWebEntityMap);
+                        if (targetWEid != null) {
+                            WEIdsTodo.add(targetWEid);
                         }
+                        doneNodeLinks.add(doc.hashCode());
+                        addWELink(sourceWEid, targetWEid, link.getWeight(), webEntityLinksMap);
                     }
                 }
             }
         	logger.info("Total # of WebEntities to re-link is " + WEIdsTodo.size() + ". Start processing...");
 
-            String sourceWEid, targetWEid;
-            WebEntity WE;
-            THashMap<String, THashMap<String, WebEntityLink>> webEntityLinksMap = new THashMap<String, THashMap<String, WebEntityLink>>();
             List<String> prefixes = new ArrayList<String>();
             for (String WEid : WEIdsTodo) {
                 WE = retrieveWebEntity(WEid);
 	            if (WE == null || WE.getName() == null || WE.getName().equals(Constants.DEFAULT_WEBENTITY)) {
 	                continue;
 	            }
-	            if(logger.isDebugEnabled()) {
-	                logger.debug("generating webentitylinks for webentity " + WE.getName());
-	            }
-                for (String lru : WE.getLRUSet()) {
-                    prefixes.add(lru);
-	            }
+                prefixes.addAll(WE.getLRUSet());
 	        }
+            Collections.sort(prefixes);
 
-        	linksQuery = LuceneQueryFactory.getNodeLinksMatchingPrefixesQuery(prefixes);
-            linksResults = indexSearcher.search(linksQuery, null, 1);
-            totalLinksResults = linksResults.totalHits;
-            if (totalLinksResults > 0) {
-                processedLinkResults = 0;
-                while (processedLinkResults < totalLinksResults) {
-                    nextBatch = Math.min(totalLinksResults - processedLinkResults, 50000);
-                    if (processedLinkResults > 0) {
-                        linksResults = indexSearcher.searchAfter(curDoc, linksQuery, null, nextBatch);
-                    } else {
-                        linksResults = indexSearcher.search(linksQuery, null, nextBatch);
-                    }
-                    if (linksResults.scoreDocs.length == 0) {
-                        break;
-                    }
-                    for (ScoreDoc doc : linksResults.scoreDocs) {
-                        processedLinkResults++;
-                        curDoc = doc;
-                        link = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(doc.doc));
-                        sourceWEid = mapLRUtoWebEntityId(link.getSourceLRU(), lruToWebEntityMap);
-                        if (sourceWEid == null) {
-                            continue;
+
+            for (List<String> prefixesChunk : StringUtil.chunkArray(prefixes, 500)) {
+
+                linksQuery = LuceneQueryFactory.getNodeLinksMatchingPrefixesQuery(prefixesChunk);
+                linksResults = indexSearcher.search(linksQuery, null, 1);
+                totalLinksResults = linksResults.totalHits;
+                if (totalLinksResults > 0) {
+                    processedLinkResults = 0;
+                    while (processedLinkResults < totalLinksResults) {
+                        nextBatch = Math.min(totalLinksResults - processedLinkResults, 50000);
+                        if (processedLinkResults > 0) {
+                            linksResults = indexSearcher.searchAfter(curDoc, linksQuery, null, nextBatch);
+                        } else {
+                            linksResults = indexSearcher.search(linksQuery, null, nextBatch);
                         }
-                        targetWEid = mapLRUtoWebEntityId(link.getTargetLRU(), lruToWebEntityMap);
-                        if (targetWEid == null) {
-                            continue;
+                        if (linksResults.scoreDocs.length == 0) {
+                            break;
                         }
-                        addWELink(sourceWEid, targetWEid, link.getWeight(), webEntityLinksMap);
+                        for (ScoreDoc doc : linksResults.scoreDocs) {
+                            processedLinkResults++;
+                            curDoc = doc;
+                            if (doneNodeLinks.contains(doc.hashCode())) {
+                                continue;
+                            }
+                            doneNodeLinks.add(doc.hashCode());
+                            link = IndexConfiguration.convertLuceneDocumentToNodeLink(indexSearcher.doc(doc.doc));
+                            sourceWEid = mapLRUtoWebEntityId(link.getSourceLRU(), lruToWebEntityMap);
+                            if (sourceWEid == null) {
+                                continue;
+                            }
+                            targetWEid = mapLRUtoWebEntityId(link.getTargetLRU(), lruToWebEntityMap);
+                            if (targetWEid == null) {
+                                continue;
+                            }
+                            addWELink(sourceWEid, targetWEid, link.getWeight(), webEntityLinksMap);
+                        }
+                    }
+                    if(logger.isDebugEnabled()) {
+                        logger.trace("Processing " + processedLinkResults + " vs " + totalLinksResults + " NodeLinks for batch of 500 prefixes");
                     }
                 }
             }
             if(logger.isDebugEnabled()) {
-            	logger.trace("Deleting preexisting corresponding webentitylinks");
+                logger.trace("Deleting preexisting corresponding webentitylinks");
             }
-            List<String> deleteIDs = new ArrayList<String>();
-        	for (String WEid : WEIdsTodo) {
-        		deleteIDs.add(WEid);
-    		}
-        	final Query deleteQuery = LuceneQueryFactory.getWebEntityLinksByWebEntitiesQuery(deleteIDs);
-    		logger.info("Deleting " + indexSearcher.search(deleteQuery, null, 1).totalHits + "WELinks from " + deleteIDs.size() + " sourceWEs");
-    		deleteObjectsFromQuery(deleteQuery, true);
+            for (List<String> ids : StringUtil.chunkArray(Arrays.asList(WEIdsTodo.toArray(new String[0])), 1000)) {
+                Query deleteQuery = LuceneQueryFactory.getWebEntityLinksByWebEntitiesQuery(ids);
+                if(logger.isDebugEnabled()) {
+                    logger.trace("Deleting " + indexSearcher.search(deleteQuery, null, 1).totalHits + "WELinks for " + ids.size() + " WEs");
+    		    }
+                deleteObjectsFromQuery(deleteQuery, true);
+            }
 
-    		List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
+            List<WebEntityLink> webEntityLinks = new ArrayList<WebEntityLink>();
             if (webEntityLinksMap.size() > 0) {
             	for (THashMap<String, WebEntityLink> tmpMap : webEntityLinksMap.values()) {
             		webEntityLinks.addAll(tmpMap.values());
