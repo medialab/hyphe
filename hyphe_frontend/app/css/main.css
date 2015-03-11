@@ -258,27 +258,58 @@ label.btn.btn-default.disabled.active{
 .dashboard-cell{
   height: 240px;
   padding:6px;
-  font-family: 'Roboto', sans-serif;
 }
 .dashboard-cell-content{
   background-color: #EFEBE8;
   height: 100%;
-  padding: 5px;
   border: 1px solid #FFF;
   overflow: hidden;
 }
-.dashboard-cell p.dashboard-cell-title{
+.dashboard-cell .dashboard-cell-title .glyphicon{
+  top: 4px;
+}
+.dashboard-cell .dashboard-cell-title{
+  font-family: 'Roboto', sans-serif;
   text-align: center;
   padding-top: 12px;
-  font-size: 32px;
+  margin-bottom: 12px;
+  font-size: 24px;
   font-weight: 300;
   color: #ADABA9;
 }
-.dashboard-cell p.dashboard-cell-single-line{
+.dashboard-cell .dashboard-cell-single-line{
   text-align: center;
-  padding-top: 16px;
-  font-size: 28px;
-  font-weight: 400;
+  padding-top: 24px;
+  font-size: 24px;
+}
+.dashboard-cell .dashboard-cell-single-block{
+  padding: 24px 6px 18px 6px;
+  height: 168px;
+  overflow: auto;
+}
+.dashboard-cell .center{
+  text-align: center;
+}
+.dashboard-cell .dashboard-cell-bottom-container{
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+}
+.dashboard-cell .dashboard-cell-bottom{
+  position: relative;
+  left: -50%;
+}
+/* shorter dl-horizontal in dashboard*/
+.dashboard-cell .dl-horizontal dt {
+  width: 120px;
+}
+.dashboard-cell .dl-horizontal dd {
+  margin-left: 140px;
+}
+@media (max-width: 767px) {
+  .dashboard-cell .dl-horizontal dd {
+    margin-left: 0;
+  }
 }
 
 
