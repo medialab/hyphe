@@ -3,6 +3,10 @@ To let you know where we're heading, we describe here Hyphe's evolutions we can 
 
 ## new features we are dreaming about
 
+### tagging User Interface
+
+Also Hyphe can attach tags to web entities, we didn't have time to build the User Interface to tag the web entities.
+
 ### in-context prospection
 Define a way to let the user decide what to do with a web entity while browsing its content.
 We can't do that directly in Hyphe application using iframe because of framebreakers.
