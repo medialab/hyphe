@@ -2,8 +2,8 @@
 
 angular.module('hyphe.webentityController', [])
 
-  .controller('webentity', ['$scope', 'api', 'utils', 'corpus', '$routeParams'
-  ,function($scope, api, utils, corpus, $routeParams) {
+  .controller('webentity', ['$scope', 'api', 'utils', 'corpus', '$routeParams', 'store', '$location'
+  ,function($scope, api, utils, corpus, $routeParams, store, $location) {
     $scope.currentPage = 'webentity'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
@@ -11,6 +11,18 @@ angular.module('hyphe.webentityController', [])
     $scope.explorerActive = false
     
     $scope.webentity = {id:$routeParams.webentityId, loading:true}
+
+    $scope.reCrawl = function(){
+      var webentity = $scope.webentity
+      ,obj = {webentity:webentity}
+      
+      if(webentity !== undefined){
+        store.set('webentities_toCrawl', [obj])
+        $location.path('/project/'+$scope.corpusId+'/checkStartPages')
+      } else {
+        $scope.status = {message:'No Web Entity to send', background:'danger'}
+      }
+    }
 
     // Init
     fetchWebentity($routeParams.webentityId)

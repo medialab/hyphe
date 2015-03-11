@@ -24,101 +24,145 @@
 
                       <div class="col-md-4 col-lg-3 dashboard-cell">
                         <div class="dashboard-cell-content">
-                          <p class="dashboard-cell-title">
+                          <div class="dashboard-cell-title">
                             STATUS
-                          </p>
-                          <p class="dashboard-cell-single-line">
+                          </div>
+                          <div class="dashboard-cell-single-line">
                             {{webentity.status}}
-                          </p>
+                          </div>
+                          <div class="dashboard-cell-bottom-container" ng-if="webentity.status == 'DISCOVERED'">
+                            <div class="dashboard-cell-bottom">
+                              <a
+                                class="btn btn-default btn-sm"
+                                href="#/project/{{corpusId}}/prospect"
+                              >PROSPECT</a>
+                            </div>
+                          </div>
                         </div>
                       </div>
+
                       <div class="col-md-4 col-lg-3 dashboard-cell">
                         <div class="dashboard-cell-content">
-                          <p class="title">
-                            STATUS
-                          </p>
+                          <div class="dashboard-cell-title">
+                            PREFIXES
+                          </div>
+                          <div class="dashboard-cell-single-block">
+                            <ul ng-if="webentity.lru_prefixes.length > 0">
+                              <li ng-repeat="p in webentity.lru_prefixes">{{p|lru_to_url}}</li>
+                            </ul>
+                            <ul ng-if="webentity.lru_prefixes.length == 0">
+                              <li>NO PREFIX</li>
+                            </ul>
+                          </div>
+
+                          <div class="dashboard-cell-bottom-container">
+                            <div class="dashboard-cell-bottom">
+                              <a
+                                class="btn btn-default btn-sm"
+                                href="#/project/{{corpusId}}/webentity/{{webentity.id}}/explorer"
+                              >EXPLORE URLS</a>
+                            </div>
+                          </div>
+
                         </div>
                       </div>
+
                       <div class="col-md-4 col-lg-3 dashboard-cell">
                         <div class="dashboard-cell-content">
-                          <p class="title">
-                            STATUS
-                          </p>
+                          <div class="dashboard-cell-title">
+                            CRAWL
+                          </div>
+                          <div class="dashboard-cell-single-block">
+                            <dl class="dl-horizontal">
+
+                              <dt>Harvesting</dt>
+                              <dd>{{webentity['crawling_status']}}</dd>
+
+                              <dt>Indexing</dt>
+                              <dd>{{webentity['indexing_status']}}</dd>
+
+                            </dl>
+                            <div class="dashboard-cell-bottom-container">
+                              <div class="dashboard-cell-bottom">
+                                <button
+                                  class="btn btn-default btn-sm"
+                                  ng-click="reCrawl()"
+                                ><span class="glyphicon glyphicon-repeat"></span> RECRAWL</button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
+
                       <div class="col-md-4 col-lg-3 dashboard-cell">
                         <div class="dashboard-cell-content">
-                          <p class="title">
-                            STATUS
-                          </p>
+                          <div class="dashboard-cell-title">
+                            START PAGES
+                          </div>
+                          <div class="dashboard-cell-single-block">
+                            <ul ng-if="webentity.startpages.length > 0">
+                              <li ng-repeat="p in webentity.startpages">
+                                {{p}}
+                                <a href="{{p}}" class="btn btn-link btn-xs" target="_blank"><span class="glyphicon glyphicon-share-alt"></span></a>
+                              </li>
+                            </ul>
+                            <ul ng-if="webentity.startpages.length == 0">
+                              <li>NO START PAGE</li>
+                            </ul>
+                          </div>
+
+                          <div class="dashboard-cell-bottom-container">
+                            <div class="dashboard-cell-bottom">
+                              <a
+                                class="btn btn-default btn-sm"
+                                href="#/project/{{corpusId}}/webentity/{{webentity.id}}/explorer"
+                              >EXPLORE URLS</a>
+                            </div>
+                          </div>
+
                         </div>
                       </div>
+
                       <div class="col-md-4 col-lg-3 dashboard-cell">
                         <div class="dashboard-cell-content">
-                          <p class="title">
-                            STATUS
-                          </p>
+                          <div class="dashboard-cell-title">
+                            NETWORK
+                          </div>
+                          <div class="dashboard-cell-single-block">
+                            <dl class="dl-horizontal">
+
+                              <dt>Cited by</dt>
+                              <dd>{{webentity['indegree']}} other entities</dd>
+
+                            </dl>
+                          </div>
                         </div>
                       </div>
+
                       <div class="col-md-4 col-lg-3 dashboard-cell">
                         <div class="dashboard-cell-content">
-                          <p class="title">
-                            STATUS
-                          </p>
+                          <div class="dashboard-cell-title">
+                            TIME
+                          </div>
+                          <div class="dashboard-cell-single-block">
+                            <dl class="dl-horizontal">
+
+                              <dt>Created</dt>
+                              <dd>{{webentity['creation_date']*1000|prettyDate}}</dd>
+
+                              <dt>Last modified</dt>
+                              <dd>{{webentity['last_modification_date']*1000|prettyDate}}</dd>
+
+                            </dl>
+                          </div>
                         </div>
                       </div>
+
 
                     </div>
                   </div>
                 </div>
 
-
-                <!-- DUMMY SUMMARY -->
-                <h3>Dummy Summary</h3>
-
-                <dl class="dl-horizontal">
-
-                  <dt>crawling_status</dt>
-                  <dd>{{webentity['crawling_status']}}</dd>
-
-                  <dt>creation_date</dt>
-                  <dd>{{webentity['creation_date']}}</dd>
-
-                  <dt>homepage</dt>
-                  <dd>{{webentity['homepage']}}</dd>
-
-                  <dt>id</dt>
-                  <dd>{{webentity['id']}}</dd>
-
-                  <dt>indegree</dt>
-                  <dd>{{webentity['indegree']}}</dd>
-
-                  <dt>indexing_status</dt>
-                  <dd>{{webentity['indexing_status']}}</dd>
-
-                  <dt>last_modification_date</dt>
-                  <dd>{{webentity['last_modification_date']}}</dd>
-
-                  <dt>loading</dt>
-                  <dd>{{webentity['loading']}}</dd>
-
-                  <dt>lru_prefixes</dt>
-                  <dd>{{webentity['lru_prefixes']}}</dd>
-
-                  <dt>name</dt>
-                  <dd>{{webentity['name']}}</dd>
-
-                  <dt>startpages</dt>
-                  <dd>{{webentity['startpages']}}</dd>
-
-                  <dt>status</dt>
-                  <dd>{{webentity['status']}}</dd>
-
-                  <dt>tags</dt>
-                  <dd>{{webentity['tags']}}</dd>
-
-                </dl>
-                
               </div>
 
             </div>
