@@ -1665,7 +1665,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if not results[1][0] or is_error(WElinks):
                 returnD(WElinks)
             self.corpora[corpus]['webentities_links'] = WElinks
-            self.rank_webentities(corpus)
+            deferToThread(self.rank_webentities, corpus)
             self.corpora[corpus]['loop_running'] = False
             logger.msg("...ramcached.", system="INFO - %s" % corpus)
         returnD(WEs)
