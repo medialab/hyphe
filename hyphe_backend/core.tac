@@ -1609,7 +1609,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 self.corpora[corpus]['loop_running'] = None
                 returnD(None)
             self.corpora[corpus]['webentities_links'] = res
-            deferToThread(self.rank_webentities ,corpus))
+            deferToThread(self.rank_webentities, corpus)
             self.corpora[corpus]['recent_changes'] = 0
             logger.msg("...processed new WebEntity links in %ss." % (time.time() - s), system="INFO - %s" % corpus)
         self.corpora[corpus]['loop_running'] = None
