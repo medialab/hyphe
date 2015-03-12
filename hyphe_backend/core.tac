@@ -1592,7 +1592,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             self.corpora[corpus]['last_index_loop'] = now_ts()
         # Run linking WebEntities on a regular basis when needed and not overloaded
         s = time.time()
-        if (self.corpora[corpus]['recent_changes'] >= 1 and self.corpora[corpus]['last_links_loop'] + min(600, max(5, self.corpora[corpus]['pages_queued'] * 20 / config['memoryStructure']['max_simul_pages_indexing'])) < s) or (self.corpora[corpus]['recent_changes'] and not self.corpora[corpus]['pages_queued']):
+        if self.corpora[corpus]['recent_changes'] >= 100 or (self.corpora[corpus]['recent_changes'] >= 1 and self.corpora[corpus]['last_links_loop'] + min(600, max(5, self.corpora[corpus]['pages_queued'] * 20 / config['memoryStructure']['max_simul_pages_indexing'])) < s) or (self.corpora[corpus]['recent_changes'] and not self.corpora[corpus]['pages_queued']):
             self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
             self.corpora[corpus]['loop_running_since'] = now_ts()
             yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
