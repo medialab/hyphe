@@ -335,6 +335,14 @@ angular.module('hyphe.services', [])
         ns._fetch()
       }
 
+      ns.abort = function(){
+        ns.list = []
+        ns.aborted = true
+        ns.pending.forEach(function(q){
+          ns._move_pending_to_fail(q)
+        })
+      }
+
       ns._move_pending_to_success = function(query){
         ns.pending = ns.pending
           .filter(function(q){return q.id != query.id})
@@ -361,6 +369,9 @@ angular.module('hyphe.services', [])
                 query.call(
                     query.settings
                     ,function(data, status, headers, config){
+                      if (ns.aborted){
+                        return
+                      }
                       ns._move_pending_to_success(query)
                       query.success(data, status, headers, config)
                       if(query.after){
@@ -370,6 +381,9 @@ angular.module('hyphe.services', [])
                       ns._fetch()
                     }
                     ,function(data, status, headers, config){
+                      if (ns.aborted){
+                        return
+                      }
                       ns._move_pending_to_fail(query)
                       query.fail(data, status, headers, config)
                       if(query.after){
@@ -399,7 +413,7 @@ angular.module('hyphe.services', [])
         } else {
           // No more queries
           if(ns.pending.length == 0){
-            if(ns._atFinalization){
+            if(ns._atFinalization && !ns.aborted){
               ns._atFinalization(ns.list, ns.pending, ns.success, ns.fail)
             }
           }

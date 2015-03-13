@@ -26,6 +26,8 @@ angular.module('hyphe.checkstartpagesController', [])
 
     $scope.list = bootstrapList(store.get('webentities_toCrawl'))
 
+    $scope.queriesBatches = []
+
     $scope.depthRange = [0,1]
     api.getCorpusOptions({
       id: $scope.corpusId
@@ -55,6 +57,7 @@ angular.module('hyphe.checkstartpagesController', [])
 
       var queriesBatcher = new QueriesBatcher()
       ,listToQuery = opt.list || $scope.list
+      $scope.queriesBatches.push(queriesBatcher)
 
       if(opt.skip_when_start_pages_exist){
         listToQuery = listToQuery.filter(function(obj){
@@ -256,6 +259,11 @@ angular.module('hyphe.checkstartpagesController', [])
         .map(cleanObj)
         .filter(function(obj){return obj.webentity.id !== undefined})
       
+      // clear pending requests
+      $scope.queriesBatches.forEach(function(q){
+        q.abort()
+      })
+
       store.set('webentities_toCrawl', list)
       $location.path('/project/'+$scope.corpusId+'/scheduleCrawls')
     }
@@ -464,6 +472,7 @@ angular.module('hyphe.checkstartpagesController', [])
 
       if(unlookedUrls.length > 0){
         var lookupQB = new QueriesBatcher()
+        $scope.queriesBatches.push(lookupQB)
         unlookedUrls.forEach(function(url){
           lookupQB.addQuery(
               api.urlLookup                         // Query call
@@ -520,6 +529,7 @@ angular.module('hyphe.checkstartpagesController', [])
       $scope.secondaryLookups[obj.id] = slo_obj
 
       var secondaryLookupQB = new QueriesBatcher()
+      $scope.queriesBatches.push(secondaryLookupQB)
       prefixes.forEach(function(vurl){
         secondaryLookupQB.addQuery(
           api.urlLookup                         // Query call
@@ -585,6 +595,7 @@ angular.module('hyphe.checkstartpagesController', [])
         } else {
           // Add all successful start pages
           var batchAddStartPages = new QueriesBatcher()
+          $scope.queriesBatches.push(batchAddStartPages)
 
           successfulVariations.forEach(function(url){
             batchAddStartPages.addQuery(
@@ -654,6 +665,7 @@ angular.module('hyphe.checkstartpagesController', [])
       $scope.secondaryLookups[url] = slo_obj
 
       var secondaryLookupQB = new QueriesBatcher()
+      $scope.queriesBatches.push(secondaryLookupQB)
       variations.forEach(function(vurl){
         secondaryLookupQB.addQuery(
           api.urlLookup                         // Query call
