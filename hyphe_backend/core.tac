@@ -701,7 +701,7 @@ class Core(jsonrpc.JSONRPC):
                         noproxy = True
                         tryout = 3
                     if tryout < 5:
-                        if config['DEBUG']:
+                        if config['DEBUG'] == 2:
                             logger.msg("Retry lookup %s %s %s %s" % (method, url, tryout, response.__dict__), system="DEBUG - %s" % corpus)
                         res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
                         returnD(res)
