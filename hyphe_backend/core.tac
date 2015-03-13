@@ -311,6 +311,7 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
         self.corpora[corpus]["last_index_loop"] = corpus_conf['last_index_loop']
         self.corpora[corpus]["last_links_loop"] = corpus_conf['last_links_loop']
+        self.corpora[corpus]["reset"] = False
         if not noloop:
             reactor.callLater(5, self.corpora[corpus]['jobs_loop'].start, 1, False)
         yield self.store._init_loop(corpus, noloop=noloop)
@@ -338,12 +339,17 @@ class Core(jsonrpc.JSONRPC):
     def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS):
         return self.stop_corpus(corpus)
 
+    def stop_loops(self, corpus=DEFAULT_CORPUS):
+        for f in ["stats", "jobs", "index"]:
+            fid = "%s_loop" % f
+            if fid in self.corpora[corpus] and self.corpora[corpus][fid].running:
+                self.corpora[corpus][fid].stop()
+
+
     @inlineCallbacks
     def stop_corpus(self, corpus=DEFAULT_CORPUS, quiet=False):
         if corpus in self.corpora:
-            for f in ["stats_loop", "jobs_loop", "index_loop"]:
-                if f in self.corpora[corpus] and self.corpora[corpus][f].running:
-                    self.corpora[corpus][f].stop()
+            self.stop_loops(corpus)
             if corpus in self.msclients.corpora:
                 yield self.update_corpus(corpus)
                 self.msclients.stop_corpus(corpus, quiet)
@@ -375,7 +381,8 @@ class Core(jsonrpc.JSONRPC):
         returnD(format_result('pong'))
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
-        return self.reinitialize(corpus)
+        if not self.corpora[corpus]['reset']:
+            return self.reinitialize(corpus)
 
     @inlineCallbacks
     def reinitialize(self, corpus=DEFAULT_CORPUS, noloop=False, quiet=False):
@@ -383,20 +390,15 @@ class Core(jsonrpc.JSONRPC):
         if not quiet:
             logger.msg("Resetting corpus...", system="INFO - %s" % corpus)
         if corpus in self.corpora:
-            if self.corpora[corpus]["stats_loop"].running:
-                self.corpora[corpus]["stats_loop"].stop()
-            if self.corpora[corpus]["index_loop"].running:
-                self.corpora[corpus]["index_loop"].stop()
-            if self.corpora[corpus]["jobs_loop"].running:
-                self.corpora[corpus]["jobs_loop"].stop()
+            self.stop_loops(corpus)
         self.init_corpus(corpus)
-        yield self.db.queue(corpus).drop(safe=True)
+        self.corpora[corpus]['reset'] = True
         res = yield self.crawler.reinitialize(corpus, recreate=(not noloop), quiet=quiet)
         if is_error(res):
             logger.msg("Problem while reinitializing crawler... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
         self.init_corpus(corpus)
-        yield self.db.queue(corpus).drop(safe=True)
+
         res = yield self.store.reinitialize(corpus, noloop=noloop, quiet=quiet)
         if is_error(res):
             logger.msg("Problem while reinitializing memory structure... %s" % res, system="ERROR - %s" % corpus)
@@ -520,6 +522,9 @@ class Core(jsonrpc.JSONRPC):
     @inlineCallbacks
     def refresh_jobs(self, corpus=DEFAULT_CORPUS):
         """Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks."""
+        if self.corpora[corpus]['reset']:
+            yield self.db.queue(corpus).drop(safe=True)
+            returnD(None)
         scrapyjobs = yield self.crawler.jsonrpc_list(corpus)
         if is_error(scrapyjobs):
             if not (type(scrapyjobs["message"]) is dict and "status" in scrapyjobs["message"]):
@@ -879,8 +884,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def _init_loop(self, corpus=DEFAULT_CORPUS, noloop=False):
+        if self.corpora[corpus]['reset']:
+            yield self.db.queue(corpus).drop(safe=True)
+
         now = now_ts()
         yield self.handle_index_error(corpus)
+        self.corpora[corpus]['reset'] = False
         self.corpora[corpus]['loop_running'] = None
         self.corpora[corpus]['loop_running_since'] = now
         self.corpora[corpus]['last_WE_update'] = now
@@ -1099,10 +1108,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(self.parent.corpus_error(corpus))
         if not quiet:
             logger.msg("Empty memory structure content", system="INFO - %s" % corpus)
-        if self.corpora[corpus]['stats_loop'].running:
-            self.corpora[corpus]['stats_loop'].stop()
-        if self.corpora[corpus]['index_loop'].running:
-            self.corpora[corpus]['index_loop'].stop()
         res = self.msclients.sync.clearIndex(corpus=corpus)
         if is_error(res):
             returnD(res)
@@ -1557,6 +1562,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def index_batch_loop(self, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus) or self.corpora[corpus]['loop_running']:
             returnD(False)
+        if self.corpora[corpus]['reset']:
+            yield self.db.queue(corpus).drop(safe=True)
+            self.msclients.sync.clearIndex(corpus=corpus)
+            returnD(None)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
         yield self.ramcache_webentities(corpus=corpus, corelinks=(self.corpora[corpus]['webentities_links'] == None))
         crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
@@ -1612,6 +1621,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
             deferToThread(self.rank_webentities, corpus)
             self.corpora[corpus]['recent_changes'] = 0
             logger.msg("...processed new WebEntity links in %ss." % (time.time() - s), system="INFO - %s" % corpus)
+        if self.corpora[corpus]['reset']:
+            res = self.msclients.sync.clearIndex(corpus=corpus)
         self.corpora[corpus]['loop_running'] = None
 
     @inlineCallbacks
