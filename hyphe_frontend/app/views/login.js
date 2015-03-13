@@ -53,7 +53,9 @@ angular.module('hyphe.loginController', [])
       if(!($scope.globalStatus && $scope.globalStatus.ports_left == 0 && !$scope.corpusList_byId[id].ready)){
         $scope.uiMode = 'login'
         $scope.corpus = $scope.corpusList_byId[id]
-        if(!$scope.corpus.password){
+        if(!$scope.corpus){
+          $scope.uiMode = 'default'
+        }else if (!$scope.corpus.password){
           $scope.logIn()
         }
       }
