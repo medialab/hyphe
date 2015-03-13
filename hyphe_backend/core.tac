@@ -826,7 +826,7 @@ class Crawler(jsonrpc.JSONRPC):
         """Cancels a scrapy job with id job_id."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        existing = yield self.db.list_jobs(corpus, {"_id": job_id})
+        existing = yield self.db.list_jobs(corpus, {"crawljob_id": job_id})
         if not existing:
             returnD(format_error("No job found with id %s" % job_id))
         elif existing[0]["crawling_status"] in [crawling_statuses.FINISHED, crawling_statuses.CANCELED, crawling_statuses.RETRIED]:
