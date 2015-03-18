@@ -1039,6 +1039,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.jsonrpc_get_webentity_creationrules(corpus=corpus)
         if apply_to_existing_pages:
             news = yield self.msclients.pool.reindexPageItemsMatchingLRUPrefix(lru_prefix, corpus=corpus)
+            res = yield self.jsonrpc_get_lru_definedprefixes(lru_prefix, corpus=corpus)
+            if not is_error(res):
+                for we in res["result"]:
+                    yield self.jsonrpc_add_webentity_tag_value(we["id"], "CORE", "recrawl_needed", "true", corpus=corpus)
             self.corpora[corpus]['recent_changes'] += 1
             returnD(format_result("Webentity creation rule added and applied: %s new webentities created" % news))
         returnD(format_result("Webentity creation rule added"))

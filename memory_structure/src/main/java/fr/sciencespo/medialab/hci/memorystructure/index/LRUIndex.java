@@ -1772,6 +1772,9 @@ public class LRUIndex {
 	            if (WE == null || WE.getName() == null || WE.getName().equals(Constants.DEFAULT_WEBENTITY)) {
 	                continue;
 	            }
+                if(logger.isDebugEnabled()) {
+                    logger.debug("Regen WELinks for WE " + WE.getName() + " (" + WEid + ")");
+                }
                 prefixes.addAll(WE.getLRUSet());
 	        }
             Collections.sort(prefixes);
