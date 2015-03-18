@@ -274,7 +274,7 @@ class Core(jsonrpc.JSONRPC):
                 res = yield self.create_corpus(corpus, password, noloop=noloop, quiet=quiet)
                 returnD(res)
             returnD(format_error("No corpus existing with ID %s, please create it first!" % corpus))
-        if corpus_conf['password'] and corpus_conf['password'] not in [password, salt(password)] and password != config.get("ADMIN_PASSWORD", None):
+        if corpus_conf['password'] and password != config.get("ADMIN_PASSWORD", None) and corpus_conf['password'] not in [password, salt(password)]:
             returnD(format_error("Wrong auth for password-protected corpus %s" % corpus))
 
         if self.corpus_ready(corpus) or self.msclients.status_corpus(corpus, simplify=True) == "starting":

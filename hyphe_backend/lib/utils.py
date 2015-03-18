@@ -100,6 +100,6 @@ except:
 def salt(passwd):
     if not passwd or not passwd.strip().lower():
         return ""
-    passwd = passwd.strip().lower()
+    passwd = passwd.strip().lower().encode('utf-8')
     return hashlib.sha256(passwd + SALT).hexdigest()
 
