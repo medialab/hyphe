@@ -1,50 +1,56 @@
+Hyphe Roadmap
+=============
 
-To let you know where we're heading, we describe here Hyphe's evolutions we can forsee.
+To let you know where we're heading, we describe here what we have in mind for Hyphe's future evolutions.
 
-## new features we are dreaming about
+## Next features in the pile
 
-### tagging User Interface
-
-Also Hyphe can attach tags to web entities, we didn't have time to build the User Interface to tag the web entities.
-
-### in-context prospection
-Define a way to let the user decide what to do with a web entity while browsing its content.
-We can't do that directly in Hyphe application using iframe because of framebreakers.
-
-Maybe a web browser application or plugin to add a hyphe toolbar ?
-
-### text analysis
-Hyphe keeps the HTML sourcecode of crawled webpages in a mongo database.
-We are interesting in analysing the texts of one Hyphe corpus.
-We developed a small scripts which let you import your hyphe corpus into a solr engin. 
-see [hyphe2solr](http://github.vom/medialab/hyphe2solr)
-
-This experimental script might be developed further to add text search and analysis into hyphe.
-
-### Time
-One of our dream will be to allow longitudinal analysis of web corpora. 
-So far we build one corpus and recrawl it from scratch at different time to do that.
-
-It would be nice to include the concept of web corpus evolution in time in Hyphe.
-An idea to address if we open the big subject of memory structure refactoring (see bellow).
+- Import a webentities corpus and autorecrawl from scratch from a previously exported corpus
+- Stable javascript enabled crawling using new Phantom v2.0
+- Autoprovide each discovered webentity with a main root url and possible startpages
+- Display a webentity's ego network
+- Advanced corpus and crawls settings from the interface (already accesible from the API only)
+- Propose a monitoring tool to identify possibly failed or incomplete crawls
 
 
-## refactoring we have in mind
-Hyphe has already a long story of development. Almost 5 years since the very first idea.
-Part of the software architecture needs some cleaning.
+## New features we are dreaming about
 
-### core API
-We are thinking about dropping the JSON RPC protocol to move to REST for the core API.
-This work would also be the occasion to rethink the API design.
++ A tagging interface:
+Hyphe already permits to catalog webentities with rich tagging (namespace:key=value) through its API, but we didn't have the time to build the dedicated User Interface yet.
 
-### a new crawler ?
-Hyphe uses scrapy for the crawler module.
-Works well but we are experiencing some limitations with scrapyd.
-We are thinking about moving to our own crawler: sandcrawler.
++ In-context prospection:
+At the core of Hyphe's methodology, the web interface's "Prospect" tool aims at easily let the user decide what to do with discovered web entities. Although such prospection work would be greatly eased if it could be done while browsing the pages content at the same time.
+We unfortunately cannot do that directly in Hyphe's website using an iframe because of the many websites using framebreakers to forbid their embedding. Some framebreakers can easily be bypassed, but the main one using the HTTP header "X-Frame-Options" can only be overruled by having the hand on the browser.
+In consequence, we could provide Hyphe as a web browser application or plugin in order to add a Hyphe toolbar allowing such in-place prospection.
 
-### a new memory structure ?
-We chose Lucene as a memory structure on the advices of some web archive colleagus.
-We achieved a good performance with this but we complex querying which doesn't fit nicely in our index-only memory structure..
-One big project we are considering would be to test an other way to store and query Hyphe data.
-Maybe some graph database with built-in lucene index might help us out ?
++ Text-content analysis:
+Since Hyphe keeps the HTML sourcecode of all crawled webpages in a MongoDB database, Hyphe could potentially provide text-analysis for the contents of a webentity or a corpus.
+Until we can integrate this, we already developed a small set of python scripts to easily index the text-content of each webentity of a hyphe corpus into a SolR engine (see [hyphe2solr](http://github.com/medialab/hyphe2solr)).
+This experimental prototype might be developed further or embedded in order to add text search and analysis into Hyphe.
+
++ Time evolution of a corpus:
+One of our dreams would be to allow longitudinal analysis of web corpora though time.
+To do that, we have so far to first build a corpus, then redefine and recrawl it from scratch at different times.
+It would be nice to include the concept of the time evolution of a web corpus in Hyphe.
+The future complete refactoring of the memory structure (see below) might be the good occasion to address this idea.
+
+
+## Refactoring we have in mind
+
+Hyphe already has a long story of development. Almost 5 years have passed since the very first idea. So part of the software's architecture requires some cleaning.
+
++ a new core API?
+We are thinking about dropping the JSON-RPC protocol to move to REST for the core API.
+This work will also be the occasion to clean, refactor and rethink the whole API design.
+
++ a new crawler?
+Hyphe currently relies on Scrapy for its crawling parte.
+It works quite well but we are experiencing problematic limitations in terms of packaging, especially with ScrapyD, for which we had to build homemade Debian & CentOS packages.
+For a better maintainability, we are thinking about switching to our own crawler, still in active development: [sandcrawler](http://github.com/medialab/sandcrawler).
+
++ a new memory structure?
+An important technology challenge to overpass by Hyphe is the storage of a great deal of urls and links between them.
+On the advice of some web archives colleagues, we chose to build the memory structure on the grounds of Lucene, which is great for querying along prefixes.
+We achieved a good performance with this but we also exepriment some limitations in the case of some advanced uses, for instance when dealing with mainly nested webentities/
+One big project we are considering would be to test other ways to store and query Hyphe's data, maybe some graph database engines with built-in Lucene index such as Neo4J might help us out?
 
