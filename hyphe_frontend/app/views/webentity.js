@@ -272,8 +272,10 @@ angular.module('hyphe.webentityController', [])
     }
 
     function killSigma(){
-      $scope.stopSpatialization()
-      $scope.sigmaInstance.kill()
+      if ($scope.sigmaInstance) {
+        $scope.stopSpatialization()
+        $scope.sigmaInstance.kill()
+      }
     }
   }])
 
