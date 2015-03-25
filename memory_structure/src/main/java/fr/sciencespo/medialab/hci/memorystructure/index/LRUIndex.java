@@ -1760,7 +1760,9 @@ public class LRUIndex {
                             WEIdsTodo.add(targetWEid);
                         }
                         doneNodeLinks.add(doc.hashCode());
-                        addWELink(sourceWEid, targetWEid, link.getWeight(), webEntityLinksMap);
+                        if (sourceWEid != null && targetWEid != null) {
+                        	addWELink(sourceWEid, targetWEid, link.getWeight(), webEntityLinksMap);
+                        }
                     }
                 }
             }
@@ -1809,10 +1811,12 @@ public class LRUIndex {
                             if (sourceWEid == null) {
                                 continue;
                             }
+                            WEIdsTodo.add(sourceWEid);
                             targetWEid = mapLRUtoWebEntityId(link.getTargetLRU(), lruToWebEntityMap);
                             if (targetWEid == null) {
                                 continue;
                             }
+                            WEIdsTodo.add(targetWEid);
                             addWELink(sourceWEid, targetWEid, link.getWeight(), webEntityLinksMap);
                         }
                     }
