@@ -61,3 +61,15 @@ You can check the logs in ```log/hyphe-core.log``` and ```log/hyphe-memorystruct
 See doc/serve.md
 
 
+### Contributing
+
+See doc/dev.md
+
+### Licence
+
+LGPL / Cecill-C
+
+Mathieu Jacomy @jacomyma
+Benjamin Ooghe-Tabanou @boogheta
+@medialab
+
