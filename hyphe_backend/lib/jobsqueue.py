@@ -124,7 +124,7 @@ class JobsQueue(object):
         res = yield self.send_scrapy_query('schedule', job["crawl_arguments"])
         ts = now_ts()
         if is_error(res):
-            logger("WARNING: error sending job %s to ScrapyD: %s" % (job, res))
+            logger.msg("WARNING: error sending job %s to ScrapyD: %s" % (job, res))
             self.queue[job_id]['timestamp'] = ts    # let it retry a bit later
         else:
             yield self.db.update_job(job["corpus"], job_id, res['jobid'], ts)
