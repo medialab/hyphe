@@ -906,8 +906,10 @@ public class LRUIndex {
         if (LRUPrefix == null) {
             logger.warn("attempted to retrieve web entity with null lruprefix");
             return null;
+        } else if (StringUtils.isEmpty(LRUPrefix)) {
+            return null;
         } else if(logger.isDebugEnabled()) {
-            logger.debug("retrieveWebEntityByLRUPrefix: " + LRUPrefix);
+            logger.debug(LRUPrefix);
         }
         try {
             Query q = LuceneQueryFactory.getWebEntityByLRUPrefixQuery(LRUPrefix);
@@ -1147,10 +1149,12 @@ public class LRUIndex {
                     } else {
                         prefixLRU = "";
                     }
-                    parent = retrieveWebEntityByLRUPrefix(prefixLRU);
-                    if (parent != null) {
-                        if (!parent.getId().equals(webEntity.getId())) {
-                            parents.add(parent);
+                    if (!StringUtils.isEmpty(prefixLRU)) {
+                        parent = retrieveWebEntityByLRUPrefix(prefixLRU);
+                        if (parent != null) {
+                            if (!parent.getId().equals(webEntity.getId())) {
+                                parents.add(parent);
+                            }
                         }
                     }
                 }
