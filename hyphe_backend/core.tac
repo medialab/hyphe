@@ -898,7 +898,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not noloop:
             reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
             reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
-            reactor.callLater(30, self.corpora[corpus]['stats_loop'].start, 300, True)
+            reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, False)
         yield self.ensureDefaultCreationRuleExists(corpus, quiet=noloop)
 
     @inlineCallbacks
