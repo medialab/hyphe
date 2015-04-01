@@ -75,6 +75,6 @@ Please read the dedicated [Developers documentation](doc/dev.md).
 
 ## Authors
 
-[Mathieu Jacomy](@jacomyma) & [Benjamin Ooghe-Tabanou]@boogheta) @ SciencesPo [médialab](@medialab)
+[Mathieu Jacomy](https://github.com/jacomyma) & [Benjamin Ooghe-Tabanou](https://github.com/boogheta) @ SciencesPo [médialab](https://github.com/medialab)
 
 Discover more projects at [médialab tools](http://tools.medialab.sciences-po.fr/)
