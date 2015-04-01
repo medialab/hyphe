@@ -3,26 +3,33 @@ API documentation
 
 Hyphe relies on a [JsonRPC](http://www.jsonrpc.org/) API that can be controlled easily through the web interface or called directly from a JsonRPC client.
 
-_Note:_ as it relies on the JSON-RPC protocol, it is not quite easy to test the API methods from a browser hacing to send arguments through POST, but you can test directly from the command-line using the dedicated tools, see the [Developpers' documentation](doc/dev.md).
+_Note:_ as it relies on the JSON-RPC protocol, it is not quite easy to test the API methods from a browser (having to send arguments through POST), but you can test directly from the command-line using the dedicated tools, see the [Developpers' documentation](dev.md).
 
 
 ## Default API commands (no namespace)
 
 - __test\_corpus:__
  + _corpus_ (optional, default: "--hyphe--")
- + _msg_ (optional, default: null)
+
+ Returns the current status of corpus: ready/starting/stopped/error.
 
 
 - __list\_corpus:__
+
+ Returns the list of all existing corpora with metas.
 
 
 - __get\_corpus\_options:__
  + _corpus_ (optional, default: "--hyphe--")
 
+ Returns detailed settings of a corpus.
+
 
 - __set\_corpus\_options:__
  + _corpus_ (optional, default: "--hyphe--")
  + _options_ (optional, default: null)
+
+ Updates settings of a corpus according to the keys/values provided in options as a json object. Returns the detailed settings.
 
 
 - __create\_corpus:__
@@ -30,36 +37,50 @@ _Note:_ as it relies on the JSON-RPC protocol, it is not quite easy to test the 
  + _password_ (optional, default: "")
  + _options_ (optional, default: null)
 
+ Creates a corpus with the chosen name and optionally password and options (as a json object). Returns the corpus generated id and its status.
+
 
 - __start\_corpus:__
  + _corpus_ (optional, default: "--hyphe--")
  + _password_ (optional, default: "")
 
+ Starts an existing corpus possibly password-protected. Returns the new corpus status.
+
 
 - __stop\_corpus:__
  + _corpus_ (optional, default: "--hyphe--")
+
+ Stops an existing and running corpus. Returns the new corpus status.
 
 
 - __ping:__
  + _corpus_ (optional, default: null)
  + _timeout_ (optional, default: 3)
 
+ Tests during timeout seconds whether an existing corpus is started. Returns pong on success or the corpus status otherwise.
+
 
 - __reinitialize:__
  + _corpus_ (optional, default: "--hyphe--")
 
- Reinitializes both crawl jobs and memory structure.
+ Resets completely a corpus by cancelling all crawls and emptying the MemoryStructure and Mongo data.
 
 
 - __destroy\_corpus:__
  + _corpus_ (optional, default: "--hyphe--")
 
+ Resets a corpus then definitely deletes anything associated with it.
+
 
 - __clear\_all:__
+
+ Resets Hyphe completely: starts then resets and destroys all existing corpora one by one.
 
 
 - __get\_status:__
  + _corpus_ (optional, default: "--hyphe--")
+
+ Returns global metadata on Hyphe's status and specific information on a corpus.
 
 
 - __listjobs:__
@@ -68,17 +89,21 @@ _Note:_ as it relies on the JSON-RPC protocol, it is not quite easy to test the 
  + _to\_ts_ (optional, default: null)
  + _corpus_ (optional, default: "--hyphe--")
 
- Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks.
+ Returns the list and details of all finished/running/pending crawl jobs of a corpus. Optionnally returns only the jobs whose id is given in an array of list\_ids and/or that was created after timestamp from\_ts or before to\_ts.
 
 
 - __declare\_page:__
  + _url_ (mandatory)
  + _corpus_ (optional, default: "--hyphe--")
 
+ Indexes an url into a corpus' MemoryStructure. Returns the (newly created or not) associated WebEntity.
+
 
 - __declare\_pages:__
  + _list\_urls_ (mandatory)
  + _corpus_ (optional, default: "--hyphe--")
+
+ Indexes a list of urls (as an array) into a corpus' MemoryStructure. Returns the (newly created or not) associated WebEntities.
 
 
 - __crawl\_webentity:__
@@ -86,16 +111,18 @@ _Note:_ as it relies on the JSON-RPC protocol, it is not quite easy to test the 
  + _depth_ (optional, default: null)
  + _phantom\_crawl_ (optional, default: false)
  + _status_ (optional, default: "IN")
- + _startpages_ (optional, default: "default")
+ + _startpages_ (optional, default: "startpages")
  + _phantom\_timeouts_ (optional, default: {})
  + _corpus_ (optional, default: "--hyphe--")
 
- Tells scrapy to run crawl on a WebEntity defined by its id from memory structure.
+ Schedules a crawl for a specific WebEntity to a specific depth and optionnally using PhantomJS with possible specific phantom\_timeouts. Sets simultaneously the WebEntity's status to IN or optionally to another valid status (undecided/out/discovered). Optionally defines the startpages strategy by starting the crawl either from the WebEntity's preset 'startpages' or 'prefixes' or already seen 'pages'.
 
 
 - __get\_webentity\_logs:__
  + _webentity\_id_ (mandatory)
  + _corpus_ (optional, default: "--hyphe--")
+
+ Returns activity logs on a specific WebEntity of a corpus.
 
 
 - __lookup\_httpstatus:__
@@ -103,11 +130,15 @@ _Note:_ as it relies on the JSON-RPC protocol, it is not quite easy to test the 
  + _timeout_ (optional, default: 30)
  + _corpus_ (optional, default: "--hyphe--")
 
+ Tests an url for timeout seconds. Returns the url's HTTP code.
+
 
 - __lookup:__
  + _url_ (mandatory)
  + _timeout_ (optional, default: 30)
  + _corpus_ (optional, default: "--hyphe--")
+
+ Tests an url for timeout seconds. Returns a boolean indicating whether lookup\_httpstatus returned HTTP code 200 or a redirection code (301/302/...).
 
 
 
@@ -120,13 +151,13 @@ _Note:_ as it relies on the JSON-RPC protocol, it is not quite easy to test the 
 - __cancel\_all:__
  + _corpus_ (optional, default: "--hyphe--")
 
- Stops all current crawls.
+ Stops all running and pending crawl jobs or a corpus.
 
 
 - __reinitialize:__
  + _corpus_ (optional, default: "--hyphe--")
 
- Cancels all current crawl jobs running or planned and empty mongodbs.
+ Cancels all current crawl jobs running or planned and empty mongo data.
 
 
 - __start:__
@@ -148,19 +179,14 @@ _Note:_ as it relies on the JSON-RPC protocol, it is not quite easy to test the 
  + _job\_id_ (mandatory)
  + _corpus_ (optional, default: "--hyphe--")
 
- Cancels a scrapy job with id job\_id.
-
-
-- __list:__
- + _corpus_ (optional, default: "--hyphe--")
-
- Calls Scrappy monitoring API
- + _returns list of scrapy jobs.
+ Cancels a crawl job for a corpus.
 
 
 - __get\_job\_logs:__
  + _job\_id_ (mandatory)
  + _corpus_ (optional, default: "--hyphe--")
+
+ Returns activity logs of a specific crawl job of a corpus.
 
 
 

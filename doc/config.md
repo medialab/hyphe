@@ -13,3 +13,5 @@ The default configuration should work by default for a local install (i.e. runni
  * ```DEBUG```: a value from 0 to 2 indicating the level of verbosity desired from the API core in log/hyphe-core.log
 
 
+Frontend: analytics
+optionnally core root url for distant access

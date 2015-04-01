@@ -86,7 +86,8 @@ class Core(jsonrpc.JSONRPC):
 
   # CORPUS HANDLING
 
-    def jsonrpc_test_corpus(self, corpus=DEFAULT_CORPUS, msg=None):
+    def jsonrpc_test_corpus(self, corpus=DEFAULT_CORPUS, _msg=None):
+        """Returns the current status of corpus: ready/starting/stopped/error."""
         res = {
           "corpus_id": corpus,
           "ready": False,
@@ -106,6 +107,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_list_corpus(self):
+        """Returns the list of all existing corpora with metas."""
         res = {}
         corpora = yield self.db.list_corpus()
         for corpus in corpora:
@@ -116,12 +118,14 @@ class Core(jsonrpc.JSONRPC):
         returnD(format_result(res))
 
     def jsonrpc_get_corpus_options(self, corpus=DEFAULT_CORPUS):
+        """Returns detailed settings of a corpus."""
         if not self.corpus_ready(corpus):
             return self.corpus_error(corpus)
         return format_result(self.corpora[corpus]["options"])
 
     @inlineCallbacks
     def jsonrpc_set_corpus_options(self, corpus=DEFAULT_CORPUS, options=None):
+        """Updates settings of a corpus according to the keys/values provided in options as a json object. Returns the detailed settings."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         try:
@@ -176,6 +180,7 @@ class Core(jsonrpc.JSONRPC):
         return self.msclients.ram_free < 256 or not self.msclients.ports_free
 
     def jsonrpc_create_corpus(self, name=DEFAULT_CORPUS, password="", options=None):
+        """Creates a corpus with the chosen name and optionally password and options (as a json object). Returns the corpus generated id and its status."""
         return self.create_corpus(name, password, options=options)
 
     @inlineCallbacks
@@ -235,6 +240,7 @@ class Core(jsonrpc.JSONRPC):
         returnD(res)
 
     def jsonrpc_start_corpus(self, corpus=DEFAULT_CORPUS, password=""):
+        """Starts an existing corpus possibly password-protected. Returns the new corpus status."""
         return self.start_corpus(corpus, password)
 
     def init_corpus(self, corpus):
@@ -278,7 +284,7 @@ class Core(jsonrpc.JSONRPC):
             returnD(format_error("Wrong auth for password-protected corpus %s" % corpus))
 
         if self.corpus_ready(corpus) or self.msclients.status_corpus(corpus, simplify=True) == "starting":
-            returnD(self.jsonrpc_test_corpus(corpus, msg="Corpus already ready"))
+            returnD(self.jsonrpc_test_corpus(corpus, _msg="Corpus already ready"))
 
         if self.factory_full():
             if not quiet:
@@ -337,6 +343,7 @@ class Core(jsonrpc.JSONRPC):
         })
 
     def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS):
+        """Stops an existing and running corpus. Returns the new corpus status."""
         return self.stop_corpus(corpus)
 
     def stop_loops(self, corpus=DEFAULT_CORPUS):
@@ -344,7 +351,6 @@ class Core(jsonrpc.JSONRPC):
             fid = "%s_loop" % f
             if fid in self.corpora[corpus] and self.corpora[corpus][fid].running:
                 self.corpora[corpus][fid].stop()
-
 
     @inlineCallbacks
     def stop_corpus(self, corpus=DEFAULT_CORPUS, quiet=False):
@@ -366,6 +372,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_ping(self, corpus=None, timeout=3):
+        """Tests during timeout seconds whether an existing corpus is started. Returns pong on success or the corpus status otherwise."""
         if not corpus:
             returnD(format_result('pong'))
         if not self.corpus_ready(corpus) and self.msclients.status_corpus(corpus, simplify=True) != "starting":
@@ -381,12 +388,12 @@ class Core(jsonrpc.JSONRPC):
         returnD(format_result('pong'))
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
+        """Resets completely a corpus by cancelling all crawls and emptying the MemoryStructure and Mongo data."""
         if not self.corpora[corpus]['reset']:
             return self.reinitialize(corpus)
 
     @inlineCallbacks
     def reinitialize(self, corpus=DEFAULT_CORPUS, noloop=False, quiet=False):
-        """Reinitializes both crawl jobs and memory structure."""
         if not quiet:
             logger.msg("Resetting corpus...", system="INFO - %s" % corpus)
         if corpus in self.corpora:
@@ -401,11 +408,12 @@ class Core(jsonrpc.JSONRPC):
 
         res = yield self.store.reinitialize(corpus, noloop=noloop, quiet=quiet)
         if is_error(res):
-            logger.msg("Problem while reinitializing memory structure... %s" % res, system="ERROR - %s" % corpus)
+            logger.msg("Problem while reinitializing MemoryStructure... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
         returnD(format_result('Memory structure and crawling database contents emptied.'))
 
     def jsonrpc_destroy_corpus(self, corpus=DEFAULT_CORPUS):
+        """Resets a corpus then definitely deletes anything associated with it."""
         return self.destroy_corpus(corpus)
 
     @inlineCallbacks
@@ -424,6 +432,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_clear_all(self):
+        """Resets Hyphe completely: starts then resets and destroys all existing corpora one by one."""
         logger.msg("CLEAR_ALL: destroying all corpora...", system="INFO")
         corpora = yield self.db.list_corpus(fields=['_id', 'password'])
         for corpus in corpora:
@@ -448,6 +457,7 @@ class Core(jsonrpc.JSONRPC):
   # CORE & CORPUS STATUS
 
     def jsonrpc_get_status(self, corpus=DEFAULT_CORPUS):
+        """Returns global metadata on Hyphe's status and specific information on a corpus."""
         status = {
           'hyphe': {
             'corpus_running': self.msclients.total_running(),
@@ -499,6 +509,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_listjobs(self, list_ids=None, from_ts=None, to_ts=None, corpus=DEFAULT_CORPUS):
+        """Returns the list and details of all finished/running/pending crawl jobs of a corpus. Optionnally returns only the jobs whose id is given in an array of list_ids and/or that was created after timestamp from_ts or before to_ts."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         query = {}
@@ -521,11 +532,11 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def refresh_jobs(self, corpus=DEFAULT_CORPUS):
-        """Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks."""
+        # Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks
         if self.corpora[corpus]['reset']:
             yield self.db.queue(corpus).drop(safe=True)
             returnD(None)
-        scrapyjobs = yield self.crawler.jsonrpc_list(corpus)
+        scrapyjobs = yield self.crawler.list(corpus)
         if is_error(scrapyjobs):
             if not (type(scrapyjobs["message"]) is dict and "status" in scrapyjobs["message"]):
                 logger.msg("Problem dialoguing with scrapyd server: %s" % scrapyjobs, system="WARNING - %s" % corpus)
@@ -596,6 +607,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_declare_page(self, url, corpus=DEFAULT_CORPUS):
+        """Indexes an url into a corpus' MemoryStructure. Returns the (newly created or not) associated WebEntity."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         res = yield self.store.declare_page(url, corpus=corpus)
@@ -603,6 +615,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_declare_pages(self, list_urls, corpus=DEFAULT_CORPUS):
+        """Indexes a list of urls (as an array) into a corpus' MemoryStructure. Returns the (newly created or not) associated WebEntities."""
         res = []
         errors = []
         results = yield DeferredList([self.jsonrpc_declare_page(url, corpus=corpus) for url in list_urls], consumeErrors=True)
@@ -620,8 +633,8 @@ class Core(jsonrpc.JSONRPC):
   # BASIC CRAWL METHODS
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id, depth=None, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], startpages="default", phantom_timeouts={}, corpus=DEFAULT_CORPUS):
-        """Tells scrapy to run crawl on a WebEntity defined by its id from memory structure."""
+    def jsonrpc_crawl_webentity(self, webentity_id, depth=None, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], startpages="startpages", phantom_timeouts={}, corpus=DEFAULT_CORPUS):
+        """Schedules a crawl for a specific WebEntity to a specific depth and optionnally using PhantomJS with possible specific phantom_timeouts. Sets simultaneously the WebEntity's status to IN or optionally to another valid status (undecided/out/discovered). Optionally defines the startpages strategy by starting the crawl either from the WebEntity's preset 'startpages' or 'prefixes' or already seen 'pages'."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         try:
@@ -631,7 +644,7 @@ class Core(jsonrpc.JSONRPC):
         if depth > self.corpora[corpus]["options"]['max_depth']:
             returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % self.corpora[corpus]["options"]['max_depth']))
         phantom_timeouts.update(self.corpora[corpus]["options"]["phantom"])
-        if startpages not in ["default", "startpages", "pages", "prefixes"]:
+        if startpages not in ["startpages", "pages", "prefixes"]:
             returnD(format_error('ERROR: startpages argument must be one of "startpages", "pages" or "prefixes"'))
         WE = yield self.store.get_webentity_with_pages_and_subWEs(webentity_id, startpages, corpus=corpus)
         if is_error(WE):
@@ -650,6 +663,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentity_logs(self, webentity_id, corpus=DEFAULT_CORPUS):
+        """Returns activity logs on a specific WebEntity of a corpus."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         jobs = yield self.db.list_jobs(corpus, {'webentity_id': webentity_id}, fields=['_id'])
@@ -661,6 +675,7 @@ class Core(jsonrpc.JSONRPC):
   # HTTP LOOKUP METHODS
 
     def jsonrpc_lookup_httpstatus(self, url, timeout=30, corpus=DEFAULT_CORPUS):
+        """Tests an url for timeout seconds. Returns the url's HTTP code."""
         return self.lookup_httpstatus(url, deadline=time.time()+timeout, corpus=corpus)
 
     @inlineCallbacks
@@ -714,10 +729,11 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_lookup(self, url, timeout=30, corpus=DEFAULT_CORPUS):
+        """Tests an url for timeout seconds. Returns a boolean indicating whether lookup_httpstatus returned HTTP code 200 or a redirection code (301/302/...)."""
         res = yield self.jsonrpc_lookup_httpstatus(url, timeout=timeout, corpus=corpus)
         if res['code'] == 'success' and (res['result'] == 200 or 300 < res['result'] < 400):
-            returnD(format_result("true"))
-        returnD(format_result("false"))
+            returnD(format_result(True))
+        returnD(format_result(False))
 
 
 # CRAWLER'S DEDICATED API
@@ -757,26 +773,26 @@ class Crawler(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_cancel_all(self, corpus=DEFAULT_CORPUS):
-        """Stops all current crawls."""
+        """Stops all running and pending crawl jobs or a corpus."""
         self.crawlqueue.cancel_corpus_jobs(corpus)
-        list_jobs = yield self.jsonrpc_list(corpus)
+        list_jobs = yield self.list(corpus)
         if is_error(list_jobs):
             returnD('No crawler deployed, hence no job to cancel')
         list_jobs = list_jobs['result']
         while 'running' in list_jobs and (list_jobs['running'] + list_jobs['pending']):
             yield DeferredList([self.jsonrpc_cancel(item['id'], corpus=corpus) for item in list_jobs['running'] + list_jobs['pending']], consumeErrors=True)
-            list_jobs = yield self.jsonrpc_list(corpus)
+            list_jobs = yield self.list(corpus)
             if is_error(list_jobs):
                 returnD(list_jobs)
             list_jobs = list_jobs['result']
         returnD(format_result('All crawling jobs canceled.'))
 
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
+        """Cancels all current crawl jobs running or planned and empty mongo data."""
         return self.reinitialize(corpus)
 
     @inlineCallbacks
     def reinitialize(self, corpus=DEFAULT_CORPUS, recreate=True, quiet=False):
-        """Cancels all current crawl jobs running or planned and empty mongodbs."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if not quiet:
@@ -828,7 +844,7 @@ class Crawler(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_cancel(self, job_id, corpus=DEFAULT_CORPUS):
-        """Cancels a scrapy job with id job_id."""
+        """Cancels a crawl job for a corpus."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         existing = yield self.db.list_jobs(corpus, {"$or": [{"crawljob_id": job_id}, {"_id": job_id}]})
@@ -851,8 +867,7 @@ class Crawler(jsonrpc.JSONRPC):
         returnD(format_result(res))
 
     @inlineCallbacks
-    def jsonrpc_list(self, corpus=DEFAULT_CORPUS):
-        """Calls Scrappy monitoring API, returns list of scrapy jobs."""
+    def list(self, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         res = yield self.crawlqueue.send_scrapy_query('listjobs', {'project': corpus_project(corpus)})
@@ -862,6 +877,7 @@ class Crawler(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_job_logs(self, job_id, corpus=DEFAULT_CORPUS):
+        """Returns activity logs of a specific crawl job of a corpus."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         res = yield self.db.list_logs(corpus, job_id)
@@ -1111,7 +1127,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if not quiet:
-            logger.msg("Empty memory structure content", system="INFO - %s" % corpus)
+            logger.msg("Empty MemoryStructure content", system="INFO - %s" % corpus)
         res = self.msclients.sync.clearIndex(corpus=corpus)
         if is_error(res):
             returnD(res)
