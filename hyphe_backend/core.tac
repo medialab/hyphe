@@ -102,7 +102,7 @@ class Core(jsonrpc.JSONRPC):
         if res["status"] == "starting":
             res["message"] = "Corpus is starting, please retry in a bit"
         elif _msg:
-            res["message"] = msg
+            res["message"] = _msg
         return format_result(res)
 
     @inlineCallbacks
