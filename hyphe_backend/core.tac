@@ -2206,10 +2206,10 @@ site = server.Site(core)
 
 # Run as 'python core.tac' ...
 if __name__ == '__main__':
-    reactor.listenTCP(config['twisted']['port'], site)
+    reactor.listenTCP(config['twisted.port'], site)
     reactor.run()
 # ... or in the background when called with 'twistd -noy core.tac'
 elif __name__ == '__builtin__':
     application = Application("Hyphe backend API Server")
-    server = TCPServer(config['twisted']['port'], site)
+    server = TCPServer(config['twisted.port'], site)
     server.setServiceParent(application)

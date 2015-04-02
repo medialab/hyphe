@@ -93,7 +93,7 @@ try:
 except:
     with open(os.path.join("config", "salt"), "w") as f:
         SALT = hashlib.sha256(config['memoryStructure']['lucene.rootpath'] + \
-          str(config['memoryStructure']['thrift.max_ram'] * config["twisted"]["port"] * \
+          str(config['memoryStructure']['thrift.max_ram'] * config['twisted.port'] * \
           config['memoryStructure']['thrift.portrange'][-1])
         ).hexdigest()
         f.write(SALT)

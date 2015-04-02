@@ -47,7 +47,7 @@ def printError(error):
 def shutdown(data):
     reactor.stop()
 
-proxy = Proxy('http://127.0.0.1:%d' % config['twisted']['port'])
+proxy = Proxy('http://127.0.0.1:%d' % config['twisted.port'])
 command = sys.argv[startargs - 1]
 args = []
 is_array = False

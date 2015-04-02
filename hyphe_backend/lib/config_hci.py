@@ -27,6 +27,10 @@ def load_config():
     if "MULTICORPUS" not in conf or not conf["MULTICORPUS"]:
         conf["MULTICORPUS"] = False
 
+  # Set Twisted port from old configs format
+    if "twisted.port" not in conf and "twisted" in conf and "port" in conf["twisted"]:
+        conf["twisted.port"] = conf["twisted"]["port"]
+
   # Set default noproxy setting if missing
     if "mongo-scrapy" in conf:
         if 'proxy_host' not in conf['mongo-scrapy']:
@@ -153,9 +157,8 @@ GLOBAL_CONF_SCHEMA = {
       "thrift.port": int,
       "lucene.path": "path"
     }
-  }, "twisted": {
-    "type": dict,
-    "int_fields": ["port"]
+  }, "twisted.port": {
+    "type": int
   }, "defaultCreationRule": {
     "type": creationrules.testPreset,
   }, "creationRules": {
@@ -174,7 +177,7 @@ GLOBAL_CONF_SCHEMA = {
       "autoretry": bool
     }
   }, "DEBUG": {
-    "type": bool
+    "type": int
   }
 }
 
