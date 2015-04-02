@@ -32,12 +32,11 @@ class LuceneCorpus(Thread):
 
     daemon = True
 
-    def __init__(self, factory, name, host="localhost", ram=256, keepalive=1800, loglevel="INFO", quiet=False):
+    def __init__(self, factory, name, ram=256, keepalive=1800, loglevel="INFO", quiet=False):
         Thread.__init__(self)
         self.factory = factory
         self.status = "init"
         self.name = name
-        self.host = host
         self.ram = ram
         self.port = 0
         self.loglevel = loglevel
@@ -55,15 +54,15 @@ class LuceneCorpus(Thread):
     def restart_thrift_clients(self, restart=True):
         if self.client_sync and restart:
             self.client_sync.close()
-        self.client_sync = ThriftPooledClient(ms.Client, host=self.host,
+        self.client_sync = ThriftPooledClient(ms.Client, host="localhost",
           port=self.port, pool_size=1, async=False)
         if self.client_pool and restart:
             self.client_pool.close()
-        self.client_pool = ThriftPooledClient(ms.Client, host=self.host,
+        self.client_pool = ThriftPooledClient(ms.Client, host="localhost",
           port=self.port, pool_size=5)
         if self.client_loop and restart:
             self.client_loop.close()
-        self.client_loop = ThriftPooledClient(ms.Client, host=self.host,
+        self.client_loop = ThriftPooledClient(ms.Client, host="localhost",
           port=self.port, pool_size=1, async=True, network_timeout=7200000)
 
     def __check_timeout__(self):
@@ -114,13 +113,12 @@ class LuceneCorpus(Thread):
         self.factory.start_corpus(self.name)
 
     def choose_port(self):
-        address = self.host.replace('localhost', '')
         ports = list(self.factory.ports_free)
         shuffle(ports)
         s = socket.socket()
         for port in ports:
             try:
-                s.connect((address, port))
+                s.connect(("", port))
                 s.close()
             except socket.error:
                 self.port = port
@@ -250,10 +248,9 @@ class CorpusClient(object):
 
 class CorpusFactory(object):
 
-    def __init__(self, host="localhost", loglevel="INFO",
+    def __init__(self, loglevel="INFO",
       port_range=range(13500,13520), max_ram=2048):
         self.corpora = {}
-        self.host = host
         self.loglevel = loglevel
         self.ports_free = port_range
         self.ram_free = max_ram
@@ -308,7 +305,7 @@ class CorpusFactory(object):
                     kwargs[arg] = getattr(self.corpora[name], arg)
             del(self.corpora[name])
         kwargs["loglevel"] = self.loglevel
-        self.corpora[name] = LuceneCorpus(self, name, self.host, quiet=quiet, **kwargs)
+        self.corpora[name] = LuceneCorpus(self, name, quiet=quiet, **kwargs)
         if not self.ports_free:
             self.log(name, "Not enough available ports to start corpus", True)
             return False
@@ -340,10 +337,9 @@ if __name__ == '__main__':
     config = config_hci.load_config()
     if not config:
         exit()
-    ad = config['memoryStructure']['thrift.host']
     portrange = config['memoryStructure']['thrift.portrange']
     loglevel = config['memoryStructure']['log.level']
-    factory = CorpusFactory(host=ad, port_range=portrange, max_ram=1000, loglevel=loglevel)
+    factory = CorpusFactory(port_range=portrange, max_ram=1000, loglevel=loglevel)
     assert(factory.start_corpus("test", keepalive=10))
     assert(factory.sync.ping(corpus="test")['code'] == 'fail')
     time.sleep(2)

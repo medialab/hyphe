@@ -39,7 +39,7 @@ class Core(jsonrpc.JSONRPC):
     def __init__(self):
         jsonrpc.JSONRPC.__init__(self)
         self.db = MongoDB(config['mongo-scrapy'])
-        self.msclients = CorpusFactory(config['memoryStructure']['thrift.host'],
+        self.msclients = CorpusFactory(
           port_range = config['memoryStructure']['thrift.portrange'],
           max_ram = config['memoryStructure']['thrift.max_ram'],
           loglevel = config['memoryStructure']['log.level'])

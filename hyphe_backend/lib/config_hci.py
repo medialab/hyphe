@@ -141,7 +141,6 @@ GLOBAL_CONF_SCHEMA = {
   }, "memoryStructure": {
     "type": dict,
     "int_fields": ["max_simul_pages_indexing", "max_simul_links_indexing"],
-    "str_fields": ["thrift.host"],
     "extra_fields": {
       "log.level": ["INFO", "DEBUG", "WARN", "ERROR", "TRACE"]
     },
