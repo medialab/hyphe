@@ -1,5 +1,4 @@
-Roadmap
-=======
+# Roadmap
 
 To let you know where we're heading, we describe here what we have in mind for Hyphe's future evolutions.
 

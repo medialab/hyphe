@@ -52,7 +52,7 @@ To start, stop or restart the daemon, run (again, NO SUDO):
 
 By default the starter will display Hyphe's log in the console using ```tail```. You can ```Ctrl-C``` whenever without shutting it off. Use the ```--nologs``` option to disable this.
 
-You can check the logs in ```log/hyphe-core.log``` and ```log/hyphe-memorystructure.log```:
+You can always check the logs for both the core backend and each corpus' MemoryStructure in the ```log``` directory:
 
 ```bash
     tail -f log/hyphe-*.log
@@ -70,7 +70,12 @@ Please read the dedicated [WebService documentation](doc/serve.md) to do so.
 
 ## Advanced developers features & contributing
 
-Please read the dedicated [Developers documentation](doc/dev.md).
+Please read the dedicated [Developers documentation](doc/dev.md) and the [API description](doc/api.md).
+
+
+## What's next?
+
+See our [roadmap](doc/roadmap.md)!
 
 
 ## Authors
@@ -78,3 +83,5 @@ Please read the dedicated [Developers documentation](doc/dev.md).
 [Mathieu Jacomy](https://github.com/jacomyma) & [Benjamin Ooghe-Tabanou](https://github.com/boogheta) @ SciencesPo [médialab](https://github.com/medialab)
 
 Discover more projects at [médialab tools](http://tools.medialab.sciences-po.fr/)
+
+Hyphe is a free software released under licences [LGPL](LICENSE.LGPL) &amp; [CECILL-C](LICENSE.CECILL-C)

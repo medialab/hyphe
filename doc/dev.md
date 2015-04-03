@@ -1,5 +1,4 @@
-Developpers documentation
-=========================
+# Developpers documentation
 
 Hyphe relies on the following main components:
 
@@ -11,6 +10,8 @@ Hyphe relies on the following main components:
  * hyphe_frontend: a JavaScript web interface to constitute and explore web corpora through the backend API
 
 ## Call API from command-line
+
+[API description](api.md)
 
 All of Hyphe's functionalities are not available from the web interface yet.
 Although, some advanced routines (like starting a set of crawls on all IN webEntities for instance) can already be performed in command line with the API. The script ```hyphe_backend/test_client.py``` is a command-line caller of the core API. For instance:

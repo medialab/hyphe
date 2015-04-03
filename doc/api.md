@@ -1,5 +1,4 @@
-API documentation
-=================
+# API documentation
 
 Hyphe relies on a [JsonRPC](http://www.jsonrpc.org/) API that can be controlled easily through the web interface or called directly from a JsonRPC client.
 

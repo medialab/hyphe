@@ -1,5 +1,4 @@
-Serve Hyphe on the web
-======================
+# Serve Hyphe on the web
 
 To run on a server and not only locally, a few adjustments need to be performed:
 

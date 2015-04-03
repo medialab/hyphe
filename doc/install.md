@@ -1,5 +1,4 @@
-Installation
-============
+# Installation
 
 
 __Note:__ MongoDB being limited to 2Go databases on 32bit systems, it is recommanded to always install Hyphe on a 64bit machine.

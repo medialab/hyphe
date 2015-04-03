@@ -19,9 +19,7 @@
     "max_simul_pages_indexing": 100,
     "max_simul_links_indexing": 10000
   },
-  "twisted": {
-    "port": 6978
-  },
+  "twisted.port": 6978,
   "precisionLimit": 2,
   "defaultCreationRule": "domain",
   "creationRules": {
