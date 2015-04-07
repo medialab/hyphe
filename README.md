@@ -11,7 +11,7 @@ You can try a restricted version of Hyphe at the following url: [http://hyphe.me
 
 ## Easy start
 
-__DISCLAIMER:__ Hyphe has changed a lot between version 0.1 0.2. Migrating from an older version by pulling the code from git was insured as best as possible, although it is highly recommended to reinstall from scratch. Older corpora can be reran by exporting the list of webentities from the old version and recrawl from that list of urls in the new version.
+__DISCLAIMER:__ Hyphe has changed a lot between version `0.1` and `0.2`. Migrating from an older version by pulling the code from git was insured as best as possible, although it is highly recommended to reinstall from scratch. Older corpora can be reran by exporting the list of webentities from the old version and recrawl from that list of urls in the new version.
 
 
 ### Install a release
