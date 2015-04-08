@@ -498,7 +498,8 @@ div.welcome-column dd{
 .sigma-parent {
   position: relative;
   
-  background-color: #EFEBE8;
+  /*background-color: #EFEBE8;*/
+  background-color: rgba(239, 235, 232, 0.4);
   
   height: 220px;
 
