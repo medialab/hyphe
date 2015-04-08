@@ -37,6 +37,9 @@ Typical important options to set depending on your situation are highlighted as 
     usually ```1```, the maximum number of concurrent queries performed by the crawler on a same hostname
 
  - ```memoryStructure [object]```: config for the Java Lucene part of Hyphe, defining the limits of possibly simultaneously running corpora, by default to 10
+  + __```keepalive [int]```__:
+    
+    usually ```1800```, the time (in seconds) after which a corpus which has not been used will automatically stop and free a slot for other corpora
   + __```thrift.portrange [2-ints array]```__:
     
     usually ```[13500, 13509]```, an array of two ports values defining a minimum and a maximum values between which all possible ports can be used by each corpus' MemoryStructure to communicate via Thrift with the core API. Hyphe won't accept more simultaneously running corpus than the number of available ports

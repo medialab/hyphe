@@ -51,15 +51,15 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def activate_monocorpus(self):
-        yield self.start_corpus(create_if_missing=True)
+        yield self.jsonrpc_start_corpus(_create_if_missing=True)
         self.keepalive_default = LoopingCall(self.jsonrpc_ping, DEFAULT_CORPUS)
-        self.keepalive_default.start(300, False)
+        self.keepalive_default.start(config['memoryStructure']['keepalive']/6, False)
 
     @inlineCallbacks
     def close(self):
         if not config["MULTICORPUS"] and self.keepalive_default and self.keepalive_default.running:
             self.keepalive_default.stop()
-        yield DeferredList([self.stop_corpus(corpus, quiet=True) for corpus in self.corpora.keys()], consumeErrors=True)
+        yield DeferredList([self.jsonrpc_stop_corpus(corpus, _quiet=True) for corpus in self.corpora.keys()], consumeErrors=True)
         yield self.db.close()
         self.msclients.stop()
 
@@ -144,20 +144,23 @@ class Core(jsonrpc.JSONRPC):
             else:
                 redeploy = True
         oldram = self.corpora[corpus]["options"]["ram"]
+        oldkeep = self.corpora[corpus]["options"]["keepalive"]
         if "phantom" in options:
+            redeploy = True
             self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
         self.corpora[corpus]["options"].update(options)
         yield self.update_corpus(corpus, force_ram=True)
         if redeploy:
-            res = yield self.crawler.deploy_crawler(corpus)
+            res = yield self.crawler.jsonrpc_deploy_crawler(corpus)
             if is_error(res):
                 returnD(res)
-        if "ram" in options and options["ram"] != oldram:
-            res = yield self.stop_corpus(corpus, quiet=True)
+        if ("ram" in options and options["ram"] != oldram) or \
+           ("keepalive" in options and options["keepalive"] != oldkeep):
+            res = yield self.jsonrpc_stop_corpus(corpus, _quiet=True)
             if is_error(res):
                 returnD(res)
             corpus_conf = yield self.db.get_corpus(corpus)
-            res = yield self.start_corpus(corpus, password=corpus_conf["password"])
+            res = yield self.jsonrpc_start_corpus(corpus, password=corpus_conf["password"])
             if is_error(res):
                 returnD(res)
         returnD(format_result(self.corpora[corpus]["options"]))
@@ -173,18 +176,15 @@ class Core(jsonrpc.JSONRPC):
         if not corpus:
             return format_error("Too many instances running already, please try again later")
         if corpus in self.corpora and not self.msclients.starting_corpus(corpus) and not self.msclients.stopped_corpus(corpus):
-            reactor.callLater(0, self.stop_corpus, corpus, quiet=True)
+            reactor.callLater(0, self.jsonrpc_stop_corpus, corpus, _quiet=True)
         return format_error(self.jsonrpc_test_corpus(corpus)["result"])
 
     def factory_full(self):
         return self.msclients.ram_free < 256 or not self.msclients.ports_free
 
-    def jsonrpc_create_corpus(self, name=DEFAULT_CORPUS, password="", options=None):
-        """Creates a corpus with the chosen name and optionally password and options (as a json object). Returns the corpus generated id and its status."""
-        return self.create_corpus(name, password, options=options)
-
     @inlineCallbacks
-    def create_corpus(self, name=DEFAULT_CORPUS, password="", options=None, noloop=False, quiet=False):
+    def jsonrpc_create_corpus(self, name=DEFAULT_CORPUS, password="", options={}, _noloop=False, _quiet=False):
+        """Creates a corpus with the chosen name and optionally password and options (as a json object). Returns the corpus generated id and its status."""
         if self.factory_full():
             returnD(self.corpus_error())
 
@@ -196,52 +196,28 @@ class Core(jsonrpc.JSONRPC):
             corpus_idx += 1
             existing = yield self.db.get_corpus(corpus)
 
-        self.corpora[corpus] = {
-          "name": name,
-          "options": {
-            "ram": 256,
-            "max_depth": config["mongo-scrapy"]["maxdepth"],
-            "default_creation_rule": config["defaultCreationRule"],
-            "precision_limit": config["precisionLimit"],
-            "follow_redirects": config["discoverPrefixes"],
-            "proxy": {
-              "host": config["mongo-scrapy"]["proxy_host"],
-              "port": config["mongo-scrapy"]["proxy_port"]
-            },
-            "phantom": {
-              "autoretry": config["phantom"]["autoretry"],
-              "timeout": config["phantom"]["timeout"],
-              "idle_timeout": config["phantom"]["idle_timeout"],
-              "ajax_timeout": config["phantom"]["ajax_timeout"],
-              "whitelist_domains": config["phantom"]["whitelist_domains"]
-            }
-          }
-        }
         if options:
             try:
                 config_hci.check_conf_sanity(options, config_hci.CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True)
-                if "phantom" in options:
-                    self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
-                self.corpora[corpus]["options"].update(options)
             except Exception as e:
                 returnD(format_error(e))
-        if not quiet:
+        self.corpora[corpus] = {
+          "name": name,
+          "options": config_hci.clean_missing_corpus_options({}, config)
+        }
+        if not _quiet:
             logger.msg("New corpus created", system="INFO - %s" % corpus)
         yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"])
         try:
-            res = yield self.crawler.deploy_crawler(corpus, quiet=quiet)
+            res = yield self.crawler.jsonrpc_deploy_crawler(corpus, _quiet=_quiet)
         except Exception as e:
             logger.msg("Could not deploy crawler for new corpus: %s %s" % (type(e), e), system="ERROR - %s" % corpus)
             returnD(format_error("Could not deploy crawler for corpus"))
         if not res:
             logger.msg("Could not deploy crawler for new corpus", system="ERROR - %s" % corpus)
             returnD(res)
-        res = yield self.start_corpus(corpus, password=password, noloop=noloop, quiet=quiet)
+        res = yield self.jsonrpc_start_corpus(corpus, password=password, _noloop=_noloop, _quiet=_quiet)
         returnD(res)
-
-    def jsonrpc_start_corpus(self, corpus=DEFAULT_CORPUS, password=""):
-        """Starts an existing corpus possibly password-protected. Returns the new corpus status."""
-        return self.start_corpus(corpus, password)
 
     def init_corpus(self, corpus):
         if corpus not in self.corpora:
@@ -273,11 +249,12 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["jobs_loop"] = LoopingCall(self.refresh_jobs, corpus)
 
     @inlineCallbacks
-    def start_corpus(self, corpus=DEFAULT_CORPUS, password="", noloop=False, quiet=False, create_if_missing=False):
+    def jsonrpc_start_corpus(self, corpus=DEFAULT_CORPUS, password="", _noloop=False, _quiet=False, _create_if_missing=False):
+        """Starts an existing corpus possibly password-protected. Returns the new corpus status."""
         corpus_conf = yield self.db.get_corpus(corpus)
         if not corpus_conf:
-            if create_if_missing:
-                res = yield self.create_corpus(corpus, password, noloop=noloop, quiet=quiet)
+            if _create_if_missing:
+                res = yield self.jsonrpc_create_corpus(corpus, password, _noloop=_noloop, _quiet=_quiet)
                 returnD(res)
             returnD(format_error("No corpus existing with ID %s, please create it first!" % corpus))
         if corpus_conf['password'] and password != config.get("ADMIN_PASSWORD", None) and corpus_conf['password'] not in [password, salt(password)]:
@@ -287,21 +264,24 @@ class Core(jsonrpc.JSONRPC):
             returnD(self.jsonrpc_test_corpus(corpus, _msg="Corpus already ready"))
 
         if self.factory_full():
-            if not quiet:
+            if not _quiet:
                 logger.msg("Could not start extra corpus, all slots busy", system="WARNING - %s" % corpus)
             returnD(self.corpus_error())
 
-        if not quiet:
+        # Fix possibly old corpus confs
+        config_hci.clean_missing_corpus_options(corpus_conf['options'],config)
+
+        if not _quiet:
             logger.msg("Starting corpus...", system="INFO - %s" % corpus)
         yield self.db.init_corpus_indexes(corpus)
-        res = self.msclients.start_corpus(corpus, quiet, ram=corpus_conf['options']['ram'])
+        res = self.msclients.start_corpus(corpus, _quiet, ram=corpus_conf['options']['ram'], keepalive=corpus_conf['options']['keepalive'])
         if not res:
             returnD(format_error(self.jsonrpc_test_corpus(corpus)["result"]))
-        yield self.prepare_corpus(corpus, corpus_conf, noloop)
+        yield self.prepare_corpus(corpus, corpus_conf, _noloop)
         returnD(self.jsonrpc_test_corpus(corpus))
 
     @inlineCallbacks
-    def prepare_corpus(self, corpus=DEFAULT_CORPUS, corpus_conf=None, noloop=False):
+    def prepare_corpus(self, corpus=DEFAULT_CORPUS, corpus_conf=None, _noloop=False):
         self.init_corpus(corpus)
         if not corpus_conf:
             corpus_conf = yield self.db.get_corpus(corpus)
@@ -318,9 +298,9 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["last_index_loop"] = corpus_conf['last_index_loop']
         self.corpora[corpus]["last_links_loop"] = corpus_conf['last_links_loop']
         self.corpora[corpus]["reset"] = False
-        if not noloop:
+        if not _noloop:
             reactor.callLater(5, self.corpora[corpus]['jobs_loop'].start, 1, False)
-        yield self.store._init_loop(corpus, noloop=noloop)
+        yield self.store._init_loop(corpus, _noloop=_noloop)
         yield self.update_corpus(corpus)
 
     @inlineCallbacks
@@ -342,10 +322,6 @@ class Core(jsonrpc.JSONRPC):
           "last_activity": now_ts()
         })
 
-    def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS):
-        """Stops an existing and running corpus. Returns the new corpus status."""
-        return self.stop_corpus(corpus)
-
     def stop_loops(self, corpus=DEFAULT_CORPUS):
         for f in ["stats", "jobs", "index"]:
             fid = "%s_loop" % f
@@ -353,12 +329,13 @@ class Core(jsonrpc.JSONRPC):
                 self.corpora[corpus][fid].stop()
 
     @inlineCallbacks
-    def stop_corpus(self, corpus=DEFAULT_CORPUS, quiet=False):
+    def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False):
+        """Stops an existing and running corpus. Returns the new corpus status."""
         if corpus in self.corpora:
             self.stop_loops(corpus)
             if corpus in self.msclients.corpora:
                 yield self.update_corpus(corpus)
-                self.msclients.stop_corpus(corpus, quiet)
+                self.msclients.stop_corpus(corpus, _quiet)
             for f in ["tags", "webentities", "webentities_links", "webentities_ranks", "precision_exceptions"]:
                 if f in self.corpora[corpus]:
                     del(self.corpora[corpus][f])
@@ -387,46 +364,41 @@ class Core(jsonrpc.JSONRPC):
             returnD(res)
         returnD(format_result('pong'))
 
-    def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
-        """Resets completely a corpus by cancelling all crawls and emptying the MemoryStructure and Mongo data."""
-        if not self.corpora[corpus]['reset']:
-            return self.reinitialize(corpus)
-
     @inlineCallbacks
-    def reinitialize(self, corpus=DEFAULT_CORPUS, noloop=False, quiet=False):
-        if not quiet:
+    def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False):
+        """Resets completely a corpus by cancelling all crawls and emptying the MemoryStructure and Mongo data."""
+        if self.corpora[corpus]['reset']:
+            returnD(format_result("Already resetting"))
+        if not _quiet:
             logger.msg("Resetting corpus...", system="INFO - %s" % corpus)
         if corpus in self.corpora:
             self.stop_loops(corpus)
         self.init_corpus(corpus)
         self.corpora[corpus]['reset'] = True
-        res = yield self.crawler.reinitialize(corpus, recreate=(not noloop), quiet=quiet)
+        res = yield self.crawler.reinitialize(corpus, _recreate=(not _noloop), _quiet=_quiet)
         if is_error(res):
             logger.msg("Problem while reinitializing crawler... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
         self.init_corpus(corpus)
 
-        res = yield self.store.reinitialize(corpus, noloop=noloop, quiet=quiet)
+        res = yield self.store.reinitialize(corpus, _noloop=_noloop, _quiet=_quiet)
         if is_error(res):
             logger.msg("Problem while reinitializing MemoryStructure... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
         returnD(format_result('Memory structure and crawling database contents emptied.'))
 
-    def jsonrpc_destroy_corpus(self, corpus=DEFAULT_CORPUS):
-        """Resets a corpus then definitely deletes anything associated with it."""
-        return self.destroy_corpus(corpus)
-
     @inlineCallbacks
-    def destroy_corpus(self, corpus=DEFAULT_CORPUS, quiet=False):
-        if not quiet:
+    def jsonrpc_destroy_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False):
+        """Resets a corpus then definitely deletes anything associated with it."""
+        if not _quiet:
             logger.msg("Destroying corpus...", system="INFO - %s" % corpus)
-        res = yield self.reinitialize(corpus, noloop=True, quiet=quiet)
+        res = yield self.jsonrpc_reinitialize(corpus, _noloop=True, _quiet=_quiet)
         if is_error(res):
             returnD(res)
-        res = yield self.stop_corpus(corpus, quiet)
+        res = yield self.jsonrpc_stop_corpus(corpus, _quiet=_quiet)
         if is_error(res):
             returnD(res)
-        res = yield self.crawler.delete_crawler(corpus, quiet)
+        res = yield self.crawler.jsonrpc_delete_crawler(corpus, _quiet)
         yield self.db.delete_corpus(corpus)
         returnD(format_result("Corpus %s destroyed successfully" % corpus))
 
@@ -443,13 +415,13 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def delete_corpus(self, corpus_metas):
-        res = yield self.start_corpus(corpus_metas['_id'], password=corpus_metas['password'], noloop=True, quiet=not config['DEBUG'])
+        res = yield self.jsonrpc_start_corpus(corpus_metas['_id'], password=corpus_metas['password'], _noloop=True, _quiet=not config['DEBUG'])
         if is_error(res):
             returnD(res)
         res = yield self.jsonrpc_ping(corpus_metas['_id'], timeout=10)
         if is_error(res):
             returnD(res)
-        res = yield self.destroy_corpus(corpus_metas['_id'], quiet=not config['DEBUG'])
+        res = yield self.jsonrpc_destroy_corpus(corpus_metas['_id'], _quiet=not config['DEBUG'])
         if is_error(res):
             returnD(res)
         returnD("Corpus %s cleaned up" % corpus_metas['_id'])
@@ -748,27 +720,24 @@ class Crawler(jsonrpc.JSONRPC):
         self.corpora = self.parent.corpora
         self.crawlqueue = JobsQueue(config["mongo-scrapy"])
 
-    def jsonrpc_deploy_crawler(self, corpus=DEFAULT_CORPUS):
-        return self.deploy_crawler(corpus)
-
     @inlineCallbacks
-    def deploy_crawler(self, corpus=DEFAULT_CORPUS, quiet=False):
+    def jsonrpc_deploy_crawler(self, corpus=DEFAULT_CORPUS, _quiet=False):
         output = subprocess.Popen(['bash', 'bin/deploy_scrapy_spider.sh', corpus, '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
         res = yield self.crawlqueue.send_scrapy_query("listprojects")
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
             logger.msg("Couldn't deploy crawler", system="ERROR - %s" % corpus)
             returnD(format_error(output))
-        if not quiet:
+        if not _quiet:
             logger.msg("Successfully deployed crawler", system="INFO - %s" % corpus)
         returnD(format_result("Crawler %s deployed" % corpus_project(corpus)))
 
     @inlineCallbacks
-    def delete_crawler(self, corpus=DEFAULT_CORPUS, quiet=False):
+    def jsonrpc_delete_crawler(self, corpus=DEFAULT_CORPUS, _quiet=False):
         proj = corpus_project(corpus)
         res = yield self.crawlqueue.send_scrapy_query("delproject", {"project": proj})
         if is_error(res):
             logger.msg("Couldn't destroy scrapyd spider: %s" % res, system="ERROR - %s" % corpus)
-        elif not quiet:
+        elif not _quiet:
             logger.msg("Successfully destroyed crawler", system="INFO - %s" % corpus)
 
     @inlineCallbacks
@@ -787,15 +756,12 @@ class Crawler(jsonrpc.JSONRPC):
             list_jobs = list_jobs['result']
         returnD(format_result('All crawling jobs canceled.'))
 
-    def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
-        """Cancels all current crawl jobs running or planned and empty mongo data."""
-        return self.reinitialize(corpus)
-
     @inlineCallbacks
-    def reinitialize(self, corpus=DEFAULT_CORPUS, recreate=True, quiet=False):
+    def reinitialize(self, corpus=DEFAULT_CORPUS, _recreate=True, _quiet=False):
+        """Cancels all current crawl jobs running or planned and empty mongo data."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        if not quiet:
+        if not _quiet:
             logger.msg("Empty crawl list + mongodb queue", system="INFO - %s" % corpus)
         if self.corpora[corpus]['jobs_loop'].running:
             self.corpora[corpus]['jobs_loop'].stop()
@@ -803,7 +769,7 @@ class Crawler(jsonrpc.JSONRPC):
         if is_error(canceljobs):
             returnD(canceljobs)
         yield self.db.drop_corpus_collections(corpus)
-        if recreate:
+        if _recreate:
             self.corpora[corpus]['jobs_loop'].start(10, False)
         returnD(format_result('Crawling database reset.'))
 
@@ -899,7 +865,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.msclients = self.parent.msclients
 
     @inlineCallbacks
-    def _init_loop(self, corpus=DEFAULT_CORPUS, noloop=False):
+    def _init_loop(self, corpus=DEFAULT_CORPUS, _noloop=False):
         if self.corpora[corpus]['reset']:
             yield self.db.queue(corpus).drop(safe=True)
 
@@ -911,11 +877,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['last_WE_update'] = now
         self.corpora[corpus]['recent_changes'] = 0
         self.corpora[corpus]['recent_tagging'] = True
-        if not noloop:
+        if not _noloop:
             reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
             reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
             reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, False)
-        yield self.ensureDefaultCreationRuleExists(corpus, quiet=noloop)
+        yield self.ensureDefaultCreationRuleExists(corpus, _quiet=_noloop)
 
     @inlineCallbacks
     def format_webentity(self, WE, jobs={}, light=False, semilight=False, light_for_csv=False, paginate=False, corpus=DEFAULT_CORPUS):
@@ -981,21 +947,21 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(res)
 
     @inlineCallbacks
-    def ensureDefaultCreationRuleExists(self, corpus=DEFAULT_CORPUS, quiet=False, retry=True):
+    def ensureDefaultCreationRuleExists(self, corpus=DEFAULT_CORPUS, _quiet=False, _retry=True):
         res = yield self.parent.jsonrpc_ping(corpus, timeout=15)
         if is_error(res):
             logger.msg("Could not start corpus fast enough to create WE creation rule...", system="ERROR - %s" % corpus)
             returnD(res)
         rules = yield self.jsonrpc_get_webentity_creationrules(corpus=corpus)
         if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules['result']) == 0):
-            if corpus != DEFAULT_CORPUS and not quiet:
+            if corpus != DEFAULT_CORPUS and not _quiet:
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
             res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(self.corpora[corpus]["options"].get("default_creation_rule", "domain")), ''), corpus=corpus)
             if is_error(res):
                 logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
-                if retry:
+                if _retry:
                     logger.msg("Retrying WE creation rule creation...", system="ERROR - %s" % corpus)
-                    returnD(ensureDefaultCreationRuleExists(corpus, quiet=quiet, retry=False))
+                    returnD(ensureDefaultCreationRuleExists(corpus, _quiet=_quiet, _retry=False))
                 returnD(res)
             actions = []
             for prf, regexp in config.get("creationRules", {}).items():
@@ -1119,19 +1085,16 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(prefix)
         returnD(format_result({pageLRU: prefix}))
 
-    def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS):
-        return self.reinitialize(corpus)
-
     @inlineCallbacks
-    def reinitialize(self, corpus=DEFAULT_CORPUS, noloop=False, quiet=False):
+    def reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        if not quiet:
+        if not _quiet:
             logger.msg("Empty MemoryStructure content", system="INFO - %s" % corpus)
         res = self.msclients.sync.clearIndex(corpus=corpus)
         if is_error(res):
             returnD(res)
-        yield self._init_loop(corpus, noloop=noloop)
+        yield self._init_loop(corpus, _noloop=_noloop)
         returnD(format_result("MemoryStructure reinitialized"))
 
     @inlineCallbacks
@@ -2158,7 +2121,7 @@ except Exception as x:
     exit(1)
 
 def test_start(cor, corpus):
-    d = cor.start_corpus(corpus, quiet=True, noloop=True, create_if_missing=True)
+    d = cor.jsonrpc_start_corpus(corpus, _quiet=True, _noloop=True, _create_if_missing=True)
     d.addCallback(test_ping, cor, corpus)
     d.addErrback(stop_tests, cor, corpus)
 def test_ping(res, cor, corpus):
@@ -2170,7 +2133,7 @@ def test_ping(res, cor, corpus):
 def test_destroy(res, cor, corpus):
     if is_error(res):
         return stop_tests(res, cor, corpus, "Could not start corpus")
-    d = cor.destroy_corpus(corpus, quiet=True)
+    d = cor.jsonrpc_destroy_corpus(corpus, _quiet=True)
     d.addCallback(test_scrapyd, cor, corpus)
     d.addErrback(stop_tests, cor, corpus)
 def test_scrapyd(res, cor, corpus):

@@ -3,6 +3,7 @@
 
 import os, types
 import simplejson as json
+from copy import deepcopy
 from pymongo import Connection
 from twisted.internet import defer
 DEFAULT_CORPUS = "--hyphe--"
@@ -31,12 +32,22 @@ def load_config():
     if "twisted.port" not in conf and "twisted" in conf and "port" in conf["twisted"]:
         conf["twisted.port"] = conf["twisted"]["port"]
 
+  # Set default corpus keepalive option for old configs
+    if "memoryStructure" in conf:
+        if "keepalive" not in conf["memoryStructure"]:
+            conf["memoryStructure"]["keepalive"] = 1800
+
   # Set default noproxy setting if missing
     if "mongo-scrapy" in conf:
         if 'proxy_host' not in conf['mongo-scrapy']:
             conf['mongo-scrapy']['proxy_host'] = ''
         if 'proxy_port' not in conf['mongo-scrapy']:
             conf['mongo-scrapy']['proxy_port'] = 3128
+        # Ensure retrocompat
+        conf['mongo-scrapy']['proxy'] = {
+          'host': conf['mongo-scrapy']['proxy_host'],
+          'port': conf['mongo-scrapy']['proxy_port']
+        }
 
   # Set default creation rules if missing
     if "defaultCreationRule" not in conf:
@@ -144,7 +155,7 @@ GLOBAL_CONF_SCHEMA = {
     }
   }, "memoryStructure": {
     "type": dict,
-    "int_fields": ["max_simul_pages_indexing", "max_simul_links_indexing"],
+    "int_fields": ["keepalive", "max_simul_pages_indexing", "max_simul_links_indexing"],
     "extra_fields": {
       "log.level": ["INFO", "DEBUG", "WARN", "ERROR", "TRACE"]
     },
@@ -182,15 +193,35 @@ GLOBAL_CONF_SCHEMA = {
 }
 
 CORPUS_CONF_SCHEMA = {
-  "ram":              {"type": int},
-  "max_depth":        {"type": int},
-  "precision_limit":  {"type": int},
-  "defaultCreationRule": {"type": creationrules.testPreset},
-  "follow_redirects": {"type": list},
+  "ram": {
+    "type": int,
+    "default": 256
+  },
+  "keepalive": {
+    "type": int,
+    "default": "global/memoryStructure/keepalive"
+  },
+  "max_depth": {
+    "type": int,
+    "default": "global/mongo-scrapy/maxdepth"
+  },
+  "precision_limit": {
+    "type": int,
+    "default": "global/precisionLimit"
+  },
+  "defaultCreationRule": {
+    "type": creationrules.testPreset,
+    "default": "global/defaultCreationRule"
+  },
+  "follow_redirects": {
+    "type": list,
+    "default": "global/discoverPrefixes"
+  },
   "proxy": {
     "type": dict,
     "str_fields": ["host"],
-    "int_fields": ["port"]
+    "int_fields": ["port"],
+    "default": "global/mongo-scrapy/proxy"
   },
   "phantom": {
     "type": dict,
@@ -198,9 +229,33 @@ CORPUS_CONF_SCHEMA = {
     "extra_fields": {
       "whitelist_domains": list,
       "autoretry": bool
-    }
+    },
+    "default": "global/phantom"
   }
 }
+
+def dict_accessor(access, dico):
+    path = access.split('/')
+    tmp = deepcopy(dico)
+    while path:
+        curp = path.pop(0)
+        if curp not in tmp:
+            raise(TypeError("Default path value missing from global config: %s" % access))
+        tmp = deepcopy(tmp[curp])
+    return tmp
+
+def clean_missing_corpus_options(conf, globalconf):
+    for opt, schema in CORPUS_CONF_SCHEMA.items():
+        if opt not in conf:
+            if type(schema["default"]) == str and schema["default"].startswith("global/"):
+                conf[opt] = dict_accessor(schema["default"][7:], globalconf)
+            else:
+                conf[opt] = schema["default"]
+        elif schema["type"] == dict:
+            for f in schema.get("int_fields", []) + schema.get("str_fields", []) + schema.get("extra_fields", {}).keys():
+                if f not in conf[opt]:
+                    conf[opt][f] = dict_accessor(schema["default"][7:], globalconf)[f]
+    return conf
 
 
 error_config = lambda x, ns, nm: Exception("ERROR in %s while reading %s:\n%s" % (nm, "field %s" % ns if ns else "", x))

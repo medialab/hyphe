@@ -12,6 +12,7 @@
     "max_simul_requests_per_host" : 1
   },
   "memoryStructure": {
+    "keepalive": 1800,
     "thrift.portrange": [13500, 13509],
     "thrift.max_ram": 2560,
     "lucene.rootpath": "##HYPHEPATH##/lucene-data",
