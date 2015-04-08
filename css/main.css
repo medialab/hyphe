@@ -326,6 +326,57 @@ header .intro-text .intro-heading {
     }
 }
 
+aside.desc-info .container{
+    padding: 50px 0;
+}
+
+@media(min-width:768px) {
+    aside.desc-info .container{
+        padding: 75px 0;
+    }
+}
+
+aside.desc-info hr{
+    margin-top: 0px;
+    margin-bottom: 0px;
+    border: 0;
+    border-top: 5px solid #144D70;
+    border-bottom: 5px solid #144D70;
+    margin-left: 30%;
+    margin-right: 30%;
+}
+
+aside.desc-info strong{
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+aside.desc-info .main{
+    font-size: 18px;
+    font-weight: 400;
+    letter-spacing: 0.0625em;
+    color: #144D70;
+    line-height: inherit;
+}
+
+aside.desc-info .secondary{
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.0625em;
+    color: #144D70;
+    line-height: inherit;
+}
+
+@media(min-width:768px) {
+    aside.desc-info .main{
+        font-size: 24px;
+    }
+
+    aside.desc-info .secondary{
+        font-size: 18px;
+    }
+}
+
 section {
     padding: 100px 0;
 }
