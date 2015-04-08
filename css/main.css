@@ -231,7 +231,7 @@ fieldset[disabled] .btn-xl.active {
 .navbar-default .navbar-nav>.active>a:hover,
 .navbar-default .navbar-nav>.active>a:focus {
     color: #fff;
-    background-color: #3E8CC6;
+    background-color: #2170A0;
 }
 
 @media(min-width:768px) {
