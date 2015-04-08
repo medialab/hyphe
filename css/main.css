@@ -336,12 +336,12 @@ aside.desc-info .container{
     }
 }
 
-aside.desc-info hr{
+hr{
     margin-top: 0px;
     margin-bottom: 0px;
     border: 0;
-    border-top: 5px solid #144D70;
-    border-bottom: 5px solid #144D70;
+    border-top: 2px solid #144D70;
+    border-bottom: 2px solid #144D70;
     margin-left: 30%;
     margin-right: 30%;
 }
