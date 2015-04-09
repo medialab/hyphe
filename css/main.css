@@ -456,6 +456,7 @@ section .side-quote p{
     font-weight: 500;
     letter-spacing: 0.03em;
     line-height: 36px;
+    margin-bottom: 50px;
 }
 
 section .side-quote hr{
@@ -509,6 +510,10 @@ section .side-quote hr{
     transform: translate(-145px, 0px);
 }
 
+#granularity-schema{
+    padding-top: 0;
+}
+
 
 
 
@@ -517,12 +522,12 @@ section .side-quote hr{
 
 ::-moz-selection {
     text-shadow: none;
-    background: #144D70;
+    background: #C1F6FF;
 }
 
 ::selection {
     text-shadow: none;
-    background: #144D70;
+    background: #C1F6FF;
 }
 
 img::selection {
@@ -534,5 +539,5 @@ img::-moz-selection {
 }
 
 body {
-    webkit-tap-highlight-color: #144D70;
+    webkit-tap-highlight-color: #C1F6FF;
 }
