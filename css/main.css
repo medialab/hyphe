@@ -383,16 +383,24 @@ section {
 
 section h2.section-heading {
     margin-top: 0;
-    margin-bottom: 15px;
+    margin-bottom: 0;
     font-size: 40px;
+    letter-spacing: 0.0625em;
+    color: #144D70;
+    font-weight: 500;
+    text-transform: uppercase;
 }
 
 section h3.section-subheading {
     margin-bottom: 75px;
+    margin-top: 0;
     text-transform: none;
-    font-size: 16px;
-    font-style: italic;
+    font-size: 40px;
+    letter-spacing: 0.0625em;
+    color: #3E8CC6;
     font-weight: 400;
+    text-transform: uppercase;
+    
 }
 
 section .quote{
