@@ -46,6 +46,7 @@ h3,
 h4,
 h5,
 h6 {
+    font-family: "Hind",Helvetica,Arial,sans-serif;
     text-transform: uppercase;
     font-weight: 700;
 }
@@ -68,6 +69,7 @@ h6 {
     font-weight: 700;
     color: #fff;
     background-color: #144D70;
+    font-family: "Hind",Helvetica,Arial,sans-serif;
 }
 
 .btn-primary:hover,
@@ -168,6 +170,7 @@ fieldset[disabled] .btn-xl.active {
 
 .navbar-default .navbar-brand {
     color: #144D70;
+    font-family: "Hind",Helvetica,Arial,sans-serif;
 }
 .navbar-default.navbar-shrink .navbar-brand {
     color: #fff;
@@ -294,6 +297,7 @@ header .intro-text .intro-lead-in {
 }
 
 header .intro-text .intro-heading {
+    font-family: "Hind",Helvetica,Arial,sans-serif;
     margin-bottom: 25px;
     text-transform: uppercase;
     font-size: 60px;
@@ -388,7 +392,6 @@ section h2.section-heading {
     letter-spacing: 0.0625em;
     color: #144D70;
     font-weight: 500;
-    text-transform: uppercase;
 }
 
 section h3.section-subheading {
@@ -399,8 +402,6 @@ section h3.section-subheading {
     letter-spacing: 0.0625em;
     color: #3E8CC6;
     font-weight: 400;
-    text-transform: uppercase;
-    
 }
 
 section .quote{
