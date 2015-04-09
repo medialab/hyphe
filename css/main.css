@@ -493,6 +493,12 @@ section .side-quote hr{
 .carousel-indicators li.active{
     background-color: #144D70;
 }
+/* Center carousel #1*/
+.carousel-inner .item img{
+    margin-left: 50%;
+    /* Translate of half the width of the image */
+    transform: translate(-145px, 0px);
+}
 
 #portfolio .portfolio-item {
     right: 0;

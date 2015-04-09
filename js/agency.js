@@ -24,3 +24,9 @@ $('body').scrollspy({
 $('.navbar-collapse ul li a').click(function() {
     $('.navbar-toggle:visible').click();
 });
+
+
+// CAROUSEL
+$('.carousel').carousel({
+  interval: 50000
+})
