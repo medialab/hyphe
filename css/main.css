@@ -487,12 +487,21 @@ section .side-quote hr{
 .carousel-control span.glyphicon{
     color: #3E8CC6;
 }
+.carousel-indicators{
+    bottom: -32px;
+}
+@media screen and (min-width: 768px){
+    .carousel-indicators {
+        bottom: -48px;
+    }
+}
 .carousel-indicators li{
     background-color: #92BAD8;
 }
 .carousel-indicators li.active{
     background-color: #144D70;
 }
+
 /* Center carousel #1*/
 .carousel-inner .item img{
     margin-left: 50%;
