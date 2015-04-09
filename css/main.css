@@ -488,6 +488,10 @@ section .side-quote.right hr{
     }
 }
 
+section .side-description{
+    margin-bototm: 24px;
+}
+
 section .side-description p{
     font-family: "Hind",Helvetica,Arial,sans-serif;
     margin: 0;
@@ -574,6 +578,7 @@ section .side-description hr{
 #curation-schema{
     padding-top: 0;
 }
+
 
 
 
