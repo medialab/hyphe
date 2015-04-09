@@ -446,9 +446,52 @@ section .quote{
     }
 }
 
+section .side-quote p{
+    margin: 0;
+    padding-left: 0;
+    color: #3E8CC6;
+    text-align: left;
+    text-transform: uppercase;
+    font-style: italic;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    line-height: 36px;
+}
+
+section .side-quote hr{
+    margin-top: 0px;
+    margin-left: 0%;
+    margin-right: 50%;
+    margin-bottom: 36px;
+    border: 0;
+    border-top: 3px solid #3E8CC6;
+    border-bottom: 3px solid #3E8CC6;
+}
+
+@media(min-width:768px) {
+    section .side-quote hr{
+        margin-left: 0%;
+        margin-right: 50%;
+    }
+}
+
 .service-heading {
     margin: 15px 0;
     text-transform: none;
+}
+
+/* Bootstrap Carousel Tweaks*/
+.carousel-control.left, .carousel-control.right{
+  background-image: none;
+}
+.carousel-control span.glyphicon{
+    color: #3E8CC6;
+}
+.carousel-indicators li{
+    background-color: #92BAD8;
+}
+.carousel-indicators li.active{
+    background-color: #144D70;
 }
 
 #portfolio .portfolio-item {
