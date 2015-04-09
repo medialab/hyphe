@@ -448,7 +448,7 @@ section .quote{
 
 section .side-quote p{
     margin: 0;
-    padding-left: 0;
+    padding: 0;
     color: #3E8CC6;
     text-align: left;
     text-transform: uppercase;
@@ -457,6 +457,10 @@ section .side-quote p{
     letter-spacing: 0.03em;
     line-height: 36px;
     margin-bottom: 50px;
+}
+
+section .side-quote.right, section .side-quote.right p{
+    text-align: right;
 }
 
 section .side-quote hr{
@@ -468,13 +472,71 @@ section .side-quote hr{
     border-top: 3px solid #3E8CC6;
     border-bottom: 3px solid #3E8CC6;
 }
+section .side-quote.right hr{
+    margin-left: 50%;
+    margin-right: 0%;
+}
 
 @media(min-width:768px) {
     section .side-quote hr{
         margin-left: 0%;
         margin-right: 50%;
     }
+    section .side-quote.right hr{
+        margin-left: 50%;
+        margin-right: 0%;
+    }
 }
+
+section .side-description p{
+    font-family: "Hind",Helvetica,Arial,sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #144E71;
+    text-align: left;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 26px;
+    margin-bottom: 50px;
+}
+
+section .side-description h3{
+    font-family: "Roboto",Helvetica,Arial,sans-serif;
+    color: #3E8CC6;
+    font-weight: 700;
+}
+
+section .side-description.right, section .side-description.right p{
+    text-align: right;
+}
+
+section .side-description hr{
+    margin-top: 0px;
+    margin-left: 0%;
+    margin-right: 50%;
+    margin-bottom: 12px;
+    border: 0;
+    border-bottom: 3px solid #3E8CC6;
+}
+section .side-description.right hr{
+    margin-left: 50%;
+    margin-right: 0%;
+}
+
+@media(min-width:768px) {
+    section .side-description hr{
+        margin-left: 0%;
+        margin-right: 50%;
+    }
+    section .side-description.right hr{
+        margin-left: 50%;
+        margin-right: 0%;
+    }
+}
+
+
+
+
 
 .service-heading {
     margin: 15px 0;
@@ -511,6 +573,10 @@ section .side-quote hr{
 }
 
 #granularity-schema{
+    padding-top: 0;
+}
+
+#curation-schema{
     padding-top: 0;
 }
 

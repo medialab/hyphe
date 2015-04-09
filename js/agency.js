@@ -28,5 +28,5 @@ $('.navbar-collapse ul li a').click(function() {
 
 // CAROUSEL
 $('.carousel').carousel({
-  interval: 50000
+  interval: 100000
 })
