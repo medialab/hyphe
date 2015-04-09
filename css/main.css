@@ -502,12 +502,9 @@ section .side-description p{
 
 section .side-description h3{
     font-family: "Roboto",Helvetica,Arial,sans-serif;
+    text-align: left;
     color: #3E8CC6;
     font-weight: 700;
-}
-
-section .side-description.right, section .side-description.right p{
-    text-align: right;
 }
 
 section .side-description hr{
@@ -518,12 +515,11 @@ section .side-description hr{
     border: 0;
     border-bottom: 3px solid #3E8CC6;
 }
-section .side-description.right hr{
-    margin-left: 50%;
-    margin-right: 0%;
-}
 
 @media(min-width:768px) {
+    section .side-description.right, section .side-description.right p, section .side-description.right h3{
+        text-align: right;
+    }
     section .side-description hr{
         margin-left: 0%;
         margin-right: 50%;
@@ -534,16 +530,15 @@ section .side-description.right hr{
     }
 }
 
-
-
-
-
 .service-heading {
     margin: 15px 0;
     text-transform: none;
 }
 
 /* Bootstrap Carousel Tweaks*/
+.carousel{
+    margin-bottom: 64px;
+}
 .carousel-control.left, .carousel-control.right{
   background-image: none;
 }
