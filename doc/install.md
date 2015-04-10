@@ -1,15 +1,44 @@
 # Installation
 
+__Notes:__
+- Hyphe is built to run on GNU/Linux machines. Making it work on MacOS or Windows might be feasible but is not supported.
+- MongoDB is limited to 2Go databases on 32bit systems, so we recommand to always install Hyphe on a 64bit machine.
+- Do not add sudo to any of the following example commands. Every line of shell written here should be ran from Hyphe's root directory and sudo should only be used when explicitly listed.
 
-__Note:__ MongoDB being limited to 2Go databases on 32bit systems, it is recommanded to always install Hyphe on a 64bit machine.
+The easiest way to install Hyphe is by uncompressing the [gzipped release](https://github.com/medialab/Hypertext-Corpus-Initiative/releases). It has been successfully tested on a variety of blank distributions of Ubuntu, Debian and CentOS. Please let us know if you get it working on other versions!
 
-__Warning:__ Hyphe's current release does not support multiple corpus. This feature will come soon, but at the moment building a different corpus requires to either install a new instance or to stop working on the previous corpus and change the settings to point to a different mongodb collection and lucene directory.
+  Distribution  |   Version         | precision     |  OK ?
+----------------|-------------------|---------------|---------------
+    Ubuntu      |   12.04.5 LTS     | server        |   X
+    Ubuntu      |   12.04.5 LTS     | desktop       |   X
+    Ubuntu      |   14.04.1 LTS     | server        |   X
+    Ubuntu      |   14.04.1 LTS     | desktop       |   X
+    Ubuntu      |   14.10           | desktop       |   X
+----------------|-------------------|---------------|---------------
+    CentOS      |   5.7             | server        |   —  (issues due to missing upstart & python2.4)
+    CentOS      |   6.4 Final       | server        |   X   
+----------------|-------------------|---------------|---------------
+    Debian      |   6.0.10 squeeze  | server        |   X
+    Debian      |   7.5 wheezy      | server        |   X
+    Debian      |   7.8 wheezy      | livecd gnome  |   X
 
 
-Like everywhere in this README, every example command showed here should be ran from Hyphe's root directory and sudo should be used only when explicitly mentioned.
+Just uncompress the release archive, go into the directory and run the installation script.
+
+Do not use sudo: the script will do so on its own and ask for your password only once. This is so in order to install all missing dependencies at once, including mainly Java (OpenJDK-6-JRE), Python (python-dev, pip, virtualEnv, virtualEnvWrapper...), Apache2, MongoDB & ScrapyD.
 
 
-### 1) Download the source code
+```bash
+    # WARNING: DO NOT prefix any of these commands with sudo!
+    tar xzvf hyphe-release-*.tar.gz
+    cd Hyphe
+    ./bin/install.sh
+```
+
+If you are not comfortable with this or if you prefer to install from git sources, pleae follow the following documentation.
+
+
+## 1) Clone the source code
 
 ```bash
     git clone https://github.com/medialab/Hypertext-Corpus-Initiative Hyphe
@@ -19,30 +48,31 @@ Like everywhere in this README, every example command showed here should be ran 
 From here on, you can also run ```bin/install.sh``` to go faster as with the release, or follow the next steps.
 
 
-### 2) Get requirements and dependencies
+## 2) Get requirements and dependencies
 
-[MongoDB](http://www.mongodb.org/) (a no-sql database server), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) (a crawler framework server), JAVA (and [Thrift](http://thrift.apache.org/) for contributors/developers) are required for the backend to work: below is an example to install them all on an Ubuntu machine.
-All of this steps are adaptable to Debian and CentOS as can be read in the ```bin/install.sh``` script.
+[MongoDB](http://www.mongodb.org/) (a NoSQL database server), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) (a crawler framework server), Python 2.6/2.7, JAVA 6+ (with Maven 2+ and [Thrift](http://thrift.apache.org/) for contributors/developers) are required for the backend to work.
 
-#### 2.1) Prerequisites:
-
-Python 2.6/2.7
-Java 6
-MongoDB
-Apache
-ScrapyD
-64bit
-
-Devs : maven2+
+### 2.1) Prerequisites:
 
 Install possible missing required basics:
 
+For Debian/Ubuntu:
 ```bash
-    sudo apt-get install curl wget git python-dev python-pip apache2 libapache2-mod-proxy-html fontconfig libfreetype6 libfreetype6-dev libfontconfig libstdc++6 libffi-dev
+    sudo apt-get update
+    sudo apt-get install curl wget python-dev python-pip apache2 libapache2-mod-proxy-html libxml2-dev libxslt1-dev build-essential libffi-dev libssl-dev libstdc++6-dev
 ```
-Or from CentOS:
+
+Or for CentOS:
 ```bash
-    sudo yum install curl git python-devel python-setuptools python-pip httpd fontconfig freetype libfreetype.so.6 libfontconfig.so.1 libffi-devel openssl-devel #libstdc++.so.6
+    sudo yum check-update
+    sudo yum install curl wget python-devel python-setuptools python-pip httpd libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6
+
+    # Fix possibly misnamed pip
+    pip > /dev/null || alias pip="python-pip"   
+
+    # Activate apache's autorestart on reboot
+    sudo chkconfig --levels 235 httpd on
+    sudo service httpd restart
 ```
 
 #### 2.2) Install [MongoDB](http://www.mongodb.org/), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) and [PhantomJS](http://phantomjs.org/):
