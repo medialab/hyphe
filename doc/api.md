@@ -7,104 +7,104 @@ _Note:_ as it relies on the JSON-RPC protocol, it is not quite easy to test the 
 
 ## Summary
 - [Default API commands (no namespace)](#default-api-commands-no-namespace)
- + [CORPUS HANDLING](#corpus-handling)
-  * __`test_corpus`__
-  * __`list_corpus`__
-  * __`get_corpus_options`__
-  * __`set_corpus_options`__
-  * __`create_corpus`__
-  * __`start_corpus`__
-  * __`stop_corpus`__
-  * __`ping`__
-  * __`reinitialize`__
-  * __`destroy_corpus`__
-  * __`clear_all`__
- + [CORE & CORPUS STATUS](#core-corpus-status)
-  * __`get_status`__
- + [BASIC PAGE DECLARATION (AND WEBENTITY CREATION)](#basic-page-declaration-and-webentity-creation)
-  * __`declare_page`__
-  * __`declare_pages`__
- + [BASIC CRAWL METHODS](#basic-crawl-methods)
-  * __`listjobs`__
-  * __`crawl_webentity`__
-  * __`get_webentity_logs`__
- + [HTTP LOOKUP METHODS](#http-lookup-methods)
-  * __`lookup_httpstatus`__
-  * __`lookup`__
+  + [CORPUS HANDLING](#corpus-handling)
+    * __`test_corpus`__
+    * __`list_corpus`__
+    * __`get_corpus_options`__
+    * __`set_corpus_options`__
+    * __`create_corpus`__
+    * __`start_corpus`__
+    * __`stop_corpus`__
+    * __`ping`__
+    * __`reinitialize`__
+    * __`destroy_corpus`__
+    * __`clear_all`__
+  + [CORE & CORPUS STATUS](#core-corpus-status)
+    * __`get_status`__
+  + [BASIC PAGE DECLARATION (AND WEBENTITY CREATION)](#basic-page-declaration-and-webentity-creation)
+    * __`declare_page`__
+    * __`declare_pages`__
+  + [BASIC CRAWL METHODS](#basic-crawl-methods)
+    * __`listjobs`__
+    * __`crawl_webentity`__
+    * __`get_webentity_logs`__
+  + [HTTP LOOKUP METHODS](#http-lookup-methods)
+    * __`lookup_httpstatus`__
+    * __`lookup`__
 - [Commands for namespace: "crawl."](#commands-for-namespace-crawl)
-  * __`deploy_crawler`__
-  * __`delete_crawler`__
-  * __`cancel_all`__
-  * __`start`__
-  * __`cancel`__
-  * __`get_job_logs`__
+    * __`deploy_crawler`__
+    * __`delete_crawler`__
+    * __`cancel_all`__
+    * __`start`__
+    * __`cancel`__
+    * __`get_job_logs`__
 - [Commands for namespace: "store."](#commands-for-namespace-store)
- + [DEFINE WEBENTITIES](#define-webentities)
-  * __`get_lru_definedprefixes`__
-  * __`declare_webentity_by_lruprefix_as_url`__
-  * __`declare_webentity_by_lru`__
-  * __`declare_webentity_by_lrus`__
- + [EDIT WEBENTITIES](#edit-webentities)
-  * __`rename_webentity`__
-  * __`change_webentity_id`__
-  * __`set_webentity_status`__
-  * __`set_webentities_status`__
-  * __`set_webentity_homepage`__
-  * __`add_webentity_lruprefixes`__
-  * __`rm_webentity_lruprefix`__
-  * __`add_webentity_startpage`__
-  * __`rm_webentity_startpage`__
-  * __`merge_webentity_into_another`__
-  * __`merge_webentities_into_another`__
-  * __`delete_webentity`__
- + [RETRIEVE & SEARCH WEBENTITIES](#retrieve-search-webentities)
-  * __`get_webentity`__
-  * __`get_webentity_by_lruprefix`__
-  * __`get_webentity_by_lruprefix_as_url`__
-  * __`get_webentity_for_url`__
-  * __`get_webentity_for_url_as_lru`__
-  * __`get_webentities`__
-  * __`advanced_search_webentities`__
-  * __`exact_search_webentities`__
-  * __`prefixed_search_webentities`__
-  * __`postfixed_search_webentities`__
-  * __`free_search_webentities`__
-  * __`get_webentities_by_status`__
-  * __`get_webentities_by_name`__
-  * __`get_webentities_by_tag_value`__
-  * __`get_webentities_by_tag_category`__
-  * __`get_webentities_by_user_tag`__
-  * __`get_webentities_page`__
-  * __`get_webentities_ranking_stats`__
- + [TAGS](#tags)
-  * __`add_webentity_tag_value`__
-  * __`add_webentities_tag_value`__
-  * __`rm_webentity_tag_key`__
-  * __`rm_webentity_tag_value`__
-  * __`set_webentity_tag_values`__
-  * __`get_tags`__
-  * __`get_tag_namespaces`__
-  * __`get_tag_categories`__
-  * __`get_tag_values`__
- + [PAGES, LINKS & NETWORKS](#pages-links-networks)
-  * __`get_webentity_pages`__
-  * __`get_webentity_subwebentities`__
-  * __`get_webentity_parentwebentities`__
-  * __`get_webentity_nodelinks_network`__
-  * __`get_webentities_network`__
- + [CREATION RULES](#creation-rules)
-  * __`get_webentity_creationrules`__
-  * __`delete_webentity_creationrule`__
-  * __`add_webentity_creationrule`__
-  * __`simulate_creationrules_for_urls`__
-  * __`simulate_creationrules_for_lrus`__
- + [PRECISION EXCEPTIONS](#precision-exceptions)
-  * __`get_precision_exceptions`__
-  * __`delete_precision_exceptions`__
-  * __`add_precision_exception`__
- + [VARIOUS](#various)
-  * __`trigger_links_reset`__
-  * __`get_webentities_stats`__
+  + [DEFINE WEBENTITIES](#define-webentities)
+    * __`get_lru_definedprefixes`__
+    * __`declare_webentity_by_lruprefix_as_url`__
+    * __`declare_webentity_by_lru`__
+    * __`declare_webentity_by_lrus`__
+  + [EDIT WEBENTITIES](#edit-webentities)
+    * __`rename_webentity`__
+    * __`change_webentity_id`__
+    * __`set_webentity_status`__
+    * __`set_webentities_status`__
+    * __`set_webentity_homepage`__
+    * __`add_webentity_lruprefixes`__
+    * __`rm_webentity_lruprefix`__
+    * __`add_webentity_startpage`__
+    * __`rm_webentity_startpage`__
+    * __`merge_webentity_into_another`__
+    * __`merge_webentities_into_another`__
+    * __`delete_webentity`__
+  + [RETRIEVE & SEARCH WEBENTITIES](#retrieve-search-webentities)
+    * __`get_webentity`__
+    * __`get_webentity_by_lruprefix`__
+    * __`get_webentity_by_lruprefix_as_url`__
+    * __`get_webentity_for_url`__
+    * __`get_webentity_for_url_as_lru`__
+    * __`get_webentities`__
+    * __`advanced_search_webentities`__
+    * __`exact_search_webentities`__
+    * __`prefixed_search_webentities`__
+    * __`postfixed_search_webentities`__
+    * __`free_search_webentities`__
+    * __`get_webentities_by_status`__
+    * __`get_webentities_by_name`__
+    * __`get_webentities_by_tag_value`__
+    * __`get_webentities_by_tag_category`__
+    * __`get_webentities_by_user_tag`__
+    * __`get_webentities_page`__
+    * __`get_webentities_ranking_stats`__
+  + [TAGS](#tags)
+    * __`add_webentity_tag_value`__
+    * __`add_webentities_tag_value`__
+    * __`rm_webentity_tag_key`__
+    * __`rm_webentity_tag_value`__
+    * __`set_webentity_tag_values`__
+    * __`get_tags`__
+    * __`get_tag_namespaces`__
+    * __`get_tag_categories`__
+    * __`get_tag_values`__
+  + [PAGES, LINKS & NETWORKS](#pages-links-networks)
+    * __`get_webentity_pages`__
+    * __`get_webentity_subwebentities`__
+    * __`get_webentity_parentwebentities`__
+    * __`get_webentity_nodelinks_network`__
+    * __`get_webentities_network`__
+  + [CREATION RULES](#creation-rules)
+    * __`get_webentity_creationrules`__
+    * __`delete_webentity_creationrule`__
+    * __`add_webentity_creationrule`__
+    * __`simulate_creationrules_for_urls`__
+    * __`simulate_creationrules_for_lrus`__
+  + [PRECISION EXCEPTIONS](#precision-exceptions)
+    * __`get_precision_exceptions`__
+    * __`delete_precision_exceptions`__
+    * __`add_precision_exception`__
+  + [VARIOUS](#various)
+    * __`trigger_links_reset`__
+    * __`get_webentities_stats`__
 
 
 ## Default API commands (no namespace)

@@ -21,7 +21,7 @@ cat /tmp/hyphedocapi.tmp | while read line; do
     rep=$(echo $line | sed 's/^[+\-\* ]*\[//' | sed 's/\](#$//' | sed 's/\W\+/-/g' | sed 's/^\(.*\)$/\L\1/' | sed 's/^-//' | sed 's/-$//')
     line="$line$rep)"
   fi
-  echo "$line" | sed 's/^*/  */' | sed 's/^+/ +/' >> doc/api.md
+  echo "$line" | sed 's/^\*/    */' | sed 's/^+/  +/' >> doc/api.md
 done
 
 echo "
