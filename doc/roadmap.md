@@ -60,7 +60,7 @@ For a better maintainability, we are thinking about switching to our own crawler
 
 An important technology challenge to overpass by Hyphe is the storage of a great deal of urls and links between them. On the advice of some web archives colleagues, we chose to build the memory structure on the grounds of Lucene, which is great for querying along prefixes.
 
-We achieved a good performance with this but we also exepriment some limitations in the case of some advanced uses, for instance when dealing with mainly nested webentities/
+We achieved a good performance with this but we also experiment some limitations in the case of some advanced uses, for instance when dealing with mainly nested webentities/
 
 One big project we are considering would be to test other ways to store and query Hyphe's data, maybe some graph database engines with built-in Lucene index such as Neo4J might help us out?
 

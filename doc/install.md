@@ -118,7 +118,7 @@ enabled=1" > mongodb.repo.tmp
     sudo service scrapyd restart
 ```
 
-- If you want, you can also optionnally install the PHP web admin interface [RockMongo](http://rockmongo.com/wiki/installation?lang=en_us) to easily access MongoDB's databases in a browser.
+- If you want, you can also optionally install the PHP web admin interface [RockMongo](http://rockmongo.com/wiki/installation?lang=en_us) to easily access MongoDB's databases in a browser.
 
 #### 2.3) Prepare the Java / [Thrift](http://thrift.apache.org/) environment:
 

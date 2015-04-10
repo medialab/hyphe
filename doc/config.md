@@ -117,4 +117,4 @@ __Note:__ Many of these settings are configurable per corpus individual. Althoug
 ```hyphe_frontend/app/conf/conf.js```
 
  - analytics id
- - optionnally core root url for distant access
+ - optionally core root url for distant access

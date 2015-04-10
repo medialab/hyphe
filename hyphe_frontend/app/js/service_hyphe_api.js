@@ -8,7 +8,7 @@ angular.module('hyphe.service_hyphe_api', [])
 
     API.WEBENTITY_LIST_GET                          = 'store.get_webentities'
     API.WEBENTITY_LIST_GET_BY_STATUS                = 'store.get_webentities_by_status'
-    API.WEBENTITY_LIST_GET_LINKS                    = 'store.get_webentities_network_json'
+    API.WEBENTITY_LIST_GET_LINKS                    = 'store.get_webentities_network'
     API.WEBENTITY_LIST_CREATE_BY_LRU                = 'store.declare_webentity_by_lru'
     API.WEBENTITY_LIST_CREATE_BY_LRU_LIST           = 'store.declare_webentity_by_lrus'
     API.WEBENTITY_LIST_STATUS_SET                   = 'store.set_webentities_status'
@@ -25,7 +25,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
     
     API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'
-    API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_nodelinks_network_json'
+    API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_nodelinks_network'
     API.WEBENTITY_SUBWEBENTITY_LIST_GET             = 'store.get_webentity_subwebentities'
     API.WEBENTITY_PARENTWEBENTITY_LIST_GET          = 'store.get_webentity_parentwebentities'
     API.WEBENTITY_NAME_SET                          = 'store.rename_webentity'
@@ -76,11 +76,11 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
             settings.id_list                                 // List of webentities
-            ,settings.light || false                         // Mode light
-            ,settings.semiLight || false                     // Mode semi-light
             ,settings.sort || ["-status", "name"]            // Ordering
             ,settings.count || 1000                          // Results per page
             ,settings.page || 0                              // Results page
+            ,settings.light || false                         // Mode light
+            ,settings.semiLight || false                     // Mode semi-light
             ,settings.csvLight || false                      // Mode light special for CSV
             ,corpus.getId()
           ]}
@@ -110,12 +110,15 @@ angular.module('hyphe.service_hyphe_api', [])
     ns.searchWebentities = buildApiCall(
         API.WEBENTITY_LIST_SEARCH_ADVANCED
         ,function(settings){
+          if(settings.autoescape_query === undefined)
+            settings.autoescape_query = false
           return [
             settings.allFieldsKeywords      // List of kw searched everywhere
             ,settings.fieldKeywords         // List of [field,kw] pairs for field search
             ,ns.setSort(settings.sortField) // Ordering
             ,settings.count || 1000         // Results per page
             ,settings.page || 0             // Page
+            ,settings.autoescape_query      // Escape special Lucene characters
             ,corpus.getId()
           ]}
       )
@@ -217,7 +220,6 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
               settings.webentityId
-              ,'json' // output format
               ,false  // include external links
               ,corpus.getId()
             ]}
@@ -318,7 +320,7 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.depth
             ,settings.cautious || false
             ,settings.status || 'IN'
-            ,settings.startpages || 'default'
+            ,settings.startpages || 'startpages'
             ,{}                                 // phantom timeouts
             ,corpus.getId()
           ]}
