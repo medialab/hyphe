@@ -124,7 +124,7 @@ angular.module('hyphe.prospectController', [])
 
     $scope.doQuery = function(){
       if(!$scope.loading){
-        var query = cleanQuery($scope.query)
+        var query = utils.cleanLuceneQuery($scope.query)
         console.log('Query:',query)
         $scope.loadWebentities(query)
       }
@@ -238,17 +238,4 @@ angular.module('hyphe.prospectController', [])
       }
     }
 
-    var escapedChars = ['\\', '+', '-', '!', '(', ')', ':', '^', '[', ']', '{', '}', '~', '*', '?']
-    function cleanQuery(query){
-      if(query === undefined)
-        return undefined
-      if(query == '')
-        return ''
-      escapedChars.forEach(function(character){
-        query = query.replace(character, '\\'+character)
-      })
-      return '*' + query + '*'
-      // return query.replace(' ', '?')
-    }
-    
   }])
