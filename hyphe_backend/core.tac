@@ -604,7 +604,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_crawl_webentity(self, webentity_id, depth=None, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], startpages="startpages", phantom_timeouts={}, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`. Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`. Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered)". Optionally defines the `startpages` strategy by starting the crawl either from the WebEntity's preset "startpages" or "prefixes" or already seen "pages"."""
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`. Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`. Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered"). Optionally defines the `startpages` strategy by starting the crawl either from the WebEntity's preset "startpages" or "prefixes" or already seen "pages"."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
 
@@ -1044,7 +1044,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(format_result(WEs))
 
     def jsonrpc_declare_webentity_by_lruprefix_as_url(self, url, name=None, status=None, startPages=[], corpus=DEFAULT_CORPUS):
-        """Creates for a `corpus` a WebEntity defined for the LRU prefix given as a `url`. Optionally set the newly created WebEntity's `name` `status` ("in"/"ou"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
+        """Creates for a `corpus` a WebEntity defined for the LRU prefix given as a `url`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
         try:
             url, lru_prefix = urllru.url_clean_and_convert(url, False)
         except ValueError as e:
@@ -1052,12 +1052,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
         return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startPages, corpus=corpus)
 
     def jsonrpc_declare_webentity_by_lru(self, lru_prefix, name=None, status=None, startPages=[], corpus=DEFAULT_CORPUS):
-        """Creates for a `corpus` a WebEntity defined for a `lru_prefix`. Optionally set the newly created WebEntity's `name` `status` ("in"/"ou"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
+        """Creates for a `corpus` a WebEntity defined for a `lru_prefix`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
         return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startPages, corpus=corpus)
 
     @inlineCallbacks
     def jsonrpc_declare_webentity_by_lrus(self, list_lrus, name=None, status=None, startPages=[], corpus=DEFAULT_CORPUS):
-        """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as `list_lrus`. Optionally set the newly created WebEntity's `name` `status` ("in"/"ou"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
+        """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as `list_lrus`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if not isinstance(list_lrus, list):
@@ -1217,7 +1217,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_change_webentity_id(self, webentity_old_id, webentity_new_id, corpus=DEFAULT_CORPUS):
-        """Changes for a `corpus` the id of a WebEntity defined by `webentity_old_id` to `webenetity_new_id` (mainly for advanced debug use)."""
+        """Changes for a `corpus` the id of a WebEntity defined by `webentity_old_id` to `webentity_new_id` (mainly for advanced debug use)."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         res = yield self.update_webentity(webentity_old_id, "id", webentity_new_id, corpus=corpus)
