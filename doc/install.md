@@ -8,16 +8,14 @@ __Notes:__
 The easiest way to install Hyphe is by uncompressing the [gzipped release](https://github.com/medialab/Hypertext-Corpus-Initiative/releases). It has been successfully tested on a variety of blank distributions of Ubuntu, Debian and CentOS. Please let us know if you get it working on other versions!
 
   Distribution  |   Version         | precision     |  OK ?
-----------------|-------------------|---------------|---------------
+:--------------:|:-----------------:|:-------------:|:-------------:
     Ubuntu      |   12.04.5 LTS     | server        |   X
     Ubuntu      |   12.04.5 LTS     | desktop       |   X
     Ubuntu      |   14.04.1 LTS     | server        |   X
     Ubuntu      |   14.04.1 LTS     | desktop       |   X
     Ubuntu      |   14.10           | desktop       |   X
-----------------|-------------------|---------------|---------------
     CentOS      |   5.7             | server        |   —  (issues due to missing upstart & python2.4)
     CentOS      |   6.4 Final       | server        |   X   
-----------------|-------------------|---------------|---------------
     Debian      |   6.0.10 squeeze  | server        |   X
     Debian      |   7.5 wheezy      | server        |   X
     Debian      |   7.8 wheezy      | livecd gnome  |   X
