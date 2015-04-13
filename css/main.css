@@ -587,7 +587,52 @@ section .side-description hr{
     overflow-x: auto;
 }
 
+#download-section{
+    background-color: #144D70;
+    color: #FFF;
+}
 
+#last-section{
+    background-color: #3E8CC6;
+    color: #FFF;
+}
+
+#download-section h2, #last-section h2, #download-section p, #last-section p{
+    color: #FFF;
+}
+
+#download-section p, #last-section p{
+    padding: 0;
+}
+
+@media (min-width: 768px){
+    #download-section p, #last-section p{
+        padding: 0;
+    }
+}
+
+#download-section hr, #last-section hr{
+    margin-top: 8px;
+    margin-bottom: 12px;
+    border: 0;
+    border-top: 2px solid #FFF;
+    border-bottom: 2px solid #FFF;
+    margin-left: 0%; 
+    margin-right: 0%; 
+}
+
+#download-section a.btn, #last-section a.btn{
+    background-color: #144D70;
+    border: 4px solid #FFF;
+    text-transform: uppercase;
+    font-style: italic;
+    font-size: 18px;
+    font-weight: 300;
+}
+
+#download-section a, #last-section a, #download-section a:hover, #last-section a:hover{
+    color: #FFF;
+}
 
 
 
