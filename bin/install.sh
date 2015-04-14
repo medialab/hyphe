@@ -58,7 +58,7 @@ echo
 # Check SELinux
 if test -x /usr/sbin/sestatus && sestatus | grep "enabled" > /dev/null; then
   echo "WARNING: SELinux is enabled on your machine and may cause issues with mongo, twisted and thrift"
-  echo "info on issues with MongoDB can be found herehttp://docs.mongodb.org/manual/tutorial/install-mongodb-on-red-hat-centos-or-fedora-linux/#run-mongodb" 
+  echo "info on issues with MongoDB can be found here http://docs.mongodb.org/manual/tutorial/install-mongodb-on-red-hat-centos-or-fedora-linux/#run-mongodb" 
   echo
 fi
 
@@ -197,7 +197,8 @@ fi
 # Install txmongo and selenium as global dependencies for ScrapyD spiders to be able to use it
 echo "Install txMongo"
 echo "---------------"
-sudo pip -q install "txmongo>=0.5" >> install.log || exitAndLog install.log "installing txmongo"
+sudo pip -q install "pymongo==2.7" >> install.log || exitAndLog install.log "installing pymongo"
+sudo pip -q install "txmongo==0.6" >> install.log || exitAndLog install.log "installing txmongo"
 echo
 
 echo "Install Selenium"
