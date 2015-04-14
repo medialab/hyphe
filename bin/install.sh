@@ -229,7 +229,6 @@ echo " ...create directories..."
 mkdir -p log lucene-data
 echo " ...copy backend and frontend default configs..."
 sed "s|##HYPHEPATH##|"`pwd`"|" config/config.json.example > config/config.json || exitAndLog install.log "configuring hyphe"
-cp hyphe_frontend/app/conf/conf{_default,}.js
 
 # apache config
 apache_name="hyphe"
