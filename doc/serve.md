@@ -1,15 +1,18 @@
-# Serve Hyphe on the web
+# Serve Hyphe
 
-To run on a server and not only locally, a few adjustments need to be performed:
+## Make Hyphe accessible from the web
 
-* Adapt your apache configuration in ```hyphe_www_client/_config/apache2.conf``` with your personal settings (ServerName, ...)
+Adapt your apache configuration in `config/apache2.conf` with your server settings (ServerName, ...).
 
-* Adapt the web interface API endpoint in ```hyphe_www_client/_config/config.js``` by replacing localhost into the actual domain name, for instance:
 
+## Troobleshooting
+
+If `http://localhost/hyphe` is unaccessible and apache says "403 Forbidden", you probably have rights issues. Apache's group (usually `www-data`, `apache` or `httpd`) needs read access to Hyphe's installation directory. You can usually solve this by running:
 ```bash
-    "SERVER_ADDRESS":"http://www.example.com/hyphe-api",
+    # Where <HYPHE_ROOT_PATH> is the path where Hyphe was installed
+    sudo chmod -R g+rx <HYPHE_ROOT_PATH>
+    sudo chown -R :www-data $(pwd)
 ```
 
- - If Apache is still reluctant to serve Hyphe's frontend and API and you encounter for instance 403 errors, please [report an issue](https://github.com/medialab/Hypertext-Corpus-Initiative/issues).
-
+On some distributions, if you installed within a /home directory, you may need to run similar commands on your `/home/<USER>` directory (which is quite unclean...), or you can move your install to another more fitted directory (`/srv`, `/opt`, ...), give it the proper rights and fix the parts of the install involving the path (basically change the various paths in `config.json` and `apache2.conf` of the `config` directory, and change apache's link to hyphe's config).
 

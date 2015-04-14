@@ -33,7 +33,7 @@ Do not use sudo: the script will do so on its own and ask for your password only
     ./bin/install.sh
 ```
 
-If you are not comfortable with this or if you prefer to install from git sources, pleae follow the following documentation.
+If you are not comfortable with this or if you prefer to install from git sources, please follow the steps below.
 
 
 ## 1) Clone the source code
@@ -49,6 +49,7 @@ From here on, you can also run ```bin/install.sh``` to go faster as with the rel
 ## 2) Get requirements and dependencies
 
 [MongoDB](http://www.mongodb.org/) (a NoSQL database server), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) (a crawler framework server), Python 2.6/2.7, JAVA 6+ (with Maven 2+ and [Thrift](http://thrift.apache.org/) for contributors/developers) are required for the backend to work.
+
 
 ### 2.1) Prerequisites:
 
@@ -73,117 +74,176 @@ Or for CentOS:
     sudo service httpd restart
 ```
 
-#### 2.2) Install [MongoDB](http://www.mongodb.org/), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) and [PhantomJS](http://phantomjs.org/):
 
-- Install PhantomJS:
+### 2.2) Install [MongoDB](http://www.mongodb.org/)
 
-Hyphe currently uses PhantomJS 2.0 to ensure proper handling of websites using modern javascript such as Facebook.
-The latest official release still being 1.9.7 while 2.0 is stil unstable in development and its compilation takes quite some time, so Hyphe ships for now with a precompiled binary for phantomjs 2.0.
-It will be removed from the repository when the official 2.0 release is made. Until then you should not need to run the following command.
+As they are usually very old, we recommand not to use the MongoDB packages shipped within distributions official repositories.
+Below are basic examples to manually install MongoDB (3.0) on Debian/Ubuntu/CentOS, although it does not seem supported on all distributions yet, so please read [official documentation](http://docs.mongodb.org/manual/administration/install-on-linux/) for more details.
+If you'd rather install on older version 2.x, you can follow the dedicated isntructions in the `bin/install.sh` script to see examples.
 
+On Debian/Ubuntu:
 ```bash
-    #./bin/install_phantom.sh
+    # Install the GPG key for the package repository
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+
+    # Add the repository to apt's sources list
+    sudo apt-get install lsb-release
+    distrib=$(cat /etc/issue | sed -r 's/^(\S+) .*/\L\1/')
+    listrepo="main"
+    if [ "$distrib" = "ubuntu" ]; then listrepo="multiverse"; fi
+    echo "deb http://repo.mongodb.org/apt/$distrib "$(lsb_release -sc)"/mongodb-org/3.0 $listrepo" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
+
+    # Update apt's sources list & install
+    sudo apt-get update
+    sudo apt-get install mongodb-org
 ```
 
-- Edit your package manager source list to include official repositories for MongoDB and ScrapyD:
-
+On CentOS, this is slightly more complex:
 ```bash
-    # Install the GPG keys for these package repositories:
-    curl -s http://docs.mongodb.org/10gen-gpg-key.asc | sudo apt-key add -
+    # Test whether SELinux runs
+    # If it says enabled, you will have to do a few more steps after the installation, see here: http://docs.mongodb.org/manual/tutorial/install-mongodb-on-red-hat/#run-mongodb
+    sestatus
+
+    # Add the repository to yum's sources list
+    echo "[mongodb-org-3.0]
+name=MongoDB Repository
+baseurl=http://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.0/x86_64/
+gpgcheck=0
+enabled=1" | sudo tee /etc/yum.repos.d/mongodb-org-3.0.list
+
+    # Update yum's sources list & install
+    sudo yum check-update
+    sudo yum install mongodb-org
+
+    # Let MongoDB autostart on reboot
+    sudo chkconfig mongod on
+    sudo service mongod restart
+```
+
+For development and administrative use, you can also optionally install one of the following projects to easily access MongoDB's databases:
+- [RockMongo](http://rockmongo.com/wiki/installation?lang=en_us): a PHP web admin interface
+- [RoboMongo](http://robomongo.org/): a shell-centric GUI
+
+
+### 2.3) Install [ScrapyD](http://scrapyd.readthedocs.org/en/latest/)
+
+On all distribs, start by installing globally the python dependencies required by Hyphe's Scrapy spider so that ScrapyD has them (versions are fixed to avoid breakage: [pymongo3 currently breaks txmongo](https://github.com/twisted/txmongo/issues/80)):
+```bash
+    sudo pip install pymongo==2.7
+    sudo pip install txmongo==0.6
+    sudo pip install selenium==2.42.1
+```
+
+Then easily install ScrapyD on Ubuntu:
+```bash
+    # Install the GPG key for the package repository
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 627220E7
 
-    # Edit the /etc/apt/sources.list with your favorite text editor and add the following lines if they are not already present:
-    deb http://archive.scrapy.org/ubuntu scrapy main
-    deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen
+    # Add the repository to apt's sources list
+    echo "deb http://archive.scrapy.org/ubuntu scrapy main" | sudo tee /etc/apt/sources.list.d/scrapy.list
 
-    # Update the sources list
+    # Update apt's sources list & install
     sudo apt-get update
-
-    # Install MongoDB and ScrapyD with txmongo and selenium
-    sudo apt-get install mongodb-10gen
-    sudo pip install txmongo>=0.5
-    sudo pip install selenium==2.42.1
     sudo apt-get install scrapyd
 ```
 
-- In CentOS, this is slightly more complex:
- * To add the MongoDB repository to yum do the following:
+Or follow the next steps on CentOS & Debian: ScrapingHub unfortunately only provides ScrapyD packages for Ubuntu, so we had to build our own:
 
+First install python scrapy globally via pip
 ```bash
-    echo "[mongodb]
-name=MongoDB Repository
-baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64/
-gpgcheck=0
-enabled=1" > mongodb.repo.tmp
-    sudo mv mongodb.repo.tmp /etc/yum.repos.d/mongodb.repo
-    # Then update yum's source list and install:
-    sudo yum check-update
-    sudo yum install mongo-10gen mongo-10gen-server
+    sudo pip install Scrapy==0.18
+```
+Then for Debian:
+```bash
+    # Download our homemade package...
+    wget --no-check-certificate "https://github.com/medialab/scrapyd/raw/medialab-debian/debs/scrapyd_1.0~r0_all.deb"
+
+    sudo dpkg -i scrapyd_1.0~r0_all.deb
+    rm -rf scrapyd_1.0~r0_all.deb
+
+    # You can later remove the homemade package by running:
+    # sudo dpkg -r scrapyd` to remove
+```
+Or for CentOS:
+```bash
+    # Download our homemade package...
+    wget --no-check-certificate "https://github.com/medialab/scrapyd/raw/medialab-centos/rpms/scrapyd_1.0.1-3.el6.x86_64.rpm"
+
+    sudo rpm -i scrapyd_1.0.1-3.el6.x86_64.rpm
+    rm -rf scrapyd_1.0.1-3.el6.x86_64.rpm
+
+    # You can later remove the homemade package by running:
+    # sudo rpm -e scrapyd
 ```
 
- * Install python's required libraries for the ScrapyD spiders and the local PhantomJS binary:
-
+Finally, on all distribs, add Hyphe's specific config for ScrapyD:
 ```bash
-    sudo pip install txmongo>=0.5
-    sudo pip install selenium==2.42.1
+    sudo /etc/init.d/scrapyd stop
+    sudo ln -s `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe
+    sudo /etc/init.d/scrapyd start
 ```
 
- * There is no official package for ScrapyD in CentOS yet, so we built one specifically which you can install as follow:
-
-```bash
-    sudo pip -q install Scrapy==0.18
-    wget https://github.com/medialab/scrapyd/raw/medialab/rpms/scrapyd-1.0.1-2.el6.x86_64.rpm
-    sudo rpm -i scrapyd-1.0.1-2.el6.x86_64.rpm
+You can test whether ScrapyD is properly installed and running by querying [http://localhost:6800/listprojects.json](http://localhost:6800/listprojects.json). If everything is normal, you should see something like this:
+```json
+    {"status": "ok", "projects": []}
 ```
 
-- You can test whether ScrapyD is properly installed and running by trying to access the following url: [http://localhost:6800/listprojects.json](http://localhost:6800/listprojects.json) which should return a json object with status "ok".
+### 2.4) Install Java & [Thrift](http://thrift.apache.org)
 
-- Default settings are usually all right, but you can adapt MongoDB and ScrapyD's default configurations to your needs if you like. Full documentation is accessible for [MongoDB here](http://docs.mongodb.org/manual/reference/configuration-options/) and for [ScrapyD there](http://scrapyd.readthedocs.org/en/latest/#topics-scrapyd-config).
-  Remember to restart the services after any configuration change:
+#### 2.4.1) Java
 
-```bash
-    sudo service mongodb restart    # Warning: under CentOS, mongodb is called mongod
-    sudo service scrapyd restart
-```
-
-- If you want, you can also optionally install the PHP web admin interface [RockMongo](http://rockmongo.com/wiki/installation?lang=en_us) to easily access MongoDB's databases in a browser.
-
-#### 2.3) Prepare the Java / [Thrift](http://thrift.apache.org/) environment:
-
-- Java:
-
-Any instance require at least the Java JRE 6 installed. You can test it by running ```java -version``` and in case it is missing run:
+Hyphe requires at least the Java JRE 6 installed. You can test it by running ```java -version``` and in case it is missing run:
 
 ```bash
+    # Debian/Ubuntu:
     sudo apt-get install openjdk-6-jre
-    # Or in CentOS:
-    # sudo yum install java-1.6.0-openjdk
+    # CentOS:
+    sudo yum install java-1.6.0-openjdk
 ```
 
-Hyphe uses [Thrift version 0.8](http://archive.apache.org/dist/thrift/0.8.0/) to ensure the communication between the python Twisted core and the Java Lucene memoryStructure. Although, installing Thrift is only required for developers to build the jar archive which is included in the downloadable release. You can skip the following steps if you are using the release.
+#### 2.4.2) Thrift
 
-To install and use Thrift, one first needs to install the Java JDK, ant and maven:
+__Important:__ If you're running these installation steps from a downloaded zipped archive of a release, you can skip this section, it only applies to installation from git sources.
+
+Hyphe uses [Thrift version 0.8](http://archive.apache.org/dist/thrift/0.8.0/) to ensure the communication between the python Twisted core and the Java Lucene memoryStructure.
+
+As for the global installation process, a script allows you to run this part of the installation in just one line.
 ```bash
-    sudo apt-get install build-essential openjdk-6-jdk ant maven
+    # WARNING: DO NOT prefix this commands with sudo, the script will ask for your sudo rights on its own
+    ./bin/install_thrift.sh
 ```
-In CentOS this is slightly more complex since there is no maven package:
+
+If you are not comfortable with this running on its own, follow the next steps.
+
+Thrift requires a few dependencies including JAVA's JDK, as well as Ant & Maven2+.
+On Ubuntu/Debian:
+```bash
+    sudo apt-get install build-essential openjdk-6-jdk ant
+    sudo apt-get install maven || sudo apt-get install maven2
+```
+On CentOS:
 ```bash
     sudo yum install java-1.6.0-openjdk-devel ant
+
+    # Download and extract Maven binaries
     wget http://www.eu.apache.org/dist/maven/maven-3/3.1.1/binaries/apache-maven-3.1.1-bin.tar.gz
     tar xvf apache-maven-3.1.1-bin.tar.gz
+
+    # Install Maven in system
     sudo cp -r apache-maven-3.1.1 /usr/local/maven
     echo "export M2_HOME=/usr/local/maven
-export PATH=${M2_HOME}/bin:${PATH}" > /tmp/maven.sh
-    sudo cp /tmp/maven.sh /etc/profile.d/maven.sh
+export PATH=${M2_HOME}/bin:${PATH}" | sudo tee /etc/profile.d/maven.sh
     source /etc/profile.d/maven.sh
+    rm -rf apache-maven-3.1.1*
 ```
 
-- Thrift:
-
-Then download and install Thrift:
+You can then download and install Thrift:
 ```bash
+    # Download and extract Thrift sources
     wget http://archive.apache.org/dist/thrift/0.8.0/thrift-0.8.0.tar.gz
     tar xvf thrift-0.8.0.tar.gz
+
+    # Configure and compile Thrift with java & python
     cd thrift-0.8.0
     ./configure --with-java --without-erlang --without-php
     make
@@ -191,103 +251,115 @@ Then download and install Thrift:
     cd ..
 ```
 
-#### 2.4) Prepare the Python environment:
-
-It is recommended to use virtualenv with virtualenvwrapper:
-
+Then finally build Hyphe's MemoryStructure jar using Thrift:
 ```bash
+    ./bin/build_thrift.sh
+```
+
+
+### 2.5) Setup a Python virtual environment with Hyphe's dependencies
+
+We recommend using virtualenv with virtualenvwrapper:
+```bash
+    # Install VirtualEnv & Wrapper
     sudo pip install virtualenv
     sudo pip install virtualenvwrapper
     source $(which virtualenvwrapper.sh)
+
+    # Create Hyphe's VirtualEnv & install dependencies
     mkvirtualenv --no-site-packages hyphe
     workon hyphe
-    pip install -r requirements.txt
     add2virtualenv $(pwd)
+    pip install -r requirements.txt
     deactivate
 ```
 
-### 3) Prepare and configure
+### 2.6) [Unnecessary for now] Install [PhantomJS](http://phantomjs.org/)
 
-#### 3.0) Compile the Java Lucene memoryStructure (only if installing from repository instead of release):
+__Important:__ Crawling with PhantomJS is currently only possible as advanced option in Hyphe. Do not bother with this section except for advanced use or development.
 
-This will need to be ran again every time the Java code in the memory_structure directory will be modified.
-
+Hyphe ships with a compiled binary of PhantomJS-2.0 for Ubuntu, unfortunately it is not cross-compatible with other distributions: so when on CentOS or Debian, you should compile your own from sources.
 ```bash
-    bin/build_thrift.sh 
+    ./bin/install_phantom.sh
 ```
 
-#### 3.1) Set the backend server configuration
+Note that PhantomJS 1.9.7 is easily downloadable as binary, altough it uses a very outdated version of WebKit and PhantomJS 2+ is required to handle modern websites such as Facebook.
 
-* Deploy Hyphe's scrapyd config:
 
+## 3) Prepare and configure
+
+### 3.1) Setup the backend
+
+- Copy and adapt the sample `config.json.example` to `config.json` in the `config` directory:
 ```bash
-    sudo ln -s `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe
-    sudo service scrapyd restart
+    sed "s|##HYPHEPATH##|"`pwd`"|" config/config.json.example > config/config.json
 ```
 
-* Copy and adapt the sample `config.json.example` to `config.json` in the `config` directory:
+- Edit the `config.json` file and adjust the settings as explained in the [configuration documentation](config.md)
 
+
+### 3.2) Set the frontend
+
+- Copy and adapt the sample `conf_default.json` to `conf.json` in the `hyphe_frontend/app/conf` directory:
 ```bash
-    sed "s|##HCIPATH##|"`pwd`"|" config/config.json.example > config/config.json
+    sed "s|##WEBPATH##|hyphe|" hyphe_frontend/app/conf/conf_default.js > hyphe_frontend/app/conf/conf.js
 ```
 
-* Adjust the settings as explained in section [2) Configure](#2-configure).
+- Optionally setup a GoogleAnalytics id in `conf.js`
 
-* And create the lucene-data directory defined in config/config.json (depending on your possible modifications):
 
+### 3.3) Serve everything with Apache
+
+The backend core API relies on a Twited web server serving on a dedicated port (defined as `twisted.port` in `config.json` just before). For external access, proxy redirection is handled by apache.
+
+- Copy and adapt the sample `apache2_example.conf` from the `config` directory:
 ```bash
-    mkdir -p lucene-data
+    twport=$(grep '"twisted.port"' config/config.json | sed 's/[^0-9]//g')
+    sed "s|##HYPHEPATH##|"`pwd`"|" config/apache2_example.conf |
+     sed "s|##TWISTEDPORT##|$twport|" |
+     sed "s|##WEBPATH##|hyphe|" > config/apache2.conf
 ```
 
-#### 3.2) Set the frontend webapp configuration
-
-* Install frontend's javascript dependencies:
- - Download abd install node: http://nodejs.org/download/
- - Install and use bower:
+- Install it as an Apache's site:
+On Debian/Ubuntu:
 ```bash
-    sudo npm install -g bower
-    cd hyphe_frontend
-    bower install
-```
+    # Enable use of mod_proxy & mod_proxy_http
+    sudo a2enmod proxy
+    sudo a2enmod proxy_http
 
-* Copy and adapt the `conf_default.js` file to `conf.js` in the `hyphe_frontend/app/conf` directory:
+    # Install & enable site
+    sudo ln -s `pwd`/config/apache2.conf /etc/apache2/sites-available/hyphe
+    sudo a2ensite hyphe
 
-```bash
-    cp hyphe_frontend/app/conf/conf{_default,}.js
-```
-
-* Prepare Hyphe's Apache configuration:
-
-```bash
-    sed "s|##HCIPATH##|"`pwd`"|" config/apache2_example.conf |
-      sed "s|##TWISTEDPORT##|6978|" |
-      sed "s|##WEBPATH##|/hyphe|" > config/apache2.conf
-```
-
-* Install the VirtualHost:
-
-```bash
-    sudo ln -s `pwd`/hyphe_www_client/_config/apache2_example.conf /etc/apache2/sites-available/hyphe.conf
-    sudo a2ensite hyphe.conf
+    # Reload apache
     sudo service apache2 reload
 ```
-
-Or in CentOS:
-
+On CentOS:
 ```bash
-    sudo ln -s `pwd`/hyphe_www_client/_config/apache2_example.conf /etc/httpd/conf.d/hyphe.conf
+    # Apache's mod_proxy & mod_proxy_http usually ship with Httpd on CentOS machines but it might be missing.
+    # Ensure it is indeed present running the following command and google how to install it otherwise
+    grep -r "^\s*LoadModule.*mod_proxy_http" /etc/httpd/
+
+    # Install site
+    sudo ln -s `pwd`/config/apache2.conf /etc/httpd/conf.d/hyphe.conf
+
+    # Reload apache
     sudo service httpd reload
 ```
 
-This will install Hyphe locally only first: [http://localhost/hyphe](http://localhost/hyphe). The page should be accessible even though the website should not work (since we did not start the server yet, see next section). To run the website at an url on a server, a few more adjustments are required, [see related section](#4-serve-on-the-web).
+This will install Hyphe locally only first: [http://localhost/hyphe](http://localhost/hyphe). The page should be accessible even though the website should not work yet since we have not started the server, see next section.
 
-If the page is inaccessible and apache says "403 Forbidden", you probably have right issues. Apache's group (usually ```www-data```, ```apache``` or ```httpd```) needs read access to Hyphe's installation directory.
+If Apache is reluctant to serve Hyphe's frontend and/or API and you encounter for instance 403 errors, please check the [Serve on the web documentation](serve.md#troobleshooting) for troubleshooting or [report an issue on GitHub](https://github.com/medialab/Hypertext-Corpus-Initiative/issues).
+
+To run the website on a distant server and make Hyphe accessible from the web, a few more adjustments are required, [see related documentation](serve.md).
+
+
+### 3.4) Run Hyphe!
+
+To start, stop or restart the server's daemon, run (with the proper rights, so no sudo if you installed as your user!):
 
 ```bash
-    sudo chmod -R g+rx $(pwd)
-    sudo chown -R :www-data $(pwd)
+    bin/hyphe <start|restart|stop> [--nologs]
 ```
 
-On some distributions, if you installed from a /home directory, you may need to do this to your ```/home/<USER>``` directory. Or you can move the current install to another directory (/srv, /opt, ...), give it the rights and redo the above parts involving the PATH.
-
-
+You should now be able to enjoy Hyphe at [http://localhost/hyphe](http://localhost/hyphe)!

@@ -33,6 +33,18 @@ In ```bin/samples/``` can be found multiple examples of advanced routines ran di
 The API functions are [described in the Wiki](https://github.com/medialab/Hypertext-Corpus-Initiative/wiki/Core_API).
 
 
+## Develop frontend
+
+- Install frontend's javascript dependencies:
+ - Download and install node: http://nodejs.org/download/
+ - Install and use bower:
+```bash
+    sudo npm install -g bower
+    cd hyphe_frontend
+    bower install
+```
+
+
 ## Build & run the java memory structure
 
 Whenever the code in `memory_structure` is modified, the JAVA archive running the memory structure needs to be rebuilt:
