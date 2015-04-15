@@ -1,6 +1,6 @@
 # Hyphe: web corpus builder & links crawler
 
-Welcome to Hyphe: developped by [SciencesPo's médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Equipex project](http://www.sciencespo.fr/dime-shs/).
+Welcome to Hyphe: developped by [SciencesPo's médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Web project (Equipex)](http://www.sciencespo.fr/dime-shs/).
 
 Hyphe aims at providing a tool to crawl data from the web to generate networks between what we call WebEntities, which can be single pages as well as a website or a combination of such.
 
