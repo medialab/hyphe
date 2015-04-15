@@ -1,4 +1,4 @@
-# Developpers documentation
+# Developers documentation
 
 ## Architecture
 
