@@ -137,12 +137,17 @@ Typical important options to set depending on your situation are highlighted as 
    a value from `0` to `2` indicating the level of verbosity desired from the API core in `log/hyphe-core.log`
 
 
-__Note:__ Many of these settings are configurable per corpus individual. Although the webapp interface does not allow to set them yet, they can be adjusted via [the command line client to the API](dev.md) using the [set_corpus_options method](https://github.com/medialab/hyphe/blob/master/doc/api.md#default-api-commands-no-namespace). See the list of settable corpus options [here](/hyphe_backend/lib/config_hci.py#L182-L201).
+__Note:__ Many of these settings are configurable per corpus individually. Although the webapp interface does not allow to set them yet, they can be adjusted via [the command line client to the API](dev.md) using the [set_corpus_options method](https://github.com/medialab/hyphe/blob/master/doc/api.md#default-api-commands-no-namespace). See the list of settable corpus options [here](/hyphe_backend/lib/config_hci.py#L182-L201).
 
 
 ## Frontend webapp
 
-`hyphe_frontend/app/conf/conf.js`
+A few adjustments can be set to the frontend by editing the file `hyphe_frontend/app/conf/conf.js`:
 
- - analytics id
- - optionally core root url for distant access
+ - `serverURL`:
+    
+    The path to Hyphe's core API. Default is `/hyphe-api` which corresponds to the url to which the API is proxied within `config/apache2.conf`. Useful to plug and develop a frontend onto an Hyphe instance without having it locally installed.
+
+ - `googleAnalyticsId'`:
+    
+    A Google Analytics ID to track use of the tool's web interface. Default is ''.
