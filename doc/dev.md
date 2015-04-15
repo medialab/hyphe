@@ -14,7 +14,7 @@ Hyphe relies on the following main components:
 [API description](api.md)
 
 All of Hyphe's functionalities are not available from the web interface yet.
-Although, some advanced routines (like starting a set of crawls on all IN webEntities for instance) can already be performed in command line with the API. The script ```hyphe_backend/test_client.py``` is a command-line caller of the core API. For instance:
+Although, some advanced routines (like starting a set of crawls on all IN webEntities for instance) can already be performed in command line with the API. The script `hyphe_backend/test_client.py` is a command-line caller of the core API. For instance:
 
 ```bash
     source $(which virtualenvwrapper.sh)
@@ -28,7 +28,7 @@ Although, some advanced routines (like starting a set of crawls on all IN webEnt
     ./hyphe_backend/test_client.py crawl_webentity WE_ID
 ```
 
-In ```bin/samples/``` can be found multiple examples of advanced routines ran direcly via the shell using the command-line client.
+In `bin/samples/` can be found multiple examples of advanced routines ran direcly via the shell using the command-line client.
 
 The API functions are [described in the Wiki](https://github.com/medialab/Hypertext-Corpus-Initiative/wiki/Core_API).
 

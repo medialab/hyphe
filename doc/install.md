@@ -43,7 +43,7 @@ If you are not comfortable with this or if you prefer to install from git source
     cd Hyphe
 ```
 
-From here on, you can also run ```bin/install.sh``` to go faster as with the release, or follow the next steps.
+From here on, you can also run `bin/install.sh` to go faster as with the release, or follow the next steps.
 
 
 ## 2) Get requirements and dependencies
@@ -192,7 +192,7 @@ You can test whether ScrapyD is properly installed and running by querying [http
 
 #### 2.4.1) Java
 
-Hyphe requires at least the Java JRE 6 installed. You can test it by running ```java -version``` and in case it is missing run:
+Hyphe requires at least the Java JRE 6 installed. You can test it by running `java -version` and in case it is missing run:
 
 ```bash
     # Debian/Ubuntu:
