@@ -5,6 +5,27 @@ Hyphe relies on a [JsonRPC](http://www.jsonrpc.org/) API that can be controlled 
 _Note:_ as it relies on the JSON-RPC protocol, it is not quite easy to test the API methods from a browser (having to send arguments through POST), but you can test directly from the command-line using the dedicated tools, see the [Developpers' documentation](dev.md).
 
 
+## Data &amp; Query format
+
+The current JSON-RPC 1.0 implementation requires to provide arguments as an ordered array of the methods arguments. Call with named arguments is possible but not well handled and not recommanded until we migrate to REST.
+
+The API will always answer as such:
+- Success:
+```json
+{
+  "code": "success",
+  "result": <The actual expected result, possibly an objet, an array, a number, a string, ...>
+}
+```
+- Error:
+```json
+{
+  "code": "fail",
+  "message": <A string describing the possible cause of the error.>
+}
+```
+
+
 ## Summary
 - [Default API commands (no namespace)](#default-api-commands-no-namespace)
   + [CORPUS HANDLING](#corpus-handling)

@@ -148,6 +148,6 @@ A few adjustments can be set to the frontend by editing the file `hyphe_frontend
     
     The path to Hyphe's core API. Default is `/hyphe-api` which corresponds to the url to which the API is proxied within `config/apache2.conf`. Useful to plug and develop a frontend onto an Hyphe instance without having it locally installed.
 
- - `googleAnalyticsId'`:
+ - `googleAnalyticsId`:
     
     A Google Analytics ID to track use of the tool's web interface. Default is ''.

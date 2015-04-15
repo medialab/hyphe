@@ -69,7 +69,7 @@ sudo yum install curl wget python-devel python-setuptools python-pip httpd libxm
 # Fix possibly misnamed pip
 pip > /dev/null || alias pip="python-pip"
 
-# Activate apache's autorestart on reboot
+# Activate Apache's autorestart on reboot
 sudo chkconfig --levels 235 httpd on
 sudo service httpd restart
 ```
@@ -197,7 +197,7 @@ You can test whether ScrapyD is properly installed and running by querying [http
 {"status": "ok", "projects": []}
 ```
 
-### 2.4) Install Java & [Thrift](http://thrift.apache.org)
+### 2.4) Install Java & Thrift
 
 #### 2.4.1) Java
 
@@ -210,7 +210,7 @@ sudo apt-get install openjdk-6-jre
 sudo yum install java-1.6.0-openjdk
 ```
 
-#### 2.4.2) Thrift
+#### 2.4.2) [Thrift](http://thrift.apache.org)
 
 __Important:__ If you're running these installation steps from a downloaded zipped archive of a release, you can skip this section, it only applies if you chose to install from the git sources.
 
@@ -315,18 +315,15 @@ sed "s|##HYPHEPATH##|"`pwd`"|" config/config.json.example > config/config.json
 
 ### 3.2) Set the frontend
 
-- Copy and adapt the sample `conf_default.json` to `conf.json` in the `hyphe_frontend/app/conf` directory:
-
+Copy and adapt the sample `conf_default.json` to `conf.json` in the `hyphe_frontend/app/conf` directory:
 ```bash
 sed "s|##WEBPATH##|hyphe|" hyphe_frontend/app/conf/conf_default.js > hyphe_frontend/app/conf/conf.js
 ```
 
-- Optionally setup a GoogleAnalytics id in `conf.js`
-
 
 ### 3.3) Serve everything with Apache
 
-The backend core API relies on a Twited web server serving on a dedicated port (defined as `twisted.port` in `config.json` just before). For external access, proxy redirection is handled by apache.
+The backend core API relies on a Twited web server serving on a dedicated port (defined as `twisted.port` in `config.json` just before). For external access, proxy redirection is handled by Apache.
 
 - Copy and adapt the sample `apache2_example.conf` from the `config` directory:
 
@@ -350,7 +347,7 @@ sudo a2enmod proxy_http
 sudo ln -s `pwd`/config/apache2.conf /etc/apache2/sites-available/hyphe
 sudo a2ensite hyphe
 
-# Reload apache
+# Reload Apache
 sudo service apache2 reload
 ```
 
@@ -364,15 +361,13 @@ grep -r "^\s*LoadModule.*mod_proxy_http" /etc/httpd/
 # Install site
 sudo ln -s `pwd`/config/apache2.conf /etc/httpd/conf.d/hyphe.conf
 
-# Reload apache
+# Reload Apache
 sudo service httpd reload
 ```
 
 This will install Hyphe locally only first: [http://localhost/hyphe](http://localhost/hyphe). The page should be accessible even though the website should not work yet since we have not started the server, see next section.
 
-If Apache is reluctant to serve Hyphe's frontend and/or API and you encounter for instance 403 errors, please check the [Serve on the web documentation](serve.md#troobleshooting) for troubleshooting or [report an issue on GitHub](https://github.com/medialab/Hypertext-Corpus-Initiative/issues).
-
-To run the website on a distant server and make Hyphe accessible from the web, a few more adjustments are required, [see related documentation](serve.md).
+If you encounter issues here or would like to serve Hyphe on the web, please [see the related documentation](serve.md).
 
 
 ### 3.4) Run Hyphe!
