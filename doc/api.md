@@ -14,14 +14,14 @@ The API will always answer as such:
 ```json
 {
   "code": "success",
-  "result": <The actual expected result, possibly an objet, an array, a number, a string, ...>
+  "result": "<The actual expected result, possibly an objet, an array, a number, a string, ...>"
 }
 ```
 - Error:
 ```json
 {
   "code": "fail",
-  "message": <A string describing the possible cause of the error.>
+  "message": "<A string describing the possible cause of the error.>"
 }
 ```
 
