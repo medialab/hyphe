@@ -165,7 +165,7 @@ fieldset[disabled] .btn-xl.active {
 
 .navbar-default {
     border-color: transparent;
-    background-color: #144D70;
+    background-color: #f7f7f7;
 }
 
 .navbar-default .navbar-brand {
@@ -195,7 +195,7 @@ fieldset[disabled] .btn-xl.active {
 }
 
 .navbar-default .navbar-toggle {
-    border-color: #3E8CC6;
+    border-color: #CADFEF;
     background-color: #CADFEF;
 }
 
@@ -564,11 +564,17 @@ section .side-description hr{
     background-color: #144D70;
 }
 
-/* Center carousel #1*/
-.carousel-inner .item img{
+/* Center carousels*/
+#webentities-carousel .carousel-inner .item img{
     margin-left: 50%;
     /* Translate of half the width of the image */
     transform: translate(-145px, 0px);
+}
+
+#curation-carousel .carousel-inner .item img{
+    margin-left: 50%;
+    /* Translate of half the width of the image */
+    transform: translate(-150px, 0px);
 }
 
 #granularity-schema{
