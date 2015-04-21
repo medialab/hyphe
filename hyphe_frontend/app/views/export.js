@@ -410,7 +410,7 @@ angular.module('hyphe.exportController', [])
               })
               .join('\n')
           } else {
-            return value
+            return value.sort()
               .join(array_separator)
           }
         } else {
@@ -431,7 +431,7 @@ angular.module('hyphe.exportController', [])
               })
               .join('\n')
           } else {
-            return value
+            return value.sort()
               .map(utils.LRU_to_URL)
               .join(array_separator)
           }
