@@ -9,6 +9,7 @@ fi
 source bin/common.sh
 
 bash bin/build_apidoc.sh
+bash bin/update_tlds_list.sh
 
 echo "Building Java Thrift Interface for backend..."
 bash bin/build_thrift.sh > /tmp/hyphe.build_thrift.log || exitAndLog /tmp/hyphe.build_thrift.log "building:"

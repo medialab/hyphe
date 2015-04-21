@@ -95,6 +95,13 @@ bin/build_apidoc.sh
 ```
 
 
+## Update the list of TLDs used by the frontend from [Mozilla's list](https://publicsuffix.org/list/)
+
+```bash
+bin/update_tlds_list.sh
+```
+
+
 ## Build a release
 
 ```bash
