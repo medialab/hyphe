@@ -1664,8 +1664,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(respage)
 
     @inlineCallbacks
-    def jsonrpc_advanced_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, autoescape_query=True, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments. Searched keywords will automatically be escaped: set `autoescape_query` to "false" to allow input of special Lucene queries.\nResults will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"/"status"/"lruset"/"startpages"/...). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into. For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort` in `get_webentities` above."""
+    def jsonrpc_advanced_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, autoescape_query=True, light=False, semilight=True, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments. Searched keywords will automatically be escaped: set `autoescape_query` to "false" to allow input of special Lucene queries.\nResults will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"/"status"/"lruset"/"startpages"/...). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into. For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort` `light` and `semilight` in `get_webentities` above."""
         indegree_filter = False
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -1698,7 +1698,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
-        res = yield self.format_webentities(WEs, sort=sort, semilight=True, paginate=True, corpus=corpus)
+        res = yield self.format_webentities(WEs, sort=sort, light=light, semilight=semilight, paginate=True, corpus=corpus)
         if indegree_filter:
             res = [w for w in res if w["indegree"] >= indegree_filter[0] and w["indegree"] <= indegree_filter[1]]
         res = yield self.paginate_webentities(res, count, page, sort=sort, corpus=corpus)
@@ -1709,12 +1709,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
             query = query.replace(char, "\\%s" % char)
         return query.replace(' ', '?')
 
-    def _optional_field_search(self, query, field=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+    def _optional_field_search(self, query, field=None, sort=None, count=100, page=0, light=False, semilight=False, corpus=DEFAULT_CORPUS):
         if field:
             if not isinstance(field, unicode):
                 field = unicode(field)
-            return self.jsonrpc_advanced_search_webentities([], [[field, query]], sort=sort, count=count, page=page, autoescape_query=False, corpus=corpus)
-        return self.jsonrpc_advanced_search_webentities([query], sort=sort, count=count, page=page, autoescape_query=False, corpus=corpus)
+            return self.jsonrpc_advanced_search_webentities([], [[field, query]], sort=sort, count=count, page=page, autoescape_query=False, light=light, semilight=semilight, corpus=corpus)
+        return self.jsonrpc_advanced_search_webentities([query], sort=sort, count=count, page=page, autoescape_query=False, light=light, semilight=semilight, corpus=corpus)
 
     def jsonrpc_exact_search_webentities(self, query, field=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all WebEntities having one textual field or optional specific `field` exactly equal to the value given as `query`. Searched query will automatically be escaped of Lucene special characters.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
