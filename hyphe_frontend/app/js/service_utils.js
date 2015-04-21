@@ -303,7 +303,7 @@ angular.module('hyphe.service_utils', [])
           }
         })
         if(longestMatchingTLD_split.length == 0){
-          console.log('No tld matching for', lru)
+          console.log('No tld matching for', json_lru)
           return []
         }
         // Check the longest matching tld is not an exception
