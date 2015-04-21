@@ -228,14 +228,14 @@ angular.module('hyphe.services', [])
 
   .factory('extractURLs', ['utils', function(utils){
     return function(text){
-      var re = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig
+      var re = /(\b((https?|ftp|file|mailto):\/\/)?[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig
         ,raw_urls = text.match(re) || []
         ,urls = raw_urls
           .filter(function(expression){
               return utils.URL_validate(expression)
             })
           .map(function(url){
-              if(url.indexOf('http')!=0)
+              if(url.indexOf('://') === -1)
                 return 'http://'+url
               return url
             })

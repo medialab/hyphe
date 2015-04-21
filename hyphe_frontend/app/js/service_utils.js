@@ -72,7 +72,7 @@ angular.module('hyphe.service_utils', [])
         path = RegExp.$3,
         query = RegExp.$4,
         fragment = RegExp.$5
-        if (scheme.match(/https?/) && authority.match(/^(?:([^:]+)(?::([^@]+))?\@)?([^\s:]+)(?::(\d+))?$/)) {
+        if (authority.match(/^(?:([^:]+)(?::([^@]+))?\@)?([^\s:]+)(?::(\d+))?$/)) {
           var user = RegExp.$1,
           password = RegExp.$2,
           host = RegExp.$3,
@@ -264,8 +264,10 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.URL_validate = function(url){
-      var urlregex = /^(http[s]?:\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/
-      return urlregex.test(url)
+      var urlregex = /^((https?|ftp|file|mailto):\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/
+         ,ipregex = /:\/\/(\d{1,3}\.){3}\d{1,3}/
+         ,localregex = /:\/\/localhost/
+      return urlregex.test(url) || ipregex.test(url) || localregex.test(url)
     }
 
     ns.LRU_getTLD = function(lru){
@@ -418,15 +420,19 @@ angular.module('hyphe.service_utils', [])
 
     ns.nameURL = function(url){
       var json_lru = ns.URL_to_JSON_LRU(ns.URL_stripLastSlash(url))
-      ,tld_length = ns.JSON_LRU_getTLD(json_lru).split('.').length
       if(json_lru === undefined)
         return '<Impossible to Name> ' + url
-      var name = json_lru.host
+      var tld = ns.JSON_LRU_getTLD(json_lru)
+         ,tld_length = tld.split('.').length
+         ,name = json_lru.host
         .map(function(d,i){if(i==tld_length){return ns.toDomainCase(d)} return d})
         .filter(function(d,i){return d != 'www' && i>tld_length-1})
         .reverse()
         .join('.')
-      if(json_lru.path.length == 1 && json_lru.path[0].trim().length>0){
+      if(tld_length == 1 && !tld[0]) {
+        name = url.replace(/^.*:\/\/([^\/]+)(\/.*)?$/, '$1')
+        
+      } else if(json_lru.path.length == 1 && json_lru.path[0].trim().length>0){
         name += ' /' + decodeURIComponent(json_lru.path[0])
       } else if(json_lru.path.length > 1) {
         name += ' /.../' + decodeURIComponent(json_lru.path[json_lru.path.length-1])
