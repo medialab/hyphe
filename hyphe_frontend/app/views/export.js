@@ -73,13 +73,13 @@ angular.module('hyphe.exportController', [])
       ,creation_date: {
         name: 'CREATION DATE'
         ,accessor: 'creation_date'
-        ,type: 'timestamp'
+        ,type: 'date'
         ,val: false
       }
       ,last_modification_date: {
         name: 'LAST MODIFICATION DATE'
         ,accessor: 'last_modification_date'
-        ,type: 'timestamp'
+        ,type: 'date'
         ,val: true
       }
       ,creation_date_timestamp: {
@@ -395,9 +395,8 @@ angular.module('hyphe.exportController', [])
       if(type == 'string'){
         return value
       
-      } else if(type == 'timestamp'){
-
-        return (new Date(+value)).toLocaleString()
+      } else if(type == 'date'){
+        return (new Date(+value*1000)).toLocaleString()
       
       } else if(type == 'array of string'){
 
