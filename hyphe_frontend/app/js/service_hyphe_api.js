@@ -112,6 +112,10 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           if(settings.autoescape_query === undefined)
             settings.autoescape_query = false
+          if(settings.light === undefined)
+            settings.light = false
+          if(settings.semiLight === undefined)
+            settings.semiLight = true
           return [
             settings.allFieldsKeywords      // List of kw searched everywhere
             ,settings.fieldKeywords         // List of [field,kw] pairs for field search
@@ -119,6 +123,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.count || 1000         // Results per page
             ,settings.page || 0             // Page
             ,settings.autoescape_query      // Escape special Lucene characters
+            ,settings.light                 // Very lighter WebEntities
+            ,settings.semiLight             // Lighter WebEntities
             ,corpus.getId()
           ]}
       )

@@ -527,13 +527,15 @@ The API will always answer as such:
  + _`count`_ (optional, default: `100`)
  + _`page`_ (optional, default: `0`)
  + _`autoescape_query`_ (optional, default: `true`)
+ + _`light`_ (optional, default: `false`)
+ + _`semilight`_ (optional, default: `true`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments. Searched keywords will automatically be escaped: set `autoescape_query` to "false" to allow input of special Lucene queries.
  Results will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.
   * `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"/"status"/"lruset"/"startpages"/...). For instance `["hyphe", "www"]`
   * `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into. For instance: `[["name", "hyphe"], ["indegree", [3, 1000]]]`
-  * see description of `sort` in `get_webentities` above.
+  * see description of `sort` `light` and `semilight` in `get_webentities` above.
 
 
 - __`exact_search_webentities`:__
