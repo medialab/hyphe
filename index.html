@@ -187,15 +187,15 @@
                     <h3 class="section-subheading text-muted">Corpus expansion</h3>
 
                     <p>
-                        In Hyphe, you decide if a given web entity should be included or excluded into your corpus: you are a web corpus curator and as such
+                        In Hyphe, you decide if a given web entity should be included or excluded from your corpus: you are a web corpus curator and as such,
                     </p>
 
                     <p class="quote">
-                        you define the borders of your own corpus
+                        you define the boundaries of your own corpus
                     </p>
 
                     <p>
-                        Hyphe uses a web crawler that never harvests out of web entities you specifically targeted. It will retrieve internal pages of a given web entity (down to a defined depth) but will never follow outbounding links.
+                        Hyphe uses a web crawler that never harvests out of entities you specifically targeted. It retrieves internal pages of target entity (down to a defined depth) but never follows outbounding links.
                     </p>
                 </div>
             </div>
@@ -264,7 +264,7 @@
                         <h3>Quality first</h3>
                         <hr>
                         <p>
-                            This curation activity takes time, often a lot of time. On a speed vs. quality tradeoff, we invested on quality having librarians and social scientists as target
+                            This curation activity takes time, often a lot of time. On a speed vs. quality tradeoff we invested on quality, having librarians and social scientists as a target.
                         </p>
                     </div>
                 </div>
@@ -300,7 +300,7 @@
                         <h3>Level 0: Raw data</h3>
                         <hr>
                         <p>
-                            Crawled web contents are stored as down loaded. Level 0 can be rebuilt by re-crawling
+                            Crawled web contents are stored as downloaded.
                         </p>
                     </div>
                 </div>
@@ -318,7 +318,7 @@
                         <h3>Level 1: Web pages</h3>
                         <hr>
                         <p>
-                            Raw data are indexed at the web page level. Level 1 can be rebuilt (at a higher computational price)
+                            Raw data are indexed at the web page level. Level 1 can be rebuilt from level 0.
                         </p>
                     </div>
                 </div>
@@ -336,7 +336,7 @@
                         <h3>Level 2: Web entity</h3>
                         <hr>
                         <p>
-                            Web page level is dynamically aggregated to the web entity level. Level&nbsp;2 is dynamically built from level&nbsp;1
+                            Level&nbsp;2 is dynamically built from level&nbsp;1 to provide the network of web entities at any moment.
                         </p>
                     </div>
                 </div>
@@ -351,7 +351,7 @@
             <div class="row illustration-row">
                 <div class="col-md-12">
                     <center class="large-image-container">
-                        <img src="img/layers/overview.png" alt="Hyphe 3 levels">
+                        <img src="img/layers/overview.png" alt="Hyphe 3 levels" style="width: 100%;">
                     </center>
                 </div>
             </div>
@@ -410,31 +410,7 @@
                     </p>
 
                     <p>
-                        You can decide to use it systematically (though it is much slow er) or to try without javascript by default and automatically retry failed crawls with javascript enabled.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Many pages Section -->
-    <section>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12 text-center">
-                    <h2 class="section-heading">Hundreds of thousands of web pages</h2>
-                    <h3 class="section-subheading text-muted">Tens of thousands of web entities</h3>
-
-                    <p>
-                        Hyphe targets relatively small web corpora. It is about curated web corpora, not big data.
-                    </p>
-
-                    <p class="quote">
-                        We want performance!
-                    </p>
-
-                    <p>
-                        The memory structure is based on efficient Lucene indexes but no sharding
+                        You can decide to use it systematically (though it is much slower) or to just retry failed crawls with javascript enabled. This mode allows to retrieve links otherwise impossible to detect.
                     </p>
                 </div>
             </div>
@@ -470,29 +446,30 @@
     <section id="download-section">
         <div class="container">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-5">
                     <h2 class="section-heading">I want it!</h2>
                     <hr>
                     <p>
                         Hyphe is packaged for recent Ubuntu, Debian and Cent OS.
                     </p>
                 </div>
-                <div class="col-md-8">
-                    <h2 class="section-heading">Do you prefer an API?</h2>
+                <div class="col-md-7">
+                    <h2 class="section-heading">Developer?</h2>
                     <hr>
                     <p>
-                       You don't like our method or user interface but want to use the crawler and memory structure in a different way? You can learn how to use the core API or develop your own UI.
+                       Check our source code on GitHub and feel free to contribute.
+                       Hyphe's backend provides a complete and documented API.
                     </p>
                 </div>
             </div>
         </div>
         <div class="container">
             <div class="row">
-                <div class="col-md-4">
-                    <a class="btn btn-block">Install Documentation</a>
+                <div class="col-md-5">
+                    <a class="btn btn-block" href="https://github.com/medialab/hyphe/releases">Download latest release</a>
                 </div>
-                <div class="col-md-8">
-                    <a class="btn btn-block">Install API Documentation</a>
+                <div class="col-md-7">
+                    <a class="btn btn-block" href="https://github.com/medialab/hyphe">Source code on GitHub</a>
                 </div>
             </div>
         </div>
@@ -518,7 +495,7 @@
                     <h2 class="section-heading">Sourcecode</h2>
                     <hr>
                     <p>
-                        Sourcecode released as AGPL
+                        Source code released as AGPL
                         <br>
                         <a href="http://github.com/medialab/hyphe">github.com/medialab/hyphe</a>
                         <br>
@@ -530,7 +507,7 @@
                     <br>
                     <br>
                     <br>
-                    <a href="#touModal" class="portfolio-link pull-right" data-toggle="modal">Terms of Use</a>
+                    <a href="#touModal" class="portfolio-link pull-right" data-toggle="modal">Terms of Use (legal notice)</a>
                 </div>
             </div>
         </div>
@@ -552,54 +529,60 @@
                 <div class="row">
                     <div class="col-lg-8 col-lg-offset-2">
                         <div class="modal-body">
-                            <h2>Terms of Use</h2>
+                            <h2>Termes of use (legal notice)</h2>
                             <p class="item-intro text-muted"></p>
                             
                             <p>
-                                Le contenu de ce site internet est fourni par Sciences Po
+                                The contents of this site were supplied by
                             </p>
                             <p>
-                                27 rue Saint‐Guillaume 75337 Paris Cedex 07
+                                Sciences Po
+                                <br>
+                                27 rue Saint-Guillaume
+                                <br>
+                                75337 Paris Cedex 07
                                 <br>
                                 Tel. : 01 45 49 50 50
                                 <br>
                                 Fax. : 01 42 22 31 26
                                 <br>
-                                Contact webmaster : mathieu.jacomy(at)sciencespo.fr 
+                                webmestre@sciencespo.fr
+                                <br>
+                                Contact webmaster : paul.girard(at)sciencespo.fr
                             </p>
                             <h3>Directeur de la publication</h3>
                             <p>
                                 Frédéric Mion, administrateur de la Fondation nationale des sciences politiques et directeur de l’Institut d’études politiques de Paris.
                             </p>
-                            <h3>Hébergement</h3>
+                            <h3>Publisher</h3>
                             <p>
-                                Ce site internet est hébergé par la Fondation Nationale des Sciences Politiques (FNSP), Sciences Po ‐ Direction des Systèmes d'Information
+                                Frédéric Mion, President of Sciences Po
+                            </p>
+                            <h3>Hosting</h3>
+                            <p>
+                                This internet site is hosted by Fondation Nationale des Sciences Politiques (FNSP), Sciences Po - Direction des Systèmes d'Information
                             </p>
                             <p>
-                                Code APE : 803Z
+                                APE Code: 803Z
                                 <br>
                                 27, rue saint Guillaume
                                 <br>
-                                75337 Paris Cedex 07 
+                                75337 Paris cedex 07
                             </p>
-                            <h3>Propriété Industrielle et Intellectuelle</h3>
+                            <h3>Industrial and Intellectual Property</h3>
                             <p>
-                                Toutes les informations reproduites dans ce site web (textes, photos, logos...) sont protégées par des droits de propriété intellectuelle détenus par Sciences Po ou par ses partenaires. Par conséquent, aucune de ces informations ne peut être reproduite, modifiée, rediffusée, traduite, exploitée commercialement ou réutilisée de quelque manière que ce soit sans l'accord préalable et écrit de Sciences Po.
+                                All information on this web site (text, photos, logos...) is protected by the copyrights held by Sciences Po or their partners.
                                 <br>
-                                Le titre, la conception, la forme du site Sciences Po mais aussi son contenu tels que les actualités, descriptions, illustrations et images originales et leur organisation, ainsi que toute compilation de logiciels, code source fondamental et autres éléments contenus sur le site Sciences Po sont la propriété de Sciences Po. 
-                            </p>
-                            <h3>Liens hypertextes</h3>
-                            <p>
-                                Nos pages web proposent également des liens vers d'autres sites pour lesquels nous ne sommes responsables ni de leur intégral respect aux normes d'ordre public et bonnes mœurs, d'une part, ni de leur politique de protection des données personnelles ou d'utilisation qui en seraient faites, d'autre part.
+                                Therefore, the information may not be reproduced, modified, republished, re-aired, translated, distributed or reused in any manner, without the written consent of Sciences Po.
                                 <br>
-                                En accédant à un autre site, par l'intermédiaire d'un lien hypertexte, vous acceptez que cet accès s'effectue à vos risques et périls. En conséquence, tout préjudice direct ou indirect résultant de votre accès à un autre site relié par un lien hypertexte ne peut engager la responsabilité de Sciences Po.
+                                The Sciences Po site’s title, concept and form, as well as its content, such as news, descriptions, illustrations and original images and their organisation, and any software compilation, source code and other elements contained on the Sciences Po site are the property of Sciences Po.
                             </p>
-                            <h3>Images credits</h3>
+                            <h3>Hypertext Links</h3>
                             <p>
-                                <a href="http://gallica.bnf.fr/ark:/12148/btv1b55002605w/f2.item">Maps</a> from Gallica
+                                Our pages also contain links to other sites for which we are in no manner responsible, neither regarding their adhesion to public order or good conduct, on the one hand, nor regarding their personal data privacy policies and use, on the other.By accessing an outside site, through a hypertext link, you accept that this access is carried out at your own risk. Therefore, Sciences Po will in no way be held responsible for any direct or indirect damages resulting from your access to an outside site through a hypertext link.
                             </p>
                             
-                            <button type="button" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-times"></i> Close terms of use</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-times"></i> Close terms of use (legal notice)</button>
                         </div>
                     </div>
                 </div>
