@@ -158,7 +158,7 @@ angular.module('hyphe.service_utils', [])
       if(json_lru.port != undefined && json_lru.port!="80")
         port = ":"+json_lru.port
 
-      return scheme+port+hosts+path+query+fragment
+      return scheme+hosts+port+path+query+fragment
     }
 
     ns.URL_to_pretty_LRU = function(url){
