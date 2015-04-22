@@ -735,3 +735,7 @@ img::-moz-selection {
 body {
     webkit-tap-highlight-color: #C1F6FF;
 }
+
+#last-section span {
+    line-height: 40px;
+}
