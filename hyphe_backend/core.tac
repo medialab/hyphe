@@ -1764,7 +1764,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_get_webentities_page(self, pagination_token, n_page, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` the page number `n_page` of WebEntities corresponding to the results of a previous query ran using any of the `get_webentities` or `search_webentities` methods using the returned `pagination_token`."""
         try:
-            page = int(page)
+            page = int(n_page)
         except:
             returnD(format_error("page argument must be an integer"))
         ids = yield self.db.get_WEs_query(corpus, pagination_token)
