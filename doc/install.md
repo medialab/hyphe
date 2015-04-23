@@ -29,7 +29,7 @@ Do not use `sudo`: the script will do so on its own and ask for your password on
 ```bash
 # WARNING: DO NOT prefix any of these commands with `sudo`!
 tar xzvf hyphe-release-*.tar.gz
-cd Hyphe
+cd hyphe
 ./bin/install.sh
 ```
 
@@ -39,8 +39,8 @@ If you are not comfortable with this or if you prefer to install from git source
 ## 1) Clone the source code
 
 ```bash
-git clone https://github.com/medialab/hyphe Hyphe
-cd Hyphe
+git clone https://github.com/medialab/hyphe hyphe
+cd hyphe
 ```
 
 From here on, you can also run `bin/install.sh` to go faster as with the release, or follow the next steps.
@@ -62,7 +62,7 @@ sudo apt-get install curl wget python-dev python-pip apache2 libapache2-mod-prox
 ```
 
 Or for CentOS:
-```bash
+```bashH
 sudo yum check-update
 sudo yum install curl wget python-devel python-setuptools python-pip httpd libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6
 
