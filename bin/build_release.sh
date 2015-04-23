@@ -24,22 +24,23 @@ rm -rf build
 mkdir -p build/hyphe/bin build/hyphe/config build/hyphe/log build/hyphe/lucene-data
 
 echo "Copy all required release files..."
-listfiles="LICENSE.*
-README.md
-COPYING
-requirements.txt
-bin/samples
+listfiles="
 bin/common.sh
+bin/deploy_scrapy_spider.sh
 bin/install.sh
 bin/hyphe
 bin/hyphe-phantomjs-2.0.0
-bin/deploy_scrapy_spider.sh
+bin/update_tlds_list.sh
 config/apache2_example.conf
 config/config.json.example
 config/scrapyd.config
+COPYING
 doc
 hyphe_backend
-hyphe_frontend"
+hyphe_frontend
+LICENSE.*
+README.md
+requirements.txt"
 for file in $listfiles; do
   cp -r $file build/hyphe/$file
 done
