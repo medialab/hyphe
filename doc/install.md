@@ -62,7 +62,7 @@ sudo apt-get install curl wget python-dev python-pip apache2 libapache2-mod-prox
 ```
 
 Or for CentOS:
-```bashH
+```bash
 sudo yum check-update
 sudo yum install curl wget python-devel python-setuptools python-pip httpd libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6
 
