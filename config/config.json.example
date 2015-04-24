@@ -39,6 +39,7 @@
     "vimeo.com/user": "path-2",
     "dailymotion.com/user": "path-2",
     "youtube.com/user": "path-2",
+    "ac.uk": "subdomain-1",
     "co.uk": "subdomain-1",
     "org.uk": "subdomain-1",
     "gouv.fr": "subdomain-1"
