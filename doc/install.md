@@ -14,11 +14,13 @@ The easiest way to install Hyphe is by uncompressing the [gzipped release](https
     Ubuntu      |   14.04.1 LTS     | server        |   ✓
     Ubuntu      |   14.04.1 LTS     | desktop       |   ✓
     Ubuntu      |   14.10           | desktop       |   ✓
+    Ubuntu      |   15.04           | desktop       |   —  (ScrapyD + Upstart issue with Ubuntu 15 so far)
     CentOS      |   5.7             | server        |   —  (issues due to missing upstart & python2.4)
     CentOS      |   6.4 Final       | server        |   ✓
     Debian      |   6.0.10 squeeze  | server        |   ✓
     Debian      |   7.5 wheezy      | server        |   ✓
     Debian      |   7.8 wheezy      | livecd gnome  |   ✓
+    Debian      |   8.0 jessie      | livecd gnome  |   —  (MongoDB not supporting Debian 8 yet)
 
 
 Just uncompress the release archive, go into the directory and run the installation script.
