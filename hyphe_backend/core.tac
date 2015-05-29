@@ -909,13 +909,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not WE:
             returnD(None)
         res = {'id': WE.id, 'name': WE.name}
+        res["indegree"] = self.corpora[corpus]["webentities_ranks"].get(WE.id, {"indegree": 0})["indegree"]
+        res['lru_prefixes'] = list(WE.LRUSet)
         if test_bool_arg(light):
             returnD(res)
-        res['lru_prefixes'] = list(WE.LRUSet)
         res['status'] = WE.status
         res['creation_date'] = WE.creationDate
         res['last_modification_date'] = WE.lastModificationDate
-        res["indegree"] = self.corpora[corpus]["webentities_ranks"].get(WE.id, {"indegree": 0})["indegree"]
         if not paginate:
             job = None
             if not jobs and not light_for_csv and WE.status != "DISCOVERED":

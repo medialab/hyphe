@@ -96,6 +96,7 @@ angular.module('hyphe.prospectController', [])
           ,sortField: '-indegree'
           ,count: $scope.paginationLength
           ,page: $scope.paginationPage - 1
+          ,light: true
         }
         ,function(result){
           $scope.paginationPage = 1

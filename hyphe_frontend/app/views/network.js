@@ -182,6 +182,7 @@ angular.module('hyphe.networkController', [])
         {
            sort: []
           ,count: 100000
+          ,light: true
         }
         ,function(result){
           $scope.webentities = result.webentities
