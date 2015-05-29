@@ -908,12 +908,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def format_webentity(self, WE, jobs={}, light=False, semilight=False, light_for_csv=False, paginate=False, corpus=DEFAULT_CORPUS):
         if not WE:
             returnD(None)
-        res = {'id': WE.id, 'name': WE.name}
+        res = {'id': WE.id, 'name': WE.name, 'status': WE.status, 'lru_prefixes': list(WE.LRUSet)}
         res["indegree"] = self.corpora[corpus]["webentities_ranks"].get(WE.id, {"indegree": 0})["indegree"]
-        res['lru_prefixes'] = list(WE.LRUSet)
         if test_bool_arg(light):
             returnD(res)
-        res['status'] = WE.status
         res['creation_date'] = WE.creationDate
         res['last_modification_date'] = WE.lastModificationDate
         if not paginate:
