@@ -283,8 +283,8 @@ angular.module('hyphe.networkController', [])
 
       $scope.sigmaInstance.bind('clickNode', function(e) {
         var weId = e.data.node.id
-        ,path = '#/project/' + $scope.corpusId + '/webentity/' + weId
-        $window.location.assign(path)
+        ,path = window.location.href.replace(window.location.hash, "") + '#/project/' + $scope.corpusId + '/webentity/' + weId
+        $window.open(path, '_blank')
       })
 
       $scope.runSpatialization()
