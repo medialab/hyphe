@@ -47,6 +47,7 @@ class MongoDB(object):
           "name": name,
           "password": salt(password),
           "options": options,
+          "links_duration": 60,
           "total_webentities": 0,
           "webentities_in": 0,
           "webentities_out": 0,
