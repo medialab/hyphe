@@ -1,0 +1,30 @@
+backend:
+  build: .
+  links:
+  - "mongo:mongo"
+  - "crawler:crawler"
+  volumes_from:
+  - memorystructure
+  environment:
+  - HYPHE_MONGODB_HOST=mongo
+  - HYPHE_MONGODB_PORT=27017
+  - HYPHE_CRAWLER_HOST=crawler
+  - HYPHE_CRAWLER_PORT=6800
+
+frontend:
+  build: ./hyphe_frontend
+
+memorystructure:
+  build: ./memory_structure
+
+crawler:
+  image: zaim/scrapyd
+  links:
+  - "mongo:mongo"
+  ports:
+  - "6800:6800"
+  volumes:
+  - ./config/scrapyd.config:/etc/scrapyd/conf.d/100-hyphe
+
+mongo:
+  image: mongo:3.0
