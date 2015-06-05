@@ -8,10 +8,18 @@
   ng-if="lastCrawlJobs[0].crawling_status == 'RUNNING' || lastCrawlJobs[0].crawling_status == 'PENDING'"
   class="btn btn-danger"
   ng-click="abortCrawl(lastCrawlJobs[0])"
+  title="Stop harvesting and indexing pages for this webentity"
 ><span class="glyphicon glyphicon-trash"></span> ABORT CRAWL</button>
 
 <button
-  ng-if="!(lastCrawlJobs[0].crawling_status == 'RUNNING' || lastCrawlJobs[0].crawling_status == 'PENDING')"
+  ng-if="lastCrawlJobs[0].crawling_status == 'FINISHED' && lastCrawlJobs[0].indexing_status != 'FINISHED'"
+  class="btn btn-danger"
+  ng-click="abortCrawl(lastCrawlJobs[0])"
+  title="Stop indexing pages that were harvested but not indexed yet"
+><span class="glyphicon glyphicon-trash"></span> ABORT INDEXATION</button>
+
+<button
+  ng-if="lastCrawlJobs[0].crawling_status == 'CANCELED' || lastCrawlJobs[0].indexing_status == 'FINISHED' || lastCrawlJobs[0].indexing_status == 'CANCELED'"
   class="btn btn-default"
   ng-click="reCrawl(lastCrawlJobs[0].webentity_id)"
 ><span class="glyphicon glyphicon-repeat"></span> RECRAWL</button>
@@ -24,6 +32,9 @@
 
   <dt>Crawl job ID</dt>
   <dd>{{lastCrawlJobs[0]._id}}</dd>
+
+  <dt>Scrapy ID</dt>
+  <dd>{{lastCrawlJobs[0].crawljob_id}}</dd>
 
   <dt>Web entity ID</dt>
   <dd>{{lastCrawlJobs[0].webentity_id}}</dd>
@@ -75,6 +86,11 @@
 
 	<dt>Crawled pages</dt>
   <dd>{{lastCrawlJobs[0].nb_crawled_pages}}</dd>
+
+  <div ng-if="lastCrawlJobs[0].forgotten_pages">
+    <dt>Crawled pages aborted</dt>
+    <dd>{{lastCrawlJobs[0].forgotten_pages}}</dd>
+  </div>
 
 	<dt>Discovered Pages</dt>
   <dd>{{lastCrawlJobs[0].nb_pages}}</dd>

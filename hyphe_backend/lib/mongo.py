@@ -82,6 +82,7 @@ class MongoDB(object):
     def init_corpus_indexes(self, corpus):
         yield self.pages(corpus).ensure_index(sortasc('timestamp'), background=True, safe=True)
         yield self.pages(corpus).ensure_index(sortasc('_job'), background=True, safe=True)
+        yield self.pages(corpus).ensure_index(sortasc('_job') + sortasc('forgotten'), background=True, safe=True)
         yield self.pages(corpus).ensure_index(sortasc('url'), background=True, safe=True)
         yield self.queue(corpus).ensure_index(sortasc('timestamp'), background=True, safe=True)
         yield self.queue(corpus).ensure_index(sortasc('_job') + sortdesc('timestamp'), background=True, safe=True)
@@ -203,8 +204,14 @@ class MongoDB(object):
         returnD((corpus, jobs))
 
     @inlineCallbacks
+    def forget_pages(self, corpus, job, urls, **kwargs):
+        kwargs["safe"] = True
+        kwargs["multi"] = True
+        yield self.pages(corpus).update({"_job": job, "url": {"$in": urls}}, {"$set": {"forgotten": True}}, **kwargs)
+
+    @inlineCallbacks
     def count_pages(self, corpus, job, **kwargs):
-        tot = yield self.pages(corpus).count({"_job": job}, **kwargs)
+        tot = yield self.pages(corpus).count({"_job": job, "forgotten": {"$ne": True}}, **kwargs)
         returnD(tot)
 
     @inlineCallbacks

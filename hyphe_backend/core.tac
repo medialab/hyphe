@@ -524,9 +524,7 @@ class Core(jsonrpc.JSONRPC):
         elif from_ts:
             query["$or"] = [
               {"created_at": {"$gte": from_ts}},
-              {"indexing_status": {"$nin": [
-                indexing_statuses.CANCELED, indexing_statuses.FINISHED
-              ]}}
+              {"indexing_status": {"$ne": indexing_statuses.FINISHED}}
             ]
         jobs = yield self.db.list_jobs(corpus, query)
         returnD(format_result(list(jobs)))
@@ -564,8 +562,7 @@ class Core(jsonrpc.JSONRPC):
         # clean lost jobs
         if len(scrapyjobs['running']) + len(scrapyjobs['pending']) == 0:
             yield self.db.update_jobs(corpus, {'crawling_status': {'$in': [crawling_statuses.RUNNING]}}, {'crawling_status': crawling_statuses.FINISHED, "finished_at": now_ts()})
-        # clean canceled jobs
-        yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.CANCELED, 'indexing_status': {"$ne": indexing_statuses.CANCELED}}, {'indexing_status': indexing_statuses.CANCELED, 'finished_at': now_ts()})
+
         # update jobs crawling status accordingly to crawler's statuses
         running_ids = [job['id'] for job in scrapyjobs['running']]
         yield DeferredList([self.db.update_job_pages(corpus, job_id) for job_id in running_ids], consumeErrors=True)
@@ -841,19 +838,26 @@ class Crawler(jsonrpc.JSONRPC):
         existing = yield self.db.list_jobs(corpus, {"$or": [{"crawljob_id": job_id}, {"_id": job_id}]})
         if not existing:
             returnD(format_error("No job found with id %s" % job_id))
-        elif existing[0]["crawling_status"] in [crawling_statuses.FINISHED, crawling_statuses.CANCELED, crawling_statuses.RETRIED]:
+        elif existing[0]["crawling_status"] in [crawling_statuses.CANCELED, crawling_statuses.RETRIED]:
             returnD(format_error("Job %s is already not running anymore" % job_id))
-        logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
-        if job_id in self.crawlqueue.queue:
-            del(self.crawlqueue.queue[job_id])
-            res = "pending job %s removed from queue" % job_id
+        if existing[0]["crawling_status"] != "FINISHED":
+            logger.msg("Cancel crawl: %s" % job_id, system="INFO - %s" % corpus)
+            if job_id in self.crawlqueue.queue:
+                del(self.crawlqueue.queue[job_id])
+                res = "pending job %s removed from queue" % job_id
+            else:
+                args = {'project': corpus_project(corpus), 'job': existing[0]["crawljob_id"]}
+                res = yield self.crawlqueue.send_scrapy_query('cancel', args)
+                if is_error(res):
+                    returnD(reformat_error(res))
+                yield self.crawlqueue.send_scrapy_query('cancel', args)
         else:
-            args = {'project': corpus_project(corpus), 'job': existing[0]["crawljob_id"]}
-            res = yield self.crawlqueue.send_scrapy_query('cancel', args)
-            if is_error(res):
-                returnD(reformat_error(res))
-            yield self.crawlqueue.send_scrapy_query('cancel', args)
-        yield self.db.update_jobs(corpus, job_id, {'crawling_status': crawling_statuses.CANCELED})
+            res = "stopping leftover indexation for job %s" % existing[0]["crawljob_id"]
+        unindexed_pages = yield self.db.get_queue(corpus, {'_job': existing[0]["crawljob_id"]}, fields=["url"])
+        yield self.db.update_jobs(corpus, job_id, {'crawling_status': crawling_statuses.CANCELED, 'indexing_status': indexing_statuses.FINISHED, 'finished_at': now_ts(), 'forgotten_pages': len(unindexed_pages)})
+        yield self.db.clean_queue(corpus, {'_job': existing[0]["crawljob_id"]})
+        yield self.db.forget_pages(corpus, existing[0]["crawljob_id"], [i["url"] for i in unindexed_pages])
+        yield self.db.update_job_pages(corpus, existing[0]["crawljob_id"])
         yield self.db.add_log(corpus, job_id, "CRAWL_"+crawling_statuses.CANCELED)
         returnD(format_result(res))
 
