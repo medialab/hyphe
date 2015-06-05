@@ -1455,6 +1455,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         s = time.time()
         max_linking_pause = min(self.corpora[corpus]['links_duration'], max(5, self.corpora[corpus]['links_duration'] * self.corpora[corpus]['pages_queued'] / config['memoryStructure']['max_simul_pages_indexing'] / 50))
         if self.corpora[corpus]['recent_changes'] >= 100 or (self.corpora[corpus]['recent_changes'] and (self.corpora[corpus]['last_links_loop'] + max_linking_pause < s or not self.corpora[corpus]['pages_queued'])):
+            self.msclients.corpora[corpus].loop_running = True
             self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
             self.corpora[corpus]['loop_running_since'] = now_ts()
             yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
@@ -1471,6 +1472,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
                 returnD(None)
+            self.msclients.corpora[corpus].loop_running = False
             self.corpora[corpus]['webentities_links'] = res
             deferToThread(self.rank_webentities, corpus)
             self.corpora[corpus]['recent_changes'] = 0

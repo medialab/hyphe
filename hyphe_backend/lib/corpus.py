@@ -48,6 +48,7 @@ class LuceneCorpus(Thread):
         self.client_pool = None
         self.client_loop = None
         self.lastcall = time.time()
+        self.loop_running = False
         self.keepalive = keepalive
         self.monitor = LoopingCall(self.__check_timeout__)
 
@@ -67,7 +68,7 @@ class LuceneCorpus(Thread):
 
     def __check_timeout__(self):
         delay = time.time() - self.lastcall
-        if self.status == "ready" and self.keepalive < delay:
+        if self.status == "ready" and self.keepalive < delay and not self.loop_running:
             self.log("Stopping after %ss of inactivity" % int(delay))
             self.stop()
 
