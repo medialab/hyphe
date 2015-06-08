@@ -1122,7 +1122,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 else:
                     arr = getattr(WE, field_name, set())
                 values = value if isinstance(value, list) else [value]
-                if array_behavior == "push":
+                if array_behavior == "push" and value not in arr:
                     if isinstance(arr, list):
                         arr += values
                     elif isinstance(arr, set):
