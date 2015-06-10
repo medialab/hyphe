@@ -67,6 +67,32 @@ Using the website on localhost, you can already use Hyphe. Although, if you want
 
 Please read the dedicated [WebService documentation](doc/serve.md) to do so.
 
+## Docker setup
+
+Docker enables isolated install and execution of software stacks.
+Follow [Docker install instructions](https://docs.docker.com/installation/) to install Docker on your machine.
+
+[Install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line.
+
+```bash
+docker-compose up
+```
+
+It will take a couple of minutes to spin everything up for the first time.
+Once the services are ready, you can access the frontend interface by connecting on its IP address:
+
+```bash
+open http://$(docker inspect -f '{{.NetworkSettings.IPAddress}}' hyphe_frontend_1):6800
+```
+
+Or, if you use [boot2docker](http://boot2docker.io/):
+
+```bash
+open http://$(boot2docker ip):6800
+```
+
+**Notice**: this is not a production setup. Get some inspiration from the `docker-compose.yml` to understand how to distribute the application on one or many machines.
+
 
 ## Advanced developers features & contributing
 
