@@ -18,6 +18,8 @@ __DISCLAIMER:__ Hyphe has changed a lot between version `0.1` and `0.2`. Migrati
 
 For an easy install, the best solution is to download directly the [release version](https://github.com/medialab/Hypertext-Corpus-Initiative/releases), which was built to run against various GNU/Linux distributions (Ubuntu, Debian, CentOS...).
 
+MacOS users and other distribution can now also run Hyphe locally on their machine using [Docker](https://www.docker.com) thanks to @oncletom's work. [See the dedicated section below](#docker-setup).
+
 Just uncompress the release archive, go into the directory and run the installation script.
 
 Do __not__ use `sudo`: the script will do so on its own and will ask for your password only once. This works so in order to install all missing dependencies at once, including mainly Java (OpenJDK-6-JRE), Python (python-dev, pip, virtualEnv, virtualEnvWrapper...), Apache2, MongoDB & ScrapyD.
@@ -69,7 +71,7 @@ Please read the dedicated [WebService documentation](doc/serve.md) to do so.
 
 ## Docker setup
 
-Docker enables isolated install and execution of software stacks.
+Docker enables isolated install and execution of software stacks, which can be an easy way to install Hyphe locally on an individual computer, including on unsupported distributions like MacOS.
 Follow [Docker install instructions](https://docs.docker.com/installation/) to install Docker on your machine.
 
 [Install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line.
@@ -78,17 +80,23 @@ Follow [Docker install instructions](https://docs.docker.com/installation/) to i
 docker-compose up
 ```
 
+When using [boot2docker](http://boot2docker.io/) for instance on MacOS, you might need beforehand to run the following:
+```bash
+boot2docker up
+# and copy paste the 3 lines starting with export to set the environment variables
+```
+
 It will take a couple of minutes to spin everything up for the first time.
 Once the services are ready, you can access the frontend interface by connecting on its IP address:
 
 ```bash
-open http://$(docker inspect -f '{{.NetworkSettings.IPAddress}}' hyphe_frontend_1):6800
+open http://$(docker inspect -f '{{.NetworkSettings.IPAddress}}' hyphe_frontend_1):8000
 ```
 
-Or, if you use [boot2docker](http://boot2docker.io/):
+Or, if you use boot2docker:
 
 ```bash
-open http://$(boot2docker ip):6800
+open http://$(boot2docker ip):8000
 ```
 
 **Notice**: this is not a production setup. Get some inspiration from the `docker-compose.yml` to understand how to distribute the application on one or many machines.
