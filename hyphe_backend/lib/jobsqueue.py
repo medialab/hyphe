@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from json import loads as loadjson
+from os import environ
 from random import randint
 from urllib import urlencode
 from twisted.python import log as logger
@@ -16,7 +17,7 @@ class JobsQueue(object):
 
     def __init__(self, config):
         self.db = MongoDB(config)
-        self.scrapyd = 'http://%s:%s/' % (config['host'], config['scrapy_port'])
+        self.scrapyd = 'http://%s:%s/' % (environ.get('HYPHE_CRAWLER_HOST', config['host']), int(environ.get('HYPHE_CRAWLER_PORT', config['scrapy_port'])))
         self.queue = None
         self.depiler = LoopingCall(self.depile)
         self.depiler.start(1, True)

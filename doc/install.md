@@ -1,7 +1,7 @@
 # Installation
 
 __Notes:__
-- Hyphe is built to run on GNU/Linux machines. Making it work on MacOS or Windows might be feasible but is not supported.
+- Hyphe is built to run on a limited list of GNU/Linux distributions. [Docker](https://www.docker.com/) can be used to install Hyphe locally on other systems including MacOs, see the [Docker doc](../README.md#docker-setup). Making it work on Windows might be feasible but is not supported.
 - MongoDB is limited to 2Go databases on 32bit systems, so we recommand to always install Hyphe on a 64bit machine.
 - Do __not__ add `sudo` to any of the following example commands. Every line of shell written here should be ran from Hyphe's root directory and `sudo` should only be used when explicitly listed.
 
