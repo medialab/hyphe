@@ -560,8 +560,9 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]['links_found'] = sum([j['nb_links'] for j in jobs])
         yield self.update_corpus(corpus)
         # clean lost jobs
+        yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.PENDING, 'indexing_status': 'BATCH_FINISHED'}, {'crawling_status': crawling_statuses.RUNNING, "started_at": now_ts()})
         if len(scrapyjobs['running']) + len(scrapyjobs['pending']) == 0:
-            yield self.db.update_jobs(corpus, {'crawling_status': {'$in': [crawling_statuses.RUNNING]}}, {'crawling_status': crawling_statuses.FINISHED, "finished_at": now_ts()})
+            yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.RUNNING}, {'crawling_status': crawling_statuses.FINISHED, "finished_at": now_ts()})
 
         # update jobs crawling status accordingly to crawler's statuses
         running_ids = [job['id'] for job in scrapyjobs['running']]
@@ -1436,8 +1437,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
             self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
-            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'crawling_status': {'$ne': crawling_statuses.PENDING}, 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id', 'crawljob_id'], limit=1)
+            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id', 'crawljob_id'], limit=1)
             if not job:
+                logger.msg("Indexing job with pages in queue but not found in jobs: %s" % oldest_page_in_queue['_job'], system="WARNING - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
                 returnD(False)
             logger.msg("Indexing pages from job %s" % job['_id'], system="INFO - %s" % corpus)
