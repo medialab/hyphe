@@ -1638,6 +1638,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(format_error("page and count arguments must be integers"))
         if isinstance(list_ids, unicode):
             list_ids = [list_ids] if list_ids else []
+        list_ids = [i for i in list_ids if i]
         n_WEs = len(list_ids) if list_ids else 0
         if n_WEs:
             MAX_WE_AT_ONCE = 100
