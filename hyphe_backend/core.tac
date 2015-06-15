@@ -251,6 +251,12 @@ class Core(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_start_corpus(self, corpus=DEFAULT_CORPUS, password="", _noloop=False, _quiet=False, _create_if_missing=False):
         """Starts an existing `corpus` possibly `password`-protected. Returns the new corpus status."""
+        # Entrypoint to just test the global password for login2 page
+        if not corpus:
+            if not password or password != config.get("ADMIN_PASSWORD", None):
+                returnD(format_error("Wrong password"))
+            returnD(format_success(True))
+
         corpus_conf = yield self.db.get_corpus(corpus)
         if not corpus_conf:
             if _create_if_missing:

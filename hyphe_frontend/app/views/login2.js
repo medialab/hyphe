@@ -6,16 +6,24 @@ angular.module('hyphe.login2Controller', [])
   ,function($scope, api, utils, $location, corpus) {
     $scope.currentPage = 'login'
 
+    $scope.password = prompt("Password?", "")
+    api.startCorpus({
+      id: null
+      ,password: $scope.password
+    }, function(){
+      getStatus()
+      loadCorpusList()
+    }, function(data, status, headers, config){
+      alert('Error: possibly a wrong password, redirecting to homepage')
+      $location.path('/login')
+    })
+
     $scope.corpusList
     $scope.corpusList_byId = {}
     $scope.globalStatus
 
-    $scope.startCorpus = function(id, password){
-      if(password){
-        startCorpus(id, prompt("Password?"," "))
-      } else {
-        startCorpus(id, '')
-      }
+    $scope.startCorpus = function(id){
+      startCorpus(id, $scope.password)
     }
 
     $scope.stopCorpus = function(id){
@@ -33,10 +41,6 @@ angular.module('hyphe.login2Controller', [])
     $scope.resetCorpus = function(id){
       resetCorpus(id)
     }
-
-    // Init
-    getStatus()
-    loadCorpusList()
 
     function loadCorpusList(){
       api.getCorpusList({}, function(list){

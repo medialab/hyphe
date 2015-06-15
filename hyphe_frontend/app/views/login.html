@@ -32,9 +32,9 @@
                       ng-class="{'item-blocked': globalStatus && globalStatus.ports_left == 0 && !corpus.ready, 'item-ok': !(globalStatus && globalStatus.ports_left == 0 && !corpus.ready)}"
                     >
                       <div class="item-name">
-                        <span class="item-status text-muted" ng-if="corpus.password"  tooltip="Password Protected"><span class="glyphicon glyphicon-lock"></span></span>
+                        <span class="item-status text-muted" ng-if="corpus.password" tooltip="Password Protected"><span class="glyphicon glyphicon-lock"></span></span>
                         {{corpus.name}}
-                        <span class="item-status text-muted" ng-if="corpus.ready"  tooltip="In Operation"><span class="glyphicon glyphicon-play"></span></span>
+                        <span class="item-status text-muted" ng-if="corpus.ready" tooltip="In Operation"><span class="glyphicon glyphicon-play"></span></span>
                       </div>
                       <div class="item-stats text-muted">
                         {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + '  web entities'}}
