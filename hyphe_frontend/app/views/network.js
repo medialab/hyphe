@@ -181,11 +181,11 @@ angular.module('hyphe.networkController', [])
       api.getWebentities(
         {
            sort: []
-          ,count: 100000
+          ,count: -1
           ,light: true
         }
         ,function(result){
-          $scope.webentities = result.webentities
+          $scope.webentities = result
           loadLinks()
         }
         ,function(data, status, headers, config){

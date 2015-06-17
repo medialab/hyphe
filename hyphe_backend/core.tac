@@ -1634,7 +1634,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentities(self, list_ids=[], sort=None, count=100, page=0, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` all existing WebEntities or only the WebEntities whose id is among `list_ids.\nResults will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\nOther possible options include:\n- order the results with `sort` by inputting a field or list of fields as named in the WebEntities returned objects; optionally prefix a sort field with a "-" to revert the sorting on it; for instance: `["-indegree"\, "name"]` will order by maximum indegree first then by alphabetic order of names\n- set `light` or `semilight` or `light_for_csv` to "true" to collect lighter data with less WebEntities fields."""
+        """Returns for a `corpus` all existing WebEntities or only the WebEntities whose id is among `list_ids.\nResults will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Returns all results at once if `list_ids` is provided or `count` == -1 ; otherwise results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\nOther possible options include:\n- order the results with `sort` by inputting a field or list of fields as named in the WebEntities returned objects; optionally prefix a sort field with a "-" to revert the sorting on it; for instance: `["-indegree"\, "name"]` will order by maximum indegree first then by alphabetic order of names\n- set `light` or `semilight` or `light_for_csv` to "true" to collect lighter data with less WebEntities fields."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         try:
@@ -1660,7 +1660,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if is_error(WEs):
                 returnD(WEs)
         res = yield self.format_webentities(WEs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
-        if n_WEs:
+        if n_WEs or count == -1:
             returnD(format_result(res))
         if len(WEs) > count and not light_for_csv:
             res = yield self.paginate_webentities(res, count, page, light=light, semilight=semilight, sort=sort, corpus=corpus)
