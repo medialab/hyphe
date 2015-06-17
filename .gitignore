@@ -6,6 +6,7 @@ hyphe-server.lock
 *.pyc
 pip-log.txt
 install.log
+archives/
 log/
 lucene-data/
 memory_structure/src/main/java/fr/sciencespo/medialab/hci/memorystructure/thrift/*

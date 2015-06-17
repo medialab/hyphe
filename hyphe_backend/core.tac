@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time, random
+import time, random, json
 import subprocess
+from datetime import datetime
 from json import loads as loadjson
 from txjsonrpc import jsonrpclib
 from txjsonrpc.jsonrpc import Introspection
@@ -357,6 +358,30 @@ class Core(jsonrpc.JSONRPC):
         returnD(res)
 
     @inlineCallbacks
+    def jsonrpc_backup_corpus(self, corpus=DEFAULT_CORPUS):
+        if not self.corpus_ready(corpus):
+            returnD(self.corpus_error(corpus))
+        now = datetime.today().isoformat()[:19]
+        path = os.path.join("archives", corpus, now)
+        test_and_make_dir(path)
+        with open(os.path.join(path, "crawls.json"), "w") as f:
+            crawls = yield self.jsonrpc_listjobs(corpus=corpus)
+            if is_error(crawls):
+                returnD(format_error("Error retrieving crawls: %s" % crawls["message"]))
+            json.dump(crawls["result"], f)
+        with open(os.path.join(path, "webentities.json"), "w") as f:
+            WEs = yield self.store.jsonrpc_get_webentities(count=-1, sort=["status", "name"], corpus=corpus)
+            if is_error(WEs):
+                returnD(format_error("Error retrieving webentities: %s" % WEs["message"]))
+            json.dump(WEs["result"], f)
+        with open(os.path.join(path, "links.json"), "w") as f:
+            links = yield self.store.jsonrpc_get_webentities_network(corpus=corpus)
+            if is_error(links):
+                returnD(format_error("Error retrieving links: %s" % links["message"]))
+            json.dump(links["result"], f)
+        returnD(format_result("Corpus crawls, webentities and links stored in %s" % path))
+
+    @inlineCallbacks
     def jsonrpc_ping(self, corpus=None, timeout=3):
         """Tests during `timeout` seconds whether an existing `corpus` is started. Returns "pong" on success or the corpus status otherwise."""
         if not corpus:
@@ -399,6 +424,8 @@ class Core(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_destroy_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False):
         """Resets a `corpus` then definitely deletes anything associated with it."""
+        if corpus != TEST_CORPUS:
+            yield self.jsonrpc_backup_corpus(corpus)
         if not _quiet:
             logger.msg("Destroying corpus...", system="INFO - %s" % corpus)
         res = yield self.jsonrpc_reinitialize(corpus, _noloop=True, _quiet=_quiet)
