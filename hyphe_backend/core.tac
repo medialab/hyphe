@@ -23,6 +23,7 @@ HTTPClientFactory.noisy = False
 _HTTP11ClientFactory.noisy = False
 from hyphe_backend import processor
 from hyphe_backend.lib import config_hci, urllru, user_agents, creationrules
+from hyphe_backend.lib.config_hci import DEFAULT_CORPUS, TEST_CORPUS, test_and_make_dir
 from hyphe_backend.lib.utils import *
 from hyphe_backend.lib.jobsqueue import JobsQueue
 from hyphe_backend.lib.mongo import MongoDB, sortdesc
@@ -2197,7 +2198,7 @@ def stop_tests(res, cor, corpus, msg=None):
     else:
         print "All tests passed. Ready!"
 
-reactor.callLater(1, test_start, core, "--test-corpus--")
+reactor.callLater(1, test_start, core, TEST_CORPUS)
 
 # Activate default corpus automatically if in monocorpus
 if not config["MULTICORPUS"]:

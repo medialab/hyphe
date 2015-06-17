@@ -6,6 +6,7 @@ import simplejson as json
 from copy import deepcopy
 from pymongo import Connection
 from twisted.internet import defer
+TEST_CORPUS = "--test-corpus--"
 DEFAULT_CORPUS = "--hyphe--"
 CONFIG_FILE = os.path.join('config', 'config.json')
 from hyphe_backend.lib import creationrules
