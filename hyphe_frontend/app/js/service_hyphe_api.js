@@ -75,7 +75,7 @@ angular.module('hyphe.service_hyphe_api', [])
         API.WEBENTITY_LIST_GET
         ,function(settings){
           return [
-            settings.id_list                                 // List of webentities
+            settings.id_list || []                           // List of webentities
             ,settings.sort || ["-status", "name"]            // Ordering
             ,settings.count || 1000                          // Results per page
             ,settings.page || 0                              // Results page

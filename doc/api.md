@@ -234,7 +234,7 @@ The API will always answer as such:
 
 - __`crawl_webentity`:__
  + _`webentity_id`_ (mandatory)
- + _`depth`_ (optional, default: `null`)
+ + _`depth`_ (optional, default: `0`)
  + _`phantom_crawl`_ (optional, default: `false`)
  + _`status`_ (optional, default: `"IN"`)
  + _`startpages`_ (optional, default: `"startpages"`)
@@ -297,7 +297,7 @@ The API will always answer as such:
  + _`follow_prefixes`_ (mandatory)
  + _`nofollow_prefixes`_ (mandatory)
  + _`follow_redirects`_ (optional, default: `null`)
- + _`depth`_ (optional, default: `null`)
+ + _`depth`_ (optional, default: `0`)
  + _`phantom_crawl`_ (optional, default: `false`)
  + _`phantom_timeouts`_ (optional, default: `{}`)
  + _`download_delay`_ (optional, default: `1`)
@@ -504,7 +504,7 @@ The API will always answer as such:
 
 
 - __`get_webentities`:__
- + _`list_ids`_ (optional, default: `null`)
+ + _`list_ids`_ (optional, default: `[]`)
  + _`sort`_ (optional, default: `null`)
  + _`count`_ (optional, default: `100`)
  + _`page`_ (optional, default: `0`)
