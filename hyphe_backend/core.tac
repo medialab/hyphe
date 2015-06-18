@@ -359,6 +359,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_backup_corpus(self, corpus=DEFAULT_CORPUS):
+        """Saves locally on the server in the archive directory a timestamped backup of `corpus` including 3 json backup files of all webentities/links/crawls."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         now = datetime.today().isoformat()[:19]
@@ -439,15 +440,21 @@ class Core(jsonrpc.JSONRPC):
         returnD(format_result("Corpus %s destroyed successfully" % corpus))
 
     @inlineCallbacks
-    def jsonrpc_clear_all(self):
-        """Resets Hyphe completely: starts then resets and destroys all existing corpora one by one."""
-        logger.msg("CLEAR_ALL: destroying all corpora...", system="INFO")
+    def jsonrpc_clear_all(self, except_corpus_ids=[]):
+        """Resets Hyphe completely: starts then resets and destroys all existing corpora one by one except for those whose ID is given in `except_corpus_ids`."""
+        if type(except_corpus_ids) != list:
+            except_corpus_ids = [except_corpus_ids]
+        except_str = " except %s" % ", ".join(except_corpus_ids) if except_corpus_ids else ""
+        logger.msg("CLEAR_ALL: destroying all corpora%s..." % except_str, system="INFO")
         corpora = yield self.db.list_corpus(fields=['_id', 'password'])
         for corpus in corpora:
+            if corpus["_id"] in except_corpus_ids:
+                logger.msg("Skipping corpus %s" % corpus["_id"])
+                continue
             res = yield self.delete_corpus(corpus)
             if is_error(res):
                 returnD(res)
-        returnD(format_result("All corpora and databases cleaned up"))
+        returnD(format_result("All corpora and databases cleaned up%s" % except_str))
 
     @inlineCallbacks
     def delete_corpus(self, corpus_metas):
