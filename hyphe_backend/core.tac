@@ -359,12 +359,15 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_backup_corpus(self, corpus=DEFAULT_CORPUS):
-        """Saves locally on the server in the archive directory a timestamped backup of `corpus` including 3 json backup files of all webentities/links/crawls."""
+        """Saves locally on the server in the archive directory a timestamped backup of `corpus` including 4 json backup files of all webentities/links/crawls and corpus options."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         now = datetime.today().isoformat()[:19]
         path = os.path.join("archives", corpus, now)
         test_and_make_dir(path)
+        with open(os.path.join(path, "options.json"), "w") as f:
+            options = yield self.db.get_corpus(corpus)
+            json.dump(options, f)
         with open(os.path.join(path, "crawls.json"), "w") as f:
             crawls = yield self.jsonrpc_listjobs(corpus=corpus)
             if is_error(crawls):

@@ -180,7 +180,7 @@ The API will always answer as such:
 - __`backup_corpus`:__
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Saves locally on the server in the archive directory a timestamped backup of `corpus` including 3 json backup files of all webentities/links/crawls.
+ Saves locally on the server in the archive directory a timestamped backup of `corpus` including 4 json backup files of all webentities/links/crawls and corpus options.
 
 
 - __`ping`:__
