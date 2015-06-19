@@ -2181,7 +2181,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def save_webentities_stats(self, corpus=DEFAULT_CORPUS):
-        yield self.db.save_stats(corpus, self.corpora[corpus])
+        if self.parent.corpus_ready(corpus):
+            yield self.db.save_stats(corpus, self.corpora[corpus])
 
     @inlineCallbacks
     def jsonrpc_get_webentities_stats(self, corpus=DEFAULT_CORPUS):
