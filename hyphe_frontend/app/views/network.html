@@ -139,11 +139,11 @@
 
                     <div class="flatpanel-textblock flatpanel-separated">
                       <div class="row">
-                        <div class="col-lg-4">
+                        <div class="col-lg-5">
                           
                             <div class="checkbox">
                               <label>
-                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_in"> IN
+                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_in"> IN ({{webentities.in.length}})
                               </label>
                             
                           </div>
@@ -151,11 +151,11 @@
                       </div>
 
                       <div class="row">
-                        <div class="col-lg-4">
+                        <div class="col-lg-5">
                           
                             <div class="checkbox">
                               <label>
-                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_undecided"> UNDECIDED
+                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_undecided"> UNDECIDED ({{webentities.undecided.length}})
                               </label>
                             </div>
                           
@@ -163,34 +163,34 @@
                       </div>
 
                       <div class="row">
-                        <div class="col-lg-4">
+                        <div class="col-lg-5">
                           
                             <div class="checkbox">
                               <label>
-                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_discovered"> DISCOVERED
+                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_discovered"> DISCOVERED ({{webentities.discovered.length}})
                               </label>
                             </div>
                           
                         </div>
-                        <div class="col-lg-8">
+                        <div class="col-lg-7">
                           
-                            <select class="form-control" ng-change="touchSettings()" ng-disabled="loading" ng-model="discoveredMinDegree">
+                            <select class="form-control" ng-change="touchDiscovered()" ng-disabled="loading" ng-model="discoveredMinDegree">
                               <option value="0">Display every discovered</option>
-                              <option value="2">Cited by 2+ entities only</option>
-                              <option value="3">Cited by 3+ entities only</option>
-                              <option value="4">Cited by 4+ entities only</option>
-                              <option value="5">Cited by 5+ entities only</option>
+                              <option value="2">Cited by 2+ entities only ({{webentities.discovered_2.length}})</option>
+                              <option value="3">Cited by 3+ entities only ({{webentities.discovered_3.length}})</option>
+                              <option value="4">Cited by 4+ entities only ({{webentities.discovered_4.length}})</option>
+                              <option value="5">Cited by 5+ entities only ({{webentities.discovered_5.length}})</option>
                             </select>
                             
                         </div>
                       </div>
 
                       <div class="row">
-                        <div class="col-lg-4">
+                        <div class="col-lg-5">
                           
                             <div class="checkbox">
                               <label>
-                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_out"> OUT
+                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_out"> OUT ({{webentities.out.length}})
                               </label>
                             </div>
                           

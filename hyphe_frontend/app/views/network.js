@@ -123,6 +123,11 @@ angular.module('hyphe.networkController', [])
       saveAs(blob, $scope.corpusName + ".gexf");
     }
 
+    $scope.touchDiscovered = function(){
+      $scope.show_discovered = true
+      $scope.touchSettings()
+    }
+
     $scope.touchSettings = function(){
 
       // Check if difference with current settings
@@ -185,7 +190,25 @@ angular.module('hyphe.networkController', [])
           ,light: true
         }
         ,function(result){
-          $scope.webentities = result
+          $scope.webentities = {
+            all: result,
+            in: []
+            ,out: []
+            ,undecided: []
+            ,discovered: []
+            ,discovered_2: []
+            ,discovered_3: []
+            ,discovered_4: []
+            ,discovered_5: []
+          }
+          result.forEach(function(we){
+            $scope.webentities[we.status.toLowerCase()].push(we)
+            if (we.status == "DISCOVERED"){
+              [2, 3, 4, 5].forEach(function(min){
+                if (we.indegree >= min) $scope.webentities["discovered_"+min].push(we)
+              })
+            }
+          })
           loadLinks()
         }
         ,function(data, status, headers, config){
@@ -320,7 +343,7 @@ angular.module('hyphe.networkController', [])
       
       // Extract categories from nodes
       var categories = []
-      $scope.webentities.forEach(function(we){
+      $scope.webentities.all.forEach(function(we){
         for(var namespace in we.tags){
           if(namespace == 'CORPUS' || namespace == 'USER'){
             var tagging = we.tags[namespace]
@@ -340,11 +363,18 @@ angular.module('hyphe.networkController', [])
       var existingNodes = {}  // This index is useful to filter edges with unknown nodes
                               // ...and when the backend gives several instances of the same web entity
 
-      $scope.network.nodes = $scope.webentities.filter(function(we){
-        return (we.status == 'IN' && settings.show_in)
-            || (we.status == 'UNDECIDED' && settings.show_undecided)
-            || (we.status == 'OUT' && settings.show_out)
-            || (we.status == 'DISCOVERED' && settings.show_discovered && we.indegree >= settings.discoveredMinDegree)
+      var wes = [];
+      ["in", "undecided", "out"].forEach(function(st){
+        if (settings["show_"+st]){
+          wes = wes.concat($scope.webentities[st])
+        }
+      })
+      if (settings.show_discovered){
+        wes = wes.concat($scope.webentities["discovered"+(settings.discoveredMinDegree ? "_"+settings.discoveredMinDegree : "")])
+      }
+      
+      $scope.network.nodes = wes.filter(function(n){
+        return n!== undefined
       }).map(function(we){
         if(existingNodes[we.id] === undefined){
           var color = statusColors[we.status] || '#FF0000'
@@ -377,8 +407,6 @@ angular.module('hyphe.networkController', [])
         } else {
           console.log('Duplicate id in web entities list', we.id)
         }
-      }).filter(function(n){
-        return n!== undefined
       })
       
       $scope.network.edgesAttributes = [
