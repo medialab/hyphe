@@ -208,6 +208,7 @@ angular.module('hyphe.networkController', [])
           $scope.status = {}
 
           $scope.loading = false
+          initSigma()
 
         }
         ,function(data, status, headers, config){
@@ -217,7 +218,7 @@ angular.module('hyphe.networkController', [])
     }
 
     function initSigma(){
-      $scope.sigmaInstance = new sigma('sigma-example');
+      $scope.sigmaInstance = new sigma('sigma');
 
       $window.s = $scope.sigmaInstance // For debugging purpose
       
