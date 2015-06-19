@@ -11,6 +11,10 @@
 
                 <br>
 
+                <div ng-if="loading">
+                  <spinner text="'LOADING NETWORK'"/>
+                </div>
+
                 <div
                   class="sigma-parent"
                   ng-class="{pointable: overNode}"
@@ -92,10 +96,6 @@
                   </div>
                 </div>
                 
-                <div ng-if="loading">
-                  <spinner text="'LOADING NETWORK'"/>
-                </div>
-
               </div>
               <div class="col-md-4">
 
