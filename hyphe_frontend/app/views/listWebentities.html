@@ -34,14 +34,6 @@
 
                         <label
                           class="btn btn-default"
-                          ng-model="statuses.out"
-                          ng-change="doQuery()"
-                          ng-class="{disabled:loading}"
-                          btn-checkbox
-                        >OUT</label>
-
-                        <label
-                          class="btn btn-default"
                           ng-model="statuses.undecided"
                           ng-change="doQuery()"
                           ng-class="{disabled:loading}"
@@ -55,6 +47,14 @@
                           ng-class="{disabled:loading}"
                           btn-checkbox
                         >DISCOVERED</label>
+
+                        <label
+                          class="btn btn-default"
+                          ng-model="statuses.out"
+                          ng-change="doQuery()"
+                          ng-class="{disabled:loading}"
+                          btn-checkbox
+                        >OUT</label>
 
                       </div>
 

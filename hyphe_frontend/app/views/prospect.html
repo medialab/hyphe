@@ -95,18 +95,18 @@
                             <label
                               class="btn btn-default btn-xs"
                               ng-model="obj.status"
-                              btn-radio="'OUT'"
-                              ng-change="setStatus(obj, 'OUT')"
-                              ng-class="{disabled:loading}"
-                            >OUT</label>
-
-                            <label
-                              class="btn btn-default btn-xs"
-                              ng-model="obj.status"
                               btn-radio="'UNDECIDED'"
                               ng-change="setStatus(obj, 'UNDECIDED')"
                               ng-class="{disabled:loading}"
                             >UND.</label>
+
+                            <label
+                              class="btn btn-default btn-xs"
+                              ng-model="obj.status"
+                              btn-radio="'OUT'"
+                              ng-change="setStatus(obj, 'OUT')"
+                              ng-class="{disabled:loading}"
+                            >OUT</label>
 
                           </div>
 
@@ -189,6 +189,47 @@
 
                   </div>
 
+                  <div class="flatpanel-heading flatpanel-clickable flatpanel-whitespace" ng-click="setToUndecidedCollapsed = !setToUndecidedCollapsed">
+                    SET TO: UNDECIDED ({{setToUndecided}})
+                    <div class="pull-right">
+                      <span ng-show="setToUndecidedCollapsed" class="glyphicon glyphicon-chevron-right"></span>
+                      <span ng-show="!setToUndecidedCollapsed" class="glyphicon glyphicon-chevron-down"></span>
+                    </div>
+                  </div>
+                  <div class="flatpanel-body" collapse="setToUndecidedCollapsed">
+                    
+                    <div class="flatpanel-textblock text-muted" ng-if="setToUndecided == 0">empty</div>
+
+                    <div class="selected-webentities-container" ng-if="setToUndecided > 0">
+                      <table>
+                        <tr
+                          ng-repeat="(k,obj) in setIndex"
+                          ng-if="obj.status == 'UNDECIDED'"
+                        >
+                          <td class="webentity-name">
+                            {{obj.webentity.name}}
+                          </td>
+                          <td class="remove-button">
+                            <button
+                              class="btn btn-xs btn-link"
+                              ng-click="removeFromSetIndex(k)"
+                            > 
+                              <span class="glyphicon glyphicon-remove"></span>
+                            </button>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+
+                    <div class="flatpanel-textblock" ng-if="setToUndecided > 0">
+                      <button
+                        class="btn btn-default"
+                        ng-click="doCrawl('UNDECIDED')"
+                      >CRAWL</button>
+                    </div>
+
+                  </div>
+
                   <div class="flatpanel-heading flatpanel-clickable flatpanel-whitespace" ng-click="setToOutCollapsed = !setToOutCollapsed">
                     SET TO: OUT ({{setToOut}})
                     <div class="pull-right">
@@ -230,46 +271,6 @@
 
                   </div>
 
-                  <div class="flatpanel-heading flatpanel-clickable flatpanel-whitespace" ng-click="setToUndecidedCollapsed = !setToUndecidedCollapsed">
-                    SET TO: UNDECIDED ({{setToUndecided}})
-                    <div class="pull-right">
-                      <span ng-show="setToUndecidedCollapsed" class="glyphicon glyphicon-chevron-right"></span>
-                      <span ng-show="!setToUndecidedCollapsed" class="glyphicon glyphicon-chevron-down"></span>
-                    </div>
-                  </div>
-                  <div class="flatpanel-body" collapse="setToUndecidedCollapsed">
-                    
-                    <div class="flatpanel-textblock text-muted" ng-if="setToUndecided == 0">empty</div>
-
-                    <div class="selected-webentities-container" ng-if="setToUndecided > 0">
-                      <table>
-                        <tr
-                          ng-repeat="(k,obj) in setIndex"
-                          ng-if="obj.status == 'UNDECIDED'"
-                        >
-                          <td class="webentity-name">
-                            {{obj.webentity.name}}
-                          </td>
-                          <td class="remove-button">
-                            <button
-                              class="btn btn-xs btn-link"
-                              ng-click="removeFromSetIndex(k)"
-                            > 
-                              <span class="glyphicon glyphicon-remove"></span>
-                            </button>
-                          </td>
-                        </tr>
-                      </table>
-                    </div>
-
-                    <div class="flatpanel-textblock" ng-if="setToUndecided > 0">
-                      <button
-                        class="btn btn-default"
-                        ng-click="doCrawl('UNDECIDED')"
-                      >CRAWL</button>
-                    </div>
-
-                  </div>
                 </div>
 
               </div>

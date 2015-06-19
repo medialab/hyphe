@@ -69,12 +69,12 @@
                       <p ng-if="show_undecided">
                         <span class="dot dot-undecided"></span>&nbsp;UNDECIDED
                       </p>
-                      <p ng-if="show_out">
-                        <span class="dot dot-out"></span>&nbsp;OUT
-                      </p>
                       <p ng-if="show_discovered">
                         <span class="dot dot-discovered"></span>&nbsp;DISCOVERED
                         <span class="text-info" ng-if="discoveredMinDegree>0"><br>Cited by {{discoveredMinDegree}}+ entities only</span>
+                      </p>
+                      <p ng-if="show_out">
+                        <span class="dot dot-out"></span>&nbsp;OUT
                       </p>
                     </div>
                     <div class="col-md-4">
@@ -167,17 +167,6 @@
                           
                             <div class="checkbox">
                               <label>
-                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_out"> OUT
-                              </label>
-                            </div>
-                          
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-lg-4">
-                          
-                            <div class="checkbox">
-                              <label>
                                 <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_discovered"> DISCOVERED
                               </label>
                             </div>
@@ -194,6 +183,19 @@
                             </select>
                             
                         </div>
+                      </div>
+
+                      <div class="row">
+                        <div class="col-lg-4">
+                          
+                            <div class="checkbox">
+                              <label>
+                                <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_out"> OUT
+                              </label>
+                            </div>
+                          
+                        </div>
+
                       </div>
 
                     </div>
