@@ -149,7 +149,7 @@
                 
                 <div class="flatpanel">
                   <div class="flatpanel-heading flatpanel-clickable" ng-click="setToInCollapsed = !setToInCollapsed">
-                    SET TO: IN ({{setToIn}})
+                    ADDED TO: IN ({{setToIn}})
                     <div class="pull-right">
                       <span ng-show="setToInCollapsed" class="glyphicon glyphicon-chevron-right"></span>
                       <span ng-show="!setToInCollapsed" class="glyphicon glyphicon-chevron-down"></span>
@@ -190,7 +190,7 @@
                   </div>
 
                   <div class="flatpanel-heading flatpanel-clickable flatpanel-whitespace" ng-click="setToUndecidedCollapsed = !setToUndecidedCollapsed">
-                    SET TO: UNDECIDED ({{setToUndecided}})
+                    ADDED TO: UNDECIDED ({{setToUndecided}})
                     <div class="pull-right">
                       <span ng-show="setToUndecidedCollapsed" class="glyphicon glyphicon-chevron-right"></span>
                       <span ng-show="!setToUndecidedCollapsed" class="glyphicon glyphicon-chevron-down"></span>
@@ -221,17 +221,10 @@
                       </table>
                     </div>
 
-                    <div class="flatpanel-textblock" ng-if="setToUndecided > 0">
-                      <button
-                        class="btn btn-default"
-                        ng-click="doCrawl('UNDECIDED')"
-                      >CRAWL</button>
-                    </div>
-
                   </div>
 
                   <div class="flatpanel-heading flatpanel-clickable flatpanel-whitespace" ng-click="setToOutCollapsed = !setToOutCollapsed">
-                    SET TO: OUT ({{setToOut}})
+                    ADDED TO: OUT ({{setToOut}})
                     <div class="pull-right">
                       <span ng-show="setToOutCollapsed" class="glyphicon glyphicon-chevron-right"></span>
                       <span ng-show="!setToOutCollapsed" class="glyphicon glyphicon-chevron-down"></span>
@@ -260,13 +253,6 @@
                           </td>
                         </tr>
                       </table>
-                    </div>
-
-                    <div class="flatpanel-textblock" ng-if="setToOut > 0">
-                      <button
-                        class="btn btn-default"
-                        ng-click="doCrawl('OUT')"
-                      >CRAWL</button>
                     </div>
 
                   </div>
