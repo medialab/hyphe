@@ -288,6 +288,7 @@ angular.module('hyphe.networkController', [])
         ,scalingRatio: 10
         ,strongGravityMode: true
         ,gravity: 0.1
+        ,barnesHutOptimize: $scope.network.nodes.length > 500
       })
 
       // Bind interactions
