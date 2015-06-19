@@ -66,6 +66,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.CORPUS_STOP                                 = 'stop_corpus'
     API.CORPUS_RESET                                = 'reinitialize'
     API.CORPUS_DESTROY                              = 'destroy_corpus'
+    API.CORPUS_BACKUP                               = 'backup_corpus'
     API.CORPUS_OPTIONS_GET                          = 'get_corpus_options'
     API.CORPUS_OPTIONS_SET                          = 'set_corpus_options'
     API.CORPUS_TEST                                 = 'test_corpus'
@@ -410,6 +411,15 @@ angular.module('hyphe.service_hyphe_api', [])
             return [
               settings.id
               ,settings.timeout || 3    // Seconds before returning false
+            ]
+          }
+      )
+
+    ns.backupCorpus = buildApiCall(
+        API.CORPUS_BACKUP
+        ,function(settings){
+            return [
+              settings.id
             ]
           }
       )

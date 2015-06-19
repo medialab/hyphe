@@ -7,6 +7,7 @@ angular.module('hyphe.exportController', [])
     $scope.currentPage = 'export'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.backed_up = false
 
     var queryBatchSize = 1000
 
@@ -217,6 +218,14 @@ angular.module('hyphe.exportController', [])
     function finalize(){
       $scope.status = {message:'Processing...'}
       console.log('Finalize',$scope.resultsList)
+
+      if(!$scope.backed_up){
+        api.backupCorpus({
+          id: $scope.corpusId
+        }, function(){
+          $scope.backed_up = true
+        }, function(){})
+      }
 
       if($scope.fileFormat == 'JSON'){
           
