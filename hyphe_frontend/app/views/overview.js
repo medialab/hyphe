@@ -15,9 +15,15 @@ angular.module('hyphe.overviewController', [])
 
     // Functions
     function loadStatus(){
+      $scope.status = {message: 'Refreshing'}
       api.globalStatus({}, function(status){
+        $scope.status = {message: ''}
+        if (status.corpus.memory_structure.job_running == "Diagnosing"){
+          status.corpus.memory_structure.job_running = ""
+        }
         $scope.corpusStatus = status
         console.log('corpus status', status)
+        setTimeout(loadStatus, 2500)
       },function(data, status, headers, config){
         $scope.status = {message: 'Error loading status', background:'danger'}
       })

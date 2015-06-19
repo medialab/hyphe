@@ -394,6 +394,10 @@ div.welcome-column dd{
 /* ==========================================================================
    View: Overview
    ========================================================================== */
+.clearboth{
+  padding-top: 25px;
+  clear: both;
+}
 .status-cells-container{
   padding: 6px;
 }
