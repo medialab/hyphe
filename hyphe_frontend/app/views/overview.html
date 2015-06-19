@@ -8,16 +8,20 @@
           <div class="container-fluid main">
             <div class="row">
               <div class="col-md-12">
-                <h1>
-                  OVERVIEW
-                </h1>
  
                 <div ng-hide="corpusStatus.corpus.memory_structure.webentities.total">
-                  <h3>Welcome to your Hyphe corpus!</h3>
-                  <p>Start defining the first Web Entities of your corpus by <a href="#/project/{{corpusId}}/importurls">importing urls</a> to crawl</p>
+                  <h1>
+                    Welcome to your Hyphe corpus!
+                  </h1>
+                  <p>
+                    Start defining the first <span hyphe-glossary="web entities"></span> of your corpus by <a href="#/project/{{corpusId}}/importurls">importing urls</a> to <span hyphe-glossary="crawl"></span>.
+                  </p>
                 </div>
 
                 <div ng-show="corpusStatus.corpus.memory_structure.webentities.total">
+                  <h1>
+                    OVERVIEW
+                  </h1>
                   <div class="col-md-4 col-lg-3 status-cell">
                     <div class="status-cell-content">
                       <p class="title">
