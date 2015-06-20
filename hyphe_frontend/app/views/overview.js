@@ -12,6 +12,8 @@ angular.module('hyphe.overviewController', [])
 
     // Init
     loadStatus()
+    $scope.loop = setInterval(loadStatus, 2500)
+    $scope.$on('$destroy', function(){ clearInterval($scope.loop) })
 
     // Functions
     function loadStatus(){
@@ -23,7 +25,6 @@ angular.module('hyphe.overviewController', [])
         }
         $scope.corpusStatus = status
         console.log('corpus status', status)
-        setTimeout(loadStatus, 2500)
       },function(data, status, headers, config){
         $scope.status = {message: 'Error loading status', background:'danger'}
       })
