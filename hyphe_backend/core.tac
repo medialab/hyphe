@@ -1167,20 +1167,21 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 else:
                     arr = getattr(WE, field_name, set())
                 values = value if isinstance(value, list) else [value]
-                if array_behavior == "push" and value not in arr:
-                    if isinstance(arr, list):
-                        arr += values
-                    elif isinstance(arr, set):
-                        arr |= set(values)
+                if array_behavior == "push":
                     for v in values:
-                        if field_name == 'LRUSet':
-                            res = self.handle_lru_precision_exceptions(v, corpus=corpus)
-                            if is_error(res):
-                                returnD(res)
-                        elif field_name == 'startpages':
-                            res = self.handle_url_precision_exceptions(v, corpus=corpus)
-                            if is_error(res):
-                                returnD(res)
+                        if v not in arr:
+                            if isinstance(arr, list):
+                                arr.append(v)
+                            elif isinstance(arr, set):
+                                arr.add(v)
+                            if field_name == 'LRUSet':
+                                res = self.handle_lru_precision_exceptions(v, corpus=corpus)
+                                if is_error(res):
+                                    returnD(res)
+                            elif field_name == 'startpages':
+                                res = self.handle_url_precision_exceptions(v, corpus=corpus)
+                                if is_error(res):
+                                    returnD(res)
                 elif array_behavior == "pop":
                     for v in values:
                         arr.remove(v)
@@ -1293,7 +1294,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
             lru_prefixes = [lru_prefixes]
         clean_lrus = []
         for lru_prefix in lru_prefixes:
-            print lru_prefix
             try:
                 url, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
             except ValueError as e:
