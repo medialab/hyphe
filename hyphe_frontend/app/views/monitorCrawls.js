@@ -309,7 +309,9 @@ angular.module('hyphe.monitorcrawlsController', [])
       if(currentTimespan == 'all'){
         // TODO
       } else {
-        var crawlJobs = $scope.lastCrawlJobs.map(function(job){return job._id})
+        var crawlJobs = $scope.lastCrawlJobs.filter(function(job){
+          return job.indexing_status != "FINISHED" && job.crawling_status != "CANCELED"
+        }).map(function(job){return job._id})
         
         api.getCrawlJobs(
           {id_list: crawlJobs}
