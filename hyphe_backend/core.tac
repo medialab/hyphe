@@ -1684,7 +1684,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
             list_ids = [list_ids] if list_ids else []
         list_ids = [i for i in list_ids if i]
         n_WEs = len(list_ids) if list_ids else 0
-        if n_WEs:
+        if n_WEs == 1:
+            WE = yield self.msclients.pool.getWebEntity(list_ids[0], corpus=corpus)
+            if is_error(WE):
+                returnD(WE)
+            WEs = [WE]
+        elif n_WEs:
             MAX_WE_AT_ONCE = 100
             WEs = []
             sublists = [list_ids[MAX_WE_AT_ONCE*i : MAX_WE_AT_ONCE*(i+1)] for i in range((n_WEs-1)/MAX_WE_AT_ONCE + 1)]
