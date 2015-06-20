@@ -123,6 +123,20 @@ angular.module('hyphe.networkController', [])
       saveAs(blob, $scope.corpusName + ".gexf");
     }
 
+    $scope.hide_unlinked_WEs = false
+    $scope.toggleUnlinkedWEs = function(){
+      var toggle = ($scope.hide_unlinked_WEs ?
+        function(n){
+          if(n.degree == 0) n.hidden = true
+        } :
+        function(n){
+          n.hidden = false
+        }
+      )
+      $scope.sigmaInstance.graph.nodes().forEach(toggle)
+      $scope.sigmaInstance.refresh()
+    }
+
     $scope.touchDiscovered = function(){
       $scope.show_discovered = true
       $scope.touchSettings()
@@ -256,19 +270,26 @@ angular.module('hyphe.networkController', [])
         ,zoomMin: 0.002
       });
 
-      var nodesIndex = {}
+      //var nodesIndex = {}
 
       // Populate
       $window.g = $scope.network
+      $scope.unlinked_WEs = false
       $scope.network.nodes
         .forEach(function(node){
-          nodesIndex[node.id] = node
+          //nodesIndex[node.id] = node
+          var degree = node.inEdges.length + node.outEdges.length
+          if (!$scope.unlinked_WEs && !degree){
+            $scope.unlinked_WEs = true
+          }
           $scope.sigmaInstance.graph.addNode({
             id: node.id
             ,label: node.label
             ,'x': Math.random()
             ,'y': Math.random()
-            ,'size': 1 + Math.log(1 + 0.1 * ( node.inEdges.length + node.outEdges.length ) )
+            ,'degree': degree
+            ,'hidden': $scope.hide_unlinked_WEs && !degree
+            ,'size': 1 + Math.log(1 + 0.1 * degree )
             ,'color': node.color
           })
         })

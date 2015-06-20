@@ -195,7 +195,16 @@
                             </div>
                           
                         </div>
+                      </div>
 
+                      <div ng-show="unlinked_WEs" class="row">
+                        <div class="col-lg-7">
+                          <div class="checkbox">
+                            <label>
+                              <input type="checkbox" ng-change="toggleUnlinkedWEs()" ng-disabled="loading" ng-model="hide_unlinked_WEs"> Hide isolated web entities
+                            </label>
+                          </div>
+                        </div>
                       </div>
 
                     </div>
