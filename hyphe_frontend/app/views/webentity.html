@@ -87,7 +87,7 @@
                                 <button
                                   class="btn btn-default btn-sm"
                                   ng-click="reCrawl()"
-                                ><span class="glyphicon glyphicon-repeat"></span> RECRAWL</button>
+                                ><span class="glyphicon glyphicon-repeat"></span> {{webentity['crawling_status'] != 'UNCRAWLED' ? 'RE' : ''}}CRAWL</button>
                               </div>
                             </div>
                           </div>
