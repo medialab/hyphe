@@ -1471,7 +1471,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         yield self.ramcache_webentities(corpus=corpus, corelinks=(self.corpora[corpus]['webentities_links'] == None))
         crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
         if crashed:
-            self.corpora[corpus]['loop_running'] = "Cleaning up crashed indexing"
+            self.corpora[corpus]['loop_running'] = "Cleaning up index error"
             logger.msg("Indexing job declared as running but probably crashed, trying to restart it.", system="WARNING - %s" % corpus)
             yield self.db.update_jobs(corpus, crashed['_id'], {'indexing_status': indexing_statuses.BATCH_CRASHED})
             yield self.db.add_log(corpus, crashed['_id'], "INDEX_"+indexing_statuses.BATCH_CRASHED)
@@ -1506,7 +1506,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         max_linking_pause = min(self.corpora[corpus]['links_duration'], max(5, self.corpora[corpus]['links_duration'] * self.corpora[corpus]['pages_queued'] / config['memoryStructure']['max_simul_pages_indexing'] / 50))
         if self.corpora[corpus]['recent_changes'] >= 100 or (self.corpora[corpus]['recent_changes'] and (self.corpora[corpus]['last_links_loop'] + max_linking_pause < s or not self.corpora[corpus]['pages_queued'])):
             self.msclients.corpora[corpus].loop_running = True
-            self.corpora[corpus]['loop_running'] = "Computing links between WebEntities"
+            self.corpora[corpus]['loop_running'] = "Building webentities links"
             self.corpora[corpus]['loop_running_since'] = now_ts()
             yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
             res = yield self.msclients.loop.updateWebEntityLinks(self.corpora[corpus]['last_links_loop'], corpus=corpus)

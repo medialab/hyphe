@@ -176,10 +176,10 @@
                           
                             <select class="form-control" ng-change="touchDiscovered()" ng-disabled="loading" ng-model="discoveredMinDegree">
                               <option value="0">Display every discovered</option>
-                              <option value="2">Cited by 2+ entities only ({{webentities.discovered_2.length}})</option>
-                              <option value="3">Cited by 3+ entities only ({{webentities.discovered_3.length}})</option>
-                              <option value="4">Cited by 4+ entities only ({{webentities.discovered_4.length}})</option>
-                              <option value="5">Cited by 5+ entities only ({{webentities.discovered_5.length}})</option>
+                              <option ng-show="webentities.discovered_2.length" value="2">Cited by 2+ entities only ({{webentities.discovered_2.length}})</option>
+                              <option ng-show="webentities.discovered_3.length" value="3">Cited by 3+ entities only ({{webentities.discovered_3.length}})</option>
+                              <option ng-show="webentities.discovered_4.length" value="4">Cited by 4+ entities only ({{webentities.discovered_4.length}})</option>
+                              <option ng-show="webentities.discovered_5.length" value="5">Cited by 5+ entities only ({{webentities.discovered_5.length}})</option>
                             </select>
                             
                         </div>

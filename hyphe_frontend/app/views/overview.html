@@ -27,11 +27,8 @@
                       <p class="title">
                         CRAWL JOBS
                       </p>
-                      <p ng-show="corpusStatus.corpus.memory_structure.job_running" class="content">
-                        Currently: {{corpusStatus.corpus.memory_structure.job_running}}
-                      </p>
-                      <p class="content">
-                        {{corpusStatus.corpus.crawler.jobs_finished|none}} achieved
+                      <p ng-show="corpusStatus.corpus.crawler.jobs_finished" class="content">
+                        {{corpusStatus.corpus.crawler.jobs_finished}} achieved
                       </p>
                       <p ng-show="corpusStatus.corpus.crawler.jobs_running" class="content">
                         {{corpusStatus.corpus.crawler.jobs_running}} running
@@ -41,6 +38,9 @@
                       </p>
                       <p class="content">
                         Last indexation <a href="#" tooltip="{{corpusStatus.corpus.memory_structure.last_index|date}}">{{corpusStatus.corpus.memory_structure.last_index|prettyDate}}</a>
+                      <p ng-show="corpusStatus.corpus.memory_structure.job_running" class="content">
+                        Currently: {{corpusStatus.corpus.memory_structure.job_running}}
+                      </p>
                       </p>
                     </div>
                   </div>
