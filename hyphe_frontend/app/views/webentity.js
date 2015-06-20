@@ -443,6 +443,7 @@ angular.module('hyphe.webentityController', [])
 
           $scope.status = {message: ''}
           $scope.loading = false
+          fetchWebentity($routeParams.webentityId)
           updateExplorer()
         }
         ,function(){
