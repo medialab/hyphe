@@ -2176,6 +2176,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
   # VARIOUS
 
+    def jsonrpc_trigger_links_build(self, corpus=DEFAULT_CORPUS):
+        """Will initiate a links calculation update (useful especially when a corpus crashed during the links calculation and no more crawls is programmed)."""
+        if not self.parent.corpus_ready(corpus):
+            return self.parent.corpus_error(corpus)
+        self.corpora[corpus]['recent_changes'] += 1
+        return format_result("Links building should start soon")
+
     def jsonrpc_trigger_links_reset(self, corpus=DEFAULT_CORPUS):
         """Will initiate a whole reset and regeneration of all WebEntityLinks of a `corpus`. Can take a while."""
         if not self.parent.corpus_ready(corpus):

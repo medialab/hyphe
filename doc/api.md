@@ -125,6 +125,7 @@ The API will always answer as such:
     * __`delete_precision_exceptions`__
     * __`add_precision_exception`__
   + [VARIOUS](#various)
+    * __`trigger_links_build`__
     * __`trigger_links_reset`__
     * __`get_webentities_stats`__
 
@@ -839,6 +840,12 @@ The API will always answer as such:
  Adds to a `corpus` a new PrecisionException for `lru_prefix`.
 
 ### VARIOUS
+
+- __`trigger_links_build`:__
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Will initiate a links calculation update (useful especially when a corpus crashed during the links calculation and no more crawls is programmed).
+
 
 - __`trigger_links_reset`:__
  + _`corpus`_ (optional, default: `"--hyphe--"`)
