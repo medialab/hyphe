@@ -12,14 +12,12 @@ angular.module('hyphe.overviewController', [])
 
     // Init
     loadStatus()
-    $scope.loop = setInterval(loadStatus, 2500)
+    $scope.loop = setInterval(loadStatus, 1000)
     $scope.$on('$destroy', function(){ clearInterval($scope.loop) })
 
     // Functions
     function loadStatus(){
-      $scope.status = {message: 'Refreshing'}
       api.globalStatus({}, function(status){
-        $scope.status = {message: ''}
         if (status.corpus.memory_structure.job_running == "Diagnosing"){
           status.corpus.memory_structure.job_running = ""
         }
