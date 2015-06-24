@@ -392,7 +392,7 @@ angular.module('hyphe.networkController', [])
         }
       })
       if (settings.show_discovered){
-        wes = wes.concat($scope.webentities["discovered"+(settings.discoveredMinDegree ? "_"+settings.discoveredMinDegree : "")])
+        wes = wes.concat($scope.webentities["discovered"+(settings.discoveredMinDegree > 0 ? "_"+settings.discoveredMinDegree : "")])
       }
       
       $scope.network.nodes = wes.filter(function(n){
