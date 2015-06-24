@@ -304,7 +304,7 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["crawls"] = corpus_conf['total_crawls']
         self.corpora[corpus]["pages_found"] = corpus_conf['total_pages']
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
-        self.corpora[corpus]["recent_changes"] = int(corpus_conf['recent_changes'])
+        self.corpora[corpus]["recent_changes"] = int(corpus_conf.get('recent_changes', False))
         self.corpora[corpus]["last_index_loop"] = corpus_conf['last_index_loop']
         self.corpora[corpus]["links_duration"] = corpus_conf.get("links_duration", 1)
         self.corpora[corpus]["last_links_loop"] = corpus_conf['last_links_loop']
