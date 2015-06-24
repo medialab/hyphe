@@ -21,6 +21,7 @@ angular.module('hyphe.loginController', [])
     $scope.passwordProtected = false
 
     $scope.globalStatus = false
+    $scope.freeSlots = 0
 
     $scope.starting = false
     $scope.search_query = ''
@@ -77,8 +78,14 @@ angular.module('hyphe.loginController', [])
     }
 
     // Init
-    getStatus()
-    loadCorpusList()
+    refresh()
+    $scope.loop = setInterval(refresh, 2500)
+    $scope.$on('$destroy', function(){ clearInterval($scope.loop) })
+
+    function refresh(){
+      getStatus()
+      loadCorpusList()
+    }
 
     function startCorpus(id, password){
       api.startCorpus({
@@ -126,10 +133,10 @@ angular.module('hyphe.loginController', [])
         }
         $scope.corpusList_byId = list
         $scope.corpusList.sort(function(a,b){
-          if (a.name > b.name) {
+          if (a.name.toLowerCase() > b.name.toLowerCase()) {
             return 1;
           }
-          if (a.name < b.name) {
+          if (a.name.toLowerCase() < b.name.toLowerCase()) {
             return -1;
           }
           // a must be equal to b
@@ -171,6 +178,7 @@ angular.module('hyphe.loginController', [])
 
         console.log('Global Status', status.hyphe)
         $scope.globalStatus = status.hyphe
+        $scope.freeSlots = Math.min(status.hyphe.ports_left, status.hyphe.ram_left/256)
 
       }, function(){
 

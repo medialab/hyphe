@@ -15,11 +15,13 @@
             <div ng-if="!disconnected && !loading">
               <div collapse="uiMode !== 'default' || (uiMode == 'default' && corpusList.length == 0)">
                 <h3>Select your project</h3>
-                <p class="text-info" ng-if="globalStatus.ports_left > 0">
-                  {{globalStatus.ports_left}} project{{globalStatus.ports_left < 2 ? '' : 's'}} can be put into operation ({{globalStatus.corpus_running}}/{{globalStatus.ports_left + globalStatus.corpus_running}} slots occupied)
+                <p class="text-info" ng-if="freeSlots > 0">
+                  {{freeSlots}} project{{freeSlots | plural}} can be put into operation ({{globalStatus.corpus_running}} slots occupied)
                 </p>
-                <p class="text-danger" ng-if="globalStatus.ports_left == 0">
-                  Hyphe cannot put a new project into operation (0/{{globalStatus.ports_left + globalStatus.corpus_running}} slots)
+                <p class="text-danger" ng-if="freeSlots == 0">
+                  Hyphe cannot put a new project into operation
+                  <br>
+                  ({{globalStatus.corpus_running}} running, {{globalStatus.ports_left}} port{{globalStatus.ports_left | plural}} &amp; {{globalStatus.ram_left}} Mo ram left available)
                 </p>
                 <input type="text" class="form-control search-project" ng-model="$parent.search_query" placeholder="Search a project" ng-if="corpusList !== undefined && corpusList.length > 3" ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)">
                 <div class="project-list-container">
@@ -29,7 +31,7 @@
                       class="item"
                       ng-repeat="corpus in corpusList|search:search_query:['name']"
                       ng-click="selectCorpus(corpus.corpus_id)"
-                      ng-class="{'item-blocked': globalStatus && globalStatus.ports_left == 0 && !corpus.ready, 'item-ok': !(globalStatus && globalStatus.ports_left == 0 && !corpus.ready)}"
+                      ng-class="{'item-blocked': globalStatus && globalStatus.freeSlots == 0 && !corpus.ready, 'item-ok': !(globalStatus && globalStatus.freeSlots == 0 && !corpus.ready)}"
                     >
                       <div class="item-name">
                         <span class="item-status text-muted" ng-if="corpus.password" tooltip="Password Protected"><span class="glyphicon glyphicon-lock"></span></span>
