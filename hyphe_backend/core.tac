@@ -304,6 +304,7 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["crawls"] = corpus_conf['total_crawls']
         self.corpora[corpus]["pages_found"] = corpus_conf['total_pages']
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
+        self.corpora[corpus]["recent_changes"] = int(corpus_conf['recent_changes'])
         self.corpora[corpus]["last_index_loop"] = corpus_conf['last_index_loop']
         self.corpora[corpus]["links_duration"] = corpus_conf.get("links_duration", 1)
         self.corpora[corpus]["last_links_loop"] = corpus_conf['last_links_loop']
@@ -327,6 +328,7 @@ class Core(jsonrpc.JSONRPC):
           "total_crawls": self.corpora[corpus]['crawls'],
           "total_pages": self.corpora[corpus]['pages_found'],
           "total_pages_crawled": self.corpora[corpus]['pages_crawled'],
+          "recent_changes": self.corpora[corpus]['recent_changes'] > 0,
           "last_index_loop": self.corpora[corpus]['last_index_loop'],
           "links_duration": self.corpora[corpus]['links_duration'],
           "last_links_loop": self.corpora[corpus]['last_links_loop'],
@@ -952,7 +954,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['loop_running'] = None
         self.corpora[corpus]['loop_running_since'] = now
         self.corpora[corpus]['last_WE_update'] = now
-        self.corpora[corpus]['recent_changes'] = 0
         self.corpora[corpus]['recent_tagging'] = True
         if not _noloop:
             reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
@@ -1526,6 +1527,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if is_error(res):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
+                self.msclients.corpora[corpus].loop_running = False
                 returnD(None)
             self.corpora[corpus]['last_links_loop'] = res
             self.corpora[corpus]['links_duration'] = max((time.time() - s), self.corpora[corpus]['links_duration'])
@@ -1536,6 +1538,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if is_error(res):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
+                self.msclients.corpora[corpus].loop_running = False
                 returnD(None)
             self.msclients.corpora[corpus].loop_running = False
             self.corpora[corpus]['webentities_links'] = res

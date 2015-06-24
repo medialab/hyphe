@@ -48,7 +48,6 @@ class MongoDB(object):
           "name": name,
           "password": salt(password),
           "options": options,
-          "links_duration": 1,
           "total_webentities": 0,
           "webentities_in": 0,
           "webentities_out": 0,
@@ -59,7 +58,9 @@ class MongoDB(object):
           "total_pages_crawled": 0,
           "created_at": now,
           "last_activity": now,
+          "recent_changes": false,
           "last_index_loop": now,
+          "links_duration": 1,
           "last_links_loop": 0
         }, safe=True)
         yield self.init_corpus_indexes(corpus)
