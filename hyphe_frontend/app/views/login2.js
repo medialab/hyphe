@@ -4,23 +4,25 @@ angular.module('hyphe.login2Controller', [])
 
   .controller('Login2', ['$scope', 'api', 'utils', '$location', 'corpus'
   ,function($scope, api, utils, $location, corpus) {
-    $scope.currentPage = 'login'
+    $scope.currentPage = 'login2'
+    $scope.corpusList
+    $scope.corpusList_byId = {}
+    $scope.globalStatus
 
+    // init
     $scope.password = prompt("Password?", "")
     api.startCorpus({
       id: null
       ,password: $scope.password
     }, function(){
-      getStatus()
-      loadCorpusList()
+      refresh()
+      $scope.loop = setInterval(refresh, 2500)
+      $scope.$on('$destroy', function(){ clearInterval($scope.loop) })
+
     }, function(data, status, headers, config){
       alert('Error: possibly a wrong password, redirecting to homepage')
       $location.path('/login')
     })
-
-    $scope.corpusList
-    $scope.corpusList_byId = {}
-    $scope.globalStatus
 
     $scope.startCorpus = function(id){
       startCorpus(id, $scope.password)
@@ -46,9 +48,6 @@ angular.module('hyphe.login2Controller', [])
       resetLinks(id)
     }
 
-
-    $scope.loop = setInterval(loadCorpusList, 2500)
-    $scope.$on('$destroy', function(){ clearInterval($scope.loop) })
 
     function loadCorpusList(){
       api.getCorpusList({}, function(list){
@@ -101,7 +100,7 @@ angular.module('hyphe.login2Controller', [])
         ,password: password
       }, function(){
 
-        loadCorpusList()
+        refresh()
         // openCorpus($scope.corpus.corpus_id, $scope.corpus.name)
 
       },function(data, status, headers, config){
@@ -114,7 +113,7 @@ angular.module('hyphe.login2Controller', [])
         id: id
       }, function(){
 
-        loadCorpusList()
+        refresh()
 
       },function(data, status, headers, config){
         alert('Error')
@@ -126,7 +125,7 @@ angular.module('hyphe.login2Controller', [])
         id: id
       }, function(){
 
-        loadCorpusList()
+        refresh()
 
       },function(data, status, headers, config){
         alert('Error')
@@ -150,8 +149,6 @@ angular.module('hyphe.login2Controller', [])
         id: id
       }, function(){
 
-        loadCorpusList()
-
       }, function(){
         alert('Error')
       })
@@ -170,6 +167,9 @@ angular.module('hyphe.login2Controller', [])
       
     }
 
-
+    function refresh(){
+        getStatus()
+        loadCorpusList()
+    }
 
   }])
