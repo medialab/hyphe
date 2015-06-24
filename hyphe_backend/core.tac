@@ -156,8 +156,9 @@ class Core(jsonrpc.JSONRPC):
             res = yield self.crawler.jsonrpc_deploy_crawler(corpus)
             if is_error(res):
                 returnD(res)
-        if ("ram" in options and options["ram"] != oldram) or \
-           ("keepalive" in options and options["keepalive"] != oldkeep):
+        if "keepalive" in options and options["keepalive"] != oldkeep:
+            self.msclients.corpora[corpus].keepalive = options["keepalive"]
+        if "ram" in options and options["ram"] != oldram:
             res = yield self.jsonrpc_stop_corpus(corpus, _quiet=True)
             if is_error(res):
                 returnD(res)
@@ -1528,6 +1529,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 returnD(None)
             self.corpora[corpus]['last_links_loop'] = res
             self.corpora[corpus]['links_duration'] = max((time.time() - s), self.corpora[corpus]['links_duration'])
+            if self.corpora[corpus]['links_duration'] > self.corpora[corpus]['options']['keepalive']/2:
+                yield self.parent.jsonrpc_set_corpus_options(corpus, {"keepalive": self.corpora[corpus]['links_duration'] * 2})
             yield self.db.add_log(corpus, "WE_LINKS", "...finished WebEntity links generation (%ss)" % (time.time() - s))
             res = yield self.msclients.loop.getWebEntityLinks(corpus=corpus)
             if is_error(res):
