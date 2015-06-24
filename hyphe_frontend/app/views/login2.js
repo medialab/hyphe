@@ -47,6 +47,9 @@ angular.module('hyphe.login2Controller', [])
     }
 
 
+    $scope.loop = setInterval(loadCorpusList, 2500)
+    $scope.$on('$destroy', function(){ clearInterval($scope.loop) })
+
     function loadCorpusList(){
       api.getCorpusList({}, function(list){
         $scope.corpusList = []
@@ -55,10 +58,10 @@ angular.module('hyphe.login2Controller', [])
         }
         $scope.corpusList_byId = list
         $scope.corpusList.sort(function(a,b){
-          if (a.name > b.name) {
+          if (a.name.toLowerCase() > b.name.toLowerCase()) {
             return 1;
           }
-          if (a.name < b.name) {
+          if (a.name.toLowerCase() < b.name.toLowerCase()) {
             return -1;
           }
           // a must be equal to b

@@ -8,8 +8,9 @@
             <h1>hyphe</h1>
 
             <h3>
-              {{globalStatus.ram_left}} Mo of free RAM - 
-              Corpus slots: {{globalStatus.corpus_running}} in operation &amp; {{globalStatus.ports_left}} free -
+              {{corpusList.length}} corp{{corpusList.length > 1 ? 'ora' : 'us'}} &mdash;
+              {{globalStatus.ram_left}} Mo of free RAM &mdash;
+              Corpus slots: {{globalStatus.corpus_running}} in operation &amp; {{globalStatus.ports_left}} free &mdash;
               Crawls: {{globalStatus.crawls_running}} running &amp; {{globalStatus.crawls_pending}} pending
             </h3>
             <br>
