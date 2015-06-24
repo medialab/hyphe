@@ -511,7 +511,7 @@ class Core(jsonrpc.JSONRPC):
             'job_running': self.corpora[corpus]['loop_running'],
             'job_running_since': self.corpora[corpus]['loop_running_since'] if self.corpora[corpus]['loop_running'] else 0,
             'last_index': self.corpora[corpus]['last_index_loop'],
-            'last_links': self.corpora[corpus]['last_links_loop'],
+            'last_links': self.corpora[corpus]['last_links_loop']*1000,
             'links_duration': self.corpora[corpus]['links_duration'],
             'pages_to_index': self.corpora[corpus]['pages_queued'],
             'webentities': {
