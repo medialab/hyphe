@@ -58,7 +58,7 @@ class MongoDB(object):
           "total_pages_crawled": 0,
           "created_at": now,
           "last_activity": now,
-          "recent_changes": false,
+          "recent_changes": False,
           "last_index_loop": now,
           "links_duration": 1,
           "last_links_loop": 0
