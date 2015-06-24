@@ -35,18 +35,6 @@ angular.module('hyphe.settingsController', [])
       }
     }
 
-    $scope.resetLinks = function(){
-      if (confirm('Are you sure you want to regenerate the links of this corpus?')) {
-        api.resetLinks({
-          id:corpus.getId()
-        }, function(){
-          $location.path('/project/'+$scope.corpusId+'/overview')
-        }, function(){
-          $scope.status = {message: "Error resetting links", background:'danger'}
-        })
-      }
-    }
-
     init()
 
     function init(){

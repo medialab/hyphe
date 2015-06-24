@@ -42,6 +42,11 @@ angular.module('hyphe.login2Controller', [])
       resetCorpus(id)
     }
 
+    $scope.resetLinks = function(id){
+      resetLinks(id)
+    }
+
+
     function loadCorpusList(){
       api.getCorpusList({}, function(list){
         $scope.corpusList = []
@@ -133,6 +138,18 @@ angular.module('hyphe.login2Controller', [])
         loadCorpusList()
 
       },function(data, status, headers, config){
+        alert('Error')
+      })
+    }
+
+    function resetLinks(id){
+      api.resetLinks({
+        id: id
+      }, function(){
+
+        loadCorpusList()
+
+      }, function(){
         alert('Error')
       })
     }
