@@ -295,7 +295,6 @@ class Core(jsonrpc.JSONRPC):
             corpus_conf = yield self.db.get_corpus(corpus)
         self.corpora[corpus]["name"] = corpus_conf["name"]
         self.corpora[corpus]["options"] = corpus_conf["options"]
-        self.corpora[corpus]["links_duration"] = corpus_conf.get("links_duration", 60)
         self.corpora[corpus]["total_webentities"] = corpus_conf['total_webentities']
         self.corpora[corpus]["webentities_in"] = corpus_conf['webentities_in']
         self.corpora[corpus]["webentities_out"] = corpus_conf['webentities_out']
@@ -305,6 +304,7 @@ class Core(jsonrpc.JSONRPC):
         self.corpora[corpus]["pages_found"] = corpus_conf['total_pages']
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
         self.corpora[corpus]["last_index_loop"] = corpus_conf['last_index_loop']
+        self.corpora[corpus]["links_duration"] = corpus_conf.get("links_duration", 1)
         self.corpora[corpus]["last_links_loop"] = corpus_conf['last_links_loop']
         self.corpora[corpus]["reset"] = False
         if not _noloop:
@@ -327,8 +327,8 @@ class Core(jsonrpc.JSONRPC):
           "total_pages": self.corpora[corpus]['pages_found'],
           "total_pages_crawled": self.corpora[corpus]['pages_crawled'],
           "last_index_loop": self.corpora[corpus]['last_index_loop'],
-          "last_links_loop": self.corpora[corpus]['last_links_loop'],
           "links_duration": self.corpora[corpus]['links_duration'],
+          "last_links_loop": self.corpora[corpus]['last_links_loop'],
           "last_activity": now_ts()
         })
 
@@ -508,6 +508,8 @@ class Core(jsonrpc.JSONRPC):
             'job_running': self.corpora[corpus]['loop_running'],
             'job_running_since': self.corpora[corpus]['loop_running_since'] if self.corpora[corpus]['loop_running'] else 0,
             'last_index': self.corpora[corpus]['last_index_loop'],
+            'last_links': self.corpora[corpus]['last_links_loop'],
+            'links_duration': self.corpora[corpus]['links_duration'],
             'pages_to_index': self.corpora[corpus]['pages_queued'],
             'webentities': {
               'total': self.corpora[corpus]['total_webentities'],
@@ -1410,12 +1412,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def index_batch(self, page_items, job, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(False)
+        s = time.time()
         ids = [str(record['_id']) for record in page_items]
         nb_crawled_pages = len(ids)
         if not nb_crawled_pages:
             returnD(False)
         pages, links = yield deferToThread(processor.generate_cache_from_pages_list, page_items, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0)
-        s=time.time()
+        logger.msg("...%s pages and %s links identified from %s crawled pages in %ss..." % (len(pages), len(links), nb_crawled_pages, time.time()-s), system="INFO - %s" % corpus)
+        s = time.time()
         cache_id = yield self.msclients.loop.createCache(pages.values(), corpus=corpus)
         if is_error(cache_id):
             logger.msg(cache_id['message'], system="ERROR - %s" % corpus)
@@ -1424,8 +1428,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(nb_pages):
             logger.msg(nb_pages['message'], system="ERROR - %s" % corpus)
             returnD(False)
-        logger.msg("..."+str(nb_pages)+" pages indexed in "+str(time.time()-s)+"s...", system="INFO - %s" % corpus)
-        s=time.time()
         nb_links = len(links)
         link_lists = [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]
         results = yield DeferredList([self.msclients.loop.saveNodeLinks([ms.NodeLink(source.encode('utf-8'),target.encode('utf-8'),weight) for source,target,weight in link_list], corpus=corpus) for link_list in link_lists], consumeErrors=True)
@@ -1433,8 +1435,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if not bl or is_error(res):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
                 returnD(False)
-        logger.msg("..."+str(nb_links)+" links indexed in "+str(time.time()-s)+"s...", system="INFO - %s" % corpus)
-        s=time.time()
+        logger.msg("...%s pages & %s links indexed in %ss..." % (len(pages), len(links), time.time()-s), system="INFO - %s" % corpus)
+        s = time.time()
         n_WE = yield self.msclients.loop.createWebEntitiesFromCache(cache_id, corpus=corpus)
         if is_error(n_WE):
             logger.msg(n_WE['message'], system="ERROR - %s" % corpus)
@@ -1486,9 +1488,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 logger.msg("Indexing job with pages in queue but not found in jobs: %s" % oldest_page_in_queue['_job'], system="WARNING - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
                 returnD(False)
-            logger.msg("Indexing pages from job %s" % job['_id'], system="INFO - %s" % corpus)
             page_items = yield self.db.get_queue(corpus, {'_job': job['crawljob_id']}, limit=config['memoryStructure']['max_simul_pages_indexing'])
             if page_items:
+                logger.msg("Indexing %s pages from job %s..." % (len(page_items), job['_id']), system="INFO - %s" % corpus)
                 yield self.db.update_jobs(corpus, job['_id'], {'indexing_status': indexing_statuses.BATCH_RUNNING})
                 yield self.db.add_log(corpus, job['_id'], "INDEX_"+indexing_statuses.BATCH_RUNNING)
                 self.corpora[corpus]['loop_running_since'] = now_ts()
@@ -1497,14 +1499,24 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     logger.msg(res['message'], system="ERROR - %s" % corpus)
                     self.corpora[corpus]['loop_running'] = None
                     returnD(False)
-                self.corpora[corpus]['recent_changes'] += 5 * len(page_items)/float(config['memoryStructure']['max_simul_pages_indexing'])
+                self.corpora[corpus]['recent_changes'] += len(page_items)/float(config['memoryStructure']['max_simul_pages_indexing'])
             else:
                 logger.msg("job %s found for index but no page corresponding found in queue." % job['_id'], system="WARNING - %s" % corpus)
             self.corpora[corpus]['last_index_loop'] = now_ts()
+
         # Run linking WebEntities on a regular basis when needed and not overloaded
+        now = now_ts()
         s = time.time()
-        max_linking_pause = min(self.corpora[corpus]['links_duration'], max(5, self.corpora[corpus]['links_duration'] * self.corpora[corpus]['pages_queued'] / config['memoryStructure']['max_simul_pages_indexing'] / 50))
-        if self.corpora[corpus]['recent_changes'] >= 100 or (self.corpora[corpus]['recent_changes'] and (self.corpora[corpus]['last_links_loop'] + max_linking_pause < s or not self.corpora[corpus]['pages_queued'])):
+        # Build links at least every 1000 index loops...
+        if (self.corpora[corpus]['recent_changes'] >= 1000 or
+          # or, after at least one index if...
+          ( self.corpora[corpus]['recent_changes'] and
+            # pagesqueue is empty and no index happened for a minute (finished crawling)
+            (now - self.corpora[corpus]['last_index_loop'] > 30000 and not self.corpora[corpus]['pages_queued']) or
+            # links were not built since more than 4 times the time it takes
+            (s - self.corpora[corpus]['last_links_loop'] > 3.5 * self.corpora[corpus]['links_duration'])
+          ) ):
+            logger.msg("Processing new WebEntity links...", system="INFO - %s" % corpus)
             self.msclients.corpora[corpus].loop_running = True
             self.corpora[corpus]['loop_running'] = "Building webentities links"
             self.corpora[corpus]['loop_running_since'] = now_ts()
@@ -1515,7 +1527,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 self.corpora[corpus]['loop_running'] = None
                 returnD(None)
             self.corpora[corpus]['last_links_loop'] = res
-            self.corpora[corpus]['links_duration'] = max(3 * (time.time() - s), self.corpora[corpus]['links_duration'])
+            self.corpora[corpus]['links_duration'] = max((time.time() - s), self.corpora[corpus]['links_duration'])
             yield self.db.add_log(corpus, "WE_LINKS", "...finished WebEntity links generation (%ss)" % (time.time() - s))
             res = yield self.msclients.loop.getWebEntityLinks(corpus=corpus)
             if is_error(res):
