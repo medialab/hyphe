@@ -340,4 +340,21 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+
+  .directive('focusAfterCollapse', [function(){
+    return{
+      restrict: 'A',
+      link: function(scope, el){
+        scope.$watch(function() {
+            return el.attr('class')
+          }, function(){
+            if (!el.hasClass('collapsing') && el.hasClass('in')) {
+              el.find("input").first().focus()
+            }
+          }
+        )
+      }
+    }
+  }])
+
 ;

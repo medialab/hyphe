@@ -87,6 +87,18 @@ angular.module('hyphe.loginController', [])
       loadCorpusList()
     }
 
+    $scope.switchToNew = function(){
+      $scope.uiMode = 'new'
+      if ($scope.new_project_name.length == 0 && $scope.search_query.length != 0){
+        $scope.new_project_name = ""+$scope.search_query
+      }
+    }
+
+    $scope.switchToChoice = function(){
+      $scope.uiMode = 'default'
+      $scope.search_query = ''
+    }
+
     function startCorpus(id, password){
       api.startCorpus({
         id: id
@@ -142,7 +154,6 @@ angular.module('hyphe.loginController', [])
           // a must be equal to b
           return 0;
         })
-        console.log('list',list)
 
       },function(data, status, headers, config){
         $scope.corpusList = ''
@@ -176,7 +187,6 @@ angular.module('hyphe.loginController', [])
       
       api.globalStatus({},function(status){
 
-        console.log('Global Status', status.hyphe)
         $scope.globalStatus = status.hyphe
         $scope.freeSlots = Math.min(status.hyphe.ports_left, status.hyphe.ram_left/256)
 

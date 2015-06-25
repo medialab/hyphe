@@ -13,7 +13,7 @@
             </div>
 
             <div ng-if="!disconnected && !loading">
-              <div collapse="uiMode !== 'default' || (uiMode == 'default' && corpusList.length == 0)">
+              <div focus-after-collapse collapse="uiMode !== 'default' || corpusList.length == 0">
                 <h3>Select your project</h3>
                 <p class="text-info" ng-if="freeSlots > 0">
                   {{freeSlots}} project{{freeSlots | plural}} can be put into operation ({{globalStatus.corpus_running}} slots occupied)
@@ -23,7 +23,7 @@
                   <br>
                   ({{globalStatus.corpus_running}} running, {{globalStatus.ports_left}} port{{globalStatus.ports_left | plural}} &amp; {{globalStatus.ram_left}} Mo ram left available)
                 </p>
-                <input type="text" class="form-control search-project" ng-model="$parent.search_query" placeholder="Search a project" ng-if="corpusList !== undefined && corpusList.length > 3" ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)">
+                <input type="text" class="form-control search-project" ng-model="$parent.$parent.search_query" placeholder="Search a project" ng-if="corpusList !== undefined && corpusList.length > 3" ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)">
                 <div class="project-list-container">
                   <div ng-if="corpusList === undefined">loading...</div>
                   <div ng-if="corpusList !== undefined">
@@ -55,10 +55,10 @@
                 <br>
                 <p class="text-info">- or -</p>
                 
-                <button class="btn btn-link" ng-show="uiMode == 'default'" ng-click="uiMode = 'new'"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;NEW PROJECT</button>
+                <button class="btn btn-link" ng-show="uiMode == 'default'" ng-click="switchToNew()"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;NEW PROJECT</button>
               </div>
 
-              <div collapse="uiMode !== 'new' && corpusList.length > 0">
+              <div focus-after-collapse collapse="uiMode !== 'new' && corpusList.length > 0">
                 <h3>New Project</h3>
                 <br>
                 <div ng-if="!starting">
@@ -82,7 +82,7 @@
                     <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
                   </p>
 
-                  <button class="btn btn-link" ng-click="$parent.uiMode = 'default'"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
+                  <button class="btn btn-link" ng-click="$parent.$parent.switchToChoice()"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
                 </div>
 
                 <div ng-if="starting">
@@ -90,7 +90,7 @@
                 </div>
               </div>
               
-              <div collapse="uiMode !== 'login'">
+              <div focus-after-collapse collapse="uiMode !== 'login'">
                 <h3>{{corpus.name}}</h3>
 
                 <div class="text-muted">
@@ -115,7 +115,7 @@
                     <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
                   </p>
 
-                  <button class="btn btn-link" ng-click="$parent.uiMode = 'default'"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
+                  <button class="btn btn-link" ng-click="$parent.$parent.switchToChoice()"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
                 </div>
 
                 <div ng-if="starting">
