@@ -14,7 +14,7 @@ angular.module('hyphe.prospectController', [])
 
     $scope.paginationPage = 1
     $scope.paginationLength = 20   // How many items per page
-    $scope.paginationNumPages = 5  // How many pages to display in the pagination
+    $scope.paginationNumPages = 10  // How many pages to display in the pagination
     
     $scope.fullListLength = 0
     $scope.currentSearchToken

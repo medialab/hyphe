@@ -15,7 +15,7 @@ angular.module('hyphe.definewebentitiesController', [])
     
     $scope.paginationPage = 1
     $scope.paginationLength = 50    // How many items per page
-    $scope.paginationNumPages = 5  // How many pages to display in the pagination
+    $scope.paginationNumPages = 10  // How many pages to display in the pagination
 
     $scope.createdList = []
     $scope.existingList = []

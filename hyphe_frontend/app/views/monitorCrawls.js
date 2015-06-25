@@ -30,7 +30,7 @@ angular.module('hyphe.monitorcrawlsController', [])
 
     $scope.paginationPage = 1
     $scope.paginationLength = 50   // How many items per page
-    $scope.paginationNumPages = 5  // How many pages to display in the pagination
+    $scope.paginationNumPages = 10  // How many pages to display in the pagination
 
     $scope.pageChanged = function(){
       console.log('Nous sommes sur la page '+$scope.paginationPage)
