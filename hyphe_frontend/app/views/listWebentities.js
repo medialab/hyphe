@@ -94,7 +94,8 @@ angular.module('hyphe.listwebentitiesController', [])
       if($scope.lastQuery === undefined){
         $scope.loadWebentities()
       } else {
-        $scope.loadWebentities($scope.lastQuery)
+        var query = utils.cleanLuceneQuery($scope.lastQuery)
+        $scope.loadWebentities(query)
       }
     }
 
