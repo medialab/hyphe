@@ -57,10 +57,10 @@
                         including {{corpusStatus.corpus.memory_structure.pages_to_index}} unindexed yet
                       </p>
                       <p class="content">
-                        {{corpusStatus.corpus.crawler.links_found|no}} link{{corpusStatus.corpus.crawler.links_found|plural}} discovered
-                      </p>
-                      <p class="content">
                         {{corpusStatus.corpus.crawler.pages_found|no}} page{{corpusStatus.corpus.crawler.pages_found|plural}} discovered
+                      </p>
+                      <p ng-show="corpusStatus.corpus.crawler.links_found" class="content">
+                        {{corpusStatus.corpus.crawler.links_found}} link{{corpusStatus.corpus.crawler.links_found|plural}} discovered
                       </p>
                     </div>
                   </div>
