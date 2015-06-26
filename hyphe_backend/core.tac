@@ -1530,21 +1530,21 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 self.msclients.corpora[corpus].loop_running = False
                 returnD(None)
             self.corpora[corpus]['last_links_loop'] = res
-            self.corpora[corpus]['links_duration'] = max((time.time() - s), self.corpora[corpus]['links_duration'])
-            if self.corpora[corpus]['links_duration'] > self.corpora[corpus]['options']['keepalive']/2:
-                yield self.parent.jsonrpc_set_corpus_options(corpus, {"keepalive": self.corpora[corpus]['links_duration'] * 2})
-            yield self.db.add_log(corpus, "WE_LINKS", "...finished WebEntity links generation (%ss)" % (time.time() - s))
             res = yield self.msclients.loop.getWebEntityLinks(corpus=corpus)
             if is_error(res):
                 logger.msg(res['message'], system="ERROR - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
                 self.msclients.corpora[corpus].loop_running = False
                 returnD(None)
-            self.msclients.corpora[corpus].loop_running = False
             self.corpora[corpus]['webentities_links'] = res
             deferToThread(self.rank_webentities, corpus)
+            self.msclients.corpora[corpus].loop_running = False
             self.corpora[corpus]['recent_changes'] = 0
-            logger.msg("...processed new WebEntity links in %ss." % (time.time() - s), system="INFO - %s" % corpus)
+            s = time.time() - s
+            self.corpora[corpus]['links_duration'] = max(s, self.corpora[corpus]['links_duration'])
+            if self.corpora[corpus]['links_duration'] > self.corpora[corpus]['options']['keepalive']/2:
+                yield self.parent.jsonrpc_set_corpus_options(corpus, {"keepalive": int(self.corpora[corpus]['links_duration'] * 2)})
+            logger.msg("...processed new WebEntity links in %ss." % s, system="INFO - %s" % corpus)
         if self.corpora[corpus]['reset']:
             res = self.msclients.sync.clearIndex(corpus=corpus)
         self.corpora[corpus]['loop_running'] = None
