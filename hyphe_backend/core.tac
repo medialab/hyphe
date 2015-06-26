@@ -1512,11 +1512,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         # Build links at least every 1000 index loops...
         if (self.corpora[corpus]['recent_changes'] >= 1000 or
           # or, after at least one index if...
-          ( self.corpora[corpus]['recent_changes'] and
+          ( self.corpora[corpus]['recent_changes'] and (
             # pagesqueue is empty and no index happened for a minute (finished crawling)
             (now - self.corpora[corpus]['last_index_loop'] > 30000 and not self.corpora[corpus]['pages_queued']) or
             # links were not built since more than 4 times the time it takes
-            (s - self.corpora[corpus]['last_links_loop'] > 3.5 * self.corpora[corpus]['links_duration'])
+            (s - self.corpora[corpus]['last_links_loop'] > 3.5 * self.corpora[corpus]['links_duration']) )
           ) ):
             logger.msg("Processing new WebEntity links...", system="INFO - %s" % corpus)
             self.msclients.corpora[corpus].loop_running = True
