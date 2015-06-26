@@ -304,12 +304,12 @@ angular.module('hyphe.networkController', [])
 
       // Force Atlas 2 settings
       $scope.sigmaInstance.configForceAtlas2({
-        slowDown: 10
+        slowDown: 2 * (1 + Math.log($scope.network.nodes.length))
         ,worker: true
         ,scalingRatio: 10
         ,strongGravityMode: true
         ,gravity: 0.1
-        ,barnesHutOptimize: $scope.network.nodes.length > 500
+        ,barnesHutOptimize: $scope.network.nodes.length > 1000
       })
 
       // Bind interactions
