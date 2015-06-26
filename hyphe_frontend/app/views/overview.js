@@ -22,7 +22,6 @@ angular.module('hyphe.overviewController', [])
           status.corpus.memory_structure.job_running = ""
         }
         $scope.corpusStatus = status
-        console.log('corpus status', status)
       },function(data, status, headers, config){
         $scope.status = {message: 'Error loading status', background:'danger'}
       })
