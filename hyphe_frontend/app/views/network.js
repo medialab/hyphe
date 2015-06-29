@@ -429,6 +429,8 @@ angular.module('hyphe.networkController', [])
         } else {
           console.log('Duplicate id in web entities list', we.id)
         }
+      }).filter(function(we){ // filter duplicates
+        return we !== undefined
       })
       
       $scope.network.edgesAttributes = [
