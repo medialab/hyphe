@@ -25,21 +25,21 @@ angular.module('hyphe.directives', [])
           if(webentityFound){
             obj.name = webentityFound.name
             if(opt.editMode){
-              scope.statusText = 'Merge into ' + scope.webentity.name + '?'
+              obj.statusText = 'Merge into ' + scope.webentity.name + '?'
               scope.obj.task = {type:'merge', webentity:webentityFound}
             } else {
-              scope.statusText = 'Already exists'
-              scope.status = 'exists'
+              obj.statusText = 'Already exists'
+              obj.WEstatus = 'exists'
             }
           } else {
             if(opt.editMode){
               obj.name = 'No web entity defined with this prefix'
               scope.obj.task = {type:'addPrefix'}
-              scope.statusText = 'Add it to ' + scope.webentity.name + '?'
+              obj.statusText = 'Add it to ' + scope.webentity.name + '?'
             } else {
               obj.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
-              scope.statusText = 'New'
-              scope.status = 'new'
+              obj.statusText = 'New'
+              obj.WEstatus = 'new'
             }
           }
         }
