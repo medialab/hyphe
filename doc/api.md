@@ -454,9 +454,10 @@ The API will always answer as such:
  + _`good_webentity_id`_ (mandatory)
  + _`include_tags`_ (optional, default: `false`)
  + _`include_home_and_startpages_as_startpages`_ (optional, default: `false`)
+ + _`include_name_and_status`_ (optional, default: `false`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Assembles for a `corpus` 2 WebEntities by deleting WebEntity defined by `old_webentity_id` and adding all of its LRU prefixes to the one defined by `good_webentity_id`. Optionally set `include_tags` and/or `include_home_and_startpages_as_startpages` to "true" to also add the tags and/or startpages to the merged resulting WebEntity.
+ Assembles for a `corpus` 2 WebEntities by deleting WebEntity defined by `old_webentity_id` and adding all of its LRU prefixes to the one defined by `good_webentity_id`. Optionally set `include_tags` and/or `include_home_and_startpages_as_startpages` and/or `include_name_and_status` to "true" to also add the tags and/or startpages and/or name&status to the merged resulting WebEntity.
 
 
 - __`merge_webentities_into_another`:__

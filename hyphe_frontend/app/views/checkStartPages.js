@@ -197,6 +197,7 @@ angular.module('hyphe.checkstartpagesController', [])
                 api.webentityMergeInto({
                     oldWebentityId: webentity.id
                     ,goodWebentityId: obj.webentity.id
+                    ,mergeNameAndStatus: true
                   }
                   ,function(data){
                     // If it is in the list, remove it...

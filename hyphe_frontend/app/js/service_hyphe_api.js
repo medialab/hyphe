@@ -280,12 +280,15 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.mergeTags = true
           if(settings.mergeStartPages === undefined)
             settings.mergeStartPages = true
+          if(settings.mergeNameAndStatus === undefined)
+            settings.mergeStartPages = false
           
           return [
               settings.oldWebentityId
               ,settings.goodWebentityId
               ,settings.mergeTags             // Include tags
               ,settings.mergeStartPages       // Include Home and Startpages as Startpages
+              ,settings.mergeNameAndStatus    // Keep Name and Status of oldWebentity
               ,corpus.getId()
             ]}
       )

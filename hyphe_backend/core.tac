@@ -1351,8 +1351,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_merge_webentity_into_another(self, old_webentity_id, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False, corpus=DEFAULT_CORPUS):
-        """Assembles for a `corpus` 2 WebEntities by deleting WebEntity defined by `old_webentity_id` and adding all of its LRU prefixes to the one defined by `good_webentity_id`. Optionally set `include_tags` and/or `include_home_and_startpages_as_startpages` to "true" to also add the tags and/or startpages to the merged resulting WebEntity."""
+    def jsonrpc_merge_webentity_into_another(self, old_webentity_id, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False, include_name_and_status=False, corpus=DEFAULT_CORPUS):
+        """Assembles for a `corpus` 2 WebEntities by deleting WebEntity defined by `old_webentity_id` and adding all of its LRU prefixes to the one defined by `good_webentity_id`. Optionally set `include_tags` and/or `include_home_and_startpages_as_startpages` and/or `include_name_and_status` to "true" to also add the tags and/or startpages and/or name&status to the merged resulting WebEntity."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         old_WE = yield self.msclients.pool.getWebEntity(old_webentity_id, corpus=corpus)
@@ -1364,6 +1364,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(format_error('ERROR retrieving WebEntity with id %s' % good_webentity_id))
         for lru in old_WE.LRUSet:
             new_WE.LRUSet.add(lru)
+        if test_bool_arg(include_name_and_status):
+            new_WE.name = old_WE.name
+            new_WE.status = old_WE.status
         if test_bool_arg(include_home_and_startpages_as_startpages):
             if old_WE.homepage:
                 new_WE.homepage = old_WE.homepage
