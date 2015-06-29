@@ -14,7 +14,8 @@ angular.module('hyphe.directives', [])
         // Options
         var opt = scope.$eval(attrs.hyphePrefixSlider) || {}
 
-        scope.updateNameAndStatus = function(obj){
+        scope.updateNameAndStatus = function(){
+          var obj = scope.obj
           obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
           var webentityFound
           obj.parentWebEntities.forEach(function(we){
@@ -44,7 +45,11 @@ angular.module('hyphe.directives', [])
           }
         }
 
-        scope.updateNameAndStatus(scope.obj)
+        scope.$watch(function(){// Watch object change
+            return scope.obj
+          } ,function(){
+            scope.updateNameAndStatus()
+          })
 
         // Useful for templating
         scope.getRange = function(number){
