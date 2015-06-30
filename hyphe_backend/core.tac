@@ -613,13 +613,10 @@ class Core(jsonrpc.JSONRPC):
         if len(scrapyjobs['running']) + len(scrapyjobs['pending']) == 0:
             yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.RUNNING}, {'crawling_status': crawling_statuses.FINISHED, "finished_at": now_ts()})
 
-        # update jobs crawling status accordingly to crawler's statuses
+        # update jobs crawling status and pages counts accordingly to crawler's statuses
         running_ids = [job['id'] for job in scrapyjobs['running']]
-        yield DeferredList([self.db.update_job_pages(corpus, job_id) for job_id in running_ids], consumeErrors=True)
-        for bl, res in results:
-            if not bl:
-                logger.msg("Problem dialoguing with MongoDB: %s" % res, system="WARNING - %s" % corpus)
-                returnD(None)
+        unfinished_indexes = yield self.db.list_jobs(corpus, {'indexing_status': {'$ne': indexing_statuses.FINISHED}}, fields=['crawljob_id'])
+        yield DeferredList([self.db.update_job_pages(corpus, job_id) for job_id in set(running_ids) | set([job['crawljob_id'] for job in unfinished_indexes])], consumeErrors=True)
         res = yield self.db.list_jobs(corpus, {'crawljob_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, fields=['_id'])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
@@ -1421,11 +1418,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
             returnD(False)
         s = time.time()
         ids = [str(record['_id']) for record in page_items]
-        nb_crawled_pages = len(ids)
-        if not nb_crawled_pages:
+        pages_to_index = len(ids)
+        if not pages_to_index:
             returnD(False)
         pages, links = yield deferToThread(processor.generate_cache_from_pages_list, page_items, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0)
-        logger.msg("...%s pages and %s links identified from %s crawled pages in %ss..." % (len(pages), len(links), nb_crawled_pages, time.time()-s), system="INFO - %s" % corpus)
+        logger.msg("...%s pages and %s links identified from %s crawled pages in %ss..." % (len(pages), len(links), pages_to_index, time.time()-s), system="INFO - %s" % corpus)
         s = time.time()
         cache_id = yield self.msclients.loop.createCache(pages.values(), corpus=corpus)
         if is_error(cache_id):
@@ -1455,8 +1452,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             logger.msg(res['message'], system="ERROR - %s" % corpus)
             returnD(False)
         yield self.db.clean_queue(corpus, ids)
+        crawled_pages_left = yield self.db.count_queue(corpus, job['crawljob_id'])
         tot_crawled_pages = yield self.db.count_pages(corpus, job['crawljob_id'])
-        yield self.db.update_jobs(corpus, job['_id'], {'nb_crawled_pages': tot_crawled_pages, 'indexing_status': indexing_statuses.BATCH_FINISHED}, inc={'nb_pages': nb_pages, 'nb_links': nb_links})
+        yield self.db.update_jobs(corpus, job['_id'], {'nb_crawled_pages': tot_crawled_pages, 'nb_unindexed_pages': crawled_pages_left, 'indexing_status': indexing_statuses.BATCH_FINISHED}, inc={'nb_pages': nb_pages, 'nb_links': nb_links})
         yield self.db.add_log(corpus, job['_id'], "INDEX_"+indexing_statuses.BATCH_FINISHED)
         returnD(True)
 

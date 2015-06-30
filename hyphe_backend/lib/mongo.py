@@ -168,6 +168,7 @@ class MongoDB(object):
           "crawljob_id": None,
           "webentity_id": webentity_id,
           "nb_crawled_pages": 0,
+          "nb_unindexed_pages": 0,
           "nb_pages": 0,
           "nb_links": 0,
           "crawl_arguments": args,
@@ -219,7 +220,8 @@ class MongoDB(object):
     @inlineCallbacks
     def update_job_pages(self, corpus, job_id):
         crawled_pages = yield self.count_pages(corpus, job_id)
-        yield self.update_jobs(corpus, {"crawljob_id": job_id}, {'nb_crawled_pages': crawled_pages})
+        unindexed_pages = yield self.count_queue(corpus, job_id)
+        yield self.update_jobs(corpus, {"crawljob_id": job_id}, {'nb_crawled_pages': crawled_pages, 'nb_unindexed_pages': unindexed_pages})
 
     @inlineCallbacks
     def get_queue(self, corpus, specs={}, **kwargs):
@@ -230,6 +232,11 @@ class MongoDB(object):
         if res and "limit" in kwargs and kwargs["limit"] == 1:
             res = res[0]
         returnD(res)
+
+    @inlineCallbacks
+    def count_queue(self, corpus, job, **kwargs):
+        tot = yield self.queue(corpus).count({"_job": job}, **kwargs)
+        returnD(tot)
 
     @inlineCallbacks
     def clean_queue(self, corpus, specs, **kwargs):

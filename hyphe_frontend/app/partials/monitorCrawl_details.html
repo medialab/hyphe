@@ -87,6 +87,11 @@
 	<dt>Crawled pages</dt>
   <dd>{{lastCrawlJobs[0].nb_crawled_pages}}</dd>
 
+  <div ng-if="lastCrawlJobs[0].nb_unindexed_pages">
+	<dt>not indexed yet</dt>
+    <dd>{{lastCrawlJobs[0].nb_unindexed_pages}}</dd>
+  </div>
+
   <div ng-if="lastCrawlJobs[0].forgotten_pages">
     <dt>Crawled pages aborted</dt>
     <dd>{{lastCrawlJobs[0].forgotten_pages}}</dd>

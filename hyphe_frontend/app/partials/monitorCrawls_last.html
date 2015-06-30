@@ -56,7 +56,9 @@
 					wl-cog="{{job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'}}"
 				/>
 				<div class="stats" ng-class="{'bg-danger':job.globalStatus == 'UNSUCCESSFUL', 'bg-warning':(job.globalStatus == 'ACHIEVED' && job.nb_crawled_pages <= 3)}">
-					{{job.nb_crawled_pages}} page{{job.nb_crawled_pages > 1 ? 's' : ''}} crawled
+					{{job.nb_crawled_pages}} page{{job.nb_crawled_pages | plural}} crawled
+                    <br>
+					<span ng-show="job.nb_unindexed_pages">({{job.nb_unindexed_pages}} not indexed yet)</span>
 				</div>
     	</div>
 	  </div>
