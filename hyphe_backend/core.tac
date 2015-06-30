@@ -973,9 +973,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if job:
             res['crawling_status'] = job['crawling_status']
             res['indexing_status'] = job['indexing_status']
+            res['crawled'] = job['crawling_status'] not in [crawling_statuses.CANCELED, crawling_statuses.UNCRAWLED]
         else:
             res['crawling_status'] = crawling_statuses.UNCRAWLED
             res['indexing_status'] = indexing_statuses.UNINDEXED
+            res['crawled'] = False
         if test_bool_arg(semilight):
             return res
         res['homepage'] = WE.homepage
