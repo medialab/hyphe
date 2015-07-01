@@ -135,17 +135,19 @@
                             <!-- Rows for start pages -->
                             <div class="row startpage-row" ng-repeat="page in obj.webentity.startpages">
                               <div class="col-md-6">
-                                <span ng-if="lookups[page].status == 'loaded'">
-                                  <!-- <span ng-if="lookups[page].httpStatus == 200" class="glyphicon glyphicon-sm glyphicon-ok-circle text-success"></span> -->
-                                  <span ng-if="lookups[page].httpStatus != 200" class="glyphicon glyphicon-sm glyphicon-warning-sign text-danger"></span>
-                                </span>
-                                <span ng-if="lookups[page].status == 'error'" class="glyphicon glyphicon-sm glyphicon-warning-sign text-danger"></span>
-                                <span class="url">
-                                  {{page}}
-                                  <a href="{{page}}" target="_blank" title="Open in a new tab">
-                                    <span class="glyphicon glyphicon-share-alt"></span>
-                                  </a>
-                                </span>
+                                <div class="url-container">
+                                  <span ng-if="lookups[page].status == 'loaded'">
+                                    <!-- <span ng-if="lookups[page].httpStatus == 200" class="glyphicon glyphicon-sm glyphicon-ok-circle text-success"></span> -->
+                                    <span ng-if="lookups[page].httpStatus != 200" class="glyphicon glyphicon-sm glyphicon-warning-sign text-danger"></span>
+                                  </span>
+                                  <span ng-if="lookups[page].status == 'error'" class="glyphicon glyphicon-sm glyphicon-warning-sign text-danger"></span>
+                                  <span class="url">
+                                    {{page}}
+                                    <a href="{{page}}" target="_blank" title="Open in a new tab">
+                                      <span class="glyphicon glyphicon-share-alt"></span>
+                                    </a>
+                                  </span>
+                                </div>
                               </div>
                               <div class="col-md-4">
                                 <div class="lookup-result">

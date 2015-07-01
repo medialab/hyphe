@@ -744,12 +744,18 @@ textarea.over-error{
 .check-sp-row .title-container{
   font-family: 'Roboto', sans-serif;
   font-weight:400;
+  overflow: hidden;
+  white-space: nowrap;
 }
 .check-sp-row .actions-row{
   margin-top: 18px;
 }
 .check-sp-row .startpage-row{
   margin-bottom: 6px;
+}
+.check-sp-row .url-container{
+  overflow: hidden;
+  white-space: nowrap;
 }
 .check-sp-row .url{
   font-family: 'Roboto Condensed', sans-serif;
