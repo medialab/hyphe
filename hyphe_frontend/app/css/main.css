@@ -170,6 +170,18 @@ label.btn.btn-default.disabled.active{
   padding-top: 12px;
   padding-bottom: 12px;
   font-weight: 600;
+  max-height: 49px;
+  overflow: hidden;
+  font-size: 14px;
+}
+.topbar-project .corpus-name{
+  overflow: hidden;
+}
+.topbar-project table{
+  width: 100%
+}
+.topbar-project td{
+  vertical-align: top;
 }
 .topbar-status{
   text-align: center;
