@@ -211,12 +211,26 @@ angular.module('hyphe.exportController', [])
         )
 
       } else {
-        finalize()
+        // Finalize
+        // NB: these setTimeout turn around a buggy interaction between saveAs and recent Firefox
+        $scope.status = {message:'Processing...'}
+        
+        setTimeout(function(){
+          var success = finalize()
+          if(success){
+
+            setTimeout(function(){
+              $scope.working = false
+              $scope.status = {message: "File downloaded", background:'success'}          
+            }, 10)
+
+          }
+          
+        }, 10)
       }
     }
 
     function finalize(){
-      $scope.status = {message:'Processing...'}
       console.log('Finalize',$scope.resultsList)
 
       if(!$scope.backed_up){
@@ -261,8 +275,7 @@ angular.module('hyphe.exportController', [])
         var blob = new Blob([JSON.stringify(json)], {type: "application/json;charset=utf-8"})
         saveAs(blob, $scope.projectName + ".json")
 
-        $scope.working = false
-        $scope.status = {message: "File downloaded", background:'success'}
+        return true
 
       } else if($scope.fileFormat == 'TEXT'){
         
@@ -301,8 +314,7 @@ angular.module('hyphe.exportController', [])
         var blob = new Blob(fileContent, {type: "text/x-markdown; charset=UTF-8"})
         saveAs(blob, $scope.projectName + " MarkDown.txt")
 
-        $scope.working = false
-        $scope.status = {message: "File downloaded", background:'success'}
+        return true
 
       } else if($scope.fileFormat == 'CSV' || $scope.fileFormat == 'SCSV' || $scope.fileFormat == 'TSV'){
 
@@ -360,7 +372,7 @@ angular.module('hyphe.exportController', [])
             fileContent.push('\n' + row.map(csvElement).join(','))
           })
 
-          var blob = new Blob(fileContent, {type: "text/csv;charset=utf-8"});
+          var blob = new Blob(fileContent, {'type': "text/csv;charset=utf-8"});
           saveAs(blob, $scope.projectName + ".csv");
 
         } else if($scope.fileFormat == 'SCSV'){
@@ -389,8 +401,7 @@ angular.module('hyphe.exportController', [])
 
         }
 
-        $scope.working = false
-        $scope.status = {message: "File downloaded", background:'success'}
+        return true
       }
 
     }
