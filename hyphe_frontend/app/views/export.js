@@ -5,6 +5,7 @@ angular.module('hyphe.exportController', [])
   .controller('export', ['$scope', 'api', 'utils', 'corpus'
   ,function($scope, api, utils, corpus) {
     $scope.currentPage = 'export'
+    $scope.Page.setTitle('Export')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
     $scope.backed_up = false

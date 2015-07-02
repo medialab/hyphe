@@ -5,6 +5,7 @@ angular.module('hyphe.checkstartpagesController', [])
   .controller('CheckStartPages', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', '$modal', 'corpus'
   ,function($scope, api, store, utils, $location, QueriesBatcher, $modal, corpus) {
     $scope.currentPage = 'checkStartPages'
+    $scope.Page.setTitle('Start Pages')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 

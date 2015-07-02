@@ -3,6 +3,14 @@
 /* Services */
 
 angular.module('hyphe.services', [])
+  
+  .factory('Page', function() {
+    var title = 'Hyphe'
+      return {
+        title: function() { return title; },
+        setTitle: function(newTitle) { title = newTitle }
+      }
+  })
 
   .factory('FileLoader', ['$window', function(win){
   	return function(){
