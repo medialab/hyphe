@@ -167,10 +167,9 @@ label.btn.btn-default.disabled.active{
 .topbar-project{
   background-color: #428bca;
   color: #FFF;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding: 6px;
   font-weight: 600;
-  max-height: 49px;
+  height: 50px;
   overflow: hidden;
   font-size: 14px;
 }
@@ -186,7 +185,7 @@ label.btn.btn-default.disabled.active{
 .topbar-status{
   text-align: center;
   font-weight: 300;
-  height: 49px;
+  height: 50px;
   padding-top: 12px;
 }
 .topbar-status .progress{
@@ -201,6 +200,7 @@ label.btn.btn-default.disabled.active{
   text-align: right;
   padding-top: 10px;
   padding-bottom: 10px;
+  opacity: 0.6;
 }
 .topbar .close-button{
   cursor: pointer;
@@ -214,7 +214,7 @@ label.btn.btn-default.disabled.active{
   background-color: #EFEBE8;
   border-radius: 0px 0px 6px 0px;
   padding-right: 0px;
-  padding-top: 50px;
+  padding-top: 60px;
   position: fixed;
   left: 0;
 }
@@ -222,6 +222,7 @@ label.btn.btn-default.disabled.active{
   float: left;
   width: 26px;
 }
+
 .sidebar li.spacer{
   margin-bottom: 24px;
 }
@@ -260,6 +261,8 @@ label.btn.btn-default.disabled.active{
     padding: 2px 15px;
   }
   .sidebar-col{
+    padding-top: 120px;
+    position: relative;
     padding-right: 15px;
   }
 }
