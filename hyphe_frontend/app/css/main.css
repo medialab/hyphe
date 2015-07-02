@@ -198,9 +198,11 @@ label.btn.btn-default.disabled.active{
 }
 .topbar-branding{
   text-align: right;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 4px;
   opacity: 0.6;
+}
+.topbar-branding:hover{
+  opacity: 0.9;
 }
 .topbar .close-button{
   cursor: pointer;
