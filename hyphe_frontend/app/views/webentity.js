@@ -282,8 +282,8 @@ angular.module('hyphe.webentityController', [])
 
 
 
-  .controller('webentity.explorer', ['$scope', 'api', 'utils', '$route', 'corpus', '$routeParams', '$location'
-  ,function($scope, api, utils, $route, corpus, $routeParams, $location) {
+  .controller('webentity.explorer', ['$scope', 'api', 'utils', '$route', 'corpus', '$routeParams', '$location', '$rootScope'
+  ,function($scope, api, utils, $route, corpus, $routeParams, $location, $rootScope) {
     $scope.currentPage = 'webentity.explorer'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
@@ -293,7 +293,7 @@ angular.module('hyphe.webentityController', [])
     $scope.webentity = {id:$routeParams.webentityId, loading:true}
 
     var tree
-    ,currentNode
+      , currentNode
 
     $scope.loading = true
 
@@ -340,6 +340,11 @@ angular.module('hyphe.webentityController', [])
     $scope.goToParent = function(){
       $scope.goTo(currentNode.parent)
     }
+
+    $rootScope.$on('$locationChangeSuccess', function() {
+      updateFromPath()
+      updateExplorer()
+    })
 
     $scope.newWebEntity = function(obj){
       $scope.status = {message: 'Declaring web entity'}
@@ -827,9 +832,12 @@ angular.module('hyphe.webentityController', [])
         })
       })
 
-      // console.log('tree', tree)
-
       // Now we get current node from path if possible
+      updateFromPath()
+      
+    }
+
+    function updateFromPath(){
       var path = ($location.search()['p'] || '').split('/')
       var candidateNode = tree.prefix[path[0]]
       for(var i in path){
@@ -838,7 +846,6 @@ angular.module('hyphe.webentityController', [])
         }
       }
       $scope.goTo(candidateNode)
-      
     }
 
     function cleanStem(stem){
