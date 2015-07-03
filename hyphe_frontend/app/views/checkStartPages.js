@@ -878,7 +878,8 @@ angular.module('hyphe.checkstartpagesController', [])
       var obj = {}
       obj.url = utils.URL_fix(url)
       obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
-      obj.tldLength = utils.LRU_getTLD(obj.lru).split('.').length
+      obj.tld = utils.LRU_getTLD(obj.lru)
+      obj.tldLength = obj.tld !== "" ? obj.tld.split('.').length : 0
       obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
       obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
         .map(function(stem){
@@ -888,7 +889,7 @@ angular.module('hyphe.checkstartpagesController', [])
             }
             return stem
           })
-      obj.prefixLength = 3
+      obj.prefixLength = !!obj.tldLength + 2
       obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
       obj.conflicts = []
       obj_setStatus(obj, 'loading')

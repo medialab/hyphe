@@ -181,15 +181,18 @@ angular.module('hyphe.service_utils', [])
 
     ns.JSON_LRU_to_pretty_LRU = function(json_lru){
       
-      if(json_lru === undefined || !json_lru.scheme || json_lru.host.length < 2)
+      if(json_lru === undefined || !json_lru.scheme)
         return []
 
       var pretty_lru = []
-      ,tld_length = ns.JSON_LRU_getTLD(json_lru).split('.').length
+      ,tld_parts = ns.JSON_LRU_getTLD(json_lru)
+      ,tld_length = tld_parts.split('.').length
       ,tld = ''
 
       pretty_lru.push(json_lru.scheme)
-      json_lru.host.forEach(function(stem, i){
+      if(tld_parts === "" && json_lru.host.length < 2)
+        pretty_lru.push(json_lru.host[0])
+      else json_lru.host.forEach(function(stem, i){
         if(i < tld_length){
           tld = '.'+explicit(stem)+tld
         } else if(i == tld_length){
@@ -309,7 +312,7 @@ angular.module('hyphe.service_utils', [])
         })
         if(longestMatchingTLD_split.length == 0){
           console.log('No tld matching for', json_lru)
-          return []
+          return ""
         }
         // Check the longest matching tld is not an exception
         var actualTLDCandidate = host_split.slice(0, longestMatchingTLD_split.length)

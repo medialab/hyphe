@@ -71,6 +71,7 @@ angular.module('hyphe.directives', [])
 
         // Keeping an updated version of x-coordinates where the slider makes something happen
 	      var steps
+            ,minstep = !!scope.obj.tldLength + 1 
         
         scope.$watch(function(){  // Watch active state (!.blurred container)
             var container = el.parent().parent().parent().parent()
@@ -187,8 +188,8 @@ angular.module('hyphe.directives', [])
         function applyBoundaries(x){
           if(x > steps[steps.length-1])
             x = steps[steps.length-1]
-          if(x < steps[2])
-            x = steps[2]
+          if(x < steps[minstep])
+            x = steps[minstep]
           return x
         }
 
@@ -210,7 +211,7 @@ angular.module('hyphe.directives', [])
             updatePosition()
           }
         }
-	    }
+	  }
     }
 	}])
 
