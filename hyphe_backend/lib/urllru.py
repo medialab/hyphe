@@ -11,9 +11,10 @@ from urlparse import urljoin, urlparse
 lruPattern = re.compile("^s:[^|]+(\|t:[^|]+)?(\|h:[^|]+)+")
 lruFullPattern = re.compile("^([^:/?#]+):(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$")
 lruSchemePattern = re.compile("https?")
-lruAuthorityPattern = re.compile("^(?:([^:]+)(?::([^@]+))?\@)?([^\s:]+)(?::(\d+))?$")
+lruAuthorityPattern = re.compile("^(?:([^:]+)(?::([^@]+))?\@)?(\[[\da-f]*:[\da-f:]*\]|[^\s:]+)(?::(\d+))?$", re.I)
 lruStems = re.compile(r'(?:^|\|)([shtpqf]):')
 queryStems = re.compile(r'(?:^|&)([^=]+)=([^&]+)')
+special_hosts = re.compile(r'localhost|(\d{1,3}\.){3}\d{1,3}|\[[\da-f]*:[\da-f:]*\]', re.I)
 
 def uri_decode(text):
     try:
@@ -51,7 +52,7 @@ def split_lru_in_stems(lru, check=True):
     elements = lruStems.split(lru.rstrip("|"))
     if not check and len(elements) < 2:
         return []
-    if len(elements) < 2 or elements[0] != '' or (check and (len(elements) < 6 or elements[1] != 's' or elements[5] != 'h')):
+    if len(elements) < 2 or elements[0] != '' or (check and (len(elements) < 6 or elements[1] != 's' or elements[5] != 'h') and not special_hosts.match(elements[4])):
         raise ValueError("ERROR: %s is not a proper LRU." % lru)
     return [(elements[1+2*i], elements[2+2*i], "%s:%s" % (elements[1+2*i], elements[2+2*i])) for i in range(len(elements[1:])/2)]
 
@@ -107,9 +108,12 @@ def url_to_lru(url, encode_utf8=True):
             hostAndPort = lruAuthorityPattern.match(authority)
             if hostAndPort:
                 _, _, host, port = hostAndPort.groups()
-                tokens = ["s:" + scheme.lower(), "t:"+ (port if port else (str(443) if scheme == "https" else str(80)))]
-                host = host.lower().split(".")
+                if special_hosts.match(host):
+                    host = [host]
+                else:
+                    host = host.lower().split(".")
                 host.reverse()
+                tokens = ["s:" + scheme.lower(), "t:"+ (port if port else (str(443) if scheme == "https" else str(80)))]
                 if host:
                     tokens += ["h:"+stem for stem in host if stem]
                 if path:
@@ -125,7 +129,7 @@ def url_to_lru(url, encode_utf8=True):
                 res_lru = "|".join(tokens)
                 if encode_utf8:
                     try:
-                        return res_lru.encode('utf-8')
+                        return add_trailing_pipe(res_lru).encode('utf-8')
                     except:
                         pass
                 return add_trailing_pipe(res_lru)

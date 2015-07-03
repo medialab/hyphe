@@ -222,7 +222,7 @@ angular.module('hyphe.services', [])
 
   .factory('extractURLs', ['utils', function(utils){
     return function(text){
-      var re = /(\b(?:(?:https?|ftp|file|mailto):\/\/|[-a-z\d]+\.?|:\d+)+(?:\/\S*)?)/ig
+      var re = /(\b((https?|ftp|file|mailto):\/\/|\[[a-f\d:]+\]|([-a-z\d]+\.)+([a-z\d]{2,}|\d)|:\d+|localhost|\S+:\S+@){2,}(\/\S*)?)/ig
         ,raw_urls = text.match(re) || []
         ,urls = raw_urls
           .filter(function(expression){

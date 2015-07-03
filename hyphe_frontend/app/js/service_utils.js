@@ -9,6 +9,12 @@ angular.module('hyphe.service_utils', [])
 
   .factory('utils', [function(){
     var ns = {} // Namespace
+
+    ns.url_regex = /^((https?|ftp|file|mailto):\/\/)?(www\.)?[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}/
+    var specialhosts_regex_str = 'localhost|(\\d{1,3}\\.){3}\\d{1,3}|\\[[\\da-f]*:[\\da-f:]*\\]'
+    ns.specialhosts_regex = new RegExp(specialhosts_regex_str, 'i')
+    ns.specialhosts_url_regex = new RegExp('://[^/]*' + specialhosts_regex_str + '(?::\\d+)?(?:/\\S*)?', 'i')
+ 
     ns.reEncode = function(uri){
       try {
         return encodeURI(decodeURI(uri))
@@ -72,18 +78,19 @@ angular.module('hyphe.service_utils', [])
         path = RegExp.$3,
         query = RegExp.$4,
         fragment = RegExp.$5
-        if (authority.match(/^(?:([^:]+)(?::([^@]+))?\@)?([^\s:]+)(?::(\d+))?$/)) {
+        if (authority.match(/^(?:([^:]+)(?::([^@]+))?\@)?(\[[\da-f]*:[\da-f:]*\]|[^\s:]+)(?::(\d+))?$/i)) {
           var user = RegExp.$1,
           password = RegExp.$2,
           host = RegExp.$3,
           port = RegExp.$4
           
-          host = host.toLowerCase().split(/\./)
+          if (ns.specialhosts_regex.test(host))
+            host = [host.toLowerCase()]
+          else host = host.toLowerCase().split(/\./)
           
           LRU = {
             "scheme": scheme.toLowerCase(),
             "host": host.reverse(),
-            // "path": path.split(/\//).filter(function(pathToken){return pathToken.length}),   
             "path": path.split(/\//).filter(function(pathToken, i){return i>0}),   
           }
           if(port)
@@ -236,7 +243,6 @@ angular.module('hyphe.service_utils', [])
         url = url.replace(/\/$/, '')
       }
 
-
       return url
     }
 
@@ -259,15 +265,12 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.LRU_validate = function(lru){
-      var lruregex = /^s:[^\|]+\|(h:[a-zA-Z0-9\-]+\|){2}/
+      var lruregex = /^s:[^\|]+\|(h:[a-zA-Z0-9\-:\.[\]]+\|){2}/
       return lruregex.test(lru)
     }
 
     ns.URL_validate = function(url){
-      var urlregex = /^((https?|ftp|file|mailto):\/\/){0,1}(www\.){0,1}[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}[\.]{0,1}/
-         ,ipregex = /:\/\/(\d{1,3}\.){3}\d{1,3}/
-         ,localregex = /:\/\/localhost/
-      return urlregex.test(url) || ipregex.test(url) || localregex.test(url)
+      return ns.url_regex.test(url) || ns.specialhosts_url_regex.test(url)
     }
 
     ns.LRU_getTLD = function(lru){
