@@ -5,6 +5,7 @@ angular.module('hyphe.listwebentitiesController', [])
   .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location', 'corpus'
   ,function($scope, api, utils, store, $location, corpus) {
     $scope.currentPage = 'listWebentities'
+    $scope.Page.setTitle('List Web Entities')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 

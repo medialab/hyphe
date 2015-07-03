@@ -5,6 +5,7 @@ angular.module('hyphe.networkController', [])
   .controller('network', ['$scope', 'api', 'utils', 'corpus', '$window'
   ,function($scope, api, utils, corpus, $window) {
     $scope.currentPage = 'network'
+    $scope.Page.setTitle('Network')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 

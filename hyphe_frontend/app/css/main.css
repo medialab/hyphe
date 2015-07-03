@@ -222,7 +222,9 @@ label.btn.btn-default.disabled.active{
 }
 .sidebar span.symbol{
   float: left;
-  width: 26px;
+  width: 32px;
+  font-size: 16px;
+  opacity: 0.8;
 }
 
 .sidebar li.spacer{

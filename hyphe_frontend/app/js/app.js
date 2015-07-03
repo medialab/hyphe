@@ -45,6 +45,11 @@ angular.module('hyphe', [
   $analyticsProvider.virtualPageviews(true);
 }])
 
+.controller('pageCtrl', ['$scope', 'Page'
+  ,function($scope, Page) {
+    $scope.Page = Page
+  }])
+
 angular.module('hyphe.analytics', [])
 .run(['googleAnalyticsId', function(googleAnalyticsId) {
 
@@ -57,5 +62,3 @@ angular.module('hyphe.analytics', [])
   }
 
 }])
-
-  

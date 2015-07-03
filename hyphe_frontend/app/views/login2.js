@@ -5,6 +5,7 @@ angular.module('hyphe.login2Controller', [])
   .controller('Login2', ['$scope', 'api', 'utils', '$location', 'corpus'
   ,function($scope, api, utils, $location, corpus) {
     $scope.currentPage = 'login2'
+    $scope.Page.setTitle('Hyphe')
     $scope.corpusList
     $scope.corpusList_byId = {}
     $scope.globalStatus

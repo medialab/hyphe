@@ -5,6 +5,7 @@ angular.module('hyphe.webentityController', [])
   .controller('webentity', ['$scope', 'api', 'utils', 'corpus', '$routeParams', 'store', '$location'
   ,function($scope, api, utils, corpus, $routeParams, store, $location) {
     $scope.currentPage = 'webentity'
+    $scope.Page.setTitle('Web Entity')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
@@ -37,6 +38,7 @@ angular.module('hyphe.webentityController', [])
           $scope.webentity = result[0]
           $scope.webentity.loading = false
           console.log($scope.webentity.name, $scope.webentity)
+          $scope.Page.setTitle($scope.webentity.name)
         }
         ,function(){
           $scope.status = {message: 'Error loading web entity', background: 'danger'}

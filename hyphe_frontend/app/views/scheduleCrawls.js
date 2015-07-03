@@ -5,6 +5,7 @@ angular.module('hyphe.schedulecrawlController', [])
   .controller('scheduleCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location', 'corpus'
   ,function($scope, api, store, utils, QueriesBatcher, $location, corpus){
     $scope.currentPage = 'scheduleCrawls'
+    $scope.Page.setTitle('Schedule Crawls')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
