@@ -94,26 +94,26 @@
     "co.jp": "subdomain",
     "ed.jp": "subdomain",
     "ac.cn": "subdomain",
-    "com.cn": "subdomain"
-    "edu.cn": "subdomain"
+    "com.cn": "subdomain",
+    "edu.cn": "subdomain",
     "gov.cn": "subdomain",
     "net.cn": "subdomain",
     "org.cn": "subdomain",
     "ac.au": "subdomain",
     "co.au": "subdomain",
-    "com.au": "subdomain"
-    "edu.au": "subdomain"
+    "com.au": "subdomain",
+    "edu.au": "subdomain",
     "org.au": "subdomain",
     "ac.nz": "subdomain",
     "co.nz": "subdomain",
     "org.nz": "subdomain",
-    "com.fr": "subdomain"
-    "asso.fr": "subdomain"
-    "nom.fr": "subdomain"
-    "tm.fr": "subdomain"
-    "cci.fr": "subdomain"
-    "gouv.fr": "subdomain"
-    "qc.ca": "subdomain"
+    "com.fr": "subdomain",
+    "asso.fr": "subdomain",
+    "nom.fr": "subdomain",
+    "tm.fr": "subdomain",
+    "cci.fr": "subdomain",
+    "gouv.fr": "subdomain",
+    "qc.ca": "subdomain",
     "gc.ca": "subdomain"
   },
   "discoverPrefixes": [
