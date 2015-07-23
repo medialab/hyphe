@@ -1027,7 +1027,7 @@ textarea.over-error{
   width: 20px;
 }
 .webentities-list-table .cell-name{
-  width: 100%;
+  /*width: 100%;*/
   word-break: break-all;
 }
 .webentities-list-table .cell-prefixes{

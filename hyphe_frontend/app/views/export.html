@@ -32,25 +32,33 @@
                       class="btn btn-default"
                       ng-model="statuses.in"
                       btn-checkbox
-                    >IN</label>
+                    >
+                      <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.in, 'glyphicon-check':statuses.in, 'text-muted':!statuses.in}" aria-hidden="true"></span> IN
+                    </label>
 
                     <label
                       class="btn btn-default"
                       ng-model="statuses.undecided"
                       btn-checkbox
-                    >UNDECIDED</label>
+                    >
+                      <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.undecided, 'glyphicon-check':statuses.undecided, 'text-muted':!statuses.undecided}" aria-hidden="true"></span> UNDECIDED
+                    </label>
 
                     <label
                       class="btn btn-default"
                       ng-model="statuses.discovered"
                       btn-checkbox
-                    >DISCOVERED</label>
+                    >
+                      <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.discovered, 'glyphicon-check':statuses.discovered, 'text-muted':!statuses.discovered}" aria-hidden="true"></span> DISCOVERED
+                    </label>
 
                     <label
                       class="btn btn-default"
                       ng-model="statuses.out"
                       btn-checkbox
-                    >OUT</label>
+                    >
+                      <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.out, 'glyphicon-check':statuses.out, 'text-muted':!statuses.out}" aria-hidden="true"></span> OUT
+                    </label>
 
                   </div>
 
