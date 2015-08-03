@@ -4,12 +4,15 @@
 import os, types
 import simplejson as json
 from copy import deepcopy
-from pymongo import Connection
 from twisted.internet import defer
 TEST_CORPUS = "--test-corpus--"
 DEFAULT_CORPUS = "--hyphe--"
 CONFIG_FILE = os.path.join('config', 'config.json')
 from hyphe_backend.lib import creationrules
+try:
+    from pymongo import MongoClient
+except:
+    from pymongo import Connection as MongoClient
 
 def load_config():
 
@@ -70,7 +73,7 @@ def load_config():
 
   # Test MongoDB server
     mongoconf = conf['mongo-scrapy']
-    db = Connection(os.environ.get('HYPHE_MONGODB_HOST', mongoconf['host']), int(os.environ.get('HYPHE_MONGODB_PORT', mongoconf['mongo_port'])))[mongoconf.get('db_name', mongoconf.get('project'))]
+    db = MongoClient(os.environ.get('HYPHE_MONGODB_HOST', mongoconf['host']), int(os.environ.get('HYPHE_MONGODB_PORT', mongoconf['mongo_port'])))[mongoconf.get('db_name', mongoconf.get('project'))]
     try:
         test = list(db['%s.logs' % DEFAULT_CORPUS].find())
     except Exception as x:

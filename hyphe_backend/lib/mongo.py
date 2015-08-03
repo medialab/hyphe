@@ -80,23 +80,22 @@ class MongoDB(object):
         yield self.db["corpus"].remove({'_id': corpus}, safe=True)
         yield self.drop_corpus_collections(corpus)
 
-    @inlineCallbacks
     def init_corpus_indexes(self, corpus):
-        yield self.pages(corpus).ensure_index(sortasc('timestamp'), background=True, safe=True)
-        yield self.pages(corpus).ensure_index(sortasc('_job'), background=True, safe=True)
-        yield self.pages(corpus).ensure_index(sortasc('_job') + sortasc('forgotten'), background=True, safe=True)
-        yield self.pages(corpus).ensure_index(sortasc('url'), background=True, safe=True)
-        yield self.queue(corpus).ensure_index(sortasc('timestamp'), background=True, safe=True)
-        yield self.queue(corpus).ensure_index(sortasc('_job') + sortdesc('timestamp'), background=True, safe=True)
-        yield self.logs(corpus).ensure_index(sortasc('timestamp'), background=True, safe=True)
-        yield self.jobs(corpus).ensure_index(sortasc('crawling_status'), background=True, safe=True)
-        yield self.jobs(corpus).ensure_index(sortasc('indexing_status'), background=True, safe=True)
-        yield self.jobs(corpus).ensure_index(sortasc('webentity_id'), background=True, safe=True)
-        yield self.jobs(corpus).ensure_index(sortasc('webentity_id') + sortasc('created_at'), background=True, safe=True)
-        yield self.jobs(corpus).ensure_index(sortasc('webentity_id') + sortdesc('created_at'), background=True, safe=True)
-        yield self.jobs(corpus).ensure_index(sortasc('webentity_id') + sortasc("crawling_status") + sortasc("indexing_status") + sortasc('created_at'), background=True, safe=True)
-        yield self.jobs(corpus).ensure_index(sortasc('crawling_status') + sortasc('indexing_status') + sortasc('created_at'), background=True, safe=True)
-        yield self.stats(corpus).ensure_index(sortasc('timestamp'), background=True, safe=True)
+        self.pages(corpus).create_index(sortasc('timestamp'))
+        self.pages(corpus).create_index(sortasc('_job'))
+        self.pages(corpus).create_index(sortasc('_job') + sortasc('forgotten'))
+        self.pages(corpus).create_index(sortasc('url'))
+        self.queue(corpus).create_index(sortasc('timestamp'))
+        self.queue(corpus).create_index(sortasc('_job') + sortdesc('timestamp'))
+        self.logs(corpus).create_index(sortasc('timestamp'))
+        self.jobs(corpus).create_index(sortasc('crawling_status'))
+        self.jobs(corpus).create_index(sortasc('indexing_status'))
+        self.jobs(corpus).create_index(sortasc('webentity_id'))
+        self.jobs(corpus).create_index(sortasc('webentity_id') + sortasc('created_at'))
+        self.jobs(corpus).create_index(sortasc('webentity_id') + sortdesc('created_at'))
+        self.jobs(corpus).create_index(sortasc('webentity_id') + sortasc("crawling_status") + sortasc("indexing_status") + sortasc('created_at'))
+        self.jobs(corpus).create_index(sortasc('crawling_status') + sortasc('indexing_status') + sortasc('created_at'))
+        self.stats(corpus).create_index(sortasc('timestamp'))
 
     def _get_coll(self, corpus, name):
         return self.db["%s.%s" % (corpus, name)]

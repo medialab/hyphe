@@ -23,7 +23,7 @@ class MongoOutput(object):
         self.jobid = jobid
         self.pageStore = store[page_col]
         self.queueStore = store[queue_col]
-        self.queueStore.ensure_index(mongosort(ASCENDING('_job')), background=True)
+        self.queueStore.create_index(mongosort(ASCENDING('_job')))
 
     @classmethod
     def from_crawler(cls, crawler):

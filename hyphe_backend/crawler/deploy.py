@@ -33,8 +33,11 @@ if not config:
     exit()
 
 # Get corpus project's config in DB to replace default global conf
-from pymongo import Connection
-corpus_conf = Connection(os.environ.get('HYPHE_MONGODB_HOST', config["mongo-scrapy"]["host"]), int(os.environ.get('HYPHE_MONGODB_PORT', config["mongo-scrapy"]["mongo_port"])))[config["mongo-scrapy"]["db_name"]]["corpus"].find_one({"_id": project})
+try:
+    from pymongo import MongoClient
+except:
+    from pymongo import Connection as MongoClient
+corpus_conf = MongoClient(os.environ.get('HYPHE_MONGODB_HOST', config["mongo-scrapy"]["host"]), int(os.environ.get('HYPHE_MONGODB_PORT', config["mongo-scrapy"]["mongo_port"])))[config["mongo-scrapy"]["db_name"]]["corpus"].find_one({"_id": project})
 if corpus_conf:
     corpus_conf = corpus_conf["options"]
     config["phantom"].update(corpus_conf["phantom"])
