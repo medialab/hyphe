@@ -57,7 +57,7 @@ angular.module('hyphe.service_utils', [])
 
     ns.JSON_LRU_to_LRU = function(json_lru){
       var lru = "s:" + json_lru.scheme + "|"
-      if(json_lru.port)
+      if(json_lru.port && json_lru.port !== "80")
         lru += "t:" + json_lru.port + "|"
       json_lru.host.forEach(function(h){lru += "h:" + h + "|";})
       json_lru["path"].forEach(function(p){lru += "p:" + p + "|";})
@@ -93,7 +93,7 @@ angular.module('hyphe.service_utils', [])
             "host": host.reverse(),
             "path": path.split(/\//).filter(function(pathToken, i){return i>0}),   
           }
-          if(port)
+          if(port && port != "80")
             LRU.port = port
           if(query)
             LRU.query = query
@@ -116,7 +116,7 @@ angular.module('hyphe.service_utils', [])
         name = stem.substr(2, stem.length - 2)
         if(type=="s"){
           json_lru.scheme = name.toLowerCase()
-        } else if(type=="t"){
+        } else if(type=="t" && name !== '80'){
           json_lru.port = name
         } else if(type=="h"){
           json_lru.host.push(name.toLowerCase())
@@ -190,6 +190,8 @@ angular.module('hyphe.service_utils', [])
       ,tld = ''
 
       pretty_lru.push(json_lru.scheme)
+      if (json_lru.port && json_lru.port !== "80")
+        pretty_lru.push(':'+explicit(json_lru.port))
       if(tld_parts === "" && json_lru.host.length < 2)
         pretty_lru.push(json_lru.host[0])
       else json_lru.host.forEach(function(stem, i){
@@ -435,6 +437,8 @@ angular.module('hyphe.service_utils', [])
         .filter(function(d,i){return d != 'www' && i>tld_length-1})
         .reverse()
         .join('.')
+      if(json_lru.port && json_lru.port !== "80")
+        name += ' :' + json_lru.port
       if(tld_length == 1 && !tld[0]) {
         name = url.replace(/^.*:\/\/([^\/]+)(\/.*)?$/, '$1')
         

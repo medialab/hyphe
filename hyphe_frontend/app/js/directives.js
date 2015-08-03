@@ -71,7 +71,7 @@ angular.module('hyphe.directives', [])
 
         // Keeping an updated version of x-coordinates where the slider makes something happen
 	      var steps
-            ,minstep = !!scope.obj.tldLength + 1 
+            ,minstep = !!scope.obj.tldLength + 1 + !!scope.obj.json_lru.port
         
         scope.$watch(function(){  // Watch active state (!.blurred container)
             var container = el.parent().parent().parent().parent()
