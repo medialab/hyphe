@@ -38,7 +38,7 @@ angular.module('hyphe.directives', [])
               scope.obj.task = {type:'addPrefix'}
               obj.statusText = 'Add it to ' + scope.webentity.name + '?'
             } else {
-              obj.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
+              obj.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength + !obj.tldLength))
               obj.statusText = 'New'
               obj.WEstatus = 'new'
             }

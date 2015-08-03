@@ -431,18 +431,19 @@ angular.module('hyphe.service_utils', [])
       if(json_lru === undefined)
         return '<Impossible to Name> ' + url
       var tld = ns.JSON_LRU_getTLD(json_lru)
-         ,tld_length = tld.split('.').length
+         ,tld_length = tld !== "" ? tld.split('.').length : 0
          ,name = json_lru.host
-        .map(function(d,i){if(i==tld_length){return ns.toDomainCase(d)} return d})
-        .filter(function(d,i){return d != 'www' && i>tld_length-1})
+        .map(function(d,i){if(tld_length && i==tld_length){return ns.toDomainCase(d)} return d.replace(/\[]/g, '')})
+        .filter(function(d,i){return d != 'www' && (!tld_length || i>tld_length-1)})
         .reverse()
         .join('.')
       if(json_lru.port && json_lru.port !== "80")
         name += ' :' + json_lru.port
-      if(tld_length == 1 && !tld[0]) {
+      /*if(tld_length == 1 && !tld[0]) {
         name = url.replace(/^.*:\/\/([^\/]+)(\/.*)?$/, '$1')
         
-      } else if(json_lru.path.length == 1 && json_lru.path[0].trim().length>0){
+      } else*/
+      if(json_lru.path.length == 1 && json_lru.path[0].trim().length>0){
         name += ' /' + decodeURIComponent(json_lru.path[0])
       } else if(json_lru.path.length > 1) {
         name += ' /.../' + decodeURIComponent(json_lru.path[json_lru.path.length-1])

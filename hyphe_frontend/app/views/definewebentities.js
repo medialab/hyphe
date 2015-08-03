@@ -188,7 +188,7 @@ angular.module('hyphe.definewebentitiesController', [])
 
                   return {
                     prefixes: obj.prefixes
-                    ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
+                    ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength + !obj.tldLength))
                     ,startPages: [obj.url]
                   }
                 }
