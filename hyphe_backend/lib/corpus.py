@@ -28,6 +28,9 @@ def parse_log(line):
     lineparsed.append(",".join(linesplit[4:]))
     return lineparsed
 
+def indexClosed(line):
+    return 'this Index' in line and line.endswith(' is closed')
+
 class LuceneCorpus(Thread):
 
     daemon = True
@@ -176,7 +179,7 @@ class LuceneCorpus(Thread):
                     self.hard_restart()
                     break
             # skip tracebacks
-                elif line.startswith('\tat ') or line.startswith('java.'):
+                elif line.startswith('\tat ') or line.startswith('java.') or indexClosed(line):
                     continue
                 self.log(line, True)
                 self.stop()
@@ -195,7 +198,7 @@ class LuceneCorpus(Thread):
                         self.hard_restart()
                         break
         # skip these errors as they are followed by a more explicit stacktrace
-                    elif "Unexpected throwable while invoking!" in msg:
+                    elif "Unexpected throwable while invoking!" in msg or indexClosed(msg):
                         pass
                     else:
                         self.log(msg)
