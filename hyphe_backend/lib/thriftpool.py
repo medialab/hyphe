@@ -7,18 +7,19 @@ adapted from :
 - https://github.com/146/thrift_client by Albert Sheu
 """
 
-import inspect, socket, Queue
+import inspect, socket, Queue, copy
 from threading import BoundedSemaphore
 from twisted.internet import reactor, defer
 from twisted.internet.defer import inlineCallbacks
 from twisted.internet.threads import deferToThreadPool
-from twisted.python.threadpool import ThreadPool
+from twisted.python.threadpool import ThreadPool, WorkerStop
 from thrift.transport import TTransport
 from thrift.transport.TSocket import TSocket
 from thrift.Thrift import TException
 from hyphe_backend.lib.utils import format_error
 
 DEFAULT_POOL_SIZE = 8
+DEFAULT_THREADKILL_TIMEOUT = 3
 DEFAULT_NETWORK_TIMEOUT = 1800000
 
 def _canonicalize_hostport(host, port):
@@ -32,6 +33,18 @@ def _canonicalize_hostport(host, port):
         return host, port
     else:
         raise ValueError('Invalid host, port pair: %r', (host, port))
+
+# redefine ThreadPool's stop function to add a timeout on thread.join
+class SafeThreadPool(ThreadPool):
+    def stop(self):
+        self.joined = True
+        self.started = False
+        threads = copy.copy(self.threads)
+        while self.workers:
+            self.q.put(WorkerStop)
+            self.workers -= 1
+        for thread in threads:
+            thread.join(DEFAULT_THREADKILL_TIMEOUT)
 
 class ThriftConnectionPool(object):
 
@@ -145,7 +158,7 @@ class ThriftPooledClient(object):
             setattr(self, m[0], self.__create_thrift_proxy__(m[0]))
         # dispatch pool of multiple connections in Twisted threads
         if pool_size > 1 or async:
-            self.threadpool = ThreadPool(1, pool_size)
+            self.threadpool = SafeThreadPool(1, pool_size)
             reactor.callFromThread(self.threadpool.start)
             # Allow Ctrl-C to get you out cleanly:
             reactor.addSystemEventTrigger('after', 'shutdown', self.threadpool.stop)
