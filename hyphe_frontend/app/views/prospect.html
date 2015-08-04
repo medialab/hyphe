@@ -74,6 +74,9 @@
                         class="webentity-row"
                         ng-if="!loading"
                         ng-repeat="obj in list track by $index"
+                        ng-class="{'bg-selected': obj.hover}"
+                        ng-mouseenter="obj.hover = true"
+                        ng-mouseleave="obj.hover = false"
                       >
                         <td class="cell-name">{{obj.webentity.name}} <webentity-link corpus-id="corpusId" webentity-id="obj.webentity.id"></td>
                         <td class="cell-prefixes hidden-xs hidden-sm prefix-div-container">
