@@ -86,25 +86,25 @@
 
                             <label
                               class="btn btn-default btn-xs"
-                              ng-model="obj.status"
+                              ng-model="obj.webentity.status"
                               btn-radio="'IN'"
-                              ng-change="setStatus(obj, 'IN')"
+                              ng-click="setStatus(obj, 'IN')"
                               ng-class="{disabled:loading}"
                             >IN</label>
 
                             <label
                               class="btn btn-default btn-xs"
-                              ng-model="obj.status"
+                              ng-model="obj.webentity.status"
                               btn-radio="'UNDECIDED'"
-                              ng-change="setStatus(obj, 'UNDECIDED')"
+                              ng-click="setStatus(obj, 'UNDECIDED')"
                               ng-class="{disabled:loading}"
                             >UND.</label>
 
                             <label
                               class="btn btn-default btn-xs"
-                              ng-model="obj.status"
+                              ng-model="obj.webentity.status"
                               btn-radio="'OUT'"
-                              ng-change="setStatus(obj, 'OUT')"
+                              ng-click="setStatus(obj, 'OUT')"
                               ng-class="{disabled:loading}"
                             >OUT</label>
 

@@ -138,13 +138,16 @@ angular.module('hyphe.prospectController', [])
     }
 
     $scope.setStatus = function(obj, status){
+      if(obj.webentity.status.toLowerCase() === status.toLowerCase()){
+        status = 'DISCOVERED'
+      }
       api.webentitiesSetStatus(
         {
           webentityId_list: [obj.webentity.id]
           ,status: status
         }
         ,function(result){
-          // We do nothing in case of success, since we already updated the UI
+            obj.webentity.status = status 
         }
         ,function(){
           // In case of error, we undo the modification in the UI
