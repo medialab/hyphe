@@ -324,7 +324,7 @@ angular.module('hyphe.monitorcrawlsController', [])
 
               var changes = []
 
-              if($scope.showDetails){
+              if($scope.showDetails && crawlJobs.length == 1){
 
                 $scope.lastCrawlJobs = crawlJobs
 
@@ -355,6 +355,7 @@ angular.module('hyphe.monitorcrawlsController', [])
                       break
                     case('stats'):
                       $scope.lastCrawlJobs[change.i].nb_crawled_pages = change.job.nb_crawled_pages
+                      $scope.lastCrawlJobs[change.i].nb_unindexed_pages = change.job.nb_unindexed_pages
                       $scope.lastCrawlJobs[change.i].nb_links = change.job.nb_links
                       $scope.lastCrawlJobs[change.i].nb_pages = change.job.nb_pages
                       break
