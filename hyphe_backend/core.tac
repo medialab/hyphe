@@ -652,7 +652,7 @@ class Core(jsonrpc.JSONRPC):
     def _get_suggested_startpages(self, WE, startmode, corpus, categories=False):
         if type(startmode) != list:
             if startmode.lower() == "default":
-                startmode = "startpages"
+                startmode = "prefixes"
                 # TODO: startmode = self.corpora[corpus]["options"]["startpages_mode"]
             startmode = [startmode]
         starts = {}
@@ -685,8 +685,22 @@ class Core(jsonrpc.JSONRPC):
         returnD(handle_standard_results(startpages))
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id, depth=0, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], startmode="default", phantom_timeouts={}, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`. Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`. Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered"). Optionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`)."""
+    def jsonrpc_crawl_webentity(self, webentity_id, depth=0, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], phantom_timeouts={}, corpus=DEFAULT_CORPUS):
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_from_startmode` to apply a different heuristic)."""
+        if not self.corpus_ready(corpus):
+            returnD(self.corpus_error(corpus))
+        WE = yield self.store.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
+        if is_error(WE):
+            returnD(format_error("No WebEntity with id %s found" % webentity_id))
+        startmode = "startpages"
+        if not WE.startpages:
+            startmode = "default"
+        res = yield self.jsonrpc_crawl_webentity_with_startmode(WE, depth, phantom_crawl, status, startmode, phantom_timeouts, corpus)
+        returnD(res)
+
+    @inlineCallbacks
+    def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], startmode="default", phantom_timeouts={}, corpus=DEFAULT_CORPUS):
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`)."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
 
@@ -705,12 +719,19 @@ class Core(jsonrpc.JSONRPC):
                 break
         if statusval == -1:
             returnD(format_error("ERROR: status argument must be one of '%s'" % "','".join([s.lower() for s in ms.WebEntityStatus._NAMES_TO_VALUES])))
-        WE = yield self.store.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
-        if is_error(WE):
-            returnD(format_error("No WebEntity with id %s found" % webentity_id))
+
+        # Get WebEntity if webentity_id not already one from internal call
+        try:
+            tmpid = str(webentity_id.id)
+            WE = webentity_id
+            webentity_id = tmpid
+        except:
+            WE = yield self.store.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
+            if is_error(WE):
+                returnD(format_error("No WebEntity with id %s found" % webentity_id))
 
         # Handle different startpages strategies
-        starts = yield self.get_suggested_startpages(WE, startmode, corpus)
+        starts = yield self._get_suggested_startpages(WE, startmode, corpus)
         if is_error(starts):
             returnD(starts)
         if not starts:

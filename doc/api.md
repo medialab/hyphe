@@ -50,6 +50,7 @@ The API will always answer as such:
     * __`listjobs`__
     * __`propose_webentity_startpages`__
     * __`crawl_webentity`__
+    * __`crawl_webentity_with_startmode`__
     * __`get_webentity_logs`__
   + [HTTP LOOKUP METHODS](#http-lookup-methods)
     * __`lookup_httpstatus`__
@@ -256,11 +257,28 @@ The API will always answer as such:
  + _`depth`_ (optional, default: `0`)
  + _`phantom_crawl`_ (optional, default: `false`)
  + _`status`_ (optional, default: `"IN"`)
+ + _`phantom_timeouts`_ (optional, default: `{}`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.
+ Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.
+ Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").
+ Will use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_from_startmode` to apply a different heuristic).
+
+
+- __`crawl_webentity_with_startmode`:__
+ + _`webentity_id`_ (mandatory)
+ + _`depth`_ (optional, default: `0`)
+ + _`phantom_crawl`_ (optional, default: `false`)
+ + _`status`_ (optional, default: `"IN"`)
  + _`startmode`_ (optional, default: `"default"`)
  + _`phantom_timeouts`_ (optional, default: `{}`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`. Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`. Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered"). Optionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).
+ Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.
+ Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.
+ Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").
+ Optionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).
 
 
 - __`get_webentity_logs`:__

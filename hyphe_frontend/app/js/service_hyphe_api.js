@@ -33,6 +33,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_HOMEPAGE_SET                      = 'store.set_webentity_homepage'
     API.WEBENTITY_TAG_VALUES_SET                    = 'store.set_webentity_tag_values'
     API.WEBENTITY_CRAWL                             = 'crawl_webentity'
+    API.WEBENTITY_CRAWL_WITH_HEURISTIC              = 'crawl_webentity_with_startmode'
     API.WEBENTITY_FETCH_BY_URL                      = 'store.get_webentity_for_url'
     API.WEBENTITY_FETCH_BY_PREFIX_LRU               = 'store.get_webentity_by_lruprefix'
     API.WEBENTITY_FETCH_BY_PREFIX_URL               = 'store.get_webentity_by_lruprefix_as_url'
@@ -324,6 +325,19 @@ angular.module('hyphe.service_hyphe_api', [])
 
     ns.crawl = buildApiCall(
         API.WEBENTITY_CRAWL
+        ,function(settings){
+          return [
+            settings.webentityId
+            ,settings.depth
+            ,settings.cautious || false
+            ,settings.status || 'IN'
+            ,{}                                 // phantom timeouts
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.crawlWithHeuristic = buildApiCall(
+        API.WEBENTITY_CRAWL_WITH_HEURISTIC
         ,function(settings){
           return [
             settings.webentityId
