@@ -330,7 +330,7 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.depth
             ,settings.cautious || false
             ,settings.status || 'IN'
-            ,settings.startpages || 'startpages'
+            ,settings.startmode || 'default'
             ,{}                                 // phantom timeouts
             ,corpus.getId()
           ]}
