@@ -649,7 +649,7 @@ class Core(jsonrpc.JSONRPC):
                     yield self.db.update_jobs(corpus, job['_id'], {'crawling_status': crawling_statuses.RETRIED})
 
     @inlineCallbacks
-    def get_suggested_startpages(self, WE, startmode, categories=False, corpus):
+    def _get_suggested_startpages(self, WE, startmode, corpus, categories=False):
         if type(startmode) != list:
             if startmode.lower() == "default":
                 startmode = "startpages"
@@ -664,24 +664,24 @@ class Core(jsonrpc.JSONRPC):
                     returnD(pages)
                 starts[startrule] = [p.url for p in pages]
             elif startrule == "prefixes":
-                starts[startrule] = [urllru.lru_to_url(lru) for lru in WE.LRUSe]
+                starts[startrule] = [urllru.lru_to_url(lru) for lru in WE.LRUSet]
             elif startrule == "startpages":
                 starts[startrule] = list(WE.startpages)
             else:
                 returnD(format_error('ERROR: startmode argument must either "default" or one or many of "startpages", "pages" or "prefixes"'))
         if categories:
             returnD(starts)
-        returnD(list(set(s for s in st for st in starts.values())))
+        returnD(list(set(s for st in starts.values() for s in st)))
 
     @inlineCallbacks
-    def jsonrpc_propose_webentity_startpages(self, webentity_id, startmode="default", corpus=DEFAULT_CORPUS):
-        """Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages" or "prefixes" or already seen "pages"."""
+    def jsonrpc_propose_webentity_startpages(self, webentity_id, startmode="default", categories=False, corpus=DEFAULT_CORPUS):
+        """Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages" or "prefixes" or already seen "pages". Returns them categorised by type of source if "categories" is set to True."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
-        WE = yield self.store.msclients.pool.getWebEntity(webentity_id, categories=True, corpus=corpus)
+        WE = yield self.store.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
         if is_error(WE):
             returnD(format_error("No WebEntity with id %s found" % webentity_id))
-        startpages = yield self.get_suggested_startpages(WE, startmode, corpus)
+        startpages = yield self._get_suggested_startpages(WE, startmode, corpus, categories=categories)
         returnD(handle_standard_results(startpages))
 
     @inlineCallbacks
@@ -1364,6 +1364,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             startpage_url, _ = urllru.url_clean_and_convert(startpage_url)
         except ValueError as e:
             returnD(format_error(e))
+        WE = yield self.jsonrpc_get_webentity_for_url(startpage_url, corpus)
+        if is_error(WE) or WE["result"]["id"] != webentity_id:
+            returnD(format_error("WARNING: this page does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity."))
         yield self.add_backend_tags(webentity_id, "startpages_modified", "added %s" % startpage_url, corpus=corpus)
         res = yield self.update_webentity(webentity_id, "startpages", startpage_url, "push", corpus=corpus)
         returnD(res)

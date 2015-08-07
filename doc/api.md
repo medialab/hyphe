@@ -245,9 +245,10 @@ The API will always answer as such:
 - __`propose_webentity_startpages`:__
  + _`webentity_id`_ (mandatory)
  + _`startmode`_ (optional, default: `"default"`)
+ + _`categories`_ (optional, default: `false`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages" or "prefixes" or already seen "pages".
+ Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages" or "prefixes" or already seen "pages". Returns them categorised by type of source if "categories" is set to true.
 
 
 - __`crawl_webentity`:__
