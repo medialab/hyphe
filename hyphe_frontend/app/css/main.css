@@ -3,6 +3,10 @@
 /* ==========================================================================
    Generic styles
    ========================================================================== */
+/* For vertical full size */
+html, body, .ng-view-container{
+  height: 100%;
+}
 
 /* Global color and font */
 body {
@@ -89,6 +93,34 @@ label.btn.btn-default.disabled.active{
 
 
 /* ==========================================================================
+   Full height panels
+   ========================================================================== */
+
+.fullheight{
+  height: 100%;
+}
+.fullheight .fullheight-side-panel{
+  position: absolute;
+  height: 100%;
+  width: 200px;
+
+  margin-left: -15px;
+  margin-right: -15px;
+
+}
+.fullheight .fullheight-main-panel{
+  height: 100%;
+  margin-left: -15px;
+  margin-right: -15px;
+  padding-top: 50px;
+  padding-left: 200px;
+}
+
+
+
+
+
+/* ==========================================================================
    Big Bullet Numbers
    ========================================================================== */
 .big-bullet-number{
@@ -120,8 +152,12 @@ label.btn.btn-default.disabled.active{
    ========================================================================== */
 .flatpanel{
   background-color: #EFEBE8;
-  position: fixed;
-  min-width: 25%;
+
+  /*position: fixed;*/
+  /*min-width: 25%;*/
+  /* ^ NB: this is not the proper way to do it since it breaks the layout. */
+  /*   It should be managed with a container above flatpanel, since */
+  /*   here we just deal with the general look of the module (its content) */
 }
 .flatpanel .flatpanel-heading{
   padding: 12px;
@@ -167,6 +203,11 @@ label.btn.btn-default.disabled.active{
   background-color: #EFEBE8;
   font-size: 18px;
 }
+.topbar-fixed .topbar-project{
+  width: 200px;
+  position: absolute;
+  z-index: 20;
+}
 .topbar-project{
   background-color: #428bca;
   color: #FFF;
@@ -184,6 +225,11 @@ label.btn.btn-default.disabled.active{
 }
 .topbar-project td{
   vertical-align: top;
+}
+.topbar-fixed .topbar-center{
+  width: 100%;
+  padding-left: 200px;
+  position: absolute;
 }
 .topbar-status{
   text-align: center;
@@ -220,7 +266,8 @@ label.btn.btn-default.disabled.active{
   border-radius: 0px 0px 6px 0px;
   padding-right: 0px;
   padding-top: 60px;
-  position: fixed;
+  /*position: fixed;*/
+  /* ^ Breaks the layout */
   left: 0;
 }
 .sidebar span.symbol{
@@ -475,9 +522,13 @@ div.welcome-column dd{
    View: Network
    ========================================================================== */
 .network-key{
-  /*background-color: #F5F1EF;*/
   border-top: 2px solid #F5F1EF;
   padding: 12px;
+
+  background-color: rgba(255, 255, 255, 0.8);
+
+  position: absolute;
+  bottom: 0;
 }
 .network-key span.line-link{
   display: inline-block;
@@ -524,11 +575,10 @@ div.welcome-column dd{
 /* Sigma */
 .sigma-parent {
   position: relative;
-  
-  /*background-color: #EFEBE8;*/
-  /*background-color: rgba(239, 235, 232, 0.4);*/
-  
-  height: 220px;
+  width:100%;
+  height: 100%;
+
+  background-color: #FFF;
 
   -webkit-user-select: none; /* Chrome/Safari */        
      -moz-user-select: none; /* Firefox */
@@ -536,14 +586,15 @@ div.welcome-column dd{
                select: none;
 }
 
-@media (min-height: 400px) {.sigma-parent {height: 210px;}}
-@media (min-height: 500px) {.sigma-parent {height: 310px;}}
-@media (min-height: 600px) {.sigma-parent {height: 410px;}}
-@media (min-height: 700px) {.sigma-parent {height: 510px;}}
-@media (min-height: 800px) {.sigma-parent {height: 610px;}}
-@media (min-height: 900px) {.sigma-parent {height: 710px;}}
-@media (min-height:1000px) {.sigma-parent {height: 810px;}}
+.sigma-floating{
+  padding: 2px;
+  position: absolute;
 
+  top: 62px;
+  right: 12px;
+
+  overflow: hidden;
+}
 
 .sigma-expand {
   position: absolute;

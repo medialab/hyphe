@@ -57,18 +57,20 @@ angular.module('hyphe.networkController', [])
     // Actual active settings
     var settings = {
       show_in: $scope.presets.corpus.settings.show_in
-      ,show_undecided: $scope.presets.corpus.settings.show_undecided
-      ,show_out: $scope.presets.corpus.settings.show_out
-      ,show_discovered: $scope.presets.corpus.settings.show_discovered
-      ,discoveredMinDegree: $scope.presets.corpus.settings.discoveredMinDegree
+    , show_undecided: $scope.presets.corpus.settings.show_undecided
+    , show_out: $scope.presets.corpus.settings.show_out
+    , show_discovered: $scope.presets.corpus.settings.show_discovered
+    , discoveredMinDegree: $scope.presets.corpus.settings.discoveredMinDegree
     }
 
     // What is displayed (before validate or cancel)
     $scope.discoveredMinDegree =  settings.discoveredMinDegree
-    $scope.show_in =              settings.show_in
-    $scope.show_undecided =       settings.show_undecided
-    $scope.show_out =             settings.show_out
-    $scope.show_discovered =      settings.show_discovered
+    $scope.statuses = {
+      in: settings.show_in
+    , undecided: settings.show_undecided
+    , out: settings.show_out
+    , discovered: settings.show_discovered
+    }
 
     $scope.$on("$destroy", function(){
       killSigma()
