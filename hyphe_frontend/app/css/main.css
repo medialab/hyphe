@@ -340,6 +340,17 @@ label.btn.btn-default.disabled.active{
 
 
 
+/* ==========================================================================
+   Statuses button group (IN/UND/OUT/DISC)
+   ========================================================================== */
+.statuses-box .checkox-muted{
+  opacity: 0.5;
+}
+.statuses-box .label-count{
+  color: #BBB;
+  margin-left: 6px;
+}
+
 
 
 

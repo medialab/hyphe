@@ -17,6 +17,7 @@ angular.module('hyphe.exportController', [])
     $scope.list
 
     $scope.statuses = {in:true, out:false, undecided:false, discovered:false}
+    $scope.counts = {}
     $scope.columns = {
       id: {
         name: 'ID'
@@ -138,7 +139,22 @@ angular.module('hyphe.exportController', [])
       loadWebentities()
     }
 
+    // Init
+    loadStatus()
+
     // Functions
+    function loadStatus(){
+      api.globalStatus({}, function(status){
+        $scope.counts = {
+          in: status.corpus.memory_structure.webentities.IN
+        , undecided: status.corpus.memory_structure.webentities.UNDECIDED
+        , out: status.corpus.memory_structure.webentities.OUT
+        , discovered: status.corpus.memory_structure.webentities.DISCOVERED
+        }
+      },function(data, status, headers, config){
+        $scope.status = {message: 'Error loading status', background:'danger'}
+      })
+    }
 
     function loadWebentities(){
       if($scope.queriesToDo.in.stack.length + $scope.queriesToDo.out.stack.length + $scope.queriesToDo.undecided.stack.length + $scope.queriesToDo.discovered.stack.length>0){

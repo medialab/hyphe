@@ -363,4 +363,17 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+  .directive('hypheStatusBox', [function(){
+    return {
+      restrict: 'E'
+      ,templateUrl: 'partials/statusbox.html'
+      ,scope: {
+        statuses: '='
+      , counts: '='
+      }
+      ,link: function(scope, el, attrs) {
+      }
+    }
+  }])
+
 ;
