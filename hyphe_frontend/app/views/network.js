@@ -263,7 +263,7 @@ angular.module('hyphe.networkController', [])
       $scope.sigmaInstance.settings({
         defaultLabelColor: '#666'
         ,edgeColor: 'default'
-        ,defaultEdgeColor: '#D1C9C3'
+        ,defaultEdgeColor: '#ECE8E5'
         ,defaultNodeColor: '#999'
         ,minNodeSize: 0.3
         ,maxNodeSize: 5
@@ -347,10 +347,10 @@ angular.module('hyphe.networkController', [])
     function buildNetwork(){
       $scope.network = {}
       var statusColors = {
-        IN:             "#000000"
-        ,OUT:           "#FFFFFF"
-        ,DISCOVERED:    "#FF846F"
-        ,UNDECIDED:     "#869CAD"
+        IN:             "#333"
+        ,UNDECIDED:     "#ADA299"
+        ,OUT:           "#FAA"
+        ,DISCOVERED:    "#93BDE0"
       }
 
       $scope.network.attributes = []

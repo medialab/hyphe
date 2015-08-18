@@ -340,19 +340,6 @@ label.btn.btn-default.disabled.active{
 
 
 
-/* ==========================================================================
-   Statuses button group (IN/UND/OUT/DISC)
-   ========================================================================== */
-.statuses-box .checkox-muted{
-  opacity: 0.5;
-}
-.statuses-box .label-count{
-  color: #BBB;
-  margin-left: 6px;
-}
-
-
-
 
 
 /* ==========================================================================
@@ -488,16 +475,15 @@ div.welcome-column dd{
    View: Network
    ========================================================================== */
 .network-key{
-  background-color: #F5F1EF;
-  /*background-color: #F8F8F8;*/
-  border-top: 2px solid #FFF;
+  /*background-color: #F5F1EF;*/
+  border-top: 2px solid #F5F1EF;
   padding: 12px;
 }
 .network-key span.line-link{
   display: inline-block;
   width: 36px;
   height: 6px;
-  border-top: 3px solid #D1C9C3;
+  border-top: 3px solid #ECE8E5;
 }
 .network-key span.dot{
   width: 12px;
@@ -522,16 +508,16 @@ div.welcome-column dd{
   border-radius: 8px;
 }
 .network-key span.dot.dot-in{
-  background-color: #000000;
+  background-color: #333;
 }
 .network-key span.dot.dot-out{
-  background-color: #FFFFFF;
+  background-color: #FAA;
 }
 .network-key span.dot.dot-undecided{
-  background-color: #869CAD;
+  background-color: #ADA299;
 }
 .network-key span.dot.dot-discovered{
-  background-color: #FF846F;
+  background-color: #93BDE0;
 }
 
 
@@ -540,7 +526,7 @@ div.welcome-column dd{
   position: relative;
   
   /*background-color: #EFEBE8;*/
-  background-color: rgba(239, 235, 232, 0.4);
+  /*background-color: rgba(239, 235, 232, 0.4);*/
   
   height: 220px;
 
@@ -1395,4 +1381,29 @@ textarea.over-error{
   -webkit-box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
      -moz-box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
           box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
+}
+
+
+
+/* ==========================================================================
+   Module: Statuses Box
+   ========================================================================== */
+.statuses-box .checkox-muted{
+  opacity: 0.5;
+}
+.statuses-box .label-count{
+  color: #AAA;
+  margin-left: 6px;
+}
+.statuses-box .btn-in{
+  border-bottom: 3px solid #333;
+}
+.statuses-box .btn-undecided{
+  border-bottom: 3px solid #ADA299;
+}
+.statuses-box .btn-out{
+  border-bottom: 3px solid #FAA;
+}
+.statuses-box .btn-discovered{
+  border-bottom: 3px solid #93BDE0;
 }
