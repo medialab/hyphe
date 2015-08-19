@@ -115,6 +115,14 @@ label.btn.btn-default.disabled.active{
   padding-top: 50px;
   padding-left: 200px;
 }
+@media (max-width: 768px) { /* xs screen only */
+  .fullheight .fullheight-side-panel{
+    display: none;
+  }
+  .fullheight .fullheight-main-panel{
+    padding-left: 0px;
+  }
+}
 
 
 
@@ -523,11 +531,30 @@ div.welcome-column dd{
    ========================================================================== */
 .network-key{
   border-top: 2px solid #F5F1EF;
-  padding: 12px;
 
   background-color: rgba(255, 255, 255, 0.8);
 
   position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 200px;
+}
+@media (max-width: 768px) { /* xs screen only */
+  .network-key{
+    left: 0px;
+  }
+}
+.network-key .floating-button{
+  position: absolute;
+  top: -43px;
+  left: 6px;
+}
+.network-key .collapse-button{
+  position: absolute;
+  right: 0;
+  z-index: 1;
+}
+.network-key .collapse-button.above-line{
   bottom: 0;
 }
 .network-key span.line-link{
@@ -535,6 +562,7 @@ div.welcome-column dd{
   width: 36px;
   height: 6px;
   border-top: 3px solid #ECE8E5;
+  border-right: 3px solid #ECE8E5;
 }
 .network-key span.dot{
   width: 12px;

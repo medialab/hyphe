@@ -2,6 +2,8 @@
   <label
     class="btn btn-default btn-in"
     ng-model="statuses.in"
+    ng-change="change"
+    ng-disabled="disabled"    
     btn-checkbox
   >
     <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.in, 'glyphicon-check':statuses.in, 'checkox-muted':!statuses.in}" aria-hidden="true"></span>
@@ -12,6 +14,8 @@
   <label
     class="btn btn-default btn-undecided"
     ng-model="statuses.undecided"
+    ng-change="change"
+    ng-disabled="disabled"    
     btn-checkbox
   >
     <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.undecided, 'glyphicon-check':statuses.undecided, 'checkox-muted':!statuses.undecided}" aria-hidden="true"></span>
@@ -22,6 +26,8 @@
   <label
     class="btn btn-default btn-out"
     ng-model="statuses.out"
+    ng-change="change"
+    ng-disabled="disabled"    
     btn-checkbox
   >
     <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.out, 'glyphicon-check':statuses.out, 'checkox-muted':!statuses.out}" aria-hidden="true"></span>
@@ -32,6 +38,8 @@
   <label
     class="btn btn-default btn-discovered"
     ng-model="statuses.discovered"
+    ng-change="change"
+    ng-disabled="disabled"    
     btn-checkbox
   >
     <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.discovered, 'glyphicon-check':statuses.discovered, 'checkox-muted':!statuses.discovered}" aria-hidden="true"></span>

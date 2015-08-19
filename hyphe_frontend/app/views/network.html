@@ -56,57 +56,89 @@
     </div>
 
     <div class="network-key" ng-if="!loading">
-      <div class="row">
-        <div class="col-md-4">
-          <h4>WEB ENTITY STATUS</h4>
-          <p ng-if="show_in">
-            <span class="dot dot-in"></span>&nbsp;IN
-          </p>
-          <p ng-if="show_undecided">
-            <span class="dot dot-undecided"></span>&nbsp;UNDECIDED
-          </p>
-          <p ng-if="show_discovered">
-            <span class="dot dot-discovered"></span>&nbsp;DISCOVERED
-            <span class="text-info" ng-if="discoveredMinDegree>0"><br>Cited by {{discoveredMinDegree}}+ entities only</span>
-          </p>
-          <p ng-if="show_out">
-            <span class="dot dot-out"></span>&nbsp;OUT
-          </p>
+      <div class="floating-button">
+        <button
+          class="btn btn-default"
+          ng-click="downloadNetwork()"
+          ng-class="{disabled:loading}"
+        >
+          <span class="glyphicon glyphicon-download"></span>
+          DOWNLOAD GEXF
+        </button>
+      </div>
+
+      <div class="container-fluid hidden-xs">
+
+        <div class="collapse-button pointable" ng-click="toggleKeyCollapse()" ng-class="{'above-line':keyCollapsed}">
+          <span class="glyphicon" ng-class="{'glyphicon-chevron-up':keyCollapsed, 'glyphicon-chevron-down':!keyCollapsed}"></span>
         </div>
-        <div class="col-md-4">
-          <h4>SIZE</h4>
-          <p>
-            <span class="dot dot-small"></span>&nbsp;<span class="dot dot-medium"></span>&nbsp;<span class="dot dot-big"></span> DEGREE: Small web entities are linked to few others, big entities are linked with many others
-          </p>
-        </div>
-        <div class="col-md-4">
-          <h4>LINKS</h4>
-          <p>
-            <span class="line-link"></span> Hyperlink between entities
-          </p>
-          <br>
-          <p>
-            <button
-              class="btn btn-default"
-              ng-click="downloadNetwork()"
-              ng-class="{disabled:loading}"
-            >
-              <span class="glyphicon glyphicon-download"></span>
-              DOWNLOAD GEXF
-            </button>
-          </p>
+
+        <div class="row" collapse="keyCollapsed">
+          <div class="col-sm-4">
+            <h4>WEB ENTITY STATUS</h4>
+            <p ng-if="statuses.in">
+              <span class="dot dot-in"></span>&nbsp;IN
+            </p>
+            <p ng-if="statuses.undecided">
+              <span class="dot dot-undecided"></span>&nbsp;UNDECIDED
+            </p>
+            <p ng-if="statuses.discovered">
+              <span class="dot dot-discovered"></span>&nbsp;DISCOVERED
+              <span class="text-info" ng-if="discoveredMinDegree>0"><br>Cited by {{discoveredMinDegree}}+ entities only</span>
+            </p>
+            <p ng-if="statuses.out">
+              <span class="dot dot-out"></span>&nbsp;OUT
+            </p>
+            <br>
+          </div>
+          <div class="col-sm-4">
+            <h4>SIZE</h4>
+            <p>
+              <span class="dot dot-small"></span>&nbsp;<span class="dot dot-medium"></span>&nbsp;<span class="dot dot-big"></span> DEGREE: Small web entities are linked to few others, big entities are linked with many others
+            </p>
+            <br>
+          </div>
+          <div class="col-sm-4">
+            <h4>LINKS</h4>
+            <p>
+              <span class="line-link"></span> Hyperlink between entities
+            </p>
+            <br>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="sigma-floating">
+    <div class="sigma-floating hidden-xs">
       <div class="flatpanel">
         <div class="flatpanel-heading">
-          FILTERS
+          <span class="pointable" ng-click="toggleFilterCollapse()">
+            FILTERS
+          </span>
+          <span ng-show="!filterCollapsed">
+            <span class="text-muted"> - </span>
+            <span dropdown on-toggle="toggled(open)">
+              <a href id="presets-dropdown" dropdown-toggle>
+                presets
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="presets-dropdown">
+                <li ng-repeat="choice in presets">
+                  <a href>{{choice}}</a>
+                </li>
+              </ul>
+            </span>
+          </span>
+
+          <span class="pull-right pointable" ng-click="toggleFilterCollapse()">
+            &nbsp;&nbsp;
+            <span class="glyphicon" ng-class="{'glyphicon-chevron-up':!filterCollapsed, 'glyphicon-chevron-down':filterCollapsed}"></span>
+          </span>
         </div>
-        <div class="flatpanel-body">
+        <div class="flatpanel-body" collapse="filterCollapsed">
           
-          <div class="flatpanel-textblock">
+          <!-- <div class="flatpanel-textblock">
+            
+
             <h5>Presets</h5>
             <div class="btn-group">
               <label
@@ -134,75 +166,31 @@
               >FULL DATA</label>
 
             </div>
-          </div>
+          </div> -->
 
           <div class="flatpanel-textblock flatpanel-separated">
+            
             <div class="row">
-              <div class="col-lg-5">
-                <hyphe-status-box statuses="statuses" counts="counts"></hyphe-status-box>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-lg-5">
-                
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_in"> IN ({{webentities.in.length}})
-                    </label>
-                  
-                </div>
+              <div class="col-lg-12">
+                <hyphe-status-box statuses="statuses" counts="counts" change="touchSettings()" disabled="loading"></hyphe-status-box>
+                <br>
+                <br>
               </div>
             </div>
 
             <div class="row">
-              <div class="col-lg-5">
-                
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_undecided"> UNDECIDED ({{webentities.undecided.length}})
-                    </label>
-                  </div>
-                
+              <div class="col-lg-6">
+                <label>Limit DISCOVERED</label>
+                <br>
+                <select class="form-control" ng-change="touchDiscovered()" ng-disabled="loading" ng-model="discoveredMinDegree">
+                  <option value="0">Display every discovered</option>
+                  <option ng-show="webentities.discovered_2.length" value="2">Cited by 2+ entities only ({{webentities.discovered_2.length}})</option>
+                  <option ng-show="webentities.discovered_3.length" value="3">Cited by 3+ entities only ({{webentities.discovered_3.length}})</option>
+                  <option ng-show="webentities.discovered_4.length" value="4">Cited by 4+ entities only ({{webentities.discovered_4.length}})</option>
+                  <option ng-show="webentities.discovered_5.length" value="5">Cited by 5+ entities only ({{webentities.discovered_5.length}})</option>
+                </select>
               </div>
-            </div>
-
-            <div class="row">
-              <div class="col-lg-5">
-                
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_discovered"> DISCOVERED ({{webentities.discovered.length}})
-                    </label>
-                  </div>
-                
-              </div>
-              <div class="col-lg-7">
-                
-                  <select class="form-control" ng-change="touchDiscovered()" ng-disabled="loading" ng-model="discoveredMinDegree">
-                    <option value="0">Display every discovered</option>
-                    <option ng-show="webentities.discovered_2.length" value="2">Cited by 2+ entities only ({{webentities.discovered_2.length}})</option>
-                    <option ng-show="webentities.discovered_3.length" value="3">Cited by 3+ entities only ({{webentities.discovered_3.length}})</option>
-                    <option ng-show="webentities.discovered_4.length" value="4">Cited by 4+ entities only ({{webentities.discovered_4.length}})</option>
-                    <option ng-show="webentities.discovered_5.length" value="5">Cited by 5+ entities only ({{webentities.discovered_5.length}})</option>
-                  </select>
-                  
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-lg-5">
-                
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="show_out"> OUT ({{webentities.out.length}})
-                    </label>
-                  </div>
-                
-              </div>
-            </div>
-
-            <div ng-show="unlinked_WEs" class="row">
-              <div class="col-lg-7">
+              <div class="col-lg-6">
                 <div class="checkbox">
                   <label>
                     <input type="checkbox" ng-change="toggleUnlinkedWEs()" ng-disabled="loading" ng-model="hide_unlinked_WEs"> Hide isolated web entities

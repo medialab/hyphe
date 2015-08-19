@@ -370,6 +370,8 @@ angular.module('hyphe.directives', [])
       ,scope: {
         statuses: '='
       , counts: '='
+      , change: '='
+      , disabled: '='
       }
       ,link: function(scope, el, attrs) {
       }

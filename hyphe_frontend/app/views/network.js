@@ -19,36 +19,39 @@ angular.module('hyphe.networkController', [])
 
     $scope.loading = true
     $scope.settingsChanged = false
+
+    $scope.filterCollapsed = false
+    $scope.keyCollapsed = false
     
     // Different presets for settings
     $scope.presets = {
       corpus: {
         status: true
         ,settings:{
-          show_in: true
-          ,show_undecided: true
-          ,show_out: false
-          ,show_discovered: false
+          in: true
+          ,undecided: true
+          ,out: false
+          ,discovered: false
           ,discoveredMinDegree: 0
         }
       }
       ,full: {
         status: false
         ,settings:{
-          show_in: true
-          ,show_undecided: true
-          ,show_out: true
-          ,show_discovered: true
+          in: true
+          ,undecided: true
+          ,out: true
+          ,discovered: true
           ,discoveredMinDegree: 0
         }
       }
       ,prospection: {
         status: false
         ,settings:{
-          show_in: true
-          ,show_undecided: true
-          ,show_out: false
-          ,show_discovered: true
+          in: true
+          ,undecided: true
+          ,out: false
+          ,discovered: true
           ,discoveredMinDegree: 3
         }
       }
@@ -56,22 +59,24 @@ angular.module('hyphe.networkController', [])
 
     // Actual active settings
     var settings = {
-      show_in: $scope.presets.corpus.settings.show_in
-    , show_undecided: $scope.presets.corpus.settings.show_undecided
-    , show_out: $scope.presets.corpus.settings.show_out
-    , show_discovered: $scope.presets.corpus.settings.show_discovered
+      in: $scope.presets.corpus.settings.in
+    , undecided: $scope.presets.corpus.settings.undecided
+    , out: $scope.presets.corpus.settings.out
+    , discovered: $scope.presets.corpus.settings.discovered
     , discoveredMinDegree: $scope.presets.corpus.settings.discoveredMinDegree
     }
 
     // What is displayed (before validate or cancel)
     $scope.discoveredMinDegree =  settings.discoveredMinDegree
     $scope.statuses = {
-      in: settings.show_in
-    , undecided: settings.show_undecided
-    , out: settings.show_out
-    , discovered: settings.show_discovered
+      in: settings.in
+    , undecided: settings.undecided
+    , out: settings.out
+    , discovered: settings.discovered
     }
+    $scope.counts = {}
 
+    // Sigma stuff
     $scope.$on("$destroy", function(){
       killSigma()
     })
@@ -141,7 +146,7 @@ angular.module('hyphe.networkController', [])
     }
 
     $scope.touchDiscovered = function(){
-      $scope.show_discovered = true
+      $scope.discovered = true
       $scope.touchSettings()
     }
 
@@ -150,7 +155,7 @@ angular.module('hyphe.networkController', [])
       // Check if difference with current settings
       var difference = false
       for(var k in settings){
-        if(settings[k] != $scope[k]){
+        if(settings[k] != $scope.statuses[k]){
           difference = true
         }
       }
@@ -160,7 +165,7 @@ angular.module('hyphe.networkController', [])
       for(var p in $scope.presets){
         var presetDifference = false
         for(var k in settings){
-          if($scope.presets[p].settings[k] != $scope[k]){
+          if($scope.presets[p].settings[k] != $scope.statuses[k]){
             presetDifference = true
           }
         }
@@ -170,26 +175,34 @@ angular.module('hyphe.networkController', [])
 
     $scope.applyPreset = function(p){
       for(var k in settings){
-        $scope[k] = $scope.presets[p].settings[k]
+        $scope.statuses[k] = $scope.presets[p].settings[k]
       }
       $scope.touchSettings()
     }
 
     $scope.revertSettings = function(){
       for(var k in settings){
-        $scope[k] = settings[k]
+        $scope.statuses[k] = settings[k]
       }
       $scope.touchSettings()
     }
 
     $scope.applySettings = function(){
       for(var k in settings){
-        settings[k] = $scope[k]
+        settings[k] = $scope.statuses[k]
       }
       $scope.touchSettings()
       killSigma()
       buildNetwork()
       initSigma()
+    }
+
+    $scope.toggleFilterCollapse = function(){
+      $scope.filterCollapsed = !$scope.filterCollapsed;
+    }
+
+    $scope.toggleKeyCollapse = function(){
+      $scope.keyCollapsed = !$scope.keyCollapsed;
     }
 
     $scope.initSigma = initSigma
@@ -226,6 +239,12 @@ angular.module('hyphe.networkController', [])
               })
             }
           })
+          $scope.counts = {
+            in: $scope.webentities.in.length
+          , undecided: $scope.webentities.undecided.length
+          , out: $scope.webentities.out.length
+          , discovered: $scope.webentities.discovered.length
+          }
           loadLinks()
         }
         ,function(data, status, headers, config){
@@ -350,20 +369,20 @@ angular.module('hyphe.networkController', [])
       $scope.network = {}
       var statusColors = {
         IN:             "#333"
-        ,UNDECIDED:     "#ADA299"
-        ,OUT:           "#FAA"
-        ,DISCOVERED:    "#93BDE0"
+      , UNDECIDED:      "#ADA299"
+      , OUT:            "#FAA"
+      , DISCOVERED:     "#93BDE0"
       }
 
       $scope.network.attributes = []
 
       $scope.network.nodesAttributes = [
         {id:'attr_status', title:'Status', type:'string'}
-        ,{id:'attr_crawling', title:'Crawling status', type:'string'}
-        ,{id:'attr_indexing', title:'Indexing status', type:'string'}
-        ,{id:'attr_creation', title:'Creation', type:'integer'}
-        ,{id:'attr_modification', title:'Last modification', type:'integer'}
-        ,{id:'attr_hyphe_indegree', title:'Hyphe Indegree', type:'integer'}
+      , {id:'attr_crawling', title:'Crawling status', type:'string'}
+      , {id:'attr_indexing', title:'Indexing status', type:'string'}
+      , {id:'attr_creation', title:'Creation', type:'integer'}
+      , {id:'attr_modification', title:'Last modification', type:'integer'}
+      , {id:'attr_hyphe_indegree', title:'Hyphe Indegree', type:'integer'}
       ]
       
       // Extract categories from nodes
@@ -390,11 +409,11 @@ angular.module('hyphe.networkController', [])
 
       var wes = [];
       ["in", "undecided", "out"].forEach(function(st){
-        if (settings["show_"+st]){
+        if (settings[st]) {
           wes = wes.concat($scope.webentities[st])
         }
       })
-      if (settings.show_discovered){
+      if (settings.discovered){
         wes = wes.concat($scope.webentities["discovered"+(settings.discoveredMinDegree > 0 ? "_"+settings.discoveredMinDegree : "")])
       }
       
