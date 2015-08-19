@@ -602,6 +602,15 @@ div.welcome-column dd{
 
 
 /* Sigma */
+.sigma-placeholder{
+  position: relative;
+  width:100%;
+  height: 100%;
+
+  background-color: #FFF;
+
+  padding-top: 120px;
+}
 .sigma-parent {
   position: relative;
   width:100%;

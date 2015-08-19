@@ -4,6 +4,9 @@ angular.module('hyphe.networkController', [])
 
   .controller('network', ['$scope', 'api', 'utils', 'corpus', '$window'
   ,function($scope, api, utils, corpus, $window) {
+    
+    var sigmaInstance
+    
     $scope.currentPage = 'network'
     $scope.Page.setTitle('Network')
     $scope.corpusName = corpus.getName()
@@ -13,7 +16,6 @@ angular.module('hyphe.networkController', [])
     $scope.webentities
     $scope.network
 
-    $scope.sigmaInstance
     $scope.spatializationRunning = false
     $scope.overNode = false
 
@@ -92,7 +94,7 @@ angular.module('hyphe.networkController', [])
     })
     
     $scope.sigmaRecenter = function(){
-      var c = $scope.sigmaInstance.cameras[0]
+      var c = sigmaInstance.cameras[0]
       c.goTo({
         ratio: 1
         ,x: 0
@@ -101,14 +103,14 @@ angular.module('hyphe.networkController', [])
     }
 
     $scope.sigmaZoom = function(){
-      var c = $scope.sigmaInstance.cameras[0]
+      var c = sigmaInstance.cameras[0]
       c.goTo({
         ratio: c.ratio / c.settings('zoomingRatio')
       })
     }
 
     $scope.sigmaUnzoom = function(){
-      var c = $scope.sigmaInstance.cameras[0]
+      var c = sigmaInstance.cameras[0]
       c.goTo({
         ratio: c.ratio * c.settings('zoomingRatio')
       })
@@ -116,22 +118,22 @@ angular.module('hyphe.networkController', [])
 
     $scope.toggleSpatialization = function(){
       if($scope.spatializationRunning){
-        $scope.sigmaInstance.stopForceAtlas2()
+        sigmaInstance.stopForceAtlas2()
         $scope.spatializationRunning = false
       } else {
-        $scope.sigmaInstance.startForceAtlas2()
+        sigmaInstance.startForceAtlas2()
         $scope.spatializationRunning = true
       }
     }
 
     $scope.runSpatialization = function(){
       $scope.spatializationRunning = true
-      $scope.sigmaInstance.startForceAtlas2()
+      sigmaInstance.startForceAtlas2()
     }
 
     $scope.stopSpatialization = function(){
       $scope.spatializationRunning = false
-      $scope.sigmaInstance.killForceAtlas2()
+      sigmaInstance.killForceAtlas2()
     }
 
     $scope.downloadNetwork = function(){
@@ -256,7 +258,7 @@ angular.module('hyphe.networkController', [])
 
           /*$window.links = links
           console.log('LINKS', links)*/
-
+          
           buildNetwork()
           $scope.status = {}
 
@@ -271,11 +273,11 @@ angular.module('hyphe.networkController', [])
     }
 
     function initSigma(){
-      $scope.sigmaInstance = new sigma('sigma');
+      sigmaInstance = new sigma('sigma');
 
-      $window.s = $scope.sigmaInstance // For debugging purpose
+      $window.s = sigmaInstance // For debugging purpose
       
-      $scope.sigmaInstance.settings({
+      sigmaInstance.settings({
         defaultLabelColor: '#666'
         ,edgeColor: 'default'
         ,defaultEdgeColor: '#ECE8E5'
@@ -294,7 +296,7 @@ angular.module('hyphe.networkController', [])
         .forEach(function(node){
           //nodesIndex[node.id] = node
           var degree = node.inEdges.length + node.outEdges.length
-          $scope.sigmaInstance.graph.addNode({
+          sigmaInstance.graph.addNode({
             id: node.id
             ,label: node.label
             ,'x': Math.random()
@@ -307,7 +309,7 @@ angular.module('hyphe.networkController', [])
         })
       $scope.network.edges
         .forEach(function(link, i){
-          $scope.sigmaInstance.graph.addEdge({
+          sigmaInstance.graph.addEdge({
             'id': 'e'+i
             ,'source': link.sourceID
             ,'target': link.targetID
@@ -315,7 +317,7 @@ angular.module('hyphe.networkController', [])
         })
 
       // Force Atlas 2 settings
-      $scope.sigmaInstance.configForceAtlas2({
+      sigmaInstance.configForceAtlas2({
         slowDown: 2 * (1 + Math.log($scope.network.nodes.length))
         ,worker: true
         ,scalingRatio: 10
@@ -325,21 +327,21 @@ angular.module('hyphe.networkController', [])
       })
 
       // Bind interactions
-      $scope.sigmaInstance.bind('overNode', function(e) {
+      sigmaInstance.bind('overNode', function(e) {
         if(Object.keys(e.data.captor).length > 0){  // Sigma bug turnaround
           $scope.overNode = true
           $scope.$apply()
         }
       })
 
-      $scope.sigmaInstance.bind('outNode', function(e) {
+      sigmaInstance.bind('outNode', function(e) {
         if(Object.keys(e.data.captor).length > 0){  // Sigma bug turnaround
           $scope.overNode = false
           $scope.$apply()
         }
       })
 
-      $scope.sigmaInstance.bind('clickNode', function(e) {
+      sigmaInstance.bind('clickNode', function(e) {
         var weId = e.data.node.id
         ,path = window.location.href.replace(window.location.hash, "") + '#/project/' + $scope.corpusId + '/webentity/' + weId
         $window.open(path, '_blank')
@@ -349,9 +351,9 @@ angular.module('hyphe.networkController', [])
     }
 
     function killSigma(){
-      if ($scope.sigmaInstance) {
+      if (sigmaInstance) {
         $scope.stopSpatialization()
-        $scope.sigmaInstance.kill()
+        sigmaInstance.kill()
       }
     }
 

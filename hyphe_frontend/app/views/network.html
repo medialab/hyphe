@@ -3,12 +3,14 @@
   </div>
   <div class="fullheight-side-panel" ng-include="'partials/sidebar.html'"></div>
   <div class="fullheight-main-panel">
-    <div ng-if="loading">
-      <spinner text="'LOADING NETWORK'"/>
+    <div class="sigma-placeholder" ng-if="loading">
+      <center>
+        <spinner text="'LOADING NETWORK'"/>
+      </center>
     </div>
     <div
       class="sigma-parent"
-      ng-if="!loading"
+      ng-show="!loading"
       ng-class="{pointable: overNode}"
     >
       <div class="sigma-expand" id="sigma"></div>
@@ -109,7 +111,7 @@
       </div>
     </div>
 
-    <div class="sigma-floating hidden-xs">
+    <div class="sigma-floating hidden-xs" ng-if="!loading">
       <div class="flatpanel">
         <div class="flatpanel-heading">
           <span class="pointable" ng-click="toggleFilterCollapse()">
@@ -135,38 +137,6 @@
           </span>
         </div>
         <div class="flatpanel-body" collapse="filterCollapsed">
-          
-          <!-- <div class="flatpanel-textblock">
-            
-
-            <h5>Presets</h5>
-            <div class="btn-group">
-              <label
-                class="btn btn-default btn-sm"
-                ng-model="presets.corpus.status"
-                ng-change="applyPreset('corpus')"
-                ng-class="{disabled:loading}"
-                btn-checkbox
-              >CORPUS ONLY</label>
-
-              <label
-                class="btn btn-default btn-sm"
-                ng-model="presets.prospection.status"
-                ng-change="applyPreset('prospection')"
-                ng-class="{disabled:loading}"
-                btn-checkbox
-              >PROSPECTION</label>
-
-              <label
-                class="btn btn-default btn-sm"
-                ng-model="presets.full.status"
-                ng-change="applyPreset('full')"
-                ng-class="{disabled:loading}"
-                btn-checkbox
-              >FULL DATA</label>
-
-            </div>
-          </div> -->
 
           <div class="flatpanel-textblock flatpanel-separated">
             
@@ -179,7 +149,7 @@
             </div>
 
             <div class="row">
-              <div class="col-lg-6">
+              <div class="col-lg-8">
                 <label>Limit DISCOVERED</label>
                 <br>
                 <select class="form-control" ng-change="touchSettings()" ng-disabled="loading" ng-model="statuses.discoveredMinDegree">
@@ -190,7 +160,7 @@
                   <option ng-show="webentities.discovered_5.length" value="5">Cited by 5+ entities only ({{webentities.discovered_5.length}})</option>
                 </select>
               </div>
-              <div class="col-lg-6">
+              <div class="col-lg-4">
                 <label>Isolated entities</label>
                 <br>
                 <div class="checkbox">
