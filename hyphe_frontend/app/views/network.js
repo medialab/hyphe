@@ -24,56 +24,66 @@ angular.module('hyphe.networkController', [])
     $scope.keyCollapsed = false
     
     // Different presets for settings
-    $scope.presets = {
-      corpus: {
-        status: true
-        ,settings:{
+    $scope.presets = [
+      {
+        name: "Corpus"
+      , settings:{
           in: true
-          ,undecided: true
-          ,out: false
-          ,discovered: false
-          ,discoveredMinDegree: 0
+        , undecided: true
+        , out: false
+        , discovered: false
+        , discoveredMinDegree: 0
+        , hideIsolated: true
         }
       }
-      ,full: {
-        status: false
-        ,settings:{
+    , {
+        name: "Prospection"
+      , settings:{
           in: true
-          ,undecided: true
-          ,out: true
-          ,discovered: true
-          ,discoveredMinDegree: 0
+        , undecided: true
+        , out: false
+        , discovered: true
+        , discoveredMinDegree: 3
+        , hideIsolated: true
         }
       }
-      ,prospection: {
-        status: false
-        ,settings:{
+    , {
+        name: "Full"
+      , settings:{
           in: true
-          ,undecided: true
-          ,out: false
-          ,discovered: true
-          ,discoveredMinDegree: 3
+        , undecided: true
+        , out: true
+        , discovered: true
+        , discoveredMinDegree: 0
+        , hideIsolated: true
         }
       }
-    }
+    ]
+    $scope.presetNames = $scope.presets.map(function(d){ return d.name })
 
-    // Actual active settings
-    var settings = {
-      in: $scope.presets.corpus.settings.in
-    , undecided: $scope.presets.corpus.settings.undecided
-    , out: $scope.presets.corpus.settings.out
-    , discovered: $scope.presets.corpus.settings.discovered
-    , discoveredMinDegree: $scope.presets.corpus.settings.discoveredMinDegree
+    $scope.presetsOpen = false
+
+    // Actual active settings, here specified as default
+    $scope.settings = {
+      in: true
+    , undecided: true
+    , out: false
+    , discovered: false
+    , discoveredMinDegree: 0
+    , hideIsolated: false
     }
 
     // What is displayed (before validate or cancel)
-    $scope.discoveredMinDegree =  settings.discoveredMinDegree
+    $scope.discoveredMinDegree =  $scope.settings.discoveredMinDegree
     $scope.statuses = {
-      in: settings.in
-    , undecided: settings.undecided
-    , out: settings.out
-    , discovered: settings.discovered
+      in: $scope.settings.in
+    , undecided: $scope.settings.undecided
+    , out: $scope.settings.out
+    , discovered: $scope.settings.discovered
+    , discoveredMinDegree: $scope.settings.discoveredMinDegree
+    , hideIsolated: $scope.settings.hideIsolated
     }
+
     $scope.counts = {}
 
     // Sigma stuff
@@ -131,31 +141,12 @@ angular.module('hyphe.networkController', [])
       saveAs(blob, $scope.corpusName + ".gexf");
     }
 
-    $scope.hide_unlinked_WEs = false
-    $scope.toggleUnlinkedWEs = function(){
-      var toggle = ($scope.hide_unlinked_WEs ?
-        function(n){
-          if(n.degree == 0) n.hidden = true
-        } :
-        function(n){
-          n.hidden = false
-        }
-      )
-      $scope.sigmaInstance.graph.nodes().forEach(toggle)
-      $scope.sigmaInstance.refresh()
-    }
-
-    $scope.touchDiscovered = function(){
-      $scope.discovered = true
-      $scope.touchSettings()
-    }
-
     $scope.touchSettings = function(){
 
       // Check if difference with current settings
       var difference = false
-      for(var k in settings){
-        if(settings[k] != $scope.statuses[k]){
+      for(var k in $scope.settings){
+        if($scope.settings[k] != $scope.statuses[k]){
           difference = true
         }
       }
@@ -164,7 +155,7 @@ angular.module('hyphe.networkController', [])
       // Check status of preset buttons
       for(var p in $scope.presets){
         var presetDifference = false
-        for(var k in settings){
+        for(var k in $scope.settings){
           if($scope.presets[p].settings[k] != $scope.statuses[k]){
             presetDifference = true
           }
@@ -174,27 +165,30 @@ angular.module('hyphe.networkController', [])
     }
 
     $scope.applyPreset = function(p){
-      for(var k in settings){
+      for(var k in $scope.settings){
         $scope.statuses[k] = $scope.presets[p].settings[k]
       }
       $scope.touchSettings()
+      $scope.presetsOpen = false
     }
 
     $scope.revertSettings = function(){
-      for(var k in settings){
-        $scope.statuses[k] = settings[k]
+      for(var k in $scope.settings){
+        $scope.statuses[k] = $scope.settings[k]
       }
       $scope.touchSettings()
     }
 
     $scope.applySettings = function(){
-      for(var k in settings){
-        settings[k] = $scope.statuses[k]
+      for(var k in $scope.settings){
+        $scope.settings[k] = $scope.statuses[k]
       }
       $scope.touchSettings()
+
       killSigma()
       buildNetwork()
       initSigma()
+
     }
 
     $scope.toggleFilterCollapse = function(){
@@ -239,18 +233,18 @@ angular.module('hyphe.networkController', [])
               })
             }
           })
-          $scope.counts = {
-            in: $scope.webentities.in.length
-          , undecided: $scope.webentities.undecided.length
-          , out: $scope.webentities.out.length
-          , discovered: $scope.webentities.discovered.length
-          }
+          $scope.counts.in = $scope.webentities.in.length
+          $scope.counts.undecided = $scope.webentities.undecided.length
+          $scope.counts.out = $scope.webentities.out.length
+          $scope.counts.discovered = $scope.webentities.discovered.length
+
           loadLinks()
         }
         ,function(data, status, headers, config){
           $scope.status = {message: 'Error loading web entities', background:'danger'}
         }
       )
+
     }
 
     function loadLinks(){
@@ -296,21 +290,17 @@ angular.module('hyphe.networkController', [])
 
       // Populate
       $window.g = $scope.network
-      $scope.unlinked_WEs = false
       $scope.network.nodes
         .forEach(function(node){
           //nodesIndex[node.id] = node
           var degree = node.inEdges.length + node.outEdges.length
-          if (!$scope.unlinked_WEs && !degree){
-            $scope.unlinked_WEs = true
-          }
           $scope.sigmaInstance.graph.addNode({
             id: node.id
             ,label: node.label
             ,'x': Math.random()
             ,'y': Math.random()
             ,'degree': degree
-            ,'hidden': $scope.hide_unlinked_WEs && !degree
+            ,'hidden': node.hidden
             ,'size': 1 + Math.log(1 + 0.1 * degree )
             ,'color': node.color
           })
@@ -409,12 +399,12 @@ angular.module('hyphe.networkController', [])
 
       var wes = [];
       ["in", "undecided", "out"].forEach(function(st){
-        if (settings[st]) {
+        if ($scope.settings[st]) {
           wes = wes.concat($scope.webentities[st])
         }
       })
-      if (settings.discovered){
-        wes = wes.concat($scope.webentities["discovered"+(settings.discoveredMinDegree > 0 ? "_"+settings.discoveredMinDegree : "")])
+      if ($scope.settings.discovered){
+        wes = wes.concat($scope.webentities["discovered"+($scope.settings.discoveredMinDegree > 0 ? "_"+$scope.settings.discoveredMinDegree : "")])
       }
       
       $scope.network.nodes = wes.filter(function(n){
@@ -474,6 +464,16 @@ angular.module('hyphe.networkController', [])
         }
       })
       json_graph_api.buildIndexes($scope.network)
+
+      if ( $scope.statuses.hideIsolated ) {
+        $scope.network.nodes.forEach(function(n){
+          if (n.inEdges.length + n.outEdges.length == 0) {
+            n.hidden = true
+          } else {
+            n.hidden = false
+          }
+        })
+      }
 
       // console.log('Network', $scope.network)
     }

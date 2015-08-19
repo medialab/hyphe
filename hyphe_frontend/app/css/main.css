@@ -160,6 +160,7 @@ label.btn.btn-default.disabled.active{
    ========================================================================== */
 .flatpanel{
   background-color: #EFEBE8;
+  position: relative;
 
   /*position: fixed;*/
   /*min-width: 25%;*/
@@ -622,6 +623,9 @@ div.welcome-column dd{
   right: 12px;
 
   overflow: hidden;
+}
+.sigma-floating .dropdown-menu{
+  top: initial;
 }
 
 .sigma-expand {

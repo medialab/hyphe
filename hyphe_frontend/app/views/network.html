@@ -76,17 +76,17 @@
         <div class="row" collapse="keyCollapsed">
           <div class="col-sm-4">
             <h4>WEB ENTITY STATUS</h4>
-            <p ng-if="statuses.in">
+            <p ng-if="settings.in">
               <span class="dot dot-in"></span>&nbsp;IN
             </p>
-            <p ng-if="statuses.undecided">
+            <p ng-if="settings.undecided">
               <span class="dot dot-undecided"></span>&nbsp;UNDECIDED
             </p>
-            <p ng-if="statuses.discovered">
+            <p ng-if="settings.discovered">
               <span class="dot dot-discovered"></span>&nbsp;DISCOVERED
-              <span class="text-info" ng-if="discoveredMinDegree>0"><br>Cited by {{discoveredMinDegree}}+ entities only</span>
+              <span class="text-info" ng-if="settings.discoveredMinDegree>0"><br>Cited by {{settings.discoveredMinDegree}}+ entities only</span>
             </p>
-            <p ng-if="statuses.out">
+            <p ng-if="settings.out">
               <span class="dot dot-out"></span>&nbsp;OUT
             </p>
             <br>
@@ -117,13 +117,13 @@
           </span>
           <span ng-show="!filterCollapsed">
             <span class="text-muted"> - </span>
-            <span dropdown on-toggle="toggled(open)">
+            <span dropdown dropdown-append-to-body is-open="presetsOpen">
               <a href id="presets-dropdown" dropdown-toggle>
                 presets
               </a>
               <ul class="dropdown-menu" aria-labelledby="presets-dropdown">
-                <li ng-repeat="choice in presets">
-                  <a href>{{choice}}</a>
+                <li ng-repeat="choice in presetNames">
+                  <a href ng-click="applyPreset($index)">{{choice}}</a>
                 </li>
               </ul>
             </span>
@@ -182,7 +182,7 @@
               <div class="col-lg-6">
                 <label>Limit DISCOVERED</label>
                 <br>
-                <select class="form-control" ng-change="touchDiscovered()" ng-disabled="loading" ng-model="discoveredMinDegree">
+                <select class="form-control" ng-change="touchSettings()" ng-disabled="loading" ng-model="statuses.discoveredMinDegree">
                   <option value="0">Display every discovered</option>
                   <option ng-show="webentities.discovered_2.length" value="2">Cited by 2+ entities only ({{webentities.discovered_2.length}})</option>
                   <option ng-show="webentities.discovered_3.length" value="3">Cited by 3+ entities only ({{webentities.discovered_3.length}})</option>
@@ -191,9 +191,11 @@
                 </select>
               </div>
               <div class="col-lg-6">
+                <label>Isolated entities</label>
+                <br>
                 <div class="checkbox">
                   <label>
-                    <input type="checkbox" ng-change="toggleUnlinkedWEs()" ng-disabled="loading" ng-model="hide_unlinked_WEs"> Hide isolated web entities
+                    <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="statuses.hideIsolated"> Hide
                   </label>
                 </div>
               </div>
