@@ -561,6 +561,13 @@ div.welcome-column dd{
   bottom: 0;
   right: 0;
   left: 200px;
+
+  -webkit-user-select: none; /* Chrome/Safari */        
+     -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+               select: none;
+
+  cursor: pointer;
 }
 @media (max-width: 768px) { /* xs screen only */
   .network-key{
@@ -574,11 +581,22 @@ div.welcome-column dd{
 }
 .network-key .collapse-button{
   position: absolute;
-  right: 0;
+  cursor: pointer;
+  top: -25px;
+  left: 50%;
   z-index: 1;
+  height: 25px;
+  width: 50px;
+  border-radius: 50px 50px 0 0;
+  -moz-border-radius: 50px 50px 0 0;
+  -webkit-border-radius: 50px 50px 0 0;
+  padding-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: #ECE8E5;
 }
-.network-key .collapse-button.above-line{
-  bottom: 0;
+.network-key:hover .collapse-button, .network-key .collapse-button:hover{
+  background-color: #F9F3EA;
 }
 .network-key span.line-link{
   display: inline-block;

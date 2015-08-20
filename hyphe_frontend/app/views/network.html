@@ -69,11 +69,14 @@
         </button>
       </div>
 
-      <div class="container-fluid hidden-xs">
+      <div class="collapse-button pointable" ng-click="keyCollapsed = !keyCollapsed">
+        <center>
+          KEY
+          <span class="glyphicon" ng-class="{'glyphicon-chevron-right':keyCollapsed, 'glyphicon-chevron-down':!keyCollapsed}"></span>
+        </center>
+      </div>
 
-        <div class="collapse-button pointable" ng-click="keyCollapsed = !keyCollapsed" ng-class="{'above-line':keyCollapsed}">
-          <span class="glyphicon" ng-class="{'glyphicon-chevron-up':keyCollapsed, 'glyphicon-chevron-down':!keyCollapsed}"></span>
-        </div>
+      <div class="container-fluid hidden-xs" ng-click="keyCollapsed = !keyCollapsed">
 
         <div class="row" collapse="keyCollapsed">
           <div class="col-sm-4">
