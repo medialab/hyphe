@@ -18,6 +18,8 @@ angular.module('hyphe.listwebentitiesController', [])
 
     $scope.loading = false  // This flag prevents multiple simultaneous queries
 
+    $scope.filteringCollapsed = false
+
     $scope.pageChecked = false
 
     $scope.paginationPage = 1
@@ -42,7 +44,6 @@ angular.module('hyphe.listwebentitiesController', [])
     , discovered: $scope.statuses.discovered
     , query: $scope.query
     }
-    
 
     $scope.selected_setStatus = 'none'
     $scope.selected_mergeTarget = 'none'
@@ -52,7 +53,6 @@ angular.module('hyphe.listwebentitiesController', [])
         $scope.settings[status] = $scope.statuses[status]
       }
       $scope.settings.query = $scope.query
-      console.log('jj', $scope.settings.query)
 
       $scope.touchSettings()
       summarizeStatuses()

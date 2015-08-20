@@ -22,7 +22,7 @@ angular.module('hyphe.networkController', [])
     $scope.loading = true
     $scope.settingsChanged = false
 
-    $scope.filterCollapsed = false
+    $scope.filteringCollapsed = false
     $scope.keyCollapsed = false
     
     // Different presets for settings
@@ -194,7 +194,7 @@ angular.module('hyphe.networkController', [])
     }
 
     $scope.toggleFilterCollapse = function(){
-      $scope.filterCollapsed = !$scope.filterCollapsed;
+      $scope.filteringCollapsed = !$scope.filteringCollapsed;
     }
 
     $scope.toggleKeyCollapse = function(){

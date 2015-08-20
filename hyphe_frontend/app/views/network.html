@@ -71,7 +71,7 @@
 
       <div class="container-fluid hidden-xs">
 
-        <div class="collapse-button pointable" ng-click="toggleKeyCollapse()" ng-class="{'above-line':keyCollapsed}">
+        <div class="collapse-button pointable" ng-click="keyCollapsed = !keyCollapsed" ng-class="{'above-line':keyCollapsed}">
           <span class="glyphicon" ng-class="{'glyphicon-chevron-up':keyCollapsed, 'glyphicon-chevron-down':!keyCollapsed}"></span>
         </div>
 
@@ -113,30 +113,19 @@
 
     <div class="sigma-floating hidden-xs" ng-if="!loading">
       <div class="flatpanel">
-        <div class="flatpanel-heading">
-          <span class="pointable" ng-click="toggleFilterCollapse()">
-            FILTERS
-          </span>
-          <span ng-show="!filterCollapsed">
-            <span class="text-muted"> - </span>
-            <span dropdown dropdown-append-to-body is-open="presetsOpen">
-              <a href id="presets-dropdown" dropdown-toggle>
-                presets
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="presets-dropdown">
-                <li ng-repeat="choice in presetNames">
-                  <a href ng-click="applyPreset($index)">{{choice}}</a>
-                </li>
-              </ul>
-            </span>
-          </span>
-
-          <span class="pull-right pointable" ng-click="toggleFilterCollapse()">
+        <div class="flatpanel-heading flatpanel-clickable" ng-click="filteringCollapsed = !filteringCollapsed">
+          FILTERING
+          <span class="pull-right">
             &nbsp;&nbsp;
-            <span class="glyphicon" ng-class="{'glyphicon-chevron-up':!filterCollapsed, 'glyphicon-chevron-down':filterCollapsed}"></span>
+            <span class="glyphicon" ng-class="{'glyphicon-chevron-down':!filteringCollapsed, 'glyphicon-chevron-right':filteringCollapsed}"></span>
           </span>
         </div>
-        <div class="flatpanel-body" collapse="filterCollapsed">
+        <div class="flatpanel-body" collapse="filteringCollapsed">
+
+          <div class="flatpanel-textblock">
+            Presets:
+            <a class="btn btn-link" ng-repeat="choice in presetNames" ng-click="applyPreset($index)">{{choice}}</a>
+          </div>
 
           <div class="flatpanel-textblock flatpanel-separated">
             

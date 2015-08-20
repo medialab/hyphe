@@ -93,6 +93,26 @@ label.btn.btn-default.disabled.active{
 
 
 /* ==========================================================================
+   Factored : web entity colors
+   ========================================================================== */
+.webentity-color-in{
+  color: #333;
+}
+.webentity-color-undecided{
+  color: #ADA299;
+}
+.webentity-color-out{
+  /*color: #FAA;*/
+  color: #E67E7E;
+}
+.webentity-color-discovered{
+  /*color: #93BDE0;*/
+  color: #75ADDC;
+}
+
+
+
+/* ==========================================================================
    Full height panels
    ========================================================================== */
 
@@ -123,8 +143,6 @@ label.btn.btn-default.disabled.active{
     padding-left: 0px;
   }
 }
-
-
 
 
 
@@ -199,8 +217,6 @@ label.btn.btn-default.disabled.active{
 
 
 
-
-
 /* ==========================================================================
    Top bar
    ========================================================================== */
@@ -270,6 +286,7 @@ label.btn.btn-default.disabled.active{
 }
 
 
+
 /* ==========================================================================
    Sidebar nav
    ========================================================================== */
@@ -334,6 +351,7 @@ label.btn.btn-default.disabled.active{
 }
 
 
+
 /* ==========================================================================
    Dashboard
    ========================================================================== */
@@ -396,6 +414,7 @@ label.btn.btn-default.disabled.active{
     margin-left: 0;
   }
 }
+
 
 
 
@@ -1106,6 +1125,8 @@ textarea.over-error{
 
 
 
+
+
 /* ==========================================================================
    Factored between different views: Web Entity List
    ========================================================================== */
@@ -1175,13 +1196,13 @@ textarea.over-error{
   background-color: #EAEAFF;
 }
 .webentities-list-table tr.bg-selected:nth-child(even)>td{
-  background-color: #EAEAFF;
+  background-color: #FFFAEA;
 }
 .webentities-list-table tr.bg-selected:nth-child(odd)>td{
-  background-color: #E5E5F1;
+  background-color: #FBF5E3;
 }
 .selection-background{
-  background-color: #EAEAFF;
+  background-color: #FBF5E3;
 }
 .flatpanel-body form.action{
   margin-top: 6px;
@@ -1200,7 +1221,7 @@ textarea.over-error{
   cursor: pointer;
 }
 .webentities-list-table tr.bg-selected .prefix-div{
-  background-color: #FFF;
+  /*background-color: #FFF;*/
 }
 .webentities-list-table .prefix-div:hover, .webentities-list-table tr.bg-selected .prefix-div:hover{
   background-color: #428bca;

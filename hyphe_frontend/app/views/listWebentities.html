@@ -18,10 +18,14 @@
               <div class="col-md-8">
                 
                 <div class="flatpanel">
-                  <div class="flatpanel-heading">
+                  <div class="flatpanel-heading flatpanel-clickable" ng-click="filteringCollapsed = !filteringCollapsed">
                     FILTERING
+                    <div class="pull-right">
+                      <span ng-show="filteringCollapsed" class="glyphicon glyphicon-chevron-right"></span>
+                      <span ng-show="!filteringCollapsed" class="glyphicon glyphicon-chevron-down"></span>
+                    </div>
                   </div>
-                  <div class="flatpanel-body">
+                  <div class="flatpanel-body" collapse="filteringCollapsed">
 
                     <div class="flatpanel-textblock">
 
@@ -135,17 +139,27 @@
                       >
                         <td class="cell-checkbox"><input type="checkbox" ng-checked="obj.checked"></td>
                         <td class="cell-name">
-                          {{obj.webentity.name}}
+                          <span>{{obj.webentity.name}}</span>
                           <webentity-link corpus-id="corpusId" webentity-id="obj.webentity.id">
                         </td>
                         <td class="cell-prefixes hidden-xs hidden-sm prefix-div-container">
                           <div ng-repeat="lru in obj.webentity.lru_prefixes" tooltip="{{lru|lru_to_url}}" class="prefix-div" ng-click="popLru(lru); $event.stopPropagation();"></div>
                         </td>
-                        <td class="cell-status">{{obj.webentity.status}}</td>
+                        <td class="cell-status">
+                          <span
+                            ng-class="{
+                              'webentity-color-in':obj.webentity.status == 'IN',
+                              'webentity-color-undecided':obj.webentity.status == 'UNDECIDED',
+                              'webentity-color-out':obj.webentity.status == 'OUT',
+                              'webentity-color-discovered':obj.webentity.status == 'DISCOVERED'
+                            }"
+                          >{{obj.webentity.status}}</span>
+                        </td>
                         <td class="cell-last-crawled hidden-xs">
-                          <span tooltip="HARVESTING: {{obj.webentity.crawling_status}} | INDEXING: {{obj.webentity.indexing_status}}">
-                            <span class="text-{{obj.webentity.crawled ? 'success' : 'danger'}}">{{obj.webentity.crawled ? 'YES' : 'NO'}}</span>
-                          </span>
+                          <!-- <span tooltip="HARVESTING: {{obj.webentity.crawling_status}} INDEXING: {{obj.webentity.indexing_status}}"> -->
+                            <span class="table-glyphicon glyphicon glyphicon-ok text-muted" ng-show="obj.webentity.crawled"></span>
+                            <span ng-show="!obj.webentity.crawled">&nbsp;&nbsp;&nbsp;</span>
+                          <!-- </span> -->
                         </td>
                         <td class="cell-cited">
                           {{obj.webentity.indegree}}
