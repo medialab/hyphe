@@ -193,6 +193,9 @@ label.btn.btn-default.disabled.active{
 .flatpanel .flatpanel-whitespace{
   border-top: 12px solid #fff;
 }
+.flatpanel .flatpanel-input-spacer{
+  height: 9px;
+}
 
 
 
@@ -1147,14 +1150,15 @@ textarea.over-error{
   height: 174px;
 }
 .webentities-list-table .search-ariane-string{
-  padding-bottom: 6px;
-  min-height: 40px;
+  /*padding-bottom: 6px;*/
+  /*min-height: 40px;*/
 }
 .webentities-list-table .search-ariane-string-text{
   font-weight: 600;
   padding-top: 6px;
   padding-left: 2px;
   padding-bottom: 6px;
+  padding-right: 12px;
 }
 .webentities-list-table .search-ariane-string-text .glyphicon{
   color: #BABABA;
@@ -1166,8 +1170,15 @@ textarea.over-error{
       -ms-user-select: none; /* IE10+ */
                select: none;
 }
+
 .webentities-list-table tr.bg-selected{
   background-color: #EAEAFF;
+}
+.webentities-list-table tr.bg-selected:nth-child(even)>td{
+  background-color: #EAEAFF;
+}
+.webentities-list-table tr.bg-selected:nth-child(odd)>td{
+  background-color: #E5E5F1;
 }
 .selection-background{
   background-color: #EAEAFF;

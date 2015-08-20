@@ -16,81 +16,77 @@
 
             <div class="row">
               <div class="col-md-8">
+                
+                <div class="flatpanel">
+                  <div class="flatpanel-heading">
+                    FILTERING
+                  </div>
+                  <div class="flatpanel-body">
+
+                    <div class="flatpanel-textblock">
+
+                      <!-- Status selector -->
+                      <hyphe-status-box statuses="statuses" counts="counts" change="touchSettings()" disabled="loading"></hyphe-status-box>
+                      
+                      <div class="flatpanel-input-spacer"></div>
+
+                      <!-- Search -->
+                      <div class="input-group">
+                        <!-- <span class="input-group-btn">
+                          <button
+                            class="btn btn-default"
+                            type="button"
+                            ng-click="touchSettings()"
+                          >Search</button>
+                        </span> -->
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
+                        <input
+                          type="text"
+                          class="form-control"
+                          placeholder="Type a query"
+                          ng-model="query"
+                          ng-press-enter="applySettings()"
+                        >
+                      </div>
+
+                    </div>
+
+                    <!-- Validation panel -->
+                    <div class="flatpanel-textblock flatpanel-right flatpanel-separated" collapse="!settingsChanged">
+                      <button class="btn btn-default" ng-click="revertSettings()"><span class="glyphicon glyphicon-remove"></span> CANCEL</button>
+                      <button class="btn btn-primary" ng-click="applySettings()"><span class="glyphicon glyphicon-ok"></span> APPLY CHANGES</button>
+                    </div>
+
+                  </div>
+                </div>
+
+                <br>
+
+                <!-- List -->
                 <div class="panel panel-default webentities-list-table">
                   
                   <!-- Default panel contents -->
                   <div class="panel-heading hyphe-gray">
+                    <form class="form-inline search-ariane-string" role="form"  ng-if="!loading">
 
-                    <form class="form-inline search-ariane-string" role="form">
-
-                      <div class="btn-group">
-                        <label
-                          class="btn btn-default"
-                          ng-model="statuses.in"
-                          ng-change="doQuery()"
-                          ng-class="{disabled:loading}"
-                          btn-checkbox
-                        >IN</label>
-
-                        <label
-                          class="btn btn-default"
-                          ng-model="statuses.undecided"
-                          ng-change="doQuery()"
-                          ng-class="{disabled:loading}"
-                          btn-checkbox
-                        >UNDECIDED</label>
-
-                        <label
-                          class="btn btn-default"
-                          ng-model="statuses.discovered"
-                          ng-change="doQuery()"
-                          ng-class="{disabled:loading}"
-                          btn-checkbox
-                        >DISCOVERED</label>
-
-                        <label
-                          class="btn btn-default"
-                          ng-model="statuses.out"
-                          ng-change="doQuery()"
-                          ng-class="{disabled:loading}"
-                          btn-checkbox
-                        >OUT</label>
-
+                      <div class="form-group" ng-if="!(status.in && status.out && status.undecided && status.discovered)">
+                        <button type="button" class="btn btn-default" disabled="disabled">{{statusesSummary}}</button>
                       </div>
 
-                      <div class="form-group" ng-if="lastQuery && lastQuery != ''">
-                        <button type="button" class="btn btn-primary" ng-click="clearQuery()"><span class="glyphicon glyphicon-remove"></span> {{lastQuery}}</button>
+                      <div class="form-group" ng-if="settings.query && settings.query != ''">
+                        <button type="button" class="btn btn-default" ng-click="clearQuery()"><span class="glyphicon glyphicon-remove"></span> {{settings.query}}</button>
                       </div>
 
-                      <div class="form-group search-ariane-string-text">
-                        <span class="glyphicon glyphicon-chevron-right" ng-if="!loading"></span>
-                        <span ng-if="!loading">
-                          {{fullListLength}} WEB ENTIT{{fullListLength > 1 ? 'IES' : 'Y'}}
-                        </span>
+                      <div class="form-group search-ariane-string-text pull-right">
+                        {{fullListLength}} WEB ENTIT{{fullListLength > 1 ? 'IES' : 'Y'}}
                       </div>
                       
                     </form>
 
-                    <div class="input-group">
-                      <input
-                        type="text"
-                        class="form-control"
-                        placeholder="Type a query"
-                        ng-model="query"
-                        ng-press-enter="doQuery()"
-                      >
-                      <span class="input-group-btn">
-                        <button
-                          class="btn btn-default"
-                          type="button"
-                          ng-click="doQuery()"
-                        >Search</button>
-                      </span>
-                    </div>
 
                   </div>
 
-                  <table class="table table-condensed">
+                  <table class="table table-condensed table-striped">
                     <thead>
                       <tr ng-if="!loading && fullListLength > 0">
                         <th class="cell-checkbox"><input type="checkbox" ng-model="$parent.$parent.pageChecked" ng-change="updatePageSelection()" tooltip="{{$parent.pageChecked ? 'Uncheck' : 'Check'}} all on this page"></th>

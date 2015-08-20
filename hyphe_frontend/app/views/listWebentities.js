@@ -28,13 +28,62 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.currentSearchToken
 
     $scope.query
-    $scope.lastQuery
     $scope.sort = 'name'
     $scope.sortAsc = true
     $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
+    $scope.statusesSummary
+
+    $scope.settingsChanged
+
+    $scope.settings = {
+      in: $scope.statuses.in
+    , undecided: $scope.statuses.undecided
+    , out: $scope.statuses.out
+    , discovered: $scope.statuses.discovered
+    , query: $scope.query
+    }
+    
 
     $scope.selected_setStatus = 'none'
     $scope.selected_mergeTarget = 'none'
+
+    $scope.applySettings = function(){
+      for(var status in $scope.statuses){
+        $scope.settings[status] = $scope.statuses[status]
+      }
+      $scope.settings.query = $scope.query
+      console.log('jj', $scope.settings.query)
+
+      $scope.touchSettings()
+      summarizeStatuses()
+      doQuery()
+    }
+
+    $scope.revertSettings = function(){
+      for(var status in $scope.statuses){
+        $scope.statuses[status] = $scope.settings[status]
+      }
+      $scope.query = $scope.settings.query
+
+      $scope.touchSettings()
+    }
+
+    $scope.touchSettings = function(){
+
+      // Check if difference with current settings
+      var difference = false
+      for(var status in $scope.statuses){
+        if($scope.statuses[status] != $scope.settings[status]){
+          difference = true
+        }
+      }
+
+      if ($scope.query != $scope.settings.query) {
+        difference = true
+      }
+
+      $scope.settingsChanged = difference
+    }
 
     $scope.pageChanged = function(){
       
@@ -92,10 +141,10 @@ angular.module('hyphe.listwebentitiesController', [])
         $scope.sort = field
         $scope.sortAsc = ($scope.sort == 'name')
       }
-      if($scope.lastQuery === undefined){
+      if($scope.settings.query === undefined){
         $scope.loadWebentities()
       } else {
-        var query = utils.cleanLuceneQuery($scope.lastQuery)
+        var query = utils.cleanLuceneQuery($scope.settings.query)
         $scope.loadWebentities(query)
       }
     }
@@ -105,9 +154,6 @@ angular.module('hyphe.listwebentitiesController', [])
       $scope.loading = true
 
       $scope.paginationPage = 1
-
-      // Set last query
-      $scope.lastQuery = $scope.query
 
       // Get filtering settings
       var field_kw = [
@@ -186,18 +232,10 @@ angular.module('hyphe.listwebentitiesController', [])
       }
     }
 
-    $scope.doQuery = function(){
-      if(!$scope.loading){
-        refreshEasterEgg()  // yes, yes...
-        var query = utils.cleanLuceneQuery($scope.query)
-        console.log('Query:',query)
-        $scope.loadWebentities(query)
-      }
-    }
-
     $scope.clearQuery = function(){
       $scope.query = undefined
-      $scope.loadWebentities()
+      $scope.applySettings()
+      doQuery()
     }
 
     $scope.doCrawl = function(crawlExisting){
@@ -298,10 +336,28 @@ angular.module('hyphe.listwebentitiesController', [])
       }
     }
 
+    // Init
+    $scope.applySettings()
     $scope.loadWebentities()
 
 
     // Functions
+
+    function summarizeStatuses(){
+      $scope.statusesSummary = ['in', 'undecided', 'out', 'discovered']
+        .filter(function(k){ return $scope.settings[k] })
+        .map(function(d){ return d.toUpperCase() }).join(' + ')
+    }
+
+    function doQuery(){
+      if(!$scope.loading){
+        refreshEasterEgg()  // yes, yes...
+        var query = utils.cleanLuceneQuery($scope.query)
+        console.log('Query:',query)
+        $scope.loadWebentities(query)
+      }
+    }
+
     function reset(){
       $scope.list
 
