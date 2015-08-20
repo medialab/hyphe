@@ -16,55 +16,79 @@
 
             <div class="row">
               <div class="col-md-8">
-                <div class="panel panel-default webentities-list-table">
-              
-                  <!-- Default panel contents -->
-                  <div class="panel-heading panel-heading-withrange hyphe-gray">
-                    
-                    <form class="form-inline search-ariane-string" role="form">
-                      
-                      <div class="form-group" ng-if="lastQuery && lastQuery != ''">
-                        <button type="button" class="btn btn-primary" ng-click="clearQuery()"><span class="glyphicon glyphicon-remove"></span> {{lastQuery}}</button>
+
+
+                <div class="flatpanel">
+                  <div class="flatpanel-heading flatpanel-clickable" ng-click="filteringCollapsed = !filteringCollapsed">
+                    FILTERING
+                    <div class="pull-right">
+                      <span ng-show="filteringCollapsed" class="glyphicon glyphicon-chevron-right"></span>
+                      <span ng-show="!filteringCollapsed" class="glyphicon glyphicon-chevron-down"></span>
+                    </div>
+                  </div>
+                  <div class="flatpanel-body" collapse="filteringCollapsed">
+
+                    <div class="flatpanel-textblock">
+
+                      <!-- Search -->
+                      <div class="input-group">
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
+                        <input
+                          type="text"
+                          class="form-control"
+                          placeholder="Type a query"
+                          ng-model="query"
+                          ng-change="touchSettings()"
+                          ng-press-enter="applySettings()"
+                        >
                       </div>
 
-                      <div class="form-group search-ariane-string-text">
-                        <span class="glyphicon glyphicon-chevron-right" ng-if="!loading && lastQuery && lastQuery != ''"></span>
-                        <span ng-if="!loading">
-                          {{fullListLength}} DISCOVERED WEB ENTIT{{fullListLength > 1 ? 'IES' : 'Y'}}
-                        </span>
-                      </div>
-                    </form>
+                      <!-- Range selector -->
+                      <!-- <div class="prospect-range-selector">
+                        <rangeselector data="rangeObj">
+                      </div> -->
 
-                    <div class="input-group">
-                      <input
-                        type="text"
-                        class="form-control"
-                        placeholder="Type a query"
-                        ng-model="query"
-                        ng-press-enter="doQuery()"
-                      >
-                      <span class="input-group-btn">
-                        <button
-                          class="btn btn-default"
-                          type="button"
-                          ng-click="doQuery()"
-                        >Search</button>
-                      </span>
                     </div>
 
-                    <div class="prospect-range-selector">
-                      <rangeselector data="rangeObj">
+                    <!-- Validation panel -->
+                    <div class="flatpanel-textblock flatpanel-right flatpanel-separated" collapse="!settingsChanged">
+                      <button class="btn btn-default" ng-click="revertSettings()"><span class="glyphicon glyphicon-remove"></span> CANCEL</button>
+                      <button class="btn btn-primary" ng-click="applySettings()"><span class="glyphicon glyphicon-ok"></span> APPLY CHANGES</button>
                     </div>
 
                   </div>
+                </div>
 
-                  <table class="table table-condensed">
+                <br>
+
+                <div class="panel panel-default webentities-list-table">
+              
+                  <!-- Default panel contents -->
+                  <div class="panel-heading hyphe-gray">
+                    <form class="form-inline search-ariane-string" role="form"  ng-if="!loading">
+
+                      <div class="form-group">
+                        <button type="button" class="btn btn-default" disabled="disabled">DISCOVERED</button>
+                      </div>
+
+                      <div class="form-group" ng-if="settings.query && settings.query != ''">
+                        <button type="button" class="btn btn-default" ng-click="clearQuery()"><span class="glyphicon glyphicon-remove"></span> {{settings.query}}</button>
+                      </div>
+
+                      <div class="form-group search-ariane-string-text pull-right">
+                        {{fullListLength}} DISCOVERED WEB ENTIT{{fullListLength > 1 ? 'IES' : 'Y'}}
+                      </div>
+                      
+                    </form>
+                  </div>
+
+                  <table class="table table-condensed table-striped">
                     <thead>
                       <tr ng-if="!loading && fullListLength > 0">
+                        <th class="cell-action"></th>
                         <th>Name</th>
                         <th class="cell-prefixes hidden-xs hidden-sm">Prefixes</th>
                         <th class="cell-cited"><span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt"></span> Cited</th>
-                        <th class="cell-action"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -78,17 +102,12 @@
                         ng-mouseenter="obj.hover = true"
                         ng-mouseleave="obj.hover = false"
                       >
-                        <td class="cell-name">{{obj.webentity.name}} <webentity-link corpus-id="corpusId" webentity-id="obj.webentity.id"></td>
-                        <td class="cell-prefixes hidden-xs hidden-sm prefix-div-container">
-                          <div ng-repeat="lru in obj.webentity.lru_prefixes" tooltip="{{lru|lru_to_url}}" class="prefix-div" ng-click="popLru(lru); $event.stopPropagation();"></div>
-                        </td>
-                        <td class="cell-cited">{{obj.webentity.indegree}}</td>
-                        <td class="cell-cited">
+                        <td class="cell-action">
                           
-                          <div class="btn-group">
+                          <div class="btn-group btn-group-status-selector">
 
                             <label
-                              class="btn btn-default btn-xs"
+                              class="btn btn-default btn-xs btn-in"
                               ng-model="obj.webentity.status"
                               btn-radio="'IN'"
                               ng-click="setStatus(obj, 'IN')"
@@ -96,7 +115,7 @@
                             >IN</label>
 
                             <label
-                              class="btn btn-default btn-xs"
+                              class="btn btn-default btn-xs btn-undecided"
                               ng-model="obj.webentity.status"
                               btn-radio="'UNDECIDED'"
                               ng-click="setStatus(obj, 'UNDECIDED')"
@@ -104,7 +123,7 @@
                             >UND.</label>
 
                             <label
-                              class="btn btn-default btn-xs"
+                              class="btn btn-default btn-xs btn-out"
                               ng-model="obj.webentity.status"
                               btn-radio="'OUT'"
                               ng-click="setStatus(obj, 'OUT')"
@@ -116,6 +135,11 @@
                           <!-- <button class="btn btn-xs btn-link" title="Explore Web Entity" ng-click="openPreview(obj)"><span class="glyphicon glyphicon-share"></span></button> -->
 
                         </td>
+                        <td class="cell-name">{{obj.webentity.name}} <webentity-link corpus-id="corpusId" webentity-id="obj.webentity.id"></td>
+                        <td class="cell-prefixes hidden-xs hidden-sm prefix-div-container">
+                          <div ng-repeat="lru in obj.webentity.lru_prefixes" tooltip="{{lru|lru_to_url}}" class="prefix-div" ng-click="popLru(lru); $event.stopPropagation();"></div>
+                        </td>
+                        <td class="cell-cited">{{obj.webentity.indegree}}</td>
                       </tr>
 
                     </tbody>
@@ -150,14 +174,16 @@
               <div class="col-md-4">
                 
                 <div class="flatpanel">
-                  <div class="flatpanel-heading flatpanel-clickable" ng-click="setToInCollapsed = !setToInCollapsed">
-                    JUST ADDED TO: IN ({{setToIn}})
+
+                  <!-- IN -->
+                  <div class="flatpanel-heading flatpanel-clickable" ng-click="setToInCollapsed = !setToInCollapsed" ng-show="setToIn>0">
+                    JUST ADDED TO <span class="webentity-color-in">IN</span><span class="text-muted"> - {{setToIn}}</span>
                     <div class="pull-right">
                       <span ng-show="setToInCollapsed" class="glyphicon glyphicon-chevron-right"></span>
                       <span ng-show="!setToInCollapsed" class="glyphicon glyphicon-chevron-down"></span>
                     </div>
                   </div>
-                  <div class="flatpanel-body" collapse="setToInCollapsed">
+                  <div class="flatpanel-body" collapse="setToInCollapsed" ng-show="setToIn>0">
 
                     <div class="flatpanel-textblock text-muted" ng-if="setToIn == 0">empty</div>
 
@@ -191,14 +217,15 @@
 
                   </div>
 
-                  <div class="flatpanel-heading flatpanel-clickable flatpanel-whitespace" ng-click="setToUndecidedCollapsed = !setToUndecidedCollapsed">
-                    JUST ADDED TO: UNDECIDED ({{setToUndecided}})
+                  <!-- UNDECIDED -->
+                  <div class="flatpanel-heading flatpanel-clickable flatpanel-whitespace" ng-click="setToUndecidedCollapsed = !setToUndecidedCollapsed" ng-show="setToUndecided>0">
+                    JUST ADDED TO <span class="webentity-color-undecided">UNDECIDED</span><span class="text-muted"> - {{setToUndecided}}</span>
                     <div class="pull-right">
                       <span ng-show="setToUndecidedCollapsed" class="glyphicon glyphicon-chevron-right"></span>
                       <span ng-show="!setToUndecidedCollapsed" class="glyphicon glyphicon-chevron-down"></span>
                     </div>
                   </div>
-                  <div class="flatpanel-body" collapse="setToUndecidedCollapsed">
+                  <div class="flatpanel-body" collapse="setToUndecidedCollapsed" ng-show="setToUndecided>0">
                     
                     <div class="flatpanel-textblock text-muted" ng-if="setToUndecided == 0">empty</div>
 
@@ -227,14 +254,15 @@
 
                   </div>
 
-                  <div class="flatpanel-heading flatpanel-clickable flatpanel-whitespace" ng-click="setToOutCollapsed = !setToOutCollapsed">
-                    JUST ADDED TO: OUT ({{setToOut}})
+                  <!-- OUT -->
+                  <div class="flatpanel-heading flatpanel-clickable flatpanel-whitespace" ng-click="setToOutCollapsed = !setToOutCollapsed" ng-show="setToOut>0">
+                    JUST ADDED TO <span class="webentity-color-out">OUT</span><span class="text-muted"> - {{setToOut}}</span>
                     <div class="pull-right">
                       <span ng-show="setToOutCollapsed" class="glyphicon glyphicon-chevron-right"></span>
                       <span ng-show="!setToOutCollapsed" class="glyphicon glyphicon-chevron-down"></span>
                     </div>
                   </div>
-                  <div class="flatpanel-body" collapse="setToOutCollapsed">
+                  <div class="flatpanel-body" collapse="setToOutCollapsed" ng-show="setToOut>0">
                     
                     <div class="flatpanel-textblock text-muted" ng-if="setToOut == 0">empty</div>
 

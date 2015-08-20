@@ -20,8 +20,12 @@ angular.module('hyphe.prospectController', [])
     $scope.fullListLength = 0
     $scope.currentSearchToken
 
+
     $scope.query
-    $scope.lastQuery
+    $scope.settings = {
+      query: $scope.query
+    }
+    $scope.settingsChanged
 
     $scope.setToInCollapsed = false
     $scope.setToOutCollapsed = true
@@ -31,6 +35,33 @@ angular.module('hyphe.prospectController', [])
     $scope.setToIn = 0
     $scope.setToOut = 0
     $scope.setToUndecided = 0
+
+    $scope.filteringCollapsed = false
+
+    $scope.applySettings = function(){
+      $scope.settings.query = $scope.query
+
+      $scope.touchSettings()
+      
+      $scope.doQuery()
+    }
+
+    $scope.revertSettings = function(){
+      $scope.query = $scope.settings.query
+
+      $scope.touchSettings()
+    }
+
+    $scope.touchSettings = function(){
+
+      // Check if difference with current settings
+      var difference = false
+      if ($scope.query != $scope.settings.query) {
+        difference = true
+      }
+
+      $scope.settingsChanged = difference
+    }
 
     $scope.pageChanged = function(){
       
@@ -134,7 +165,8 @@ angular.module('hyphe.prospectController', [])
 
     $scope.clearQuery = function(){
       $scope.query = undefined
-      $scope.loadWebentities()
+      $scope.applySettings()
+      $scope.doQuery()
     }
 
     $scope.setStatus = function(obj, status){

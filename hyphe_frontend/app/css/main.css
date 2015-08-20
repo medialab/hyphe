@@ -93,7 +93,7 @@ label.btn.btn-default.disabled.active{
 
 
 /* ==========================================================================
-   Factored : web entity colors
+   Web entity colors
    ========================================================================== */
 .webentity-color-in{
   color: #333;
@@ -108,6 +108,24 @@ label.btn.btn-default.disabled.active{
 .webentity-color-discovered{
   /*color: #93BDE0;*/
   color: #75ADDC;
+}
+
+
+
+/* ==========================================================================
+   Status selector
+   ========================================================================== */
+.btn-group-status-selector .btn-in{
+  border-bottom: 2px solid #333;
+}
+.btn-group-status-selector .btn-undecided{
+  border-bottom: 2px solid #ADA299;
+}
+.btn-group-status-selector .btn-out{
+  border-bottom: 2px solid #FAA;
+}
+.btn-group-status-selector .btn-discovered{
+  border-bottom: 2px solid #93BDE0;
 }
 
 
