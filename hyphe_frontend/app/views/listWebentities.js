@@ -260,7 +260,8 @@ angular.module('hyphe.listwebentitiesController', [])
 
       if(list.length > 0){
         store.set('webentities_toCrawl', list)
-        $location.path('/project/'+$scope.corpusId+'/checkStartPages')
+        // $location.path('/project/'+$scope.corpusId+'/checkStartPages')
+        $location.path('/project/'+$scope.corpusId+'/prepareCrawls')
       } else {
         $scope.status = {message:'No Web Entity to send', background:'danger'}
       }
