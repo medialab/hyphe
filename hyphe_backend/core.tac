@@ -1767,7 +1767,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         elif n_WEs:
             MAX_WE_AT_ONCE = 100
             WEs = []
-            sublists = [list_ids[MAX_WE_AT_ONCE*i : MAX_WE_AT_ONCE*(i+1)] for i in range((n_WEs-1)/MAX_WE_AT_ONCE + 1)]
+            sublists = [list_ids[MAX_WE_AT_ONCE*i : MAX_WE_AT_ONCE*(i+1)] for i in range(int((n_WEs-1)/MAX_WE_AT_ONCE + 1))]
             results = yield DeferredList([self.msclients.pool.getWebEntitiesByIDs(sublist_ids, corpus=corpus) for sublist_ids in sublists], consumeErrors=True)
             for bl, res in results:
                 if not bl or is_error(res):
