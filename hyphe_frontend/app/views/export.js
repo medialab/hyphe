@@ -104,6 +104,109 @@ angular.module('hyphe.exportController', [])
         ,val: false
       }
     }
+    $scope.presets = [
+      {
+        name:'basic corpus'
+      , statuses: {
+          in: true
+        , undecided: false
+        , out: false
+        , discovered: false
+        }
+      , columns: {
+          id: true
+        , name: true
+        , prefixes: true
+        , prefixes_lru: false
+        , start_pages: false
+        , status: true
+        , indegree: true
+        , crawling_status: true
+        , indexing_status: false
+        , creation_date: false
+        , last_modification_date: true
+        , creation_date_timestamp: false
+        , last_modification_date_timestamp: false
+        , core_tags: false
+        }
+      }
+    , {
+        name:'full data'
+      , statuses: {
+          in: true
+        , undecided: true
+        , out: true
+        , discovered: true
+        }
+      , columns: {
+          id: true
+        , name: true
+        , prefixes: false
+        , prefixes_lru: true
+        , start_pages: true
+        , status: true
+        , indegree: true
+        , crawling_status: true
+        , indexing_status: true
+        , creation_date: false
+        , last_modification_date: false
+        , creation_date_timestamp: true
+        , last_modification_date_timestamp: true
+        , core_tags: true
+        }
+      }
+    , {
+        name:'check all'
+      , statuses: {
+          in: true
+        , undecided: true
+        , out: true
+        , discovered: true
+        }
+            , columns: {
+          id: true
+        , name: true
+        , prefixes: true
+        , prefixes_lru: true
+        , start_pages: true
+        , status: true
+        , indegree: true
+        , crawling_status: true
+        , indexing_status: true
+        , creation_date: true
+        , last_modification_date: true
+        , creation_date_timestamp: true
+        , last_modification_date_timestamp: true
+        , core_tags: true
+        }
+      }
+    , {
+        name:'uncheck all'
+      , statuses: {
+          in: false
+        , undecided: false
+        , out: false
+        , discovered: false
+        }
+            , columns: {
+          id: false
+        , name: false
+        , prefixes: false
+        , prefixes_lru: false
+        , start_pages: false
+        , status: false
+        , indegree: false
+        , crawling_status: false
+        , indexing_status: false
+        , creation_date: false
+        , last_modification_date: false
+        , creation_date_timestamp: false
+        , last_modification_date_timestamp: false
+        , core_tags: false
+        }
+      }
+
+    ]
     $scope.fileFormat = 'CSV'
 
     $scope.working = false
@@ -137,6 +240,15 @@ angular.module('hyphe.exportController', [])
       }
 
       loadWebentities()
+    }
+
+    $scope.applyPreset = function(p){
+      for(var k in $scope.statuses){
+        $scope.statuses[k] = $scope.presets[p].statuses[k]
+      }
+      for(var c in $scope.columns){
+        $scope.columns[c].val = $scope.presets[p].columns[c]
+      }
     }
 
     // Init
