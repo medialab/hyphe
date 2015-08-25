@@ -44,6 +44,7 @@ angular.module('hyphe.listwebentitiesController', [])
     , discovered: $scope.statuses.discovered
     , query: $scope.query
     }
+    $scope.counts = {}
 
     $scope.selected_setStatus = 'none'
     $scope.selected_mergeTarget = 'none'
@@ -338,10 +339,27 @@ angular.module('hyphe.listwebentitiesController', [])
 
     // Init
     $scope.applySettings()
-    $scope.loadWebentities()
+    loadStatus(
+      $scope.loadWebentities  // callback
+    )
 
 
     // Functions
+
+    function loadStatus(callback){
+      api.globalStatus({}, function(status){
+        $scope.counts = {
+          in: status.corpus.memory_structure.webentities.IN
+        , undecided: status.corpus.memory_structure.webentities.UNDECIDED
+        , out: status.corpus.memory_structure.webentities.OUT
+        , discovered: status.corpus.memory_structure.webentities.DISCOVERED
+        }
+      },function(data, status, headers, config){
+        $scope.status = {message: 'Error loading status', background:'danger'}
+      })
+
+      callback()
+    }
 
     function summarizeStatuses(){
       $scope.statusesSummary = ['in', 'undecided', 'out', 'discovered']
