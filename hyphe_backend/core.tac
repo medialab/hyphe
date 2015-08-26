@@ -653,7 +653,8 @@ class Core(jsonrpc.JSONRPC):
         if type(startmode) != list:
             if startmode.lower() == "default":
                 startmode = "prefixes"
-                # TODO: startmode = self.corpora[corpus]["options"]["startpages_mode"]
+                # TODO: set from default corpus option
+                #startmode = self.corpora[corpus]["options"]["startpages_mode"]
             startmode = [startmode]
         starts = {}
         for startrule in startmode:
@@ -745,7 +746,8 @@ class Core(jsonrpc.JSONRPC):
             returnD(subs)
         nofollow = [lr for subwe in subs for lr in subwe.LRUSet]
 
-        yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true", corpus=corpus)
+        if "CORE" in WE.metadataItems and "recrawlNeeded" in WE.metadataItems["CORE"]:
+            yield self.store.jsonrpc_rm_webentity_tag_key(webentity_id, "CORE", "recrawlNeeded", corpus=corpus)
         res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE.LRUSet, nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, corpus=corpus)
         returnD(res)
 
@@ -1038,7 +1040,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if test_bool_arg(light_for_csv):
             return {'id': WE.id, 'name': WE.name, 'status': WE.status,
                     'prefixes': "|".join([urllru.lru_to_url(lru, nocheck=True) for lru in WE.LRUSet]),
-                    'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns != "CORE"])}
+                    'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns.startswith("CORE")])}
         return res
 
     @inlineCallbacks
@@ -1077,10 +1079,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(WE):
             returnD(WE)
         if test_bool_arg(new):
+            if source:
+                yield self.jsonrpc_add_webentity_tag_value(WE.id, 'CORE', 'createdBy', "user via %s" % source, corpus=corpus)
             self.corpora[corpus]['recent_changes'] += 1
             self.corpora[corpus]['total_webentities'] += 1
-            if source:
-                yield self.jsonrpc_add_webentity_tag_value(WE.id, 'CORE', 'user_created_via', source, corpus=corpus)
         job = yield self.db.list_jobs(corpus, {'webentity_id': WE.id}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
         WE = self.format_webentity(WE, job, corpus=corpus)
         WE['created'] = True if new else False
@@ -1175,6 +1177,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if not isinstance(startPages, list):
                 startPages = [startPages]
             WE.startpages = startPages
+            WE.metadataItems = {"CORE.STARTPAGES": {"user": startPages}}
         if status:
             for s in ms.WebEntityStatus._NAMES_TO_VALUES:
                 if status.lower() == s.lower():
@@ -1197,12 +1200,18 @@ class Memory_Structure(jsonrpc.JSONRPC):
   # EDIT WEBENTITIES
 
     @inlineCallbacks
-    def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None, corpus=DEFAULT_CORPUS):
+    def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None, corpus=DEFAULT_CORPUS, _commit=True):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        WE = yield self.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
-        if is_error(WE):
-            returnD(format_error("ERROR could not retrieve WebEntity with id %s" % webentity_id))
+        # Get WebEntity if webentity_id not already one from internal call
+        try:
+            tmpid = str(webentity_id.id)
+            WE = webentity_id
+            webentity_id = tmpid
+        except:
+            WE = yield self.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
+            if is_error(WE):
+                returnD(format_error("ERROR could not retrieve WebEntity with id %s" % webentity_id))
         if field_name == "metadataItems":
             self.corpora[corpus]['recent_tagging'] = True
         try:
@@ -1251,21 +1260,24 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 setattr(WE, field_name, arr)
             else:
                 setattr(WE, field_name, value)
-            if len(WE.LRUSet):
-                res = yield self.msclients.pool.updateWebEntity(WE, corpus=corpus)
-                if is_error(res):
-                    returnD(res)
-                if field_name == 'LRUSet':
+            if _commit:
+                if len(WE.LRUSet):
+                    res = yield self.msclients.pool.updateWebEntity(WE, corpus=corpus)
+                    if is_error(res):
+                        returnD(res)
+                    if field_name == 'LRUSet':
+                        self.corpora[corpus]['recent_changes'] += 1
+                    returnD(format_result("%s field of WebEntity %s updated." % (field_name, res)))
+                else:
+                    res = yield self.msclients.pool.deleteWebEntity(WE, corpus=corpus)
+                    if is_error(res):
+                        returnD(res)
+                    yield self.db.update_jobs(corpus, {'webentity_id': WE.id}, {'webentity_id': None, 'previous_webentity_id': WE.id, 'previous_webentity_name': WE.name})
                     self.corpora[corpus]['recent_changes'] += 1
-                returnD(format_result("%s field of WebEntity %s updated." % (field_name, res)))
+                    self.corpora[corpus]['total_webentities'] -= 1
+                    returnD(format_result("webentity %s had no LRUprefix left and was removed." % webentity_id))
             else:
-                res = yield self.msclients.pool.deleteWebEntity(WE, corpus=corpus)
-                if is_error(res):
-                    returnD(res)
-                yield self.db.update_jobs(corpus, {'webentity_id': WE.id}, {'webentity_id': None, 'previous_webentity_id': WE.id, 'previous_webentity_name': WE.name})
-                self.corpora[corpus]['recent_changes'] += 1
-                self.corpora[corpus]['total_webentities'] -= 1
-                returnD(format_result("webentity %s had no LRUprefix left and was removed." % webentity_id))
+                returnD(WE)
         except Exception as x:
             returnD(format_error("ERROR while updating WebEntity : %s" % x))
 
@@ -1347,6 +1359,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not isinstance(lru_prefixes, list):
             lru_prefixes = [lru_prefixes]
         clean_lrus = []
+        WE = webentity_id
         for lru_prefix in lru_prefixes:
             try:
                 url, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
@@ -1359,8 +1372,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 if is_error(res):
                     returnD(res)
             clean_lrus.append(lru_prefix)
-        res = yield self.update_webentity(webentity_id, "LRUSet", clean_lrus, "push", corpus=corpus)
-        yield self.add_backend_tags(webentity_id, "lruprefixes_modified", "added %s" % ' & '.join(lru_prefixes), corpus=corpus)
+            WE = yield self.add_backend_tags(WE, "added", lru_prefix, namespace="PREFIXES", _commit=False, corpus=corpus)
+            if "removed" in WE.metadataItems["CORE.PREFIXES"] and lru_prefix in WE.metadataItems["CORE.PREFIXES"]["removed"]:
+                WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.PREFIXES", "removed", lru_prefix, _commit=False, corpus=corpus)
+        res = yield self.update_webentity(WE, "LRUSet", clean_lrus, "push", corpus=corpus)
         self.corpora[corpus]['recent_changes'] += 1
         returnD(res)
 
@@ -1373,13 +1388,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
             url, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
         except ValueError as e:
             returnD(format_error(e))
-        yield self.add_backend_tags(webentity_id, "lruprefixes_modified", "removed %s" % lru_prefix, corpus=corpus)
-        res = yield self.update_webentity(webentity_id, "LRUSet", lru_prefix, "pop", corpus=corpus)
+        WE = yield self.add_backend_tags(webentity_id, "removed", lru_prefix, namespace="PREFIXES", _commit=False, corpus=corpus)
+        if "added" in WE.metadataItems["CORE.PREFIXES"] and lru_prefix in WE.metadataItems["CORE.PREFIXES"]["added"]:
+            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.PREFIXES", "added", lru_prefix,  _commit=False, corpus=corpus)
+        res = yield self.update_webentity(WE, "LRUSet", lru_prefix, "pop", corpus=corpus)
         self.corpora[corpus]['recent_changes'] += 1
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS):
+    def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS, _automatic=False):
         """Adds for a `corpus` a list of `lru_prefixes` to a WebEntity defined by `webentity_id`."""
         try:
             startpage_url, _ = urllru.url_clean_and_convert(startpage_url)
@@ -1388,8 +1405,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WE = yield self.jsonrpc_get_webentity_for_url(startpage_url, corpus)
         if is_error(WE) or WE["result"]["id"] != webentity_id:
             returnD(format_error("WARNING: this page does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity."))
-        yield self.add_backend_tags(webentity_id, "startpages_modified", "added %s" % startpage_url, corpus=corpus)
-        res = yield self.update_webentity(webentity_id, "startpages", startpage_url, "push", corpus=corpus)
+        source = "auto" if _automatic else "user"
+        WE = yield self.add_backend_tags(webentity_id, source, startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
+        if "removed" in WE.metadataItems["CORE.STARTPAGES"] and startpage_url in WE.metadataItems["CORE.STARTPAGES"]["removed"]:
+            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.STARTPAGES", "removed", startpage_url, _commit=False, corpus=corpus)
+        res = yield self.update_webentity(WE, "startpages", startpage_url, "push", corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
@@ -1399,8 +1419,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
             startpage_url, _ = urllru.url_clean_and_convert(startpage_url)
         except ValueError as e:
             returnD(format_error(e))
-        yield self.add_backend_tags(webentity_id, "startpages_modified", "removed %s" % startpage_url, corpus=corpus)
-        res = yield self.update_webentity(webentity_id, "startpages", startpage_url, "pop", corpus=corpus)
+        WE = yield self.add_backend_tags(webentity_id, "removed", startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
+        if "user" in WE.metadataItems["CORE.STARTPAGES"] and startpage_url in WE.metadataItems["CORE.STARTPAGES"]["user"]:
+            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.STARTPAGES", "user", startpage_url, _commit=False, corpus=corpus)
+        if "auto" in WE.metadataItems["CORE.STARTPAGES"] and startpage_url in WE.metadataItems["CORE.STARTPAGES"]["auto"]:
+            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.STARTPAGES", "auto", startpage_url, _commit=False, corpus=corpus)
+        res = yield self.update_webentity(WE, "startpages", startpage_url, "pop", corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
@@ -1411,12 +1435,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
         old_WE = yield self.msclients.pool.getWebEntity(old_webentity_id, corpus=corpus)
         if is_error(old_WE):
             returnD(format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id))
-        yield self.add_backend_tags(good_webentity_id, "alias_added", old_WE.name)
         new_WE = yield self.msclients.pool.getWebEntity(good_webentity_id, corpus=corpus)
         if is_error(new_WE):
             returnD(format_error('ERROR retrieving WebEntity with id %s' % good_webentity_id))
         for lru in old_WE.LRUSet:
             new_WE.LRUSet.add(lru)
+            new_WE = yield self.add_backend_tags(new_WE, "added", lru, namespace="PREFIXES", _commit=False, corpus=corpus)
+            if "removed" in new_WE.metadataItems["CORE.PREFIXES"] and lru in new_WE.metadataItems["CORE.PREFIXES"]["removed"]:
+                new_WE = yield self.jsonrpc_rm_webentity_tag_value(new_WE, "CORE.PREFIXES", "removed", lru, _commit=False, corpus=corpus)
         if test_bool_arg(include_name_and_status):
             new_WE.name = old_WE.name
             new_WE.status = old_WE.status
@@ -1425,8 +1451,19 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 new_WE.homepage = old_WE.homepage
             for page in old_WE.startpages:
                 new_WE.startpages.add(page)
+                if "CORE.STARTPAGES" in old_WE.metadataItems and not include_tags:
+                    if "CORE.STARTPAGES" not in new_WE.metadataItems:
+                        new_WE.metadataItems["CORE.STARTPAGES"] = {}
+                    for cat in "user", "auto", "removed":
+                        if cat not in old_WE.metadataItems["CORE.STARTPAGES"]:
+                            continue
+                        if cat not in new_WE.metadataItems["CORE.STARTPAGES"]:
+                            new_WE.metadataItems["CORE.STARTPAGES"][cat] = []
+                        new_WE.metadataItems["CORE.STARTPAGES"][cat] = list(set(old_WE.metadataItems["CORE.STARTPAGES"][cat] + new_WE.metadataItems["CORE.STARTPAGES"][cat]))
         if test_bool_arg(include_tags):
             for tag_namespace in old_WE.metadataItems.keys():
+                if tag_namespace == "CORE.STARTPAGES" and not include_home_and_startpages_as_startpages:
+                    continue
                 if tag_namespace not in new_WE.metadataItems:
                     new_WE.metadataItems[tag_namespace] = {}
                 for tag_key in old_WE.metadataItems[tag_namespace].keys():
@@ -1439,6 +1476,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(res):
             returnD(res)
         yield self.db.update_jobs(corpus, {'webentity_id': old_WE.id}, {'webentity_id': new_WE.id, 'previous_webentity_id': old_WE.id, 'previous_webentity_name': old_WE.name})
+        new_WE = yield self.add_backend_tags(new_WE, "mergedWebEntities", "%s: %s (%s)" % (old_WE.id, old_WE.name, old_WE.status), _commit=False, corpus=corpus)
         res = self.msclients.sync.updateWebEntity(new_WE, corpus=corpus)
         if is_error(res):
             returnD(res)
@@ -1465,6 +1503,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['total_webentities'] -= 1
         self.corpora[corpus]['recent_changes'] += 1
         returnD(format_result("WebEntity %s (%s) was removed" % (webentity_id, WE.name)))
+
+#TODO Catch automatic startpages crawled and set them as startpages + tagged if 200
 
     @inlineCallbacks
     def index_batch(self, page_items, job, corpus=DEFAULT_CORPUS):
@@ -1926,32 +1966,36 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
   # TAGS
 
-    def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS):
+    def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
         """Adds for a `corpus` a tag `namespace:category=value` to a WebEntity defined by `webentity_id`."""
-        return self.update_webentity(webentity_id, "metadataItems", value, "push", category, namespace, corpus=corpus)
+        return self.update_webentity(webentity_id, "metadataItems", value, "push", category, namespace, _commit=_commit, corpus=corpus)
 
     def jsonrpc_add_webentities_tag_value(self, webentity_ids, namespace, category, value, corpus=DEFAULT_CORPUS):
         """Adds for a `corpus` a tag `namespace:category=value` to a bunch of WebEntities defined by a list of `webentity_ids`."""
         return self.batch_webentities_edit("add_webentity_tag_value", webentity_ids, corpus, namespace, category, value)
 
-    def jsonrpc_rm_webentity_tag_key(self, webentity_id, namespace, category, corpus=DEFAULT_CORPUS):
+    def jsonrpc_rm_webentity_tag_key(self, webentity_id, namespace, category, corpus=DEFAULT_CORPUS, _commit=True):
         """Removes for a `corpus` all tags within `namespace:category` associated with a WebEntity defined by `webentity_id` if it is set."""
-        return self.jsonrpc_set_webentity_tag_values(webentity_id, namespace, category, [], corpus=corpus)
+        return self.jsonrpc_set_webentity_tag_values(webentity_id, namespace, category, [], _commit=_commit, corpus=corpus)
 
-    def jsonrpc_rm_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS):
+    def jsonrpc_rm_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
         """Removes for a `corpus` a tag `namespace:category=value` associated with a WebEntity defined by `webentity_id` if it is set."""
-        return self.update_webentity(webentity_id, "metadataItems", value, "pop", category, namespace, corpus=corpus)
+        return self.update_webentity(webentity_id, "metadataItems", value, "pop", category, namespace, _commit=_commit, corpus=corpus)
 
-    def jsonrpc_set_webentity_tag_values(self, webentity_id, namespace, category, values, corpus=DEFAULT_CORPUS):
+    def jsonrpc_set_webentity_tag_values(self, webentity_id, namespace, category, values, corpus=DEFAULT_CORPUS, _commit=True):
         """Replaces for a `corpus` all existing tags of a WebEntity defined by `webentity_id` for a specific `namespace` and `category` by a list of `values` or a single tag."""
         if not isinstance(values, list):
             values = [values]
-        return self.update_webentity(webentity_id, "metadataItems", values, "update", category, namespace, corpus=corpus)
+        return self.update_webentity(webentity_id, "metadataItems", values, "update", category, namespace, _commit=_commit, corpus=corpus)
 
     @inlineCallbacks
-    def add_backend_tags(self, webentity_id, key, value, corpus=DEFAULT_CORPUS):
-        yield self.jsonrpc_add_webentity_tag_value(webentity_id, "CORE", key, value, corpus=corpus)
-        yield self.jsonrpc_add_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true", corpus=corpus)
+    def add_backend_tags(self, webentity_id, key, value, namespace="", corpus=DEFAULT_CORPUS, _commit=True):
+        if not namespace:
+            namespace = "CORE"
+        else: namespace = "CORE.%s" % namespace
+        WE = yield self.jsonrpc_add_webentity_tag_value(webentity_id, namespace, key, value, _commit=False, corpus=corpus)
+        res = yield self.jsonrpc_add_webentity_tag_value(WE, "CORE", "recrawlNeeded", "true", _commit=_commit, corpus=corpus)
+        returnD(res)
 
     @inlineCallbacks
     def ramcache_tags(self, corpus=DEFAULT_CORPUS):
@@ -2147,8 +2191,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             news = yield self.msclients.pool.reindexPageItemsMatchingLRUPrefix(lru_prefix, corpus=corpus)
             res = yield self.jsonrpc_get_lru_definedprefixes(lru_prefix, corpus=corpus)
             if not is_error(res):
-                for we in res["result"]:
-                    yield self.jsonrpc_add_webentity_tag_value(we["id"], "CORE", "recrawl_needed", "true", corpus=corpus)
+                yield self.jsonrpc_add_webentities_tag_value(res["result"], "CORE", "recrawlNeeded", "true", corpus=corpus)
             self.corpora[corpus]['recent_changes'] += 1
             returnD(format_result("Webentity creation rule added and applied: %s new webentities created" % news))
         returnD(format_result("Webentity creation rule added"))
