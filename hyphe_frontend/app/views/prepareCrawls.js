@@ -84,9 +84,6 @@ angular.module('hyphe.preparecrawlsController', [])
           id:i
           ,webentity: obj.webentity
           ,status: 'loading'
-          ,touched: false
-          ,collapsed: true
-          ,startpagesSummary: {status: 'loading'}
         }
       })
 
@@ -100,7 +97,7 @@ angular.module('hyphe.preparecrawlsController', [])
         $location.path('/project/'+$scope.corpusId+'/monitorCrawls')
       } else {
         $scope.list = list
-        // getWebentities()
+        getWebentities()
       }
     }
 
@@ -153,7 +150,7 @@ angular.module('hyphe.preparecrawlsController', [])
             ,{                                    // Options
                 label: obj.webentity.id
                 ,before: function(){
-                    obj_setStatus(obj, 'pending')
+                    obj_setStatus(obj, 'loading')
                   }
               }
           )
@@ -174,13 +171,17 @@ angular.module('hyphe.preparecrawlsController', [])
       queriesBatcher.atFinalization(function(list,pending,success,fail){
         // Status message
         $scope.status = {}
+
+        console.log('LIST', $scope.list)
       })
 
       queriesBatcher.run()
     }
 
     function obj_setStatus(obj, status){
-      switch(obj.status){
+
+      // Decrement status from summary
+      /*switch(obj.status){
         case('warning'):
           $scope.httpStatusWarning--
           break
@@ -201,11 +202,12 @@ angular.module('hyphe.preparecrawlsController', [])
           break
         default:
           $scope.httpStatusLoading--
-      }
+      }*/
 
       obj.status = status
 
-      switch(status){
+      // Increment status from summary
+      /*switch(status){
         case('warning'):
           $scope.httpStatusWarning++
           break
@@ -226,7 +228,7 @@ angular.module('hyphe.preparecrawlsController', [])
           break
         default:
           $scope.httpStatusLoading++
-      }
+      }*/
     }
 
 
