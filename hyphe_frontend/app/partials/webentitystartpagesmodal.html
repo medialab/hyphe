@@ -1,0 +1,12 @@
+<div class="modal-header">
+  <h3 class="modal-title">{{webentity.name}}</h3>
+</div>
+<div class="modal-body">
+  <ul>
+    <li ng-repeat="url in webentity.startpages">{{url}}</li>
+  </ul>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" ng-click="ok()">OK</button>
+  <button class="btn btn-default" ng-click="cancel()">CANCEL</button>
+</div>

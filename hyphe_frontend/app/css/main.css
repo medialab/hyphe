@@ -957,7 +957,7 @@ textarea.over-error{
 /* ==========================================================================
    View: Launch Crawls
    ========================================================================== */
-.crawl-cells-container{
+/*.crawl-cells-container{
   padding: 6px;
 }
 .crawl-cell{
@@ -985,6 +985,49 @@ textarea.over-error{
 .crawl-cell .status{
   font-size: 24px;
   font-weight: 300;
+}*/
+
+
+
+/* ==========================================================================
+   View: Prepare Crawls
+   ========================================================================== */
+.crawl-cells-container{
+  padding: 6px;
+}
+.crawl-cell{
+  height: 112px;
+  padding:6px;
+  cursor:pointer;
+}
+.crawl-cell:hover{
+  opacity: 0.85;
+}
+.crawl-cell-content{
+  height: 100%;
+  padding: 5px;
+  border: 1px solid #FFF;
+  overflow: hidden;
+}
+.crawl-cell-content.bg-waiting{
+  border: 1px solid #31708f;
+}
+.crawl-cell p{
+  margin-bottom: 0px;
+}
+.crawl-cell .title{
+  white-space: nowrap;
+  font-family: 'Roboto', sans-serif;
+  font-weight:400;
+  margin-bottom: 10px;
+  margin-top: -2px;
+}
+.crawl-cell .status{
+  font-size: 24px;
+  font-weight: 300;
+}
+.crawl-cell-text-muted{
+  opacity: 0.6;
 }
 
 
