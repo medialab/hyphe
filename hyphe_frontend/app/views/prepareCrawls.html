@@ -28,6 +28,7 @@
               <div
                 class="col-md-4 col-lg-3 crawl-cell"
                 ng-repeat="obj in list|paginate:paginationPage:paginationLength track by $index"
+                ng-click="openWebentity($index)"
               >
                 <div
                   class="crawl-cell-content"

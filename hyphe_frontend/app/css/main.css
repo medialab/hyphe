@@ -998,6 +998,10 @@ textarea.over-error{
 .crawl-cell{
   height: 112px;
   padding:6px;
+  cursor:pointer;
+}
+.crawl-cell:hover{
+  opacity: 0.85;
 }
 .crawl-cell-content{
   height: 100%;
