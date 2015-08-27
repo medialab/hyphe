@@ -770,6 +770,8 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def lookup_httpstatus(self, url, timeout=5, deadline=0, tryout=0, noproxy=False, corpus=DEFAULT_CORPUS):
+        if not self.corpus_ready(corpus):
+            returnD(self.corpus_error(corpus))
         res = format_result(0)
         timeout = int(timeout)
         use_proxy = self.corpora[corpus]["options"]['proxy']['host'] and not noproxy
