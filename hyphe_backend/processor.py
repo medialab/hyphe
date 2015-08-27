@@ -10,14 +10,21 @@ from hyphe_backend.memorystructure import MemoryStructure as ms
 # TODO:
 # - handle errorcode
 # - metadataItems -> parsing later ?
-def generate_cache_from_pages_list(pageList, precision_limit = 1, precision_exceptions = [], verbose = False) :
+def generate_cache_from_pages_list(pageList, precision_limit=1, precision_exceptions=[], verbose=False, autostarts=[]):
     if verbose:
         print "### createCache"
     pages = {}
     links = {}
+    goodautostarts = set()
     original_link_number = 0
     nodes = {}
     for page_item in pageList:
+        if autostarts and page_item["depth"] == 0 and page_item["url"] in autostarts:
+            autostarts.remove(page_item["url"])
+            if page_item["status"] == 200:
+                goodautostarts.add(page_item["url"])
+            elif 300 <= page_item["status"] < 400:
+                goodautostarts.add(urllru.lru_to_url(page_item["lrulinks"][0]))
         page_item["lru"] = urllru.lru_clean(page_item["lru"])
         is_full_precision = urllru.lru_is_full_precision(page_item["lru"], precision_exceptions)
         lru_head = urllru.lru_get_head(page_item["lru"], precision_exceptions)
@@ -54,5 +61,5 @@ def generate_cache_from_pages_list(pageList, precision_limit = 1, precision_exce
                 links[(node_lru,target_node)] = links[(node_lru,target_node)] + 1 if (node_lru,target_node) in links else 1
     if verbose:
         print str(len(pages))+" unique pages ; "+str(original_link_number)+" links ; "+str(len(links.values()))+" unique links / identified "+str(len(nodes))+" nodes"
-    return (pages, [(source, target, weight) for (source,target),weight in links.iteritems()])
+    return (pages, [(source, target, weight) for (source,target),weight in links.iteritems()], goodautostarts)
 

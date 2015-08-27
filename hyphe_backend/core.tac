@@ -737,6 +737,7 @@ class Core(jsonrpc.JSONRPC):
             returnD(starts)
         if not starts:
             returnD(format_error('ERROR: no startpage could be found for %s using %s' % (WE.id, startpages)))
+        autostarts = [s for s in starts if s not in WE.startpages] if WE.startpages else starts
 
         if statusval != WE.status:
             yield self.store.jsonrpc_set_webentity_status(webentity_id, statusval, corpus=corpus)
@@ -748,7 +749,7 @@ class Core(jsonrpc.JSONRPC):
 
         if "CORE" in WE.metadataItems and "recrawlNeeded" in WE.metadataItems["CORE"]:
             yield self.store.jsonrpc_rm_webentity_tag_key(webentity_id, "CORE", "recrawlNeeded", corpus=corpus)
-        res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE.LRUSet, nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, corpus=corpus)
+        res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE.LRUSet, nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, corpus=corpus, _autostarts=autostarts)
         returnD(res)
 
     @inlineCallbacks
@@ -896,7 +897,7 @@ class Crawler(jsonrpc.JSONRPC):
         returnD(format_result('Crawling database reset.'))
 
     @inlineCallbacks
-    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], corpus=DEFAULT_CORPUS):
+    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], corpus=DEFAULT_CORPUS, _autostarts=[]):
         """Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):\n- a `webentity_id` associated with the crawl a list of `starts` urls to start from\n- a list of `follow_prefixes` to know which links to follow\n- a list of `nofollow_prefixes` to know which links to avoid\n- a `depth` corresponding to the maximum number of clicks done from the start pages\n- `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`\n- a `download_delay` corresponding to the time in seconds spent between two requests by the crawler."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -920,6 +921,7 @@ class Crawler(jsonrpc.JSONRPC):
           'setting': 'DOWNLOAD_DELAY=' + str(download_delay),
           'maxdepth': depth,
           'start_urls': list(starts),
+          'start_urls_auto': list(_autostarts),
           'follow_prefixes': list(follow_prefixes),
           'nofollow_prefixes': list(nofollow_prefixes),
           'discover_prefixes': list(follow_redirects),
@@ -1517,7 +1519,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         pages_to_index = len(ids)
         if not pages_to_index:
             returnD(False)
-        pages, links = yield deferToThread(processor.generate_cache_from_pages_list, page_items, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0)
+        pages, links, autostartpages = yield deferToThread(processor.generate_cache_from_pages_list, page_items, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0, autostarts=job['crawl_arguments'].get('start_urls_auto', []))
+        for auto in autostartpages:
+            yield self.jsonrpc_add_webentity_startpage(job['webentity_id'], auto, corpus=corpus, _automatic=True)
         logger.msg("...%s pages and %s links identified from %s crawled pages in %ss..." % (len(pages), len(links), pages_to_index, time.time()-s), system="INFO - %s" % corpus)
         s = time.time()
         cache_id = yield self.msclients.loop.createCache(pages.values(), corpus=corpus)
@@ -1584,7 +1588,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
             self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
-            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id', 'crawljob_id'], limit=1)
+            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id', 'crawljob_id', 'crawl_arguments', 'webentity_id'], limit=1)
             if not job:
                 logger.msg("Indexing job with pages in queue but not found in jobs: %s" % oldest_page_in_queue['_job'], system="WARNING - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
