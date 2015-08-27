@@ -416,7 +416,7 @@ angular.module('hyphe.listwebentitiesController', [])
       $scope.selected_setStatus = 'none'
       $scope.selected_mergeTarget = 'none'
 
-      $scope.doQuery()
+      doQuery()
     }
 
     function checkedList_remove(weId){
