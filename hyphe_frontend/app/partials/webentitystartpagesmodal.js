@@ -104,5 +104,11 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     }
 
 
+    // Start page lifecycle
+
+    function startpage_setStatus(startpage, status){
+      // startpages
+    }
+
 
   })

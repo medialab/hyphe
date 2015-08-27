@@ -47,9 +47,20 @@
                     {{obj.status|uppercase}}
                   </p>
 
-                  <!-- Info -->
-                  <p ng-if="obj.status == 'loaded'" class="text-info">
-                    {{obj.webentity.startpages.length}} start page{{obj.webentity.startpages.length > 1 ? 's are' : ''}}
+                  <!-- Loaded : No start page -->
+                  <p
+                    ng-if="obj.status == 'loaded' && obj.webentity.startpages.length == 0"
+                    class="info text-center text-info"
+                  >
+                    auto <span class="text-muted">start pages</span>
+                  </p>
+
+                  <!-- Loaded : Start pages -->
+                  <p
+                    ng-if="obj.status == 'loaded' && obj.webentity.startpages.length > 0"
+                    class="info text-center text-info"
+                  >
+                    {{obj.webentity.startpages.length}} <span class="text-muted">start page{{obj.webentity.startpages.length > 1 ? 's' : ''}}</span>
                   </p>
 
                   <!-- Error -->

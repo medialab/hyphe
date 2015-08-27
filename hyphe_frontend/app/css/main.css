@@ -183,6 +183,25 @@ label.btn.btn-default.disabled.active{
 
 
 /* ==========================================================================
+   Pulse
+   ========================================================================== */
+.glyphicon.pulse{
+  animation-name: pulse;
+  animation-duration: 1.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate; 
+}
+@keyframes pulse {
+  to {
+    opacity: 0.8;
+    transform: scale(0.9);
+  }
+}
+
+
+
+/* ==========================================================================
    Modifying Bootstrap Panel
    ========================================================================== */
 .panel-heading.hyphe-gray{
@@ -1026,6 +1045,10 @@ textarea.over-error{
   font-size: 24px;
   font-weight: 300;
 }
+.crawl-cell .info{
+  margin-top: 20px;
+  font-size: 16px;
+}
 .crawl-cell-text-muted{
   opacity: 0.6;
 }
@@ -1317,13 +1340,12 @@ textarea.over-error{
 /* ==========================================================================
    Module: Web Entity Start Pages Modal
    ========================================================================== */
-.wesp-modal-startpage{
-  /*padding: 5px;*/
-}
-.wesp-modal-startpage:hover{
-  background-color: #EFEBE8;
-}
+.wesp-modal-cell-startpage{
 
+}
+.wesp-modal-cell-lookup{
+  
+}
 
 
 

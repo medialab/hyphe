@@ -50,6 +50,9 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.selected_mergeTarget = 'none'
 
     $scope.applySettings = function(){
+      
+      loadStatus()
+
       for(var status in $scope.statuses){
         $scope.settings[status] = $scope.statuses[status]
       }
@@ -260,6 +263,34 @@ angular.module('hyphe.listwebentitiesController', [])
 
       if(list.length > 0){
         store.set('webentities_toCrawl', list)
+        $location.path('/project/'+$scope.corpusId+'/checkStartPages')
+        // $location.path('/project/'+$scope.corpusId+'/prepareCrawls')
+      } else {
+        $scope.status = {message:'No Web Entity to send', background:'danger'}
+      }
+    }
+
+    $scope.doCrawl_TEST = function(crawlExisting){
+
+      function buildObj(we){
+        return {
+            webentity: we
+          }
+      }
+      var list = $scope.checkedList
+        .map(function(id){
+          return $scope.webentitiesCheckStack[id]
+        })
+        .map(buildObj)
+        .filter(function(obj){return obj.webentity.id !== undefined})
+      
+      // Remove doublons
+      list = utils.extractCases(list, function(obj){
+        return obj.webentity.id
+      })
+
+      if(list.length > 0){
+        store.set('webentities_toCrawl', list)
         // $location.path('/project/'+$scope.corpusId+'/checkStartPages')
         $location.path('/project/'+$scope.corpusId+'/prepareCrawls')
       } else {
@@ -340,9 +371,7 @@ angular.module('hyphe.listwebentitiesController', [])
 
     // Init
     $scope.applySettings()
-    loadStatus(
-      $scope.loadWebentities  // callback
-    )
+    $scope.loadWebentities()
 
 
     // Functions
@@ -358,8 +387,6 @@ angular.module('hyphe.listwebentitiesController', [])
       },function(data, status, headers, config){
         $scope.status = {message: 'Error loading status', background:'danger'}
       })
-
-      callback()
     }
 
     function summarizeStatuses(){
