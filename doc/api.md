@@ -51,6 +51,7 @@ The API will always answer as such:
     * __`propose_webentity_startpages`__
     * __`crawl_webentity`__
     * __`crawl_webentity_with_startmode`__
+    * __`get_webentity_jobs`__
     * __`get_webentity_logs`__
   + [HTTP LOOKUP METHODS](#http-lookup-methods)
     * __`lookup_httpstatus`__
@@ -279,6 +280,13 @@ The API will always answer as such:
  Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.
  Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").
  Optionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).
+
+
+- __`get_webentity_jobs`:__
+ + _`webentity_id`_ (mandatory)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` crawl jobs that has run for a specific WebEntity defined by its `webentity_id`.
 
 
 - __`get_webentity_logs`:__

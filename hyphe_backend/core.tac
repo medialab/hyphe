@@ -753,6 +753,14 @@ class Core(jsonrpc.JSONRPC):
         returnD(res)
 
     @inlineCallbacks
+    def jsonrpc_get_webentity_jobs(self, webentity_id, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` crawl jobs that has run for a specific WebEntity defined by its `webentity_id`."""
+        if not self.corpus_ready(corpus):
+            returnD(self.corpus_error(corpus))
+        jobs = yield self.db.list_jobs(corpus, {'webentity_id': webentity_id})
+        returnD(handle_standard_results(jobs))
+
+    @inlineCallbacks
     def jsonrpc_get_webentity_logs(self, webentity_id, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` crawl activity logs on a specific WebEntity defined by its `webentity_id`."""
         if not self.corpus_ready(corpus):
