@@ -22,6 +22,7 @@ angular.module('hyphe.preparecrawlsController', [])
     $scope.depthRange = [0,1]
 
     $scope.queriesBatches = []
+    $scope.lookups = {}
 
     $scope.list = []
     var list_byId = {}  // List index
@@ -241,72 +242,22 @@ angular.module('hyphe.preparecrawlsController', [])
 
       /* Instanciate and open the Modal */
       var modalInstance = $modal.open({
-        templateUrl: 'partials/webentitystartpagesmodal.html'
-        ,size: 'lg'
-        ,controller: 'webentityStartPagesModalController'
-        ,resolve: {
-          webentity: function () {
-              return obj.webentity
+          templateUrl: 'partials/webentitystartpagesmodal.html'
+        , size: 'lg'
+        , controller: 'webentityStartPagesModalController'
+        , resolve: {
+            webentity: function () {
+                return obj.webentity
+              }
+          , lookups: function () {
+              return $scope.lookups
             }
-          // ,next: function () {
-          //     return obj.webentity
-          //   }
-        }
-      })
+          }
+        })
 
       modalInstance.result.then(function (feedback) {
         // On 'OK'
-        if(feedback.task){
-          if(feedback.task.type == 'addPrefix'){
-            
-            // // Add Prefix
-            // var prefix = feedback.prefix
-            // ,wwwVariations = feedback.wwwVariations
-            // ,httpsVariations = feedback.httpsVariations
-            // ,prefixes = utils.LRU_variations(prefix, {
-            //     wwwlessVariations: wwwVariations
-            //     ,wwwVariations: wwwVariations
-            //     ,httpVariations: httpsVariations
-            //     ,httpsVariations: httpsVariations
-            //     ,smallerVariations: false
-            //   })
-            
-            // // Query call
-            // api.addPrefix({                         // Query settings
-            //     webentityId: obj.webentity.id
-            //     ,lru: prefixes
-            //   }
-            //   ,function(){                          // Success callback
-            //     addStartPageAndReload(obj.id, url)
-            //   }
-            //   ,function(data, status, headers){     // Fail callback
-            //     $scope.status = {message:'Prefix could not be added', background:'danger'}
-            //   })
-
-          } else if(feedback.task.type == 'merge'){
-            
-            // // Merge web entities
-            // var webentity = feedback.task.webentity
-            // $scope.status = {message:'Merging web entities'}
-            // obj_setStatus(obj, 'merging')
-            // api.webentityMergeInto({
-            //     oldWebentityId: webentity.id
-            //     ,goodWebentityId: obj.webentity.id
-            //     ,mergeNameAndStatus: true
-            //   }
-            //   ,function(data){
-            //     // If it is in the list, remove it...
-            //     purgeWebentityFromList(webentity)
-
-            //     addStartPageAndReload(obj.id, url)
-            //   }
-            //   ,function(data, status, headers, config){
-            //     $scope.status = {message:'Merge failed', background:'danger'}
-            //   }
-            // )
-
-          }
-        }
+        
       }, function () {
         // On dismiss: nothing happens
       })
