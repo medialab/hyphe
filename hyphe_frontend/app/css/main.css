@@ -1344,7 +1344,10 @@ textarea.over-error{
 
 }
 .wesp-modal-cell-lookup{
-  
+
+}
+.wesp-modal-loading{
+  opacity: 0.6;
 }
 
 
