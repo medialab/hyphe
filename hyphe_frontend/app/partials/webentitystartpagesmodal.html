@@ -17,17 +17,13 @@
     </thead>
 
     <tbody>
-      <tr ng-repeat="sp in startpages">
+      <tr ng-repeat="sp in startpages" ng-class="{'wesp-modal-loading' : sp.status == 'loading'}">
         
         <td
           class="wesp-modal-cell-startpage"
         >
           <span class="url">
-            <span
-              ng-class="{
-                'text-muted':   lookups[sp.url].status != 'success'
-              }"
-            >
+            <span>
               {{sp.url}}
             </span>
             &nbsp;
@@ -85,8 +81,8 @@
 
   </table>
 
-  <h4>
-    Testing start pages...
+  <h4 ng-if=" startpagesSummary.stage = 'loading' ">
+    Testing start pages ({{startpagesSummary.percent}}%) ...
   </h4>
 
 </div>

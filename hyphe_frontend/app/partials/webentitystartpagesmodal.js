@@ -5,15 +5,12 @@ angular.module('hyphe.webentityStartPagesModalController', [])
   .controller('webentityStartPagesModalController'
   ,function( $scope,  api,  utils, QueriesBatcher, webentity, lookups) {
     
+    var spStatusIndex = {}
+
     $scope.lookups = lookups
     $scope.webentity = webentity
-    $scope.startpages = webentity.startpages
-      .map(function(url){
-          return {
-            url:url
-          , status: (lookups[url] === undefined) ? ('loading') : ('loaded')
-          }
-        })
+    $scope.startpages = webentity.startpages.map(startpage_init)
+    $scope.startpagesSummary = spSummary_init()
 
     var timeout = 20
     $scope.queriesBatches = []
@@ -77,7 +74,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
 
     function init_lookup(startpage){
 
-      startpage.status = 'loading'
+      startpage_setStatus(startpage, 'loading')
       
       return {
         url: startpage.url
@@ -89,7 +86,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
 
     function lookup_notifySuccessful(lookup, httpStatus){
 
-      lookup.startpage.status = 'loaded'
+      startpage_setStatus(lookup.startpage, 'loaded')
       
       lookup.status = (+httpStatus == 200) ? ('success') : ('issue')
       lookup.httpStatus = httpStatus
@@ -97,7 +94,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
 
     function lookup_notifyFail(lookup){
 
-      lookup.startpage.status = 'loaded'
+      startpage_setStatus(lookup.startpage, 'loaded')
       
       lookup.status = 'fail'
       lookup.httpStatus = undefined
@@ -106,8 +103,76 @@ angular.module('hyphe.webentityStartPagesModalController', [])
 
     // Start page lifecycle
 
+    function startpage_init(url){
+      var status = (lookups[url] === undefined) ? ('loading') : ('loaded')
+      spStatusIndex_increment(status)
+      return {
+          url: url
+        , status: status
+        }
+    }
+
     function startpage_setStatus(startpage, status){
-      // startpages
+      spStatusIndex_switch(startpage.status, status)
+      startpage.status = status
+    }
+
+    function spStatusIndex_increment(status){
+      spStatusIndex[status] = (spStatusIndex[status] || 0) + 1
+      SpSummary_update()
+    }
+
+    function spStatusIndex_switch(oldStatus, newStatus){
+      spStatusIndex[oldStatus]--
+      spStatusIndex_increment(newStatus)
+      SpSummary_update()
+    }
+
+
+    // Start pages summary lifecycle
+    
+    function spSummary_init(){
+      return {
+        stage: 'loading'
+      , percent: 0
+      }
+    }
+
+    function SpSummary_update(){
+      
+      var loading = false
+        , loading_count = 0
+        , total = 0
+      
+      for (var status in spStatusIndex) {
+        
+        var count = spStatusIndex[status]
+        total += count
+
+        if(status == 'loading'){
+          loading_count += count
+        }
+
+        if(status != 'success' && count > 0){
+          loading = true
+        }
+
+      }
+
+      if (loading) {
+
+        $scope.startpagesSummary = {
+          stage: 'loading'
+        , percent: Math.round( 100 * (total - loading_count) / total )
+        }
+
+      } else {
+
+        $scope.startpagesSummary = {
+          stage: 'loaded'
+        }
+
+      }
     }
 
 
