@@ -30,7 +30,7 @@
 	      	,'bg-success': job.globalStatus == 'ACHIEVED'}"
 	    >
 	      <p class="title">
-	        {{webentityIndex[job.webentity_id].name || 'Web Entity Loading'}}
+	        {{job.webentity_name || 'Web Entity Loading'}}
 	      </p>
 	      <p class="subtitle">
 	        Scheduled <span tooltip="{{job.created_at|date}}">{{job.created_at|prettyDate}}</span>

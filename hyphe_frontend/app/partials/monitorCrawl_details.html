@@ -1,5 +1,5 @@
 <h2>
-  {{webentityIndex[lastCrawlJobs[0].webentity_id].name || 'Web Entity Loading'}} - <span class="text-muted" tooltip="{{lastCrawlJobs[0].created_at|date}}">{{lastCrawlJobs[0].created_at|prettyDate}}</span>
+  {{lastCrawlJobs[0].webentity_name || 'Web Entity Loading'}} - <span class="text-muted" tooltip="{{lastCrawlJobs[0].created_at|date}}">{{lastCrawlJobs[0].created_at|prettyDate}}</span>
 </h2>
 
 <br>
@@ -40,7 +40,7 @@
   <dd>{{lastCrawlJobs[0].webentity_id}}</dd>
 
   <dt>Web entity Name</dt>
-  <dd>{{webentityIndex[lastCrawlJobs[0].webentity_id].name}} <webentity-link corpus-id="corpusId" webentity-id="lastCrawlJobs[0].webentity_id"></dd>
+  <dd>{{lastCrawlJobs[0].webentity_name}} <webentity-link corpus-id="corpusId" webentity-id="lastCrawlJobs[0].webentity_id"></dd>
 
 </dl>
 

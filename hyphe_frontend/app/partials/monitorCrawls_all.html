@@ -48,7 +48,7 @@
         ,'bg-primary':job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'
         ,'bg-success': job.globalStatus == 'ACHIEVED'}"
     >
-      <td>{{webentityIndex[job.webentity_id].name}}</td>
+      <td>{{job.webentity_name}}</td>
       <td>{{job.crawl_arguments.maxdepth}}</td>
       <td class="hidden-xs">
         <div ng-if="job.crawl_arguments.phantom">
