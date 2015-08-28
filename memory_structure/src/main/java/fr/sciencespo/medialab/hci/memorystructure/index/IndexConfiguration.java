@@ -46,6 +46,7 @@ public class IndexConfiguration {
         DEPTH,
         ERROR,
         HTTPSTATUS,
+        LINKED,
         STATUS,
         FULLPREC,
         IS_NODE,
@@ -233,6 +234,11 @@ public class IndexConfiguration {
             }
         }
 
+        String linked = "0";
+        if(StringUtils.isNotEmpty(Integer.toString(pageItem.getLinked())))
+        	linked = Integer.toString(pageItem.getLinked());
+        document = addIntField(document, FieldName.LINKED, linked);
+        
         Map<String, Map<String, List<String>>> tags = pageItem.getMetadataItems();
         if (tags != null) {
             for (String tagNameSpace : tags.keySet()) {
@@ -283,6 +289,12 @@ public class IndexConfiguration {
             }
         }
         pageItem.setSourceSet(sourceList);
+
+        String linked$ = document.get(FieldName.LINKED.name());
+        if(StringUtils.isNotEmpty(linked$)) {
+            int linked = Integer.parseInt(linked$);
+            pageItem.setLinked(linked);
+        } else pageItem.setLinked(0);
 
         String errorCode = document.get(FieldName.ERROR.name());
         pageItem.setErrorCode(errorCode);

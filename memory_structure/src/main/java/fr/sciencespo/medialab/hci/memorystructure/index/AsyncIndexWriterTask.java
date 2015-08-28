@@ -109,6 +109,7 @@ public class AsyncIndexWriterTask implements RunnableFuture {
                         if (sources != null) {
                             pageItem.getSourceSet().addAll(sources);
                         }
+                        pageItem.setLinked(existing.getLinked() + pageItem.getLinked());
                         // TODO Replicate existing tags on pageitem
                     }
                     luceneDoc = IndexConfiguration.convertPageItemToLuceneDocument(pageItem);

@@ -658,7 +658,7 @@ class Core(jsonrpc.JSONRPC):
         for startrule in startmode:
             startrule = startrule.lower()
             if startrule == "pages":
-                pages = yield self.store.msclients.pool.getWebEntityPages(WE.id, corpus=corpus)
+                pages = yield self.store.msclients.pool.getWebEntityMostLinkedPages(WE.id, 5, corpus=corpus)
                 if is_error(pages):
                     returnD(pages)
                 starts[startrule] = [p.url for p in pages]

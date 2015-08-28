@@ -33,14 +33,14 @@ def generate_cache_from_pages_list(pageList, precision_limit=1, precision_except
         nodes[node_lru] = 1
         # Create index of crawled pages from queue
         if page_item["lru"] not in pages:
-            pages[page_item["lru"]] = ms.PageItem(page_item["url"].encode('utf8'), page_item["lru"].encode('utf8'), str(page_item["timestamp"]), int(page_item["status"]), int(page_item["depth"]), str(page_item["error"]), ['CRAWL'], is_full_precision, is_node, {})
+            pages[page_item["lru"]] = ms.PageItem(page_item["url"].encode('utf8'), page_item["lru"].encode('utf8'), str(page_item["timestamp"]), int(page_item["status"]), int(page_item["depth"]), str(page_item["error"]), ['CRAWL'], 0, is_full_precision, is_node, {})
         else:
             if 'CRAWL' not in pages[page_item["lru"]].sourceSet:
                 pages[page_item["lru"]].sourceSet.append('CRAWL')
             pages[page_item["lru"]].depth = max(0, min(pages[page_item["lru"]].depth, int(page_item["depth"])))
         # Add to index linked pages and index all links between nodes
         if "lrulinks" in page_item:
-            for index,lrulink in enumerate(page_item["lrulinks"]) :
+            for lrulink in page_item["lrulinks"]:
                 lrulink = urllru.lru_clean(lrulink)
                 is_full_precision = urllru.lru_is_full_precision(lrulink, precision_exceptions)
                 lru_head = urllru.lru_get_head(lrulink, precision_exceptions)
@@ -51,13 +51,14 @@ def generate_cache_from_pages_list(pageList, precision_limit=1, precision_except
 # check False {} errorcode
                 if lrulink not in pages:
                     try:
-                        pages[lrulink] = ms.PageItem(urllru.lru_to_url(lrulink), lrulink.encode('utf-8'), str(page_item["timestamp"]), None, int(page_item["depth"])+1, None, ['LINK'], is_full_precision, is_node, {})
+                        pages[lrulink] = ms.PageItem(urllru.lru_to_url(lrulink), lrulink.encode('utf-8'), str(page_item["timestamp"]), None, int(page_item["depth"])+1, None, ['LINK'], 1, is_full_precision, is_node, {})
                     except ValueError as e:
                         print "Skipping link to misformatted URL : %s" % lrulink
                         if verbose:
                             print e
                 elif 'LINK' not in pages[lrulink].sourceSet:
                     pages[lrulink].sourceSet.append('LINK')
+                    pages[lrulink].linked += 1
                 links[(node_lru,target_node)] = links[(node_lru,target_node)] + 1 if (node_lru,target_node) in links else 1
     if verbose:
         print str(len(pages))+" unique pages ; "+str(original_link_number)+" links ; "+str(len(links.values()))+" unique links / identified "+str(len(nodes))+" nodes"
