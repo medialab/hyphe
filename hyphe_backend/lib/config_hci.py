@@ -22,11 +22,10 @@ def load_config():
             conf = json.load(config_file)
     except IOError as e:
         print 'ERROR: Could not open %s file : ' % CONFIG_FILE, e
-        return False
+        exit(1)
     except ValueError as e:
         print 'ERROR: Config file is not valid JSON', e
-        return False
-
+        exit(1)
 
   # Set Monocorpus if old conf type
     if "MULTICORPUS" not in conf or not conf["MULTICORPUS"]:
@@ -68,8 +67,7 @@ def load_config():
         check_conf_sanity(conf, GLOBAL_CONF_SCHEMA)
     except Exception as e:
         print e
-        return False
-
+        exit(1)
 
   # Test MongoDB server
     mongoconf = conf['mongo-scrapy']
@@ -80,8 +78,7 @@ def load_config():
         print "ERROR: Cannot connect to mongoDB, please check your server and the configuration in %s" % CONFIG_FILE
         if config['DEBUG']:
             print x
-        return None
-
+        exit(1)
 
   # Handle old non multicorpus conf
     if not conf["MULTICORPUS"]:
@@ -106,7 +103,7 @@ def load_config():
                     os.rename(os.path.join(oldpath, f), os.path.join(newpath, f))
             except:
                 print "ERROR migrating %s lucene files from old corpus into new directory" % len(old_lucene_files)
-                return False
+                exit(1)
 
       # Migrate old corpus' mongodb collections into default corpus ones
         if "db_name" not in mongoconf:
@@ -127,7 +124,7 @@ def load_config():
         except Exception as e:
             print type(e), e
             print "ERROR migrating mongodb from old corpus into new collections"
-            return False
+            exit(1)
 
   # Turn portrange into list of ports
     conf['memoryStructure']['thrift.portrange'] = range(conf['memoryStructure']['thrift.portrange'][0], conf['memoryStructure']['thrift.portrange'][1]+1)
