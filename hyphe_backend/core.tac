@@ -650,9 +650,9 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def _get_suggested_startpages(self, WE, startmode, corpus, categories=False):
+        if type(startmode) != list and startmode.lower() == "default":
+            startmode = self.corpora[corpus]["options"]["defaultStartpagesMode"]
         if type(startmode) != list:
-            if startmode.lower() == "default":
-                startmode = self.corpora[corpus]["options"]["defaultStartpagesMode"]
             startmode = [startmode]
         starts = {}
         for startrule in startmode:
