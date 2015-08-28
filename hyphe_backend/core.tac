@@ -1516,8 +1516,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['recent_changes'] += 1
         returnD(format_result("WebEntity %s (%s) was removed" % (webentity_id, WE.name)))
 
-#TODO Catch automatic startpages crawled and set them as startpages + tagged if 200
-
     @inlineCallbacks
     def index_batch(self, page_items, job, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):

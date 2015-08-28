@@ -172,7 +172,7 @@ GLOBAL_CONF_SCHEMA = {
   }, "twisted.port": {
     "type": int
   }, "defaultCreationRule": {
-    "type": creationrules.testPreset,
+    "type": creationrules.testPreset
   }, "creationRules": {
     "type": dict,
     "keys": str,
@@ -306,7 +306,7 @@ def check_conf_sanity(conf, schema, name=CONFIG_FILE, soft=False):
 def test_type(obj, otype, ns, ns2="", name=CONFIG_FILE):
     if type(otype) == types.FunctionType:
         if not otype(obj):
-            raise(error_config("field %s should respect function %s.%s" % (ns, otype.__module__, otype.__name__), ns2, name))
+            raise(error_config("field %s should %s" % (ns, otype.__doc__), ns2, name))
     elif type(otype) == list:
         if obj not in otype:
             raise(error_config("field %s should be one of %s" % (ns, ", ".join(otype)), ns2, name))

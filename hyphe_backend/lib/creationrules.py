@@ -66,6 +66,7 @@ def getName(regexp, prefix=None):
     return 'unknown regexp'
 
 def testPreset(name):
+    """be a string among "domain", "subdomain", "subdomain-<N>", "path-<N>", "page", "prefix+<N>"."""
     if type(name) not in [str, unicode, bytes]:
         return False
     key = name.lower()
