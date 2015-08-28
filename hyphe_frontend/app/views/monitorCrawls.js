@@ -309,6 +309,7 @@ angular.module('hyphe.monitorcrawlsController', [])
         changes.forEach(function(change){
           $scope.crawlJobs[change.i] = change.job
         })
+        populateWebEntityNames()
       }
     }
 

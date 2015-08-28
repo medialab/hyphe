@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, types
+import os, re, types
 import simplejson as json
 from copy import deepcopy
 from twisted.internet import defer
@@ -139,16 +139,16 @@ def load_config():
 
     return conf
 
-VALID_STARTPAGES_MODES = ['startpages', 'prefixes', 'pages'] # 'homepage']
+VALID_STARTPAGES_MODES = re.compile(r'(%s)$' % "|".join(['startpages', 'prefixes', 'pages-\d+'])) # 'homepage']
 def validateStartpagesMode(modes):
-    """be a string or an array of strings among "prefixes", "pages", "startpages"."""
+    """be a string or an array of strings among "prefixes", "startpages" and "pages-<N>" where "<N>" is an int."""
     if type(modes) in [str, unicode, bytes]:
         modes = [modes]
     for m in modes:
         if type(m) not in [str, unicode, bytes]:
             return False
         m = m.lower()
-        if m not in VALID_STARTPAGES_MODES:
+        if not VALID_STARTPAGES_MODES.match(m):
             return False
     return True
 

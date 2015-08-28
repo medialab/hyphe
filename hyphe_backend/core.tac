@@ -648,6 +648,7 @@ class Core(jsonrpc.JSONRPC):
                     yield self.db.add_log(corpus, job['_id'], "CRAWL_RETRIED_AS_PHANTOM")
                     yield self.db.update_jobs(corpus, job['_id'], {'crawling_status': crawling_statuses.RETRIED})
 
+    re_linkedpages = re.compile(r'pages-(\d+)$')
     @inlineCallbacks
     def _get_suggested_startpages(self, WE, startmode, corpus, categories=False):
         if type(startmode) != list and startmode.lower() == "default":
@@ -657,8 +658,9 @@ class Core(jsonrpc.JSONRPC):
         starts = {}
         for startrule in startmode:
             startrule = startrule.lower()
-            if startrule == "pages":
-                pages = yield self.store.msclients.pool.getWebEntityMostLinkedPages(WE.id, 5, corpus=corpus)
+            nlinks = self.re_linkedpages.search(startrule)
+            if nlinks:
+                pages = yield self.store.msclients.pool.getWebEntityMostLinkedPages(WE.id, int(nlinks.group(1)), corpus=corpus)
                 if is_error(pages):
                     returnD(pages)
                 starts[startrule] = [p.url for p in pages]
@@ -667,7 +669,7 @@ class Core(jsonrpc.JSONRPC):
             elif startrule == "startpages":
                 starts[startrule] = list(WE.startpages)
             else:
-                returnD(format_error('ERROR: startmode argument must either "default" or one or many of "startpages", "pages" or "prefixes"'))
+                returnD(format_error('ERROR: startmode argument must be either "default" or one or many of "startpages", "pages-<N>" with <N> an int or "prefixes"'))
         if categories:
             returnD(starts)
         returnD(list(set(s for st in starts.values() for s in st)))
