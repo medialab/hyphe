@@ -87,7 +87,7 @@ Typical important options to set depending on your situation are highlighted as 
 
  - __`defaultStartpagesMode [str | str array]`__:
 
-   usually `"prefixes"`, possibly one or many of `"startpages"`, `"prefixes"`, `"pages-<N>"`. Sets the default behavior when crawling discovered WebEntities with no startpage manually set. When using only `"startpages"`, crawl will fail on WebEntities with no humanly set startpage. With other options, Hyphe will try respectively the `"N"` most linked pages known of the WeEntity (`"pages-<N>"`) or all of its prefixes (`"prefixes"`), then add them automatically to the WebEntity's startpages on success during crawl.
+   usually `["prefixes", "pages-5"]`, possibly one or many of `"startpages"`, `"prefixes"`, `"pages-<N>"`. Sets the default behavior when crawling discovered WebEntities with no startpage manually set. When using only `"startpages"`, crawl will fail on WebEntities with no humanly set startpage. With other options, Hyphe will try respectively the `"N"` most linked pages known of the WeEntity (`"pages-<N>"`) or all of its prefixes (`"prefixes"`), then add them automatically to the WebEntity's startpages on success during crawl.
 
 
  - __`defaultCreationRule [str]`__:

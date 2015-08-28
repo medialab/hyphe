@@ -60,7 +60,7 @@ def load_config():
 
   # Set default startpages mode for old configs
     if "defaultStartpagesMode" not in conf:
-        conf["defaultStartpagesMode"] = "prefixes"
+        conf["defaultStartpagesMode"] = ["prefixes", "pages-5"]
 
   # Auto unset phantomJs autoretry if missing
     if "phantom" in conf and "autoretry" not in conf["phantom"]:
