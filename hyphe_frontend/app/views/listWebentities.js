@@ -371,7 +371,6 @@ angular.module('hyphe.listwebentitiesController', [])
 
     // Init
     $scope.applySettings()
-    $scope.loadWebentities()
 
 
     // Functions
