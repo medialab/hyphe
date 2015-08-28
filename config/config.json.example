@@ -22,6 +22,7 @@
   },
   "twisted.port": 6978,
   "precisionLimit": 2,
+  "defaultStartpagesMode": "prefixes",
   "defaultCreationRule": "domain",
   "creationRules": {
     "twitter.com": "path-1",

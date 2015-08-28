@@ -85,6 +85,11 @@ Typical important options to set depending on your situation are highlighted as 
    usually `2`, the maximum precision to keep on links between crawled webpages, the value being the number of slashes after the root prefix of a WebEntity ([read the wiki for more info](https://github.com/medialab/hyphe/wiki/Precision-limit)). Do not modify unless you know what you're doing
 
 
+ - __`defaultStartpagesMode [str | str array]`__:
+
+   usually `"prefixes"`, possibly one or many of `"startpages"`, `"prefixes"`, `"pages"`. Sets the default behavior when crawling discovered WebEntities with no startpage manually set. When using only `"startpages"`, crawl will fail on WebEntities with no humanly set startpage. With other options, Hyphe will try respectively all known pages for the webentity (`"pages"`) or all of its prefixes (`"prefixes"`), then add them automatically to the WebEntity's startpages on success during crawl.
+
+
  - __`defaultCreationRule [str]`__:
 
    usually `"domain"`, possibly one of `"subdomain"`, `"subdomain-<N>"`, `"domain"`, `"path-<N>"`, `"page"`, `"prefix+<N>"`. Sets the default behavior when discovering new web pages, meaning the creation of a new WebEntity for each different discovered `"domain"`, `"subdomain"`, etc. `<N>` being an integer. Read [more about creation rules in the wiki](https://github.com/medialab/hyphe/wiki/Web-entities#web-entities-creation-rules) and the [dedicated code](/hyphe_backend/lib/creationrules.py)

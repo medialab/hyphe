@@ -58,6 +58,10 @@ def load_config():
     if "creationRules" not in conf:
         conf["creationRules"] = {}
 
+  # Set default startpages mode for old configs
+    if "defaultStartpagesMode" not in conf:
+        conf["defaultStartpagesMode"] = "prefixes"
+
   # Auto unset phantomJs autoretry if missing
     if "phantom" in conf and "autoretry" not in conf["phantom"]:
         conf["phantom"]["autoretry"] = False
@@ -135,6 +139,18 @@ def load_config():
 
     return conf
 
+VALID_STARTPAGES_MODES = ['startpages', 'prefixes', 'pages'] # 'homepage']
+def validateStartpagesMode(modes):
+    """be a string or an array of strings among "prefixes", "pages", "startpages"."""
+    if type(modes) in [str, unicode, bytes]:
+        modes = [modes]
+    for m in modes:
+        if type(m) not in [str, unicode, bytes]:
+            return False
+        m = m.lower()
+        if m not in VALID_STARTPAGES_MODES:
+            return False
+    return True
 
 GLOBAL_CONF_SCHEMA = {
   "mongo-scrapy": {
@@ -171,6 +187,8 @@ GLOBAL_CONF_SCHEMA = {
     }
   }, "twisted.port": {
     "type": int
+  }, "defaultStartpagesMode": {
+    "type": validateStartpagesMode
   }, "defaultCreationRule": {
     "type": creationrules.testPreset
   }, "creationRules": {
@@ -209,6 +227,10 @@ CORPUS_CONF_SCHEMA = {
   "precision_limit": {
     "type": int,
     "default": "global/precisionLimit"
+  },
+  "defaultStartpagesMode": {
+    "type": validateStartpagesMode,
+    "default": "global/defaultStartpagesMode"
   },
   "defaultCreationRule": {
     "type": creationrules.testPreset,
