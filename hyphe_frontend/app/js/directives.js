@@ -276,6 +276,13 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+  .directive('minispinner', [function(){
+    return {
+      restrict: 'E'
+      ,templateUrl: 'partials/minispinner.html'
+    }
+  }])
+
   .directive('spinner', [function(){
     return {
       restrict: 'E'

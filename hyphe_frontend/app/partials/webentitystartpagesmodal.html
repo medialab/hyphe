@@ -38,19 +38,16 @@
           class="wesp-modal-cell-lookup"
         >
           <span class="pull-right">
+            <minispinner ng-if="sp.status == 'loading'"></minispinner>
             <span
+              ng-if="sp.status == 'loaded'"
               class="glyphicon"
               ng-class="{
+                'glyphicon-ok': lookups[sp.url].status == 'success'
+              , 'text-success': lookups[sp.url].status == 'success'
 
-                'glyphicon-time': sp.status == 'loading'
-              , 'text-muted':     sp.status == 'loading'
-              , 'pulse':          sp.status == 'loading'
-              
-              , 'glyphicon-ok': sp.status == 'loaded' && lookups[sp.url].status == 'success'
-              , 'text-success': sp.status == 'loaded' && lookups[sp.url].status == 'success'
-
-              , 'glyphicon-exclamation-sign': sp.status == 'loaded' && lookups[sp.url].status == 'issue'
-              , 'text-warning':               sp.status == 'loaded' && lookups[sp.url].status == 'issue'
+              , 'glyphicon-exclamation-sign': lookups[sp.url].status == 'issue'
+              , 'text-warning':               lookups[sp.url].status == 'issue'
               }"
 
               tooltip-animation="true"
