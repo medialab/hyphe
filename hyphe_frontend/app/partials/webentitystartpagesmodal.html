@@ -78,9 +78,12 @@
 
   </table>
 
-  <h4 ng-if=" startpagesSummary.stage = 'loading' ">
+  <!-- <h4 ng-if=" startpagesSummary.stage == 'loading' "> -->
+  <h4>
     Testing start pages ({{startpagesSummary.percent}}%) ...
   </h4>
+
+  {{startpagesSummary.stage}}
 
 </div>
 <div class="modal-footer">

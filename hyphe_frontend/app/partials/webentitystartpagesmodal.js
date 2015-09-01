@@ -9,8 +9,8 @@ angular.module('hyphe.webentityStartPagesModalController', [])
 
     $scope.lookups = lookups
     $scope.webentity = webentity
-    $scope.startpages = webentity.startpages.map(startpage_init)
     $scope.startpagesSummary = spSummary_init()
+    $scope.startpages = (webentity.startpages || []).map(startpage_init)
 
     var timeout = 20
     $scope.queriesBatches = []
@@ -139,40 +139,35 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     }
 
     function SpSummary_update(){
-      
+      console.log("Sp Summary", JSON.stringify(spStatusIndex))
       var loading = false
         , loading_count = 0
         , total = 0
       
       for (var status in spStatusIndex) {
-        
+
         var count = spStatusIndex[status]
         total += count
 
-        if(status == 'loading'){
+        if(status == 'loading' && count > 0){
           loading_count += count
         }
 
-        if(status != 'success' && count > 0){
+        if(status != 'loaded' && count > 0){
           loading = true
         }
 
       }
 
       if (loading) {
-
-        $scope.startpagesSummary = {
-          stage: 'loading'
-        , percent: Math.round( 100 * (total - loading_count) / total )
-        }
+        $scope.startpagesSummary.stage = 'loading'
+        $scope.startpagesSummary.percent = Math.round( 100 * (total - loading_count) / total )
 
       } else {
-
-        $scope.startpagesSummary = {
-          stage: 'loaded'
-        }
-
+        $scope.startpagesSummary.stage = 'loaded'
+        delete $scope.startpagesSummary.percent
       }
+
     }
 
 
