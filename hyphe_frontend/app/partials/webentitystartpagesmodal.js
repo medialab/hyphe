@@ -3,14 +3,16 @@
 angular.module('hyphe.webentityStartPagesModalController', [])
 
   .controller('webentityStartPagesModalController'
-  ,function( $scope,  api,  utils, QueriesBatcher, webentity, lookups) {
+  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, $modalInstance, webentity, lookups) {
     
     var spStatusIndex = {}
 
     $scope.lookups = lookups
     $scope.webentity = webentity
-    $scope.startpages = webentity.startpages.map(startpage_init)
     $scope.startpagesSummary = spSummary_init()
+    $scope.startpages = (webentity.startpages || []).map(startpage_init)
+
+    $scope.collapseProgressBar = false  // used to create a delay
 
     var timeout = 20
     $scope.queriesBatches = []
@@ -86,25 +88,26 @@ angular.module('hyphe.webentityStartPagesModalController', [])
 
     function lookup_notifySuccessful(lookup, httpStatus){
 
-      startpage_setStatus(lookup.startpage, 'loaded')
-      
       lookup.status = (+httpStatus == 200) ? ('success') : ('issue')
       lookup.httpStatus = httpStatus
+
+      startpage_setStatus(lookup.startpage, lookup.status)
+      
     }
 
     function lookup_notifyFail(lookup){
-
-      startpage_setStatus(lookup.startpage, 'loaded')
       
       lookup.status = 'fail'
       lookup.httpStatus = undefined
+
+      startpage_setStatus(lookup.startpage, lookup.status)
     }
 
 
     // Start page lifecycle
 
     function startpage_init(url){
-      var status = (lookups[url] === undefined) ? ('loading') : ('loaded')
+      var status = ($scope.lookups[url]) ? ($scope.lookups[url].status) : ('loading')
       spStatusIndex_increment(status)
       return {
           url: url
@@ -135,6 +138,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       return {
         stage: 'loading'
       , percent: 0
+      , diagnostic: {}
       }
     }
 
@@ -145,35 +149,41 @@ angular.module('hyphe.webentityStartPagesModalController', [])
         , total = 0
       
       for (var status in spStatusIndex) {
-        
+
         var count = spStatusIndex[status]
         total += count
 
-        if(status == 'loading'){
+        if(status == 'loading' && count > 0){
           loading_count += count
-        }
-
-        if(status != 'success' && count > 0){
           loading = true
         }
 
       }
 
       if (loading) {
-
-        $scope.startpagesSummary = {
-          stage: 'loading'
-        , percent: Math.round( 100 * (total - loading_count) / total )
-        }
+        $scope.startpagesSummary.stage = 'loading'
+        $scope.startpagesSummary.percent = Math.round( 100 * (total - loading_count) / total )
 
       } else {
+        $scope.startpagesSummary.stage = 'loaded'
+        $scope.startpagesSummary.percent = 100
 
-        $scope.startpagesSummary = {
-          stage: 'loaded'
-        }
+        SpDiagnostic()
 
+        // Delayed collapse of the progress bar
+        $timeout(function(){
+          $scope.collapseProgressBar = true
+        }, 500)
       }
+
     }
 
+    function SpDiagnostic(){
+      $scope.startpagesSummary.diagnostic = {
+        ready: ( spStatusIndex['success'] || 0 ) > 0
+      , doomed: ( spStatusIndex['success'] || 0 ) == 0
+      , issues: ( spStatusIndex['issue'] || 0 ) + ( spStatusIndex['fail'] || 0 ) > 0
+      }
+    }
 
   })
