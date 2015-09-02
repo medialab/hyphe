@@ -113,6 +113,24 @@ label.btn.btn-default.disabled.active{
 
 
 /* ==========================================================================
+   URLs can be very loooong
+   ========================================================================== */
+div.url-container{
+  overflow: hidden;
+  white-space: nowrap;
+}
+div.url-container .url{
+  font-family: 'Roboto Condensed', sans-serif;
+  font-weight:400;
+}
+div.url-container .url-break{
+  white-space: normal;
+  word-break: break-all;
+}
+
+
+
+/* ==========================================================================
    Status selector
    ========================================================================== */
 .btn-group-status-selector .btn-in{
@@ -196,88 +214,6 @@ label.btn.btn-default.disabled.active{
   to {
     opacity: 0.8;
     transform: scale(0.9);
-  }
-}
-
-
-
-/* ==========================================================================
-   Mini Spinner
-   ========================================================================== */
-
-/* Spinner Slices */
-.sp-slices {
-  border-radius: 50%;
-  border-top: 8px rgba(0, 0, 0, 0.75) solid;
-  border-left: 8px rgba(0, 0, 0, 0.25) solid;
-  border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-  border-right: 8px rgba(0, 0, 0, 0.25) solid;
-  -webkit-animation: spSlices 1s infinite linear;
-  animation: spSlices 1s infinite linear;
-}
-
-@-webkit-keyframes spSlices {
-  0% {
-    border-top: 8px rgba(0, 0, 0, 0.75) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
-  }
-  25% {
-    border-top: 8px rgba(0, 0, 0, 0.25) solid;
-    border-right: 8px rgba(0, 0, 0, 0.75) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
-  }
-  50% {
-    border-top: 8px rgba(0, 0, 0, 0.25) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.75) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
-  }
-  75% {
-    border-top: 8px rgba(0, 0, 0, 0.25) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.75) solid;
-  }
-  100% {
-    border-top: 8px rgba(0, 0, 0, 0.75) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
-  }
-}
-@keyframes spSlices {
-  0% {
-    border-top: 8px rgba(0, 0, 0, 0.75) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
-  }
-  25% {
-    border-top: 8px rgba(0, 0, 0, 0.25) solid;
-    border-right: 8px rgba(0, 0, 0, 0.75) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
-  }
-  50% {
-    border-top: 8px rgba(0, 0, 0, 0.25) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.75) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
-  }
-  75% {
-    border-top: 8px rgba(0, 0, 0, 0.25) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.75) solid;
-  }
-  100% {
-    border-top: 8px rgba(0, 0, 0, 0.75) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
   }
 }
 
@@ -1134,6 +1070,10 @@ textarea.over-error{
 .crawl-cell-text-muted{
   opacity: 0.6;
 }
+.crawl-cell-content.bg-neutral{
+  background-color: #EFEBE8;
+}
+
 
 
 
@@ -1422,11 +1362,18 @@ textarea.over-error{
 /* ==========================================================================
    Module: Web Entity Start Pages Modal
    ========================================================================== */
+.table-wesp td, .table-wesp th{
+  max-width: 0;
+}
 .wesp-modal-cell-startpage{
-
 }
 .wesp-modal-cell-lookup{
-
+  width: 250px;
+}
+@media (max-width: 768px) { /* xs screen only */
+  .wesp-modal-cell-lookup{
+    width: 100px;
+  }
 }
 .wesp-modal-loading{
   opacity: 0.6;
@@ -1651,6 +1598,90 @@ textarea.over-error{
 }
 
 
+
+
+
+/* ==========================================================================
+   Mini Spinner
+   ========================================================================== */
+
+/* Spinner Slices */
+.sp-slices {
+  border-radius: 50%;
+  border-top: 8px rgba(0, 0, 0, 0.75) solid;
+  border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+  border-right: 8px rgba(0, 0, 0, 0.25) solid;
+  -webkit-animation: spSlices 1s infinite linear;
+  animation: spSlices 1s infinite linear;
+  width: 0;
+  height: 0;
+}
+
+@-webkit-keyframes spSlices {
+  0% {
+    border-top: 8px rgba(0, 0, 0, 0.75) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+  25% {
+    border-top: 8px rgba(0, 0, 0, 0.25) solid;
+    border-right: 8px rgba(0, 0, 0, 0.75) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+  50% {
+    border-top: 8px rgba(0, 0, 0, 0.25) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.75) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+  75% {
+    border-top: 8px rgba(0, 0, 0, 0.25) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.75) solid;
+  }
+  100% {
+    border-top: 8px rgba(0, 0, 0, 0.75) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+}
+@keyframes spSlices {
+  0% {
+    border-top: 8px rgba(0, 0, 0, 0.75) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+  25% {
+    border-top: 8px rgba(0, 0, 0, 0.25) solid;
+    border-right: 8px rgba(0, 0, 0, 0.75) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+  50% {
+    border-top: 8px rgba(0, 0, 0, 0.25) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.75) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+  75% {
+    border-top: 8px rgba(0, 0, 0, 0.25) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.75) solid;
+  }
+  100% {
+    border-top: 8px rgba(0, 0, 0, 0.75) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+}
 
 
 

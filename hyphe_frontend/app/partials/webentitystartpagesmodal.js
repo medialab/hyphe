@@ -3,7 +3,7 @@
 angular.module('hyphe.webentityStartPagesModalController', [])
 
   .controller('webentityStartPagesModalController'
-  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, webentity, lookups) {
+  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, $modalInstance, webentity, lookups) {
     
     var spStatusIndex = {}
 
@@ -88,25 +88,26 @@ angular.module('hyphe.webentityStartPagesModalController', [])
 
     function lookup_notifySuccessful(lookup, httpStatus){
 
-      startpage_setStatus(lookup.startpage, 'loaded')
-      
       lookup.status = (+httpStatus == 200) ? ('success') : ('issue')
       lookup.httpStatus = httpStatus
+
+      startpage_setStatus(lookup.startpage, lookup.status)
+      
     }
 
     function lookup_notifyFail(lookup){
-
-      startpage_setStatus(lookup.startpage, 'loaded')
       
       lookup.status = 'fail'
       lookup.httpStatus = undefined
+
+      startpage_setStatus(lookup.startpage, lookup.status)
     }
 
 
     // Start page lifecycle
 
     function startpage_init(url){
-      var status = (lookups[url] === undefined) ? ('loading') : ('loaded')
+      var status = ($scope.lookups[url]) ? ($scope.lookups[url].status) : ('loading')
       spStatusIndex_increment(status)
       return {
           url: url
@@ -137,11 +138,12 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       return {
         stage: 'loading'
       , percent: 0
+      , diagnostic: {}
       }
     }
 
     function SpSummary_update(){
-      console.log("Sp Summary", JSON.stringify(spStatusIndex))
+      
       var loading = false
         , loading_count = 0
         , total = 0
@@ -153,9 +155,6 @@ angular.module('hyphe.webentityStartPagesModalController', [])
 
         if(status == 'loading' && count > 0){
           loading_count += count
-        }
-
-        if(status != 'loaded' && count > 0){
           loading = true
         }
 
@@ -169,6 +168,8 @@ angular.module('hyphe.webentityStartPagesModalController', [])
         $scope.startpagesSummary.stage = 'loaded'
         $scope.startpagesSummary.percent = 100
 
+        SpDiagnostic()
+
         // Delayed collapse of the progress bar
         $timeout(function(){
           $scope.collapseProgressBar = true
@@ -177,5 +178,12 @@ angular.module('hyphe.webentityStartPagesModalController', [])
 
     }
 
+    function SpDiagnostic(){
+      $scope.startpagesSummary.diagnostic = {
+        ready: ( spStatusIndex['success'] || 0 ) > 0
+      , doomed: ( spStatusIndex['success'] || 0 ) == 0
+      , issues: ( spStatusIndex['issue'] || 0 ) + ( spStatusIndex['fail'] || 0 ) > 0
+      }
+    }
 
   })

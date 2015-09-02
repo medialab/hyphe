@@ -3,7 +3,7 @@
 </div>
 <div class="modal-body">
 
-  <table class="table table-condensed table-striped">
+  <table class="table table-condensed table-striped table-wesp">
 
     <thead>
       <tr>
@@ -22,16 +22,16 @@
         <td
           class="wesp-modal-cell-startpage"
         >
-          <span class="url">
-            <span>
-              {{sp.url}}
+          <div class="url-container">
+            <span class="url url-break">
+              <span>
+                {{sp.url}}
+              </span>
+              <a href="{{sp.url}}" target="_blank" title="Open in a new tab">
+                <span class="glyphicon glyphicon-share-alt"></span>
+              </a>
             </span>
-            &nbsp;
-            <a href="{{sp.url}}" target="_blank" title="Open in a new tab">
-              <span class="glyphicon glyphicon-share-alt"></span>
-            </a>
-          </span>
-          
+          </url>          
         </td>
         
         <td
@@ -40,14 +40,14 @@
           <span class="pull-right">
             <minispinner ng-if="sp.status == 'loading'"></minispinner>
             <span
-              ng-if="sp.status == 'loaded'"
+              ng-if="sp.status != 'loading'"
               class="glyphicon"
               ng-class="{
-                'glyphicon-ok': lookups[sp.url].status == 'success'
-              , 'text-success': lookups[sp.url].status == 'success'
+                'glyphicon-ok': sp.status == 'success'
+              , 'text-success': sp.status == 'success'
 
-              , 'glyphicon-exclamation-sign': lookups[sp.url].status == 'issue'
-              , 'text-warning':               lookups[sp.url].status == 'issue'
+              , 'glyphicon-exclamation-sign': sp.status == 'issue'
+              , 'text-warning':               sp.status == 'issue'
               }"
 
               tooltip-animation="true"
@@ -83,8 +83,31 @@
     <progressbar ng-if="startpagesSummary.percent > 0" value="startpagesSummary.percent" >{{startpagesSummary.percent}}% tested</progressbar>
   </div>
 
+  <div collapse="!collapseProgressBar">
+
+    <div ng-show="startpagesSummary.diagnostic.ready">
+      <h4 class="text-success">READY TO CRAWL</h4>
+      <p ng-show="startpagesSummary.diagnostic.issues" class="text-success">
+        At least one page is valid, allowing the crawl to start successfully.
+      </p>
+      <p ng-show="startpagesSummary.diagnostic.issues" class="text-warning">
+        A little warning, though.
+        <br>
+        Some start pages have issues and cannot be crawled. It will not block the crawl but you may want to fix this.
+      </p>
+    </div>
+
+    <div ng-show="startpagesSummary.diagnostic.doomed">
+      <h4 class="text-danger">CRAWL CANNOT START</h4>
+      <p class="text-danger">
+        This web entity has no valid start page. Hyphe will not be able to start crawling it.
+      </p>
+    </div>
+
+  </div>
+
 </div>
 <div class="modal-footer">
-  <button class="btn btn-primary" ng-click="ok()">OK</button>
-  <button class="btn btn-default" ng-click="cancel()">CANCEL</button>
+  <button class="btn btn-default" ng-click="ok()">OK</button>
+  <!-- <button class="btn btn-default" ng-click="cancel()">CANCEL</button> -->
 </div>
