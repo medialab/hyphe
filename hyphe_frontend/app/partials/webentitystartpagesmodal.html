@@ -78,12 +78,10 @@
 
   </table>
 
-  <!-- <h4 ng-if=" startpagesSummary.stage == 'loading' "> -->
-  <h4>
-    Testing start pages ({{startpagesSummary.percent}}%) ...
-  </h4>
-
-  {{startpagesSummary.stage}}
+  <div collapse="collapseProgressBar" >
+    <progressbar ng-if="startpagesSummary.percent == 0" value="100" class="progress-striped active" >Testing web entities</progressbar>
+    <progressbar ng-if="startpagesSummary.percent > 0" value="startpagesSummary.percent" >{{startpagesSummary.percent}}% tested</progressbar>
+  </div>
 
 </div>
 <div class="modal-footer">

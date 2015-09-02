@@ -3,7 +3,7 @@
 angular.module('hyphe.webentityStartPagesModalController', [])
 
   .controller('webentityStartPagesModalController'
-  ,function( $scope,  api,  utils, QueriesBatcher, webentity, lookups) {
+  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, webentity, lookups) {
     
     var spStatusIndex = {}
 
@@ -11,6 +11,8 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     $scope.webentity = webentity
     $scope.startpagesSummary = spSummary_init()
     $scope.startpages = (webentity.startpages || []).map(startpage_init)
+
+    $scope.collapseProgressBar = false  // used to create a delay
 
     var timeout = 20
     $scope.queriesBatches = []
@@ -165,7 +167,12 @@ angular.module('hyphe.webentityStartPagesModalController', [])
 
       } else {
         $scope.startpagesSummary.stage = 'loaded'
-        delete $scope.startpagesSummary.percent
+        $scope.startpagesSummary.percent = 100
+
+        // Delayed collapse of the progress bar
+        $timeout(function(){
+          $scope.collapseProgressBar = true
+        }, 500)
       }
 
     }
