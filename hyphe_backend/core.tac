@@ -1131,10 +1131,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 if not bl or is_error(pgs) or not len(pgs):
                     continue
                 for p in pgs:
-                    if self.validate(p, homepWEs[i]):
+                    if self.validate_linkpage(p, homepWEs[i]):
                         homepages[homepWEs[i].id] = p.url
                         if p.linked > 4:
-                            logger.msg("SETTING HOMEPAGE %s : %s" % (p.url, p.linked), system="DEBUG")
                             self.jsonrpc_set_webentity_homepage(homepWEs[i].id, p.url, corpus=corpus)
                             break
         returnD([self.format_webentity(WE, jobs.get(WE.id, {}), homepages.get(WE.id, None), light, semilight, light_for_csv, corpus=corpus) for WE in WEs])
