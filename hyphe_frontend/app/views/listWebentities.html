@@ -86,13 +86,13 @@
                     <thead>
                       <tr ng-if="!loading && fullListLength > 0">
                         <th class="cell-checkbox"><input type="checkbox" ng-model="$parent.$parent.pageChecked" ng-change="updatePageSelection()" tooltip="{{$parent.pageChecked ? 'Uncheck' : 'Check'}} all on this page"></th>
+                        <th class="cell-link"></th>
                         <th class="cell-name pointable" ng-click="toggleSort('name')">
                           <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort != 'name'"></span>
                           <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort == 'name' && sortAsc"></span>
                           <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort == 'name' && !sortAsc"></span>
                           Name
                         </th>
-                        <th class="cell-link hidden-xs hidden-sm">Link</th>
                         <th class="cell-status pointable" ng-click="toggleSort('status')">
                           <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort != 'status'"></span>
                           <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort == 'status' && sortAsc"></span>
@@ -130,11 +130,7 @@
                         ng-class="{'bg-selected':obj.checked}"
                       >
                         <td class="cell-checkbox"><input type="checkbox" ng-checked="obj.checked"></td>
-                        <td class="cell-name">
-                          <span>{{obj.webentity.name}}</span>
-                          <webentity-link corpus-id="corpusId" webentity-id="obj.webentity.id">
-                        </td>
-                        <td class="cell-link hidden-xs hidden-sm prefix-div-container">
+                        <td class="cell-link">
                           <a
                             ng-show="obj.webentity.homepage"
                             href="{{obj.webentity.homepage}}"
@@ -142,6 +138,10 @@
                             ng-click="$event.stopPropagation();"
                             tooltip="{{obj.webentity.homepage}}"
                           ><span class="glyphicon glyphicon-link"></span></a>
+                        </td>
+                        <td class="cell-name">
+                          <span>{{obj.webentity.name}}</span>
+                          <webentity-link corpus-id="corpusId" webentity-id="obj.webentity.id">
                         </td>
                         <td class="cell-status">
                           <span

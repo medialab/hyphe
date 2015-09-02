@@ -1271,7 +1271,7 @@ textarea.over-error{
   word-break: break-all;
 }
 .webentities-list-table .cell-link{
-  width: 40px;
+  width: 24px;
 }
 .webentities-list-table .cell-status{
   width: 120px;
@@ -1286,7 +1286,7 @@ textarea.over-error{
   width: 80px;
 }
 .webentities-list-table .cell-action{
-  width: 140px;
+  width: 112px;
 }
 .webentities-list-table .panel-heading{
   padding: 6px;
@@ -1330,25 +1330,6 @@ textarea.over-error{
 }
 .flatpanel-body form.action{
   margin-top: 6px;
-}
-.webentities-list-table .prefix-div-container{
-  padding-top: 7px;
-  line-height: 0px;
-}
-.webentities-list-table .prefix-div{
-  width: 12px;
-  height: 12px;
-  background-color: #EFEBE8;
-  margin-right: 3px;
-  margin-top: 3px;
-  display: inline-block;
-  cursor: pointer;
-}
-.webentities-list-table tr.bg-selected .prefix-div{
-  /*background-color: #FFF;*/
-}
-.webentities-list-table .prefix-div:hover, .webentities-list-table tr.bg-selected .prefix-div:hover{
-  background-color: #428bca;
 }
 
 
