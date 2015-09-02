@@ -65,7 +65,7 @@
               
                   <!-- Default panel contents -->
                   <div class="panel-heading hyphe-gray">
-                    <form class="form-inline search-ariane-string" role="form"  ng-if="!loading">
+                    <form class="form-inline search-ariane-string" role="form">
 
                       <div class="form-group">
                         <button type="button" class="btn btn-default" disabled="disabled">DISCOVERED</button>
@@ -75,7 +75,7 @@
                         <button type="button" class="btn btn-default" ng-click="clearQuery()"><span class="glyphicon glyphicon-remove"></span> {{settings.query}}</button>
                       </div>
 
-                      <div class="form-group search-ariane-string-text pull-right">
+                      <div class="form-group search-ariane-string-text pull-right" ng-if="!loading">
                         {{fullListLength}} DISCOVERED WEB ENTIT{{fullListLength > 1 ? 'IES' : 'Y'}}
                       </div>
                       
