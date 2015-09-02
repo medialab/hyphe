@@ -92,7 +92,7 @@
                           <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort == 'name' && !sortAsc"></span>
                           Name
                         </th>
-                        <th class="cell-prefixes hidden-xs hidden-sm">Prefixes</th>
+                        <th class="cell-prefixes hidden-xs hidden-sm">Link</th>
                         <th class="cell-status pointable" ng-click="toggleSort('status')">
                           <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort != 'status'"></span>
                           <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort == 'status' && sortAsc"></span>
@@ -135,7 +135,8 @@
                           <webentity-link corpus-id="corpusId" webentity-id="obj.webentity.id">
                         </td>
                         <td class="cell-prefixes hidden-xs hidden-sm prefix-div-container">
-                          <div ng-repeat="lru in obj.webentity.lru_prefixes" tooltip="{{lru|lru_to_url}}" class="prefix-div" ng-click="popLru(lru); $event.stopPropagation();"></div>
+                          <a ng-show="obj.webentity.homepage" href="{{obj.webentity.homepage}}" target="_blank"><span class="glyphicon glyphicon-share-alt"></span></a>
+                          <div ng-hide="obj.webentity.homepage" ng-repeat="lru in obj.webentity.lru_prefixes" tooltip="{{lru|lru_to_url}}" class="prefix-div" ng-click="popLru(lru); $event.stopPropagation();"></div>
                         </td>
                         <td class="cell-status">
                           <span

@@ -1023,7 +1023,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, False)
         yield self.ensureDefaultCreationRuleExists(corpus, _quiet=_noloop)
 
-    def format_webentity(self, WE, job={}, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
+    def format_webentity(self, WE, job={}, homepage=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
         if not WE:
             return None
         res = {'id': WE.id, 'name': WE.name, 'status': WE.status, 'lru_prefixes': list(WE.LRUSet)}
@@ -1040,9 +1040,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             res['crawling_status'] = crawling_statuses.UNCRAWLED
             res['indexing_status'] = indexing_statuses.UNINDEXED
             res['crawled'] = False
+        res['homepage'] = WE.homepage if WE.homepage else homepage if homepage else None
         if test_bool_arg(semilight):
             return res
-        res['homepage'] = WE.homepage
         res['startpages'] = list(WE.startpages)
         res['tags'] = {}
         for tag, values in WE.metadataItems.iteritems():
@@ -1055,23 +1055,89 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns.startswith("CORE")])}
         return res
 
+    re_camelCase = re.compile(r'(.)_(.)')
+    def sortargs_accessor(self, WE, field, jobs={}, corpus=DEFAULT_CORPUS):
+        if "_" in field:
+            field = self.re_camelCase.sub(lambda x: x.group(1)+x.group(2).upper(), field)
+        else: field = field.lower()
+        if field in WE.__dict__:
+            return WE.__dict__[field]
+        if field == "crawled":
+            job = jobs.get(WE.id, {})
+            return job and job['crawling_status'] not in [crawling_statuses.CANCELED, crawling_statuses.UNCRAWLED]
+        if field == "indegree":
+            return self.corpora[corpus]["webentities_ranks"].get(WE.id, 0)
+        return None
+
+    format_field = lambda _,x: x.upper() if type(x) in [str, unicode] else x
     @inlineCallbacks
-    def format_webentities(self, WEs, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
+    def sort_webentities(self, WEs, sort=None, corpus=DEFAULT_CORPUS):
+        if not (sort and WEs):
+            returnD((WEs, None))
+        if type(sort) != list:
+            sort = [sort]
+        jobs = None
+        if "crawled" in " ".join(sort).lower():
+            jobs = yield self.get_webentities_jobs(WEs, corpus=corpus)
+        for sortkey in reversed(sort):
+            key = sortkey.lstrip("-")
+            reverse = (key != sortkey)
+            if self.sortargs_accessor(WEs[0], key, jobs=jobs, corpus=corpus) != None:
+                WEs = sorted(WEs, key=lambda x: self.format_field(self.sortargs_accessor(x, key, jobs=jobs, corpus=corpus)), reverse=reverse)
+        returnD((WEs, jobs))
+
+    @inlineCallbacks
+    def get_webentities_jobs(self, WEs, corpus=DEFAULT_CORPUS):
         jobs = {}
+        res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs if WE.status != "DISCOVERED"]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
+        for job in res:
+            jobs[job['webentity_id']] = job
+        returnD(jobs)
+
+    # Linkpage heuristic to be refined
+    def validate_linkpage(self, page, WE):
+        if len(page.url) > max([len(urllru.lru_to_url(l)) for l in WE.LRUSet]) + 50:
+            return False
+        # Filter links to files instead of webpages (formats stolen from scrapy/linkextractor.py)
+        for ext in [
+          # images
+            'mng','pct','bmp','gif','jpg','jpeg','png','pst','psp','tif',
+            'tiff','ai','drw','dxf','eps','ps','svg',
+          # audio
+            'mp3','wma','ogg','wav','ra','aac','mid','au','aiff',
+          # video
+            '3gp','asf','asx','avi','mov','mp4','mpg','qt','rm','swf','wmv','m4a',
+          # office suites
+            'xls','xlsx','ppt','pptx','doc','docx','odt','ods','odg','odp',
+          # other
+            'css','pdf','exe','bin','rss','zip','rar','js'
+          ]:
+            if page.url.endswith(".%s" % ext):
+                return False
+        return True
+
+    @inlineCallbacks
+    def format_webentities(self, WEs, jobs=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
+        if jobs == None:
+            if not (test_bool_arg(light) or test_bool_arg(light_for_csv)):
+                jobs = yield self.get_webentities_jobs(WEs, corpus=corpus)
+            else: jobs = {}
+        homepages = {}
         if not (test_bool_arg(light) or test_bool_arg(light_for_csv)):
-            res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs if WE.status != "DISCOVERED"]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
-            for job in res:
-                jobs[job['webentity_id']] = job
-        res = [self.format_webentity(WE, jobs.get(WE.id, {}), light, semilight, light_for_csv, corpus=corpus) for WE in WEs]
-        if res and sort:
-            if type(sort) != list:
-                sort = [sort]
-            for sortkey in reversed(sort):
-                key = sortkey.lstrip("-")
-                reverse = (key != sortkey)
-                if key in res[0]:
-                    res = sorted(res, key=lambda x: x[key].upper() if type(x[key]) in [str, unicode] else x[key], reverse=reverse)
-        returnD(res)
+            homepWEs = [w for w in WEs if not w.homepage]
+            results = yield DeferredList([self.msclients.pool.getWebEntityMostLinkedPages(WE.id, 3, corpus=corpus) for WE in homepWEs], consumeErrors=True)
+            res = []
+            for i, (bl, pgs) in enumerate(results):
+                if not bl or is_error(pgs) or not len(pgs):
+                    continue
+                for p in pgs:
+                    if self.validate(p, homepWEs[i]):
+                        homepages[homepWEs[i].id] = p.url
+                        if p.linked > 4:
+                            logger.msg("SETTING HOMEPAGE %s : %s" % (p.url, p.linked), system="DEBUG")
+                            self.jsonrpc_set_webentity_homepage(homepWEs[i].id, p.url, corpus=corpus)
+                            break
+        returnD([self.format_webentity(WE, jobs.get(WE.id, {}), homepages.get(WE.id, None), light, semilight, light_for_csv, corpus=corpus) for WE in WEs])
 
     @inlineCallbacks
     def reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False):
@@ -1358,7 +1424,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_set_webentity_homepage(self, webentity_id, homepage, corpus=DEFAULT_CORPUS):
         """Changes for a `corpus` the homepage of a WebEntity defined by `webentity_id` to `homepage`."""
         try:
-            homepage, _ = urllru.url_clean_and_convert(url)
+            homepage, _ = urllru.url_clean_and_convert(homepage)
         except ValueError as e:
             return format_error(e)
         return self.update_webentity(webentity_id, "homepage", homepage, corpus=corpus)
@@ -1784,9 +1850,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(format_result(res))
 
     @inlineCallbacks
-    def paginate_webentities(self, WEs, count, page, light=False, semilight=False, sort=None, corpus=DEFAULT_CORPUS):
+    def paginate_webentities(self, WEs, count, page, jobs=None, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
         subset = WEs[page*count:(page+1)*count]
-        ids = [w["id"] for w in WEs]
+        subset = yield self.format_webentities(subset, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
+        ids = [w.id for w in WEs]
         res = yield self.format_WE_page(len(ids), count, page, subset, corpus=corpus)
         query_args = {
           "count": count,
@@ -1829,13 +1896,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
             WEs = yield self.ramcache_webentities(corpus=corpus)
             if is_error(WEs):
                 returnD(WEs)
-        res = yield self.format_webentities(WEs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
+        WEs, jobs = yield self.sort_webentities(WEs, sort=sort, corpus=corpus)
         if n_WEs or count == -1:
+            res = yield self.format_webentities(WEs, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
             returnD(format_result(res))
         if len(WEs) > count and not light_for_csv:
-            res = yield self.paginate_webentities(res, count, page, light=light, semilight=semilight, sort=sort, corpus=corpus)
+            res = yield self.paginate_webentities(WEs, count, page, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
             returnD(res)
         else:
+            res = yield self.format_webentities(WEs, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
             respage = yield self.format_WE_page(len(res), count, page, res, corpus=corpus)
             returnD(respage)
 
@@ -1874,10 +1943,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
-        res = yield self.format_webentities(WEs, sort=sort, light=light, semilight=semilight, corpus=corpus)
         if indegree_filter:
-            res = [w for w in res if w["indegree"] >= indegree_filter[0] and w["indegree"] <= indegree_filter[1]]
-        res = yield self.paginate_webentities(res, count, page, sort=sort, corpus=corpus)
+            WEs = [w for w in WEs if self.corpora[corpus]["webentities_ranks"].get(WE.id, 0) >= indegree_filter[0] and self.corpora[corpus]["webentities_ranks"].get(WE.id, 0) <= indegree_filter[1]]
+
+        WEs, jobs = yield self.sort_webentities(WEs, sort=sort, corpus=corpus)
+        res = yield self.paginate_webentities(WEs, count, page, jobs=jobs, sort=sort, light=light, semilight=semilight, corpus=corpus)
         returnD(res)
 
     def escape_search_query(self, query, corpus=DEFAULT_CORPUS):
