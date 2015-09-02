@@ -1270,8 +1270,8 @@ textarea.over-error{
   /*width: 100%;*/
   word-break: break-all;
 }
-.webentities-list-table .cell-prefixes{
-  width: 80px;
+.webentities-list-table .cell-link{
+  width: 40px;
 }
 .webentities-list-table .cell-status{
   width: 120px;
