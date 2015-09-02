@@ -1274,10 +1274,10 @@ textarea.over-error{
   width: 24px;
 }
 .webentities-list-table .cell-status{
-  width: 120px;
+  width: 100px;
 }
 .webentities-list-table .cell-last-crawled{
-  width: 90px;
+  width: 50px;
 }
 .webentities-list-table .cell-last-modif{
   width: 150px;
