@@ -53,6 +53,13 @@ angular.module('hyphe.preparecrawlsController', [])
       }
     )
 
+    // Update summaries
+    $scope.$watch('lookups', function(newValue, oldValue) {
+      $timeout(function(){
+        updateStartpagesSummaries()
+      }, 0)
+    }, true)
+
 
     // Functions
 
@@ -215,6 +222,68 @@ angular.module('hyphe.preparecrawlsController', [])
         lookupEngine.doLookups($scope.lookups, lookupBatch)
       }
 
+    }
+
+    // Start pages summaries
+    function updateStartpagesSummaries(){
+      $scope.list.forEach(function(obj){
+        var loaded = obj.summary && obj.summary.stage && obj.summary.stage == 'loaded'
+        if ( !loaded && obj.webentity && obj.webentity.startpages ) {
+          var summary = updateStartpagesSummary(obj.webentity.startpages)
+          obj.summary = summary        }
+      })
+      $scope.$apply()
+    }
+
+    function updateStartpagesSummary(startpages){
+
+      var loading = false
+        , loading_count = 0
+        , total = 0
+        , statusIndex = {}
+        , result = {}
+
+      // build status index
+      startpages.forEach(function(url){
+        var status = ($scope.lookups[url] || {status:'loading'}).status
+          , value = statusIndex[status] || 0
+
+        statusIndex[status] = value + 1
+      })
+      
+      // check if globally loading
+      for (var status in statusIndex) {
+
+        var count = statusIndex[status]
+        total += count
+
+        if(status == 'loading' && count > 0){
+          loading_count += count
+          loading = true
+        }
+      }
+
+      if (loading) {
+        result.stage = 'loading'
+        result.percent = Math.round( 100 * (total - loading_count) / total )
+
+        // Diagnostic
+        result.diagnostic = {}
+
+      } else {
+        result.stage = 'loaded'
+        result.percent = 100
+
+        // Diagnostic
+        result.diagnostic = {
+          ready: ( statusIndex['success'] || 0 ) > 0
+        , doomed: ( statusIndex['success'] || 0 ) == 0
+        , issues: ( statusIndex['issue'] || 0 ) + ( statusIndex['fail'] || 0 ) > 0
+        }
+
+      }
+
+      return result
     }
 
     // Web entity modal
