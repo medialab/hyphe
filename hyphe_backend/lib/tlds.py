@@ -7,12 +7,12 @@ from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 
 MOZ_TLD_LIST = "https://publicsuffix.org/list/public_suffix_list.dat"
 
-def add_tld_chunk_to_tree(tld, tree):
+def add_tld_chunks_to_tree(tld, tree):
     chunk = tld.pop()
     if chunk not in tree:
         tree[chunk] = {}
     if tld:
-        add_tld_chunk_to_tree(tld, tree[chunk])
+        add_tld_chunks_to_tree(tld, tree[chunk])
 
 @inlineCallbacks
 def collect_tlds():
@@ -24,13 +24,12 @@ def collect_tlds():
         if not line or line.startswith("//"):
             continue
         chunks = line.decode('utf-8').split('.')
-        add_tld_chunk_to_tree(chunks, tree)
+        add_tld_chunks_to_tree(chunks, tree)
         if line[0] == '!':
             double_list["exceptions"].append(line[1:])
         else:
             double_list["rules"].append(line.strip())
     returnD((double_list, tree))
-
 
 def get_tld_from_host_arr(host_arr, tldtree, tld="", tldlru=""):
     chunk = host_arr.pop()

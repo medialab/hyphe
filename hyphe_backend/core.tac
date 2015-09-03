@@ -1138,23 +1138,24 @@ class Memory_Structure(jsonrpc.JSONRPC):
         results = yield DeferredList([self.msclients.pool.getWebEntityMostLinkedPages(WE.id, 3, corpus=corpus) for WE in homepWEs], consumeErrors=True)
         res = []
         for i, (bl, pgs) in enumerate(results):
+            WE = homepWEs[i]
             prefixes = [urllru.lru_to_url(l) for l in WE.LRUSet]
             for pr in prefixes:
                 if pr.startswith("http://www."):
-                    homepages[homepWEs[i].id] = pr
+                    homepages[WE.id] = pr
                     break
             if not bl or is_error(pgs) or not len(pgs):
                 continue
             for p in pgs:
-                if self.validate_linkpage(p, homepWEs[i]):
-                    homepages[homepWEs[i].id] = p.url
+                if self.validate_linkpage(p, WE):
+                    homepages[WE.id] = p.url
                     if p.linked > 4:
-                        self.jsonrpc_set_webentity_homepage(homepWEs[i].id, p.url, corpus=corpus)
+                        self.jsonrpc_set_webentity_homepage(WE.id, p.url, corpus=corpus)
                         break
                 else:
                     for pr in prefixes:
                         if p.url.startswith(pr):
-                            homepages[homepWEs[i].id] = pr
+                            homepages[WE.id] = pr
                             break
         returnD(homepages)
 
