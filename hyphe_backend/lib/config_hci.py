@@ -139,7 +139,7 @@ def load_config():
 
     return conf
 
-VALID_STARTPAGES_MODES = re.compile(r'(%s)$' % "|".join(['startpages', 'prefixes', 'pages-\d+'])) # 'homepage']
+VALID_STARTPAGES_MODES = re.compile(r'(%s)$' % "|".join(['startpages', 'prefixes', 'pages-\d+', 'homepage']))
 def validateStartpagesMode(modes):
     """be a string or an array of strings among "prefixes", "startpages" and "pages-<N>" where "<N>" is an int."""
     if type(modes) in [str, unicode, bytes]:

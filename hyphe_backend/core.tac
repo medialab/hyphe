@@ -668,6 +668,8 @@ class Core(jsonrpc.JSONRPC):
                 starts[startrule] = [urllru.lru_to_url(lru) for lru in WE.LRUSet]
             elif startrule == "startpages":
                 starts[startrule] = list(WE.startpages)
+            elif startrule == "homepage":
+                starts[startrule] = WE.homepage
             else:
                 returnD(format_error('ERROR: startmode argument must be either "default" or one or many of "startpages", "pages-<N>" with <N> an int or "prefixes"'))
         if categories:
@@ -676,7 +678,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_propose_webentity_startpages(self, webentity_id, startmode="default", categories=False, corpus=DEFAULT_CORPUS):
-        """Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages" or "prefixes" or already seen "pages". Returns them categorised by type of source if "categories" is set to True."""
+        """Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages"\, "homepage" or "prefixes" or <N> most seen "pages-<N>". Returns them categorised by type of source if "categories" is set to True."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         WE = yield self.store.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
@@ -687,7 +689,7 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def jsonrpc_crawl_webentity(self, webentity_id, depth=0, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], phantom_timeouts={}, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_from_startmode` to apply a different heuristic)."""
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic\, see details in `propose_webentity_startpages`)."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         WE = yield self.store.msclients.pool.getWebEntity(webentity_id, corpus=corpus)

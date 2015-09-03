@@ -113,6 +113,7 @@ The API will always answer as such:
     * __`get_tag_values`__
   + [PAGES, LINKS & NETWORKS](#pages-links-networks)
     * __`get_webentity_pages`__
+    * __`get_webentity_mostlinked_pages`__
     * __`get_webentity_subwebentities`__
     * __`get_webentity_parentwebentities`__
     * __`get_webentity_nodelinks_network`__
@@ -250,7 +251,7 @@ The API will always answer as such:
  + _`categories`_ (optional, default: `false`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages" or "prefixes" or already seen "pages". Returns them categorised by type of source if "categories" is set to true.
+ Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages", "homepage" or "prefixes" or <N> most seen "pages-<N>". Returns them categorised by type of source if "categories" is set to true.
 
 
 - __`crawl_webentity`:__
@@ -264,7 +265,7 @@ The API will always answer as such:
  Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.
  Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.
  Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").
- Will use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_from_startmode` to apply a different heuristic).
+ Will use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic, see details in `propose_webentity_startpages`).
 
 
 - __`crawl_webentity_with_startmode`:__
@@ -788,6 +789,14 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true".
+
+
+- __`get_webentity_mostlinked_pages`:__
+ + _`webentity_id`_ (mandatory)
+ + _`npages`_ (optional, default: `20`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id`.
 
 
 - __`get_webentity_subwebentities`:__
