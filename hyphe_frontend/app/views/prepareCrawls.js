@@ -45,7 +45,7 @@ angular.module('hyphe.preparecrawlsController', [])
 
     // Lazy lookups
 
-    lazylookupTimeInterval = $interval(lazyLookups, 2000);
+    lazylookupTimeInterval = $interval(function(){ lazyLookups() }, 2000);
     $scope.$on(
       "$destroy",
       function( event ) {
@@ -187,8 +187,8 @@ angular.module('hyphe.preparecrawlsController', [])
     }
 
     // Lazy lookup
-    function lazyLookups(){
-      var lookupBatch = []
+    function lazyLookups( batch ){
+      var lookupBatch = ( batch || [] ).slice()
         , maxSize = 8
 
       $scope.list.some(function(obj, i){
@@ -289,7 +289,37 @@ angular.module('hyphe.preparecrawlsController', [])
     // Web entity modal
     function openWebentityModal(obj, i){
 
-      /* Instanciate and open the Modal */
+      if (obj.webentity.startpages.length == 0) {
+
+        getStartPagesSuggestions(obj.webentity)
+
+        function getStartPagesSuggestions(webentity) {
+          api.getStartPagesSuggestions({
+            webentityId: webentity.id
+          }, function(urls){
+
+            lazyLookups(urls)
+            webentity.summary = {}
+            webentity.startpages = urls
+
+            instanciateModal(obj)
+
+          }, function(){
+            $scope.status = {message: "Error while getting start pages suggestions", background: 'danger'}
+          })
+        }
+
+      } else {
+
+        instanciateModal(obj)
+
+      }
+
+    }
+
+    /* Instanciate and open the Modal */
+    function instanciateModal(obj) {
+
       var modalInstance = $modal.open({
           templateUrl: 'partials/webentitystartpagesmodal.html'
         , size: 'lg'
@@ -313,6 +343,7 @@ angular.module('hyphe.preparecrawlsController', [])
       }, function () {
         // On dismiss: nothing happens
       })
+
     }
 
     // Lookup Engine

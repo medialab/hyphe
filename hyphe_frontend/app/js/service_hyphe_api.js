@@ -20,6 +20,7 @@ angular.module('hyphe.service_hyphe_api', [])
 
     API.WEBENTITY_STARTPAGE_ADD                     = 'store.add_webentity_startpage'
     API.WEBENTITY_STARTPAGE_REMOVE                  = 'store.rm_webentity_startpage'
+    API.WEBENTITY_STARTPAGE_LIST_PROPOSE            = 'propose_webentity_startpages'
 
     API.WEBENTITY_PREFIX_ADD                        = 'store.add_webentity_lruprefixes'
     API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
@@ -209,6 +210,17 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
               settings.webentityId
               ,settings.url
+              ,corpus.getId()
+            ]}
+      )
+
+    ns.getStartPagesSuggestions = buildApiCall(
+        API.WEBENTITY_STARTPAGE_LIST_PROPOSE
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.startmode || 'default'
+              ,settings.categories || false
               ,corpus.getId()
             ]}
       )
