@@ -53,6 +53,14 @@
                     class="info text-center"
                   >
                     auto <span class="text-muted">start pages</span>
+                    <small><span
+                      class="glyphicon glyphicon-ok"
+                      tooltip-animation="true"
+                      tooltip-placement="top"
+                      tooltip-trigger="mouseenter"
+                      tooltip="Ready to crawl"
+                      tooltip-append-to-body="true"
+                    ></span></small>
                   </p>
 
                   <!-- Loaded : Start pages -->
@@ -62,35 +70,37 @@
                   >
                     {{obj.webentity.startpages.length}} <span class="text-muted">start page{{obj.webentity.startpages.length > 1 ? 's' : ''}}</span>
                     <span ng-if="obj.summary && obj.summary.stage == 'loaded'">
-                      <span ng-show="!obj.summary.diagnostic.doomed">
+                      <small>
+                        <span ng-show="!obj.summary.diagnostic.doomed">
+                          <span
+                            ng-if="obj.summary.diagnostic.ready"
+                            class="glyphicon glyphicon-ok"
+                            tooltip-animation="true"
+                            tooltip-placement="top"
+                            tooltip-trigger="mouseenter"
+                            tooltip="Ready to crawl"
+                            tooltip-append-to-body="true"
+                          ></span>
+                          <span
+                            ng-if="obj.summary.diagnostic.issues"
+                            class="glyphicon glyphicon-info-sign text-muted"
+                            tooltip-animation="true"
+                            tooltip-placement="top"
+                            tooltip-trigger="mouseenter"
+                            tooltip="Non-blocking issues"
+                            tooltip-append-to-body="true"
+                          ></span>
+                        </span>
                         <span
-                          ng-if="obj.summary.diagnostic.ready"
-                          class="glyphicon glyphicon-ok"
+                          ng-if="obj.summary.diagnostic.doomed"
+                          class="glyphicon glyphicon-warning-sign text-danger"
                           tooltip-animation="true"
                           tooltip-placement="top"
                           tooltip-trigger="mouseenter"
-                          tooltip="Ready to crawl"
+                          tooltip="Doomed crawl needs fix :)"
                           tooltip-append-to-body="true"
                         ></span>
-                        <span
-                          ng-if="obj.summary.diagnostic.issues"
-                          class="glyphicon glyphicon-info-sign text-muted"
-                          tooltip-animation="true"
-                          tooltip-placement="top"
-                          tooltip-trigger="mouseenter"
-                          tooltip="Non-blocking issues"
-                          tooltip-append-to-body="true"
-                        ></span>
-                      </span>
-                      <span
-                        ng-if="obj.summary.diagnostic.doomed"
-                        class="glyphicon glyphicon-warning-sign text-danger"
-                        tooltip-animation="true"
-                        tooltip-placement="top"
-                        tooltip-trigger="mouseenter"
-                        tooltip="Doomed crawl needs fix :)"
-                        tooltip-append-to-body="true"
-                      ></span>
+                      </small>
                     </span>
                   </p>
 
