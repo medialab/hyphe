@@ -2,8 +2,8 @@
 
 angular.module('hyphe.preparecrawlsController', [])
 
-  .controller('PrepareCrawls', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', '$modal', 'corpus'
-  ,function($scope, api, store, utils, $location, QueriesBatcher, $modal, corpus) {
+  .controller('PrepareCrawls', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', '$modal', 'corpus', '$timeout'
+  ,function($scope, api, store, utils, $location, QueriesBatcher, $modal, corpus, $timeout) {
     $scope.currentPage = 'prepareCrawls'
     $scope.Page.setTitle('Prepare Crawls')
     $scope.corpusName = corpus.getName()
@@ -28,6 +28,11 @@ angular.module('hyphe.preparecrawlsController', [])
     var list_byId = {}  // List index
 
     $scope.getWebentities = getWebentities
+
+
+    var timeout = 20
+    $scope.queriesBatches = []
+    var lookupEngine = getLookupEngine()
 
     $scope.removeRow = function(objId){
       console.log('remove row',objId)
@@ -251,6 +256,9 @@ angular.module('hyphe.preparecrawlsController', [])
           , lookups: function () {
               return $scope.lookups
             }
+          , lookupEngine: function () {
+              return lookupEngine
+            }
           }
         })
 
@@ -260,6 +268,79 @@ angular.module('hyphe.preparecrawlsController', [])
       }, function () {
         // On dismiss: nothing happens
       })
+    }
+
+    // Lookup Engine
+    function getLookupEngine(){
+
+      var ns = {}
+
+      ns.initLookup = function(url){
+
+        return {
+          url: url
+        , status: 'loading'
+        }
+
+      }
+
+      ns.notifySuccessful = function(lookup, httpStatus){
+
+        lookup.status = (+httpStatus == 200) ? ('success') : ('issue')
+        lookup.httpStatus = httpStatus
+        
+      }
+
+      ns.notifyFail = function(lookup){
+        
+        lookup.status = 'fail'
+        lookup.httpStatus = undefined
+
+      }
+
+      ns.doLookups = function(lookups, urls){
+
+        var unlooked = urls.filter(function(url){return lookups[url] === undefined })
+
+        if(unlooked.length > 0){
+          var lookupQB = new QueriesBatcher()
+          $scope.queriesBatches.push(lookupQB)
+          unlooked.forEach(function(url){
+            lookupQB.addQuery(
+                api.urlLookup                         // Query call
+                ,{                                    // Query settings
+                    url: url
+                    ,timeout: timeout
+                  }
+                ,function(httpStatus){                // Success callback
+
+                    lookupEngine.notifySuccessful(lookups[url], httpStatus)
+
+                  }
+                ,function(data, status, headers){     // Fail callback
+
+                    lookupEngine.notifyFail(lookups[url])
+
+                  }
+                ,{                                    // Options
+                    label: 'lookup '+url
+                    ,before: function(){
+                        lookups[url] = lookupEngine.initLookup(url)
+                      }
+                    ,simultaneousQueries: 3
+                  }
+              )
+          })
+
+          lookupQB.atFinalization(function(list,pending,success,fail){
+            // doLookups()
+          })
+
+          lookupQB.run()
+        }
+      }
+
+      return ns;
     }
 
 

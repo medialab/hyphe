@@ -3,9 +3,7 @@
 angular.module('hyphe.webentityStartPagesModalController', [])
 
   .controller('webentityStartPagesModalController'
-  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, $modalInstance, webentity, lookups) {
-    
-    var lookupEngine = getLookupEngine()
+  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, $modalInstance, webentity, lookups, lookupEngine) {
 
     $scope.lookups = lookups
     $scope.webentity = webentity
@@ -17,9 +15,6 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     $scope.startpages = (webentity.startpages || [])
 
     $scope.collapseProgressBar = false  // used to create a delay
-
-    var timeout = 20
-    $scope.queriesBatches = []
 
     $scope.ok = function () {
       var feedback = {
@@ -39,83 +34,11 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       }, 0)
     }, true)
 
-    doLookups()
+    // Init
+    lookupEngine.doLookups($scope.lookups, $scope.startpages)
 
-    // functions
 
-    function doLookups(){
-
-      var unlooked = $scope.startpages
-        .filter(function(url){return $scope.lookups[url] === undefined })
-
-      if(unlooked.length > 0){
-        var lookupQB = new QueriesBatcher()
-        $scope.queriesBatches.push(lookupQB)
-        unlooked.forEach(function(url){
-          lookupQB.addQuery(
-              api.urlLookup                         // Query call
-              ,{                                    // Query settings
-                  url: url
-                  ,timeout: timeout
-                }
-              ,function(httpStatus){                // Success callback
-
-                  lookupEngine.notifySuccessful($scope.lookups[url], httpStatus)
-
-                }
-              ,function(data, status, headers){     // Fail callback
-
-                  lookupEngine.notifyFail($scope.lookups[url])
-
-                }
-              ,{                                    // Options
-                  label: 'lookup '+url
-                  ,before: function(){
-                      $scope.lookups[url] = lookupEngine.initLookup(url)
-                    }
-                  ,simultaneousQueries: 3
-                }
-            )
-        })
-
-        lookupQB.atFinalization(function(list,pending,success,fail){
-          // doLookups()
-        })
-
-        lookupQB.run()
-      }
-    }
-
-    // Lookup Engine
-    function getLookupEngine(){
-
-      var ns = {}
-
-      ns.initLookup = function(url){
-
-        return {
-          url: url
-        , status: 'loading'
-        }
-
-      }
-
-      ns.notifySuccessful = function(lookup, httpStatus){
-
-        lookup.status = (+httpStatus == 200) ? ('success') : ('issue')
-        lookup.httpStatus = httpStatus
-        
-      }
-
-      ns.notifyFail = function(lookup){
-        
-        lookup.status = 'fail'
-        lookup.httpStatus = undefined
-
-      }
-
-      return ns;
-    }
+    // Functions
 
     function updateStartpagesSummary(){
       
