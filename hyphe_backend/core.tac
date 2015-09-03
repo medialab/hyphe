@@ -1095,13 +1095,13 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(jobs)
 
     # Linkpage heuristic to be refined
-    re_clean_end_url = re.compile(r"\.([a-z\d]{2,4})([?#].*)?$", re.I)
+    re_extract_url_ext = re.compile(r"\.([a-z\d]{2,4})([?#].*)?$", re.I)
     def validate_linkpage(self, page, WE):
         # Filter arbitrarily too long links
         if len(page.url) > max([len(urllru.lru_to_url(l)) for l in WE.LRUSet]) + 50:
             return False
         # Filter links to files instead of webpages (formats stolen from scrapy/linkextractor.py)
-        ext = self.re_clean_end_url.search(page.url)
+        ext = self.re_extract_url_ext.search(page.url)
         if ext and ext.group(1).lower() in [
           # images
             'mng','pct','bmp','gif','jpg','jpeg','png','pst','psp','tif',
@@ -2145,6 +2145,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
   # PAGES, LINKS & NETWORKS
 
+    def format_pages(self, pages):
+        if is_error(pages):
+            return pages
+        return [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'linked': p.linked, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
+
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
@@ -2152,10 +2157,18 @@ class Memory_Structure(jsonrpc.JSONRPC):
             pages = yield self.msclients.pool.getWebEntityCrawledPages(webentity_id, corpus=corpus)
         else:
             pages = yield self.msclients.pool.getWebEntityPages(webentity_id, corpus=corpus)
-        if is_error(pages):
-            returnD(pages)
-        formatted_pages = [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
-        returnD(format_result(formatted_pages))
+        returnD(format_result(self.format_pages(pages)))
+
+    @inlineCallbacks
+    def jsonrpc_get_webentity_mostlinked_pages(self, webentity_id, npages=20, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id`."""
+        try:
+            npages = int(npages)
+            assert(npages > 0)
+        except:
+            returnD(format_error("ERROR: npages argument must be a stricly positive integer"))
+        pages = yield self.msclients.pool.getWebEntityMostLinkedPages(webentity_id, npages, corpus=corpus)
+        returnD(format_result(self.format_pages(pages)))
 
     def jsonrpc_get_webentity_subwebentities(self, webentity_id, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all sub-webentities of a WebEntity defined by `webentity_id` (meaning webentities having at least one LRU prefix starting with one of the WebEntity's prefixes)."""
@@ -2168,7 +2181,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def get_webentity_relative_webentities(self, webentity_id, relative_type="children", corpus=DEFAULT_CORPUS):
         if relative_type != "children" and relative_type != "parents":
-            returnD(format_error("ERROR: must set relative type as children or parents"))
+            returnD(format_error("ERROR: relative_type must be set to children or parents"))
         if relative_type == "children":
             WEs = yield self.msclients.pool.getWebEntitySubWebEntities(webentity_id, corpus=corpus)
         else:
