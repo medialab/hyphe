@@ -17,7 +17,7 @@
     </thead>
 
     <tbody>
-      <tr ng-repeat="sp in startpages" ng-class="{'wesp-modal-loading' : sp.status == 'loading'}">
+      <tr ng-repeat="url in startpages" ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading'}">
         
         <td
           class="wesp-modal-cell-startpage"
@@ -25,9 +25,9 @@
           <div class="url-container">
             <span class="url url-break">
               <span>
-                {{sp.url}}
+                {{url}}
               </span>
-              <a href="{{sp.url}}" target="_blank" title="Open in a new tab">
+              <a href="{{url}}" target="_blank" title="Open in a new tab">
                 <span class="glyphicon glyphicon-share-alt"></span>
               </a>
             </span>
@@ -38,37 +38,37 @@
           class="wesp-modal-cell-lookup"
         >
           <span class="pull-right">
-            <minispinner ng-if="sp.status == 'loading'"></minispinner>
+            <minispinner ng-if="lookups[url].status == 'loading'"></minispinner>
             <span
-              ng-if="sp.status != 'loading'"
+              ng-if="lookups[url].status != 'loading'"
               class="glyphicon"
               ng-class="{
-                'glyphicon-ok': sp.status == 'success'
-              , 'text-success': sp.status == 'success'
+                'glyphicon-ok': lookups[url].status == 'success'
+              , 'text-success': lookups[url].status == 'success'
 
-              , 'glyphicon-exclamation-sign': sp.status == 'issue'
-              , 'text-warning':               sp.status == 'issue'
+              , 'glyphicon-exclamation-sign': lookups[url].status == 'issue'
+              , 'text-warning':               lookups[url].status == 'issue'
               }"
 
               tooltip-animation="true"
               tooltip-placement="top"
               tooltip-trigger="mouseenter"
-              tooltip="Lookup {{lookups[sp.url].status}}"
+              tooltip="Lookup {{lookups[url].status}}"
               tooltip-append-to-body="true"
             ></span>
 
             <!-- Lookup fail -->
-            <span ng-if="lookups[sp.url].status == 'fail'" class="text-danger">
+            <span ng-if="lookups[url].status == 'fail'" class="text-danger">
               lookup fail
             </span>
 
             <!-- Lookup loaded -->
             <span
-              ng-if=" lookups[sp.url].status == 'issue'"
+              ng-if=" lookups[url].status == 'issue'"
               class="text-warning"
-              tooltip="HTTP code: {{lookups[sp.url].httpStatus}}"
+              tooltip="HTTP code: {{lookups[url].httpStatus}}"
             >
-              {{lookups[sp.url].httpStatus|explicitHttpCode}}
+              {{lookups[url].httpStatus|explicitHttpCode}}
             </span>
           </span>
         </td>
@@ -101,6 +101,9 @@
       <h4 class="text-danger">DOOMED CRAWL</h4>
       <p class="text-danger">
         This web entity has no valid start page. Hyphe will not be able to start crawling it.
+      </p>
+      <p class="text-muted">
+        You can still try to launch it, though. Miracles happen.
       </p>
     </div>
 

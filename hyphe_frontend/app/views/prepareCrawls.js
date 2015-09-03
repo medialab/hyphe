@@ -2,8 +2,9 @@
 
 angular.module('hyphe.preparecrawlsController', [])
 
-  .controller('PrepareCrawls', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', '$modal', 'corpus'
-  ,function($scope, api, store, utils, $location, QueriesBatcher, $modal, corpus) {
+  .controller('PrepareCrawls', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', '$modal', 'corpus', '$timeout', '$interval'
+  ,function($scope, api, store, utils, $location, QueriesBatcher, $modal, corpus, $timeout, $interval) {
+    
     $scope.currentPage = 'prepareCrawls'
     $scope.Page.setTitle('Prepare Crawls')
     $scope.corpusName = corpus.getName()
@@ -11,10 +12,6 @@ angular.module('hyphe.preparecrawlsController', [])
 
     $scope.crawlDepth = 1
 
-    $scope.httpStatusLoading = 0
-    $scope.httpStatusWarning = 0
-    $scope.httpStatusSuccess = 0
-    
     $scope.paginationPage = 1
     $scope.paginationLength = 50    // How many items per page
     $scope.paginationNumPages = 10   // How many pages to display in the pagination
@@ -24,31 +21,15 @@ angular.module('hyphe.preparecrawlsController', [])
     $scope.queriesBatches = []
     $scope.lookups = {}
 
-    $scope.list = []
+    $scope.list = []    // List of objects representing web entities
     var list_byId = {}  // List index
 
     $scope.getWebentities = getWebentities
 
-    $scope.removeRow = function(objId){
-      console.log('remove row',objId)
-      var obj = list_byId[objId]
-
-      // Remove old status
-      if(obj.startpagesSummary.status == 'warning'){
-        $scope.httpStatusWarning--
-      } else if(obj.startpagesSummary.status == 'success'){
-        $scope.httpStatusSuccess--
-      } else {
-        $scope.httpStatusLoading--
-      }
-
-      $scope.list = $scope.list.filter(function(obj){
-        return obj.id != objId
-      })
-
-      delete list_byId[objId]
-
-    }
+    var timeout = 20
+    $scope.queriesBatches = []
+    var lookupEngine = getLookupEngine()
+      , lazylookupTimeInterval
 
     $scope.openWebentity = function(index){
       var obj = $scope.list[index]
@@ -61,6 +42,23 @@ angular.module('hyphe.preparecrawlsController', [])
     getSettingsFromCorpusOptions()
     bootstrapList(store.get('webentities_toCrawl'))
     store.remove('webentities_toCrawl')
+
+    // Lazy lookups
+
+    lazylookupTimeInterval = $interval(function(){ lazyLookups() }, 2000);
+    $scope.$on(
+      "$destroy",
+      function( event ) {
+          $interval.cancel( lazylookupTimeInterval )
+      }
+    )
+
+    // Update summaries
+    $scope.$watch('lookups', function(newValue, oldValue) {
+      $timeout(function(){
+        updateStartpagesSummaries()
+      }, 0)
+    }, true)
 
 
     // Functions
@@ -85,7 +83,6 @@ angular.module('hyphe.preparecrawlsController', [])
 
       // Clean and set exactly what we need
       list = list.map(function(obj, i){
-        $scope.httpStatusLoading++
         return {
           id:i
           ,webentity: obj.webentity
@@ -177,69 +174,152 @@ angular.module('hyphe.preparecrawlsController', [])
       queriesBatcher.atFinalization(function(list,pending,success,fail){
         // Status message
         $scope.status = {}
-
       })
 
       queriesBatcher.run()
     }
 
+    // Web entities status lifecycle
     function obj_setStatus(obj, status){
-
-      // Decrement status from summary
-      /*switch(obj.status){
-        case('warning'):
-          $scope.httpStatusWarning--
-          break
-        case('error'):
-          $scope.httpStatusWarning--
-          break
-        case('loaded'):
-          switch(obj.startpagesSummary.status){
-            case('success'):
-              $scope.httpStatusSuccess--
-              break
-            case('warning'):
-              $scope.httpStatusWarning--
-              break
-            default:
-              $scope.httpStatusLoading--
-          }
-          break
-        default:
-          $scope.httpStatusLoading--
-      }*/
 
       obj.status = status
 
-      // Increment status from summary
-      /*switch(status){
-        case('warning'):
-          $scope.httpStatusWarning++
-          break
-        case('error'):
-          $scope.httpStatusWarning++
-          break
-        case('loaded'):
-          switch(obj.startpagesSummary.status){
-            case('success'):
-              $scope.httpStatusSuccess++
-              break
-            case('warning'):
-              $scope.httpStatusWarning++
-              break
-            default:
-              $scope.httpStatusLoading++
+    }
+
+    // Lazy lookup
+    function lazyLookups( batch ){
+      var lookupBatch = ( batch || [] ).slice()
+        , maxSize = 8
+
+      $scope.list.some(function(obj, i){
+        if(obj.webentity && obj.webentity.startpages){
+          
+          obj.webentity.startpages.some(function(url){
+            if($scope.lookups[url] === undefined){
+
+              lookupBatch.push(url)
+
+            } else if($scope.lookups[url].status == 'loading') {
+
+              maxSize-- // Loading lookups occupy a slot
+
+            }
+
+            if(lookupBatch.length >= maxSize){
+              return true
+            }
+          })
+
+          if(lookupBatch.length >= maxSize){
+            return true
           }
-          break
-        default:
-          $scope.httpStatusLoading++
-      }*/
+
+        }
+      })
+
+      if(lookupBatch.length > 0){
+        // console.log('Lazy lookup', lookupBatch)
+        lookupEngine.doLookups($scope.lookups, lookupBatch)
+      }
+
+    }
+
+    // Start pages summaries
+    function updateStartpagesSummaries(){
+      $scope.list.forEach(function(obj){
+        var loaded = obj.summary && obj.summary.stage && obj.summary.stage == 'loaded'
+        if ( !loaded && obj.webentity && obj.webentity.startpages ) {
+          var summary = updateStartpagesSummary(obj.webentity.startpages)
+          obj.summary = summary        }
+      })
+      $scope.$apply()
+    }
+
+    function updateStartpagesSummary(startpages){
+
+      var loading = false
+        , loading_count = 0
+        , total = 0
+        , statusIndex = {}
+        , result = {}
+
+      // build status index
+      startpages.forEach(function(url){
+        var status = ($scope.lookups[url] || {status:'loading'}).status
+          , value = statusIndex[status] || 0
+
+        statusIndex[status] = value + 1
+      })
+      
+      // check if globally loading
+      for (var status in statusIndex) {
+
+        var count = statusIndex[status]
+        total += count
+
+        if(status == 'loading' && count > 0){
+          loading_count += count
+          loading = true
+        }
+      }
+
+      if (loading) {
+        result.stage = 'loading'
+        result.percent = Math.round( 100 * (total - loading_count) / total )
+
+        // Diagnostic
+        result.diagnostic = {}
+
+      } else {
+        result.stage = 'loaded'
+        result.percent = 100
+
+        // Diagnostic
+        result.diagnostic = {
+          ready: ( statusIndex['success'] || 0 ) > 0
+        , doomed: ( statusIndex['success'] || 0 ) == 0
+        , issues: ( statusIndex['issue'] || 0 ) + ( statusIndex['fail'] || 0 ) > 0
+        }
+
+      }
+
+      return result
     }
 
     // Web entity modal
     function openWebentityModal(obj, i){
 
-      /* Instanciate and open the Modal */
+      if (obj.webentity.startpages.length == 0) {
+
+        getStartPagesSuggestions(obj.webentity)
+
+        function getStartPagesSuggestions(webentity) {
+          api.getStartPagesSuggestions({
+            webentityId: webentity.id
+          }, function(urls){
+
+            lazyLookups(urls)
+            webentity.summary = {}
+            webentity.startpages = urls
+
+            instanciateModal(obj)
+
+          }, function(){
+            $scope.status = {message: "Error while getting start pages suggestions", background: 'danger'}
+          })
+        }
+
+      } else {
+
+        instanciateModal(obj)
+
+      }
+
+    }
+
+    /* Instanciate and open the Modal */
+    function instanciateModal(obj) {
+
       var modalInstance = $modal.open({
           templateUrl: 'partials/webentitystartpagesmodal.html'
         , size: 'lg'
@@ -251,6 +331,9 @@ angular.module('hyphe.preparecrawlsController', [])
           , lookups: function () {
               return $scope.lookups
             }
+          , lookupEngine: function () {
+              return lookupEngine
+            }
           }
         })
 
@@ -260,6 +343,82 @@ angular.module('hyphe.preparecrawlsController', [])
       }, function () {
         // On dismiss: nothing happens
       })
+
+    }
+
+    // Lookup Engine
+    function getLookupEngine(){
+
+      var ns = {}
+
+      ns.initLookup = function(url){
+
+        return {
+          url: url
+        , status: 'loading'
+        }
+
+      }
+
+      ns.notifySuccessful = function(lookup, httpStatus){
+
+        lookup.status = (+httpStatus == 200) ? ('success') : ('issue')
+        lookup.httpStatus = httpStatus
+        // console.log( 'lookup ' + lookup.status + '(' + httpStatus + ')', lookup.url )
+        
+      }
+
+      ns.notifyFail = function(lookup){
+        
+        lookup.status = 'fail'
+        lookup.httpStatus = undefined
+        // console.log( 'lookup '+lookup.status, lookup.url )
+
+      }
+
+      ns.doLookups = function(lookups, urls){
+
+        var unlooked = urls.filter(function(url){return lookups[url] === undefined })
+
+        if(unlooked.length > 0){
+          var lookupQB = new QueriesBatcher()
+          $scope.queriesBatches.push(lookupQB)
+          unlooked.forEach(function(url){
+            lookupQB.addQuery(
+                api.urlLookup                         // Query call
+                ,{                                    // Query settings
+                    url: url
+                    ,timeout: timeout
+                  }
+                ,function(httpStatus){                // Success callback
+
+                    lookupEngine.notifySuccessful(lookups[url], httpStatus)
+
+                  }
+                ,function(data, status, headers){     // Fail callback
+
+                    lookupEngine.notifyFail(lookups[url])
+
+                  }
+                ,{                                    // Options
+                    label: 'lookup '+url
+                    ,before: function(){
+                        lookups[url] = lookupEngine.initLookup(url)
+                      }
+                    ,simultaneousQueries: 5
+                  }
+              )
+          })
+
+          lookupQB.atFinalization(function(list,pending,success,fail){
+            // doLookups()
+          })
+
+          lookupQB.run()
+        }
+      }
+
+      return ns;
     }
 
 
