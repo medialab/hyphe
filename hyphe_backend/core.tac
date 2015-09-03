@@ -820,7 +820,7 @@ class Core(jsonrpc.JSONRPC):
                 if not (deadline and deadline < time.time()) and \
                    not (url.startswith("https") and response.code/100 == 4) and \
                    (use_proxy or response.code in [403, 405, 500, 501, 503]) and \
-                   response.code not in [502, 404]:
+                   response.code not in [400, 404, 502]:
                     if tryout == 3 and use_proxy:
                         noproxy = True
                         tryout = 1
