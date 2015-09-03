@@ -2,8 +2,9 @@
 
 angular.module('hyphe.preparecrawlsController', [])
 
-  .controller('PrepareCrawls', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', '$modal', 'corpus', '$timeout'
-  ,function($scope, api, store, utils, $location, QueriesBatcher, $modal, corpus, $timeout) {
+  .controller('PrepareCrawls', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', '$modal', 'corpus', '$timeout', '$interval'
+  ,function($scope, api, store, utils, $location, QueriesBatcher, $modal, corpus, $timeout, $interval) {
+    
     $scope.currentPage = 'prepareCrawls'
     $scope.Page.setTitle('Prepare Crawls')
     $scope.corpusName = corpus.getName()
@@ -11,10 +12,6 @@ angular.module('hyphe.preparecrawlsController', [])
 
     $scope.crawlDepth = 1
 
-    $scope.httpStatusLoading = 0
-    $scope.httpStatusWarning = 0
-    $scope.httpStatusSuccess = 0
-    
     $scope.paginationPage = 1
     $scope.paginationLength = 50    // How many items per page
     $scope.paginationNumPages = 10   // How many pages to display in the pagination
@@ -24,36 +21,15 @@ angular.module('hyphe.preparecrawlsController', [])
     $scope.queriesBatches = []
     $scope.lookups = {}
 
-    $scope.list = []
+    $scope.list = []    // List of objects representing web entities
     var list_byId = {}  // List index
 
     $scope.getWebentities = getWebentities
 
-
     var timeout = 20
     $scope.queriesBatches = []
     var lookupEngine = getLookupEngine()
-
-    $scope.removeRow = function(objId){
-      console.log('remove row',objId)
-      var obj = list_byId[objId]
-
-      // Remove old status
-      if(obj.startpagesSummary.status == 'warning'){
-        $scope.httpStatusWarning--
-      } else if(obj.startpagesSummary.status == 'success'){
-        $scope.httpStatusSuccess--
-      } else {
-        $scope.httpStatusLoading--
-      }
-
-      $scope.list = $scope.list.filter(function(obj){
-        return obj.id != objId
-      })
-
-      delete list_byId[objId]
-
-    }
+      , lazylookupTimeInterval
 
     $scope.openWebentity = function(index){
       var obj = $scope.list[index]
@@ -66,6 +42,16 @@ angular.module('hyphe.preparecrawlsController', [])
     getSettingsFromCorpusOptions()
     bootstrapList(store.get('webentities_toCrawl'))
     store.remove('webentities_toCrawl')
+
+    // Lazy lookups
+
+    lazylookupTimeInterval = $interval(lazyLookups, 2000);
+    $scope.$on(
+      "$destroy",
+      function( event ) {
+          $interval.cancel( lazylookupTimeInterval )
+      }
+    )
 
 
     // Functions
@@ -90,7 +76,6 @@ angular.module('hyphe.preparecrawlsController', [])
 
       // Clean and set exactly what we need
       list = list.map(function(obj, i){
-        $scope.httpStatusLoading++
         return {
           id:i
           ,webentity: obj.webentity
@@ -182,63 +167,54 @@ angular.module('hyphe.preparecrawlsController', [])
       queriesBatcher.atFinalization(function(list,pending,success,fail){
         // Status message
         $scope.status = {}
-
       })
 
       queriesBatcher.run()
     }
 
+    // Web entities status lifecycle
     function obj_setStatus(obj, status){
-
-      // Decrement status from summary
-      /*switch(obj.status){
-        case('warning'):
-          $scope.httpStatusWarning--
-          break
-        case('error'):
-          $scope.httpStatusWarning--
-          break
-        case('loaded'):
-          switch(obj.startpagesSummary.status){
-            case('success'):
-              $scope.httpStatusSuccess--
-              break
-            case('warning'):
-              $scope.httpStatusWarning--
-              break
-            default:
-              $scope.httpStatusLoading--
-          }
-          break
-        default:
-          $scope.httpStatusLoading--
-      }*/
 
       obj.status = status
 
-      // Increment status from summary
-      /*switch(status){
-        case('warning'):
-          $scope.httpStatusWarning++
-          break
-        case('error'):
-          $scope.httpStatusWarning++
-          break
-        case('loaded'):
-          switch(obj.startpagesSummary.status){
-            case('success'):
-              $scope.httpStatusSuccess++
-              break
-            case('warning'):
-              $scope.httpStatusWarning++
-              break
-            default:
-              $scope.httpStatusLoading++
+    }
+
+    // Lazy lookup
+    function lazyLookups(){
+      var lookupBatch = []
+        , maxSize = 8
+
+      $scope.list.some(function(obj, i){
+        if(obj.webentity && obj.webentity.startpages){
+          
+          obj.webentity.startpages.some(function(url){
+            if($scope.lookups[url] === undefined){
+
+              lookupBatch.push(url)
+
+            } else if($scope.lookups[url].status == 'loading') {
+
+              maxSize-- // Loading lookups occupy a slot
+
+            }
+
+            if(lookupBatch.length >= maxSize){
+              return true
+            }
+          })
+
+          if(lookupBatch.length >= maxSize){
+            return true
           }
-          break
-        default:
-          $scope.httpStatusLoading++
-      }*/
+
+        }
+      })
+
+      if(lookupBatch.length > 0){
+        // console.log('Lazy lookup', lookupBatch)
+        lookupEngine.doLookups($scope.lookups, lookupBatch)
+      }
+
     }
 
     // Web entity modal
@@ -288,6 +264,7 @@ angular.module('hyphe.preparecrawlsController', [])
 
         lookup.status = (+httpStatus == 200) ? ('success') : ('issue')
         lookup.httpStatus = httpStatus
+        // console.log( 'lookup ' + lookup.status + '(' + httpStatus + ')', lookup.url )
         
       }
 
@@ -295,6 +272,7 @@ angular.module('hyphe.preparecrawlsController', [])
         
         lookup.status = 'fail'
         lookup.httpStatus = undefined
+        // console.log( 'lookup '+lookup.status, lookup.url )
 
       }
 
@@ -327,7 +305,7 @@ angular.module('hyphe.preparecrawlsController', [])
                     ,before: function(){
                         lookups[url] = lookupEngine.initLookup(url)
                       }
-                    ,simultaneousQueries: 3
+                    ,simultaneousQueries: 5
                   }
               )
           })
