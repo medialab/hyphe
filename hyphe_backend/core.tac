@@ -1095,11 +1095,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(jobs)
 
     # Linkpage heuristic to be refined
+    re_clean_end_url = re.compile(r"\.([a-z\d]{2,4})([?#].*)?$", re.I)
     def validate_linkpage(self, page, WE):
+        # Filter arbitrarily too long links
         if len(page.url) > max([len(urllru.lru_to_url(l)) for l in WE.LRUSet]) + 50:
             return False
         # Filter links to files instead of webpages (formats stolen from scrapy/linkextractor.py)
-        for ext in [
+        ext = self.re_clean_end_url.search(page.url)
+        if ext and ext.group(1).lower() in [
           # images
             'mng','pct','bmp','gif','jpg','jpeg','png','pst','psp','tif',
             'tiff','ai','drw','dxf','eps','ps','svg',
@@ -1112,8 +1115,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
           # other
             'css','pdf','exe','bin','rss','zip','rar','js'
           ]:
-            if page.url.endswith(".%s" % ext):
-                return False
+            return False
         return True
 
     @inlineCallbacks
@@ -1124,19 +1126,35 @@ class Memory_Structure(jsonrpc.JSONRPC):
             else: jobs = {}
         homepages = {}
         if not (test_bool_arg(light) or test_bool_arg(light_for_csv)):
-            homepWEs = [w for w in WEs if not w.homepage]
-            results = yield DeferredList([self.msclients.pool.getWebEntityMostLinkedPages(WE.id, 3, corpus=corpus) for WE in homepWEs], consumeErrors=True)
-            res = []
-            for i, (bl, pgs) in enumerate(results):
-                if not bl or is_error(pgs) or not len(pgs):
-                    continue
-                for p in pgs:
-                    if self.validate_linkpage(p, homepWEs[i]):
-                        homepages[homepWEs[i].id] = p.url
-                        if p.linked > 4:
-                            self.jsonrpc_set_webentity_homepage(homepWEs[i].id, p.url, corpus=corpus)
-                            break
+            homepages = yield self.get_webentities_missing_linkpages(WEs, corpus=corpus)
         returnD([self.format_webentity(WE, jobs.get(WE.id, {}), homepages.get(WE.id, None), light, semilight, light_for_csv, corpus=corpus) for WE in WEs])
+
+    @inlineCallbacks
+    def get_webentities_missing_linkpages(self, WEs, corpus=DEFAULT_CORPUS):
+        homepages = {}
+        homepWEs = [w for w in WEs if not w.homepage]
+        results = yield DeferredList([self.msclients.pool.getWebEntityMostLinkedPages(WE.id, 3, corpus=corpus) for WE in homepWEs], consumeErrors=True)
+        res = []
+        for i, (bl, pgs) in enumerate(results):
+            prefixes = [urllru.lru_to_url(l) for l in WE.LRUSet]
+            for pr in prefixes:
+                if pr.startswith("http://www."):
+                    homepages[homepWEs[i].id] = pr
+                    break
+            if not bl or is_error(pgs) or not len(pgs):
+                continue
+            for p in pgs:
+                if self.validate_linkpage(p, homepWEs[i]):
+                    homepages[homepWEs[i].id] = p.url
+                    if p.linked > 4:
+                        self.jsonrpc_set_webentity_homepage(homepWEs[i].id, p.url, corpus=corpus)
+                        break
+                else:
+                    for pr in prefixes:
+                        if p.url.startswith(pr):
+                            homepages[homepWEs[i].id] = pr
+                            break
+        returnD(homepages)
 
     @inlineCallbacks
     def reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False):
