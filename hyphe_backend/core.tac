@@ -819,11 +819,12 @@ class Core(jsonrpc.JSONRPC):
             except:
                 if not (deadline and deadline < time.time()) and \
                    not (url.startswith("https") and response.code/100 == 4) and \
-                   (use_proxy or response.code in [403, 405, 500, 501, 503]):
-                    if tryout == 5 and use_proxy:
+                   (use_proxy or response.code in [403, 405, 500, 501, 503]) and \
+                   response.code not in [502, 404]:
+                    if tryout == 3 and use_proxy:
                         noproxy = True
-                        tryout = 3
-                    if tryout < 5:
+                        tryout = 1
+                    if tryout < 3:
                         if config['DEBUG'] == 2:
                             logger.msg("Retry lookup %s %s %s %s" % (method, url, tryout, response.__dict__), system="DEBUG - %s" % corpus)
                         res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
@@ -1135,7 +1136,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def get_webentities_missing_linkpages(self, WEs, corpus=DEFAULT_CORPUS):
         homepages = {}
         homepWEs = [w for w in WEs if not w.homepage]
-        results = yield DeferredList([self.msclients.pool.getWebEntityMostLinkedPages(WE.id, 3, corpus=corpus) for WE in homepWEs], consumeErrors=True)
+        results = yield DeferredList([self.msclients.pool.getWebEntityMostLinkedPages(WE.id, 2, corpus=corpus) for WE in homepWEs], consumeErrors=True)
         res = []
         for i, (bl, pgs) in enumerate(results):
             WE = homepWEs[i]
@@ -1149,7 +1150,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             for p in pgs:
                 if self.validate_linkpage(p, WE):
                     homepages[WE.id] = p.url
-                    if p.linked > 4:
+                    if p.linked > 2:
                         self.jsonrpc_set_webentity_homepage(WE.id, p.url, corpus=corpus)
                         break
                 else:
