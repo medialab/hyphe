@@ -53,7 +53,7 @@
               tooltip-animation="true"
               tooltip-placement="top"
               tooltip-trigger="mouseenter"
-              tooltip="lookup {{lookups[sp.url].status}}"
+              tooltip="Lookup {{lookups[sp.url].status}}"
               tooltip-append-to-body="true"
             ></span>
 
@@ -66,7 +66,7 @@
             <span
               ng-if=" lookups[sp.url].status == 'issue'"
               class="text-warning"
-              tooltip="http code {{lookups[sp.url].httpStatus}}"
+              tooltip="HTTP code: {{lookups[sp.url].httpStatus}}"
             >
               {{lookups[sp.url].httpStatus|explicitHttpCode}}
             </span>

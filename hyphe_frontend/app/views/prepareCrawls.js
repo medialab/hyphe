@@ -178,7 +178,6 @@ angular.module('hyphe.preparecrawlsController', [])
         // Status message
         $scope.status = {}
 
-        console.log('LIST', $scope.list)
       })
 
       queriesBatcher.run()
