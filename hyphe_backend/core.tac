@@ -135,7 +135,8 @@ class Core(jsonrpc.JSONRPC):
         except Exception as e:
             returnD(format_error(e))
         redeploy = False
-        if "precision_limit" in options or "default_creation_rule" in options or "defautStartpagesMode" in options:
+        if ("precision_limit" in options or "default_creation_rule" in options or "defautStartpagesMode" in options) and \
+          self.corpora[corpus]['crawls'] + self.corpora[corpus]['total_webentities'] > 0:
             returnD(format_error("Precision limit, defautStartpagesMode and default WE creation rule of a corpus can only be set when the corpus is created"))
         if "proxy" in options or ("phantom" in options and (\
           "timeout" in options["phantom"] or \
