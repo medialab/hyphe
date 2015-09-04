@@ -119,6 +119,7 @@ The API will always answer as such:
     * __`get_webentity_nodelinks_network`__
     * __`get_webentities_network`__
   + [CREATION RULES](#creation-rules)
+    * __`get_default_webentity_creationrule`__
     * __`get_webentity_creationrules`__
     * __`delete_webentity_creationrule`__
     * __`add_webentity_creationrule`__
@@ -827,6 +828,12 @@ The API will always answer as such:
  Returns for a `corpus` the list of all agregated weighted links between WebEntities.
 
 ### CREATION RULES
+
+- __`get_default_webentity_creationrule`:__
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` the default WebEntityCreationRule.
+
 
 - __`get_webentity_creationrules`:__
  + _`lru_prefix`_ (optional, default: `null`)

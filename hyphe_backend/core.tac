@@ -138,6 +138,16 @@ class Core(jsonrpc.JSONRPC):
         if ("precision_limit" in options or "default_creation_rule" in options or "defautStartpagesMode" in options) and \
           self.corpora[corpus]['crawls'] + self.corpora[corpus]['total_webentities'] > 0:
             returnD(format_error("Precision limit, defautStartpagesMode and default WE creation rule of a corpus can only be set when the corpus is created"))
+        if "default_creation_rule" in options:
+            rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
+            if is_error(res):
+                logger.msg("Error collecting WECRs before updating default one...", system="ERROR - %s" % corpus)
+            defrule = [r for r in rules if r.LRU==ms_const.DEFAULT_WEBENTITY_CREATION_RULE][0]
+            yield self.store.removeWebEntityCreationRule(defrule)
+            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(options["default_creation_rule"]), ''), corpus=corpus)
+            if is_error(res):
+                logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
+
         if "proxy" in options or ("phantom" in options and (\
           "timeout" in options["phantom"] or \
           "ajax_timeout" in options["phantom"] or \
@@ -2256,6 +2266,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
                     returnD(res)
             returnD(format_result('Default creation rule created'))
         returnD(format_result('Default creation rule was already created'))
+
+    @inlineCallbacks
+    def jsonrpc_get_default_webentity_creationrule(self, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` the default WebEntityCreationRule."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        res = yield self.jsonrpc_get_webentity_creationrules(lru_prefix=ms_const.DEFAULT_WEBENTITY_CREATION_RULE, corpus=corpus)
+        returnD(format_result(res))
 
     @inlineCallbacks
     def jsonrpc_get_webentity_creationrules(self, lru_prefix=None, corpus=DEFAULT_CORPUS):
