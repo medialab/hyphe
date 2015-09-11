@@ -69,7 +69,6 @@ class Core(jsonrpc.JSONRPC):
 
     def render(self, request):
         if config['OPEN_CORS_API']:
-            print "OPEN!!!!!!!"
             request.setHeader("Access-Control-Allow-Origin", "*")
         from_ip = ""
         if request.getHeader("x-forwarded-for"):
