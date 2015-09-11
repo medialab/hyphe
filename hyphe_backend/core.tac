@@ -68,12 +68,17 @@ class Core(jsonrpc.JSONRPC):
    # OVERWRITE JSONRPC REQUEST HANDLING
 
     def render(self, request):
-        request.setHeader("Access-Control-Allow-Origin", "*")
+        if config['OPEN_CORS_API']:
+            print "OPEN!!!!!!!"
+            request.setHeader("Access-Control-Allow-Origin", "*")
         from_ip = ""
         if request.getHeader("x-forwarded-for"):
             from_ip = " from %s" % request.getHeader("x-forwarded-for")
-        if config['DEBUG']:
+        try:
             args = loadjson(request.content.read())
+        except:
+            return format_error("No data sent")
+        if config['DEBUG']:
             if args["method"] in ["start_corpus", "create_corpus"] and len(args["params"]) > 1:
                 args["params"][1] = "********"
             logger.msg(args, system="DEBUG - QUERY%s" % from_ip)

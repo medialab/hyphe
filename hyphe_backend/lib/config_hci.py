@@ -27,6 +27,10 @@ def load_config():
         print 'ERROR: Config file is not valid JSON', e
         exit(1)
 
+  # Set open API for old conf type
+    if "OPEN_CORS_API" not in conf or not conf["OPEN_CORS_API"]:
+        conf["OPEN_CORS_API"] = False
+
   # Set Monocorpus if old conf type
     if "MULTICORPUS" not in conf or not conf["MULTICORPUS"]:
         conf["MULTICORPUS"] = False

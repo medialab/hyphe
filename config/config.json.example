@@ -141,5 +141,6 @@
   },
   "MULTICORPUS": true,
   "ADMIN_PASSWORD": null,
+  "OPEN_CORS_API": false,
   "DEBUG": 0
 }

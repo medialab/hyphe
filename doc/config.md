@@ -137,6 +137,11 @@ Typical important options to set depending on your situation are highlighted as 
    usually unset, but can be defined to a string that will be accepted as the password by all existing corpora to let admins access them for administration use
 
 
+ - __`OPEN_CORS_API [bool]`__:
+
+   usually set to `false`, enable only when you want to allow another frontend web instance to query the core API from another web domain
+
+
  - __`DEBUG [int]`__:
 
    a value from `0` to `2` indicating the level of verbosity desired from the API core in `log/hyphe-core.log`
