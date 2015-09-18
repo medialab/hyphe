@@ -427,6 +427,8 @@ class Core(jsonrpc.JSONRPC):
             returnD(format_result("Already resetting"))
         if not _quiet:
             logger.msg("Resetting corpus...", system="INFO - %s" % corpus)
+        if corpus != TEST_CORPUS:
+            yield self.jsonrpc_backup_corpus(corpus)
         if corpus in self.corpora:
             self.stop_loops(corpus)
         self.init_corpus(corpus)
