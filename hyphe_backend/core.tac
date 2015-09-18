@@ -1116,9 +1116,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     # Linkpage heuristic to be refined
     re_extract_url_ext = re.compile(r"\.([a-z\d]{2,4})([?#].*)?$", re.I)
-    def validate_linkpage(self, page, WE):
+    def validate_linkpage(self, page, WE_prefixes):
         # Filter arbitrarily too long links
-        if len(page.url) > max([len(urllru.lru_to_url(l)) for l in WE.LRUSet]) + 50:
+        if len(page.url) > max([len(p) for p in WE_prefixes]) + 50:
             return False
         # Filter links to files instead of webpages (formats stolen from scrapy/linkextractor.py)
         ext = self.re_extract_url_ext.search(page.url)
@@ -1157,7 +1157,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = []
         for i, (bl, pgs) in enumerate(results):
             WE = homepWEs[i]
-            prefixes = [urllru.lru_to_url(l) for l in WE.LRUSet]
+            prefixes = []
+            for l in WE.LRUSet:
+                try:
+                    prefixes.append(urllru.lru_to_url(l))
+                except:
+                    logger.msg("A webentity (%s) has a badly defined prefix: %s" % (WE.id, l), system="WARNING - %s" % corpus)
             for pr in prefixes:
                 if pr.startswith("http://www."):
                     homepages[WE.id] = pr
@@ -1165,7 +1170,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if not bl or is_error(pgs) or not len(pgs):
                 continue
             for p in pgs:
-                if self.validate_linkpage(p, WE):
+                if self.validate_linkpage(p, prefixes):
                     homepages[WE.id] = p.url
                     if p.linked > 2:
                         self.jsonrpc_set_webentity_homepage(WE.id, p.url, corpus=corpus)

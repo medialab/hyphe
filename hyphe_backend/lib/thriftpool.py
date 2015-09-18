@@ -41,7 +41,10 @@ class SafeThreadPool(ThreadPool):
         self.started = False
         threads = copy.copy(self.threads)
         while self.workers:
-            self.q.put(WorkerStop)
+            try:
+                self.q.put(WorkerStop)
+            except AttributeError:
+                pass
             self.workers -= 1
         for thread in threads:
             thread.join(DEFAULT_THREADKILL_TIMEOUT)
