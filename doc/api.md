@@ -68,6 +68,7 @@ The API will always answer as such:
     * __`get_lru_definedprefixes`__
     * __`declare_webentity_by_lruprefix_as_url`__
     * __`declare_webentity_by_lru`__
+    * __`declare_webentity_by_lrus_as_urls`__
     * __`declare_webentity_by_lrus`__
   + [EDIT WEBENTITIES](#edit-webentities)
     * __`rename_webentity`__
@@ -402,6 +403,16 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Creates for a `corpus` a WebEntity defined for a `lru_prefix`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity.
+
+
+- __`declare_webentity_by_lrus_as_urls`:__
+ + _`list_urls`_ (mandatory)
+ + _`name`_ (optional, default: `null`)
+ + _`status`_ (optional, default: `null`)
+ + _`startPages`_ (optional, default: `[]`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as URLs under `list_urls`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity.
 
 
 - __`declare_webentity_by_lrus`:__

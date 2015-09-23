@@ -1271,6 +1271,19 @@ class Memory_Structure(jsonrpc.JSONRPC):
         """Creates for a `corpus` a WebEntity defined for a `lru_prefix`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
         return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startPages, corpus=corpus)
 
+    def jsonrpc_declare_webentity_by_lrus_as_urls(self, list_urls, name=None, status=None, startPages=[], corpus=DEFAULT_CORPUS):
+        """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as URLs under `list_urls`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
+        if not isinstance(list_urls, list):
+            list_urls = [list_urls]
+        list_lrus = []
+        for url in list_urls:
+            try:
+                 _, lru = urllru.url_clean_and_convert(url, False)
+                 list_lrus.append(lru)
+            except ValueError as e:
+                returnD(format_error(e))
+        return self.jsonrpc_declare_webentity_by_lrus(list_lrus, name, status, startPages, corpus)
+
     @inlineCallbacks
     def jsonrpc_declare_webentity_by_lrus(self, list_lrus, name=None, status=None, startPages=[], corpus=DEFAULT_CORPUS):
         """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as `list_lrus`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
@@ -1317,6 +1330,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if is_error(res):
                 returnD(res)
         returnD(format_result(new_WE))
+
 
   # EDIT WEBENTITIES
 
