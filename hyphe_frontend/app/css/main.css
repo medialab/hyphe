@@ -1346,6 +1346,9 @@ textarea.over-error{
 .table-wesp td, .table-wesp th{
   max-width: 0;
 }
+.wesp-modal-cell-checkbox{
+  width: 20px;
+}
 .wesp-modal-cell-startpage{
 }
 .wesp-modal-cell-lookup{
