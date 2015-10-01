@@ -293,26 +293,26 @@ angular.module('hyphe.preparecrawlsController', [])
 
         getStartPagesSuggestions(obj.webentity)
 
-        function getStartPagesSuggestions(webentity) {
-          api.getStartPagesSuggestions({
-            webentityId: webentity.id
-          }, function(urls){
-
-            lazyLookups(urls)
-            webentity.summary = {}
-            webentity.startpages = urls
-
-            instanciateModal(obj)
-
-          }, function(){
-            $scope.status = {message: "Error while getting start pages suggestions", background: 'danger'}
-          })
-        }
-
       } else {
 
         instanciateModal(obj)
 
+      }
+
+      function getStartPagesSuggestions(webentity) {
+        api.getStartPagesSuggestions({
+          webentityId: webentity.id
+        }, function(urls){
+
+          lazyLookups(urls)
+          webentity.summary = {}
+          webentity.startpages = urls
+
+          instanciateModal(obj)
+
+        }, function(){
+          $scope.status = {message: "Error while getting start pages suggestions", background: 'danger'}
+        })
       }
 
     }
