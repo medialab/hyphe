@@ -148,6 +148,7 @@ echo "deb http://archive.scrapy.org/ubuntu scrapy main" | sudo tee /etc/apt/sour
 
 # Update apt's sources list & install
 sudo apt-get update
+sudo apt-get install scrapy-0.24
 sudo apt-get install scrapyd
 ```
 
