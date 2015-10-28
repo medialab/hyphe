@@ -1281,7 +1281,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
                  _, lru = urllru.url_clean_and_convert(url, False)
                  list_lrus.append(lru)
             except ValueError as e:
-                returnD(format_error(e))
+                return format_error(e)
         return self.jsonrpc_declare_webentity_by_lrus(list_lrus, name, status, startPages, corpus)
 
     @inlineCallbacks
