@@ -1117,8 +1117,8 @@ class Memory_Structure(jsonrpc.JSONRPC):
     # Linkpage heuristic to be refined
     re_extract_url_ext = re.compile(r"\.([a-z\d]{2,4})([?#].*)?$", re.I)
     def validate_linkpage(self, page, WE_prefixes):
-        # Filter arbitrarily too long links
-        if len(page.url) > max([len(p) for p in WE_prefixes]) + 50:
+        # Filter arbitrarily too long links and bad WEs
+        if not WE_prefixes or len(page.url) > max([len(p) for p in WE_prefixes]) + 50:
             return False
         # Filter links to files instead of webpages (formats stolen from scrapy/linkextractor.py)
         ext = self.re_extract_url_ext.search(page.url)
