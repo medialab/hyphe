@@ -18,6 +18,12 @@
 
               <div class="row">
                 <div class="col-md-12">
+                  
+                  <div class="export-presets">
+                    <span>Presets:</span>
+                    <a class="btn btn-link" ng-repeat="preset in presets" ng-click="applyPreset($index)">{{preset.name}}</a>
+                  </div>
+                  
                   <div class="bulleted-title">
                     <div class="big-bullet-number">1</div>
                     <h3>
@@ -27,40 +33,7 @@
 
                   <br>
 
-                  <div class="btn-group">
-                    <label
-                      class="btn btn-default"
-                      ng-model="statuses.in"
-                      btn-checkbox
-                    >
-                      <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.in, 'glyphicon-check':statuses.in, 'text-muted':!statuses.in}" aria-hidden="true"></span> IN
-                    </label>
-
-                    <label
-                      class="btn btn-default"
-                      ng-model="statuses.undecided"
-                      btn-checkbox
-                    >
-                      <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.undecided, 'glyphicon-check':statuses.undecided, 'text-muted':!statuses.undecided}" aria-hidden="true"></span> UNDECIDED
-                    </label>
-
-                    <label
-                      class="btn btn-default"
-                      ng-model="statuses.discovered"
-                      btn-checkbox
-                    >
-                      <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.discovered, 'glyphicon-check':statuses.discovered, 'text-muted':!statuses.discovered}" aria-hidden="true"></span> DISCOVERED
-                    </label>
-
-                    <label
-                      class="btn btn-default"
-                      ng-model="statuses.out"
-                      btn-checkbox
-                    >
-                      <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.out, 'glyphicon-check':statuses.out, 'text-muted':!statuses.out}" aria-hidden="true"></span> OUT
-                    </label>
-
-                  </div>
+                  <hyphe-status-box statuses="statuses" counts="counts"></hyphe-status-box>
 
                   <br>
                   <br>

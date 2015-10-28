@@ -14,6 +14,7 @@ angular.module('hyphe.controllers', [
     ,'hyphe.importurlsController'
     ,'hyphe.definewebentitiesController'
     ,'hyphe.newcrawlController'
+    ,'hyphe.preparecrawlsController'
     ,'hyphe.checkstartpagesController'
     ,'hyphe.schedulecrawlController'
     ,'hyphe.monitorcrawlsController'
@@ -23,6 +24,9 @@ angular.module('hyphe.controllers', [
     ,'hyphe.networkController'
     ,'hyphe.prospectController'
     ,'hyphe.webentityController'
+
+    // Partials
+    ,'hyphe.webentityStartPagesModalController'
   ])
 
 ;

@@ -253,6 +253,12 @@ angular.module('hyphe.monitorcrawlsController', [])
 
     }
 
+    function populateWebEntityNames(){
+      $scope.crawlJobs.forEach(function(job){
+        job.webentity_name = $scope.webentityIndex[job.webentity_id].name + (job.previous_webentity_name ? ' (previously '+job.previous_webentity_name+')' : '')
+      })
+    }
+
     function loadWebentities(list){
       if(list.length > 0){
         $scope.status = {message: 'Loading', progress:60}
@@ -266,12 +272,14 @@ angular.module('hyphe.monitorcrawlsController', [])
             webentities.forEach(function(we){
               $scope.webentityIndex[we.id] = we
             })
+            populateWebEntityNames()
           }, function(){
             $scope.status = {message: 'Error loading web entities', background:'danger'}
           }
         )
       } else {
         $scope.status = {}
+        populateWebEntityNames()
       }
     }
 
@@ -301,6 +309,7 @@ angular.module('hyphe.monitorcrawlsController', [])
         changes.forEach(function(change){
           $scope.crawlJobs[change.i] = change.job
         })
+        populateWebEntityNames()
       }
     }
 
@@ -324,7 +333,7 @@ angular.module('hyphe.monitorcrawlsController', [])
 
               var changes = []
 
-              if($scope.showDetails){
+              if($scope.showDetails && crawlJobs.length == 1){
 
                 $scope.lastCrawlJobs = crawlJobs
 
@@ -355,6 +364,7 @@ angular.module('hyphe.monitorcrawlsController', [])
                       break
                     case('stats'):
                       $scope.lastCrawlJobs[change.i].nb_crawled_pages = change.job.nb_crawled_pages
+                      $scope.lastCrawlJobs[change.i].nb_unindexed_pages = change.job.nb_unindexed_pages
                       $scope.lastCrawlJobs[change.i].nb_links = change.job.nb_links
                       $scope.lastCrawlJobs[change.i].nb_pages = change.job.nb_pages
                       break

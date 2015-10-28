@@ -889,7 +889,7 @@ angular.module('hyphe.checkstartpagesController', [])
             }
             return stem
           })
-      obj.prefixLength = !!obj.tldLength + 2
+      obj.prefixLength = !!obj.tldLength + 2 + !!obj.json_lru.port
       obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
       obj.conflicts = []
       obj_setStatus(obj, 'loading')

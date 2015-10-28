@@ -26,6 +26,7 @@ angular.module('hyphe', [
   $routeProvider.when('/project/:corpusId/importurls', {templateUrl: 'views/importurls.html', controller: 'ImportUrls'});
   $routeProvider.when('/project/:corpusId/definewebentities', {templateUrl: 'views/definewebentities.html', controller: 'DefineWebEntities'});
   $routeProvider.when('/project/:corpusId/newCrawl', {templateUrl: 'views/newCrawl.html', controller: 'NewCrawl'});
+  $routeProvider.when('/project/:corpusId/prepareCrawls', {templateUrl: 'views/prepareCrawls.html', controller: 'PrepareCrawls'});
   $routeProvider.when('/project/:corpusId/checkStartPages', {templateUrl: 'views/checkStartPages.html', controller: 'CheckStartPages'});
   $routeProvider.when('/project/:corpusId/scheduleCrawls', {templateUrl: 'views/scheduleCrawls.html', controller: 'scheduleCrawls'});
   $routeProvider.when('/project/:corpusId/monitorCrawls', {templateUrl: 'views/monitorCrawls.html', controller: 'monitorCrawls'});

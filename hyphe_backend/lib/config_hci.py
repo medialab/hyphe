@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, types
+import os, re, types
 import simplejson as json
 from copy import deepcopy
-from pymongo import Connection
 from twisted.internet import defer
 TEST_CORPUS = "--test-corpus--"
 DEFAULT_CORPUS = "--hyphe--"
 CONFIG_FILE = os.path.join('config', 'config.json')
 from hyphe_backend.lib import creationrules
+try:
+    from pymongo import MongoClient
+except:
+    from pymongo import Connection as MongoClient
 
 def load_config():
 
@@ -19,11 +22,14 @@ def load_config():
             conf = json.load(config_file)
     except IOError as e:
         print 'ERROR: Could not open %s file : ' % CONFIG_FILE, e
-        return False
+        exit(1)
     except ValueError as e:
         print 'ERROR: Config file is not valid JSON', e
-        return False
+        exit(1)
 
+  # Set open API for old conf type
+    if "OPEN_CORS_API" not in conf or not conf["OPEN_CORS_API"]:
+        conf["OPEN_CORS_API"] = False
 
   # Set Monocorpus if old conf type
     if "MULTICORPUS" not in conf or not conf["MULTICORPUS"]:
@@ -56,6 +62,10 @@ def load_config():
     if "creationRules" not in conf:
         conf["creationRules"] = {}
 
+  # Set default startpages mode for old configs
+    if "defaultStartpagesMode" not in conf:
+        conf["defaultStartpagesMode"] = ["prefixes", "pages-5"]
+
   # Auto unset phantomJs autoretry if missing
     if "phantom" in conf and "autoretry" not in conf["phantom"]:
         conf["phantom"]["autoretry"] = False
@@ -65,20 +75,18 @@ def load_config():
         check_conf_sanity(conf, GLOBAL_CONF_SCHEMA)
     except Exception as e:
         print e
-        return False
-
+        exit(1)
 
   # Test MongoDB server
     mongoconf = conf['mongo-scrapy']
-    db = Connection(os.environ.get('HYPHE_MONGODB_HOST', mongoconf['host']), int(os.environ.get('HYPHE_MONGODB_PORT', mongoconf['mongo_port'])))[mongoconf.get('db_name', mongoconf.get('project'))]
+    db = MongoClient(os.environ.get('HYPHE_MONGODB_HOST', mongoconf['host']), int(os.environ.get('HYPHE_MONGODB_PORT', mongoconf['mongo_port'])))[mongoconf.get('db_name', mongoconf.get('project'))]
     try:
         test = list(db['%s.logs' % DEFAULT_CORPUS].find())
     except Exception as x:
         print "ERROR: Cannot connect to mongoDB, please check your server and the configuration in %s" % CONFIG_FILE
         if config['DEBUG']:
             print x
-        return None
-
+        exit(1)
 
   # Handle old non multicorpus conf
     if not conf["MULTICORPUS"]:
@@ -103,7 +111,7 @@ def load_config():
                     os.rename(os.path.join(oldpath, f), os.path.join(newpath, f))
             except:
                 print "ERROR migrating %s lucene files from old corpus into new directory" % len(old_lucene_files)
-                return False
+                exit(1)
 
       # Migrate old corpus' mongodb collections into default corpus ones
         if "db_name" not in mongoconf:
@@ -124,7 +132,7 @@ def load_config():
         except Exception as e:
             print type(e), e
             print "ERROR migrating mongodb from old corpus into new collections"
-            return False
+            exit(1)
 
   # Turn portrange into list of ports
     conf['memoryStructure']['thrift.portrange'] = range(conf['memoryStructure']['thrift.portrange'][0], conf['memoryStructure']['thrift.portrange'][1]+1)
@@ -135,6 +143,18 @@ def load_config():
 
     return conf
 
+VALID_STARTPAGES_MODES = re.compile(r'(%s)$' % "|".join(['startpages', 'prefixes', 'pages-\d+', 'homepage']))
+def validateStartpagesMode(modes):
+    """be a string or an array of strings among "prefixes", "startpages" and "pages-<N>" where "<N>" is an int."""
+    if type(modes) in [str, unicode, bytes]:
+        modes = [modes]
+    for m in modes:
+        if type(m) not in [str, unicode, bytes]:
+            return False
+        m = m.lower()
+        if not VALID_STARTPAGES_MODES.match(m):
+            return False
+    return True
 
 GLOBAL_CONF_SCHEMA = {
   "mongo-scrapy": {
@@ -171,8 +191,10 @@ GLOBAL_CONF_SCHEMA = {
     }
   }, "twisted.port": {
     "type": int
+  }, "defaultStartpagesMode": {
+    "type": validateStartpagesMode
   }, "defaultCreationRule": {
-    "type": creationrules.testPreset,
+    "type": creationrules.testPreset
   }, "creationRules": {
     "type": dict,
     "keys": str,
@@ -209,6 +231,10 @@ CORPUS_CONF_SCHEMA = {
   "precision_limit": {
     "type": int,
     "default": "global/precisionLimit"
+  },
+  "defaultStartpagesMode": {
+    "type": validateStartpagesMode,
+    "default": "global/defaultStartpagesMode"
   },
   "defaultCreationRule": {
     "type": creationrules.testPreset,
@@ -306,7 +332,7 @@ def check_conf_sanity(conf, schema, name=CONFIG_FILE, soft=False):
 def test_type(obj, otype, ns, ns2="", name=CONFIG_FILE):
     if type(otype) == types.FunctionType:
         if not otype(obj):
-            raise(error_config("field %s should respect function %s.%s" % (ns, otype.__module__, otype.__name__), ns2, name))
+            raise(error_config("field %s should %s" % (ns, otype.__doc__), ns2, name))
     elif type(otype) == list:
         if obj not in otype:
             raise(error_config("field %s should be one of %s" % (ns, ", ".join(otype)), ns2, name))

@@ -344,8 +344,10 @@ angular.module('hyphe.webentityController', [])
     }
 
     $rootScope.$on('$locationChangeSuccess', function() {
-      updateFromPath()
-      updateExplorer()
+      if ($scope.webentity.lru_prefixes && tree) {
+        updateFromPath()
+        updateExplorer()
+      }
     })
 
     $scope.newWebEntity = function(obj){
@@ -754,7 +756,7 @@ angular.module('hyphe.webentityController', [])
       
       var prefixes = $scope.webentity.lru_prefixes
 
-      $scope.webentity.lru_prefixes.forEach(function(p){
+      prefixes.forEach(function(p){
         tree.prefix[p] = {children:{}, pagesCount:0, lru:p, stem:p, data:{}}
       })
 

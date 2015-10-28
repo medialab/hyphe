@@ -21,7 +21,7 @@ RUN mkdir -p ${WORKON_HOME} \
   && workon hyphe \
   && add2virtualenv $(pwd) \
   && pip install -r /app/requirements.txt" \
-  && pip install Scrapy \
+  && pip install Scrapy==0.24 \
   && echo 'source $(which virtualenvwrapper.sh) && workon hyphe' | tee /root/.bashrc
 
 
@@ -31,7 +31,7 @@ COPY ./bin /app/bin
 COPY ./config /app/config
 COPY ./hyphe_backend /app/hyphe_backend
 
-RUN sed "s|##HYPHEPATH##|"`pwd`"|" /app/config/config.json.example > /app/config/config.json \
+RUN sed "s|##HYPHEPATH##|"`pwd`"|" /app/config/config.json.example | sed 's|"OPEN_CORS_API": false,|"OPEN_CORS_API": true,|' > /app/config/config.json \
   && mkdir -p /app/hyphe_backend/crawler/config \
   && cp /app/config/config.json /app/hyphe_backend/crawler/config/config.json
 

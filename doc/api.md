@@ -48,7 +48,10 @@ The API will always answer as such:
     * __`declare_pages`__
   + [BASIC CRAWL METHODS](#basic-crawl-methods)
     * __`listjobs`__
+    * __`propose_webentity_startpages`__
     * __`crawl_webentity`__
+    * __`crawl_webentity_with_startmode`__
+    * __`get_webentity_jobs`__
     * __`get_webentity_logs`__
   + [HTTP LOOKUP METHODS](#http-lookup-methods)
     * __`lookup_httpstatus`__
@@ -111,11 +114,13 @@ The API will always answer as such:
     * __`get_tag_values`__
   + [PAGES, LINKS & NETWORKS](#pages-links-networks)
     * __`get_webentity_pages`__
+    * __`get_webentity_mostlinked_pages`__
     * __`get_webentity_subwebentities`__
     * __`get_webentity_parentwebentities`__
     * __`get_webentity_nodelinks_network`__
     * __`get_webentities_network`__
   + [CREATION RULES](#creation-rules)
+    * __`get_default_webentity_creationrule`__
     * __`get_webentity_creationrules`__
     * __`delete_webentity_creationrule`__
     * __`add_webentity_creationrule`__
@@ -242,16 +247,49 @@ The API will always answer as such:
  Returns the list and details of all "finished"/"running"/"pending" crawl jobs of a `corpus`. Optionally returns only the jobs whose id is given in an array of `list_ids` and/or that was created after timestamp `from_ts` or before `to_ts`.
 
 
+- __`propose_webentity_startpages`:__
+ + _`webentity_id`_ (mandatory)
+ + _`startmode`_ (optional, default: `"default"`)
+ + _`categories`_ (optional, default: `false`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages", "homepage" or "prefixes" or <N> most seen "pages-<N>". Returns them categorised by type of source if "categories" is set to true.
+
+
 - __`crawl_webentity`:__
  + _`webentity_id`_ (mandatory)
  + _`depth`_ (optional, default: `0`)
  + _`phantom_crawl`_ (optional, default: `false`)
  + _`status`_ (optional, default: `"IN"`)
- + _`startpages`_ (optional, default: `"startpages"`)
  + _`phantom_timeouts`_ (optional, default: `{}`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`. Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`. Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered"). Optionally defines the `startpages` strategy by starting the crawl either from the WebEntity's preset "startpages" or "prefixes" or already seen "pages".
+ Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.
+ Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.
+ Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").
+ Will use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic, see details in `propose_webentity_startpages`).
+
+
+- __`crawl_webentity_with_startmode`:__
+ + _`webentity_id`_ (mandatory)
+ + _`depth`_ (optional, default: `0`)
+ + _`phantom_crawl`_ (optional, default: `false`)
+ + _`status`_ (optional, default: `"IN"`)
+ + _`startmode`_ (optional, default: `"default"`)
+ + _`phantom_timeouts`_ (optional, default: `{}`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.
+ Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.
+ Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").
+ Optionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).
+
+
+- __`get_webentity_jobs`:__
+ + _`webentity_id`_ (mandatory)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` crawl jobs that has run for a specific WebEntity defined by its `webentity_id`.
 
 
 - __`get_webentity_logs`:__
@@ -765,6 +803,14 @@ The API will always answer as such:
  Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true".
 
 
+- __`get_webentity_mostlinked_pages`:__
+ + _`webentity_id`_ (mandatory)
+ + _`npages`_ (optional, default: `20`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id`.
+
+
 - __`get_webentity_subwebentities`:__
  + _`webentity_id`_ (mandatory)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
@@ -793,6 +839,12 @@ The API will always answer as such:
  Returns for a `corpus` the list of all agregated weighted links between WebEntities.
 
 ### CREATION RULES
+
+- __`get_default_webentity_creationrule`:__
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` the default WebEntityCreationRule.
+
 
 - __`get_webentity_creationrules`:__
  + _`lru_prefix`_ (optional, default: `null`)

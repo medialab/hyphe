@@ -50,6 +50,7 @@
                   </p>
                   <p ng-if="obj.status == 'error'" class="error-message text-danger">
                     ERROR - {{obj.errorMessage}}
+                    <webentity-link ng-if="obj.webentity.id" corpus-id="corpusId" webentity-id="obj.webentity.id">
                   </p>
                 </div>
               </div>

@@ -152,7 +152,7 @@ angular.module('hyphe.definewebentitiesController', [])
       $scope.list
         .filter(function(obj){
             var webentityFound
-            obj.parentWebEntities.forEach(function(we){
+            (obj.parentWebEntities || []).forEach(function(we){
               if(!webentityFound && we.stems_count == obj.truePrefixLength){
                 webentityFound = we
               }
@@ -188,7 +188,7 @@ angular.module('hyphe.definewebentitiesController', [])
 
                   return {
                     prefixes: obj.prefixes
-                    ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
+                    ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength + !obj.tldLength))
                     ,startPages: [obj.url]
                   }
                 }
@@ -375,7 +375,7 @@ angular.module('hyphe.definewebentitiesController', [])
             }
             return stem
           })
-      obj.prefixLength = !!obj.tldLength + 2
+      obj.prefixLength = !!obj.tldLength + 2 + !!obj.json_lru.port
       obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
       obj.conflicts = []
       obj.status = 'loading'

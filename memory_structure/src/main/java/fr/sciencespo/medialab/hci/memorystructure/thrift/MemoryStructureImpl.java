@@ -661,11 +661,44 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
     @Override
     public List<PageItem> getWebEntityCrawledPages(String id) throws MemoryStructureException {
         if(logger.isDebugEnabled()) {
-            logger.debug("getCrawledWebEntityPages with id: " + id);
+            logger.debug("getWebEntityCrawledPages with id: " + id);
         }
         List<PageItem> pages;
         try {
             pages = lruIndex.retrieveWebEntityPageItems(id, true);
+            if(logger.isDebugEnabled()) {
+                logger.debug("found # " + pages.size() + " pages");
+            }
+        } catch(ObjectNotFoundException x) {
+	        logger.error(x.getMessage());
+	        x.printStackTrace();
+	        throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), ObjectNotFoundException.class.getName());
+        } catch (IndexException x) {
+            logger.error(x.getMessage());
+            x.printStackTrace();
+            throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), IndexException.class.getName());
+        }
+        return pages;
+    }
+
+    /**
+     * Retrieves most linked pages belonging to a WebEntity.
+     *
+     * @param id web entity id
+     * @param N max number of results to return
+     * @return pages
+     * @throws TException
+     * @throws MemoryStructureException
+     * @throws ObjectNotFoundException
+     */
+    @Override
+    public List<PageItem> getWebEntityMostLinkedPages(String id, int N) throws MemoryStructureException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("getWebEntityMostLinkedPages " + N + " with id: " + id);
+        }
+        List<PageItem> pages;
+        try {
+            pages = lruIndex.retrieveWebEntityMostLinkedPageItems(id, N);
             if(logger.isDebugEnabled()) {
                 logger.debug("found # " + pages.size() + " pages");
             }

@@ -68,12 +68,16 @@ class Core(jsonrpc.JSONRPC):
    # OVERWRITE JSONRPC REQUEST HANDLING
 
     def render(self, request):
-        request.setHeader("Access-Control-Allow-Origin", "*")
+        if config['OPEN_CORS_API']:
+            request.setHeader("Access-Control-Allow-Origin", "*")
         from_ip = ""
         if request.getHeader("x-forwarded-for"):
             from_ip = " from %s" % request.getHeader("x-forwarded-for")
-        if config['DEBUG']:
+        try:
             args = loadjson(request.content.read())
+        except:
+            return format_error("No data sent")
+        if config['DEBUG']:
             if args["method"] in ["start_corpus", "create_corpus"] and len(args["params"]) > 1:
                 args["params"][1] = "********"
             logger.msg(args, system="DEBUG - QUERY%s" % from_ip)
@@ -135,8 +139,19 @@ class Core(jsonrpc.JSONRPC):
         except Exception as e:
             returnD(format_error(e))
         redeploy = False
-        if "precision_limit" in options or "default_creation_rule" in options:
-            returnD(format_error("Precision limit and default WE creation rules of a corpus can only be set when the corpus is created"))
+        if ("precision_limit" in options or "default_creation_rule" in options or "defautStartpagesMode" in options) and \
+          self.corpora[corpus]['crawls'] + self.corpora[corpus]['total_webentities'] > 0:
+            returnD(format_error("Precision limit, defautStartpagesMode and default WE creation rule of a corpus can only be set when the corpus is created"))
+        if "default_creation_rule" in options:
+            rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
+            if is_error(res):
+                logger.msg("Error collecting WECRs before updating default one...", system="ERROR - %s" % corpus)
+            defrule = [r for r in rules if r.LRU==ms_const.DEFAULT_WEBENTITY_CREATION_RULE][0]
+            yield self.store.removeWebEntityCreationRule(defrule)
+            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(options["default_creation_rule"]), ''), corpus=corpus)
+            if is_error(res):
+                logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
+
         if "proxy" in options or ("phantom" in options and (\
           "timeout" in options["phantom"] or \
           "ajax_timeout" in options["phantom"] or \
@@ -412,6 +427,8 @@ class Core(jsonrpc.JSONRPC):
             returnD(format_result("Already resetting"))
         if not _quiet:
             logger.msg("Resetting corpus...", system="INFO - %s" % corpus)
+        if corpus != TEST_CORPUS:
+            yield self.jsonrpc_backup_corpus(corpus)
         if corpus in self.corpora:
             self.stop_loops(corpus)
         self.init_corpus(corpus)
@@ -644,13 +661,66 @@ class Core(jsonrpc.JSONRPC):
                 res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.maxdepth': {'$gt': 0}})
                 for job in res:
                     logger.msg("Crawl job %s seems to have failed, trying to restart it in phantom mode" % job['_id'], system="INFO - %s" % corpus)
-                    yield self.jsonrpc_crawl_webentity(job['webentity_id'], max(job['crawl_arguments']['maxdepth'], 2), True, corpus=corpus)
+                    yield self.jsonrpc_crawl_webentity(job['webentity_id'], min(job['crawl_arguments']['maxdepth'], 2), True, corpus=corpus)
                     yield self.db.add_log(corpus, job['_id'], "CRAWL_RETRIED_AS_PHANTOM")
                     yield self.db.update_jobs(corpus, job['_id'], {'crawling_status': crawling_statuses.RETRIED})
 
+    re_linkedpages = re.compile(r'pages-(\d+)$')
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id, depth=0, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], startpages="startpages", phantom_timeouts={}, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`. Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`. Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered"). Optionally defines the `startpages` strategy by starting the crawl either from the WebEntity's preset "startpages" or "prefixes" or already seen "pages"."""
+    def _get_suggested_startpages(self, WE, startmode, corpus, categories=False):
+        if type(startmode) != list and startmode.lower() == "default":
+            startmode = self.corpora[corpus]["options"]["defaultStartpagesMode"]
+        if type(startmode) != list:
+            startmode = [startmode]
+        starts = {}
+        for startrule in startmode:
+            startrule = startrule.lower()
+            nlinks = self.re_linkedpages.search(startrule)
+            if nlinks:
+                pages = yield self.store.msclients.pool.getWebEntityMostLinkedPages(WE.id, int(nlinks.group(1)), corpus=corpus)
+                if is_error(pages):
+                    returnD(pages)
+                starts[startrule] = [p.url for p in pages]
+            elif startrule == "prefixes":
+                starts[startrule] = [urllru.lru_to_url(lru) for lru in WE.LRUSet]
+            elif startrule == "startpages":
+                starts[startrule] = list(WE.startpages)
+            elif startrule == "homepage":
+                starts[startrule] = WE.homepage
+            else:
+                returnD(format_error('ERROR: startmode argument must be either "default" or one or many of "startpages", "pages-<N>" with <N> an int or "prefixes"'))
+        if categories:
+            returnD(starts)
+        returnD(list(set(s for st in starts.values() for s in st)))
+
+    @inlineCallbacks
+    def jsonrpc_propose_webentity_startpages(self, webentity_id, startmode="default", categories=False, corpus=DEFAULT_CORPUS):
+        """Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages"\, "homepage" or "prefixes" or <N> most seen "pages-<N>". Returns them categorised by type of source if "categories" is set to True."""
+        if not self.corpus_ready(corpus):
+            returnD(self.corpus_error(corpus))
+        WE = yield self.store.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
+        if is_error(WE):
+            returnD(format_error("No WebEntity with id %s found" % webentity_id))
+        startpages = yield self._get_suggested_startpages(WE, startmode, corpus, categories=categories)
+        returnD(handle_standard_results(startpages))
+
+    @inlineCallbacks
+    def jsonrpc_crawl_webentity(self, webentity_id, depth=0, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], phantom_timeouts={}, corpus=DEFAULT_CORPUS):
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic\, see details in `propose_webentity_startpages`)."""
+        if not self.corpus_ready(corpus):
+            returnD(self.corpus_error(corpus))
+        WE = yield self.store.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
+        if is_error(WE):
+            returnD(format_error("No WebEntity with id %s found" % webentity_id))
+        startmode = "startpages"
+        if not WE.startpages:
+            startmode = "default"
+        res = yield self.jsonrpc_crawl_webentity_with_startmode(WE, depth, phantom_crawl, status, startmode, phantom_timeouts, corpus)
+        returnD(res)
+
+    @inlineCallbacks
+    def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, phantom_crawl=False, status=ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN], startmode="default", phantom_timeouts={}, corpus=DEFAULT_CORPUS):
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`)."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
 
@@ -669,34 +739,45 @@ class Core(jsonrpc.JSONRPC):
                 break
         if statusval == -1:
             returnD(format_error("ERROR: status argument must be one of '%s'" % "','".join([s.lower() for s in ms.WebEntityStatus._NAMES_TO_VALUES])))
-        WE = yield self.store.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
-        if is_error(WE):
-            returnD(format_error("No WebEntity with id %s found" % webentity_id))
+
+        # Get WebEntity if webentity_id not already one from internal call
+        try:
+            tmpid = str(webentity_id.id)
+            WE = webentity_id
+            webentity_id = tmpid
+        except:
+            WE = yield self.store.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
+            if is_error(WE):
+                returnD(format_error("No WebEntity with id %s found" % webentity_id))
 
         # Handle different startpages strategies
-        startpages = startpages.lower()
-        if startpages == "pages":
-            pages = yield self.store.msclients.pool.getWebEntityCrawledPages(WE.id, corpus=corpus)
-            if is_error(pages):
-                returnD(pages)
-            starts = [p.url for p in pages]
-        elif startpages == "prefixes":
-            starts = [urllru.lru_to_url(lru) for lru in WE.LRUSet]
-        elif startpages == "startpages":
-            starts = list(WE.startpages)
-        else:
-            returnD(format_error('ERROR: startpages argument must be one of "startpages", "pages" or "prefixes"'))
+        starts = yield self._get_suggested_startpages(WE, startmode, corpus)
+        if is_error(starts):
+            returnD(starts)
+        if not starts:
+            returnD(format_error('ERROR: no startpage could be found for %s using %s' % (WE.id, startpages)))
+        autostarts = [s for s in starts if s not in WE.startpages] if WE.startpages else starts
 
-        yield self.store.jsonrpc_set_webentity_status(webentity_id, statusval, corpus=corpus)
+        if statusval != WE.status:
+            yield self.store.jsonrpc_set_webentity_status(webentity_id, statusval, corpus=corpus)
 
         subs = yield self.store.msclients.pool.getWebEntitySubWebEntities(WE.id, corpus=corpus)
         if is_error(subs):
             returnD(subs)
         nofollow = [lr for subwe in subs for lr in subwe.LRUSet]
 
-        yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true", corpus=corpus)
-        res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE.LRUSet, nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, corpus=corpus)
+        if "CORE" in WE.metadataItems and "recrawlNeeded" in WE.metadataItems["CORE"]:
+            yield self.store.jsonrpc_rm_webentity_tag_key(webentity_id, "CORE", "recrawlNeeded", corpus=corpus)
+        res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE.LRUSet, nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, corpus=corpus, _autostarts=autostarts)
         returnD(res)
+
+    @inlineCallbacks
+    def jsonrpc_get_webentity_jobs(self, webentity_id, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` crawl jobs that has run for a specific WebEntity defined by its `webentity_id`."""
+        if not self.corpus_ready(corpus):
+            returnD(self.corpus_error(corpus))
+        jobs = yield self.db.list_jobs(corpus, {'webentity_id': webentity_id})
+        returnD(handle_standard_results(jobs))
 
     @inlineCallbacks
     def jsonrpc_get_webentity_logs(self, webentity_id, corpus=DEFAULT_CORPUS):
@@ -717,6 +798,8 @@ class Core(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def lookup_httpstatus(self, url, timeout=5, deadline=0, tryout=0, noproxy=False, corpus=DEFAULT_CORPUS):
+        if not self.corpus_ready(corpus):
+            returnD(self.corpus_error(corpus))
         res = format_result(0)
         timeout = int(timeout)
         use_proxy = self.corpora[corpus]["options"]['proxy']['host'] and not noproxy
@@ -753,11 +836,12 @@ class Core(jsonrpc.JSONRPC):
             except:
                 if not (deadline and deadline < time.time()) and \
                    not (url.startswith("https") and response.code/100 == 4) and \
-                   (use_proxy or response.code in [403, 405, 500, 501, 503]):
-                    if tryout == 5 and use_proxy:
+                   (use_proxy or response.code in [403, 405, 500, 501, 503]) and \
+                   response.code not in [400, 404, 502]:
+                    if tryout == 3 and use_proxy:
                         noproxy = True
-                        tryout = 3
-                    if tryout < 5:
+                        tryout = 1
+                    if tryout < 3:
                         if config['DEBUG'] == 2:
                             logger.msg("Retry lookup %s %s %s %s" % (method, url, tryout, response.__dict__), system="DEBUG - %s" % corpus)
                         res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
@@ -841,7 +925,7 @@ class Crawler(jsonrpc.JSONRPC):
         returnD(format_result('Crawling database reset.'))
 
     @inlineCallbacks
-    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], corpus=DEFAULT_CORPUS):
+    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], corpus=DEFAULT_CORPUS, _autostarts=[]):
         """Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):\n- a `webentity_id` associated with the crawl a list of `starts` urls to start from\n- a list of `follow_prefixes` to know which links to follow\n- a list of `nofollow_prefixes` to know which links to avoid\n- a `depth` corresponding to the maximum number of clicks done from the start pages\n- `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`\n- a `download_delay` corresponding to the time in seconds spent between two requests by the crawler."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -865,6 +949,7 @@ class Crawler(jsonrpc.JSONRPC):
           'setting': 'DOWNLOAD_DELAY=' + str(download_delay),
           'maxdepth': depth,
           'start_urls': list(starts),
+          'start_urls_auto': list(_autostarts),
           'follow_prefixes': list(follow_prefixes),
           'nofollow_prefixes': list(nofollow_prefixes),
           'discover_prefixes': list(follow_redirects),
@@ -958,7 +1043,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, False)
         yield self.ensureDefaultCreationRuleExists(corpus, _quiet=_noloop)
 
-    def format_webentity(self, WE, job={}, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
+    def format_webentity(self, WE, job={}, homepage=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
         if not WE:
             return None
         res = {'id': WE.id, 'name': WE.name, 'status': WE.status, 'lru_prefixes': list(WE.LRUSet)}
@@ -975,9 +1060,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
             res['crawling_status'] = crawling_statuses.UNCRAWLED
             res['indexing_status'] = indexing_statuses.UNINDEXED
             res['crawled'] = False
+        res['homepage'] = WE.homepage if WE.homepage else homepage if homepage else None
         if test_bool_arg(semilight):
             return res
-        res['homepage'] = WE.homepage
         res['startpages'] = list(WE.startpages)
         res['tags'] = {}
         for tag, values in WE.metadataItems.iteritems():
@@ -987,26 +1072,115 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if test_bool_arg(light_for_csv):
             return {'id': WE.id, 'name': WE.name, 'status': WE.status,
                     'prefixes': "|".join([urllru.lru_to_url(lru, nocheck=True) for lru in WE.LRUSet]),
-                    'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns != "CORE"])}
+                    'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns.startswith("CORE")])}
         return res
 
+    re_camelCase = re.compile(r'(.)_(.)')
+    def sortargs_accessor(self, WE, field, jobs={}, corpus=DEFAULT_CORPUS):
+        if "_" in field:
+            field = self.re_camelCase.sub(lambda x: x.group(1)+x.group(2).upper(), field)
+        else: field = field.lower()
+        if field in WE.__dict__:
+            return WE.__dict__[field]
+        if field == "crawled":
+            job = jobs.get(WE.id, {})
+            return job and job['crawling_status'] not in [crawling_statuses.CANCELED, crawling_statuses.UNCRAWLED]
+        if field == "indegree":
+            return self.corpora[corpus]["webentities_ranks"].get(WE.id, 0)
+        return None
+
+    format_field = lambda _,x: x.upper() if type(x) in [str, unicode] else x
     @inlineCallbacks
-    def format_webentities(self, WEs, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
+    def sort_webentities(self, WEs, sort=None, corpus=DEFAULT_CORPUS):
+        if not (sort and WEs):
+            returnD((WEs, None))
+        if type(sort) != list:
+            sort = [sort]
+        jobs = None
+        if "crawled" in " ".join(sort).lower():
+            jobs = yield self.get_webentities_jobs(WEs, corpus=corpus)
+        for sortkey in reversed(sort):
+            key = sortkey.lstrip("-")
+            reverse = (key != sortkey)
+            if self.sortargs_accessor(WEs[0], key, jobs=jobs, corpus=corpus) != None:
+                WEs = sorted(WEs, key=lambda x: self.format_field(self.sortargs_accessor(x, key, jobs=jobs, corpus=corpus)), reverse=reverse)
+        returnD((WEs, jobs))
+
+    @inlineCallbacks
+    def get_webentities_jobs(self, WEs, corpus=DEFAULT_CORPUS):
         jobs = {}
+        res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs if WE.status != "DISCOVERED"]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
+        for job in res:
+            jobs[job['webentity_id']] = job
+        returnD(jobs)
+
+    # Linkpage heuristic to be refined
+    re_extract_url_ext = re.compile(r"\.([a-z\d]{2,4})([?#].*)?$", re.I)
+    def validate_linkpage(self, page, WE_prefixes):
+        # Filter arbitrarily too long links
+        if len(page.url) > max([len(p) for p in WE_prefixes]) + 50:
+            return False
+        # Filter links to files instead of webpages (formats stolen from scrapy/linkextractor.py)
+        ext = self.re_extract_url_ext.search(page.url)
+        if ext and ext.group(1).lower() in [
+          # images
+            'mng','pct','bmp','gif','jpg','jpeg','png','pst','psp','tif',
+            'tiff','ai','drw','dxf','eps','ps','svg',
+          # audio
+            'mp3','wma','ogg','wav','ra','aac','mid','au','aiff',
+          # video
+            '3gp','asf','asx','avi','mov','mp4','mpg','qt','rm','swf','wmv','m4a',
+          # office suites
+            'xls','xlsx','ppt','pptx','doc','docx','odt','ods','odg','odp',
+          # other
+            'css','pdf','exe','bin','rss','zip','rar','js'
+          ]:
+            return False
+        return True
+
+    @inlineCallbacks
+    def format_webentities(self, WEs, jobs=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
+        if jobs == None:
+            if not (test_bool_arg(light) or test_bool_arg(light_for_csv)):
+                jobs = yield self.get_webentities_jobs(WEs, corpus=corpus)
+            else: jobs = {}
+        homepages = {}
         if not (test_bool_arg(light) or test_bool_arg(light_for_csv)):
-            res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE.id for WE in WEs if WE.status != "DISCOVERED"]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
-            for job in res:
-                jobs[job['webentity_id']] = job
-        res = [self.format_webentity(WE, jobs.get(WE.id, {}), light, semilight, light_for_csv, corpus=corpus) for WE in WEs]
-        if res and sort:
-            if type(sort) != list:
-                sort = [sort]
-            for sortkey in reversed(sort):
-                key = sortkey.lstrip("-")
-                reverse = (key != sortkey)
-                if key in res[0]:
-                    res = sorted(res, key=lambda x: x[key].upper() if type(x[key]) in [str, unicode] else x[key], reverse=reverse)
-        returnD(res)
+            homepages = yield self.get_webentities_missing_linkpages(WEs, corpus=corpus)
+        returnD([self.format_webentity(WE, jobs.get(WE.id, {}), homepages.get(WE.id, None), light, semilight, light_for_csv, corpus=corpus) for WE in WEs])
+
+    @inlineCallbacks
+    def get_webentities_missing_linkpages(self, WEs, corpus=DEFAULT_CORPUS):
+        homepages = {}
+        homepWEs = [w for w in WEs if not w.homepage]
+        results = yield DeferredList([self.msclients.pool.getWebEntityMostLinkedPages(WE.id, 2, corpus=corpus) for WE in homepWEs], consumeErrors=True)
+        res = []
+        for i, (bl, pgs) in enumerate(results):
+            WE = homepWEs[i]
+            prefixes = []
+            for l in WE.LRUSet:
+                try:
+                    prefixes.append(urllru.lru_to_url(l))
+                except:
+                    logger.msg("A webentity (%s) has a badly defined prefix: %s" % (WE.id, l), system="WARNING - %s" % corpus)
+            for pr in prefixes:
+                if pr.startswith("http://www."):
+                    homepages[WE.id] = pr
+                    break
+            if not bl or is_error(pgs) or not len(pgs):
+                continue
+            for p in pgs:
+                if self.validate_linkpage(p, prefixes):
+                    homepages[WE.id] = p.url
+                    if p.linked > 2:
+                        self.jsonrpc_set_webentity_homepage(WE.id, p.url, corpus=corpus)
+                        break
+                else:
+                    for pr in prefixes:
+                        if p.url.startswith(pr):
+                            homepages[WE.id] = pr
+                            break
+        returnD(homepages)
 
     @inlineCallbacks
     def reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False):
@@ -1026,10 +1200,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(WE):
             returnD(WE)
         if test_bool_arg(new):
+            if source:
+                yield self.jsonrpc_add_webentity_tag_value(WE.id, 'CORE', 'createdBy', "user via %s" % source, corpus=corpus)
             self.corpora[corpus]['recent_changes'] += 1
             self.corpora[corpus]['total_webentities'] += 1
-            if source:
-                yield self.jsonrpc_add_webentity_tag_value(WE.id, 'CORE', 'user_created_via', source, corpus=corpus)
         job = yield self.db.list_jobs(corpus, {'webentity_id': WE.id}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
         WE = self.format_webentity(WE, job, corpus=corpus)
         WE['created'] = True if new else False
@@ -1137,6 +1311,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if not isinstance(startPages, list):
                 startPages = [startPages]
             WE.startpages = startPages
+            WE.metadataItems = {"CORE.STARTPAGES": {"user": startPages}}
         if status:
             for s in ms.WebEntityStatus._NAMES_TO_VALUES:
                 if status.lower() == s.lower():
@@ -1160,12 +1335,18 @@ class Memory_Structure(jsonrpc.JSONRPC):
   # EDIT WEBENTITIES
 
     @inlineCallbacks
-    def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None, corpus=DEFAULT_CORPUS):
+    def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None, corpus=DEFAULT_CORPUS, _commit=True):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        WE = yield self.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
-        if is_error(WE):
-            returnD(format_error("ERROR could not retrieve WebEntity with id %s" % webentity_id))
+        # Get WebEntity if webentity_id not already one from internal call
+        try:
+            tmpid = str(webentity_id.id)
+            WE = webentity_id
+            webentity_id = tmpid
+        except:
+            WE = yield self.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
+            if is_error(WE):
+                returnD(format_error("ERROR could not retrieve WebEntity with id %s" % webentity_id))
         if field_name == "metadataItems":
             self.corpora[corpus]['recent_tagging'] = True
         try:
@@ -1214,21 +1395,24 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 setattr(WE, field_name, arr)
             else:
                 setattr(WE, field_name, value)
-            if len(WE.LRUSet):
-                res = yield self.msclients.pool.updateWebEntity(WE, corpus=corpus)
-                if is_error(res):
-                    returnD(res)
-                if field_name == 'LRUSet':
+            if _commit:
+                if len(WE.LRUSet):
+                    res = yield self.msclients.pool.updateWebEntity(WE, corpus=corpus)
+                    if is_error(res):
+                        returnD(res)
+                    if field_name == 'LRUSet':
+                        self.corpora[corpus]['recent_changes'] += 1
+                    returnD(format_result("%s field of WebEntity %s updated." % (field_name, res)))
+                else:
+                    res = yield self.msclients.pool.deleteWebEntity(WE, corpus=corpus)
+                    if is_error(res):
+                        returnD(res)
+                    yield self.db.update_jobs(corpus, {'webentity_id': WE.id}, {'webentity_id': None, 'previous_webentity_id': WE.id, 'previous_webentity_name': WE.name})
                     self.corpora[corpus]['recent_changes'] += 1
-                returnD(format_result("%s field of WebEntity %s updated." % (field_name, res)))
+                    self.corpora[corpus]['total_webentities'] -= 1
+                    returnD(format_result("webentity %s had no LRUprefix left and was removed." % webentity_id))
             else:
-                res = yield self.msclients.pool.deleteWebEntity(WE, corpus=corpus)
-                if is_error(res):
-                    returnD(res)
-                yield self.db.update_jobs(corpus, {'webentity_id': WE.id}, {'webentity_id': None, 'previous_webentity_id': WE.id, 'previous_webentity_name': WE.name})
-                self.corpora[corpus]['recent_changes'] += 1
-                self.corpora[corpus]['total_webentities'] -= 1
-                returnD(format_result("webentity %s had no LRUprefix left and was removed." % webentity_id))
+                returnD(WE)
         except Exception as x:
             returnD(format_error("ERROR while updating WebEntity : %s" % x))
 
@@ -1297,7 +1481,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     def jsonrpc_set_webentity_homepage(self, webentity_id, homepage, corpus=DEFAULT_CORPUS):
         """Changes for a `corpus` the homepage of a WebEntity defined by `webentity_id` to `homepage`."""
         try:
-            homepage, _ = urllru.url_clean_and_convert(url)
+            homepage, _ = urllru.url_clean_and_convert(homepage)
         except ValueError as e:
             return format_error(e)
         return self.update_webentity(webentity_id, "homepage", homepage, corpus=corpus)
@@ -1310,6 +1494,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if not isinstance(lru_prefixes, list):
             lru_prefixes = [lru_prefixes]
         clean_lrus = []
+        WE = webentity_id
         for lru_prefix in lru_prefixes:
             try:
                 url, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
@@ -1322,8 +1507,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 if is_error(res):
                     returnD(res)
             clean_lrus.append(lru_prefix)
-        res = yield self.update_webentity(webentity_id, "LRUSet", clean_lrus, "push", corpus=corpus)
-        yield self.add_backend_tags(webentity_id, "lruprefixes_modified", "added %s" % ' & '.join(lru_prefixes), corpus=corpus)
+            WE = yield self.add_backend_tags(WE, "added", lru_prefix, namespace="PREFIXES", _commit=False, corpus=corpus)
+            if "removed" in WE.metadataItems["CORE.PREFIXES"] and lru_prefix in WE.metadataItems["CORE.PREFIXES"]["removed"]:
+                WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.PREFIXES", "removed", lru_prefix, _commit=False, corpus=corpus)
+        res = yield self.update_webentity(WE, "LRUSet", clean_lrus, "push", corpus=corpus)
         self.corpora[corpus]['recent_changes'] += 1
         returnD(res)
 
@@ -1336,20 +1523,28 @@ class Memory_Structure(jsonrpc.JSONRPC):
             url, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
         except ValueError as e:
             returnD(format_error(e))
-        yield self.add_backend_tags(webentity_id, "lruprefixes_modified", "removed %s" % lru_prefix, corpus=corpus)
-        res = yield self.update_webentity(webentity_id, "LRUSet", lru_prefix, "pop", corpus=corpus)
+        WE = yield self.add_backend_tags(webentity_id, "removed", lru_prefix, namespace="PREFIXES", _commit=False, corpus=corpus)
+        if "added" in WE.metadataItems["CORE.PREFIXES"] and lru_prefix in WE.metadataItems["CORE.PREFIXES"]["added"]:
+            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.PREFIXES", "added", lru_prefix,  _commit=False, corpus=corpus)
+        res = yield self.update_webentity(WE, "LRUSet", lru_prefix, "pop", corpus=corpus)
         self.corpora[corpus]['recent_changes'] += 1
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS):
+    def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS, _automatic=False):
         """Adds for a `corpus` a list of `lru_prefixes` to a WebEntity defined by `webentity_id`."""
         try:
             startpage_url, _ = urllru.url_clean_and_convert(startpage_url)
         except ValueError as e:
             returnD(format_error(e))
-        yield self.add_backend_tags(webentity_id, "startpages_modified", "added %s" % startpage_url, corpus=corpus)
-        res = yield self.update_webentity(webentity_id, "startpages", startpage_url, "push", corpus=corpus)
+        WE = yield self.jsonrpc_get_webentity_for_url(startpage_url, corpus)
+        if is_error(WE) or WE["result"]["id"] != webentity_id:
+            returnD(format_error("WARNING: this page does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity."))
+        source = "auto" if _automatic else "user"
+        WE = yield self.add_backend_tags(webentity_id, source, startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
+        if "removed" in WE.metadataItems["CORE.STARTPAGES"] and startpage_url in WE.metadataItems["CORE.STARTPAGES"]["removed"]:
+            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.STARTPAGES", "removed", startpage_url, _commit=False, corpus=corpus)
+        res = yield self.update_webentity(WE, "startpages", startpage_url, "push", corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
@@ -1359,8 +1554,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
             startpage_url, _ = urllru.url_clean_and_convert(startpage_url)
         except ValueError as e:
             returnD(format_error(e))
-        yield self.add_backend_tags(webentity_id, "startpages_modified", "removed %s" % startpage_url, corpus=corpus)
-        res = yield self.update_webentity(webentity_id, "startpages", startpage_url, "pop", corpus=corpus)
+        WE = yield self.add_backend_tags(webentity_id, "removed", startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
+        if "user" in WE.metadataItems["CORE.STARTPAGES"] and startpage_url in WE.metadataItems["CORE.STARTPAGES"]["user"]:
+            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.STARTPAGES", "user", startpage_url, _commit=False, corpus=corpus)
+        if "auto" in WE.metadataItems["CORE.STARTPAGES"] and startpage_url in WE.metadataItems["CORE.STARTPAGES"]["auto"]:
+            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.STARTPAGES", "auto", startpage_url, _commit=False, corpus=corpus)
+        res = yield self.update_webentity(WE, "startpages", startpage_url, "pop", corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
@@ -1371,12 +1570,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
         old_WE = yield self.msclients.pool.getWebEntity(old_webentity_id, corpus=corpus)
         if is_error(old_WE):
             returnD(format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id))
-        yield self.add_backend_tags(good_webentity_id, "alias_added", old_WE.name)
         new_WE = yield self.msclients.pool.getWebEntity(good_webentity_id, corpus=corpus)
         if is_error(new_WE):
             returnD(format_error('ERROR retrieving WebEntity with id %s' % good_webentity_id))
         for lru in old_WE.LRUSet:
             new_WE.LRUSet.add(lru)
+            new_WE = yield self.add_backend_tags(new_WE, "added", lru, namespace="PREFIXES", _commit=False, corpus=corpus)
+            if "removed" in new_WE.metadataItems["CORE.PREFIXES"] and lru in new_WE.metadataItems["CORE.PREFIXES"]["removed"]:
+                new_WE = yield self.jsonrpc_rm_webentity_tag_value(new_WE, "CORE.PREFIXES", "removed", lru, _commit=False, corpus=corpus)
         if test_bool_arg(include_name_and_status):
             new_WE.name = old_WE.name
             new_WE.status = old_WE.status
@@ -1385,8 +1586,19 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 new_WE.homepage = old_WE.homepage
             for page in old_WE.startpages:
                 new_WE.startpages.add(page)
+                if "CORE.STARTPAGES" in old_WE.metadataItems and not include_tags:
+                    if "CORE.STARTPAGES" not in new_WE.metadataItems:
+                        new_WE.metadataItems["CORE.STARTPAGES"] = {}
+                    for cat in "user", "auto", "removed":
+                        if cat not in old_WE.metadataItems["CORE.STARTPAGES"]:
+                            continue
+                        if cat not in new_WE.metadataItems["CORE.STARTPAGES"]:
+                            new_WE.metadataItems["CORE.STARTPAGES"][cat] = []
+                        new_WE.metadataItems["CORE.STARTPAGES"][cat] = list(set(old_WE.metadataItems["CORE.STARTPAGES"][cat] + new_WE.metadataItems["CORE.STARTPAGES"][cat]))
         if test_bool_arg(include_tags):
             for tag_namespace in old_WE.metadataItems.keys():
+                if tag_namespace == "CORE.STARTPAGES" and not include_home_and_startpages_as_startpages:
+                    continue
                 if tag_namespace not in new_WE.metadataItems:
                     new_WE.metadataItems[tag_namespace] = {}
                 for tag_key in old_WE.metadataItems[tag_namespace].keys():
@@ -1399,6 +1611,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if is_error(res):
             returnD(res)
         yield self.db.update_jobs(corpus, {'webentity_id': old_WE.id}, {'webentity_id': new_WE.id, 'previous_webentity_id': old_WE.id, 'previous_webentity_name': old_WE.name})
+        new_WE = yield self.add_backend_tags(new_WE, "mergedWebEntities", "%s: %s (%s)" % (old_WE.id, old_WE.name, old_WE.status), _commit=False, corpus=corpus)
         res = self.msclients.sync.updateWebEntity(new_WE, corpus=corpus)
         if is_error(res):
             returnD(res)
@@ -1435,7 +1648,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         pages_to_index = len(ids)
         if not pages_to_index:
             returnD(False)
-        pages, links = yield deferToThread(processor.generate_cache_from_pages_list, page_items, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0)
+        pages, links, autostartpages = yield deferToThread(processor.generate_cache_from_pages_list, page_items, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0, autostarts=job['crawl_arguments'].get('start_urls_auto', []))
+        for auto in autostartpages:
+            yield self.jsonrpc_add_webentity_startpage(job['webentity_id'], auto, corpus=corpus, _automatic=True)
         logger.msg("...%s pages and %s links identified from %s crawled pages in %ss..." % (len(pages), len(links), pages_to_index, time.time()-s), system="INFO - %s" % corpus)
         s = time.time()
         cache_id = yield self.msclients.loop.createCache(pages.values(), corpus=corpus)
@@ -1502,7 +1717,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
             self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
-            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id', 'crawljob_id'], limit=1)
+            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id', 'crawljob_id', 'crawl_arguments', 'webentity_id'], limit=1)
             if not job:
                 logger.msg("Indexing job with pages in queue but not found in jobs: %s" % oldest_page_in_queue['_job'], system="WARNING - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
@@ -1692,9 +1907,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(format_result(res))
 
     @inlineCallbacks
-    def paginate_webentities(self, WEs, count, page, light=False, semilight=False, sort=None, corpus=DEFAULT_CORPUS):
+    def paginate_webentities(self, WEs, count, page, jobs=None, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
         subset = WEs[page*count:(page+1)*count]
-        ids = [w["id"] for w in WEs]
+        subset = yield self.format_webentities(subset, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
+        ids = [w.id for w in WEs]
         res = yield self.format_WE_page(len(ids), count, page, subset, corpus=corpus)
         query_args = {
           "count": count,
@@ -1727,7 +1943,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         elif n_WEs:
             MAX_WE_AT_ONCE = 100
             WEs = []
-            sublists = [list_ids[MAX_WE_AT_ONCE*i : MAX_WE_AT_ONCE*(i+1)] for i in range((n_WEs-1)/MAX_WE_AT_ONCE + 1)]
+            sublists = [list_ids[MAX_WE_AT_ONCE*i : MAX_WE_AT_ONCE*(i+1)] for i in range(int((n_WEs-1)/MAX_WE_AT_ONCE + 1))]
             results = yield DeferredList([self.msclients.pool.getWebEntitiesByIDs(sublist_ids, corpus=corpus) for sublist_ids in sublists], consumeErrors=True)
             for bl, res in results:
                 if not bl or is_error(res):
@@ -1737,13 +1953,15 @@ class Memory_Structure(jsonrpc.JSONRPC):
             WEs = yield self.ramcache_webentities(corpus=corpus)
             if is_error(WEs):
                 returnD(WEs)
-        res = yield self.format_webentities(WEs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
+        WEs, jobs = yield self.sort_webentities(WEs, sort=sort, corpus=corpus)
         if n_WEs or count == -1:
+            res = yield self.format_webentities(WEs, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
             returnD(format_result(res))
         if len(WEs) > count and not light_for_csv:
-            res = yield self.paginate_webentities(res, count, page, light=light, semilight=semilight, sort=sort, corpus=corpus)
+            res = yield self.paginate_webentities(WEs, count, page, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
             returnD(res)
         else:
+            res = yield self.format_webentities(WEs, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
             respage = yield self.format_WE_page(len(res), count, page, res, corpus=corpus)
             returnD(respage)
 
@@ -1782,10 +2000,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
         WEs = yield self.msclients.pool.searchWebEntities(afk, fk, corpus=corpus)
         if is_error(WEs):
             returnD(WEs)
-        res = yield self.format_webentities(WEs, sort=sort, light=light, semilight=semilight, corpus=corpus)
         if indegree_filter:
-            res = [w for w in res if w["indegree"] >= indegree_filter[0] and w["indegree"] <= indegree_filter[1]]
-        res = yield self.paginate_webentities(res, count, page, sort=sort, corpus=corpus)
+            WEs = [w for w in WEs if self.corpora[corpus]["webentities_ranks"].get(WE.id, 0) >= indegree_filter[0] and self.corpora[corpus]["webentities_ranks"].get(WE.id, 0) <= indegree_filter[1]]
+
+        WEs, jobs = yield self.sort_webentities(WEs, sort=sort, corpus=corpus)
+        res = yield self.paginate_webentities(WEs, count, page, jobs=jobs, sort=sort, light=light, semilight=semilight, corpus=corpus)
         returnD(res)
 
     def escape_search_query(self, query, corpus=DEFAULT_CORPUS):
@@ -1886,32 +2105,36 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
   # TAGS
 
-    def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS):
+    def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
         """Adds for a `corpus` a tag `namespace:category=value` to a WebEntity defined by `webentity_id`."""
-        return self.update_webentity(webentity_id, "metadataItems", value, "push", category, namespace, corpus=corpus)
+        return self.update_webentity(webentity_id, "metadataItems", value, "push", category, namespace, _commit=_commit, corpus=corpus)
 
     def jsonrpc_add_webentities_tag_value(self, webentity_ids, namespace, category, value, corpus=DEFAULT_CORPUS):
         """Adds for a `corpus` a tag `namespace:category=value` to a bunch of WebEntities defined by a list of `webentity_ids`."""
         return self.batch_webentities_edit("add_webentity_tag_value", webentity_ids, corpus, namespace, category, value)
 
-    def jsonrpc_rm_webentity_tag_key(self, webentity_id, namespace, category, corpus=DEFAULT_CORPUS):
+    def jsonrpc_rm_webentity_tag_key(self, webentity_id, namespace, category, corpus=DEFAULT_CORPUS, _commit=True):
         """Removes for a `corpus` all tags within `namespace:category` associated with a WebEntity defined by `webentity_id` if it is set."""
-        return self.jsonrpc_set_webentity_tag_values(webentity_id, namespace, category, [], corpus=corpus)
+        return self.jsonrpc_set_webentity_tag_values(webentity_id, namespace, category, [], _commit=_commit, corpus=corpus)
 
-    def jsonrpc_rm_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS):
+    def jsonrpc_rm_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
         """Removes for a `corpus` a tag `namespace:category=value` associated with a WebEntity defined by `webentity_id` if it is set."""
-        return self.update_webentity(webentity_id, "metadataItems", value, "pop", category, namespace, corpus=corpus)
+        return self.update_webentity(webentity_id, "metadataItems", value, "pop", category, namespace, _commit=_commit, corpus=corpus)
 
-    def jsonrpc_set_webentity_tag_values(self, webentity_id, namespace, category, values, corpus=DEFAULT_CORPUS):
+    def jsonrpc_set_webentity_tag_values(self, webentity_id, namespace, category, values, corpus=DEFAULT_CORPUS, _commit=True):
         """Replaces for a `corpus` all existing tags of a WebEntity defined by `webentity_id` for a specific `namespace` and `category` by a list of `values` or a single tag."""
         if not isinstance(values, list):
             values = [values]
-        return self.update_webentity(webentity_id, "metadataItems", values, "update", category, namespace, corpus=corpus)
+        return self.update_webentity(webentity_id, "metadataItems", values, "update", category, namespace, _commit=_commit, corpus=corpus)
 
     @inlineCallbacks
-    def add_backend_tags(self, webentity_id, key, value, corpus=DEFAULT_CORPUS):
-        yield self.jsonrpc_add_webentity_tag_value(webentity_id, "CORE", key, value, corpus=corpus)
-        yield self.jsonrpc_add_webentity_tag_value(webentity_id, "CORE", "recrawl_needed", "true", corpus=corpus)
+    def add_backend_tags(self, webentity_id, key, value, namespace="", corpus=DEFAULT_CORPUS, _commit=True):
+        if not namespace:
+            namespace = "CORE"
+        else: namespace = "CORE.%s" % namespace
+        WE = yield self.jsonrpc_add_webentity_tag_value(webentity_id, namespace, key, value, _commit=False, corpus=corpus)
+        res = yield self.jsonrpc_add_webentity_tag_value(WE, "CORE", "recrawlNeeded", "true", _commit=_commit, corpus=corpus)
+        returnD(res)
 
     @inlineCallbacks
     def ramcache_tags(self, corpus=DEFAULT_CORPUS):
@@ -1962,6 +2185,11 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
   # PAGES, LINKS & NETWORKS
 
+    def format_pages(self, pages):
+        if is_error(pages):
+            return pages
+        return [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'linked': p.linked, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
+
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
@@ -1969,10 +2197,18 @@ class Memory_Structure(jsonrpc.JSONRPC):
             pages = yield self.msclients.pool.getWebEntityCrawledPages(webentity_id, corpus=corpus)
         else:
             pages = yield self.msclients.pool.getWebEntityPages(webentity_id, corpus=corpus)
-        if is_error(pages):
-            returnD(pages)
-        formatted_pages = [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
-        returnD(format_result(formatted_pages))
+        returnD(format_result(self.format_pages(pages)))
+
+    @inlineCallbacks
+    def jsonrpc_get_webentity_mostlinked_pages(self, webentity_id, npages=20, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id`."""
+        try:
+            npages = int(npages)
+            assert(npages > 0)
+        except:
+            returnD(format_error("ERROR: npages argument must be a stricly positive integer"))
+        pages = yield self.msclients.pool.getWebEntityMostLinkedPages(webentity_id, npages, corpus=corpus)
+        returnD(format_result(self.format_pages(pages)))
 
     def jsonrpc_get_webentity_subwebentities(self, webentity_id, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all sub-webentities of a WebEntity defined by `webentity_id` (meaning webentities having at least one LRU prefix starting with one of the WebEntity's prefixes)."""
@@ -1985,7 +2221,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
     @inlineCallbacks
     def get_webentity_relative_webentities(self, webentity_id, relative_type="children", corpus=DEFAULT_CORPUS):
         if relative_type != "children" and relative_type != "parents":
-            returnD(format_error("ERROR: must set relative type as children or parents"))
+            returnD(format_error("ERROR: relative_type must be set to children or parents"))
         if relative_type == "children":
             WEs = yield self.msclients.pool.getWebEntitySubWebEntities(webentity_id, corpus=corpus)
         else:
@@ -2057,6 +2293,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
         returnD(format_result('Default creation rule was already created'))
 
     @inlineCallbacks
+    def jsonrpc_get_default_webentity_creationrule(self, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` the default WebEntityCreationRule."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        res = yield self.jsonrpc_get_webentity_creationrules(lru_prefix=ms_const.DEFAULT_WEBENTITY_CREATION_RULE, corpus=corpus)
+        returnD(format_result(res))
+
+    @inlineCallbacks
     def jsonrpc_get_webentity_creationrules(self, lru_prefix=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all existing WebEntityCreationRules or only one set for a specific `lru_prefix`."""
         if not self.parent.corpus_ready(corpus):
@@ -2107,8 +2351,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             news = yield self.msclients.pool.reindexPageItemsMatchingLRUPrefix(lru_prefix, corpus=corpus)
             res = yield self.jsonrpc_get_lru_definedprefixes(lru_prefix, corpus=corpus)
             if not is_error(res):
-                for we in res["result"]:
-                    yield self.jsonrpc_add_webentity_tag_value(we["id"], "CORE", "recrawl_needed", "true", corpus=corpus)
+                yield self.jsonrpc_add_webentities_tag_value(res["result"], "CORE", "recrawlNeeded", "true", corpus=corpus)
             self.corpora[corpus]['recent_changes'] += 1
             returnD(format_result("Webentity creation rule added and applied: %s new webentities created" % news))
         returnD(format_result("Webentity creation rule added"))

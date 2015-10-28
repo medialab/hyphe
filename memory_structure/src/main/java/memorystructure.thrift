@@ -37,11 +37,12 @@ struct PageItem {
   5: i32 depth,
   6: string errorCode,
   7: set<string> sourceSet,
-  8: bool isFullPrecision = false,
-  9: bool isNode,
-  10: map<string, map<string, list<string>>> metadataItems,
-  11: string creationDate,
-  12: string lastModificationDate
+  8: i32 linked,
+  9: bool isFullPrecision = false,
+  10: bool isNode,
+  11: map<string, map<string, list<string>>> metadataItems,
+  12: string creationDate,
+  13: string lastModificationDate
 }
 
 struct NodeLink {
@@ -258,6 +259,14 @@ list<PageItem> getWebEntityPages(1:string id) throws (1:MemoryStructureException
  * @return a List of Page Objects having urls within the prefixes of the webentity and coming from actual crawls (may be empty)
  */
 list<PageItem> getWebEntityCrawledPages(1:string id) throws (1:MemoryStructureException me)
+
+// getWebEntityMostLinkedPages pages belonging to one webentity that has been most seen in links
+/**
+ * @param 1 id
+ * @param 2 N
+ * @return a List of the N most linked Page Objects having urls within the prefixes of the webentity (may be empty)
+ */
+list<PageItem> getWebEntityMostLinkedPages(1:string id, 2:i32 N) throws (1:MemoryStructureException me)
 
 // getWebEntityNodeLinks: get all NodeLinks for a specific WebEntity
 /**

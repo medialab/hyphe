@@ -37,7 +37,7 @@ def uri_recode_query(query):
     elements = queryStems.split(query)
     if len(elements) == 1:
         return uri_recode(query)
-    return "&".join(["%s=%s" % (uri_recode(elements[1+3*i]), uri_recode(elements[2+3*i])) for i in range(len(elements[1:])/3)])
+    return "&".join(["%s=%s" % (uri_recode(elements[1+3*i]), uri_recode(elements[2+3*i])) for i in range(int(len(elements[1:])/3))])
 
 def lru_parent_prefixes(lru):
     res = []
@@ -54,7 +54,7 @@ def split_lru_in_stems(lru, check=True):
         return []
     if len(elements) < 2 or elements[0] != '' or (check and (len(elements) < 6 or elements[1] != 's' or elements[5] != 'h') and not special_hosts.match(elements[4])):
         raise ValueError("ERROR: %s is not a proper LRU." % lru)
-    return [(elements[1+2*i], elements[2+2*i], "%s:%s" % (elements[1+2*i], elements[2+2*i])) for i in range(len(elements[1:])/2)]
+    return [(elements[1+2*i], elements[2+2*i], "%s:%s" % (elements[1+2*i], elements[2+2*i])) for i in range(int(len(elements[1:])/2))]
 
 def url_clean(url):
     if not url or url.strip() == "":

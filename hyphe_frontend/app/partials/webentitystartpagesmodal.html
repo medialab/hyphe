@@ -1,0 +1,128 @@
+<div class="modal-header">
+  <h3 class="modal-title">{{webentity.name}}</h3>
+</div>
+<div class="modal-body">
+
+  <table class="table table-condensed table-striped table-wesp">
+
+    <thead>
+      <tr>
+        <th
+          class="wesp-modal-cell-checkbox"
+        ></th>
+        <th
+          class="wesp-modal-cell-startpage"
+        >Start page{{startpages.length > 1 ? 's' : ''}}</th>
+        <th
+          class="wesp-modal-cell-lookup"
+        ></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr ng-repeat="url in startpages" ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading'}">
+        
+        <td
+          class="wesp-modal-cell-checkbox"
+        >
+          
+        </td>
+        
+        <td
+          class="wesp-modal-cell-startpage"
+        >
+          <div class="url-container">
+            <span class="url url-break">
+              <span>
+                {{url}}
+              </span>
+              <a href="{{url}}" target="_blank" title="Open in a new tab">
+                <span class="glyphicon glyphicon-share-alt"></span>
+              </a>
+            </span>
+          </div>          
+        </td>
+        
+        <td
+          class="wesp-modal-cell-lookup"
+        >
+          <span class="pull-right">
+            <minispinner ng-if="lookups[url].status == 'loading'"></minispinner>
+            <span
+              ng-if="lookups[url].status != 'loading'"
+              class="glyphicon"
+              ng-class="{
+                'glyphicon-ok': lookups[url].status == 'success'
+              , 'text-success': lookups[url].status == 'success'
+
+              , 'glyphicon-exclamation-sign': lookups[url].status == 'issue'
+              , 'text-warning':               lookups[url].status == 'issue'
+              }"
+
+              tooltip-animation="true"
+              tooltip-placement="top"
+              tooltip-trigger="mouseenter"
+              tooltip="Lookup {{lookups[url].status}}"
+              tooltip-append-to-body="true"
+            ></span>
+
+            <!-- Lookup fail -->
+            <span ng-if="lookups[url].status == 'fail'" class="text-danger">
+              lookup fail
+            </span>
+
+            <!-- Lookup loaded -->
+            <span
+              ng-if=" lookups[url].status == 'issue'"
+              class="text-warning"
+              tooltip="HTTP code: {{lookups[url].httpStatus}}"
+            >
+              {{lookups[url].httpStatus|explicitHttpCode}}
+            </span>
+          </span>
+        </td>
+
+      </tr>
+    </tbody>
+
+  </table>
+
+  <div>
+  </div>
+
+  <div collapse="collapseProgressBar" >
+    <progressbar ng-if="startpagesSummary.percent == 0" value="100" class="progress-striped active" >Testing web entities</progressbar>
+    <progressbar ng-if="startpagesSummary.percent > 0" value="startpagesSummary.percent" >{{startpagesSummary.percent}}% tested</progressbar>
+  </div>
+
+  <div collapse="!collapseProgressBar">
+
+    <div ng-show="startpagesSummary.diagnostic.ready">
+      <h4 class="text-success">READY TO CRAWL</h4>
+      <p ng-show="startpagesSummary.diagnostic.issues" class="text-success">
+        At least one page is valid, allowing the crawl to start successfully.
+      </p>
+      <p ng-show="startpagesSummary.diagnostic.issues" class="text-warning">
+        A little warning, though.
+        <br>
+        Some start pages have issues and cannot be crawled. It will not block the crawl but you may want to fix this.
+      </p>
+    </div>
+
+    <div ng-show="startpagesSummary.diagnostic.doomed">
+      <h4 class="text-danger">DOOMED CRAWL</h4>
+      <p class="text-danger">
+        This web entity has no valid start page. Hyphe will not be able to start crawling it.
+      </p>
+      <p class="text-muted">
+        You can still try to launch it, though. Miracles happen.
+      </p>
+    </div>
+
+  </div>
+
+</div>
+<div class="modal-footer">
+  <button class="btn btn-default" ng-click="ok()">OK</button>
+  <!-- <button class="btn btn-default" ng-click="cancel()">CANCEL</button> -->
+</div>

@@ -22,6 +22,7 @@
   },
   "twisted.port": 6978,
   "precisionLimit": 2,
+  "defaultStartpagesMode": ["prefixes", "pages-5"],
   "defaultCreationRule": "domain",
   "creationRules": {
     "twitter.com": "path-1",
@@ -140,5 +141,6 @@
   },
   "MULTICORPUS": true,
   "ADMIN_PASSWORD": null,
+  "OPEN_CORS_API": false,
   "DEBUG": 0
 }

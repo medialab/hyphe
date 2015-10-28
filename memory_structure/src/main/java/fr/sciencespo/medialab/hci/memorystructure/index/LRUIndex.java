@@ -31,9 +31,12 @@ import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
+import org.apache.lucene.search.TopFieldCollector;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
@@ -419,6 +422,7 @@ public class LRUIndex {
         final List<Document> hits = new ArrayList<Document>();
         indexSearcher.search(q, new Collector() {
             private IndexReader reader;
+            private int docBase;
             @Override
             public void setScorer(Scorer scorer) throws IOException {}
             @Override
@@ -428,6 +432,7 @@ public class LRUIndex {
             @Override
             public void setNextReader(IndexReader reader, int docBase) throws IOException {
                 this.reader = reader;
+                this.docBase = docBase;
             }
             @Override
             public boolean acceptsDocsOutOfOrder() {
@@ -437,6 +442,26 @@ public class LRUIndex {
         if(logger.isDebugEnabled()) {
             logger.debug("# hits: " + hits.size());
         }
+        return hits;
+    }
+
+    /**
+     * Returns the N top Lucene Documents matching a specific Lucene Query according to a specific integer field
+     *
+     * @param q : the Query to match
+     * @param N : the number of top results to return
+     * @param field : the field to compare documents with
+     * @return a List of Document objects
+     * @throws IOException
+     */
+    private List<Document> executeTopResultsQuery(Query q, Integer N, String field) throws IOException {
+        final List<Document> hits = new ArrayList<Document>();
+        Sort sort = new Sort(new SortField(field, SortField.INT, true).setMissingValue(0),
+        					 new SortField(IndexConfiguration.FieldName.DATECREA.name(), SortField.INT));
+        TopFieldCollector coll = TopFieldCollector.create(sort, N, true, false, false, false);
+        indexSearcher.search(q, coll);
+        for (ScoreDoc doc: coll.topDocs().scoreDocs)
+        	hits.add(this.indexReader.document(doc.doc));
         return hits;
     }
 
@@ -1217,6 +1242,45 @@ public class LRUIndex {
         if(logger.isDebugEnabled()) {
             logger.debug("found " + results.size() + " pages for web entity " + webEntity.getName() + ":");
         }
+        return results;
+    }
+
+    /**
+     * Retrieves most linked PageItems corresponding to a specific WebEntity.
+     *
+     * @param webEntityId
+     * @param N max number of results
+     * @return a List of PageItem objects
+     * @throws IndexException hmm
+     * @throws ObjectNotFoundException hmm
+     */
+    public List<PageItem> retrieveWebEntityMostLinkedPageItems(String webEntityId, Integer N) throws IndexException, ObjectNotFoundException {
+        if(logger.isDebugEnabled()) {
+            logger.debug("retrieveWebEntityMostLinkedPageItems for webEntityId: " + webEntityId);
+        }
+        List<PageItem> results = new ArrayList<PageItem>();
+        if(StringUtils.isEmpty(webEntityId)) {
+            return results;
+        }
+        WebEntity webEntity = retrieveWebEntity(webEntityId);
+        if(webEntity == null) {
+            throw new ObjectNotFoundException().setMsg("Could not find webentity with id: " + webEntityId);
+        }
+        List<WebEntity> subWebEntities = retrieveWebEntitySubWebEntities(webEntity);
+        Query q = LuceneQueryFactory.getPageItemMatchingWebEntityButNotMatchingSubWebEntities(webEntity, subWebEntities);
+        try {
+        	final List<Document> hits = executeTopResultsQuery(q, N, IndexConfiguration.FieldName.LINKED.name());
+	        results = new ArrayList<PageItem>(hits.size());
+	        for(Document hit: hits)
+	            results.add(IndexConfiguration.convertLuceneDocumentToPageItem(hit));
+	        if(logger.isDebugEnabled()) {
+	            logger.debug("found " + results.size() + " pages for web entity " + webEntity.getName() + ":");
+	        }
+		} catch (IOException x) {
+		    logger.error(x.getMessage());
+		    x.printStackTrace();
+		    throw new IndexException(x.getMessage(), x);
+		}
         return results;
     }
 

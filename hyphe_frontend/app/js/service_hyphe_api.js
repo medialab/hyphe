@@ -20,6 +20,7 @@ angular.module('hyphe.service_hyphe_api', [])
 
     API.WEBENTITY_STARTPAGE_ADD                     = 'store.add_webentity_startpage'
     API.WEBENTITY_STARTPAGE_REMOVE                  = 'store.rm_webentity_startpage'
+    API.WEBENTITY_STARTPAGE_LIST_PROPOSE            = 'propose_webentity_startpages'
 
     API.WEBENTITY_PREFIX_ADD                        = 'store.add_webentity_lruprefixes'
     API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
@@ -33,6 +34,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_HOMEPAGE_SET                      = 'store.set_webentity_homepage'
     API.WEBENTITY_TAG_VALUES_SET                    = 'store.set_webentity_tag_values'
     API.WEBENTITY_CRAWL                             = 'crawl_webentity'
+    API.WEBENTITY_CRAWL_WITH_HEURISTIC              = 'crawl_webentity_with_startmode'
     API.WEBENTITY_FETCH_BY_URL                      = 'store.get_webentity_for_url'
     API.WEBENTITY_FETCH_BY_PREFIX_LRU               = 'store.get_webentity_by_lruprefix'
     API.WEBENTITY_FETCH_BY_PREFIX_URL               = 'store.get_webentity_by_lruprefix_as_url'
@@ -212,6 +214,17 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
+    ns.getStartPagesSuggestions = buildApiCall(
+        API.WEBENTITY_STARTPAGE_LIST_PROPOSE
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.startmode || 'default'
+              ,settings.categories || false
+              ,corpus.getId()
+            ]}
+      )
+
     ns.getPages = buildApiCall(
         API.WEBENTITY_PAGE_LIST_GET
         ,function(settings){
@@ -330,7 +343,20 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.depth
             ,settings.cautious || false
             ,settings.status || 'IN'
-            ,settings.startpages || 'startpages'
+            ,{}                                 // phantom timeouts
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.crawlWithHeuristic = buildApiCall(
+        API.WEBENTITY_CRAWL_WITH_HEURISTIC
+        ,function(settings){
+          return [
+            settings.webentityId
+            ,settings.depth
+            ,settings.cautious || false
+            ,settings.status || 'IN'
+            ,settings.startmode || 'default'
             ,{}                                 // phantom timeouts
             ,corpus.getId()
           ]}

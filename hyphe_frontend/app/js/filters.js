@@ -354,5 +354,10 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('arrayToString', [function(){
+    return function(arr) {
+      return arr.toString().replace(/,/g, ', ')
+    }
+  }])
 ;
 

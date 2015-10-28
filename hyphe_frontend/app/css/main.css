@@ -3,6 +3,10 @@
 /* ==========================================================================
    Generic styles
    ========================================================================== */
+/* For vertical full size */
+html, body, .ng-view-container{
+  height: 100%;
+}
 
 /* Global color and font */
 body {
@@ -57,6 +61,9 @@ table.fixed{
 .btn-muted{
   color: #EFEBE8;
 }
+tr.bg-selected .btn-muted{
+  color: #FFFFFF;
+}
 
 
 
@@ -86,6 +93,96 @@ label.btn.btn-default.disabled.active{
 
 
 /* ==========================================================================
+   Web entity colors
+   ========================================================================== */
+.webentity-color-in{
+  color: #333;
+}
+.webentity-color-undecided{
+  color: #ADA299;
+}
+.webentity-color-out{
+  /*color: #FAA;*/
+  color: #E67E7E;
+}
+.webentity-color-discovered{
+  /*color: #93BDE0;*/
+  color: #75ADDC;
+}
+
+
+
+/* ==========================================================================
+   URLs can be very loooong
+   ========================================================================== */
+div.url-container{
+  overflow: hidden;
+  white-space: nowrap;
+}
+div.url-container .url{
+  font-family: 'Roboto Condensed', sans-serif;
+  font-weight:400;
+}
+div.url-container .url-break{
+  white-space: normal;
+  word-break: break-all;
+}
+
+
+
+/* ==========================================================================
+   Status selector
+   ========================================================================== */
+.btn-group-status-selector .btn-in{
+  border-bottom: 2px solid #333;
+}
+.btn-group-status-selector .btn-undecided{
+  border-bottom: 2px solid #ADA299;
+}
+.btn-group-status-selector .btn-out{
+  border-bottom: 2px solid #FAA;
+}
+.btn-group-status-selector .btn-discovered{
+  border-bottom: 2px solid #93BDE0;
+}
+
+
+
+/* ==========================================================================
+   Full height panels
+   ========================================================================== */
+
+.fullheight{
+  height: 100%;
+}
+.fullheight .fullheight-side-panel{
+  position: absolute;
+  height: 100%;
+  width: 200px;
+
+  margin-left: -15px;
+  margin-right: -15px;
+
+}
+.fullheight .fullheight-main-panel{
+  height: 100%;
+  margin-left: -15px;
+  margin-right: -15px;
+  padding-top: 50px;
+  padding-left: 200px;
+}
+@media (max-width: 768px) { /* xs screen only */
+  .fullheight .fullheight-side-panel{
+    display: none;
+  }
+  .fullheight .fullheight-main-panel{
+    padding-left: 0px;
+  }
+}
+
+
+
+/* ==========================================================================
    Big Bullet Numbers
    ========================================================================== */
 .big-bullet-number{
@@ -104,6 +201,25 @@ label.btn.btn-default.disabled.active{
 
 
 /* ==========================================================================
+   Pulse
+   ========================================================================== */
+.glyphicon.pulse{
+  animation-name: pulse;
+  animation-duration: 1.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate; 
+}
+@keyframes pulse {
+  to {
+    opacity: 0.8;
+    transform: scale(0.9);
+  }
+}
+
+
+
+/* ==========================================================================
    Modifying Bootstrap Panel
    ========================================================================== */
 .panel-heading.hyphe-gray{
@@ -117,8 +233,13 @@ label.btn.btn-default.disabled.active{
    ========================================================================== */
 .flatpanel{
   background-color: #EFEBE8;
-  position: fixed;
-  min-width: 25%;
+  position: relative;
+
+  /*position: fixed;*/
+  /*min-width: 25%;*/
+  /* ^ NB: this is not the proper way to do it since it breaks the layout. */
+  /*   It should be managed with a container above flatpanel, since */
+  /*   here we just deal with the general look of the module (its content) */
 }
 .flatpanel .flatpanel-heading{
   padding: 12px;
@@ -145,8 +266,9 @@ label.btn.btn-default.disabled.active{
 .flatpanel .flatpanel-whitespace{
   border-top: 12px solid #fff;
 }
-
-
+.flatpanel .flatpanel-input-spacer{
+  height: 9px;
+}
 
 
 
@@ -163,6 +285,11 @@ label.btn.btn-default.disabled.active{
 .topbar{
   background-color: #EFEBE8;
   font-size: 18px;
+}
+.topbar-fixed .topbar-project{
+  width: 200px;
+  position: absolute;
+  z-index: 20;
 }
 .topbar-project{
   background-color: #428bca;
@@ -181,6 +308,11 @@ label.btn.btn-default.disabled.active{
 }
 .topbar-project td{
   vertical-align: top;
+}
+.topbar-fixed .topbar-center{
+  width: 100%;
+  padding-left: 200px;
+  position: absolute;
 }
 .topbar-status{
   text-align: center;
@@ -209,6 +341,7 @@ label.btn.btn-default.disabled.active{
 }
 
 
+
 /* ==========================================================================
    Sidebar nav
    ========================================================================== */
@@ -217,7 +350,8 @@ label.btn.btn-default.disabled.active{
   border-radius: 0px 0px 6px 0px;
   padding-right: 0px;
   padding-top: 60px;
-  position: fixed;
+  /*position: fixed;*/
+  /* ^ Breaks the layout */
   left: 0;
 }
 .sidebar span.symbol{
@@ -270,6 +404,7 @@ label.btn.btn-default.disabled.active{
     padding-right: 15px;
   }
 }
+
 
 
 /* ==========================================================================
@@ -334,7 +469,6 @@ label.btn.btn-default.disabled.active{
     margin-left: 0;
   }
 }
-
 
 
 
@@ -474,16 +608,57 @@ div.welcome-column dd{
    View: Network
    ========================================================================== */
 .network-key{
-  background-color: #F5F1EF;
-  /*background-color: #F8F8F8;*/
-  border-top: 2px solid #FFF;
-  padding: 12px;
+  border-top: 2px solid #F5F1EF;
+
+  background-color: rgba(255, 255, 255, 0.8);
+
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 200px;
+
+  -webkit-user-select: none; /* Chrome/Safari */        
+     -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+               select: none;
+
+  cursor: pointer;
+}
+@media (max-width: 768px) { /* xs screen only */
+  .network-key{
+    left: 0px;
+  }
+}
+.network-key .floating-button{
+  position: absolute;
+  top: -43px;
+  left: 6px;
+}
+.network-key .collapse-button{
+  position: absolute;
+  cursor: pointer;
+  top: -25px;
+  left: 50%;
+  z-index: 1;
+  height: 25px;
+  width: 50px;
+  border-radius: 50px 50px 0 0;
+  -moz-border-radius: 50px 50px 0 0;
+  -webkit-border-radius: 50px 50px 0 0;
+  padding-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: #ECE8E5;
+}
+.network-key:hover .collapse-button, .network-key .collapse-button:hover{
+  background-color: #F9F3EA;
 }
 .network-key span.line-link{
   display: inline-block;
   width: 36px;
   height: 6px;
-  border-top: 3px solid #D1C9C3;
+  border-top: 3px solid #ECE8E5;
+  border-right: 3px solid #ECE8E5;
 }
 .network-key span.dot{
   width: 12px;
@@ -508,27 +683,35 @@ div.welcome-column dd{
   border-radius: 8px;
 }
 .network-key span.dot.dot-in{
-  background-color: #000000;
+  background-color: #333;
 }
 .network-key span.dot.dot-out{
-  background-color: #FFFFFF;
+  background-color: #FAA;
 }
 .network-key span.dot.dot-undecided{
-  background-color: #869CAD;
+  background-color: #ADA299;
 }
 .network-key span.dot.dot-discovered{
-  background-color: #FF846F;
+  background-color: #93BDE0;
 }
 
 
 /* Sigma */
+.sigma-placeholder{
+  position: relative;
+  width:100%;
+  height: 100%;
+
+  background-color: #FFF;
+
+  padding-top: 120px;
+}
 .sigma-parent {
   position: relative;
-  
-  /*background-color: #EFEBE8;*/
-  background-color: rgba(239, 235, 232, 0.4);
-  
-  height: 220px;
+  width:100%;
+  height: 100%;
+
+  background-color: #FFF;
 
   -webkit-user-select: none; /* Chrome/Safari */        
      -moz-user-select: none; /* Firefox */
@@ -536,14 +719,18 @@ div.welcome-column dd{
                select: none;
 }
 
-@media (min-height: 400px) {.sigma-parent {height: 210px;}}
-@media (min-height: 500px) {.sigma-parent {height: 310px;}}
-@media (min-height: 600px) {.sigma-parent {height: 410px;}}
-@media (min-height: 700px) {.sigma-parent {height: 510px;}}
-@media (min-height: 800px) {.sigma-parent {height: 610px;}}
-@media (min-height: 900px) {.sigma-parent {height: 710px;}}
-@media (min-height:1000px) {.sigma-parent {height: 810px;}}
+.sigma-floating{
+  padding: 2px;
+  position: absolute;
 
+  top: 62px;
+  right: 12px;
+
+  overflow: hidden;
+}
+.sigma-floating .dropdown-menu{
+  top: initial;
+}
 
 .sigma-expand {
   position: absolute;
@@ -807,7 +994,7 @@ textarea.over-error{
 /* ==========================================================================
    View: Launch Crawls
    ========================================================================== */
-.crawl-cells-container{
+/*.crawl-cells-container{
   padding: 6px;
 }
 .crawl-cell{
@@ -835,7 +1022,58 @@ textarea.over-error{
 .crawl-cell .status{
   font-size: 24px;
   font-weight: 300;
+}*/
+
+
+
+/* ==========================================================================
+   View: Prepare Crawls
+   ========================================================================== */
+.crawl-cells-container{
+  padding: 6px;
 }
+.crawl-cell{
+  height: 112px;
+  padding:6px;
+  cursor:pointer;
+}
+.crawl-cell:hover{
+  opacity: 0.85;
+}
+.crawl-cell-content{
+  height: 100%;
+  padding: 5px;
+  border: 1px solid #FFF;
+  overflow: hidden;
+}
+.crawl-cell-content.bg-waiting{
+  border: 1px solid #31708f;
+}
+.crawl-cell p{
+  margin-bottom: 0px;
+}
+.crawl-cell .title{
+  white-space: nowrap;
+  font-family: 'Roboto', sans-serif;
+  font-weight:400;
+  margin-bottom: 10px;
+  margin-top: -2px;
+}
+.crawl-cell .status{
+  font-size: 24px;
+  font-weight: 300;
+}
+.crawl-cell .info{
+  margin-top: 20px;
+  font-size: 16px;
+}
+.crawl-cell-text-muted{
+  opacity: 0.6;
+}
+.crawl-cell-content.bg-neutral{
+  background-color: #EFEBE8;
+}
+
 
 
 
@@ -1011,6 +1249,8 @@ textarea.over-error{
 
 
 
+
+
 /* ==========================================================================
    Factored between different views: Web Entity List
    ========================================================================== */
@@ -1030,14 +1270,14 @@ textarea.over-error{
   /*width: 100%;*/
   word-break: break-all;
 }
-.webentities-list-table .cell-prefixes{
-  width: 80px;
+.webentities-list-table .cell-link{
+  width: 24px;
 }
 .webentities-list-table .cell-status{
-  width: 120px;
+  width: 100px;
 }
 .webentities-list-table .cell-last-crawled{
-  width: 90px;
+  width: 50px;
 }
 .webentities-list-table .cell-last-modif{
   width: 150px;
@@ -1046,7 +1286,7 @@ textarea.over-error{
   width: 80px;
 }
 .webentities-list-table .cell-action{
-  width: 140px;
+  width: 112px;
 }
 .webentities-list-table .panel-heading{
   padding: 6px;
@@ -1055,14 +1295,15 @@ textarea.over-error{
   height: 174px;
 }
 .webentities-list-table .search-ariane-string{
-  padding-bottom: 6px;
-  min-height: 40px;
+  /*padding-bottom: 6px;*/
+  /*min-height: 40px;*/
 }
 .webentities-list-table .search-ariane-string-text{
   font-weight: 600;
   padding-top: 6px;
   padding-left: 2px;
   padding-bottom: 6px;
+  padding-right: 12px;
 }
 .webentities-list-table .search-ariane-string-text .glyphicon{
   color: #BABABA;
@@ -1074,39 +1315,53 @@ textarea.over-error{
       -ms-user-select: none; /* IE10+ */
                select: none;
 }
+
 .webentities-list-table tr.bg-selected{
   background-color: #EAEAFF;
 }
+.webentities-list-table tr.bg-selected:nth-child(even)>td{
+  background-color: #FFFAEA;
+}
+.webentities-list-table tr.bg-selected:nth-child(odd)>td{
+  background-color: #FBF5E3;
+}
 .selection-background{
-  background-color: #EAEAFF;
+  background-color: #FBF5E3;
 }
 .flatpanel-body form.action{
   margin-top: 6px;
 }
-.webentities-list-table .prefix-div-container{
-  padding-top: 7px;
-  line-height: 0px;
+
+
+
+
+
+
+
+
+
+/* ==========================================================================
+   Module: Web Entity Start Pages Modal
+   ========================================================================== */
+.table-wesp td, .table-wesp th{
+  max-width: 0;
 }
-.webentities-list-table .prefix-div{
-  width: 12px;
-  height: 12px;
-  background-color: #EFEBE8;
-  margin-right: 3px;
-  margin-top: 3px;
-  display: inline-block;
-  cursor: pointer;
+.wesp-modal-cell-checkbox{
+  width: 20px;
 }
-.webentities-list-table tr.bg-selected .prefix-div{
-  background-color: #FFF;
+.wesp-modal-cell-startpage{
 }
-.webentities-list-table .prefix-div:hover, .webentities-list-table tr.bg-selected .prefix-div:hover{
-  background-color: #428bca;
+.wesp-modal-cell-lookup{
+  width: 250px;
 }
-
-
-
-
-
+@media (max-width: 768px) { /* xs screen only */
+  .wesp-modal-cell-lookup{
+    width: 100px;
+  }
+}
+.wesp-modal-loading{
+  opacity: 0.6;
+}
 
 
 
@@ -1331,7 +1586,91 @@ textarea.over-error{
 
 
 /* ==========================================================================
-   Module: Spinner - from http://codepen.io/mandelid/pen/vwKoe
+   Mini Spinner
+   ========================================================================== */
+
+/* Spinner Slices */
+.sp-slices {
+  border-radius: 50%;
+  border-top: 8px rgba(0, 0, 0, 0.75) solid;
+  border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+  border-right: 8px rgba(0, 0, 0, 0.25) solid;
+  -webkit-animation: spSlices 1s infinite linear;
+  animation: spSlices 1s infinite linear;
+  width: 0;
+  height: 0;
+}
+
+@-webkit-keyframes spSlices {
+  0% {
+    border-top: 8px rgba(0, 0, 0, 0.75) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+  25% {
+    border-top: 8px rgba(0, 0, 0, 0.25) solid;
+    border-right: 8px rgba(0, 0, 0, 0.75) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+  50% {
+    border-top: 8px rgba(0, 0, 0, 0.25) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.75) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+  75% {
+    border-top: 8px rgba(0, 0, 0, 0.25) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.75) solid;
+  }
+  100% {
+    border-top: 8px rgba(0, 0, 0, 0.75) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+}
+@keyframes spSlices {
+  0% {
+    border-top: 8px rgba(0, 0, 0, 0.75) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+  25% {
+    border-top: 8px rgba(0, 0, 0, 0.25) solid;
+    border-right: 8px rgba(0, 0, 0, 0.75) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+  50% {
+    border-top: 8px rgba(0, 0, 0, 0.25) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.75) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+  75% {
+    border-top: 8px rgba(0, 0, 0, 0.25) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.75) solid;
+  }
+  100% {
+    border-top: 8px rgba(0, 0, 0, 0.75) solid;
+    border-right: 8px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
+    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+  }
+}
+
+
+
+/* ==========================================================================
+   Module: Spinner - from http://tobiasahlin.com/spinkit/
    ========================================================================== */
 .spinner-container.center{
   margin-left:auto; 
@@ -1339,21 +1678,98 @@ textarea.over-error{
 }
 .spinner-container .spinner {
   display: inline-block;
-  width: 50px;
-  height: 50px;
-  border: 3px solid rgba(66,139,202,.9);
-  border-radius: 50%;
-  border-top-color: #EFEBE8;
-  animation: spin 1s ease-in-out infinite;
-  -webkit-animation: spin 1s ease-in-out infinite;
+  margin-right: 12px;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.sk-folding-cube {
+  margin: 20px auto;
+  width: 40px;
+  height: 40px;
+  position: relative;
+  -webkit-transform: rotateZ(45deg);
+          transform: rotateZ(45deg);
 }
-@-webkit-keyframes spin {
-  to { -webkit-transform: rotate(360deg); }
+
+.sk-folding-cube .sk-cube {
+  float: left;
+  width: 50%;
+  height: 50%;
+  position: relative;
+  -webkit-transform: scale(1.1);
+      -ms-transform: scale(1.1);
+          transform: scale(1.1);
 }
+.sk-folding-cube .sk-cube:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #428bca;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  -webkit-animation: sk-foldCubeAngle 2.4s infinite linear both;
+          animation: sk-foldCubeAngle 2.4s infinite linear both;
+  -webkit-transform-origin: 100% 100%;
+      -ms-transform-origin: 100% 100%;
+          transform-origin: 100% 100%;
+}
+.sk-folding-cube .sk-cube2 {
+  -webkit-transform: scale(1.1) rotateZ(90deg);
+          transform: scale(1.1) rotateZ(90deg);
+}
+.sk-folding-cube .sk-cube3 {
+  -webkit-transform: scale(1.1) rotateZ(180deg);
+          transform: scale(1.1) rotateZ(180deg);
+}
+.sk-folding-cube .sk-cube4 {
+  -webkit-transform: scale(1.1) rotateZ(270deg);
+          transform: scale(1.1) rotateZ(270deg);
+}
+.sk-folding-cube .sk-cube2:before {
+  -webkit-animation-delay: 0.3s;
+          animation-delay: 0.3s;
+}
+.sk-folding-cube .sk-cube3:before {
+  -webkit-animation-delay: 0.6s;
+          animation-delay: 0.6s; 
+}
+.sk-folding-cube .sk-cube4:before {
+  -webkit-animation-delay: 0.9s;
+          animation-delay: 0.9s;
+}
+@-webkit-keyframes sk-foldCubeAngle {
+  0%, 10% {
+    -webkit-transform: perspective(140px) rotateX(-180deg);
+            transform: perspective(140px) rotateX(-180deg);
+    opacity: 0; 
+  } 25%, 75% {
+    -webkit-transform: perspective(140px) rotateX(0deg);
+            transform: perspective(140px) rotateX(0deg);
+    opacity: 1; 
+  } 90%, 100% {
+    -webkit-transform: perspective(140px) rotateY(180deg);
+            transform: perspective(140px) rotateY(180deg);
+    opacity: 0; 
+  } 
+}
+
+@keyframes sk-foldCubeAngle {
+  0%, 10% {
+    -webkit-transform: perspective(140px) rotateX(-180deg);
+            transform: perspective(140px) rotateX(-180deg);
+    opacity: 0; 
+  } 25%, 75% {
+    -webkit-transform: perspective(140px) rotateX(0deg);
+            transform: perspective(140px) rotateX(0deg);
+    opacity: 1; 
+  } 90%, 100% {
+    -webkit-transform: perspective(140px) rotateY(180deg);
+            transform: perspective(140px) rotateY(180deg);
+    opacity: 0; 
+  }
+}
+
 .spinner-container .spinner-text{
   color: rgba(66,139,202,.7);
   font-size: 24px;
@@ -1381,4 +1797,29 @@ textarea.over-error{
   -webkit-box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
      -moz-box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
           box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;
+}
+
+
+
+/* ==========================================================================
+   Module: Statuses Box
+   ========================================================================== */
+.statuses-box .checkox-muted{
+  opacity: 0.5;
+}
+.statuses-box .label-count{
+  color: #AAA;
+  margin-left: 6px;
+}
+.statuses-box .btn-in{
+  border-bottom: 3px solid #333;
+}
+.statuses-box .btn-undecided{
+  border-bottom: 3px solid #ADA299;
+}
+.statuses-box .btn-out{
+  border-bottom: 3px solid #FAA;
+}
+.statuses-box .btn-discovered{
+  border-bottom: 3px solid #93BDE0;
 }

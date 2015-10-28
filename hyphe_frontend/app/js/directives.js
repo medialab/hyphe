@@ -38,7 +38,7 @@ angular.module('hyphe.directives', [])
               scope.obj.task = {type:'addPrefix'}
               obj.statusText = 'Add it to ' + scope.webentity.name + '?'
             } else {
-              obj.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength))
+              obj.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength + !obj.tldLength))
               obj.statusText = 'New'
               obj.WEstatus = 'new'
             }
@@ -71,7 +71,7 @@ angular.module('hyphe.directives', [])
 
         // Keeping an updated version of x-coordinates where the slider makes something happen
 	      var steps
-            ,minstep = !!scope.obj.tldLength + 1 
+            ,minstep = !!scope.obj.tldLength + 1 + !!scope.obj.json_lru.port
         
         scope.$watch(function(){  // Watch active state (!.blurred container)
             var container = el.parent().parent().parent().parent()
@@ -276,6 +276,13 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+  .directive('minispinner', [function(){
+    return {
+      restrict: 'E'
+      ,templateUrl: 'partials/minispinner.html'
+    }
+  }])
+
   .directive('spinner', [function(){
     return {
       restrict: 'E'
@@ -359,6 +366,21 @@ angular.module('hyphe.directives', [])
             }
           }
         )
+      }
+    }
+  }])
+
+  .directive('hypheStatusBox', [function(){
+    return {
+      restrict: 'E'
+      ,templateUrl: 'partials/statusbox.html'
+      ,scope: {
+        statuses: '='
+      , counts: '='
+      , change: '='
+      , disabled: '='
+      }
+      ,link: function(scope, el, attrs) {
       }
     }
   }])

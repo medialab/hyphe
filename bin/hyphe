@@ -93,7 +93,7 @@ function exit_on_error {
   test_and_stop_process "$CORE_COMMAND" nolog
   echo "ERROR: Could not start Hyphe's backend server properly. See log below:"
   echo
-  tail -n 20 log/hyphe-core.log
+  tail -n 25 log/hyphe-core.log
   exit 1
 }
 function exit_on_running {
@@ -141,7 +141,7 @@ if $START; then
 
   TEST_STARTED=test_core_started_in_log
   TEST_ERROR=test_error_in_core_log
-  TEST_TIME=60
+  TEST_TIME=120
   ts=0
   sleep 0.5
   while [ $ts -lt $TEST_TIME ] && ! $TEST_STARTED; do
