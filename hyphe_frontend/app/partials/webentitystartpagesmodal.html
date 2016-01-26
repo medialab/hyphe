@@ -8,7 +8,7 @@
     <thead>
       <tr>
         <th
-          class="wesp-modal-cell-checkbox"
+          class="wesp-modal-cell-link"
         ></th>
         <th
           class="wesp-modal-cell-startpage"
@@ -23,11 +23,12 @@
       <tr ng-repeat="url in startpages" ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading'}">
         
         <td
-          class="wesp-modal-cell-checkbox"
+          class="wesp-modal-cell-link"
         >
-          
+          <a href="{{url}}" target="_blank" title="Open in a new tab">
+            <span class="glyphicon glyphicon-link"></span>
+          </a>
         </td>
-        
         <td
           class="wesp-modal-cell-startpage"
         >
@@ -36,9 +37,6 @@
               <span>
                 {{url}}
               </span>
-              <a href="{{url}}" target="_blank" title="Open in a new tab">
-                <span class="glyphicon glyphicon-share-alt"></span>
-              </a>
             </span>
           </div>          
         </td>

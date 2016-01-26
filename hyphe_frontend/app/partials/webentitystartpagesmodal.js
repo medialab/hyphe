@@ -37,7 +37,6 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     // Init
     lookupEngine.doLookups($scope.lookups, $scope.startpages)
 
-
     // Functions
 
     function updateStartpagesSummary(){
@@ -92,6 +91,5 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       }
 
     }
-
 
   })
