@@ -245,6 +245,15 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
+    ns.getWebentity = buildApiCall(
+        API.WEBENTITY_FETCH_BY_URL
+        ,function(settings){
+          return [
+              settings.url
+              ,corpus.getId()
+            ]}
+      )
+
     ns.getSubWebentities = buildApiCall(
         API.WEBENTITY_SUBWEBENTITY_LIST_GET
         ,function(settings){

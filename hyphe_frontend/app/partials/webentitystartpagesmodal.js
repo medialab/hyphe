@@ -3,7 +3,7 @@
 angular.module('hyphe.webentityStartPagesModalController', [])
 
   .controller('webentityStartPagesModalController'
-  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, $modalInstance, webentity, lookups, lookupEngine, parentStatus) {
+  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, $modal, $modalInstance, webentity, lookups, lookupEngine, parentStatus) {
 
     $scope.lookups = lookups
     $scope.webentity = webentity
@@ -31,17 +31,37 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     }
 
     // Add a start page
-    $scope.validateStartPageURL = function () {
+    $scope.addStartPage = function () {
       var url = $scope.newStartPageURL
-      console.log("Add SP "+url)
+      if (utils.URL_validate(url) && url !== '') {
+        checkStartpageBelonging(webentity, url, {
+          success: function () {
+            addStartPageAndUpdate(webentity, url)
+          },
+          otherWebentity: function () {
+            startPageModal(url, webentity)
+          },
+          noWebentity: function () {
+            startPageModal(url, webentity)
+          },
+          queryFail: function () {
+            startPageModal(url, webentity)
+          }
+        })
+      } 
     }
 
     // Remove a start page
-    $scope.removeStartPage = function(url){
-      removeStartPageAndReload($scope.webentity, url)
+    $scope.removeStartPage = function (url) {
+      removeStartPageAndUpdate($scope.webentity, url)
     }
 
-    $scope.$watch('lookups', function(newValue, oldValue) {
+    $scope.startPageValidate = function () {
+      var url = $scope.newStartPageURL
+      $scope.startPageInvalid = !utils.URL_validate(url) && url != ''
+    }
+
+    $scope.$watch('lookups', function (newValue, oldValue) {
       $timeout(function(){
         updateStartpagesSummary()
       }, 0)
@@ -105,7 +125,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
 
     }
 
-    function removeStartPageAndReload(webentity, url){
+    function removeStartPageAndUpdate(webentity, url){
       $scope.removed[url] = true
       _removeStartPage(webentity, url, function () {
         // Remove the start page from lists of start pages
@@ -126,14 +146,138 @@ angular.module('hyphe.webentityStartPagesModalController', [])
         }
         ,function (data) {
           successCallback(data)
+          $scope.removed[url] = false
         }
         ,function (data, status, headers, config) {
-          // Fail
-          // FIXME: display an error message
+          // API call fail
+          // TODO: display an error message
           $scope.removed[url] = false
         }
       )
     }
 
+    function addStartPageAndUpdate(webentity, url){
+      console.log('ADD SP & UPDATE')
+      if (webentity.startpages.indexOf(url) < 0) {
+        _addStartPage(webentity, url, function () {
+          webentity.startpages.push(url)
+          if ($scope.startpages.indexOf(url) < 0) {
+            $scope.startpages.push(url)
+          }
+        })
+      }
+    }
+
+    // This function only performs the API call
+    function _addStartPage(webentity, url, successCallback){
+      api.addStartPage({
+          webentityId: webentity.id
+          ,url: url
+        }
+        ,function (data) {
+          successCallback(data)
+        }
+        ,function (data, status, headers, config) {
+          // API call fail
+          // TODO: error message
+        }
+      )
+    }
+
+    function checkStartpageBelonging(webentity, url, callbacks) {
+      api.getWebentity({
+          url: url
+        }
+        ,function (data) {
+          if (data[0] && data[0].code === 'fail') {
+            callbacks.noWebentity()
+          } else if (data.id) {
+            if (data.id == webentity.id) {
+              callbacks.success()
+            } else {
+              callbacks.otherWebentity()
+            }
+          }
+        }
+        ,function (data, status, headers, config) {
+          // API call fail
+          callbacks.queryFail()
+        }
+      )
+    }
+
+    function startPageModal(url, webentity) {
+      /* Instanciate and open the Modal */
+      var modalInstance = $modal.open({
+        templateUrl: 'partials/startpagemodal.html'
+        ,size: 'lg'
+        ,controller: startPageModalCtrl
+        ,resolve: {
+          url: function () {
+              return url
+            }
+          ,webentity: function () {
+              return obj.webentity
+            }
+        }
+      })
+
+      modalInstance.result.then(function (feedback) {
+        // On 'OK'
+        if(feedback.task){
+          if(feedback.task.type == 'addPrefix'){
+            
+            // Add Prefix
+            var prefix = feedback.prefix
+            ,wwwVariations = feedback.wwwVariations
+            ,httpsVariations = feedback.httpsVariations
+            ,prefixes = utils.LRU_variations(prefix, {
+                wwwlessVariations: wwwVariations
+                ,wwwVariations: wwwVariations
+                ,httpVariations: httpsVariations
+                ,httpsVariations: httpsVariations
+                ,smallerVariations: false
+              })
+            
+            // Query call
+            api.addPrefix({                         // Query settings
+                webentityId: obj.webentity.id
+                ,lru: prefixes
+              }
+              ,function(){                          // Success callback
+                addStartPageAndReload(obj.id, url)
+              }
+              ,function(data, status, headers){     // Fail callback
+                $scope.status = {message:'Prefix could not be added', background:'danger'}
+              })
+
+          } else if(feedback.task.type == 'merge'){
+            
+            // Merge web entities
+            var webentity = feedback.task.webentity
+            $scope.status = {message:'Merging web entities'}
+            obj_setStatus(obj, 'merging')
+            api.webentityMergeInto({
+                oldWebentityId: webentity.id
+                ,goodWebentityId: obj.webentity.id
+                ,mergeNameAndStatus: true
+              }
+              ,function(data){
+                // If it is in the list, remove it...
+                purgeWebentityFromList(webentity)
+
+                addStartPageAndReload(obj.id, url)
+              }
+              ,function(data, status, headers, config){
+                $scope.status = {message:'Merge failed', background:'danger'}
+              }
+            )
+
+          }
+        }
+      }, function () {
+        // On dismiss: nothing happens
+      })
+    }
 
   })

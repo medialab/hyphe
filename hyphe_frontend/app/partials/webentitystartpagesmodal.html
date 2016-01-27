@@ -27,7 +27,7 @@
 
     <tbody>
       <tr
-        ng-repeat="url in startpages"
+        ng-repeat="url in startpages track by $index"
         ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading', 'wesp-modal-removed': removed[url]}"
       >
         
@@ -111,16 +111,27 @@
   </table>
 
   <div>
-    <div class="input-group">
-      <span class="input-group-addon">Add</span>
+    <div class="input-group" ng-class="{'has-error': startPageInvalid}">
+      <span class="input-group-addon">ADD START PAGE</span>
       <input
-        type="text"
-        class="form-control input-sm"
-        placeholder="URL of a start page"
+        type="url"
+        id="add-sp-{{webentity.id}}"
+        class="form-control input-sm start-page-input"
         ng-model="$parent.newStartPageURL"
-        ng-press-enter="validateStartPageURL()"
+        ng-change="startPageValidate()"
+        ng-press-enter="addStartPage()"
+        placeholder="Enter the URL"
       >
-
+      <span class="input-group-btn">
+        <button
+          type="button"
+          class="btn btn-default btn-sm"
+          ng-click="addStartPage()"
+          ng-disabled="startPageInvalid || url == ''"
+        >
+          OK
+        </button>
+      </span>
     </div>
     <br>
   </div>
