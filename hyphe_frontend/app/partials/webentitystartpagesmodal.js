@@ -18,25 +18,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     $scope.collapseProgressBar = false  // used to create a delay
 
     $scope.ok = function () {
-      var loadWebentities = []
-      var unloadWebentities = []
-      var id
-      for (id in $scope.webentitiesToLoadOrReload) {
-        if ($scope.webentitiesToLoadOrReload[id]) {
-          loadWebentities.push(id)
-        }
-      }
-      for (id in $scope.webentitiesToUnload) {
-        if ($scope.webentitiesToUnload[id]) {
-          unloadWebentities.push(id)
-        }
-      }
-      var feedback = {
-        loadWebentities: loadWebentities,
-        unloadWebentities: unloadWebentities
-      }
-
-      $modalInstance.close(feedback)
+      $modalInstance.close()
     }
 
     // Add a start page
@@ -272,6 +254,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
               ,function(data){
                 // Remove current entity and add the other one
                 updaters.mergeWebentities(webentity, feedback.task.webentity)
+                $modalInstance.close()
               }
               ,function(data, status, headers, config){
                 // Note: cannot access global status bar from modal

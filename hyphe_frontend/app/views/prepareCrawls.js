@@ -135,9 +135,7 @@ angular.module('hyphe.preparecrawlsController', [])
                 if(we_list.length > 0){
                   obj_setStatus(obj, 'loaded')
                   obj.webentity = we_list[0]
-                  
-                  // TODO : new behavior to implement
-                  // updateStartPageLookups(obj)
+                  lazyLookups(obj.webentity.startpages)
                 } else {
                   obj_setStatus(obj, 'error')
                   console.error('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', we_list, 'status:', status)
@@ -360,6 +358,48 @@ angular.module('hyphe.preparecrawlsController', [])
                   })
                 },
                 mergeWebentities: function (sourceWebentity, targetWebentity) {
+                  // Remove target web entity if it's in the list
+                  $scope.list = $scope.list.filter(function(o){
+                    return (o.webentity.id !== targetWebentity.id)
+                  })
+                  
+                  // Make a small update to find the right obj
+                  var obj
+                  $scope.list.some(function(o){
+                    if (o.webentity.id === sourceWebentity.id) {
+                      o.webentity = targetWebentity
+                      lazyLookups(targetWebentity.startpages)
+                      obj = o
+                      return true
+                    }
+                  })
+
+                  // Ask for full WE data and update existing entity
+                  obj_setStatus(obj, 'loaded')
+                  api.getWebentities({
+                      id_list:[obj.webentity.id]
+                    },
+                    function (we_list) {
+                      // Success
+                      if(we_list.length > 0){
+                        obj_setStatus(obj, 'loaded')
+                        obj.webentity = we_list[0]
+                        lazyLookups(obj.webentity.startpages)
+                      } else {
+                        obj_setStatus(obj, 'error')
+                        console.error('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', we_list, 'status:', status)
+                      }
+                    },
+                    function (data) {
+                      // Fail
+                      obj_setStatus(obj, 'error')
+                      console.error('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', data, 'status:', status)
+                      if(data && data[0] && data[0].code == 'fail'){
+                        obj.infoMessage = data[0].message
+                      }
+                    }
+                  )
+                  
 
                 }
               }
@@ -369,17 +409,7 @@ angular.module('hyphe.preparecrawlsController', [])
 
       modalInstance.result.then(function (feedback) {
         // On 'OK'
-        // console.log('(Re)load web entities', feedback.loadWebentities)
-        // console.log('Unload web entities', feedback.unloadWebentities)
-        
-        // $scope.list = $scope.list.filter(function(obj){
-        //   return feedback.unloadWebentities.indexOf(obj.webentity.id) < 0
-        // })
-        // getWebentities({
-        //   list:feedback.loadWebentities.map(function(id){
-        //     return {webentity:{id:id}}
-        //   })
-        // })
+
       }, function (f) {
         // On dismiss: nothing happens
       })
@@ -405,7 +435,6 @@ angular.module('hyphe.preparecrawlsController', [])
 
         lookup.status = (+httpStatus == 200) ? ('success') : ('issue')
         lookup.httpStatus = httpStatus
-        // console.log( 'lookup ' + lookup.status + '(' + httpStatus + ')', lookup.url )
         
       }
 
@@ -413,7 +442,6 @@ angular.module('hyphe.preparecrawlsController', [])
         
         lookup.status = 'fail'
         lookup.httpStatus = undefined
-        // console.log( 'lookup '+lookup.status, lookup.url )
 
       }
 

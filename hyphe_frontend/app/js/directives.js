@@ -26,7 +26,7 @@ angular.module('hyphe.directives', [])
           if(webentityFound){
             obj.name = webentityFound.name
             if(opt.editMode){
-              obj.statusText = 'Merge ' + scope.webentity.name + ' into this?'
+              obj.statusText = 'Merge ' + scope.webentity.name + ' into it?'
               scope.obj.task = {type:'merge', webentity:webentityFound}
             } else {
               obj.statusText = 'Already exists'
