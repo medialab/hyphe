@@ -694,14 +694,18 @@ class Core(jsonrpc.JSONRPC):
         returnD(list(set(s for st in starts.values() for s in st)))
 
     @inlineCallbacks
-    def jsonrpc_propose_webentity_startpages(self, webentity_id, startmode="default", categories=False, corpus=DEFAULT_CORPUS):
-        """Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages"\, "homepage" or "prefixes" or <N> most seen "pages-<N>". Returns them categorised by type of source if "categories" is set to True."""
+    def jsonrpc_propose_webentity_startpages(self, webentity_id, startmode="default", categories=False, save_startpages=False, corpus=DEFAULT_CORPUS):
+        """Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages"\, "homepage" or "prefixes" or <N> most seen "pages-<N>". Returns them categorised by type of source if "categories" is set to True. Will save them into the webentity if `save_startpages` is True."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         WE = yield self.store.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
         if is_error(WE):
             returnD(format_error("No WebEntity with id %s found" % webentity_id))
         startpages = yield self._get_suggested_startpages(WE, startmode, corpus, categories=categories)
+        if save_startpages:
+            sp_todo = list(set(s for st in startpages.values() for s in st)) if categories else startpages
+            for sp in sp_todo:
+                yield self.store.jsonrpc_add_webentity_startpage(webentity_id, sp, corpus=corpus)
         returnD(handle_standard_results(startpages))
 
     @inlineCallbacks

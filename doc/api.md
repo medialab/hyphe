@@ -251,9 +251,10 @@ The API will always answer as such:
  + _`webentity_id`_ (mandatory)
  + _`startmode`_ (optional, default: `"default"`)
  + _`categories`_ (optional, default: `false`)
+ + _`save_startpages`_ (optional, default: `false`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages", "homepage" or "prefixes" or <N> most seen "pages-<N>". Returns them categorised by type of source if "categories" is set to true.
+ Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages", "homepage" or "prefixes" or <N> most seen "pages-<N>". Returns them categorised by type of source if "categories" is set to true. Will save them into the webentity if `save_startpages` is True.
 
 
 - __`crawl_webentity`:__
