@@ -3,8 +3,7 @@
 angular.module('hyphe.webentityStartPagesModalController', [])
 
   .controller('webentityStartPagesModalController'
-  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, $modal, $modalInstance, webentity, lookups, lookupEngine, parentStatus) {
-
+  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, $modal, $modalInstance, webentity, lookups, lookupEngine, updaters) {
     $scope.lookups = lookups
     $scope.webentity = webentity
     $scope.startpagesSummary = {
@@ -19,15 +18,25 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     $scope.collapseProgressBar = false  // used to create a delay
 
     $scope.ok = function () {
+      var loadWebentities = []
+      var unloadWebentities = []
+      var id
+      for (id in $scope.webentitiesToLoadOrReload) {
+        if ($scope.webentitiesToLoadOrReload[id]) {
+          loadWebentities.push(id)
+        }
+      }
+      for (id in $scope.webentitiesToUnload) {
+        if ($scope.webentitiesToUnload[id]) {
+          unloadWebentities.push(id)
+        }
+      }
       var feedback = {
-
+        loadWebentities: loadWebentities,
+        unloadWebentities: unloadWebentities
       }
 
       $modalInstance.close(feedback)
-    }
-
-    $scope.cancel = function () {
-      $modalInstance.dismiss('cancel')
     }
 
     // Add a start page
@@ -129,12 +138,10 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       $scope.removed[url] = true
       _removeStartPage(webentity, url, function () {
         // Remove the start page from lists of start pages
-        webentity.startpages = webentity.startpages.filter(function(u){
-          return u != url;
-        })
         $scope.startpages = $scope.startpages.filter(function(u){
           return u != url;
         })
+        updaters.webentityRemoveStartPage(webentity.id, url)
       })
     }
 
@@ -150,7 +157,8 @@ angular.module('hyphe.webentityStartPagesModalController', [])
         }
         ,function (data, status, headers, config) {
           // API call fail
-          // TODO: display an error message
+          // Note: cannot access global status bar from modal
+          console.error('Start page could not be removed', data, status, headers, config)
           $scope.removed[url] = false
         }
       )
@@ -159,11 +167,11 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     function addStartPageAndUpdate(webentity, url){
       if (webentity.startpages.indexOf(url) < 0) {
         _addStartPage(webentity, url, function () {
-          webentity.startpages.push(url)
           if ($scope.startpages.indexOf(url) < 0) {
             $scope.startpages.push(url)
           }
         })
+        updaters.webentityAddStartPage(webentity.id, url)
       }
     }
 
@@ -178,7 +186,8 @@ angular.module('hyphe.webentityStartPagesModalController', [])
         }
         ,function (data, status, headers, config) {
           // API call fail
-          // TODO: error message
+          // Note: cannot access global status bar from modal
+          console.error('Start page could not be added', data, status, headers, config)
         }
       )
     }
@@ -201,6 +210,8 @@ angular.module('hyphe.webentityStartPagesModalController', [])
         ,function (data, status, headers, config) {
           // API call fail
           callbacks.queryFail()
+          // Note: cannot access global status bar from modal
+          console.error('Could not get web entity for url '+url, data, status, headers, config)
         }
       )
     }
@@ -225,7 +236,6 @@ angular.module('hyphe.webentityStartPagesModalController', [])
         // On 'OK'
         if(feedback.task){
           if(feedback.task.type == 'addPrefix'){
-            
             // Add Prefix
             var prefix = feedback.prefix
             ,wwwVariations = feedback.wwwVariations
@@ -247,31 +257,27 @@ angular.module('hyphe.webentityStartPagesModalController', [])
                 addStartPageAndUpdate(webentity, url)
               }
               ,function(data, status, headers){     // Fail callback
-                $scope.status = {message:'Prefix could not be added', background:'danger'}
+                // Note: cannot access global status bar from modal
+                console.error('Prefix could not be added', data, status, headers, config)
               })
 
-          } else if(feedback.task.type == 'merge'){
+          } else if (feedback.task.type == 'merge') {
             
             // Merge web entities
-            // TODO: check and adapt this code
-            // var webentity = feedback.task.webentity
-            // $scope.status = {message:'Merging web entities'}
-            // obj_setStatus(obj, 'merging')
-            // api.webentityMergeInto({
-            //     oldWebentityId: webentity.id
-            //     ,goodWebentityId: obj.webentity.id
-            //     ,mergeNameAndStatus: true
-            //   }
-            //   ,function(data){
-            //     // If it is in the list, remove it...
-            //     purgeWebentityFromList(webentity)
-
-            //     addStartPageAndReload(obj.id, url)
-            //   }
-            //   ,function(data, status, headers, config){
-            //     $scope.status = {message:'Merge failed', background:'danger'}
-            //   }
-            // )
+            api.webentityMergeInto({
+                oldWebentityId: webentity.id
+                ,goodWebentityId: feedback.task.webentity.id
+                ,mergeNameAndStatus: true
+              }
+              ,function(data){
+                // Remove current entity and add the other one
+                updaters.mergeWebentities(webentity, feedback.task.webentity)
+              }
+              ,function(data, status, headers, config){
+                // Note: cannot access global status bar from modal
+                console.error('Merge failed', data, status, headers, config)
+              }
+            )
 
           }
         }

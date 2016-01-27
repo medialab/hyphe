@@ -221,6 +221,7 @@ angular.module('hyphe.service_hyphe_api', [])
               settings.webentityId
               ,settings.startmode || 'default'
               ,settings.categories || false
+              ,settings.autoSet || false
               ,corpus.getId()
             ]}
       )

@@ -140,12 +140,12 @@ angular.module('hyphe.preparecrawlsController', [])
                   // updateStartPageLookups(obj)
                 } else {
                   obj_setStatus(obj, 'error')
-                  console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', we_list, 'status:', status)
+                  console.error('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', we_list, 'status:', status)
                 }
               }
             ,function(data, status, headers){     // Fail callback
                 obj_setStatus(obj, 'error')
-                console.log('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', data, 'status:', status)
+                console.error('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', data, 'status:', status)
                 if(data && data[0] && data[0].code == 'fail'){
                   obj.infoMessage = data[0].message
                 }
@@ -301,7 +301,8 @@ angular.module('hyphe.preparecrawlsController', [])
 
       function getStartPagesSuggestions(webentity) {
         api.getStartPagesSuggestions({
-          webentityId: webentity.id
+          webentityId: webentity.id,
+          autoSet: true
         }, function(urls){
 
           lazyLookups(urls)
@@ -334,18 +335,55 @@ angular.module('hyphe.preparecrawlsController', [])
           , lookupEngine: function () {
               return lookupEngine
             }
-          , parentStatus: function () {
-            return $scope.status
-          }
-          }
-        })
+          // Updaters are used to propagate editions from modal to mother page
+          , updaters: function () {
+              return {
+                webentityAddStartPage: function (id, url) {
+                  $scope.list.some(function(obj){
+                    if (obj.webentity.id === id) {
+                      if (!obj.webentity.startpages.some(function(u){return u === url})) {
+                        obj.webentity.startpages.push(url)
+                        lazyLookups([url])
+                      }
+                      return true
+                    }
+                  })
+                },
+                webentityRemoveStartPage: function (id, url) {
+                  $scope.list.some(function(obj){
+                    if (obj.webentity.id === id) {
+                      obj.webentity.startpages = obj.webentity.startpages.filter(function(u){
+                        return u != url;
+                      })
+                      return true
+                    }
+                  })
+                },
+                mergeWebentities: function (sourceWebentity, targetWebentity) {
+
+                }
+              }
+            }
+        }
+      })
 
       modalInstance.result.then(function (feedback) {
         // On 'OK'
+        // console.log('(Re)load web entities', feedback.loadWebentities)
+        // console.log('Unload web entities', feedback.unloadWebentities)
         
-      }, function () {
+        // $scope.list = $scope.list.filter(function(obj){
+        //   return feedback.unloadWebentities.indexOf(obj.webentity.id) < 0
+        // })
+        // getWebentities({
+        //   list:feedback.loadWebentities.map(function(id){
+        //     return {webentity:{id:id}}
+        //   })
+        // })
+      }, function (f) {
         // On dismiss: nothing happens
       })
+
 
     }
 
@@ -423,6 +461,5 @@ angular.module('hyphe.preparecrawlsController', [])
 
       return ns;
     }
-
 
   }])
