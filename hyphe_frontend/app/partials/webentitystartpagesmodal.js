@@ -13,6 +13,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       , diagnostic: {}
     }
     $scope.startpages = (webentity.startpages || [])
+    $scope.newStartPageURL = ''
 
     $scope.collapseProgressBar = false  // used to create a delay
 
@@ -26,6 +27,11 @@ angular.module('hyphe.webentityStartPagesModalController', [])
 
     $scope.cancel = function () {
       $modalInstance.dismiss('cancel')
+    }
+
+    $scope.validateStartPageURL = function () {
+      var url = $scope.newStartPageURL
+      console.log("Add SP "+url)
     }
 
     $scope.$watch('lookups', function(newValue, oldValue) {
