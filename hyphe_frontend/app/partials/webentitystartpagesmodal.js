@@ -157,7 +157,6 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     }
 
     function addStartPageAndUpdate(webentity, url){
-      console.log('ADD SP & UPDATE')
       if (webentity.startpages.indexOf(url) < 0) {
         _addStartPage(webentity, url, function () {
           webentity.startpages.push(url)
@@ -217,7 +216,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
               return url
             }
           ,webentity: function () {
-              return obj.webentity
+              return webentity
             }
         }
       })
@@ -241,11 +240,11 @@ angular.module('hyphe.webentityStartPagesModalController', [])
             
             // Query call
             api.addPrefix({                         // Query settings
-                webentityId: obj.webentity.id
+                webentityId: webentity.id
                 ,lru: prefixes
               }
               ,function(){                          // Success callback
-                addStartPageAndReload(obj.id, url)
+                addStartPageAndUpdate(webentity, url)
               }
               ,function(data, status, headers){     // Fail callback
                 $scope.status = {message:'Prefix could not be added', background:'danger'}
@@ -254,30 +253,88 @@ angular.module('hyphe.webentityStartPagesModalController', [])
           } else if(feedback.task.type == 'merge'){
             
             // Merge web entities
-            var webentity = feedback.task.webentity
-            $scope.status = {message:'Merging web entities'}
-            obj_setStatus(obj, 'merging')
-            api.webentityMergeInto({
-                oldWebentityId: webentity.id
-                ,goodWebentityId: obj.webentity.id
-                ,mergeNameAndStatus: true
-              }
-              ,function(data){
-                // If it is in the list, remove it...
-                purgeWebentityFromList(webentity)
+            // TODO: check and adapt this code
+            // var webentity = feedback.task.webentity
+            // $scope.status = {message:'Merging web entities'}
+            // obj_setStatus(obj, 'merging')
+            // api.webentityMergeInto({
+            //     oldWebentityId: webentity.id
+            //     ,goodWebentityId: obj.webentity.id
+            //     ,mergeNameAndStatus: true
+            //   }
+            //   ,function(data){
+            //     // If it is in the list, remove it...
+            //     purgeWebentityFromList(webentity)
 
-                addStartPageAndReload(obj.id, url)
-              }
-              ,function(data, status, headers, config){
-                $scope.status = {message:'Merge failed', background:'danger'}
-              }
-            )
+            //     addStartPageAndReload(obj.id, url)
+            //   }
+            //   ,function(data, status, headers, config){
+            //     $scope.status = {message:'Merge failed', background:'danger'}
+            //   }
+            // )
 
           }
         }
       }, function () {
         // On dismiss: nothing happens
       })
+    }
+
+    /* (Sub-)Modal controller */
+    function startPageModalCtrl($scope, $modalInstance, url, webentity) {
+      $scope.url = url
+      $scope.webentity = webentity
+      $scope.wwwVariations = true
+      $scope.httpsVariations = true
+
+      // Bootstrapping the object for the Prefix Slider
+      var obj = {}
+      obj.url = utils.URL_fix(url)
+      obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
+      obj.tld = utils.LRU_getTLD(obj.lru)
+      obj.tldLength = obj.tld !== "" ? obj.tld.split('.').length : 0
+      obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
+      obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
+        .map(function(stem){
+            var maxLength = 12
+            if(stem.length > maxLength+3){
+              return stem.substr(0,maxLength) + '...'
+            }
+            return stem
+          })
+      obj.prefixLength = !!obj.tldLength + 2 + !!obj.json_lru.port
+      obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
+      obj.conflicts = []
+      // obj_setStatus(obj, 'loading')
+      $scope.obj = obj
+
+      // Load parent web entities
+      api.getLruParentWebentities({
+            lru: $scope.obj.lru
+          }
+          ,function(we_list){
+            $scope.obj.parentWebEntities = we_list
+            $scope.obj.status = 'loaded'
+          }
+          ,function(data, status, headers, config){
+            $scope.obj.status = 'error'
+            $scope.obj.errorMessage = 'Oops... The server query failed'
+          }
+        )
+
+      $scope.ok = function () {
+        var feedback = {
+          task:$scope.obj.task
+          ,prefix: utils.LRU_truncate($scope.obj.lru, $scope.obj.truePrefixLength)
+          ,wwwVariations: $scope.wwwVariations
+          ,httpsVariations: $scope.httpsVariations
+        }
+        $modalInstance.close(feedback);
+      };
+
+      $scope.cancel = function () {
+        $modalInstance.dismiss('cancel');
+      };
     }
 
   })
