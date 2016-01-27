@@ -336,72 +336,9 @@ angular.module('hyphe.preparecrawlsController', [])
           // Updaters are used to propagate editions from modal to mother page
           , updaters: function () {
               return {
-                webentityAddStartPage: function (id, url) {
-                  $scope.list.some(function(obj){
-                    if (obj.webentity.id === id) {
-                      if (!obj.webentity.startpages.some(function(u){return u === url})) {
-                        obj.webentity.startpages.push(url)
-                        lazyLookups([url])
-                      }
-                      return true
-                    }
-                  })
-                },
-                webentityRemoveStartPage: function (id, url) {
-                  $scope.list.some(function(obj){
-                    if (obj.webentity.id === id) {
-                      obj.webentity.startpages = obj.webentity.startpages.filter(function(u){
-                        return u != url;
-                      })
-                      return true
-                    }
-                  })
-                },
-                mergeWebentities: function (sourceWebentity, targetWebentity) {
-                  // Remove target web entity if it's in the list
-                  $scope.list = $scope.list.filter(function(o){
-                    return (o.webentity.id !== targetWebentity.id)
-                  })
-                  
-                  // Make a small update to find the right obj
-                  var obj
-                  $scope.list.some(function(o){
-                    if (o.webentity.id === sourceWebentity.id) {
-                      o.webentity = targetWebentity
-                      lazyLookups(targetWebentity.startpages)
-                      obj = o
-                      return true
-                    }
-                  })
-
-                  // Ask for full WE data and update existing entity
-                  obj_setStatus(obj, 'loaded')
-                  api.getWebentities({
-                      id_list:[obj.webentity.id]
-                    },
-                    function (we_list) {
-                      // Success
-                      if(we_list.length > 0){
-                        obj_setStatus(obj, 'loaded')
-                        obj.webentity = we_list[0]
-                        lazyLookups(obj.webentity.startpages)
-                      } else {
-                        obj_setStatus(obj, 'error')
-                        console.error('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', we_list, 'status:', status)
-                      }
-                    },
-                    function (data) {
-                      // Fail
-                      obj_setStatus(obj, 'error')
-                      console.error('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', data, 'status:', status)
-                      if(data && data[0] && data[0].code == 'fail'){
-                        obj.infoMessage = data[0].message
-                      }
-                    }
-                  )
-                  
-
-                }
+                webentityAddStartPage: webentityAddStartPage,
+                webentityRemoveStartPage: webentityRemoveStartPage,
+                mergeWebentities: mergeWebentities
               }
             }
         }
@@ -490,4 +427,71 @@ angular.module('hyphe.preparecrawlsController', [])
       return ns;
     }
 
+    // Updaters functions
+    function webentityAddStartPage(id, url) {
+      $scope.list.some(function(obj){
+        if (obj.webentity.id === id) {
+          if (!obj.webentity.startpages.some(function(u){return u === url})) {
+            obj.webentity.startpages.push(url)
+            lazyLookups([url])
+          }
+          return true
+        }
+      })
+    }
+
+    function webentityRemoveStartPage(id, url) {
+      $scope.list.some(function(obj){
+        if (obj.webentity.id === id) {
+          obj.webentity.startpages = obj.webentity.startpages.filter(function(u){
+            return u != url;
+          })
+          return true
+        }
+      })
+    }
+
+    function mergeWebentities(sourceWebentity, targetWebentity) {
+      // Remove target web entity if it's in the list
+      $scope.list = $scope.list.filter(function(o){
+        return (o.webentity.id !== targetWebentity.id)
+      })
+      
+      // Make a small update to find the right obj
+      var obj
+      $scope.list.some(function(o){
+        if (o.webentity.id === sourceWebentity.id) {
+          o.webentity = targetWebentity
+          lazyLookups(targetWebentity.startpages)
+          obj = o
+          return true
+        }
+      })
+
+      // Ask for full WE data and update existing entity
+      obj_setStatus(obj, 'loaded')
+      api.getWebentities({
+          id_list:[obj.webentity.id]
+        },
+        function (we_list) {
+          // Success
+          if(we_list.length > 0){
+            obj_setStatus(obj, 'loaded')
+            obj.webentity = we_list[0]
+            lazyLookups(obj.webentity.startpages)
+          } else {
+            obj_setStatus(obj, 'error')
+            console.error('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', we_list, 'status:', status)
+          }
+        },
+        function (data) {
+          // Fail
+          obj_setStatus(obj, 'error')
+          console.error('[row '+(obj.id+1)+'] Error while loading web entity ' + obj.webentity.id + '(' + obj.webentity.name + ')', data, 'status:', status)
+          if(data && data[0] && data[0].code == 'fail'){
+            obj.infoMessage = data[0].message
+          }
+        }
+      )
+    }
   }])

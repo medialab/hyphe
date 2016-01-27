@@ -146,11 +146,14 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       )
     }
 
-    function addStartPageAndUpdate(webentity, url){
-      if (webentity.startpages.indexOf(url) < 0) {
+    function addStartPageAndUpdate(webentity, url, callback){
+      if ((webentity.startpages || []).indexOf(url) < 0) {
         _addStartPage(webentity, url, function () {
           if ($scope.startpages.indexOf(url) < 0) {
             $scope.startpages.push(url)
+          }
+          if (callback) {
+            callback()
           }
         })
         updaters.webentityAddStartPage(webentity.id, url)
@@ -253,7 +256,9 @@ angular.module('hyphe.webentityStartPagesModalController', [])
               }
               ,function(data){
                 // Remove current entity and add the other one
-                updaters.mergeWebentities(webentity, feedback.task.webentity)
+                addStartPageAndUpdate(feedback.task.webentity, url, function(){
+                  updaters.mergeWebentities(webentity, feedback.task.webentity)
+                })
                 $modalInstance.close()
               }
               ,function(data, status, headers, config){
@@ -261,7 +266,6 @@ angular.module('hyphe.webentityStartPagesModalController', [])
                 console.error('Merge failed', data, status, headers, config)
               }
             )
-
           }
         }
       }, function () {
