@@ -334,6 +334,9 @@ angular.module('hyphe.preparecrawlsController', [])
           , lookupEngine: function () {
               return lookupEngine
             }
+          , parentStatus: function () {
+            return $scope.status
+          }
           }
         })
 

@@ -1375,6 +1375,9 @@ textarea.over-error{
 .wesp-modal-loading{
   opacity: 0.6;
 }
+.wesp-modal-removed{
+  opacity: 0.2;
+}
 
 
 

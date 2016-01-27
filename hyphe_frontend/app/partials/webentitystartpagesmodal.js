@@ -3,7 +3,7 @@
 angular.module('hyphe.webentityStartPagesModalController', [])
 
   .controller('webentityStartPagesModalController'
-  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, $modalInstance, webentity, lookups, lookupEngine) {
+  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, $modalInstance, webentity, lookups, lookupEngine, parentStatus) {
 
     $scope.lookups = lookups
     $scope.webentity = webentity
@@ -14,6 +14,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     }
     $scope.startpages = (webentity.startpages || [])
     $scope.newStartPageURL = ''
+    $scope.removed = {}
 
     $scope.collapseProgressBar = false  // used to create a delay
 
@@ -29,9 +30,15 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       $modalInstance.dismiss('cancel')
     }
 
+    // Add a start page
     $scope.validateStartPageURL = function () {
       var url = $scope.newStartPageURL
       console.log("Add SP "+url)
+    }
+
+    // Remove a start page
+    $scope.removeStartPage = function(url){
+      removeStartPageAndReload($scope.webentity, url)
     }
 
     $scope.$watch('lookups', function(newValue, oldValue) {
@@ -97,5 +104,36 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       }
 
     }
+
+    function removeStartPageAndReload(webentity, url){
+      $scope.removed[url] = true
+      _removeStartPage(webentity, url, function () {
+        // Remove the start page from lists of start pages
+        webentity.startpages = webentity.startpages.filter(function(u){
+          return u != url;
+        })
+        $scope.startpages = $scope.startpages.filter(function(u){
+          return u != url;
+        })
+      })
+    }
+
+    // This function only performs the API call
+    function _removeStartPage(webentity, url, successCallback){
+      api.removeStartPage({
+          webentityId: webentity.id
+          ,url: url
+        }
+        ,function (data) {
+          successCallback(data)
+        }
+        ,function (data, status, headers, config) {
+          // Fail
+          // FIXME: display an error message
+          $scope.removed[url] = false
+        }
+      )
+    }
+
 
   })

@@ -26,7 +26,10 @@
     </thead>
 
     <tbody>
-      <tr ng-repeat="url in startpages" ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading'}">
+      <tr
+        ng-repeat="url in startpages"
+        ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading', 'wesp-modal-removed': removed[url]}"
+      >
         
         <td
           class="wesp-modal-cell-link"
@@ -93,7 +96,11 @@
         <td
           class="wesp-modal-cell-remove"
         >
-          <button class="btn btn-link btn-xs" title="Remove">
+          <button
+            class="btn btn-link btn-xs"
+            title="Remove"
+            ng-click="removeStartPage(url)"
+          >
             <span class="glyphicon glyphicon-remove"></span>
           </button>
         </td>
