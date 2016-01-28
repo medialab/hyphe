@@ -15,8 +15,6 @@ angular.module('hyphe.controllers', [
     ,'hyphe.definewebentitiesController'
     ,'hyphe.newcrawlController'
     ,'hyphe.preparecrawlsController'
-    ,'hyphe.checkstartpagesController'
-    ,'hyphe.schedulecrawlController'
     ,'hyphe.monitorcrawlsController'
     ,'hyphe.listwebentitiesController'
     ,'hyphe.exportController'
