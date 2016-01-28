@@ -70,8 +70,16 @@ tr.bg-selected .btn-muted{
   color: #777777;
 }
 
-
-
+/* Disclaimer */
+.disclaimer {
+  background-color: #FFF;
+  margin-right: 12px;
+  text-transform: uppercase;
+  font-size: smaller;
+  font-weight: 600;
+  padding: 6px;
+  margin-bottom: 24px;
+}
 
 /* ==========================================================================
    Tweaks needed by Angular-UI-bootstrap
