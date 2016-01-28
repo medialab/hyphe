@@ -310,6 +310,17 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+  .directive('disclaimer', ['disclaimer', '$sce', function(disclaimer, $sce){
+    return {
+      restrict: 'E'
+      ,templateUrl: 'partials/disclaimer.html'
+      ,link: function($scope, el, attrs) {
+        $scope.display = disclaimer.trim().length > 0
+        $scope.disclaimer = $sce.trustAsHtml(disclaimer)
+      }
+    }
+  }])
+
   .directive('ngCloseCorpus', ['$location', 'corpus', 'api', function($location, corpus, api){
     return {
       restrict: 'A'
