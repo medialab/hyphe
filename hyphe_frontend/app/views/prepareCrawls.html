@@ -128,7 +128,7 @@
                 <div class="text-center">
                   <p class="text-danger" ng-if="httpStatusWarning > 0">
                     <span class="glyphicon glyphicon-warning-sign"></span>
-                    {{httpStatusWarning}} web entit{{httpStatusWarning > 1 ? 'ies have warnings' : 'y has a warning'}}. <strong>You should fix it</strong> before launching a crawl.
+                    {{httpStatusWarning}} web entit{{httpStatusWarning > 1 ? 'ies have warnings' : 'y has a warning'}}. <strong>You should fix it</strong> before scheduling its crawl.
                   </p>
                   <hr/>
                 </div>
@@ -142,7 +142,7 @@
               <div class="col-md-12">
                 <div class="text-center">
                   <p>
-                    Set a <span hyphe-glossary="depth"/> and launch a <span hyphe-glossary="crawl"/>
+                    Set a <span hyphe-glossary="depth"/> and schedule <span hyphe-glossary="crawls"/>
                   </p>
                   <div>
                     <form class="form-inline" role="form">
@@ -152,7 +152,7 @@
                         </select>
                       </div>
                       <div class="form-group">
-                        <button class="btn btn-primary" ng-click="crawl()">SCHEDULE CRAWL</button>
+                        <button class="btn btn-primary" ng-click="crawl()">SCHEDULE CRAWLS</button>
                       </div>
                     </form>
                   </div>

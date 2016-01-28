@@ -123,6 +123,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
         $scope.startpages = $scope.startpages.filter(function(u){
           return u != url;
         })
+        updateStartpagesSummary()
         updaters.webentityRemoveStartPage(webentity.id, url)
       })
     }
@@ -152,11 +153,12 @@ angular.module('hyphe.webentityStartPagesModalController', [])
           if ($scope.startpages.indexOf(url) < 0) {
             $scope.startpages.push(url)
           }
+          updateStartpagesSummary()
+          updaters.webentityAddStartPage(webentity.id, url)
           if (callback) {
             callback()
           }
         })
-        updaters.webentityAddStartPage(webentity.id, url)
       }
     }
 

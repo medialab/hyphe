@@ -431,6 +431,7 @@ angular.module('hyphe.preparecrawlsController', [])
     function webentityAddStartPage(id, url) {
       $scope.list.some(function(obj){
         if (obj.webentity.id === id) {
+          obj.summary.stage = 'loading'
           if (!obj.webentity.startpages.some(function(u){return u === url})) {
             obj.webentity.startpages.push(url)
             lazyLookups([url])
@@ -438,23 +439,37 @@ angular.module('hyphe.preparecrawlsController', [])
           return true
         }
       })
+
+      $timeout(function(){
+        updateStartpagesSummaries()
+      }, 0)
     }
 
     function webentityRemoveStartPage(id, url) {
       $scope.list.some(function(obj){
         if (obj.webentity.id === id) {
+          obj.summary.stage = 'loading'
           obj.webentity.startpages = obj.webentity.startpages.filter(function(u){
             return u != url;
           })
           return true
         }
       })
+
+      $timeout(function(){
+        updateStartpagesSummaries()
+      }, 0)
     }
 
     function mergeWebentities(sourceWebentity, targetWebentity) {
       // Remove target web entity if it's in the list
       $scope.list = $scope.list.filter(function(o){
-        return (o.webentity.id !== targetWebentity.id)
+        if (o.webentity.id !== targetWebentity.id) {
+          return true
+        } else {
+          obj_setStatus(o, 'deleted')
+          return false
+        }
       })
       
       // Make a small update to find the right obj
@@ -469,7 +484,8 @@ angular.module('hyphe.preparecrawlsController', [])
       })
 
       // Ask for full WE data and update existing entity
-      obj_setStatus(obj, 'loaded')
+      obj_setStatus(obj, 'loading')
+      obj.summary.stage = 'loading'
       api.getWebentities({
           id_list:[obj.webentity.id]
         },
@@ -493,5 +509,9 @@ angular.module('hyphe.preparecrawlsController', [])
           }
         }
       )
+
+      $timeout(function(){
+        updateStartpagesSummaries()
+      }, 0)
     }
   }])
