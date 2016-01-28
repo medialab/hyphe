@@ -65,6 +65,11 @@ tr.bg-selected .btn-muted{
   color: #FFFFFF;
 }
 
+.progress-bar-neutral {
+  background-color: #EFEBE8;
+  color: #777777;
+}
+
 
 
 
