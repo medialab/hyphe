@@ -304,7 +304,7 @@ angular.module('hyphe.service_hyphe_api', [])
           if(settings.mergeStartPages === undefined)
             settings.mergeStartPages = true
           if(settings.mergeNameAndStatus === undefined)
-            settings.mergeStartPages = false
+            settings.mergeNameAndStatus = false
           
           return [
               settings.oldWebentityId
@@ -537,6 +537,10 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
+    // Fake query for test
+    ns.dummy = function (settings, successCallback, errorCallback) {
+      setTimeout(successCallback, 1000 + Math.round( Math.random() * 2000 ) )
+    }
 
     return ns
 

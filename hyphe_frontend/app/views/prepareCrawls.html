@@ -32,7 +32,7 @@
               >
                 <div
                   class="crawl-cell-content"
-                  ng-class="{'bg-waiting':obj.status == 'loading', 'bg-neutral':obj.status == 'loaded', 'bg-danger':obj.status == 'error', 'bg-success':obj.status == 'scheduled'}"
+                  ng-class="{'bg-waiting':obj.status == 'loading', 'bg-neutral':obj.status == 'loaded' || obj.status == 'pending', 'bg-danger':obj.status == 'error', 'bg-success':obj.status == 'scheduled'}"
                 >
                   <p class="title">
                     <span class="crawl-cell-text-muted">{{obj.id+1}}</span>. {{obj.webentity.name}}
@@ -122,6 +122,29 @@
               </div>
             </div>
 
+            <!-- Progress bar -->
+            <div class="row">
+              <div class="col-md-12">
+                <div class="progress">
+                  <div class="progress-bar progress-bar-success" style="width: {{statusesSummary.percents.scheduled}}%">
+                    <span>{{statusesSummary.counts.scheduled}} crawls scheduled</span>
+                  </div>
+                  <div class="progress-bar progress-bar-striped active" style="width: {{statusesSummary.percents.pending}}%">
+                    <span>{{statusesSummary.counts.pending}} pending...</span>
+                  </div>
+                  <div class="progress-bar" style="width: {{statusesSummary.percents.loaded}}%">
+                    <span>{{statusesSummary.counts.loaded}} web entities</span>
+                  </div>
+                  <div class="progress-bar progress-bar-warning" style="width: {{statusesSummary.percents.deleted}}%">
+                    <span>{{statusesSummary.counts.deleted}} deleted</span>
+                  </div>
+                  <div class="progress-bar progress-bar-danger" style="width: {{statusesSummary.percents.error}}%">
+                    <span>{{statusesSummary.counts.error}} error{{statusesSummary.counts.error>1 ? 's' : ''}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Launch crawl panel -->
             <div class="row" ng-if="httpStatusWarning + httpStatusLoading > 0">
               <div class="col-md-8 col-md-offset-2">
@@ -137,7 +160,7 @@
 
             <div
               class="row"
-              ng-if="list.length > 0"
+              ng-if="list.length > 0 && !scheduling"
             >
               <div class="col-md-12">
                 <div class="text-center">
@@ -152,7 +175,7 @@
                         </select>
                       </div>
                       <div class="form-group">
-                        <button class="btn btn-primary" ng-click="crawl()">SCHEDULE CRAWLS</button>
+                        <button class="btn btn-primary" ng-click="scheduleCrawls()">SCHEDULE CRAWLS</button>
                       </div>
                     </form>
                   </div>
@@ -160,6 +183,18 @@
               </div>
             </div>
 
+            <div
+              class="row"
+              ng-if="scheduling"
+            >
+              <div class="col-md-12">
+                <div class="text-center">
+                  <p>
+                    <span hyphe-glossary="Crawls"/> scheduled at <span hyphe-glossary="depth"/> {{$parent.crawlDepth}} 
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -12,6 +12,8 @@ angular.module('hyphe.preparecrawlsController', [])
 
     $scope.crawlDepth = 1
 
+    $scope.scheduling = false
+
     $scope.paginationPage = 1
     $scope.paginationLength = 50    // How many items per page
     $scope.paginationNumPages = 10   // How many pages to display in the pagination
@@ -33,7 +35,9 @@ angular.module('hyphe.preparecrawlsController', [])
 
     $scope.openWebentity = function(index){
       var obj = $scope.list[index]
-      openWebentityModal(obj, index)
+      if (obj.status === 'loaded') {
+        openWebentityModal(obj, index)
+      }
     }
 
 
@@ -54,11 +58,55 @@ angular.module('hyphe.preparecrawlsController', [])
     )
 
     // Update summaries
-    $scope.$watch('lookups', function(newValue, oldValue) {
+    $scope.$watch('lookups', function (newValue, oldValue) {
       $timeout(function(){
         updateStartpagesSummaries()
       }, 0)
     }, true)
+
+    // Schedule crawls
+    $scope.scheduleCrawls = function () {
+      $scope.scheduling = true
+      var queriesBatcher = new QueriesBatcher()
+      $scope.list.forEach(function (obj) {
+        // Stack the query
+        queriesBatcher.addQuery(
+            api.crawl                             // Query call
+            ,{                                    // Query settings
+                webentityId: obj.webentity.id
+                ,depth: $scope.crawlDepth || 0
+                ,cautious: false
+              }
+            ,function(data){                      // Success callback
+                obj_setStatus(obj, 'scheduled')
+              }
+            ,function(data, status, headers){     // Fail callback
+                obj_setStatus(obj, 'error')
+                obj.errorMessage = data[0].message
+              }
+            ,{                                    // Options
+                label: obj.webentity.id
+                ,before: function(){
+                    obj_setStatus(obj, 'pending')
+                  }
+                ,simultaneousQueries: 3
+              }
+          )
+      })
+
+      queriesBatcher.atEachFetch(function (list, pending, success, fail) {
+        $scope.status = {message: 'Scheduling...'}
+      })
+
+      queriesBatcher.atFinalization(function(list, pending, success, fail){
+        $scope.status = {}
+        $timeout(function() {
+          $location.path('/project/'+$scope.corpusId+'/monitorCrawls')
+        }, 500)
+      })
+
+      queriesBatcher.run()
+    }
 
 
     // Functions
@@ -178,11 +226,27 @@ angular.module('hyphe.preparecrawlsController', [])
     }
 
     // Web entities status lifecycle
-    function obj_setStatus(obj, status){
-
+    function obj_setStatus(obj, status) {
       obj.status = status
-
+      updateStatusesSummary()
     }
+
+    function updateStatusesSummary() {
+      if ($scope.list && $scope.list.length > 0) {
+        $scope.statusesSummary = {counts:{}, percents:{}, total:0}
+        $scope.list.forEach(function(obj){
+          $scope.statusesSummary.counts[obj.status] = ($scope.statusesSummary.counts[obj.status] || 0) + 1
+          $scope.statusesSummary.total++
+        })
+
+        // Compute percents
+        var k
+        for (k in $scope.statusesSummary.counts) {
+          $scope.statusesSummary.percents[k] = Math.round( 100 * $scope.statusesSummary.counts[k] / $scope.statusesSummary.total )
+        }
+      }
+    }
+
 
     // Lazy lookup
     function lazyLookups( batch ){
