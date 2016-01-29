@@ -31,17 +31,17 @@ def handleList(res):
         since = time() * 1000 - corpus['last_activity']
         if since > delay:
             print "SHOULD REMOVE:", cid, corpus['last_activity'], int((since - delay) / dayms), "days old"
-            res = yield proxy.callRemote('start_corpus', cid, 'hyphe déchire!' if corpus['password'] else '')
+            res = yield proxy.callRemote('start_corpus', cid, config['ADMIN_PASSWORD'] if corpus['password'] else '')
             if res['code'] == 'fail':
-                logging.error("WARNING: could not start old corpus %s: %s" % (cid, res['message']))
+                print >> sys.stderr, "WARNING: could not start old corpus %s: %s" % (cid, res['message'])
                 continue
             res = yield proxy.callRemote('ping', cid, 30)
             if res['code'] == 'fail':
-                logging.error("WARNING: could not ping old corpus %s: %s" % (cid, res['message']))
+                print >> sys.stderr, "WARNING: could not ping old corpus %s: %s" % (cid, res['message'])
                 continue
             res = yield proxy.callRemote('destroy_corpus', cid)
             if res['code'] == 'fail':
-                logging.error("WARNING: could not destroy old corpus %s: %s" % (cid, res['message']))
+                print sys.stderr, "WARNING: could not destroy old corpus %s: %s" % (cid, res['message'])
 
 
 def printError(error):
