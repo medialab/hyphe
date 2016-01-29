@@ -72,15 +72,26 @@ tr.bg-selected .btn-muted{
 
 /* Disclaimer */
 .disclaimer {
-  background-color: #FFF;
   margin-right: 12px;
   text-transform: uppercase;
   font-size: smaller;
   font-weight: 600;
   padding: 6px;
   margin-bottom: 24px;
+  background-color: #fcf59b;
+  -webkit-transform: rotateZ(-2deg);
+     -moz-transform: rotateZ(-2deg);
+          transform: rotateZ(-2deg);
+  box-shadow: rgba(0, 0, 0, 0.4) 0 2px 10px, inset rgba(0, 0, 0, 0.2) 0 0 
 }
+.disclaimer .disclaimer-header {
+  padding: 3px;
+  margin-bottom: 3px;
+  background-color: rgba(254, 56, 56, 0.8);
+  font-size: small;
+  color: #FFF;
 
+}
 /* ==========================================================================
    Tweaks needed by Angular-UI-bootstrap
    ========================================================================== */
