@@ -64,9 +64,11 @@ angular.module('hyphe.service_glossary', [])
       })
     })
 
-    return function(term){
+    ns.getDefinition = function (term) {
       return ns.definitions[ns.entries[term.toLocaleLowerCase()]]
     }
+    
+    return ns
   }])
 
 ;

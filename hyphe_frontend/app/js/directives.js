@@ -224,11 +224,11 @@ angular.module('hyphe.directives', [])
 
   .directive('webentityLink', [function(){
     return {
-      restrict: 'E'
-      ,templateUrl: 'partials/webentitylink.html'
-      ,scope: {
-        webentityId: '='
-        ,corpusId: '='
+      restrict: 'E',
+      templateUrl: 'partials/webentitylink.html',
+      scope: {
+        webentityId: '=',
+        corpusId: '='
       }
     }
   }])
@@ -242,7 +242,7 @@ angular.module('hyphe.directives', [])
       }
       ,link: function(scope, el, attrs) {
         scope.originalExpression = attrs.hypheGlossary
-        scope.def = glossary(scope.originalExpression)
+        scope.def = glossary.getDefinition(scope.originalExpression)
         
       }
     }
