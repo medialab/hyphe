@@ -32,6 +32,7 @@ angular.module('hyphe', [
   $routeProvider.when('/project/:corpusId/export', {templateUrl: 'views/export.html', controller: 'export'});
   $routeProvider.when('/project/:corpusId/settings', {templateUrl: 'views/settings.html', controller: 'settings'});
   $routeProvider.when('/project/:corpusId/help', {templateUrl: 'views/help.html', controller: 'help'});
+  $routeProvider.when('/project/:corpusId/help/entry/:entry', {templateUrl: 'views/help.html', controller: 'help'});
   $routeProvider.when('/project/:corpusId/network', {templateUrl: 'views/network.html', controller: 'network'});
   $routeProvider.when('/project/:corpusId/prospect', {templateUrl: 'views/prospect.html', controller: 'prospect'});
   $routeProvider.when('/project/:corpusId/webentity/:webentityId', {templateUrl: 'views/webentity.html', controller: 'webentity'});

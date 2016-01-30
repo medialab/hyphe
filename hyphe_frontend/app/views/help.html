@@ -9,7 +9,7 @@
             <div class="row">
               <div class="col-md-12">
                 <h1>
-                  HELP
+                  HELP {{anchor}}
                 </h1>
               </div>
             </div>
@@ -17,7 +17,7 @@
             <div class="row">
               <div class="col-md-12">
                 <dl ng-repeat="def in definitions track by $index">
-                  <dt>{{def.title}}</dt>
+                  <dt><a name="def-{{def.id}}"></a>{{def.title}}</dt>
                   <dd><span class="search-for-terms" ng-bind-html="def.definitionParsed"></span></dd>
                 </dl>
               </div>

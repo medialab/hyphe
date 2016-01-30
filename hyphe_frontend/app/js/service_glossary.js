@@ -57,6 +57,11 @@ angular.module('hyphe.service_glossary', [])
       }
     ]
 
+    // Consolidate definitions by adding identifiers
+    ns.definitions.forEach(function(d, i){
+      d.id = i
+    })
+
     ns.entries = {}
     ns.definitions.forEach(function(def, i){
       def.entries.forEach(function(entry){
@@ -67,7 +72,7 @@ angular.module('hyphe.service_glossary', [])
     ns.getDefinition = function (term) {
       return ns.definitions[ns.entries[term.toLocaleLowerCase()]]
     }
-    
+
     return ns
   }])
 
