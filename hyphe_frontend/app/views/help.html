@@ -9,13 +9,17 @@
             <div class="row">
               <div class="col-md-12">
                 <h1>
-                  HELP {{anchor}}
+                  HELP
                 </h1>
+                <p ng-bind-html="hyphePresentation"></p>
               </div>
             </div>
 
             <div class="row">
               <div class="col-md-12">
+                <h1>
+                  GLOSSARY
+                </h1>
                 <div ng-repeat="def in definitions track by $index">
                   <dl ng-class="{highlight: def.id == highlightedDefinition.id}">
                     <dt><a name="def-{{def.id}}" id="def-{{def.id}}" href="#/project/{{corpusId}}/help/entry/{{def.entries[0]}}">#</a>&nbsp;{{def.title}}</dt>

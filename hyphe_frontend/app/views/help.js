@@ -22,19 +22,7 @@ angular.module('hyphe.helpController', ['ngSanitize'])
 
     $scope.definitions = glossary.definitions
       .map(function(d){
-        var tempIndex = []
-        d.definitionParsed = d.definition
-        entries.forEach(function(e){
-          if (d.definitionParsed.indexOf(e) >= 0) {
-            var placeholder = '###'+tempIndex.length+'***'
-            tempIndex.push(e)
-            d.definitionParsed = d.definitionParsed.replace(e, placeholder)
-          }
-        })
-        // Write HTML
-        tempIndex.forEach(function(e,i){
-          d.definitionParsed = d.definitionParsed.replace('###'+i+'***', '<a href="#/project/'+$scope.corpusId+'/help/entry/'+encodeURIComponent(e)+'">'+e+'</a>')
-        })
+        d.definitionParsed = htmlEntries(d.definition)
         return d
       })
     $scope.highlightedEntry = $routeParams.entry
@@ -57,6 +45,33 @@ angular.module('hyphe.helpController', ['ngSanitize'])
         }
       }, 0)
     })
+
+    $scope.hyphePresentation = htmlEntries("As a web crawler, Hyphe allows you to harvest the hyperlinks " +
+      "of a collection of web pages by performing a series of “crawl jobs” on demand. " +
+      "Pages are aggregated as “web entities” (roughly corresponding to websites) in order " +
+      "to reduce the complexity of data. The typical output is a network of web entities to " + 
+      "be analyzed through network analysis software such as Gephi.")
+
+
+
+    function htmlEntries(html) {
+      var tempIndex = []
+      var result = html
+      entries.forEach(function(e){
+        var regEx = new RegExp(e, "i");
+        while (result.search(regEx) >= 0) {
+          var placeholder = '==='+tempIndex.length+'==='
+          tempIndex.push(result.match(regEx)[0])
+          result = result.replace(regEx, placeholder)
+        }
+      })
+      // Write HTML
+      tempIndex.forEach(function(e,i){
+        var regEx = new RegExp('==='+i+'===', "ig");
+        result = result.replace(regEx, '<a href="#/project/'+$scope.corpusId+'/help/entry/'+encodeURIComponent(e)+'">'+e+'</a>')
+      })
+      return result
+    }
 
   
   }])
