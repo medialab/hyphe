@@ -16,10 +16,12 @@
 
             <div class="row">
               <div class="col-md-12">
-                <dl ng-repeat="def in definitions track by $index">
-                  <dt><a name="def-{{def.id}}"></a>{{def.title}}</dt>
-                  <dd><span class="search-for-terms" ng-bind-html="def.definitionParsed"></span></dd>
-                </dl>
+                <div ng-repeat="def in definitions track by $index">
+                  <dl ng-class="{highlight: def.id == highlightedDefinition.id}">
+                    <dt><a name="def-{{def.id}}" id="def-{{def.id}}" href="#/project/{{corpusId}}/help/entry/{{def.entries[0]}}">#</a>&nbsp;{{def.title}}</dt>
+                    <dd><span class="search-for-terms" ng-bind-html="def.definitionParsed"></span></dd>
+                  </dl>
+                </div>
               </div>
             </div>
           </div>

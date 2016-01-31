@@ -2,8 +2,8 @@
 
 angular.module('hyphe.helpController', ['ngSanitize'])
 
-  .controller('help', ['$scope', 'api', 'utils', '$location', 'corpus', 'glossary', '$anchorScroll', '$routeParams'
-  ,function($scope, api, utils, $location, corpus, glossary, $anchorScroll, $routeParams) {
+  .controller('help', ['$scope', 'api', 'utils', '$location', 'corpus', 'glossary', '$anchorScroll', '$routeParams', '$timeout'
+  ,function($scope, api, utils, $location, corpus, glossary, $anchorScroll, $routeParams, $timeout) {
     $scope.currentPage = 'help'
     $scope.Page.setTitle('Help')
     $scope.corpusName = corpus.getName()
@@ -37,8 +37,26 @@ angular.module('hyphe.helpController', ['ngSanitize'])
         })
         return d
       })
+    $scope.highlightedEntry = $routeParams.entry
 
-    $scope.highlightedEntry =  $routeParams.entry
-    if ($scope.highlightedEntry) console.log($scope.highlightedEntry)
+    $scope.$watchGroup(['highlightedEntry', 'definitions'], function (newValues, oldValues) {
+      $timeout(function () {
+        if ($routeParams.entry) {
+          $scope.highlightedDefinition = entryIndex[$routeParams.entry]
+          if ($scope.highlightedDefinition) {
+            var def = $scope.highlightedDefinition
+              , elid = "#def-"+def.id
+            if ($(elid).offset()) {
+              $('html, body').animate({
+                  scrollTop: $(elid).offset().top - 64
+              }, 400);          
+            } else {
+              console.warn('Cannot find element '+elid, $(elid), $(elid).offset())
+            }
+          }
+        }
+      }, 0)
+    })
+
   
   }])
