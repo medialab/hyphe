@@ -30,7 +30,7 @@ angular.module('hyphe.helpController', ['ngSanitize'])
     $scope.$watchGroup(['highlightedEntry', 'definitions'], function (newValues, oldValues) {
       $timeout(function () {
         if ($routeParams.entry) {
-          $scope.highlightedDefinition = entryIndex[$routeParams.entry]
+          $scope.highlightedDefinition = entryIndex[$routeParams.entry.toLowerCase()]
           if ($scope.highlightedDefinition) {
             var def = $scope.highlightedDefinition
               , elid = "#def-"+def.id
