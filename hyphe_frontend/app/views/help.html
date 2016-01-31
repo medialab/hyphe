@@ -17,9 +17,9 @@
 
             <div class="row">
               <div class="col-md-12">
-                <h1>
+                <h2>
                   GLOSSARY
-                </h1>
+                </h2>
                 <div ng-repeat="def in definitions track by $index">
                   <dl ng-class="{highlight: def.id == highlightedDefinition.id}">
                     <dt><a name="def-{{def.id}}" id="def-{{def.id}}" href="#/project/{{corpusId}}/help/entry/{{def.entries[0]}}">#</a>&nbsp;{{def.title}}</dt>
