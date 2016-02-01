@@ -94,13 +94,10 @@ tr.bg-selected .btn-muted{
 }
 
 dl.highlight {
-  /*background-color: #FBF2DA;*/
-  background-color: #428BCA;
-  color: #D2DEEA;
+  border-left: 6px solid #428BCA;
+  padding-left: 6px;
 }
-dl.highlight a {
-  color: #FFF;
-}
+
 
 /* ==========================================================================
    Tweaks needed by Angular-UI-bootstrap
