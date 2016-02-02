@@ -5,6 +5,9 @@ import time, random, json
 import subprocess
 from datetime import datetime
 from json import loads as loadjson
+from warnings import filterwarnings
+filterwarnings(action='ignore', category=DeprecationWarning, message="Python 2.6 is no longer supported by the Python core team")
+filterwarnings(action='ignore', category=DeprecationWarning, message="twisted.internet.interfaces.IStreamClientEndpointStringParser was deprecated")
 from txjsonrpc import jsonrpclib
 from txjsonrpc.jsonrpc import Introspection
 from txjsonrpc.web import jsonrpc
