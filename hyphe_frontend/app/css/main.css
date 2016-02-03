@@ -98,6 +98,16 @@ dl.highlight {
   padding-left: 6px;
 }
 
+.dl-editable dt, .dl-editable dd{
+  min-height: 36px;
+  padding-top: 6px;
+  font-size: 1.1em;
+}
+
+ul.list-spaced li {
+  margin-bottom: 12px;
+}
+
 
 /* ==========================================================================
    Tweaks needed by Angular-UI-bootstrap
@@ -158,7 +168,6 @@ div.url-container .url-break{
   white-space: normal;
   word-break: break-all;
 }
-
 
 
 /* ==========================================================================

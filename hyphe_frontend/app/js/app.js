@@ -43,8 +43,10 @@ angular.module('hyphe', [
 }])
 
 // X-Editable
-.run(function(editableOptions) {
-  editableOptions.theme = 'default'; // Can be also 'bs2', 'bs3', 'default'
+.run(function(editableOptions, editableThemes) {
+  editableOptions.theme = 'bs3'; // Can be also 'bs2', 'bs3', 'default'
+  editableThemes.bs3.inputClass = 'input-sm';
+  editableThemes.bs3.buttonsClass = 'btn-sm';
 })
 
 // Analytics

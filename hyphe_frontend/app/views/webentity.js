@@ -15,7 +15,7 @@ angular.module('hyphe.webentityController', [])
     
     $scope.statuses = [
       {value: 'IN', text: 'IN'},
-      {value: 'UNDECIDED', text: '? (UNDECIDED)'},
+      {value: 'UNDECIDED', text: '? UNDECIDED'},
       {value: 'OUT', text: 'OUT'}
     ]; 
 
