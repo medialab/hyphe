@@ -28,7 +28,9 @@
                             STATUS
                           </div>
                           <div class="dashboard-cell-single-line">
-                            {{webentity.status}}
+                            <a href="#" editable-select="webentity.status" e-ng-options="s.value as s.text for s in statuses">
+                              {{webentity.status}}
+                            </a>
                           </div>
                           <div class="dashboard-cell-bottom-container" ng-if="webentity.status == 'DISCOVERED'">
                             <div class="dashboard-cell-bottom">

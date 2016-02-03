@@ -10,8 +10,14 @@ angular.module('hyphe.webentityController', [])
     $scope.corpusId = corpus.getId()
 
     $scope.explorerActive = false
-    
+
     $scope.webentity = {id:$routeParams.webentityId, loading:true}
+    
+    $scope.statuses = [
+      {value: 'IN', text: 'IN'},
+      {value: 'UNDECIDED', text: '? (UNDECIDED)'},
+      {value: 'OUT', text: 'OUT'}
+    ]; 
 
     $scope.reCrawl = function(){
       var webentity = $scope.webentity
