@@ -7,6 +7,7 @@ angular.module('hyphe', [
   ,'ui.bootstrap'
   ,'angulartics'
   ,'angulartics.google.analytics'
+  ,'xeditable'
   ,'hyphe.analytics'
   ,'hyphe.conf'
   ,'hyphe.filters'
@@ -41,6 +42,11 @@ angular.module('hyphe', [
   $routeProvider.otherwise({redirectTo: '/login'});
 }])
 
+// X-Editable
+.run(function(editableOptions) {
+  editableOptions.theme = 'default'; // Can be also 'bs2', 'bs3', 'default'
+})
+
 // Analytics
 .config(['$analyticsProvider', function ($analyticsProvider) {
   $analyticsProvider.virtualPageviews(true);
@@ -63,3 +69,4 @@ angular.module('hyphe.analytics', [])
   }
 
 }])
+
