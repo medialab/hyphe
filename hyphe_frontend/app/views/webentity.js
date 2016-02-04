@@ -19,8 +19,6 @@ angular.module('hyphe.webentityController', [])
       {value: 'OUT', text: 'OUT'}
     ]
 
-    $scope.tagdata = []
-
     $scope.reCrawl = function(){
       var webentity = $scope.webentity
       ,obj = {webentity:webentity}
@@ -45,6 +43,14 @@ angular.module('hyphe.webentityController', [])
         ,function(result){
           $scope.webentity = result[0]
           $scope.webentity.loading = false
+
+          // TEST DATA
+          $scope.webentity.tags.USER = $scope.webentity.tags.USER || {}
+          $scope.webentity.tags.USER._freetags = ['lol', 'kikoo', 'very long and annoying Tag with *$! characterz... :(']
+          $scope.webentity.tags.USER.country = ['France']
+          $scope.webentity.tags.USER.type = ['Newspaper']
+          // END TEST DATA
+
           console.log($scope.webentity.name, $scope.webentity)
           $scope.Page.setTitle($scope.webentity.name)
         }

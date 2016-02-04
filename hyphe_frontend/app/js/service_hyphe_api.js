@@ -25,7 +25,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_PREFIX_ADD                        = 'store.add_webentity_lruprefixes'
     API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
 
-    API.WEBENTITY_LIST_TAG_VALUES_ADD               = 'store.add_webentities_tag_value'
+    API.WEBENTITY_LIST_TAG_VALUE_ADD                = 'store.add_webentities_tag_value'
     
     API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'
     API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_nodelinks_network'

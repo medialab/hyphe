@@ -260,6 +260,36 @@ div.url-container .url-break{
 
 
 /* ==========================================================================
+   Tag box
+   ========================================================================== */
+.tagbox {
+  background-color: #EFEBE8;
+  padding: 6px;
+}
+.tagbox-head {
+  font-size: 14px;
+  font-family: 'Open Sans', sans-serif;
+  text-transform: uppercase;
+}
+/* Tweak ng-tag-input */
+tags-input .tags {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+  -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+  -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+  transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+tags-input .tags .tag-item {
+  background: #EFEBE8;
+  color: #000;
+}
+
+
+
+
+/* ==========================================================================
    Modifying Bootstrap Panel
    ========================================================================== */
 .panel-heading.hyphe-gray{
