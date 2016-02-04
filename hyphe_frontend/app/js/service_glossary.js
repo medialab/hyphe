@@ -3,7 +3,7 @@
 angular.module('hyphe.service_glossary', [])
 
   .factory('glossary', [function(){
-    var ns = this     // namespace
+    var ns = {}     // namespace
     
     ns.definitions = [
       {
@@ -108,4 +108,3 @@ angular.module('hyphe.service_glossary', [])
     return ns
   }])
 
-;
