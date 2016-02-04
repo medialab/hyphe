@@ -15,6 +15,7 @@
     "html5-boilerplate": "~4.3.0",
     "FileSaver.js": "https://github.com/eligrey/FileSaver.js.git",
     "angulartics": "~0.17.1",
-    "angular-xeditable": "~0.1.9"
+    "angular-xeditable": "~0.1.9",
+    "ng-tags-input": "3.0.0"
   }
 }

@@ -17,7 +17,9 @@ angular.module('hyphe.webentityController', [])
       {value: 'IN', text: 'IN'},
       {value: 'UNDECIDED', text: '? UNDECIDED'},
       {value: 'OUT', text: 'OUT'}
-    ]; 
+    ]
+
+    $scope.tagdata = []
 
     $scope.reCrawl = function(){
       var webentity = $scope.webentity

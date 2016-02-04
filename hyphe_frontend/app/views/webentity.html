@@ -112,6 +112,26 @@
                   <div class="row no-gutter">
                     <div class="col-md-12">
                       <hr>
+                      <h3>Features</h3>
+                      <br>
+                    </div>
+                  </div>
+                  <div class="row no-gutter">
+                    <div class="col-md-8">
+                      
+                    </div>
+                    <div class="col-md-4">
+                      <ul class="list-unstyled">
+                        <li>Created {{webentity['creation_date']*1000|prettyDate}}</li>
+                        <li>Last modified {{webentity['last_modification_date']*1000|prettyDate}}</li>
+                        <li>Cited by {{webentity['indegree']}} other entities</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div class="row no-gutter">
+                    <div class="col-md-12">
+                      <hr>
                       <h3>Crawling</h3>
                       <br>
                     </div>
@@ -162,33 +182,6 @@
                       </ul>
                     </div>
                   </div>
-
-                  <div class="row no-gutter">
-                    <div class="col-md-12">
-                      <hr>
-                      <h3>Other</h3>
-                      <br>
-                    </div>
-                  </div>
-                  <div class="row no-gutter">
-                    <div class="col-md-8">
-                      <dl class="dl-horizontal dl-editable">
-
-                        <dt>Created</dt>
-                        <dd>{{webentity['creation_date']*1000|prettyDate}}</dd>
-
-                        <dt>Last modified</dt>
-                        <dd>{{webentity['last_modification_date']*1000|prettyDate}}</dd>
-
-                        <dt>Cited by</dt>
-                        <dd>{{webentity['indegree']}} other entities</dd>
-
-                      </dl>
-                    </div>
-
-                  </div>
-                </div>
-
 
               </div>
 
