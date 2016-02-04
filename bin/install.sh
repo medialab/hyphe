@@ -133,6 +133,8 @@ if ! which scrapyd > /dev/null 2>&1 ; then
   # Use `sudo rpm -e scrapyd` or `sudo dpkg -r scrapyd` to remove
     python -c "import scrapy" > /dev/null 2>&1
     if [ $? -ne 0 ]; then
+      echo " ...installing Twisted..."
+      sudo pip -q install Twisted==14 >> install.log || exitAndLog install.log "installing Twisted"
       echo " ...installing Scrapy..."
       sudo pip -q install Scrapy==0.18 >> install.log || exitAndLog install.log "installing Scrapy"
     fi
