@@ -3,6 +3,8 @@
 
 import sys
 from time import time
+from warnings import filterwarnings
+filterwarnings(action='ignore', category=DeprecationWarning, message="Python 2.6 is no longer supported by the Python core team")
 from twisted.internet import reactor, defer
 from txjsonrpc.web.jsonrpc import Proxy
 from hyphe_backend.lib import config_hci
