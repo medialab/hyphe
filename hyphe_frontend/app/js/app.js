@@ -8,6 +8,7 @@ angular.module('hyphe', [
   ,'angulartics'
   ,'angulartics.google.analytics'
   ,'xeditable'
+  ,'ngTagsInput'
   ,'hyphe.analytics'
   ,'hyphe.conf'
   ,'hyphe.filters'

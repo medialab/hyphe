@@ -18,15 +18,15 @@
                 
                 <webentity-tabs></webentity-tabs>
 
-                <div class="container-fluid" ng-if="webentity && !webentity['loading']">
+                <div ng-if="webentity && !webentity['loading']">
 
-                  <div class="row no-gutter">
+                  <div class="row">
                     <div class="col-md-12">
                       <h3>Identity</h3>
                       <br>
                     </div>
                   </div>
-                  <div class="row no-gutter">
+                  <div class="row">
                     <div class="col-md-8">
                       <form editable-form name="editableForm" onaftersave="saveUser()">
                         <dl class="dl-horizontal dl-editable">
@@ -109,14 +109,52 @@
                     </div>
                   </div>
 
-                  <div class="row no-gutter">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <hr>
+                      <h3>Features</h3>
+                      <br>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-8">
+                      <div class="row">
+                        <div class="col-md-6" ng-repeat="(cat, taglist) in webentity.tags.USER" ng-if="cat != '_freetags'">
+                          <div class="tagbox">
+                            <div class="tagbox-head">
+                              {{cat}}
+                              <!-- <div class="pull-right">
+                                <button class="btn btn-xs btn-link" ng-click=""> 
+                                  <span class="glyphicon glyphicon-remove"></span>
+                                </button>
+                              </div> -->
+                            </div>
+                            <div class="tagbox-body">
+                              <tags-input ng-model="taglist">
+                                <auto-complete source="loadItems($query)"></auto-complete>
+                              </tags-input>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <ul class="list-unstyled">
+                        <li>Created {{webentity['creation_date']*1000|prettyDate}}</li>
+                        <li>Last modified {{webentity['last_modification_date']*1000|prettyDate}}</li>
+                        <li>Cited by {{webentity['indegree']}} other entities</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div class="row">
                     <div class="col-md-12">
                       <hr>
                       <h3>Crawling</h3>
                       <br>
                     </div>
                   </div>
-                  <div class="row no-gutter">
+                  <div class="row">
                     <div class="col-md-8">
                       <dl class="dl-horizontal dl-editable">
 
@@ -162,33 +200,6 @@
                       </ul>
                     </div>
                   </div>
-
-                  <div class="row no-gutter">
-                    <div class="col-md-12">
-                      <hr>
-                      <h3>Other</h3>
-                      <br>
-                    </div>
-                  </div>
-                  <div class="row no-gutter">
-                    <div class="col-md-8">
-                      <dl class="dl-horizontal dl-editable">
-
-                        <dt>Created</dt>
-                        <dd>{{webentity['creation_date']*1000|prettyDate}}</dd>
-
-                        <dt>Last modified</dt>
-                        <dd>{{webentity['last_modification_date']*1000|prettyDate}}</dd>
-
-                        <dt>Cited by</dt>
-                        <dd>{{webentity['indegree']}} other entities</dd>
-
-                      </dl>
-                    </div>
-
-                  </div>
-                </div>
-
 
               </div>
 

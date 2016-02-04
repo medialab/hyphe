@@ -24,6 +24,8 @@ angular.module('hyphe.service_hyphe_api', [])
 
     API.WEBENTITY_PREFIX_ADD                        = 'store.add_webentity_lruprefixes'
     API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
+
+    API.WEBENTITY_LIST_TAG_VALUE_ADD                = 'store.add_webentities_tag_value'
     
     API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'
     API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_nodelinks_network'
@@ -32,13 +34,21 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_NAME_SET                          = 'store.rename_webentity'
     API.WEBENTITY_STATUS_SET                        = 'store.set_webentity_status'
     API.WEBENTITY_HOMEPAGE_SET                      = 'store.set_webentity_homepage'
-    API.WEBENTITY_TAG_VALUES_SET                    = 'store.set_webentity_tag_values'
     API.WEBENTITY_CRAWL                             = 'crawl_webentity'
     API.WEBENTITY_CRAWL_WITH_HEURISTIC              = 'crawl_webentity_with_startmode'
     API.WEBENTITY_FETCH_BY_URL                      = 'store.get_webentity_for_url'
     API.WEBENTITY_FETCH_BY_PREFIX_LRU               = 'store.get_webentity_by_lruprefix'
     API.WEBENTITY_FETCH_BY_PREFIX_URL               = 'store.get_webentity_by_lruprefix_as_url'
     API.WEBENTITY_MERGE_INTO                        = 'store.merge_webentity_into_another'
+
+    API.WEBENTITY_TAG_VALUE_ADD                     = 'store.add_webentity_tag_value'
+    API.WEBENTITY_TAG_CAT_REMOVE                    = 'store.rm_webentity_tag_key'
+    API.WEBENTITY_TAG_VALUE_REMOVE                  = 'store.rm_webentity_tag_value'
+    API.WEBENTITY_TAG_VALUE_LIST_SET                = 'store.set_webentity_tag_values'
+    API.WEBENTITY_TAG_LIST_GET                      = 'store.get_tags'
+    API.WEBENTITY_TAG_NAMESPACE_LIST_GET            = 'store.get_tag_namespaces'
+    API.WEBENTITY_TAG_CAT_LIST_GET                  = 'store.get_tag_categories'
+    API.WEBENTITY_TAG_VALUE_LIST_GET                = 'store.get_tag_values'
 
     API.WE_CREATION_RULE_ADD                        = 'store.add_webentity_creationrule'
     API.WE_CREATION_RULE_REMOVE                     = 'store.delete_webentity_creationrule'
