@@ -16,8 +16,10 @@ ITEM_PIPELINES = [
 CONCURRENT_REQUESTS = {{max_simul_requests}}
 CONCURRENT_REQUESTS_PER_DOMAIN = {{max_simul_requests_per_host}}
 
+DOWNLOADER_CLIENTCONTEXTFACTORY = 'hcicrawler.webclient.CustomSSLContextFactory'
 DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
 REDIRECT_ENABLED = False
+
 
 PROXY = '{{proxy_host}}:%s' % {{proxy_port}}
 DOWNLOADER_MIDDLEWARES = {
