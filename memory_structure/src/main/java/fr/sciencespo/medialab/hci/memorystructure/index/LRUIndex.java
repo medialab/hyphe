@@ -419,6 +419,9 @@ public class LRUIndex {
      * @throws IOException
      */
     private List<Document> executeMultipleResultsQuery(Query q) throws IOException {
+    	return executeMultipleResultsQuery(q, false);
+    }
+    private List<Document> executeMultipleResultsQuery(Query q, final boolean includeOutsideWeb) throws IOException {
         final List<Document> hits = new ArrayList<Document>();
         indexSearcher.search(q, new Collector() {
             private IndexReader reader;
@@ -427,7 +430,10 @@ public class LRUIndex {
             public void setScorer(Scorer scorer) throws IOException {}
             @Override
             public void collect(int doc) throws IOException {
-                hits.add(reader.document(doc));
+                Document document = reader.document(doc);
+                if (includeOutsideWeb || !document.get(IndexConfiguration.FieldName.TYPE.name()).equals(IndexConfiguration.DocType.WEBENTITY.name()) || !document.get(IndexConfiguration.FieldName.NAME.name()).equals(Constants.DEFAULT_WEBENTITY)) {
+                  hits.add(document);
+                }
             }
             @Override
             public void setNextReader(IndexReader reader, int docBase) throws IOException {
@@ -928,6 +934,9 @@ public class LRUIndex {
      * @throws IndexException hmm
      */
     public WebEntity retrieveWebEntityByLRUPrefix(String LRUPrefix) throws IndexException {
+    	return retrieveWebEntityByLRUPrefix(LRUPrefix, false);
+    }
+    public WebEntity retrieveWebEntityByLRUPrefix(String LRUPrefix, final boolean includeOutsideWeb) throws IndexException {
         if (LRUPrefix == null) {
             logger.warn("attempted to retrieve web entity with null lruprefix");
             return null;
@@ -938,7 +947,7 @@ public class LRUIndex {
         }
         try {
             Query q = LuceneQueryFactory.getWebEntityByLRUPrefixQuery(LRUPrefix);
-            final List<Document> hits = executeMultipleResultsQuery(q);
+            final List<Document> hits = executeMultipleResultsQuery(q, includeOutsideWeb);
             if (hits.size() < 1) {
                 return null;
             } else if (hits.size() > 1) {
@@ -962,6 +971,9 @@ public class LRUIndex {
      * @throws IndexException hmm
      */
     public WebEntity retrieveWebEntityMatchingLRU(String LRU) throws IndexException {
+    	return retrieveWebEntityMatchingLRU(LRU, false);
+    }
+    public WebEntity retrieveWebEntityMatchingLRU(String LRU, final boolean includeOutsideWeb) throws IndexException {
         if(logger.isDebugEnabled()) {
             logger.debug("retrieveWebEntityMatchingLRU: " + LRU);
         }
@@ -970,7 +982,7 @@ public class LRUIndex {
             String prefixLRU = LRU;
             WebEntity webentity = null;
             while (webentity == null && prefixLRU != null && prefixLRU.length() > 0) {
-                webentity = retrieveWebEntityByLRUPrefix(prefixLRU);
+                webentity = retrieveWebEntityByLRUPrefix(prefixLRU, includeOutsideWeb);
                 if (webentity == null) {
                     lastIndex = -1;
                     Matcher matcher = LRUUtil.LRU_STEM_PATTERN.matcher(prefixLRU);
@@ -1793,7 +1805,7 @@ public class LRUIndex {
             if (logger.isDebugEnabled()) {
             	logger.debug("Total # of new and recently modified webentities in index is " + WEIdsTodo.size());
             }
-            
+
             THashMap<String, THashMap<String, THashMap<String, String>>> lruToWebEntityMap = new THashMap<String, THashMap<String, THashMap<String, String>>>();
             NodeLink link; ScoreDoc curDoc = null;
 
@@ -1837,7 +1849,7 @@ public class LRUIndex {
             }
         	logger.info("Total # of WebEntities to re-link is " + WEIdsTodo.size() + ". Start processing...");
         	buildLinksForWEBatch(WEIdsTodo, WEIdsTodo, doneNodeLinks, webEntityLinksMap, lruToWebEntityMap);
-            
+
             if(logger.isDebugEnabled()) {
                 logger.trace("Deleting preexisting corresponding webentitylinks");
             }
@@ -1866,9 +1878,9 @@ public class LRUIndex {
             throw new IndexException(x.getMessage(), x);
         }
     }
-    
+
     private void buildLinksForWEBatch(THashSet<String> WEIdsBatch, THashSet<String> WEIdsListed, TIntHashSet doneNodeLinks, THashMap<String, THashMap<String, WebEntityLink>> webEntityLinksMap, THashMap<String, THashMap<String, THashMap<String, String>>> lruToWebEntityMap) throws IndexException, IOException {
-	 
+
         List<String> prefixes = new ArrayList<String>();
         WebEntity WE;
         for (String WEid : WEIdsBatch) {
@@ -1935,7 +1947,7 @@ public class LRUIndex {
 		        }
 	        }
         }
-        
+
 	    if (newWEIdsTodo.size() > 0) {
 	    	if(logger.isDebugEnabled()) {
 	            logger.debug("Relaunch batch links for " + newWEIdsTodo.size() + " newly found webentities");
@@ -2260,8 +2272,11 @@ public class LRUIndex {
      * @throws IndexException hmm
      */
     public THashMap<String, WebEntity> findWECandidatesForPageUrl(String pageLRU) throws IndexException {
+    	return findWECandidatesForPageUrl(pageLRU, false);
+    }
+    public THashMap<String, WebEntity> findWECandidatesForPageUrl(String pageLRU, final boolean includeOutsideWeb) throws IndexException {
     	THashMap<String, WebEntity> WEcandidates = new THashMap<String, WebEntity>();
-        WebEntity WEcandidate, existing = retrieveWebEntityMatchingLRU(pageLRU);
+        WebEntity WEcandidate, existing = retrieveWebEntityMatchingLRU(pageLRU, includeOutsideWeb);
         if (existing != null) {
         	WEcandidates.put(retrieveWebEntityPrefixMatchingLRU(existing, pageLRU), existing);
         }
@@ -2323,11 +2338,11 @@ public class LRUIndex {
             if(logger.isDebugEnabled()) {
             	logger.trace("createWebEntities for page " + pageLRU);
             }
-            WEcandidates = findWECandidatesForPageUrl(pageLRU);
+            WEcandidates = findWECandidatesForPageUrl(pageLRU, true);
             LRUPrefix = findWERulePrefixForPageUrl(WEcandidates, pageLRU);
             if (!doneLRUPrefixes.contains(LRUPrefix)) {
                 WEcandidate = WEcandidates.get(LRUPrefix);
-                existing = retrieveWebEntityByLRUPrefix(LRUPrefix);
+                existing = retrieveWebEntityByLRUPrefix(LRUPrefix, true);
 
                 // store new webentity in index
                 if (existing == null && WEcandidate != null) {
