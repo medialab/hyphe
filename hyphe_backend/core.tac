@@ -1477,9 +1477,20 @@ class Memory_Structure(jsonrpc.JSONRPC):
         self.corpora[corpus]['total_webentities'] += 1
         returnD(format_result("WebEntity %s was re-ided as %s" % (webentity_old_id, webentity_new_id)))
 
+    @inlineCallbacks
     def jsonrpc_set_webentity_status(self, webentity_id, status, corpus=DEFAULT_CORPUS):
         """Changes for a `corpus` the status of a WebEntity defined by `webentity_id` to `status` (one of "in"/"out"/"undecided"/"discovered")."""
-        return self.update_webentity(webentity_id, "status", status, corpus=corpus)
+        res = yield self.update_webentity(webentity_id, "status", status, corpus=corpus)
+        if not is_error(res):
+            for WE in self.corpora[corpus]["webentities"]:
+                print WE.id, webentity_id
+                if WE.id == webentity_id:
+                    oldstatus = WE.status
+                    WE.status = status.upper()
+                    self.corpora[corpus]["webentities_%s" % status.lower()] += 1
+                    self.corpora[corpus]["webentities_%s" % oldstatus.lower()] -= 1
+                    break
+        returnD(res)
 
     def jsonrpc_set_webentities_status(self, webentity_ids, status, corpus=DEFAULT_CORPUS):
         """Changes for a `corpus` the status of a set of WebEntities defined by a list of `webentity_ids` to `status` (one of "in"/"out"/"undecided"/"discovered")."""
