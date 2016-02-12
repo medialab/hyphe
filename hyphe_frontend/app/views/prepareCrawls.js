@@ -259,7 +259,9 @@ angular.module('hyphe.preparecrawlsController', [])
           obj.webentity.startpages.some(function(url){
             if($scope.lookups[url] === undefined){
 
-              lookupBatch.push(url)
+              if (lookupBatch.indexOf(url) === -1){
+                lookupBatch.push(url)
+              }
 
             } else if($scope.lookups[url].status == 'loading') {
 
