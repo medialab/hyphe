@@ -32,7 +32,7 @@ def handleList(res):
     for cid, corpus in res['result'].items():
         since = time() * 1000 - corpus['last_activity']
         if since > delay:
-            print "SHOULD REMOVE:", cid, corpus['last_activity'], int((since - delay) / dayms), "days old"
+            print "REMOVING old corpus:", cid, corpus['last_activity'], int(since/dayms), "days old"
             res = yield proxy.callRemote('start_corpus', cid, config['ADMIN_PASSWORD'] if corpus['password'] else '')
             if res['code'] == 'fail':
                 print >> sys.stderr, "WARNING: could not start old corpus %s: %s" % (cid, res['message'])
