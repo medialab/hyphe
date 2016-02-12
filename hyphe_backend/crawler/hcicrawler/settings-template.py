@@ -28,6 +28,8 @@ DOWNLOADER_MIDDLEWARES = {
     'hcicrawler.middlewares.ProxyMiddleware': 100,
 }
 
+DUPEFILTER_CLASS = 'hcicrawler.middlewares.CustomDupeFilter'
+
 MONGO_HOST = '{{host}}'
 MONGO_PORT = {{mongo_port}}
 MONGO_DB = '{{db_name}}'

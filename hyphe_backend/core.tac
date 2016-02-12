@@ -824,8 +824,16 @@ class Core(jsonrpc.JSONRPC):
             response = yield agent.request(method, url, Headers(headers), None)
         except DNSLookupError as e:
             if use_proxy and self.corpora[corpus]["options"]['proxy']['host'] in str(e):
-                res['message'] = "Proxy not responding"
                 res['result'] = -2
+                res['message'] = "Proxy not responding"
+                if tryout == 3 and use_proxy:
+                    noproxy = True
+                    tryout = 1
+                if tryout < 3:
+                    if config['DEBUG'] == 2:
+                        logger.msg("Retry lookup after proxy error %s %s %s" % (method, url, tryout), system="DEBUG - %s" % corpus)
+                    res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
+                    returnD(res)
             else:
                 res['message'] = "DNS not found for url %s : %s" % (url, e)
         except Exception as e:

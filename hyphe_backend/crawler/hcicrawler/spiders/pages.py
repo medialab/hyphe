@@ -176,7 +176,10 @@ class PagesCrawler(BaseSpider):
             return p
         elif not "://www" in failure.request.url:
             return self._request(failure.request.url.replace('://', '://www.'))
-        self.log("ERROR : %s" % failure.getErrorMessage(), log.ERROR)
+        error = failure.getErrorMessage()
+        self.log("ERROR : %s" % error, log.ERROR)
+        if PROXY and not PROXY.startswith(':') and "OpenSSL.SSL.Error" in error:
+            return self._request(failure.request.url, noproxy=True)
         self.errors += 1
         return
 
@@ -251,8 +254,8 @@ class PagesCrawler(BaseSpider):
         c3 = not(has_prefix(tolru, self.nofollow_prefixes))
         return c1 and c2 and c3
 
-    def _request(self, url, **kw):
-        kw['meta'] = {'handle_httpstatus_all': True}
+    def _request(self, url, noproxy=False, **kw):
+        kw['meta'] = {'handle_httpstatus_all': True, 'noproxy': noproxy}
         kw['callback'] = self.handle_response
         kw['errback'] = self.handle_error
         if self.phantom:
