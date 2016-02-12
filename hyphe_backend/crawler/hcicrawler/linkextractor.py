@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 # REWRITE REGEXP LINK EXTRACTOR FROM SCRAPY FOR BETTER PERFS
 # WAS CHANGED:
 # - linkre regexp (more generic)
@@ -14,7 +15,7 @@ from w3lib.html import remove_tags, remove_entities, replace_escape_chars
 from scrapy.link import Link
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 
-linkre = re.compile(r"href=(\"[^\">]+[\">]|'[^'>]+['>]|[^\s>]+[\s>])", re.DOTALL | re.IGNORECASE)
+linkre = re.compile(r"<a[^>]*href\s*=\s*(\"[^\">]+[\">]|'[^'>]+['>]|[^\s>]+[\s>])", re.DOTALL | re.IGNORECASE)
 
 def clean_link(link_text):
     """Remove leading and trailing whitespace and punctuation"""
