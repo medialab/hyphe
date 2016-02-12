@@ -1483,7 +1483,6 @@ class Memory_Structure(jsonrpc.JSONRPC):
         res = yield self.update_webentity(webentity_id, "status", status, corpus=corpus)
         if not is_error(res):
             for WE in self.corpora[corpus]["webentities"]:
-                print WE.id, webentity_id
                 if WE.id == webentity_id:
                     oldstatus = WE.status
                     WE.status = status.upper()
