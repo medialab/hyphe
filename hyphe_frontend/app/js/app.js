@@ -20,6 +20,10 @@ angular.module('hyphe', [
   ,'hyphe.controllers'
 ])
 
+// Default conf settings for retrocompatibility
+.value('googleAnalyticsId', '')
+.value('disclaimer', '')
+
 // Route
 .config(['$routeProvider', function($routeProvider) {
   $routeProvider.when('/login', {templateUrl: 'views/login.html', controller: 'Login'});
