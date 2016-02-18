@@ -1921,7 +1921,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             "page": page,
             "webentities": WEs,
             "token": token,
-            "last_page": (total+1)/count,
+            "last_page": int((total+1)/count) if total else 0,
             "previous_page": None,
             "next_page": None
         }
@@ -1933,6 +1933,12 @@ class Memory_Structure(jsonrpc.JSONRPC):
 
     @inlineCallbacks
     def paginate_webentities(self, WEs, count, page, jobs=None, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
+        if count == -1 or len(WEs) <= count or light_for_csv:
+            res = yield self.format_webentities(WEs, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
+            if count == -1:
+                returnD(format_result(res))
+            respage = yield self.format_WE_page(len(res), count, page, res, corpus=corpus)
+            returnD(respage)
         subset = WEs[page*count:(page+1)*count]
         subset = yield self.format_webentities(subset, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
         ids = [w.id for w in WEs]
@@ -1974,21 +1980,14 @@ class Memory_Structure(jsonrpc.JSONRPC):
                 if not bl or is_error(res):
                     returnD(res)
                 WEs.extend(res)
+            count = -1
         else:
             WEs = yield self.ramcache_webentities(corpus=corpus)
             if is_error(WEs):
                 returnD(WEs)
         WEs, jobs = yield self.sort_webentities(WEs, sort=sort, corpus=corpus)
-        if n_WEs or count == -1:
-            res = yield self.format_webentities(WEs, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
-            returnD(format_result(res))
-        if len(WEs) > count and not light_for_csv:
-            res = yield self.paginate_webentities(WEs, count, page, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
-            returnD(res)
-        else:
-            res = yield self.format_webentities(WEs, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
-            respage = yield self.format_WE_page(len(res), count, page, res, corpus=corpus)
-            returnD(respage)
+        res = yield self.paginate_webentities(WEs, count, page, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
+        returnD(res)
 
     @inlineCallbacks
     def jsonrpc_advanced_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, autoescape_query=True, light=False, semilight=True, corpus=DEFAULT_CORPUS):
