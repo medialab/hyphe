@@ -40,4 +40,4 @@ RUN sed "s|##HYPHEPATH##|"`pwd`"|" /app/config/config.json.example | sed 's|"OPE
 
 EXPOSE 6978
 
-CMD /bin/bash -c "source $(which virtualenvwrapper.sh) && workon hyphe && twistd -y /app/hyphe_backend/core.tac --nodaemon"
+CMD /bin/bash -c "source $(which virtualenvwrapper.sh) && workon hyphe && twistd -y /app/hyphe_backend/core.tac --nodaemon --pidfile="
