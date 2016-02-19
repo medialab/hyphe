@@ -1971,6 +1971,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             if is_error(WE):
                 returnD(WE)
             WEs = [WE]
+            count = -1
         elif n_WEs:
             MAX_WE_AT_ONCE = 100
             WEs = []
