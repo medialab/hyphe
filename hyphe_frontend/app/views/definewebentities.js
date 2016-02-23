@@ -128,36 +128,44 @@ angular.module('hyphe.definewebentitiesController', [])
       switch (mode) {
         case 'left':
           $scope.list.forEach(function (obj) {
-            var offset = obj.prefixLength - 3
+            var lruLength = obj.lru.split('|').length
+            console.log('lru lengh', obj.lru, lruLength)
+            if (lruLength > 3) {
+              var offset = obj.prefixLength - 3
 
-            if (offset !== 0) {
-              if($scope.conflictsIndex)
-                $scope.conflictsIndex.removeFromLruIndex(obj)
+              if (offset !== 0) {
+                if($scope.conflictsIndex)
+                  $scope.conflictsIndex.removeFromLruIndex(obj)
 
-              obj.prefixLength -= offset
-              obj.truePrefixLength -= offset
+                obj.prefixLength -= offset
+                obj.truePrefixLength -= offset
 
-              if($scope.conflictsIndex)
-                $scope.conflictsIndex.addToLruIndex(obj)
+                if($scope.conflictsIndex)
+                  $scope.conflictsIndex.addToLruIndex(obj)
+              }
             }
           })
-          break;
+          break
+
         case 'right':
           $scope.list.forEach(function (obj) {
-            var offset = obj.lru.split('|').length - obj.truePrefixLength - 1
+            var lruLength = obj.lru.split('|').length
+            if (lruLength > 3) {
+              var offset = lruLength - obj.truePrefixLength - 1
 
-            if (offset !== 0) {
-              if($scope.conflictsIndex)
-                $scope.conflictsIndex.removeFromLruIndex(obj)
+              if (offset !== 0) {
+                if($scope.conflictsIndex)
+                  $scope.conflictsIndex.removeFromLruIndex(obj)
 
-              obj.prefixLength += offset
-              obj.truePrefixLength += offset
+                obj.prefixLength += offset
+                obj.truePrefixLength += offset
 
-              if($scope.conflictsIndex)
-                $scope.conflictsIndex.addToLruIndex(obj)
+                if($scope.conflictsIndex)
+                  $scope.conflictsIndex.addToLruIndex(obj)
+              }
             }
           })
-          break;
+          break
       }
     }
 
