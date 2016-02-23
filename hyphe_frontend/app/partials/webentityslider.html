@@ -1,7 +1,14 @@
 <div class="container-fluid hyphe-prefix-slider">
 	<div class="row">
 		<div class="col-md-4">
-			<div class="name-container" ng-class="{bold: obj.WEstatus=='exists'}">{{obj.name}}</div>
+			<div class="name-container" ng-class="{bold: obj.WEstatus=='exists'}">
+				<a
+          href="{{obj.lru|cutPrefixToUrl:obj.truePrefixLength}}"
+          target="_blank"
+          ng-click="$event.stopPropagation();"
+        ><span class="glyphicon glyphicon-link"></span></a>
+        {{obj.name}}
+			</div>
 			<div class="status-container">{{obj.statusText}}</div>
 		</div>
 		<div class="col-md-8">
