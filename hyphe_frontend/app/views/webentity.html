@@ -65,7 +65,8 @@
                           <dt></dt>
                           <dd>
                             <br>
-                            <div class="buttons">
+                            <!-- TODO: finish this and display it -->
+                            <div class="buttons" ng-show="false">
                               <!-- button to show form -->
                               <button type="button" class="btn btn-primary btn-sm" ng-click="editableForm.$show()" ng-show="!editableForm.$visible">
                                 EDIT
@@ -109,14 +110,16 @@
                     </div>
                   </div>
 
-                  <div class="row">
+                  <!-- TODO: finish this and display it -->
+                  <div class="row" ng-show="false">
                     <div class="col-md-12">
                       <hr>
                       <h3>Features</h3>
                       <br>
                     </div>
                   </div>
-                  <div class="row">
+                  <!-- TODO: don't forget to also display that -->
+                  <div class="row" ng-show="false">
                     <div class="col-md-8">
                       <div class="row">
                         <div class="col-md-6" ng-repeat="(cat, taglist) in webentity.tags.USER" ng-if="cat != '_freetags'">
