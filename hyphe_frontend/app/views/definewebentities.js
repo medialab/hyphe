@@ -123,6 +123,43 @@ angular.module('hyphe.definewebentitiesController', [])
     }
     fetchParentWebEntities()
 
+    // Slider commands
+    $scope.moveAllSliders = function (mode) {
+      switch (mode) {
+        case 'left':
+          $scope.list.forEach(function (obj) {
+            var offset = obj.prefixLength - 3
+
+            if (offset !== 0) {
+              if($scope.conflictsIndex)
+                $scope.conflictsIndex.removeFromLruIndex(obj)
+
+              obj.prefixLength -= offset
+              obj.truePrefixLength -= offset
+
+              if($scope.conflictsIndex)
+                $scope.conflictsIndex.addToLruIndex(obj)
+            }
+          })
+          break;
+        case 'right':
+          $scope.list.forEach(function (obj) {
+            var offset = obj.lru.split('|').length - obj.truePrefixLength - 1
+
+            if (offset !== 0) {
+              if($scope.conflictsIndex)
+                $scope.conflictsIndex.removeFromLruIndex(obj)
+
+              obj.prefixLength += offset
+              obj.truePrefixLength += offset
+
+              if($scope.conflictsIndex)
+                $scope.conflictsIndex.addToLruIndex(obj)
+            }
+          })
+          break;
+      }
+    }
 
     // Create web entities
     $scope.createWebEntities = function(){
