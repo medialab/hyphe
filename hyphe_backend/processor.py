@@ -23,7 +23,7 @@ def generate_cache_from_pages_list(pageList, precision_limit=1, precision_except
             autostarts.remove(page_item["url"])
             if page_item["status"] == 200:
                 goodautostarts.add(page_item["url"])
-            elif 300 <= page_item["status"] < 400:
+            elif 300 <= page_item["status"] < 400 and page_item["lrulinks"]:
                 goodautostarts.add(urllru.lru_to_url(page_item["lrulinks"][0]))
         page_item["lru"] = urllru.lru_clean(page_item["lru"])
         is_full_precision = urllru.lru_is_full_precision(page_item["lru"], precision_exceptions)
