@@ -846,7 +846,12 @@ textarea.over-error{
   margin-bottom: 2px;
   font-weight: 300;
 }
-
+table.sliders-commands tr td {
+  padding: 3px;
+}
+table.sliders-commands {
+  margin-bottom: 12px;
+}
 
 
 /* ==========================================================================

@@ -118,6 +118,18 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('cutPrefixToUrl', ['utils', function(utils){
+    return function(lru, cut) {
+      cut = cut || Infinity
+      var cutLru = lru.split('|')
+        .filter(function(stem, i){
+          return i < cut
+        })
+        .join('|')
+      return utils.LRU_to_URL(cutLru)
+    }
+  }])
+
   .filter('sortByField', [function(){
     return function(list,field,asc){
       var result = list.slice(0)

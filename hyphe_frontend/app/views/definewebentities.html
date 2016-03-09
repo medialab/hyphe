@@ -12,6 +12,26 @@
                 <p class="text-info">
                   Check the <span hyphe-glossary="boundaries"></span> of each <span hyphe-glossary="web entity"></span> before creating it
                 </p>
+                <table class="sliders-commands" ng-show="list.length > 0">
+                  <tr>
+                    <td>
+                      Sliders:
+                    </td>
+                    <td>
+                      <button
+                        class="btn btn-default btn-xs"
+                        ng-click="moveAllSliders('left')"
+                      >ALL TO LEFT</button>
+                    </td>
+                    <td>
+                      <button
+                        class="btn btn-default btn-xs"
+                        ng-click="moveAllSliders('right')"
+                      >ALL TO RIGHT</button>
+                    </td>
+                  </tr>
+                </table>
+
                 <div class="container-fluid">
                   <div
                     class="row no-gutter define-we-row"

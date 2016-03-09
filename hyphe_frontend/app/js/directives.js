@@ -86,6 +86,10 @@ angular.module('hyphe.directives', [])
             return scope.obj
           }, updateCoordinates)
         
+        scope.$watch(function(){  // Watch obj prefix length change
+            return scope.obj.prefixLength
+          }, updateCoordinates)
+        
         scope.$watch(function(){  // Watch steps in DOM
             return el.parent().find('table>tbody>tr>td.stem').length
           }, updateCoordinates)

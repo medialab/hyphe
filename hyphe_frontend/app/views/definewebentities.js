@@ -123,6 +123,72 @@ angular.module('hyphe.definewebentitiesController', [])
     }
     fetchParentWebEntities()
 
+    // Slider commands
+    $scope.moveAllSliders = function (mode) {
+      switch (mode) {
+        case 'left':
+          $scope.list.forEach(function (obj) {
+            var lruLength = obj.lru.split('|').length
+            if (lruLength > 3) {
+              var offset = obj.prefixLength - 3
+
+              if (offset !== 0) {
+                if($scope.conflictsIndex)
+                  $scope.conflictsIndex.removeFromLruIndex(obj)
+
+                obj.prefixLength -= offset
+                obj.truePrefixLength -= offset
+                updateNameAndStatus(obj)
+
+                if($scope.conflictsIndex)
+                  $scope.conflictsIndex.addToLruIndex(obj)
+              }
+            }
+          })
+          break
+
+        case 'right':
+          $scope.list.forEach(function (obj) {
+            var lruLength = obj.lru.split('|').length
+            if (lruLength > 3) {
+              var offset = lruLength - obj.truePrefixLength - 1
+
+              if (offset !== 0) {
+                if($scope.conflictsIndex)
+                  $scope.conflictsIndex.removeFromLruIndex(obj)
+
+                obj.prefixLength += offset
+                obj.truePrefixLength += offset
+                updateNameAndStatus(obj)
+
+                if($scope.conflictsIndex)
+                  $scope.conflictsIndex.addToLruIndex(obj)
+              }
+            }
+          })
+          break
+      }
+
+      // FIXME: factor this function with the similar one in hyphePrefixSlider directive
+      function updateNameAndStatus(obj) {
+        obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
+        var webentityFound
+        obj.parentWebEntities.forEach(function(we){
+          if(!webentityFound && we.stems_count == obj.truePrefixLength){
+            webentityFound = we
+          }
+        })
+        if(webentityFound){
+          obj.name = webentityFound.name
+          obj.statusText = 'Already exists'
+          obj.WEstatus = 'exists'
+        } else {
+          obj.name = utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength + !obj.tldLength))
+          obj.statusText = 'New'
+          obj.WEstatus = 'new'
+        }
+      }
+    }
 
     // Create web entities
     $scope.createWebEntities = function(){
