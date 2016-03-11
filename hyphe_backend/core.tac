@@ -424,7 +424,7 @@ class Core(jsonrpc.JSONRPC):
         returnD(format_result('pong'))
 
     @inlineCallbacks
-    def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False):
+    def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False, _nobackup=False):
         """Resets completely a `corpus` by cancelling all crawls and emptying the MemoryStructure and Mongo data."""
         if not self.corpus_ready(corpus) and self.msclients.status_corpus(corpus, simplify=True) != "starting":
             returnD(self.corpus_error(corpus))
@@ -457,7 +457,7 @@ class Core(jsonrpc.JSONRPC):
             yield self.jsonrpc_backup_corpus(corpus)
         if not _quiet:
             logger.msg("Destroying corpus...", system="INFO - %s" % corpus)
-        res = yield self.jsonrpc_reinitialize(corpus, _noloop=True, _quiet=_quiet)
+        res = yield self.jsonrpc_reinitialize(corpus, _noloop=True, _quiet=_quiet, _nobackup=True)
         if is_error(res):
             returnD(res)
         res = yield self.jsonrpc_stop_corpus(corpus, _quiet=_quiet)
@@ -2281,7 +2281,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
             links = yield self.msclients.loop.getWebEntityLinks(corpus=corpus)
             if is_error(links):
                 logger.msg(links['message'], system="ERROR - %s" % corpus)
-                returnD(False)
+                returnD(links)
             self.corpora[corpus]['webentities_links'] = links
             deferToThread(self.rank_webentities, corpus)
         res = [[link.sourceId, link.targetId, link.weight] for link in self.corpora[corpus]['webentities_links']]
