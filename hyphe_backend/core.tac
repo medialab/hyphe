@@ -426,6 +426,8 @@ class Core(jsonrpc.JSONRPC):
     @inlineCallbacks
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False):
         """Resets completely a `corpus` by cancelling all crawls and emptying the MemoryStructure and Mongo data."""
+        if not self.corpus_ready(corpus) and self.msclients.status_corpus(corpus, simplify=True) != "starting":
+            returnD(self.corpus_error(corpus))
         if self.corpora[corpus]['reset']:
             returnD(format_result("Already resetting"))
         if not _quiet:
