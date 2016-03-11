@@ -17,7 +17,7 @@ class ProxyMiddleware(object):
         if use_proxy(request):
             request.meta['proxy'] = "http://%s/" % PROXY
 
-class RFPDupeFilter(BaseDupeFilter):
+class CustomDupeFilter(BaseDupeFilter):
     """Request Fingerprint duplicates filter, handle duplicates only on same proxy"""
 
     def __init__(self, path=None):
@@ -34,7 +34,7 @@ class RFPDupeFilter(BaseDupeFilter):
 
     def request_seen(self, request):
         fp = request_fingerprint(request)
-        if use_proxy():
+        if use_proxy(request):
              fp += "/P"
         if fp in self.fingerprints:
             return True
