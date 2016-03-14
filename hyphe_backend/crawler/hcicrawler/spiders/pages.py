@@ -25,7 +25,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 
 from hcicrawler.linkextractor import RegexpLinkExtractor
-from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix
+from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.items import Page
 from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM
 from hcicrawler.samples import DEFAULT_INPUT
@@ -191,6 +191,12 @@ class PagesCrawler(BaseSpider):
             redir_url = response.headers['Location']
             if redir_url.startswith('/'):
                 redir_url = "%s%s" % (lru_get_host_url(lru).strip('/'), redir_url)
+            elif redir_url.startswith('../'):
+                lrustart = lru[:lru.rfind('|p:')]
+                while redir_url.startswith('../'):
+                    lrustart = lrustart[:lrustart.rfind('|p:')]
+                    redir_url = redir_url[3:]
+                redir_url = "%s/%s" % (lru_to_url(lrustart+'|'), redir_url)
             elif redir_url.startswith('./') or not redir_url.startswith('http'):
                 redir_url = "%s%s" % (lru_get_path_url(lru).strip('/'), redir_url[1:])
             links = [{'url': redir_url}]
