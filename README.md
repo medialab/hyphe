@@ -118,4 +118,6 @@ See our [roadmap](doc/roadmap.md)!
 
 Discover more of our projects at [médialab tools](http://tools.medialab.sciences-po.fr/)
 
+This work is supported by [DIME-WEB](http://dimeweb.dime-shs.sciences-po.fr/) part of [DIME-SHS](http://www.sciencespo.fr/dime-shs/) research equipment financed by the EQUIPEX program (ANR-10-EQPX-19-01).
+
 Hyphe is a free software released under [LGPL](LICENSE.LGPL) &amp; [CECILL-C](LICENSE.CECILL-C) licenses.
