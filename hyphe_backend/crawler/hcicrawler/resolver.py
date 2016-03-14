@@ -40,9 +40,17 @@ class ResolverAgent(RedirectAgent):
         self.lastURI = locationHeaders[0].lstrip('/')
 
         # Handle relative redirects
-        if not self.lastURI.startswith('http'):
+        urlstart = uri[:uri.rfind('/')]
+        if self.lastURI.startswith('./'):
+            self.lastURI = "%s/%s" % (urlstart, self.lastURI[2:])
+        elif self.lastURI.startswith('../'):
+            while self.lastURI.startswith('../'):
+                urlstart = urlstart[:urlstart.rfind('/')]
+                self.lastURI = self.lastURI[3:]
+            self.lastURI = "%s/%s" % (urlstart, self.lastURI)
+        elif not self.lastURI.startswith('http'):
             try:
-                host = self.lastURI[:(self.lastURI+"/").index('/', 8)]
+                host = uri[:(uri+"/").index('/', 8)]
             except:
                 host = "http:/"
             self.lastURI = "%s/%s" % (host, self.lastURI)
