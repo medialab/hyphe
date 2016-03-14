@@ -37,24 +37,24 @@ class ResolverAgent(RedirectAgent):
             err = error.RedirectWithNoLocation(
                 response.code, 'No location header field', uri)
             raise ResponseFailed([failure.Failure(err)], response)
-        self.lastURI = locationHeaders[0].lstrip('/')
+        newURI = locationHeaders[0].lstrip('/')
 
         # Handle relative redirects
-        urlstart = uri[:uri.rfind('/')]
-        if self.lastURI.startswith('./'):
-            self.lastURI = "%s/%s" % (urlstart, self.lastURI[2:])
-        elif self.lastURI.startswith('../'):
-            while self.lastURI.startswith('../'):
+        urlstart = self.lastURI[:self.lastURI.rfind('/')]
+        if newURI.startswith('./'):
+            newURI = "%s/%s" % (urlstart, newURI[2:])
+        elif newURI.startswith('../'):
+            while newURI.startswith('../'):
                 urlstart = urlstart[:urlstart.rfind('/')]
-                self.lastURI = self.lastURI[3:]
-            self.lastURI = "%s/%s" % (urlstart, self.lastURI)
-        elif not self.lastURI.startswith('http'):
+                newURI = newURI[3:]
+            newURI = "%s/%s" % (urlstart, newURI)
+        elif not newURI.startswith('http'):
             try:
-                host = uri[:(uri+"/").index('/', 8)]
+                host = self.lastURI[:(self.lastURI+"/").index('/', 8)]
             except:
                 host = "http:/"
-            self.lastURI = "%s/%s" % (host, self.lastURI)
-
+            newURI = "%s/%s" % (host, newURI)
+        self.lastURI = newURI
         deferred = self._agent.request(method, self.lastURI, headers)
         return deferred.addCallback(self._handleResponse, method, uri, headers, redirectCount + 1)
 
