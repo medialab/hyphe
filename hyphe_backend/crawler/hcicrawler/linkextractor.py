@@ -9,9 +9,7 @@
 
 import re
 from urlparse import urljoin
-
-from w3lib.html import remove_tags, remove_entities, replace_escape_chars
-
+from w3lib.html import remove_entities
 from scrapy.link import Link
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 
@@ -29,9 +27,8 @@ class RegexpLinkExtractor(SgmlLinkExtractor):
             base_url = urljoin(response_url, self.base_url) if self.base_url else response_url
 
         clean_url = lambda u: urljoin(base_url, remove_entities(clean_link(u.decode(response_encoding))))
-        clean_text = lambda t: replace_escape_chars(remove_tags(t.decode(response_encoding))).strip()
 
         links_text = linkre.findall(response_text)
-        urlstext = set([clean_url(url) for url in links_text])
+        urlstext = set([clean_url(url).encode('utf-8') for url in links_text])
 
         return [Link(url, "") for url in urlstext]
