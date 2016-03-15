@@ -9,7 +9,7 @@ from twisted.python import log as logger
 from twisted.web.client import getPage
 from twisted.internet.task import LoopingCall
 from twisted.internet.defer import DeferredList, inlineCallbacks, returnValue as returnD
-from twisted.internet.error import ConnectionRefusedError
+from twisted.internet.error import ConnectionRefusedError, TimeoutError
 from hyphe_backend.lib.mongo import MongoDB
 from hyphe_backend.lib.utils import format_error, is_error, deferredSleep, now_ts
 
@@ -48,7 +48,14 @@ class JobsQueue(object):
     @inlineCallbacks
     def get_scrapyd_status(self):
         url = "%sjobs" % self.scrapyd
-        jobs = yield getPage(url)
+        try:
+            jobs = yield getPage(url)
+        except TimeoutError:
+            logger.msg("WARNING: ScrapyD's monitoring website seems like not answering")
+            returnD(None)
+        except Exception as e:
+            logger.msg("WARNING: ScrapyD's monitoring website seems down: %s %s" % (type(e), e))
+            returnD(None)
         status = {"pending": 0}
         read = None
         for line in jobs.split("><tr"):
@@ -112,7 +119,7 @@ class JobsQueue(object):
             returnD(None)
 
         status = yield self.get_scrapyd_status()
-        if status["pending"] > 0:
+        if not status or status["pending"] > 0:
             returnD(None)
         # Add some random wait to allow possible concurrent Hyphe instance
         # to compete for ScrapyD's empty slots

@@ -33,10 +33,10 @@ angular.module('hyphe.preparecrawlsController', [])
     var lookupEngine = getLookupEngine()
       , lazylookupTimeInterval
 
-    $scope.openWebentity = function(index){
-      var obj = $scope.list[index]
+    $scope.openWebentity = function(id){
+      var obj = list_byId[id]
       if (obj.status === 'loaded') {
-        openWebentityModal(obj, index)
+        openWebentityModal(obj)
       }
     }
 
@@ -351,7 +351,7 @@ angular.module('hyphe.preparecrawlsController', [])
     }
 
     // Web entity modal
-    function openWebentityModal(obj, i){
+    function openWebentityModal(obj){
 
       if (obj.webentity.startpages.length == 0) {
 
