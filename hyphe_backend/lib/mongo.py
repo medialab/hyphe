@@ -80,26 +80,29 @@ class MongoDB(object):
         yield self.db["corpus"].remove({'_id': corpus}, safe=True)
         yield self.drop_corpus_collections(corpus)
 
+    @inlineCallbacks
     def init_corpus_indexes(self, corpus, retry=True):
         try:
-            self.pages(corpus).create_index(sortasc('timestamp'), background=True)
-            self.pages(corpus).create_index(sortasc('_job'), background=True)
-            self.pages(corpus).create_index(sortasc('_job') + sortasc('forgotten'), background=True)
-            self.pages(corpus).create_index(sortasc('url'), background=True)
-            self.queue(corpus).create_index(sortasc('timestamp'), background=True)
-            self.queue(corpus).create_index(sortasc('_job') + sortdesc('timestamp'), background=True)
-            self.logs(corpus).create_index(sortasc('timestamp'), background=True)
-            self.jobs(corpus).create_index(sortasc('crawling_status'), background=True)
-            self.jobs(corpus).create_index(sortasc('indexing_status'), background=True)
-            self.jobs(corpus).create_index(sortasc('webentity_id'), background=True)
-            self.jobs(corpus).create_index(sortasc('webentity_id') + sortasc('created_at'), background=True)
-            self.jobs(corpus).create_index(sortasc('webentity_id') + sortdesc('created_at'), background=True)
-            self.jobs(corpus).create_index(sortasc('webentity_id') + sortasc("crawling_status") + sortasc("indexing_status") + sortasc('created_at'), background=True)
-            self.jobs(corpus).create_index(sortasc('crawling_status') + sortasc('indexing_status') + sortasc('created_at'), background=True)
-            self.stats(corpus).create_index(sortasc('timestamp'), background=True)
+            yield self.db['corpus'].create_index(sortdesc('last_activity'), background=True)
+            yield self.pages(corpus).create_index(sortasc('timestamp'), background=True)
+            yield self.pages(corpus).create_index(sortasc('_job'), background=True)
+            yield self.pages(corpus).create_index(sortasc('_job') + sortasc('forgotten'), background=True)
+            yield self.pages(corpus).create_index(sortasc('url'), background=True)
+            yield self.queue(corpus).create_index(sortasc('timestamp'), background=True)
+            yield self.queue(corpus).create_index(sortasc('_job') + sortdesc('timestamp'), background=True)
+            yield self.logs(corpus).create_index(sortasc('timestamp'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('crawling_status'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('indexing_status'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('webentity_id'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('webentity_id') + sortasc('created_at'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('webentity_id') + sortdesc('created_at'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('webentity_id') + sortasc("crawling_status") + sortasc("indexing_status") + sortasc('created_at'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('crawling_status') + sortasc('indexing_status') + sortasc('created_at'), background=True)
+            yield self.stats(corpus).create_index(sortasc('timestamp'), background=True)
         except OperationFailure as e:
             # catch and destroy old indices built with older pymongo versions
             if retry:
+                yield self.db['corpus'].drop_indexes()
                 for coll in ["pages", "queue", "logs", "jobs", "stats"]:
                     yield self.get(coll)(corpus).drop_indexes()
                 yield self.init_corpus_indexes(corpus, retry=False)
