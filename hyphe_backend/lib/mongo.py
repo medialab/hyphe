@@ -7,6 +7,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from txmongo import MongoConnection, connection as mongo_connection
 mongo_connection._Connection.noisy = False
 from txmongo.filter import sort as mongosort, ASCENDING, DESCENDING
+from pymongo.errors import OperationFailure
 from bson import ObjectId
 from hyphe_backend.lib.utils import crawling_statuses, indexing_statuses, salt, now_ts
 
@@ -104,7 +105,7 @@ class MongoDB(object):
             if retry:
                 yield self.db['corpus'].drop_indexes()
                 for coll in ["pages", "queue", "logs", "jobs", "stats"]:
-                    yield self.get(coll)(corpus).drop_indexes()
+                    yield self._get_coll(corpus, coll).drop_indexes()
                 yield self.init_corpus_indexes(corpus, retry=False)
             else:
                 raise e
