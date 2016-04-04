@@ -1675,9 +1675,10 @@ class Memory_Structure(jsonrpc.JSONRPC):
         pages_to_index = len(ids)
         if not pages_to_index:
             returnD(False)
-        pages, links, autostartpages = yield deferToThread(processor.generate_cache_from_pages_list, page_items, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0, autostarts=job['crawl_arguments'].get('start_urls_auto', []))
-        for auto in autostartpages:
-            yield self.jsonrpc_add_webentity_startpage(job['webentity_id'], auto, corpus=corpus, _automatic=True)
+        pages, links, autostartpages = yield deferToThread(processor.generate_cache_from_pages_list, page_items, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0, autostarts=job.get('crawl_arguments', {}).get('start_urls_auto', []))
+        if job['webentity_id']:
+            for auto in autostartpages:
+                yield self.jsonrpc_add_webentity_startpage(job['webentity_id'], auto, corpus=corpus, _automatic=True)
         logger.msg("...%s pages and %s links identified from %s crawled pages in %ss..." % (len(pages), len(links), pages_to_index, time.time()-s), system="INFO - %s" % corpus)
         s = time.time()
         cache_id = yield self.msclients.loop.createCache(pages.values(), corpus=corpus)
@@ -1710,8 +1711,9 @@ class Memory_Structure(jsonrpc.JSONRPC):
         yield self.db.clean_queue(corpus, ids)
         crawled_pages_left = yield self.db.count_queue(corpus, job['crawljob_id'])
         tot_crawled_pages = yield self.db.count_pages(corpus, job['crawljob_id'])
-        yield self.db.update_jobs(corpus, job['_id'], {'nb_crawled_pages': tot_crawled_pages, 'nb_unindexed_pages': crawled_pages_left, 'indexing_status': indexing_statuses.BATCH_FINISHED}, inc={'nb_pages': nb_pages, 'nb_links': nb_links})
-        yield self.db.add_log(corpus, job['_id'], "INDEX_"+indexing_statuses.BATCH_FINISHED)
+        if job['_id'] != 'unknown':
+            yield self.db.update_jobs(corpus, job['_id'], {'nb_crawled_pages': tot_crawled_pages, 'nb_unindexed_pages': crawled_pages_left, 'indexing_status': indexing_statuses.BATCH_FINISHED}, inc={'nb_pages': nb_pages, 'nb_links': nb_links})
+            yield self.db.add_log(corpus, job['_id'], "INDEX_"+indexing_statuses.BATCH_FINISHED)
         returnD(True)
 
     def rank_webentities(self, corpus=DEFAULT_CORPUS):
@@ -1747,13 +1749,17 @@ class Memory_Structure(jsonrpc.JSONRPC):
             job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id', 'crawljob_id', 'crawl_arguments', 'webentity_id'], limit=1)
             if not job:
                 logger.msg("Indexing job with pages in queue but not found in jobs: %s" % oldest_page_in_queue['_job'], system="WARNING - %s" % corpus)
-                self.corpora[corpus]['loop_running'] = None
-                returnD(False)
+                job = {
+                  '_id': 'unknown',
+                  'crawljob_id': oldest_page_in_queue['_job'],
+                  'webentity_id': None
+                }
             page_items = yield self.db.get_queue(corpus, {'_job': job['crawljob_id']}, limit=config['memoryStructure']['max_simul_pages_indexing'])
             if page_items:
                 logger.msg("Indexing %s pages from job %s..." % (len(page_items), job['_id']), system="INFO - %s" % corpus)
-                yield self.db.update_jobs(corpus, job['_id'], {'indexing_status': indexing_statuses.BATCH_RUNNING})
-                yield self.db.add_log(corpus, job['_id'], "INDEX_"+indexing_statuses.BATCH_RUNNING)
+                if job['_id'] != 'unknown':
+                    yield self.db.update_jobs(corpus, job['_id'], {'indexing_status': indexing_statuses.BATCH_RUNNING})
+                    yield self.db.add_log(corpus, job['_id'], "INDEX_"+indexing_statuses.BATCH_RUNNING)
                 self.corpora[corpus]['loop_running_since'] = now_ts()
                 res = yield self.index_batch(page_items, job, corpus=corpus)
                 if is_error(res):
