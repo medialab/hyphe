@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from twisted.web.client import getPage
+from hyphe_backend.lib.utils import getPage
 from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 

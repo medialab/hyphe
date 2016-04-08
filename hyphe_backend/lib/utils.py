@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os, re, types, time, hashlib
+from twisted.web.client import getPage as getPageOrig
 from twisted.internet.task import deferLater
 from twisted.internet import reactor
 from hyphe_backend.lib.config_hci import load_config, DEFAULT_CORPUS
@@ -9,6 +10,13 @@ config = load_config()
 if not config:
     exit()
 
+# Handle Twisted 16+ now refusing unicode urls
+def getPage(url, *args, **kwargs):
+    try:
+        url = str(url)
+    except:
+        pass
+    return getPageOrig(url, *args, **kwargs)
 
 class Enum(set):
     def __getattr__(self, name):

@@ -6,12 +6,11 @@ from os import environ
 from random import randint
 from urllib import urlencode
 from twisted.python import log as logger
-from twisted.web.client import getPage
 from twisted.internet.task import LoopingCall
 from twisted.internet.defer import DeferredList, inlineCallbacks, returnValue as returnD
 from twisted.internet.error import ConnectionRefusedError, TimeoutError
 from hyphe_backend.lib.mongo import MongoDB
-from hyphe_backend.lib.utils import format_error, is_error, deferredSleep, now_ts
+from hyphe_backend.lib.utils import format_error, is_error, deferredSleep, now_ts, getPage
 
 class JobsQueue(object):
 
