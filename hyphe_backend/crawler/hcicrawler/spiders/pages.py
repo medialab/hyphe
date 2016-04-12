@@ -12,7 +12,10 @@ except:
     from bson.binary import Binary
 
 from scrapy import log
-from scrapy.spider import BaseSpider
+try:
+    from scrapy.spider import Spider
+except:
+    from scrapy.spider import BaseSpider
 from scrapy.http import Request, HtmlResponse
 from scrapy.linkextractor import IGNORED_EXTENSIONS
 from scrapy.utils.url import url_has_any_extension
