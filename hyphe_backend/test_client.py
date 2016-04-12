@@ -3,7 +3,7 @@
 
 helpdoc="""
 Simple script to test the API in command line
-optionnal 1st arg : "inline" to get results as a single line
+optionnal 1st arg : "inline" to get results as a single line, or "json" to get results as proper json
 2nd arg           : method name
 optionnal 3rd arg : "array" to mark following arguments are to be taken as elements of an array
 following args    : method's arguments. To provide an array, write it as a string after "array", for instance : « array "['test','test2']" » or « array "[['test1','test2'],['test3','test4']]] ».
@@ -16,7 +16,7 @@ Examples from HCI root:
 
 from twisted.internet import reactor, defer
 from txjsonrpc.web.jsonrpc import Proxy
-import sys, re
+import sys, re, json
 from hyphe_backend.lib import config_hci
 
 config = config_hci.load_config()
@@ -30,12 +30,17 @@ if len(sys.argv) == 1:
 if sys.argv[1] == "inline":
     inline = True
     startargs = 3
+elif sys.argv[1] == "json":
+    inline = "json"
+    startargs = 3
 else:
     inline = False
     startargs = 2
 
 def printValue(value):
-    if inline:
+    if inline == "json":
+        print json.dumps(value)
+    elif inline:
         print repr(value).decode("unicode-escape").encode('utf-8')
     else:
         import pprint
