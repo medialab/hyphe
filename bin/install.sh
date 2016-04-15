@@ -18,7 +18,7 @@ if ! isCentOS; then
   fi
   repos_tool='apt-get'
   repos_updt='update'
-  packages='python-dev libxml2-dev libxslt1-dev build-essential libffi-dev libssl-dev libstdc++6'
+  packages='python-dev virtualenvwrapper libxml2-dev libxslt1-dev build-essential libffi-dev libssl-dev libstdc++6'
   apache='apache2'
   apache_path='apache2/sites-available'
   java='openjdk-6-jre'
@@ -27,7 +27,7 @@ else
   sudo yum -y install epel-release >> install.log || exitAndLog install.log "installing epel-release"
   repos_tool='yum'
   repos_updt='check-update'
-  packages='python-devel python-setuptools libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6'
+  packages='python-devel python-setuptools python-virtualenvwrapper libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6'
   apache='httpd'
   apache_path='httpd/conf.d'
   java='java-1.6.0-openjdk'
@@ -132,6 +132,23 @@ if ! which mongod > /dev/null 2>&1 ; then
   fi
 fi
 
+# Install txmongo and selenium as global dependencies for ScrapyD spiders to be able to use it
+echo "Install TLS requirements for Scrapy"
+echo "-----------------------------------"
+sudo pip -q install "urllib3[secure]" >> install.log || exitAndLog install.log "installing Scrapy TLS requirements"
+echo
+
+echo "Install txMongo"
+echo "---------------"
+sudo pip -q install "pymongo==2.7" >> install.log || exitAndLog install.log "installing pymongo"
+sudo pip -q install "txmongo==0.6" >> install.log || exitAndLog install.log "installing txmongo"
+echo
+
+echo "Install Selenium"
+echo "---------------"
+sudo pip -q install "selenium==2.42.1" >> install.log || exitAndLog install.log "installing selenium"
+echo
+
 # Install ScrapyD
 echo "Install and start ScrapyD..."
 echo "----------------------------"
@@ -209,30 +226,11 @@ if ! test -d hyphe_backend/memorystructure; then
   echo
 fi
 
-# Install txmongo and selenium as global dependencies for ScrapyD spiders to be able to use it
-echo "Install txMongo"
-echo "---------------"
-sudo pip -q install "pymongo==2.7" >> install.log || exitAndLog install.log "installing pymongo"
-sudo pip -q install "txmongo==0.6" >> install.log || exitAndLog install.log "installing txmongo"
-echo
-
-echo "Install Selenium"
-echo "---------------"
-sudo pip -q install "selenium==2.42.1" >> install.log || exitAndLog install.log "installing selenium"
-echo
-
-echo "Install TLS requirements for Scrapy"
-echo "-----------------------------------"
-sudo pip -q install "urllib3[secure]" >> install.log || exitAndLog install.log "installing Scrapy TLS requirements"
-echo
-
 # Install Hyphe's VirtualEnv
 echo "Install VirtualEnv..."
 echo "---------------------"
 echo
-sudo pip -q install virtualenv >> install.log || exitAndLog install.log "installing virtualenv"
-sudo pip -q install virtualenvwrapper$extravenvwrapper >> install.log || exitAndLog install.log "installing virtualenvwrapper"
-source $(which virtualenvwrapper.sh)
+source $(which virtualenvwrapper.sh) >> install.log || exitAndLog install.log "VirtualEnvWrapper is missing"
 mkvirtualenv --no-site-packages hyphe
 workon hyphe
 echo " ...installing python dependencies..."
