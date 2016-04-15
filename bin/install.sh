@@ -262,7 +262,7 @@ if ! grep "$(pwd)/hyphe_frontend" /etc/$apache_path/$apache_name*.conf > /dev/nu
   sed "s|##HYPHEPATH##|"`pwd`"|" config/apache2_example.conf |
     sed "s|##TWISTEDPORT##|6978|" |
     sed "s|##WEBPATH##|$apache_name|" > config/apache2.conf || exitAndLog install.log "configuring $apache_name"
-  sudo ln -s `pwd`/config/apache2.conf /etc/$apache_path/$apache_name.conf || exitAndLog install.log "installing $apache_name configuration"
+  sudo cp -f `pwd`/config/apache2.conf /etc/$apache_path/$apache_name.conf || exitAndLog install.log "installing $apache_name configuration"
 fi
 if ! isCentOS; then
   echo " ...activating mod proxy for apache..."
