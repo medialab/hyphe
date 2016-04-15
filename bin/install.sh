@@ -21,16 +21,14 @@ if ! isCentOS; then
   packages='python-dev libxml2-dev libxslt1-dev build-essential libffi-dev libssl-dev libstdc++6'
   apache='apache2'
   apache_path='apache2/sites-available'
-  apache_pack='apache2 libapache2-mod-proxy-html'
   java='openjdk-6-jre'
 else
   echo "Install for CentOS/Fedora/RedHat"
   repos_tool='yum'
   repos_updt='check-update'
-  packages='python-devel python-setuptools libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6'
+  packages='epel-release python-devel python-setuptools libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6'
   apache='httpd'
   apache_path='httpd/conf.d'
-  apache_pack='httpd'
   java='java-1.6.0-openjdk'
   installer='rpm'
   scrapyd='scrapyd-1.0.1-3.el6.x86_64.rpm'
@@ -47,13 +45,26 @@ echo
 echo " ...updating sources repositories..."
 sudo $repos_tool $repos_updt > /dev/null || isCentOS || exitAndLog install.log "updating repositories sources list"
 echo " ...installing packages..."
-sudo $repos_tool -y install curl wget python-pip $packages $apache_pack >> install.log || exitAndLog install.log "installing packages"
+sudo $repos_tool -y install curl wget python-pip $packages $apache >> install.log || exitAndLog install.log "installing packages"
 if isCentOS; then
   pip > /dev/null || alias pip="python-pip"
   sudo chkconfig --levels 235 httpd on || exitAndLog install.log "setting httpd's autoreboot"
   sudo service httpd restart || exitAndLog install.log "starting httpd"
+else
+  sudo a2enmod proxy_http || sudo $repos_tool -y install libapache2-mod-proxy-html >> install.log || exitAndLog install.log "installing mod proxy"
 fi
 echo
+
+# Handle deprecated python 2.6
+extravenvwrapper=
+extratwisted=
+extrarequirements=
+if python -V | grep "2.6" > /dev/null; then
+  extravenvwrapper="==4.1.1"
+  extratwisted="==14.0"
+  extrarequirements="-py2.6"
+fi 
+
 
 # Check SELinux
 if test -x /usr/sbin/sestatus && sestatus | grep "enabled" > /dev/null; then
@@ -134,7 +145,7 @@ if ! which scrapyd > /dev/null 2>&1 ; then
     python -c "import scrapy" > /dev/null 2>&1
     if [ $? -ne 0 ]; then
       echo " ...installing Scrapy dependencies..."
-      sudo pip -q install w3lib==1.12 Twisted==14 service_identity==14 urllib3[secure] >> install.log || exitAndLog install.log "installing Twisted"
+      sudo pip -q install w3lib==1.12 Twisted$extratwisted service_identity==14 urllib3[secure] >> install.log || exitAndLog install.log "installing Twisted"
       echo " ...installing Scrapy..."
       sudo pip -q install Scrapy==0.18 >> install.log || exitAndLog install.log "installing Scrapy"
     fi
@@ -209,17 +220,22 @@ echo "---------------"
 sudo pip -q install "selenium==2.42.1" >> install.log || exitAndLog install.log "installing selenium"
 echo
 
+echo "Install TLS requirements for Scrapy"
+echo "-----------------------------------"
+sudo pip -q install "urllib3[secure]" >> install.log || exitAndLog install.log "installing Scrapy TLS requirements"
+echo
+
 # Install Hyphe's VirtualEnv
 echo "Install VirtualEnv..."
 echo "---------------------"
 echo
 sudo pip -q install virtualenv >> install.log || exitAndLog install.log "installing virtualenv"
-sudo pip -q install virtualenvwrapper >> install.log || exitAndLog install.log "installing virtualenvwrapper"
+sudo pip -q install virtualenvwrapper$extravenvwrapper >> install.log || exitAndLog install.log "installing virtualenvwrapper"
 source $(which virtualenvwrapper.sh)
 mkvirtualenv --no-site-packages hyphe
 workon hyphe
 echo " ...installing python dependencies..."
-pip install -r requirements.txt >> install.log || exitAndLog install.log "installing python dependencies"
+pip install -r requirements${extrarequirements}.txt >> install.log || exitAndLog install.log "installing python dependencies"
 add2virtualenv $(pwd)
 deactivate
 echo
@@ -263,7 +279,7 @@ else
     exit 1
   fi
 fi
-sudo service $apache reload || exitAndLog /dev/null "reloading apache"
+sudo service $apache restart || exitAndLog /dev/null "reloading apache"
 echo
 if curl -sL http://localhost/$apache_name/ | grep '403 Forbidden' > /dev/null 2>&1; then
   echo

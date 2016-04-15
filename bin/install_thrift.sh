@@ -5,7 +5,7 @@ source bin/common.sh
 # Install Java dependencies if required (openJDK6, ant, maven)
 echo " - Install Java dependencies"
 if isCentOS; then
-  sudo yum -y install java-1.6.0-openjdk-devel > /tmp/javadeps.log || exitAndLog /tmp/javadeps.log "[java] install failed"
+  sudo yum -y install gcc-c++ java-1.6.0-openjdk-devel > /tmp/javadeps.log || exitAndLog /tmp/javadeps.log "[java] install failed"
   sudo yum -y install ant >> /tmp/javadeps.log || exitAndLog /tmp/javadeps.log "[ant] install failed"
   # Install Maven from online binary since no yum repository exists
   if ! which mvn > /dev/null 2>&1; then
