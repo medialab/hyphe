@@ -24,9 +24,10 @@ if ! isCentOS; then
   java='openjdk-6-jre'
 else
   echo "Install for CentOS/Fedora/RedHat"
+  sudo yum -y install epel-release >> install.log || exitAndLog install.log "installing epel-release"
   repos_tool='yum'
   repos_updt='check-update'
-  packages='epel-release python-devel python-setuptools libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6'
+  packages='python-devel python-setuptools libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6'
   apache='httpd'
   apache_path='httpd/conf.d'
   java='java-1.6.0-openjdk'
@@ -47,7 +48,7 @@ sudo $repos_tool $repos_updt > /dev/null || isCentOS || exitAndLog install.log "
 echo " ...installing packages..."
 sudo $repos_tool -y install curl wget python-pip $packages $apache >> install.log || exitAndLog install.log "installing packages"
 if isCentOS; then
-  pip > /dev/null || alias pip="python-pip"
+  pip > /dev/null 2>&1 || alias pip="python-pip"
   sudo chkconfig --levels 235 httpd on || exitAndLog install.log "setting httpd's autoreboot"
   sudo service httpd restart || exitAndLog install.log "starting httpd"
 else
@@ -59,7 +60,7 @@ echo
 extravenvwrapper=
 extratwisted=
 extrarequirements=
-if python -V | grep "2.6" > /dev/null; then
+if python -V 2>&1 | grep "2.6" > /dev/null; then
   extravenvwrapper="==4.1.1"
   extratwisted="==14.0"
   extrarequirements="-py2.6"
