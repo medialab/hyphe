@@ -60,10 +60,12 @@ echo
 extravenvwrapper=
 extratwisted=
 extrarequirements=
+scrapyversion="0.24.6"
 if python -V 2>&1 | grep "2.6" > /dev/null; then
   extravenvwrapper="==4.1.1"
   extratwisted="==14.0"
   extrarequirements="-py2.6"
+  scrapyversion="0.18.4"
 fi 
 
 
@@ -132,40 +134,26 @@ if ! which mongod > /dev/null 2>&1 ; then
   fi
 fi
 
-# Install txmongo and selenium as global dependencies for ScrapyD spiders to be able to use it
-echo "Install TLS requirements for Scrapy"
-echo "-----------------------------------"
-sudo pip -q install "urllib3[secure]" >> install.log || exitAndLog install.log "installing Scrapy TLS requirements"
-echo
-
-echo "Install txMongo"
-echo "---------------"
-sudo pip -q install "pymongo==2.7" >> install.log || exitAndLog install.log "installing pymongo"
-sudo pip -q install "txmongo==0.6" >> install.log || exitAndLog install.log "installing txmongo"
-echo
-
-echo "Install Selenium"
-echo "---------------"
-sudo pip -q install "selenium==2.42.1" >> install.log || exitAndLog install.log "installing selenium"
-echo
-
 # Install ScrapyD
 echo "Install and start ScrapyD..."
 echo "----------------------------"
 echo
+echo " ...installing TLS and other requirements for Scrapyd spiders"
+sudo pip install -r requirements-global-scrapyd.txt >> install.log || exitAndLog install.log "installing Scrapyd requirements"
+echo
 if ! which scrapyd > /dev/null 2>&1 ; then
   if ! isCentOS && ! isDebian; then
-    sudo apt-get -y install scrapy-0.24 >> install.log || exitAndLog install.log "installing Scrapy"
+    sudo apt-get -y install scrapy-$scrapyversion >> install.log || exitAndLog install.log "installing Scrapy"
     sudo apt-get -y install scrapyd >> install.log || exitAndLog install.log "installing ScrapyD"
   else
   # Under CentOS & Debian, use homemade ScrapyD RPM & DEB until officially validated and published
   # Use `sudo rpm -e scrapyd` or `sudo dpkg -r scrapyd` to remove
     python -c "import scrapy" > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-      echo " ...installing Scrapy dependencies..."
-      sudo pip -q install w3lib==1.12 Twisted$extratwisted service_identity==14 urllib3[secure] >> install.log || exitAndLog install.log "installing Twisted"
+      echo " ...installing Scrapy extra dependencies..."
+      sudo pip -q install w3lib==1.12 Twisted$extratwisted service_identity==14 >> install.log || exitAndLog install.log "installing Twisted"
       echo " ...installing Scrapy..."
-      sudo pip -q install Scrapy==0.18 >> install.log || exitAndLog install.log "installing Scrapy"
+      sudo pip -q install Scrapy==$scrapyversion >> install.log || exitAndLog install.log "installing Scrapy"
     fi
     echo " ...downloading homemade ScrapyD package $scrapyd..."
     wget -q "$scrapyd_path/$scrapyd" --no-check-certificate
@@ -179,7 +167,7 @@ fi
 echo "...setting config..."
 #possible config via : vi config/scrapyd.config
 sudo rm -f /etc/scrapyd/conf.d/100-hyphe
-sudo ln -s `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe || exitAndLog install.log "configuring ScrapyD"
+sudo cp -f `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe || exitAndLog install.log "configuring ScrapyD"
 sudo pkill -9 -f scrapyd
 echo "...restarting daemon..."
 sudo service scrapyd start || sudo /etc/init.d/scrapyd start
