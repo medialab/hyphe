@@ -57,15 +57,13 @@ fi
 echo
 
 # Handle deprecated python 2.6
-extravenvwrapper=
-extratwisted=
-extrarequirements=
+twistedversion=
 scrapyversion="0.24.6"
+extrarequirements=
 if python -V 2>&1 | grep "2.6" > /dev/null; then
-  extravenvwrapper="==4.1.1"
-  extratwisted="==14.0"
-  extrarequirements="-py2.6"
+  twistedversion="==14.0"
   scrapyversion="0.18.4"
+  extrarequirements="-py2.6"
 fi 
 
 
@@ -139,7 +137,7 @@ echo "Install and start ScrapyD..."
 echo "----------------------------"
 echo
 echo " ...installing TLS and other requirements for Scrapyd spiders"
-sudo pip install Twisted$extratwisted >> install.log || exitAndLog install.log "installing Twisted"
+sudo pip install Twisted$twistedversion >> install.log || exitAndLog install.log "installing Twisted"
 sudo pip install -r requirements-global-scrapyd.txt >> install.log || exitAndLog install.log "installing Scrapyd requirements"
 echo
 if ! which scrapyd > /dev/null 2>&1 ; then
