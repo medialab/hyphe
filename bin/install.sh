@@ -139,6 +139,7 @@ echo "Install and start ScrapyD..."
 echo "----------------------------"
 echo
 echo " ...installing TLS and other requirements for Scrapyd spiders"
+sudo pip install Twisted$extratwisted >> install.log || exitAndLog install.log "installing Twisted"
 sudo pip install -r requirements-global-scrapyd.txt >> install.log || exitAndLog install.log "installing Scrapyd requirements"
 echo
 if ! which scrapyd > /dev/null 2>&1 ; then
@@ -151,7 +152,7 @@ if ! which scrapyd > /dev/null 2>&1 ; then
     python -c "import scrapy" > /dev/null 2>&1
     if [ $? -ne 0 ]; then
       echo " ...installing Scrapy extra dependencies..."
-      sudo pip -q install w3lib==1.12 Twisted$extratwisted service_identity==14 >> install.log || exitAndLog install.log "installing Twisted"
+      sudo pip -q install w3lib==1.12 >> install.log || exitAndLog install.log "installing Twisted"
       echo " ...installing Scrapy..."
       sudo pip -q install Scrapy==$scrapyversion >> install.log || exitAndLog install.log "installing Scrapy"
     fi
