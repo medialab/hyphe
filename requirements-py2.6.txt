@@ -1,7 +1,7 @@
 virtualenvwrapper==4.1.1
 simplejson
 pystache
-thrift
+thrift==0.8
 selenium==2.42.1
 service_identity==14
 urllib3[secure]
