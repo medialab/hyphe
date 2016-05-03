@@ -402,6 +402,6 @@ angular.module('hyphe.listwebentitiesController', [])
     }
 
     function refreshEasterEgg(){
-      $scope.randomEasterEgg = Math.floor(Math.random()*4)
+      $scope.randomEasterEgg = Math.floor(Math.random()*5)
     }
   }])
