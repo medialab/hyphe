@@ -86,9 +86,13 @@ fi
 
 # Check SELinux
 if test -x /usr/sbin/sestatus && sestatus | grep "enabled" > /dev/null; then
-  echo "WARNING: SELinux is enabled on your machine and may cause issues with mongo, twisted and thrift"
-  echo "info on issues with MongoDB can be found here http://docs.mongodb.org/manual/tutorial/install-mongodb-on-red-hat-centos-or-fedora-linux/#run-mongodb" 
+  echo "WARNING: SELinux is enabled on your machine and may cause issues with mongo, twisted, thrift and apache"
+  echo "info on issues with MongoDB can be found here http://docs.mongodb.org/manual/tutorial/install-mongodb-on-red-hat-centos-or-fedora-linux/#run-mongodb"
   echo
+  echo "If you are installing from a home directory, you should probably reconsider and rather install in /opt, /usr, /var, etc."
+  echo "Press a key to continue or Ctrl+C to cancel"
+  echo
+  read
 fi
 
 # Prepare repositories for MongoDB and ScrapyD
