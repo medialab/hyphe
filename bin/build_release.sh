@@ -40,7 +40,7 @@ hyphe_backend
 hyphe_frontend
 LICENSE.*
 README.md
-requirements.txt"
+requirements*.txt"
 for file in $listfiles; do
   cp -r $file build/hyphe/$file
 done
