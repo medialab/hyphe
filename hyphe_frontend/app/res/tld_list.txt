@@ -1,4 +1,4 @@
-// Obtained there on the 2016-03-23: https://publicsuffix.org/list/
+// Obtained there on the 2016-05-25: https://publicsuffix.org/list/
 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -2636,7 +2636,6 @@ iwanuma.miyagi.jp
 kakuda.miyagi.jp
 kami.miyagi.jp
 kawasaki.miyagi.jp
-kesennuma.miyagi.jp
 marumori.miyagi.jp
 matsushima.miyagi.jp
 minamisanriku.miyagi.jp
@@ -6931,14 +6930,26 @@ school.za
 tm.za
 web.za
 
-// zm : https://en.wikipedia.org/wiki/.zm
-*.zm
+// zm : https://zicta.zm/
+// Submitted by registry <info@zicta.zm>
+zm
+ac.zm
+biz.zm
+co.zm
+com.zm
+edu.zm
+gov.zm
+info.zm
+mil.zm
+net.zm
+org.zm
+sch.zm
 
 // zw : https://en.wikipedia.org/wiki/.zw
 *.zw
 
 
-// List of new gTLDs imported from https://newgtlds.icann.org/newgtlds.csv on 2016-03-01T00:46:32Z
+// List of new gTLDs imported from https://newgtlds.icann.org/newgtlds.csv on 2016-05-09T22:17:27Z
 
 // aaa : 2015-02-26 American Automobile Association, Inc.
 aaa
@@ -7122,6 +7133,9 @@ archi
 
 // army : 2014-03-06 United TLD Holdco Ltd.
 army
+
+// art : 2016-03-24 UK Creative Ideas Limited
+art
 
 // arte : 2014-12-11 Association Relative à la Télévision Européenne G.E.I.E.
 arte
@@ -7416,6 +7430,9 @@ call
 
 // calvinklein : 2015-07-30 PVH gTLD Holdings LLC
 calvinklein
+
+// cam : 2016-04-21 AC Webconnecting Holding B.V.
+cam
 
 // camera : 2013-08-27 Atomic Maple, LLC
 camera
@@ -7852,7 +7869,7 @@ dunlop
 // duns : 2015-08-06 The Dun & Bradstreet Corporation
 duns
 
-// dupont : 2015-06-25 E.I. du Pont de Nemours and Company
+// dupont : 2015-06-25 E. I. du Pont de Nemours and Company
 dupont
 
 // durban : 2014-03-24 ZA Central Registry NPC trading as ZA Central Registry
@@ -8061,6 +8078,9 @@ fly
 
 // foo : 2014-01-23 Charleston Road Registry Inc.
 foo
+
+// food : 2016-04-21 Lifestyle Domain Holdings, Inc.
+food
 
 // foodnetwork : 2015-07-02 Lifestyle Domain Holdings, Inc.
 foodnetwork
@@ -8383,6 +8403,9 @@ hot
 // hoteles : 2015-03-05 Travel Reservations SRL
 hoteles
 
+// hotels : 2016-04-07 Booking.com B.V.
+hotels
+
 // hotmail : 2014-12-18 Microsoft Corporation
 hotmail
 
@@ -8521,7 +8544,7 @@ jcp
 // jeep : 2015-07-30 FCA US LLC.
 jeep
 
-// jetzt : 2014-01-09 New TLD Company AB
+// jetzt : 2014-01-09
 jetzt
 
 // jewelry : 2015-03-05 Wild Bloom, LLC
@@ -9661,6 +9684,12 @@ shiksha
 // shoes : 2013-10-02 Binky Galley, LLC
 shoes
 
+// shop : 2016-04-08 GMO Registry, Inc.
+shop
+
+// shopping : 2016-03-31
+shopping
+
 // shouji : 2015-01-08 QIHOO 360 TECHNOLOGY CO. LTD.
 shouji
 
@@ -10605,6 +10634,11 @@ zuerich
 // ===BEGIN PRIVATE DOMAINS===
 // (Note: these are in alphabetical order by company name)
 
+// Alces Software Ltd : http://alces-software.com
+// Submitted by Mark J. Titorenko <mark.titorenko@alces-software.com>
+*.compute.estate
+*.alces.network
+
 // Amazon CloudFront : https://aws.amazon.com/cloudfront/
 // Submitted by Donavan Miller <donavanm@amazon.com>
 cloudfront.net
@@ -10656,6 +10690,14 @@ s3-us-west-2.amazonaws.com
 s3.ap-northeast-2.amazonaws.com
 s3.cn-north-1.amazonaws.com.cn
 s3.eu-central-1.amazonaws.com
+
+// Aptible : https://www.aptible.com/
+// Submitted by Thomas Orozco <thomas@aptible.com>
+on-aptible.com
+
+// AVM : https://avm.de
+// Submitted by Andreas Weise <a.weise@avm.de>
+myfritz.net
 
 // BetaInABox
 // Submitted by Adrian <adrian@betainabox.com>
@@ -10756,6 +10798,10 @@ cupcake.is
 cyon.link
 cyon.site
 
+// Daplie, Inc : https://daplie.com
+// Submitted by AJ ONeal <aj@daplie.com>
+daplie.me
+
 // Dansk.net : http://www.dansk.net/
 // Submitted by Anani Voule <digital@digital.co.dk>
 biz.dk
@@ -10763,6 +10809,14 @@ co.dk
 firm.dk
 reg.dk
 store.dk
+
+// deSEC : https://desec.io/
+// Submitted by Peter Thomassen <peter@desec.io>
+dedyn.io
+
+// DNShome : https://www.dnshome.de/
+// Submitted by Norbert Auler <mail@dnshome.de>
+dnshome.de
 
 // DreamHost : http://www.dreamhost.com/
 // Submitted by Andrew Farmer <andrew.farmer@dreamhost.com>
@@ -10775,6 +10829,11 @@ mydrobo.com
 // DuckDNS : http://www.duckdns.org/
 // Submitted by Richard Harper <richard@duckdns.org>
 duckdns.org
+
+// dy.fi : http://dy.fi/
+// Submitted by Heikki Hannikainen <hessu@hes.iki.fi>
+dy.fi
+tunk.org
 
 // DynDNS.com : http://www.dyndns.com/services/dns/dyndns/
 dyndns-at-home.com
@@ -11061,6 +11120,10 @@ writesthisblog.com
 // Submitted by Dominik Menke <dom@digineo.de> 2016-01-18
 dynv6.net
 
+// E4YOU spol. s.r.o. : https://e4you.cz/
+// Submitted by Vladimir Dudr <info@e4you.cz>
+e4.cz
+
 // EU.org https://eu.org/
 // Submitted by Pierre Beyssac <hostmaster@eu.org>
 eu.org
@@ -11140,6 +11203,15 @@ firebaseapp.com
 // Submitted by Jonathan Rudenberg <jonathan@flynn.io>
 flynnhub.com
 
+// Freebox : http://www.freebox.fr
+// Submitted by Romain Fliedel <rfliedel@freebox.fr>
+freebox-os.com
+freeboxos.com
+fbx-os.fr
+fbxos.fr
+freebox-os.fr
+freeboxos.fr
+
 // GDS : https://www.gov.uk/service-manual/operations/operating-servicegovuk-subdomains
 // Submitted by David Illsley <david.illsley@digital.cabinet-office.gov.uk>
 service.gov.uk
@@ -11158,8 +11230,13 @@ gist.githubcloud.com
 // Submitted by Zoltan Egresi <egresi@globehosting.com>
 ro.com
 
+// GoIP DNS Services : http://www.goip.de
+// Submitted by Christian Poulter <milchstrasse@goip.de>
+goip.de
+
 // Google, Inc.
 // Submitted by Eduardo Vela <evn@google.com>
+*.0emm.com
 appspot.com
 blogspot.ae
 blogspot.al
@@ -11284,6 +11361,11 @@ ngrok.io
 // Submitted by Jeff Wheelhouse <support@nearlyfreespeech.net>
 nfshost.com
 
+// nsupdate.info : https://www.nsupdate.info/
+// Submitted by Thomas Waldmann <info@nsupdate.info>
+nsupdate.info
+nerdpol.ovh
+
 // NYC.mn : http://www.information.nyc.mn
 // Submitted by Matthew Brown <mattbrown@nyc.mn>
 nyc.mn
@@ -11300,9 +11382,17 @@ operaunite.com
 // Submitted by Duarte Santos <domain-admin@outsystemscloud.com>
 outsystemscloud.com
 
+// OwnProvider : http://www.ownprovider.com
+// Submitted by Jan Moennich <jan.moennich@ownprovider.com>
+ownprovider.com
+
 // oy.lc
 // Submitted by Charly Coste <changaco@changaco.oy.lc>
 oy.lc
+
+// Pagefog : https://pagefog.com/
+// Submitted by Derek Myers <derek@pagefog.com>
+pgfog.com
 
 // Pagefront : https://www.pagefronthq.com/
 // Submitted by Jason Kriss <jason@pagefronthq.com>
@@ -11333,6 +11423,10 @@ xen.prgmr.com
 // Submitted by registry <lendl@nic.at>
 priv.at
 
+// Publication Presse Communication SARL : https://ppcom.fr
+// Submitted by Yaacov Akiba Slama <admin@chirurgiens-dentistes-en-france.fr>
+chirurgiens-dentistes-en-france.fr
+
 // QA2
 // Submitted by Daniel Dent (https://www.danieldent.com/)
 qa2.com
@@ -11345,6 +11439,10 @@ rackmaze.net
 // Red Hat, Inc. OpenShift : https://openshift.redhat.com/
 // Submitted by Tim Kramer <tkramer@rhcloud.com>
 rhcloud.com
+
+// RethinkDB : https://www.rethinkdb.com/
+// Submitted by Chris Kastorff <info@rethinkdb.com>
+hzc.io
 
 // Sandstorm Development Group, Inc. : https://sandcats.io/
 // Submitted by Asheesh Laroia <asheesh@sandstorm.io>
@@ -11361,6 +11459,12 @@ pp.ua
 sinaapp.com
 vipsinaapp.com
 1kapp.com
+
+// Skyhat : http://www.skyhat.io
+// Submitted by Shante Adam <shante@skyhat.io>
+bounty-full.com
+alpha.bounty-full.com
+beta.bounty-full.com
 
 // Synology, Inc. : https://www.synology.com/
 // Submitted by Rony Weng <ronyweng@synology.com>
@@ -11385,12 +11489,21 @@ gdynia.pl
 med.pl
 sopot.pl
 
+// TownNews.com domains : http://www.townnews.com
+// Submitted by Dustin Ward <dward@townnews.com>
+bloxcms.com
+townnews-staging.com
+
 // UDR Limited : http://www.udr.hk.com
 // Submitted by registry <hostmaster@udr.hk.com>
 hk.com
 hk.org
 ltd.hk
 inc.hk
+
+// Viprinet Europe GmbH : http://www.viprinet.com
+// Submitted by Simon Kissel <hostmaster@viprinet.com>
+router.management
 
 // Yola : https://www.yola.com/
 // Submitted by Stefano Rivera <stefano@yola.com>
