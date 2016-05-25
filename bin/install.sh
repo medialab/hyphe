@@ -56,6 +56,24 @@ else
 fi
 echo
 
+# Test locales properly set
+if perl -e "" 2>&1 | grep "locale\|LC_" > /dev/null; then
+  echo "WARNING: it seems like your locales are not set properly, please first fix them before installing by running the following commands:"
+  echo
+  echo "sudo $repos_tool install locales"
+  echo "$LANGUAGE
+$LC_ALL
+$LC_MESSAGES
+$LC_COLLATE
+$LC_CTYPE
+$LANG" | grep -v unset | grep "\." | sort -u | while read loc; do
+    echo "sudo locale-gen $loc"
+  done
+  echo "sudo dpkg-reconfigure locales"
+  exit 1
+fi
+
+
 # Handle deprecated python 2.6
 twistedversion=
 scrapyversion="0.24.6"
