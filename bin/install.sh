@@ -291,8 +291,8 @@ if curl -sL http://localhost/$apache_name/ | grep '403 Forbidden' > /dev/null 2>
   echo
   echo "WARNING: apache/httpd says FORBIDDEN, read access (r+x) to $(pwd) must be opened to the \"apache|httpd|www-data\" group"
   echo "sudo chmod -R g+rx DIR; sudo chown -R :apache DIR"
-  echo "If you installed from a /home directory, you may need to do this to your /home/<USER> dir"
-  echo "Or you can move the current install to another directory (/srv, /opt, ...), give it the rights and reinstall, this should be quick now"
+  echo "If you installed from a /home directory, you may need to do this to your /home/<USER> dir, but it might not be enough if SELinux is enabled."
+  echo "But you should rather move your install directory to another one (/var/www/html, /srv, /opt, ...), give it the appropriate rights if required and restart bin/install.sh, this should be quick now."
   echo "You should then be all set to run \"bin/hyphe start\" and access it at http://localhost/$apache_name"
   echo
   exit 1
