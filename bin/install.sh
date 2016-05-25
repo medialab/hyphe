@@ -159,7 +159,7 @@ sudo pip install -r requirements-global-scrapyd.txt >> install.log || exitAndLog
 echo
 if ! which scrapyd > /dev/null 2>&1 ; then
   if ! isCentOS && ! isDebian; then
-    sudo apt-get -y install scrapy-$scrapyversion >> install.log || exitAndLog install.log "installing Scrapy"
+    sudo apt-get -y install scrapy-0.24 >> install.log || exitAndLog install.log "installing Scrapy"
     sudo apt-get -y install scrapyd >> install.log || exitAndLog install.log "installing ScrapyD"
   else
   # Under CentOS & Debian, use homemade ScrapyD RPM & DEB until officially validated and published
