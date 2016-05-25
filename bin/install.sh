@@ -234,7 +234,10 @@ fi
 echo "Install VirtualEnv..."
 echo "---------------------"
 echo
-source $(which virtualenvwrapper.sh) >> install.log || exitAndLog install.log "VirtualEnvWrapper is missing"
+if ! source $(which virtualenvwrapper.sh) >> install.log; then
+  sudo pip -q install --upgrade virtualenvwrapper >> install.log || exitAndLog install.log "installing VirtualEnvWrapper"
+  source $(which virtualenvwrapper.sh) >> install.log || exitAndLog install.log "loading VirtualEnvWrapper"
+fi
 mkvirtualenv --no-site-packages hyphe
 workon hyphe
 echo " ...installing python dependencies..."
