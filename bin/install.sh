@@ -39,23 +39,6 @@ echo "-----------------------"
 echo "Log available in install.log"
 echo
 
-# Install possible missing packages
-echo "Install dependencies..."
-echo "-----------------------"
-echo
-echo " ...updating sources repositories..."
-sudo $repos_tool $repos_updt > /dev/null || isCentOS || exitAndLog install.log "updating repositories sources list"
-echo " ...installing packages..."
-sudo $repos_tool -y install curl wget python-pip $packages $apache >> install.log || exitAndLog install.log "installing packages"
-if isCentOS; then
-  pip > /dev/null 2>&1 || alias pip="python-pip"
-  sudo chkconfig --levels 235 httpd on || exitAndLog install.log "setting httpd's autoreboot"
-  sudo service httpd restart || exitAndLog install.log "starting httpd"
-else
-  sudo a2enmod proxy_http || sudo $repos_tool -y install libapache2-mod-proxy-html >> install.log || exitAndLog install.log "installing mod proxy"
-fi
-echo
-
 # Test locales properly set
 if perl -e "" 2>&1 | grep "locale\|LC_" > /dev/null; then
   echo "WARNING: it seems like your locales are not set properly, please first fix them before installing by running the following commands:"
@@ -73,6 +56,22 @@ $LANG" | grep -v unset | grep "\." | sort -u | while read loc; do
   exit 1
 fi
 
+# Install possible missing packages
+echo "Install dependencies..."
+echo "-----------------------"
+echo
+echo " ...updating sources repositories..."
+sudo $repos_tool $repos_updt > /dev/null || isCentOS || exitAndLog install.log "updating repositories sources list"
+echo " ...installing packages..."
+sudo $repos_tool -y install curl wget python-pip $packages $apache >> install.log || exitAndLog install.log "installing packages"
+if isCentOS; then
+  pip > /dev/null 2>&1 || alias pip="python-pip"
+  sudo chkconfig --levels 235 httpd on || exitAndLog install.log "setting httpd's autoreboot"
+  sudo service httpd restart || exitAndLog install.log "starting httpd"
+else
+  sudo a2enmod proxy_http || sudo $repos_tool -y install libapache2-mod-proxy-html >> install.log || exitAndLog install.log "installing mod proxy"
+fi
+echo
 
 # Handle deprecated python 2.6
 twistedversion=
