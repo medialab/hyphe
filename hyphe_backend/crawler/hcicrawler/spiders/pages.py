@@ -15,7 +15,7 @@ from scrapy import log
 try:
     from scrapy.spider import Spider
 except:
-    from scrapy.spider import BaseSpider
+    from scrapy.spider import BaseSpider as Spider
 from scrapy.http import Request, HtmlResponse
 from scrapy.linkextractor import IGNORED_EXTENSIONS
 from scrapy.utils.url import url_has_any_extension
@@ -37,7 +37,7 @@ from hcicrawler.errors import error_name
 def timeout_alarm(*args):
     raise SeleniumTimeout
 
-class PagesCrawler(BaseSpider):
+class PagesCrawler(Spider):
 
     name = 'pages'
     link_extractor = RegexpLinkExtractor(canonicalize=False, deny_extensions=[])
