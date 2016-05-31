@@ -8,13 +8,16 @@ source bin/common.sh
 if ! isCentOS; then
   if isDebian; then
     echo 'Install for Debian'
-    mongorepo='debian-sysvinit'
+    mongorepo='debian wheezy/mongodb-org/3.2 main'
     installer='dpkg'
     scrapyd='scrapyd_1.0~r0_all.deb'
     scrapyd_path='https://github.com/medialab/scrapyd/raw/medialab-debian/debs'
   else
     echo 'Install for Ubuntu'
-    mongorepo='ubuntu-upstart'
+    mongorepo='ubuntu trusty/mongodb-org/3.2 multiverse'
+    if lsb_release -a | grep Codename | grep precise; then
+      mongorepo='ubuntu precise/mongodb-org/3.2 multiverse'
+    fi
   fi
   repos_tool='apt-get'
   repos_updt='update'
@@ -115,12 +118,12 @@ else
   # Prepare MongoDB install
   if ! which mongod > /dev/null 2>&1 ; then
     echo " ...preparing Mongo repository..."
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10 >> install.loga 2>&1 || exitAndLog install.log "downloading Mongo GPG key"
-    if ! grep "downloads-distro.mongodb.org" /etc/apt/sources.list > /dev/null; then
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927 >> install.loga 2>&1 || exitAndLog install.log "downloading Mongo GPG key"
+    if ! sudo rgrep "mongodb.org" /etc/apt/ > /dev/null; then
       cp /etc/apt/sources.list /tmp/sources.list
       echo >> /tmp/sources.list
       echo "# MONGODB repository, automatically added by Hyphe's install" >> /tmp/sources.list
-      echo "deb http://downloads-distro.mongodb.org/repo/$mongorepo dist 10gen" >> /tmp/sources.list
+      echo "deb http://repo.mongodb.org/apt/$mongorepo" >> /tmp/sources.list
       sudo mv /tmp/sources.list /etc/apt/sources.list
     fi
   fi
@@ -128,7 +131,7 @@ else
   if ! isDebian && ! which scrapyd > /dev/null 2>&1 && ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
     echo " ...preparing ScrapyD repository..."
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 627220E7 >> install.log 2>&1 || exitAndLog install.log "downloading Scrapy GPG key"
-    if ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
+    if ! sudo rgrep "scrapy.org" /etc/apt/ > /dev/null; then
       cp /etc/apt/sources.list /tmp/sources.list
       echo >> /tmp/sources.list
       echo "# SCRAPYD repository, automatically added by Hyphe's install" >> /tmp/sources.list
@@ -151,6 +154,8 @@ if ! which mongod > /dev/null 2>&1 ; then
   if isCentOS; then
     sudo chkconfig mongod on
     sudo service mongod restart || exitAndLog install.log "starting MongoDB"
+  elif ! test -z "$(which systemctl)"; then
+    sudo systemctl unmask mongodb
   fi
 fi
 
