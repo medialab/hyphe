@@ -41,9 +41,10 @@ echo
 
 # Test locales properly set
 if perl -e "" 2>&1 | grep "locale\|LC_" > /dev/null; then
-  echo "WARNING: it seems like your locales are not set properly, please first fix them before installing by running the following commands:"
+  echo "WARNING: it seems like your locales are not set properly, please first fix them before installing by running commands such as the following:"
   echo
   echo "sudo $repos_tool install locales"
+  echo 'export LC_ALL="en_US.UTF-8"'
   echo "$LANGUAGE
 $LC_ALL
 $LC_MESSAGES
