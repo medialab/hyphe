@@ -15,7 +15,7 @@ if ! isCentOS; then
   else
     echo 'Install for Ubuntu'
     mongorepo='ubuntu trusty/mongodb-org/3.2 multiverse'
-    if lsb_release -a | grep Codename | grep precise; then
+    if lsb_release -a 2> /dev/nul 2> /dev/null | grep Codename | grep precise; then
       mongorepo='ubuntu precise/mongodb-org/3.2 multiverse'
     fi
   fi
@@ -65,7 +65,7 @@ echo "Install dependencies..."
 echo "-----------------------"
 echo
 echo " ...updating sources repositories..."
-sudo $repos_tool $repos_updt > /dev/null || isCentOS || exitAndLog install.log "updating repositories sources list"
+sudo $repos_tool $repos_updt > /dev/null 2>> install.log || isCentOS || exitAndLog install.log "updating repositories sources list"
 echo " ...installing packages..."
 sudo $repos_tool -y install curl wget python-pip $packages $apache >> install.log || exitAndLog install.log "installing packages"
 if isCentOS; then
@@ -73,7 +73,7 @@ if isCentOS; then
   sudo chkconfig --levels 235 httpd on || exitAndLog install.log "setting httpd's autoreboot"
   sudo service httpd restart || exitAndLog install.log "starting httpd"
 else
-  sudo a2enmod proxy_http || sudo $repos_tool -y install libapache2-mod-proxy-html >> install.log || exitAndLog install.log "installing mod proxy"
+  sudo a2enmod proxy_http 2>&1 >> install.log || sudo $repos_tool -y install libapache2-mod-proxy-html 2>&1 >> install.log || exitAndLog install.log "installing mod proxy"
 fi
 echo
 
@@ -119,7 +119,7 @@ else
   if ! which mongod > /dev/null 2>&1 ; then
     echo " ...preparing Mongo repository..."
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927 >> install.loga 2>&1 || exitAndLog install.log "downloading Mongo GPG key"
-    if ! sudo rgrep "mongodb.org" /etc/apt/ > /dev/null; then
+    if ! sudo rgrep "mongodb.org" /etc/apt/ | grep -v Binary > /dev/null; then
       cp /etc/apt/sources.list /tmp/sources.list
       echo >> /tmp/sources.list
       echo "# MONGODB repository, automatically added by Hyphe's install" >> /tmp/sources.list
@@ -131,7 +131,7 @@ else
   if ! isDebian && ! which scrapyd > /dev/null 2>&1 && ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
     echo " ...preparing ScrapyD repository..."
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 627220E7 >> install.log 2>&1 || exitAndLog install.log "downloading Scrapy GPG key"
-    if ! sudo rgrep "scrapy.org" /etc/apt/ > /dev/null; then
+    if ! sudo rgrep "scrapy.org" /etc/apt/ | grep -v Binary > /dev/null; then
       cp /etc/apt/sources.list /tmp/sources.list
       echo >> /tmp/sources.list
       echo "# SCRAPYD repository, automatically added by Hyphe's install" >> /tmp/sources.list
@@ -141,7 +141,7 @@ else
   fi
 fi
 echo " ...updating sources repositories..."
-sudo $repos_tool $repos_updt >> install.log || isCentOS || exitAndLog install.log "updating repositories sources list"
+sudo $repos_tool $repos_updt > /dev/null 2>> install.log || isCentOS || exitAndLog install.log "updating repositories sources list"
 echo
 
 # Install MongoDB
@@ -154,8 +154,10 @@ if ! which mongod > /dev/null 2>&1 ; then
   if isCentOS; then
     sudo chkconfig mongod on
     sudo service mongod restart || exitAndLog install.log "starting MongoDB"
-  elif ! test -z "$(which systemctl)"; then
+  elif ! which systemctl > /dev/null 2>&1; then
     sudo systemctl unmask mongodb
+    sudo service mongod enable
+    sudo service mongod restart
   fi
 fi
 
@@ -164,11 +166,17 @@ echo "Install and start ScrapyD..."
 echo "----------------------------"
 echo
 echo " ...installing TLS and other requirements for Scrapyd spiders"
-sudo pip install Twisted$twistedversion >> install.log || exitAndLog install.log "installing Twisted"
-sudo pip install -r requirements-global-scrapyd.txt >> install.log || exitAndLog install.log "installing Scrapyd requirements"
+sudo -H pip -q install --upgrade pip 2>&1 >> install.log
+sudo -H pip -q install Twisted$twistedversion >> install.log || exitAndLog install.log "installing Twisted"
+sudo -H pip -q install -r requirements-global-scrapyd.txt >> install.log || exitAndLog install.log "installing Scrapyd requirements"
 echo
 if ! which scrapyd > /dev/null 2>&1 ; then
   if ! isCentOS && ! isDebian; then
+    # install python-support via dpkg on ubuntu 16+
+    if ! sudo apt-get install python-support > /dev/null 2>&1; then
+      wget -q "http://launchpadlibrarian.net/109052632/python-support_1.0.15_all.deb" -O /tmp/python-support.deb
+      sudo dpkg -i /tmp/python-support.deb >> install.log 2>&1
+    fi
     sudo apt-get -y install scrapy-0.24 >> install.log || exitAndLog install.log "installing Scrapy"
     sudo apt-get -y install scrapyd >> install.log || exitAndLog install.log "installing ScrapyD"
   else
