@@ -15,13 +15,14 @@ if ! isCentOS; then
   else
     echo 'Install for Ubuntu'
     mongorepo='ubuntu trusty/mongodb-org/3.2 multiverse'
-    if lsb_release -a 2> /dev/nul 2> /dev/null | grep Codename | grep precise; then
+    if lsb_release -a 2> /dev/null | grep "Codename.*precise" > /dev/null; then
       mongorepo='ubuntu precise/mongodb-org/3.2 multiverse'
     fi
   fi
   repos_tool='apt-get'
   repos_updt='update'
   packages='python-dev virtualenvwrapper libxml2-dev libxslt1-dev build-essential libffi-dev libssl-dev libstdc++6'
+  pyopenssl_rm='purge python-openssl'
   apache='apache2'
   apache_path='apache2/sites-available'
   java='openjdk-6-jre'
@@ -31,6 +32,7 @@ else
   repos_tool='yum'
   repos_updt='check-update'
   packages='python-devel python-setuptools python-virtualenvwrapper libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6'
+  pyopenssl_rm='remove PyOpenSSL'
   apache='httpd'
   apache_path='httpd/conf.d'
   java='java-1.6.0-openjdk'
@@ -57,6 +59,8 @@ $LANG" | grep -v unset | grep "\." | sort -u | while read loc; do
     echo "sudo locale-gen $loc"
   done
   echo "sudo dpkg-reconfigure locales"
+  echo
+  echo "Then restart the installation script bin/install.sh"
   exit 1
 fi
 
@@ -73,7 +77,7 @@ if isCentOS; then
   sudo chkconfig --levels 235 httpd on || exitAndLog install.log "setting httpd's autoreboot"
   sudo service httpd restart || exitAndLog install.log "starting httpd"
 else
-  sudo a2enmod proxy_http 2>&1 >> install.log || sudo $repos_tool -y install libapache2-mod-proxy-html 2>&1 >> install.log || exitAndLog install.log "installing mod proxy"
+  sudo a2enmod proxy_http >> install.log 2>&1 || sudo $repos_tool -y install libapache2-mod-proxy-html >> install.log 2>&1 || exitAndLog install.log "installing mod proxy"
 fi
 echo
 
@@ -118,7 +122,7 @@ else
   # Prepare MongoDB install
   if ! which mongod > /dev/null 2>&1 ; then
     echo " ...preparing Mongo repository..."
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927 >> install.loga 2>&1 || exitAndLog install.log "downloading Mongo GPG key"
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927 >> install.log 2>&1 || exitAndLog install.log "downloading Mongo GPG key"
     if ! sudo rgrep "mongodb.org" /etc/apt/ | grep -v Binary > /dev/null; then
       cp /etc/apt/sources.list /tmp/sources.list
       echo >> /tmp/sources.list
@@ -154,11 +158,12 @@ if ! which mongod > /dev/null 2>&1 ; then
   if isCentOS; then
     sudo chkconfig mongod on
     sudo service mongod restart || exitAndLog install.log "starting MongoDB"
-  elif ! which systemctl > /dev/null 2>&1; then
-    sudo systemctl unmask mongodb
-    sudo service mongod enable
+  elif which systemctl > /dev/null 2>&1; then
+    sudo systemctl unmask mongod >> install.log 2>&1
+    sudo service mongod enable >> install.log 2>&1
     sudo service mongod restart
   fi
+  echo
 fi
 
 # Install ScrapyD
@@ -166,9 +171,11 @@ echo "Install and start ScrapyD..."
 echo "----------------------------"
 echo
 echo " ...installing TLS and other requirements for Scrapyd spiders"
-sudo -H pip -q install --upgrade pip 2>&1 >> install.log
-sudo -H pip -q install Twisted$twistedversion >> install.log || exitAndLog install.log "installing Twisted"
+sudo $repos_tool -y $pyopenssl_rm >> install.log 2>&1
+sudo -H pip -q install --upgrade urllib3[secure] 2>&1 | grep -v "SNIMissing\|InsecurePlatform" >> install.log
+sudo -H pip -q install --upgrade pip >> install.log || exitAndLog install.log "upgrading Hyphe's virtualenv's pip"
 sudo -H pip -q install -r requirements-global-scrapyd.txt >> install.log || exitAndLog install.log "installing Scrapyd requirements"
+sudo -H pip -q install Twisted$twistedversion >> install.log || exitAndLog install.log "installing Twisted"
 echo
 if ! which scrapyd > /dev/null 2>&1 ; then
   if ! isCentOS && ! isDebian; then
@@ -202,7 +209,7 @@ echo "...setting config..."
 #possible config via : vi config/scrapyd.config
 sudo rm -f /etc/scrapyd/conf.d/100-hyphe
 sudo cp -f `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe || exitAndLog install.log "configuring ScrapyD"
-sudo pkill -9 -f scrapyd
+sudo pkill -9 -f scrapyd >> install.log 2>&1
 echo "...restarting daemon..."
 sudo service scrapyd start || sudo /etc/init.d/scrapyd start
 # test scrapyd server
@@ -252,13 +259,15 @@ fi
 echo "Install VirtualEnv..."
 echo "---------------------"
 echo
-if ! source $(which virtualenvwrapper.sh) >> install.log; then
-  sudo pip -q install --upgrade virtualenvwrapper >> install.log || exitAndLog install.log "installing VirtualEnvWrapper"
-  source $(which virtualenvwrapper.sh) >> install.log || exitAndLog install.log "loading VirtualEnvWrapper"
+if ! source $(which virtualenvwrapper.sh) >> install.log 2>&1; then
+  sudo -H pip -q install --upgrade virtualenvwrapper >> install.log 2>&1 || exitAndLog install.log "installing VirtualEnvWrapper"
+  source $(which virtualenvwrapper.sh) >> install.log 2>&1 || exitAndLog install.log "loading VirtualEnvWrapper"
 fi
-mkvirtualenv --no-site-packages hyphe
+mkvirtualenv --no-site-packages hyphe >> install.log 2>&1 || exitAndLog install.log "creating Hyphe's virtualenv"
 workon hyphe
 echo " ...installing python dependencies..."
+pip -q install --upgrade urllib3[secure] 2>&1 | grep -v "SNIMissing\|InsecurePlatform" >> install.log
+pip -q install --upgrade pip >> install.log || exitAndLog install.log "upgrading Hyphe's virtualenv's pip"
 pip install -r requirements${extrarequirements}.txt >> install.log || exitAndLog install.log "installing python dependencies"
 add2virtualenv $(pwd)
 deactivate
