@@ -209,9 +209,9 @@ echo "...setting config..."
 #possible config via : vi config/scrapyd.config
 sudo rm -f /etc/scrapyd/conf.d/100-hyphe
 sudo cp -f `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe || exitAndLog install.log "configuring ScrapyD"
-sudo pkill -9 -f scrapyd >> install.log 2>&1
 echo "...restarting daemon..."
-sudo service scrapyd start || sudo /etc/init.d/scrapyd start
+sudo service scrapyd stop || sudo /etc/init.d/scrapyd stop || sudo pkill -9 -f scrapyd >> install.log 2>&1
+sudo service scrapyd restart || sudo /etc/init.d/scrapyd restart
 # test scrapyd server
 echo "...testing..."
 count=0
