@@ -1,0 +1,5 @@
+jsonrpclib
+pymongo
+JPype1
+chardet
+boilerpipe
