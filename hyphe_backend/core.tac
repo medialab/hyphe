@@ -2548,16 +2548,16 @@ def test_scrapyd(res, cor, corpus):
 def stop_tests(res, cor, corpus, msg=None):
     if is_error(res) or str(type(res)) == "<type 'instance'>":
         if msg:
-            print "ERROR %s: %s" % (corpus, msg)
+            logger.msg("%s: %s" % (corpus, msg), system="ERROR - tests")
         if type(res) == dict:
-            print res["message"]
+            logger.msg(res["message"], system="ERROR - tests")
         else:
-            print "ERROR", res
+            logger.msg(res, system="ERROR - tests")
         yield cor.close()
         if reactor.running:
             reactor.stop()
     else:
-        print "All tests passed. Ready!"
+        logger.msg("All tests passed. Ready!", system="INFO - tests")
 
 reactor.callLater(1, test_start, core, TEST_CORPUS)
 
