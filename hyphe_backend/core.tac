@@ -1078,18 +1078,20 @@ class Memory_Structure(jsonrpc.JSONRPC):
             res['indexing_status'] = indexing_statuses.UNINDEXED
             res['crawled'] = False
         res['homepage'] = WE.homepage if WE.homepage else homepage if homepage else None
-        if test_bool_arg(semilight):
-            return res
-        res['startpages'] = list(WE.startpages)
         res['tags'] = {}
         for tag, values in WE.metadataItems.iteritems():
+            if test_bool_arg(semilight) and tag != 'USER':
+                continue
             res['tags'][tag] = {}
             for key, val in values.iteritems():
                 res['tags'][tag][key] = list(val)
+        if test_bool_arg(semilight):
+            return res
         if test_bool_arg(light_for_csv):
             return {'id': WE.id, 'name': WE.name, 'status': WE.status,
                     'prefixes': "|".join([urllru.lru_to_url(lru, nocheck=True) for lru in WE.LRUSet]),
                     'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns.startswith("CORE")])}
+        res['startpages'] = list(WE.startpages)
         return res
 
     re_camelCase = re.compile(r'(.)_(.)')

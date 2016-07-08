@@ -213,7 +213,7 @@ angular.module('hyphe.networkController', ['angular-md5'])
         {
            sort: []
           ,count: -1
-          ,light: true
+          ,semiLight: true
         }
         ,function(result){
           $scope.webentities = {
@@ -372,6 +372,7 @@ angular.module('hyphe.networkController', ['angular-md5'])
         {id:'attr_status', title:'Status', type:'string'}
       , {id:'attr_crawling', title:'Crawling status', type:'string'}
       , {id:'attr_indexing', title:'Indexing status', type:'string'}
+      , {id:'attr_home', title:'Homepage', type:'string'}
       , {id:'attr_creation', title:'Creation', type:'integer'}
       , {id:'attr_modification', title:'Last modification', type:'integer'}
       , {id:'attr_hyphe_indegree', title:'Hyphe Indegree', type:'integer'}
