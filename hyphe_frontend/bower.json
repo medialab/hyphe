@@ -16,6 +16,7 @@
     "FileSaver.js": "https://github.com/eligrey/FileSaver.js.git",
     "angulartics": "~0.17.1",
     "angular-xeditable": "~0.1.9",
-    "ng-tags-input": "3.0.0"
+    "ng-tags-input": "3.0.0",
+    "angular-md5": "0.1.10"
   }
 }

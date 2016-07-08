@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('hyphe.networkController', [])
+angular.module('hyphe.networkController', ['angular-md5'])
 
-  .controller('network', ['$scope', 'api', 'utils', 'corpus', '$window'
-  ,function($scope, api, utils, corpus, $window) {
+  .controller('network', ['$scope', 'api', 'utils', 'md5', 'corpus', '$window'
+  ,function($scope, api, utils, md5, corpus, $window) {
     
     var sigmaInstance
     
@@ -393,7 +393,7 @@ angular.module('hyphe.networkController', [])
 
       categories = utils.extractCases(categories)
       categories.forEach(function(cat){
-        $scope.network.nodesAttributes.push({id:'attr_'+$.md5(cat), title:cat, type:'string'})
+        $scope.network.nodesAttributes.push({id:'attr_'+md5.createHash(cat), title:cat, type:'string'})
       })
 
       var existingNodes = {}  // This index is useful to filter edges with unknown nodes
@@ -417,7 +417,7 @@ angular.module('hyphe.networkController', [])
             ,tagging = []
           for(var namespace in we.tags){
             if(namespace == 'CORPUS' || namespace == 'USER'){
-              for(category in we.tags[namespace]){
+              for(var category in we.tags[namespace]){
                 var values = we.tags[namespace][category]
                 tagging.push({cat:namespace+': '+category, values:values})
               }
@@ -437,7 +437,7 @@ angular.module('hyphe.networkController', [])
               ,{attr:'attr_home', val: we.homepage || '' }
               ,{attr:'attr_hyphe_indegree', val: we.indegree || '0' }
             ].concat(tagging.map(function(catvalues){
-              return {attr:'attr_'+$.md5(catvalues.cat), val:catvalues.values.join(' | ')}
+              return {attr:'attr_'+md5.createHash(catvalues.cat), val:catvalues.values.join(' | ')}
             }))
           }
         } else {
