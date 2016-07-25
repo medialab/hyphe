@@ -142,16 +142,16 @@ class Core(jsonrpc.JSONRPC):
         except Exception as e:
             returnD(format_error(e))
         redeploy = False
-        if ("precision_limit" in options or "default_creation_rule" in options or "defautStartpagesMode" in options) and \
+        if ("precision_limit" in options or "defaultCreationRule" in options or "defautStartpagesMode" in options) and \
           self.corpora[corpus]['crawls'] + self.corpora[corpus]['total_webentities'] > 0:
             returnD(format_error("Precision limit, defautStartpagesMode and default WE creation rule of a corpus can only be set when the corpus is created"))
-        if "default_creation_rule" in options:
+        if "defaultCreationRule" in options:
             rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
             if is_error(rules):
                 logger.msg("Error collecting WECRs before updating default one...", system="ERROR - %s" % corpus)
             defrule = [r for r in rules if r.LRU==ms_const.DEFAULT_WEBENTITY_CREATION_RULE][0]
-            yield self.store.removeWebEntityCreationRule(defrule)
-            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(options["default_creation_rule"]), ''), corpus=corpus)
+            yield self.msclients.pool.removeWebEntityCreationRule(defrule, corpus=corpus)
+            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(options["defaultCreationRule"]), ''), corpus=corpus)
             if is_error(res):
                 logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
 
@@ -2311,7 +2311,7 @@ class Memory_Structure(jsonrpc.JSONRPC):
         if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules['result']) == 0):
             if corpus != DEFAULT_CORPUS and not _quiet:
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
-            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(self.corpora[corpus]["options"].get("default_creation_rule", "domain")), ''), corpus=corpus)
+            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(self.corpora[corpus]["options"].get("defaultCreationRule", "domain")), ''), corpus=corpus)
             if is_error(res):
                 logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
                 if _retry:
