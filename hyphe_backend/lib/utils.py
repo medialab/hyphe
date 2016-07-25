@@ -87,6 +87,8 @@ def reformat_error(error):
 def handle_standard_results(res):
     if is_error(res):
         return res
+    if isinstance(res, dict) and "code" in res:
+        return res
     return format_result(res)
 
 

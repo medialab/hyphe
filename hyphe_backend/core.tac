@@ -147,7 +147,7 @@ class Core(jsonrpc.JSONRPC):
             returnD(format_error("Precision limit, defautStartpagesMode and default WE creation rule of a corpus can only be set when the corpus is created"))
         if "default_creation_rule" in options:
             rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
-            if is_error(res):
+            if is_error(rules):
                 logger.msg("Error collecting WECRs before updating default one...", system="ERROR - %s" % corpus)
             defrule = [r for r in rules if r.LRU==ms_const.DEFAULT_WEBENTITY_CREATION_RULE][0]
             yield self.store.removeWebEntityCreationRule(defrule)
