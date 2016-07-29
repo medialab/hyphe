@@ -1481,6 +1481,16 @@ table.sliders-commands {
   color: #f08060;
 }
 
+.hyphe-prefix-slider .prefix-link a{
+  color: #888;
+  font-size: 0.8em;
+  float: left;
+  margin: 13px 8px 0px 0px;
+}
+.hyphe-prefix-slider .prefix-link a:hover{
+  color: #444;
+}
+
 .hyphe-prefix-slider .stem{
   padding-left: 8px;
   padding-right: 8px;
