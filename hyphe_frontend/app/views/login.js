@@ -9,6 +9,7 @@ angular.module('hyphe.loginController', [])
 
     $scope.corpusList
     $scope.corpusList_byId = {}
+    $scope.loadingList = false
 
     $scope.disconnected = false
     $scope.loading = true
@@ -22,6 +23,7 @@ angular.module('hyphe.loginController', [])
     $scope.passwordProtected = false
 
     $scope.globalStatus = false
+    $scope.loadingStatus = false
     $scope.freeSlots = 0
 
     $scope.starting = false
@@ -137,7 +139,10 @@ angular.module('hyphe.loginController', [])
     }
 
     function loadCorpusList(){
+      if ($scope.loadingList) return;
+      $scope.loadingList = true
       api.getCorpusList({}, function(list){
+        $scope.loadingList = false
         $scope.disconnected = false
         $scope.loading = false
         $scope.corpusList = []
@@ -157,6 +162,7 @@ angular.module('hyphe.loginController', [])
         })
 
       },function(data, status, headers, config){
+        $scope.loadingList = false
         $scope.corpusList = ''
         $scope.disconnected = true
         $scope.loading = false
@@ -185,16 +191,15 @@ angular.module('hyphe.loginController', [])
     }
 
     function getStatus(){
-      
+      if ($scope.loadingStatus) return;
+      $scope.loadingStatus = true
       api.globalStatus({},function(status){
-
+        $scope.loadingStatus = false
         $scope.globalStatus = status.hyphe
         $scope.freeSlots = Math.min(status.hyphe.ports_left, status.hyphe.ram_left/256)
-
       }, function(){
-
+        $scope.loadingStatus = false
       })
-      
     }
 
 

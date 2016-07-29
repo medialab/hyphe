@@ -9,6 +9,8 @@ angular.module('hyphe.login2Controller', [])
     $scope.corpusList
     $scope.corpusList_byId = {}
     $scope.globalStatus
+    $scope.loadingStatus = false
+    $scope.loadingList = false
 
     // init
     $scope.password = prompt("Password?", "")
@@ -51,7 +53,10 @@ angular.module('hyphe.login2Controller', [])
 
 
     function loadCorpusList(){
+      if ($scope.loadingList) return;
+      $scope.loadingList = true
       api.getCorpusList({}, function(list){
+        $scope.loadingList = false
         $scope.corpusList = []
         for(var id in list){
           $scope.corpusList.push(list[id])
@@ -70,6 +75,7 @@ angular.module('hyphe.login2Controller', [])
         console.log('list',list)
 
       },function(data, status, headers, config){
+        $scope.loadingList = false
         $scope.corpusList = ''
         console.log('Error loading corpus list')
       })
@@ -112,11 +118,8 @@ angular.module('hyphe.login2Controller', [])
     function stopCorpus(id){
       api.stopCorpus({
         id: id
-      }, function(){
-
-        refresh()
-
-      },function(data, status, headers, config){
+      }, refresh
+      ,function(data, status, headers, config){
         alert('Error')
       })
     }
@@ -136,11 +139,8 @@ angular.module('hyphe.login2Controller', [])
     function resetCorpus(id){
       api.resetCorpus({
         id: id
-      }, function(){
-
-        loadCorpusList()
-
-      },function(data, status, headers, config){
+      }, loadCorpusList
+      ,function(data, status, headers, config){
         alert('Error')
       })
     }
@@ -156,16 +156,15 @@ angular.module('hyphe.login2Controller', [])
     }
 
     function getStatus(){
-      
+      if ($scope.loadingStatus) return;
+      $scope.loadingStatus = true
       api.globalStatus({},function(status){
-
+        $scope.loadingStatus = false
         console.log('Global Status', status.hyphe)
         $scope.globalStatus = status.hyphe
-        
       }, function(){
-
+        $scope.loadingStatus = false
       })
-      
     }
 
     function refresh(){
