@@ -36,7 +36,7 @@ fi
 if [ -z "$newname" ]; then
   echo "WARNING: no new name given for clone corpus of \"$oldname\"."
   newname="$oldname copy-"$(date +%Y/%m/%d-%H:%M)
-  echo "will use automatically generated corpus name: \"$newcorpus\"."
+  echo "will use automatically generated corpus name: \"$newname\"."
   echo "Press Enter to proceed or Ctrl+c to cancel and give your choice of new corpus name."
   echo "USAGE: bash bin/clone_corpus.sh OLDCORPUSID [NEWCORPUSID [NEWCORPUSNAME]]"
   read
