@@ -2,6 +2,7 @@
 
 oldcorpus=$1
 newcorpus=$2
+newname=$3
 
 # Check config and grab useful settings
 if [ ! -s "config/config.json" ]; then
@@ -14,7 +15,7 @@ mongodir=$(grep -i "^\s*dbpath[=:]" /etc/mongod*.conf | sed -r "s/^.*[=:] *(\/.*
 
 # Check oldcorpus exists
 if [ -z "$oldcorpus" ]; then
-  echo "USAGE: bash bin/clone_corpus.sh OLDCORPUSID NEWCORPUSID"
+  echo "USAGE: bash bin/clone_corpus.sh OLDCORPUSID [NEWCORPUSID [NEWCORPUSNAME]]"
   exit 1
 fi
 oldname=$(mongo "$hyphedb" --eval "db.corpus.find({_id: \"$oldcorpus\"}).forEach(printjson)" | grep '"name"' | sed -r 's/^.*: *"(.*)",$/\1/')
@@ -23,18 +24,26 @@ if [ -z "$oldname" ]; then
   exit 1
 fi
 
-# Define newcorpus ID
+# Define newcorpus ID & name
 if [ -z "$newcorpus" ]; then
   echo "WARNING: no new ID given for clone corpus of \"$oldcorpus\"."
-  newcorpus="$oldcorpus_"$(date +%y%m%d%H%M)
+  newcorpus="$oldcorpus"_$(date +%y%m%d%H%M)
   echo "will use automatically generated corpus ID: \"$newcorpus\"."
   echo "Press Enter to proceed or Ctrl+c to cancel and give your choice of new corpus ID."
+  echo "USAGE: bash bin/clone_corpus.sh OLDCORPUSID [NEWCORPUSID [NEWCORPUSNAME]]"
   read
 fi
-newname="$oldname copy-"$(date +%Y/%m/%d-%H:%M)
+if [ -z "$newname" ]; then
+  echo "WARNING: no new name given for clone corpus of \"$oldname\"."
+  newname="$oldname copy-"$(date +%Y/%m/%d-%H:%M)
+  echo "will use automatically generated corpus name: \"$newcorpus\"."
+  echo "Press Enter to proceed or Ctrl+c to cancel and give your choice of new corpus name."
+  echo "USAGE: bash bin/clone_corpus.sh OLDCORPUSID [NEWCORPUSID [NEWCORPUSNAME]]"
+  read
+fi
 
 # Check newcorpus does not already exist in mongo and lucenedata
-if [ $(mongo hyphe --eval "db.corpus.count({_id: \"$newcorpus\"})" | grep '^[0-9]') -eq "0" ]; then
+if [ $(mongo hyphe --eval "db.corpus.count({_id: \"$newcorpus\"})" | grep '^[0-9]') -ne "0" ]; then
   echo "ERROR: there is already a corpus with ID \"$newcorpus\" in Hyphe's corpus MongoDB ($hyphedb)."
   exit 1
 fi
