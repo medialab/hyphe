@@ -59,10 +59,7 @@ table.fixed{
 }
 
 .btn-muted{
-  color: #EFEBE8;
-}
-tr.bg-selected .btn-muted{
-  color: #FFFFFF;
+  color: #CCC;
 }
 
 .progress-bar-neutral {
