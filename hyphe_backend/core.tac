@@ -803,6 +803,10 @@ class Core(jsonrpc.JSONRPC):
 
     def jsonrpc_lookup_httpstatus(self, url, timeout=30, corpus=DEFAULT_CORPUS):
         """Tests a `url` for `timeout` seconds using a `corpus` specific connection (possible proxy for instance). Returns the url's HTTP code."""
+        try:
+            timeout = int(timeout)
+        except:
+            return self.format_error("Timeout argument must be an integer")
         return self.lookup_httpstatus(url, deadline=time.time()+timeout, corpus=corpus)
 
     @inlineCallbacks
@@ -819,7 +823,7 @@ class Core(jsonrpc.JSONRPC):
             else:
                 agent = Agent(reactor, connectTimeout=timeout)
             method = "HEAD"
-            if tryout > 2:
+            if tryout > 3:
                 method = "GET"
             headers = {'Accept': ['*/*'],
                       'User-Agent': [user_agents.agents[random.randint(0, len(user_agents.agents) -1)]]}
@@ -863,7 +867,10 @@ class Core(jsonrpc.JSONRPC):
                             logger.msg("Retry lookup %s %s %s %s" % (method, url, tryout, response.__dict__), system="DEBUG - %s" % corpus)
                         res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
                         returnD(res)
-        returnD(format_result(response.code))
+        result = format_result(response.code)
+        if 300 <= response.code < 400 and response.headers._rawHeaders['location']:
+            result['location'] = response.headers._rawHeaders['location'][0]
+        returnD(result)
 
     @inlineCallbacks
     def jsonrpc_lookup(self, url, timeout=30, corpus=DEFAULT_CORPUS):

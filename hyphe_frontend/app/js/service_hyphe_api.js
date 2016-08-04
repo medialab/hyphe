@@ -584,7 +584,7 @@ angular.module('hyphe.service_hyphe_api', [])
               var target = (data[0] || {}).result
               if(target !== undefined){
                 // console.log('[OK]', data)
-                successCallback(target)
+                successCallback(target, data[0])
               } else {
                 if(data[0] && data[0].message && data[0].message.status && data[0].message.status != "ready"){
                   // Corpus shut down
