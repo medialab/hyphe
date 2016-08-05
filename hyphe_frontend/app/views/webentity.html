@@ -184,23 +184,23 @@
                       </dl>
                     </div>
                     <div class="col-md-4">
-                      <p>
-                        <strong>Start pages</strong>
-                      </p>
-                      <ul class="list-unstyled list-spaced">
-                        <li ng-repeat="url in webentity.startpages">
-                          <div class="url-container">
-                            <a href="{{url}}" target="_blank" title="Open in a new tab">
-                              <span class="glyphicon glyphicon-link"></span>
-                            </a>
-                            <span class="url url-break">
-                              <span>
-                                {{url}}
+                      <div ng-repeat="startpagetype in [{id: 'user', name: 'Manual'}, {id: 'auto', name: 'Automatic'}, {id: 'removed', name: 'Temporary removed'}]">
+                        <p ng-show="webentity.tags['CORE.STARTPAGES'][startpagetype.id]"><strong>{{startpagetype.name}} startpages</strong></p>
+                        <ul class="list-unstyled list-spaced">
+                          <li ng-repeat="url in webentity.tags['CORE.STARTPAGES'][startpagetype.id]">
+                            <div class="url-container">
+                              <a href="{{url}}" target="_blank" title="Open in a new tab">
+                                <span class="glyphicon glyphicon-link"></span>
+                              </a>
+                              <span class="url url-break">
+                                <span>
+                                  {{url}}
+                                </span>
                               </span>
-                            </span>
-                          </div>
-                        </li>
-                      </ul>
+                            </div>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
 
