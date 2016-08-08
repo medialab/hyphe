@@ -4,13 +4,10 @@
 import time, random, json
 import subprocess
 from datetime import datetime
-from json import loads as loadjson
 from warnings import filterwarnings
 filterwarnings(action='ignore', category=DeprecationWarning, message="Python 2.6 is no longer supported by the Python core team")
 filterwarnings(action='ignore', category=DeprecationWarning, message="twisted.internet.interfaces.IStreamClientEndpointStringParser was deprecated")
-from txjsonrpc import jsonrpclib
 from txjsonrpc.jsonrpc import Introspection
-from txjsonrpc.web import jsonrpc
 from twisted.web import server
 from twisted.python import log as logger
 from twisted.internet import reactor
@@ -29,6 +26,7 @@ from hyphe_backend import processor
 from hyphe_backend.lib import config_hci, urllru, user_agents, creationrules
 from hyphe_backend.lib.config_hci import DEFAULT_CORPUS, TEST_CORPUS, test_and_make_dir
 from hyphe_backend.lib.utils import *
+from hyphe_backend.lib.jsonrpc_custom import customJSONRPC
 from hyphe_backend.lib.jobsqueue import JobsQueue
 from hyphe_backend.lib.mongo import MongoDB, sortdesc
 from hyphe_backend.lib.corpus import CorpusFactory
@@ -37,12 +35,12 @@ from hyphe_backend.memorystructure import MemoryStructure as ms, constants as ms
 
 # MAIN CORE API
 
-class Core(jsonrpc.JSONRPC):
+class Core(customJSONRPC):
 
     addSlash = True
 
     def __init__(self):
-        jsonrpc.JSONRPC.__init__(self)
+        customJSONRPC.__init__(self, config['OPEN_CORS_API'], config['DEBUG'])
         self.db = MongoDB(config['mongo-scrapy'])
         self.msclients = CorpusFactory(
           port_range = config['memoryStructure']['thrift.portrange'],
@@ -67,31 +65,6 @@ class Core(jsonrpc.JSONRPC):
         yield DeferredList([self.jsonrpc_stop_corpus(corpus, _quiet=True) for corpus in self.corpora.keys()], consumeErrors=True)
         yield self.db.close()
         self.msclients.stop()
-
-   # OVERWRITE JSONRPC REQUEST HANDLING
-
-    def render(self, request):
-        if config['OPEN_CORS_API']:
-            request.setHeader("Access-Control-Allow-Origin", "*")
-        from_ip = ""
-        if request.getHeader("x-forwarded-for"):
-            from_ip = " from %s" % request.getHeader("x-forwarded-for")
-        try:
-            args = loadjson(request.content.read())
-        except:
-            return format_error("No data sent")
-        if config['DEBUG']:
-            if args["method"] in ["start_corpus", "create_corpus"] and len(args["params"]) > 1:
-                args["params"][1] = "********"
-            logger.msg(args, system="DEBUG - QUERY%s" % from_ip)
-# TODO   catch corpus arg here and return corpus_error if needed
-        return jsonrpc.JSONRPC.render(self, request)
-
-    def _cbRender(self, result, request, id, version):
-        if config['DEBUG'] == 2:
-            txt = jsonrpclib.dumps(result, id=id, version=2.0)
-            logger.msg("%s%s" % (txt[:1000], " ... [%d cars truncated]" % (len(txt)-1000) if len(txt) > 1000 else ''), system="DEBUG - ANSWER")
-        return jsonrpc.JSONRPC._cbRender(self, result, request, id, version)
 
   # CORPUS HANDLING
 
@@ -884,10 +857,10 @@ class Core(jsonrpc.JSONRPC):
 # CRAWLER'S DEDICATED API
 # accessible jsonrpc methods via "crawl."
 
-class Crawler(jsonrpc.JSONRPC):
+class Crawler(customJSONRPC):
 
     def __init__(self, parent=None):
-        jsonrpc.JSONRPC.__init__(self)
+        customJSONRPC.__init__(self, config['OPEN_CORS_API'], config['DEBUG'])
         self.parent = parent
         self.db = self.parent.db
         self.corpora = self.parent.corpora
@@ -1040,10 +1013,10 @@ class Crawler(jsonrpc.JSONRPC):
 # MEMORYSTRUCTURE's DEDICATED API
 # accessible jsonrpc methods via "store."
 
-class Memory_Structure(jsonrpc.JSONRPC):
+class Memory_Structure(customJSONRPC):
 
     def __init__(self, parent=None):
-        jsonrpc.JSONRPC.__init__(self)
+        customJSONRPC.__init__(self, config['OPEN_CORS_API'], config['DEBUG'])
         self.parent = parent
         self.db = self.parent.db
         self.corpora = self.parent.corpora
