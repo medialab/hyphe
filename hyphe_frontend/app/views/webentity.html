@@ -18,7 +18,7 @@
                 
                 <webentity-tabs></webentity-tabs>
 
-                <div ng-if="webentity && !webentity['loading']">
+                <div ng-show="webentity && !webentity['loading']">
 
                   <div class="row">
                     <div class="col-md-12">
@@ -28,7 +28,7 @@
                   </div>
                   <div class="row">
                     <div class="col-md-8">
-                      <form editable-form name="editableForm" onaftersave="saveUser()">
+                      <form editable-form name="editableForm" onaftersave="saveWebEntity()">
                         <dl class="dl-horizontal dl-editable">
 
                           <dt style="opacity: 0.8;">ID</dt>
@@ -38,12 +38,12 @@
 
                           <dt>Name</dt>
                           <dd>
-                            <span editable-text="webentity.name" e-name="name" e-required>{{ webentity.name || 'empty' }}</span>
+                            <span editable-text="webentity.name" e-name="name" e-required ng-click="editableForm.$show()">{{ webentity.name || 'empty' }}</span>
                           </dd>
 
                           <dt>Status</dt>
                           <dd>
-                            <span editable-select="webentity.status" e-ng-options="s.value as s.text for s in statuses">
+                            <span editable-select="webentity.status" e-name="status" e-ng-options="s.value as s.text for s in statuses" ng-click="editableForm.$show()">
                               {{webentity.status}}
                             </span>
                           </dd>
@@ -55,7 +55,7 @@
                                 <span class="glyphicon glyphicon-link"></span>
                               </a>
                               <span class="url url-break">
-                                <span>
+                                <span class="editable" ng-click="editableForm.$show()">
                                   {{ webentity.homepage || 'empty' }}
                                 </span>
                               </span>
@@ -65,8 +65,7 @@
                           <dt></dt>
                           <dd>
                             <br>
-                            <!-- TODO: finish this and display it -->
-                            <div class="buttons" ng-show="false">
+                            <div class="buttons">
                               <!-- button to show form -->
                               <button type="button" class="btn btn-primary btn-sm" ng-click="editableForm.$show()" ng-show="!editableForm.$visible">
                                 EDIT

@@ -1311,7 +1311,9 @@ table.sliders-commands {
   margin-right: -12px;
 }
 
-
+span.editable{
+  border-bottom: dashed 1px #ccc
+}
 
 
 

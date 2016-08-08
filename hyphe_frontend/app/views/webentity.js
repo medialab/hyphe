@@ -31,6 +31,23 @@ angular.module('hyphe.webentityController', [])
       }
     }
 
+    $scope.saveWebEntity = function(){
+      return api.webentityUpdate({
+          webentityId: $scope.webentity.id
+          ,name: $scope.webentity.name
+          ,status: $scope.webentity.status
+          ,homepage: $scope.webentity.homepage
+        }
+        ,function(result){
+          $scope.status = {}
+        }
+        ,function(error){
+          $scope.editableForm.$setError('name', error);
+          $scope.status = {message: 'Could not save webentity', background:'warning'}
+        }
+      )
+    }
+
     // Init
     fetchWebentity($routeParams.webentityId)
 

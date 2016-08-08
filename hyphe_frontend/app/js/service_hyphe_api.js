@@ -31,6 +31,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_nodelinks_network'
     API.WEBENTITY_SUBWEBENTITY_LIST_GET             = 'store.get_webentity_subwebentities'
     API.WEBENTITY_PARENTWEBENTITY_LIST_GET          = 'store.get_webentity_parentwebentities'
+    API.WEBENTITY_EDIT                              = 'store.basic_edit_webentity'
     API.WEBENTITY_NAME_SET                          = 'store.rename_webentity'
     API.WEBENTITY_STATUS_SET                        = 'store.set_webentity_status'
     API.WEBENTITY_HOMEPAGE_SET                      = 'store.set_webentity_homepage'
@@ -368,6 +369,18 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
+    ns.webentityUpdate = buildApiCall(
+        API.WEBENTITY_EDIT
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.name || null
+              ,settings.status || null
+              ,settings.homepage || null
+              ,corpus.getId()
+            ]}
+      )
+
     ns.crawlWithHeuristic = buildApiCall(
         API.WEBENTITY_CRAWL_WITH_HEURISTIC
         ,function(settings){
@@ -571,7 +584,7 @@ angular.module('hyphe.service_hyphe_api', [])
         }
 
         errorCallback = errorCallback || rpcError
-        $http({
+        return $http({
           method: 'POST'
           ,url: surl
           ,data: JSON.stringify({ //JSON RPC
@@ -580,27 +593,25 @@ angular.module('hyphe.service_hyphe_api', [])
             })
           ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
         })
-          .success(function(data, status, headers, config){
-              var target = (data[0] || {}).result
-              if(target !== undefined){
-                // console.log('[OK]', data)
-                successCallback(target, data[0])
-              } else {
-                if(data[0] && data[0].message && data[0].message.status && data[0].message.status != "ready"){
-                  // Corpus shut down
-                  $location.path('/')
-                } else {
-                  console.log('[Error: unexpected]', data)
-                  errorCallback(data, status, headers, config)
-                }
-              }
-            })
-          .error(function(data, status, headers, config){
-            console.log('[Error: fail]', data)
-            errorCallback(data, status, headers, config)
-          })
-
-        return true
+        .success(function(data, status, headers, config){
+          var target = (data[0] || {}).result
+          if(target !== undefined){
+            // console.log('[OK]', data)
+            successCallback(target, data[0])
+          } else {
+            if(data[0] && data[0].message && data[0].message.status && data[0].message.status != "ready"){
+              // Corpus shut down
+              $location.path('/')
+            } else {
+              console.log('[Error: unexpected]', data)
+              errorCallback(data, status, headers, config)
+            }
+          }
+        })
+        .error(function(data, status, headers, config){
+          console.log('[Error: fail]', data)
+          errorCallback(data, status, headers, config)
+        })
       }
     }
 
