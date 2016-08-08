@@ -1452,11 +1452,32 @@ class Memory_Structure(customJSONRPC):
             returnD({'code': 'fail', 'message': '%d webentities failed, see details in "errors" field and successes in "results" field.' % len(errors), 'errors': errors, 'results': res})
         returnD(format_result(res))
 
-    def jsonrpc_rename_webentity(self, webentity_id, new_name, corpus=DEFAULT_CORPUS):
+    @inlineCallbacks
+    def jsonrpc_basic_edit_webentity(self, webentity_id, name=None, status=None, homepage=None, corpus=DEFAULT_CORPUS):
+        """Changes for a `corpus` at once the `name`, `status` and `homepage` of a WebEntity defined by `webentity_id`."""
+        res = []
+        WE = None
+        if name:
+            WE = yield self.jsonrpc_rename_webentity(webentity_id, name, corpus=corpus, _commit=(not homepage and not status))
+            if is_error(WE):
+                res.append(WE['message'])
+        if status:
+            WE = yield self.jsonrpc_set_webentity_status(WE or webentity_id, status, corpus=corpus, _commit=(not homepage))
+            if is_error(WE):
+                res.append(WE['message'])
+        if homepage:
+            WE = yield self.jsonrpc_set_webentity_homepage(WE or webentity_id, homepage, corpus=corpus)
+            if is_error(WE):
+                res.append(WE['message'])
+        if res:
+            returnD(format_error(res))
+        returnD(format_result("Webentity's basic metadata updated"))
+
+    def jsonrpc_rename_webentity(self, webentity_id, new_name, corpus=DEFAULT_CORPUS, _commit=True):
         """Changes for a `corpus` the name of a WebEntity defined by `webentity_id` to `new_name`."""
         if not new_name or new_name == "":
             return format_error("ERROR: please specify a value for the WebEntity's name")
-        return self.update_webentity(webentity_id, "name", new_name, corpus=corpus)
+        return self.update_webentity(webentity_id, "name", new_name, corpus=corpus, _commit=_commit)
 
     @inlineCallbacks
     def jsonrpc_change_webentity_id(self, webentity_old_id, webentity_new_id, corpus=DEFAULT_CORPUS):
@@ -1473,9 +1494,9 @@ class Memory_Structure(customJSONRPC):
         returnD(format_result("WebEntity %s was re-ided as %s" % (webentity_old_id, webentity_new_id)))
 
     @inlineCallbacks
-    def jsonrpc_set_webentity_status(self, webentity_id, status, corpus=DEFAULT_CORPUS):
+    def jsonrpc_set_webentity_status(self, webentity_id, status, corpus=DEFAULT_CORPUS, _commit=True):
         """Changes for a `corpus` the status of a WebEntity defined by `webentity_id` to `status` (one of "in"/"out"/"undecided"/"discovered")."""
-        res = yield self.update_webentity(webentity_id, "status", status, corpus=corpus)
+        res = yield self.update_webentity(webentity_id, "status", status, corpus=corpus, _commit=_commit)
         if not is_error(res):
             for WE in self.corpora[corpus]["webentities"]:
                 if WE.id == webentity_id:
