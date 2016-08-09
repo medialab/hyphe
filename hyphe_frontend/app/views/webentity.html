@@ -31,8 +31,8 @@
                       <form editable-form name="editableForm" onaftersave="saveWebEntity()">
                         <dl class="dl-horizontal dl-editable">
 
-                          <dt style="opacity: 0.8;">ID</dt>
-                          <dd style="opacity: 0.8;">
+                          <dt class="lightText">ID</dt>
+                          <dd class="lightText">
                             {{webentity.id}}
                           </dd>
 
@@ -88,6 +88,11 @@
                     </div>
 
                     <div class="col-md-4">
+                      <ul class="list-unstyled features lightText">
+                        <li title="{{webentity['creation_date']*1000|date}}">Created {{webentity['creation_date']*1000|prettyDate}}</li>
+                        <li title="{{webentity['last_modification_date']*1000|date}}">Last modified {{webentity['last_modification_date']*1000|prettyDate}}</li>
+                        <li>Cited by {{webentity['indegree'] | no}} other entit{{webentity['indegree'] | y_ies}}</li>
+                      </ul>
                       <p>
                         <strong>Prefixes</strong>
                       </p>
@@ -109,19 +114,31 @@
                     </div>
                   </div>
 
-                  <!-- TODO: finish this and display it -->
-                  <div class="row" ng-show="false">
+                  <div class="row">
                     <div class="col-md-12">
                       <hr>
                       <h3>Features</h3>
                       <br>
-                    </div>
-                  </div>
-                  <!-- TODO: don't forget to also display that -->
-                  <div class="row" ng-show="false">
-                    <div class="col-md-8">
                       <div class="row">
-                        <div class="col-md-6" ng-repeat="(cat, taglist) in webentity.tags.USER" ng-if="cat != '_freetags'">
+                        <div class="col-md-12">
+                          <div class="tagbox freetags">
+                            <div class="tagbox-head">
+                              free tags
+                            </div>
+                            <div class="tagbox-body">
+                              <tags-input
+                                ng-model="webentity.tags.USER.FREETAGS"
+                                on-tag-adding="addTag($tag, 'FREETAGS')"
+                                on-tag-removing="removeTag($tag, 'FREETAGS')">
+                                <auto-complete source="autoComplete($query, 'FREETAGS')">
+                                </auto-complete>
+                              </tags-input>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-4" ng-repeat="(cat, values) in tagCategories" ng-if="cat !== 'FREETAGS'">
                           <div class="tagbox">
                             <div class="tagbox-head">
                               {{cat}}
@@ -132,20 +149,24 @@
                               </div> -->
                             </div>
                             <div class="tagbox-body">
-                              <tags-input ng-model="taglist">
-                                <auto-complete source="loadItems($query)"></auto-complete>
+                              <tags-input
+                                ng-model="webentity.tags.USER[cat]"
+                                on-tag-adding="addTag($tag, cat)"
+                                on-tag-removing="removeTag($tag, cat)">
+                                <auto-complete source="autoComplete($query, cat)">
+                                </auto-complete>
                               </tags-input>
                             </div>
                           </div>
                         </div>
+                        <div class="col-md-3">
+                          <div class="tagbox" ng-click="">
+                            <div class="tagbox-head">
+                              + Add a category
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div class="col-md-4">
-                      <ul class="list-unstyled">
-                        <li>Created {{webentity['creation_date']*1000|prettyDate}}</li>
-                        <li>Last modified {{webentity['last_modification_date']*1000|prettyDate}}</li>
-                        <li>Cited by {{webentity['indegree']}} other entities</li>
-                      </ul>
                     </div>
                   </div>
 
@@ -157,7 +178,7 @@
                     </div>
                   </div>
                   <div class="row">
-                    <div class="col-md-8">
+                    <div class="col-md-4">
                       <dl class="dl-horizontal dl-editable">
 
                         <dt>Crawled</dt>
@@ -177,12 +198,12 @@
                           <button
                             class="btn btn-default btn-sm"
                             ng-click="reCrawl()"
-                          ><span class="glyphicon glyphicon-repeat"></span> {{webentity['crawling_status'] != 'UNCRAWLED' ? 'RE' : ''}}CRAWL</button>
+                          ><span class="glyphicon glyphicon-repeat"></span> {{webentity['crawling_status'] !== 'UNCRAWLED' ? 'RE' : ''}}CRAWL</button>
                         </dd>
 
                       </dl>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-8">
                       <div ng-repeat="startpagetype in [{id: 'user', name: 'Manual'}, {id: 'auto', name: 'Automatic'}, {id: 'removed', name: 'Temporary removed'}]">
                         <p ng-show="webentity.tags['CORE.STARTPAGES'][startpagetype.id]"><strong>{{startpagetype.name}} startpages</strong></p>
                         <ul class="list-unstyled list-spaced">

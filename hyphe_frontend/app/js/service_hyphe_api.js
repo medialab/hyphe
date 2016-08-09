@@ -560,6 +560,38 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
+    ns.addTag = buildApiCall(
+        API.WEBENTITY_TAG_VALUE_ADD
+        ,function(settings){
+          return [
+            settings.webentityId
+            ,settings.namespace || 'USER'
+            ,settings.category || 'FREETAGS'
+            ,settings.value || ''
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.removeTag = buildApiCall(
+        API.WEBENTITY_TAG_VALUE_REMOVE
+        ,function(settings){
+          return [
+            settings.webentityId
+            ,settings.namespace || 'USER'
+            ,settings.category || 'FREETAGS'
+            ,settings.value || ''
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.getTags = buildApiCall(
+        API.WEBENTITY_TAG_LIST_GET
+        ,function(settings){
+          return [corpus.getId()]
+        }
+      )
+
+
     // Fake query for test
     ns.dummy = function (settings, successCallback, errorCallback) {
       setTimeout(successCallback, 1000 + Math.round( Math.random() * 2000 ) )

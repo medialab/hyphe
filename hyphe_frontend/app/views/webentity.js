@@ -12,6 +12,7 @@ angular.module('hyphe.webentityController', [])
     $scope.explorerActive = false
 
     $scope.webentity = {id:$routeParams.webentityId, loading:true}
+    $scope.tagCategories = {}
     
     $scope.statuses = [
       {value: 'IN', text: 'IN'},
@@ -32,6 +33,7 @@ angular.module('hyphe.webentityController', [])
     }
 
     $scope.saveWebEntity = function(){
+      $scope.status = {message: 'Updating metadata'}
       return api.webentityUpdate({
           webentityId: $scope.webentity.id
           ,name: $scope.webentity.name
@@ -39,7 +41,7 @@ angular.module('hyphe.webentityController', [])
           ,homepage: $scope.webentity.homepage
         }
         ,function(result){
-          $scope.status = {}
+          $scope.status = {message: ''}
         }
         ,function(error){
           $scope.editableForm.$setError('name', error);
@@ -50,6 +52,7 @@ angular.module('hyphe.webentityController', [])
 
     // Init
     fetchWebentity($routeParams.webentityId)
+    fetchTags()
 
     // Functions
     function fetchWebentity(id){
@@ -61,12 +64,7 @@ angular.module('hyphe.webentityController', [])
           $scope.webentity = result[0]
           $scope.webentity.loading = false
 
-          // TEST DATA
           $scope.webentity.tags.USER = $scope.webentity.tags.USER || {}
-          $scope.webentity.tags.USER._freetags = ['lol', 'kikoo', 'very long and annoying Tag with *$! characterz... :(']
-          $scope.webentity.tags.USER.country = ['France']
-          $scope.webentity.tags.USER.type = ['Newspaper']
-          // END TEST DATA
 
           console.log($scope.webentity.name, $scope.webentity)
           $scope.Page.setTitle($scope.webentity.name)
@@ -75,6 +73,82 @@ angular.module('hyphe.webentityController', [])
           $scope.status = {message: 'Error loading web entity', background: 'danger'}
         }
       )
+    }
+
+    $scope.addTag = function(tag, category){
+      $scope.status = {message: 'Adding tag'}
+      // Add tag to autocompleter
+      if (!$scope.tagCategories[category]) {
+        $scope.tagCategories[category] = {}
+      }
+      $scope.tagCategories[category][searchable(tag.text)] = tag.text
+      return api.addTag({
+          webentityId: $scope.webentity.id
+          ,category: category
+          ,value: tag.text
+        }
+        ,function(){
+          $scope.status = {message: ''}
+        }
+        ,function(error){
+          $scope.status = {message: 'Could not add tag', background:'warning'}
+        }
+      )
+    }
+
+    $scope.removeTag = function(tag, category){
+      $scope.status = {message: 'Removing tag'}
+      return api.removeTag({
+          webentityId: $scope.webentity.id
+          ,category: category
+          ,value: tag.text
+        }
+        ,function(){
+          $scope.status = {message: ''}
+        }
+        ,function(error){
+          $scope.status = {message: 'Could not remove tag', background:'warning'}
+        }
+      )
+    }
+
+    function searchable(str){
+      str = str.trim().toLowerCase()
+      // remove accents, swap ñ for n, etc
+      var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;"
+          , to = "aaaaeeeeiiiioooouuuunc------"
+      for (var i = 0, l = from.length; i < l; i++) {
+        str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i))
+      }
+      return str
+    }
+
+    function fetchTags(){
+      api.getTags(
+        {}
+        ,function(tags){
+          Object.keys(tags.USER || {}).forEach(function(cat){
+            $scope.tagCategories[cat] = {}
+            tags.USER[cat].forEach(function(val){
+              $scope.tagCategories[cat][searchable(val)] = val
+            })
+          })
+        }
+        ,function(tags){
+          $scope.status = {message: 'Error loading corpus tags', background: 'danger'}
+        }
+      )
+    }
+
+    $scope.autoComplete = function(query, category){
+      var searchQuery = searchable(query)
+        , res = []
+      Object.keys($scope.tagCategories[category] || {}).forEach(function(searchTag){
+        if (searchTag && (!searchQuery || ~searchTag.indexOf(searchQuery))) {
+          res.push($scope.tagCategories[category][searchTag])
+        }
+      })
+      return res
     }
   }])
 

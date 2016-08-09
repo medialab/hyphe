@@ -262,6 +262,7 @@ div.url-container .url-break{
 .tagbox {
   background-color: #EFEBE8;
   padding: 6px;
+  margin-bottom: 20px;
 }
 .tagbox-head {
   font-size: 14px;
@@ -280,6 +281,23 @@ tags-input .tags {
 }
 tags-input .tags .tag-item {
   background: #EFEBE8;
+  color: #000;
+}
+.tagbox.freetags {
+  background-color: #FFF;
+  color: #000;
+  padding: 0px;
+}
+.freetags tags-input .tags {
+  background: #EFEBE8;
+  border-radius: 0px;
+}
+.freetags tags-input .tags .input {
+  border: solid 1px #acacac;
+  border-radius: 3px;
+}
+.freetags tags-input .tags .tag-item {
+  background: #FFF;
   color: #000;
 }
 
@@ -1315,9 +1333,13 @@ span.editable{
   border-bottom: dashed 1px #ccc
 }
 
+.lightText{
+  opacity: 0.8;
+}
 
-
-
+.features li{
+  font-size: 0.8em;
+}
 
 
 
