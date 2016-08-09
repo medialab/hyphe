@@ -71,6 +71,7 @@ The API will always answer as such:
     * __`declare_webentity_by_lrus_as_urls`__
     * __`declare_webentity_by_lrus`__
   + [EDIT WEBENTITIES](#edit-webentities)
+    * __`basic_edit_webentity`__
     * __`rename_webentity`__
     * __`change_webentity_id`__
     * __`set_webentity_status`__
@@ -427,6 +428,16 @@ The API will always answer as such:
 
 ### EDIT WEBENTITIES
 
+- __`basic_edit_webentity`:__
+ + _`webentity_id`_ (mandatory)
+ + _`name`_ (optional, default: `null`)
+ + _`status`_ (optional, default: `null`)
+ + _`homepage`_ (optional, default: `null`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Changes for a `corpus` at once the `name`, `status` and `homepage` of a WebEntity defined by `webentity_id`.
+
+
 - __`rename_webentity`:__
  + _`webentity_id`_ (mandatory)
  + _`new_name`_ (mandatory)
@@ -768,9 +779,10 @@ The API will always answer as such:
 
 
 - __`get_tags`:__
+ + _`namespace`_ (optional, default: `null`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` a tree of all existing tags of the webentities hierarchised by namespaces and categories.
+ Returns for a `corpus` a tree of all existing tags of the webentities hierarchised by namespaces and categories. Optionally limits to a specific `namespace`.
 
 
 - __`get_tag_namespaces`:__

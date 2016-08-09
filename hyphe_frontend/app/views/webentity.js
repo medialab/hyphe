@@ -125,7 +125,7 @@ angular.module('hyphe.webentityController', [])
 
     function fetchTags(){
       api.getTags(
-        {}
+        { namespace: 'USER' }
         ,function(tags){
           Object.keys(tags.USER || {}).forEach(function(cat){
             $scope.tagCategories[cat] = {}

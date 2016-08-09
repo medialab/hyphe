@@ -587,7 +587,10 @@ angular.module('hyphe.service_hyphe_api', [])
     ns.getTags = buildApiCall(
         API.WEBENTITY_TAG_LIST_GET
         ,function(settings){
-          return [corpus.getId()]
+          return [
+            settings.namespace || null
+            ,corpus.getId()
+          ]
         }
       )
 

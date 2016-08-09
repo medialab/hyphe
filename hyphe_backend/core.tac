@@ -1454,7 +1454,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_basic_edit_webentity(self, webentity_id, name=None, status=None, homepage=None, corpus=DEFAULT_CORPUS):
-        """Changes for a `corpus` at once the `name`, `status` and `homepage` of a WebEntity defined by `webentity_id`."""
+        """Changes for a `corpus` at once the `name`\, `status` and `homepage` of a WebEntity defined by `webentity_id`."""
         res = []
         WE = None
         if name:
@@ -2189,9 +2189,13 @@ class Memory_Structure(customJSONRPC):
         returnD(tags)
 
     @inlineCallbacks
-    def jsonrpc_get_tags(self, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` a tree of all existing tags of the webentities hierarchised by namespaces and categories."""
+    def jsonrpc_get_tags(self, namespace=None, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` a tree of all existing tags of the webentities hierarchised by namespaces and categories. Optionally limits to a specific `namespace`."""
         tags = yield self.ramcache_tags(corpus)
+        if namespace:
+            if namespace not in tags.keys():
+                returnD(format_result({}))
+            returnD(format_result(tags[namespace]))
         returnD(format_result(tags))
 
     @inlineCallbacks
