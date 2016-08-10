@@ -182,6 +182,9 @@ class Core(customJSONRPC):
         if self.factory_full():
             returnD(self.corpus_error())
 
+        existing = yield self.db.get_corpus_by_name(name)
+        if existing:
+            returnD(format_error('There already is a corpus named "%s".' % name))
         corpus = clean_corpus_id(name)
         corpus_idx = 1
         existing = yield self.db.get_corpus(corpus)

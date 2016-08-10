@@ -73,6 +73,11 @@ class MongoDB(object):
         returnD(res)
 
     @inlineCallbacks
+    def get_corpus_by_name(self, corpus):
+        res = yield self.db["corpus"].find_one({"name": corpus}, safe=True)
+        returnD(res)
+
+    @inlineCallbacks
     def update_corpus(self, corpus, modifs):
         yield self.db["corpus"].update({"_id": corpus}, {"$set": modifs}, safe=True)
 
