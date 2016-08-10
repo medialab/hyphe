@@ -269,6 +269,11 @@ div.url-container .url-break{
   font-family: 'Open Sans', sans-serif;
   text-transform: uppercase;
 }
+.tagbox-head a.editable, .tagbox-head a.editable-empty{
+  color: inherit;
+  font-style: normal;
+  border-bottom: dashed 1px #ccc;
+}
 /* Tweak ng-tag-input */
 tags-input .tags {
   border: 1px solid #ccc;
@@ -1330,7 +1335,7 @@ table.sliders-commands {
 }
 
 span.editable{
-  border-bottom: dashed 1px #ccc
+  border-bottom: dashed 1px #ccc;
 }
 
 .lightText{

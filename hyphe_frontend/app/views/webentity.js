@@ -13,6 +13,8 @@ angular.module('hyphe.webentityController', [])
 
     $scope.webentity = {id:$routeParams.webentityId, loading:true}
     $scope.tagCategories = {}
+    $scope.tagCategoriesOrder = []
+    $scope.newCategory = ""
     
     $scope.statuses = [
       {value: 'IN', text: 'IN'},
@@ -75,6 +77,18 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
+    $scope.saveNewCategory = function(category){
+      category = category.trim()
+      if (!category || $scope.tagCategories[category]) return false
+      $scope.tagCategories[category] = {}
+      $scope.tagCategoriesOrder.push(category)
+      return true
+    }
+
+    $scope.resetNewCategory = function(){
+      $scope.newCategory = ''
+    }
+
     $scope.addTag = function(tag, category){
       $scope.status = {message: 'Adding tag'}
       // Add tag to autocompleter
@@ -127,10 +141,11 @@ angular.module('hyphe.webentityController', [])
       api.getTags(
         { namespace: 'USER' }
         ,function(tags){
-          Object.keys(tags.USER || {}).forEach(function(cat){
-            $scope.tagCategories[cat] = {}
-            tags.USER[cat].forEach(function(val){
-              $scope.tagCategories[cat][searchable(val)] = val
+          Object.keys(tags || {}).forEach(function(category){
+            $scope.tagCategories[category] = {}
+            $scope.tagCategoriesOrder.push(category)
+            tags[category].forEach(function(val){
+              $scope.tagCategories[category][searchable(val)] = val
             })
           })
         }

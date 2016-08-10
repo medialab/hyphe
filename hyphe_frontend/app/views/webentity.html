@@ -138,7 +138,7 @@
                         </div>
                       </div>
                       <div class="row">
-                        <div class="col-md-4" ng-repeat="(cat, values) in tagCategories" ng-if="cat !== 'FREETAGS'">
+                        <div class="col-md-4" ng-repeat="cat in tagCategoriesOrder" ng-if="cat !== 'FREETAGS'">
                           <div class="tagbox">
                             <div class="tagbox-head">
                               {{cat}}
@@ -160,9 +160,12 @@
                           </div>
                         </div>
                         <div class="col-md-3">
-                          <div class="tagbox" ng-click="">
+                          <div class="tagbox">
                             <div class="tagbox-head">
-                              + Add a category
+                              <a class="editable" href="#" editable-text="newCategory" onaftersave="saveNewCategory($data)" onhide="resetNewCategory()">
+                                <span ng-show="false">{{newCategory || ''}}</span>
+                                + Add a tag category
+                              </a>
                             </div>
                           </div>
                         </div>
