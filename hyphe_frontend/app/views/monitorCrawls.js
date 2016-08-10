@@ -34,7 +34,7 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.paginationNumPages = 10  // How many pages to display in the pagination
 
     $scope.pageChanged = function(){
-      console.log('Nous sommes sur la page '+$scope.paginationPage)
+      // console.log('Nous sommes sur la page '+$scope.paginationPage)
       loadRequiredWebentities()
     }
 
@@ -239,7 +239,6 @@ angular.module('hyphe.monitorcrawlsController', [])
               .map(consolidateJob)
 
             updateCrawlJobs()
-            
             $scope.scheduleRefresh()
         
           }
@@ -254,7 +253,7 @@ angular.module('hyphe.monitorcrawlsController', [])
     }
 
     function populateWebEntityNames(){
-      $scope.crawlJobs.forEach(function(job){
+      ($scope.crawlJobs || []).forEach(function(job){
         job.webentity_name = $scope.webentityIndex[job.webentity_id].name + (job.previous_webentity_name ? ' (previously '+job.previous_webentity_name+')' : '')
       })
     }
@@ -372,8 +371,9 @@ angular.module('hyphe.monitorcrawlsController', [])
                 })
               }
 
-              $scope.status = {message: ''}
+              feedMainListBack()
 
+              $scope.status = {message: ''}
               $scope.scheduleRefresh()
             }
           }
