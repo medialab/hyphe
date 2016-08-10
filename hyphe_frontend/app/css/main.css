@@ -296,14 +296,17 @@ tags-input .tags .tag-item {
 .freetags tags-input .tags {
   background: #EFEBE8;
   border-radius: 0px;
+  border: none;
 }
 .freetags tags-input .tags .input {
   border: solid 1px #acacac;
   border-radius: 3px;
+  margin: 6px;
 }
 .freetags tags-input .tags .tag-item {
   background: #FFF;
   color: #000;
+  margin: 6px;
 }
 
 
