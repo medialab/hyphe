@@ -787,6 +787,9 @@ div.welcome-column dd{
 .network-key span.dot.dot-discovered{
   background-color: #93BDE0;
 }
+.network-key .uppercase{
+  text-transform: uppercase;
+}
 
 
 /* Sigma */
@@ -815,14 +818,19 @@ div.welcome-column dd{
 .sigma-floating{
   padding: 2px;
   position: absolute;
-
   top: 62px;
   right: 12px;
-
   overflow: hidden;
 }
 .sigma-floating .dropdown-menu{
   top: initial;
+}
+.sigma-floating-cat{
+  padding: 2px;
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  overflow: hidden;
 }
 
 .sigma-expand {
@@ -845,7 +853,6 @@ div.welcome-column dd{
 }
 .sigma-tools .btn-link{
   background-color: #FFF;
-  
 }
 
 

@@ -25,6 +25,12 @@ angular.module('hyphe.networkController', ['angular-md5'])
     $scope.filteringCollapsed = false
     $scope.keyCollapsed = false
     
+    $scope.categorizingCollapsed = true
+    $scope.categorization = 'HYPHE_internal_status'
+    $scope.uniqCategories = {}
+    $scope.uniqCategoriesExist = false
+    var maxCatLegend = 6
+
     // Different presets for settings
     $scope.presets = [
       {
@@ -193,15 +199,38 @@ angular.module('hyphe.networkController', ['angular-md5'])
 
     }
 
-    $scope.toggleFilterCollapse = function(){
-      $scope.filteringCollapsed = !$scope.filteringCollapsed;
+    var statusColors = {
+      IN:              "#333"
+      ,UNDECIDED:      "#ADA299"
+      ,OUT:            "#FAA"
+      ,DISCOVERED:     "#93BDE0"
+    }
+    , categoriesColor = [
+      "#7dce47"
+      ,"#74dbff"
+      ,"#d4c237"
+      ,"#7951c3"
+      ,"#d26229"
+      ,"#f36dcb"
+      ,"#ada299"
+    ]
+    , colorize = function(node){
+      if ($scope.categorization === "HYPHE_internal_status") {
+        return statusColors[node.status] || "#F00"
+      }
+      if (node.categories[$scope.categorization]) {
+        return $scope.uniqCategories[$scope.categorization].colors[node.categories[$scope.categorization]] || categoriesColor[6]
+      }
+      return "#F00"
     }
 
-    $scope.toggleKeyCollapse = function(){
-      $scope.keyCollapsed = !$scope.keyCollapsed;
+    $scope.updateCategorization = function(){
+      sigmaInstance.graph.nodes().forEach(function(node){
+        node.color = colorize(node)
+      })
+      $scope.categorizingCollapsed = true
+      $scope.keyCollapsed = false
     }
-
-    $scope.initSigma = initSigma
 
     // Init
     loadCorpus()
@@ -304,7 +333,9 @@ angular.module('hyphe.networkController', ['angular-md5'])
             ,'degree': degree
             ,'hidden': node.hidden
             ,'size': 1 + Math.log(1 + 0.1 * degree )
-            ,'color': node.color
+            ,'color': colorize(node)
+            ,status: node.status
+            ,categories: node.categories
           })
         })
       $scope.network.edges
@@ -359,14 +390,11 @@ angular.module('hyphe.networkController', ['angular-md5'])
 
     function buildNetwork(){
       $scope.network = {}
-      var statusColors = {
-        IN:             "#333"
-      , UNDECIDED:      "#ADA299"
-      , OUT:            "#FAA"
-      , DISCOVERED:     "#93BDE0"
-      }
-
       $scope.network.attributes = []
+
+      $scope.categorization = 'HYPHE_internal_status'
+      $scope.uniqCategories = {}
+      $scope.uniqCategoriesExist = false
 
       $scope.network.nodesAttributes = [
         {id:'attr_status', title:'Status', type:'string'}
@@ -379,16 +407,10 @@ angular.module('hyphe.networkController', ['angular-md5'])
       ]
       
       // Extract categories from nodes
-      var categories = []
+      var categories = [], tmpCategories = {}
       $scope.webentities.all.forEach(function(we){
-        for(var namespace in we.tags){
-          if(namespace == 'CORPUS' || namespace == 'USER'){
-            var tagging = we.tags[namespace]
-            for(var category in tagging){
-              var values = tagging[category]
-              categories.push(namespace+': '+category)
-            }
-          }
+        for(var category in we.tags.USER){
+          categories.push(category)
         }
       })
 
@@ -396,7 +418,6 @@ angular.module('hyphe.networkController', ['angular-md5'])
       categories.forEach(function(cat){
         $scope.network.nodesAttributes.push({id:'attr_'+md5.createHash(cat), title:cat, type:'string'})
       })
-
       var existingNodes = {}  // This index is useful to filter edges with unknown nodes
                               // ...and when the backend gives several instances of the same web entity
 
@@ -409,26 +430,81 @@ angular.module('hyphe.networkController', ['angular-md5'])
       if ($scope.settings.discovered){
         wes = wes.concat($scope.webentities["discovered"+($scope.settings.discoveredMinDegree > 0 ? "_"+$scope.settings.discoveredMinDegree : "")])
       }
-      
-      $scope.network.nodes = wes.filter(function(n){
-        return n!== undefined
-      }).map(function(we){
-        if(existingNodes[we.id] === undefined){
-          var color = statusColors[we.status] || '#FF0000'
-            ,tagging = []
-          for(var namespace in we.tags){
-            if(namespace == 'CORPUS' || namespace == 'USER'){
-              for(var category in we.tags[namespace]){
-                var values = we.tags[namespace][category]
-                tagging.push({cat:namespace+': '+category, values:values})
-              }
+
+      // Identify tag categories with unique values for the filtered webentities
+      wes.forEach(function(we){
+        for(var category in we.tags.USER){
+          if (!tmpCategories[category]){
+            tmpCategories[category] = {
+              maxitems: 0
+              ,missing_values: wes.length
+              ,values: {}
             }
           }
+          tmpCategories[category].maxitems = Math.max(we.tags.USER[category].length, tmpCategories[category].maxitems)
+          tmpCategories[category].missing_values -= 1
+          we.tags.USER[category].forEach(function(tag){
+            if (!tmpCategories[category].values[tag]) {
+              tmpCategories[category].values[tag] = 0
+            }
+            tmpCategories[category].values[tag] += 1
+          })
+        }
+      })
+
+      for (var category in tmpCategories){
+        var cat = tmpCategories[category],
+          catkeys = Object.keys(cat.values)
+        if (cat.maxitems === 1){
+          var othervalues = catkeys.length >= maxCatLegend || (!cat.missing_values && catkeys.length > maxCatLegend)
+          $scope.uniqCategoriesExist = true
+          $scope.uniqCategories[category] = cat
+          $scope.uniqCategories[category].legend = catkeys.sort(function(a, b){
+              return cat.values[b] - cat.values[a]
+            })
+            .slice(0, maxCatLegend - othervalues - !!cat.missing_values)
+            .map(function(c, i){
+              return {
+                name: c
+                ,color: categoriesColor[i]
+              }
+            })
+          $scope.uniqCategories[category].colors = {}
+          $scope.uniqCategories[category].legend.forEach(function(c){
+            $scope.uniqCategories[category].colors[c.name] = c.color
+          })
+          if (catkeys.length >= maxCatLegend){
+            $scope.uniqCategories[category].legend.push({
+              name: 'other tag values'
+              ,color: categoriesColor[6]
+            })
+          }
+          if (cat.missing_values){
+            $scope.uniqCategories[category].legend.push({
+              name: 'no tag value'
+              ,color: '#F00'
+            })
+          }
+        }
+      }
+
+      $scope.network.nodes = wes.filter(function(n){
+        return n !== undefined
+      }).map(function(we){
+        if(existingNodes[we.id] === undefined){
+          var tagging = [], wecategories = {}
+          for(var category in we.tags.USER){
+            tagging.push({cat:category, values:we.tags.USER[category]})
+          }
+          Object.keys($scope.uniqCategories).forEach(function(category){
+            wecategories[category] = ((we.tags.USER || {})[category] || [''])[0]
+          })
           existingNodes[we.id] = true
           return {
             id: we.id
             ,label: we.name
-            ,color: color
+            ,status: we.status
+            ,categories: wecategories
             ,attributes: [
               {attr:'attr_status', val: we.status || 'error' }
               ,{attr:'attr_crawling', val: we.crawling_status || '' }
