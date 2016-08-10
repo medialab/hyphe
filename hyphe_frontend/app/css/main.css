@@ -1337,6 +1337,9 @@ table.sliders-commands {
 span.editable{
   border-bottom: dashed 1px #ccc;
 }
+span.editable-url{
+  width: 100%
+}
 
 .lightText{
   opacity: 0.8;

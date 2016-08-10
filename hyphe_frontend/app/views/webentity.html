@@ -88,11 +88,6 @@
                     </div>
 
                     <div class="col-md-4">
-                      <ul class="list-unstyled features lightText">
-                        <li title="{{webentity['creation_date']*1000|date}}">Created {{webentity['creation_date']*1000|prettyDate}}</li>
-                        <li title="{{webentity['last_modification_date']*1000|date}}">Last modified {{webentity['last_modification_date']*1000|prettyDate}}</li>
-                        <li>Cited by {{webentity['indegree'] | no}} other entit{{webentity['indegree'] | y_ies}}</li>
-                      </ul>
                       <p>
                         <strong>Prefixes</strong>
                       </p>
@@ -109,6 +104,12 @@
                             </span>
                           </div>
                         </li>
+                      </ul>
+                      <br/>
+                      <ul class="list-unstyled features lightText">
+                        <li title="{{webentity['creation_date']*1000|date}}">Created {{webentity['creation_date']*1000|prettyDate}}</li>
+                        <li title="{{webentity['last_modification_date']*1000|date}}">Last modified {{webentity['last_modification_date']*1000|prettyDate}}</li>
+                        <li>Cited by {{webentity['indegree'] | no}} other entit{{webentity['indegree'] | y_ies}}</li>
                       </ul>
 
                     </div>
