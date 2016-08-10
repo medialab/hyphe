@@ -23,7 +23,7 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.pageChecked = false
 
     $scope.paginationPage = 1
-    $scope.paginationLength = 20   // How many items per page
+    $scope.paginationLength = "20"   // How many items per page
     $scope.paginationNumPages = 10  // How many pages to display in the pagination
     
     $scope.fullListLength = 0
@@ -43,6 +43,7 @@ angular.module('hyphe.listwebentitiesController', [])
     , out: $scope.statuses.out
     , discovered: $scope.statuses.discovered
     , query: $scope.query
+    , paginationLength: parseInt($scope.paginationLength)
     }
     $scope.counts = {}
 
@@ -50,6 +51,11 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.selected_mergeTarget = 'none'
 
     $scope.applySettings = function(){
+      
+      if (!validatePagination()) {
+        return
+      }
+      $scope.settings.paginationLength = parseInt($scope.paginationLength)
       
       loadStatus()
 
@@ -72,6 +78,16 @@ angular.module('hyphe.listwebentitiesController', [])
       $scope.touchSettings()
     }
 
+    function validatePagination(){
+      var pglength = parseInt(($scope.paginationLength.trim().match(/^[1-9]\d*$/) || [])[0])
+      if (pglength > 0 && pglength < 1000) {
+        $('.results-per-page input').removeClass('ng-invalid')
+        return true
+      }
+      $('.results-per-page input').addClass('ng-invalid')
+      return false
+    }
+
     $scope.touchSettings = function(){
 
       // Check if difference with current settings
@@ -83,6 +99,10 @@ angular.module('hyphe.listwebentitiesController', [])
       }
 
       if ($scope.query != $scope.settings.query) {
+        difference = true
+      }
+
+      if (validatePagination() && $scope.paginationLength != $scope.settings.paginationLength) {
         difference = true
       }
 
@@ -179,7 +199,7 @@ angular.module('hyphe.listwebentitiesController', [])
           allFieldsKeywords: query || []
           ,fieldKeywords: field_kw
           ,sortField: (($scope.sortAsc) ? ($scope.sort) : ('-' + $scope.sort))
-          ,count: $scope.paginationLength
+          ,count: $scope.settings.paginationLength
           ,page: $scope.paginationPage - 1
         }
         ,function(result){

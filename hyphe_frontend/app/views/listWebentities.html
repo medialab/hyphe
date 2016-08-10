@@ -34,21 +34,41 @@
                       
                       <div class="flatpanel-input-spacer"></div>
 
-                      <!-- Search -->
-                      <div class="input-group">
-                        <span class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
-                        <input
-                          type="text"
-                          class="form-control"
-                          placeholder="Type a query"
-                          ng-model="query"
-                          ng-change="touchSettings()"
-                          ng-press-enter="applySettings()"
-                        >
+                      <div class="row">
+
+                        <!-- Search -->
+                        <div class="col-md-8 col-lg-10">
+                          <div class="input-group">
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
+                            <input
+                              type="text"
+                              class="form-control"
+                              placeholder="Type a query"
+                              ng-model="query"
+                              ng-change="touchSettings()"
+                              ng-press-enter="applySettings()"
+                            ></input>
+                          </div>
+                        </div>
+
+                        <!-- Results per page -->
+                        <div class="col-md-4 col-lg-2 hidden-sm">
+                          <div class="input-group results-per-page pull-right" title="WEB ENTITIES PER PAGE">
+                            <span class="input-group-addon">#</span>
+                            <input
+                              type="text"
+                              class="form-control"
+                              placeholder=""
+                              ng-model="paginationLength"
+                              ng-change="touchSettings()"
+                              ng-press-enter="applySettings()"
+                            ></input>
+                          </div>
+                        </div>
+
                       </div>
-
                     </div>
-
+  
                     <!-- Validation panel -->
                     <div class="flatpanel-textblock flatpanel-right flatpanel-separated" collapse="!settingsChanged">
                       <button class="btn btn-default" ng-click="revertSettings()"><span class="glyphicon glyphicon-remove"></span> CANCEL</button>
@@ -197,10 +217,10 @@
                   <pagination
                   total-items="fullListLength"
                   ng-model="$parent.paginationPage"
-                  items-per-page="paginationLength"
+                  items-per-page="settings.paginationLength"
                   boundary-links="true"
                   max-size="paginationNumPages"
-                  ng-if="fullListLength > paginationLength && !loading"
+                  ng-if="fullListLength > settings.paginationLength && !loading"
                   ng-change="pageChanged()"
                 ></pagination>
                 </div>

@@ -362,6 +362,16 @@ tags-input .tags .tag-item {
 .flatpanel .flatpanel-input-spacer{
   height: 9px;
 }
+.flatpanel .results-per-page{
+  width: 90px;
+}
+.flatpanel .results-per-page input{
+  width: 52px;
+  text-align: right;
+}
+.flatpanel .results-per-page input.ng-invalid, .flatpanel .results-per-page input.ng-invalid:focus {
+  border-color: red;
+}
 
 
 
