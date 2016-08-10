@@ -22,6 +22,10 @@ angular.module('hyphe.webentityController', [])
       {value: 'OUT', text: 'OUT'}
     ]
 
+    function updateWELastModifTime(){
+      $scope.webentity.last_modification_date = (new Date()).getTime()/1000
+    }
+
     $scope.reCrawl = function(){
       var webentity = $scope.webentity
       ,obj = {webentity:webentity}
@@ -44,7 +48,7 @@ angular.module('hyphe.webentityController', [])
         }
         ,function(result){
           $scope.status = {message: ''}
-          $scope.webentity.last_modification_date = (new Date()).getTime()/1000
+          updateWELastModifTime()
         }
         ,function(error){
           $scope.editableForm.$setError('name', error);
@@ -104,7 +108,7 @@ angular.module('hyphe.webentityController', [])
         }
         ,function(){
           $scope.status = {message: ''}
-          $scope.webentity.last_modification_date = (new Date()).getTime()/1000
+          updateWELastModifTime()
         }
         ,function(error){
           $scope.status = {message: 'Could not add tag', background:'warning'}
@@ -121,7 +125,7 @@ angular.module('hyphe.webentityController', [])
         }
         ,function(){
           $scope.status = {message: ''}
-          $scope.webentity.last_modification_date = (new Date()).getTime()/1000
+          updateWELastModifTime()
         }
         ,function(error){
           $scope.status = {message: 'Could not remove tag', background:'warning'}
