@@ -1346,7 +1346,7 @@ class Memory_Structure(customJSONRPC):
             WE = yield self.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
             if is_error(WE):
                 returnD(format_error("ERROR could not retrieve WebEntity with id %s" % webentity_id))
-        if field_name == "metadataItems":
+        if field_name == "metadataItems" and array_namespace == "USER":
             self.corpora[corpus]['recent_tagging'] = True
         try:
             if isinstance(value, list):
@@ -1498,6 +1498,7 @@ class Memory_Structure(customJSONRPC):
         """Changes for a `corpus` the status of a WebEntity defined by `webentity_id` to `status` (one of "in"/"out"/"undecided"/"discovered")."""
         res = yield self.update_webentity(webentity_id, "status", status, corpus=corpus, _commit=_commit)
         if not is_error(res):
+            # update local ramcached list of webentities
             for WE in self.corpora[corpus]["webentities"]:
                 if WE.id == webentity_id:
                     oldstatus = WE.status
@@ -1836,7 +1837,7 @@ class Memory_Structure(customJSONRPC):
         WEs = self.corpora[corpus]['webentities']
         deflist = []
         also_links = test_bool_arg(corelinks)
-        if WEs == [] or self.corpora[corpus]['recent_changes'] or (self.corpora[corpus]['last_links_loop'])*1000 > self.corpora[corpus]['last_WE_update']:
+        if WEs == [] or self.corpora[corpus]['recent_changes'] or self.corpora[corpus]['recent_tagging'] or (self.corpora[corpus]['last_links_loop'])*1000 > self.corpora[corpus]['last_WE_update']:
             deflist.append(self.msclients.pool.getWebEntities(corpus=corpus, _nokeepalive=True))
             if also_links:
                 logger.msg("Collecting WebEntities and WebEntityLinks...", system="INFO - %s" % corpus)
