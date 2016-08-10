@@ -2,8 +2,8 @@
 
 angular.module('hyphe.webentityController', [])
 
-  .controller('webentity', ['$scope', 'api', 'utils', 'corpus', '$routeParams', 'store', '$location'
-  ,function($scope, api, utils, corpus, $routeParams, store, $location) {
+  .controller('webentity', ['$scope', 'api', 'utils', 'corpus', '$routeParams', 'store', '$location', '$timeout'
+  ,function($scope, api, utils, corpus, $routeParams, store, $location, $timeout) {
     $scope.currentPage = 'webentity'
     $scope.Page.setTitle('Web Entity')
     $scope.corpusName = corpus.getName()
@@ -87,11 +87,12 @@ angular.module('hyphe.webentityController', [])
       if (!category || $scope.tagCategories[category]) return false
       $scope.tagCategories[category] = {}
       $scope.tagCategoriesOrder.push(category)
+      // Wait a frame to render the new category before resetting the form field and focus on input
+      $timeout(function(){
+        $scope.newCategory = ''
+        $(".tagbox-body:last .host .tags").click()
+      }, 0)
       return true
-    }
-
-    $scope.resetNewCategory = function(){
-      $scope.newCategory = ''
     }
 
     $scope.addTag = function(tag, category){
