@@ -71,10 +71,6 @@ angular.module('hyphe.definewebentitiesController', [])
     // Build the list
     bootstrapUrlList(list)
 
-    if($scope.list.length==0){
-      $location.path('/project/'+$scope.corpusId+'/importurls')
-    }
-
     // Fetching parent web entities
     var fetchParentWebEntities = function(){
       $scope.loadingWebentities = true
@@ -117,31 +113,11 @@ angular.module('hyphe.definewebentitiesController', [])
 
       queriesBatcher.atFinalization(function(list,pending,success,fail){
         $scope.loadingWebentities = false
-
-        $scope.status = {message: 'Simulating Web Entities Creation Rules'}
-        $scope.simulatingCreationRules = true
-        api.getCreationRulesResult({
-          urlList: $scope.list.map(function(obj){ return obj.url })
-        },function(result){
-          $scope.list.forEach(function(obj){
-            obj.simulatedPrefix = result[obj.url]
-            if (obj.simulatedPrefix){
-              obj.prefixLength = obj.simulatedPrefix.split('|').length - 1
-              obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
-            }
-          })
-          $scope.status = {}
-          $scope.simulatingCreationRules = false
-        },function(error){
-          console.log(error)
-          $scope.status = {message: error.message}
-          $scope.simulatingCreationRules = false
-        })
+        $scope.status = {}
       })
 
       queriesBatcher.run()
     }
-    fetchParentWebEntities()
 
     // Slider commands
     $scope.moveAllSliders = function (mode) {
@@ -416,33 +392,45 @@ angular.module('hyphe.definewebentitiesController', [])
 
     function bootstrapUrlList(list){
       if(list){
-        // Consolidate the list of web entities
-        list = list
-          // Filter out invalid URLs
-          .filter(function(obj){
-              return obj.url && utils.URL_validate(obj.url)
-            })
-          // Bootstrap the object
-          .map(bootstrapPrefixObject)
-
-        // Building an index of these objects to find them by id
-        list.forEach(function(obj){
-          $scope.list_byId[obj.id] = obj
+        // Filter out invalid URLs
+        list = list.filter(function(obj){
+          return obj.url && utils.URL_validate(obj.url)
         })
 
-        // Catching conflicts: we use this index of LRU prefixes set in the UI
-        $scope.conflictsIndex = new PrefixConflictsIndex($scope.list_byId)
-        // NB: it is recorded in the model because the hyphePrefixSliderButton directives needs to access it
+        $scope.status = {message: 'Simulating Web Entities Creation Rules'}
+        $scope.simulatingCreationRules = true
+        api.getCreationRulesResult({
+          urlList: list.map(function(obj){ return obj.url })
+        },function(simulatedPrefixIndex){
+          $scope.simulatedPrefixIndex = simulatedPrefixIndex
+          // Bootstrap the object and record in model
+          $scope.list = list.map(bootstrapPrefixObject)
+          console.log(list, $scope.list)
+          // Building an index of these objects to find them by id
+          $scope.list.forEach(function(obj){
+            $scope.list_byId[obj.id] = obj
+          })
 
-        list.forEach(function(obj){
-          $scope.conflictsIndex.addToLruIndex(obj)
+          // Catching conflicts: we use this index of LRU prefixes set in the UI
+          $scope.conflictsIndex = new PrefixConflictsIndex($scope.list_byId)
+          // NB: it is recorded in the model because the hyphePrefixSliderButton directives needs to access it
+          $scope.list.forEach(function(obj){
+            $scope.conflictsIndex.addToLruIndex(obj)
+          })
+
+          if($scope.list.length==0){
+            $location.path('/project/'+$scope.corpusId+'/importurls')
+          }
+
+          $scope.status = {}
+          $scope.simulatingCreationRules = false
+          fetchParentWebEntities()
+        },function(error){
+          console.log(error)
+          $scope.status = {message: error.message}
+          $scope.simulatingCreationRules = false
         })
-
-        // Record list in model
-        $scope.list = list
-
       } else {
-
         $scope.list = []
       }
     }
@@ -461,7 +449,8 @@ angular.module('hyphe.definewebentitiesController', [])
             }
             return stem
           })
-      obj.prefixLength = !!obj.tldLength + 2 + !!obj.json_lru.port
+      obj.simulatedPrefix = $scope.simulatedPrefixIndex[obj.url]
+      obj.prefixLength = obj.simulatedPrefix ? obj.simulatedPrefix.split('|').length - 1 : !!obj.tldLength + 2 + !!obj.json_lru.port
       obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
       obj.conflicts = []
       obj.status = 'loading'
