@@ -1303,6 +1303,28 @@ table.sliders-commands {
 .selected-webentities-container table td.remove-button{
   width: 20px;
 }
+.pagination-container{
+  float:left;
+  margin-left: 10px;
+}
+.page-input{
+  border-color: #ddd;
+  max-width: 98px;
+  padding: 20px 0px 0px 10px;
+}
+.page-input input{
+  min-width: 32px;
+  text-align: right;
+  padding: 10px 6px;
+}
+.page-input input.ng-invalid, .page-input input.ng-invalid:focus{
+  border-color: red;
+}
+.page-input .input-group-addon{
+  text-align: left;
+  padding-left: 6px;
+  background-color: #F8F8F8;
+}
 
 
 

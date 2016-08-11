@@ -212,19 +212,29 @@
                 </div>
 
 
-                <!-- Pagination  -->
                 <div class="text-center">
+                <!-- Pagination  -->
+                <div class="pagination-container">
                   <pagination
                   total-items="fullListLength"
-                  ng-model="$parent.paginationPage"
+                  ng-model="paginationPage"
                   items-per-page="settings.paginationLength"
-                  boundary-links="true"
                   max-size="paginationNumPages"
-                  ng-if="fullListLength > settings.paginationLength && !loading"
+                  ng-show="fullListLength > settings.paginationLength && !loading"
                   ng-change="pageChanged()"
-                ></pagination>
+                  ></pagination>
                 </div>
-
+                <div class="input-group page-input" ng-show="fullListLength > settings.paginationLength && paginationMaxPage > paginationNumPages && !loading">
+                  <input
+                    type="text"
+                    class="form-control page-input"
+                    placeholder=""
+                    ng-model="paginationPage"
+                    ng-change="validatePage()"
+                    ng-press-enter="pageChanged()"
+                  ></input>
+                  <span class="input-group-addon">/ {{ paginationMaxPage }}</span>
+                </div>
               </div>
 
               <div class="col-md-4">

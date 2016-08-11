@@ -23,6 +23,7 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.pageChecked = false
 
     $scope.paginationPage = 1
+    $scope.paginationMaxPage = 1
     $scope.paginationLength = "20"   // How many items per page
     $scope.paginationNumPages = 10  // How many pages to display in the pagination
     
@@ -109,8 +110,21 @@ angular.module('hyphe.listwebentitiesController', [])
       $scope.settingsChanged = difference
     }
 
+    $scope.validatePage = function(){
+      var pgval = parseInt(($scope.paginationPage.trim().match(/^[1-9]\d*$/) || [])[0])
+      if (!(pgval > 0 && pgval <= $scope.paginationMaxPage)) {
+        $('.page-input input').addClass('ng-invalid')
+        return false
+      }
+      $('.page-input input').removeClass('ng-invalid')
+      return true
+
+    }
+
     $scope.pageChanged = function(){
-      
+      if (!$scope.validatePage()) {
+        return
+      }
       $scope.status = {message: 'Loading'}
       $scope.pageChecked = false
       $scope.loading = true
@@ -206,6 +220,7 @@ angular.module('hyphe.listwebentitiesController', [])
           $scope.paginationPage = 1
 
           $scope.fullListLength = result.total_results
+          $scope.paginationMaxPage = parseInt($scope.fullListLength / $scope.paginationLength) + 1
           $scope.currentSearchToken = result.token
 
           $scope.list = result.webentities.map(function(we, i){
