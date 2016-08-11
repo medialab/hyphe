@@ -26,6 +26,7 @@ angular.module('hyphe.definewebentitiesController', [])
     $scope.retry = false
     $scope.creating = false
     $scope.loadingWebentities = false
+    $scope.simulatingCreationRules = false
     $scope.crawlExisting = false
     $scope.retryConflicted = true
 
@@ -116,7 +117,26 @@ angular.module('hyphe.definewebentitiesController', [])
 
       queriesBatcher.atFinalization(function(list,pending,success,fail){
         $scope.loadingWebentities = false
-        $scope.status = {}
+
+        $scope.status = {message: 'Simulating Web Entities Creation Rules'}
+        $scope.simulatingCreationRules = true
+        api.getCreationRulesResult({
+          urlList: $scope.list.map(function(obj){ return obj.url })
+        },function(result){
+          $scope.list.forEach(function(obj){
+            obj.simulatedPrefix = result[obj.url]
+            if (obj.simulatedPrefix){
+              obj.prefixLength = obj.simulatedPrefix.split('|').length - 1
+              obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
+            }
+          })
+          $scope.status = {}
+          $scope.simulatingCreationRules = false
+        },function(error){
+          console.log(error)
+          $scope.status = {message: error.message}
+          $scope.simulatingCreationRules = false
+        })
       })
 
       queriesBatcher.run()

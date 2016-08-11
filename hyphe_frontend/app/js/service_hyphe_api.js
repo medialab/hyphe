@@ -54,6 +54,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WE_CREATION_RULE_ADD                        = 'store.add_webentity_creationrule'
     API.WE_CREATION_RULE_REMOVE                     = 'store.delete_webentity_creationrule'
     API.WE_CREATION_RULE_LIST_GET                   = 'store.get_webentity_creationrules'
+    API.SIMULATE_WE_CREATION_RULES                  = 'store.simulate_creationrules_for_urls'
 
     API.LINKS_RESET                                 = 'store.trigger_links_reset'
 
@@ -162,6 +163,15 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
             settings.token
             ,settings.page
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.getCreationRulesResult = buildApiCall(
+        API.SIMULATE_WE_CREATION_RULES
+        ,function(settings){
+          return [
+            settings.urlList || []
             ,corpus.getId()
           ]}
       )

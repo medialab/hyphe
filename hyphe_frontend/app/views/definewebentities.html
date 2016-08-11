@@ -158,10 +158,10 @@
               <div class="col-md-6 col-md-offset-3">
                 <div ng-if="createdList.length + existingList.length == 0 || retry">
                   <div class="text-center">
-                    <div ng-if="creating || loadingWebentities">
+                    <div ng-if="creating || loadingWebentities || simulatingCreationRules">
                       <div class="message">{{status.message}}</div>
                     </div>
-                    <div ng-if="!(creating || loadingWebentities)">
+                    <div ng-if="!(creating || loadingWebentities || simulatingCreationRules)">
                       <div class="text-center">
                         <button class="btn btn-primary" ng-click="createWebEntities()">CREATE WEB ENTITIES</button>
                       </div>
