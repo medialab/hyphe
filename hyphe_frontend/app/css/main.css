@@ -1561,6 +1561,10 @@ span.editable-url{
 .hyphe-prefix-slider .prefix-link a:hover{
   color: #444;
 }
+.slider-container .hyphe-prefix-slider .prefix-link{
+  position: absolute;
+  left: -10px;
+}
 
 .hyphe-prefix-slider .stem{
   padding-left: 8px;
