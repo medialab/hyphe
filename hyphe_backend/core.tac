@@ -2087,7 +2087,7 @@ class Memory_Structure(customJSONRPC):
         status = status.lower()
         valid_statuses = [s.lower() for s in ms.WebEntityStatus._NAMES_TO_VALUES]
         if status not in valid_statuses:
-            return format_error("ERROR: status argument must be one of %s" % ",".join(valid_statuses))
+            return format_error("status argument must be one of %s" % ",".join(valid_statuses))
         return self.jsonrpc_exact_search_webentities(status, 'STATUS', sort=sort, count=count, page=page, corpus=corpus)
 
     def jsonrpc_get_webentities_by_name(self, name, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
@@ -2105,6 +2105,31 @@ class Memory_Structure(customJSONRPC):
     def jsonrpc_get_webentities_by_user_tag(self, category, value, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all WebEntities having at least one tag in any category of the namespace "USER" equal to `value`.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
         return self.jsonrpc_exact_search_webentities("USER:%s=%s" % (category, value), 'TAG', sort=sort, count=count, page=page, corpus=corpus)
+
+    @inlineCallbacks
+    def jsonrpc_get_webentities_mistagged(self, status='IN', missing_a_category=False, multiple_values=False, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` all WebEntities of status `status` with no tag of the namespace "USER" or multiple tags for some USER categories if `multiple_values` is true or no tag for at least one existing USER category if `missing_a_category` is true.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        try:
+            page = int(page)
+            count = int(count)
+        except:
+            returnD(format_error("page and count arguments must be integers"))
+        status = status.upper()
+        valid_statuses = [s.upper() for s in ms.WebEntityStatus._NAMES_TO_VALUES]
+        if status not in valid_statuses:
+            returnD(format_error("status argument must be one of %s" % ",".join(valid_statuses)))
+        if missing_a_category or multiple_values:
+            categories = yield self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus)
+            if is_error(categories):
+                returnD(categories)
+        if multiple_values:
+            WEs = [WE for WE in self.corpora[corpus]["webentities"] if WE.status == status and ("USER" in WE.metadataItems and any([cat in WE.metadataItems["USER"] and len(WE.metadataItems["USER"][cat]) > 1 for cat in categories["result"]]))]
+        else:
+            WEs = [WE for WE in self.corpora[corpus]["webentities"] if WE.status == status and ("USER" not in WE.metadataItems or (missing_a_category and any([cat not in WE.metadataItems["USER"] for cat in categories["result"]])))]
+        res = yield self.paginate_webentities(WEs, count=count, page=page, sort=sort, corpus=corpus)
+        returnD(res)
 
     @inlineCallbacks
     def jsonrpc_get_webentities_page(self, pagination_token, n_page, corpus=DEFAULT_CORPUS):
