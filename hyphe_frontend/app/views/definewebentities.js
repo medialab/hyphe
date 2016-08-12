@@ -39,7 +39,7 @@ angular.module('hyphe.definewebentitiesController', [])
     if(store.get('parsedUrls_type') == 'list'){
       list = store.get('parsedUrls')
         .sort(function(a, b){
-          return orderableUrl(a).localeCompare(orderableUrl(b))
+          return orderableUrl(a).localeCompare(orderableUrl(b) || a.localeCompare(b))
         })
         .map(function(url, i){
           return {

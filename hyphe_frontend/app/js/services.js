@@ -435,38 +435,52 @@ angular.module('hyphe.services', [])
 
       ns.index = {}
 
+      ns.LRUVariations = function(obj){
+        return utils.LRU_variations(utils.LRU_truncate(obj.lru, obj.truePrefixLength), {
+          wwwlessVariations: true
+          ,wwwVariations: true
+          ,httpVariations: true
+          ,httpsVariations: true
+          ,smallerVariations: false
+        })
+      }
+
       ns.addToLruIndex = function(obj){
-        var lru = utils.LRU_truncate(obj.lru, obj.truePrefixLength)
-        ,objId_list = ns.index[lru]
-        if(objId_list){
-          ns.addConflictsTo(objId_list,obj.id)
-          objId_list.push(obj.id)
-        } else {
-          ns.index[lru] = [obj.id]
-        }
+        ns.LRUVariations(obj).forEach(function(lru){
+          var objId_list = ns.index[lru]
+          if(objId_list){
+            ns.addConflictsTo(objId_list,obj.id)
+            objId_list.push(obj.id)
+          } else {
+            ns.index[lru] = [obj.id]
+          }
+        })
       }
 
       ns.removeFromLruIndex = function(obj){
-        var lru = utils.LRU_truncate(obj.lru, obj.truePrefixLength)
-        ,objId_list = ns.index[lru]
-        if(objId_list.length == 1){
-          // No conflict
-          delete ns.index[lru]
-        } else {
-          var updated_objId_list = objId_list.filter(function(objId){
-            return objId != obj.id
-          })
-          ns.removeConflictsFrom(updated_objId_list, obj.id)
-          ns.index[lru] = updated_objId_list
-        }
+        ns.LRUVariations(obj).forEach(function(lru){
+          var objId_list = ns.index[lru]
+          if(objId_list.length == 1){
+            // No conflict
+            delete ns.index[lru]
+          } else {
+            var updated_objId_list = objId_list.filter(function(objId){
+              return objId != obj.id
+            })
+            ns.removeConflictsFrom(updated_objId_list, obj.id)
+            ns.index[lru] = updated_objId_list
+          }
+        })
       }
 
       ns.addConflictsTo = function(old_objId_list, new_objId){
         var new_obj = urlList_byId[new_objId]
         old_objId_list.forEach(function(old_objId){
           var old_obj = urlList_byId[old_objId]
-          new_obj.conflicts.push(old_objId)
-          old_obj.conflicts.push(new_objId)
+          if (!~new_obj.conflicts.indexOf(old_objId))
+            new_obj.conflicts.push(old_objId)
+          if (!~old_obj.conflicts.indexOf(new_objId))
+            old_obj.conflicts.push(new_objId)
         })
       }
 
