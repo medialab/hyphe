@@ -229,14 +229,17 @@ angular.module('hyphe.monitorcrawlsController', [])
           ,function(crawlJobs){
             $scope.listLoaded = true
             $scope.crawlJobs = crawlJobs
-
+              // Consolidate
+              .map(consolidateJob)
               // Sort by reverse chronological order
               .sort(function(a,b){
+                if (a.globalStatus === "CRAWLING" || a.globalStatus === "INDEXING")
+                  return -1
+                if (b.globalStatus === "CRAWLING" || b.globalStatus === "INDEXING")
+                  return 1
                 return b.created_at - a.created_at
               })
 
-              // Consolidate
-              .map(consolidateJob)
 
             updateCrawlJobs()
             $scope.scheduleRefresh()
@@ -254,8 +257,9 @@ angular.module('hyphe.monitorcrawlsController', [])
 
     function populateWebEntityNames(){
       ($scope.crawlJobs || []).forEach(function(job){
-        var wename = $scope.webentityIndex[job.webentity_id].name
-        job.webentity_name = wename + (job.previous_webentity_name && job.previous_webentity_name != wename ? ' (previously '+job.previous_webentity_name+')' : '')
+        var we = ($scope.webentityIndex[job.webentity_id])
+        if (!we) job.webentity_name = ""
+        else job.webentity_name = we.name + (job.previous_webentity_name && job.previous_webentity_name != we.name ? ' (previously '+job.previous_webentity_name+')' : '')
       })
     }
 

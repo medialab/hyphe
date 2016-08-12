@@ -69,6 +69,7 @@ angular.module('hyphe.preparecrawlsController', [])
         return obj.id != objId
       })
       delete list_byId[objId]
+      updateStartpagesSummaries()
       if (!$scope.list.length) {
         $location.path('/project/'+$scope.corpusId+'/overview')
       }
