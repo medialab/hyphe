@@ -457,7 +457,7 @@ angular.module('hyphe.definewebentitiesController', [])
             return stem
           })
       obj.simulatedPrefix = $scope.simulatedPrefixIndex[obj.url]
-      obj.prefixLength = obj.simulatedPrefix ? obj.simulatedPrefix.split('|').length - 1 : !!obj.tldLength + 2 + !!obj.json_lru.port
+      obj.prefixLength = obj.simulatedPrefix ? obj.simulatedPrefix.split('|').length - obj.tldLength : !!obj.tldLength + 2 + !!obj.json_lru.port
       obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
       obj.conflicts = []
       obj.status = 'loading'
