@@ -385,6 +385,9 @@ angular.module('hyphe.definewebentitiesController', [])
         return obj.id != objId
       })
       delete $scope.list_byId[objId]
+      if (!$scope.list.length) {
+        $location.path('/project/'+$scope.corpusId+'/importurls')
+      }
     }
 
 
