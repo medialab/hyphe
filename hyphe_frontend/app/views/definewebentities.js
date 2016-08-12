@@ -63,6 +63,10 @@ angular.module('hyphe.definewebentitiesController', [])
       })
     }
 
+    if(!list || !list.length){
+      $location.path('/project/'+$scope.corpusId+'/importurls')
+    }
+
     // Clean store
     store.remove('parsedUrls')
     store.remove('parsedUrls_type')
@@ -385,7 +389,7 @@ angular.module('hyphe.definewebentitiesController', [])
         return obj.id != objId
       })
       delete $scope.list_byId[objId]
-      if (!$scope.list.length) {
+      if (!$scope.list.length && !$scope.existingList.length && !$scope.createdList) {
         $location.path('/project/'+$scope.corpusId+'/importurls')
       }
     }
