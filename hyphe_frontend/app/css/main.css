@@ -1574,14 +1574,13 @@ ul.startpages-report{
   color: #888;
   font-size: 0.8em;
   float: left;
-  margin: 13px 8px 0px 0px;
+  margin: 0px;
+  position: relative;
+  left: -5px;
+  top: 12px;
 }
 .hyphe-prefix-slider .prefix-link a:hover{
   color: #444;
-}
-.slider-container .hyphe-prefix-slider .prefix-link{
-  position: absolute;
-  left: -10px;
 }
 
 .hyphe-prefix-slider .stem{
