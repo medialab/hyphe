@@ -254,7 +254,8 @@ angular.module('hyphe.monitorcrawlsController', [])
 
     function populateWebEntityNames(){
       ($scope.crawlJobs || []).forEach(function(job){
-        job.webentity_name = $scope.webentityIndex[job.webentity_id].name + (job.previous_webentity_name ? ' (previously '+job.previous_webentity_name+')' : '')
+        var wename = $scope.webentityIndex[job.webentity_id].name
+        job.webentity_name = wename + (job.previous_webentity_name && job.previous_webentity_name != wename ? ' (previously '+job.previous_webentity_name+')' : '')
       })
     }
 
