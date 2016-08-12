@@ -447,7 +447,7 @@ angular.module('hyphe.networkController', ['angular-md5'])
             if (!tmpCategories[category].values[tag]) {
               tmpCategories[category].values[tag] = 0
             }
-            tmpCategories[category].values[tag] += 1
+            tmpCategories[category].values[tag]++
           })
         }
       })

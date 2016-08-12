@@ -158,18 +158,6 @@
             </div>
 
             <!-- Launch crawl panel -->
-            <div class="row" ng-if="httpStatusWarning + httpStatusLoading > 0">
-              <div class="col-md-8 col-md-offset-2">
-                <div class="text-center">
-                  <p class="text-danger" ng-if="httpStatusWarning > 0">
-                    <span class="glyphicon glyphicon-warning-sign"></span>
-                    {{httpStatusWarning}} web entit{{httpStatusWarning > 1 ? 'ies have warnings' : 'y has a warning'}}. <strong>You should fix it</strong> before scheduling its crawl.
-                  </p>
-                  <hr/>
-                </div>
-              </div>
-            </div>
-
             <div
               class="row"
               ng-if="list.length > 0 && !scheduling"
@@ -187,7 +175,7 @@
                         </select>
                       </div>
                       <div class="form-group">
-                        <button class="btn btn-primary" ng-click="scheduleCrawls()">SCHEDULE CRAWLS</button>
+                        <button class="btn btn-primary" ng-click="scheduleCrawls()" ng-class="{'btn-warning': statusesSummary.problems}">SCHEDULE CRAWLS</button>
                       </div>
                     </form>
                   </div>

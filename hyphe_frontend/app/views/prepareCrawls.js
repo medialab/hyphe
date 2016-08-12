@@ -243,9 +243,12 @@ angular.module('hyphe.preparecrawlsController', [])
 
     function updateStatusesSummary() {
       if ($scope.list && $scope.list.length > 0) {
-        $scope.statusesSummary = {counts:{}, percents:{}, total:0}
+        $scope.statusesSummary = {counts:{}, percents:{}, total:0, problems:0}
         $scope.list.forEach(function(obj){
           $scope.statusesSummary.counts[obj.status] = ($scope.statusesSummary.counts[obj.status] || 0) + 1
+          if (obj.summary && obj.summary.diagnostic && obj.summary.diagnostic.doomed) {
+            $scope.statusesSummary.problems++
+          }
           $scope.statusesSummary.total++
         })
 
@@ -256,7 +259,6 @@ angular.module('hyphe.preparecrawlsController', [])
         }
       }
     }
-
 
     // Lazy lookup
     function lazyLookups( batch, webentity ){
@@ -310,6 +312,7 @@ angular.module('hyphe.preparecrawlsController', [])
           obj.summary = summary
         }
       })
+      updateStatusesSummary()
       $scope.$apply()
     }
 
