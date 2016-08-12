@@ -231,7 +231,7 @@ angular.module('hyphe.monitorcrawlsController', [])
             $scope.crawlJobs = crawlJobs
               // Consolidate
               .map(consolidateJob)
-              // Sort by reverse chronological order
+              // Sort by currently working then reverse chronological order
               .sort(function(a,b){
                 if (a.globalStatus === "CRAWLING" || a.globalStatus === "INDEXING")
                   return -1
