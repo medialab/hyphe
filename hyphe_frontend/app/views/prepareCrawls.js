@@ -64,6 +64,16 @@ angular.module('hyphe.preparecrawlsController', [])
       }, 0)
     }, true)
 
+    $scope.removeCell = function(objId){
+      $scope.list = $scope.list.filter(function(obj){
+        return obj.id != objId
+      })
+      delete list_byId[objId]
+      if (!$scope.list.length) {
+        $location.path('/project/'+$scope.corpusId+'/overview')
+      }
+    }
+
     // Schedule crawls
     $scope.scheduleCrawls = function () {
       $scope.scheduling = true

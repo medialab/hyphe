@@ -1161,6 +1161,9 @@ table.sliders-commands {
   border: 1px solid #FFF;
   overflow: hidden;
 }
+.crawl-cell-content .btn-link{
+  padding: 12px 0px 0px 0px;
+}
 .crawl-cell-content.bg-waiting{
   border: 1px solid #31708f;
 }
