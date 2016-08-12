@@ -1524,6 +1524,24 @@ span.editable-url{
 .wesp-modal-removed{
   opacity: 0.2;
 }
+.page-input input.ng-invalid, .page-input input.ng-invalid:focus{
+  border-color: red;
+}
+.startpages-report{
+  float: right;
+  margin: 5px 40px 0px 0px;
+  color: #a94442;
+}
+.startpages-report.startpages-valid{
+  color: #3c763d;
+}
+ul.startpages-report{
+  list-style: none;
+  padding: 0px 10px 0px 0px;
+}
+.clearboth{
+  clear: both;
+}
 
 
 

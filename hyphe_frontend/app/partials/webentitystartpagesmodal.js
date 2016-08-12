@@ -12,7 +12,11 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       , diagnostic: {}
     }
     $scope.startpages = (webentity.startpages || [])
-    $scope.newStartPageURL = ''
+    $scope.urlsToAdd = []
+    $scope.urlErrors = []
+    $scope.addingErrors = []
+    $scope.newStartPagesInvalid = false
+    $scope.newStartPagesURLs = ''
     $scope.removed = {}
 
     $scope.collapseProgressBar = false  // used to create a delay
@@ -21,35 +25,58 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       $modalInstance.close()
     }
 
+    $scope.validateNewStartPages = function(){
+      $scope.urlsToAdd = []
+      $scope.urlErrors = []
+      $scope.addingErrors = []
+      $scope.newStartPagesInvalid = false
+      $scope.newStartPagesURLs.split(/[\s\n\r\t]+/).forEach(function(url){
+        if (!url) return
+        if (~$scope.startpages.indexOf(url) || ~$scope.urlsToAdd.indexOf(url)) {
+          $scope.newStartPagesInvalid = true
+          $scope.urlErrors.push(url + " (duplicate)")
+        } else if (!utils.URL_validate(url)){
+          $scope.newStartPagesInvalid = true
+          $scope.urlErrors.push(url)
+        } else {
+          $scope.urlsToAdd.push(url)
+        }
+      })
+    }
+
     // Add a start page
-    $scope.addStartPage = function () {
-      var url = $scope.newStartPageURL
-      if (utils.URL_validate(url) && url !== '') {
-        checkStartpageBelonging(webentity, url, {
-          success: function () {
-            addStartPageAndUpdate(webentity, url)
-          },
-          otherWebentity: function () {
-            startPageModal(url, webentity)
-          },
-          noWebentity: function () {
-            startPageModal(url, webentity)
-          },
-          queryFail: function () {
-            startPageModal(url, webentity)
-          }
-        })
-      } 
+    $scope.addStartPages = function() {
+      if (!$scope.urlsToAdd.length || $scope.newStartPagesInvalid) {
+        return
+      }
+      var url = $scope.urlsToAdd.shift()
+      var processNextStartpage = function () {
+        if ($scope.urlsToAdd.length) {
+          $scope.addStartPages()
+        } else {
+          $scope.newStartPagesURLs = $scope.addingErrors.join(' ')
+          $scope.validateNewStartPages()
+        }
+      }
+      checkStartpageBelonging(webentity, url, {
+        success: function () {
+          addStartPageAndUpdate(webentity, url, processNextStartpage)
+        },
+        otherWebentity: function () {
+          startPageModal(url, webentity, processNextStartpage)
+        },
+        noWebentity: function () {
+          startPageModal(url, webentity, processNextStartpage)
+        },
+        queryFail: function () {
+          startPageModal(url, webentity, processNextStartpage)
+        },
+      })
     }
 
     // Remove a start page
     $scope.removeStartPage = function (url) {
       removeStartPageAndUpdate($scope.webentity, url)
-    }
-
-    $scope.startPageValidate = function () {
-      var url = $scope.newStartPageURL
-      $scope.startPageInvalid = !utils.URL_validate(url) && url != ''
     }
 
     $scope.$watch('lookups', function (newValue, oldValue) {
@@ -203,7 +230,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       )
     }
 
-    function startPageModal(url, webentity) {
+    function startPageModal(url, webentity, callback) {
       /* Instanciate and open the Modal */
       var modalInstance = $modal.open({
         templateUrl: 'partials/startpagemodal.html'
@@ -241,11 +268,13 @@ angular.module('hyphe.webentityStartPagesModalController', [])
                 ,lru: prefixes
               }
               ,function(){                          // Success callback
-                addStartPageAndUpdate(webentity, url)
+                addStartPageAndUpdate(webentity, url, callback)
               }
               ,function(data, status, headers){     // Fail callback
                 // Note: cannot access global status bar from modal
                 console.error('Prefix could not be added', data, status, headers, config)
+                $scope.addingErrors.push(url)
+                callback()
               })
 
           } else if (feedback.task.type == 'merge') {
@@ -262,16 +291,21 @@ angular.module('hyphe.webentityStartPagesModalController', [])
                   updaters.mergeWebentities(webentity, feedback.task.webentity)
                 })
                 $modalInstance.close()
+                callback()
               }
               ,function(data, status, headers, config){
                 // Note: cannot access global status bar from modal
                 console.error('Merge failed', data, status, headers, config)
+                $scope.addingErrors.push(url)
+                callback()
               }
             )
           }
         }
-      }, function () {
-        // On dismiss: nothing happens
+      }, function(){
+      // On dismiss: nothing happened, run next new startpage
+        $scope.addingErrors.push(url)
+        callback()
       })
     }
 

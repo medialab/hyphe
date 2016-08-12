@@ -110,35 +110,43 @@
 
   </table>
 
+  <div collapse="collapseProgressBar" >
+    <progressbar ng-if="startpagesSummary.percent == 0" value="100" class="progress-striped active" >Testing web entities</progressbar>
+    <progressbar ng-if="startpagesSummary.percent > 0" value="startpagesSummary.percent" >{{startpagesSummary.percent}}% tested</progressbar>
+  </div>
+
   <div>
-    <div class="input-group" ng-class="{'has-error': startPageInvalid}">
-      <span class="input-group-addon">ADD START PAGE</span>
+    <div class="input-group" ng-class="{'has-error': newStartPagesInvalid}">
+      <span class="input-group-addon">ADD START PAGES</span>
       <input
-        type="url"
+        type="textarea"
         id="add-sp-{{webentity.id}}"
         class="form-control input-sm start-page-input"
-        ng-model="newStartPageURL"
-        ng-change="startPageValidate()"
-        ng-press-enter="addStartPage()"
-        placeholder="Enter the URL"
+        ng-model="newStartPagesURLs"
+        ng-change="validateNewStartPages()"
+        ng-press-enter="addStartPages()"
+        placeholder="Enter one or multiple URLs"
       >
       <span class="input-group-btn">
         <button
           type="button"
           class="btn btn-default btn-sm"
-          ng-click="addStartPage()"
-          ng-disabled="startPageInvalid || url == ''"
+          ng-click="addStartPages()"
+          ng-disabled="newStartPagesInvalid"
         >
           OK
         </button>
       </span>
     </div>
-    <br>
-  </div>
-
-  <div collapse="collapseProgressBar" >
-    <progressbar ng-if="startpagesSummary.percent == 0" value="100" class="progress-striped active" >Testing web entities</progressbar>
-    <progressbar ng-if="startpagesSummary.percent > 0" value="startpagesSummary.percent" >{{startpagesSummary.percent}}% tested</progressbar>
+    <p class="startpages-report" ng-show="urlsToAdd.length > 1 || urlErrors.length" ng-class="{'startpages-valid': !urlErrors.length}">
+      {{urlsToAdd.length}} unique new URL{{urlsToAdd.length | plural}} found<span ng-show="urlErrors.length"> and {{urlErrors.length}} error{{urlErrors.length | plural}}:</span>
+    </p>
+    <ul class="startpages-report clearboth" ng-show="urlErrors.length">
+      <li ng-repeat="err in urlErrors track by $index">
+        {{err}}
+      </li>
+    </ul>
+    <br class="clearboth">
   </div>
 
   <div collapse="!collapseProgressBar">
