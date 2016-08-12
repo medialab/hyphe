@@ -25,7 +25,15 @@
             </div>
 			<table>
 				<tr>
-					<td class="stem" ng-repeat="stem in obj.pretty_lru track by $index" ng-class="{inblock: $index < $parent.obj.prefixLength}">{{stem}}</td>
+					<td class="stem"
+                      ng-repeat="stem in obj.pretty_lru track by $index"
+                      ng-class="{
+                        inblock: $index < $parent.obj.prefixLength,
+                        pointable: clickableStem($index)
+                      }"
+                      ng-click="clickStem($index)">
+                        {{stem}}
+                    </td>
 				</tr>
 				<tbody ng-repeat="webEntity in obj.parentWebEntities">
 					<tr>
