@@ -1626,6 +1626,8 @@ class Memory_Structure(customJSONRPC):
             new_WE.status = old_WE.status
         if test_bool_arg(include_home_and_startpages_as_startpages):
             if old_WE.homepage:
+                if new_WE.homepage:
+                    old_WE.startpages.add(new_WE.homepage)
                 new_WE.homepage = old_WE.homepage
             for page in old_WE.startpages:
                 new_WE.startpages.add(page)
