@@ -1515,13 +1515,19 @@ class Memory_Structure(customJSONRPC):
         """Changes for a `corpus` the status of a set of WebEntities defined by a list of `webentity_ids` to `status` (one of "in"/"out"/"undecided"/"discovered")."""
         return self.batch_webentities_edit("set_webentity_status", webentity_ids, corpus, status)
 
-    def jsonrpc_set_webentity_homepage(self, webentity_id, homepage, corpus=DEFAULT_CORPUS):
+    @inlineCallbacks
+    def jsonrpc_set_webentity_homepage(self, webentity_id, homepage="", corpus=DEFAULT_CORPUS):
         """Changes for a `corpus` the homepage of a WebEntity defined by `webentity_id` to `homepage`."""
-        try:
-            homepage, _ = urllru.url_clean_and_convert(homepage)
-        except ValueError as e:
-            return format_error(e)
-        return self.update_webentity(webentity_id, "homepage", homepage, corpus=corpus)
+        homepage = (homepage or "").strip()
+        if homepage:
+            try:
+                homepage, _ = urllru.url_clean_and_convert(homepage)
+            except ValueError as e:
+                returnD(format_error(e))
+            WE = yield self.jsonrpc_get_webentity_for_url(homepage, corpus)
+            if is_error(WE) or WE["result"]["id"] != webentity_id:
+                returnD(format_error("WARNING: this page does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity."))
+        returnD(self.update_webentity(webentity_id, "homepage", homepage, corpus=corpus))
 
     @inlineCallbacks
     def jsonrpc_add_webentity_lruprefixes(self, webentity_id, lru_prefixes, corpus=DEFAULT_CORPUS):
