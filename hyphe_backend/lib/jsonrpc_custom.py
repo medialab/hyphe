@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from copy import deepcopy
+from json import loads as loadjson
 from txjsonrpc import jsonrpclib
 from txjsonrpc.web.jsonrpc import *
 from twisted.web import server
 from twisted.python import log, context
 from twisted.internet.defer import maybeDeferred
-from json import loads as loadjson
 from hyphe_backend.lib.utils import format_error
 
 
@@ -48,9 +49,10 @@ class customJSONRPC(JSONRPC):
         functionPath = parsed.get("method")
 
         if self.debug:
-            if parsed["method"] in ["start_corpus", "create_corpus"] and len(parsed["params"]) > 1:
-                parsed["params"][1] = "********"
-            self.safe_log("Client({}): {}".format(request.client, parsed), "DEBUG - QUERY%s" % from_ip)
+            parsedcopy = deepcopy(parsed)
+            if parsedcopy["method"] in ["start_corpus", "create_corpus"] and len(parsedcopy["params"]) > 1:
+                parsedcopy["params"][1] = "********"
+            self.safe_log("Client({}): {}".format(request.client, parsedcopy), "DEBUG - QUERY%s" % from_ip)
 
         params = parsed.get('params', {})
         args, kwargs = [], {}
