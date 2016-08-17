@@ -1261,20 +1261,20 @@ class Memory_Structure(customJSONRPC):
                 })
         returnD(format_result(WEs))
 
-    def jsonrpc_declare_webentity_by_lruprefix_as_url(self, url, name=None, status=None, startPages=[], corpus=DEFAULT_CORPUS):
-        """Creates for a `corpus` a WebEntity defined for the LRU prefix given as a `url`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
+    def jsonrpc_declare_webentity_by_lruprefix_as_url(self, url, name=None, status=None, startPages=[], lruVariations=True, corpus=DEFAULT_CORPUS):
+        """Creates for a `corpus` a WebEntity defined for the LRU prefix given as a `url` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
         try:
             url, lru_prefix = urllru.url_clean_and_convert(url, False)
         except ValueError as e:
             return format_error(e)
-        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startPages, corpus=corpus)
+        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startPages, lruVariations, corpus=corpus)
 
-    def jsonrpc_declare_webentity_by_lru(self, lru_prefix, name=None, status=None, startPages=[], corpus=DEFAULT_CORPUS):
-        """Creates for a `corpus` a WebEntity defined for a `lru_prefix`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
-        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startPages, corpus=corpus)
+    def jsonrpc_declare_webentity_by_lru(self, lru_prefix, name=None, status=None, startPages=[], lruVariations=True, corpus=DEFAULT_CORPUS):
+        """Creates for a `corpus` a WebEntity defined for a `lru_prefix` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
+        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startPages, lruVariations, corpus=corpus)
 
-    def jsonrpc_declare_webentity_by_lrus_as_urls(self, list_urls, name=None, status=None, startPages=[], corpus=DEFAULT_CORPUS):
-        """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as URLs under `list_urls`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
+    def jsonrpc_declare_webentity_by_lrus_as_urls(self, list_urls, name=None, status=None, startPages=[], lruVariations=True, corpus=DEFAULT_CORPUS):
+        """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as URLs under `list_urls` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
         if not isinstance(list_urls, list):
             list_urls = [list_urls]
         list_lrus = []
@@ -1284,16 +1284,16 @@ class Memory_Structure(customJSONRPC):
                  list_lrus.append(lru)
             except ValueError as e:
                 return format_error(e)
-        return self.jsonrpc_declare_webentity_by_lrus(list_lrus, name, status, startPages, corpus)
+        return self.jsonrpc_declare_webentity_by_lrus(list_lrus, name, status, startPages, lruVariations, corpus)
 
     @inlineCallbacks
-    def jsonrpc_declare_webentity_by_lrus(self, list_lrus, name=None, status=None, startPages=[], corpus=DEFAULT_CORPUS):
-        """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as `list_lrus`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
+    def jsonrpc_declare_webentity_by_lrus(self, list_lrus, name=None, status=None, startPages=[], lruVariations=True, corpus=DEFAULT_CORPUS):
+        """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as `list_lrus` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if not isinstance(list_lrus, list):
             list_lrus = [list_lrus]
-        lru_prefixes_list = []
+        lru_prefixes_list = set()
         if name:
             name = name.encode('utf-8')
         for lru in list_lrus:
@@ -1302,13 +1302,14 @@ class Memory_Structure(customJSONRPC):
                 lru = urllru.lru_strip_path_trailing_slash(lru)
             except ValueError as e:
                 returnD(format_error(e))
-            existing = yield self.msclients.pool.getWebEntityByLRUPrefix(lru, corpus=corpus)
-            if not is_error(existing):
-                returnD(format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (lru, existing)))
+            for l in [lru] if not lruVariations else urllru.lru_variations(lru):
+                existing = yield self.msclients.pool.getWebEntityByLRUPrefix(l, corpus=corpus)
+                if not is_error(existing):
+                    returnD(format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (l, existing)))
+                lru_prefixes_list.add(l)
             if not name:
                 name = urllru.name_url(url)
-            lru_prefixes_list.append(lru)
-        WE = ms.WebEntity(id=None, LRUSet=lru_prefixes_list, name=name)
+        WE = ms.WebEntity(id=None, LRUSet=list(lru_prefixes_list), name=name)
         if startPages:
             if not isinstance(startPages, list):
                 startPages = [startPages]

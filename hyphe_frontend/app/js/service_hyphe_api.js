@@ -193,6 +193,8 @@ angular.module('hyphe.service_hyphe_api', [])
               ,settings.name || ''          // Name
               ,'IN'                         // Status
               ,settings.startPages || []    // Start pages
+    // Automatically include LRU variations (http/https www/nowww)
+              ,settings.lruVariations || false
               ,corpus.getId()
             ]}
       )

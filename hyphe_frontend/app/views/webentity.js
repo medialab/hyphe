@@ -482,16 +482,10 @@ angular.module('hyphe.webentityController', [])
     $scope.newWebEntity = function(obj){
       $scope.status = {message: 'Declaring web entity'}
       api.declareWebentity({
-          prefixes:
-            utils.LRU_variations(obj.lru, {
-                wwwlessVariations: true
-                ,wwwVariations: true
-                ,httpVariations: true
-                ,httpsVariations: true
-                ,smallerVariations: false
-              })
+          prefixes: [obj.lru]
           ,name: utils.nameLRU(obj.lru)
           ,startPages: [obj.url]
+          ,lruVariations: true
         }
         ,function(result){
           $route.reload();
