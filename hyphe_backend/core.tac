@@ -26,6 +26,7 @@ from hyphe_backend import processor
 from hyphe_backend.lib import config_hci, urllru, user_agents, creationrules
 from hyphe_backend.lib.config_hci import DEFAULT_CORPUS, TEST_CORPUS, test_and_make_dir
 from hyphe_backend.lib.utils import *
+from hyphe_backend.lib.tlds import collect_tlds
 from hyphe_backend.lib.jsonrpc_custom import customJSONRPC
 from hyphe_backend.lib.jobsqueue import JobsQueue
 from hyphe_backend.lib.mongo import MongoDB, sortdesc
@@ -202,9 +203,10 @@ class Core(customJSONRPC):
           "name": name,
           "options": config_hci.clean_missing_corpus_options({}, config)
         }
+        tlds_double_list, tlds_tree = yield collect_tlds()
         if not _quiet:
             logger.msg("New corpus created", system="INFO - %s" % corpus)
-        yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"])
+        yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"], {"double_list": tlds_double_list, "tree": tlds_tree})
         try:
             res = yield self.crawler.jsonrpc_deploy_crawler(corpus, _quiet=_quiet)
         except Exception as e:
@@ -273,6 +275,12 @@ class Core(customJSONRPC):
 
         # Fix possibly old corpus confs
         config_hci.clean_missing_corpus_options(corpus_conf['options'],config)
+        if "tlds" not in corpus_conf or not corpus_conf["tlds"]:
+            tlds_double_list, tlds_tree = yield collect_tlds()
+            yield self.db.update_corpus(corpus, {"tlds": {"double_list": tlds_double_list, "tree": tlds_tree}})
+        else:
+            tlds_double_list = corpus_conf["tlds"]["double_list"]
+            tlds_tree = corpus_conf["tlds"]["tree"]
 
         if not _quiet:
             logger.msg("Starting corpus...", system="INFO - %s" % corpus)

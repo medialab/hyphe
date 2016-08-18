@@ -64,14 +64,16 @@ if __name__== "__main__":
         print "TLDs first level: %s\n" % len(tldtree.keys())
         print "TEST extracting TLDs from hosts:"
         for url, tld in [
-            ("blogs.lemonde.paris", "paris"),              # 1st level TLD
-            ("axel.brighton.ac.uk", "ac.uk"),        # 2nd level TLD
-            ("m.fr.blogspot.com.au", "blogspot.com.au"),        # 3rd level TLD
-            ("house.www.city.kawasaki.jp", "kawasaki.jp"), # * case
-            ("help.www.kawasaki.jp", "www.kawasaki.jp"),     # ! case
-            (u"help.www.福岡.jp", u"福岡.jp"),        # utf8 case
-            (u"syria.arabic.variant.سوريا", u"سوريا"),                    # utf8 case 2
-            (u"192.169.1.1", ""),                    # no tld case
+            ("blogs.lemonde.paris", "paris"),               # 1st level TLD
+            ("axel.brighton.ac.uk", "ac.uk"),               # 2nd level TLD
+            ("m.fr.blogspot.com.au", "blogspot.com.au"),    # 3rd level TLD
+            ("house.www.city.kawasaki.jp", "kawasaki.jp"),  # * case
+            ("help.www.kawasaki.jp", "www.kawasaki.jp"),    # ! case
+            (u"help.www.福岡.jp", u"福岡.jp"),              # utf8 case
+            (u"syria.arabic.variant.سوريا", u"سوريا"),      # utf8 case 2
+            (u"192.169.1.1", ""),                           # no tld case
+            (u"localhost:8080", ""),                        # no tld case 2
+            (u"localhost", ""),                             # no tld case 3
           ]:
             try:
                 urltld = get_tld_from_host(url, tldtree)
@@ -91,6 +93,8 @@ if __name__== "__main__":
 ("s:https|h:jp|h:kawasaki|h:www|h:help|p:en|q:index.php|", "s:https|h:www.kawasaki.jp|h:help|p:en|q:index.php|"), # ! case
 (u"s:https|h:jp|h:福岡|h:www|h:help|p:en|p:index.html|", u"s:https|h:福岡.jp|h:www|h:help|p:en|p:index.html|"),        # utf8 case
 ("s:https|h:192.168.1.1|p:en|p:index.html|", "s:https|h:192.168.1.1|p:en|p:index.html|"),        # no tld case
+("s:http|t:8080|h:localhost|p:en|p:index.html|", "s:http|t:8080|h:localhost|p:en|p:index.html|"),        # no tld case 2
+("s:http|h:localhost|p:en|p:index.html|", "s:http|h:localhost|p:en|p:index.html|"),        # no tld case 3
           ]:
             try:
                 gdlru = update_lru_with_tld(lru, tldtree)

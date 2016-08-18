@@ -42,7 +42,7 @@ class MongoDB(object):
         returnD(res)
 
     @inlineCallbacks
-    def add_corpus(self, corpus, name, password, options):
+    def add_corpus(self, corpus, name, password, options, tlds=None):
         now = now_ts()
         yield self.db["corpus"].insert({
           "_id": corpus,
@@ -62,7 +62,8 @@ class MongoDB(object):
           "recent_changes": False,
           "last_index_loop": now,
           "links_duration": 1,
-          "last_links_loop": 0
+          "last_links_loop": 0,
+          "tlds": tlds
         }, safe=True)
         yield self.init_corpus_indexes(corpus)
 
