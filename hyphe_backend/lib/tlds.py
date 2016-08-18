@@ -18,7 +18,12 @@ def add_tld_chunks_to_tree(tld, tree):
 def collect_tlds():
     tree = {}
     double_list = {"rules": [], "exceptions": []}
-    tldlist = yield getPage(MOZ_TLD_LIST)
+    try:
+        tldlist = yield getPage(MOZ_TLD_LIST)
+    except: #Fallback local copy
+        from os.path import join, realpath, dirname
+        with open(join(dirname(realpath(__file__)), "..", "..", "hyphe_frontend", "app", "res", "tld_list.txt")) as f:
+            tldlist = f.read()
     for line in tldlist.split("\n"):
         line = line.strip()
         if not line or line.startswith("//"):
