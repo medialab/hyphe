@@ -1335,7 +1335,7 @@ class Memory_Structure(customJSONRPC):
         if not is_error(parentWEs):
             for parent in parentWEs:
                 if parent.homepage and urllru.has_prefix(urllru.url_to_lru_clean(parent.homepage), WE.LRUSet):
-                    if config.DEBUG:
+                    if config['DEBUG']:
                         logger.msg("Removing homepage %s from parent WebEntity %s" % (parent.homepage, parent.name), system="DEBUG - %s" % corpus)
                     self.jsonrpc_set_webentity_homepage(parent.id, "", corpus=corpus)
         for lru in new_WE['lru_prefixes']:
@@ -1567,7 +1567,7 @@ class Memory_Structure(customJSONRPC):
             if not is_error(old_WE) and old_WE.id != webentity_id:
                 # Remove potential homepage from old WE that would belong to the moved prefix
                 if old_WE.homepage and urllru.has_prefix(urllru.url_to_lru_clean(old_WE.homepage), lru_prefixes):
-                    if config.DEBUG:
+                    if config['DEBUG']:
                         logger.msg("Removing homepage %s from parent WebEntity %s" % (old_WE.homepage, old_WE.name), system="DEBUG - %s" % corpus)
                     yield self.jsonrpc_set_webentity_homepage(old_WE.id, "", corpus=corpus)
                 logger.msg("Removing LRUPrefix %s from WebEntity %s" % (lru_prefix, old_WE.name), system="INFO - %s" % corpus)
@@ -2458,9 +2458,10 @@ class Memory_Structure(customJSONRPC):
             if not is_error(res):
                 yield self.jsonrpc_add_webentities_tag_value([r["id"] for r in res["result"]], "CORE", "recrawlNeeded", "true", corpus=corpus)
                 # Remove potential homepage from parent WE that would belong to the new WEs
-                for parent in res["result"]:
-                    if parent["homepage"] and urllru.has_prefix(urllru.url_to_lru_clean(parent["homepage"]), lru_prefixes):
-                        if config.DEBUG:
+                for parent in [p for p in res["result"] if p["homepage"]]:
+                    parenthomelru = urllru.url_to_lru_clean(parent["homepage"])
+                    if parenthomelru != lru_prefix and urllru.has_prefix(parenthomelru, lru_prefix):
+                        if config['DEBUG']:
                             logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
                     yield self.jsonrpc_set_webentity_homepage(parent["id"], "", corpus=corpus)
             self.corpora[corpus]['recent_changes'] += 1
