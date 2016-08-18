@@ -363,6 +363,14 @@ class Core(customJSONRPC):
         returnD(res)
 
     @inlineCallbacks
+    def jsonrpc_get_corpus_tlds(self, corpus=DEFAULT_CORPUS):
+        """Returns the lists of TLDs rules and exceptions built from Mozilla's list at the creation of `corpus`."""
+        if not self.corpus_ready(corpus):
+            returnD(self.corpus_error(corpus))
+        corpus_conf = yield self.db.get_corpus(corpus)
+        returnD(format_result(corpus_conf["tlds"]["double_list"]))
+
+    @inlineCallbacks
     def jsonrpc_backup_corpus(self, corpus=DEFAULT_CORPUS):
         """Saves locally on the server in the archive directory a timestamped backup of `corpus` including 4 json backup files of all webentities/links/crawls and corpus options."""
         if not self.corpus_ready(corpus):

@@ -81,6 +81,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.CORPUS_RESET                                = 'reinitialize'
     API.CORPUS_DESTROY                              = 'destroy_corpus'
     API.CORPUS_BACKUP                               = 'backup_corpus'
+    API.CORPUS_TLDS_GET                             = 'get_corpus_tlds'
     API.CORPUS_OPTIONS_GET                          = 'get_corpus_options'
     API.CORPUS_OPTIONS_SET                          = 'set_corpus_options'
     API.CORPUS_TEST                                 = 'test_corpus'
@@ -450,6 +451,24 @@ angular.module('hyphe.service_hyphe_api', [])
             ]
           }
       )
+
+    ns.getCorpusTLDs = function(){
+      var list_tlds
+      $.ajax({
+        async: false
+        ,method: 'POST'
+        ,url: surl
+        ,data: JSON.stringify({
+          method: API.CORPUS_TLDS_GET,
+          params: [corpus.getId()],
+        })
+        ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+        ,success: function(result){
+          list_tlds = result[0].result
+        }
+      })
+      return list_tlds
+    };
 
     ns.getCorpusOptions = buildApiCall(
         API.CORPUS_OPTIONS_GET

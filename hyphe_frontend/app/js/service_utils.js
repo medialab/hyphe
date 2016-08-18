@@ -7,7 +7,7 @@ angular.module('hyphe.service_utils', [])
   utils = angular.element(document.body).injector().get('utils')
   */
 
-  .factory('utils', [function(){
+  .factory('utils', ['api', function(api){
     var ns = {} // Namespace
 
     ns.url_regex = /^((https?|ftp|file|mailto):\/\/)?(www\.)?[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}/
@@ -474,17 +474,6 @@ angular.module('hyphe.service_utils', [])
       }
     }
 
-    ns.LRU_test_hasNoSubdomain = function(lru, settings){
-      settings = settings || {}
-      var json_lru = ns.LRU_to_JSON_LRU(lru)
-      ,host_array = json_lru.host.slice(0)
-      // Truncate host
-      host_array.pop()
-      var truncatedHost = host_array.reverse().join('.')
-      // There was no subdomain if the removed part was the domain and thus the truncated host is just a tld
-      return ns.TLD_isValid(truncatedHost)
-    }
-
     ns.LRU_test_isNonsectionPage = function(lru, settings){
       settings = settings || {}
       var json_lru = ns.LRU_to_JSON_LRU(lru)
@@ -499,81 +488,10 @@ angular.module('hyphe.service_utils', [])
     // TLD
     ns.tld_lists = undefined
     ns.getTLDLists = function(){
-      // Retrieve the list only if it is the first time it's needed
+      // Retrieve the list only if it is the first time it's needed for the corpus
       if(ns.tld_lists === undefined)
-        ns.tld_lists = ns.buildTLDLists()
+        ns.tld_lists = api.getCorpusTLDs()
       return ns.tld_lists
-    }
-    ns.buildTLDLists = function(){
-      var list_text
-      $.ajax({
-        url:"res/tld_list.txt"
-        ,success: function(result) {
-          list_text = result
-        }
-        ,async: false
-      })
-      var lines = list_text.match(/[^\r\n]+/g)
-      ,list =  lines
-        .filter(function(l){
-            return l.length > 0
-            && l.indexOf('//') != 0
-          })
-        .map(function(l){
-            var split = l.split(' ')
-            return split[0] || ''
-          })
-      var tld_lists = {
-        rules: list
-        .filter(function(l){return l.substr(0,1) != '!'})
-        ,exceptions: list
-        .filter(function(l){return l.substr(0,1) == '!'})
-        .map(function(l){return l.substr(1, l.length-1)})
-      }
-      return tld_lists
-    }
-
-    ns.TLD_isValid = function(tld_candidate){
-      var tlds = ns.getTLDLists()
-      ,tld_candidate_split = tld_candidate.split('.')
-      ,matchingTLDs = tlds.rules.filter(function(tld){
-        var tld_split = tld.split('.')
-        ,match_flag = true
-
-        for(i in tld_candidate_split){
-          if(tld_split.length < i){
-            match_flag = false
-            break
-          }
-          if(tld_split[i] != tld_candidate_split[i]){
-            if(tld_split[i] != '*'){
-              match_flag = false
-              break
-            }
-          }
-        }
-
-        return match_flag
-      })
-      // Check for exceptions
-      var matchingExceptions = tlds.exceptions.filter(function(tld){
-        var tld_split = tld.split('.')
-        ,match_flag = true
-
-        for(i in tld_candidate_split){
-          if(tld_split.length < i){
-            match_flag = false
-            break
-          }
-          if(tld_split[i] != tld_candidate_split[i]){
-            match_flag = false
-            break
-          }
-        }
-
-        return match_flag
-      })
-      return matchingTLDs.length > 0 && matchingExceptions.length == 0
     }
 
     // Misc

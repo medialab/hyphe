@@ -177,6 +177,7 @@ angular.module('hyphe.loginController', [])
 
     function openCorpus(id, name){
       // Ping until corpus started
+      utils.tld_lists = undefined
       api.pingCorpus({
         id: id
         ,timeout: 10
