@@ -40,6 +40,8 @@
                           <dd>
                             <span editable-text="webentity.name" e-name="name" e-required ng-click="editableForm.$show()">{{ webentity.name || 'empty' }}</span>
                           </dd>
+                          <dt ng-show="editableFormError.name"></dt>
+                          <dd class="form-error" ng-show="editableFormError.name">{{editableFormError.name}}</dd>
 
                           <dt>Status</dt>
                           <dd>
@@ -47,6 +49,8 @@
                               {{webentity.status}}
                             </span>
                           </dd>
+                          <dt ng-show="editableFormError.status"></dt>
+                          <dd class="form-error" ng-show="editableFormError.status">{{editableFormError.status}}</dd>
 
                           <dt>Homepage</dt>
                           <dd>
@@ -61,6 +65,8 @@
                               </span>
                             </div>
                           </dd>
+                          <dt ng-show="editableFormError.homepage"></dt>
+                          <dd class="form-error" ng-show="editableFormError.homepage">{{editableFormError.homepage}}</dd>
 
                           <dt></dt>
                           <dd>

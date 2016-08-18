@@ -15,6 +15,7 @@ angular.module('hyphe.webentityController', [])
     $scope.tagCategories = {}
     $scope.tagCategoriesOrder = []
     $scope.newCategory = ""
+    $scope.editableFormError = {}
     
     $scope.statuses = [
       {value: 'IN', text: 'IN'},
@@ -39,6 +40,7 @@ angular.module('hyphe.webentityController', [])
     }
 
     $scope.saveWebEntity = function(){
+      $scope.editableFormError = {}
       $scope.status = {message: 'Updating metadata'}
       return api.webentityUpdate({
           webentityId: $scope.webentity.id
@@ -51,8 +53,11 @@ angular.module('hyphe.webentityController', [])
           updateWELastModifTime()
         }
         ,function(error){
-          $scope.editableForm.$setError('name', error);
           $scope.status = {message: 'Could not save webentity', background:'warning'}
+          $scope.editableFormError = error[0].message
+          $timeout(function(){
+            $scope.editableForm.$show()
+          }, 0)
         }
       )
     }

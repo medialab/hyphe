@@ -1469,20 +1469,20 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_basic_edit_webentity(self, webentity_id, name=None, status=None, homepage=None, corpus=DEFAULT_CORPUS):
         """Changes for a `corpus` at once the `name`\, `status` and `homepage` of a WebEntity defined by `webentity_id`."""
-        res = []
+        res = {}
         WE = None
         if name:
             WE = yield self.jsonrpc_rename_webentity(webentity_id, name, corpus=corpus, _commit=(not homepage and not status))
             if is_error(WE):
-                res.append(WE['message'])
+                res['name'] = WE['message']
         if status:
             WE = yield self.jsonrpc_set_webentity_status(WE or webentity_id, status, corpus=corpus, _commit=(not homepage))
             if is_error(WE):
-                res.append(WE['message'])
+                res['status'] = WE['message']
         if homepage:
             WE = yield self.jsonrpc_set_webentity_homepage(WE or webentity_id, homepage, corpus=corpus)
             if is_error(WE):
-                res.append(WE['message'])
+                res['homepage'] = WE['message']
         if res:
             returnD(format_error(res))
         returnD(format_result("Webentity's basic metadata updated"))

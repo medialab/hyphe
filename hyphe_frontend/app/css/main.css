@@ -101,6 +101,11 @@ dl.highlight {
   font-size: 1.1em;
 }
 
+dd.form-error{
+  font-size: 1em;
+  color: red;
+}
+
 ul.list-spaced li {
   margin-bottom: 12px;
 }
