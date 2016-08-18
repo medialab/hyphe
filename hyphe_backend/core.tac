@@ -1175,7 +1175,7 @@ class Memory_Structure(customJSONRPC):
                 if self.validate_linkpage(p, prefixes):
                     homepages[WE.id] = p.url
                     if p.linked > 2:
-                        self.jsonrpc_set_webentity_homepage(WE.id, p.url, corpus=corpus)
+                        self.jsonrpc_set_webentity_homepage(WE.id, p.url, corpus=corpus, _declare_page=False)
                         break
                 else:
                     for pr in prefixes:
@@ -1531,7 +1531,7 @@ class Memory_Structure(customJSONRPC):
         return self.batch_webentities_edit("set_webentity_status", webentity_ids, corpus, status)
 
     @inlineCallbacks
-    def jsonrpc_set_webentity_homepage(self, webentity_id, homepage="", corpus=DEFAULT_CORPUS):
+    def jsonrpc_set_webentity_homepage(self, webentity_id, homepage="", corpus=DEFAULT_CORPUS, _declare_page=True):
         """Changes for a `corpus` the homepage of a WebEntity defined by `webentity_id` to `homepage`."""
         homepage = (homepage or "").strip()
         try:
@@ -1546,6 +1546,12 @@ class Memory_Structure(customJSONRPC):
             WE = yield self.jsonrpc_get_webentity_for_url(homepage, corpus)
             if is_error(WE) or WE["result"]["id"] != realid:
                 returnD(format_error("WARNING: this page does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity."))
+            if _declare_page:
+                res = yield self.declare_page(homepage, corpus)
+                if is_error(res):
+                    logger.msg("ERROR while declaring homepage %s" % homepage, system="DEBUG - %s" % corpus)
+                elif res["result"]["created"]:
+                    returnD(format_error("WARNING: this page does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity."))
         res = yield self.update_webentity(webentity_id, "homepage", homepage, corpus=corpus)
         returnD(res)
 
