@@ -116,11 +116,12 @@ def url_to_lru(url, tldtree={}, encode_utf8=True):
                     host = host.lower().split(".")
                     if tldtree:
                         tld = get_tld_from_host_arr(host, tldtree)
-                        rmstems = tld.count('.') + 1
+                        rmstems = tld.count('.') + 1 if tld else 0
                         while rmstems:
                             host.pop()
                             rmstems -= 1
-                        host.append(tld)
+                        if tld:
+                            host.append(tld)
                 host.reverse()
                 tokens = ["s:" + scheme.lower(), "t:"+ (port if port else (str(443) if scheme == "https" else str(80)))]
                 if host:

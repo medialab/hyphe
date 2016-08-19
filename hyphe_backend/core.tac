@@ -308,7 +308,7 @@ class Core(customJSONRPC):
             corpus_conf = yield self.db.get_corpus(corpus)
         self.corpora[corpus]["name"] = corpus_conf["name"]
         self.corpora[corpus]["options"] = corpus_conf["options"]
-        self.corpora[corpus]["tlds"] = corpus_conf["tlds"]["tree"]
+        self.corpora[corpus]["tlds"] = corpus_conf["tlds"]
         self.corpora[corpus]["total_webentities"] = corpus_conf['total_webentities']
         self.corpora[corpus]["webentities_in"] = corpus_conf['webentities_in']
         self.corpora[corpus]["webentities_out"] = corpus_conf['webentities_out']

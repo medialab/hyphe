@@ -59,6 +59,8 @@ angular.module('hyphe.service_utils', [])
       var lru = "s:" + json_lru.scheme + "|"
       if(json_lru.port && json_lru.port !== "80")
         lru += "t:" + json_lru.port + "|"
+      if(json_lru.tld)
+        lru += "h:" + json_lru.tld + "|"
       json_lru.host.forEach(function(h){lru += "h:" + h + "|";})
       json_lru["path"].forEach(function(p){lru += "p:" + p + "|";})
       if(json_lru.query)
@@ -68,29 +70,57 @@ angular.module('hyphe.service_utils', [])
       return lru
     }
 
+    var _get_TLD_from_host_array = function(host, tldtree, tld){
+      tld = tld || ""
+      var chunk = host.pop()
+      if (tldtree["!" + chunk])
+        return tld
+      if (tldtree["*"] || tldtree[chunk])
+        tld = tld ? chunk + "." + tld : chunk
+      if (tldtree[chunk])
+        return _get_TLD_from_host_array(host, tldtree[chunk], tld)
+      return tld
+    }
+
+    ns.get_TLD_from_host_array = function(host, tldtree){
+      return _get_TLD_from_host_array(host.slice(), tldtree)
+    }
+
     ns.URL_to_JSON_LRU = function(URL){
       var LRU,
       regex = /^([^:\/?#]+):(?:\/\/([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/
       
       if (URL.match(regex)) { 
-        var scheme = RegExp.$1,
-        authority = RegExp.$2,
-        path = RegExp.$3,
-        query = RegExp.$4,
-        fragment = RegExp.$5
+        var scheme = RegExp.$1
+          , authority = RegExp.$2
+          , path = RegExp.$3
+          , query = RegExp.$4
+          , fragment = RegExp.$5
+          , tld = ""
         if (authority.match(/^(?:([^:]+)(?::([^@]+))?\@)?(\[[\da-f]*:[\da-f:]*\]|[^\s:]+)(?::(\d+))?$/i)) {
-          var user = RegExp.$1,
-          password = RegExp.$2,
-          host = RegExp.$3,
-          port = RegExp.$4
+          var user = RegExp.$1
+            , password = RegExp.$2
+            , host = RegExp.$3
+            , port = RegExp.$4
           
           if (ns.specialhosts_regex.test(host))
             host = [host.toLowerCase()]
-          else host = host.toLowerCase().split(/\./)
+          else {
+            host = host.toLowerCase().split(/\./)
+            var tlds = ns.getTLDTree()
+            if (tlds) {
+              tld = ns.get_TLD_from_host_array(host, tlds)
+              if (tld) {
+                for (var i=0; i < tld.split(/\./).length; i++)
+                  host.pop()
+              }
+            }
+          }
           
           LRU = {
             "scheme": scheme.toLowerCase(),
             "host": host.reverse(),
+            "tld": tld,
             "path": path.split(/\//).filter(function(pathToken, i){return i>0}),   
           }
           if(port && port != "80")
@@ -119,7 +149,9 @@ angular.module('hyphe.service_utils', [])
         } else if(type=="t" && name !== '80'){
           json_lru.port = name
         } else if(type=="h"){
-          json_lru.host.push(name.toLowerCase())
+          name.toLowerCase().split('.').reverse().forEach(function(h){
+            json_lru.host.push(h)
+          })
         } else if(type=="p"){
           json_lru.path.push(name)
         } else if(type=="q"){
@@ -128,6 +160,14 @@ angular.module('hyphe.service_utils', [])
           json_lru.fragment = name
         }
       })
+      var tlds = ns.getTLDTree()
+      if (tlds) {
+        json_lru.tld = ns.get_TLD_from_host_array(json_lru.host.slice().reverse(), tlds)
+        if (json_lru.tld) {
+          for (var i=0; i < json_lru.tld.split(/\./).length; i++)
+            json_lru.host.shift()
+        }
+      }
       return json_lru
     }
 
@@ -150,6 +190,9 @@ angular.module('hyphe.service_utils', [])
         })
         hosts = hosts.substr(1, hosts.length)
       }
+
+      if(json_lru.tld)
+        hosts += "."+json_lru.tld
       
       if(json_lru.path != undefined && json_lru.path.length>0)
         json_lru.path.forEach(function(p){
@@ -185,24 +228,14 @@ angular.module('hyphe.service_utils', [])
         return []
 
       var pretty_lru = []
-      ,tld_parts = ns.JSON_LRU_getTLD(json_lru)
-      ,tld_length = tld_parts.split('.').length
-      ,tld = ''
 
       pretty_lru.push(json_lru.scheme)
       if (json_lru.port && json_lru.port !== "80")
         pretty_lru.push(':'+explicit(json_lru.port))
-      if(tld_parts === "" && json_lru.host.length < 2)
-        pretty_lru.push(json_lru.host[0])
-      else json_lru.host.forEach(function(stem, i){
-        if(i < tld_length){
-          tld = '.'+explicit(stem)+tld
-        } else if(i == tld_length){
-          pretty_lru.push(tld)
-          pretty_lru.push(explicit(stem))
-        } else {
-          pretty_lru.push(explicit(stem)+'.')
-        }
+      if(json_lru.tld)
+        pretty_lru.push("."+explicit(json_lru.tld))
+      json_lru.host.forEach(function(stem, i){
+        pretty_lru.push(explicit(stem) + (i ? '.' : ''))
       })
       json_lru.path.forEach(function(stem){
         pretty_lru.push('/'+explicit(stem))
@@ -280,76 +313,14 @@ angular.module('hyphe.service_utils', [])
 
     ns.LRU_getTLD = function(lru){
       var json_lru = ns.LRU_to_JSON_LRU(lru)
-      return(ns.JSON_LRU_getTLD(json_lru))
-    }
-
-    ns.JSON_LRU_getTLD = function(json_lru){
-      var host_split = json_lru.host.slice(0)
-      ,tlds = ns.getTLDLists()
-
-      function getLongestMatchingTLDSplit(tld_candidate_split){
-        var longestMatchingTLD_split = []
-        tlds.rules.forEach(function(tld){
-          var tld_split = tld.split('.').reverse()
-          ,match_flag = true
-          ,i
-
-          for(i in tld_split){
-            if(tld_candidate_split.length < i){
-              match_flag = false
-              break
-            }
-            if(tld_split[i] != tld_candidate_split[i]){
-              if(tld_split[i] != '*'){
-                match_flag = false
-                break
-              }
-            }
-          }
-
-          if(match_flag && tld_split.length > longestMatchingTLD_split.length){
-            var actualTLDCandidate = host_split.slice(0, tld_split.length)
-            longestMatchingTLD_split = tld_split
-          }
-        })
-        if(longestMatchingTLD_split.length == 0){
-          console.log('No tld matching for', json_lru)
-          return ""
-        }
-        // Check the longest matching tld is not an exception
-        var actualTLDCandidate = host_split.slice(0, longestMatchingTLD_split.length)
-        ,matchingExceptions = tlds.exceptions.filter(function(tld){
-          var tld_split = tld.split('.').reverse()
-          ,match_flag = true
-
-          for(var i in tld_split){
-            if(actualTLDCandidate.length < i){
-              match_flag = false
-              break
-            }
-            if(tld_split[i] != actualTLDCandidate[i]){
-              match_flag = false
-              break
-            }
-          }
-          return match_flag
-        })
-        if(matchingExceptions.length != 0){
-          // console.log('TLD is an exception', longestMatchingTLD_split)
-          longestMatchingTLD_split.pop()
-        }
-        return longestMatchingTLD_split
-      }
-
-      var longestMatchingTLD = getLongestMatchingTLDSplit(host_split, [])
-      return host_split.slice(0, longestMatchingTLD.length).reverse().join('.')
+      return json_lru.tld
     }
 
     ns.LRU_variations = function(lru, settings){
       if(lru === undefined)
         return []
       var candidates = []
-      ,tld_length = ns.LRU_getTLD(lru).split('.').length
+      ,tld_length = ns.LRU_getTLD(lru) != ""
       ,lru_a = lru.split('|')
       ,lru_json = ns.LRU_to_JSON_LRU(lru)
       ,settings = settings || {}
@@ -362,8 +333,8 @@ angular.module('hyphe.service_utils', [])
       if(settings.smallerVariations === undefined){settings.smallerVariations = true}
     
       candidates.push(lru)
-      if(lru_a.length>2+tld_length && settings.smallerVariations){
-        for(length = lru_a.length-1; length>=2+tld_length; length--){
+      if(lru_a.length > 2+tld_length && settings.smallerVariations){
+        for(length = lru_a.length-1; length >= 2 + tld_length; length--){
           var candidate = lru_a.filter(function(stem, i){
             return i < length
           }).join('|') + '|'
@@ -430,12 +401,13 @@ angular.module('hyphe.service_utils', [])
       var json_lru = ns.URL_to_JSON_LRU(ns.URL_stripLastSlash(url))
       if(json_lru === undefined)
         return '<Impossible to Name> ' + url
-      var tld = ns.JSON_LRU_getTLD(json_lru)
-         ,tld_length = tld !== "" ? tld.split('.').length : 0
-         ,name = json_lru.host
-        .map(function(d,i){if(tld_length && i==tld_length){return ns.toDomainCase(d)} return d.replace(/\[]/g, '')})
-        .filter(function(d,i){return d != 'www' && (!tld_length || i>tld_length-1)})
+      var name = json_lru.host.map(function(d,i){
+          if (i == 0 && json_lru.tld)
+            return ns.toDomainCase(d)
+          return d.replace(/\[]/g, '')
+        })
         .reverse()
+        .filter(function(d,i){return d != 'www' || i > 0})
         .join('.')
       if(json_lru.port && json_lru.port !== "80")
         name += ' :' + json_lru.port
@@ -486,12 +458,12 @@ angular.module('hyphe.service_utils', [])
     }
 
     // TLD
-    ns.tld_lists = undefined
-    ns.getTLDLists = function(){
+    ns.tld_tree = undefined
+    ns.getTLDTree = function(){
       // Retrieve the list only if it is the first time it's needed for the corpus
-      if(ns.tld_lists === undefined)
-        ns.tld_lists = api.getCorpusTLDs()
-      return ns.tld_lists
+      if(ns.tld_tree === undefined)
+        ns.tld_tree = api.getCorpusTLDs()
+      return ns.tld_tree
     }
 
     // Misc

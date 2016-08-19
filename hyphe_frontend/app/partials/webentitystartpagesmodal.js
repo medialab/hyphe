@@ -321,7 +321,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       obj.url = utils.URL_fix(url)
       obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
       obj.tld = utils.LRU_getTLD(obj.lru)
-      obj.tldLength = obj.tld !== "" ? obj.tld.split('.').length : 0
+      obj.tldLength = obj.tld != ""
       obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
       obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
         .map(function(stem){
