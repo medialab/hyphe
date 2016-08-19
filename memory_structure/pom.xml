@@ -3,7 +3,7 @@
 
   <groupId>fr.sciencespo.medialab.hci.memorystructure</groupId>
   <artifactId>MemoryStructure</artifactId>
-  <version>0.2.2</version>
+  <version>0.3.0</version>
   <packaging>jar</packaging>
 
   <name>MemoryStructure</name>
