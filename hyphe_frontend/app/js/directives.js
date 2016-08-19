@@ -59,6 +59,7 @@ angular.module('hyphe.directives', [])
         scope.clickStem = function(index){
           if (scope.clickableStem(index)) {
             obj.prefixLength = index + 1
+            scope.updateNameAndStatus()
           }
         }
 
@@ -171,7 +172,7 @@ angular.module('hyphe.directives', [])
             if(scope.conflictsIndex)
               scope.conflictsIndex.removeFromLruIndex(scope.obj)
             scope.obj.prefixLength = closestStepId
-            scope.updateNameAndStatus(scope.obj)
+            scope.updateNameAndStatus()
             if(scope.conflictsIndex)
               scope.conflictsIndex.addToLruIndex(scope.obj)
             scope.$apply()
