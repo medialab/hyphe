@@ -393,6 +393,24 @@ angular.module('hyphe.service_utils', [])
       return ns.extractCases(candidates).reverse()
     }
 
+    ns.sort_URLs_as_LRUs = function(a, b){
+      var LRUa = ns.URL_to_JSON_LRU(a)
+        , hosta = LRUa.host.shift()
+        , LRUb = ns.URL_to_JSON_LRU(b)
+        , hostb = LRUb.host.shift()
+      if (hosta != hostb)
+        return hosta.localeCompare(hostb)
+      if (LRUa.tld != LRUb.tld)
+        return LRUa.tld.localeCompare(LRUb.tld)
+      var suba = LRUa.host.join(".")
+        , subb = LRUb.host.join(".")
+      if (suba != subb)
+        return suba.localeCompare(subb)
+      if (LRUa.scheme != LRUb.scheme)
+        return LRUa.scheme.localeCompare(LRUb.scheme)
+      return LRUa.path.join('/').localeCompare(LRUb.path.join('/'))
+    }
+
     ns.nameLRU = function(lru){
       return ns.nameURL(ns.LRU_to_URL(lru))
     }

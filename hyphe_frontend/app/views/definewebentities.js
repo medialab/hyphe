@@ -30,17 +30,11 @@ angular.module('hyphe.definewebentitiesController', [])
     $scope.crawlExisting = false
     $scope.retryConflicted = true
 
-    var orderableUrl = function(url){
-      return url.replace(/^https?:\/\/((www\d?|m(obile)?).)?/i, '')
-    }
-
     // Build the basic list of web entities
     var list
     if(store.get('parsedUrls_type') == 'list'){
       list = store.get('parsedUrls')
-        .sort(function(a, b){
-          return orderableUrl(a).localeCompare(orderableUrl(b) || a.localeCompare(b))
-        })
+        .sort(utils.sort_URLs_as_LRUs)
         .map(function(url, i){
           return {
               id: i
