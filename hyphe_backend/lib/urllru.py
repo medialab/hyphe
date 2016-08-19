@@ -296,6 +296,8 @@ def lru_variations(lru, https=True, www=True, encode_utf8=False):
     if lru2:
         listLRUs.append(lru2)
         url2 = lru_to_url(lru2, encode_utf8)
+    if lru.count("|h:") == 1:
+        return listLRUs
     if "//www." in url:
         listLRUs.append(url_to_lru_clean(url.replace("//www.", "//", 1), encode_utf8))
         if url2:

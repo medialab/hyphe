@@ -1993,10 +1993,11 @@ public class LRUIndex {
         }
         try {
             indexWebEntityCreationRule(webEntityCreationRule);
-            String variations[] = {
-                LRUUtil.HTTPVariationLRU(webEntityCreationRule.getLRU()),
-                LRUUtil.HTTPWWWVariationLRU(webEntityCreationRule.getLRU()),
-                LRUUtil.WWWVariationLRU(webEntityCreationRule.getLRU())
+            List<String> variations = new ArrayList<String>();
+            variations.add(LRUUtil.HTTPVariationLRU(webEntityCreationRule.getLRU()));
+            if (LRUUtil.countHost(webEntityCreationRule.getLRU()) != 1) {
+                variations.add(LRUUtil.HTTPWWWVariationLRU(webEntityCreationRule.getLRU()));
+                variations.add(LRUUtil.WWWVariationLRU(webEntityCreationRule.getLRU()));
             };
             for (String LRUVariation : variations) {
                 if (indexSearcher.search(LuceneQueryFactory.getWebEntityCreationRuleByLRUQuery(LRUVariation), null, 1).totalHits == 0) {
@@ -2346,10 +2347,11 @@ public class LRUIndex {
 
                 // store new webentity in index
                 if (existing == null && WEcandidate != null) {
-                    String variations[] = {
-                        LRUUtil.HTTPVariationLRU(LRUPrefix),
-                        LRUUtil.HTTPWWWVariationLRU(LRUPrefix),
-                        LRUUtil.WWWVariationLRU(LRUPrefix)
+                    List<String> variations = new ArrayList<String>();
+                    variations.add(LRUUtil.HTTPVariationLRU(LRUPrefix));
+                    if (LRUUtil.countHost(LRUPrefix) != 1) {
+                        variations.add(LRUUtil.HTTPWWWVariationLRU(LRUPrefix));
+                        variations.add(LRUUtil.WWWVariationLRU(LRUPrefix));
                     };
                     for (String LRUVariation : variations) {
                         if (LRUVariation != null) {
