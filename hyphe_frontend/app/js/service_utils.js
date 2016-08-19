@@ -427,12 +427,10 @@ angular.module('hyphe.service_utils', [])
         .reverse()
         .filter(function(d,i){return d != 'www' || i > 0})
         .join('.')
+      if(json_lru.tld)
+        name += "." + json_lru.tld
       if(json_lru.port && json_lru.port !== "80")
         name += ' :' + json_lru.port
-      /*if(tld_length == 1 && !tld[0]) {
-        name = url.replace(/^.*:\/\/([^\/]+)(\/.*)?$/, '$1')
-        
-      } else*/
       if(json_lru.path.length == 1 && json_lru.path[0].trim().length>0){
         name += ' /' + decodeURIComponent(json_lru.path[0])
       } else if(json_lru.path.length > 1) {
