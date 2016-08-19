@@ -185,9 +185,12 @@ class Core(customJSONRPC):
         if self.factory_full():
             returnD(self.corpus_error())
 
+        # Forbid same corpus name as existing
         existing = yield self.db.get_corpus_by_name(name)
         if existing:
             returnD(format_error('There already is a corpus named "%s".' % name))
+
+        # Generate unique corpus id
         corpus = clean_corpus_id(name)
         corpus_idx = 1
         existing = yield self.db.get_corpus(corpus)
@@ -196,6 +199,7 @@ class Core(customJSONRPC):
             corpus_idx += 1
             existing = yield self.db.get_corpus(corpus)
 
+        # Adjust corpus settings
         if options:
             try:
                 config_hci.check_conf_sanity(options, config_hci.CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True)
@@ -205,18 +209,25 @@ class Core(customJSONRPC):
           "name": name,
           "options": config_hci.clean_missing_corpus_options({}, config)
         }
-        tlds_double_list, tlds_tree = yield collect_tlds()
-        if not _quiet:
-            logger.msg("New corpus created", system="INFO - %s" % corpus)
-        yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"], {"double_list": tlds_double_list, "tree": tlds_tree})
+
+        # Deploy crawler
         try:
             res = yield self.crawler.jsonrpc_deploy_crawler(corpus, _quiet=_quiet)
         except Exception as e:
             logger.msg("Could not deploy crawler for new corpus: %s %s" % (type(e), e), system="ERROR - %s" % corpus)
             returnD(format_error("Could not deploy crawler for corpus"))
         if not res or is_error(res):
-            logger.msg("Could not deploy crawler for new corpus", system="ERROR - %s" % corpus)
             returnD(res)
+
+        # Get TLDs for corpus
+        tlds_double_list, tlds_tree = yield collect_tlds()
+
+        # Save corpus in mongo
+        if not _quiet:
+            logger.msg("New corpus created", system="INFO - %s" % corpus)
+        yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"], {"double_list": tlds_double_list, "tree": tlds_tree})
+
+        # Start corpus
         res = yield self.jsonrpc_start_corpus(corpus, password=password, _noloop=_noloop, _quiet=_quiet)
         returnD(res)
 
