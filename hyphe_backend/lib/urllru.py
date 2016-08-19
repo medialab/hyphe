@@ -73,15 +73,17 @@ def url_shorten(url):
 
 def name_url(url, tldtree={}):
     host = []
+    port = ""
     path = ""
     name = ""
-    lasthost = ""
+    hostdone = 0
     pathdone = False
-    for (k,v,_) in split_lru_in_stems(url_to_lru_clean(url, tldtree)):
-        if k == "h" and v != "www":
-            lasthost = v.title()
-            if host or len(lasthost) > 3:
-                host.insert(0, lasthost)
+    for k,v,_ in split_lru_in_stems(url_to_lru_clean(url, tldtree)):
+        if k == "h":
+            host.insert(0, v.title() if hostdone == 1 else v.lower())
+            hostdone += 1
+        elif k == "t" and v and v not in ["80", "443"]:
+            port = " :%s" % v
         elif k == "p" and v:
             path = " %s/%s" % ("/..." if pathdone else "", v)
             pathdone = True
@@ -89,9 +91,9 @@ def name_url(url, tldtree={}):
             name += ' ?%s' % v
         elif k == "f" and v:
             name += ' #%s' % v
-    if not host and lasthost:
-        host = [lasthost]
-    return ".".join(host) + path + name
+    if host[0] == "www":
+        host.pop(0)
+    return ".".join(host) + port + path + name
 
 def url_to_lru(url, tldtree={}, encode_utf8=True):
     """
@@ -136,13 +138,12 @@ def url_to_lru(url, tldtree={}, encode_utf8=True):
                 if fragment is not None:
                     fragment = uri_recode(fragment)
                     tokens.append("f:"+fragment)
-                res_lru = "|".join(tokens)
+                res_lru = add_trailing_pipe("|".join(tokens))
                 if encode_utf8:
                     try:
-                        return add_trailing_pipe(res_lru).encode('utf-8')
-                    except:
-                        pass
-                return add_trailing_pipe(res_lru)
+                        return res_lru.encode('utf-8')
+                    except: pass
+                return res_lru
     raise ValueError("Not an url: %s" % url)
 
 def url_to_lru_clean(url, tldtree={}, encode_utf8=True):
