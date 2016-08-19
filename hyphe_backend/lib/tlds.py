@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from hyphe_backend.lib.utils import getPage
 from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
+from twisted.web.client import getPage as getPageOrig
 
 MOZ_TLD_LIST = "https://publicsuffix.org/list/public_suffix_list.dat"
+
+# Handle Twisted 16+ now refusing unicode urls
+def getPage(url, *args, **kwargs):
+    try:
+        url = str(url)
+    except:
+        pass
+    return getPageOrig(url, *args, **kwargs)
 
 def add_tld_chunks_to_tree(tld, tree):
     chunk = tld.pop()
@@ -36,29 +44,33 @@ def collect_tlds():
             double_list["rules"].append(line.strip())
     returnD((double_list, tree))
 
-def get_tld_from_host_arr(host_arr, tldtree, tld="", tldlru=""):
+def _get_tld_from_host_arr(host_arr, tldtree, tld=""):
     chunk = host_arr.pop()
     if "!%s" % chunk in tldtree:
-        return tld, tldlru
+        return tld
     if "*" in tldtree or chunk in tldtree:
         tld = "%s.%s" % (chunk, tld) if tld else chunk
-        tldlru += "h:%s|" % chunk
     if chunk in tldtree:
-        return get_tld_from_host_arr(host_arr, tldtree[chunk], tld, tldlru)
-    return tld, tldlru
+        return _get_tld_from_host_arr(host_arr, tldtree[chunk], tld)
+    return tld
+
+def get_tld_from_host_arr(host_arr, tldtree):
+    return _get_tld_from_host_arr(list(host_arr), tldtree)
 
 def get_tld_from_host(host, tldtree):
     host_arr = host.split('.')
-    tld, _ = get_tld_from_host_arr(host.split('.'), tldtree)
-    return tld
+    return get_tld_from_host_arr(host.split('.'), tldtree)
 
 def update_lru_with_tld(lru, tldtree):
     host_arr = [l[2:] for l in lru.split('|') if l and l[0] == 'h']
     host_arr.reverse()
-    tld, tld_oldlru = get_tld_from_host_arr(host_arr, tldtree)
+    tld = get_tld_from_host_arr(host_arr, tldtree)
     if not tld:
         return lru
-    return lru.replace(tld_oldlru, "h:%s|" % tld, 1)
+    revtld = tld.split(".")
+    revtld.reverse()
+    tldlru = "".join(["h:%s|" % stem for stem in revtld])
+    return lru.replace(tldlru, "h:%s|" % tld, 1)
 
 if __name__== "__main__":
     def test():
