@@ -62,11 +62,8 @@ angular.module('hyphe.webentityStartPagesModalController', [])
         success: function () {
           addStartPageAndUpdate(webentity, url, processNextStartpage)
         },
-        otherWebentity: function () {
-          startPageModal(url, webentity, processNextStartpage)
-        },
-        noWebentity: function () {
-          startPageModal(url, webentity, processNextStartpage)
+        otherWebentity: function (prefix) {
+          startPageModal(url, webentity, processNextStartpage, prefix)
         },
         queryFail: function () {
           startPageModal(url, webentity, processNextStartpage)
@@ -208,19 +205,15 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     }
 
     function checkStartpageBelonging(webentity, url, callbacks) {
-      api.getWebentity({
-          url: url
+      api.getCreationRulesResult({
+          urlList: [url]
         }
         ,function (data) {
-          if (data[0] && data[0].code === 'fail') {
-            callbacks.noWebentity()
-          } else if (data.id) {
-            if (data.id == webentity.id) {
-              callbacks.success()
-            } else {
-              callbacks.otherWebentity()
-            }
-          }
+          if (!data[url])
+            callbacks.queryFail()
+          else if (~webentity.lru_prefixes.indexOf(data[url]))
+            callbacks.success()
+          else callbacks.otherWebentity(data[url])
         }
         ,function (data, status, headers, config) {
           // API call fail
@@ -231,7 +224,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
       )
     }
 
-    function startPageModal(url, webentity, callback) {
+    function startPageModal(url, webentity, callback, minPrefix) {
       /* Instanciate and open the Modal */
       var modalInstance = $modal.open({
         templateUrl: 'partials/startpagemodal.html'
@@ -240,10 +233,11 @@ angular.module('hyphe.webentityStartPagesModalController', [])
         ,resolve: {
           url: function () {
               return url
-            }
+          }
           ,webentity: function () {
               return webentity
-            }
+          }
+          ,minPrefix: function(){return minPrefix}
         }
       })
 
@@ -313,9 +307,10 @@ angular.module('hyphe.webentityStartPagesModalController', [])
     }
 
     /* (Sub-)Modal controller */
-    function startPageModalCtrl($scope, $modalInstance, url, webentity) {
+    function startPageModalCtrl($scope, $modalInstance, url, webentity, minPrefix) {
       $scope.url = url
       $scope.webentity = webentity
+      $scope.minPrefixLength = ((minPrefix || "").match(/\|/g) || []).length - 1
       $scope.wwwVariations = true
       $scope.httpsVariations = true
 
@@ -334,7 +329,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
             }
             return stem
           })
-      obj.prefixLength = !!obj.tldLength + 2 + !!obj.json_lru.port
+      obj.prefixLength = Math.max($scope.minPrefixLength + 1, !!obj.tldLength + 2 + !!obj.json_lru.port)
       obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
       obj.conflicts = []
       // obj_setStatus(obj, 'loading')
@@ -347,6 +342,11 @@ angular.module('hyphe.webentityStartPagesModalController', [])
           ,function(we_list){
             $scope.obj.parentWebEntities = we_list
             $scope.obj.status = 'loaded'
+            if (minPrefix){
+              $scope.obj.parentWebEntities.unshift({
+                stems_count: $scope.minPrefixLength + 1
+              })
+            }
           }
           ,function(data, status, headers, config){
             $scope.obj.status = 'error'
