@@ -341,7 +341,7 @@ angular.module('hyphe.service_utils', [])
           candidates.push(candidate)
         }
       }
-      if(settings.wwwlessVariations && lru_json.host[lru_json.host.length - 1] == 'www'){
+      if(settings.wwwlessVariations && lru_json.tld && lru_json.host[lru_json.host.length - 1] == 'www'){
         var wwwlessVariation_json = jQuery.extend(true, {}, lru_json)
         wwwlessVariation_json.host.pop()
         var wwwlessVariation = ns.JSON_LRU_to_LRU(wwwlessVariation_json)
@@ -353,7 +353,7 @@ angular.module('hyphe.service_utils', [])
           ,smallerVariations: settings.smallerVariations
         }))
       }
-      if(settings.wwwVariations && lru_json.host[lru_json.host.length - 1] != 'www'){
+      if(settings.wwwVariations && lru_json.tld && lru_json.host[lru_json.host.length - 1] != 'www'){
         var wwwVariation_json = jQuery.extend(true, {}, lru_json)
         wwwVariation_json.host.push('www')
         var wwwVariation = ns.JSON_LRU_to_LRU(wwwVariation_json)
