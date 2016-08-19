@@ -214,7 +214,7 @@ class Core(customJSONRPC):
         except Exception as e:
             logger.msg("Could not deploy crawler for new corpus: %s %s" % (type(e), e), system="ERROR - %s" % corpus)
             returnD(format_error("Could not deploy crawler for corpus"))
-        if not res:
+        if not res or is_error(res):
             logger.msg("Could not deploy crawler for new corpus", system="ERROR - %s" % corpus)
             returnD(res)
         res = yield self.jsonrpc_start_corpus(corpus, password=password, _noloop=_noloop, _quiet=_quiet)
