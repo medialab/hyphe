@@ -202,6 +202,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
           // API call fail
           // Note: cannot access global status bar from modal
           console.error('Start page could not be added', data, status, headers, config)
+          $scope.urlErrors.push(url + " (" + data[0].message + ")")
         }
       )
     }
@@ -270,9 +271,10 @@ angular.module('hyphe.webentityStartPagesModalController', [])
               ,function(){                          // Success callback
                 addStartPageAndUpdate(webentity, url, callback)
               }
-              ,function(data, status, headers){     // Fail callback
+              ,function(data, status, headers, config){     // Fail callback
                 // Note: cannot access global status bar from modal
                 console.error('Prefix could not be added', data, status, headers, config)
+                $scope.urlErrors.push(url + " (" + data[0].message + ")")
                 $scope.addingErrors.push(url)
                 callback()
               })
@@ -296,6 +298,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
               ,function(data, status, headers, config){
                 // Note: cannot access global status bar from modal
                 console.error('Merge failed', data, status, headers, config)
+                $scope.urlErrors.push(url + " (" + data[0].message + ")")
                 $scope.addingErrors.push(url)
                 callback()
               }
