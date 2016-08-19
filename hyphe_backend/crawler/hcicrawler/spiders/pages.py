@@ -29,6 +29,7 @@ from selenium.common.exceptions import WebDriverException, TimeoutException as S
 
 from hcicrawler.linkextractor import RegexpLinkExtractor
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
+from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
 from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM
 from hcicrawler.samples import DEFAULT_INPUT
@@ -51,7 +52,7 @@ class PagesCrawler(Spider):
         self.maxdepth = int(args['maxdepth'])
         self.follow_prefixes = to_list(args['follow_prefixes'])
         self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
-        self.discover_prefixes = [url_to_lru_clean("http%s://%s" % (https, u.replace('http://', '').replace('https://', ''))) for u in to_list(args['discover_prefixes']) for https in ['', 's']]
+        self.discover_prefixes = [url_to_lru_clean("http%s://%s" % (https, u.replace('http://', '').replace('https://', '')), TLDS_TREE) for u in to_list(args['discover_prefixes']) for https in ['', 's']]
         self.resolved_links = {}
         self.user_agent = args['user_agent']
         self.phantom = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
@@ -117,7 +118,7 @@ class PagesCrawler(Spider):
                         os.remove(fi)
 
     def handle_response(self, response):
-        lru = url_to_lru_clean(response.url)
+        lru = url_to_lru_clean(response.url, TLDS_TREE)
 
         if self.phantom:
             self.phantom.get(response.url)
@@ -217,7 +218,7 @@ class PagesCrawler(Spider):
             except AttributeError:
                 url = link['url']
             try:
-                lrulink = url_to_lru_clean(url)
+                lrulink = url_to_lru_clean(url, TLDS_TREE)
             except ValueError, e:
                 self.log("Error converting URL %s to LRU: %s" % (url, e), log.ERROR)
                 continue
@@ -249,7 +250,7 @@ class PagesCrawler(Spider):
 
     def _new_page(self, url, lru=None):
         if lru is None:
-            lru = url_to_lru_clean(url)
+            lru = url_to_lru_clean(url, TLDS_TREE)
         p = Page()
         p['url'] = url
         p['lru'] = lru

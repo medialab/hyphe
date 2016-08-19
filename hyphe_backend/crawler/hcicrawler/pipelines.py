@@ -6,6 +6,7 @@ mongo_connection._Connection.noisy = False
 from txmongo.filter import sort as mongosort, ASCENDING
 
 from hcicrawler.urllru import url_to_lru_clean, has_prefix
+from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.resolver import ResolverAgent
 
 
@@ -86,7 +87,7 @@ class ResolveLinks(object):
                         rurl = yield agent.resolve(url)
                         if rurl == url and has_prefix(lru, spider.discover_prefixes):
                             rurl = yield agent.resolve(url)
-                        lru = url_to_lru_clean(rurl)
+                        lru = url_to_lru_clean(rurl, TLDS_TREE)
                         spider.resolved_links[url] = lru
                     except Exception, e:
                         spider.log("Error resolving redirects from URL %s: %s %s" % (url, type(e), e), log.INFO)

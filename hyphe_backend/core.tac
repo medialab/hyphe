@@ -210,6 +210,12 @@ class Core(customJSONRPC):
           "options": config_hci.clean_missing_corpus_options({}, config)
         }
 
+        # Get TLDs for corpus
+        tlds = yield collect_tlds()
+        # Write TLDs for use in scrapyd egg
+        with open(os.path.join("hyphe_backend", "crawler", "hcicrawler", "tlds_tree.py"), "wb") as tlds_file:
+            print >> tlds_file, "TLDS_TREE =", tlds
+
         # Deploy crawler
         try:
             res = yield self.crawler.jsonrpc_deploy_crawler(corpus, _quiet=_quiet)
@@ -218,9 +224,6 @@ class Core(customJSONRPC):
             returnD(format_error("Could not deploy crawler for corpus"))
         if not res or is_error(res):
             returnD(res)
-
-        # Get TLDs for corpus
-        tlds = yield collect_tlds()
 
         # Save corpus in mongo
         if not _quiet:

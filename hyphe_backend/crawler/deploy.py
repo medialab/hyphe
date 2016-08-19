@@ -48,7 +48,7 @@ if corpus_conf:
 else:
     print "WARNING: trying to deploy a crawler for a corpus project missing in DB"
 
-# Copy LRU library from HCI lib/
+# Copy LRUs + TLDs libraries from HCI lib/
 if verbose:
     print "Importing urllru.py library from HCI hyphe_backend/lib to hcicrawler..."
 try:
@@ -56,6 +56,15 @@ try:
 except IOError as e:
     print "Could not open either source or destination urllru.py file"
     print "lib/urllru.py", "crawler/hcicrawler/urllru.py"
+    print e
+    exit()
+if verbose:
+    print "Importing tlds.py library from HCI hyphe_backend/lib to hcicrawler..."
+try:
+    copyfile("../lib/tlds.py", "hcicrawler/tlds.py")
+except IOError as e:
+    print "Could not open either source or destination tlds.py file"
+    print "lib/tlds.py", "crawler/hcicrawler/tlds.py"
     print e
     exit()
 

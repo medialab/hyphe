@@ -18,6 +18,8 @@ hyphe_backend/crawler/scrapy.cfg
 hyphe_backend/crawler/hcicrawler.egg-info
 hyphe_backend/crawler/hcicrawler/settings.py
 hyphe_backend/crawler/hcicrawler/urllru.py
+hyphe_backend/crawler/hcicrawler/tlds.py
+hyphe_backend/crawler/hcicrawler/tlds_tree.py
 hyphe_backend/memorystructure
 build/
 releases/

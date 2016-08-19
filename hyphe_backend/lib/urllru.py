@@ -7,7 +7,7 @@ URL/LRU library to manage, build and clean original URLs and corresponding LRUs
 
 import re, urllib
 from urlparse import urljoin, urlparse
-from hyphe_backend.lib.tlds import get_tld_from_host_arr
+from .tlds import get_tld_from_host_arr
 
 lruPattern = re.compile("^s:[^|]+(\|t:[^|]+)?(\|h:[^|]+)+")
 lruFullPattern = re.compile("^([^:/?#]+):(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$")
