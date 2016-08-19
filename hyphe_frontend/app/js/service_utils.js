@@ -408,6 +408,8 @@ angular.module('hyphe.service_utils', [])
         return suba.localeCompare(subb)
       if (LRUa.scheme != LRUb.scheme)
         return LRUa.scheme.localeCompare(LRUb.scheme)
+      if (LRUa.port != LRUb.port)
+        return (LRUa.port || "").localeCompare(LRUb.port || "")
       return LRUa.path.join('/').localeCompare(LRUb.path.join('/'))
     }
 
