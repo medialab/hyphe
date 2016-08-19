@@ -27,7 +27,8 @@ angular.module('hyphe', [
 // Route
 .config(['$routeProvider', function($routeProvider) {
   $routeProvider.when('/login', {templateUrl: 'views/login.html', controller: 'Login'});
-  $routeProvider.when('/login2', {templateUrl: 'views/login2.html', controller: 'Login2'});
+  $routeProvider.when('/admin', {templateUrl: 'views/admin.html', controller: 'Admin'});
+  $routeProvider.when('/login2', {redirectTo: '/admin'});
   $routeProvider.when('/project/:corpusId/overview', {templateUrl: 'views/overview.html', controller: 'Overview'});
   $routeProvider.when('/project/:corpusId/importurls', {templateUrl: 'views/importurls.html', controller: 'ImportUrls'});
   $routeProvider.when('/project/:corpusId/definewebentities', {templateUrl: 'views/definewebentities.html', controller: 'DefineWebEntities'});

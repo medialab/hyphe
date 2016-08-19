@@ -9,7 +9,7 @@
 
 angular.module('hyphe.controllers', [
     'hyphe.loginController'
-    ,'hyphe.login2Controller'
+    ,'hyphe.adminController'
     ,'hyphe.overviewController'
     ,'hyphe.importurlsController'
     ,'hyphe.definewebentitiesController'

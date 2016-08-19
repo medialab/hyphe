@@ -1,11 +1,11 @@
 'use strict';
 
-angular.module('hyphe.login2Controller', [])
+angular.module('hyphe.adminController', [])
 
-  .controller('Login2', ['$scope', 'api', 'utils', '$location', '$timeout', 'corpus'
+  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout', 'corpus'
   ,function($scope, api, utils, $location, $timeout, corpus) {
-    $scope.currentPage = 'login2'
-    $scope.Page.setTitle('Hyphe')
+    $scope.currentPage = 'admin'
+    $scope.Page.setTitle('Hyphe - Administration')
     $scope.corpusList
     $scope.corpusList_byId = {}
     $scope.globalStatus
