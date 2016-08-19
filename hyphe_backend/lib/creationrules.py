@@ -9,12 +9,11 @@ HOST = "h:[^\\|]+\\|"
 PATH = "p:[^\\|]+\\|"
 ANY = "[thpqf]:[^\\|]+\\|"
 
-DEFAULT = "%s(%s)?%s(%s)" % (SCHEME, PORT, HOST, HOST)
+DEFAULT = "%s(%s)?%s(%s)" % (SCHEME, PORT, HOST, HOST) # 1st host is TLD
 
 PRESETS = {
   "subdomain": "(%s+)" % DEFAULT,
   "domain": "(%s)" % DEFAULT,
-#  "domain": "(%s+)(%s)?" % (DEFAULT, HOST),    # experiment to catch always everything but one host
   "page": "(.*)$"
 }
 
