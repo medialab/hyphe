@@ -7,6 +7,7 @@ URL/LRU library to manage, build and clean original URLs and corresponding LRUs
 
 import re, urllib
 from urlparse import urljoin, urlparse
+from hyphe_backend.lib.tlds import get_tld_from_host_arr
 
 lruPattern = re.compile("^s:[^|]+(\|t:[^|]+)?(\|h:[^|]+)+")
 lruFullPattern = re.compile("^([^:/?#]+):(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$")
@@ -70,13 +71,13 @@ titlize_url_regexp = re.compile(r'(https?://|[./#])', re.I)
 def url_shorten(url):
     return titlize_url_regexp.sub(' ', uri_decode(url)).strip().title().encode('utf-8')
 
-def name_url(url):
+def name_url(url, tldtree={}):
     host = []
     path = ""
     name = ""
     lasthost = ""
     pathdone = False
-    for (k,v,_) in split_lru_in_stems(url_to_lru_clean(url)):
+    for (k,v,_) in split_lru_in_stems(url_to_lru_clean(url, tldtree)):
         if k == "h" and v != "www":
             lasthost = v.title()
             if host or len(lasthost) > 3:
@@ -92,7 +93,7 @@ def name_url(url):
         host = [lasthost]
     return ".".join(host) + path + name
 
-def url_to_lru(url, encode_utf8=True):
+def url_to_lru(url, tldtree={}, encode_utf8=True):
     """
     Convert a URL to a LRU
     >>> url_to_lru("http://www.google.com/search?q=text&p=2")
@@ -109,9 +110,17 @@ def url_to_lru(url, encode_utf8=True):
             if hostAndPort:
                 _, _, host, port = hostAndPort.groups()
                 if special_hosts.match(host):
+                    tld = None
                     host = [host]
                 else:
                     host = host.lower().split(".")
+                    if tldtree:
+                        tld = get_tld_from_host_arr(host, tldtree)
+                        rmstems = tld.count('.') + 1
+                        while rmstems:
+                            host.pop()
+                            rmstems -= 1
+                        host.append(tld)
                 host.reverse()
                 tokens = ["s:" + scheme.lower(), "t:"+ (port if port else (str(443) if scheme == "https" else str(80)))]
                 if host:
@@ -135,8 +144,8 @@ def url_to_lru(url, encode_utf8=True):
                 return add_trailing_pipe(res_lru)
     raise ValueError("Not an url: %s" % url)
 
-def url_to_lru_clean(url, encode_utf8=True):
-    return lru_clean(url_to_lru(url, encode_utf8))
+def url_to_lru_clean(url, tldtree={}, encode_utf8=True):
+    return lru_clean(url_to_lru(url, tldtree, encode_utf8))
 
 def lru_to_url(lru, encode_utf8=True, nocheck=False):
     """
@@ -185,9 +194,9 @@ def lru_to_url(lru, encode_utf8=True, nocheck=False):
             pass
     return url
 
-def url_clean_and_convert(url, lru_encode_utf8=True):
+def url_clean_and_convert(url, tldtree={}, lru_encode_utf8=True):
     url = url_clean(url)
-    lru = url_to_lru_clean(url, lru_encode_utf8)
+    lru = url_to_lru_clean(url, tldtree, lru_encode_utf8)
     return url, lru
 
 def lru_clean_and_convert(lru, url_encode_utf8=True):
@@ -285,7 +294,7 @@ def lru_get_node(lru, precision_limit = 1, precision_exceptions = [], lru_head =
     stems.insert(0, lru_head.strip("|"))
     return add_trailing_pipe("|".join(stems))
 
-def lru_variations(lru, https=True, www=True, encode_utf8=False):
+def lru_variations(lru, tldtree={}, https=True, www=True, encode_utf8=False):
     listLRUs = [lru]
     url = lru_to_url(lru, encode_utf8)
     url2 = None
@@ -299,13 +308,13 @@ def lru_variations(lru, https=True, www=True, encode_utf8=False):
     if lru.count("|h:") == 1:
         return listLRUs
     if "//www." in url:
-        listLRUs.append(url_to_lru_clean(url.replace("//www.", "//", 1), encode_utf8))
+        listLRUs.append(url_to_lru_clean(url.replace("//www.", "//", 1), tldtree, encode_utf8))
         if url2:
-            listLRUs.append(url_to_lru_clean(url2.replace("//www.", "//", 1), encode_utf8))
+            listLRUs.append(url_to_lru_clean(url2.replace("//www.", "//", 1), tldtree, encode_utf8))
     else:
-        listLRUs.append(url_to_lru_clean(url.replace("//", "//www.", 1), encode_utf8))
+        listLRUs.append(url_to_lru_clean(url.replace("//", "//www.", 1), tldtree, encode_utf8))
         if url2:
-            listLRUs.append(url_to_lru_clean(url2.replace("//", "//www.", 1), encode_utf8))
+            listLRUs.append(url_to_lru_clean(url2.replace("//", "//www.", 1), tldtree, encode_utf8))
     return listLRUs
 
 def has_prefix(lru, prefixes):

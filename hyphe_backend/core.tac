@@ -311,6 +311,7 @@ class Core(customJSONRPC):
             corpus_conf = yield self.db.get_corpus(corpus)
         self.corpora[corpus]["name"] = corpus_conf["name"]
         self.corpora[corpus]["options"] = corpus_conf["options"]
+        self.corpora[corpus]["tlds"] = corpus_conf["tlds"]["tree"]
         self.corpora[corpus]["total_webentities"] = corpus_conf['total_webentities']
         self.corpora[corpus]["webentities_in"] = corpus_conf['webentities_in']
         self.corpora[corpus]["webentities_out"] = corpus_conf['webentities_out']
@@ -364,7 +365,7 @@ class Core(customJSONRPC):
             if corpus in self.msclients.corpora:
                 yield self.update_corpus(corpus)
                 self.msclients.stop_corpus(corpus, _quiet)
-            for f in ["tags", "webentities", "webentities_links", "webentities_ranks", "precision_exceptions"]:
+            for f in ["tags", "webentities", "webentities_links", "webentities_ranks", "precision_exceptions", "tlds"]:
                 if f in self.corpora[corpus]:
                     del(self.corpora[corpus][f])
         yield self.db.clean_WEs_query(corpus)
@@ -1245,7 +1246,7 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def declare_page(self, url, corpus=DEFAULT_CORPUS):
         try:
-            url, lru = urllru.url_clean_and_convert(url)
+            url, lru = urllru.url_clean_and_convert(url, self.corpora[corpus]["tlds"])
         except ValueError as e:
             returnD(format_error(e))
         res = self.handle_lru_precision_exceptions(lru, corpus=corpus)
@@ -1295,7 +1296,7 @@ class Memory_Structure(customJSONRPC):
     def jsonrpc_declare_webentity_by_lruprefix_as_url(self, url, name=None, status=None, startPages=[], lruVariations=True, corpus=DEFAULT_CORPUS):
         """Creates for a `corpus` a WebEntity defined for the LRU prefix given as a `url` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity."""
         try:
-            url, lru_prefix = urllru.url_clean_and_convert(url, False)
+            url, lru_prefix = urllru.url_clean_and_convert(url, self.corpora[corpus]["tlds"], False)
         except ValueError as e:
             return format_error(e)
         return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startPages, lruVariations, corpus=corpus)
@@ -1311,7 +1312,7 @@ class Memory_Structure(customJSONRPC):
         list_lrus = []
         for url in list_urls:
             try:
-                 _, lru = urllru.url_clean_and_convert(url, False)
+                 _, lru = urllru.url_clean_and_convert(url, self.corpora[corpus]["tlds"], False)
                  list_lrus.append(lru)
             except ValueError as e:
                 return format_error(e)
@@ -1333,13 +1334,13 @@ class Memory_Structure(customJSONRPC):
                 lru = urllru.lru_strip_path_trailing_slash(lru)
             except ValueError as e:
                 returnD(format_error(e))
-            for l in [lru] if not lruVariations else urllru.lru_variations(lru):
+            for l in [lru] if not lruVariations else urllru.lru_variations(lru, self.corpora[corpus]["tlds"]):
                 existing = yield self.msclients.pool.getWebEntityByLRUPrefix(l, corpus=corpus)
                 if not is_error(existing):
                     returnD(format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (l, existing)))
                 lru_prefixes_list.add(l)
             if not name:
-                name = urllru.name_url(url)
+                name = urllru.name_url(url, self.corpora[corpus]["tlds"])
         WE = ms.WebEntity(id=None, LRUSet=list(lru_prefixes_list), name=name)
         if startPages:
             if not isinstance(startPages, list):
@@ -1363,7 +1364,7 @@ class Memory_Structure(customJSONRPC):
         parentWEs = yield self.msclients.pool.getWebEntityParentWebEntities(new_WE["id"], corpus=corpus)
         if not is_error(parentWEs):
             for parent in parentWEs:
-                if parent.homepage and urllru.has_prefix(urllru.url_to_lru_clean(parent.homepage), WE.LRUSet):
+                if parent.homepage and urllru.has_prefix(urllru.url_to_lru_clean(parent.homepage, self.corpora[corpus]["tlds"]), WE.LRUSet):
                     if config['DEBUG']:
                         logger.msg("Removing homepage %s from parent WebEntity %s" % (parent.homepage, parent.name), system="DEBUG - %s" % corpus)
                     self.jsonrpc_set_webentity_homepage(parent.id, "", corpus=corpus)
@@ -1569,7 +1570,7 @@ class Memory_Structure(customJSONRPC):
             realid = webentity_id
         if homepage:
             try:
-                homepage, _ = urllru.url_clean_and_convert(homepage)
+                homepage, _ = urllru.url_clean_and_convert(homepage, self.corpora[corpus]["tlds"])
             except ValueError as e:
                 returnD(format_error(e))
             WE = yield self.jsonrpc_get_webentity_for_url(homepage, corpus)
@@ -1601,7 +1602,7 @@ class Memory_Structure(customJSONRPC):
             old_WE = yield self.msclients.pool.getWebEntityByLRUPrefix(lru_prefix, corpus=corpus)
             if not is_error(old_WE) and old_WE.id != webentity_id:
                 # Remove potential homepage from old WE that would belong to the moved prefix
-                if old_WE.homepage and urllru.has_prefix(urllru.url_to_lru_clean(old_WE.homepage), lru_prefixes):
+                if old_WE.homepage and urllru.has_prefix(urllru.url_to_lru_clean(old_WE.homepage, self.corpora[corpus]["tlds"]), lru_prefixes):
                     if config['DEBUG']:
                         logger.msg("Removing homepage %s from parent WebEntity %s" % (old_WE.homepage, old_WE.name), system="DEBUG - %s" % corpus)
                     yield self.jsonrpc_set_webentity_homepage(old_WE.id, "", corpus=corpus)
@@ -1637,7 +1638,7 @@ class Memory_Structure(customJSONRPC):
     def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS, _automatic=False):
         """Adds for a `corpus` a list of `lru_prefixes` to a WebEntity defined by `webentity_id`."""
         try:
-            startpage_url, _ = urllru.url_clean_and_convert(startpage_url)
+            startpage_url, _ = urllru.url_clean_and_convert(startpage_url, self.corpora[corpus]["tlds"])
         except ValueError as e:
             returnD(format_error(e))
         WE = yield self.jsonrpc_get_webentity_for_url(startpage_url, corpus)
@@ -1654,7 +1655,7 @@ class Memory_Structure(customJSONRPC):
     def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS):
         """Removes for a `corpus` a `startpage_url` from the list of startpages of a WebEntity defined by `webentity_id."""
         try:
-            startpage_url, _ = urllru.url_clean_and_convert(startpage_url)
+            startpage_url, _ = urllru.url_clean_and_convert(startpage_url, self.corpora[corpus]["tlds"])
         except ValueError as e:
             returnD(format_error(e))
         WE = yield self.add_backend_tags(webentity_id, "removed", startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
@@ -1957,7 +1958,7 @@ class Memory_Structure(customJSONRPC):
     def jsonrpc_get_webentity_by_lruprefix_as_url(self, url, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` the WebEntity having one of its LRU prefixes corresponding to the LRU fiven under the form of a `url`."""
         try:
-            _, lru = urllru.url_clean_and_convert(url)
+            _, lru = urllru.url_clean_and_convert(url, self.corpora[corpus]["tlds"])
         except ValueError as e:
             return format_error(e)
         return self.jsonrpc_get_webentity_by_lruprefix(lru, corpus=corpus)
@@ -1966,7 +1967,7 @@ class Memory_Structure(customJSONRPC):
     def jsonrpc_get_webentity_for_url(self, url, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` the WebEntity to which a `url` belongs (meaning starting with one of the WebEntity's prefix and not another)."""
         try:
-            _, lru = urllru.url_clean_and_convert(url)
+            _, lru = urllru.url_clean_and_convert(url, self.corpora[corpus]["tlds"])
         except ValueError as e:
             returnD(format_error(e))
         res = yield self.jsonrpc_get_webentity_for_url_as_lru(lru, corpus=corpus)
@@ -2423,7 +2424,7 @@ class Memory_Structure(customJSONRPC):
             actions = []
             for prf, regexp in config.get("creationRules", {}).items():
                 for prefix in ["http://%s" % prf, "https://%s" % prf]:
-                    lru = urllru.url_to_lru_clean(prefix)
+                    lru = urllru.url_to_lru_clean(prefix, self.corpora[corpus]["tlds"])
                     actions.append(self.jsonrpc_add_webentity_creationrule(lru, creationrules.getPreset(regexp, lru), corpus=corpus))
             results = yield DeferredList(actions, consumeErrors=True)
             for bl, res in results:
@@ -2494,7 +2495,7 @@ class Memory_Structure(customJSONRPC):
                 yield self.jsonrpc_add_webentities_tag_value([r["id"] for r in res["result"]], "CORE", "recrawlNeeded", "true", corpus=corpus)
                 # Remove potential homepage from parent WE that would belong to the new WEs
                 for parent in [p for p in res["result"] if p["homepage"]]:
-                    parenthomelru = urllru.url_to_lru_clean(parent["homepage"])
+                    parenthomelru = urllru.url_to_lru_clean(parent["homepage"], self.corpora[corpus]["tlds"])
                     if parenthomelru != lru_prefix and urllru.has_prefix(parenthomelru, lru_prefix):
                         if config['DEBUG']:
                             logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
@@ -2524,7 +2525,7 @@ class Memory_Structure(customJSONRPC):
             returnD(format_result(res))
         url = pageURLs
         try:
-            _, pageLRU = urllru.url_clean_and_convert(url)
+            _, pageLRU = urllru.url_clean_and_convert(url, self.corpora[corpus]["tlds"])
         except ValueError as e:
             returnD(format_error(e))
         res = yield self.jsonrpc_simulate_creationrules_for_lrus(pageLRU, corpus)
@@ -2564,7 +2565,7 @@ class Memory_Structure(customJSONRPC):
   # PRECISION EXCEPTIONS
 
     def handle_url_precision_exceptions(self, url, corpus=DEFAULT_CORPUS):
-        lru = urllru.url_to_lru_clean(url, False)
+        lru = urllru.url_to_lru_clean(url, self.corpora[corpus]["tlds"], False)
         return self.handle_lru_precision_exceptions(lru, corpus=corpus)
 
     def handle_lru_precision_exceptions(self, lru_prefix, corpus=DEFAULT_CORPUS):
