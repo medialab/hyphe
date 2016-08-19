@@ -1,31 +1,35 @@
 'use strict';
 
-angular.module('hyphe.login2Controller', [])
+angular.module('hyphe.adminController', [])
 
-  .controller('Login2', ['$scope', 'api', 'utils', '$location', 'corpus'
-  ,function($scope, api, utils, $location, corpus) {
-    $scope.currentPage = 'login2'
-    $scope.Page.setTitle('Hyphe')
+  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout', 'corpus'
+  ,function($scope, api, utils, $location, $timeout, corpus) {
+    $scope.currentPage = 'admin'
+    $scope.Page.setTitle('Hyphe - Administration')
     $scope.corpusList
     $scope.corpusList_byId = {}
     $scope.globalStatus
     $scope.loadingStatus = false
     $scope.loadingList = false
 
-    // init
-    $scope.password = prompt("Password?", "")
-    api.startCorpus({
-      id: null
-      ,password: $scope.password
-    }, function(){
-      refresh()
-      $scope.loop = setInterval(refresh, 2500)
-      $scope.$on('$destroy', function(){ clearInterval($scope.loop) })
-
-    }, function(data, status, headers, config){
-      alert('Error: possibly a wrong password, redirecting to homepage')
+    // Connection
+    $scope.password = ""
+    $scope.cancel = function(){
       $location.path('/login')
-    })
+    }
+    $scope.connect = function(){
+      api.startCorpus({
+        id: null
+        ,password: $scope.password
+      }, function(){
+        refresh()
+        $scope.loop = setInterval(refresh, 2500)
+        $scope.$on('$destroy', function(){ clearInterval($scope.loop) })
+      }, function(data, status, headers, config){
+        $scope.passwordError = "Wrong password, redirecting you to home"
+        $timeout($scope.cancel, 700)
+      })
+    }
 
     $scope.startCorpus = function(id){
       startCorpus(id, $scope.password)

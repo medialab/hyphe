@@ -654,6 +654,24 @@ div.welcome-column dd{
   margin-left:130px;
 }
 
+/* Admin connection form */
+div.admin-connect{
+  margin: auto;
+  text-align: center;
+  width: 200px;
+}
+div.admin-connect input{
+  text-align: center;
+}
+div.admin-connect p{
+  text-align: center;
+  margin: 10px;
+  padding: 3px;
+}
+div.admin-connect button{
+  float: right;
+  margin: 10px 8px 0px 0px;
+}
 
 
 /* ==========================================================================
