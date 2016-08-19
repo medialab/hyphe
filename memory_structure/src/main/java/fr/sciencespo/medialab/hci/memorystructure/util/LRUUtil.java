@@ -174,8 +174,9 @@ public class LRUUtil {
     }
 
     public static String nameLRU(String lru) {
-    	String lruElement, key, name = "", path = "", lastHost = "", piece;
+    	String lruElement, key, name = "", port = "", path = "", piece;
     	ArrayList<String> host = new ArrayList<String>();
+        int hostdone = 0;
     	boolean pathDone = false;
     	Scanner scanner = new Scanner(lru);
         scanner.useDelimiter("\\|");
@@ -185,11 +186,11 @@ public class LRUUtil {
             lruElement = lruElement.substring(lruElement.indexOf(':')+1).trim();
             piece = URLDecoder.decode(lruElement);
             if(StringUtils.isNotEmpty(lruElement)) {
-            	if(key.equals("h:") && ! lruElement.equals("www")) {
-                    lastHost = StringUtil.toProperCase(lruElement);
-                    if (host.size() > 0 || lastHost.length() > 3) {
-                        host.add(0, lastHost);
-                    }
+            	if(key.equals("h:")) {
+                    host.add(0, (hostdone == 1 ? StringUtil.toProperCase(lruElement) : lruElement.toLowerCase()));
+                    hostdone++;
+                } else if(key.equals("t:") && ! lruElement.equals("80") && ! lruElement.equals("443")) {
+                    port = " :" + piece;
                 } else if(key.equals("p:")) {
                     path = (pathDone ? " /..." : "") + " /" + piece;
                     pathDone = true;
@@ -201,10 +202,10 @@ public class LRUUtil {
             }
         }
         scanner.close();
-        if (host.size() == 0 && StringUtils.isNotEmpty(lastHost)) {
-            host.add(0, lastHost);
+        if (host.get(0).equals("www")) {
+            host.remove(0);
         }
-    	return StringUtils.join(host, '.') + path + name;
+    	return StringUtils.join(host, '.') + port + path + name;
     }
 
 }
