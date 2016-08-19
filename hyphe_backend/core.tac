@@ -220,12 +220,12 @@ class Core(customJSONRPC):
             returnD(res)
 
         # Get TLDs for corpus
-        tlds_double_list, tlds_tree = yield collect_tlds()
+        tlds = yield collect_tlds()
 
         # Save corpus in mongo
         if not _quiet:
             logger.msg("New corpus created", system="INFO - %s" % corpus)
-        yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"], {"double_list": tlds_double_list, "tree": tlds_tree})
+        yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"], tlds)
 
         # Start corpus
         res = yield self.jsonrpc_start_corpus(corpus, password=password, _noloop=_noloop, _quiet=_quiet)
@@ -289,11 +289,8 @@ class Core(customJSONRPC):
         # Fix possibly old corpus confs
         config_hci.clean_missing_corpus_options(corpus_conf['options'],config)
         if "tlds" not in corpus_conf or not corpus_conf["tlds"]:
-            tlds_double_list, tlds_tree = yield collect_tlds()
-            yield self.db.update_corpus(corpus, {"tlds": {"double_list": tlds_double_list, "tree": tlds_tree}})
-        else:
-            tlds_double_list = corpus_conf["tlds"]["double_list"]
-            tlds_tree = corpus_conf["tlds"]["tree"]
+            corpus_conf["tlds"] = yield collect_tlds()
+            yield self.db.update_corpus(corpus, {"tlds": corpus_conf["tlds"]})
 
         if not _quiet:
             logger.msg("Starting corpus...", system="INFO - %s" % corpus)
@@ -382,7 +379,7 @@ class Core(customJSONRPC):
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         corpus_conf = yield self.db.get_corpus(corpus)
-        returnD(format_result(corpus_conf["tlds"]["double_list"]))
+        returnD(format_result(corpus_conf["tlds"]))
 
     @inlineCallbacks
     def jsonrpc_backup_corpus(self, corpus=DEFAULT_CORPUS):

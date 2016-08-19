@@ -25,7 +25,6 @@ def add_tld_chunks_to_tree(tld, tree):
 @inlineCallbacks
 def collect_tlds():
     tree = {}
-    double_list = {"rules": [], "exceptions": []}
     try:
         tldlist = yield getPage(MOZ_TLD_LIST)
     except: #Fallback local copy
@@ -38,11 +37,7 @@ def collect_tlds():
             continue
         chunks = line.decode('utf-8').split('.')
         add_tld_chunks_to_tree(chunks, tree)
-        if line[0] == '!':
-            double_list["exceptions"].append(line[1:])
-        else:
-            double_list["rules"].append(line.strip())
-    returnD((double_list, tree))
+    returnD(tree)
 
 def _get_tld_from_host_arr(host_arr, tldtree, tld=""):
     chunk = host_arr.pop()
