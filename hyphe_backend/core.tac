@@ -96,6 +96,8 @@ class Core(customJSONRPC):
         for corpus in corpora:
             corpus["password"] = (corpus["password"] != "")
             del(corpus["options"])
+            if "tlds" in corpus:
+                del(corpus["tlds"])
             corpus.update(self.jsonrpc_test_corpus(corpus.pop('_id'))["result"])
             res[corpus["corpus_id"]] = corpus
         returnD(format_result(res))
