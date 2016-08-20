@@ -1443,14 +1443,14 @@ class Memory_Structure(customJSONRPC):
                 setattr(WE, field_name, value)
             if _commit:
                 if len(WE.LRUSet):
-                    res = yield self.msclients.pool.updateWebEntity(WE, corpus=corpus)
+                    res = self.msclients.sync.updateWebEntity(WE, corpus=corpus)
                     if is_error(res):
                         returnD(res)
                     if field_name == 'LRUSet':
                         self.corpora[corpus]['recent_changes'] += 1
                     returnD(format_result("%s field of WebEntity %s updated." % (field_name, res)))
                 else:
-                    res = yield self.msclients.pool.deleteWebEntity(WE, corpus=corpus)
+                    res = self.msclients.sync.deleteWebEntity(WE, corpus=corpus)
                     if is_error(res):
                         returnD(res)
                     yield self.db.update_jobs(corpus, {'webentity_id': WE.id}, {'webentity_id': None, 'previous_webentity_id': WE.id, 'previous_webentity_name': WE.name})
@@ -1531,7 +1531,7 @@ class Memory_Structure(customJSONRPC):
         res = yield self.update_webentity(webentity_old_id, "id", webentity_new_id, corpus=corpus)
         if is_error(res):
             returnD(format_error('ERROR a WebEntity with id %s already seems to exist' % webentity_new_id))
-        res = self.jsonrpc_delete_webentity(webentity_old_id, corpus=corpus)
+        res = yield self.jsonrpc_delete_webentity(webentity_old_id, corpus=corpus)
         if is_error(res):
             returnD(format_error('ERROR a WebEntity with id %s already seems to exist' % webentity_new_id))
         self.corpora[corpus]['total_webentities'] += 1
@@ -1593,14 +1593,17 @@ class Memory_Structure(customJSONRPC):
         if not isinstance(lru_prefixes, list):
             lru_prefixes = [lru_prefixes]
         clean_lrus = []
-        WE = webentity_id
+        WE = yield self.msclients.pool.getWebEntity(webentity_id, corpus=corpus)
         for lru_prefix in lru_prefixes:
             try:
                 url, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
             except ValueError as e:
                 returnD(format_error(e))
+            if lru_prefix in WE.LRUSet:
+                continue
+            # Check if prefix is already attached to another WE
             old_WE = yield self.msclients.pool.getWebEntityByLRUPrefix(lru_prefix, corpus=corpus)
-            if not is_error(old_WE) and old_WE.id != webentity_id:
+            if not is_error(old_WE):
                 # Remove potential homepage from old WE that would belong to the moved prefix
                 if old_WE.homepage and urllru.has_prefix(urllru.url_to_lru_clean(old_WE.homepage, self.corpora[corpus]["tlds"]), lru_prefixes):
                     if config['DEBUG']:
@@ -1610,10 +1613,18 @@ class Memory_Structure(customJSONRPC):
                 res = yield self.jsonrpc_rm_webentity_lruprefix(old_WE.id, lru_prefix, corpus=corpus)
                 if is_error(res):
                     returnD(res)
+            # Otherwise check if new prefix is already contained by the WE: we might not need it
+            elif urllru.has_prefix(lru_prefix, WE.LRUSet):
+                # Keep prefix if it triggers a CreationRule for a potential sub webentity
+                CRprefix = yield self.msclients.pool.getPrefixForLRU(lru_prefix, corpus=corpus)
+                if not is_error(CRprefix) and CRprefix in WE.LRUSet:
+                    continue
             clean_lrus.append(lru_prefix)
             WE = yield self.add_backend_tags(WE, "added", lru_prefix, namespace="PREFIXES", _commit=False, corpus=corpus)
             if "removed" in WE.metadataItems["CORE.PREFIXES"] and lru_prefix in WE.metadataItems["CORE.PREFIXES"]["removed"]:
                 WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.PREFIXES", "removed", lru_prefix, _commit=False, corpus=corpus)
+        if not clean_lrus:
+            returnD(format_success("No need to add these prefixes to this webentity"))
         res = yield self.update_webentity(WE, "LRUSet", clean_lrus, "push", corpus=corpus)
         self.corpora[corpus]['recent_changes'] += 1
         returnD(res)
@@ -1677,7 +1688,17 @@ class Memory_Structure(customJSONRPC):
         new_WE = yield self.msclients.pool.getWebEntity(good_webentity_id, corpus=corpus)
         if is_error(new_WE):
             returnD(format_error('ERROR retrieving WebEntity with id %s' % good_webentity_id))
+        origLRUs = list(new_WE.LRUSet)
+        res = self.msclients.sync.deleteWebEntity(old_WE, corpus=corpus)
+        if is_error(res):
+            returnD(res)
         for lru in old_WE.LRUSet:
+            # check if new prefix is already contained by the WE: we might not need it
+            if urllru.has_prefix(lru, origLRUs):
+                # Keep prefix if it triggers a CreationRule for a potential sub webentity
+                CRprefix = yield self.msclients.pool.getPrefixForLRU(lru, corpus=corpus)
+                if not is_error(CRprefix) and CRprefix in origLRUs:
+                    continue
             new_WE.LRUSet.add(lru)
             new_WE = yield self.add_backend_tags(new_WE, "added", lru, namespace="PREFIXES", _commit=False, corpus=corpus)
             if "removed" in new_WE.metadataItems["CORE.PREFIXES"] and lru in new_WE.metadataItems["CORE.PREFIXES"]["removed"]:
@@ -1713,9 +1734,6 @@ class Memory_Structure(customJSONRPC):
                     for tag_val in old_WE.metadataItems[tag_namespace][tag_key]:
                         if tag_val not in new_WE.metadataItems[tag_namespace][tag_key]:
                             new_WE.metadataItems[tag_namespace][tag_key].append(tag_val)
-        res = self.msclients.sync.deleteWebEntity(old_WE, corpus=corpus)
-        if is_error(res):
-            returnD(res)
         yield self.db.update_jobs(corpus, {'webentity_id': old_WE.id}, {'webentity_id': new_WE.id, 'previous_webentity_id': old_WE.id, 'previous_webentity_name': old_WE.name})
         new_WE = yield self.add_backend_tags(new_WE, "mergedWebEntities", "%s: %s (%s)" % (old_WE.id, old_WE.name, old_WE.status), _commit=False, corpus=corpus)
         res = self.msclients.sync.updateWebEntity(new_WE, corpus=corpus)
@@ -2465,13 +2483,17 @@ class Memory_Structure(customJSONRPC):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
+        variations = urllru.lru_variations(lru_prefix)
+        deleted = 0
         for wecr in rules:
-            if lru_prefix == wecr.LRU:
-                res = yield self.msclients.pool.removeWebEntityCreationRule(wecr, corpus=corpus)
+            if wecr.LRU in variations:
+                res = yield self.msclients.loop.removeWebEntityCreationRule(wecr, corpus=corpus)
                 if is_error(res):
                     returnD(format_error(res))
-                returnD(format_result('WebEntityCreationRule for prefix %s deleted.' % lru_prefix))
-        self.jsonrpc_get_webentity_creationrules(corpus=corpus)
+                deleted += 1
+        if deleted:
+            self.jsonrpc_get_webentity_creationrules(corpus=corpus)
+            returnD(format_result('WebEntityCreationRule for prefix %s deleted.' % lru_prefix))
         returnD(format_error("No existing WebEntityCreationRule found for prefix %s." % lru_prefix))
 
     @inlineCallbacks
@@ -2483,25 +2505,29 @@ class Memory_Structure(customJSONRPC):
             _, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
         except ValueError as e:
             returnD(format_error(e))
-        regexp = creationrules.getPreset(regexp, lru_prefix)
-        res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(regexp, lru_prefix), corpus=corpus)
-        if is_error(res):
-            returnD(format_error("Could not save CreationRule %s for prefix %s: %s" % (regexp, prefix, res)))
+        variations = urllru.lru_variations(lru_prefix)
+        for variation in variations:
+            res = yield self.msclients.loop.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(regexp, variation), variation), corpus=corpus)
+            if is_error(res):
+                returnD(format_error("Could not save CreationRule %s for prefix %s: %s" % (regexp, variation, res)))
         self.jsonrpc_get_webentity_creationrules(corpus=corpus)
         if apply_to_existing_pages:
-            news = yield self.msclients.pool.reindexPageItemsMatchingLRUPrefix(lru_prefix, corpus=corpus)
-            res = yield self.jsonrpc_get_lru_definedprefixes(lru_prefix, corpus=corpus, _include_homepages=True)
-            if not is_error(res):
-                yield self.jsonrpc_add_webentities_tag_value([r["id"] for r in res["result"]], "CORE", "recrawlNeeded", "true", corpus=corpus)
-                # Remove potential homepage from parent WE that would belong to the new WEs
-                for parent in [p for p in res["result"] if p["homepage"]]:
-                    parenthomelru = urllru.url_to_lru_clean(parent["homepage"], self.corpora[corpus]["tlds"])
-                    if parenthomelru != lru_prefix and urllru.has_prefix(parenthomelru, lru_prefix):
-                        if config['DEBUG']:
-                            logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
-                    yield self.jsonrpc_set_webentity_homepage(parent["id"], "", corpus=corpus)
+            news = 0
+            for variation in variations:
+                news += yield self.msclients.loop.reindexPageItemsMatchingLRUPrefix(lru_prefix, corpus=corpus)
+                res = yield self.jsonrpc_get_lru_definedprefixes(lru_prefix, corpus=corpus, _include_homepages=True)
+                if not is_error(res):
+                    yield self.jsonrpc_add_webentities_tag_value([r["id"] for r in res["result"]], "CORE", "recrawlNeeded", "true", corpus=corpus)
+                    # Remove potential homepage from parent WE that would belong to the new WEs
+                    for parent in [p for p in res["result"] if p["homepage"]]:
+                        parenthomelru = urllru.url_to_lru_clean(parent["homepage"], self.corpora[corpus]["tlds"])
+                        if parenthomelru != lru_prefix and urllru.has_prefix(parenthomelru, [lru_prefix]):
+                            if config['DEBUG']:
+                                logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
+                        yield self.jsonrpc_set_webentity_homepage(parent["id"], "", corpus=corpus)
             self.corpora[corpus]['recent_changes'] += 1
             returnD(format_result("Webentity creation rule added and applied: %s new webentities created" % news))
+        self.corpora[corpus]['recent_changes'] += 1
         returnD(format_result("Webentity creation rule added"))
 
     @inlineCallbacks
