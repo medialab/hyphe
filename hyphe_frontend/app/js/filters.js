@@ -64,7 +64,7 @@ angular.module('hyphe.filters', [])
     }
   }])
 
-  .filter('were-was', [function(){
+  .filter('were_was', [function(){
     return function(plural) {
       return (plural > 1 ? 'were' : 'was')
     }

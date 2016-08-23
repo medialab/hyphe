@@ -57,6 +57,26 @@ angular.module('hyphe.webentityController', [])
       }
     }
 
+    $scope.checkWebEntityHomepage = function($data){
+      var tmpHomepage = $data.homepage+"", lru
+      try{
+        lru = utils.URL_to_JSON_LRU($data.homepage)
+      } catch(e){
+        lru = ""
+      }
+      if (!lru || (lru.scheme !== "http" && lru.scheme !== "https")){
+        $scope.editableFormError.homepage = "Please enter a valid URL!"
+        $timeout(function(){
+          $scope.editableForm.$show()
+        }, 0)
+        $timeout(function(){
+          $(".url-container input").val(tmpHomepage)
+        }, 5)
+        return false
+      }
+      return true
+    }
+
     $scope.saveWebEntity = function(){
       $scope.editableFormError = {}
       $scope.status = {message: 'Updating metadata'}

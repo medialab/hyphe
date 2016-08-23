@@ -28,7 +28,7 @@
                   </div>
                   <div class="row">
                     <div class="col-md-8">
-                      <form editable-form name="editableForm" onaftersave="saveWebEntity()">
+                      <form editable-form name="editableForm" onbeforesave="checkWebEntityHomepage($data)" onaftersave="saveWebEntity()">
                         <dl class="dl-horizontal dl-editable">
 
                           <dt class="lightText">ID</dt>
@@ -53,8 +53,8 @@
                           <dd class="form-error" ng-show="editableFormError.status">{{editableFormError.status}}</dd>
 
                           <dt>Homepage</dt>
-                          <dd>
-                            <div class="url-container" editable-url="webentity.homepage" e-name="homepage" e-required>
+                          <dd class="url-container">
+                            <div editable-text="webentity.homepage" e-name="homepage" e-required>
                               <a href="{{webentity.homepage}}" target="_blank" title="Open in a new tab">
                                 <span class="glyphicon glyphicon-link"></span>
                               </a>

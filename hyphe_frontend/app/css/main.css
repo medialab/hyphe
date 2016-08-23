@@ -158,15 +158,15 @@ label.btn.btn-default.disabled.active{
 /* ==========================================================================
    URLs can be very loooong
    ========================================================================== */
-div.url-container{
+.url-container{
   overflow: hidden;
   white-space: nowrap;
 }
-div.url-container .url{
+.url-container .url{
   font-family: 'Roboto Condensed', sans-serif;
   font-weight:400;
 }
-div.url-container .url-break{
+.url-container .url-break{
   white-space: normal;
   word-break: break-all;
 }
@@ -1416,7 +1416,7 @@ table.sliders-commands {
 span.editable{
   border-bottom: dashed 1px #ccc;
 }
-span.editable-url{
+.url-container span.editable-text{
   width: 100%
 }
 
