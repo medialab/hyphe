@@ -109,7 +109,7 @@
                   <!-- Remove Button -->
                   <button
                     class="btn btn-link btn-xs pull-right"
-                    ng-show="obj.displayRemove"
+                    ng-show="obj.displayRemove && obj.status !== 'scheduled' && obj.status !== 'pending'"
                     ng-click="$event.stopPropagation(); removeCell(obj.id)"
                   >
                     <span class="glyphicon glyphicon-remove"></span>
