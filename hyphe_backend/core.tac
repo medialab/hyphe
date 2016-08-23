@@ -2514,17 +2514,17 @@ class Memory_Structure(customJSONRPC):
         if apply_to_existing_pages:
             news = 0
             for variation in variations:
-                news += yield self.msclients.loop.reindexPageItemsMatchingLRUPrefix(lru_prefix, corpus=corpus)
-                res = yield self.jsonrpc_get_lru_definedprefixes(lru_prefix, corpus=corpus, _include_homepages=True)
+                res = yield self.jsonrpc_get_lru_definedprefixes(variation, corpus=corpus, _include_homepages=True)
                 if not is_error(res):
                     yield self.jsonrpc_add_webentities_tag_value([r["id"] for r in res["result"]], "CORE", "recrawlNeeded", "true", corpus=corpus)
                     # Remove potential homepage from parent WE that would belong to the new WEs
                     for parent in [p for p in res["result"] if p["homepage"]]:
                         parenthomelru = urllru.url_to_lru_clean(parent["homepage"], self.corpora[corpus]["tlds"])
-                        if parenthomelru != lru_prefix and urllru.has_prefix(parenthomelru, [lru_prefix]):
+                        if parenthomelru != variation and urllru.has_prefix(parenthomelru, variations):
                             if config['DEBUG']:
                                 logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
-                        yield self.jsonrpc_set_webentity_homepage(parent["id"], "", corpus=corpus)
+                            yield self.jsonrpc_set_webentity_homepage(parent["id"], "", corpus=corpus)
+                news += yield self.msclients.loop.reindexPageItemsMatchingLRUPrefix(variation, corpus=corpus)
             self.corpora[corpus]['recent_changes'] += 1
             returnD(format_result("Webentity creation rule added and applied: %s new webentities created" % news))
         self.corpora[corpus]['recent_changes'] += 1
