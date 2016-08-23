@@ -112,7 +112,7 @@ angular.module('hyphe.listwebentitiesController', [])
 
     $scope.validatePage = function(){
       var pgval = parseInt(((""+$scope.paginationPage).trim().match(/^[1-9]\d*$/) || [])[0])
-      if (!(pgval > 0 && pgval <= $scope.paginationMaxPage)) {
+      if (!(pgval > 0 && pgval < $scope.paginationMaxPage)) {
         $('.page-input input').addClass('ng-invalid')
         return false
       }
