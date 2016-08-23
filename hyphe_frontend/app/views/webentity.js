@@ -28,10 +28,9 @@ angular.module('hyphe.webentityController', [])
       $scope.webentity.last_modification_date = (new Date()).getTime()/1000
     }
 
-    $scope.reCrawl = function(job_id){
+    $scope.reCrawl = function(oldjob){
       var webentity = $scope.webentity
       ,obj = {webentity:webentity}
-      ,oldjob = (job_id ? $scope.crawls.find(function(job){return job.id == job_id}) : undefined)
       
       if(webentity !== undefined){
         store.set('webentities_toCrawl', [obj])
@@ -42,14 +41,13 @@ angular.module('hyphe.webentityController', [])
       }
     }
 
-    $scope.abortCrawl = function(job_id){
-      var job = $scope.crawls.find(function(job){return job.id == job_id})
+    $scope.abortCrawl = function(job){
       if(job !== undefined){
         $scope.status = {message: 'Aborting crawl job'}
         job.crawling_status = 'CANCELED'
         utils.consolidateJob(job)
         api.abortCrawlJobs({
-            id: job_id
+            id: job._id
           }, function(){
             $scope.status = {}
           }, function(){
@@ -116,7 +114,7 @@ angular.module('hyphe.webentityController', [])
         ,function(result){
           $scope.crawls = result.map(utils.consolidateJob)
           if ($scope.crawls.some(function(job){
-            return job.globalStatus != 'ACHIEVED' & job.globalStatus != 'UNSUCCESSFUL'
+            return job.globalStatus != 'ACHIEVED' && job.globalStatus != 'UNSUCCESSFUL' && job.globalStatus != 'CANCELED'
           })) $timeout(fetchCrawls, 3000)
         }
         ,function(){

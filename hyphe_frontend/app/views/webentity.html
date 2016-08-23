@@ -263,8 +263,8 @@
                           wl-text-danger="{{job.globalStatus == 'CANCELED'}}"
                           wl-cog="{{job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'}}"
                         />
-                        <div ng-show="job.globalStatus == 'ACHIEVED' || job.globalStatus == 'UNSUCCESSFUL'"><button class="btn btn-default btn-sm" ng-click="reCrawl(job.id)"><span class="glyphicon glyphicon-repeat"></span> RECRAWL</button></div>
-                        <div ng-show="job.globalStatus != 'ACHIEVED' && job.globalStatus != 'UNSUCCESSFUL'"><button class="btn btn-default btn-sm" ng-click="cancelCrawl(job.id)"><span class="glyphicon glyphicon-repeat"></span> CANCEL</button></div>
+                        <div ng-show="job.globalStatus == 'ACHIEVED' || job.globalStatus == 'UNSUCCESSFUL' || job.globalStatus == 'CANCELED'"><button class="btn btn-default btn-sm" ng-click="reCrawl(job)"><span class="glyphicon glyphicon-repeat"></span> RECRAWL</button></div>
+                        <div ng-show="job.globalStatus != 'ACHIEVED' && job.globalStatus != 'UNSUCCESSFUL' && job.globalStatus != 'CANCELED'"><button class="btn btn-default btn-sm" ng-click="abortCrawl(job)"><span class="glyphicon glyphicon-trash"></span> ABORT CRAWL</button></div>
                         <div class="stats" ng-class="{'bg-danger':job.globalStatus == 'UNSUCCESSFUL', 'bg-warning':(job.globalStatus == 'ACHIEVED' && job.nb_crawled_pages <= 3)}">
                           {{job.nb_crawled_pages}} page{{job.nb_crawled_pages | plural}} crawled<span ng-show="job.nb_unindexed_pages">&nbsp;({{job.nb_unindexed_pages}} not indexed yet)</span>
                           <br>

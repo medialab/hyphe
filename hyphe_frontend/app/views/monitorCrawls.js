@@ -96,12 +96,13 @@ angular.module('hyphe.monitorcrawlsController', [])
       )
     }
 
-    $scope.reCrawl = function(weId){
-      var webentity = $scope.webentityIndex[weId]
-      ,obj = {webentity:webentity}
+    $scope.reCrawl = function(job){
+      var webentity = $scope.webentityIndex[job.webentity_id]
+      ,obj = {webentity: webentity}
       
       if(webentity !== undefined){
         store.set('webentities_toCrawl', [obj])
+        store.set('webentity_old_crawljob', job)
         $location.path('/project/'+$scope.corpusId+'/prepareCrawls')
       } else {
         $scope.status = {message:'No Web Entity to send', background:'danger'}
