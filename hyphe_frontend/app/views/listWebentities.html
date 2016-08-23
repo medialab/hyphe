@@ -96,7 +96,7 @@
                       </div>
 
                       <div class="form-group search-ariane-string-text pull-right" ng-if="!loading">
-                        {{fullListLength}} WEB ENTIT{{fullListLength > 1 ? 'IES' : 'Y'}}
+                        {{fullListLength}} WEB ENTIT{{fullListLength | y_ies | uppercase}}
                       </div>
                       
                     </form>
@@ -242,7 +242,7 @@
                 <div ng-if="checkedList.length > 0">
                   <div class="flatpanel">
                     <div class="flatpanel-heading selection-background">
-                      SELECTION: {{checkedList.length}} {{checkedList.length > 1 ? 'WEB ENTITIES' : 'WEB ENTITY'}}
+                      SELECTION: {{checkedList.length}} WEB ENTIT{{checkedList.length | y_ies | uppercase}}
                     </div>
                     <div class="flatpanel-body">
                       

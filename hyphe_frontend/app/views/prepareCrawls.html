@@ -70,7 +70,7 @@
                     ng-if="obj.status == 'loaded' && obj.webentity.startpages.length > 0"
                     class="info text-center"
                   >
-                    {{obj.webentity.startpages.length}} <span class="text-muted">start page{{obj.webentity.startpages.length > 1 ? 's' : ''}}</span>
+                    {{obj.webentity.startpages.length}} <span class="text-muted">start page{{obj.webentity.startpages.length | plural}}</span>
                     <span ng-if="obj.summary && obj.summary.stage == 'loaded'">
                       <small>
                         <span ng-show="!obj.summary.diagnostic.doomed">
@@ -145,13 +145,13 @@
                     <span>{{statusesSummary.counts.pending}} pending...</span>
                   </div>
                   <div class="progress-bar progress-bar-neutral" style="width: {{statusesSummary.percents.loaded}}%">
-                    <span>{{statusesSummary.counts.loaded}} web entities ready to crawl</span>
+                    <span>{{statusesSummary.counts.loaded}} web entit{{statusesSummary.counts.loaded | y_ies}} ready to crawl</span>
                   </div>
                   <div class="progress-bar progress-bar-warning" style="width: {{statusesSummary.percents.deleted}}%">
                     <span>{{statusesSummary.counts.deleted}} deleted</span>
                   </div>
                   <div class="progress-bar progress-bar-danger" style="width: {{statusesSummary.percents.error}}%">
-                    <span>{{statusesSummary.counts.error}} error{{statusesSummary.counts.error>1 ? 's' : ''}}</span>
+                    <span>{{statusesSummary.counts.error}} error{{statusesSummary.counts.error | plural}}</span>
                   </div>
                 </div>
               </div>
