@@ -30,36 +30,32 @@
 	      	,'bg-success': job.globalStatus == 'ACHIEVED'}"
 	    >
 	      <p class="title">
-	        {{job.webentity_name || 'Web Entity Loading'}}
-	      </p>
-	      <p class="subtitle">
+            {{job.webentity_name || 'Web Entity Loading'}}
+          </p>
+          <p class="subtitle">
 	        Scheduled <span tooltip="{{job.created_at|date}}">{{job.created_at|prettyDate}}</span>
 	      </p>
 	      <p ng-if="job.finished_at" class="subtitle">
 	        Finished in {{job.finished_at - job.created_at|duration}}
 	      </p>
 	      <p class="subtitle" ng-if="job.crawl_arguments.phantom">
-					<span class="glyphicon glyphicon-bell"></span> Cautious crawl
-				</p>
+            <span class="glyphicon glyphicon-bell"></span> Cautious crawl
+          </p>
 	      <p class="subtitle">
 	        Depth {{job.crawl_arguments.maxdepth}}
 	      </p>
-				<div
-					class="crawljob-animation"
-
-					water-loader="{{job.globalStatus}}"
-
-					wl-message-only="{{!(job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING')}}"
-
-					wl-text-danger="{{job.globalStatus == 'CANCELED'}}"
-
-					wl-cog="{{job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'}}"
-				/>
-				<div class="stats" ng-class="{'bg-danger':job.globalStatus == 'UNSUCCESSFUL', 'bg-warning':(job.globalStatus == 'ACHIEVED' && job.nb_crawled_pages <= 3)}">
-					{{job.nb_crawled_pages}} page{{job.nb_crawled_pages | plural}} crawled
-                    <br>
-					<span ng-show="job.nb_unindexed_pages">({{job.nb_unindexed_pages}} not indexed yet)</span>
-				</div>
+          <div
+            class="crawljob-animation"
+            water-loader="{{job.globalStatus}}"
+            wl-message-only="{{!(job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING')}}"
+            wl-text-danger="{{job.globalStatus == 'CANCELED'}}"
+            wl-cog="{{job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'}}"
+          />
+          <div class="stats" ng-class="{'bg-danger':job.globalStatus == 'UNSUCCESSFUL', 'bg-warning':(job.globalStatus == 'ACHIEVED' && job.nb_crawled_pages <= 3)}">
+            {{job.nb_crawled_pages}} page{{job.nb_crawled_pages | plural}} crawled
+            <br>
+            <span ng-show="job.nb_unindexed_pages">({{job.nb_unindexed_pages}} not indexed yet)</span>
+          </div>
     	</div>
 	  </div>
 	</div>

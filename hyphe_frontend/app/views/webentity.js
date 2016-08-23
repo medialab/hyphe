@@ -12,6 +12,7 @@ angular.module('hyphe.webentityController', [])
     $scope.explorerActive = false
 
     $scope.webentity = {id:$routeParams.webentityId, loading:true}
+    $scope.crawls = []
     $scope.tagCategories = {}
     $scope.tagCategoriesOrder = []
     $scope.newCategory = ""
@@ -27,15 +28,34 @@ angular.module('hyphe.webentityController', [])
       $scope.webentity.last_modification_date = (new Date()).getTime()/1000
     }
 
-    $scope.reCrawl = function(){
+    $scope.reCrawl = function(job_id){
       var webentity = $scope.webentity
       ,obj = {webentity:webentity}
+      ,oldjob = (job_id ? $scope.crawls.find(function(job){return job.id == job_id}) : undefined)
       
       if(webentity !== undefined){
         store.set('webentities_toCrawl', [obj])
+        store.set('webentity_old_crawljob', oldjob)
         $location.path('/project/'+$scope.corpusId+'/prepareCrawls')
       } else {
         $scope.status = {message:'No Web Entity to send', background:'danger'}
+      }
+    }
+
+    $scope.abortCrawl = function(job_id){
+      var job = $scope.crawls.find(function(job){return job.id == job_id})
+      if(job !== undefined){
+        $scope.status = {message: 'Aborting crawl job'}
+        job.crawling_status = 'CANCELED'
+        utils.consolidateJob(job)
+        api.abortCrawlJobs({
+            id: job_id
+          }, function(){
+            $scope.status = {}
+          }, function(){
+            $scope.status = {message: 'Error aborting crawl job', background:'danger'}
+          }
+        )
       }
     }
 
@@ -63,13 +83,14 @@ angular.module('hyphe.webentityController', [])
     }
 
     // Init
-    fetchWebentity($routeParams.webentityId)
+    fetchWebentity()
+    fetchCrawls()
     fetchTags()
 
     // Functions
-    function fetchWebentity(id){
+    function fetchWebentity(){
       api.getWebentities({
-          id_list:[id]
+          id_list:[$routeParams.webentityId]
           ,crawledOnly: false
         }
         ,function(result){
@@ -84,6 +105,22 @@ angular.module('hyphe.webentityController', [])
         }
         ,function(){
           $scope.status = {message: 'Error loading web entity', background: 'danger'}
+        }
+      )
+    }
+
+    function fetchCrawls(){
+      api.webentityCrawlsList({
+          webentityId: $routeParams.webentityId
+        }
+        ,function(result){
+          $scope.crawls = result.map(utils.consolidateJob)
+          if ($scope.crawls.some(function(job){
+            return job.globalStatus != 'ACHIEVED' & job.globalStatus != 'UNSUCCESSFUL'
+          })) $timeout(fetchCrawls, 3000)
+        }
+        ,function(){
+          $scope.status = {message: "Error loading web entity's crawls", background: 'danger'}
         }
       )
     }

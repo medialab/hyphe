@@ -202,13 +202,13 @@
                         <dt>Indexing</dt>
                         <dd>{{webentity['indexing_status']}}</dd>
 
-                        <dt></dt>
-                        <dd>
+                        <dt ng-show="!crawls.length"></dt>
+                        <dd ng-show="!crawls.length">
                           <br>
                           <button
                             class="btn btn-default btn-sm"
                             ng-click="reCrawl()"
-                          ><span class="glyphicon glyphicon-repeat"></span> {{webentity['crawling_status'] !== 'UNCRAWLED' ? 'RE' : ''}}CRAWL</button>
+                          ><span class="glyphicon glyphicon-repeat"></span> CRAWL</button>
                         </dd>
 
                       </dl>
@@ -234,6 +234,48 @@
                     </div>
                   </div>
 
+                  <div class="row webentity-crawls" ng-show="crawls.length">
+                    <div class="col-md-4 crawljob-cell" ng-repeat="job in crawls">
+                      <div class="crawljob-cell-content"
+                        ng-class="{
+                          'bg-danger':job.globalStatus == 'CRASHED'
+                          ,'bg-warning':job.globalStatus == 'UNSUCCESSFUL'
+                          ,'bg-blank':job.globalStatus == 'CANCELED'
+                          ,'bg-info':job.globalStatus == 'RETRIED'
+                          ,'bg-primary':job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'
+                          ,'bg-success': job.globalStatus == 'ACHIEVED'}"
+                      >
+                        <p class="title">
+                          Scheduled <span tooltip="{{job.created_at|date}}">{{job.created_at|prettyDate}}</span>
+                        </p>
+                        <p ng-if="job.finished_at" class="subtitle">
+                          Finished in {{job.finished_at - job.created_at|duration}}
+                        </p>
+                        <p class="subtitle" ng-if="job.crawl_arguments.phantom">
+                          <span class="glyphicon glyphicon-bell"></span> Cautious crawl
+                        </p>
+                        <p class="subtitle">
+                          Depth {{job.crawl_arguments.maxdepth}}
+                        </p>
+                        <div class="crawljob-animation"
+                          water-loader="{{job.globalStatus}}"
+                          wl-message-only="{{!(job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING')}}"
+                          wl-text-danger="{{job.globalStatus == 'CANCELED'}}"
+                          wl-cog="{{job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'}}"
+                        />
+                        <div ng-show="job.globalStatus == 'ACHIEVED' || job.globalStatus == 'UNSUCCESSFUL'"><button class="btn btn-default btn-sm" ng-click="reCrawl(job.id)"><span class="glyphicon glyphicon-repeat"></span> RECRAWL</button></div>
+                        <div ng-show="job.globalStatus != 'ACHIEVED' && job.globalStatus != 'UNSUCCESSFUL'"><button class="btn btn-default btn-sm" ng-click="cancelCrawl(job.id)"><span class="glyphicon glyphicon-repeat"></span> CANCEL</button></div>
+                        <div class="stats" ng-class="{'bg-danger':job.globalStatus == 'UNSUCCESSFUL', 'bg-warning':(job.globalStatus == 'ACHIEVED' && job.nb_crawled_pages <= 3)}">
+                          {{job.nb_crawled_pages}} page{{job.nb_crawled_pages | plural}} crawled<span ng-show="job.nb_unindexed_pages">&nbsp;({{job.nb_unindexed_pages}} not indexed yet)</span>
+                          <br>
+                          <span ng-show="job.nb_links || job.nb_pages">{{job.nb_links}} link{{job.nb_links | plural}} &amp; {{job.nb_pages}} page{{job.nb_pages | plural}} discovered</span>
+                          <br>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
               </div>
 
             </div>

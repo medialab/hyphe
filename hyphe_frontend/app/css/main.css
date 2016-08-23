@@ -1237,6 +1237,14 @@ table.sliders-commands {
 
   cursor: pointer;
 }
+.webentity-crawls .crawljob-cell{
+  cursor: auto;
+}
+.webentity-crawls .crawljob-cell button{
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
 .crawljob-cell-content{
   height: 100%;
   padding: 12px;
@@ -1293,6 +1301,9 @@ table.sliders-commands {
   position: absolute;
   bottom: 12px;
   left: 50%;
+}
+.webentity-crawls .crawljob-cell .stats{
+  width: 180px;
 }
 
 .crawljob-details h3{

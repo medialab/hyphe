@@ -79,7 +79,7 @@ angular.module('hyphe.monitorcrawlsController', [])
     }
 
     $scope.abortCrawl = function(job){
-      $scope.status = {message: 'Aborting crawl jobs'}
+      $scope.status = {message: 'Aborting crawl job'}
       
       job.crawling_status = 'CANCELED'
 
@@ -112,29 +112,6 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.setTimespan('day')
 
     // functions
-    function consolidateJob(job){
-      job.globalStatus = ''
-      if(job.crawling_status == 'RUNNING'){
-        job.globalStatus = 'CRAWLING'
-      } else if(job.crawling_status != 'FINISHED'){
-        job.globalStatus = job.crawling_status
-      } else if(job.indexing_status == 'FINISHED'){
-        if(job.nb_crawled_pages > 0){
-          job.globalStatus = 'ACHIEVED'
-        } else {
-          job.globalStatus = 'UNSUCCESSFUL'
-        }
-      } else if(job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED'){
-        job.globalStatus = 'INDEXING'
-      } else if(job.indexing_status == 'PENDING'){
-        job.globalStatus = 'WAITING'
-      } else {
-        job.globalStatus = 'INDEXING ' + job.indexing_status
-      }
-      return job
-    }
-
-
     function loadRequiredWebentities(){
       if($scope.timespan == 'all'){
         
@@ -230,7 +207,7 @@ angular.module('hyphe.monitorcrawlsController', [])
             $scope.listLoaded = true
             $scope.crawlJobs = crawlJobs
               // Consolidate
-              .map(consolidateJob)
+              .map(utils.consolidateJob)
               // Sort by currently working then reverse chronological order
               .sort(function(a,b){
                 if (a.globalStatus === "CRAWLING" || a.globalStatus === "INDEXING")
@@ -333,7 +310,7 @@ angular.module('hyphe.monitorcrawlsController', [])
             if(currentTimespan == $scope.timespan){
 
               // Enrich
-              crawlJobs = crawlJobs.map(consolidateJob)
+              crawlJobs = crawlJobs.map(utils.consolidateJob)
 
               var changes = []
 
