@@ -12,7 +12,7 @@
         ></th>
         <th
           class="wesp-modal-cell-startpage"
-        >Start page{{startpages.length > 1 ? 's' : ''}}</th>
+        >Start page{{startpages.length | plural}}</th>
         <th
           class="wesp-modal-cell-lookup"
         ></th>
@@ -111,7 +111,7 @@
   </table>
 
   <div collapse="collapseProgressBar" >
-    <progressbar ng-if="startpagesSummary.percent == 0" value="100" class="progress-striped active" >Testing web entities</progressbar>
+    <progressbar ng-if="startpagesSummary.percent == 0" value="100" class="progress-striped active" >startpage{{startpages.length | plural}}</progressbar>
     <progressbar ng-if="startpagesSummary.percent > 0" value="startpagesSummary.percent" >{{startpagesSummary.percent}}% tested</progressbar>
   </div>
 

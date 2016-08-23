@@ -791,7 +791,7 @@ class Core(customJSONRPC):
         """Returns for a `corpus` crawl jobs that has run for a specific WebEntity defined by its `webentity_id`."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
-        jobs = yield self.db.list_jobs(corpus, {'webentity_id': webentity_id})
+        jobs = yield self.db.list_jobs(corpus, {"$or": [{'webentity_id': webentity_id}, {'previous_webentity_id': webentity_id}]})
         returnD(handle_standard_results(jobs))
 
     @inlineCallbacks
