@@ -608,6 +608,28 @@ angular.module('hyphe.service_utils', [])
       return '*' + query + '*'
     }
 
+    ns.consolidateJob = function(job){
+      job.globalStatus = ''
+      if(job.crawling_status == 'RUNNING'){
+        job.globalStatus = 'CRAWLING'
+      } else if(job.crawling_status != 'FINISHED'){
+        job.globalStatus = job.crawling_status
+      } else if(job.indexing_status == 'FINISHED'){
+        if(job.nb_crawled_pages > 0){
+          job.globalStatus = 'ACHIEVED'
+        } else {
+          job.globalStatus = 'UNSUCCESSFUL'
+        }
+      } else if(job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED'){
+        job.globalStatus = 'INDEXING'
+      } else if(job.indexing_status == 'PENDING'){
+        job.globalStatus = 'WAITING'
+      } else {
+        job.globalStatus = 'INDEXING ' + job.indexing_status
+      }
+      return job
+    }
+
     return ns
 
   }])

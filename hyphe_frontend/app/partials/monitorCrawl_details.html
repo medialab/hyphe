@@ -21,7 +21,7 @@
 <button
   ng-if="lastCrawlJobs[0].crawling_status == 'CANCELED' || lastCrawlJobs[0].indexing_status == 'FINISHED' || lastCrawlJobs[0].indexing_status == 'CANCELED'"
   class="btn btn-default"
-  ng-click="reCrawl(lastCrawlJobs[0].webentity_id)"
+  ng-click="reCrawl(lastCrawlJobs[0])"
 ><span class="glyphicon glyphicon-repeat"></span> RECRAWL</button>
 
 <h3>IDENTITY</h3>

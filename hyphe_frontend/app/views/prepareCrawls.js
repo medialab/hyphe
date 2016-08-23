@@ -11,6 +11,7 @@ angular.module('hyphe.preparecrawlsController', [])
     $scope.corpusId = corpus.getId()
 
     $scope.crawlDepth = 1
+    $scope.cautious = false
 
     $scope.scheduling = false
 
@@ -44,8 +45,7 @@ angular.module('hyphe.preparecrawlsController', [])
     // Initialization
 
     getSettingsFromCorpusOptions()
-    bootstrapList(store.get('webentities_toCrawl'))
-    store.remove('webentities_toCrawl')
+    bootstrapList()
 
     // Lazy lookups
 
@@ -85,8 +85,8 @@ angular.module('hyphe.preparecrawlsController', [])
             api.crawl                             // Query call
             ,{                                    // Query settings
                 webentityId: obj.webentity.id
-                ,depth: $scope.crawlDepth || 0
-                ,cautious: false
+                ,depth: $scope.crawlDepth
+                ,cautious: $scope.cautious
               }
             ,function(data){                      // Success callback
                 obj_setStatus(obj, 'scheduled')
@@ -132,8 +132,17 @@ angular.module('hyphe.preparecrawlsController', [])
       })
     }
 
-    function bootstrapList(list){
-      list = list || []
+    function bootstrapList(){
+      var list = store.get('webentities_toCrawl') || []
+      , oldjob = store.get('webentity_old_crawljob')
+
+      // Reuse oldjob's settings if set from previous crawl
+      if (oldjob){
+        $scope.crawlDepth = oldjob.crawl_arguments.maxdepth
+        $scope.cautious = oldjob.crawl_arguments.phantom
+      }
+      store.remove('webentity_old_crawljob')
+      store.remove('webentities_toCrawl')
 
       // Remove doublons
       list = utils.extractCases(list, function(obj){
