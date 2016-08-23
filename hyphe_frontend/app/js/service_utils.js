@@ -402,19 +402,25 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.sort_JSON_LRUs = function(LRUa, LRUb){
-      if (LRUa.host != LRUb.host)
-        return LRUa.host.localeCompare(LRUb.host)
-      if (LRUa.tld != LRUb.tld)
+      var hosta = LRUa.host.shift()
+        , hostb = LRUb.host.shift()
+      if (hosta !== hostb)
+        return hosta.localeCompare(hostb)
+      if (LRUa.tld !== LRUb.tld)
         return LRUa.tld.localeCompare(LRUb.tld)
       var suba = LRUa.host.join(".")
         , subb = LRUb.host.join(".")
-      if (suba != subb)
+      if (suba !== subb)
         return suba.localeCompare(subb)
-      if (LRUa.scheme != LRUb.scheme)
-        return LRUa.scheme.localeCompare(LRUb.scheme)
-      if (LRUa.port != LRUb.port)
+      if (LRUa.port !== LRUb.port)
         return (LRUa.port || "").localeCompare(LRUb.port || "")
-      return LRUa.path.join('/').localeCompare(LRUb.path.join('/'))
+      var patha = (LRUa.path || []).join("/")
+        , pathb = (LRUb.path || []).join("/")
+      if (patha !== pathb)
+        return patha.localeCompare(pathb)
+      if (LRUa.query !== LRUb.query)
+        return LRUa.query.localeCompare(LRUb.query)
+      return LRUa.scheme.localeCompare(LRUb.scheme)
     }
 
     ns.nameLRU = function(lru){
