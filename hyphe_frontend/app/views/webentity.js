@@ -620,7 +620,7 @@ angular.module('hyphe.webentityController', [])
         ,function(result){
           $scope.webentity = result[0]
           $scope.webentity.loading = false
-          $scope.webentity.lru_prefixes.sort(function(a,b){ return a.localeCompare(b)})
+          $scope.webentity.lru_prefixes.sort(utils.sort_LRUs)
 
           // Triple loading
           loadPages()

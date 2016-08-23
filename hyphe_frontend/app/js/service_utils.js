@@ -394,12 +394,16 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.sort_URLs_as_LRUs = function(a, b){
-      var LRUa = ns.URL_to_JSON_LRU(a)
-        , hosta = LRUa.host.shift()
-        , LRUb = ns.URL_to_JSON_LRU(b)
-        , hostb = LRUb.host.shift()
-      if (hosta != hostb)
-        return hosta.localeCompare(hostb)
+      return ns.sort_JSON_LRUs(ns.URL_to_JSON_LRU(a), ns.URL_to_JSON_LRU(b))
+    }
+
+    ns.sort_LRUs = function(a, b){
+      return ns.sort_JSON_LRUs(ns.LRU_to_JSON_LRU(a), ns.LRU_to_JSON_LRU(b))
+    }
+
+    ns.sort_JSON_LRUs = function(LRUa, LRUb){
+      if (LRUa.host != LRUb.host)
+        return LRUa.host.localeCompare(LRUb.host)
       if (LRUa.tld != LRUb.tld)
         return LRUa.tld.localeCompare(LRUb.tld)
       var suba = LRUa.host.join(".")
