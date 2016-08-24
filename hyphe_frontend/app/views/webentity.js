@@ -28,17 +28,15 @@ angular.module('hyphe.webentityController', [])
       $scope.webentity.last_modification_date = (new Date()).getTime()/1000
     }
 
+    $scope.crawlDetails = function(job){
+      $location.url('/project/'+$scope.corpusId+'/monitorCrawls?tab=details&id='+job._id)
+    }
+
     $scope.reCrawl = function(oldjob){
-      var webentity = $scope.webentity
-      ,obj = {webentity:webentity}
-      
-      if(webentity !== undefined){
-        store.set('webentities_toCrawl', [obj])
-        store.set('webentity_old_crawljob', oldjob)
-        $location.path('/project/'+$scope.corpusId+'/prepareCrawls')
-      } else {
-        $scope.status = {message:'No Web Entity to send', background:'danger'}
-      }
+      var obj = {webentity: $scope.webentity}
+      store.set('webentities_toCrawl', [obj])
+      store.set('webentity_old_crawljob', oldjob)
+      $location.path('/project/'+$scope.corpusId+'/prepareCrawls')
     }
 
     $scope.abortCrawl = function(job){

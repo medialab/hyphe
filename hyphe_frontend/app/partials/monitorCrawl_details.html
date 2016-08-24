@@ -1,3 +1,4 @@
+<div ng-show="lastCrawlJobs[0].webentity_name">
 <h2>
   {{lastCrawlJobs[0].webentity_name || 'Web Entity Loading'}} - <span class="text-muted" tooltip="{{lastCrawlJobs[0].created_at|date}}">{{lastCrawlJobs[0].created_at|prettyDate}}</span>
 </h2>
@@ -192,4 +193,4 @@
   </dd>
   
 </dl>
-
+</div>
