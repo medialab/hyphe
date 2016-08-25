@@ -190,7 +190,7 @@ The API will always answer as such:
 - __`get_corpus_tlds`:__
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns the lists of TLDs rules and exceptions built from Mozilla's list at the creation of `corpus`.
+ Returns the tree of TLDs rules built from Mozilla's list at the creation of `corpus`.
 
 
 - __`backup_corpus`:__
