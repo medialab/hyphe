@@ -36,6 +36,7 @@ The API will always answer as such:
     * __`create_corpus`__
     * __`start_corpus`__
     * __`stop_corpus`__
+    * __`get_corpus_tlds`__
     * __`backup_corpus`__
     * __`ping`__
     * __`reinitialize`__
@@ -184,6 +185,12 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Stops an existing and running `corpus`. Returns the new corpus status.
+
+
+- __`get_corpus_tlds`:__
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns the lists of TLDs rules and exceptions built from Mozilla's list at the creation of `corpus`.
 
 
 - __`backup_corpus`:__
