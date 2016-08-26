@@ -2265,6 +2265,24 @@ class Memory_Structure(customJSONRPC):
         returnD(res)
 
     @inlineCallbacks
+    def jsonrpc_get_webentities_uncrawled(self, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` all IN WebEntities which have no crawljob associated with it.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        try:
+            page = int(page)
+            count = int(count)
+        except:
+            returnD(format_error("page and count arguments must be integers"))
+        crawljobs = yield self.db.list_jobs(corpus, fields=["webentity_id", "previous_webentity_id"])
+        crawled_dbl_list = [[job["webentity_id"], job["previous_webentity_id"]] if "previous_webentity_id" in job else [job["webentity_id"]] for job in crawljobs]
+        crawled_ids = set([_id for dbl_id in crawled_dbl_list for _id in dbl_id])
+        status_in = ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN]
+        WEs = [WE for WE in self.corpora[corpus]["webentities"] if WE.status == status_in and WE.id not in crawled_ids]
+        res = yield self.paginate_webentities(WEs, count=count, page=page, sort=sort, corpus=corpus)
+        returnD(res)
+
+    @inlineCallbacks
     def jsonrpc_get_webentities_page(self, pagination_token, n_page, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` the page number `n_page` of WebEntities corresponding to the results of a previous query ran using any of the `get_webentities` or `search_webentities` methods using the returned `pagination_token`."""
         try:
