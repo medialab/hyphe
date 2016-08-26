@@ -173,7 +173,7 @@ class Core(customJSONRPC):
         if not corpus:
             return format_error("Too many instances running already, please try again later")
         if corpus in self.corpora and not self.msclients.starting_corpus(corpus) and not self.msclients.stopped_corpus(corpus):
-            reactor.callLater(0, self.jsonrpc_stop_corpus, corpus, _quiet=True)
+            reactor.callInThread(self.jsonrpc_stop_corpus, corpus, True, False)
         return format_error(self.jsonrpc_test_corpus(corpus)["result"])
 
     def factory_full(self):
@@ -357,13 +357,16 @@ class Core(customJSONRPC):
                 self.corpora[corpus][fid].stop()
 
     @inlineCallbacks
-    def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False):
+    def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False, _sync=True):
         """Stops an existing and running `corpus`. Returns the new corpus status."""
         if corpus in self.corpora:
             self.stop_loops(corpus)
             if corpus in self.msclients.corpora:
                 yield self.update_corpus(corpus)
-                self.msclients.stop_corpus(corpus, _quiet)
+                if _sync:
+                    self.msclients.stop_corpus(corpus, _quiet)
+                else:
+                    reactor.callInThread(self.msclients.stop_corpus, corpus, _quiet)
             for f in ["tags", "webentities", "webentities_links", "webentities_ranks", "precision_exceptions"]:
                 if f in self.corpora[corpus]:
                     del(self.corpora[corpus][f])
@@ -429,7 +432,7 @@ class Core(customJSONRPC):
         returnD(format_result('pong'))
 
     @inlineCallbacks
-    def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False, _nobackup=False):
+    def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False, _nobackup=False, _restart=False):
         """Resets completely a `corpus` by cancelling all crawls and emptying the MemoryStructure and Mongo data."""
         if not self.corpus_ready(corpus) and self.msclients.status_corpus(corpus, simplify=True) != "starting":
             returnD(self.corpus_error(corpus))
@@ -449,10 +452,11 @@ class Core(customJSONRPC):
             returnD(res)
         self.init_corpus(corpus)
 
-        res = yield self.store.reinitialize(corpus, _noloop=_noloop, _quiet=_quiet)
+        res = yield self.store.reinitialize(corpus, _noloop=_noloop, _quiet=_quiet, _restart=False)
         if is_error(res):
             logger.msg("Problem while reinitializing MemoryStructure... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
+        self.corpora[corpus]['reset'] = False
         returnD(format_result('Memory structure and crawling database contents emptied.'))
 
     @inlineCallbacks
@@ -462,13 +466,13 @@ class Core(customJSONRPC):
             yield self.jsonrpc_backup_corpus(corpus)
         if not _quiet:
             logger.msg("Destroying corpus...", system="INFO - %s" % corpus)
-        res = yield self.jsonrpc_reinitialize(corpus, _noloop=True, _quiet=_quiet, _nobackup=True)
+        res = yield self.jsonrpc_reinitialize(corpus, _noloop=True, _quiet=_quiet, _nobackup=True, _restart=False)
         if is_error(res):
             returnD(res)
-        res = yield self.jsonrpc_stop_corpus(corpus, _quiet=_quiet)
+        res = yield self.jsonrpc_stop_corpus(corpus, _quiet, False)
         if is_error(res):
             returnD(res)
-        res = yield self.crawler.jsonrpc_delete_crawler(corpus, _quiet)
+        yield self.crawler.jsonrpc_delete_crawler(corpus, _quiet)
         yield self.db.delete_corpus(corpus)
         returnD(format_result("Corpus %s destroyed successfully" % corpus))
 
@@ -1055,7 +1059,7 @@ class Memory_Structure(customJSONRPC):
         self.msclients = self.parent.msclients
 
     @inlineCallbacks
-    def _init_loop(self, corpus=DEFAULT_CORPUS, _noloop=False):
+    def _init_loop(self, corpus=DEFAULT_CORPUS, _noloop=False, _delay=False):
         if self.corpora[corpus]['reset']:
             yield self.db.queue(corpus).drop(safe=True)
 
@@ -1066,11 +1070,14 @@ class Memory_Structure(customJSONRPC):
         self.corpora[corpus]['loop_running_since'] = now
         self.corpora[corpus]['last_WE_update'] = now
         self.corpora[corpus]['recent_tagging'] = True
-        if not _noloop:
-            reactor.callLater(3, deferToThread, self.jsonrpc_get_precision_exceptions, corpus=corpus)
-            reactor.callLater(10, self.corpora[corpus]['index_loop'].start, 1, True)
-            reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, False)
         yield self.ensureDefaultCreationRuleExists(corpus, _quiet=_noloop)
+        if not _noloop:
+            if _delay:
+                reactor.callLater(5, self.jsonrpc_get_precision_exceptions, corpus)
+            else:
+                yield self.jsonrpc_get_precision_exceptions(corpus=corpus)
+            reactor.callLater(10 if _delay else 1, self.corpora[corpus]['index_loop'].start, 0, True)
+            reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, True)
 
     def format_webentity(self, WE, job={}, homepage=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
         if not WE:
@@ -1149,7 +1156,7 @@ class Memory_Structure(customJSONRPC):
     re_extract_url_ext = re.compile(r"\.([a-z\d]{2,4})([?#].*)?$", re.I)
     def validate_linkpage(self, page, WE_prefixes):
         # Filter arbitrarily too long links and bad WEs
-        if not WE_prefixes or len(page.url) > max([len(p) for p in WE_prefixes]) + 50:
+        if not WE_prefixes or len(page.url) > max([len(p) for p in WE_prefixes if p]) + 50:
             return False
         # Filter links to files instead of webpages (formats stolen from scrapy/linkextractor.py)
         ext = self.re_extract_url_ext.search(page.url)
@@ -1214,15 +1221,19 @@ class Memory_Structure(customJSONRPC):
         returnD(homepages)
 
     @inlineCallbacks
-    def reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False):
+    def reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False, _restart=True):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if not _quiet:
             logger.msg("Empty MemoryStructure content", system="INFO - %s" % corpus)
-        res = self.msclients.sync.clearIndex(corpus=corpus)
+        if not _restart:
+            self.msclients.loop.clearIndex(corpus=corpus)
+            logger.msg("MemoryStructure emptied", system="INFO - %s" % corpus)
+            returnD(format_result("MemoryStructure emptied"))
+        res = yield self.msclients.loop.clearIndex(corpus=corpus)
         if is_error(res):
             returnD(res)
-        yield self._init_loop(corpus, _noloop=_noloop)
+        yield self._init_loop(corpus, _noloop=_noloop, _delay=_restart)
         returnD(format_result("MemoryStructure reinitialized"))
 
     @inlineCallbacks
@@ -1898,7 +1909,7 @@ class Memory_Structure(customJSONRPC):
                 self.msclients.corpora[corpus].loop_running = False
                 returnD(None)
             self.corpora[corpus]['webentities_links'] = res
-            deferToThread(self.rank_webentities, corpus)
+            reactor.callInThread(self.rank_webentities, corpus)
             self.msclients.corpora[corpus].loop_running = False
             self.corpora[corpus]['recent_changes'] = 0
             s = time.time() - s
@@ -1948,7 +1959,7 @@ class Memory_Structure(customJSONRPC):
             if not results[1][0] or is_error(WElinks):
                 returnD(WElinks)
             self.corpora[corpus]['webentities_links'] = WElinks
-            deferToThread(self.rank_webentities, corpus)
+            reactor.callInThread(self.rank_webentities, corpus)
             self.corpora[corpus]['loop_running'] = False
             logger.msg("...ramcached.", system="INFO - %s" % corpus)
         returnD(WEs)
@@ -2414,7 +2425,7 @@ class Memory_Structure(customJSONRPC):
                 logger.msg(links['message'], system="ERROR - %s" % corpus)
                 returnD(links)
             self.corpora[corpus]['webentities_links'] = links
-            deferToThread(self.rank_webentities, corpus)
+            reactor.callInThread(self.rank_webentities, corpus)
         res = [[link.sourceId, link.targetId, link.weight] for link in self.corpora[corpus]['webentities_links']]
         logger.msg("...JSON network generated in %ss" % str(time.time()-s), system="INFO - %s" % corpus)
         returnD(handle_standard_results(res))
