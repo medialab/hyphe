@@ -2,8 +2,8 @@
 
 angular.module('hyphe.listwebentitiesController', [])
 
-  .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location', 'corpus'
-  ,function($scope, api, utils, store, $location, corpus) {
+  .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location', '$timeout', 'corpus'
+  ,function($scope, api, utils, store, $location, $timeout, corpus) {
     $scope.currentPage = 'listWebentities'
     $scope.Page.setTitle('List Web Entities')
     $scope.corpusName = corpus.getName()
@@ -17,6 +17,7 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.randomEasterEgg
 
     $scope.loading = false  // This flag prevents multiple simultaneous queries
+    $scope.loadingStatus = false
 
     $scope.filteringCollapsed = false
 
@@ -383,6 +384,8 @@ angular.module('hyphe.listwebentitiesController', [])
     // Functions
 
     function loadStatus(callback){
+      if ($scope.loadingStatus) return
+      $scope.loadingStatus = true
       api.globalStatus({}, function(status){
         $scope.counts = {
           in: status.corpus.memory_structure.webentities.IN
@@ -390,8 +393,11 @@ angular.module('hyphe.listwebentitiesController', [])
         , out: status.corpus.memory_structure.webentities.OUT
         , discovered: status.corpus.memory_structure.webentities.DISCOVERED
         }
+        $scope.loadingStatus = false
+        $timeout(loadStatus, 5000);
       },function(data, status, headers, config){
         $scope.status = {message: 'Error loading status', background:'danger'}
+        $scope.loadingStatus = false
       })
     }
 
