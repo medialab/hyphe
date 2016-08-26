@@ -460,7 +460,7 @@ angular.module('hyphe.services', [])
       ns.removeFromLruIndex = function(obj){
         ns.LRUVariations(obj).forEach(function(lru){
           var objId_list = ns.index[lru]
-          if(objId_list.length == 1){
+          if(!objId_list || objId_list.length == 1){
             // No conflict
             delete ns.index[lru]
           } else {
