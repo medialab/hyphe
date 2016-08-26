@@ -175,7 +175,7 @@
                         </select>
                       </div>
                       <div class="form-group">
-                        <button class="btn btn-primary" ng-click="scheduleCrawls()" ng-class="{'btn-warning': statusesSummary.problems}">SCHEDULE CRAWLS</button>
+                        <button class="btn btn-primary" ng-click="scheduleCrawls()" ng-class="{'btn-warning': statusesSummary.problems}">SCHEDULE CRAWL{{list.length | plural | uppercase}}</button>
                       </div>
                     </form>
                   </div>
