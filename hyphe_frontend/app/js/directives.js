@@ -59,7 +59,7 @@ angular.module('hyphe.directives', [])
 
         scope.clickableStem = function(index){
           var obj = scope.obj
-          return (index != obj.prefixLength - 1 && index >= obj.tldLength + 1 + !!obj.json_lru.port && index >= scope.minPrefixLength)
+          return (index != obj.prefixLength - 1 && index >= obj.tldLength + 1 + !!obj.json_lru.port && index >= (scope.minPrefixLength || 0))
         }
 
         scope.clickStem = function(index){
