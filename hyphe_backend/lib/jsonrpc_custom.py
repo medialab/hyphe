@@ -52,7 +52,7 @@ class customJSONRPC(JSONRPC):
             parsedcopy = deepcopy(parsed)
             if parsedcopy["method"] in ["start_corpus", "create_corpus"] and len(parsedcopy["params"]) > 1:
                 parsedcopy["params"][1] = "********"
-            self.safe_log("Client({}): {}".format(request.client, parsedcopy), "DEBUG - QUERY%s" % from_ip)
+            self.safe_log("Client(%s): %s" % (request.client, parsedcopy), "DEBUG - QUERY%s" % from_ip)
 
         params = parsed.get('params', {})
         args, kwargs = [], {}
@@ -62,8 +62,8 @@ class customJSONRPC(JSONRPC):
             kwargs = params
         id = parsed.get('id')
         token = None
-        if request.requestHeaders.hasHeader(self.auth_token):
-            token = request.requestHeaders.getRawHeaders(self.auth_token)[0]
+        #if request.requestHeaders.hasHeader(self.auth_token):
+        #    token = request.requestHeaders.getRawHeaders(self.auth_token)[0]
         version = parsed.get('jsonrpc')
         if version:
             version = int(float(version))
@@ -74,8 +74,8 @@ class customJSONRPC(JSONRPC):
         try:
             function = self._getFunction(functionPath)
             d = None
-            if hasattr(function, 'requires_auth'):
-                d = maybeDeferred(self.auth, token, functionPath)
+            #if hasattr(function, 'requires_auth'):
+            #    d = maybeDeferred(self.auth, token, functionPath)
         except jsonrpclib.Fault as f:
             self._cbRender(f, request, id, version)
         else:
