@@ -1125,6 +1125,8 @@ table.sliders-commands {
 .start-page-modal .slider-container{
   overflow-x: auto;
   overflow-y: hidden;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 
