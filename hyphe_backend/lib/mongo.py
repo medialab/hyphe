@@ -51,6 +51,8 @@ class MongoDB(object):
           "options": options,
           "total_webentities": 0,
           "webentities_in": 0,
+          "webentities_in_untagged": 0,
+          "webentities_in_uncrawled": 0,
           "webentities_out": 0,
           "webentities_undecided": 0,
           "webentities_discovered": 0,
@@ -289,6 +291,8 @@ class MongoDB(object):
           "timestamp": now_ts(),
           "total": corpus_metas["total_webentities"],
           "in": corpus_metas['webentities_in'],
+          "in_untagged": corpus_metas['webentities_in_untagged'],
+          "in_uncrawled": corpus_metas['webentities_in_uncrawled'],
           "out": corpus_metas['webentities_out'],
           "discovered": corpus_metas['webentities_discovered'],
           "undecided": corpus_metas['webentities_undecided']

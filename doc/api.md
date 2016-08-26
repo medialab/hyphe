@@ -103,6 +103,7 @@ The API will always answer as such:
     * __`get_webentities_by_tag_category`__
     * __`get_webentities_by_user_tag`__
     * __`get_webentities_mistagged`__
+    * __`get_webentities_uncrawled`__
     * __`get_webentities_page`__
     * __`get_webentities_ranking_stats`__
   + [TAGS](#tags)
@@ -735,6 +736,16 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all WebEntities of status `status` with no tag of the namespace "USER" or multiple tags for some USER categories if `multiple_values` is true or no tag for at least one existing USER category if `missing_a_category` is true.
+ Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`.
+
+
+- __`get_webentities_uncrawled`:__
+ + _`sort`_ (optional, default: `null`)
+ + _`count`_ (optional, default: `100`)
+ + _`page`_ (optional, default: `0`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` all IN WebEntities which have no crawljob associated with it.
  Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`.
 
 
