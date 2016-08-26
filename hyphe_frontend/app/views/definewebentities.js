@@ -346,7 +346,7 @@ angular.module('hyphe.definewebentitiesController', [])
       var list = $scope.list
       if(!withConflicts){
         list = list.filter(function(obj){
-          return obj.status != 'conlict'
+          return obj.status != 'conflict'
         })
       }
 
