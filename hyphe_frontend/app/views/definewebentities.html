@@ -230,7 +230,7 @@
                         <button ng-if="errorList.length == 0" class="btn btn-primary" ng-click="doRetry(true)">RETRY</button>
                       </td>
                       <td ng-if="createdList.length > 0" class="bg-success">
-                        <button class="btn btn-primary" ng-click="doCrawl(crawlExisting)">CRAWL WEB ENTIT{{createdList.length | y_ies}}</button>
+                        <button class="btn btn-primary" ng-click="doCrawl(crawlExisting)">CRAWL WEB ENTIT{{createdList.length | y_ies | uppercase}}</button>
                       </td>
                       <td ng-if="existingList.length > 0" class="bg-info">
                         <div class="checkbox" ng-if="createdList.length > 0">
