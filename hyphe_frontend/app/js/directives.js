@@ -11,12 +11,11 @@ angular.module('hyphe.directives', [])
       ,templateUrl: 'partials/webentityslider.html'
       ,link: function(scope, el, attrs) {
         
-        var obj = scope.obj
-
         // Options
         var opt = scope.$eval(attrs.hyphePrefixSlider) || {}
 
         scope.updateNameAndStatus = function(){
+          var obj = scope.obj
           obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
           var webentityFound
           obj.parentWebEntities.forEach(function(we){
@@ -53,18 +52,19 @@ angular.module('hyphe.directives', [])
         }
 
         scope.$watch(function(){// Watch object change
-            return obj
+            return scope.obj
           } ,function(){
             scope.updateNameAndStatus()
           })
 
         scope.clickableStem = function(index){
-          return (index != obj.prefixLength - 1 && index >= obj.tldLength + 1 + !!obj.json_lru.port && index >= scope.minPrefixLength)
+          var obj = scope.obj
+          return (index != obj.prefixLength - 1 && index >= obj.tldLength + 1 + !!obj.json_lru.port && index >= (scope.minPrefixLength || 0))
         }
 
         scope.clickStem = function(index){
           if (scope.clickableStem(index)) {
-            obj.prefixLength = index + 1
+            scope.obj.prefixLength = index + 1
             scope.updateNameAndStatus()
           }
         }
@@ -89,7 +89,6 @@ angular.module('hyphe.directives', [])
 
         // Keeping an updated version of x-coordinates where the slider makes something happen
 	      var steps
-            ,minstep = Math.max(scope.minPrefixLength || 0, !!scope.obj.tldLength + 1 + !!scope.obj.json_lru.port)
         
         scope.$watch(function(){  // Watch active state (!.blurred container)
             var container = el.parent().parent().parent().parent()
@@ -208,6 +207,7 @@ angular.module('hyphe.directives', [])
         }
 
         function applyBoundaries(x){
+          var minstep = Math.max(scope.minPrefixLength || 0, !!scope.obj.tldLength + 1 + !!scope.obj.json_lru.port)
           if(x > steps[steps.length-1])
             x = steps[steps.length-1]
           if(x < steps[minstep])
