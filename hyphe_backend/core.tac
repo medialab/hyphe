@@ -238,6 +238,8 @@ class Core(customJSONRPC):
         self.corpora[corpus]["webentities"] = []
         self.corpora[corpus]["total_webentities"] = 0
         self.corpora[corpus]["webentities_in"] = 0
+        self.corpora[corpus]["webentities_in_untagged"] = 0
+        self.corpora[corpus]["webentities_in_uncrawled"] = 0
         self.corpora[corpus]["webentities_out"] = 0
         self.corpora[corpus]["webentities_undecided"] = 0
         self.corpora[corpus]["webentities_discovered"] = 0
@@ -313,6 +315,8 @@ class Core(customJSONRPC):
         self.corpora[corpus]["options"] = corpus_conf["options"]
         self.corpora[corpus]["total_webentities"] = corpus_conf['total_webentities']
         self.corpora[corpus]["webentities_in"] = corpus_conf['webentities_in']
+        self.corpora[corpus]["webentities_in_untagged"] = corpus_conf.get('webentities_in_untagged', 0)
+        self.corpora[corpus]["webentities_in_uncrawled"] = corpus_conf.get('webentities_in_uncrawled', 0)
         self.corpora[corpus]["webentities_out"] = corpus_conf['webentities_out']
         self.corpora[corpus]["webentities_undecided"] = corpus_conf['webentities_undecided']
         self.corpora[corpus]["webentities_discovered"] = corpus_conf['webentities_discovered']
@@ -337,6 +341,8 @@ class Core(customJSONRPC):
           "options": self.corpora[corpus]["options"],
           "total_webentities": self.corpora[corpus]['total_webentities'],
           "webentities_in": self.corpora[corpus]['webentities_in'],
+          "webentities_in_untagged": self.corpora[corpus]['webentities_in_untagged'],
+          "webentities_in_uncrawled": self.corpora[corpus]['webentities_in_uncrawled'],
           "webentities_out": self.corpora[corpus]['webentities_out'],
           "webentities_undecided": self.corpora[corpus]['webentities_undecided'],
           "webentities_discovered": self.corpora[corpus]['webentities_discovered'],
@@ -548,6 +554,8 @@ class Core(customJSONRPC):
             'webentities': {
               'total': self.corpora[corpus]['total_webentities'],
               'IN': self.corpora[corpus]['webentities_in'],
+              'IN_UNTAGGED': self.corpora[corpus]['webentities_in_untagged'],
+              'IN_UNCRAWLED': self.corpora[corpus]['webentities_in_uncrawled'],
               'OUT': self.corpora[corpus]['webentities_out'],
               'UNDECIDED': self.corpora[corpus]['webentities_undecided'],
               'DISCOVERED': self.corpora[corpus]['webentities_discovered']
@@ -1939,24 +1947,52 @@ class Memory_Structure(customJSONRPC):
         also_links = test_bool_arg(corelinks)
         if WEs == [] or self.corpora[corpus]['recent_changes'] or self.corpora[corpus]['recent_tagging'] or (self.corpora[corpus]['last_links_loop'])*1000 > self.corpora[corpus]['last_WE_update']:
             deflist.append(self.msclients.pool.getWebEntities(corpus=corpus, _nokeepalive=True))
+            deflist.append(self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus))
+            deflist.append(self.db.list_jobs(corpus, fields=["webentity_id", "previous_webentity_id"]))
             if also_links:
                 logger.msg("Collecting WebEntities and WebEntityLinks...", system="INFO - %s" % corpus)
                 deflist.append(self.msclients.pool.getWebEntityLinks(corpus=corpus))
+        crawled_ids = []
         if deflist:
             results = yield DeferredList(deflist, consumeErrors=True)
             WEs = results[0][1]
             if not results[0][0] or is_error(WEs):
                 returnD(WEs)
+            categories = results[1][1].get('result', [])
+            if results[2][0]:
+                crawled_dbl_list = [[job["webentity_id"], job["previous_webentity_id"]] if "previous_webentity_id" in job else [job["webentity_id"]] for job in results[2][1]]
+                crawled_ids = set([_id for dbl_id in crawled_dbl_list for _id in dbl_id])
             self.corpora[corpus]['last_WE_update'] = now_ts()
             self.corpora[corpus]['webentities'] = WEs
-            self.corpora[corpus]['total_webentities'] = len(WEs)
-            self.corpora[corpus]['webentities_in'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.IN])
-            self.corpora[corpus]['webentities_out'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.OUT])
-            self.corpora[corpus]['webentities_undecided'] = len([1 for w in self.corpora[corpus]['webentities'] if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.UNDECIDED])
-            self.corpora[corpus]['webentities_discovered'] = self.corpora[corpus]['total_webentities'] - self.corpora[corpus]['webentities_in'] - self.corpora[corpus]['webentities_out'] - self.corpora[corpus]['webentities_undecided']
-        if len(deflist) > 1:
-            WElinks = results[1][1]
-            if not results[1][0] or is_error(WElinks):
+            ins  = 0
+            nocr = 0
+            outs = 0
+            unds = 0
+            disc = 0
+            notg = 0
+            for w in WEs:
+                if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.IN:
+                    ins += 1
+                    if "USER" not in w.metadataItems or any([cat not in w.metadataItems["USER"] for cat in categories]):
+                        notg += 1
+                    if w.id not in crawled_ids:
+                        nocr += 1
+                elif ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.OUT:
+                    outs += 1
+                elif ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.UNDECIDED:
+                    unds += 1
+                else:
+                    disc += 1
+            self.corpora[corpus]['webentities_in'] = ins
+            self.corpora[corpus]['webentities_in_untagged'] = notg
+            self.corpora[corpus]['webentities_in_uncrawled'] = nocr
+            self.corpora[corpus]['webentities_out'] = outs
+            self.corpora[corpus]['webentities_undecided'] = unds
+            self.corpora[corpus]['webentities_discovered'] = disc
+            self.corpora[corpus]['total_webentities'] = ins + outs + unds + disc
+        if len(deflist) > 3:
+            WElinks = results[3][1]
+            if not results[3][0] or is_error(WElinks):
                 returnD(WElinks)
             self.corpora[corpus]['webentities_links'] = WElinks
             reactor.callInThread(self.rank_webentities, corpus)
