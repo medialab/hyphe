@@ -8,8 +8,6 @@
                 {{obj.name}}
 			</div>
 			<div class="status-container">{{obj.statusText}}</div>
-		</div>
-		<div class="col-md-8">
             <div class="prefix-link">
                 <a
             href="{{obj.lru|cutPrefixToUrl:obj.truePrefixLength}}"
@@ -17,6 +15,8 @@
             ng-click="$event.stopPropagation();"
                 ><span class="glyphicon glyphicon-link"></span></a>
             </div>
+		</div>
+		<div class="col-md-8">
     	    <div class="slider-button-container"
               hyphe-prefix-slider-button="{cursor:'pointer'}">
       	        <div class="slider-hitbox"></div>

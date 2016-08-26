@@ -1620,10 +1620,9 @@ ul.startpages-report{
 .hyphe-prefix-slider .prefix-link a{
   color: #888;
   font-size: 0.8em;
-  float: left;
   margin: 0px;
-  position: relative;
-  left: -5px;
+  position: absolute;
+  right: 0px;
   top: 12px;
 }
 .hyphe-prefix-slider .prefix-link a:hover{
