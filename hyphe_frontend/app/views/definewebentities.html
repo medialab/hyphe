@@ -12,6 +12,16 @@
                 <p class="text-info">
                   Check the <span hyphe-glossary="boundaries"></span> of each <span hyphe-glossary="web entity"></span> before creating it
                 </p>
+
+                <!-- Pagination  -->
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="text-center">
+                      <pagination total-items="list.length" ng-model="$parent.paginationPage" items-per-page="paginationLength" boundary-links="true" max-size="paginationNumPages" ng-if="list.length > paginationLength"></pagination>
+                    </div>
+                  </div>
+                </div>
+
                 <table class="sliders-commands" ng-show="list.length > 0">
                   <tr>
                     <td>
