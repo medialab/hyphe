@@ -535,6 +535,8 @@ angular.module('hyphe.webentityController', [])
         updateFromPath()
         updateExplorer()
       }
+      if (!~$location.path().indexOf("/explorer"))
+        $location.search("p", undefined)
     })
 
     $scope.newWebEntity = function(obj){
