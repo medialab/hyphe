@@ -230,6 +230,8 @@ angular.module('hyphe.networkController', ['angular-md5'])
       })
       $scope.categorizingCollapsed = true
       $scope.keyCollapsed = false
+      if (!$scope.spatializationRunning)
+        sigmaInstance.refresh()
     }
 
     // Init
