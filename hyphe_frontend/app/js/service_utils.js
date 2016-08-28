@@ -601,7 +601,7 @@ angular.module('hyphe.service_utils', [])
       if(query === undefined)
         return undefined
       if(query == '')
-        return ''
+        return '';
       ['\\', '+', '-', '!', '(', ')', ':', '^', '[', ']', '{', '}', '~', '*', '?'].forEach(function(c){
         query = query.replace(c, '\\'+c)
       })
