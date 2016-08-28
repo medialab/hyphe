@@ -31,7 +31,7 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.fullListLength = 0
     $scope.currentSearchToken
 
-    $scope.query
+    $scope.query = ""
     $scope.sort = 'name'
     $scope.sortAsc = true
     $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
@@ -180,7 +180,7 @@ angular.module('hyphe.listwebentitiesController', [])
         $scope.sort = field
         $scope.sortAsc = ($scope.sort == 'name')
       }
-      if($scope.settings.query === undefined){
+      if(!$scope.settings.query){
         $scope.loadWebentities()
       } else {
         var query = utils.cleanLuceneQuery($scope.settings.query)
@@ -273,7 +273,7 @@ angular.module('hyphe.listwebentitiesController', [])
     }
 
     $scope.clearQuery = function(){
-      $scope.query = undefined
+      $scope.query = ""
       $scope.applySettings()
       doQuery()
     }
@@ -410,9 +410,13 @@ angular.module('hyphe.listwebentitiesController', [])
     function doQuery(){
       if(!$scope.loading){
         refreshEasterEgg()  // yes, yes...
-        var query = utils.cleanLuceneQuery($scope.query)
-        console.log('Query:',query)
-        $scope.loadWebentities(query)
+        if(!$scope.settings.query){
+          $scope.loadWebentities()
+        } else {
+          var query = utils.cleanLuceneQuery($scope.query)
+          console.log('Query:',query)
+          $scope.loadWebentities(query)
+        }
       }
     }
 
