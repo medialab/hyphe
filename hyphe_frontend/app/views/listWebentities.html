@@ -147,7 +147,9 @@
                         ng-if="!loading"
                         ng-repeat="obj in list track by $index"
                         ng-click="toggleRow(obj.id)"
-                        ng-class="{'bg-selected':obj.checked}"
+                        ng-class="{'bg-selected':obj.checked || obj.hover}"
+                        ng-mouseenter="obj.hover = true"
+                        ng-mouseleave="obj.hover = false"
                       >
                         <td class="cell-checkbox"><input type="checkbox" ng-checked="obj.checked"></td>
                         <td class="cell-link">
