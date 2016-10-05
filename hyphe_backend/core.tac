@@ -1572,6 +1572,16 @@ class Memory_Structure(customJSONRPC):
                     WE.status = status.upper()
                     self.corpora[corpus]["webentities_%s" % status.lower()] += 1
                     self.corpora[corpus]["webentities_%s" % oldstatus.lower()] -= 1
+                    if oldstatus == "IN":
+                        if "USER" not in WE.metadataItems or any([cat not in WE.metadataItems["USER"] for cat in self.corpora[corpus]i.get('user_categories', [])]):
+                            self.corpora[corpus]["webentities_in_untagged"] -= 1
+                        if realid not in self.corpora[corpus].get('crawled_ids', []):
+                            self.corpora[corpus]["webentities_in_uncrawled"] -= 1
+                    elif WE.status == "IN":
+                        if "USER" not in WE.metadataItems or any([cat not in WE.metadataItems["USER"] for cat in self.corpora[corpus]i.get('user_categories', [])]):
+                            self.corpora[corpus]["webentities_in_untagged"] += 1
+                        if realid not in self.corpora[corpus].get('crawled_ids', []):
+                            self.corpora[corpus]["webentities_in_uncrawled"] += 1
                     break
         returnD(res)
 
@@ -1953,16 +1963,14 @@ class Memory_Structure(customJSONRPC):
             if also_links:
                 logger.msg("Collecting WebEntities and WebEntityLinks...", system="INFO - %s" % corpus)
                 deflist.append(self.msclients.pool.getWebEntityLinks(corpus=corpus))
-        crawled_ids = []
         if deflist:
             results = yield DeferredList(deflist, consumeErrors=True)
             WEs = results[0][1]
             if not results[0][0] or is_error(WEs):
                 returnD(WEs)
-            categories = results[1][1].get('result', [])
             if results[2][0]:
                 crawled_dbl_list = [[job["webentity_id"], job["previous_webentity_id"]] if "previous_webentity_id" in job else [job["webentity_id"]] for job in results[2][1]]
-                crawled_ids = set([_id for dbl_id in crawled_dbl_list for _id in dbl_id])
+                self.corpora[corpus]['crawled_ids'] = set([_id for dbl_id in crawled_dbl_list for _id in dbl_id])
             self.corpora[corpus]['last_WE_update'] = now_ts()
             self.corpora[corpus]['webentities'] = WEs
             ins  = 0
@@ -1974,9 +1982,9 @@ class Memory_Structure(customJSONRPC):
             for w in WEs:
                 if ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.IN:
                     ins += 1
-                    if "USER" not in w.metadataItems or any([cat not in w.metadataItems["USER"] for cat in categories]):
+                    if "USER" not in w.metadataItems or any([cat not in w.metadataItems["USER"] for cat in self.corpora[corpus].get('user_categories', [])]):
                         notg += 1
-                    if w.id not in crawled_ids:
+                    if w.id not in self.corpora[corpus].get('crawled_ids', []):
                         nocr += 1
                 elif ms.WebEntityStatus._NAMES_TO_VALUES[w.status] == ms.WebEntityStatus.OUT:
                     outs += 1
@@ -2259,9 +2267,9 @@ class Memory_Structure(customJSONRPC):
             if is_error(categories):
                 returnD(categories)
         if multiple_values:
-            WEs = [WE for WE in self.corpora[corpus]["webentities"] if WE.status == status and ("USER" in WE.metadataItems and any([cat in WE.metadataItems["USER"] and len(WE.metadataItems["USER"][cat]) > 1 for cat in categories["result"]]))]
+            WEs = [WE for WE in self.corpora[corpus]["webentities"] if WE.status == status and ("USER" in WE.metadataItems and any([cat in WE.metadataItems["USER"] and len(WE.metadataItems["USER"][cat]) > 1 for cat in self.corpora[corpus].get('user_categories', [])]))]
         else:
-            WEs = [WE for WE in self.corpora[corpus]["webentities"] if WE.status == status and ("USER" not in WE.metadataItems or (missing_a_category and any([cat not in WE.metadataItems["USER"] for cat in categories["result"]])))]
+            WEs = [WE for WE in self.corpora[corpus]["webentities"] if WE.status == status and ("USER" not in WE.metadataItems or (missing_a_category and any([cat not in WE.metadataItems["USER"] for cat in self.corpora[corpus].get('user_categories', [])])))]
         res = yield self.paginate_webentities(WEs, count=count, page=page, sort=sort, corpus=corpus)
         returnD(res)
 
@@ -2277,9 +2285,9 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("page and count arguments must be integers"))
         crawljobs = yield self.db.list_jobs(corpus, fields=["webentity_id", "previous_webentity_id"])
         crawled_dbl_list = [[job["webentity_id"], job["previous_webentity_id"]] if "previous_webentity_id" in job else [job["webentity_id"]] for job in crawljobs]
-        crawled_ids = set([_id for dbl_id in crawled_dbl_list for _id in dbl_id])
+        self.corpora[corpus]['crawled_ids'] = set([_id for dbl_id in crawled_dbl_list for _id in dbl_id])
         status_in = ms.WebEntityStatus._VALUES_TO_NAMES[ms.WebEntityStatus.IN]
-        WEs = [WE for WE in self.corpora[corpus]["webentities"] if WE.status == status_in and WE.id not in crawled_ids]
+        WEs = [WE for WE in self.corpora[corpus]["webentities"] if WE.status == status_in and WE.id not in self.corpora[corpus].get('crawled_ids', [])]
         res = yield self.paginate_webentities(WEs, count=count, page=page, sort=sort, corpus=corpus)
         returnD(res)
 
@@ -2393,6 +2401,8 @@ class Memory_Structure(customJSONRPC):
         for ns in tags.keys():
             if not namespace or (ns == namespace):
                 categories |= set(tags[ns].keys())
+        if namespace == 'USER':
+            self.corpora[corpus]["user_categories"] = categories
         returnD(format_result(list(categories)))
 
     @inlineCallbacks
