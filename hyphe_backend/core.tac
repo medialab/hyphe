@@ -1573,12 +1573,12 @@ class Memory_Structure(customJSONRPC):
                     self.corpora[corpus]["webentities_%s" % status.lower()] += 1
                     self.corpora[corpus]["webentities_%s" % oldstatus.lower()] -= 1
                     if oldstatus == "IN":
-                        if "USER" not in WE.metadataItems or any([cat not in WE.metadataItems["USER"] for cat in self.corpora[corpus]i.get('user_categories', [])]):
+                        if "USER" not in WE.metadataItems or any([cat not in WE.metadataItems["USER"] for cat in self.corpora[corpus].get('user_categories', [])]):
                             self.corpora[corpus]["webentities_in_untagged"] -= 1
                         if realid not in self.corpora[corpus].get('crawled_ids', []):
                             self.corpora[corpus]["webentities_in_uncrawled"] -= 1
                     elif WE.status == "IN":
-                        if "USER" not in WE.metadataItems or any([cat not in WE.metadataItems["USER"] for cat in self.corpora[corpus]i.get('user_categories', [])]):
+                        if "USER" not in WE.metadataItems or any([cat not in WE.metadataItems["USER"] for cat in self.corpora[corpus].get('user_categories', [])]):
                             self.corpora[corpus]["webentities_in_untagged"] += 1
                         if realid not in self.corpora[corpus].get('crawled_ids', []):
                             self.corpora[corpus]["webentities_in_uncrawled"] += 1
