@@ -11,5 +11,5 @@ for dir in html text textArticle textArticleSentences textCanola textDefault; do
       cat $outputs/$we/$dir/$f >> $dir/$we.txt
     done
   done
-  tar -czvf $dir $dir.tar.gz
+  tar -czvf $dir.tar.gz $dir
 done
