@@ -17,12 +17,12 @@ angular.module('hyphe.monitorcrawlsController', [])
     
     $scope.tabs = {'hour':false, 'day':true, 'week':false, 'all':false, 'details':false}
 
-    $scope.timespan
+    $scope.timespan = $location.search().tab || 'day'
     $scope.one_day_in_ms =  86400000    // =     24 * 60 * 60 * 1000
     $scope.one_hour_in_ms = 3600000     // =          60 * 60 * 1000
     $scope.one_week_in_ms = 604800000   // = 7 * 24 * 60 * 60 * 1000
 
-    $scope.showDetails = false
+    $scope.showDetails
 
     $scope.webentityIndex = {}
 
@@ -34,19 +34,23 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.paginationNumPages = 10  // How many pages to display in the pagination
 
     $scope.pageChanged = function(){
-      console.log('Nous sommes sur la page '+$scope.paginationPage)
+      // console.log('Nous sommes sur la page '+$scope.paginationPage)
       loadRequiredWebentities()
     }
 
     $scope.setTimespan = function(timespan){
+      if ($location.search().tab != timespan)
+        $location.search({'tab': timespan})
+      if ($location.search().id && timespan != 'details')
+        $location.search('id', undefined)
       // Sync tabs
       for(var tab in $scope.tabs){
         $scope.tabs[tab] = tab == timespan
       }
 
       // Do the job
-      $scope.timespan = timespan
-      $scope.showDetails = false
+      $scope.timespan = $location.search().tab || 'day'
+      $scope.showDetails = !!$location.search().id
 
       $scope.msTimeout = $scope.msTimeout_min
       $scope.scheduleRefresh()
@@ -58,6 +62,10 @@ angular.module('hyphe.monitorcrawlsController', [])
     }
 
     $scope.displayDetails = function(job){
+      if (!job)
+        return $location.search({'tab': 'all', 'id': undefined})
+      if (!$location.search().id)
+        $location.search({'tab': 'details', 'id': job._id})
       $scope.showDetails = true
       $scope.lastCrawlJobs = [job]
 
@@ -79,7 +87,7 @@ angular.module('hyphe.monitorcrawlsController', [])
     }
 
     $scope.abortCrawl = function(job){
-      $scope.status = {message: 'Aborting crawl jobs'}
+      $scope.status = {message: 'Aborting crawl job'}
       
       job.crawling_status = 'CANCELED'
 
@@ -96,12 +104,13 @@ angular.module('hyphe.monitorcrawlsController', [])
       )
     }
 
-    $scope.reCrawl = function(weId){
-      var webentity = $scope.webentityIndex[weId]
-      ,obj = {webentity:webentity}
+    $scope.reCrawl = function(job){
+      var webentity = $scope.webentityIndex[job.webentity_id]
+      ,obj = {webentity: webentity}
       
       if(webentity !== undefined){
         store.set('webentities_toCrawl', [obj])
+        store.set('webentity_old_crawljob', job)
         $location.path('/project/'+$scope.corpusId+'/prepareCrawls')
       } else {
         $scope.status = {message:'No Web Entity to send', background:'danger'}
@@ -109,32 +118,9 @@ angular.module('hyphe.monitorcrawlsController', [])
     }
 
     // Initialization
-    $scope.setTimespan('day')
+    $scope.setTimespan($scope.timespan)
 
     // functions
-    function consolidateJob(job){
-      job.globalStatus = ''
-      if(job.crawling_status == 'RUNNING'){
-        job.globalStatus = 'CRAWLING'
-      } else if(job.crawling_status != 'FINISHED'){
-        job.globalStatus = job.crawling_status
-      } else if(job.indexing_status == 'FINISHED'){
-        if(job.nb_crawled_pages > 0){
-          job.globalStatus = 'ACHIEVED'
-        } else {
-          job.globalStatus = 'UNSUCCESSFUL'
-        }
-      } else if(job.indexing_status == 'RUNNING' || job.indexing_status == 'BATCH_RUNNING' || job.indexing_status == 'BATCH_FINISHED'){
-        job.globalStatus = 'INDEXING'
-      } else if(job.indexing_status == 'PENDING'){
-        job.globalStatus = 'WAITING'
-      } else {
-        job.globalStatus = 'INDEXING ' + job.indexing_status
-      }
-      return job
-    }
-
-
     function loadRequiredWebentities(){
       if($scope.timespan == 'all'){
         
@@ -186,22 +172,19 @@ angular.module('hyphe.monitorcrawlsController', [])
 
     function updateCrawlJobs(){
       var now = Date.now()
-      ,timespanMs
+      ,timespanMs = now
       ,update = false
 
       switch($scope.timespan){
         case('day'):
           timespanMs = $scope.one_day_in_ms
-          break
+          break;;
         case('hour'):
           timespanMs = $scope.one_hour_in_ms
-          break
+          break;;
         case('week'):
           timespanMs = $scope.one_week_in_ms
-          break
-        case('all'):
-          timespanMs = now
-          break
+          break;;
       }
 
       // Do we have the data in the main crawl jobs list?
@@ -229,19 +212,24 @@ angular.module('hyphe.monitorcrawlsController', [])
           ,function(crawlJobs){
             $scope.listLoaded = true
             $scope.crawlJobs = crawlJobs
-
-              // Sort by reverse chronological order
+              // Consolidate
+              .map(utils.consolidateJob)
+              // Sort by currently working then reverse chronological order
               .sort(function(a,b){
+                if (a.globalStatus === "CRAWLING" || a.globalStatus === "INDEXING")
+                  return -1
+                if (b.globalStatus === "CRAWLING" || b.globalStatus === "INDEXING")
+                  return 1
                 return b.created_at - a.created_at
               })
 
-              // Consolidate
-              .map(consolidateJob)
-
             updateCrawlJobs()
-            
             $scope.scheduleRefresh()
         
+            if ($location.search().id)
+              $scope.displayDetails($scope.crawlJobs.filter(function(j){
+                return j._id == $location.search().id
+              })[0])
           }
 
           // Fail callback
@@ -254,8 +242,10 @@ angular.module('hyphe.monitorcrawlsController', [])
     }
 
     function populateWebEntityNames(){
-      $scope.crawlJobs.forEach(function(job){
-        job.webentity_name = $scope.webentityIndex[job.webentity_id].name + (job.previous_webentity_name ? ' (previously '+job.previous_webentity_name+')' : '')
+      ($scope.crawlJobs || []).forEach(function(job){
+        var we = ($scope.webentityIndex[job.webentity_id])
+        if (!we) job.webentity_name = ""
+        else job.webentity_name = we.name + (job.previous_webentity_name && job.previous_webentity_name != we.name ? ' (previously '+job.previous_webentity_name+')' : '')
       })
     }
 
@@ -329,7 +319,7 @@ angular.module('hyphe.monitorcrawlsController', [])
             if(currentTimespan == $scope.timespan){
 
               // Enrich
-              crawlJobs = crawlJobs.map(consolidateJob)
+              crawlJobs = crawlJobs.map(utils.consolidateJob)
 
               var changes = []
 
@@ -372,8 +362,9 @@ angular.module('hyphe.monitorcrawlsController', [])
                 })
               }
 
-              $scope.status = {message: ''}
+              feedMainListBack()
 
+              $scope.status = {message: ''}
               $scope.scheduleRefresh()
             }
           }

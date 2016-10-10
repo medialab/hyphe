@@ -66,8 +66,8 @@ function test_and_stop_process {
   fi
   count=0
   killopts=""
-  delay=1
-  # First try to kill 5 times during 5 seconds then twice with "-9" during 10 more seconds
+  delay=3
+  # First try to kill 5 times during 15 seconds then twice with "-9" during 20 more seconds
   while ps -p $PID > /dev/null && [ $count -lt 7 ]; do
     kill $killopts $PID
     if ps -p $PID > /dev/null; then
@@ -75,7 +75,7 @@ function test_and_stop_process {
       count=$(($count + 1))
       if [ $count -eq 5 ]; then
         killopts="-9"
-        delay=5
+        delay=10
       fi
     fi
   done
@@ -141,7 +141,7 @@ if $START; then
 
   TEST_STARTED=test_core_started_in_log
   TEST_ERROR=test_error_in_core_log
-  TEST_TIME=120
+  TEST_TIME=150
   ts=0
   sleep 0.5
   while [ $ts -lt $TEST_TIME ] && ! $TEST_STARTED; do

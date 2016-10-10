@@ -34,21 +34,41 @@
                       
                       <div class="flatpanel-input-spacer"></div>
 
-                      <!-- Search -->
-                      <div class="input-group">
-                        <span class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
-                        <input
-                          type="text"
-                          class="form-control"
-                          placeholder="Type a query"
-                          ng-model="query"
-                          ng-change="touchSettings()"
-                          ng-press-enter="applySettings()"
-                        >
+                      <div class="row">
+
+                        <!-- Search -->
+                        <div class="col-md-8 col-lg-10">
+                          <div class="input-group">
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
+                            <input
+                              type="text"
+                              class="form-control"
+                              placeholder="Type a query"
+                              ng-model="query"
+                              ng-change="touchSettings()"
+                              ng-press-enter="applySettings()"
+                            ></input>
+                          </div>
+                        </div>
+
+                        <!-- Results per page -->
+                        <div class="col-md-4 col-lg-2 hidden-sm">
+                          <div class="input-group results-per-page pull-right" title="WEB ENTITIES PER PAGE">
+                            <span class="input-group-addon">#</span>
+                            <input
+                              type="text"
+                              class="form-control"
+                              placeholder=""
+                              ng-model="paginationLength"
+                              ng-change="touchSettings()"
+                              ng-press-enter="applySettings()"
+                            ></input>
+                          </div>
+                        </div>
+
                       </div>
-
                     </div>
-
+  
                     <!-- Validation panel -->
                     <div class="flatpanel-textblock flatpanel-right flatpanel-separated" collapse="!settingsChanged">
                       <button class="btn btn-default" ng-click="revertSettings()"><span class="glyphicon glyphicon-remove"></span> CANCEL</button>
@@ -76,7 +96,7 @@
                       </div>
 
                       <div class="form-group search-ariane-string-text pull-right" ng-if="!loading">
-                        {{fullListLength}} WEB ENTIT{{fullListLength > 1 ? 'IES' : 'Y'}}
+                        {{fullListLength}} WEB ENTIT{{fullListLength | y_ies | uppercase}}
                       </div>
                       
                     </form>
@@ -127,7 +147,9 @@
                         ng-if="!loading"
                         ng-repeat="obj in list track by $index"
                         ng-click="toggleRow(obj.id)"
-                        ng-class="{'bg-selected':obj.checked}"
+                        ng-class="{'bg-selected':obj.checked || obj.hover}"
+                        ng-mouseenter="obj.hover = true"
+                        ng-mouseleave="obj.hover = false"
                       >
                         <td class="cell-checkbox"><input type="checkbox" ng-checked="obj.checked"></td>
                         <td class="cell-link">
@@ -193,18 +215,27 @@
 
 
                 <!-- Pagination  -->
-                <div class="text-center">
+                <div class="pagination-container">
                   <pagination
                   total-items="fullListLength"
-                  ng-model="$parent.paginationPage"
-                  items-per-page="paginationLength"
-                  boundary-links="true"
+                  ng-model="paginationPage"
+                  items-per-page="settings.paginationLength"
                   max-size="paginationNumPages"
-                  ng-if="fullListLength > paginationLength && !loading"
+                  ng-show="fullListLength > settings.paginationLength && !loading"
                   ng-change="pageChanged()"
-                ></pagination>
+                  ></pagination>
                 </div>
-
+                <div class="input-group page-input" ng-show="fullListLength > settings.paginationLength && paginationMaxPage > paginationNumPages && !loading">
+                  <input
+                    type="text"
+                    class="form-control page-input"
+                    placeholder=""
+                    ng-model="paginationPage"
+                    ng-change="validatePage()"
+                    ng-press-enter="pageChanged()"
+                  ></input>
+                  <span class="input-group-addon">/ {{ paginationMaxPage }}</span>
+                </div>
               </div>
 
               <div class="col-md-4">
@@ -213,7 +244,7 @@
                 <div ng-if="checkedList.length > 0">
                   <div class="flatpanel">
                     <div class="flatpanel-heading selection-background">
-                      SELECTION: {{checkedList.length}} {{checkedList.length > 1 ? 'WEB ENTITIES' : 'WEB ENTITY'}}
+                      SELECTION: {{checkedList.length}} WEB ENTIT{{checkedList.length | y_ies | uppercase}}
                     </div>
                     <div class="flatpanel-body">
                       

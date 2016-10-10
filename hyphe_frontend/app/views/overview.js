@@ -10,6 +10,7 @@ angular.module('hyphe.overviewController', [])
     $scope.corpusId = corpus.getId()
 
     $scope.corpusStatus
+    $scope.loadingStatus = false
 
     // Init
     loadStatus()
@@ -18,12 +19,16 @@ angular.module('hyphe.overviewController', [])
 
     // Functions
     function loadStatus(){
+      if ($scope.loadingStatus) return;
+      $scope.loadingStatus = true
       api.globalStatus({}, function(status){
+        $scope.loadingStatus = false
         if (status.corpus.memory_structure.job_running == "Diagnosing"){
           status.corpus.memory_structure.job_running = ""
         }
         $scope.corpusStatus = status
       },function(data, status, headers, config){
+        $scope.loadingStatus = false
         $scope.status = {message: 'Error loading status', background:'danger'}
       })
     }

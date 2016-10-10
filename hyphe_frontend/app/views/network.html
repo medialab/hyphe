@@ -3,7 +3,7 @@
   </div>
   <div class="fullheight-side-panel" ng-include="'partials/sidebar.html'"></div>
   <div class="fullheight-main-panel">
-    <div class="sigma-placeholder" ng-if="loading">
+    <div class="sigma-placeholder" ng-show="loading">
       <center>
         <spinner text="'LOADING NETWORK'"/>
       </center>
@@ -23,8 +23,8 @@
             tooltip-placement="right"
             tooltip="{{spatializationRunning ? 'Stop layout' : 'Run layout'}}"
           >
-            <span class="glyphicon glyphicon-play" ng-if="!spatializationRunning"></span>
-            <span class="glyphicon glyphicon-pause" ng-if="spatializationRunning"></span>
+            <span class="glyphicon glyphicon-play" ng-show="!spatializationRunning"></span>
+            <span class="glyphicon glyphicon-pause" ng-show="spatializationRunning"></span>
           </button>
           <button
             type="button"
@@ -57,7 +57,7 @@
       </div>
     </div>
 
-    <div class="network-key" ng-if="!loading">
+    <div class="network-key" ng-show="!loading">
       <div class="floating-button">
         <button
           class="btn btn-default"
@@ -80,20 +80,28 @@
 
         <div class="row" collapse="keyCollapsed">
           <div class="col-sm-4">
-            <h4>WEB ENTITY STATUS</h4>
-            <p ng-if="settings.in">
-              <span class="dot dot-in"></span>&nbsp;IN
-            </p>
-            <p ng-if="settings.undecided">
-              <span class="dot dot-undecided"></span>&nbsp;UNDECIDED
-            </p>
-            <p ng-if="settings.discovered">
-              <span class="dot dot-discovered"></span>&nbsp;DISCOVERED
-              <span class="text-info" ng-if="settings.discoveredMinDegree>0"><br>Cited by {{settings.discoveredMinDegree}}+ entities only</span>
-            </p>
-            <p ng-if="settings.out">
-              <span class="dot dot-out"></span>&nbsp;OUT
-            </p>
+            <div ng-show="categorization === 'HYPHE_internal_status'">
+              <h4>WEB ENTITY STATUS</h4>
+              <p ng-show="settings.in">
+                <span class="dot dot-in"></span>&nbsp;IN
+              </p>
+              <p ng-show="settings.undecided">
+                <span class="dot dot-undecided"></span>&nbsp;UNDECIDED
+              </p>
+              <p ng-show="settings.discovered">
+                <span class="dot dot-discovered"></span>&nbsp;DISCOVERED
+                <span class="text-info" ng-show="settings.discoveredMinDegree>0"><br>Cited by {{settings.discoveredMinDegree}}+ entities only</span>
+              </p>
+              <p ng-show="settings.out">
+                <span class="dot dot-out"></span>&nbsp;OUT
+              </p>
+            </div>
+            <div ng-show="categorization !== 'HYPHE_internal_status'">
+              <h4 class="uppercase">{{categorization}}</h4>
+              <p ng-repeat="cat in uniqCategories[categorization].legend">
+                <span class="dot" style="background-color: {{cat.color}}"></span> {{cat.name}}
+              </p>
+            </div>
             <br>
           </div>
           <div class="col-sm-4">
@@ -114,7 +122,7 @@
       </div>
     </div>
 
-    <div class="sigma-floating hidden-xs" ng-if="!loading">
+    <div class="sigma-floating hidden-xs" ng-show="!loading">
       <div class="flatpanel">
         <div class="flatpanel-heading flatpanel-clickable" ng-click="filteringCollapsed = !filteringCollapsed">
           FILTERING
@@ -175,7 +183,31 @@
       </div>
     </div>
 
-
+    <div class="sigma-floating-cat hidden-xs" ng-show="!loading && uniqCategoriesExist">
+      <div class="flatpanel">
+        <div class="flatpanel-heading flatpanel-clickable" ng-click="categorizingCollapsed = !categorizingCollapsed">
+          CATEGORIZING
+          <span class="pull-right">
+            &nbsp;&nbsp;
+            <span class="glyphicon" ng-class="{'glyphicon-chevron-down':!categorizingCollapsed, 'glyphicon-chevron-right':categorizingCollapsed}"></span>
+          </span>
+        </div>
+        <div class="flatpanel-body" collapse="categorizingCollapsed">
+          <div class="flatpanel-textblock">
+            <div class="row">
+              <div class="col-lg-12">
+                <label>Color web entities by</label>
+                <br>
+                <select class="form-control" ng-change="updateCategorization()" ng-disabled="loading" ng-model="categorization">
+                  <option value="HYPHE_internal_status">WEB ENTITY STATUS</option>
+                  <option ng-repeat="(cat, obj) in uniqCategories" value="{{cat}}">{{cat | uppercase}}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 </div>

@@ -29,6 +29,8 @@
                 class="col-md-4 col-lg-3 crawl-cell"
                 ng-repeat="obj in list|paginate:paginationPage:paginationLength track by $index"
                 ng-click="openWebentity(obj.id)"
+                ng-mouseenter="obj.displayRemove = true"
+                ng-mouseleave="obj.displayRemove = false"
               >
                 <div
                   class="crawl-cell-content"
@@ -68,7 +70,7 @@
                     ng-if="obj.status == 'loaded' && obj.webentity.startpages.length > 0"
                     class="info text-center"
                   >
-                    {{obj.webentity.startpages.length}} <span class="text-muted">start page{{obj.webentity.startpages.length > 1 ? 's' : ''}}</span>
+                    {{obj.webentity.startpages.length}} <span class="text-muted">start page{{obj.webentity.startpages.length | plural}}</span>
                     <span ng-if="obj.summary && obj.summary.stage == 'loaded'">
                       <small>
                         <span ng-show="!obj.summary.diagnostic.doomed">
@@ -104,11 +106,21 @@
                     </span>
                   </p>
 
+                  <!-- Remove Button -->
+                  <button
+                    class="btn btn-link btn-xs pull-right"
+                    ng-show="obj.displayRemove && obj.status !== 'scheduled' && obj.status !== 'pending'"
+                    ng-click="$event.stopPropagation(); removeCell(obj.id)"
+                  >
+                    <span class="glyphicon glyphicon-remove"></span>
+                  </button>
+
                   <!-- Error -->
                   <p ng-if="obj.status == 'error'" class="text-danger">
                     ERROR - {{obj.errorMessage}}
                     <webentity-link ng-if="obj.webentity.id" corpus-id="corpusId" webentity-id="obj.webentity.id">
                   </p>
+
                 </div>
               </div>
             </div>
@@ -133,31 +145,19 @@
                     <span>{{statusesSummary.counts.pending}} pending...</span>
                   </div>
                   <div class="progress-bar progress-bar-neutral" style="width: {{statusesSummary.percents.loaded}}%">
-                    <span>{{statusesSummary.counts.loaded}} web entities ready to crawl</span>
+                    <span>{{statusesSummary.counts.loaded}} web entit{{statusesSummary.counts.loaded | y_ies}} ready to crawl</span>
                   </div>
                   <div class="progress-bar progress-bar-warning" style="width: {{statusesSummary.percents.deleted}}%">
                     <span>{{statusesSummary.counts.deleted}} deleted</span>
                   </div>
                   <div class="progress-bar progress-bar-danger" style="width: {{statusesSummary.percents.error}}%">
-                    <span>{{statusesSummary.counts.error}} error{{statusesSummary.counts.error>1 ? 's' : ''}}</span>
+                    <span>{{statusesSummary.counts.error}} error{{statusesSummary.counts.error | plural}}</span>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- Launch crawl panel -->
-            <div class="row" ng-if="httpStatusWarning + httpStatusLoading > 0">
-              <div class="col-md-8 col-md-offset-2">
-                <div class="text-center">
-                  <p class="text-danger" ng-if="httpStatusWarning > 0">
-                    <span class="glyphicon glyphicon-warning-sign"></span>
-                    {{httpStatusWarning}} web entit{{httpStatusWarning > 1 ? 'ies have warnings' : 'y has a warning'}}. <strong>You should fix it</strong> before scheduling its crawl.
-                  </p>
-                  <hr/>
-                </div>
-              </div>
-            </div>
-
             <div
               class="row"
               ng-if="list.length > 0 && !scheduling"
@@ -175,7 +175,7 @@
                         </select>
                       </div>
                       <div class="form-group">
-                        <button class="btn btn-primary" ng-click="scheduleCrawls()">SCHEDULE CRAWLS</button>
+                        <button class="btn btn-primary" ng-click="scheduleCrawls()" ng-class="{'btn-warning': statusesSummary.problems}">SCHEDULE CRAWL{{list.length | plural | uppercase}}</button>
                       </div>
                     </form>
                   </div>

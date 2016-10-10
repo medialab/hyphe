@@ -59,10 +59,7 @@ table.fixed{
 }
 
 .btn-muted{
-  color: #EFEBE8;
-}
-tr.bg-selected .btn-muted{
-  color: #FFFFFF;
+  color: #CCC;
 }
 
 .progress-bar-neutral {
@@ -102,6 +99,11 @@ dl.highlight {
   min-height: 36px;
   padding-top: 6px;
   font-size: 1.1em;
+}
+
+dd.form-error{
+  font-size: 1em;
+  color: red;
 }
 
 ul.list-spaced li {
@@ -156,15 +158,15 @@ label.btn.btn-default.disabled.active{
 /* ==========================================================================
    URLs can be very loooong
    ========================================================================== */
-div.url-container{
+.url-container{
   overflow: hidden;
   white-space: nowrap;
 }
-div.url-container .url{
+.url-container .url{
   font-family: 'Roboto Condensed', sans-serif;
   font-weight:400;
 }
-div.url-container .url-break{
+.url-container .url-break{
   white-space: normal;
   word-break: break-all;
 }
@@ -265,11 +267,17 @@ div.url-container .url-break{
 .tagbox {
   background-color: #EFEBE8;
   padding: 6px;
+  margin-bottom: 20px;
 }
 .tagbox-head {
   font-size: 14px;
   font-family: 'Open Sans', sans-serif;
   text-transform: uppercase;
+}
+.tagbox-head a.editable, .tagbox-head a.editable-empty{
+  color: inherit;
+  font-style: normal;
+  border-bottom: dashed 1px #ccc;
 }
 /* Tweak ng-tag-input */
 tags-input .tags {
@@ -284,6 +292,26 @@ tags-input .tags {
 tags-input .tags .tag-item {
   background: #EFEBE8;
   color: #000;
+}
+.tagbox.freetags {
+  background-color: #FFF;
+  color: #000;
+  padding: 0px;
+}
+.freetags tags-input .tags {
+  background: #EFEBE8;
+  border-radius: 0px;
+  border: none;
+}
+.freetags tags-input .tags .input {
+  border: solid 1px #acacac;
+  border-radius: 3px;
+  margin: 6px;
+}
+.freetags tags-input .tags .tag-item {
+  background: #FFF;
+  color: #000;
+  margin: 6px;
 }
 
 
@@ -338,6 +366,16 @@ tags-input .tags .tag-item {
 }
 .flatpanel .flatpanel-input-spacer{
   height: 9px;
+}
+.flatpanel .results-per-page{
+  width: 90px;
+}
+.flatpanel .results-per-page input{
+  width: 52px;
+  text-align: right;
+}
+.flatpanel .results-per-page input.ng-invalid, .flatpanel .results-per-page input.ng-invalid:focus {
+  border-color: red;
 }
 
 
@@ -616,6 +654,24 @@ div.welcome-column dd{
   margin-left:130px;
 }
 
+/* Admin connection form */
+div.admin-connect{
+  margin: auto;
+  text-align: center;
+  width: 200px;
+}
+div.admin-connect input{
+  text-align: center;
+}
+div.admin-connect p{
+  text-align: center;
+  margin: 10px;
+  padding: 3px;
+}
+div.admin-connect button{
+  float: right;
+  margin: 10px 8px 0px 0px;
+}
 
 
 /* ==========================================================================
@@ -764,6 +820,9 @@ div.welcome-column dd{
 .network-key span.dot.dot-discovered{
   background-color: #93BDE0;
 }
+.network-key .uppercase{
+  text-transform: uppercase;
+}
 
 
 /* Sigma */
@@ -792,14 +851,19 @@ div.welcome-column dd{
 .sigma-floating{
   padding: 2px;
   position: absolute;
-
   top: 62px;
   right: 12px;
-
   overflow: hidden;
 }
 .sigma-floating .dropdown-menu{
   top: initial;
+}
+.sigma-floating-cat{
+  padding: 2px;
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  overflow: hidden;
 }
 
 .sigma-expand {
@@ -822,7 +886,6 @@ div.welcome-column dd{
 }
 .sigma-tools .btn-link{
   background-color: #FFF;
-  
 }
 
 
@@ -1062,6 +1125,8 @@ table.sliders-commands {
 .start-page-modal .slider-container{
   overflow-x: auto;
   overflow-y: hidden;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 
@@ -1121,6 +1186,9 @@ table.sliders-commands {
   border: 1px solid #FFF;
   overflow: hidden;
 }
+.crawl-cell-content .btn-link{
+  padding: 12px 0px 0px 0px;
+}
 .crawl-cell-content.bg-waiting{
   border: 1px solid #31708f;
 }
@@ -1170,6 +1238,21 @@ table.sliders-commands {
   select: none;
 
   cursor: pointer;
+}
+.webentity-crawls .crawljob-cell{
+  cursor: auto;
+}
+.webentity-crawls .crawljob-cell button{
+  position: absolute;
+  width: 92px;
+}
+.webentity-crawls .crawljob-cell button.details{
+  top: 15px;
+  right: 15px;
+}
+.webentity-crawls .crawljob-cell button.action{
+  top: 53px;
+  right: 15px;
 }
 .crawljob-cell-content{
   height: 100%;
@@ -1228,6 +1311,10 @@ table.sliders-commands {
   bottom: 12px;
   left: 50%;
 }
+.webentity-crawls .crawljob-cell .stats{
+  width: 200px;
+  margin-left: -100px;
+}
 
 .crawljob-details h3{
   padding-top: 32px;
@@ -1262,6 +1349,28 @@ table.sliders-commands {
 }
 .selected-webentities-container table td.remove-button{
   width: 20px;
+}
+.pagination-container{
+  float:left;
+  margin-left: 10px;
+}
+.page-input{
+  border-color: #ddd;
+  max-width: 98px;
+  padding: 20px 0px 0px 10px;
+}
+.page-input input{
+  min-width: 32px;
+  text-align: right;
+  padding: 10px 6px;
+}
+.page-input input.ng-invalid, .page-input input.ng-invalid:focus{
+  border-color: red;
+}
+.page-input .input-group-addon{
+  text-align: left;
+  padding-left: 6px;
+  background-color: #F8F8F8;
 }
 
 
@@ -1314,11 +1423,20 @@ table.sliders-commands {
   margin-right: -12px;
 }
 
+span.editable{
+  border-bottom: dashed 1px #ccc;
+}
+.url-container span.editable-text{
+  width: 100%
+}
 
+.lightText{
+  opacity: 0.8;
+}
 
-
-
-
+.features li{
+  font-size: 0.8em;
+}
 
 
 
@@ -1453,6 +1571,24 @@ table.sliders-commands {
 .wesp-modal-removed{
   opacity: 0.2;
 }
+.page-input input.ng-invalid, .page-input input.ng-invalid:focus{
+  border-color: red;
+}
+.startpages-report{
+  float: right;
+  margin: 5px 40px 0px 0px;
+  color: #a94442;
+}
+.startpages-report.startpages-valid{
+  color: #3c763d;
+}
+ul.startpages-report{
+  list-style: none;
+  padding: 0px 10px 0px 0px;
+}
+.clearboth{
+  clear: both;
+}
 
 
 
@@ -1479,6 +1615,18 @@ table.sliders-commands {
 }
 .hyphe-prefix-slider .status-container{
   color: #f08060;
+}
+
+.hyphe-prefix-slider .prefix-link a{
+  color: #888;
+  font-size: 0.8em;
+  margin: 0px;
+  position: absolute;
+  right: 0px;
+  top: 12px;
+}
+.hyphe-prefix-slider .prefix-link a:hover{
+  color: #444;
 }
 
 .hyphe-prefix-slider .stem{

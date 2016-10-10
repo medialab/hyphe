@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from hyphe_backend.lib.utils import getPage
 from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
+from twisted.web.client import getPage as getPageOrig
 
 MOZ_TLD_LIST = "https://publicsuffix.org/list/public_suffix_list.dat"
+
+# Handle Twisted 16+ now refusing unicode urls
+def getPage(url, *args, **kwargs):
+    try:
+        url = str(url)
+    except:
+        pass
+    return getPageOrig(url, *args, **kwargs)
 
 def add_tld_chunks_to_tree(tld, tree):
     chunk = tld.pop()
@@ -18,7 +26,12 @@ def add_tld_chunks_to_tree(tld, tree):
 def collect_tlds():
     tree = {}
     double_list = {"rules": [], "exceptions": []}
-    tldlist = yield getPage(MOZ_TLD_LIST)
+    try:
+        tldlist = yield getPage(MOZ_TLD_LIST)
+    except: #Fallback local copy
+        from os.path import join, realpath, dirname
+        with open(join(dirname(realpath(__file__)), "..", "..", "hyphe_frontend", "app", "res", "tld_list.txt")) as f:
+            tldlist = f.read()
     for line in tldlist.split("\n"):
         line = line.strip()
         if not line or line.startswith("//"):
@@ -31,29 +44,33 @@ def collect_tlds():
             double_list["rules"].append(line.strip())
     returnD((double_list, tree))
 
-def get_tld_from_host_arr(host_arr, tldtree, tld="", tldlru=""):
+def _get_tld_from_host_arr(host_arr, tldtree, tld=""):
     chunk = host_arr.pop()
     if "!%s" % chunk in tldtree:
-        return tld, tldlru
+        return tld
     if "*" in tldtree or chunk in tldtree:
         tld = "%s.%s" % (chunk, tld) if tld else chunk
-        tldlru += "h:%s|" % chunk
     if chunk in tldtree:
-        return get_tld_from_host_arr(host_arr, tldtree[chunk], tld, tldlru)
-    return tld, tldlru
+        return _get_tld_from_host_arr(host_arr, tldtree[chunk], tld)
+    return tld
+
+def get_tld_from_host_arr(host_arr, tldtree):
+    return _get_tld_from_host_arr(list(host_arr), tldtree)
 
 def get_tld_from_host(host, tldtree):
     host_arr = host.split('.')
-    tld, _ = get_tld_from_host_arr(host.split('.'), tldtree)
-    return tld
+    return get_tld_from_host_arr(host.split('.'), tldtree)
 
 def update_lru_with_tld(lru, tldtree):
     host_arr = [l[2:] for l in lru.split('|') if l and l[0] == 'h']
     host_arr.reverse()
-    tld, tld_oldlru = get_tld_from_host_arr(host_arr, tldtree)
+    tld = get_tld_from_host_arr(host_arr, tldtree)
     if not tld:
         return lru
-    return lru.replace(tld_oldlru, "h:%s|" % tld, 1)
+    revtld = tld.split(".")
+    revtld.reverse()
+    tldlru = "".join(["h:%s|" % stem for stem in revtld])
+    return lru.replace(tldlru, "h:%s|" % tld, 1)
 
 if __name__== "__main__":
     def test():
@@ -64,14 +81,16 @@ if __name__== "__main__":
         print "TLDs first level: %s\n" % len(tldtree.keys())
         print "TEST extracting TLDs from hosts:"
         for url, tld in [
-            ("blogs.lemonde.paris", "paris"),              # 1st level TLD
-            ("axel.brighton.ac.uk", "ac.uk"),        # 2nd level TLD
-            ("m.fr.blogspot.com.au", "blogspot.com.au"),        # 3rd level TLD
-            ("house.www.city.kawasaki.jp", "kawasaki.jp"), # * case
-            ("help.www.kawasaki.jp", "www.kawasaki.jp"),     # ! case
-            (u"help.www.福岡.jp", u"福岡.jp"),        # utf8 case
-            (u"syria.arabic.variant.سوريا", u"سوريا"),                    # utf8 case 2
-            (u"192.169.1.1", ""),                    # no tld case
+            ("blogs.lemonde.paris", "paris"),               # 1st level TLD
+            ("axel.brighton.ac.uk", "ac.uk"),               # 2nd level TLD
+            ("m.fr.blogspot.com.au", "blogspot.com.au"),    # 3rd level TLD
+            ("house.www.city.kawasaki.jp", "kawasaki.jp"),  # * case
+            ("help.www.kawasaki.jp", "www.kawasaki.jp"),    # ! case
+            (u"help.www.福岡.jp", u"福岡.jp"),              # utf8 case
+            (u"syria.arabic.variant.سوريا", u"سوريا"),      # utf8 case 2
+            (u"192.169.1.1", ""),                           # no tld case
+            (u"localhost:8080", ""),                        # no tld case 2
+            (u"localhost", ""),                             # no tld case 3
           ]:
             try:
                 urltld = get_tld_from_host(url, tldtree)
@@ -91,6 +110,8 @@ if __name__== "__main__":
 ("s:https|h:jp|h:kawasaki|h:www|h:help|p:en|q:index.php|", "s:https|h:www.kawasaki.jp|h:help|p:en|q:index.php|"), # ! case
 (u"s:https|h:jp|h:福岡|h:www|h:help|p:en|p:index.html|", u"s:https|h:福岡.jp|h:www|h:help|p:en|p:index.html|"),        # utf8 case
 ("s:https|h:192.168.1.1|p:en|p:index.html|", "s:https|h:192.168.1.1|p:en|p:index.html|"),        # no tld case
+("s:http|t:8080|h:localhost|p:en|p:index.html|", "s:http|t:8080|h:localhost|p:en|p:index.html|"),        # no tld case 2
+("s:http|h:localhost|p:en|p:index.html|", "s:http|h:localhost|p:en|p:index.html|"),        # no tld case 3
           ]:
             try:
                 gdlru = update_lru_with_tld(lru, tldtree)

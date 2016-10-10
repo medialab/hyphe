@@ -24,13 +24,19 @@ angular.module('hyphe.directives', [])
             }
           })
           if(webentityFound){
-            obj.name = webentityFound.name
-            if(opt.editMode){
-              obj.statusText = 'Merge ' + scope.webentity.name + ' into it?'
-              scope.obj.task = {type:'merge', webentity:webentityFound}
+            if (webentityFound.name){
+              obj.name = webentityFound.name
+              if(opt.editMode){
+                obj.statusText = 'Merge ' + scope.webentity.name + ' into it?'
+                scope.obj.task = {type:'merge', webentity:webentityFound}
+              } else {
+                obj.statusText = 'Already exists'
+                obj.WEstatus = 'exists'
+              }
             } else {
-              obj.statusText = 'Already exists'
-              obj.WEstatus = 'exists'
+              obj.name = 'A creation rule will trigger this prefix'
+              scope.obj.task = {type:'addPrefix'}
+              obj.statusText = 'Add it to ' + scope.webentity.name + '?'
             }
           } else {
             if(opt.editMode){
@@ -50,6 +56,18 @@ angular.module('hyphe.directives', [])
           } ,function(){
             scope.updateNameAndStatus()
           })
+
+        scope.clickableStem = function(index){
+          var obj = scope.obj
+          return (index != obj.prefixLength - 1 && index >= obj.tldLength + 1 + !!obj.json_lru.port && index >= (scope.minPrefixLength || 0))
+        }
+
+        scope.clickStem = function(index){
+          if (scope.clickableStem(index)) {
+            scope.obj.prefixLength = index + 1
+            scope.updateNameAndStatus()
+          }
+        }
 
         // Useful for templating
         scope.getRange = function(number){
@@ -71,7 +89,6 @@ angular.module('hyphe.directives', [])
 
         // Keeping an updated version of x-coordinates where the slider makes something happen
 	      var steps
-            ,minstep = !!scope.obj.tldLength + 1 + !!scope.obj.json_lru.port
         
         scope.$watch(function(){  // Watch active state (!.blurred container)
             var container = el.parent().parent().parent().parent()
@@ -160,7 +177,7 @@ angular.module('hyphe.directives', [])
             if(scope.conflictsIndex)
               scope.conflictsIndex.removeFromLruIndex(scope.obj)
             scope.obj.prefixLength = closestStepId
-            scope.updateNameAndStatus(scope.obj)
+            scope.updateNameAndStatus()
             if(scope.conflictsIndex)
               scope.conflictsIndex.addToLruIndex(scope.obj)
             scope.$apply()
@@ -190,6 +207,7 @@ angular.module('hyphe.directives', [])
         }
 
         function applyBoundaries(x){
+          var minstep = Math.max(scope.minPrefixLength || 0, !!scope.obj.tldLength + 1 + !!scope.obj.json_lru.port)
           if(x > steps[steps.length-1])
             x = steps[steps.length-1]
           if(x < steps[minstep])

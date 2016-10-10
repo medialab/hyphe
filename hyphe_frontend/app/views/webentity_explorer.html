@@ -76,7 +76,7 @@
                           <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_webentities != 'sortlabel'"></span>
                           <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_webentities == 'sortlabel' && sort_asc_webentities"></span>
                           <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_webentities == 'sortlabel' && !sort_asc_webentities"></span>
-                          Prefixes of other web entities
+                          Prefixes of other web entit{{items_webentities.length | y_ies}}
                         </th>
                         <th class="cell-webentity pointable" ng-click="toogleSortWebentities('webentityname')">
                           <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_webentities != 'webentityname'"></span>
@@ -322,7 +322,7 @@
                   <table class="table table-condensed table-explorer" ng-if="path.length == 0 && parentWebentities.length > 0">
                     <thead>
                       <tr>
-                        <th>Related web entities</th>
+                        <th>Related web entit{{parentWebentities.length | y_ies}}</th>
                         <th>Prefixes</th>
                         <th class="cell-action"></th>
                       </tr>

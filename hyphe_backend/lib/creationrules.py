@@ -6,25 +6,25 @@ from hyphe_backend.lib.urllru import split_lru_in_stems
 SCHEME = "s:[a-zA-Z]+\\|"
 PORT = "t:[0-9]+\\|"
 HOST = "h:[^\\|]+\\|"
+SPE_HOST = "h:(localhost|(\\d{1,3}\\.){3}\\d{1,3}|\[[\da-f]*:[\da-f:]*\])\\|"
 PATH = "p:[^\\|]+\\|"
 ANY = "[thpqf]:[^\\|]+\\|"
 
-DEFAULT = "%s(%s)?%s(%s)" % (SCHEME, PORT, HOST, HOST)
+DEFAULT = lambda x: "%s(%s)?(%s(%s)%s|%s)" % (SCHEME, PORT, HOST, HOST, x, SPE_HOST) # 1st host is TLD
 
 PRESETS = {
-  "subdomain": "(%s+)" % DEFAULT,
-  "domain": "(%s)" % DEFAULT,
-#  "domain": "(%s+)(%s)?" % (DEFAULT, HOST),    # experiment to catch always everything but one host
+  "subdomain": "(%s)" % DEFAULT("+"),
+  "domain": "(%s)" % DEFAULT(""),
   "page": "(.*)$"
 }
 
 PREFIXN = ("(%s(%s)" % (SCHEME, ANY)) + "{%s})"
 re_prefixN = re.compile(r"prefix\+(\d+)$")
 
-SUBDOMN = ("(%s" % DEFAULT) + "{%d})"
+SUBDOMN = "(%s)" % DEFAULT("{%d}")
 re_subdomN = re.compile(r"subdomain-(\d+)$")
 
-PATHN = ("(%s+(%s)" % (DEFAULT, PATH)) + "{%d})"
+PATHN = ("(%s(%s)" % (DEFAULT("+"), PATH)) + "{%d})"
 re_pathN = re.compile(r"path-(\d+)$")
 
 re_regN = re.compile(r"\{(\d+)\}\)$")
@@ -53,11 +53,11 @@ def getName(regexp, prefix=None):
     if regexp.startswith("(%s(%s)" % (SCHEME, ANY)) and digit:
         lev = int(digit.group(1)) + 1 - len(split_lru_in_stems(prefix))
         return "prefix+%s" % lev
-    elif regexp.startswith("(%s" % DEFAULT) and digit:
-        sreg = regexp.replace("(%s" % DEFAULT, "")
+    elif regexp.startswith("(%s" % DEFAULT("+")) and digit:
+        sreg = regexp.replace("(%s" % DEFAULT("+"), "")
         lev = int(digit.group(1))
         typ = "path"
-        if sreg.startswith("+(%s)" % PATH):
+        if sreg.startswith("(%s)" % PATH):
             typ = "path"
         else:
             lev -= 1

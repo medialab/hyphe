@@ -164,7 +164,7 @@ if __name__ == '__main__':
     except Exception as e:
         exit('Could not initiate connection to hyphe core')
 	start = hyphe.start_corpus(corpus, password)
-	if result['code'] == 'fail' :
+	if start['code'] == 'fail' :
 		exit(start['message'])
 
     # Initiate MongoDB connection and build index on pages

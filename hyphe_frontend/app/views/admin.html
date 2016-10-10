@@ -1,5 +1,12 @@
-    <div class="container-fluid" ng-show="corpusList">
-      <div class="row">
+    <div class="container-fluid">
+      <div class="row admin-connect" ng-if="!corpusList">
+        <h3>Restricted access</h3>
+        <input type="password" placeholder="admin password" ng-model="$parent.password" ng-press-enter="connect()"></input>
+        <p ng-if="passwordError" class="bg-danger">{{passwordError}}</p>
+        <button class="btn btn-default" ng-click="cancel()">CANCEL</button>
+        <button class="btn btn-primary" ng-click="connect()">OK</button>
+      </div>
+      <div class="row" ng-if="corpusList">
         <div class="col-md-12">
           <div class="welcome-column">
             <a href="#/login">

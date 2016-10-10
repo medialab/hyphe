@@ -285,6 +285,29 @@ def lru_get_node(lru, precision_limit = 1, precision_exceptions = [], lru_head =
     stems.insert(0, lru_head.strip("|"))
     return add_trailing_pipe("|".join(stems))
 
+def lru_variations(lru, https=True, www=True, encode_utf8=False):
+    listLRUs = [lru]
+    url = lru_to_url(lru, encode_utf8)
+    url2 = None
+    if "s:http|" in lru:
+        lru2 = lru.replace("s:http|", "s:https|", 1)
+    elif "s:https|" in lru:
+        lru2 = lru.replace("s:https|", "s:http|", 1)
+    if lru2:
+        listLRUs.append(lru2)
+        url2 = lru_to_url(lru2, encode_utf8)
+    if lru.count("|h:") == 1:
+        return listLRUs
+    if "//www." in url:
+        listLRUs.append(url_to_lru_clean(url.replace("//www.", "//", 1), encode_utf8))
+        if url2:
+            listLRUs.append(url_to_lru_clean(url2.replace("//www.", "//", 1), encode_utf8))
+    else:
+        listLRUs.append(url_to_lru_clean(url.replace("//", "//www.", 1), encode_utf8))
+        if url2:
+            listLRUs.append(url_to_lru_clean(url2.replace("//", "//www.", 1), encode_utf8))
+    return listLRUs
+
 def has_prefix(lru, prefixes):
     if prefixes:
         return any((lru.startswith(p) for p in prefixes))

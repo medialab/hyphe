@@ -58,6 +58,18 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('y_ies', [function(){
+    return function(plural) {
+      return (plural > 1 ? 'ies' : 'y')
+    }
+  }])
+
+  .filter('were_was', [function(){
+    return function(plural) {
+      return (plural > 1 ? 'were' : 'was')
+    }
+  }])
+
   .filter('none', [function(){
     return function(integer) {
       return (integer == 0 ? 'None' : integer)

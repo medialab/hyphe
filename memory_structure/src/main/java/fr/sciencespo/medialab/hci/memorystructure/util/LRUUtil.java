@@ -162,6 +162,16 @@ public class LRUUtil {
         return scheme + host + port + path + query + fragment;
     }
 
+    public static int countHost(String lru) {
+        int hosts = 0;
+        String[] ps = lru.split("\\|");
+        for (String s : ps) {
+            if (s.startsWith("h:")) {
+                hosts++;
+            }
+        }
+        return hosts;
+    }
 
     public static String nameLRU(String lru) {
     	String lruElement, key, name = "", path = "", lastHost = "", piece;

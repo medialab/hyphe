@@ -318,7 +318,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
      *
      * @return LRUPrefix
      * @throws TException hmm
-     * @throws MemoryStructureException 
+     * @throws MemoryStructureException
      */
     @Override
     public String getPrefixForLRU(String pageLRU) throws MemoryStructureException {
@@ -585,7 +585,14 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             WebEntity WE = lruIndex.retrieveWebEntity(id);
+            if(WE == null) {
+                throw new ObjectNotFoundException().setMsg("Could not find webentity with id: " + id);
+            }
             return lruIndex.retrieveWebEntitySubWebEntities(WE);
+        } catch(ObjectNotFoundException x) {
+	        logger.error(x.getMessage());
+	        x.printStackTrace();
+	        throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), ObjectNotFoundException.class.getName());
         } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
@@ -607,7 +614,14 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
         }
         try {
             WebEntity WE = lruIndex.retrieveWebEntity(id);
+            if(WE == null) {
+                throw new ObjectNotFoundException().setMsg("Could not find webentity with id: " + id);
+            }
             return lruIndex.retrieveWebEntityParentWebEntities(WE);
+        } catch(ObjectNotFoundException x) {
+	        logger.error(x.getMessage());
+	        x.printStackTrace();
+	        throw new MemoryStructureException(x.getMessage(), ExceptionUtils.stacktrace2string(x), ObjectNotFoundException.class.getName());
         } catch (IndexException x) {
             logger.error(x.getMessage());
             x.printStackTrace();
@@ -996,7 +1010,7 @@ public class MemoryStructureImpl implements MemoryStructure.Iface {
             logger.debug("addWebEntityCreationRule");
         }
         try {
-            lruIndex.addWebEntityCreationRule(webEntityCreationRule);
+            lruIndex.indexWebEntityCreationRule(webEntityCreationRule);
             if(logger.isDebugEnabled()) {
                 logger.debug("addWebEntityCreationRule finished indexing webEntityCreationRule: [" + webEntityCreationRule.getLRU() + ", " + webEntityCreationRule.getRegExp() + "]");
             }

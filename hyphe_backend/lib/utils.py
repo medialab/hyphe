@@ -60,7 +60,7 @@ def format_result(res, nolog=True):
     return format_success(res)
 
 def format_error(error):
-    if type(error) is dict:
+    if type(error) in [dict, list]:
         msg = error
     else:
         try:
@@ -86,6 +86,8 @@ def reformat_error(error):
 
 def handle_standard_results(res):
     if is_error(res):
+        return res
+    if isinstance(res, dict) and "code" in res:
         return res
     return format_result(res)
 

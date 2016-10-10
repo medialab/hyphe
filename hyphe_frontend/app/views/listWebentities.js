@@ -2,8 +2,8 @@
 
 angular.module('hyphe.listwebentitiesController', [])
 
-  .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location', 'corpus'
-  ,function($scope, api, utils, store, $location, corpus) {
+  .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location', '$timeout', 'corpus'
+  ,function($scope, api, utils, store, $location, $timeout, corpus) {
     $scope.currentPage = 'listWebentities'
     $scope.Page.setTitle('List Web Entities')
     $scope.corpusName = corpus.getName()
@@ -17,19 +17,21 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.randomEasterEgg
 
     $scope.loading = false  // This flag prevents multiple simultaneous queries
+    $scope.loadingStatus = false
 
     $scope.filteringCollapsed = false
 
     $scope.pageChecked = false
 
     $scope.paginationPage = 1
-    $scope.paginationLength = 20   // How many items per page
+    $scope.paginationMaxPage = 1
+    $scope.paginationLength = "20"   // How many items per page
     $scope.paginationNumPages = 10  // How many pages to display in the pagination
     
     $scope.fullListLength = 0
     $scope.currentSearchToken
 
-    $scope.query
+    $scope.query = ""
     $scope.sort = 'name'
     $scope.sortAsc = true
     $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
@@ -43,6 +45,7 @@ angular.module('hyphe.listwebentitiesController', [])
     , out: $scope.statuses.out
     , discovered: $scope.statuses.discovered
     , query: $scope.query
+    , paginationLength: parseInt($scope.paginationLength)
     }
     $scope.counts = {}
 
@@ -50,6 +53,11 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.selected_mergeTarget = 'none'
 
     $scope.applySettings = function(){
+      
+      if (!validatePagination()) {
+        return
+      }
+      $scope.settings.paginationLength = parseInt($scope.paginationLength)
       
       loadStatus()
 
@@ -72,6 +80,16 @@ angular.module('hyphe.listwebentitiesController', [])
       $scope.touchSettings()
     }
 
+    function validatePagination(){
+      var pglength = parseInt(($scope.paginationLength.trim().match(/^[1-9]\d*$/) || [])[0])
+      if (pglength > 0 && pglength < 1000) {
+        $('.results-per-page input').removeClass('ng-invalid')
+        return true
+      }
+      $('.results-per-page input').addClass('ng-invalid')
+      return false
+    }
+
     $scope.touchSettings = function(){
 
       // Check if difference with current settings
@@ -86,11 +104,28 @@ angular.module('hyphe.listwebentitiesController', [])
         difference = true
       }
 
+      if (validatePagination() && $scope.paginationLength != $scope.settings.paginationLength) {
+        difference = true
+      }
+
       $scope.settingsChanged = difference
     }
 
+    $scope.validatePage = function(){
+      var pgval = parseInt(((""+$scope.paginationPage).trim().match(/^[1-9]\d*$/) || [])[0])
+      if (!(pgval > 0 && pgval <= $scope.paginationMaxPage)) {
+        $('.page-input input').addClass('ng-invalid')
+        return false
+      }
+      $('.page-input input').removeClass('ng-invalid')
+      return true
+
+    }
+
     $scope.pageChanged = function(){
-      
+      if (!$scope.validatePage()) {
+        return
+      }
       $scope.status = {message: 'Loading'}
       $scope.pageChecked = false
       $scope.loading = true
@@ -145,7 +180,7 @@ angular.module('hyphe.listwebentitiesController', [])
         $scope.sort = field
         $scope.sortAsc = ($scope.sort == 'name')
       }
-      if($scope.settings.query === undefined){
+      if(!$scope.settings.query){
         $scope.loadWebentities()
       } else {
         var query = utils.cleanLuceneQuery($scope.settings.query)
@@ -179,13 +214,14 @@ angular.module('hyphe.listwebentitiesController', [])
           allFieldsKeywords: query || []
           ,fieldKeywords: field_kw
           ,sortField: (($scope.sortAsc) ? ($scope.sort) : ('-' + $scope.sort))
-          ,count: $scope.paginationLength
+          ,count: $scope.settings.paginationLength
           ,page: $scope.paginationPage - 1
         }
         ,function(result){
           $scope.paginationPage = 1
 
           $scope.fullListLength = result.total_results
+          $scope.paginationMaxPage = parseInt($scope.fullListLength / $scope.paginationLength) + 1
           $scope.currentSearchToken = result.token
 
           $scope.list = result.webentities.map(function(we, i){
@@ -237,7 +273,7 @@ angular.module('hyphe.listwebentitiesController', [])
     }
 
     $scope.clearQuery = function(){
-      $scope.query = undefined
+      $scope.query = ""
       $scope.applySettings()
       doQuery()
     }
@@ -348,6 +384,8 @@ angular.module('hyphe.listwebentitiesController', [])
     // Functions
 
     function loadStatus(callback){
+      if ($scope.loadingStatus) return
+      $scope.loadingStatus = true
       api.globalStatus({}, function(status){
         $scope.counts = {
           in: status.corpus.memory_structure.webentities.IN
@@ -355,8 +393,11 @@ angular.module('hyphe.listwebentitiesController', [])
         , out: status.corpus.memory_structure.webentities.OUT
         , discovered: status.corpus.memory_structure.webentities.DISCOVERED
         }
+        $scope.loadingStatus = false
+        $timeout(loadStatus, 5000);
       },function(data, status, headers, config){
         $scope.status = {message: 'Error loading status', background:'danger'}
+        $scope.loadingStatus = false
       })
     }
 
@@ -369,9 +410,13 @@ angular.module('hyphe.listwebentitiesController', [])
     function doQuery(){
       if(!$scope.loading){
         refreshEasterEgg()  // yes, yes...
-        var query = utils.cleanLuceneQuery($scope.query)
-        console.log('Query:',query)
-        $scope.loadWebentities(query)
+        if(!$scope.settings.query){
+          $scope.loadWebentities()
+        } else {
+          var query = utils.cleanLuceneQuery($scope.query)
+          console.log('Query:',query)
+          $scope.loadWebentities(query)
+        }
       }
     }
 

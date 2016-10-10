@@ -951,7 +951,7 @@ public class LRUIndex {
             if (hits.size() < 1) {
                 return null;
             } else if (hits.size() > 1) {
-                logger.warn("WARNING : " + hits.size() + "multiple WEs found for lru "+LRUPrefix);
+                logger.warn("WARNING : " + hits.size() + " multiple WEs found for lru "+LRUPrefix);
             }
             WebEntity webEntity = IndexConfiguration.convertLuceneDocumentToWebEntity(hits.get(0));
             return webEntity;
@@ -1982,35 +1982,6 @@ public class LRUIndex {
     // WEBENTITYCREATIONRULES
 
     /**
-     * Add or update a WebEntityCreationRule and its variations to the index if they are not already linked to another rule.
-     *
-     * @param webEntityCreationRule
-     * @throws IndexException hmm
-     */
-    public void addWebEntityCreationRule(WebEntityCreationRule webEntityCreationRule) throws IndexException{
-        if(webEntityCreationRule == null) {
-            throw new IndexException("webEntityCreationRule is null");
-        }
-        try {
-            indexWebEntityCreationRule(webEntityCreationRule);
-            String variations[] = {
-                LRUUtil.HTTPVariationLRU(webEntityCreationRule.getLRU()),
-                LRUUtil.HTTPWWWVariationLRU(webEntityCreationRule.getLRU()),
-                LRUUtil.WWWVariationLRU(webEntityCreationRule.getLRU())
-            };
-            for (String LRUVariation : variations) {
-                if (indexSearcher.search(LuceneQueryFactory.getWebEntityCreationRuleByLRUQuery(LRUVariation), null, 1).totalHits == 0) {
-                    indexWebEntityCreationRule(new WebEntityCreationRule(webEntityCreationRule.getRegExp(), LRUVariation,webEntityCreationRule.getCreationDate(), webEntityCreationRule.getLastModificationDate()));
-                }
-            }
-        } catch(IOException x) {
-            logger.error(x.getMessage());
-            x.printStackTrace();
-            throw new IndexException(x);
-        }
-    }
-
-    /**
      * Add or update a single WebEntityCreationRule to the index. If the rule's LRU is empty, it is set as the
      * default rule. If there exists already a rule with this rule's LRU, it is updated.
      *
@@ -2346,17 +2317,19 @@ public class LRUIndex {
 
                 // store new webentity in index
                 if (existing == null && WEcandidate != null) {
-                    String variations[] = {
-                        LRUUtil.HTTPVariationLRU(LRUPrefix),
-                        LRUUtil.HTTPWWWVariationLRU(LRUPrefix),
-                        LRUUtil.WWWVariationLRU(LRUPrefix)
+                    List<String> variations = new ArrayList<String>();
+                    variations.add(LRUUtil.HTTPVariationLRU(LRUPrefix));
+                    if (LRUUtil.countHost(LRUPrefix) != 1) {
+                        variations.add(LRUUtil.HTTPWWWVariationLRU(LRUPrefix));
+                        variations.add(LRUUtil.WWWVariationLRU(LRUPrefix));
                     };
                     for (String LRUVariation : variations) {
-                        if (LRUVariation != null) {
+                        if (LRUVariation != null && !doneLRUPrefixes.contains(LRUVariation)) {
                             existingVariation = retrieveWebEntityByLRUPrefix(LRUVariation);
                             if (existingVariation == null) {
                                 WEcandidate.addToLRUSet(LRUVariation);
                             }
+                            doneLRUPrefixes.add(LRUVariation);
                         }
                 	}
                 	createdWebEntitiesCount++;

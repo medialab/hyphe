@@ -26,20 +26,27 @@ angular.module('hyphe.definewebentitiesController', [])
     $scope.retry = false
     $scope.creating = false
     $scope.loadingWebentities = false
+    $scope.simulatingCreationRules = false
     $scope.crawlExisting = false
     $scope.retryConflicted = true
+
+    var orderableUrl = function(url){
+      return url.replace(/^https?:\/\/((www\d?|m(obile)?).)?/i, '')
+    }
 
     // Build the basic list of web entities
     var list
     if(store.get('parsedUrls_type') == 'list'){
       list = store.get('parsedUrls')
+        .sort(function(a, b){
+          return orderableUrl(a).localeCompare(orderableUrl(b) || a.localeCompare(b))
+        })
         .map(function(url, i){
           return {
               id: i
               ,url: url
             }
         })
-
     } else if(store.get('parsedUrls_type') == 'table') {
       var settings = store.get('parsedUrls_settings')
       ,table = store.get('parsedUrls')
@@ -62,6 +69,10 @@ angular.module('hyphe.definewebentitiesController', [])
       })
     }
 
+    if(!list || !list.length){
+      $location.path('/project/'+$scope.corpusId+'/importurls')
+    }
+
     // Clean store
     store.remove('parsedUrls')
     store.remove('parsedUrls_type')
@@ -69,10 +80,6 @@ angular.module('hyphe.definewebentitiesController', [])
 
     // Build the list
     bootstrapUrlList(list)
-
-    if($scope.list.length==0){
-      $location.path('/project/'+$scope.corpusId+'/importurls')
-    }
 
     // Fetching parent web entities
     var fetchParentWebEntities = function(){
@@ -121,7 +128,6 @@ angular.module('hyphe.definewebentitiesController', [])
 
       queriesBatcher.run()
     }
-    fetchParentWebEntities()
 
     // Slider commands
     $scope.moveAllSliders = function (mode) {
@@ -264,7 +270,7 @@ angular.module('hyphe.definewebentitiesController', [])
                 }
               ,function(data, status, headers){     // Fail callback
                   obj.status = 'error'
-                  console.log('[row '+(obj.id+1)+'] Error while fetching parent webentities for', obj.url, data, 'status', status, 'headers', headers)
+                  console.log('[row '+(obj.id+1)+'] Error while declaring webentity for', obj.lru, data, 'status', status, 'headers', headers)
                   if(data && data[0] && data[0].code == 'fail'){
                     obj.infoMessage = data[0].message
                   }
@@ -340,7 +346,7 @@ angular.module('hyphe.definewebentitiesController', [])
       var list = $scope.list
       if(!withConflicts){
         list = list.filter(function(obj){
-          return obj.status != 'conlict'
+          return obj.status != 'conflict'
         })
       }
 
@@ -389,6 +395,9 @@ angular.module('hyphe.definewebentitiesController', [])
         return obj.id != objId
       })
       delete $scope.list_byId[objId]
+      if (!$scope.list.length && !$scope.existingList.length && !$scope.createdList.length) {
+        $location.path('/project/'+$scope.corpusId+'/importurls')
+      }
     }
 
 
@@ -396,33 +405,45 @@ angular.module('hyphe.definewebentitiesController', [])
 
     function bootstrapUrlList(list){
       if(list){
-        // Consolidate the list of web entities
-        list = list
-          // Filter out invalid URLs
-          .filter(function(obj){
-              return obj.url && utils.URL_validate(obj.url)
-            })
-          // Bootstrap the object
-          .map(bootstrapPrefixObject)
-
-        // Building an index of these objects to find them by id
-        list.forEach(function(obj){
-          $scope.list_byId[obj.id] = obj
+        // Filter out invalid URLs
+        list = list.filter(function(obj){
+          return obj.url && utils.URL_validate(obj.url)
         })
 
-        // Catching conflicts: we use this index of LRU prefixes set in the UI
-        $scope.conflictsIndex = new PrefixConflictsIndex($scope.list_byId)
-        // NB: it is recorded in the model because the hyphePrefixSliderButton directives needs to access it
+        $scope.status = {message: 'Simulating Web Entities Creation Rules'}
+        $scope.simulatingCreationRules = true
+        api.getCreationRulesResult({
+          urlList: list.map(function(obj){ return obj.url })
+        },function(simulatedPrefixIndex){
+          $scope.simulatedPrefixIndex = simulatedPrefixIndex
+          // Bootstrap the object and record in model
+          $scope.list = list.map(bootstrapPrefixObject)
+          console.log(list, $scope.list)
+          // Building an index of these objects to find them by id
+          $scope.list.forEach(function(obj){
+            $scope.list_byId[obj.id] = obj
+          })
 
-        list.forEach(function(obj){
-          $scope.conflictsIndex.addToLruIndex(obj)
+          // Catching conflicts: we use this index of LRU prefixes set in the UI
+          $scope.conflictsIndex = new PrefixConflictsIndex($scope.list_byId)
+          // NB: it is recorded in the model because the hyphePrefixSliderButton directives needs to access it
+          $scope.list.forEach(function(obj){
+            $scope.conflictsIndex.addToLruIndex(obj)
+          })
+
+          if($scope.list.length==0){
+            $location.path('/project/'+$scope.corpusId+'/importurls')
+          }
+
+          $scope.status = {}
+          $scope.simulatingCreationRules = false
+          fetchParentWebEntities()
+        },function(error){
+          console.log(error)
+          $scope.status = {message: error.message}
+          $scope.simulatingCreationRules = false
         })
-
-        // Record list in model
-        $scope.list = list
-
       } else {
-
         $scope.list = []
       }
     }
@@ -441,7 +462,8 @@ angular.module('hyphe.definewebentitiesController', [])
             }
             return stem
           })
-      obj.prefixLength = !!obj.tldLength + 2 + !!obj.json_lru.port
+      obj.simulatedPrefix = $scope.simulatedPrefixIndex[obj.url]
+      obj.prefixLength = obj.simulatedPrefix ? obj.simulatedPrefix.split('|').length - 1 : !!obj.tldLength + 2 + !!obj.json_lru.port
       obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
       obj.conflicts = []
       obj.status = 'loading'

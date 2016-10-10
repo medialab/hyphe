@@ -31,11 +31,13 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_nodelinks_network'
     API.WEBENTITY_SUBWEBENTITY_LIST_GET             = 'store.get_webentity_subwebentities'
     API.WEBENTITY_PARENTWEBENTITY_LIST_GET          = 'store.get_webentity_parentwebentities'
+    API.WEBENTITY_EDIT                              = 'store.basic_edit_webentity'
     API.WEBENTITY_NAME_SET                          = 'store.rename_webentity'
     API.WEBENTITY_STATUS_SET                        = 'store.set_webentity_status'
     API.WEBENTITY_HOMEPAGE_SET                      = 'store.set_webentity_homepage'
     API.WEBENTITY_CRAWL                             = 'crawl_webentity'
     API.WEBENTITY_CRAWL_WITH_HEURISTIC              = 'crawl_webentity_with_startmode'
+    API.WEBENTITY_CRAWL_LIST                        = 'get_webentity_jobs'
     API.WEBENTITY_FETCH_BY_URL                      = 'store.get_webentity_for_url'
     API.WEBENTITY_FETCH_BY_PREFIX_LRU               = 'store.get_webentity_by_lruprefix'
     API.WEBENTITY_FETCH_BY_PREFIX_URL               = 'store.get_webentity_by_lruprefix_as_url'
@@ -53,6 +55,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WE_CREATION_RULE_ADD                        = 'store.add_webentity_creationrule'
     API.WE_CREATION_RULE_REMOVE                     = 'store.delete_webentity_creationrule'
     API.WE_CREATION_RULE_LIST_GET                   = 'store.get_webentity_creationrules'
+    API.SIMULATE_WE_CREATION_RULES                  = 'store.simulate_creationrules_for_urls'
 
     API.LINKS_RESET                                 = 'store.trigger_links_reset'
 
@@ -79,6 +82,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.CORPUS_RESET                                = 'reinitialize'
     API.CORPUS_DESTROY                              = 'destroy_corpus'
     API.CORPUS_BACKUP                               = 'backup_corpus'
+    API.CORPUS_TLDS_GET                             = 'get_corpus_tlds'
     API.CORPUS_OPTIONS_GET                          = 'get_corpus_options'
     API.CORPUS_OPTIONS_SET                          = 'set_corpus_options'
     API.CORPUS_TEST                                 = 'test_corpus'
@@ -165,6 +169,15 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
+    ns.getCreationRulesResult = buildApiCall(
+        API.SIMULATE_WE_CREATION_RULES
+        ,function(settings){
+          return [
+            settings.urlList || []
+            ,corpus.getId()
+          ]}
+      )
+
     ns.getLruParentWebentities = buildApiCall(
         API.POTENTIAL_WEBENTITY_CONTAINER_LIST_GET
         ,function(settings){
@@ -182,6 +195,8 @@ angular.module('hyphe.service_hyphe_api', [])
               ,settings.name || ''          // Name
               ,'IN'                         // Status
               ,settings.startPages || []    // Start pages
+    // Automatically include LRU variations (http/https www/nowww)
+              ,settings.lruVariations || false
               ,corpus.getId()
             ]}
       )
@@ -368,6 +383,27 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
+    ns.webentityCrawlsList = buildApiCall(
+        API.WEBENTITY_CRAWL_LIST
+        ,function(settings){
+          return [
+            settings.webentityId
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.webentityUpdate = buildApiCall(
+        API.WEBENTITY_EDIT
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.name || null
+              ,settings.status || null
+              ,settings.homepage || null
+              ,corpus.getId()
+            ]}
+      )
+
     ns.crawlWithHeuristic = buildApiCall(
         API.WEBENTITY_CRAWL_WITH_HEURISTIC
         ,function(settings){
@@ -425,6 +461,24 @@ angular.module('hyphe.service_hyphe_api', [])
             ]
           }
       )
+
+    ns.getCorpusTLDs = function(){
+      var list_tlds
+      $.ajax({
+        async: false
+        ,method: 'POST'
+        ,url: surl
+        ,data: JSON.stringify({
+          method: API.CORPUS_TLDS_GET,
+          params: [corpus.getId()],
+        })
+        ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+        ,success: function(result){
+          list_tlds = result[0].result
+        }
+      })
+      return list_tlds
+    };
 
     ns.getCorpusOptions = buildApiCall(
         API.CORPUS_OPTIONS_GET
@@ -547,6 +601,41 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
+    ns.addTag = buildApiCall(
+        API.WEBENTITY_TAG_VALUE_ADD
+        ,function(settings){
+          return [
+            settings.webentityId
+            ,settings.namespace || 'USER'
+            ,settings.category || 'FREETAGS'
+            ,settings.value || ''
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.removeTag = buildApiCall(
+        API.WEBENTITY_TAG_VALUE_REMOVE
+        ,function(settings){
+          return [
+            settings.webentityId
+            ,settings.namespace || 'USER'
+            ,settings.category || 'FREETAGS'
+            ,settings.value || ''
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.getTags = buildApiCall(
+        API.WEBENTITY_TAG_LIST_GET
+        ,function(settings){
+          return [
+            settings.namespace || null
+            ,corpus.getId()
+          ]
+        }
+      )
+
+
     // Fake query for test
     ns.dummy = function (settings, successCallback, errorCallback) {
       setTimeout(successCallback, 1000 + Math.round( Math.random() * 2000 ) )
@@ -571,7 +660,7 @@ angular.module('hyphe.service_hyphe_api', [])
         }
 
         errorCallback = errorCallback || rpcError
-        $http({
+        return $http({
           method: 'POST'
           ,url: surl
           ,data: JSON.stringify({ //JSON RPC
@@ -580,27 +669,25 @@ angular.module('hyphe.service_hyphe_api', [])
             })
           ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
         })
-          .success(function(data, status, headers, config){
-              var target = (data[0] || {}).result
-              if(target !== undefined){
-                // console.log('[OK]', data)
-                successCallback(target)
-              } else {
-                if(data[0] && data[0].message && data[0].message.status && data[0].message.status != "ready"){
-                  // Corpus shut down
-                  $location.path('/')
-                } else {
-                  console.log('[Error: unexpected]', data)
-                  errorCallback(data, status, headers, config)
-                }
-              }
-            })
-          .error(function(data, status, headers, config){
-            console.log('[Error: fail]', data)
-            errorCallback(data, status, headers, config)
-          })
-
-        return true
+        .success(function(data, status, headers, config){
+          var target = (data[0] || {}).result
+          if(target !== undefined){
+            // console.log('[OK]', data)
+            successCallback(target, data[0])
+          } else {
+            if(data[0] && data[0].message && data[0].message.status && data[0].message.status != "ready"){
+              // Corpus shut down
+              $location.path('/')
+            } else {
+              console.log('[Error: unexpected]', data)
+              errorCallback(data, status, headers, config)
+            }
+          }
+        })
+        .error(function(data, status, headers, config){
+          console.log('[Error: fail]', data)
+          errorCallback(data, status, headers, config)
+        })
       }
     }
 

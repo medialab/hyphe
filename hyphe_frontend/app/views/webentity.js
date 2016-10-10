@@ -2,8 +2,8 @@
 
 angular.module('hyphe.webentityController', [])
 
-  .controller('webentity', ['$scope', 'api', 'utils', 'corpus', '$routeParams', 'store', '$location'
-  ,function($scope, api, utils, corpus, $routeParams, store, $location) {
+  .controller('webentity', ['$scope', 'api', 'utils', 'corpus', '$routeParams', 'store', '$location', '$timeout'
+  ,function($scope, api, utils, corpus, $routeParams, store, $location, $timeout) {
     $scope.currentPage = 'webentity'
     $scope.Page.setTitle('Web Entity')
     $scope.corpusName = corpus.getName()
@@ -12,6 +12,11 @@ angular.module('hyphe.webentityController', [])
     $scope.explorerActive = false
 
     $scope.webentity = {id:$routeParams.webentityId, loading:true}
+    $scope.crawls = []
+    $scope.tagCategories = {}
+    $scope.tagCategoriesOrder = []
+    $scope.newCategory = ""
+    $scope.editableFormError = {}
     
     $scope.statuses = [
       {value: 'IN', text: 'IN'},
@@ -19,37 +24,97 @@ angular.module('hyphe.webentityController', [])
       {value: 'OUT', text: 'OUT'}
     ]
 
-    $scope.reCrawl = function(){
-      var webentity = $scope.webentity
-      ,obj = {webentity:webentity}
-      
-      if(webentity !== undefined){
-        store.set('webentities_toCrawl', [obj])
-        $location.path('/project/'+$scope.corpusId+'/prepareCrawls')
-      } else {
-        $scope.status = {message:'No Web Entity to send', background:'danger'}
+    function updateWELastModifTime(){
+      $scope.webentity.last_modification_date = (new Date()).getTime()/1000
+    }
+
+    $scope.crawlDetails = function(job){
+      $location.url('/project/'+$scope.corpusId+'/monitorCrawls?tab=details&id='+job._id)
+    }
+
+    $scope.reCrawl = function(oldjob){
+      var obj = {webentity: $scope.webentity}
+      store.set('webentities_toCrawl', [obj])
+      store.set('webentity_old_crawljob', oldjob)
+      $location.path('/project/'+$scope.corpusId+'/prepareCrawls')
+    }
+
+    $scope.abortCrawl = function(job){
+      if(job !== undefined){
+        $scope.status = {message: 'Aborting crawl job'}
+        job.crawling_status = 'CANCELED'
+        utils.consolidateJob(job)
+        api.abortCrawlJobs({
+            id: job._id
+          }, function(){
+            $scope.status = {}
+          }, function(){
+            $scope.status = {message: 'Error aborting crawl job', background:'danger'}
+          }
+        )
       }
     }
 
+    $scope.checkWebEntityHomepage = function($data){
+      var tmpHomepage = $data.homepage+"", lru
+      try{
+        lru = utils.URL_to_JSON_LRU($data.homepage)
+      } catch(e){
+        lru = ""
+      }
+      if (!lru || (lru.scheme !== "http" && lru.scheme !== "https")){
+        $scope.editableFormError.homepage = "Please enter a valid URL!"
+        $timeout(function(){
+          $scope.editableForm.$show()
+        }, 0)
+        $timeout(function(){
+          $(".url-container input").val(tmpHomepage)
+        }, 5)
+        return false
+      }
+      return true
+    }
+
+    $scope.saveWebEntity = function(){
+      $scope.editableFormError = {}
+      $scope.status = {message: 'Updating metadata'}
+      return api.webentityUpdate({
+          webentityId: $scope.webentity.id
+          ,name: $scope.webentity.name
+          ,status: $scope.webentity.status
+          ,homepage: $scope.webentity.homepage
+        }
+        ,function(result){
+          $scope.status = {message: ''}
+          updateWELastModifTime()
+        }
+        ,function(error){
+          $scope.status = {message: 'Could not save webentity', background:'warning'}
+          $scope.editableFormError = error[0].message
+          $timeout(function(){
+            $scope.editableForm.$show()
+          }, 0)
+        }
+      )
+    }
+
     // Init
-    fetchWebentity($routeParams.webentityId)
+    fetchWebentity()
+    fetchCrawls()
+    fetchTags()
 
     // Functions
-    function fetchWebentity(id){
+    function fetchWebentity(){
       api.getWebentities({
-          id_list:[id]
+          id_list:[$routeParams.webentityId]
           ,crawledOnly: false
         }
         ,function(result){
           $scope.webentity = result[0]
           $scope.webentity.loading = false
 
-          // TEST DATA
+          $scope.webentity.lru_prefixes.sort(function(a,b){ return a.localeCompare(b)})
           $scope.webentity.tags.USER = $scope.webentity.tags.USER || {}
-          $scope.webentity.tags.USER._freetags = ['lol', 'kikoo', 'very long and annoying Tag with *$! characterz... :(']
-          $scope.webentity.tags.USER.country = ['France']
-          $scope.webentity.tags.USER.type = ['Newspaper']
-          // END TEST DATA
 
           console.log($scope.webentity.name, $scope.webentity)
           $scope.Page.setTitle($scope.webentity.name)
@@ -58,6 +123,114 @@ angular.module('hyphe.webentityController', [])
           $scope.status = {message: 'Error loading web entity', background: 'danger'}
         }
       )
+    }
+
+    function fetchCrawls(){
+      api.webentityCrawlsList({
+          webentityId: $routeParams.webentityId
+        }
+        ,function(result){
+          $scope.crawls = result.map(utils.consolidateJob)
+          if ($scope.crawls.some(function(job){
+            return job.globalStatus != 'ACHIEVED' && job.globalStatus != 'UNSUCCESSFUL' && job.globalStatus != 'CANCELED'
+          })) $timeout(fetchCrawls, 3000)
+        }
+        ,function(){
+          $scope.status = {message: "Error loading web entity's crawls", background: 'danger'}
+        }
+      )
+    }
+
+    $scope.saveNewCategory = function(category){
+      category = category.trim()
+      if (!category || $scope.tagCategories[category]) return false
+      $scope.tagCategories[category] = {}
+      $scope.tagCategoriesOrder.push(category)
+      // Wait a frame to render the new category before resetting the form field and focus on input
+      $timeout(function(){
+        $scope.newCategory = ''
+        $(".tagbox-body:last .host .tags").click()
+      }, 0)
+      return true
+    }
+
+    $scope.addTag = function(tag, category){
+      $scope.status = {message: 'Adding tag'}
+      // Add tag to autocompleter
+      if (!$scope.tagCategories[category]) {
+        $scope.tagCategories[category] = {}
+      }
+      $scope.tagCategories[category][searchable(tag.text)] = tag.text
+      return api.addTag({
+          webentityId: $scope.webentity.id
+          ,category: category
+          ,value: tag.text
+        }
+        ,function(){
+          $scope.status = {message: ''}
+          updateWELastModifTime()
+        }
+        ,function(error){
+          $scope.status = {message: 'Could not add tag', background:'warning'}
+        }
+      )
+    }
+
+    $scope.removeTag = function(tag, category){
+      $scope.status = {message: 'Removing tag'}
+      return api.removeTag({
+          webentityId: $scope.webentity.id
+          ,category: category
+          ,value: tag.text
+        }
+        ,function(){
+          $scope.status = {message: ''}
+          updateWELastModifTime()
+        }
+        ,function(error){
+          $scope.status = {message: 'Could not remove tag', background:'warning'}
+        }
+      )
+    }
+
+    function searchable(str){
+      str = str.trim().toLowerCase()
+      // remove accents, swap ñ for n, etc
+      var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;"
+          , to = "aaaaeeeeiiiioooouuuunc------"
+      for (var i = 0, l = from.length; i < l; i++) {
+        str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i))
+      }
+      return str
+    }
+
+    function fetchTags(){
+      api.getTags(
+        { namespace: 'USER' }
+        ,function(tags){
+          Object.keys(tags || {}).forEach(function(category){
+            $scope.tagCategories[category] = {}
+            $scope.tagCategoriesOrder.push(category)
+            tags[category].forEach(function(val){
+              $scope.tagCategories[category][searchable(val)] = val
+            })
+          })
+        }
+        ,function(tags){
+          $scope.status = {message: 'Error loading corpus tags', background: 'danger'}
+        }
+      )
+    }
+
+    $scope.autoComplete = function(query, category){
+      var searchQuery = searchable(query)
+        , res = []
+      Object.keys($scope.tagCategories[category] || {}).forEach(function(searchTag){
+        if (searchTag && (!searchQuery || ~searchTag.indexOf(searchQuery))) {
+          res.push($scope.tagCategories[category][searchTag])
+        }
+      })
+      return res
     }
   }])
 
@@ -362,21 +535,17 @@ angular.module('hyphe.webentityController', [])
         updateFromPath()
         updateExplorer()
       }
+      if (!~$location.path().indexOf("/explorer"))
+        $location.search("p", undefined)
     })
 
     $scope.newWebEntity = function(obj){
       $scope.status = {message: 'Declaring web entity'}
       api.declareWebentity({
-          prefixes:
-            utils.LRU_variations(obj.lru, {
-                wwwlessVariations: true
-                ,wwwVariations: true
-                ,httpVariations: true
-                ,httpsVariations: true
-                ,smallerVariations: false
-              })
+          prefixes: [obj.lru]
           ,name: utils.nameLRU(obj.lru)
           ,startPages: [obj.url]
+          ,lruVariations: true
         }
         ,function(result){
           $route.reload();
@@ -506,7 +675,8 @@ angular.module('hyphe.webentityController', [])
         ,function(result){
           $scope.webentity = result[0]
           $scope.webentity.loading = false
-          
+          $scope.webentity.lru_prefixes.sort(function(a,b){ return a.localeCompare(b)})
+
           // Triple loading
           loadPages()
           loadSubWebentities()

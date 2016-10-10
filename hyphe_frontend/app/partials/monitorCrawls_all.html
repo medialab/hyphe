@@ -77,7 +77,7 @@
     items-per-page="paginationLength"
     boundary-links="true"
     max-size="paginationNumPages"
-    ng-if="crawlJobs.length > paginationLength"
+    ng-show="crawlJobs.length > paginationLength"
     ng-change="pageChanged()"
   ></pagination>
 </div>

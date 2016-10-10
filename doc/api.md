@@ -36,6 +36,7 @@ The API will always answer as such:
     * __`create_corpus`__
     * __`start_corpus`__
     * __`stop_corpus`__
+    * __`get_corpus_tlds`__
     * __`backup_corpus`__
     * __`ping`__
     * __`reinitialize`__
@@ -71,6 +72,7 @@ The API will always answer as such:
     * __`declare_webentity_by_lrus_as_urls`__
     * __`declare_webentity_by_lrus`__
   + [EDIT WEBENTITIES](#edit-webentities)
+    * __`basic_edit_webentity`__
     * __`rename_webentity`__
     * __`change_webentity_id`__
     * __`set_webentity_status`__
@@ -100,6 +102,8 @@ The API will always answer as such:
     * __`get_webentities_by_tag_value`__
     * __`get_webentities_by_tag_category`__
     * __`get_webentities_by_user_tag`__
+    * __`get_webentities_mistagged`__
+    * __`get_webentities_uncrawled`__
     * __`get_webentities_page`__
     * __`get_webentities_ranking_stats`__
   + [TAGS](#tags)
@@ -182,6 +186,12 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Stops an existing and running `corpus`. Returns the new corpus status.
+
+
+- __`get_corpus_tlds`:__
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns the lists of TLDs rules and exceptions built from Mozilla's list at the creation of `corpus`.
 
 
 - __`backup_corpus`:__
@@ -391,9 +401,10 @@ The API will always answer as such:
  + _`name`_ (optional, default: `null`)
  + _`status`_ (optional, default: `null`)
  + _`startPages`_ (optional, default: `[]`)
+ + _`lruVariations`_ (optional, default: `true`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Creates for a `corpus` a WebEntity defined for the LRU prefix given as a `url`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity.
+ Creates for a `corpus` a WebEntity defined for the LRU prefix given as a `url` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity.
 
 
 - __`declare_webentity_by_lru`:__
@@ -401,9 +412,10 @@ The API will always answer as such:
  + _`name`_ (optional, default: `null`)
  + _`status`_ (optional, default: `null`)
  + _`startPages`_ (optional, default: `[]`)
+ + _`lruVariations`_ (optional, default: `true`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Creates for a `corpus` a WebEntity defined for a `lru_prefix`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity.
+ Creates for a `corpus` a WebEntity defined for a `lru_prefix` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity.
 
 
 - __`declare_webentity_by_lrus_as_urls`:__
@@ -411,9 +423,10 @@ The API will always answer as such:
  + _`name`_ (optional, default: `null`)
  + _`status`_ (optional, default: `null`)
  + _`startPages`_ (optional, default: `[]`)
+ + _`lruVariations`_ (optional, default: `true`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as URLs under `list_urls`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity.
+ Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as URLs under `list_urls` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity.
 
 
 - __`declare_webentity_by_lrus`:__
@@ -421,11 +434,22 @@ The API will always answer as such:
  + _`name`_ (optional, default: `null`)
  + _`status`_ (optional, default: `null`)
  + _`startPages`_ (optional, default: `[]`)
+ + _`lruVariations`_ (optional, default: `true`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as `list_lrus`. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity.
+ Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as `list_lrus` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startPages`. Returns the newly created WebEntity.
 
 ### EDIT WEBENTITIES
+
+- __`basic_edit_webentity`:__
+ + _`webentity_id`_ (mandatory)
+ + _`name`_ (optional, default: `null`)
+ + _`status`_ (optional, default: `null`)
+ + _`homepage`_ (optional, default: `null`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Changes for a `corpus` at once the `name`, `status` and `homepage` of a WebEntity defined by `webentity_id`.
+
 
 - __`rename_webentity`:__
  + _`webentity_id`_ (mandatory)
@@ -461,7 +485,7 @@ The API will always answer as such:
 
 - __`set_webentity_homepage`:__
  + _`webentity_id`_ (mandatory)
- + _`homepage`_ (mandatory)
+ + _`homepage`_ (optional, default: `""`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Changes for a `corpus` the homepage of a WebEntity defined by `webentity_id` to `homepage`.
@@ -702,6 +726,29 @@ The API will always answer as such:
  Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`.
 
 
+- __`get_webentities_mistagged`:__
+ + _`status`_ (optional, default: `'IN'`)
+ + _`missing_a_category`_ (optional, default: `false`)
+ + _`multiple_values`_ (optional, default: `false`)
+ + _`sort`_ (optional, default: `null`)
+ + _`count`_ (optional, default: `100`)
+ + _`page`_ (optional, default: `0`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` all WebEntities of status `status` with no tag of the namespace "USER" or multiple tags for some USER categories if `multiple_values` is true or no tag for at least one existing USER category if `missing_a_category` is true.
+ Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`.
+
+
+- __`get_webentities_uncrawled`:__
+ + _`sort`_ (optional, default: `null`)
+ + _`count`_ (optional, default: `100`)
+ + _`page`_ (optional, default: `0`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` all IN WebEntities which have no crawljob associated with it.
+ Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`.
+
+
 - __`get_webentities_page`:__
  + _`pagination_token`_ (mandatory)
  + _`n_page`_ (mandatory)
@@ -768,9 +815,10 @@ The API will always answer as such:
 
 
 - __`get_tags`:__
+ + _`namespace`_ (optional, default: `null`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` a tree of all existing tags of the webentities hierarchised by namespaces and categories.
+ Returns for a `corpus` a tree of all existing tags of the webentities hierarchised by namespaces and categories. Optionally limits to a specific `namespace`.
 
 
 - __`get_tag_namespaces`:__

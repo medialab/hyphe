@@ -97,8 +97,14 @@ angular.module('hyphe.exportController', [])
         ,type: 'string'
         ,val: false
       }
+      ,user_tags: {
+        name: 'TAGS'
+        ,accessor: 'tags.USER'
+        ,type: 'json'
+        ,val: false
+      }
       ,core_tags: {
-        name: 'TECHNICAL TAGS'
+        name: 'TECHNICAL INFO'
         ,accessor: 'tags.CORE'
         ,type: 'json'
         ,val: false
@@ -127,6 +133,7 @@ angular.module('hyphe.exportController', [])
         , last_modification_date: true
         , creation_date_timestamp: false
         , last_modification_date_timestamp: false
+        , user_tags: false
         , core_tags: false
         }
       }
@@ -152,6 +159,7 @@ angular.module('hyphe.exportController', [])
         , last_modification_date: false
         , creation_date_timestamp: true
         , last_modification_date_timestamp: true
+        , user_tags: true
         , core_tags: true
         }
       }
@@ -177,6 +185,7 @@ angular.module('hyphe.exportController', [])
         , last_modification_date: true
         , creation_date_timestamp: true
         , last_modification_date_timestamp: true
+        , user_tags: true
         , core_tags: true
         }
       }
@@ -202,6 +211,7 @@ angular.module('hyphe.exportController', [])
         , last_modification_date: false
         , creation_date_timestamp: false
         , last_modification_date_timestamp: false
+        , user_tags: false
         , core_tags: false
         }
       }

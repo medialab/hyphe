@@ -9,6 +9,8 @@ angular.module('hyphe.loginController', [])
 
     $scope.corpusList
     $scope.corpusList_byId = {}
+    $scope.corpusNameList = []
+    $scope.loadingList = false
 
     $scope.disconnected = false
     $scope.loading = true
@@ -22,6 +24,7 @@ angular.module('hyphe.loginController', [])
     $scope.passwordProtected = false
 
     $scope.globalStatus = false
+    $scope.loadingStatus = false
     $scope.freeSlots = 0
 
     $scope.starting = false
@@ -30,7 +33,10 @@ angular.module('hyphe.loginController', [])
     $scope.createCorpus = function(){
       var isValid = true
       
-      if($scope.new_project_name.length == 0){
+      if(~$scope.corpusNameList.indexOf($scope.new_project_name)){
+        isValid = false
+        $scope.new_project_message = 'A corpus with this name already exists'
+      } else if($scope.new_project_name.length == 0){
         isValid = false
         $scope.new_project_message = 'A name is required'
       } else if($scope.new_project_password.length == 0 && $scope.new_project_password_2.length == 0 && $scope.passwordProtected){
@@ -43,7 +49,7 @@ angular.module('hyphe.loginController', [])
         isValid = false
         $scope.new_project_message = 'Passwords do not match'
       }
-      
+
       if(isValid){
         $scope.starting = true
         $scope.new_project_message = ''
@@ -137,7 +143,10 @@ angular.module('hyphe.loginController', [])
     }
 
     function loadCorpusList(){
+      if ($scope.loadingList) return;
+      $scope.loadingList = true
       api.getCorpusList({}, function(list){
+        $scope.loadingList = false
         $scope.disconnected = false
         $scope.loading = false
         $scope.corpusList = []
@@ -145,6 +154,7 @@ angular.module('hyphe.loginController', [])
           $scope.corpusList.push(list[id])
         }
         $scope.corpusList_byId = list
+        $scope.corpusNameList = $scope.corpusList.map(function(corpus){ return corpus.name })
         $scope.corpusList.sort(function(a,b){
           if (a.name.toLowerCase() > b.name.toLowerCase()) {
             return 1;
@@ -157,6 +167,7 @@ angular.module('hyphe.loginController', [])
         })
 
       },function(data, status, headers, config){
+        $scope.loadingList = false
         $scope.corpusList = ''
         $scope.disconnected = true
         $scope.loading = false
@@ -166,6 +177,7 @@ angular.module('hyphe.loginController', [])
 
     function openCorpus(id, name){
       // Ping until corpus started
+      utils.tld_lists = undefined
       api.pingCorpus({
         id: id
         ,timeout: 10
@@ -185,16 +197,15 @@ angular.module('hyphe.loginController', [])
     }
 
     function getStatus(){
-      
+      if ($scope.loadingStatus) return;
+      $scope.loadingStatus = true
       api.globalStatus({},function(status){
-
+        $scope.loadingStatus = false
         $scope.globalStatus = status.hyphe
         $scope.freeSlots = Math.min(status.hyphe.ports_left, status.hyphe.ram_left/256)
-
       }, function(){
-
+        $scope.loadingStatus = false
       })
-      
     }
 
 

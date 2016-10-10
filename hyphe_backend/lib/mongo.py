@@ -42,7 +42,7 @@ class MongoDB(object):
         returnD(res)
 
     @inlineCallbacks
-    def add_corpus(self, corpus, name, password, options):
+    def add_corpus(self, corpus, name, password, options, tlds=None):
         now = now_ts()
         yield self.db["corpus"].insert({
           "_id": corpus,
@@ -51,6 +51,8 @@ class MongoDB(object):
           "options": options,
           "total_webentities": 0,
           "webentities_in": 0,
+          "webentities_in_untagged": 0,
+          "webentities_in_uncrawled": 0,
           "webentities_out": 0,
           "webentities_undecided": 0,
           "webentities_discovered": 0,
@@ -62,7 +64,8 @@ class MongoDB(object):
           "recent_changes": False,
           "last_index_loop": now,
           "links_duration": 1,
-          "last_links_loop": 0
+          "last_links_loop": 0,
+          "tlds": tlds
         }, safe=True)
         yield self.init_corpus_indexes(corpus)
 
@@ -70,6 +73,11 @@ class MongoDB(object):
     @inlineCallbacks
     def get_corpus(self, corpus):
         res = yield self.db["corpus"].find_one({"_id": corpus}, safe=True)
+        returnD(res)
+
+    @inlineCallbacks
+    def get_corpus_by_name(self, corpus):
+        res = yield self.db["corpus"].find_one({"name": corpus}, safe=True)
         returnD(res)
 
     @inlineCallbacks
@@ -283,6 +291,8 @@ class MongoDB(object):
           "timestamp": now_ts(),
           "total": corpus_metas["total_webentities"],
           "in": corpus_metas['webentities_in'],
+          "in_untagged": corpus_metas['webentities_in_untagged'],
+          "in_uncrawled": corpus_metas['webentities_in_uncrawled'],
           "out": corpus_metas['webentities_out'],
           "discovered": corpus_metas['webentities_discovered'],
           "undecided": corpus_metas['webentities_undecided']
