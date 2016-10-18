@@ -30,4 +30,5 @@ ls $corpus          |
     done
   fi
 done
+tar -czvf $method-pages$corpus.tar.gz $method-pages-$corpus
 
