@@ -6,6 +6,9 @@ angular.module('hyphe.networkController', ['angular-md5'])
   ,function($scope, api, utils, md5, corpus, $window) {
     
     var sigmaInstance
+    if (~$window.navigator.userAgent.indexOf('hyphe-browser')) {
+      sigma.renderers.def = sigma.renderers.canvas
+    }
     
     $scope.currentPage = 'network'
     $scope.Page.setTitle('Network')
