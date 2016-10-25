@@ -393,6 +393,11 @@ angular.module('hyphe.networkController', ['angular-md5'])
       }
     }
 
+    $scope.reloadData = function(){
+      killSigma()
+      loadCorpus()
+    }
+
     function buildNetwork(){
       $scope.network = {}
       $scope.network.attributes = []
