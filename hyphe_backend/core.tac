@@ -807,6 +807,15 @@ class Core(customJSONRPC):
         returnD(handle_standard_results(jobs))
 
     @inlineCallbacks
+    def jsonrpc_cancel_webentity_jobs(self, webentity_id, corpus=DEFAULT_CORPUS):
+        """Cancels for a `corpus` all running or pending crawl jobs that were booked for a specific WebEntity defined by its `webentity_id`."""
+        if not self.corpus_ready(corpus):
+            returnD(self.corpus_error(corpus))
+        jobs = yield self.db.list_jobs(corpus, {"$or": [{'webentity_id': webentity_id}, {'previous_webentity_id': webentity_id}]})
+        res = yield DeferredList([self.crawler.jsonrpc_cancel(j['_id'], corpus=corpus) for j in jobs], consumeErrors=True)
+        returnD(handle_standard_results(res))
+
+    @inlineCallbacks
     def jsonrpc_get_webentity_logs(self, webentity_id, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` crawl activity logs on a specific WebEntity defined by its `webentity_id`."""
         if not self.corpus_ready(corpus):
@@ -1025,6 +1034,8 @@ class Crawler(customJSONRPC):
                 if is_error(res):
                     returnD(reformat_error(res))
                 yield self.crawlqueue.send_scrapy_query('cancel', args)
+        elif existing[0]["indexing_status"] == "FINISHED":
+            returnD(format_error("Job %s was already completed and indexed" % job_id))
         else:
             res = "stopping leftover indexation for job %s" % existing[0]["crawljob_id"]
         unindexed_pages = yield self.db.get_queue(corpus, {'_job': existing[0]["crawljob_id"]}, fields=["url"])

@@ -53,6 +53,7 @@ The API will always answer as such:
     * __`crawl_webentity`__
     * __`crawl_webentity_with_startmode`__
     * __`get_webentity_jobs`__
+    * __`cancel_webentity_jobs`__
     * __`get_webentity_logs`__
   + [HTTP LOOKUP METHODS](#http-lookup-methods)
     * __`lookup_httpstatus`__
@@ -301,6 +302,13 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` crawl jobs that has run for a specific WebEntity defined by its `webentity_id`.
+
+
+- __`cancel_webentity_jobs`:__
+ + _`webentity_id`_ (mandatory)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Cancels for a `corpus` all running or pending crawl jobs that were booked for a specific WebEntity defined by its `webentity_id`.
 
 
 - __`get_webentity_logs`:__
