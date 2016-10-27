@@ -2413,7 +2413,10 @@ class Memory_Structure(customJSONRPC):
             if not namespace or (ns == namespace):
                 categories |= set(tags[ns].keys())
         if namespace == 'USER':
-            self.corpora[corpus]["user_categories"] = categories
+            usercat = set(categories)
+            if "FREETAGS" in usercat:
+                usercat.remove("FREETAGS")
+            self.corpora[corpus]["user_categories"] = usercat
         returnD(format_result(list(categories)))
 
     @inlineCallbacks
