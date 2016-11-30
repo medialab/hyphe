@@ -464,11 +464,27 @@ angular.module('hyphe.exportController', [])
       } else if($scope.fileFormat == 'CSV' || $scope.fileFormat == 'SCSV' || $scope.fileFormat == 'TSV'){
 
         // Build Headline
-        var headline = []
+        var headline = [], csvKeys = []
         for(var colKey in $scope.columns){
           var colObj = $scope.columns[colKey]
           if(colObj.val){
-            headline.push(colObj.name)
+            if (colObj.type === 'json'){
+              $scope.resultsList.forEach(function(we){
+                var value = we
+                colObj.accessor.split('.').forEach(function(accessor){
+                  value = value[accessor]
+                })
+                Object.keys(value || {}).forEach(function(k){
+                  if (!~headline.indexOf(k + ' (' + colObj.name + ')')){
+                    headline.push(k + ' (' + colObj.name + ')')
+                    csvKeys.push({'col': colObj, 'key': k})
+                  }
+                })
+              })
+            } else {
+              headline.push(colObj.name)
+              csvKeys.push({'col': colObj})
+            }
           }
         }
 
@@ -477,25 +493,28 @@ angular.module('hyphe.exportController', [])
         $scope.resultsList.forEach(function(we){
           var row = []
 
-          for(var colKey in $scope.columns){
-            var colObj = $scope.columns[colKey]
-            if(colObj.val){
-              var value = we
-              colObj.accessor.split('.').forEach(function(accessor){
-                value = value[accessor]
-              })
-              var tv
-              if(value === undefined){
-                tv = ''
-              } else {
-                tv = translateValue(value, colObj.type)
-              }
-              if(tv === undefined){
-                console.log(value,we,colObj,'could not be transferred')
-              }
-              row.push(tv)
+          csvKeys.forEach(function(csvKey){
+            var colObj = csvKey.col
+               ,value = we
+               ,valType = colObj.type
+            colObj.accessor.split('.').forEach(function(accessor){
+              value = value[accessor]
+            })
+            if (csvKey.key) {
+              value = (value || {})[csvKey.key]
+              valType = 'array of string with pipe'
             }
-          }
+            var tv
+            if(value === undefined){
+              tv = ''
+            } else {
+              tv = translateValue(value, valType)
+            }
+            if(tv === undefined){
+              console.log(value,we,colObj,'could not be transferred')
+            }
+            row.push(tv)
+          })
 
           tableContent.push(row)
         })
@@ -556,6 +575,10 @@ angular.module('hyphe.exportController', [])
       mode = mode || 'TEXT'
 
       var array_separator = ' '
+      if (type === 'array of string with pipe'){
+        array_separator = '|'
+        type = 'array of string'
+      }
 
       if(type == 'string'){
         return value
