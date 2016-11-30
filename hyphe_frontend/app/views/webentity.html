@@ -52,7 +52,7 @@
                           <dt ng-show="editableFormError.status"></dt>
                           <dd class="form-error" ng-show="editableFormError.status">{{editableFormError.status}}</dd>
 
-                          <dt>Homepage</dt>
+                          <dt><span hyphe-glossary="Homepage"/></dt>
                           <dd class="url-container">
                             <div editable-text="webentity.homepage" e-name="homepage" e-required>
                               <a href="{{webentity.homepage}}" target="_blank" title="Open in a new tab">
@@ -95,7 +95,7 @@
 
                     <div class="col-md-4">
                       <p>
-                        <strong>Prefixes</strong>
+                        <strong><span hyphe-glossary="Prefixes"/></strong>
                       </p>
                       <ul class="list-unstyled list-spaced">
                         <li ng-repeat="lru in webentity.lru_prefixes">
@@ -215,7 +215,7 @@
                     </div>
                     <div class="col-md-8">
                       <div ng-repeat="startpagetype in [{id: 'user', name: 'Manual'}, {id: 'auto', name: 'Automatic'}, {id: 'removed', name: 'Temporary removed'}]">
-                        <p ng-show="webentity.tags['CORE.STARTPAGES'][startpagetype.id]"><strong>{{startpagetype.name}} startpages</strong></p>
+                        <p ng-show="webentity.tags['CORE.STARTPAGES'][startpagetype.id]"><strong>{{startpagetype.name}} <span hyphe-glossary="startpages"/></strong></p>
                         <ul class="list-unstyled list-spaced">
                           <li ng-repeat="url in webentity.tags['CORE.STARTPAGES'][startpagetype.id]">
                             <div class="url-container">

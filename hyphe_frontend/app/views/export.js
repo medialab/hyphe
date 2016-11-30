@@ -43,6 +43,12 @@ angular.module('hyphe.exportController', [])
         ,type: 'array of string'
         ,val: false
       }
+      ,home_page: {
+        name: 'HOME PAGE'
+        ,accessor: 'homepage'
+        ,type: 'string'
+        ,val: true
+      }
       ,start_pages: {
         name: 'START PAGES'
         ,accessor: 'startpages'

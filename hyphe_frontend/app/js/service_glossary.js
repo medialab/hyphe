@@ -47,9 +47,13 @@ angular.module('hyphe.service_glossary', [])
         ,definition: 'A web document accessible from a URL and suitable for a web browser, usually written in HTML'
         ,entries: ['web page', 'web pages', 'page', 'pages']
       },{
+        title: 'Home Page'
+        ,definition: 'The default URL used to access a web entity, generally its actual homepage'
+        ,entries: ['home page', 'homepage']
+      },{
         title: 'Start Page'
         ,definition: 'In a web entity, Hyphe crawls it to find links and other pages, step by step'
-        ,entries: ['start page', 'start pages', 'start url', 'start urls']
+        ,entries: ['start page', 'start pages', 'start url', 'start urls', 'startpage', 'startpages']
       },{
         title: 'Timestamp'
         ,definition: 'A number encoding a date and time, ie. the count in milliseconds since 00:00:00 UTC on January 1, 1970'
