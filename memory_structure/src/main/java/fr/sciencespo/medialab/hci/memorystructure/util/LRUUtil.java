@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
+import java.lang.IllegalArgumentException;
 
 
 /**
@@ -184,7 +185,11 @@ public class LRUUtil {
         	lruElement = scanner.next();
         	key = lruElement.substring(0, lruElement.indexOf(':')+1);
             lruElement = lruElement.substring(lruElement.indexOf(':')+1).trim();
-            piece = URLDecoder.decode(lruElement);
+            try {
+                piece = URLDecoder.decode(lruElement);
+            } catch(IllegalArgumentException e) {
+                piece = lruElement;
+            }
             if(StringUtils.isNotEmpty(lruElement)) {
             	if(key.equals("h:")) {
                     host.add(0, (hostdone == 1 ? StringUtil.toProperCase(lruElement) : lruElement.toLowerCase()));
