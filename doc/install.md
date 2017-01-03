@@ -21,6 +21,7 @@ The easiest way to install Hyphe is by uncompressing the [gzipped release](https
     Debian      |   7.5 wheezy      | server        |   ✓
     Debian      |   7.8 wheezy      | livecd gnome  |   ✓
     Debian      |   8.0 jessie      | livecd gnome  |   —  (MongoDB not supporting Debian 8 yet)
+    Redhat      |   7.3 Maipo       | server        |   ✓  (Be careful to use step by step advanced installation)
 
 
 Just uncompress the release archive, go into the directory and run the installation script.
@@ -63,7 +64,7 @@ sudo apt-get update
 sudo apt-get install curl wget python-dev python-pip apache2 libapache2-mod-proxy-html libxml2-dev libxslt1-dev build-essential libffi-dev libssl-dev libstdc++6-dev
 ```
 
-Or for CentOS:
+Or for CentOS/Redhat:
 ```bash
 sudo yum check-update
 sudo yum install curl wget python-devel python-setuptools python-pip httpd libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6
@@ -100,7 +101,7 @@ sudo apt-get update
 sudo apt-get install mongodb-org
 ```
 
-On CentOS, this is slightly more complex:
+On CentOS/Redhat, this is slightly more complex:
 ```bash
 # Test whether SELinux runs
 # If it says enabled, you will have to do a few more steps after the installation, see here: http://docs.mongodb.org/manual/tutorial/install-mongodb-on-red-hat/#run-mongodb
@@ -186,12 +187,32 @@ rm -rf scrapyd_1.0.1-3.el6.x86_64.rpm
 # sudo rpm -e scrapyd
 ```
 
-Finally, on all distribs, add Hyphe's specific config for ScrapyD:
+Or for Redhat > v6:
+The scrapyd's RPM is to old. You have to install Scrapy as python package:
+```bash
+#install scrapy
+pip install Scrapy
+
+#create environnement
+sudo mkdir /etc/scrapyd/conf.d
+sudo mkdir /var/lib/scrapyd
+cd /var/lib
+#Change <user> with your user
+sudo chown -R <user>:<user> scrapyd
+```
+
+Finally, on Debian and Centos, add Hyphe's specific config for ScrapyD:
 
 ```bash
 sudo /etc/init.d/scrapyd stop
 sudo ln -s `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe
 sudo /etc/init.d/scrapyd start
+```
+
+Or for Redhat > v6:
+```bash
+sudo ln -s `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe
+nohup scrapyd &
 ```
 
 You can test whether ScrapyD is properly installed and running by querying [http://localhost:6800/listprojects.json](http://localhost:6800/listprojects.json). If everything is normal, you should see something like this:
@@ -209,7 +230,7 @@ Hyphe requires at least the Java JRE 6 installed. You can test it by running `ja
 ```bash
 # Debian/Ubuntu:
 sudo apt-get install openjdk-6-jre
-# CentOS:
+# CentOS/Redhat:
 sudo yum install java-1.6.0-openjdk
 ```
 
@@ -235,7 +256,7 @@ On Ubuntu/Debian:
 sudo apt-get install build-essential openjdk-6-jdk ant
 sudo apt-get install maven || sudo apt-get install maven2
 ```
-On CentOS:
+On CentOS/Redhat:
 
 ```bash
 sudo yum install java-1.6.0-openjdk-devel ant
@@ -354,7 +375,7 @@ sudo a2ensite hyphe
 sudo service apache2 reload
 ```
 
-On CentOS:
+On CentOS/Redhat:
 
 ```bash
 # Apache's mod_proxy & mod_proxy_http usually ship with Httpd on CentOS machines but it might be missing.
