@@ -191,7 +191,7 @@ Or for Redhat > v6:
 The scrapyd's RPM is to old. You have to install Scrapy as python package:
 ```bash
 #install scrapy
-pip install Scrapy
+pip install scrapd==1.0.1
 
 #create environnement
 sudo mkdir /etc/scrapyd/conf.d
@@ -199,6 +199,12 @@ sudo mkdir /var/lib/scrapyd
 cd /var/lib
 #Change <user> with your user
 sudo chown -R <user>:<user> scrapyd
+sudo mkdir /var/log/scrapyd
+cd /var/log
+#Change <user> with your user
+sudo chown -R <user>:<user> scrapyd
+
+#
 ```
 
 Finally, on Debian and Centos, add Hyphe's specific config for ScrapyD:
