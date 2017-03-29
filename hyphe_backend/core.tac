@@ -2392,6 +2392,8 @@ class Memory_Structure(customJSONRPC):
     def jsonrpc_get_tags(self, namespace=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a tree of all existing tags of the webentities hierarchised by namespaces and categories. Optionally limits to a specific `namespace`."""
         tags = yield self.ramcache_tags(corpus)
+        if is_error(tags):
+            returnD(tags)
         if namespace:
             if namespace not in tags.keys():
                 returnD(format_result({}))
@@ -2402,12 +2404,16 @@ class Memory_Structure(customJSONRPC):
     def jsonrpc_get_tag_namespaces(self, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a list of all existing namespaces of the webentities tags."""
         tags = yield self.ramcache_tags(corpus)
+        if is_error(tags):
+            returnD(tags)
         returnD(format_result(tags.keys()))
 
     @inlineCallbacks
     def jsonrpc_get_tag_categories(self, namespace=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a list of all existing categories of the webentities tags. Optionally limits to a specific `namespace`."""
         tags = yield self.ramcache_tags(corpus)
+        if is_error(tags):
+            returnD(tags)
         categories = set()
         for ns in tags.keys():
             if not namespace or (ns == namespace):
@@ -2423,6 +2429,8 @@ class Memory_Structure(customJSONRPC):
     def jsonrpc_get_tag_values(self, namespace=None, category=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a list of all existing values in the webentities tags. Optionally limits to a specific `namespace` and/or `category`."""
         tags = yield self.ramcache_tags(corpus)
+        if is_error(tags):
+            returnD(tags)
         values = set()
         for ns in tags.keys():
             if not namespace or (ns == namespace):
