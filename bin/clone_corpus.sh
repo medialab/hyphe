@@ -43,7 +43,7 @@ if [ -z "$newname" ]; then
 fi
 
 # Check newcorpus does not already exist in mongo and lucenedata
-if [ $(mongo hyphe --eval "db.corpus.count({_id: \"$newcorpus\"})" | grep '^[0-9]') -ne "0" ]; then
+if [ $(mongo "$hyphedb" --eval "db.corpus.count({_id: \"$newcorpus\"})" | grep '^[0-9]') -ne "0" ]; then
   echo "ERROR: there is already a corpus with ID \"$newcorpus\" in Hyphe's corpus MongoDB ($hyphedb)."
   exit 1
 fi
@@ -56,7 +56,7 @@ fi
 function freespace { df "$1/" | tail -1 | awk '{print $4}'; }
 function usedspace { du -s "$1/" | awk '{print $1}'; }
 mongofreespace=$(freespace "$mongodir")
-mongousedspace=$(mongo hyphe --eval "(db.$oldcorpus.jobs.totalSize() + db.$oldcorpus.logs.totalSize() + db.$oldcorpus.pages.totalSize() + db.$oldcorpus.queries.totalSize() + db.$oldcorpus.queue.totalSize() + db['$oldcorpus.stats'].totalSize())/1024" | grep '^[0-9]')
+mongousedspace=$(mongo "$hyphedb" --eval "(db['$oldcorpus.jobs'].totalSize() + db['$oldcorpus.logs'].totalSize() + db['$oldcorpus.pages'].totalSize() + db['$oldcorpus.queries'].totalSize() + db['$oldcorpus.queue'].totalSize() + db['$oldcorpus.stats'].totalSize())/1024" | grep '^[0-9]' | awk -F '.' '{print $1}')
 lucenefreespace=$(freespace "$lucenedir")
 luceneusedspace=$(usedspace "$lucenedir/$oldcorpus")
 minrequired=$((($mongousedspace + $luceneusedspace) * 3 / 2))
@@ -87,20 +87,25 @@ elif [ $minwarning -gt $lucenefreespace ]; then
 fi
 
 # Stop Hyphe
+echo "Stopping Hyphe..."
 if ! bin/hyphe stop --nologs; then
   echo "ERROR: could not stop Hyphe"
   exit 1
 fi
 
 # copy corpus entry in Hyphe's MongoDB  
+echo "Create corpus metas in MongoDB"
 mongo $hyphedb --eval "db.corpus.find({_id: '$oldcorpus'}).forEach( function(x){ x._id = '$newcorpus'; x.name = '$newname'; db.corpus.insert(x); } );"
 
 # Create mongo collections for new corpus
+echo "Copy collections in MongoDB..."
 for coll in jobs logs pages queries queue stats; do
+  echo " - $coll"
   mongoexport -d $hyphedb -c "$oldcorpus.$coll" | mongoimport -d $hyphedb -c "$newcorpus.$coll" --drop
 done
 
 # Copy Lucene data
+echo "Copy Lucene data..."
 cp -r "$lucenedir/$oldcorpus" "$lucenedir/$newcorpus"
 
 # Restart Hyphe
