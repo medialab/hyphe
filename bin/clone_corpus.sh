@@ -53,7 +53,7 @@ if [ -d "$lucenedir/$newcorpus" ]; then
 fi
 
 # Check disk space and required
-function freespace { df "$1/" | tail -1 | awk '{print $4}'; }
+function freespace { df --total "$1/" | tail -1 | awk '{print $4}'; }
 function usedspace { du -s "$1/" | awk '{print $1}'; }
 mongofreespace=$(freespace "$mongodir")
 mongousedspace=$(mongo "$hyphedb" --eval "(db['$oldcorpus.jobs'].totalSize() + db['$oldcorpus.logs'].totalSize() + db['$oldcorpus.pages'].totalSize() + db['$oldcorpus.queries'].totalSize() + db['$oldcorpus.queue'].totalSize() + db['$oldcorpus.stats'].totalSize())/1024" | grep '^[0-9]' | awk -F '.' '{print $1}')
