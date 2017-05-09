@@ -108,6 +108,9 @@ done
 echo "Copy Lucene data..."
 cp -r "$lucenedir/$oldcorpus" "$lucenedir/$newcorpus"
 
+# Deploy new crawler
+bin/deploy_scrapy_spider.sh "$newcorpus"
+
 # Restart Hyphe
 echo "Corpus $oldcorpus successfully cloned into $newcorpus"
 echo "Restarting Hyphe now..."
