@@ -15,7 +15,9 @@ You can try a restricted version of Hyphe at the following url: [http://hyphe.me
 * JACOMY, Mathieu, GIRARD, Paul, OOGHE, Benjamin, et al. [Hyphe, a curation-oriented approach to web crawling for the social sciences.](http://www.aaai.org/ocs/index.php/ICWSM/ICWSM16/paper/view/13051/12797) In : International AAAI Conference on Web and Social Media. Association for the Advancement of Artificial Intelligence, 2016.
 
 ### Papers using Hyphe
- 
+
+* Froio Caterina, "[Nous et les autres. L’altérité sur les sites web des extrêmes droites en France](http://www.cairn.info/article.php?ID_ARTICLE=RES_202_0039&WT.mc_id=RES_202)", Réseaux, 2017/2 (n° 202-203), p. 39-78. DOI : 10.3917/res.202.0039.
+
 * [The AfD’s Facebook Wall as a Hub for Right-Wing Mobilisation in Germany](http://www.kai-arzheimer.com/my-apsa-2015-paper-the-afds-facebook-wall-as-a-hub-for-right-wing-mobilisation-in-germany/)
 
 * Pedroja, Cynthia, et al. "[Dépasser la liste: quand la bibliothèque entre dans la danse des corpus web.](https://hal.archives-ouvertes.fr/hal-01386536/document)" Digital Humanities 2016 (DH2016). Jagiellonian University & Pedagogical University, 2016.
