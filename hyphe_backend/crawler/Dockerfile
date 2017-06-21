@@ -9,7 +9,7 @@ RUN apt-get update \
   && pip install pymongo==2.7 \
   && pip install txmongo==0.6 \
   && pip install selenium==2.42.1 \
-  && pip install Scrapy==0.18 \
+  && pip install Scrapy==0.24.6 \
   && dpkg -i scrapyd_1.0~r0_all.deb
 
 EXPOSE 6800
