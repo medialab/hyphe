@@ -11,7 +11,7 @@ from .tlds import get_tld_from_host_arr
 
 lruPattern = re.compile("^s:[^|]+(\|t:[^|]+)?(\|h:[^|]+)+")
 lruFullPattern = re.compile("^([^:/?#]+):(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$")
-lruSchemePattern = re.compile("https?")
+luuSchemePattern = re.compile("https?")
 lruAuthorityPattern = re.compile("^(?:([^:]+)(?::([^@]+))?\@)?(\[[\da-f]*:[\da-f:]*\]|[^\s:]+)(?::(\d+))?$", re.I)
 lruStems = re.compile(r'(?:^|\|)([shtpqf]):')
 queryStems = re.compile(r'(?:^|&)([^=]+)=([^&]+)')
@@ -296,28 +296,32 @@ def lru_get_node(lru, precision_limit = 1, precision_exceptions = [], lru_head =
     stems.insert(0, lru_head.strip("|"))
     return add_trailing_pipe("|".join(stems))
 
-def lru_variations(lru, tldtree={}, https=True, www=True, encode_utf8=False):
-    listLRUs = [lru]
-    url = lru_to_url(lru, encode_utf8)
-    url2 = None
+def https_variation(lru):
     if "s:http|" in lru:
-        lru2 = lru.replace("s:http|", "s:https|", 1)
-    elif "s:https|" in lru:
-        lru2 = lru.replace("s:https|", "s:http|", 1)
-    if lru2:
-        listLRUs.append(lru2)
-        url2 = lru_to_url(lru2, encode_utf8)
-    if lru.count("|h:") == 1:
-        return listLRUs
-    if "//www." in url:
-        listLRUs.append(url_to_lru_clean(url.replace("//www.", "//", 1), tldtree, encode_utf8))
-        if url2:
-            listLRUs.append(url_to_lru_clean(url2.replace("//www.", "//", 1), tldtree, encode_utf8))
+        return lru.replace("s:http|", "s:https|", 1)
+    if "s:https|" in lru:
+        return lru.replace("s:https|", "s:http|", 1)
+    return None
+
+def lru_variations(lru):
+    variations = [lru]
+    https_var = https_variation(lru)
+    if https_var:
+        variations.append(https_var)
+    stems = lru.split("|")
+    hosts = list([s for s in stems if s.startswith("h:")])
+    hosts_str = "|".join(hosts) + "|"
+    if len(hosts) == 1:
+        return variations
+    if hosts[-1] == "h:www":
+        hosts.pop(-1)
     else:
-        listLRUs.append(url_to_lru_clean(url.replace("//", "//www.", 1), tldtree, encode_utf8))
-        if url2:
-            listLRUs.append(url_to_lru_clean(url2.replace("//", "//www.", 1), tldtree, encode_utf8))
-    return listLRUs
+        hosts.append("h:www")
+    www_hosts_var = "|".join(hosts) + "|"
+    variations.append(lru.replace(hosts_str, www_hosts_var, 1))
+    if https_var:
+        variations.append(https_var.replace(hosts_str, www_hosts_var, 1))
+    return variations
 
 def has_prefix(lru, prefixes):
     if prefixes:

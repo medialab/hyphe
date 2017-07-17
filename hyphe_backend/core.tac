@@ -1364,7 +1364,7 @@ class Memory_Structure(customJSONRPC):
                 lru = urllru.lru_strip_path_trailing_slash(lru)
             except ValueError as e:
                 returnD(format_error(e))
-            for l in [lru] if not lruVariations else urllru.lru_variations(lru, self.corpora[corpus]["tlds"]):
+            for l in [lru] if not lruVariations else urllru.lru_variations(lru):
                 existing = yield self.msclients.pool.getWebEntityByLRUPrefix(l, corpus=corpus)
                 if not is_error(existing):
                     returnD(format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (l, existing)))
