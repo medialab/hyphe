@@ -21,7 +21,6 @@
     "max_simul_links_indexing": 10000
   },
   "twisted.port": 6978,
-  "precisionLimit": 2,
   "defaultStartpagesMode": ["prefixes", "pages-5"],
   "defaultCreationRule": "domain",
   "creationRules": {

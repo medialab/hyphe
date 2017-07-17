@@ -261,9 +261,6 @@ def lru_clean(lru):
     lru = add_trailing_pipe(lru)
     return lru
 
-def lru_is_full_precision(lru, precision_exceptions = []):
-    return (lru in precision_exceptions)
-
 re_host_lru = re.compile(r'(([sth]:[^|]*(\||$))+)', re.I)
 def lru_get_host_url(lru):
     return lru_to_url(re_host_lru.match(lru).group(1), False)
@@ -271,30 +268,6 @@ def lru_get_host_url(lru):
 re_path_lru = re.compile(r'(([sthp]:[^|]*(\||$))+)', re.I)
 def lru_get_path_url(lru):
     return lru_to_url(re_path_lru.match(lru).group(1), False)
-
-def lru_get_head(lru, precision_exceptions = []):
-    possible_result = ""
-    for precision_exception in precision_exceptions:
-        if lru.startswith(precision_exception) and len(precision_exception) > len(possible_result):
-            possible_result = precision_exception
-    if possible_result:
-        return possible_result
-    return add_trailing_pipe(re_host_lru.match(lru).group(1))
-
-# Identify links which are nodes
-def lru_is_node(lru, precision_limit = 1, precision_exceptions = [], lru_head = None):
-    if not lru_head:
-        lru_head = lru_get_head(lru, precision_exceptions)
-    return (len(split_lru_in_stems(lru.replace(lru_head, ''), False)) <= precision_limit)
-
-# Get a LRU's node
-def lru_get_node(lru, precision_limit = 1, precision_exceptions = [], lru_head = None) :
-# need to add check for exceptions
-    if not lru_head:
-        lru_head = lru_get_head(lru, precision_exceptions)
-    stems = [stem for _, _, stem in split_lru_in_stems(lru.replace(lru_head, ''), False)[:precision_limit]]
-    stems.insert(0, lru_head.strip("|"))
-    return add_trailing_pipe("|".join(stems))
 
 def https_variation(lru):
     if "s:http|" in lru:

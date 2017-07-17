@@ -118,7 +118,7 @@ class Core(customJSONRPC):
         except Exception as e:
             returnD(format_error(e))
         redeploy = False
-        if ("precision_limit" in options or "defaultCreationRule" in options or "defautStartpagesMode" in options) and \
+        if ("defaultCreationRule" in options or "defautStartpagesMode" in options) and \
           self.corpora[corpus]['crawls'] + self.corpora[corpus]['total_webentities'] > 0:
             returnD(format_error("Precision limit, defautStartpagesMode and default WE creation rule of a corpus can only be set when the corpus is created"))
         if "defaultCreationRule" in options:
@@ -250,7 +250,6 @@ class Core(customJSONRPC):
         self.corpora[corpus]["webentities_links"] = None
         self.corpora[corpus]["webentities_ranks"] = {}
         self.corpora[corpus]["creation_rules"] = []
-        self.corpora[corpus]["precision_exceptions"] = []
         self.corpora[corpus]["crawls"] = 0
         self.corpora[corpus]["crawls_running"] = 0
         self.corpora[corpus]["crawls_pending"] = 0
@@ -374,7 +373,7 @@ class Core(customJSONRPC):
                     self.msclients.stop_corpus(corpus, _quiet)
                 else:
                     reactor.callInThread(self.msclients.stop_corpus, corpus, _quiet)
-            for f in ["tags", "webentities", "webentities_links", "webentities_ranks", "precision_exceptions"]:
+            for f in ["tags", "webentities", "webentities_links", "webentities_ranks"]:
                 if f in self.corpora[corpus]:
                     del(self.corpora[corpus][f])
         yield self.db.clean_WEs_query(corpus)
@@ -1092,10 +1091,6 @@ class Memory_Structure(customJSONRPC):
         self.corpora[corpus]['recent_tagging'] = True
         yield self.ensureDefaultCreationRuleExists(corpus, _quiet=_noloop)
         if not _noloop:
-            if _delay:
-                reactor.callLater(5, self.jsonrpc_get_precision_exceptions, corpus)
-            else:
-                yield self.jsonrpc_get_precision_exceptions(corpus=corpus)
             reactor.callLater(10 if _delay else 1, self.corpora[corpus]['index_loop'].start, 0, True)
             reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, True)
 
@@ -1279,13 +1274,8 @@ class Memory_Structure(customJSONRPC):
             url, lru = urllru.url_clean_and_convert(url, self.corpora[corpus]["tlds"])
         except ValueError as e:
             returnD(format_error(e))
-        res = self.handle_lru_precision_exceptions(lru, corpus=corpus)
-        if is_error(res):
-            returnD(res)
-        is_node = urllru.lru_is_node(lru, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'])
-        is_full_precision = urllru.lru_is_full_precision(lru, self.corpora[corpus]['precision_exceptions'])
         t = str(now_ts())
-        page = ms.PageItem(url, lru, t, None, -1, None, ['USER'], is_full_precision, is_node, {})
+        page = ms.PageItem(url, lru, t, None, -1, None, ['USER'], True, True, {})
         cache_id = self.msclients.sync.createCache([page], corpus=corpus)
         if is_error(cache_id):
             returnD(cache_id)
@@ -1398,10 +1388,6 @@ class Memory_Structure(customJSONRPC):
                     if config['DEBUG']:
                         logger.msg("Removing homepage %s from parent WebEntity %s" % (parent.homepage, parent.name), system="DEBUG - %s" % corpus)
                     self.jsonrpc_set_webentity_homepage(parent.id, "", corpus=corpus)
-        for lru in new_WE['lru_prefixes']:
-            res = self.handle_lru_precision_exceptions(lru, corpus=corpus)
-            if is_error(res):
-                returnD(res)
         returnD(format_result(new_WE))
 
 
@@ -1448,14 +1434,6 @@ class Memory_Structure(customJSONRPC):
                                 arr.append(v)
                             elif isinstance(arr, set):
                                 arr.add(v)
-                            if field_name == 'LRUSet':
-                                res = self.handle_lru_precision_exceptions(v, corpus=corpus)
-                                if is_error(res):
-                                    returnD(res)
-                            elif field_name == 'startpages':
-                                res = self.handle_url_precision_exceptions(v, corpus=corpus)
-                                if is_error(res):
-                                    returnD(res)
                 elif array_behavior == "pop":
                     for v in values:
                         arr.remove(v)
@@ -1812,7 +1790,7 @@ class Memory_Structure(customJSONRPC):
         pages_to_index = len(ids)
         if not pages_to_index:
             returnD(False)
-        pages, links, autostartpages = yield deferToThread(processor.generate_cache_from_pages_list, page_items, self.corpora[corpus]["options"]["precision_limit"], self.corpora[corpus]['precision_exceptions'], config['DEBUG'] > 0, autostarts=job.get('crawl_arguments', {}).get('start_urls_auto', []))
+        pages, links, autostartpages = yield deferToThread(processor.generate_cache_from_pages_list, page_items, config['DEBUG'] > 0, autostarts=job.get('crawl_arguments', {}).get('start_urls_auto', []))
         if job['webentity_id']:
             for auto in autostartpages:
                 yield self.jsonrpc_add_webentity_startpage(job['webentity_id'], auto, corpus=corpus, _automatic=True)
@@ -2444,7 +2422,7 @@ class Memory_Structure(customJSONRPC):
     def format_pages(self, pages):
         if is_error(pages):
             return pages
-        return [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'linked': p.linked, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'is_node': p.isNode, 'is_full_precision': p.isFullPrecision, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
+        return [{'lru': p.lru, 'sources': list(p.sourceSet), 'crawl_timestamp': p.crawlerTimestamp, 'url': p.url, 'linked': p.linked, 'depth': p.depth, 'error': p.errorCode, 'http_status': p.httpStatusCode, 'creation_date': p.creationDate, 'last_modification_date': p.lastModificationDate} for p in pages]
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
@@ -2488,7 +2466,7 @@ class Memory_Structure(customJSONRPC):
         returnD(format_result(res))
 
     @inlineCallbacks
-    def jsonrpc_get_webentity_nodelinks_network(self, webentity_id=None, include_external_links=False, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentity_pagelinks_network(self, webentity_id=None, include_external_links=False, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true"."""
         s = time.time()
         logger.msg("Generating NodeLinks network for WebEntity %s..." % webentity_id, system="INFO - %s" % corpus)
@@ -2684,44 +2662,6 @@ class Memory_Structure(customJSONRPC):
         if is_error(prefix):
             returnD(prefix)
         returnD(format_result({pageLRU: prefix}))
-
-  # PRECISION EXCEPTIONS
-
-    def handle_url_precision_exceptions(self, url, corpus=DEFAULT_CORPUS):
-        lru = urllru.url_to_lru_clean(url, self.corpora[corpus]["tlds"], False)
-        return self.handle_lru_precision_exceptions(lru, corpus=corpus)
-
-    def handle_lru_precision_exceptions(self, lru_prefix, corpus=DEFAULT_CORPUS):
-        if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
-        lru_head = urllru.lru_get_head(lru_prefix, self.corpora[corpus]['precision_exceptions'])
-        if not urllru.lru_is_node(lru_prefix, self.corpora[corpus]["options"]["precision_limit"], lru_head=lru_head) and lru_prefix != lru_head:
-            res = self.msclients.sync.addPrecisionExceptions([lru_prefix], corpus=corpus)
-            if is_error(res):
-                return res
-            self.corpora[corpus]['precision_exceptions'].append(lru_prefix)
-        return format_result("LRU Precision Exceptions handled")
-
-    def jsonrpc_get_precision_exceptions(self, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` the list of all existing PrecisionExceptions."""
-        exceptions = self.msclients.sync.getPrecisionExceptions(corpus=corpus)
-        if is_error(exceptions):
-            return exceptions
-        self.corpora[corpus]['precision_exceptions'] = exceptions
-        return format_result(exceptions)
-
-    def jsonrpc_delete_precision_exceptions(self, list_lru_exceptions, corpus=DEFAULT_CORPUS):
-        """Removes from a `corpus` a set of existing PrecisionExceptions listed as `list_lru_exceptions`."""
-        res = self.msclients.sync.removePrecisionExceptions(list_lru_exceptions, corpus=corpus)
-        if is_error(res):
-            return res
-        for e in list_lru_exceptions:
-            self.corpora[corpus]['precision_exceptions'].remove(e)
-        return format_result("Precision Exceptions %s removed." % list_lru_exceptions)
-
-    def jsonrpc_add_precision_exception(self, lru_prefix, corpus=DEFAULT_CORPUS):
-        """Adds to a `corpus` a new PrecisionException for `lru_prefix`."""
-        return self.handle_lru_precision_exceptions(lru_prefix, corpus)
 
   # VARIOUS
 

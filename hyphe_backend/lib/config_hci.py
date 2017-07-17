@@ -199,8 +199,6 @@ GLOBAL_CONF_SCHEMA = {
     "type": dict,
     "keys": str,
     "values": creationrules.testPreset
-  }, "precisionLimit": {
-    "type": int
   }, "discoverPrefixes": {
     "type": list
   }, "phantom": {
@@ -227,10 +225,6 @@ CORPUS_CONF_SCHEMA = {
   "max_depth": {
     "type": int,
     "default": "global/mongo-scrapy/maxdepth"
-  },
-  "precision_limit": {
-    "type": int,
-    "default": "global/precisionLimit"
   },
   "defaultStartpagesMode": {
     "type": validateStartpagesMode,
