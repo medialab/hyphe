@@ -309,7 +309,7 @@ def lru_variations(lru):
     if https_var:
         variations.append(https_var)
     stems = lru.split("|")
-    hosts = list([s for s in stems if s.startswith("h:")])
+    hosts = [s for s in stems if s.startswith("h:")]
     hosts_str = "|".join(hosts) + "|"
     if len(hosts) == 1:
         return variations
