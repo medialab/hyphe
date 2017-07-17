@@ -11,7 +11,7 @@ from .tlds import get_tld_from_host_arr
 
 lruPattern = re.compile("^s:[^|]+(\|t:[^|]+)?(\|h:[^|]+)+")
 lruFullPattern = re.compile("^([^:/?#]+):(?://([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$")
-luuSchemePattern = re.compile("https?")
+lruSchemePattern = re.compile("https?")
 lruAuthorityPattern = re.compile("^(?:([^:]+)(?::([^@]+))?\@)?(\[[\da-f]*:[\da-f:]*\]|[^\s:]+)(?::(\d+))?$", re.I)
 lruStems = re.compile(r'(?:^|\|)([shtpqf]):')
 queryStems = re.compile(r'(?:^|&)([^=]+)=([^&]+)')
