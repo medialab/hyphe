@@ -122,14 +122,7 @@ class Core(customJSONRPC):
           self.corpora[corpus]['crawls'] + self.corpora[corpus]['total_webentities'] > 0:
             returnD(format_error("Precision limit, defautStartpagesMode and default WE creation rule of a corpus can only be set when the corpus is created"))
         if "defaultCreationRule" in options:
-            rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
-            if is_error(rules):
-                logger.msg("Error collecting WECRs before updating default one...", system="ERROR - %s" % corpus)
-            defrule = [r for r in rules if r.LRU==ms_const.DEFAULT_WEBENTITY_CREATION_RULE][0]
-            yield self.msclients.pool.removeWebEntityCreationRule(defrule, corpus=corpus)
-            res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(options["defaultCreationRule"]), ''), corpus=corpus)
-            if is_error(res):
-                logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
+            yield self.store.update_default_creationrule(options["defaultCreationRule"], corpus)
 
         if "proxy" in options or ("phantom" in options and (\
           "timeout" in options["phantom"] or \
@@ -1089,7 +1082,7 @@ class Memory_Structure(customJSONRPC):
         self.corpora[corpus]['loop_running_since'] = now
         self.corpora[corpus]['last_WE_update'] = now
         self.corpora[corpus]['recent_tagging'] = True
-        yield self.ensureDefaultCreationRuleExists(corpus, _quiet=_noloop)
+        yield self.init_creationrules(corpus, _quiet=_noloop)
         if not _noloop:
             reactor.callLater(10 if _delay else 1, self.corpora[corpus]['index_loop'].start, 0, True)
             reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, True)
@@ -2498,7 +2491,21 @@ class Memory_Structure(customJSONRPC):
   # CREATION RULES
 
     @inlineCallbacks
-    def ensureDefaultCreationRuleExists(self, corpus=DEFAULT_CORPUS, _quiet=False, _retry=True):
+    def update_default_creationrule(self, creationRuleName, corpus=DEFAULT_CORPUS):
+        yield self.db.set_default_WECR(corpus, creationrules.getPreset(creationRuleName))
+        # yield traph.set_WECR(corpus, "DEFAULT", wecr["prefix"])
+        # TODO TRAPH: remove below and send default WECR to Traph instead
+        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
+        if is_error(rules):
+            logger.msg("Error collecting WECRs before updating default one...", system="ERROR - %s" % corpus)
+        defrule = [r for r in rules if r.LRU==ms_const.DEFAULT_WEBENTITY_CREATION_RULE][0]
+        yield self.msclients.pool.removeWebEntityCreationRule(defrule, corpus=corpus)
+        res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(creationRuleName), ''), corpus=corpus)
+        if is_error(res):
+            logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
+
+    @inlineCallbacks
+    def init_creationrules(self, corpus=DEFAULT_CORPUS, _quiet=False, _retry=True):
         res = yield self.parent.jsonrpc_ping(corpus, timeout=15)
         if is_error(res):
             logger.msg("Could not start corpus fast enough to create WE creation rule...", system="ERROR - %s" % corpus)
@@ -2507,18 +2514,22 @@ class Memory_Structure(customJSONRPC):
         if self.msclients.test_corpus(corpus) and (is_error(rules) or len(rules['result']) == 0):
             if corpus != DEFAULT_CORPUS and not _quiet:
                 logger.msg("Saves default WE creation rule", system="INFO - %s" % corpus)
+            yield self.db.set_default_WECR(corpus, creationrules.getPreset(self.corpora[corpus]["options"].get("defaultCreationRule", "domain")))
+            # yield traph.set_WECR(corpus, "DEFAULT", wecr["prefix"])
+            # TODO TRAPH: remove below and send default WECR to Traph instead (or call update_default_creationrule(self.corpora[corpus]["options"].get("defaultCreationRule", "domain"))) now)
             res = yield self.msclients.pool.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(self.corpora[corpus]["options"].get("defaultCreationRule", "domain")), ''), corpus=corpus)
             if is_error(res):
                 logger.msg("Error creating WE creation rule...", system="ERROR - %s" % corpus)
                 if _retry:
                     logger.msg("Retrying WE creation rule creation...", system="ERROR - %s" % corpus)
-                    returnD(ensureDefaultCreationRuleExists(corpus, _quiet=_quiet, _retry=False))
+                    returnD(init_creationrules(corpus, _quiet=_quiet, _retry=False))
                 returnD(res)
+            # Stop remove here
             actions = []
             for prf, regexp in config.get("creationRules", {}).items():
                 for prefix in ["http://%s" % prf, "https://%s" % prf]:
                     lru = urllru.url_to_lru_clean(prefix, self.corpora[corpus]["tlds"])
-                    actions.append(self.jsonrpc_add_webentity_creationrule(lru, creationrules.getPreset(regexp, lru), corpus=corpus))
+                    actions.append(self.jsonrpc_add_webentity_creationrule(lru, creationrules.getPreset(regexp, lru), onlycreate=True, corpus=corpus))
             results = yield DeferredList(actions, consumeErrors=True)
             for bl, res in results:
                 if not bl:
@@ -2531,7 +2542,7 @@ class Memory_Structure(customJSONRPC):
         """Returns for a `corpus` the default WebEntityCreationRule."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        res = yield self.jsonrpc_get_webentity_creationrules(lru_prefix=ms_const.DEFAULT_WEBENTITY_CREATION_RULE, corpus=corpus)
+        res = yield self.db.get_default_WECR(corpus)
         returnD(format_result(res))
 
     @inlineCallbacks
@@ -2539,71 +2550,79 @@ class Memory_Structure(customJSONRPC):
         """Returns for a `corpus` all existing WebEntityCreationRules or only one set for a specific `lru_prefix`."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
-        if is_error(rules):
-            returnD(format_error(rules))
-        results = [{"prefix": r.LRU, "regexp": r.regExp, "name": creationrules.getName(r.regExp, r.LRU)} for r in rules if not lru_prefix or r.LRU == lru_prefix]
         if lru_prefix:
-            if results:
-                results = results[0]
-            else:
-                results = None
+            res = yield self.db.find_WECR(corpus, lru_prefix)
         else:
-            self.corpora[corpus]["creation_rules"] = results
-        returnD(format_result(results))
+            res = yield self.db.get_WECRs(corpus)
+            self.corpora[corpus]["creation_rules"] = res
+        returnD(format_result(res))
 
     @inlineCallbacks
     def jsonrpc_delete_webentity_creationrule(self, lru_prefix, corpus=DEFAULT_CORPUS):
         """Removes from a `corpus` an existing WebEntityCreationRule set for a specific `lru_prefix`."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
         variations = urllru.lru_variations(lru_prefix)
         deleted = 0
+        rules = yield self.db.find_WECRs(corpus, variations)
+        for wecr in rules:
+            yield seld.db.remove_WECR(corpus, wecr["prefix"])
+            deleted += 1
+            # yield traph.remove_WECR(corpus, wecr["prefix"])
+        # TODO TRAPH: remove below and send delete to traph
+
+        rules = yield self.msclients.pool.getWebEntityCreationRules(corpus=corpus)
         for wecr in rules:
             if wecr.LRU in variations:
                 res = yield self.msclients.loop.removeWebEntityCreationRule(wecr, corpus=corpus)
                 if is_error(res):
                     returnD(format_error(res))
                 deleted += 1
+        # Stop remove here
         if deleted:
             self.jsonrpc_get_webentity_creationrules(corpus=corpus)
             returnD(format_result('WebEntityCreationRule for prefix %s deleted.' % lru_prefix))
         returnD(format_error("No existing WebEntityCreationRule found for prefix %s." % lru_prefix))
 
     @inlineCallbacks
-    def jsonrpc_add_webentity_creationrule(self, lru_prefix, regexp, apply_to_existing_pages=False, corpus=DEFAULT_CORPUS):
-        """Adds to a `corpus` a new WebEntityCreationRule set for a `lru_prefix` to a specific `regexp` or one of "subdomain"/"subdomain-N"/"domain"/"path-N"/"prefix+N"/"page" N being an integer. Optionally set `apply_to_existing_pages` to "true" to apply it immediately to past crawls."""
+    def jsonrpc_add_webentity_creationrule(self, lru_prefix, regexp, onlycreate=False, corpus=DEFAULT_CORPUS):
+        """Adds to a `corpus` a new WebEntityCreationRule set for a `lru_prefix` to a specific `regexp` or one of "subdomain"/"subdomain-N"/"domain"/"path-N"/"prefix+N"/"page" N being an integer. It will immediately by applied to past crawls."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         try:
             _, lru_prefix = urllru.lru_clean_and_convert(lru_prefix)
         except ValueError as e:
             returnD(format_error(e))
+        news = 0
         variations = urllru.lru_variations(lru_prefix)
         for variation in variations:
+            yield self.db.add_WECR(corpus, variation, creationrules.getPreset(regexp, variation))
+            self.corpora[corpus]['recent_changes'] += 1
+            # news += yield traph.add_WECR(corpus, variation, creationrules.getPreset(regexp, variation))
+            # TODO TRAPH: remove below + send to traph new Rule (and collect nb new WEs)
             res = yield self.msclients.loop.addWebEntityCreationRule(ms.WebEntityCreationRule(creationrules.getPreset(regexp, variation), variation), corpus=corpus)
             if is_error(res):
                 returnD(format_error("Could not save CreationRule %s for prefix %s: %s" % (regexp, variation, res)))
+            # Stop remove here
         self.jsonrpc_get_webentity_creationrules(corpus=corpus)
-        if apply_to_existing_pages:
-            news = 0
-            for variation in variations:
-                res = yield self.jsonrpc_get_lru_definedprefixes(variation, corpus=corpus, _include_homepages=True)
-                if not is_error(res):
-                    yield self.jsonrpc_add_webentities_tag_value([r["id"] for r in res["result"]], "CORE", "recrawlNeeded", "true", corpus=corpus)
-                    # Remove potential homepage from parent WE that would belong to the new WEs
-                    for parent in [p for p in res["result"] if p["homepage"]]:
-                        parenthomelru = urllru.url_to_lru_clean(parent["homepage"], self.corpora[corpus]["tlds"])
-                        if parenthomelru != variation and urllru.has_prefix(parenthomelru, variations):
-                            if config['DEBUG']:
-                                logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
-                            yield self.jsonrpc_set_webentity_homepage(parent["id"], "", corpus=corpus)
-                news += yield self.msclients.loop.reindexPageItemsMatchingLRUPrefix(variation, corpus=corpus)
-            self.corpora[corpus]['recent_changes'] += 1
-            returnD(format_result("Webentity creation rule added and applied: %s new webentities created" % news))
-        self.corpora[corpus]['recent_changes'] += 1
-        returnD(format_result("Webentity creation rule added"))
+        if onlycreate:
+            returnD(format_result("Webentity creation rule added"))
+
+        for variation in variations:
+            res = yield self.jsonrpc_get_lru_definedprefixes(variation, corpus=corpus, _include_homepages=True)
+            if not is_error(res):
+                yield self.jsonrpc_add_webentities_tag_value([r["id"] for r in res["result"]], "CORE", "recrawlNeeded", "true", corpus=corpus)
+                # Remove potential homepage from parent WE that would belong to the new WEs
+                for parent in [p for p in res["result"] if p["homepage"]]:
+                    parenthomelru = urllru.url_to_lru_clean(parent["homepage"], self.corpora[corpus]["tlds"])
+                    if parenthomelru != variation and urllru.has_prefix(parenthomelru, variations):
+                        if config['DEBUG']:
+                            logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
+                        yield self.jsonrpc_set_webentity_homepage(parent["id"], "", corpus=corpus)
+            # TODO TRAPH: remove line below
+            news += yield self.msclients.loop.reindexPageItemsMatchingLRUPrefix(variation, corpus=corpus)
+        self.corpora[corpus]['recent_changes'] += news
+        returnD(format_result("Webentity creation rule added and applied: %s new webentities created" % news))
 
     @inlineCallbacks
     def jsonrpc_simulate_creationrules_for_urls(self, pageURLs, corpus=DEFAULT_CORPUS):

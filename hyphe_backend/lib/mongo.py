@@ -10,6 +10,7 @@ from txmongo.filter import sort as mongosort, ASCENDING, DESCENDING
 from pymongo.errors import OperationFailure
 from bson import ObjectId
 from hyphe_backend.lib.utils import crawling_statuses, indexing_statuses, salt, now_ts
+from hyphe_backend.lib.creationrules import getName as name_creationrule
 
 def sortasc(field):
     return mongosort(ASCENDING(field))
@@ -97,6 +98,9 @@ class MongoDB(object):
     def init_corpus_indexes(self, corpus, retry=True):
         try:
             yield self.db()['corpus'].create_index(sortdesc('last_activity'), background=True)
+            # TODO prepare indexes for WEs
+            #yield self.WEs(corpus).create_index(sortasc('timestamp'), background=True)
+            yield self.WECRs(corpus).create_index(sortasc('prefix'), background=True)
             yield self.pages(corpus).create_index(sortasc('timestamp'), background=True)
             yield self.pages(corpus).create_index(sortasc('_job'), background=True)
             yield self.pages(corpus).create_index(sortasc('_job') + sortasc('forgotten'), background=True)
@@ -125,6 +129,8 @@ class MongoDB(object):
     def _get_coll(self, corpus, name):
         return self.db(corpus)[name]
 
+    def WECRs(self, corpus):
+        return self._get_coll(corpus, "creationrules")
     def queue(self, corpus):
         return self._get_coll(corpus, "queue")
     def pages(self, corpus):
@@ -140,12 +146,46 @@ class MongoDB(object):
 
     @inlineCallbacks
     def drop_corpus_collections(self, corpus):
+        yield self.WECRs(corpus).drop(safe=True)
         yield self.queue(corpus).drop(safe=True)
         yield self.pages(corpus).drop(safe=True)
         yield self.jobs(corpus).drop(safe=True)
         yield self.logs(corpus).drop(safe=True)
         yield self.queries(corpus).drop(safe=True)
         yield self.stats(corpus).drop(safe=True)
+
+    @inlineCallbacks
+    def get_WECRs(self, corpus):
+        res = yield self.WECRs(corpus).find()
+        returnD(res)
+
+    @inlineCallbacks
+    def find_WECR(self, corpus, prefix):
+        res = yield self.WECRs(corpus).find_one({"prefix": prefix})
+        returnD(res or None)
+
+    @inlineCallbacks
+    def find_WECRs(self, corpus, prefixes):
+        res = yield self.WECRs(corpus).find({"prefix": {"$in": prefixes}})
+        returnD(res)
+
+    @inlineCallbacks
+    def add_WECR(self, corpus, prefix, regexp):
+        yield self.WECRs(corpus).update({"prefix": prefix}, {"$set": {"regexp": regexp, "name": name_creationrule(regexp, prefix)}}, upsert=True)
+
+    @inlineCallbacks
+    def remove_WECR(self, corpus, prefix):
+        yield self.WECRs(corpus).remove({"prefix": prefix}, safe=True)
+
+    @inlineCallbacks
+    def get_default_WECR(self, corpus):
+        res = yield self.find_WECR(corpus, "DEFAULT_WEBENTITY_CREATION_RULE")
+        returnD(res)
+
+    @inlineCallbacks
+    def set_default_WECR(self, corpus, regexp):
+        yield self.add_WECR(corpus, "DEFAULT_WEBENTITY_CREATION_RULE", regexp)
+
 
     @inlineCallbacks
     def list_logs(self, corpus, job, **kwargs):
