@@ -24,7 +24,11 @@ class MongoDB(object):
         self.port = int(environ.get('HYPHE_MONGODB_PORT', conf.get("port", conf.get("mongo_port", 27017))))
         self.dbname = conf.get("db_name", conf.get("project", "hyphe"))
         self.conn = MongoConnection(self.host, self.port, pool_size=pool)
-        self.db = self.conn[self.dbname]
+
+    def db(self, corpus=None):
+        if not corpus:
+            return self.conn[self.dbname]
+        return self.conn["%s_%s" % (self.dbname, corpus)]
 
     @inlineCallbacks
     def close(self):
@@ -38,13 +42,13 @@ class MongoDB(object):
         kwargs["safe"] = True
         if "filter" not in kwargs:
             kwargs["filter"] = sortdesc("last_activity")
-        res = yield self.db['corpus'].find(*args, **kwargs)
+        res = yield self.db()['corpus'].find(*args, **kwargs)
         returnD(res)
 
     @inlineCallbacks
     def add_corpus(self, corpus, name, password, options, tlds=None):
         now = now_ts()
-        yield self.db["corpus"].insert({
+        yield self.db()["corpus"].insert({
           "_id": corpus,
           "name": name,
           "password": salt(password),
@@ -72,27 +76,27 @@ class MongoDB(object):
 
     @inlineCallbacks
     def get_corpus(self, corpus):
-        res = yield self.db["corpus"].find_one({"_id": corpus}, safe=True)
+        res = yield self.db()["corpus"].find_one({"_id": corpus}, safe=True)
         returnD(res)
 
     @inlineCallbacks
     def get_corpus_by_name(self, corpus):
-        res = yield self.db["corpus"].find_one({"name": corpus}, safe=True)
+        res = yield self.db()["corpus"].find_one({"name": corpus}, safe=True)
         returnD(res)
 
     @inlineCallbacks
     def update_corpus(self, corpus, modifs):
-        yield self.db["corpus"].update({"_id": corpus}, {"$set": modifs}, safe=True)
+        yield self.db()["corpus"].update({"_id": corpus}, {"$set": modifs}, safe=True)
 
     @inlineCallbacks
     def delete_corpus(self, corpus):
-        yield self.db["corpus"].remove({'_id': corpus}, safe=True)
+        yield self.db()["corpus"].remove({'_id': corpus}, safe=True)
         yield self.drop_corpus_collections(corpus)
 
     @inlineCallbacks
     def init_corpus_indexes(self, corpus, retry=True):
         try:
-            yield self.db['corpus'].create_index(sortdesc('last_activity'), background=True)
+            yield self.db()['corpus'].create_index(sortdesc('last_activity'), background=True)
             yield self.pages(corpus).create_index(sortasc('timestamp'), background=True)
             yield self.pages(corpus).create_index(sortasc('_job'), background=True)
             yield self.pages(corpus).create_index(sortasc('_job') + sortasc('forgotten'), background=True)
@@ -111,7 +115,7 @@ class MongoDB(object):
         except OperationFailure as e:
             # catch and destroy old indices built with older pymongo versions
             if retry:
-                yield self.db['corpus'].drop_indexes()
+                yield self.db()['corpus'].drop_indexes()
                 for coll in ["pages", "queue", "logs", "jobs", "stats"]:
                     yield self._get_coll(corpus, coll).drop_indexes()
                 yield self.init_corpus_indexes(corpus, retry=False)
@@ -119,7 +123,7 @@ class MongoDB(object):
                 raise e
 
     def _get_coll(self, corpus, name):
-        return self.db["%s.%s" % (corpus, name)]
+        return self.db(corpus)[name]
 
     def queue(self, corpus):
         return self._get_coll(corpus, "queue")
