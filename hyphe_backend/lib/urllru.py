@@ -277,6 +277,8 @@ def https_variation(lru):
     return None
 
 def lru_variations(lru):
+    if not lru.strip():
+        return [""]
     variations = [lru]
     https_var = https_variation(lru)
     if https_var:
