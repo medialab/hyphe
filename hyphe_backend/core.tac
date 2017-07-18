@@ -209,6 +209,9 @@ class Core(customJSONRPC):
         with open(os.path.join("hyphe_backend", "crawler", "hcicrawler", "tlds_tree.py"), "wb") as tlds_file:
             print >> tlds_file, "TLDS_TREE =", tlds
 
+        # Save corpus in mongo
+        yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"], tlds)
+
         # Deploy crawler
         try:
             res = yield self.crawler.jsonrpc_deploy_crawler(corpus, _quiet=_quiet)
@@ -218,11 +221,8 @@ class Core(customJSONRPC):
         if not res or is_error(res):
             returnD(res)
 
-        # Save corpus in mongo
         if not _quiet:
             logger.msg("New corpus created", system="INFO - %s" % corpus)
-        yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"], tlds)
-
         # Start corpus
         res = yield self.jsonrpc_start_corpus(corpus, password=password, _noloop=_noloop, _quiet=_quiet)
         returnD(res)

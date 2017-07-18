@@ -32,9 +32,9 @@ DUPEFILTER_CLASS = 'hcicrawler.middlewares.CustomDupeFilter'
 
 MONGO_HOST = '{{host}}'
 MONGO_PORT = {{mongo_port}}
-MONGO_DB = '{{db_name}}'
-MONGO_QUEUE_COL = '{{project}}.queue'
-MONGO_PAGESTORE_COL = '{{project}}.pages'
+MONGO_DB = '{{db_name}}_{{project}}'
+MONGO_QUEUE_COL = 'queue'
+MONGO_PAGESTORE_COL = 'pages'
 
 PHANTOM = {
   "PATH": os.path.join('{{hyphePath}}', 'bin', 'hyphe-phantomjs-2.0.0'),
