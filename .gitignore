@@ -9,6 +9,7 @@ install.log
 archives/
 log/
 lucene-data/
+traph-data/
 memory_structure/src/main/java/fr/sciencespo/medialab/hci/memorystructure/thrift/*
 memory_structure/target/*
 memory_structure/.*
