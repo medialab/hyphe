@@ -1,5 +1,8 @@
 import os, json
+from time import time
+from Queue import PriorityQueue
 from twisted.internet import reactor
+from twisted.internet.defer import Deferred, inlineCallbacks, returnValue
 from twisted.internet.protocol import Protocol, ProcessProtocol
 from twisted.internet.endpoints import UNIXClientEndpoint, connectProtocol
 
@@ -31,7 +34,7 @@ class TraphCorpus():
             self.transport = None
 
     def call(self, method, *args, **kwargs):
-        self.client.sendMessage(method, *args, **kwargs)
+        return self.client.sendMessage(method, *args, **kwargs)
 
 
 class TraphProcessProtocol(ProcessProtocol):
@@ -65,26 +68,58 @@ class TraphProcessProtocol(ProcessProtocol):
             self.transport.signalProcess("TERM")
 
 
+TraphMethodsPriorities = {
+    "create_webentity": -5
+}
+def TraphMethodPriority(method):
+    try:
+        return TraphMethodsPriorities[method]
+    except:
+        return 0
+
 class TraphClientProtocol(Protocol):
 
     def __init__(self):
         self.ready = False
+        self.deferred = None
+        self.queue = PriorityQueue()
 
     def connectionMade(self):
         print "Connection established with traph"
         self.ready = True
 
     def sendMessage(self, method, *args, **kwargs):
+        deferred = Deferred()
+        priority =
+        print "ADD TO QUEUE"
+        self.queue.put((priority, time(), deferred, method, args, kwargs), False)
+        if not self.deferred:
+            self._sendMessageNow()
+        return deferred
+
+    def _sendMessageNow(self):
+        if self.queue.empty():
+            return
+        _, _, self.deferred, method, args, kwargs = self.queue.get(False)
         print "CLIENT SENDING:", method, args, kwargs
-        self.transport.write(json.dumps({"method": method, "args": args, "kwargs": kwargs}))
+        self.transport.writeSequence(json.dumps({"method": method, "args": args, "kwargs": kwargs}))
 
     def dataReceived(self, data):
-        print "CLIENT RECEIVED:", data
+        data = data.strip()
+        print "SERVER ANSWERED:", data
+        try:
+            msg = json.loads(data)
+            self.deferred.callback(data)
+        except ValueError:
+            print >> sys.stderr, "ERROR received non json data", data
+            self.deferred.errback(data)
+        self.deferred = None
+        self._sendMessageNow()
 
-    def testClient(self):
-        self.sendMessage("Hello")
-        reactor.callLater(1, self.sendMessage, "This is sent in a second")
-
+@inlineCallbacks
+def testClient(corpus, msg="TEST"):
+    res = yield corpus.call(msg)
+    print "YEEEHA", res
 
 if __name__ == "__main__":
     import sys
@@ -92,5 +127,8 @@ if __name__ == "__main__":
     corpus = TraphCorpus(sys.argv[1])
     corpus.start()
 
-    reactor.callLater(5, corpus.client.testClient)
+    reactor.callLater(2, testClient, corpus)
+    reactor.callLater(1.9, testClient, corpus, "TEST2")
+    reactor.callLater(2, testClient, corpus, "TEST3")
+    reactor.callLater(3, testClient, corpus, "TEST 4")
     reactor.run()

@@ -18,9 +18,22 @@ class TraphProtocol(Protocol):
         #print "SERVER RECEIVED:", data
         try:
             msg = json.loads(data)
-            self.transport.write("TRAPH GOT QUERY: %s" % json.dumps(data))
-        except:
-            print >> sys.stderr, "ERROR received non json data", data
+            method = msg["method"]
+            args = msg["args"]
+            kwargs = msg["kwargs"]
+            self.transport.writeSequence(json.dumps({
+                "result": "OK",
+                "query": msg
+            }))
+        except ValueError as e:
+            #print >> sys.stderr, "ERROR received non json data", data
+            self.transport.writeSequence(json.dumps({
+                "result": "fail",
+                "message": "Query is not a valid JSON object",
+                "error": e,
+                "query": data
+            }))
+            return
 
     def connectionLost(self, reason):
         #print "SERVER CLOSED", reason
