@@ -12,20 +12,35 @@ class TraphCorpus():
     sockets_dir = "sockets"
     exec_path = os.path.join("hyphe_backend", "traph", "traph-server.py")
 
-    def __init__(self, corpus):
+    def __init__(self, corpus, default_WECR=None, WECRs=None):
         self.corpus = corpus
         self.socket = os.path.join(self.sockets_dir, corpus)
+        self.options = {
+          "default_WECR": default_WECR,
+          "WECRs": WECRs
+        }
         self.transport = None
         self.protocol = None
         self.client = None
         reactor.addSystemEventTrigger('before', 'shutdown', self.stop)
 
     def start(self):
-        cmd = ["python", "-u", self.exec_path, self.socket, self.corpus]
+        cmd = [
+          "python",
+          "-u",
+          self.exec_path,
+          self.socket,
+          self.corpus,
+          json.dumps(self.options)
+        ]
         print "STARTING traph:", " ".join(cmd)
         self.protocol = TraphProcessProtocol(self.socket)
-        self.transport = reactor.spawnProcess(self.protocol, cmd[0], cmd,
-                                               env=os.environ)
+        self.transport = reactor.spawnProcess(
+          self.protocol,
+          cmd[0],
+          cmd,
+          env=os.environ
+        )
         self.client = self.protocol.client
 
     def stop(self):
@@ -50,7 +65,10 @@ class TraphProcessProtocol(ProcessProtocol):
         data = data.strip()
         print "PROCESS CHILD %s RECEIVED: %s" % (childFD, data)
         if childFD == 1 and data == "READY":
-            connectProtocol(UNIXClientEndpoint(reactor, self.socket), self.client)
+            connectProtocol(
+              UNIXClientEndpoint(reactor, self.socket),
+              self.client
+            )
 
     def childConnectionLost(self, childFD):
         print "PROCESS CHILD CONN LOST", childFD
@@ -69,13 +87,9 @@ class TraphProcessProtocol(ProcessProtocol):
 
 
 TraphMethodsPriorities = {
-    "create_webentity": -5
+  "create_webentity": -5
 }
-def TraphMethodPriority(method):
-    try:
-        return TraphMethodsPriorities[method]
-    except:
-        return 0
+TraphMethodPriority = lambda method: TraphMethodsPriorities.get(method, 0)
 
 class TraphClientProtocol(Protocol):
 
@@ -90,10 +104,12 @@ class TraphClientProtocol(Protocol):
 
     def sendMessage(self, method, *args, **kwargs):
         deferred = Deferred()
-        priority =
-        print "ADD TO QUEUE"
-        self.queue.put((priority, time(), deferred, method, args, kwargs), False)
-        if not self.deferred:
+        priority = TraphMethodPriority(method)
+        self.queue.put(
+          (priority, time(), deferred, method, args, kwargs),
+          False
+        )
+        if self.ready and not self.deferred:
             self._sendMessageNow()
         return deferred
 
@@ -101,24 +117,29 @@ class TraphClientProtocol(Protocol):
         if self.queue.empty():
             return
         _, _, self.deferred, method, args, kwargs = self.queue.get(False)
-        print "CLIENT SENDING:", method, args, kwargs
-        self.transport.writeSequence(json.dumps({"method": method, "args": args, "kwargs": kwargs}))
+        print "CLIENT QUERY :", method, args, kwargs
+        self.transport.writeSequence(json.dumps({
+          "method": method,
+          "args": args,
+          "kwargs": kwargs
+        }))
 
     def dataReceived(self, data):
         data = data.strip()
-        print "SERVER ANSWERED:", data
+        print "SERVER ANSWER:", data
         try:
             msg = json.loads(data)
             self.deferred.callback(data)
         except ValueError:
             print >> sys.stderr, "ERROR received non json data", data
-            self.deferred.errback(data)
+            self.deferred.errback(Exception(data))
         self.deferred = None
         self._sendMessageNow()
 
+
 @inlineCallbacks
-def testClient(corpus, msg="TEST"):
-    res = yield corpus.call(msg)
+def testClient(corpus, msg="TEST", *args, **kwargs):
+    res = yield corpus.call(msg, *args, **kwargs)
     print "YEEEHA", res
 
 if __name__ == "__main__":
@@ -127,8 +148,8 @@ if __name__ == "__main__":
     corpus = TraphCorpus(sys.argv[1])
     corpus.start()
 
-    reactor.callLater(2, testClient, corpus)
-    reactor.callLater(1.9, testClient, corpus, "TEST2")
-    reactor.callLater(2, testClient, corpus, "TEST3")
+    reactor.callLater(1, testClient, corpus)
+    reactor.callLater(1, testClient, corpus, "clear")
+    reactor.callLater(2, testClient, corpus, "add_page", "s:http|h:fr|h:scpo|p:bib|")
     reactor.callLater(3, testClient, corpus, "TEST 4")
     reactor.run()
