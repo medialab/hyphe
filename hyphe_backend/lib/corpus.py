@@ -31,6 +31,7 @@ def parse_log(line):
 def indexClosed(line):
     return 'this Index' in line and line.endswith(' is closed')
 
+
 class LuceneCorpus(Thread):
 
     daemon = True

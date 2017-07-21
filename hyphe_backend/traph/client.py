@@ -99,7 +99,7 @@ class TraphFactory(object):
 
 class TraphCorpus(object): # Thread ?
 
-    sockets_dir = "sockets"
+    sockets_dir = os.path.join("traph-sockets")
     exec_path = os.path.join("hyphe_backend", "traph", "server.py")
     #daemon = True
 
@@ -271,8 +271,7 @@ class TraphClientProtocol(Protocol):
         self.corpus.log("Traph server answer: %s" % data)
         self.corpus.lastcall = time()
         try:
-            msg = json.loads(data)
-            self.deferred.callback(data)
+            self.deferred.callback(json.loads(data))
         except ValueError:
             self.corpus.log("Received non json data %s" % data, True)
             self.deferred.errback(Exception(data))

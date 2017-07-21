@@ -16,17 +16,18 @@ class TraphProtocol(Protocol):
     def returnResult(self, res, query):
         if isinstance(res, TraphWriteReport):
             res = res.__dict__()
+        elif isinstance(res, int):
+            res = str(res)
         self.transport.writeSequence(json.dumps({
           "code": "success",
           "result": res,
           "query": query
         }))
 
-    def returnError(self, msg, err, query):
+    def returnError(self, msg, query):
         self.transport.writeSequence(json.dumps({
           "code": "fail",
           "message": msg,
-          "error": str(err),
           "query": query
         }))
 
@@ -35,21 +36,23 @@ class TraphProtocol(Protocol):
         try:
             query = json.loads(query)
         except ValueError as e:
-            return self.returnError("Query is not a valid JSON object", e, query)
+            return self.returnError("Query is not a valid JSON object: %s" % e, query)
         try:
             method = query["method"]
             args = query["args"]
             kwargs = query["kwargs"]
         except KeyError as e:
-            return self.returnError("Argument missing from JSON query", e, query)
+            return self.returnError("Argument missing from JSON query: %s" % e, query)
         try:
             fct = getattr(Traph, method)
         except AttributeError as e:
-            return self.returnError("Called non existing Traph method %s" % method, e, query)
+            return self.returnError("Called non existing Traph method: %s" % e, query)
         try:
             res = fct(self.traph, *args, **kwargs)
         except AttributeError as e:
-            return self.returnError("Badly called Traph method %s" % method, e, query)
+            return self.returnError("Traph raised: %s" % e, query)
+        except Exception as e:
+            return self.returnError(str(e), query)
         return self.returnResult(res, query)
 
 

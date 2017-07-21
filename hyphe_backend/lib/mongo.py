@@ -40,7 +40,6 @@ class MongoDB(object):
 
     @inlineCallbacks
     def list_corpus(self, *args, **kwargs):
-        kwargs["safe"] = True
         if "filter" not in kwargs:
             kwargs["filter"] = sortdesc("last_activity")
         res = yield self.db()['corpus'].find(*args, **kwargs)
@@ -71,27 +70,27 @@ class MongoDB(object):
           "links_duration": 1,
           "last_links_loop": 0,
           "tlds": tlds
-        }, safe=True)
+        })
         yield self.init_corpus_indexes(corpus)
 
 
     @inlineCallbacks
     def get_corpus(self, corpus):
-        res = yield self.db()["corpus"].find_one({"_id": corpus}, safe=True)
+        res = yield self.db()["corpus"].find_one({"_id": corpus})
         returnD(res)
 
     @inlineCallbacks
     def get_corpus_by_name(self, corpus):
-        res = yield self.db()["corpus"].find_one({"name": corpus}, safe=True)
+        res = yield self.db()["corpus"].find_one({"name": corpus})
         returnD(res)
 
     @inlineCallbacks
     def update_corpus(self, corpus, modifs):
-        yield self.db()["corpus"].update({"_id": corpus}, {"$set": modifs}, safe=True)
+        yield self.db()["corpus"].update({"_id": corpus}, {"$set": modifs})
 
     @inlineCallbacks
     def delete_corpus(self, corpus):
-        yield self.db()["corpus"].remove({'_id': corpus}, safe=True)
+        yield self.db()["corpus"].remove({'_id': corpus})
         yield self.drop_corpus_collections(corpus)
 
     @inlineCallbacks
@@ -99,7 +98,8 @@ class MongoDB(object):
         try:
             yield self.db()['corpus'].create_index(sortdesc('last_activity'), background=True)
             # TODO prepare indexes for WEs
-            #yield self.WEs(corpus).create_index(sortasc('timestamp'), background=True)
+            yield self.WEs(corpus).create_index(sortasc('name'), background=True)
+            yield self.WEs(corpus).create_index(sortasc('status'), background=True)
             yield self.WECRs(corpus).create_index(sortasc('prefix'), background=True)
             yield self.pages(corpus).create_index(sortasc('timestamp'), background=True)
             yield self.pages(corpus).create_index(sortasc('_job'), background=True)
@@ -129,6 +129,8 @@ class MongoDB(object):
     def _get_coll(self, corpus, name):
         return self.db(corpus)[name]
 
+    def WEs(self, corpus):
+        return self._get_coll(corpus, "webentities")
     def WECRs(self, corpus):
         return self._get_coll(corpus, "creationrules")
     def queue(self, corpus):
@@ -146,13 +148,36 @@ class MongoDB(object):
 
     @inlineCallbacks
     def drop_corpus_collections(self, corpus):
-        yield self.WECRs(corpus).drop(safe=True)
-        yield self.queue(corpus).drop(safe=True)
-        yield self.pages(corpus).drop(safe=True)
-        yield self.jobs(corpus).drop(safe=True)
-        yield self.logs(corpus).drop(safe=True)
-        yield self.queries(corpus).drop(safe=True)
-        yield self.stats(corpus).drop(safe=True)
+        yield self.WECRs(corpus).drop()
+        yield self.queue(corpus).drop()
+        yield self.pages(corpus).drop()
+        yield self.jobs(corpus).drop()
+        yield self.logs(corpus).drop()
+        yield self.queries(corpus).drop()
+        yield self.stats(corpus).drop()
+
+    # TODO add auto filters like for logs/jobs especially for _id $in
+    @inlineCallbacks
+    def get_WEs(self, corpus, query=None):
+        if not query:
+            res = yield self.WEs(corpus).find()
+        else:
+            res = yield self.WEs(corpus).find(query)
+        returnD(res)
+
+    @inlineCallbacks
+    def get_WE(self, corpus, weid):
+        res = yield self.WEs(corpus).find_one({"_id": weid})
+        returnD(res)
+
+    @inlineCallbacks
+    def upsert_WE(self, corpus, weid, metas):
+        yield self.WEs(corpus).update({"_id": weid}, {"$set": metas}, upsert=True)
+        #TODO handle update modifdate
+
+    @inlineCallbacks
+    def remove_WE(self, corpus, weid):
+        yield self.WEs(corpus).remove({"_id": weid})
 
     @inlineCallbacks
     def get_WECRs(self, corpus):
@@ -175,7 +200,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def remove_WECR(self, corpus, prefix):
-        yield self.WECRs(corpus).remove({"prefix": prefix}, safe=True)
+        yield self.WECRs(corpus).remove({"prefix": prefix})
 
     @inlineCallbacks
     def get_default_WECR(self, corpus):
@@ -193,7 +218,6 @@ class MongoDB(object):
             kwargs["filter"] = sortasc('timestamp')
         if "fields" not in kwargs:
             kwargs["fields"] = ['timestamp', 'log']
-        kwargs["safe"] = True
         if type(job) == list:
             job = {"$in": job}
         res = yield self.logs(corpus).find({"_job": job}, **kwargs)
@@ -205,11 +229,10 @@ class MongoDB(object):
             timestamp = now_ts()
         if type(job) != list:
             job = [job]
-        yield self.logs(corpus).insert([{'_job': _id, 'timestamp': timestamp, 'log': msg} for _id in job], multi=True, safe=True)
+        yield self.logs(corpus).insert([{'_job': _id, 'timestamp': timestamp, 'log': msg} for _id in job], multi=True)
 
     @inlineCallbacks
     def list_jobs(self, corpus, *args, **kwargs):
-        kwargs["safe"] = True
         if "filter" not in kwargs:
             kwargs["filter"] = sortasc("crawling_status") + sortasc("indexing_status") + sortasc("created_at")
         jobs = yield self.jobs(corpus).find(*args, **kwargs)
@@ -243,14 +266,14 @@ class MongoDB(object):
           "started_at": None,
           "crawled_at": None,
           "finished_at": None
-        }, safe=True)
+        })
         returnD(_id)
 
     @inlineCallbacks
     def update_job(self, corpus, job_id, crawl_id, timestamp=None):
         if not timestamp:
             timestamp = now_ts()
-        yield self.jobs(corpus).update({"_id": job_id}, {"$set": {"crawljob_id": crawl_id, "scheduled_at": timestamp}}, safe=True)
+        yield self.jobs(corpus).update({"_id": job_id}, {"$set": {"crawljob_id": crawl_id, "scheduled_at": timestamp}})
 
     @inlineCallbacks
     def update_jobs(self, corpus, specs, modifs, **kwargs):
@@ -261,7 +284,6 @@ class MongoDB(object):
         update = {"$set": modifs}
         if "inc" in kwargs:
             update["$inc"] = kwargs.pop("inc")
-        kwargs["safe"] = True
         kwargs["multi"] = True
         yield self.jobs(corpus).update(specs, update, **kwargs)
 
@@ -272,7 +294,6 @@ class MongoDB(object):
 
     @inlineCallbacks
     def forget_pages(self, corpus, job, urls, **kwargs):
-        kwargs["safe"] = True
         kwargs["multi"] = True
         yield self.pages(corpus).update({"_job": job, "url": {"$in": urls}}, {"$set": {"forgotten": True}}, **kwargs)
 
@@ -291,7 +312,6 @@ class MongoDB(object):
     def get_queue(self, corpus, specs={}, **kwargs):
         if "filter" not in kwargs:
             kwargs["filter"] = sortasc('timestamp')
-        kwargs["safe"] = True
         res = yield self.queue(corpus).find(specs, **kwargs)
         if res and "limit" in kwargs and kwargs["limit"] == 1:
             res = res[0]
@@ -308,7 +328,6 @@ class MongoDB(object):
             specs = {"_id": {"$in": [ObjectId(_i) for _i in specs]}}
         elif type(specs) in [str, unicode, bytes]:
             specs = {"_id": ObjectId(specs)}
-        kwargs["safe"] = True
         yield self.queue(corpus).remove(specs, **kwargs)
 
     @inlineCallbacks
@@ -317,17 +336,17 @@ class MongoDB(object):
           "webentities": ids,
           "total": len(ids),
           "query": query_options
-        }, safe=True)
+        })
         returnD(str(res))
 
     @inlineCallbacks
     def get_WEs_query(self, corpus, token):
-        res = yield self.queries(corpus).find_one({"_id": ObjectId(token)}, safe=True)
+        res = yield self.queries(corpus).find_one({"_id": ObjectId(token)})
         returnD(res)
 
     @inlineCallbacks
     def clean_WEs_query(self, corpus):
-        yield self.queries(corpus).remove({}, safe=True)
+        yield self.queries(corpus).remove({})
 
     @inlineCallbacks
     def save_stats(self, corpus, corpus_metas):
@@ -340,7 +359,7 @@ class MongoDB(object):
           "out": corpus_metas['webentities_out'],
           "discovered": corpus_metas['webentities_discovered'],
           "undecided": corpus_metas['webentities_undecided']
-        }, safe=True)
+        })
 
     @inlineCallbacks
     def get_stats(self, corpus):

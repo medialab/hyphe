@@ -8,8 +8,8 @@ pip-log.txt
 install.log
 archives/
 log/
-lucene-data/
 traph-data/
+traph-sockets/
 memory_structure/src/main/java/fr/sciencespo/medialab/hci/memorystructure/thrift/*
 memory_structure/target/*
 memory_structure/.*
