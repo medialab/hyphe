@@ -100,7 +100,7 @@ class TraphFactory(object):
 class TraphCorpus(object): # Thread ?
 
     sockets_dir = "sockets"
-    exec_path = os.path.join("hyphe_backend", "traph", "traph-server.py")
+    exec_path = os.path.join("hyphe_backend", "traph", "server.py")
     #daemon = True
 
     def __init__(self, factory, name, default_WECR=None, WECRs=None, keepalive=1800, quiet=False, **kwargs):
