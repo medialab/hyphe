@@ -2492,7 +2492,7 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("Not implemented yet"))
             #pages = yield self.msclients.pool.getWebEntityCrawledPages(webentity_id, corpus=corpus)
         else:
-            pages = yield self.traphs.call(corpus, "get_webentity_pages", webentity_id, WE["prefixes"], corpus=corpus)
+            pages = yield self.traphs.call(corpus, "get_webentity_pages", webentity_id, WE["prefixes"])
         if is_error(pages):
             returnD(pages)
         returnD(format_result(self.format_pages(pages["result"])))
