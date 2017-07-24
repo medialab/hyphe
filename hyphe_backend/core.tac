@@ -2485,7 +2485,7 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
-        WE = yield self.db.get_WE(webentity_id)
+        WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
         if onlyCrawled:
@@ -2505,7 +2505,7 @@ class Memory_Structure(customJSONRPC):
             assert(npages > 0)
         except:
             returnD(format_error("ERROR: npages argument must be a stricly positive integer"))
-        WE = yield self.db.get_WE(webentity_id)
+        WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
         pages = yield self.store.traphs.call(corpus, "get_webentity_most_linked_pages", webentity_id, WE["prefixes"], pages_count=npages)
@@ -2525,7 +2525,7 @@ class Memory_Structure(customJSONRPC):
     def get_webentity_relative_webentities(self, webentity_id, relative_type="children", corpus=DEFAULT_CORPUS):
         if relative_type != "children" and relative_type != "parents":
             returnD(format_error("ERROR: relative_type must be set to children or parents"))
-        WE = yield self.db.get_WE(webentity_id)
+        WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
         if relative_type == "children":
@@ -2543,7 +2543,7 @@ class Memory_Structure(customJSONRPC):
         s = time.time()
         logger.msg("Generating NodeLinks network for WebEntity %s..." % webentity_id, system="INFO - %s" % corpus)
         include_external = test_bool_arg(include_external_links)
-        WE = yield self.db.get_WE(webentity_id)
+        WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
         links = yield self.traphs.call(corpus, "get_webentity_pagelinks", webentity_id, WE["prefixes"], include_inbound=include_external, include_outbound=include_external)
