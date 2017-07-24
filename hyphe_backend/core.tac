@@ -1875,7 +1875,7 @@ class Memory_Structure(customJSONRPC):
 
     def rank_webentities(self, corpus=DEFAULT_CORPUS):
         ranks = {}
-        for source, targets in self.corpora[corpus]['webentities_links']:
+        for source, targets in self.corpora[corpus]['webentities_links'].items():
             for target in targets:
                 if target not in ranks:
                     ranks[target] = 0
@@ -2568,10 +2568,9 @@ class Memory_Structure(customJSONRPC):
             self.corpora[corpus]['webentities_links'] = links["result"]
             reactor.callInThread(self.rank_webentities, corpus)
         res = []
-        # TODO FIx missing links weight from traph
         for source, targets in self.corpora[corpus]["webentities_links"].items():
-            for target in targets:
-                res.append([source, target, None])
+            for target, weight in targets.items():
+                res.append([source, target, weight])
         logger.msg("...JSON network generated in %ss" % str(time.time()-s), system="INFO - %s" % corpus)
         returnD(handle_standard_results(res))
 
