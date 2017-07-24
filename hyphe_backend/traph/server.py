@@ -1,4 +1,4 @@
-import os, sys, json
+import os, sys, json, msgpack
 from traph import Traph, TraphWriteReport
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet.endpoints import UNIXServerEndpoint
@@ -16,16 +16,14 @@ class TraphProtocol(Protocol):
     def returnResult(self, res, query):
         if isinstance(res, TraphWriteReport):
             res = res.__dict__()
-        elif isinstance(res, int):
-            res = str(res)
-        self.transport.writeSequence(json.dumps({
+        self.transport.writeSequence(msgpack.packb({
           "code": "success",
           "result": res,
           "query": query
         }))
 
     def returnError(self, msg, query):
-        self.transport.writeSequence(json.dumps({
+        self.transport.writeSequence(msgpack.packb({
           "code": "fail",
           "message": msg,
           "query": query
@@ -34,7 +32,7 @@ class TraphProtocol(Protocol):
     def dataReceived(self, query):
         query = query.strip()
         try:
-            query = json.loads(query)
+            query = msgpack.unpackb(query)
         except ValueError as e:
             return self.returnError("Query is not a valid JSON object: %s" % e, query)
         try:

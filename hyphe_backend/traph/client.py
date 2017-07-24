@@ -1,4 +1,4 @@
-import os, json
+import os, json, msgpack
 from time import time
 from Queue import PriorityQueue
 #from threading import Thread
@@ -260,7 +260,7 @@ class TraphClientProtocol(Protocol):
         self.corpus.call_running = True
         _, _, self.deferred, method, args, kwargs = self.queue.get(False)
         self.corpus.log("Traph client query: %s %s %s" % (method, args, kwargs))
-        self.transport.writeSequence(json.dumps({
+        self.transport.writeSequence(msgpack.packb({
           "method": method,
           "args": args,
           "kwargs": kwargs
@@ -271,7 +271,7 @@ class TraphClientProtocol(Protocol):
         self.corpus.log("Traph server answer: %s" % data)
         self.corpus.lastcall = time()
         try:
-            self.deferred.callback(json.loads(data))
+            self.deferred.callback(msgpack.unpackb(data))
         except ValueError:
             self.corpus.log("Received non json data %s" % data, True)
             self.deferred.errback(Exception(data))
