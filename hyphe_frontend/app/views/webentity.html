@@ -215,9 +215,9 @@
                     </div>
                     <div class="col-md-8">
                       <div ng-repeat="startpagetype in [{id: 'user', name: 'Manual'}, {id: 'auto', name: 'Automatic'}, {id: 'removed', name: 'Temporary removed'}]">
-                        <p ng-show="webentity.tags['CORE.STARTPAGES'][startpagetype.id]"><strong>{{startpagetype.name}} <span hyphe-glossary="startpages"/></strong></p>
+                        <p ng-show="webentity.tags['CORE-STARTPAGES'][startpagetype.id]"><strong>{{startpagetype.name}} <span hyphe-glossary="startpages"/></strong></p>
                         <ul class="list-unstyled list-spaced">
-                          <li ng-repeat="url in webentity.tags['CORE.STARTPAGES'][startpagetype.id]">
+                          <li ng-repeat="url in webentity.tags['CORE-STARTPAGES'][startpagetype.id]">
                             <div class="url-container">
                               <a href="{{url}}" target="_blank" title="Open in a new tab">
                                 <span class="glyphicon glyphicon-link"></span>

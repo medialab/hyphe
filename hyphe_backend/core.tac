@@ -1388,7 +1388,7 @@ class Memory_Structure(customJSONRPC):
         if startpages:
             if not isinstance(startpages, list):
                 startpages = [startpages]
-            tags["CORE.STARTPAGES"] = {"user": startpages}
+            tags["CORE-STARTPAGES"] = {"user": startpages}
         WEstatus = "DISCOVERED"
         if status:
             WEstatus = status.upper()
@@ -1711,8 +1711,8 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("WARNING: this page does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity."))
         source = "auto" if _automatic else "user"
         WE = yield self.add_backend_tags(webentity_id, source, startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
-        if "removed" in WE["tags"]["CORE.STARTPAGES"] and startpage_url in WE["tags"]["CORE.STARTPAGES"]["removed"]:
-            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.STARTPAGES", "removed", startpage_url, _commit=False, corpus=corpus)
+        if "removed" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["removed"]:
+            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "removed", startpage_url, _commit=False, corpus=corpus)
         res = yield self.update_webentity(WE, "startpages", startpage_url, "push", corpus=corpus)
         returnD(res)
 
@@ -1724,10 +1724,10 @@ class Memory_Structure(customJSONRPC):
         except ValueError as e:
             returnD(format_error(e))
         WE = yield self.add_backend_tags(webentity_id, "removed", startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
-        if "user" in WE["tags"]["CORE.STARTPAGES"] and startpage_url in WE["tags"]["CORE.STARTPAGES"]["user"]:
-            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.STARTPAGES", "user", startpage_url, _commit=False, corpus=corpus)
-        if "auto" in WE["tags"]["CORE.STARTPAGES"] and startpage_url in WE["tags"]["CORE.STARTPAGES"]["auto"]:
-            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.STARTPAGES", "auto", startpage_url, _commit=False, corpus=corpus)
+        if "user" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["user"]:
+            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "user", startpage_url, _commit=False, corpus=corpus)
+        if "auto" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["auto"]:
+            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "auto", startpage_url, _commit=False, corpus=corpus)
         res = yield self.update_webentity(WE, "startpages", startpage_url, "pop", corpus=corpus)
         returnD(res)
 
@@ -1771,18 +1771,18 @@ class Memory_Structure(customJSONRPC):
                 new_WE["homepage"] = old_WE["homepage"]
             for page in old_WE["startpages"]:
                 new_WE["startpages"].add(page)
-                if "CORE.STARTPAGES" in old_WE["tags"] and not include_tags:
-                    if "CORE.STARTPAGES" not in new_WE["tags"]:
-                        new_WE["tags"]["CORE.STARTPAGES"] = {}
+                if "CORE-STARTPAGES" in old_WE["tags"] and not include_tags:
+                    if "CORE-STARTPAGES" not in new_WE["tags"]:
+                        new_WE["tags"]["CORE-STARTPAGES"] = {}
                     for cat in "user", "auto", "removed":
-                        if cat not in old_WE["tags"]["CORE.STARTPAGES"]:
+                        if cat not in old_WE["tags"]["CORE-STARTPAGES"]:
                             continue
-                        if cat not in new_WE["tags"]["CORE.STARTPAGES"]:
-                            new_WE["tags"]["CORE.STARTPAGES"][cat] = []
-                        new_WE["tags"]["CORE.STARTPAGES"][cat] = list(set(old_WE["tags"]["CORE.STARTPAGES"][cat] + new_WE["tags"]["CORE.STARTPAGES"][cat]))
+                        if cat not in new_WE["tags"]["CORE-STARTPAGES"]:
+                            new_WE["tags"]["CORE-STARTPAGES"][cat] = []
+                        new_WE["tags"]["CORE-STARTPAGES"][cat] = list(set(old_WE["tags"]["CORE-STARTPAGES"][cat] + new_WE["tags"]["CORE-STARTPAGES"][cat]))
         if test_bool_arg(include_tags):
             for tag_namespace in old_WE["tags"].keys():
-                if tag_namespace == "CORE.STARTPAGES" and not include_home_and_startpages_as_startpages:
+                if tag_namespace == "CORE-STARTPAGES" and not include_home_and_startpages_as_startpages:
                     continue
                 if tag_namespace not in new_WE["tags"]:
                     new_WE["tags"][tag_namespace] = {}
