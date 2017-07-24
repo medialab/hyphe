@@ -92,6 +92,7 @@ class MongoDB(object):
     def delete_corpus(self, corpus):
         yield self.db()["corpus"].remove({'_id': corpus})
         yield self.drop_corpus_collections(corpus)
+        yield self.conn.drop_database(corpus)
 
     @inlineCallbacks
     def init_corpus_indexes(self, corpus, retry=True):
@@ -148,6 +149,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def drop_corpus_collections(self, corpus):
+        yield self.WEs(corpus).drop()
         yield self.WECRs(corpus).drop()
         yield self.queue(corpus).drop()
         yield self.pages(corpus).drop()
