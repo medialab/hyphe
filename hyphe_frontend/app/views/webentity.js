@@ -2,8 +2,8 @@
 
 angular.module('hyphe.webentityController', [])
 
-  .controller('webentity', ['$scope', 'api', 'utils', 'corpus', '$routeParams', 'store', '$location', '$timeout'
-  ,function($scope, api, utils, corpus, $routeParams, store, $location, $timeout) {
+  .controller('webentity', ['$scope', 'api', 'utils', 'corpus', 'store', '$location', '$timeout'
+  ,function($scope, api, utils, corpus, store, $location, $timeout) {
     $scope.currentPage = 'webentity'
     $scope.Page.setTitle('Web Entity')
     $scope.corpusName = corpus.getName()
@@ -11,7 +11,8 @@ angular.module('hyphe.webentityController', [])
 
     $scope.explorerActive = false
 
-    $scope.webentity = {id:$routeParams.webentityId, loading:true}
+    $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
+    console.log($scope.webentity)
     $scope.crawls = []
     $scope.tagCategories = {}
     $scope.tagCategoriesOrder = []
@@ -106,7 +107,7 @@ angular.module('hyphe.webentityController', [])
     // Functions
     function fetchWebentity(){
       api.getWebentities({
-          id_list:[$routeParams.webentityId]
+          id_list:[utils.readWebentityIdFromRoute()]
           ,crawledOnly: false
         }
         ,function(result){
@@ -127,7 +128,7 @@ angular.module('hyphe.webentityController', [])
 
     function fetchCrawls(){
       api.webentityCrawlsList({
-          webentityId: $routeParams.webentityId
+          webentityId: utils.readWebentityIdFromRoute()
         }
         ,function(result){
           $scope.crawls = result.map(utils.consolidateJob)
@@ -234,13 +235,13 @@ angular.module('hyphe.webentityController', [])
     }
   }])
 
-  .controller('webentity.pagesNetwork', ['$scope', 'api', 'utils', 'corpus', '$routeParams', '$window'
-  ,function($scope, api, utils, corpus, $routeParams, $window) {
+  .controller('webentity.pagesNetwork', ['$scope', 'api', 'utils', 'corpus', '$window'
+  ,function($scope, api, utils, corpus, $window) {
     $scope.currentPage = 'webentity.pagesNetwork'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
-    $scope.webentity = {id:$routeParams.webentityId, loading:true}
+    $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
 
     $scope.network
     $scope.sigmaInstance
@@ -302,7 +303,7 @@ angular.module('hyphe.webentityController', [])
     }
 
     // Init
-    fetchWebentity($routeParams.webentityId)
+    fetchWebentity(utils.readWebentityIdFromRoute())
 
     // Functions
     function fetchWebentity(id){
@@ -471,15 +472,15 @@ angular.module('hyphe.webentityController', [])
 
 
 
-  .controller('webentity.explorer', ['$scope', 'api', 'utils', '$route', 'corpus', '$routeParams', '$location', '$rootScope'
-  ,function($scope, api, utils, $route, corpus, $routeParams, $location, $rootScope) {
+  .controller('webentity.explorer', ['$scope', 'api', 'utils', '$route', 'corpus', '$location', '$rootScope'
+  ,function($scope, api, utils, $route, corpus, $location, $rootScope) {
     $scope.currentPage = 'webentity.explorer'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
     $scope.explorerActive = false
     
-    $scope.webentity = {id:$routeParams.webentityId, loading:true}
+    $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
 
     var tree
       , currentNode
@@ -516,7 +517,7 @@ angular.module('hyphe.webentityController', [])
     $scope.sort_asc_webentities = true
 
     // Init
-    fetchWebentity($routeParams.webentityId)
+    fetchWebentity(utils.readWebentityIdFromRoute())
 
     $scope.goTo = function(node){
       currentNode = node
@@ -635,7 +636,7 @@ angular.module('hyphe.webentityController', [])
 
           $scope.status = {message: ''}
           $scope.loading = false
-          fetchWebentity($routeParams.webentityId)
+          fetchWebentity(utils.readWebentityIdFromRoute())
           updateExplorer()
         }
         ,function(){

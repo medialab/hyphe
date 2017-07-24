@@ -7,8 +7,12 @@ angular.module('hyphe.service_utils', [])
   utils = angular.element(document.body).injector().get('utils')
   */
 
-  .factory('utils', ['api', function(api){
+  .factory('utils', ['api', '$routeParams', function(api, $routeParams){
     var ns = {} // Namespace
+
+    ns.readWebentityIdFromRoute = function(){
+      return +$routeParams.webentityId;
+    }
 
     ns.url_regex = /^((https?|ftp|file|mailto):\/\/)?(www\.)?[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}/
     var specialhosts_regex_str = 'localhost|(\\d{1,3}\\.){3}\\d{1,3}|\\[[\\da-f]*:[\\da-f:]*\\]'
