@@ -2466,11 +2466,11 @@ class Memory_Structure(customJSONRPC):
         if is_error(pages):
             return pages
         return [{
-          'lru': p if not isinstance(p, dict) else p['lru'],
-          #'sources': list(p.sourceSet),
-          #'crawl_timestamp': p.crawlerTimestamp,
-          'url': urllru.lru_to_url(p if not isinstance(p, dict) else p['lru']),
-          'linked': None if not isinstance(p, dict) else p["indegree"],
+          'lru': p['lru'],
+          'crawled': p.get('crawled', None),
+          'url': urllru.lru_to_url(p['lru']),
+          'linked': p.get('indegree', None),
+         #'crawl_timestamp': p.crawlerTimestamp,
          #'depth': p.depth,
          #'error': p.errorCode,
          #'http_status': p.httpStatusCode,
@@ -2478,7 +2478,6 @@ class Memory_Structure(customJSONRPC):
          #'last_modification_date': p.lastModificationDate
         } for p in pages]
 
-    # TODO HANDLE get crawled pages
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
@@ -2487,7 +2486,7 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("No webentity found for id %s" % webentity_id))
         if onlyCrawled:
             returnD(format_error("Not implemented yet"))
-            #pages = yield self.msclients.pool.getWebEntityCrawledPages(webentity_id, corpus=corpus)
+            pages = yield self.traphs.call(corpus, "get_webentity_crawled_pages", webentity_id, WE["prefixes"])
         else:
             pages = yield self.traphs.call(corpus, "get_webentity_pages", webentity_id, WE["prefixes"])
         if is_error(pages):

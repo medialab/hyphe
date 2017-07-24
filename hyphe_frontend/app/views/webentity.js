@@ -915,7 +915,7 @@ angular.module('hyphe.webentityController', [])
           ,lru: lru
           ,data: data
           ,isPrefix: isPrefix
-          ,crawled: data.sources.some(function(d){return d == 'CRAWL'})
+          ,crawled: data.crawled
           ,type: explicitType(type)
         })
       }
