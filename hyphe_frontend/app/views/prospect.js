@@ -225,7 +225,7 @@ angular.module('hyphe.prospectController', [])
     }
 
     $scope.openPreview = function(obj){
-      var lru = obj.webentity.lru_prefixes[0]
+      var lru = obj.webentity.prefixes[0]
       if(lru)
         $scope.popLru(lru)
     }

@@ -211,7 +211,7 @@ angular.module('hyphe.webentityStartPagesModalController', [])
         ,function (data) {
           if (!data[url])
             callbacks.queryFail()
-          else if (~webentity.lru_prefixes.indexOf(data[url]))
+          else if (~webentity.prefixes.indexOf(data[url]))
             callbacks.success()
           else callbacks.otherWebentity(data[url])
         }

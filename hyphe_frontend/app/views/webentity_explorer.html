@@ -333,7 +333,7 @@
                         ng-repeat="obj in parentWebentities track by $index"
                       >
                         <td><a href="#/project/{{corpusId}}/webentity/{{obj.id}}/explorer">{{obj.name}}</a></td>
-                        <td><span ng-repeat="lru in obj.lru_prefixes">{{lru|lru_to_url}}<br/></span></td>
+                        <td><span ng-repeat="lru in obj.prefixes">{{lru|lru_to_url}}<br/></span></td>
                         
                         <td class="cell-action"><button class="btn btn-default btn-xs" ng-click="mergeIntoCurrent(obj.id)">MERGE INTO THIS</button></td>
                       

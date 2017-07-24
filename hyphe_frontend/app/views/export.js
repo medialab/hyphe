@@ -33,13 +33,13 @@ angular.module('hyphe.exportController', [])
       }
       ,prefixes: {
         name: 'PREFIXES'
-        ,accessor: 'lru_prefixes'
+        ,accessor: 'prefixes'
         ,type: 'array of lru'
         ,val: true
       }
       ,prefixes_lru: {
         name: 'PREFIXES AS LRU'
-        ,accessor: 'lru_prefixes'
+        ,accessor: 'prefixes'
         ,type: 'array of string'
         ,val: false
       }

@@ -113,7 +113,7 @@ angular.module('hyphe.webentityController', [])
           $scope.webentity = result[0]
           $scope.webentity.loading = false
 
-          $scope.webentity.lru_prefixes.sort(utils.sort_LRUs)
+          $scope.webentity.prefixes.sort(utils.sort_LRUs)
           $scope.webentity.tags.USER = $scope.webentity.tags.USER || {}
 
           console.log($scope.webentity.name, $scope.webentity)
@@ -531,7 +531,7 @@ angular.module('hyphe.webentityController', [])
     }
 
     $rootScope.$on('$locationChangeSuccess', function() {
-      if ($scope.webentity.lru_prefixes && tree) {
+      if ($scope.webentity.prefixes && tree) {
         updateFromPath()
         updateExplorer()
       }
@@ -675,7 +675,7 @@ angular.module('hyphe.webentityController', [])
         ,function(result){
           $scope.webentity = result[0]
           $scope.webentity.loading = false
-          $scope.webentity.lru_prefixes.sort(utils.sort_LRUs)
+          $scope.webentity.prefixes.sort(utils.sort_LRUs)
 
           // Triple loading
           loadPages()
@@ -938,7 +938,7 @@ angular.module('hyphe.webentityController', [])
       // It is a weird structure because it starts with prefixes, which we do not split in stems.
       tree = {prefix:{}}
       
-      var prefixes = $scope.webentity.lru_prefixes
+      var prefixes = $scope.webentity.prefixes
 
       prefixes.forEach(function(p){
         tree.prefix[p] = {children:{}, pagesCount:0, lru:p, stem:p, data:{}}
@@ -1015,7 +1015,7 @@ angular.module('hyphe.webentityController', [])
       })
 
       $scope.subWebentities.forEach(function(we){
-        we.lru_prefixes.forEach(function(lru){
+        we.prefixes.forEach(function(lru){
           pushBranch(lru, {webentity:we}, false)
         })
       })
