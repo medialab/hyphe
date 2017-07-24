@@ -268,12 +268,13 @@ class TraphClientProtocol(Protocol):
 
     def dataReceived(self, data):
         data = data.strip()
-        self.corpus.log("Traph server answer: %s" % data)
         self.corpus.lastcall = time()
         try:
+            msg = msgpack.unpackb(data)
+            self.corpus.log("Traph server answer: %s" % msg)
             self.deferred.callback(msgpack.unpackb(data))
         except ValueError:
-            self.corpus.log("Received non json data %s" % data, True)
+            self.corpus.log("Received badly formatted data %s" % data, True)
             self.deferred.errback(Exception(data))
         self.corpus.call_running = False
         self.deferred = None
