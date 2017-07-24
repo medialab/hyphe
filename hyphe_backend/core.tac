@@ -1875,11 +1875,8 @@ class Memory_Structure(customJSONRPC):
 
     def rank_webentities(self, corpus=DEFAULT_CORPUS):
         ranks = {}
-        for source, targets in self.corpora[corpus]['webentities_links'].items():
-            for target in targets:
-                if target not in ranks:
-                    ranks[target] = 0
-                ranks[target] += 1
+        for target, links in self.corpora[corpus]["webentities_links"].items():
+            ranks[target] = len(links)
         self.corpora[corpus]['webentities_ranks'] = ranks
 
     @inlineCallbacks
@@ -1947,12 +1944,12 @@ class Memory_Structure(customJSONRPC):
             self.corpora[corpus]['loop_running'] = "Building webentities links"
             self.corpora[corpus]['loop_running_since'] = now_ts()
             yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
-            res = yield self.traphs.call(corpus, "get_webentities_links")
-            if is_error(res):
-                logger.msg(res['message'], system="ERROR - %s" % corpus)
+            WElinks = yield self.traphs.call(corpus, "get_webentities_inlinks", include_auto=False)
+            if is_error(WElinks):
+                logger.msg(WElinks['message'], system="ERROR - %s" % corpus)
                 self.corpora[corpus]['loop_running'] = None
                 returnD(None)
-            self.corpora[corpus]['webentities_links'] = res["result"]
+            self.corpora[corpus]['webentities_links'] = WElinks["result"]
             self.corpora[corpus]['last_links_loop'] = now_ts()
             reactor.callInThread(self.rank_webentities, corpus)
             self.corpora[corpus]['recent_changes'] = 0
@@ -2025,7 +2022,7 @@ class Memory_Structure(customJSONRPC):
 
             if also_links:
                 logger.msg("Collecting WebEntities and WebEntityLinks...", system="INFO - %s" % corpus)
-                WElinks = yield self.traphs.call(corpus, "get_webentities_links")
+                WElinks = yield self.traphs.call(corpus, "get_webentities_inlinks", include_auto=False)
                 if is_error(WElinks):
                     returnD(WElinks)
                 self.corpora[corpus]['webentities_links'] = WElinks["result"]
@@ -2561,15 +2558,15 @@ class Memory_Structure(customJSONRPC):
         s = time.time()
         logger.msg("Generating WebEntities network...", system="INFO - %s" % corpus)
         if self.corpora[corpus]['webentities_links'] == None:
-            links = yield self.traphs.call(corpus, "get_webentities_links")
-            if is_error(links):
-                logger.msg(links['message'], system="ERROR - %s" % corpus)
-                returnD(links)
-            self.corpora[corpus]['webentities_links'] = links["result"]
+            WElinks = yield self.traphs.call(corpus, "get_webentities_inlinks", include_auto=False)
+            if is_error(WElinks):
+                logger.msg(WElinks['message'], system="ERROR - %s" % corpus)
+                returnD(WElinks)
+            self.corpora[corpus]['webentities_links'] = WElinks["result"]
             reactor.callInThread(self.rank_webentities, corpus)
         res = []
-        for source, targets in self.corpora[corpus]["webentities_links"].items():
-            for target, weight in targets.items():
+        for target, sources in self.corpora[corpus]["webentities_links"].items():
+            for source, weight in sources.items():
                 res.append([source, target, weight])
         logger.msg("...JSON network generated in %ss" % str(time.time()-s), system="INFO - %s" % corpus)
         returnD(handle_standard_results(res))
