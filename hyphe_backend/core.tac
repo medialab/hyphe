@@ -1428,7 +1428,7 @@ class Memory_Structure(customJSONRPC):
             returnD(self.parent.corpus_error(corpus))
         # Get WebEntity if webentity_id not already one from internal call
         try:
-            tmpid = str(webentity_id["_id"])
+            tmpid = int(webentity_id["_id"])
             WE = webentity_id
             webentity_id = tmpid
         except:
@@ -1496,7 +1496,7 @@ class Memory_Structure(customJSONRPC):
     def batch_webentities_edit(self, command, webentity_ids, corpus, *args, **kwargs):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        if type(webentity_ids) != list or type(webentity_ids[0]) not in [str, unicode, bytes]:
+        if type(webentity_ids) != list or type(webentity_ids[0]) != int:
             returnD(format_error("ERROR: webentity_ids must be a list of webentity ids"))
         try:
             func = getattr(self, "jsonrpc_%s" % command)
@@ -2155,7 +2155,7 @@ class Memory_Structure(customJSONRPC):
             count = int(count)
         except:
             returnD(format_error("page and count arguments must be integers"))
-        if isinstance(list_ids, unicode):
+        if isinstance(list_ids, int):
             list_ids = [list_ids] if list_ids else []
         list_ids = [i for i in list_ids if i]
         n_WEs = len(list_ids) if list_ids else 0
