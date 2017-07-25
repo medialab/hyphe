@@ -791,7 +791,7 @@ class Core(customJSONRPC):
         subs = yield self.store.traphs.call(corpus, "get_webentity_child_webentities", WE["_id"], WE["prefixes"])
         if is_error(subs):
             returnD(subs)
-        subs = yield self.db.get_WEs({"_id": {"$in": subs["result"]}})
+        subs = yield self.db.get_WEs(corpus, {"_id": {"$in": subs["result"]}})
         nofollow = [p for subwe in subs for p in subwe["prefixes"]]
 
         if "CORE" in WE["tags"] and "recrawlNeeded" in WE["tags"]["CORE"]:
