@@ -22,7 +22,6 @@ from twisted.web.http_headers import Headers
 from twisted.web.client import Agent, ProxyAgent, HTTPClientFactory, _HTTP11ClientFactory
 HTTPClientFactory.noisy = False
 _HTTP11ClientFactory.noisy = False
-from hyphe_backend import processor
 from hyphe_backend.lib import config_hci, urllru, user_agents, creationrules
 from hyphe_backend.lib.config_hci import DEFAULT_CORPUS, TEST_CORPUS, test_and_make_dir
 from hyphe_backend.lib.utils import *
@@ -30,9 +29,8 @@ from hyphe_backend.lib.tlds import collect_tlds
 from hyphe_backend.lib.jsonrpc_custom import customJSONRPC
 from hyphe_backend.lib.jobsqueue import JobsQueue
 from hyphe_backend.lib.mongo import MongoDB, sortdesc
-from hyphe_backend.traph.client import TraphFactory
 from hyphe_backend.lib.corpus import CorpusFactory
-from hyphe_backend.memorystructure import MemoryStructure as ms, constants as ms_const
+from hyphe_backend.traph.client import TraphFactory
 
 WEBENTITIES_STATUSES = ["IN", "OUT", "UNDECIDED", "DISCOVERED"]
 
@@ -1290,7 +1288,7 @@ class Memory_Structure(customJSONRPC):
             WE = {
               "_id": weid,
               "prefixes": prefixes,
-              "name": urllru.name_url(prefixes[0]),
+              "name": urllru.name_url(urllru.lru_to_url(prefixes[0]), self.corpora[corpus]["tlds"]),
               "status": "DISCOVERED",
               "tags": {},
               "homepage": None,
@@ -1360,25 +1358,16 @@ class Memory_Structure(customJSONRPC):
         """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as `list_lrus` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
+        if name:
+            name = name.encode('utf-8')
         if not isinstance(list_lrus, list):
             list_lrus = [list_lrus]
         lru_prefixes_set = set()
-        if name:
-            name = name.encode('utf-8')
-        # TODO remove check and rely on error at create
         for lru in list_lrus:
-            try:
-                url, lru = urllru.lru_clean_and_convert(lru, False)
-                lru = urllru.lru_strip_path_trailing_slash(lru)
-            except ValueError as e:
-                returnD(format_error(e))
             for l in [lru] if not lruVariations else urllru.lru_variations(lru):
-                existing = yield self.traphs.call(corpus, "get_webentity_by_prefix", l)
-                if not is_error(existing):
-                    returnD(format_error('LRU prefix "%s" is already set to an existing WebEntity : %s' % (l, existing["result"])))
                 lru_prefixes_set.add(l)
             if not name:
-                name = urllru.name_url(url, self.corpora[corpus]["tlds"])
+                name = urllru.name_url(urllru.lru_to_url(l), self.corpora[corpus]["tlds"])
         lru_prefixes = list(lru_prefixes_set)
         weid = yield self.traphs.call(corpus, "create_webentity", lru_prefixes)
         if is_error(weid):
@@ -1824,53 +1813,73 @@ class Memory_Structure(customJSONRPC):
     # TODO INDEX
     @inlineCallbacks
     def index_batch(self, page_items, job, corpus=DEFAULT_CORPUS):
-        returnD(False)
         if not self.parent.corpus_ready(corpus):
             returnD(False)
-        s = time.time()
-        ids = [str(record['_id']) for record in page_items]
-        pages_to_index = len(ids)
-        if not pages_to_index:
+        if not page_items:
             returnD(False)
-        pages, links, autostartpages = yield deferToThread(processor.generate_cache_from_pages_list, page_items, config['DEBUG'] > 0, autostarts=job.get('crawl_arguments', {}).get('start_urls_auto', []))
+
+        page_queue_ids = [str(record['_id']) for record in page_items]
+
+        # TODO handle here setting depth/error/timestamp on crawled pages?
+
+        # TODO check all links lrus before sending
+
+        batchpages = {}
+        n_batchlinks = 0
+        autostarts = set(job.get('crawl_arguments', {}).get('start_urls_auto', []))
+        goodautostarts = set()
+        for p in page_items:
+            links = p.get("lrulinks", [])
+            n_batchlinks += len(links)
+            batchpages[p["lru"]] = links
+            if autostarts and p["depth"] == 0 and p["url"] in autostarts:
+                autostarts.remove(p["url"])
+                if p["status"] == 200:
+                    goodautostarts.add(p["url"])
+                elif 300 <= p["status"] < 400 and links:
+                    goodautostarts.add(urllru.lru_to_url(links[0]))
         if job['webentity_id']:
-            for auto in autostartpages:
+            for auto in goodautostarts:
                 yield self.jsonrpc_add_webentity_startpage(job['webentity_id'], auto, corpus=corpus, _automatic=True)
-        logger.msg("...%s pages and %s links identified from %s crawled pages in %ss..." % (len(pages), len(links), pages_to_index, time.time()-s), system="INFO - %s" % corpus)
+        logger.msg("...batch of %s crawled pages with %s links prepared..." % (len(batchpages), n_batchlinks), system="INFO - %s" % corpus)
         s = time.time()
-        cache_id = yield self.msclients.loop.createCache(pages.values(), corpus=corpus)
-        if is_error(cache_id):
-            logger.msg(cache_id['message'], system="ERROR - %s" % corpus)
-            returnD(False)
-        nb_pages = yield self.msclients.loop.indexCache(cache_id, corpus=corpus)
-        if is_error(nb_pages):
-            logger.msg(nb_pages['message'], system="ERROR - %s" % corpus)
-            returnD(False)
-        nb_links = len(links)
-        link_lists = [links[i:i+config['memoryStructure']['max_simul_links_indexing']] for i in range(0, nb_links, config['memoryStructure']['max_simul_links_indexing'])]
-        results = yield DeferredList([self.msclients.loop.saveNodeLinks([ms.NodeLink(source.encode('utf-8'),target.encode('utf-8'),weight) for source,target,weight in link_list], corpus=corpus) for link_list in link_lists], consumeErrors=True)
-        for bl, res in results:
-            if not bl or is_error(res):
-                logger.msg(res['message'], system="ERROR - %s" % corpus)
-                returnD(False)
-        logger.msg("...%s pages & %s links indexed in %ss..." % (len(pages), len(links), time.time()-s), system="INFO - %s" % corpus)
-        s = time.time()
-        n_WE = yield self.msclients.loop.createWebEntitiesFromCache(cache_id, corpus=corpus)
-        if is_error(n_WE):
-            logger.msg(n_WE['message'], system="ERROR - %s" % corpus)
-            returnD(False)
-        logger.msg("...%s web entities created in %s" % (n_WE, str(time.time()-s))+"s", system="INFO - %s" % corpus)
-        self.corpora[corpus]['total_webentities'] += n_WE
-        res = yield self.msclients.loop.deleteCache(cache_id, corpus=corpus)
+
+        res = yield self.traphs.call(corpus, "index_batch_crawl", batchpages)
         if is_error(res):
             logger.msg(res['message'], system="ERROR - %s" % corpus)
-            returnD(False)
-        yield self.db.clean_queue(corpus, ids)
+            returnD(res)
+        res = res["result"]
+        nb_pages = res["nb_created_pages"]
+        logger.msg("...%s unique pages indexed in traph in %ss..." % (nb_pages, time.time()-s), system="INFO - %s" % corpus)
+        s = time.time()
+
+        # Create new webentities
+        for weid, prefixes in res["created_webentities"].items():
+            yield self.db.upsert_WE(corpus, weid, {
+              "_id": weid,
+              "prefixes": prefixes,
+              "name": urllru.name_url(urllru.lru_to_url(prefixes[0]), self.corpora[corpus]["tlds"]),
+              "status": "DISCOVERED",
+              "tags": {},
+              "homepage": None,
+              "startpages": [],
+              "creationDate": time.time()
+            })
+            self.corpora[corpus]['total_webentities'] += 1
+        logger.msg("...%s new WEs created in traph in %ss..." % (len(res["created_webentities"]), time.time()-s), system="INFO - %s" % corpus)
+
+        # TODO:
+        # Update nb_all_links_in_traph
+        # traphs.call(corpus, "count_links")
+
+        yield self.db.clean_queue(corpus, page_queue_ids)
+
         crawled_pages_left = yield self.db.count_queue(corpus, job['crawljob_id'])
         tot_crawled_pages = yield self.db.count_pages(corpus, job['crawljob_id'])
         if job['_id'] != 'unknown':
-            yield self.db.update_jobs(corpus, job['_id'], {'nb_crawled_pages': tot_crawled_pages, 'nb_unindexed_pages': crawled_pages_left, 'indexing_status': indexing_statuses.BATCH_FINISHED}, inc={'nb_pages': nb_pages, 'nb_links': nb_links})
+            yield self.db.update_jobs(corpus, job['_id'], {'nb_crawled_pages': tot_crawled_pages, 'nb_unindexed_pages': crawled_pages_left, 'indexing_status': indexing_statuses.BATCH_FINISHED}, inc={'nb_pages': nb_pages, 'nb_links': n_batchlinks})
             yield self.db.add_log(corpus, job['_id'], "INDEX_"+indexing_statuses.BATCH_FINISHED)
+
         returnD(True)
 
     def rank_webentities(self, corpus=DEFAULT_CORPUS):
@@ -2046,10 +2055,6 @@ class Memory_Structure(customJSONRPC):
         if is_error(weid):
             returnD(weid)
         weid = weid["result"]
-        if not weid:
-        #TODO check how default is handled in draft
-        #if WE["name"] == ms_const.DEFAULT_WEBENTITY:
-            returnD(format_error("No matching WebEntity found for lruprefix %s" % lru_prefix))
         WE = yield self.db.get_WE(corpus, weid)
         job = yield self.db.list_jobs(corpus, {'webentity_id': WE}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
         returnD(format_result(self.format_webentity(WE, job, corpus=corpus)))
@@ -2083,10 +2088,6 @@ class Memory_Structure(customJSONRPC):
         if is_error(weid):
             returnD(weid)
         weid = weid["result"]
-        #TODO check how default is handled in draft
-        #if WE["name"] == ms_const.DEFAULT_WEBENTITY:
-        if not weid:
-            returnD(format_error("No matching WebEntity found for url %s" % url))
         WE = yield self.db.get_WE(corpus, weid)
         job = yield self.db.list_jobs(corpus, {'webentity_id': WE["_id"]}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
         returnD(format_result(self.format_webentity(WE, job, corpus=corpus)))
