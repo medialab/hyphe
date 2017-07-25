@@ -1937,14 +1937,14 @@ class Memory_Structure(customJSONRPC):
         # Run linking WebEntities on a regular basis when needed and not overloaded
         now = now_ts()
         s = time.time()
-        # Build links at least every 100 index loops...
-        if (self.corpora[corpus]['recent_changes'] >= 100 or
+        # Build links at least every 10 index loops...
+        if (self.corpora[corpus]['recent_changes'] >= 10 or
           # or, after at least one index if...
           ( self.corpora[corpus]['recent_changes'] and (
-            # pagesqueue is empty and no index happened for a minute (finished crawling)
-            (now - self.corpora[corpus]['last_index_loop'] > 60000 and not self.corpora[corpus]['pages_queued']) or
+            # pagesqueue is empty
+            not self.corpora[corpus]['pages_queued'] or
             # links were not built since more than 4 times the time it takes
-            (s - self.corpora[corpus]['last_links_loop'] > 3.5 * self.corpora[corpus]['links_duration']) )
+            (s - self.corpora[corpus]['last_links_loop'] > 4 * self.corpora[corpus]['links_duration']) )
           ) ):
             logger.msg("Processing new WebEntity links...", system="INFO - %s" % corpus)
             self.traphs.corpora[corpus].loop_running = True
