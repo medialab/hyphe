@@ -40,21 +40,21 @@ class TraphProtocol(LineOnlyReceiver):
         try:
             query = msgpack.unpackb(query)
         except (msgpack.exceptions.ExtraData, msgpack.exceptions.UnpackValueError) as e:
-            return self.returnError("Query is not a valid JSON object: %s" % e, query)
+            return self.returnError("Query is not a valid JSON object: %s" % str(e), query)
         try:
             method = query["method"]
             args = query["args"]
             kwargs = query["kwargs"]
         except KeyError as e:
-            return self.returnError("Argument missing from JSON query: %s" % e, query)
+            return self.returnError("Argument missing from JSON query: %s" % str(e), query)
         try:
             fct = getattr(Traph, method)
         except AttributeError as e:
-            return self.returnError("Called non existing Traph method: %s" % e, query)
+            return self.returnError("Called non existing Traph method: %s" % str(e), query)
         try:
             res = fct(self.traph, *args, **kwargs)
         except TraphException as e:
-            return self.returnError("Traph raised: %s" % e, query)
+            return self.returnError("Traph raised: %s" % str(e), query)
         except Exception as e:
             return self.returnError(str(e), query)
         return self.returnResult(res, query)

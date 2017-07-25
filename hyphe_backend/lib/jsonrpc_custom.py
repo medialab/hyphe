@@ -9,6 +9,7 @@ from twisted.python import log, context
 from twisted.internet.defer import maybeDeferred
 from hyphe_backend.lib.utils import format_error
 
+log.discardLogs()
 
 """
 Rewrite JSONRPC class from txjsonrpc/web/jsonrpc.py to add custom logs
@@ -17,7 +18,6 @@ and avoid crashes on logging encoded strings
 """
 
 class customJSONRPC(JSONRPC):
-
     def __init__(self, open_cors=False, debug=0):
         self.open_cors = open_cors
         self.debug = debug
@@ -50,9 +50,9 @@ class customJSONRPC(JSONRPC):
 
         if self.debug:
             parsedcopy = deepcopy(parsed)
-            if parsedcopy["method"] in ["start_corpus", "create_corpus"] and len(parsedcopy["params"]) > 1:
+            if functionPath in ["start_corpus", "create_corpus"] and len(parsedcopy["params"]) > 1:
                 parsedcopy["params"][1] = "********"
-            self.safe_log("Client(%s): %s" % (request.client, parsedcopy), "DEBUG - QUERY%s" % from_ip)
+            self.safe_log(parsedcopy, "DEBUG - QUERY%s" % from_ip)
 
         params = parsed.get('params', {})
         args, kwargs = [], {}
@@ -100,7 +100,13 @@ class customJSONRPC(JSONRPC):
 
     def _cbRender(self, result, request, id, version):
         if self.debug == 2:
+            request.content.seek(0, 0)
+            content = request.content.read()
+            if not content and request.method == 'GET' and 'request' in request.args:
+                content = request.args['request'][0]
+            parsed = jsonrpclib.loads(content)
+            functionPath = parsed.get("method")
             txt = jsonrpclib.dumps(result, id=id, version=2.0)
-            self.safe_log("%s%s" % (txt[:1000], " ... [%d cars truncated]" % (len(txt)-1000) if len(txt) > 1000 else ''), "DEBUG - ANSWER")
+            self.safe_log("%s: %s%s" % (functionPath, txt[:1000], " ... [%d cars truncated]" % (len(txt)-1000) if len(txt) > 1000 else ''), "DEBUG - ANSWER")
         return JSONRPC._cbRender(self, result, request, id, version)
 

@@ -277,11 +277,11 @@ class TraphClientProtocol(LineOnlyReceiver):
         self.corpus.lastcall = time()
         try:
             msg = msgpack.unpackb(data)
-            self.corpus.log("Traph server answer: %s" % msg)
             self.deferred.callback(msg)
+            self.corpus.log("Traph server answer: %s" % msg)
         except (msgpack.exceptions.ExtraData, msgpack.exceptions.UnpackValueError) as e:
-            self.corpus.log("%s: %s - Received badly formatted data %s" % (type(e), e, data), True)
             self.deferred.errback(Exception(data))
+            self.corpus.log("%s: %s - Received badly formatted data" % (type(e), e), True)
         self.corpus.call_running = False
         self.deferred = None
         self._sendMessageNow()

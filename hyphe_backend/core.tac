@@ -1217,7 +1217,6 @@ class Memory_Structure(customJSONRPC):
                     logger.msg("A webentity (%s) has a badly defined prefix: %s" % (WE["_id"], l), system="WARNING - %s" % corpus)
             for pr in prefixes:
                 if pr.startswith("http://www."):
-                    print WE, pr
                     homepages[WE["_id"]] = pr
                     break
             if not bl or is_error(pgs) or not len(pgs["result"]):
@@ -1264,7 +1263,6 @@ class Memory_Structure(customJSONRPC):
             self.corpora[corpus]['recent_changes'] += 1
             self.corpora[corpus]['total_webentities'] += 1
         WE = yield self.db.get_WE(corpus, weid)
-        print weid, WE
         job = yield self.db.list_jobs(corpus, {'webentity_id': weid}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
         WE = self.format_webentity(WE, job, corpus=corpus)
         WE['created'] = True if new else False
