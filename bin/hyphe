@@ -2,7 +2,7 @@
 # Bash service to start, stop or restart Hyphe's backend server
 
 USAGE="$0 <start|stop|restart> [--nologs]"
-HCIVENV=hyphe
+HCIVENV=hyphe-traph
 cd "$(dirname "$0")"
 cd ..
 HCIPATH=$(pwd)
@@ -26,9 +26,11 @@ fi
 mkdir -p log
 PID_FILE="hyphe-server.lock"
 CORE_COMMAND="twistd -y $HCIPATH/hyphe_backend/core.tac -l $HCIPATH/log/hyphe-core.log --pidfile $PID_FILE"
-JAVA_COMMAND="$HCIPATH/hyphe_backend/memorystructure/MemoryStructureExecutable.jar corpus="
+#JAVA_COMMAND="python hyphe_backend/traph/server.py traph-sockets/"
 
 function kill_residual_memstruct {
+  #TODO handle socket unix trapĥs
+  return
   count=0
   # Wait 15 seconds before trying to kill "-9"
   while pgrep -f "$JAVA_COMMAND" > /dev/null && [ $count -lt 15 ]; do
@@ -160,7 +162,7 @@ if $START; then
   if $LOGS; then
     echo "Displaying logs now. Ctrl+C will only stop logs display. Run bin/hyphe stop to stop the backend server..."
     echo
-    tail -f log/hyphe-core.log
+    tail -f log/hyphe-core.log | grep -v "\(get_status\|list_corpus\)"
   fi
 fi
 
