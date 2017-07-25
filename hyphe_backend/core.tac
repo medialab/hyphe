@@ -1672,8 +1672,8 @@ class Memory_Structure(customJSONRPC):
             if is_error(res):
                 returnD(res)
             WE = yield self.add_backend_tags(WE, "added", lru_prefix, namespace="PREFIXES", _commit=False, corpus=corpus)
-            if "removed" in WE["tags"]["CORE.PREFIXES"] and lru_prefix in WE["tags"]["CORE.PREFIXES"]["removed"]:
-                WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.PREFIXES", "removed", lru_prefix, _commit=False, corpus=corpus)
+            if "removed" in WE["tags"]["CORE-PREFIXES"] and lru_prefix in WE["tags"]["CORE-PREFIXES"]["removed"]:
+                WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-PREFIXES", "removed", lru_prefix, _commit=False, corpus=corpus)
         if not clean_lrus:
             returnD(format_success("No need to add these prefixes to this webentity"))
         res = yield self.update_webentity(WE, "prefixes", clean_lrus, "push", corpus=corpus)
@@ -1690,8 +1690,8 @@ class Memory_Structure(customJSONRPC):
         except ValueError as e:
             returnD(format_error(e))
         WE = yield self.add_backend_tags(webentity_id, "removed", lru_prefix, namespace="PREFIXES", _commit=False, corpus=corpus)
-        if "added" in WE["tags"]["CORE.PREFIXES"] and lru_prefix in WE["tags"]["CORE.PREFIXES"]["added"]:
-            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE.PREFIXES", "added", lru_prefix,  _commit=False, corpus=corpus)
+        if "added" in WE["tags"]["CORE-PREFIXES"] and lru_prefix in WE["tags"]["CORE-PREFIXES"]["added"]:
+            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-PREFIXES", "added", lru_prefix,  _commit=False, corpus=corpus)
         res = yield self.traphs.call(corpus, "remove_prefix_from_webentity", lru_prefix, webentity_id)
         if is_error(res):
             returnD(res)
@@ -1759,8 +1759,8 @@ class Memory_Structure(customJSONRPC):
             if is_error(res):
                 returnD(res)
             new_WE = yield self.add_backend_tags(new_WE, "added", lru, namespace="PREFIXES", _commit=False, corpus=corpus)
-            if "removed" in new_WE["tags"]["CORE.PREFIXES"] and lru in new_WE["tags"]["CORE.PREFIXES"]["removed"]:
-                new_WE = yield self.jsonrpc_rm_webentity_tag_value(new_WE, "CORE.PREFIXES", "removed", lru, _commit=False, corpus=corpus)
+            if "removed" in new_WE["tags"]["CORE-PREFIXES"] and lru in new_WE["tags"]["CORE-PREFIXES"]["removed"]:
+                new_WE = yield self.jsonrpc_rm_webentity_tag_value(new_WE, "CORE-PREFIXES", "removed", lru, _commit=False, corpus=corpus)
         if test_bool_arg(include_name_and_status):
             new_WE["name"] = old_WE["name"]
             new_WE["status"] = old_WE["status"]
@@ -2387,7 +2387,7 @@ class Memory_Structure(customJSONRPC):
     def add_backend_tags(self, webentity_id, key, value, namespace="", corpus=DEFAULT_CORPUS, _commit=True):
         if not namespace:
             namespace = "CORE"
-        else: namespace = "CORE.%s" % namespace
+        else: namespace = "CORE-%s" % namespace
         WE = yield self.jsonrpc_add_webentity_tag_value(webentity_id, namespace, key, value, _commit=False, corpus=corpus)
         res = yield self.jsonrpc_add_webentity_tag_value(WE, "CORE", "recrawlNeeded", "true", _commit=_commit, corpus=corpus)
         returnD(res)
