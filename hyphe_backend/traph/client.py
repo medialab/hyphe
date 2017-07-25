@@ -6,8 +6,9 @@ from twisted.python import log
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
 from twisted.internet.defer import Deferred, inlineCallbacks, returnValue
-from twisted.internet.protocol import Protocol, ProcessProtocol
+from twisted.internet.protocol import ProcessProtocol
 from twisted.internet.endpoints import UNIXClientEndpoint, connectProtocol
+from twisted.protocols.basic import LineOnlyReceiver
 
 
 class TraphFactory(object):
@@ -230,7 +231,9 @@ TraphMethodsPriorities = {
 }
 TraphMethodPriority = lambda method: TraphMethodsPriorities.get(method, 0)
 
-class TraphClientProtocol(Protocol):
+class TraphClientProtocol(LineOnlyReceiver):
+
+    MAX_LENGTH = 16777216
 
     def __init__(self, corpus):
         self.corpus = corpus
@@ -260,21 +263,24 @@ class TraphClientProtocol(Protocol):
         self.corpus.call_running = True
         _, _, self.deferred, method, args, kwargs = self.queue.get(False)
         self.corpus.log("Traph client query: %s %s %s" % (method, args, kwargs))
-        self.transport.writeSequence(msgpack.packb({
+        self.sendLine(msgpack.packb({
           "method": method,
           "args": args,
           "kwargs": kwargs
         }))
 
-    def dataReceived(self, data):
-        data = data.strip()
+    def lineLengthExceeded(self, line):
+        print "WARNING line lenght exceeded client side %s" % len(line)
+        self.corpus.log("Line Length exceeded on UNIX socket" % (type(e), e), True)
+
+    def lineReceived(self, data):
         self.corpus.lastcall = time()
         try:
             msg = msgpack.unpackb(data)
             self.corpus.log("Traph server answer: %s" % msg)
-            self.deferred.callback(msgpack.unpackb(data))
-        except ValueError:
-            self.corpus.log("Received badly formatted data %s" % data, True)
+            self.deferred.callback(msg)
+        except (msgpack.exceptions.ExtraData, msgpack.exceptions.UnpackValueError) as e:
+            self.corpus.log("%s: %s - Received badly formatted data %s" % (type(e), e, data), True)
             self.deferred.errback(Exception(data))
         self.corpus.call_running = False
         self.deferred = None

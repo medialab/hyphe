@@ -1,10 +1,14 @@
 import os, sys, json, msgpack
-from traph import Traph, TraphWriteReport
-from twisted.internet.protocol import Factory, Protocol
-from twisted.internet.endpoints import UNIXServerEndpoint
+from traph import Traph, TraphException, TraphWriteReport
 from twisted.internet import reactor
+from twisted.internet.protocol import Factory
+from twisted.internet.endpoints import UNIXServerEndpoint
+from twisted.protocols.basic import LineOnlyReceiver
 
-class TraphProtocol(Protocol):
+
+class TraphProtocol(LineOnlyReceiver):
+
+    MAX_LENGTH = 16777216
 
     def __init__(self, traph):
         self.traph = traph
@@ -16,24 +20,26 @@ class TraphProtocol(Protocol):
     def returnResult(self, res, query):
         if isinstance(res, TraphWriteReport):
             res = res.__dict__()
-        self.transport.writeSequence(msgpack.packb({
+        self.sendLine(msgpack.packb({
           "code": "success",
           "result": res,
           "query": query
         }))
 
     def returnError(self, msg, query):
-        self.transport.writeSequence(msgpack.packb({
+        self.sendLine(msgpack.packb({
           "code": "fail",
           "message": msg,
           "query": query
         }))
 
-    def dataReceived(self, query):
-        query = query.strip()
+    def lineLengthExceeded(self, line):
+        print "WARNING line lenght exceeded server side %s" % len(line)
+
+    def lineReceived(self, query):
         try:
             query = msgpack.unpackb(query)
-        except ValueError as e:
+        except (msgpack.exceptions.ExtraData, msgpack.exceptions.UnpackValueError) as e:
             return self.returnError("Query is not a valid JSON object: %s" % e, query)
         try:
             method = query["method"]
@@ -47,7 +53,7 @@ class TraphProtocol(Protocol):
             return self.returnError("Called non existing Traph method: %s" % e, query)
         try:
             res = fct(self.traph, *args, **kwargs)
-        except AttributeError as e:
+        except TraphException as e:
             return self.returnError("Traph raised: %s" % e, query)
         except Exception as e:
             return self.returnError(str(e), query)
