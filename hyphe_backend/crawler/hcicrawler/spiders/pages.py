@@ -2,10 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os, time, signal, re
-try:
-    import json
-except:
-    import simplejson as json
+import json
 try:
     from pymongo.binary import Binary
 except:

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os, re, types
-import simplejson as json
+import json
 from copy import deepcopy
 from twisted.internet import defer
 TEST_CORPUS = "--test-corpus--"
