@@ -29,7 +29,6 @@ from hyphe_backend.lib.tlds import collect_tlds
 from hyphe_backend.lib.jsonrpc_custom import customJSONRPC
 from hyphe_backend.lib.jobsqueue import JobsQueue
 from hyphe_backend.lib.mongo import MongoDB, sortdesc
-from hyphe_backend.lib.corpus import CorpusFactory
 from hyphe_backend.traph.client import TraphFactory
 
 WEBENTITIES_STATUSES = ["IN", "OUT", "UNDECIDED", "DISCOVERED"]
