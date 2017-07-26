@@ -1,5 +1,5 @@
 import os, json, msgpack
-from time import time
+from time import time, sleep
 from Queue import PriorityQueue
 #from threading import Thread
 from twisted.python import log
@@ -14,19 +14,16 @@ from twisted.protocols.basic import LineOnlyReceiver
 class TraphFactory(object):
 
     # TODO:
+    # test threading useful ?
     # handle max started corpus ?
     # max ram ?
     # loglevel ?
     # remove ports from config
-    # change in core all calls to msclients
-
+    # handle timedout queries
 
     def __init__(self, max_corpus=0):
         self.corpora = {}
         self.max_corpus = max_corpus
-
-    def is_full(self):
-        return self.max_corpus and len(self.corpora) >= self.max_corpus
 
     def log(self, name, msg, error=False, quiet=False):
         if quiet and not error:
@@ -65,6 +62,9 @@ class TraphFactory(object):
     def total_running(self):
         return len([0 for a in self.corpora if not self.stopped_corpus(a)])
 
+    def is_full(self):
+        return self.max_corpus and self.total_running() >= self.max_corpus
+
     def start_corpus(self, name, quiet=False, **kwargs):
         if self.test_corpus(name) or self.status_corpus(name) == "started":
             self.log(name, "Traph already started", quiet=quiet)
@@ -74,12 +74,11 @@ class TraphFactory(object):
             if "keepalive" not in kwargs:
                 kwargs["keepalive"] = self.corpora[name].keepalive
             del(self.corpora[name])
-        self.corpora[name] = TraphCorpus(self, name, quiet=quiet, **kwargs)
         if self.is_full():
             self.log(name, "Too many Traphs already opened", True)
             return False
-        self.corpora[name].start()
-        return True
+        self.corpora[name] = TraphCorpus(self, name, quiet=quiet, **kwargs)
+        return self.corpora[name].start()
 
     def stop_corpus(self, name, quiet=False):
         if self.stopped_corpus(name):
@@ -111,6 +110,7 @@ class TraphCorpus(object): # Thread ?
         self.status = "init"
         self.name = name
         self.socket = os.path.join(self.sockets_dir, name)
+        self.pidfile = self.socket + ".pid"
         self.options = {
           "default_WECR": default_WECR,
           "WECRs": WECRs
@@ -138,6 +138,7 @@ class TraphCorpus(object): # Thread ?
           self.socket,
           self.name
         ]
+        self.checkAndRemovePID(True)
         with open(self.socket+"-options.json", "w") as f:
             json.dump(self.options, f)
         self.log("Starting Traph: %s" % " ".join(cmd))
@@ -148,7 +149,10 @@ class TraphCorpus(object): # Thread ?
           cmd,
           env=os.environ
         )
+        with open(self.pidfile, "w") as f:
+            f.write(str(self.transport.pid))
         self.client = self.protocol.client
+        return True
 
     def call(self, method, *args, **kwargs):
         return self.client.sendMessage(method, *args, **kwargs)
@@ -158,6 +162,9 @@ class TraphCorpus(object): # Thread ?
         if self.status == "ready" and self.keepalive < delay and not self.call_running:
             self.log("Stopping after %ss of inactivity" % int(delay))
             self.stop()
+
+    def stopping(self):
+        return self.status in ["stopping", "stopped", "error"]
 
     def stop(self):
         if self.monitor.running:
@@ -171,9 +178,26 @@ class TraphCorpus(object): # Thread ?
         self.log("Traph stopped")
         if not self.error:
             self.status = "stopped"
+        self.checkAndRemovePID()
 
-    def stopping(self):
-        return self.status in ["stopping", "stopped", "error"]
+    def checkAndRemovePID(self, warn=False):
+        if os.path.exists(self.pidfile):
+            if warn:
+                print "WARNING: PID file already exists for", self.socket
+            with open(self.pidfile) as f:
+                pid = int(f.read())
+            procpath = "/proc/%s" % pid
+            tries = 0
+            while tries < 3 and os.path.exists(procpath):
+                os.kill(pid, 15)
+                tries += 1
+                sleep(1)
+            if os.path.exists(procpath):
+                os.kill(pid, 9)
+        if os.path.exists(self.pidfile):
+            os.remove(self.pidfile)
+        if os.path.exists(self.socket):
+            os.remove(self.socket)
 
     def log(self, msg, error=False):
         self.factory.log(self.name, msg, error, quiet=self.quiet)
@@ -200,12 +224,14 @@ class TraphProcessProtocol(ProcessProtocol):
     # TODO handle traph process cannot start (sock existing for example) -> then hard_restart ?
     def childDataReceived(self, childFD, data):
         data = data.strip()
-        print "Traph process received \"%s\" on buffer %s" % (data, childFD)
         if childFD == 1 and data == "READY":
             self.connectClient()
+        else:
+            print "Traph process received \"%s\" on buffer %s" % (data, childFD)
 
     def childConnectionLost(self, childFD):
-        print "Traph process lost connection to buffer", childFD
+        #print "Traph process lost connection to buffer", childFD
+        pass
 
     # TODO handle auto hard restart ?
     def processExited(self, reason):
@@ -219,6 +245,7 @@ class TraphProcessProtocol(ProcessProtocol):
             self.corpus.status = "error"
             self.corpus.error = reason
             print "Traph process crashed:", reason
+        self.corpus.checkAndRemovePID()
 
     def stop(self):
         self.corpus.status = "stopping"
@@ -281,7 +308,7 @@ class TraphClientProtocol(LineOnlyReceiver):
             self.corpus.log("Traph server answer: %s" % msg)
         except (msgpack.exceptions.ExtraData, msgpack.exceptions.UnpackValueError) as e:
             self.deferred.errback(Exception(data))
-            self.corpus.log("%s: %s - Received badly formatted data" % (type(e), e), True)
+            self.corpus.log("%s: %s - Received badly formatted data: %s" % (type(e), e, data.encode("utf-8", "replace")), True)
         self.corpus.call_running = False
         self.deferred = None
         self._sendMessageNow()
@@ -291,8 +318,7 @@ if __name__ == "__main__":
     import sys
 
     corpus = "test"
-    if len(sys.argv):
-        corpus = sys.argv[1]
+    log.startLogging(sys.stdout)
     factory = TraphFactory()
     factory.start_corpus(corpus, keepalive=10)
 

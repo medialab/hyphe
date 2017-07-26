@@ -34,7 +34,7 @@ class TraphProtocol(LineOnlyReceiver):
         }))
 
     def lineLengthExceeded(self, line):
-        print "WARNING line lenght exceeded server side %s" % len(line)
+        print "WARNING line length exceeded server side %s" % len(line)
 
     def lineReceived(self, query):
         try:
