@@ -14,7 +14,6 @@ class TraphProtocol(LineOnlyReceiver):
         self.traph = traph
 
     def connectionMade(self):
-        #print "Connection received from client"
         pass
 
     def returnResult(self, res, query):
@@ -34,7 +33,7 @@ class TraphProtocol(LineOnlyReceiver):
         }))
 
     def lineLengthExceeded(self, line):
-        print "WARNING line length exceeded server side %s" % len(line)
+        print >> sys.stderr, "WARNING line length exceeded server side %s (max %s)" % (len(line), self.MAX_LENGTH)
 
     def lineReceived(self, query):
         try:
@@ -61,7 +60,6 @@ class TraphProtocol(LineOnlyReceiver):
 
 
     def connectionLost(self, reason):
-        #print "SERVER CLOSED", reason
         pass
 
 

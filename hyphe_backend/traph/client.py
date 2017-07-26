@@ -188,7 +188,7 @@ class TraphCorpus(object): # Thread ?
     def checkAndRemovePID(self, warn=False):
         if os.path.exists(self.pidfile):
             if warn:
-                print "WARNING: PID file already exists for", self.socket
+                self.log("WARNING: PID file already exists for %s, cleaning-up..." % self.socket)
             with open(self.pidfile) as f:
                 pid = int(f.read())
             procpath = "/proc/%s" % pid
@@ -198,11 +198,14 @@ class TraphCorpus(object): # Thread ?
                 tries += 1
                 sleep(1)
             if os.path.exists(procpath):
+                self.log("WARNING: Force killing residual process %s" % pid)
                 os.kill(pid, 9)
                 sleep(1)
         if os.path.exists(self.pidfile):
             os.remove(self.pidfile)
         if os.path.exists(self.socket):
+            if warn:
+                self.log("Removing residual socket file %s" % self.socket)
             os.remove(self.socket)
 
     def log(self, msg, error=False):
@@ -218,7 +221,7 @@ class TraphProcessProtocol(ProcessProtocol):
 
     def connectionMade(self):
         self.corpus.status = "starting"
-        print "Traph Process started"
+        self.corpus.log("Traph process started")
 
     def connectClient(self):
         connectProtocol(
@@ -226,17 +229,14 @@ class TraphProcessProtocol(ProcessProtocol):
           self.client
         )
 
-    # TODO handle stack from process
-    # TODO handle traph process cannot start (sock existing for example) -> then hard_restart ?
     def childDataReceived(self, childFD, data):
         data = data.strip()
         if childFD == 1 and data == "READY":
             self.connectClient()
         else:
-            print "Traph process received \"%s\" on buffer %s" % (data, childFD)
+            self.corpus.log('Traph process received "%s"' % data, childFD == 2)
 
     def childConnectionLost(self, childFD):
-        #print "Traph process lost connection to buffer", childFD
         pass
 
     # TODO handle auto hard restart ?
@@ -246,11 +246,11 @@ class TraphProcessProtocol(ProcessProtocol):
         rc = reason.value.exitCode
         if rc == 0:
             self.corpus.status = "stopped"
-            print "Traph process exited cleanly"
+            self.corpus.log("Traph process exited cleanly")
         else:
             self.corpus.status = "error"
             self.corpus.error = reason
-            print "Traph process crashed:", reason
+            self.corpus.log("Traph process crashed: %s" % reason, True)
         self.corpus.checkAndRemovePID()
 
     def stop(self):
@@ -303,8 +303,7 @@ class TraphClientProtocol(LineOnlyReceiver):
         }))
 
     def lineLengthExceeded(self, line):
-        print "WARNING line lenght exceeded client side %s" % len(line)
-        self.corpus.log("Line Length exceeded on UNIX socket" % (type(e), e), True)
+        self.corpus.log("Line length (%s) exceeded limit (%s) on UNIX socket: %s %s" % (len(line), self.MAX_LENGTH, type(e), e), True)
 
     def lineReceived(self, data):
         self.corpus.lastcall = time()
@@ -321,12 +320,11 @@ class TraphClientProtocol(LineOnlyReceiver):
 
 
 if __name__ == "__main__":
-    import sys
-
     corpus = "test"
+
     log.startLogging(sys.stdout)
     factory = TraphFactory()
-    factory.start_corpus(corpus, keepalive=10)
+    factory.start_corpus(corpus, keepalive=2)
 
     reactor.callLater(2, factory.corpora[corpus].call, "TEST")
     reactor.callLater(2, factory.corpora[corpus].call, "clear")
@@ -334,4 +332,5 @@ if __name__ == "__main__":
     reactor.callLater(3, factory.corpora[corpus].call, "add_page", "s:http|h:fr|h:scpo|p:bib|")
     reactor.callLater(3, factory.corpora[corpus].call, "TEST")
     reactor.callLater(4, factory.corpora[corpus].call, "TEST 4")
+
     reactor.run()
