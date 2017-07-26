@@ -332,5 +332,6 @@ if __name__ == "__main__":
     reactor.callLater(3, factory.corpora[corpus].call, "add_page", "s:http|h:fr|h:scpo|p:bib|")
     reactor.callLater(3, factory.corpora[corpus].call, "TEST")
     reactor.callLater(4, factory.corpora[corpus].call, "TEST 4")
+    reactor.callLater(8, reactor.stop)
 
     reactor.run()
