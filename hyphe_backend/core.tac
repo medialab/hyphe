@@ -2624,7 +2624,21 @@ class Memory_Structure(customJSONRPC):
             res = yield self.traphs.call(corpus, "add_webentity_creation_rule", variation, creationrules.getPreset(regexp, variation))
             if is_error(res):
                 returnD(res)
-            # TODO handle newly created webentities from traph
+
+            # Create new webentities
+            for weid, prefixes in res["created_webentities"].items():
+                yield self.db.upsert_WE(corpus, weid, {
+                  "_id": weid,
+                  "prefixes": prefixes,
+                  "name": urllru.name_url(urllru.lru_to_url(prefixes[0]), self.corpora[corpus]["tlds"]),
+                  "status": "DISCOVERED",
+                  "tags": {},
+                  "homepage": None,
+                  "startpages": [],
+                  "creationDate": time.time()
+                })
+                self.corpora[corpus]['total_webentities'] += 1
+
             self.corpora[corpus]['recent_changes'] += 1
         self.jsonrpc_get_webentity_creationrules(corpus=corpus)
         if onlycreate:
