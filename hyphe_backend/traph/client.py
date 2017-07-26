@@ -18,12 +18,17 @@ class TraphFactory(object):
     # handle max started corpus ?
     # max ram ?
     # loglevel ?
+    # handle traph-data dir from config
     # remove ports from config
     # handle timedout queries
+
+    sockets_dir = "traph-sockets"
 
     def __init__(self, max_corpus=0):
         self.corpora = {}
         self.max_corpus = max_corpus
+        if not os.path.isdir(self.sockets_dir):
+            os.makedirs(self.sockets_dir)
 
     def log(self, name, msg, error=False, quiet=False):
         if quiet and not error:
@@ -99,17 +104,15 @@ class TraphFactory(object):
 
 class TraphCorpus(object): # Thread ?
 
-    sockets_dir = os.path.join("traph-sockets")
     exec_path = os.path.join("hyphe_backend", "traph", "server.py")
     #daemon = True
 
     def __init__(self, factory, name, default_WECR=None, WECRs=None, keepalive=1800, quiet=False, **kwargs):
         #Thread.__init__(self)
-        # TODO check and make socketdirs
         self.factory = factory
         self.status = "init"
         self.name = name
-        self.socket = os.path.join(self.sockets_dir, name)
+        self.socket = os.path.join(self.factory.sockets_dir, name)
         self.pidfile = self.socket + ".pid"
         self.options = {
           "default_WECR": default_WECR,
