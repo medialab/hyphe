@@ -34,7 +34,7 @@ class TraphProtocol(LineOnlyReceiver):
         }))
 
     def lineLengthExceeded(self, line):
-        print "WARNING line lenght exceeded server side %s" % len(line)
+        print "WARNING line length exceeded server side %s" % len(line)
 
     def lineReceived(self, query):
         try:
@@ -75,6 +75,8 @@ class TraphServerFactory(Factory):
 
     def __init__(self, corpus, default_WECR=None, WECRs=None):
         self.corpus = corpus
+        if not os.path.isdir(self.traph_dir):
+            os.makedirs(self.traph_dir)
         self.traph = Traph(
           folder=os.path.join(self.traph_dir, corpus),
           default_webentity_creation_rule=default_WECR or self.default_WECR,
