@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time, random, json
+import time, random, json, sys
 import subprocess
 from datetime import datetime
 from warnings import filterwarnings
@@ -921,7 +921,7 @@ class Crawler(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_deploy_crawler(self, corpus=DEFAULT_CORPUS, _quiet=False):
         """Prepares and deploys on the ScrapyD server a spider (crawler) for a `corpus`."""
-        output = subprocess.Popen(['bash', 'bin/deploy_scrapy_spider.sh', corpus, '--noenv'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
+        output = subprocess.Popen([sys.executable, 'deploy.py', corpus], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd='hyphe_backend/crawler', env=os.environ).communicate()[0]
         res = yield self.crawlqueue.send_scrapy_query("listprojects")
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
             logger.msg("Couldn't deploy crawler", system="ERROR - %s" % corpus)
