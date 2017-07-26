@@ -1,4 +1,5 @@
-import os, json, msgpack
+import os, sys
+import json, msgpack
 from time import time, sleep
 from Queue import PriorityQueue
 #from threading import Thread
@@ -135,7 +136,7 @@ class TraphCorpus(object): # Thread ?
         self.status = "started"
         self.log("Starting Traph for at least %ss" % self.keepalive)
         cmd = [
-          "python",
+          sys.executable,
           "-u",
           self.exec_path,
           self.socket,
