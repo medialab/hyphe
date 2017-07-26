@@ -181,7 +181,8 @@ class TraphCorpus(object): # Thread ?
         self.log("Traph stopped")
         if not self.error:
             self.status = "stopped"
-        self.checkAndRemovePID()
+        else:
+            self.checkAndRemovePID()
 
     def checkAndRemovePID(self, warn=False):
         if os.path.exists(self.pidfile):
@@ -197,6 +198,7 @@ class TraphCorpus(object): # Thread ?
                 sleep(1)
             if os.path.exists(procpath):
                 os.kill(pid, 9)
+                sleep(1)
         if os.path.exists(self.pidfile):
             os.remove(self.pidfile)
         if os.path.exists(self.socket):

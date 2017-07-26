@@ -106,7 +106,10 @@ class customJSONRPC(JSONRPC):
                 content = request.args['request'][0]
             parsed = jsonrpclib.loads(content)
             functionPath = parsed.get("method")
-            txt = jsonrpclib.dumps(result, id=id, version=2.0)
+            try:
+                txt = jsonrpclib.dumps(result, id=id, version=2.0)
+            except TypeError:
+                txt = result
             self.safe_log("%s: %s%s" % (functionPath, txt[:1000], " ... [%d cars truncated]" % (len(txt)-1000) if len(txt) > 1000 else ''), "DEBUG - ANSWER")
         return JSONRPC._cbRender(self, result, request, id, version)
 
