@@ -15,18 +15,19 @@ config = config_hci.load_config()
 class TraphFactory(object):
 
     # TODO:
-    # handle traph-data dir from config
-    # remove ports from config
     # handle timedout queries
     # handle max started corpus ?
     # max ram ?
 
     sockets_dir = "traph-sockets"
 
-    def __init__(self, max_corpus=0, chatty=False):
+    def __init__(self, data_dir="traph-data", max_corpus=0, chatty=False):
+        self.data_dir = data_dir
         self.max_corpus = max_corpus
         self.chatty = chatty
         self.corpora = {}
+        if not os.path.isdir(self.data_dir):
+            os.makedirs(self.data_dir)
         if not os.path.isdir(self.sockets_dir):
             os.makedirs(self.sockets_dir)
 
@@ -116,6 +117,7 @@ class TraphCorpus(object):
         self.socket = os.path.join(self.factory.sockets_dir, name)
         self.pidfile = self.socket + ".pid"
         self.options = {
+          "traph_dir": self.factory.data_dir,
           "default_WECR": default_WECR,
           "WECRs": WECRs
         }

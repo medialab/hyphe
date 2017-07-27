@@ -42,7 +42,7 @@ class Core(customJSONRPC):
     def __init__(self):
         customJSONRPC.__init__(self, config['OPEN_CORS_API'], config['DEBUG'])
         self.db = MongoDB(config['mongo-scrapy'])
-        self.traphs = TraphFactory()
+        self.traphs = TraphFactory(data_dir=config["traph"]["data_path"])
         self.corpora = {}
         self.crawler = Crawler(self)
         self.store = Memory_Structure(self)

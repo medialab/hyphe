@@ -65,13 +65,13 @@ class TraphProtocol(LineOnlyReceiver):
 
 class TraphServerFactory(Factory):
 
-    traph_dir = "traph-data"
     default_WECR = '(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|(h:[^\\|]+\\|)|h:(localhost|(\\d{1,3}\\.){3}\\d{1,3}|\\[[\\da-f]*:[\\da-f:]*\\])\\|))'
     WECRs = {
       's:http|h:com|h:world|': '(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|(h:[^\\|]+\\|)+|h:(localhost|(\\d{1,3}\\.){3}\\d{1,3}|\\[[\\da-f]*:[\\da-f:]*\\])\\|)(p:[^\\|]+\\|){1})'
     }
 
-    def __init__(self, corpus, default_WECR=None, WECRs=None):
+    def __init__(self, corpus, traph_dir="traph-data", default_WECR=None, WECRs=None):
+        self.traph_dir = traph_dir
         self.corpus = corpus
         if not os.path.isdir(self.traph_dir):
             os.makedirs(self.traph_dir)
