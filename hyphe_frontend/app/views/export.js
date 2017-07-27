@@ -274,10 +274,10 @@ angular.module('hyphe.exportController', [])
     function loadStatus(){
       api.globalStatus({}, function(status){
         $scope.counts = {
-          in: status.corpus.memory_structure.webentities.IN
-        , undecided: status.corpus.memory_structure.webentities.UNDECIDED
-        , out: status.corpus.memory_structure.webentities.OUT
-        , discovered: status.corpus.memory_structure.webentities.DISCOVERED
+          in: status.corpus.traph.webentities.IN
+        , undecided: status.corpus.traph.webentities.UNDECIDED
+        , out: status.corpus.traph.webentities.OUT
+        , discovered: status.corpus.traph.webentities.DISCOVERED
         }
       },function(data, status, headers, config){
         $scope.status = {message: 'Error loading status', background:'danger'}

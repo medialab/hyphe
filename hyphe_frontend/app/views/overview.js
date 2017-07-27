@@ -23,8 +23,8 @@ angular.module('hyphe.overviewController', [])
       $scope.loadingStatus = true
       api.globalStatus({}, function(status){
         $scope.loadingStatus = false
-        if (status.corpus.memory_structure.job_running == "Diagnosing"){
-          status.corpus.memory_structure.job_running = ""
+        if (status.corpus.traph.job_running == "Diagnosing"){
+          status.corpus.traph.job_running = ""
         }
         $scope.corpusStatus = status
       },function(data, status, headers, config){

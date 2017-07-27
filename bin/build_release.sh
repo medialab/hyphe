@@ -11,9 +11,6 @@ source bin/common.sh
 bash bin/build_apidoc.sh
 bash bin/update_tlds_list.sh
 
-echo "Building Java Thrift Interface for backend..."
-bash bin/build_thrift.sh > /tmp/hyphe.build_thrift.log || exitAndLog /tmp/hyphe.build_thrift.log "building:"
-
 #echo "Install node dependencies for frontend..."
 #cd hyphe_frontend
 #bower install > /tmp/hyphe.install_bower.log || exitAndLog /tmp/hyphe.install_bower.log "installing"
@@ -21,7 +18,7 @@ bash bin/build_thrift.sh > /tmp/hyphe.build_thrift.log || exitAndLog /tmp/hyphe.
 
 echo "Cleanup and prepare build directory..."
 rm -rf build
-mkdir -p build/hyphe/bin build/hyphe/config build/hyphe/log build/hyphe/lucene-data
+mkdir -p build/hyphe/bin build/hyphe/config build/hyphe/log build/hyphe/traph-data
 
 echo "Copy all required release files..."
 listfiles="

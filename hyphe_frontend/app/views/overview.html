@@ -9,7 +9,7 @@
             <div class="row">
               <div ng-show="corpusStatus" class="col-md-12">
  
-                <div ng-hide="corpusStatus.corpus.memory_structure.webentities.total">
+                <div ng-hide="corpusStatus.corpus.traph.webentities.total">
                   <h1>
                     Welcome to your Hyphe corpus!
                   </h1>
@@ -18,7 +18,7 @@
                   </p>
                 </div>
 
-                <div ng-show="corpusStatus.corpus.memory_structure.webentities.total">
+                <div ng-show="corpusStatus.corpus.traph.webentities.total">
                   <h1>
                     OVERVIEW
                   </h1>
@@ -37,9 +37,9 @@
                         {{corpusStatus.corpus.crawler.jobs_pending}} pending
                       </p>
                       <p class="content">
-                        Last indexation <a href="#" tooltip="{{corpusStatus.corpus.memory_structure.last_index|date}}">{{corpusStatus.corpus.memory_structure.last_index|prettyDate}}</a>
-                      <p ng-show="corpusStatus.corpus.memory_structure.job_running" class="content">
-                        Currently: {{corpusStatus.corpus.memory_structure.job_running}}
+                        Last indexation <a href="#" tooltip="{{corpusStatus.corpus.traph.last_index|date}}">{{corpusStatus.corpus.traph.last_index|prettyDate}}</a>
+                      <p ng-show="corpusStatus.corpus.traph.job_running" class="content">
+                        Currently: {{corpusStatus.corpus.traph.job_running}}
                       </p>
                       </p>
                     </div>
@@ -53,8 +53,8 @@
                       <p class="content">
                         {{corpusStatus.corpus.crawler.pages_crawled|no}} page{{corpusStatus.corpus.crawler.pages_crawled|plural}} crawled
                       </p>
-                      <p ng-if="corpusStatus.corpus.memory_structure.pages_to_index" class="content">
-                        including {{corpusStatus.corpus.memory_structure.pages_to_index}} unindexed yet
+                      <p ng-if="corpusStatus.corpus.traph.pages_to_index" class="content">
+                        including {{corpusStatus.corpus.traph.pages_to_index}} unindexed yet
                       </p>
                       <p class="content">
                         {{corpusStatus.corpus.crawler.pages_found|no}} page{{corpusStatus.corpus.crawler.pages_found|plural}} discovered
@@ -74,7 +74,7 @@
                       IN
                     </p>
                     <p class="content">
-                      {{corpusStatus.corpus.memory_structure.webentities.IN|none}}
+                      {{corpusStatus.corpus.traph.webentities.IN|none}}
                     </p>
                   </div>
                 
@@ -83,7 +83,7 @@
                       UNDECIDED
                     </p>
                     <p class="content">
-                      {{corpusStatus.corpus.memory_structure.webentities.UNDECIDED|none}}
+                      {{corpusStatus.corpus.traph.webentities.UNDECIDED|none}}
                     </p>
                   </div>
 
@@ -92,7 +92,7 @@
                       DISCOVERED
                     </p>
                     <p class="content">
-                      {{corpusStatus.corpus.memory_structure.webentities.DISCOVERED|none}}
+                      {{corpusStatus.corpus.traph.webentities.DISCOVERED|none}}
                     </p>
                   </div>
               
@@ -101,7 +101,7 @@
                       OUT
                     </p>
                     <p class="content">
-                      {{corpusStatus.corpus.memory_structure.webentities.OUT|none}}
+                      {{corpusStatus.corpus.traph.webentities.OUT|none}}
                     </p>
                   </div> 
  

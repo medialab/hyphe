@@ -10,9 +10,6 @@ archives/
 log/
 traph-data/
 traph-sockets/
-memory_structure/src/main/java/fr/sciencespo/medialab/hci/memorystructure/thrift/*
-memory_structure/target/*
-memory_structure/.*
 hyphe_backend/crawler/build
 hyphe_backend/crawler/config
 hyphe_backend/crawler/scrapy.cfg
@@ -21,11 +18,9 @@ hyphe_backend/crawler/hcicrawler/settings.py
 hyphe_backend/crawler/hcicrawler/urllru.py
 hyphe_backend/crawler/hcicrawler/tlds.py
 hyphe_backend/crawler/hcicrawler/tlds_tree.py
-hyphe_backend/memorystructure
 build/
 releases/
 dependencies/
-thrift-0.8.0/
 
 #
 # Mac files

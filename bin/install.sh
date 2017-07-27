@@ -25,7 +25,6 @@ if ! isCentOS; then
   pyopenssl_rm='purge python-openssl'
   apache='apache2'
   apache_path='apache2/sites-available'
-  java='openjdk-6-jre'
 else
   echo "Install for CentOS/Fedora/RedHat"
   sudo yum -y install epel-release >> install.log || exitAndLog install.log "installing epel-release"
@@ -35,7 +34,6 @@ else
   pyopenssl_rm='remove PyOpenSSL'
   apache='httpd'
   apache_path='httpd/conf.d'
-  java='java-1.6.0-openjdk'
   installer='rpm'
   scrapyd='scrapyd-1.0.1-3.el6.x86_64.rpm'
   scrapyd_path='https://github.com/medialab/scrapyd/raw/medialab-centos/rpms'
@@ -94,7 +92,7 @@ fi
 
 # Check SELinux
 if test -x /usr/sbin/sestatus && sestatus | grep "enabled" > /dev/null; then
-  echo "WARNING: SELinux is enabled on your machine and may cause issues with mongo, twisted, thrift and apache"
+  echo "WARNING: SELinux is enabled on your machine and may cause issues with mongo, twisted and apache"
   echo "info on issues with MongoDB can be found here http://docs.mongodb.org/manual/tutorial/install-mongodb-on-red-hat-centos-or-fedora-linux/#run-mongodb"
   echo
   echo "If you are installing from a home directory, you should probably reconsider and rather install in /opt, /usr, /var, etc."
@@ -229,29 +227,6 @@ if ! test -f bin/hyphe-phantomjs-2.0.0; then
   echo "Install PhantomJS..."
   echo "---------------------"
   ./bin/install_phantom.sh >> install.log || exitAndLog install.log "installing PhantomJS"
-  echo
-fi
-
-# Install JAVA if necessary
-echo "Check JAVA and install OpenJDK if necessary..."
-echo "----------------------------------------------"
-java -version > /dev/null 2>&1 || sudo $repos_tool -y install $java >> install.log || exitAndLog install.log "installing Java JRE"
-echo
-
-# Install Thrift for development instances cloned from source
-if ! test -d hyphe_backend/memorystructure; then
-  echo "Install Thrift..."
-  echo "-----------------"
-  echo " Install from source requires Thrift & Maven install to build Lucene Java server and Python API"
-  echo " Trying now. Please install from releases for faster install or to avoid this"
-  if ! which thrift > /dev/null 2>&1 || ! which mvn > /dev/null 2>&1 ; then
-    ./bin/install_thrift.sh || exitAndLog /dev/null "installing Thrift"
-  fi
-  if isCentOS; then
-    source /etc/profile.d/maven.sh
-  fi
-  echo " ...building hyphe's Lucene MemoryStructure with Thrift..."
-  ./bin/build_thrift.sh >> install.log || exitAndLog install.log "building hyphe's memory structure with Thrift"
   echo
 fi
 

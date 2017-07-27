@@ -25,7 +25,7 @@ The easiest way to install Hyphe is by uncompressing the [gzipped release](https
 
 Just uncompress the release archive, go into the directory and run the installation script.
 
-Do not use `sudo`: the script will do so on its own and ask for your password only once. This works so in order to install all missing dependencies at once, including mainly Java (OpenJDK-6-JRE), Python (python-dev, pip, virtualEnv, virtualEnvWrapper...), Apache2, MongoDB & ScrapyD.
+Do not use `sudo`: the script will do so on its own and ask for your password only once. This works so in order to install all missing dependencies at once, including mainly Python (python-dev, pip, virtualEnv, virtualEnvWrapper...), Apache2, MongoDB & ScrapyD.
 
 
 ```bash
@@ -50,7 +50,7 @@ From here on, you can also run `bin/install.sh` to go faster as with the release
 
 ## 2) Get requirements and dependencies
 
-[MongoDB](http://www.mongodb.org/) (a NoSQL database server), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) (a crawler framework server), Python 2.6/2.7, JAVA 6+ (with Maven 2+ and [Thrift](http://thrift.apache.org/) for contributors/developers) are required for the backend to work.
+[MongoDB](http://www.mongodb.org/) (a NoSQL database server), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) (a crawler framework server) and Python 2.7 are required for the backend to work.
 
 
 ### 2.1) Prerequisites:
@@ -200,80 +200,7 @@ You can test whether ScrapyD is properly installed and running by querying [http
 {"status": "ok", "projects": []}
 ```
 
-### 2.4) Install Java & Thrift
-
-#### 2.4.1) Java
-
-Hyphe requires at least the Java JRE 6 installed. You can test it by running `java -version` and in case it is missing run:
-
-```bash
-# Debian/Ubuntu:
-sudo apt-get install openjdk-6-jre
-# CentOS:
-sudo yum install java-1.6.0-openjdk
-```
-
-#### 2.4.2) [Thrift](http://thrift.apache.org)
-
-__Important:__ If you're running these installation steps from a downloaded zipped archive of a release, you can skip this section, it only applies if you chose to install from the git sources.
-
-Hyphe uses [Thrift version 0.8](http://archive.apache.org/dist/thrift/0.8.0/) to ensure the communication between the python Twisted core and the Java Lucene MemoryStructure.
-
-As for the global installation process, a script allows you to run this part of the installation in just one line.
-
-```bash
-# WARNING: DO NOT prefix this commands with sudo, the script will ask for your sudo rights on its own
-./bin/install_thrift.sh
-```
-
-If you are not comfortable with this running on its own, follow the next steps.
-
-Thrift requires a few dependencies including JAVA's JDK, as well as Ant & Maven2+.
-On Ubuntu/Debian:
-
-```bash
-sudo apt-get install build-essential openjdk-6-jdk ant
-sudo apt-get install maven || sudo apt-get install maven2
-```
-On CentOS:
-
-```bash
-sudo yum install java-1.6.0-openjdk-devel ant
-
-# Download and extract Maven binaries
-wget http://www.eu.apache.org/dist/maven/maven-3/3.1.1/binaries/apache-maven-3.1.1-bin.tar.gz
-tar xvf apache-maven-3.1.1-bin.tar.gz
-
-# Install Maven in system
-sudo cp -r apache-maven-3.1.1 /usr/local/maven
-echo "export M2_HOME=/usr/local/maven
-export PATH=${M2_HOME}/bin:${PATH}" | sudo tee /etc/profile.d/maven.sh
-source /etc/profile.d/maven.sh
-rm -rf apache-maven-3.1.1*
-```
-
-You can then download and install Thrift:
-
-```bash
-# Download and extract Thrift sources
-wget http://archive.apache.org/dist/thrift/0.8.0/thrift-0.8.0.tar.gz
-tar xvf thrift-0.8.0.tar.gz
-
-# Configure and compile Thrift with java & python
-cd thrift-0.8.0
-./configure --with-java --without-erlang --without-php
-make
-sudo make install
-cd ..
-```
-
-Then finally build Hyphe's MemoryStructure jar using Thrift:
-
-```bash
-./bin/build_thrift.sh
-```
-
-### 2.5) Setup a Python virtual environment with Hyphe's dependencies
+### 2.4) Setup a Python virtual environment with Hyphe's dependencies
 
 We recommend using virtualenv with virtualenvwrapper:
 ```bash
@@ -290,7 +217,7 @@ pip install -r requirements.txt
 deactivate
 ```
 
-### 2.6) [Unnecessary for now] Install [PhantomJS](http://phantomjs.org/)
+### 2.5) [Unnecessary for now] Install [PhantomJS](http://phantomjs.org/)
 
 __Important:__ Crawling with PhantomJS is currently only possible as an advanced option in Hyphe. Do not bother with this section except for advanced use or development.
 

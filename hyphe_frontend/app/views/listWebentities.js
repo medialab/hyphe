@@ -388,10 +388,10 @@ angular.module('hyphe.listwebentitiesController', [])
       $scope.loadingStatus = true
       api.globalStatus({}, function(status){
         $scope.counts = {
-          in: status.corpus.memory_structure.webentities.IN
-        , undecided: status.corpus.memory_structure.webentities.UNDECIDED
-        , out: status.corpus.memory_structure.webentities.OUT
-        , discovered: status.corpus.memory_structure.webentities.DISCOVERED
+          in: status.corpus.traph.webentities.IN
+        , undecided: status.corpus.traph.webentities.UNDECIDED
+        , out: status.corpus.traph.webentities.OUT
+        , discovered: status.corpus.traph.webentities.DISCOVERED
         }
         $scope.loadingStatus = false
         $timeout(loadStatus, 5000);

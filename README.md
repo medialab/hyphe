@@ -36,7 +36,7 @@ MacOS users and other distribution can now also run Hyphe locally on their machi
 
 Just uncompress the release archive, go into the directory and run the installation script.
 
-Do __not__ use `sudo`: the script will do so on its own and will ask for your password only once. This works so in order to install all missing dependencies at once, including mainly Java (OpenJDK-6-JRE), Python (python-dev, pip, virtualEnv, virtualEnvWrapper...), Apache2, MongoDB & ScrapyD.
+Do __not__ use `sudo`: the script will do so on its own and will ask for your password only once. This works so in order to install all missing dependencies at once, including mainly Python (python-dev, pip, virtualEnv, virtualEnvWrapper...), Apache2, MongoDB & ScrapyD.
 
 If you are not comfortable with this, you can read the script and run the steps line by line or follow the [Advanced install instructions](doc/install.md) for more control on what is actually installed.
 

@@ -434,7 +434,7 @@ class Core(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False, _nobackup=False, _restart=False):
-        """Resets completely a `corpus` by cancelling all crawls and emptying the MemoryStructure and Mongo data."""
+        """Resets completely a `corpus` by cancelling all crawls and emptying the Traph and Mongo data."""
         if not self.corpus_ready(corpus) and self.traphs.status_corpus(corpus, simplify=True) != "starting":
             returnD(self.corpus_error(corpus))
         if self.corpora[corpus]['reset']:
@@ -455,10 +455,10 @@ class Core(customJSONRPC):
 
         res = yield self.store.reinitialize(corpus, _noloop=_noloop, _quiet=_quiet, _restart=False)
         if is_error(res):
-            logger.msg("Problem while reinitializing MemoryStructure... %s" % res, system="ERROR - %s" % corpus)
+            logger.msg("Problem while reinitializing Traph... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
         self.corpora[corpus]['reset'] = False
-        returnD(format_result('Memory structure and crawling database contents emptied.'))
+        returnD(format_result('Traph and Mongo databases emptied.'))
 
     @inlineCallbacks
     def jsonrpc_destroy_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False):
@@ -537,7 +537,7 @@ class Core(customJSONRPC):
             'pages_found': self.corpora[corpus]['pages_found'],
             'links_found': self.corpora[corpus]['links_found']
           },
-          'memory_structure': {
+          'traph': {
             'job_running': self.corpora[corpus]['loop_running'],
             'job_running_since': self.corpora[corpus]['loop_running_since'] if self.corpora[corpus]['loop_running'] else 0,
             'last_index': self.corpora[corpus]['last_index_loop'],
@@ -1230,16 +1230,17 @@ class Memory_Structure(customJSONRPC):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if not _quiet:
-            logger.msg("Empty MemoryStructure content", system="INFO - %s" % corpus)
+            logger.msg("Empty Traph content", system="INFO - %s" % corpus)
         if not _restart:
             yield self.traphs.call(corpus, "clear")
-            logger.msg("MemoryStructure emptied", system="INFO - %s" % corpus)
-            returnD(format_result("MemoryStructure emptied"))
+            if not _quiet:
+                logger.msg("Traph emptied", system="INFO - %s" % corpus)
+            returnD(format_result("Traph emptied"))
         res = yield self.traphs.call(corpus, "clear")
         if is_error(res):
             returnD(res)
         yield self._init_loop(corpus, _noloop=_noloop, _delay=_restart)
-        returnD(format_result("MemoryStructure reinitialized"))
+        returnD(format_result("Traph reinitialized"))
 
     @inlineCallbacks
     def return_new_webentity(self, lru_prefix, new=False, source=None, corpus=DEFAULT_CORPUS):
