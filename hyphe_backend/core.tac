@@ -2705,9 +2705,8 @@ class Memory_Structure(customJSONRPC):
 try:
     core = Core()
 except Exception as x:
-    print "ERROR: Cannot start API, something should probbaly not have been pushed..."
-    if config['DEBUG']:
-        print type(x), x
+    print "ERROR: Cannot start API, something should probably not have been pushed..."
+    print type(x), x
     exit(1)
 
 def test_start(cor, corpus):
@@ -2724,9 +2723,9 @@ def test_destroy(res, cor, corpus):
     if is_error(res):
         return stop_tests(res, cor, corpus, "Could not start corpus")
     d = cor.jsonrpc_destroy_corpus(corpus, _quiet=True)
-    d.addCallback(test_scrapyd, cor, corpus)
+    d.addCallback(test_destroyed, cor, corpus)
     d.addErrback(stop_tests, cor, corpus)
-def test_scrapyd(res, cor, corpus):
+def test_destroyed(res, cor, corpus):
     if is_error(res):
         return stop_tests(res, cor, corpus, "Could not stop and destroy corpus")
     stop_tests(None, cor, corpus)
@@ -2758,9 +2757,9 @@ site.noisy = False
 # Run as 'python core.tac' ...
 if __name__ == '__main__':
     reactor.listenTCP(config['core_api_port'], site)
-    log.startLogging(sys.stdout)
+    logger.startLogging(sys.stdout)
     reactor.run()
-# ... or in the background when called with 'twistd -noy core.tac'
+# ... or in the background when called with 'twistd -y core.tac'
 elif __name__ == '__builtin__':
     application = Application("Hyphe backend API Server")
     filelog = logger.FileLogObserver(LogFile('hyphe-core.log', 'log', rotateLength=134217728))
