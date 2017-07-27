@@ -1100,7 +1100,7 @@ class Memory_Structure(customJSONRPC):
         if test_bool_arg(light):
             return res
         res['creation_date'] = WE["creationDate"]
-        #res['last_modification_date'] = WE["lastModificationDate"]
+        res['last_modification_date'] = WE["lastModificationDate"]
         if job:
             res['crawling_status'] = job['crawling_status']
             res['indexing_status'] = job['indexing_status']
@@ -1282,17 +1282,7 @@ class Memory_Structure(customJSONRPC):
         if res["result"]["created_webentities"]:
             new = True
             weid, prefixes = res["result"]["created_webentities"].items()[0]
-            WE = {
-              "_id": weid,
-              "prefixes": prefixes,
-              "name": urllru.name_url(urllru.lru_to_url(prefixes[0]), self.corpora[corpus]["tlds"]),
-              "status": "DISCOVERED",
-              "tags": {},
-              "homepage": None,
-              "startpages": [],
-              "creationDate": time.time()
-            }
-            yield self.db.upsert_WE(corpus, weid, WE)
+            yield self.db.add_WE(corpus, weid, prefixes)
         res = yield self.return_new_webentity(lru, new, 'page', corpus=corpus)
         returnD(format_result(res))
 
@@ -1364,7 +1354,7 @@ class Memory_Structure(customJSONRPC):
             for l in [lru] if not lruVariations else urllru.lru_variations(lru):
                 lru_prefixes_set.add(l)
             if not name:
-                name = urllru.name_url(urllru.lru_to_url(l), self.corpora[corpus]["tlds"])
+                name = urllru.name_lru(l)
         lru_prefixes = list(lru_prefixes_set)
         weid = yield self.traphs.call(corpus, "create_webentity", lru_prefixes)
         if is_error(weid):
@@ -1380,16 +1370,7 @@ class Memory_Structure(customJSONRPC):
             WEstatus = status.upper()
             if WEstatus not in WEBENTITIES_STATUSES:
                 returnD(format_error('Status %s is not a valid WebEntity Status, please provide one of the following values: %s' % (WEstatus, WEBENTITIES_STATUSES)))
-        yield self.db.upsert_WE(corpus, weid, {
-          "_id": weid,
-          "prefixes": lru_prefixes,
-          "name": name,
-          "status": WEstatus,
-          "tags": {},
-          "homepage": None,
-          "startpages": startpages,
-          "creationDate": time.time()
-        })
+        yield self.db.add_WE(corpus, weid, lru_prefixes, name, WEstatus, startpages)
         new_WE = yield self.return_new_webentity(lru_prefixes[0], True, 'lru', corpus=corpus)
         if is_error(new_WE):
             returnD(new_WE)
@@ -1852,16 +1833,7 @@ class Memory_Structure(customJSONRPC):
 
         # Create new webentities
         for weid, prefixes in res["created_webentities"].items():
-            yield self.db.upsert_WE(corpus, weid, {
-              "_id": weid,
-              "prefixes": prefixes,
-              "name": urllru.name_url(urllru.lru_to_url(prefixes[0]), self.corpora[corpus]["tlds"]),
-              "status": "DISCOVERED",
-              "tags": {},
-              "homepage": None,
-              "startpages": [],
-              "creationDate": time.time()
-            })
+            yield self.db.add_WE(corpus, weid, prefixes)
             self.corpora[corpus]['total_webentities'] += 1
         logger.msg("...%s new WEs created in traph in %ss..." % (len(res["created_webentities"]), time.time()-s), system="INFO - %s" % corpus)
 
@@ -2627,16 +2599,7 @@ class Memory_Structure(customJSONRPC):
 
             # Create new webentities
             for weid, prefixes in res["created_webentities"].items():
-                yield self.db.upsert_WE(corpus, weid, {
-                  "_id": weid,
-                  "prefixes": prefixes,
-                  "name": urllru.name_url(urllru.lru_to_url(prefixes[0]), self.corpora[corpus]["tlds"]),
-                  "status": "DISCOVERED",
-                  "tags": {},
-                  "homepage": None,
-                  "startpages": [],
-                  "creationDate": time.time()
-                })
+                yield self.db.add_WE(corpus, weid, prefixes)
                 self.corpora[corpus]['total_webentities'] += 1
 
             self.corpora[corpus]['recent_changes'] += 1

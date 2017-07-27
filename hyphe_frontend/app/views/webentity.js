@@ -26,7 +26,7 @@ angular.module('hyphe.webentityController', [])
     ]
 
     function updateWELastModifTime(){
-      $scope.webentity.last_modification_date = (new Date()).getTime()/1000
+      $scope.webentity.last_modification_date = (new Date()).getTime()
     }
 
     $scope.crawlDetails = function(job){

@@ -71,14 +71,14 @@ titlize_url_regexp = re.compile(r'(https?://|[./#])', re.I)
 def url_shorten(url):
     return titlize_url_regexp.sub(' ', uri_decode(url)).strip().title().encode('utf-8')
 
-def name_url(url, tldtree={}):
+def name_lru(lru):
     host = []
     port = ""
     path = ""
     name = ""
     hostdone = 0
     pathdone = False
-    for k,v,_ in split_lru_in_stems(url_to_lru_clean(url, tldtree)):
+    for k,v,_ in split_lru_in_stems(lru):
         if k == "h":
             host.insert(0, v.title() if hostdone == 1 else v.lower())
             hostdone += 1

@@ -113,8 +113,8 @@
                       </ul>
                       <br/>
                       <ul class="list-unstyled features lightText">
-                        <li title="{{webentity['creation_date']*1000|date}}">Created {{webentity['creation_date']*1000|prettyDate}}</li>
-                        <li title="{{webentity['last_modification_date']*1000|date}}">Last modified {{webentity['last_modification_date']*1000|prettyDate}}</li>
+                        <li title="{{webentity['creation_date']|date}}">Created {{webentity['creation_date']|prettyDate}}</li>
+                        <li title="{{webentity['last_modification_date']|date}}">Last modified {{webentity['last_modification_date']|prettyDate}}</li>
                         <li>Cited by {{webentity['indegree'] | no}} other entit{{webentity['indegree'] | y_ies}}</li>
                       </ul>
 

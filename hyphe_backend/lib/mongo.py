@@ -9,6 +9,7 @@ mongo_connection._Connection.noisy = False
 from txmongo.filter import sort as mongosort, ASCENDING, DESCENDING
 from pymongo.errors import OperationFailure
 from bson import ObjectId
+from hyphe_backend.lib.urllru import name_lru
 from hyphe_backend.lib.utils import crawling_statuses, indexing_statuses, salt, now_ts
 from hyphe_backend.lib.creationrules import getName as name_creationrule
 
@@ -173,9 +174,25 @@ class MongoDB(object):
         returnD(res)
 
     @inlineCallbacks
+    def add_WE(self, corpus, weid, prefixes, name=None, status="DISCOVERED", startpages=[]):
+        if not name:
+            name = name_lru(prefixes[0])
+        now = now_ts()
+        yield self.upsert_WE(corpus, weid, {
+          "_id": weid,
+          "prefixes": prefixes,
+          "name": name,
+          "status": status,
+          "tags": {},
+          "homepage": None,
+          "startpages": startpages,
+          "creationDate": now
+        })
+
+    @inlineCallbacks
     def upsert_WE(self, corpus, weid, metas):
+        metas["lastModificationDate"] = now_ts()
         yield self.WEs(corpus).update({"_id": weid}, {"$set": metas}, upsert=True)
-        #TODO handle update modifdate
 
     @inlineCallbacks
     def remove_WE(self, corpus, weid):
