@@ -2,32 +2,31 @@ import os, sys
 import json, msgpack
 from time import time, sleep
 from Queue import PriorityQueue
-#from threading import Thread
 from twisted.python import log
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
-from twisted.internet.defer import Deferred, inlineCallbacks, returnValue
-from twisted.internet.protocol import ProcessProtocol
-from twisted.internet.endpoints import UNIXClientEndpoint, connectProtocol
+from twisted.internet.defer import Deferred
+from twisted.internet.protocol import ProcessProtocol, Factory
+from twisted.internet.endpoints import UNIXClientEndpoint
 from twisted.protocols.basic import LineOnlyReceiver
 
 
 class TraphFactory(object):
 
     # TODO:
-    # test threading useful ?
+    # loglevel ?
     # handle max started corpus ?
     # max ram ?
-    # loglevel ?
     # handle traph-data dir from config
     # remove ports from config
     # handle timedout queries
 
     sockets_dir = "traph-sockets"
 
-    def __init__(self, max_corpus=0):
-        self.corpora = {}
+    def __init__(self, max_corpus=0, chatty=False):
         self.max_corpus = max_corpus
+        self.chatty = chatty
+        self.corpora = {}
         if not os.path.isdir(self.sockets_dir):
             os.makedirs(self.sockets_dir)
 
@@ -103,13 +102,12 @@ class TraphFactory(object):
             return {"code": "fail", "message": "Corpus traph not ready"}
         return self.corpora[corpus].call(method, *args, **kwargs)
 
-class TraphCorpus(object): # Thread ?
+class TraphCorpus(object):
 
     exec_path = os.path.join("hyphe_backend", "traph", "server.py")
     #daemon = True
 
     def __init__(self, factory, name, default_WECR=None, WECRs=None, keepalive=1800, quiet=False, **kwargs):
-        #Thread.__init__(self)
         self.factory = factory
         self.status = "init"
         self.name = name
@@ -130,7 +128,6 @@ class TraphCorpus(object): # Thread ?
         self.client = None
         reactor.addSystemEventTrigger('before', 'shutdown', self.stop)
 
-    #def run(self):
     def start(self):
         self.error = None
         self.status = "started"
@@ -224,10 +221,13 @@ class TraphProcessProtocol(ProcessProtocol):
         self.corpus.log("Traph process started")
 
     def connectClient(self):
-        connectProtocol(
-          UNIXClientEndpoint(reactor, self.socket),
-          self.client
-        )
+        class TraphClientFactory(Factory):
+            def buildProtocol(this, addr):
+                return self.client
+        t = TraphClientFactory()
+        if not self.corpus.factory.chatty:
+            t.noisy = False
+        UNIXClientEndpoint(reactor, self.socket).connect(t)
 
     def childDataReceived(self, childFD, data):
         data = data.strip()
@@ -239,7 +239,6 @@ class TraphProcessProtocol(ProcessProtocol):
     def childConnectionLost(self, childFD):
         pass
 
-    # TODO handle auto hard restart ?
     def processExited(self, reason):
         self.corpus.status = "stopping"
         self.transport.loseConnection()
@@ -323,7 +322,7 @@ if __name__ == "__main__":
     corpus = "test"
 
     log.startLogging(sys.stdout)
-    factory = TraphFactory()
+    factory = TraphFactory(chatty=True)
     factory.start_corpus(corpus, keepalive=2)
 
     reactor.callLater(2, factory.corpora[corpus].call, "TEST")

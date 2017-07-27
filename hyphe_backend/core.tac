@@ -2765,6 +2765,7 @@ core.putSubHandler('crawl', core.crawler)
 core.putSubHandler('store', core.store)
 core.putSubHandler('system', Introspection(core))
 site = server.Site(core)
+site.noisy = False
 
 # Run as 'python core.tac' ...
 if __name__ == '__main__':
