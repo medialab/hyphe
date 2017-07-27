@@ -9,17 +9,17 @@ from twisted.internet.defer import Deferred
 from twisted.internet.protocol import ProcessProtocol, Factory
 from twisted.internet.endpoints import UNIXClientEndpoint
 from twisted.protocols.basic import LineOnlyReceiver
-
+from hyphe_backend.lib import config_hci
+config = config_hci.load_config()
 
 class TraphFactory(object):
 
     # TODO:
-    # loglevel ?
-    # handle max started corpus ?
-    # max ram ?
     # handle traph-data dir from config
     # remove ports from config
     # handle timedout queries
+    # handle max started corpus ?
+    # max ram ?
 
     sockets_dir = "traph-sockets"
 
@@ -72,7 +72,8 @@ class TraphFactory(object):
 
     def start_corpus(self, name, quiet=False, **kwargs):
         if self.test_corpus(name) or self.status_corpus(name) == "started":
-            self.log(name, "Traph already started", quiet=quiet)
+            if config["DEBUG"]:
+                self.log(name, "Traph already started", quiet=quiet)
             return True
         if name in self.corpora:
             self.corpora[name].stop()
@@ -87,7 +88,8 @@ class TraphFactory(object):
 
     def stop_corpus(self, name, quiet=False):
         if self.stopped_corpus(name):
-            self.log(name, "Traph already stopped", quiet=quiet)
+            if config["DEBUG"]:
+                self.log(name, "Traph already stopped", quiet=quiet)
             return False
         if name in self.corpora:
             self.corpora[name].stop()
@@ -131,7 +133,6 @@ class TraphCorpus(object):
     def start(self):
         self.error = None
         self.status = "started"
-        self.log("Starting Traph for at least %ss" % self.keepalive)
         cmd = [
           sys.executable,
           "-u",
@@ -142,7 +143,7 @@ class TraphCorpus(object):
         self.checkAndRemovePID(True)
         with open(self.socket+"-options.json", "w") as f:
             json.dump(self.options, f)
-        self.log("Starting Traph: %s" % " ".join(cmd))
+        self.log("Starting Traph for at least %ss: %s" % (self.keepalive, " ".join(cmd)))
         self.protocol = TraphProcessProtocol(self.socket, self)
         self.transport = reactor.spawnProcess(
           self.protocol,
@@ -218,7 +219,6 @@ class TraphProcessProtocol(ProcessProtocol):
 
     def connectionMade(self):
         self.corpus.status = "starting"
-        self.corpus.log("Traph process started")
 
     def connectClient(self):
         class TraphClientFactory(Factory):
@@ -294,7 +294,8 @@ class TraphClientProtocol(LineOnlyReceiver):
             return
         self.corpus.call_running = True
         _, _, self.deferred, method, args, kwargs = self.queue.get(False)
-        self.corpus.log("Traph client query: %s %s %s" % (method, args, kwargs))
+        if config["DEBUG"]:
+            self.corpus.log("Traph client query: %s %s %s" % (method, args, kwargs))
         self.sendLine(msgpack.packb({
           "method": method,
           "args": args,
@@ -309,7 +310,8 @@ class TraphClientProtocol(LineOnlyReceiver):
         try:
             msg = msgpack.unpackb(data)
             self.deferred.callback(msg)
-            self.corpus.log("Traph server answer: %s" % msg)
+            if config["DEBUG"] == 2:
+                self.corpus.log("Traph server answer: %s" % msg)
         except (msgpack.exceptions.ExtraData, msgpack.exceptions.UnpackValueError) as e:
             self.deferred.errback(Exception(data))
             self.corpus.log("%s: %s - Received badly formatted data: %s" % (type(e), e, data.encode("utf-8", "replace")), True)
