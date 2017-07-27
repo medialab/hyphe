@@ -25,29 +25,12 @@ fi
 
 mkdir -p log
 PID_FILE="hyphe-server.lock"
-CORE_COMMAND="twistd -y $HCIPATH/hyphe_backend/core.tac -l $HCIPATH/log/hyphe-core.log --pidfile $PID_FILE"
-#JAVA_COMMAND="python hyphe_backend/traph/server.py traph-sockets/"
-
-function kill_residual_memstruct {
-  #TODO handle socket unix trapĥs
-  return
-  count=0
-  # Wait 15 seconds before trying to kill "-9"
-  while pgrep -f "$JAVA_COMMAND" > /dev/null && [ $count -lt 15 ]; do
-    pkill -f "$JAVA_COMMAND"
-    sleep 1
-    count=$(($count + 1))
-    if [ $count -eq 15 ]; then
-      pkill -9 -f "$JAVA_COMMAND"
-    fi
-  done
-}
+CORE_COMMAND="twistd -y $HCIPATH/hyphe_backend/core.tac --pidfile $PID_FILE"
 
 function test_and_stop_process {
   COMMAND=$(echo $1 | sed 's/\(\s\+-X\S\+\)\+/.*/')
   NOLOG=$2
   if test -z "$PID_FILE" || test -z "$COMMAND"; then
-    kill_residual_memstruct
     return
   fi
   if ! test -f $PID_FILE; then
@@ -63,7 +46,6 @@ function test_and_stop_process {
       echo "...does not seem like running."
     fi
     rm -f $PID_FILE
-    kill_residual_memstruct
     return
   fi
   count=0
@@ -88,7 +70,6 @@ function test_and_stop_process {
     echo "...stopped."
   fi
   rm -f $PID_FILE
-  kill_residual_memstruct
 }
 
 function exit_on_error {
@@ -109,7 +90,7 @@ function test_core_started_in_log {
   grep -v "\[-\] \.\.\.\|Deprecation" log/hyphe-core.log | grep -v "\[DEBUG - " | tail -n 5 | grep "Ready!" > /dev/null
 }
 function test_error_in_core_log {
-  tail -n 2 log/hyphe-core.log | grep -v "Deprecation" | grep "ERROR\|Exception" > /dev/null
+  tail -n 5 log/hyphe-core.log | grep -v "Deprecation" | grep "ERROR\|Exception" > /dev/null
 }
 
 if $STOP; then
@@ -141,19 +122,17 @@ if $START; then
   $CORE_COMMAND 2>&1 || exit 1
   echo "...started..."
 
-  TEST_STARTED=test_core_started_in_log
-  TEST_ERROR=test_error_in_core_log
-  TEST_TIME=150
+  TEST_TIME=30
   ts=0
   sleep 0.5
-  while [ $ts -lt $TEST_TIME ] && ! $TEST_STARTED; do
+  while [ $ts -lt $TEST_TIME ] && ! test_core_started_in_log; do
     sleep 0.5
     ts=$(($ts + 1))
-    if $TEST_ERROR; then
+    if test_error_in_core_log; then
       exit_on_error
     fi
   done
-  if $TEST_ERROR || ! $TEST_STARTED; then
+  if test_error_in_core_log || ! test_core_started_in_log; then
     exit_on_error
   else
     echo "...ready."

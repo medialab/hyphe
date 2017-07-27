@@ -5,6 +5,7 @@ from os import environ
 from uuid import uuid1 as uuid
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from txmongo import MongoConnection, connection as mongo_connection
+mongo_connection._Pinger.noisy = False
 mongo_connection._Connection.noisy = False
 from txmongo.filter import sort as mongosort, ASCENDING, DESCENDING
 from pymongo.errors import OperationFailure
@@ -165,6 +166,8 @@ class MongoDB(object):
         if not query:
             res = yield self.WEs(corpus).find()
         else:
+            if isinstance(query, list) and isinstance(query[0], int):
+                query = {"_id": {"$in": query}}
             res = yield self.WEs(corpus).find(query)
         returnD(res)
 

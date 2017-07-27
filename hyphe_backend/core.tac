@@ -1,35 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time, random, json, sys
+import sys, time
 import subprocess
+from json import dump as jsondump
+from random import randint
 from datetime import datetime
-from warnings import filterwarnings
-filterwarnings(action='ignore', category=DeprecationWarning, message="Python 2.6 is no longer supported by the Python core team")
-filterwarnings(action='ignore', category=DeprecationWarning, message="twisted.internet.interfaces.IStreamClientEndpointStringParser was deprecated")
-from txjsonrpc.jsonrpc import Introspection
-from twisted.web import server
-from twisted.python import log as logger
 from twisted.internet import reactor
-from twisted.internet.task import LoopingCall
-from twisted.internet.threads import deferToThread
-from twisted.internet.defer import DeferredList, inlineCallbacks, returnValue as returnD
-from twisted.internet.endpoints import TCP4ClientEndpoint
-from twisted.internet.error import DNSLookupError
+from twisted.python import log as logger
+from twisted.python.logfile import LogFile
+from twisted.web import server
 from twisted.application.internet import TCPServer
 from twisted.application.service import Application
+from twisted.internet.task import LoopingCall
+from twisted.internet.defer import DeferredList, inlineCallbacks, returnValue as returnD
+from twisted.internet.error import DNSLookupError
 from twisted.web.http_headers import Headers
-from twisted.web.client import Agent, ProxyAgent, HTTPClientFactory, _HTTP11ClientFactory
+from twisted.web.client import Agent, ProxyAgent, HTTPClientFactory
 HTTPClientFactory.noisy = False
-_HTTP11ClientFactory.noisy = False
-from hyphe_backend.lib import config_hci, urllru, user_agents, creationrules
-from hyphe_backend.lib.config_hci import DEFAULT_CORPUS, TEST_CORPUS, test_and_make_dir
+from twisted.internet.endpoints import TCP4ClientEndpoint
+from hyphe_backend.traph.client import TraphFactory
+from hyphe_backend.lib import urllru
 from hyphe_backend.lib.utils import *
+from hyphe_backend.lib.config_hci import test_and_make_dir, check_conf_sanity, clean_missing_corpus_options, CORPUS_CONF_SCHEMA, DEFAULT_CORPUS, TEST_CORPUS
+from hyphe_backend.lib.creationrules import getPreset as getWECR
+from hyphe_backend.lib.user_agents import agents as useragents
 from hyphe_backend.lib.tlds import collect_tlds
-from hyphe_backend.lib.jsonrpc_custom import customJSONRPC
 from hyphe_backend.lib.jobsqueue import JobsQueue
 from hyphe_backend.lib.mongo import MongoDB, sortdesc
-from hyphe_backend.traph.client import TraphFactory
+from hyphe_backend.lib.jsonrpc_custom import customJSONRPC
+from txjsonrpc.jsonrpc import Introspection
 
 WEBENTITIES_STATUSES = ["IN", "OUT", "UNDECIDED", "DISCOVERED"]
 
@@ -110,7 +110,7 @@ class Core(customJSONRPC):
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         try:
-            config_hci.check_conf_sanity(options, config_hci.CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True)
+            check_conf_sanity(options, CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True)
         except Exception as e:
             returnD(format_error(e))
         redeploy = False
@@ -119,9 +119,9 @@ class Core(customJSONRPC):
             returnD(format_error("defautStartpagesMode and default WE creation rule of a corpus can only be set when the corpus is created"))
         if "defaultCreationRule" in options:
             yield self.traphs.stop_corpus(corpus)
-            yield self.db.set_default_WECR(corpus, creationrules.getPreset(options["defaultCreationRule"]))
+            yield self.db.set_default_WECR(corpus, getWECR(options["defaultCreationRule"]))
             wecrs = dict((cr["prefix"], cr["regexp"]) for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] != "DEFAULT_WEBENTITY_CREATION_RULE")
-            res = self.traphs.start_corpus(corpus, keepalive=self.corpora[corpus]['options']['keepalive'], default_WECR=creationrules.getPreset(options["defaultCreationRule"]), WECRs=wecrs)
+            res = self.traphs.start_corpus(corpus, keepalive=self.corpora[corpus]['options']['keepalive'], default_WECR=getWECR(options["defaultCreationRule"]), WECRs=wecrs)
 
         if "proxy" in options or ("phantom" in options and (\
           "timeout" in options["phantom"] or \
@@ -156,11 +156,11 @@ class Core(customJSONRPC):
 
     @inlineCallbacks
     def init_creationrules(self, corpus=DEFAULT_CORPUS):
-        yield self.db.set_default_WECR(corpus, creationrules.getPreset(self.corpora[corpus]["options"]["defaultCreationRule"]))
+        yield self.db.set_default_WECR(corpus, getWECR(self.corpora[corpus]["options"]["defaultCreationRule"]))
         for prf, regexp in config.get("creationRules", {}).items():
             for prefix in ["http://%s" % prf, "https://%s" % prf]:
                 lru = urllru.url_to_lru_clean(prefix, self.corpora[corpus]["tlds"])
-                wecr = creationrules.getPreset(regexp, lru)
+                wecr = getWECR(regexp, lru)
                 yield self.db.add_WECR(corpus, lru, wecr)
 
     def corpus_ready(self, corpus):
@@ -206,12 +206,12 @@ class Core(customJSONRPC):
         # Adjust corpus settings
         if options:
             try:
-                config_hci.check_conf_sanity(options, config_hci.CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True)
+                check_conf_sanity(options, CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True)
             except Exception as e:
                 returnD(format_error(e))
         self.corpora[corpus] = {
           "name": name,
-          "options": config_hci.clean_missing_corpus_options({}, config),
+          "options": clean_missing_corpus_options({}, config),
           "tlds": tlds
         }
 
@@ -294,7 +294,7 @@ class Core(customJSONRPC):
 
         # TODO Cleanup unneccessary
         # Fix possibly old corpus confs
-        config_hci.clean_missing_corpus_options(corpus_conf['options'],config)
+        clean_missing_corpus_options(corpus_conf['options'],config)
         if "tlds" not in corpus_conf or not corpus_conf["tlds"]:
             corpus_conf["tlds"] = yield collect_tlds()
             yield self.db.update_corpus(corpus, {"tlds": corpus_conf["tlds"]})
@@ -305,7 +305,7 @@ class Core(customJSONRPC):
         yield self.db.init_corpus_indexes(corpus)
         yield self.store.jsonrpc_get_webentity_creationrules(corpus=corpus)
         wecrs = dict((cr["prefix"], cr["regexp"]) for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] != "DEFAULT_WEBENTITY_CREATION_RULE")
-        res = self.traphs.start_corpus(corpus, quiet=_quiet, keepalive=corpus_conf['options']['keepalive'], default_WECR=creationrules.getPreset(corpus_conf['options']['defaultCreationRule']), WECRs=wecrs)
+        res = self.traphs.start_corpus(corpus, quiet=_quiet, keepalive=corpus_conf['options']['keepalive'], default_WECR=getWECR(corpus_conf['options']['defaultCreationRule']), WECRs=wecrs)
         if not res:
             returnD(format_error(self.jsonrpc_test_corpus(corpus)["result"]))
         yield self.prepare_corpus(corpus, corpus_conf, _noloop)
@@ -406,22 +406,22 @@ class Core(customJSONRPC):
         test_and_make_dir(path)
         with open(os.path.join(path, "options.json"), "w") as f:
             options = yield self.db.get_corpus(corpus)
-            json.dump(options, f)
+            jsondump(options, f)
         with open(os.path.join(path, "crawls.json"), "w") as f:
             crawls = yield self.jsonrpc_listjobs(corpus=corpus)
             if is_error(crawls):
                 returnD(format_error("Error retrieving crawls: %s" % crawls["message"]))
-            json.dump(crawls["result"], f)
+            jsondump(crawls["result"], f)
         with open(os.path.join(path, "webentities.json"), "w") as f:
             WEs = yield self.store.jsonrpc_get_webentities(count=-1, sort=["status", "name"], corpus=corpus)
             if is_error(WEs):
                 returnD(format_error("Error retrieving webentities: %s" % WEs["message"]))
-            json.dump(WEs["result"], f)
+            jsondump(WEs["result"], f)
         with open(os.path.join(path, "links.json"), "w") as f:
             links = yield self.store.jsonrpc_get_webentities_network(corpus=corpus)
             if is_error(links):
                 returnD(format_error("Error retrieving links: %s" % links["message"]))
-            json.dump(links["result"], f)
+            jsondump(links["result"], f)
         returnD(format_result("Corpus crawls, webentities and links stored in %s" % path))
 
     @inlineCallbacks
@@ -788,7 +788,7 @@ class Core(customJSONRPC):
         subs = yield self.store.traphs.call(corpus, "get_webentity_child_webentities", WE["_id"], WE["prefixes"])
         if is_error(subs):
             returnD(subs)
-        subs = yield self.db.get_WEs(corpus, {"_id": {"$in": subs["result"]}})
+        subs = yield self.db.get_WEs(corpus, subs["result"])
         nofollow = [p for subwe in subs for p in subwe["prefixes"]]
 
         if "CORE" in WE["tags"] and "recrawlNeeded" in WE["tags"]["CORE"]:
@@ -851,7 +851,7 @@ class Core(customJSONRPC):
             if tryout > 3:
                 method = "GET"
             headers = {'Accept': ['*/*'],
-                      'User-Agent': [user_agents.agents[random.randint(0, len(user_agents.agents) -1)]]}
+                      'User-Agent': [useragents[randint(0, len(useragents) -1)]]}
             response = yield agent.request(method, url, Headers(headers), None)
         except DNSLookupError as e:
             if use_proxy and self.corpora[corpus]["options"]['proxy']['host'] in str(e):
@@ -1002,7 +1002,7 @@ class Crawler(customJSONRPC):
           'follow_prefixes': list(follow_prefixes),
           'nofollow_prefixes': list(nofollow_prefixes),
           'discover_prefixes': list(follow_redirects),
-          'user_agent': user_agents.agents[random.randint(0, len(user_agents.agents) - 1)]
+          'user_agent': useragents[randint(0, len(useragents) - 1)]
         }
         if phantom_crawl:
             phantom_timeouts.update(self.corpora[corpus]["options"]["phantom"])
@@ -1377,7 +1377,7 @@ class Memory_Structure(customJSONRPC):
         # Remove potential parent webentities homepages that would belong to the newly created WE
         parentWEs = yield self.traphs.call(corpus, "get_webentity_parent_webentities", new_WE["_id"], new_WE["prefixes"])
         if not is_error(parentWEs):
-            parentWEs = yield self.db.get_WEs(corpus, {"_id": {"$in": parentWEs["result"]}})
+            parentWEs = yield self.db.get_WEs(corpus, parentWEs["result"])
             for parent in parentWEs:
                 if parent["homepage"] and urllru.has_prefix(urllru.url_to_lru_clean(parent["homepage"], self.corpora[corpus]["tlds"]), new_WE["prefixes"]):
                     if config['DEBUG']:
@@ -1876,7 +1876,7 @@ class Memory_Structure(customJSONRPC):
             yield self.db.add_log(corpus, crashed['_id'], "INDEX_"+indexing_statuses.BATCH_CRASHED)
             self.corpora[corpus]['loop_running'] = None
             returnD(False)
-        oldest_page_in_queue = yield self.db.get_queue(corpus, limit=1, fields=["_job"], skip=random.randint(0, 2))
+        oldest_page_in_queue = yield self.db.get_queue(corpus, limit=1, fields=["_job"], skip=randint(0, 2))
         if oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
             self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
@@ -2127,7 +2127,7 @@ class Memory_Structure(customJSONRPC):
         list_ids = [i for i in list_ids if i]
         n_WEs = len(list_ids) if list_ids else 0
         if n_WEs:
-            WEs = yield self.db.get_WEs(corpus, {"_id": {"$in": list_ids}})
+            WEs = yield self.db.get_WEs(corpus, list_ids)
             count = -1
         else:
             WEs = yield self.ramcache_webentities(corpus=corpus)
@@ -2500,7 +2500,8 @@ class Memory_Structure(customJSONRPC):
             WEs = yield self.traphs.call(corpus, "get_webentity_parent_webentities", webentity_id, WE["prefixes"])
         if is_error(WEs):
             returnD(WEs)
-        res = yield self.format_webentities(WEs["result"], corpus=corpus)
+        WEs = yield self.db.get_WEs(corpus, WEs["result"])
+        res = yield self.format_webentities(WEs, corpus=corpus)
         returnD(format_result(res))
 
     @inlineCallbacks
@@ -2592,8 +2593,8 @@ class Memory_Structure(customJSONRPC):
         news = 0
         variations = urllru.lru_variations(lru_prefix)
         for variation in variations:
-            yield self.db.add_WECR(corpus, variation, creationrules.getPreset(regexp, variation))
-            res = yield self.traphs.call(corpus, "add_webentity_creation_rule", variation, creationrules.getPreset(regexp, variation))
+            yield self.db.add_WECR(corpus, variation, getWECR(regexp, variation))
+            res = yield self.traphs.call(corpus, "add_webentity_creation_rule", variation, getWECR(regexp, variation))
             if is_error(res):
                 returnD(res)
 
@@ -2768,9 +2769,13 @@ site = server.Site(core)
 # Run as 'python core.tac' ...
 if __name__ == '__main__':
     reactor.listenTCP(config['twisted.port'], site)
+    log.startLogging(sys.stdout)
     reactor.run()
 # ... or in the background when called with 'twistd -noy core.tac'
 elif __name__ == '__builtin__':
     application = Application("Hyphe backend API Server")
+    filelog = logger.FileLogObserver(LogFile('hyphe-core.log', 'log', rotateLength=134217728))
+    filelog.timeFormat = "%Y-%m-%d %H:%M:%S"
+    application.setComponent(logger.ILogObserver, filelog.emit)
     server = TCPServer(config['twisted.port'], site)
     server.setServiceParent(application)
