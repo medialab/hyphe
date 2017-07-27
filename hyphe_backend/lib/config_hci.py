@@ -27,22 +27,6 @@ def load_config():
         print 'ERROR: Config file is not valid JSON', e
         exit(1)
 
-  # Set open API for old conf type
-    if "OPEN_CORS_API" not in conf or not conf["OPEN_CORS_API"]:
-        conf["OPEN_CORS_API"] = False
-
-  # Set Monocorpus if old conf type
-    if "MULTICORPUS" not in conf or not conf["MULTICORPUS"]:
-        conf["MULTICORPUS"] = False
-
-  # Set Twisted port from old configs format
-    if "twisted.port" not in conf and "twisted" in conf and "port" in conf["twisted"]:
-        conf["twisted.port"] = conf["twisted"]["port"]
-
-  # Set default corpus keepalive option for old configs
-    if "memoryStructure" in conf:
-        if "keepalive" not in conf["memoryStructure"]:
-            conf["memoryStructure"]["keepalive"] = 1800
 
   # Set default noproxy setting if missing
     if "mongo-scrapy" in conf:
@@ -61,10 +45,6 @@ def load_config():
         conf["defaultCreationRule"] = "domain"
     if "creationRules" not in conf:
         conf["creationRules"] = {}
-
-  # Set default startpages mode for old configs
-    if "defaultStartpagesMode" not in conf:
-        conf["defaultStartpagesMode"] = ["prefixes", "pages-5"]
 
   # Auto unset phantomJs autoretry if missing
     if "phantom" in conf and "autoretry" not in conf["phantom"]:
@@ -88,55 +68,6 @@ def load_config():
             print x
         exit(1)
 
-  # Handle old non multicorpus conf
-    if not conf["MULTICORPUS"]:
-
-      # Set default single port and ram
-        if "thrift.portrange" not in conf["memoryStructure"]:
-            conf["memoryStructure"]["thrift.portrange"] = [conf["memoryStructure"]["thrift.port"], conf["memoryStructure"]["thrift.port"]]
-        if "thrift.max_ram" not in conf["memoryStructure"]:
-            conf["memoryStructure"]["thrift.max_ram"] = 1024
-
-      # Migrate old lucene corpus into default corpus if not existing yet
-        oldpath = conf["memoryStructure"]["lucene.path"]
-        if "lucene.rootpath" not in conf["memoryStructure"]:
-            conf["memoryStructure"]["lucene.rootpath"] = oldpath
-        newpath = os.path.join(oldpath, DEFAULT_CORPUS)
-        if not os.path.isdir(newpath):
-            print("Migrate old lucene corpus files from %s into dedicated dir %s as default corpus" % (oldpath, DEFAULT_CORPUS))
-            old_lucene_files = os.listdir(oldpath)
-            try:
-                test_and_make_dir(newpath)
-                for f in old_lucene_files:
-                    os.rename(os.path.join(oldpath, f), os.path.join(newpath, f))
-            except:
-                print "ERROR migrating %s lucene files from old corpus into new directory" % len(old_lucene_files)
-                exit(1)
-
-      # Migrate old corpus' mongodb collections into default corpus ones
-        if "db_name" not in mongoconf:
-            conf["mongo-scrapy"]["db_name"] = mongoconf["project"]
-        migratedb = {
-          "queue": "queue",
-          "pages": "pageStore",
-          "jobs": "jobList",
-          "logs": "jobLogs"
-        }
-        try:
-            for key, coll in migratedb.iteritems():
-                oldname = mongoconf["%sCol" % coll]
-                newname = "%s.%s" % (DEFAULT_CORPUS, key)
-                if db[oldname].count():
-                    print "INFO: migratingold corpus mongodb collection %s into default corpus %s" % (oldname, newname)
-                    db[oldname].rename(newname)
-        except Exception as e:
-            print type(e), e
-            print "ERROR migrating mongodb from old corpus into new collections"
-            exit(1)
-
-  # Turn portrange into list of ports
-    conf['memoryStructure']['thrift.portrange'] = range(conf['memoryStructure']['thrift.portrange'][0], conf['memoryStructure']['thrift.portrange'][1]+1)
-
   # Turn on Twisted debugging
     if conf['DEBUG']:
         defer.setDebugging(True)
@@ -159,37 +90,18 @@ def validateStartpagesMode(modes):
 GLOBAL_CONF_SCHEMA = {
   "mongo-scrapy": {
     "type": dict,
-    "int_fields": ["mongo_port", "proxy_port", "scrapy_port", "maxdepth", "max_simul_requests", "max_simul_requests_per_host"],
-    "str_fields": ["host", "proxy_host"],
+    "int_fields": ["mongo_port", "proxy_port", "scrapy_port", "max_depth", "max_simul_requests", "max_simul_requests_per_host"],
+    "str_fields": ["host", "proxy_host", "db_name"],
     "extra_fields": {
       "download_delay": float
-    },
-    "multicorpus": {
-      "db_name": str
-    },
-    "monocorpus": {
-      "project": str,
-      "queueCol": str,
-      "pageStoreCol": str,
-      "jobListCol": str,
-      "jobLogsCol": str
     }
-  }, "memoryStructure": {
+  }, "traph": {
     "type": dict,
-    "int_fields": ["keepalive", "max_simul_pages_indexing", "max_simul_links_indexing"],
+    "int_fields": ["keepalive", "max_simul_pages_indexing"],
     "extra_fields": {
-      "log.level": ["INFO", "DEBUG", "WARN", "ERROR", "TRACE"]
-    },
-    "multicorpus": {
-      "thrift.portrange": "range",
-      "thrift.max_ram": int,
-      "lucene.rootpath": "path"
-    },
-    "monocorpus": {
-      "thrift.port": int,
-      "lucene.path": "path"
+      "data_path": "path"
     }
-  }, "twisted.port": {
+  }, "core_api_port": {
     "type": int
   }, "defaultStartpagesMode": {
     "type": validateStartpagesMode
@@ -214,17 +126,13 @@ GLOBAL_CONF_SCHEMA = {
 }
 
 CORPUS_CONF_SCHEMA = {
-  "ram": {
-    "type": int,
-    "default": 256
-  },
   "keepalive": {
     "type": int,
-    "default": "global/memoryStructure/keepalive"
+    "default": "global/traph/keepalive"
   },
   "max_depth": {
     "type": int,
-    "default": "global/mongo-scrapy/maxdepth"
+    "default": "global/mongo-scrapy/max_depth"
   },
   "defaultStartpagesMode": {
     "type": validateStartpagesMode,
@@ -313,15 +221,6 @@ def check_conf_sanity(conf, schema, name=CONFIG_FILE, soft=False):
             if 'values' in rules:
                 for k in conf[ns]:
                     test_type(conf[ns][k], rules["values"], k, ns, name=name)
-            if "MULTICORPUS" not in conf:
-                continue
-            corpustype = "%scorpus" % ("multi" if conf["MULTICORPUS"] else "mono")
-            for f, otyp in rules.get(corpustype, {}).iteritems():
-                if f not in conf[ns]:
-                    if soft:
-                        continue
-                    raise(error_config("%s field %s missing for mode %s" % (otyp, f, corpustype.upper()), ns, name))
-                test_type(conf[ns][f], otyp, f, ns, name=name)
 
 def test_type(obj, otype, ns, ns2="", name=CONFIG_FILE):
     if type(otype) == types.FunctionType:

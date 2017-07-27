@@ -17,8 +17,6 @@ Other useful directories are:
 - `config` where all useful configuration files are
 - `doc` with this documentation among a few others
 
-_Note:_ `hyphe_www_backend` is the source code of an older implementation of the Javascript web frontend, meant to work with Hyphe MonoCorpus ([see setting MULTICORPUS](config.md)), not maintained anymore. `_deprecated` gathers old pieces of code or documentation from the past.
-
 
 ## Build & run the Java MemoryStructure
 

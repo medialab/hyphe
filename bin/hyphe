@@ -141,7 +141,7 @@ if $START; then
   if $LOGS; then
     echo "Displaying logs now. Ctrl+C will only stop logs display. Run bin/hyphe stop to stop the backend server..."
     echo
-    tail -f log/hyphe-core.log | grep -v "\(get_status\|list_corpus\)"
+    tail -fn 25 log/hyphe-core.log | grep -v "\(get_status\|list_corpus\|Timing out client: IPv4Address\)"
   fi
 fi
 

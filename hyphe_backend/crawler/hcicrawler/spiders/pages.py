@@ -46,7 +46,7 @@ class PagesCrawler(Spider):
         args.update(kw)
         self.args = args
         self.start_urls = to_list(args['start_urls'])
-        self.maxdepth = int(args['maxdepth'])
+        self.maxdepth = int(args['max_depth'])
         self.follow_prefixes = to_list(args['follow_prefixes'])
         self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
         self.discover_prefixes = [url_to_lru_clean("http%s://%s" % (https, u.replace('http://', '').replace('https://', '')), TLDS_TREE) for u in to_list(args['discover_prefixes']) for https in ['', 's']]

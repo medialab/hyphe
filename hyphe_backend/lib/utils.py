@@ -102,10 +102,7 @@ try:
         SALT = f.read()
 except:
     with open(os.path.join("config", "salt"), "w") as f:
-        SALT = hashlib.sha256(config['memoryStructure']['lucene.rootpath'] + \
-          str(config['memoryStructure']['thrift.max_ram'] * config['twisted.port'] * \
-          config['memoryStructure']['thrift.portrange'][-1])
-        ).hexdigest()
+        SALT = hashlib.sha256(config["mongo-scrapy"]["db_name"] + config['traph']['data_path'] + str(config['core_api_port']) + str(now_ts())).hexdigest()
         f.write(SALT)
 def salt(passwd):
     if not passwd or not passwd.strip().lower():

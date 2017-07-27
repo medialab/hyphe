@@ -28,7 +28,7 @@ Typical important options to set depending on your situation are highlighted as 
 
     usually `6800`, the port on which ScrapyD is served
 
-  + __`maxdepth [int]`__:
+  + __`max_depth [int]`__:
 
     usually `3`, the maximum depth allowed to the users for each individual crawl (meaning the number of clicks to be followed within a crawled WebEntity). Note that crawls with a depth of 3 and more can easily take hours depending on the crawled website
 
@@ -44,45 +44,24 @@ Typical important options to set depending on your situation are highlighted as 
     usually `1`, the maximum number of concurrent queries performed by the crawler on a same hostname
 
 
- - `memoryStructure [object]`: config for the Java Lucene part of Hyphe, defining the limits of possibly simultaneously running corpora, by default to 10
+ - `traph [object]`: config for the data structure
 
   + __`keepalive [int]`__:
 
     usually `1800`, the time (in seconds) after which a corpus which has not been used will automatically stop and free a slot for other corpora
 
-  + __`thrift.portrange [2-ints array]`__:
-
-    usually `[13500, 13509]`, an array of two ports values defining a minimum and a maximum values between which all possible ports can be used by each corpus' MemoryStructure to communicate via Thrift with the core API. Hyphe won't accept more simultaneously running corpus than the number of available ports
-
-  + __`thrift.max_ram [int]`__:
-
-    usually `2560`, the maximum ram possibly allocated to the MemoryStructure of all simultaneously running corpora. By default a corpus will start with 256Mo, and, possibly restyart with 256 more whenever the corpus grows too big and runs out of memory
-
-  + __`lucene.rootpath [str]`__:
+  + __`data_path [str]`__:
 
     usually the `lucene-data` directory within Hyphe's code, the absolute path to the directory in which the MemoryStructure data for each corpus will be stored (can get as high as a few gigaoctets per corpus)
-
-  + `log.level [str]`:
-
-    usually `"INFO"`, possibly `"WARN"`, `"DEBUG"` or `"TRACE"` to get more log within each Lucene MemoryStructure's log files (such as `log/hyphe-memory-structure-<corpus>.log`)
 
   + `max_simul_pages_indexing [int]`:
 
     usually `100`, advanced setting for internal performance adjustment, do not modify unless you know what you're doing
 
-  + `max_simul_links_indexing [int]`:
 
-    usually `10000`, advanced setting for internal performance adjustment, do not modify unless you know what you're doing
-
-
- - `twisted.port [int]`:
+ - `core_api_port [int]`:
 
    usually `6978`, the port through which the server and the web interface will communicate. Typically useful when wanting to deploy multiple Hyphe instances on the same server
-
-
- - `precisionLimit [int]`:
-
-   usually `2`, the maximum precision to keep on links between crawled webpages, the value being the number of slashes after the root prefix of a WebEntity ([read the wiki for more info](https://github.com/medialab/hyphe/wiki/Precision-limit)). Do not modify unless you know what you're doing
 
 
  - __`defaultStartpagesMode [str | str array]`__:
@@ -125,11 +104,6 @@ Typical important options to set depending on your situation are highlighted as 
   + `whitelist_domains [str array]`:
 
     empty for now, a list of domain names for which the crawler will automatically use PhantomJS (meant for instance in the long term for Facebook, Twitter or Google)
-
-
- - `MULTICORPUS [bool]`:
-
-   normally `true`, mainly for retrocompatibility, but can be set to `false` to allow only one corpus (called --hyphe--)
 
 
  - __`ADMIN_PASSWORD [str]`__:

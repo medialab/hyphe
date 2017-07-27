@@ -47,18 +47,9 @@ class Core(customJSONRPC):
         self.crawler = Crawler(self)
         self.store = Memory_Structure(self)
         reactor.addSystemEventTrigger('before', 'shutdown', self.close)
-        self.keepalive_default = None
-
-    @inlineCallbacks
-    def activate_monocorpus(self):
-        yield self.jsonrpc_start_corpus(_create_if_missing=True)
-        self.keepalive_default = LoopingCall(self.jsonrpc_ping, DEFAULT_CORPUS)
-        self.keepalive_default.start(config['memoryStructure']['keepalive']/6, False)
 
     @inlineCallbacks
     def close(self):
-        if not config["MULTICORPUS"] and self.keepalive_default and self.keepalive_default.running:
-            self.keepalive_default.stop()
         yield DeferredList([self.jsonrpc_stop_corpus(corpus, _quiet=True) for corpus in self.corpora.keys()], consumeErrors=True)
         yield self.db.close()
         self.traphs.stop()
@@ -294,7 +285,7 @@ class Core(customJSONRPC):
 
         # TODO Cleanup unneccessary
         # Fix possibly old corpus confs
-        clean_missing_corpus_options(corpus_conf['options'],config)
+        clean_missing_corpus_options(corpus_conf['options'], config)
         if "tlds" not in corpus_conf or not corpus_conf["tlds"]:
             corpus_conf["tlds"] = yield collect_tlds()
             yield self.db.update_corpus(corpus, {"tlds": corpus_conf["tlds"]})
@@ -682,10 +673,10 @@ class Core(customJSONRPC):
             yield self.db.add_log(corpus, update_ids, "INDEX_"+indexing_statuses.FINISHED)
             if self.corpora[corpus]['options']['phantom'].get('autoretry', False):
                 # Try to restart in phantom mode all regular crawls that seem to have failed (less than 3 pages found for a depth of at least 1)
-                res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.maxdepth': {'$gt': 0}})
+                res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.max_depth': {'$gt': 0}})
                 for job in res:
                     logger.msg("Crawl job %s seems to have failed, trying to restart it in phantom mode" % job['_id'], system="INFO - %s" % corpus)
-                    yield self.jsonrpc_crawl_webentity(job['webentity_id'], min(job['crawl_arguments']['maxdepth'], 2), True, corpus=corpus)
+                    yield self.jsonrpc_crawl_webentity(job['webentity_id'], min(job['crawl_arguments']['max_depth'], 2), True, corpus=corpus)
                     yield self.db.add_log(corpus, job['_id'], "CRAWL_RETRIED_AS_PHANTOM")
                     yield self.db.update_jobs(corpus, job['_id'], {'crawling_status': crawling_statuses.RETRIED})
 
@@ -996,7 +987,7 @@ class Crawler(customJSONRPC):
           'spider': 'pages',
           'phantom': phantom_crawl,
           'setting': 'DOWNLOAD_DELAY=' + str(download_delay),
-          'maxdepth': depth,
+          'max_depth': depth,
           'start_urls': list(starts),
           'start_urls_auto': list(_autostarts),
           'follow_prefixes': list(follow_prefixes),
@@ -1788,7 +1779,6 @@ class Memory_Structure(customJSONRPC):
         returnD(format_result("WebEntity %s (%s) was removed" % (webentity_id, WE["name"])))
 
 
-    # TODO INDEX
     @inlineCallbacks
     def index_batch(self, page_items, job, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
@@ -1888,7 +1878,7 @@ class Memory_Structure(customJSONRPC):
                   'crawljob_id': oldest_page_in_queue['_job'],
                   'webentity_id': None
                 }
-            page_items = yield self.db.get_queue(corpus, {'_job': job['crawljob_id']}, limit=config['memoryStructure']['max_simul_pages_indexing'])
+            page_items = yield self.db.get_queue(corpus, {'_job': job['crawljob_id']}, limit=config['traph']['max_simul_pages_indexing'])
             if page_items:
                 logger.msg("Indexing %s pages from job %s..." % (len(page_items), job['_id']), system="INFO - %s" % corpus)
                 if job['_id'] != 'unknown':
@@ -1900,7 +1890,7 @@ class Memory_Structure(customJSONRPC):
                     logger.msg(res['message'], system="ERROR - %s" % corpus)
                     self.corpora[corpus]['loop_running'] = None
                     returnD(False)
-                self.corpora[corpus]['recent_changes'] += len(page_items)/float(config['memoryStructure']['max_simul_pages_indexing'])
+                self.corpora[corpus]['recent_changes'] += len(page_items)/float(config['traph']['max_simul_pages_indexing'])
             else:
                 logger.msg("job %s found for index but no page corresponding found in queue." % job['_id'], system="WARNING - %s" % corpus)
             self.corpora[corpus]['last_index_loop'] = now_ts()
@@ -2756,9 +2746,6 @@ def stop_tests(res, cor, corpus, msg=None):
 
 reactor.callLater(1, test_start, core, TEST_CORPUS)
 
-# Activate default corpus automatically if in monocorpus
-if not config["MULTICORPUS"]:
-    reactor.callLater(15, core.activate_monocorpus)
 
 # JSON-RPC interface
 core.putSubHandler('crawl', core.crawler)
@@ -2769,7 +2756,7 @@ site.noisy = False
 
 # Run as 'python core.tac' ...
 if __name__ == '__main__':
-    reactor.listenTCP(config['twisted.port'], site)
+    reactor.listenTCP(config['core_api_port'], site)
     log.startLogging(sys.stdout)
     reactor.run()
 # ... or in the background when called with 'twistd -noy core.tac'
@@ -2778,5 +2765,5 @@ elif __name__ == '__builtin__':
     filelog = logger.FileLogObserver(LogFile('hyphe-core.log', 'log', rotateLength=134217728))
     filelog.timeFormat = "%Y-%m-%d %H:%M:%S"
     application.setComponent(logger.ILogObserver, filelog.emit)
-    server = TCPServer(config['twisted.port'], site)
+    server = TCPServer(config['core_api_port'], site)
     server.setServiceParent(application)
