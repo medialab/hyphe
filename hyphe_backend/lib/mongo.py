@@ -7,7 +7,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue as returnD
 from txmongo import MongoConnection, connection as mongo_connection
 mongo_connection._Pinger.noisy = False
 mongo_connection._Connection.noisy = False
-from txmongo.filter import sort as mongosort, ASCENDING, DESCENDING
+from txmongo.filter import TEXT as textIndex, sort as mongosort, ASCENDING, DESCENDING
 from pymongo.errors import OperationFailure
 from bson import ObjectId
 from hyphe_backend.lib.urllru import name_lru
@@ -100,9 +100,9 @@ class MongoDB(object):
     def init_corpus_indexes(self, corpus, retry=True):
         try:
             yield self.db()['corpus'].create_index(sortdesc('last_activity'), background=True)
-            # TODO prepare indexes for WEs
             yield self.WEs(corpus).create_index(sortasc('name'), background=True)
             yield self.WEs(corpus).create_index(sortasc('status'), background=True)
+            yield self.WEs(corpus).create_index(mongosort(textIndex("$**")), background=True)
             yield self.WECRs(corpus).create_index(sortasc('prefix'), background=True)
             yield self.pages(corpus).create_index(sortasc('timestamp'), background=True)
             yield self.pages(corpus).create_index(sortasc('_job'), background=True)
@@ -160,7 +160,6 @@ class MongoDB(object):
         yield self.queries(corpus).drop()
         yield self.stats(corpus).drop()
 
-    # TODO add auto filters like for logs/jobs especially for _id $in
     @inlineCallbacks
     def get_WEs(self, corpus, query=None):
         if not query:

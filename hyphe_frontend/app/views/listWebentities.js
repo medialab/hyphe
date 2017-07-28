@@ -180,12 +180,7 @@ angular.module('hyphe.listwebentitiesController', [])
         $scope.sort = field
         $scope.sortAsc = ($scope.sort == 'name')
       }
-      if(!$scope.settings.query){
-        $scope.loadWebentities()
-      } else {
-        var query = utils.cleanLuceneQuery($scope.settings.query)
-        $scope.loadWebentities(query)
-      }
+      $scope.loadWebentities($scope.settings.query)
     }
 
     $scope.loadWebentities = function(query){
@@ -410,13 +405,7 @@ angular.module('hyphe.listwebentitiesController', [])
     function doQuery(){
       if(!$scope.loading){
         refreshEasterEgg()  // yes, yes...
-        if(!$scope.settings.query){
-          $scope.loadWebentities()
-        } else {
-          var query = utils.cleanLuceneQuery($scope.query)
-          console.log('Query:',query)
-          $scope.loadWebentities(query)
-        }
+        $scope.loadWebentities($scope.settings.query)
       }
     }
 

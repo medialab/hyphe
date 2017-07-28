@@ -1131,23 +1131,6 @@ class Memory_Structure(customJSONRPC):
             return self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0)
         return None
 
-    format_field = lambda _,x: x.upper() if type(x) in [str, unicode] else x
-    @inlineCallbacks
-    def sort_webentities(self, WEs, sort=None, corpus=DEFAULT_CORPUS):
-        if not (sort and WEs):
-            returnD((WEs, None))
-        if type(sort) != list:
-            sort = [sort]
-        jobs = None
-        if "crawled" in " ".join(sort).lower():
-            jobs = yield self.get_webentities_jobs(WEs, corpus=corpus)
-        for sortkey in reversed(sort):
-            key = sortkey.lstrip("-")
-            reverse = (key != sortkey)
-            if self.sortargs_accessor(WEs[0], key, jobs=jobs, corpus=corpus) != None:
-                WEs = sorted(WEs, key=lambda x: self.format_field(self.sortargs_accessor(x, key, jobs=jobs, corpus=corpus)), reverse=reverse)
-        returnD((WEs, jobs))
-
     @inlineCallbacks
     def get_webentities_jobs(self, WEs, corpus=DEFAULT_CORPUS):
         jobs = {}
@@ -2037,6 +2020,14 @@ class Memory_Structure(customJSONRPC):
         job = yield self.db.list_jobs(corpus, {'webentity_id': WE["_id"]}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
         returnD(format_result(self.format_webentity(WE, job, corpus=corpus)))
 
+    def _checkPageCount(self, page, count):
+        try:
+            page = int(page)
+            count = int(count)
+        except:
+            return None, None
+        return page, count
+
     @inlineCallbacks
     def format_WE_page(self, total, count, page, WEs, token=None, corpus=DEFAULT_CORPUS):
         jobs = {}
@@ -2067,18 +2058,33 @@ class Memory_Structure(customJSONRPC):
             res["next_page"] = page + 1
         returnD(format_result(res))
 
+    format_field = lambda _,x: x.upper() if type(x) in [str, unicode] else x
     @inlineCallbacks
-    def paginate_webentities(self, WEs, count, page, jobs=None, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
+    def paginate_webentities(self, WEs, count, page, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
+        jobs = None
+        if sort and WEs:
+            if type(sort) != list:
+                sort = [sort]
+            if "crawled" in " ".join(sort).lower():
+                jobs = yield self.get_webentities_jobs(WEs, corpus=corpus)
+            for sortkey in reversed(sort):
+                key = sortkey.lstrip("-")
+                reverse = (key != sortkey)
+                if self.sortargs_accessor(WEs[0], key, jobs=jobs, corpus=corpus) != None:
+                    WEs = sorted(WEs, key=lambda x: self.format_field(self.sortargs_accessor(x, key, jobs=jobs, corpus=corpus)), reverse=reverse)
+
         if count == -1 or len(WEs) <= count or light_for_csv:
             res = yield self.format_webentities(WEs, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
             if count == -1:
                 returnD(format_result(res))
             respage = yield self.format_WE_page(len(res), count, page, res, corpus=corpus)
             returnD(respage)
+
         subset = WEs[page*count:(page+1)*count]
         subset = yield self.format_webentities(subset, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
         ids = [w["_id"] for w in WEs]
         res = yield self.format_WE_page(len(ids), count, page, subset, corpus=corpus)
+
         query_args = {
           "count": count,
           "light": light,
@@ -2093,10 +2099,8 @@ class Memory_Structure(customJSONRPC):
         """Returns for a `corpus` all existing WebEntities or only the WebEntities whose id is among `list_ids.\nResults will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Returns all results at once if `list_ids` is provided or `count` == -1 ; otherwise results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\nOther possible options include:\n- order the results with `sort` by inputting a field or list of fields as named in the WebEntities returned objects; optionally prefix a sort field with a "-" to revert the sorting on it; for instance: `["-indegree"\, "name"]` will order by maximum indegree first then by alphabetic order of names\n- set `light` or `semilight` or `light_for_csv` to "true" to collect lighter data with less WebEntities fields."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        try:
-            page = int(page)
-            count = int(count)
-        except:
+        page, count = self._checkPageCount(page, count)
+        if page is None:
             returnD(format_error("page and count arguments must be integers"))
         if isinstance(list_ids, int):
             list_ids = [list_ids] if list_ids else []
@@ -2109,24 +2113,19 @@ class Memory_Structure(customJSONRPC):
             WEs = yield self.ramcache_webentities(corpus=corpus)
             if is_error(WEs):
                 returnD(WEs)
-        WEs, jobs = yield self.sort_webentities(WEs, sort=sort, corpus=corpus)
-        res = yield self.paginate_webentities(WEs, count, page, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
+        res = yield self.paginate_webentities(WEs, count, page, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
         returnD(res)
 
-    # TODO HANDLE SEARCH WEs in MONGO (adjust front?)
     @inlineCallbacks
-    def jsonrpc_advanced_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, autoescape_query=True, light=False, semilight=True, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments. Searched keywords will automatically be escaped: set `autoescape_query` to "false" to allow input of special Lucene queries.\nReturns all results at once if  `count` == -1 ; otherwise results will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"/"status"/"lruset"/"startpages"/...). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into. For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort` `light` and `semilight` in `get_webentities` above."""
+    def jsonrpc_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, light=False, semilight=True, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.\nReturns all results at once if  `count` == -1 ; otherwise results will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"/"status"/"lruset"/"startpages"/...). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into. For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort` `light` and `semilight` in `get_webentities` above."""
         indegree_filter = False
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        try:
-            page = int(page)
-            count = int(count)
-        except:
+        page, count = self._checkPageCount(page, count)
+        if page is None:
             returnD(format_error("page and count arguments must be integers"))
-        afk = []
-        fk = []
+        query = {}
         if type(allFieldsKeywords) is unicode:
             allFieldsKeywords = [allFieldsKeywords]
         if not (type(allFieldsKeywords) is list and type(fieldKeywords) is list):
@@ -2134,57 +2133,26 @@ class Memory_Structure(customJSONRPC):
         for k in allFieldsKeywords:
             if not (k and type(k) in [str, unicode]):
                 returnD(format_error("ERROR: allFieldsKeywords must be a list of strings."))
-            if autoescape_query:
-                k = self.escape_search_query(k)
-            afk.append(k.encode('utf-8'))
+            if not "$text" in query:
+                query["$text"] = {"$search": k}
+            else: query["$text"]["$seach"] += " %s" % k
         for kv in fieldKeywords:
             if type(kv) is list and len(kv) == 2 and kv[0] and kv[1] and type(kv[0]) in [str, unicode] and type(kv[1]) in [str, unicode]:
-                if autoescape_query:
-                    kv[1] = self.escape_search_query(kv[1])
-                fk.append([kv[0].encode('utf-8'), kv[1].encode('utf-8')])
+                if "$and" not in query:
+                    query["$and"] = []
+                if " " in kv[1]:
+                    query["$and"].append({"$or": [{kv[0]: v} for v in kv[1].strip().split(" ")]})
+                else: query["$and"].append({kv[0]: kv[1]})
             elif type(kv) is list and len(kv) == 2 and kv[0] and kv[1] and type(kv[0]) in [str, unicode] and type(kv[1]) is list and len(kv[1]) == 2 and type(kv[1][0]) in [int, float] and type(kv[1][1]) in [int, float]:
                 indegree_filter = kv[1]
             else:
                 returnD(format_error('ERROR: fieldKeywords must be a list of two-string-elements lists or ["indegree", [min_int, max_int]]. %s' % fieldKeywords))
-        WEs = yield self.db.get_WEs(corpus) # TODO: actually filter on afk/fk
+        WEs = yield self.db.get_WEs(corpus, query)
         if indegree_filter:
             WEs = [w for w in WEs if self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0) >= indegree_filter[0] and self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0) <= indegree_filter[1]]
 
-        WEs, jobs = yield self.sort_webentities(WEs, sort=sort, corpus=corpus)
-        res = yield self.paginate_webentities(WEs, count, page, jobs=jobs, sort=sort, light=light, semilight=semilight, corpus=corpus)
+        res = yield self.paginate_webentities(WEs, count, page, sort=sort, light=light, semilight=semilight, corpus=corpus)
         returnD(res)
-
-    def escape_search_query(self, query, corpus=DEFAULT_CORPUS):
-        for char in ["\\", "+", "-", "!", "(", ")", ":", "^", "[", "]", "{", "}", "~", "*", "?"]:
-            query = query.replace(char, "\\%s" % char)
-        return query.replace(' ', '?')
-
-    def _optional_field_search(self, query, field=None, sort=None, count=100, page=0, light=False, semilight=False, corpus=DEFAULT_CORPUS):
-        if field:
-            if not isinstance(field, unicode):
-                field = unicode(field)
-            return self.jsonrpc_advanced_search_webentities([], [[field, query]], sort=sort, count=count, page=page, autoescape_query=False, light=light, semilight=semilight, corpus=corpus)
-        return self.jsonrpc_advanced_search_webentities([query], sort=sort, count=count, page=page, autoescape_query=False, light=light, semilight=semilight, corpus=corpus)
-
-    def jsonrpc_exact_search_webentities(self, query, field=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` all WebEntities having one textual field or optional specific `field` exactly equal to the value given as `query`. Searched query will automatically be escaped of Lucene special characters.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
-        query = self.escape_search_query(query)
-        return self._optional_field_search(query, field, sort=sort, count=count, page=page, corpus=corpus)
-
-    def jsonrpc_prefixed_search_webentities(self, query, field=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` all WebEntities having one textual field or optional specific `field` beginning with the value given as `query`. Searched query will automatically be escaped of Lucene special characters.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
-        query = "%s*" % self.escape_search_query(query)
-        return self._optional_field_search(query, field, sort=sort, count=count, page=page, corpus=corpus)
-
-    def jsonrpc_postfixed_search_webentities(self, query, field=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` all WebEntities having one textual field or optional specific `field` finishing with the value given as `query`. Searched query will automatically be escaped of Lucene special characters.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
-        query = "*%s" % self.escape_search_query(query)
-        return self._optional_field_search(query, field, sort=sort, count=count, page=page, corpus=corpus)
-
-    def jsonrpc_free_search_webentities(self, query, field=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` all WebEntities having one textual field or optional specific `field` containing the value given as `query`. Searched query will automatically be escaped of Lucene special characters.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
-        query = "*%s*" % self.escape_search_query(query)
-        return self._optional_field_search(query, field, sort=sort, count=count, page=page, corpus=corpus)
 
     @inlineCallbacks
     def jsonrpc_get_webentities_by_status(self, status, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
@@ -2194,45 +2162,82 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("status argument must be one of %s" % ",".join(valid_statuses)))
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        indegree_filter = False
-        try:
-            page = int(page)
-            count = int(count)
-        except:
+        page, count = self._checkPageCount(page, count)
+        if page is None:
             returnD(format_error("page and count arguments must be integers"))
         WEs = yield self.db.get_WEs(corpus, {"status": status})
-        if indegree_filter:
-            WEs = [w for w in WEs if self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0) >= indegree_filter[0] and self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0) <= indegree_filter[1]]
-
-        WEs, jobs = yield self.sort_webentities(WEs, sort=sort, corpus=corpus)
-        res = yield self.paginate_webentities(WEs, count, page, jobs=jobs, sort=sort, light=False, semilight=True, corpus=corpus)
+        res = yield self.paginate_webentities(WEs, count, page, sort=sort, light=False, semilight=True, corpus=corpus)
         returnD(res)
 
+    @inlineCallbacks
     def jsonrpc_get_webentities_by_name(self, name, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all WebEntities having their name equal to `name`.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
-        return self.jsonrpc_exact_search_webentities(name, 'NAME', sort=sort, count=count, page=page, corpus=corpus)
+        page, count = self._checkPageCount(page, count)
+        if page is None:
+            returnD(format_error("page and count arguments must be integers"))
+        WEs = yield self.db.get_WEs(corpus, {"name": name})
+        res = yield self.paginate_webentities(WEs, count, page, sort=sort, corpus=corpus)
+        returnD(res)
 
-    def jsonrpc_get_webentities_by_tag_value(self, value, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+    @inlineCallbacks
+    def jsonrpc_get_webentities_by_tag_value(self, value, namespace=None, category=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all WebEntities having at least one tag in any namespace/category equal to `value`.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
-        return self.jsonrpc_exact_search_webentities(value, 'TAG_VALUE', sort=sort, count=count, page=page, corpus=corpus)
+        page, count = self._checkPageCount(page, count)
+        if page is None:
+            returnD(format_error("page and count arguments must be integers"))
+        if namespace and category:
+            query = {"tags.%s.%s": {"$all": [value]}}
+        elif namespace:
+            query = {"$where":
+              """function() {
+                if (!this.tags["%s"])
+                  return false;
+                for (var cat in this.tags["%s"])
+                  if (!!~this.tags["%s"][cat].indexOf("%s"))
+                    return true;
+                return false;
+              }""" % (namespace, namespace, value)
+            }
+        elif category:
+            query = {"$where":
+              """function() {
+                for (var ns in this.tags)
+                 if (this.tags[ns]["%s"] && !!~this.tags[ns]["%s"].indexOf("%s"))
+                    return true;
+                return false;
+              }""" % (category, category, value)
+            }
+        else:
+            query = {"$where":
+              """function() {
+                for (var ns in this.tags)
+                  for (var cat in this.tags[ns])
+                    if (!!~this.tags[ns][cat].indexOf("%s"))
+                      return true;
+                return false;
+              }""" % value
+            }
+        WEs = yield self.db.get_WEs(corpus, query)
+        res = yield self.paginate_webentities(WEs, count, page, sort=sort, corpus=corpus)
+        returnD(res)
 
-    def jsonrpc_get_webentities_by_tag_category(self, category, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` all WebEntities having at least one tag in a specific `category`.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
-        return self.jsonrpc_exact_search_webentities(category, 'TAG_CATEGORY', sort=sort, count=count, page=page, corpus=corpus)
-
-    def jsonrpc_get_webentities_by_user_tag(self, category, value, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` all WebEntities having at least one tag in any category of the namespace "USER" equal to `value`.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
-        return self.jsonrpc_exact_search_webentities("USER:%s=%s" % (category, value), 'TAG', sort=sort, count=count, page=page, corpus=corpus)
+    @inlineCallbacks
+    def jsonrpc_get_webentities_by_tag_category(self, namespace, category, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` all WebEntities having at least one tag in a specific `category` for a specific `namespace`.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
+        page, count = self._checkPageCount(page, count)
+        if page is None:
+            returnD(format_error("page and count arguments must be integers"))
+        WEs = yield self.db.get_WEs(corpus, {"tags.%s.%s" % (namespace, category): {"$exists": True}})
+        res = yield self.paginate_webentities(WEs, count, page, sort=sort, corpus=corpus)
+        returnD(res)
 
     @inlineCallbacks
     def jsonrpc_get_webentities_mistagged(self, status='IN', missing_a_category=False, multiple_values=False, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all WebEntities of status `status` with no tag of the namespace "USER" or multiple tags for some USER categories if `multiple_values` is true or no tag for at least one existing USER category if `missing_a_category` is true.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        try:
-            page = int(page)
-            count = int(count)
-        except:
+        page, count = self._checkPageCount(page, count)
+        if page is None:
             returnD(format_error("page and count arguments must be integers"))
         status = status.upper()
         if status not in WEBENTITIES_STATUSES:
@@ -2253,10 +2258,8 @@ class Memory_Structure(customJSONRPC):
         """Returns for a `corpus` all IN WebEntities which have no crawljob associated with it.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        try:
-            page = int(page)
-            count = int(count)
-        except:
+        page, count = self._checkPageCount(page, count)
+        if page is None:
             returnD(format_error("page and count arguments must be integers"))
         crawljobs = yield self.db.list_jobs(corpus, fields=["webentity_id", "previous_webentity_id"])
         crawled_dbl_list = [[job["webentity_id"], job["previous_webentity_id"]] if "previous_webentity_id" in job else [job["webentity_id"]] for job in crawljobs]
@@ -2311,6 +2314,7 @@ class Memory_Structure(customJSONRPC):
         """Adds for a `corpus` a tag `namespace:category=value` to a WebEntity defined by `webentity_id`."""
         return self.update_webentity(webentity_id, "tags", value, "push", category, namespace, _commit=_commit, corpus=corpus)
 
+    # TODO handle as single mongo query
     def jsonrpc_add_webentities_tag_value(self, webentity_ids, namespace, category, value, corpus=DEFAULT_CORPUS):
         """Adds for a `corpus` a tag `namespace:category=value` to a bunch of WebEntities defined by a list of `webentity_ids`."""
         return self.batch_webentities_edit("add_webentity_tag_value", webentity_ids, corpus, namespace, category, value)

@@ -14,8 +14,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_LIST_STATUS_SET                   = 'store.set_webentities_status'
     API.WEBENTITY_LIST_MERGE_INTO                   = 'store.merge_webentities_into_another'
 
-    API.WEBENTITY_LIST_SEARCH_ADVANCED              = 'store.advanced_search_webentities'
-    API.WEBENTITY_LIST_SEARCH_EXACT                 = 'store.exact_search_webentities'
+    API.WEBENTITY_LIST_SEARCH                       = 'store.search_webentities'
     API.WEBENTITY_LIST_SEARCH_GET_PAGE              = 'store.get_webentities_page'
 
     API.WEBENTITY_STARTPAGE_ADD                     = 'store.add_webentity_startpage'
@@ -123,7 +122,7 @@ angular.module('hyphe.service_hyphe_api', [])
     }
 
     ns.searchWebentities = buildApiCall(
-        API.WEBENTITY_LIST_SEARCH_ADVANCED
+        API.WEBENTITY_LIST_SEARCH
         ,function(settings){
           if(settings.autoescape_query === undefined)
             settings.autoescape_query = false
@@ -137,22 +136,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ,ns.setSort(settings.sortField) // Ordering
             ,settings.count || 1000         // Results per page
             ,settings.page || 0             // Page
-            ,settings.autoescape_query      // Escape special Lucene characters
             ,settings.light                 // Very lighter WebEntities
             ,settings.semiLight             // Lighter WebEntities
-            ,corpus.getId()
-          ]}
-      )
-
-    ns.searchWebentities_exact = buildApiCall(
-        API.WEBENTITY_LIST_SEARCH_EXACT
-        ,function(settings){
-          return [
-            settings.query
-            ,settings.field
-            ,ns.setSort(settings.sortField) // Ordering
-            ,settings.count || 1000         // Results per page
-            ,settings.page || 0             // Page
             ,corpus.getId()
           ]}
       )

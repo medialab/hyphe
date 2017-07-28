@@ -97,11 +97,7 @@ angular.module('hyphe.prospectController', [])
     }
 
     $scope.sortChanged = function(){
-      if($scope.lastQuery === undefined){
-        $scope.loadWebentities()
-      } else {
-        $scope.loadWebentities($scope.lastQuery)
-      }
+      $scope.loadWebentities($scope.lastQuery)
     }
 
     $scope.loadWebentities = function(query){
@@ -156,9 +152,7 @@ angular.module('hyphe.prospectController', [])
 
     $scope.doQuery = function(){
       if(!$scope.loading){
-        var query = utils.cleanLuceneQuery($scope.query)
-        console.log('Query:',query)
-        $scope.loadWebentities(query)
+        $scope.loadWebentities($scope.query)
       }
     }
 

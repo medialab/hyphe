@@ -601,17 +601,6 @@ angular.module('hyphe.service_utils', [])
       return result
     }
 
-    ns.cleanLuceneQuery = function(query){
-      if(query === undefined)
-        return undefined
-      if(query == '')
-        return '';
-      ['\\', '+', '-', '!', '(', ')', ':', '^', '[', ']', '{', '}', '~', '*', '?'].forEach(function(c){
-        query = query.replace(c, '\\'+c)
-      })
-      return '*' + query + '*'
-    }
-
     ns.consolidateJob = function(job){
       job.globalStatus = ''
       if(job.crawling_status == 'RUNNING'){
