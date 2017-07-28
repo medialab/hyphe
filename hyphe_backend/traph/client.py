@@ -21,7 +21,8 @@ class TraphFactory(object):
 
     sockets_dir = "traph-sockets"
 
-    def __init__(self, data_dir="traph-data", max_corpus=0, chatty=False):
+    # TODO reset default chatty to False when fixed problem starting traph with it
+    def __init__(self, data_dir="traph-data", max_corpus=0, chatty=True):
         self.data_dir = data_dir
         self.max_corpus = max_corpus
         self.chatty = chatty
