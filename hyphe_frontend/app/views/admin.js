@@ -51,10 +51,6 @@ angular.module('hyphe.adminController', [])
       resetCorpus(id)
     }
 
-    $scope.resetLinks = function(id){
-      resetLinks(id)
-    }
-
 
     function loadCorpusList(){
       if ($scope.loadingList) return;
@@ -146,16 +142,6 @@ angular.module('hyphe.adminController', [])
         id: id
       }, loadCorpusList
       ,function(data, status, headers, config){
-        alert('Error')
-      })
-    }
-
-    function resetLinks(id){
-      api.resetLinks({
-        id: id
-      }, function(){
-
-      }, function(){
         alert('Error')
       })
     }

@@ -1512,21 +1512,6 @@ class Memory_Structure(customJSONRPC):
             return format_error("ERROR: please specify a value for the WebEntity's name")
         return self.update_webentity(webentity_id, "name", new_name, corpus=corpus, _commit=_commit)
 
-#    // Obsolete with Traphs
-#    @inlineCallbacks
-#    def jsonrpc_change_webentity_id(self, webentity_old_id, webentity_new_id, corpus=DEFAULT_CORPUS):
-#        """Changes for a `corpus` the id of a WebEntity defined by `webentity_old_id` to `webentity_new_id` (mainly for advanced debug use)."""
-#        if not self.parent.corpus_ready(corpus):
-#            returnD(self.parent.corpus_error(corpus))
-#        res = yield self.update_webentity(webentity_old_id, "id", webentity_new_id, corpus=corpus)
-#        if is_error(res):
-#            returnD(format_error('ERROR a WebEntity with id %s already seems to exist' % webentity_new_id))
-#        res = yield self.jsonrpc_delete_webentity(webentity_old_id, corpus=corpus)
-#        if is_error(res):
-#            returnD(format_error('ERROR a WebEntity with id %s already seems to exist' % webentity_new_id))
-#        self.corpora[corpus]['total_webentities'] += 1
-#        returnD(format_result("WebEntity %s was re-ided as %s" % (webentity_old_id, webentity_new_id)))
-
     @inlineCallbacks
     def jsonrpc_set_webentity_status(self, webentity_id, status, corpus=DEFAULT_CORPUS, _commit=True):
         """Changes for a `corpus` the status of a WebEntity defined by `webentity_id` to `status` (one of "in"/"out"/"undecided"/"discovered")."""
@@ -2679,14 +2664,6 @@ class Memory_Structure(customJSONRPC):
             return self.parent.corpus_error(corpus)
         self.corpora[corpus]['recent_changes'] += 1
         return format_result("Links building should start soon")
-
-    def jsonrpc_trigger_links_reset(self, corpus=DEFAULT_CORPUS):
-        """Will initiate a whole reset and regeneration of all WebEntityLinks of a `corpus`. Can take a while."""
-        if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
-        self.corpora[corpus]['recent_changes'] += 1
-        self.corpora[corpus]['last_links_loop'] = 0
-        return format_result("Links global re-generation should start soon")
 
     @inlineCallbacks
     def save_webentities_stats(self, corpus=DEFAULT_CORPUS):
