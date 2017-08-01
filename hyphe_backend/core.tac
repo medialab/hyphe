@@ -2486,7 +2486,10 @@ class Memory_Structure(customJSONRPC):
             WEs = yield self.traphs.call(corpus, "get_webentity_parent_webentities", webentity_id, WE["prefixes"])
         if is_error(WEs):
             returnD(WEs)
-        WEs = yield self.db.get_WEs(corpus, WEs["result"])
+        if len(WEs["result"]) > 0:
+            WEs = yield self.db.get_WEs(corpus, WEs["result"])
+        else:
+            WEs = []
         res = yield self.format_webentities(WEs, corpus=corpus)
         returnD(format_result(res))
 
