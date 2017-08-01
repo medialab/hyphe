@@ -777,10 +777,16 @@ class Core(customJSONRPC):
             yield self.store.jsonrpc_set_webentity_status(webentity_id, status, corpus=corpus)
 
         subs = yield self.store.traphs.call(corpus, "get_webentity_child_webentities", WE["_id"], WE["prefixes"])
+        
         if is_error(subs):
             returnD(subs)
-        subs = yield self.db.get_WEs(corpus, subs["result"])
-        nofollow = [p for subwe in subs for p in subwe["prefixes"]]
+
+        if subs["result"]:
+            # if there are no subEntities, sub['result'] is empty and get_WEs returns all WEs including the one to be crawled
+            subs = yield self.db.get_WEs(corpus, subs["result"])
+            nofollow = [p for subwe in subs for p in subwe["prefixes"]]
+        else:
+            nofollow = []
 
         if "CORE" in WE["tags"] and "recrawlNeeded" in WE["tags"]["CORE"]:
             yield self.store.jsonrpc_rm_webentity_tag_key(webentity_id, "CORE", "recrawlNeeded", corpus=corpus)
