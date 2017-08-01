@@ -2585,7 +2585,7 @@ class Memory_Structure(customJSONRPC):
                 returnD(res)
 
             # Create new webentities
-            for weid, prefixes in res["created_webentities"].items():
+            for weid, prefixes in res["result"]["created_webentities"].items():
                 yield self.db.add_WE(corpus, weid, prefixes)
                 self.corpora[corpus]['total_webentities'] += 1
 
