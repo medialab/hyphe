@@ -2460,7 +2460,7 @@ class Memory_Structure(customJSONRPC):
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
-        pages = yield self.store.traphs.call(corpus, "get_webentity_most_linked_pages", webentity_id, WE["prefixes"], pages_count=npages)
+        pages = yield self.traphs.call(corpus, "get_webentity_most_linked_pages", webentity_id, WE["prefixes"], pages_count=npages)
         if is_error(pages):
             returnD(pages)
         returnD(format_result(self.format_pages(pages["result"])))
