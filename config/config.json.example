@@ -14,7 +14,7 @@
   "traph": {
     "keepalive": 1800,
     "data_path": "##HYPHEPATH##/traph-data",
-    "max_simul_pages_indexing": 100
+    "max_simul_pages_indexing": 250
   },
   "core_api_port": 6978,
   "defaultStartpagesMode": ["prefixes", "pages-5"],

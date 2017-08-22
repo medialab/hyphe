@@ -9,7 +9,7 @@ from twisted.protocols.basic import LineOnlyReceiver
 class TraphProtocol(LineOnlyReceiver):
 
     delimiter = b"\r\n##TxHypheMsgPackDelimiter\r\n"
-    MAX_LENGTH = 16777216
+    MAX_LENGTH = 536870912
 
     def __init__(self, traph):
         self.traph = traph
