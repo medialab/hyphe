@@ -1176,7 +1176,7 @@ class Memory_Structure(customJSONRPC):
                 jobs = yield self.get_webentities_jobs(WEs, corpus=corpus)
             else: jobs = {}
         homepages = {}
-        if not (test_bool_arg(light) or test_bool_arg(light_for_csv)):
+        if not (test_bool_arg(light) or test_bool_arg(semilight) or test_bool_arg(light_for_csv)):
             homepages = yield self.get_webentities_missing_linkpages(WEs, corpus=corpus)
         returnD([self.format_webentity(WE, jobs.get(WE["_id"], {}), homepages.get(WE["_id"], None), light, semilight, light_for_csv, corpus=corpus) for WE in WEs])
 

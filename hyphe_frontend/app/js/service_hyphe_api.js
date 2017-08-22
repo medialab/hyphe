@@ -129,7 +129,7 @@ angular.module('hyphe.service_hyphe_api', [])
           if(settings.light === undefined)
             settings.light = false
           if(settings.semiLight === undefined)
-            settings.semiLight = true
+            settings.semiLight = false
           return [
             settings.allFieldsKeywords      // List of kw searched everywhere
             ,settings.fieldKeywords         // List of [field,kw] pairs for field search
