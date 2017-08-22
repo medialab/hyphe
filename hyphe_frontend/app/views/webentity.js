@@ -532,9 +532,11 @@ angular.module('hyphe.webentityController', [])
     }
 
     $rootScope.$on('$locationChangeSuccess', function() {
+      if ($scope.webentity.id !== utils.readWebentityIdFromRoute()) {
+        return;
+      }
       if ($scope.webentity.prefixes && tree) {
         updateFromPath()
-        updateExplorer()
       }
       if (!~$location.path().indexOf("/explorer"))
         $location.search("p", undefined)
