@@ -299,7 +299,7 @@ class TraphClientProtocol(LineOnlyReceiver):
             return
         self.corpus.call_running = True
         _, _, self.deferred, method, args, kwargs = self.queue.get(False)
-        if config["DEBUG"]:
+        if config["DEBUG"] == 2:
             self.corpus.log("Traph client query: %s %s %s" % (method, args, kwargs))
         self.last_query = {
           "method": method,
