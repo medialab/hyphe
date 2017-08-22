@@ -274,6 +274,7 @@ class TraphClientProtocol(LineOnlyReceiver):
         self.corpus = corpus
         self.deferred = None
         self.queue = PriorityQueue()
+        self.last_query = None
 
     def connectionMade(self):
         self.corpus.log("Traph ready")
@@ -299,11 +300,12 @@ class TraphClientProtocol(LineOnlyReceiver):
         _, _, self.deferred, method, args, kwargs = self.queue.get(False)
         if config["DEBUG"]:
             self.corpus.log("Traph client query: %s %s %s" % (method, args, kwargs))
-        self.sendLine(msgpack.packb({
+        self.last_query = {
           "method": method,
           "args": args,
           "kwargs": kwargs
-        }))
+        }
+        self.sendLine(msgpack.packb(self.last_query))
 
     def lineLengthExceeded(self, line):
         self.corpus.log("Line length (%s) exceeded limit (%s) on UNIX socket: %s %s" % (len(line), self.MAX_LENGTH, type(e), e), True)
@@ -316,8 +318,10 @@ class TraphClientProtocol(LineOnlyReceiver):
             if config["DEBUG"] == 2:
                 self.corpus.log("Traph server answer: %s" % msg)
         except (msgpack.exceptions.ExtraData, msgpack.exceptions.UnpackValueError) as e:
-            self.deferred.errback(Exception(data))
-            self.corpus.log("%s: %s - Received badly formatted data: %s" % (type(e), e, data.encode("utf-8", "replace")), True)
+            error = "%s: %s - Received badly formatted data of length %s in answer to %s" % (type(e), e, len(data), self.last_query)
+            self.corpus.log(error, True)
+            if self.deferred:
+                self.deferred.errback(Exception(error))
         self.corpus.call_running = False
         self.deferred = None
         self._sendMessageNow()
