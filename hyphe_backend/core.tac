@@ -1335,7 +1335,10 @@ class Memory_Structure(customJSONRPC):
             for l in [lru] if not lruVariations else urllru.lru_variations(lru):
                 lru_prefixes_set.add(l)
             if not name:
-                name = urllru.name_lru(l)
+                try:
+                    name = urllru.name_lru(l)
+                except:
+                    logger.msg("Could not extract name from LRU %s" % l, system="WARNING - %s" % corpus)
         lru_prefixes = list(lru_prefixes_set)
         weid = yield self.traphs.call(corpus, "create_webentity", lru_prefixes)
         if is_error(weid):

@@ -15,6 +15,7 @@ lruSchemePattern = re.compile("https?")
 lruAuthorityPattern = re.compile("^(?:([^:]+)(?::([^@]+))?\@)?(\[[\da-f]*:[\da-f:]*\]|[^\s:]+)(?::(\d+))?$", re.I)
 lruStems = re.compile(r'(?:^|\|)([shtpqf]):')
 queryStems = re.compile(r'(?:^|&)([^=]+)=([^&]+)')
+regular_hosts = re.compile(r'^[a-z0-9\-\[\]\.]+$', re.I)
 special_hosts = re.compile(r'localhost|(\d{1,3}\.){3}\d{1,3}|\[[\da-f]*:[\da-f:]*\]', re.I)
 
 def uri_decode(text):
@@ -111,6 +112,8 @@ def url_to_lru(url, tldtree={}, encode_utf8=True):
             hostAndPort = lruAuthorityPattern.match(authority)
             if hostAndPort:
                 _, _, host, port = hostAndPort.groups()
+                if not regular_hosts.match(host):
+                    raise ValueError("Not an url: %s (bad host: %s)" % (url, host))
                 if special_hosts.match(host):
                     tld = None
                     host = [host]
