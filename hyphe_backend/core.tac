@@ -2480,7 +2480,7 @@ class Memory_Structure(customJSONRPC):
         return self.get_webentity_relative_webentities(webentity_id, "parents", light=light, corpus=corpus)
 
     @inlineCallbacks
-    def get_webentity_relative_webentities(self, webentity_id, relative_type="children", light=light, corpus=DEFAULT_CORPUS):
+    def get_webentity_relative_webentities(self, webentity_id, relative_type="children", light=False, corpus=DEFAULT_CORPUS):
         if relative_type != "children" and relative_type != "parents":
             returnD(format_error("ERROR: relative_type must be set to children or parents"))
         WE = yield self.db.get_WE(corpus, webentity_id)
