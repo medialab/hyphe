@@ -1673,6 +1673,8 @@ class Memory_Structure(customJSONRPC):
         """Assembles for a `corpus` 2 WebEntities by deleting WebEntity defined by `old_webentity_id` and adding all of its LRU prefixes to the one defined by `good_webentity_id`. Optionally set `include_tags` and/or `include_home_and_startpages_as_startpages` and/or `include_name_and_status` to "true" to also add the tags and/or startpages and/or name&status to the merged resulting WebEntity."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
+        old_webentity_id = int(old_webentity_id)
+        good_webentity_id = int(good_webentity_id)
         old_WE = yield self.db.get_WE(corpus, old_webentity_id)
         if not old_WE:
             returnD(format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id))
@@ -1691,7 +1693,7 @@ class Memory_Structure(customJSONRPC):
                 CRprefix = yield self.traphs.call(corpus, "get_potential_prefix", lru)
                 if not is_error(CRprefix) and CRprefix["result"] in origLRUs:
                     continue
-            new_WE["prefixes"].add(lru)
+            new_WE["prefixes"].append(lru)
             res = yield self.traphs.call(corpus, "add_prefix_to_webentity", lru, good_webentity_id)
             if is_error(res):
                 returnD(res)
@@ -1704,10 +1706,10 @@ class Memory_Structure(customJSONRPC):
         if test_bool_arg(include_home_and_startpages_as_startpages):
             if old_WE["homepage"]:
                 if new_WE["homepage"]:
-                    old_WE["startpages"].add(new_WE["homepage"])
+                    old_WE["startpages"].append(new_WE["homepage"])
                 new_WE["homepage"] = old_WE["homepage"]
             for page in old_WE["startpages"]:
-                new_WE["startpages"].add(page)
+                new_WE["startpages"].append(page)
                 if "CORE-STARTPAGES" in old_WE["tags"] and not include_tags:
                     if "CORE-STARTPAGES" not in new_WE["tags"]:
                         new_WE["tags"]["CORE-STARTPAGES"] = {}
