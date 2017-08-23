@@ -260,6 +260,7 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
               settings.webentityId
+              ,true    // return light entities (no tags, no homepage)
               ,corpus.getId()
             ]}
       )
@@ -269,6 +270,7 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
               settings.webentityId
+              ,true    // return light entities (no tags, no homepage)
               ,corpus.getId()
             ]}
       )

@@ -2471,16 +2471,16 @@ class Memory_Structure(customJSONRPC):
             returnD(pages)
         returnD(format_result(self.format_pages(pages["result"])))
 
-    def jsonrpc_get_webentity_subwebentities(self, webentity_id, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentity_subwebentities(self, webentity_id, light=False, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all sub-webentities of a WebEntity defined by `webentity_id` (meaning webentities having at least one LRU prefix starting with one of the WebEntity's prefixes)."""
-        return self.get_webentity_relative_webentities(webentity_id, "children", corpus=corpus)
+        return self.get_webentity_relative_webentities(webentity_id, "children", light=light, corpus=corpus)
 
-    def jsonrpc_get_webentity_parentwebentities(self, webentity_id, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentity_parentwebentities(self, webentity_id, light=False, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all parent-webentities of a WebEntity defined by `webentity_id` (meaning webentities having at least one LRU prefix starting like one of the WebEntity's prefixes)."""
-        return self.get_webentity_relative_webentities(webentity_id, "parents", corpus=corpus)
+        return self.get_webentity_relative_webentities(webentity_id, "parents", light=light, corpus=corpus)
 
     @inlineCallbacks
-    def get_webentity_relative_webentities(self, webentity_id, relative_type="children", corpus=DEFAULT_CORPUS):
+    def get_webentity_relative_webentities(self, webentity_id, relative_type="children", light=light, corpus=DEFAULT_CORPUS):
         if relative_type != "children" and relative_type != "parents":
             returnD(format_error("ERROR: relative_type must be set to children or parents"))
         WE = yield self.db.get_WE(corpus, webentity_id)
@@ -2496,7 +2496,7 @@ class Memory_Structure(customJSONRPC):
             WEs = yield self.db.get_WEs(corpus, WEs["result"])
         else:
             WEs = []
-        res = yield self.format_webentities(WEs, corpus=corpus)
+        res = yield self.format_webentities(WEs, corpus=corpus, light=light)
         returnD(format_result(res))
 
     @inlineCallbacks
