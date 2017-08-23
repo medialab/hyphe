@@ -1691,7 +1691,7 @@ class Memory_Structure(customJSONRPC):
             if urllru.has_prefix(lru, origLRUs):
                 # Keep prefix if it triggers a CreationRule for a potential sub webentity
                 CRprefix = yield self.traphs.call(corpus, "get_potential_prefix", lru)
-                if not is_error(CRprefix) and CRprefix["result"] in origLRUs:
+                if not is_error(CRprefix) and (CRprefix["result"] in origLRUs or not urllru.has_prefix(CRprefix["result"], origLRUs)):
                     continue
             new_WE["prefixes"].append(lru)
             res = yield self.traphs.call(corpus, "add_prefix_to_webentity", lru, good_webentity_id)
