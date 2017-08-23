@@ -16,8 +16,9 @@ from twisted.internet.task import LoopingCall
 from twisted.internet.defer import DeferredList, inlineCallbacks, returnValue as returnD
 from twisted.internet.error import DNSLookupError
 from twisted.web.http_headers import Headers
-from twisted.web.client import Agent, ProxyAgent, HTTPClientFactory
+from twisted.web.client import Agent, ProxyAgent, HTTPClientFactory, _HTTP11ClientFactory
 HTTPClientFactory.noisy = False
+_HTTP11ClientFactory.noisy = False
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from hyphe_backend.traph.client import TraphFactory
 from hyphe_backend.lib import urllru
