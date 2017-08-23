@@ -159,6 +159,7 @@ class Core(customJSONRPC):
         if not self.traphs.test_corpus(corpus):
             return False
         if corpus not in self.corpora:
+            self.init_corpus(corpus)
             self.prepare_corpus(corpus)
         return True
 
@@ -305,7 +306,6 @@ class Core(customJSONRPC):
 
     @inlineCallbacks
     def prepare_corpus(self, corpus=DEFAULT_CORPUS, corpus_conf=None, _noloop=False):
-        self.init_corpus(corpus)
         if not corpus_conf:
             corpus_conf = yield self.db.get_corpus(corpus)
         self.corpora[corpus]["name"] = corpus_conf["name"]
@@ -778,7 +778,7 @@ class Core(customJSONRPC):
             yield self.store.jsonrpc_set_webentity_status(webentity_id, status, corpus=corpus)
 
         subs = yield self.store.traphs.call(corpus, "get_webentity_child_webentities", WE["_id"], WE["prefixes"])
-        
+
         if is_error(subs):
             returnD(subs)
 

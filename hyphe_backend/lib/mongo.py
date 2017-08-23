@@ -203,16 +203,22 @@ class MongoDB(object):
     @inlineCallbacks
     def get_WECRs(self, corpus):
         res = yield self.WECRs(corpus).find()
+        for r in res:
+            del(r["_id"])
         returnD(res)
 
     @inlineCallbacks
     def find_WECR(self, corpus, prefix):
         res = yield self.WECRs(corpus).find_one({"prefix": prefix})
+        if res:
+            del(res["_id"])
         returnD(res or None)
 
     @inlineCallbacks
     def find_WECRs(self, corpus, prefixes):
         res = yield self.WECRs(corpus).find({"prefix": {"$in": prefixes}})
+        for r in res:
+            del(r["_id"])
         returnD(res)
 
     @inlineCallbacks
@@ -226,6 +232,7 @@ class MongoDB(object):
     @inlineCallbacks
     def get_default_WECR(self, corpus):
         res = yield self.find_WECR(corpus, "DEFAULT_WEBENTITY_CREATION_RULE")
+        del(res["_id"])
         returnD(res)
 
     @inlineCallbacks
