@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, time
-import subprocess
+import subprocess, pickle
 from json import dump as jsondump
 from random import randint
 from datetime import datetime
@@ -318,6 +318,7 @@ class Core(customJSONRPC):
         self.corpora[corpus]["webentities_out"] = corpus_conf['webentities_out']
         self.corpora[corpus]["webentities_undecided"] = corpus_conf['webentities_undecided']
         self.corpora[corpus]["webentities_discovered"] = corpus_conf['webentities_discovered']
+        self.corpora[corpus]["webentities_links"] = pickle.loads(corpus_conf['webentities_links'])
         self.corpora[corpus]["crawls"] = corpus_conf['total_crawls']
         self.corpora[corpus]["pages_found"] = corpus_conf['total_pages']
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
@@ -342,6 +343,7 @@ class Core(customJSONRPC):
           "webentities_out": self.corpora[corpus]['webentities_out'],
           "webentities_undecided": self.corpora[corpus]['webentities_undecided'],
           "webentities_discovered": self.corpora[corpus]['webentities_discovered'],
+          "webentities_links": pickle.dumps(self.corpora[corpus]["webentities_links"]),
           "total_crawls": self.corpora[corpus]['crawls'],
           "total_pages": self.corpora[corpus]['pages_found'],
           "total_pages_crawled": self.corpora[corpus]['pages_crawled'],
@@ -1086,6 +1088,7 @@ class Memory_Structure(customJSONRPC):
         self.corpora[corpus]['loop_running_since'] = now
         self.corpora[corpus]['last_WE_update'] = now
         self.corpora[corpus]['recent_tagging'] = True
+        reactor.callInThread(self.rank_webentities, corpus)
         if not _noloop:
             reactor.callLater(10 if _delay else 1, self.corpora[corpus]['index_loop'].start, 0, True)
             reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, True)
@@ -1838,7 +1841,7 @@ class Memory_Structure(customJSONRPC):
             yield self.traphs.call(corpus, "clear")
             returnD(None)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
-        yield self.ramcache_webentities(corpus=corpus, corelinks=(self.corpora[corpus]['webentities_links'] == None))
+        yield self.ramcache_webentities(corpus=corpus)
         crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
         if crashed:
             self.corpora[corpus]['loop_running'] = "Cleaning up index error"
@@ -1924,9 +1927,8 @@ class Memory_Structure(customJSONRPC):
   # RETRIEVE & SEARCH WEBENTITIES
 
     @inlineCallbacks
-    def ramcache_webentities(self, corelinks=False, corpus=DEFAULT_CORPUS):
+    def ramcache_webentities(self, corpus=DEFAULT_CORPUS):
         WEs = self.corpora[corpus]['webentities']
-        also_links = test_bool_arg(corelinks)
         if WEs == [] or self.corpora[corpus]['recent_changes'] or self.corpora[corpus]['recent_tagging'] or (self.corpora[corpus]['last_links_loop'])*1000 > self.corpora[corpus]['last_WE_update']:
 
             self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus)
@@ -1969,15 +1971,6 @@ class Memory_Structure(customJSONRPC):
                 crawled_dbl_list = [[job["webentity_id"], job["previous_webentity_id"]] if "previous_webentity_id" in job else [job["webentity_id"]] for job in jobs]
                 self.corpora[corpus]['crawled_ids'] = set([_id for dbl_id in crawled_dbl_list for _id in dbl_id])
 
-            if also_links:
-                logger.msg("Collecting WebEntities and WebEntityLinks...", system="INFO - %s" % corpus)
-                WElinks = yield self.traphs.call(corpus, "get_webentities_inlinks", include_auto=False)
-                if is_error(WElinks):
-                    returnD(WElinks)
-                self.corpora[corpus]['webentities_links'] = WElinks["result"]
-                reactor.callInThread(self.rank_webentities, corpus)
-                self.corpora[corpus]['loop_running'] = False
-                logger.msg("...ramcached.", system="INFO - %s" % corpus)
         returnD(WEs)
 
     def jsonrpc_get_webentity(self, webentity_id, corpus=DEFAULT_CORPUS):
