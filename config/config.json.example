@@ -7,8 +7,8 @@
     "db_name": "hyphe",
     "scrapy_port" : 6800,
     "max_depth" : 3,
-    "download_delay" : 1,
-    "max_simul_requests" : 12,
+    "download_delay" : 0.35,
+    "max_simul_requests" : 24,
     "max_simul_requests_per_host" : 1
   },
   "traph": {
