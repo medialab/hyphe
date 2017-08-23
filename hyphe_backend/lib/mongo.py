@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import pickle
 from os import environ
 from uuid import uuid1 as uuid
 from twisted.internet.defer import inlineCallbacks, returnValue as returnD
@@ -62,6 +63,7 @@ class MongoDB(object):
           "webentities_out": 0,
           "webentities_undecided": 0,
           "webentities_discovered": 0,
+          "webentities_links": pickle.dumps({}),
           "total_crawls": 0,
           "total_pages": 0,
           "total_pages_crawled": 0,
