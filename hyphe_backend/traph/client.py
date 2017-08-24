@@ -325,9 +325,10 @@ class TraphClientProtocol(LineOnlyReceiver):
             self.corpus.log(error, True)
             if self.deferred:
                 self.deferred.errback(Exception(error))
-        exec_time = time() - self.start_query
-        if exec_time > 1:
-            self.corpus.log("WARNING: query took a long time! (%ss) %s" % (exec_time, self.last_query))
+        if config["DEBUG"]:
+            exec_time = time() - self.start_query
+            if exec_time > 1:
+                self.corpus.log("WARNING: query took a long time! (%ss) %s" % (exec_time, self.last_query))
         self.corpus.call_running = False
         self.deferred = None
         self._sendMessageNow()
