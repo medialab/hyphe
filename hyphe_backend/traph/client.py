@@ -6,6 +6,7 @@ from twisted.python import log
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
 from twisted.internet.defer import Deferred
+from twisted.internet.error import ConnectError
 from twisted.internet.protocol import ProcessProtocol, Factory
 from twisted.internet.endpoints import UNIXClientEndpoint
 from twisted.protocols.basic import LineOnlyReceiver
@@ -235,7 +236,12 @@ class TraphProcessProtocol(ProcessProtocol):
     def childDataReceived(self, childFD, data):
         data = data.strip()
         if childFD == 1 and data == "READY":
-            self.connectClient()
+            try:
+                self.connectClient()
+            except ConnectError as e:
+                self.corpus.log('Could not start or connect Traph process (%s), trying to clean up...' % e, True)
+                self.stop()
+                self.corpus.checkAndRemovePID()
         else:
             self.corpus.log('Traph process received "%s"' % data, childFD == 2)
 
