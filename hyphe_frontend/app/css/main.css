@@ -221,7 +221,16 @@ label.btn.btn-default.disabled.active{
     padding-left: 0px;
   }
 }
-
+.pages-network-header {
+  background-color: #FFF;
+  padding-left: 15px;
+  padding-right: 15px;
+  height: 20%;
+}
+.pages-network {
+  min-height: 50%!important;
+  max-height: 80%!important;
+}
 
 
 /* ==========================================================================

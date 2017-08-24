@@ -27,7 +27,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_LIST_TAG_VALUE_ADD                = 'store.add_webentities_tag_value'
     
     API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'
-    API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_nodelinks_network'
+    API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_pagelinks_network'
     API.WEBENTITY_SUBWEBENTITY_LIST_GET             = 'store.get_webentity_subwebentities'
     API.WEBENTITY_PARENTWEBENTITY_LIST_GET          = 'store.get_webentity_parentwebentities'
     API.WEBENTITY_EDIT                              = 'store.basic_edit_webentity'
@@ -241,7 +241,7 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
               settings.webentityId
-              ,false  // include external links
+              ,settings.includeExternalLinks
               ,corpus.getId()
             ]}
       )

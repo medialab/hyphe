@@ -243,6 +243,7 @@ angular.module('hyphe.webentityController', [])
 
     $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
 
+    $scope.includeExternalLinks = false
     $scope.network
     $scope.sigmaInstance
     $scope.spatializationRunning = false
@@ -324,7 +325,8 @@ angular.module('hyphe.webentityController', [])
 
     function loadNetwork(){
       api.getPagesNetwork({
-          webentityId:$scope.webentity.id
+          webentityId: $scope.webentity.id
+          ,includeExternalLinks: $scope.includeExternalLinks
         }
         ,function(result){
           $scope.status = {}
@@ -392,7 +394,12 @@ angular.module('hyphe.webentityController', [])
     }
 
     function initSigma(){
-      $scope.sigmaInstance = new sigma('sigma-example');
+      $scope.sigmaInstance = new sigma({
+        renderers: [{
+          container: document.getElementById('sigma-pages'),
+          type: 'canvas'
+        }]
+      });
 
       $scope.sigmaInstance.settings({
         defaultLabelColor: '#666'
