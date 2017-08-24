@@ -276,6 +276,7 @@ class TraphClientProtocol(LineOnlyReceiver):
         self.deferred = None
         self.queue = PriorityQueue()
         self.last_query = None
+        self.start_query = None
 
     def connectionMade(self):
         self.corpus.log("Traph ready")
@@ -299,13 +300,14 @@ class TraphClientProtocol(LineOnlyReceiver):
             return
         self.corpus.call_running = True
         _, _, self.deferred, method, args, kwargs = self.queue.get(False)
-        if config["DEBUG"] == 2:
+        if config["DEBUG"]:
             self.corpus.log("Traph client query: %s %s %s" % (method, args, kwargs))
         self.last_query = {
           "method": method,
           "args": args,
           "kwargs": kwargs
         }
+        self.start_query = time()
         self.sendLine(msgpack.packb(self.last_query))
 
     def lineLengthExceeded(self, line):
@@ -323,6 +325,9 @@ class TraphClientProtocol(LineOnlyReceiver):
             self.corpus.log(error, True)
             if self.deferred:
                 self.deferred.errback(Exception(error))
+        exec_time = time() - self.start_query
+        if exec_time > 1:
+            self.corpus.log("WARNING: query took a long time! (%ss) %s" % (exec_time, self.last_query))
         self.corpus.call_running = False
         self.deferred = None
         self._sendMessageNow()
