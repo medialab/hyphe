@@ -30,26 +30,20 @@
                     <dt>Startpages mode</dt>
                     <dd>{{options.defaultStartpagesMode | arrayToString}}</dd>
 
-                    <dt>Precision Limit</dt>
-                    <dd>{{options.precision_limit}}</dd>
-
                   </dl>
 
-                  <h3>SERVER</h3>
-                  <dl class="dl-horizontal">
+                  <div ng-if='options.proxy.host'>
+                    <h3>PROXY</h3>
+                    <dl class="dl-horizontal">
 
-                    <div ng-if='options.proxy.host'>
-                      <dt>Proxy Host</dt>
+                      <dt>Host</dt>
                       <dd>{{options.proxy.host}}</dd>
 
-                      <dt>Proxy Port</dt>
+                      <dt>Port</dt>
                       <dd>{{options.proxy.port}}</dd>
-                    </div>
                     
-                    <dt>Memory</dt>
-                    <dd>{{options.ram}} Mo</dd>
-                    
-                  </dl>
+                    </dl>
+                  </div>
                   
                   <h3>CAUTIOUS CRAWL</h3>
                   <dl class="dl-horizontal">
