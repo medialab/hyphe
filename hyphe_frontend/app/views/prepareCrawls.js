@@ -138,7 +138,7 @@ angular.module('hyphe.preparecrawlsController', [])
 
       // Reuse oldjob's settings if set from previous crawl
       if (oldjob){
-        $scope.crawlDepth = oldjob.crawl_arguments.maxdepth
+        $scope.crawlDepth = oldjob.crawl_arguments.max_depth
         $scope.cautious = oldjob.crawl_arguments.phantom
       }
       store.remove('webentity_old_crawljob')
