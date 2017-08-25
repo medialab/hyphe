@@ -285,12 +285,8 @@ class Core(customJSONRPC):
                 logger.msg("Could not start extra corpus, all slots busy", system="WARNING - %s" % corpus)
             returnD(self.corpus_error())
 
-        # TODO Cleanup unneccessary
         # Fix possibly old corpus confs
         clean_missing_corpus_options(corpus_conf['options'], config)
-        if "tlds" not in corpus_conf or not corpus_conf["tlds"]:
-            corpus_conf["tlds"] = yield collect_tlds()
-            yield self.db.update_corpus(corpus, {"tlds": corpus_conf["tlds"]})
 
         if not _quiet:
             logger.msg("Starting corpus...", system="INFO - %s" % corpus)
@@ -1772,8 +1768,6 @@ class Memory_Structure(customJSONRPC):
 
         # TODO handle here setting depth/error/timestamp on crawled pages?
 
-        # TODO check all links lrus before sending
-
         batchpages = {}
         n_batchlinks = 0
         autostarts = set(job.get('crawl_arguments', {}).get('start_urls_auto', []))
@@ -1808,10 +1802,6 @@ class Memory_Structure(customJSONRPC):
             yield self.db.add_WE(corpus, weid, prefixes)
             self.corpora[corpus]['total_webentities'] += 1
         logger.msg("...%s new WEs created in traph in %ss..." % (len(res["created_webentities"]), time.time()-s), system="INFO - %s" % corpus)
-
-        # TODO:
-        # Update nb_all_links_in_traph
-        # traphs.call(corpus, "count_links")
 
         yield self.db.clean_queue(corpus, page_queue_ids)
 
