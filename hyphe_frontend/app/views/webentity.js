@@ -145,6 +145,10 @@ angular.module('hyphe.webentityController', [])
     $scope.saveNewCategory = function(category){
       category = category.trim()
       if (!category || $scope.tagCategories[category]) return false
+      if (~category.indexOf('.')) {
+        $scope.status = {message: 'Tag categories can not include dot characters', background: 'warning'}
+        return false
+      }
       $scope.tagCategories[category] = {}
       $scope.tagCategoriesOrder.push(category)
       // Wait a frame to render the new category before resetting the form field and focus on input
