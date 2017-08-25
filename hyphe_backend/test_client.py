@@ -70,6 +70,10 @@ for a in sys.argv[startargs:]:
         elif a == "False" or a == "True":
             args.append(eval(a))
         else:
+            try:
+                a = int(a)
+            except:
+                pass
             args.append(a)
         is_array = False
 
