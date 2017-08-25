@@ -180,7 +180,14 @@ class MongoDB(object):
     @inlineCallbacks
     def add_WE(self, corpus, weid, prefixes, name=None, status="DISCOVERED", startpages=[]):
         if not name:
-            name = name_lru(prefixes[0])
+            for p in prefixes:
+                try:
+                    name = name_lru(prefixes[0])
+                    break
+                except ValueError:
+                    pass
+            else:
+                name = prefixes[0]
         now = now_ts()
         yield self.upsert_WE(corpus, weid, {
           "_id": weid,
