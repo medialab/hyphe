@@ -456,7 +456,7 @@ class Core(customJSONRPC):
             returnD(res)
         self.init_corpus(corpus)
 
-        res = yield self.store.reinitialize(corpus, _noloop=_noloop, _quiet=_quiet, _restart=False)
+        res = yield self.store.reinitialize(corpus, _noloop=_noloop, _quiet=_quiet, _restart=(not _noloop))
         if is_error(res):
             logger.msg("Problem while reinitializing Traph... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
@@ -1224,15 +1224,13 @@ class Memory_Structure(customJSONRPC):
             returnD(self.parent.corpus_error(corpus))
         if not _quiet:
             logger.msg("Empty Traph content", system="INFO - %s" % corpus)
-        if not _restart:
-            yield self.traphs.call(corpus, "clear")
-            if not _quiet:
-                logger.msg("Traph emptied", system="INFO - %s" % corpus)
-            returnD(format_result("Traph emptied"))
         res = yield self.traphs.call(corpus, "clear")
         if is_error(res):
             returnD(res)
-        yield self._init_loop(corpus, _noloop=_noloop, _delay=_restart)
+        if not _quiet:
+            logger.msg("Traph emptied", system="INFO - %s" % corpus)
+        if _restart:
+            yield self._init_loop(corpus, _noloop=_noloop, _delay=True)
         returnD(format_result("Traph reinitialized"))
 
     @inlineCallbacks
