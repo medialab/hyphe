@@ -649,10 +649,14 @@ angular.module('hyphe.service_hyphe_api', [])
         .success(function(data, status, headers, config){
           var target = (data[0] || {}).result
           if(target !== undefined){
+            if(target.corpus && target.corpus.corpus_id && target.corpus.status != "ready") {
+              // Corpus shut down
+              $location.path('/')
+            }
             // console.log('[OK]', data)
             successCallback(target, data[0])
           } else {
-            if(data[0] && data[0].message && data[0].message.status && data[0].message.status != "ready"){
+            if(data[0] && data[0].message && data[0].message.status && data[0].message.status != "ready") {
               // Corpus shut down
               $location.path('/')
             } else {
