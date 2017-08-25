@@ -242,7 +242,7 @@ class Core(customJSONRPC):
         self.corpora[corpus]["webentities_undecided"] = 0
         self.corpora[corpus]["webentities_discovered"] = 0
         self.corpora[corpus]["tags"] = {}
-        self.corpora[corpus]["webentities_links"] = None
+        self.corpora[corpus]["webentities_links"] = {}
         self.corpora[corpus]["webentities_ranks"] = {}
         self.corpora[corpus]["creation_rules"] = []
         self.corpora[corpus]["crawls"] = 0
@@ -1827,6 +1827,8 @@ class Memory_Structure(customJSONRPC):
 
     def rank_webentities(self, corpus=DEFAULT_CORPUS):
         ranks = {}
+        if not self.corpora[corpus]["webentities_links"]:
+            return
         for target, links in self.corpora[corpus]["webentities_links"].items():
             ranks[target] = len(links)
         self.corpora[corpus]['webentities_ranks'] = ranks
