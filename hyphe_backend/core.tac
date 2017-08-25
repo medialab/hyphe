@@ -617,7 +617,7 @@ class Core(customJSONRPC):
     def refresh_jobs(self, corpus=DEFAULT_CORPUS):
         # Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks
         if self.corpora[corpus]['reset']:
-            yield self.db.queue(corpus).drop(safe=True)
+            yield self.db.queue(corpus).drop()
             returnD(None)
         scrapyjobs = yield self.crawler.list(corpus)
         if is_error(scrapyjobs):
@@ -1079,7 +1079,7 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def _init_loop(self, corpus=DEFAULT_CORPUS, _noloop=False, _delay=False):
         if self.corpora[corpus]['reset']:
-            yield self.db.queue(corpus).drop(safe=True)
+            yield self.db.queue(corpus).drop()
 
         now = now_ts()
         yield self.handle_index_error(corpus)
@@ -1836,8 +1836,7 @@ class Memory_Structure(customJSONRPC):
         if not self.parent.corpus_ready(corpus) or self.corpora[corpus]['loop_running']:
             returnD(False)
         if self.corpora[corpus]['reset']:
-            yield self.db.queue(corpus).drop(safe=True)
-            # TODO : check if still usefull since traphs
+            yield self.db.queue(corpus).drop()
             yield self.traphs.call(corpus, "clear")
             returnD(None)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
@@ -1911,7 +1910,6 @@ class Memory_Structure(customJSONRPC):
                 yield self.parent.jsonrpc_set_corpus_options(corpus, {"keepalive": int(self.corpora[corpus]['links_duration'] * 2)})
             logger.msg("...got WebEntity links in %ss." % s, system="INFO - %s" % corpus)
         if self.corpora[corpus]['reset']:
-            # TODO : check if still usefull since traphs
             yield self.traphs.call(corpus, "clear")
         self.corpora[corpus]['loop_running'] = None
 
@@ -2022,6 +2020,8 @@ class Memory_Structure(customJSONRPC):
             returnD(weid)
         weid = weid["result"]
         WE = yield self.db.get_WE(corpus, weid)
+        if not WE:
+            returnD(format_error("WebEntity %s could not be retrieved from mongo" % weid))
         job = yield self.db.list_jobs(corpus, {'webentity_id': WE["_id"]}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
         returnD(format_result(self.format_webentity(WE, job, corpus=corpus)))
 
