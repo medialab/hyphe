@@ -2440,7 +2440,6 @@ class Memory_Structure(customJSONRPC):
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
         if onlyCrawled:
-            returnD(format_error("Not implemented yet"))
             pages = yield self.traphs.call(corpus, "get_webentity_crawled_pages", webentity_id, WE["prefixes"])
         else:
             pages = yield self.traphs.call(corpus, "get_webentity_pages", webentity_id, WE["prefixes"])
