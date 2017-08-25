@@ -272,6 +272,13 @@ TraphMethodsPriorities = {
 }
 TraphMethodPriority = lambda method: TraphMethodsPriorities.get(method, 0)
 
+def logVar(v, l=500):
+    try:
+        v = json.dumps(v)
+    except:
+        pass
+    return v[:l] + " ... [%d cars truncated]" % (len(v) - l) if len(v) > l else ""
+
 class TraphClientProtocol(LineOnlyReceiver):
 
     delimiter = b"\r\n##TxHypheMsgPackDelimiter\r\n"
@@ -307,7 +314,8 @@ class TraphClientProtocol(LineOnlyReceiver):
         self.corpus.call_running = True
         _, _, self.deferred, method, args, kwargs = self.queue.get(False)
         if config["DEBUG"]:
-            self.corpus.log("Traph client query: %s %s %s" % (method, args, kwargs))
+
+            self.corpus.log("Traph client query: %s %s %s" % (method, logVar(args), logVar(kwargs)))
         self.last_query = {
           "method": method,
           "args": args,
@@ -325,7 +333,7 @@ class TraphClientProtocol(LineOnlyReceiver):
             msg = msgpack.unpackb(data)
             self.deferred.callback(msg)
             if config["DEBUG"] == 2:
-                self.corpus.log("Traph server answer: %s" % msg)
+                self.corpus.log("Traph server answer: %s" % logVar(msg))
         except (msgpack.exceptions.ExtraData, msgpack.exceptions.UnpackValueError) as e:
             error = "%s: %s - Received badly formatted data of length %s in answer to %s" % (type(e), e, len(data), self.last_query)
             self.corpus.log(error, True)
