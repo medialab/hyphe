@@ -64,7 +64,7 @@ def load_config():
         test = list(db['%s.logs' % DEFAULT_CORPUS].find())
     except Exception as x:
         print "ERROR: Cannot connect to mongoDB, please check your server and the configuration in %s" % CONFIG_FILE
-        if config['DEBUG']:
+        if conf['DEBUG']:
             print x
         exit(1)
 
