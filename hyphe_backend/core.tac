@@ -403,7 +403,7 @@ class Core(customJSONRPC):
                 returnD(format_error("Error retrieving crawls: %s" % crawls["message"]))
             jsondump(crawls["result"], f)
         with open(os.path.join(path, "webentities.json"), "w") as f:
-            WEs = yield self.store.jsonrpc_get_webentities(count=-1, sort=["status", "name"], corpus=corpus)
+            WEs = yield self.store.jsonrpc_get_webentities(count=-1, sort=["status", "name"], semilight=True, corpus=corpus)
             if is_error(WEs):
                 returnD(format_error("Error retrieving webentities: %s" % WEs["message"]))
             jsondump(WEs["result"], f)
