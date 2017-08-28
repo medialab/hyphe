@@ -649,7 +649,7 @@ angular.module('hyphe.service_hyphe_api', [])
         .success(function(data, status, headers, config){
           var target = (data[0] || {}).result
           if(target !== undefined){
-            if(target.corpus && target.corpus.corpus_id && target.corpus.status != "ready") {
+            if(target && target.corpus && target.corpus.corpus_id && target.corpus.status != "ready") {
               // Corpus shut down
               $location.path('/')
             }
