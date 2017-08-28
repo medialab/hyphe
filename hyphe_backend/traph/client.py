@@ -80,7 +80,7 @@ class TraphFactory(object):
                 self.log(name, "Traph already started", quiet=quiet)
             return True
         if name in self.corpora:
-            self.corpora[name].stop(now=true)
+            self.corpora[name].stop(now=True)
             if "keepalive" not in kwargs:
                 kwargs["keepalive"] = self.corpora[name].keepalive
             del(self.corpora[name])
