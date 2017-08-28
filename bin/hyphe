@@ -50,16 +50,16 @@ function test_and_stop_process {
   fi
   count=0
   killopts=""
-  delay=3
-  # First try to kill 5 times during 15 seconds then twice with "-9" during 20 more seconds
-  while ps -p $PID > /dev/null && [ $count -lt 7 ]; do
+  delay=10
+  # First try to kill 3 times during 30 seconds then twice with "-9" during 30 more seconds
+  while ps -p $PID > /dev/null && [ $count -lt 5 ]; do
     kill $killopts $PID
     if ps -p $PID > /dev/null; then
       sleep $delay
       count=$(($count + 1))
-      if [ $count -eq 5 ]; then
+      if [ $count -eq 3 ]; then
         killopts="-9"
-        delay=10
+        delay=15
       fi
     fi
   done
