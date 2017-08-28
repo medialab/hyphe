@@ -5,11 +5,12 @@ from Queue import PriorityQueue
 from twisted.python import log
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
-from twisted.internet.defer import Deferred
+from twisted.internet.defer import Deferred, inlineCallbacks, returnValue as returnD
 from twisted.internet.error import ConnectError
 from twisted.internet.protocol import ProcessProtocol, Factory
 from twisted.internet.endpoints import UNIXClientEndpoint
 from twisted.protocols.basic import LineOnlyReceiver
+from hyphe_backend.lib.utils import deferredSleep
 from hyphe_backend.lib import config_hci
 config = config_hci.load_config()
 
@@ -79,7 +80,7 @@ class TraphFactory(object):
                 self.log(name, "Traph already started", quiet=quiet)
             return True
         if name in self.corpora:
-            self.corpora[name].stop()
+            self.corpora[name].stop(now=true)
             if "keepalive" not in kwargs:
                 kwargs["keepalive"] = self.corpora[name].keepalive
             del(self.corpora[name])
@@ -89,18 +90,20 @@ class TraphFactory(object):
         self.corpora[name] = TraphCorpus(self, name, quiet=quiet, **kwargs)
         return self.corpora[name].start()
 
+    @inlineCallbacks
     def stop_corpus(self, name, quiet=False):
         if self.stopped_corpus(name):
             if config["DEBUG"]:
                 self.log(name, "Traph already stopped", quiet=quiet)
-            return False
+            returnD(False)
         if name in self.corpora:
-            self.corpora[name].stop()
-        return True
+            yield self.corpora[name].stop()
+        returnD(True)
 
+    @inlineCallbacks
     def stop(self):
         for corpus in self.corpora:
-            self.stop_corpus(corpus, True)
+            yield self.stop_corpus(corpus, True)
 
     def call(self, corpus, method, *args, **kwargs):
         if not self.test_corpus(corpus):
@@ -163,21 +166,25 @@ class TraphCorpus(object):
     def call(self, method, *args, **kwargs):
         return self.client.sendMessage(method, *args, **kwargs)
 
+    @inlineCallbacks
     def __check_timeout__(self):
         delay = time() - self.lastcall
         if self.status == "ready" and self.keepalive < delay and not self.call_running:
             self.log("Stopping after %ss of inactivity" % int(delay))
-            self.stop()
+            yield self.stop()
 
     def stopping(self):
         return self.status in ["stopping", "stopped", "error"]
 
-    def stop(self):
+    @inlineCallbacks
+    def stop(self, now=False):
         if self.monitor.running:
             self.monitor.stop()
         if self.stopping():
-            return
+            returnD(None)
         self.status = "error" if self.error else "stopping"
+        while not now and self.call_running:
+            yield deferredSleep(0.1)
         if self.transport:
             self.protocol.stop()
             self.transport = None

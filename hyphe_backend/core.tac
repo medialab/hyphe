@@ -53,7 +53,6 @@ class Core(customJSONRPC):
     def close(self):
         yield DeferredList([self.jsonrpc_stop_corpus(corpus, _quiet=True) for corpus in self.corpora.keys()], consumeErrors=True)
         yield self.db.close()
-        self.traphs.stop()
 
   # CORPUS HANDLING
 
@@ -357,19 +356,17 @@ class Core(customJSONRPC):
                 self.corpora[corpus][fid].stop()
 
     @inlineCallbacks
-    def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False, _sync=True):
+    def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False, _block=True):
         """Stops an existing and running `corpus`. Returns the new corpus status."""
         if corpus in self.corpora:
             self.stop_loops(corpus)
             if corpus in self.traphs.corpora:
                 yield self.update_corpus(corpus)
-                if _sync:
-                    self.traphs.stop_corpus(corpus, _quiet)
+                if _block:
+                    yield self.traphs.stop_corpus(corpus, _quiet)
                 else:
                     reactor.callInThread(self.traphs.stop_corpus, corpus, _quiet)
-            for f in ["tags", "webentities", "webentities_links", "webentities_ranks"]:
-                if f in self.corpora[corpus]:
-                    del(self.corpora[corpus][f])
+            del(self.corpora[corpus])
         yield self.db.clean_WEs_query(corpus)
         res = self.jsonrpc_test_corpus(corpus)
         if "message" in res["result"]:
@@ -2504,7 +2501,7 @@ class Memory_Structure(customJSONRPC):
             returnD(self.parent.corpus_error(corpus))
         s = time.time()
         logger.msg("Generating WebEntities network...", system="INFO - %s" % corpus)
-        if self.corpora[corpus]['webentities_links'] == None:
+        if not self.corpora[corpus]['webentities_links']:
             WElinks = yield self.traphs.call(corpus, "get_webentities_inlinks", include_auto=False)
             if is_error(WElinks):
                 logger.msg(WElinks['message'], system="ERROR - %s" % corpus)
