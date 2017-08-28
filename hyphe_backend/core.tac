@@ -52,6 +52,7 @@ class Core(customJSONRPC):
     @inlineCallbacks
     def close(self):
         yield DeferredList([self.jsonrpc_stop_corpus(corpus, _quiet=True) for corpus in self.corpora.keys()], consumeErrors=True)
+        yield self.traphs.stop()
         yield self.db.close()
 
   # CORPUS HANDLING
@@ -349,17 +350,20 @@ class Core(customJSONRPC):
           "last_activity": now_ts()
         })
 
+    @inlineCallbacks
     def stop_loops(self, corpus=DEFAULT_CORPUS):
         for f in ["stats", "jobs", "index"]:
             fid = "%s_loop" % f
             if fid in self.corpora[corpus] and self.corpora[corpus][fid].running:
-                self.corpora[corpus][fid].stop()
+                yield self.corpora[corpus][fid].stop()
+        while self.corpora[corpus]['loop_running']:
+            yield deferredSleep(0.1)
 
     @inlineCallbacks
     def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False, _block=True):
         """Stops an existing and running `corpus`. Returns the new corpus status."""
         if corpus in self.corpora:
-            self.stop_loops(corpus)
+            yield self.stop_loops(corpus)
             if corpus in self.traphs.corpora:
                 yield self.update_corpus(corpus)
                 if _block:
@@ -440,7 +444,7 @@ class Core(customJSONRPC):
         if corpus != TEST_CORPUS:
             yield self.jsonrpc_backup_corpus(corpus)
         if corpus in self.corpora:
-            self.stop_loops(corpus)
+            yield self.stop_loops(corpus)
         self.init_corpus(corpus)
         self.corpora[corpus]['reset'] = True
         res = yield self.crawler.reinitialize(corpus, _recreate=(not _noloop), _quiet=_quiet)
@@ -1083,7 +1087,7 @@ class Memory_Structure(customJSONRPC):
         self.corpora[corpus]['recent_tagging'] = True
         reactor.callInThread(self.rank_webentities, corpus)
         if not _noloop:
-            reactor.callLater(10 if _delay else 1, self.corpora[corpus]['index_loop'].start, 0, True)
+            reactor.callLater(10 if _delay else 1, self.corpora[corpus]['index_loop'].start, 0.2, True)
             reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, True)
 
     def format_webentity(self, WE, job={}, homepage=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
@@ -1798,7 +1802,7 @@ class Memory_Structure(customJSONRPC):
         for weid, prefixes in res["created_webentities"].items():
             yield self.db.add_WE(corpus, weid, prefixes)
             self.corpora[corpus]['total_webentities'] += 1
-        logger.msg("...%s new WEs created in traph in %ss..." % (len(res["created_webentities"]), time.time()-s), system="INFO - %s" % corpus)
+        logger.msg("...%s new WEs created in traph in %ss" % (len(res["created_webentities"]), time.time()-s), system="INFO - %s" % corpus)
 
         yield self.db.clean_queue(corpus, page_queue_ids)
 
@@ -1878,7 +1882,6 @@ class Memory_Structure(customJSONRPC):
             (s - self.corpora[corpus]['last_links_loop'] > 4 * self.corpora[corpus]['links_duration']) )
           ) ):
             logger.msg("Processing new WebEntity links...", system="INFO - %s" % corpus)
-            self.traphs.corpora[corpus].loop_running = True
             self.corpora[corpus]['loop_running'] = "Building webentities links"
             self.corpora[corpus]['loop_running_since'] = now_ts()
             yield self.db.add_log(corpus, "WE_LINKS", "Starting WebEntity links generation...")
