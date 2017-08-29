@@ -284,7 +284,7 @@ def logVar(v, l=500):
         v = json.dumps(v)
     except:
         pass
-    return v[:l] + " ... [%d cars truncated]" % (len(v) - l) if len(v) > l else ""
+    return v[:l] + (" ... [%d cars truncated]" % (len(v) - l) if len(v) > l else "")
 
 class TraphClientProtocol(LineOnlyReceiver):
 
@@ -342,14 +342,14 @@ class TraphClientProtocol(LineOnlyReceiver):
             if config["DEBUG"] == 2:
                 self.corpus.log("Traph server answer: %s" % logVar(msg))
         except (msgpack.exceptions.ExtraData, msgpack.exceptions.UnpackValueError) as e:
-            error = "%s: %s - Received badly formatted data of length %s in answer to %s" % (type(e), e, len(data), logVar(self.last_query))
+            error = "%s: %s - Received badly formatted data of length %s in answer to %s %s %s" % (type(e), e, len(data), self.last_query["method"], logVar(self.last_query["args"]), logVar(self.last_query["kwargs"]))
             self.corpus.log(error, True)
             if self.deferred:
                 self.deferred.errback(Exception(error))
         if config["DEBUG"]:
             exec_time = time() - self.start_query
             if exec_time > 1:
-                self.corpus.log("WARNING: query took a long time! (%ss) %s" % (exec_time, logVar(self.last_query)))
+                self.corpus.log("WARNING: query took a long time! (%ss) %s" % (exec_time, self.last_query["method"], logVar(self.last_query["args"]), logVar(self.last_query["kwargs"]))
         self.corpus.call_running = False
         self.deferred = None
         self._sendMessageNow()
