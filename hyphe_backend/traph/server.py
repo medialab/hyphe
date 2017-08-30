@@ -1,10 +1,18 @@
 import os, sys, json, msgpack
-from traph import Traph, TraphException, TraphWriteReport
+from types import GeneratorType
+from traph import Traph, TraphException, TraphWriteReport, TraphIteratorState
 from twisted.internet import reactor
 from twisted.internet.protocol import Factory
 from twisted.internet.endpoints import UNIXServerEndpoint
 from twisted.protocols.basic import LineOnlyReceiver
 
+class TraphIterator(object):
+
+    def __init__(self, iteratorId, iterator, query):
+        self.id = iteratorId
+        self.iter = iterator
+        self.query = query
+        self.n_iterations = 0
 
 class TraphProtocol(LineOnlyReceiver):
 
@@ -13,6 +21,7 @@ class TraphProtocol(LineOnlyReceiver):
 
     def __init__(self, traph):
         self.traph = traph
+        self.iterators = {}
 
     def connectionMade(self):
         pass
@@ -29,6 +38,15 @@ class TraphProtocol(LineOnlyReceiver):
           "query": query
         }))
 
+    def returnIterator(self, iterator, iteratorState):
+        self.sendLine(msgpack.packb({
+          "code": "success",
+          "iterator": iterator.id,
+          "iterations": iterator.n_iterations,
+          "atomic_iterations": iteratorState.n_iterations,
+          "query": iterator.query
+        }))
+
     def returnError(self, msg, query):
         self.sendLine(msgpack.packb({
           "code": "fail",
@@ -36,6 +54,18 @@ class TraphProtocol(LineOnlyReceiver):
           "query": query
         }))
 
+    def iterate(self, iteratorId):
+        iterator = self.iterators[iteratorId]
+        try:
+            state = next(iterator.iter)
+            iterator.n_iterations += 1
+        except StopIteration:
+            del(self.iterators[iteratorId])
+            return self.returnError("Tried to iterate on already closed iterative query!", iterator.query)
+        if not state.done:
+            return self.returnIterator(iterator, state)
+        del(self.iterators[iteratorId])
+        return self.returnResult(state.result, iterator.query)
 
     def lineReceived(self, query):
         try:
@@ -48,12 +78,22 @@ class TraphProtocol(LineOnlyReceiver):
             kwargs = query["kwargs"]
         except KeyError as e:
             return self.returnError("Argument missing from JSON query: %s" % str(e), query)
+        if method == "iterate_previous_query":
+            if not args:
+                return self.returnError("No iterator id given.", query)
+            if args[0] not in self.iterators:
+                return self.returnError("No iterator pending with id %s." % args[0], query)
+            return self.iterate(args[0])
         try:
             fct = getattr(Traph, method)
         except AttributeError as e:
             return self.returnError("Called non existing Traph method: %s" % str(e), query)
         try:
             res = fct(self.traph, *args, **kwargs)
+            if type(res) == GeneratorType:
+                iteratorId = id(res)
+                self.iterators[iteratorId] = TraphIterator(iteratorId, res, query)
+                return self.iterate(iteratorId)
         except TraphException as e:
             return self.returnError("Traph raised: %s" % str(e), query)
         except Exception as e:

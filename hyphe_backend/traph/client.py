@@ -282,6 +282,7 @@ class TraphClientProtocol(LineOnlyReceiver):
         self.corpus = corpus
         self.deferred = None
         self.queue = Queue()
+        self.iteratorQueue = Queue()
         self.last_query = None
         self.start_query = None
 
@@ -298,10 +299,20 @@ class TraphClientProtocol(LineOnlyReceiver):
             self._sendMessageNow()
         return deferred
 
+    def reiterateMessage(self, deferred, iteratorId, *args, **kwargs):
+        self.iteratorQueue.put_nowait((deferred, "iterate_previous_query", [iteratorId], kwargs))
+        self._sendMessageNow()
+
     def _sendMessageNow(self):
-        if self.queue.empty():
+        if self.queue.empty() and self.iteratorQueue.empty():
             return
         self.corpus.call_running = True
+        if not self.iteratorQueue.empty() and (
+          self.queue.empty() or
+          (self.last_query and self.last_query["method"] != "iterate_previous_query")
+          ):
+            queue = self.iteratorQueue
+        else: queue = self.queue
         self.deferred, method, args, kwargs = queue.get_nowait()
         if config["DEBUG"]:
 
@@ -321,6 +332,8 @@ class TraphClientProtocol(LineOnlyReceiver):
         self.corpus.lastcall = time()
         try:
             msg = msgpack.unpackb(data)
+            if "iterator" in msg:
+                return self.reiterateMessage(self.deferred, msg["iterator"])
             self.deferred.callback(msg)
             if config["DEBUG"] == 2:
                 self.corpus.log("Traph server answer: %s" % lightLogVar(msg))
@@ -340,17 +353,22 @@ class TraphClientProtocol(LineOnlyReceiver):
 
 if __name__ == "__main__":
     corpus = "test"
+    config["DEBUG"] = 2
 
     log.startLogging(sys.stdout)
     factory = TraphFactory(chatty=True)
-    factory.start_corpus(corpus, keepalive=2)
+    factory.start_corpus(corpus, keepalive=3)
 
-    reactor.callLater(2, factory.corpora[corpus].call, "TEST")
-    reactor.callLater(2, factory.corpora[corpus].call, "clear")
-    reactor.callLater(3, factory.corpora[corpus].call, "TEST")
-    reactor.callLater(3, factory.corpora[corpus].call, "add_page", "s:http|h:fr|h:scpo|p:bib|")
-    reactor.callLater(3, factory.corpora[corpus].call, "TEST")
-    reactor.callLater(4, factory.corpora[corpus].call, "TEST 4")
-    reactor.callLater(8, reactor.stop)
+    #reactor.callLater(1, factory.corpora[corpus].call, "TEST")
+    #reactor.callLater(2, factory.corpora[corpus].call, "clear")
+    reactor.callLater(1, factory.corpora[corpus].call, "count_links")
+    #reactor.callLater(3, factory.corpora[corpus].call, "add_page", "s:http|h:fr|h:scpo|p:bib|")
+    reactor.callLater(1, factory.corpora[corpus].call, "get_webentities_inlinks_iter", include_auto=False)
+    reactor.callLater(2, factory.corpora[corpus].call, "metrics")
+    reactor.callLater(2, factory.corpora[corpus].call, "get_webentity_most_linked_pages", 1, [], 5)
+    reactor.callLater(3, factory.corpora[corpus].call, "get_webentities_inlinks_iter", include_auto=False)
+    reactor.callLater(3, factory.corpora[corpus].call, "metrics")
+    reactor.callLater(3, factory.corpora[corpus].call, "get_webentity_most_linked_pages", 1, [], 5)
+    reactor.callLater(20, reactor.stop)
 
     reactor.run()
