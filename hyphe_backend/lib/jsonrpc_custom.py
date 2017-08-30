@@ -7,7 +7,7 @@ from txjsonrpc.web.jsonrpc import *
 from twisted.web import server
 from twisted.python import log, context
 from twisted.internet.defer import maybeDeferred
-from hyphe_backend.lib.utils import format_error
+from hyphe_backend.lib.utils import format_error, lightLogVar
 
 log.discardLogs()
 
@@ -110,6 +110,6 @@ class customJSONRPC(JSONRPC):
                 txt = jsonrpclib.dumps(result, id=id, version=2.0)
             except TypeError:
                 txt = result
-            self.safe_log("%s: %s%s" % (functionPath, txt[:1000], " ... [%d cars truncated]" % (len(txt)-1000) if len(txt) > 1000 else ''), "DEBUG - ANSWER")
+            self.safe_log("%s: %s" % (functionPath, lightLogVar(txt, 1000)), "DEBUG - ANSWER")
         return JSONRPC._cbRender(self, result, request, id, version)
 

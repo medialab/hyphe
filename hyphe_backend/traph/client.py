@@ -10,7 +10,7 @@ from twisted.internet.error import ConnectError
 from twisted.internet.protocol import ProcessProtocol, Factory
 from twisted.internet.endpoints import UNIXClientEndpoint
 from twisted.protocols.basic import LineOnlyReceiver
-from hyphe_backend.lib.utils import deferredSleep
+from hyphe_backend.lib.utils import deferredSleep, lightLogVar
 from hyphe_backend.lib import config_hci
 config = config_hci.load_config()
 
@@ -279,13 +279,6 @@ TraphMethodsPriorities = {
 }
 TraphMethodPriority = lambda method: TraphMethodsPriorities.get(method, 0)
 
-def logVar(v, l=500):
-    try:
-        v = json.dumps(v)
-    except:
-        pass
-    return v[:l] + (" ... [%d cars truncated]" % (len(v) - l) if len(v) > l else "")
-
 class TraphClientProtocol(LineOnlyReceiver):
 
     delimiter = b"\r\n##TxHypheMsgPackDelimiter\r\n"
@@ -322,7 +315,7 @@ class TraphClientProtocol(LineOnlyReceiver):
         _, _, self.deferred, method, args, kwargs = self.queue.get(False)
         if config["DEBUG"]:
 
-            self.corpus.log("Traph client query: %s %s %s" % (method, logVar(args), logVar(kwargs)))
+            self.corpus.log("Traph client query: %s %s %s" % (method, lightLogVar(args), lightLogVar(kwargs)))
         self.last_query = {
           "method": method,
           "args": args,
@@ -340,16 +333,16 @@ class TraphClientProtocol(LineOnlyReceiver):
             msg = msgpack.unpackb(data)
             self.deferred.callback(msg)
             if config["DEBUG"] == 2:
-                self.corpus.log("Traph server answer: %s" % logVar(msg))
+                self.corpus.log("Traph server answer: %s" % lightLogVar(msg))
         except (msgpack.exceptions.ExtraData, msgpack.exceptions.UnpackValueError) as e:
-            error = "%s: %s - Received badly formatted data of length %s in answer to %s %s %s" % (type(e), e, len(data), self.last_query["method"], logVar(self.last_query["args"]), logVar(self.last_query["kwargs"]))
+            error = "%s: %s - Received badly formatted data of length %s in answer to %s %s %s" % (type(e), e, len(data), self.last_query["method"], lightLogVar(self.last_query["args"]), lightLogVar(self.last_query["kwargs"]))
             self.corpus.log(error, True)
             if self.deferred:
                 self.deferred.errback(Exception(error))
         if config["DEBUG"]:
             exec_time = time() - self.start_query
             if exec_time > 1:
-                self.corpus.log("WARNING: query took a long time! (%ss) %s %s %s" % (exec_time, self.last_query["method"], logVar(self.last_query["args"]), logVar(self.last_query["kwargs"])))
+                self.corpus.log("WARNING: query took a long time! (%ss) %s %s %s" % (exec_time, self.last_query["method"], lightLogVar(self.last_query["args"]), lightLogVar(self.last_query["kwargs"])))
         self.corpus.call_running = False
         self.deferred = None
         self._sendMessageNow()

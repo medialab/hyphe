@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, re, types, time, hashlib
+import os, re, types, time, json, hashlib
 from twisted.web.client import getPage as getPageOrig
 from twisted.internet.task import deferLater
 from twisted.internet import reactor
@@ -90,6 +90,16 @@ def handle_standard_results(res):
     if isinstance(res, dict) and "code" in res:
         return res
     return format_result(res)
+
+
+def lightLogVar(v, l=500):
+    try:
+        v = json.dumps(v)
+    except:
+        pass
+    if len(v) > l:
+        return v[:l] + " ... [%d cars truncated]" % (len(v) - l)
+    return v
 
 
 def test_bool_arg(boolean):
