@@ -1,7 +1,7 @@
 import os, sys
 import json, msgpack
 from time import time, sleep
-from Queue import PriorityQueue
+from Queue import Queue
 from twisted.python import log
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
@@ -273,12 +273,6 @@ class TraphProcessProtocol(ProcessProtocol):
         if self.transport.pid:
             self.transport.signalProcess("TERM")
 
-
-TraphMethodsPriorities = {
-  "create_webentity": -5
-}
-TraphMethodPriority = lambda method: TraphMethodsPriorities.get(method, 0)
-
 class TraphClientProtocol(LineOnlyReceiver):
 
     delimiter = b"\r\n##TxHypheMsgPackDelimiter\r\n"
@@ -287,7 +281,7 @@ class TraphClientProtocol(LineOnlyReceiver):
     def __init__(self, corpus):
         self.corpus = corpus
         self.deferred = None
-        self.queue = PriorityQueue()
+        self.queue = Queue()
         self.last_query = None
         self.start_query = None
 
@@ -298,12 +292,8 @@ class TraphClientProtocol(LineOnlyReceiver):
 
     def sendMessage(self, method, *args, **kwargs):
         deferred = Deferred()
-        priority = TraphMethodPriority(method)
         self.corpus.lastcall = time()
-        self.queue.put(
-          (priority, time(), deferred, method, args, kwargs),
-          False
-        )
+        self.queue.put_nowait((deferred, method, args, kwargs))
         if self.corpus.status == "ready" and not self.deferred:
             self._sendMessageNow()
         return deferred
@@ -312,7 +302,7 @@ class TraphClientProtocol(LineOnlyReceiver):
         if self.queue.empty():
             return
         self.corpus.call_running = True
-        _, _, self.deferred, method, args, kwargs = self.queue.get(False)
+        self.deferred, method, args, kwargs = queue.get_nowait()
         if config["DEBUG"]:
 
             self.corpus.log("Traph client query: %s %s %s" % (method, lightLogVar(args), lightLogVar(kwargs)))
