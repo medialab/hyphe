@@ -17,9 +17,12 @@ class TraphProtocol(LineOnlyReceiver):
     def connectionMade(self):
         pass
 
+    def connectionLost(self, reason):
+        pass
+
     def returnResult(self, res, query):
         if isinstance(res, TraphWriteReport):
-            res = res.__dict__()
+            res = dict(res)
         self.sendLine(msgpack.packb({
           "code": "success",
           "result": res,
@@ -33,8 +36,6 @@ class TraphProtocol(LineOnlyReceiver):
           "query": query
         }))
 
-    def lineLengthExceeded(self, line):
-        print >> sys.stderr, "WARNING line length exceeded server side %s (max %s)" % (len(line), self.MAX_LENGTH)
 
     def lineReceived(self, query):
         try:
@@ -59,9 +60,8 @@ class TraphProtocol(LineOnlyReceiver):
             return self.returnError(str(e), query)
         return self.returnResult(res, query)
 
-
-    def connectionLost(self, reason):
-        pass
+    def lineLengthExceeded(self, line):
+        print >> sys.stderr, "WARNING line length exceeded server side %s (max %s)" % (len(line), self.MAX_LENGTH)
 
 
 class TraphServerFactory(Factory):
