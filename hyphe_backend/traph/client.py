@@ -314,7 +314,7 @@ class TraphClientProtocol(LineOnlyReceiver):
             queue = self.iteratorQueue
         else: queue = self.queue
         self.deferred, method, args, kwargs = queue.get_nowait()
-        if config["DEBUG"]:
+        if config["DEBUG"] and (method != "iterate_previous_query" or config["DEBUG"] == 2):
 
             self.corpus.log("Traph client query: %s %s %s" % (method, lightLogVar(args), lightLogVar(kwargs)))
         self.last_query = {
@@ -332,20 +332,20 @@ class TraphClientProtocol(LineOnlyReceiver):
         self.corpus.lastcall = time()
         try:
             msg = msgpack.unpackb(data)
+            if config["DEBUG"]:
+                exec_time = time() - self.start_query
+                if exec_time > 1:
+                    self.corpus.log("WARNING: query took a long time! (%ss) %s %s %s" % (exec_time, self.last_query["method"], lightLogVar(self.last_query["args"]), lightLogVar(self.last_query["kwargs"])))
+            if config["DEBUG"] == 2:
+                self.corpus.log("Traph server answer: %s" % lightLogVar(msg))
             if "iterator" in msg:
                 return self.reiterateMessage(self.deferred, msg["iterator"])
             self.deferred.callback(msg)
-            if config["DEBUG"] == 2:
-                self.corpus.log("Traph server answer: %s" % lightLogVar(msg))
         except (msgpack.exceptions.ExtraData, msgpack.exceptions.UnpackValueError) as e:
             error = "%s: %s - Received badly formatted data of length %s in answer to %s %s %s" % (type(e), e, len(data), self.last_query["method"], lightLogVar(self.last_query["args"]), lightLogVar(self.last_query["kwargs"]))
             self.corpus.log(error, True)
             if self.deferred:
                 self.deferred.errback(Exception(error))
-        if config["DEBUG"]:
-            exec_time = time() - self.start_query
-            if exec_time > 1:
-                self.corpus.log("WARNING: query took a long time! (%ss) %s %s %s" % (exec_time, self.last_query["method"], lightLogVar(self.last_query["args"]), lightLogVar(self.last_query["kwargs"])))
         self.corpus.call_running = False
         self.deferred = None
         self._sendMessageNow()
