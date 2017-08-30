@@ -31,7 +31,7 @@ class TraphProtocol(LineOnlyReceiver):
 
     def returnResult(self, res, query):
         if isinstance(res, TraphWriteReport):
-            res = dict(res)
+            res = res.__dict__()
         self.sendLine(msgpack.packb({
           "code": "success",
           "result": res,
@@ -74,6 +74,9 @@ class TraphProtocol(LineOnlyReceiver):
             return self.returnError("Query is not a valid JSON object: %s" % str(e), query)
         try:
             method = query["method"]
+            iter_method = "%s_iter" % method
+            if hasattr(Traph, iter_method):
+                method = iter_method
             args = query["args"]
             kwargs = query["kwargs"]
         except KeyError as e:
