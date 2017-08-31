@@ -332,7 +332,7 @@ angular.module('hyphe.webentityController', [])
         ~$scope.webentity.startpages.indexOf(url) ||
         ~$scope.webentity.prefixes.indexOf(lru)
         )
-        return '#9999FF'
+        return '#428bca'
       return '#999999'
     }
 
@@ -417,7 +417,7 @@ angular.module('hyphe.webentityController', [])
       $scope.sigmaInstance.settings({
         defaultLabelColor: '#666'
         ,edgeColor: 'default'
-        ,defaultEdgeColor: '#D1C9C3'
+        ,defaultEdgeColor: '#EFEBE8'
         ,defaultNodeColor: '#999'
         ,minNodeSize: 0.3
         ,maxNodeSize: 5

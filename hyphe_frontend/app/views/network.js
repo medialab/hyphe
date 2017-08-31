@@ -314,7 +314,7 @@ angular.module('hyphe.networkController', ['angular-md5'])
       sigmaInstance.settings({
         defaultLabelColor: '#666'
         ,edgeColor: 'default'
-        ,defaultEdgeColor: '#ECE8E5'
+        ,defaultEdgeColor: '#EFEBE8'
         ,defaultNodeColor: '#999'
         ,minNodeSize: 0.3
         ,maxNodeSize: 5
