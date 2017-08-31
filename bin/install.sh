@@ -172,7 +172,7 @@ echo " ...installing TLS and other requirements for Scrapyd spiders"
 sudo $repos_tool -y $pyopenssl_rm >> install.log 2>&1
 sudo -H pip -q install --upgrade urllib3[secure] 2>&1 | grep -v "SNIMissing\|InsecurePlatform" >> install.log
 sudo -H pip -q install --upgrade pip >> install.log || exitAndLog install.log "upgrading Hyphe's virtualenv's pip"
-sudo -H pip -q install -r requirements-global-scrapyd.txt >> install.log || exitAndLog install.log "installing Scrapyd requirements"
+sudo -H pip -q install -r hyphe_backend/crawler/requirements-global-scrapyd.txt >> install.log || exitAndLog install.log "installing Scrapyd requirements"
 sudo -H pip -q install Twisted$twistedversion >> install.log || exitAndLog install.log "installing Twisted"
 echo
 if ! which scrapyd > /dev/null 2>&1 ; then
