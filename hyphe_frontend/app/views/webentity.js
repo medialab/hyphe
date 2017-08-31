@@ -327,6 +327,15 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
+    function colorNode(url, lru){
+      if (~$scope.webentity.homepage === url ||
+        ~$scope.webentity.startpages.indexOf(url) ||
+        ~$scope.webentity.prefixes.indexOf(lru)
+        )
+        return '#9999FF'
+      return '#999999'
+    }
+
     function loadNetwork(){
       api.getPagesNetwork({
           webentityId: $scope.webentity.id
@@ -371,7 +380,7 @@ angular.module('hyphe.webentityController', [])
         $scope.network.nodes.push({
           id: id
           ,label: url
-          ,color: '#999999'
+          ,color: colorNode(url, lru)
           ,attributes: [
             {attr:'attr_lru', val: lru }
             ,{attr:'attr_url', val: url }
