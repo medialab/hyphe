@@ -7,14 +7,14 @@
     "db_name": "hyphe",
     "scrapy_port" : 6800,
     "max_depth" : 3,
-    "download_delay" : 0.35,
+    "download_delay" : 0.5,
     "max_simul_requests" : 24,
     "max_simul_requests_per_host" : 1
   },
   "traph": {
     "keepalive": 1800,
     "data_path": "##HYPHEPATH##/traph-data",
-    "max_simul_pages_indexing": 50
+    "max_simul_pages_indexing": 250
   },
   "core_api_port": 6978,
   "defaultStartpagesMode": ["prefixes", "pages-5"],

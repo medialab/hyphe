@@ -1872,8 +1872,8 @@ class Memory_Structure(customJSONRPC):
         # Run linking WebEntities on a regular basis when needed and not overloaded
         now = now_ts()
         s = time.time()
-        # Build links at least every 100 index loops...
-        if (self.corpora[corpus]['recent_changes'] >= 100 or
+        # Build links at least every 50 index loops...
+        if (self.corpora[corpus]['recent_changes'] >= 50 or
           # or, after at least one index if...
           ( self.corpora[corpus]['recent_changes'] and (
             # pagesqueue is empty
@@ -1891,7 +1891,7 @@ class Memory_Structure(customJSONRPC):
                 self.corpora[corpus]['loop_running'] = None
                 returnD(None)
             self.corpora[corpus]['webentities_links'] = WElinks["result"]
-            self.corpora[corpus]['last_links_loop'] = now_ts()
+            self.corpora[corpus]['last_links_loop'] = time.time()
             reactor.callInThread(self.rank_webentities, corpus)
             self.corpora[corpus]['recent_changes'] = 0
             s = time.time() - s
@@ -1917,7 +1917,7 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def ramcache_webentities(self, corpus=DEFAULT_CORPUS):
         WEs = self.corpora[corpus]['webentities']
-        if WEs == [] or self.corpora[corpus]['recent_changes'] or self.corpora[corpus]['recent_tagging'] or (self.corpora[corpus]['last_links_loop'])*1000 > self.corpora[corpus]['last_WE_update']:
+        if WEs == [] or self.corpora[corpus]['recent_changes'] or self.corpora[corpus]['recent_tagging']:
 
             self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus)
 
