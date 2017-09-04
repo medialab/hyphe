@@ -613,6 +613,8 @@ class Core(customJSONRPC):
     @inlineCallbacks
     def refresh_jobs(self, corpus=DEFAULT_CORPUS):
         # Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks
+        if corpus not in self.corpora:
+            returnD(None)
         if self.corpora[corpus]['reset']:
             yield self.db.queue(corpus).drop()
             returnD(None)
