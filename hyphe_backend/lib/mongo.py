@@ -177,8 +177,9 @@ class MongoDB(object):
         res = yield self.WEs(corpus).find_one({"_id": weid})
         returnD(res)
 
-    @inlineCallbacks
-    def add_WE(self, corpus, weid, prefixes, name=None, status="DISCOVERED", startpages=[]):
+    def new_WE(self, weid, prefixes, name=None, status="DISCOVERED", startpages=[], timestamp=None):
+        if not timestamp:
+            timestamp = now_ts()
         if not name:
             for p in prefixes:
                 try:
@@ -188,8 +189,7 @@ class MongoDB(object):
                     pass
             else:
                 name = prefixes[0]
-        now = now_ts()
-        yield self.upsert_WE(corpus, weid, {
+        return {
           "_id": weid,
           "prefixes": prefixes,
           "name": name,
@@ -197,12 +197,27 @@ class MongoDB(object):
           "tags": {},
           "homepage": None,
           "startpages": startpages,
-          "creationDate": now
-        })
+          "creationDate": timestamp,
+          "lastModificationDate": timestamp
+        }
 
     @inlineCallbacks
-    def upsert_WE(self, corpus, weid, metas):
-        metas["lastModificationDate"] = now_ts()
+    def add_WE(self, corpus, weid, prefixes, name=None, status="DISCOVERED", startpages=[]):
+        yield self.upsert_WE(corpus, weid, self.new_WE(weid, prefixes, name, status, startpages), False)
+
+    @inlineCallbacks
+    def add_WEs(self, corpus, new_WEs):
+        if not new_WEs:
+            returnD(None)
+        WEs = []
+        for weid, prefixes in new_WEs.items():
+            WEs.append(self.new_WE(weid, prefixes))
+        yield self.WEs(corpus).insert_many(WEs)
+
+    @inlineCallbacks
+    def upsert_WE(self, corpus, weid, metas, updateTimestamp=True):
+        if updateTimestamp:
+            metas["lastModificationDate"] = now_ts()
         yield self.WEs(corpus).update({"_id": weid}, {"$set": metas}, upsert=True)
 
     @inlineCallbacks

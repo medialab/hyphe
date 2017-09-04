@@ -1801,9 +1801,8 @@ class Memory_Structure(customJSONRPC):
         s = time.time()
 
         # Create new webentities
-        for weid, prefixes in res["created_webentities"].items():
-            yield self.db.add_WE(corpus, weid, prefixes)
-            self.corpora[corpus]['total_webentities'] += 1
+        yield self.db.add_WEs(corpus, res["created_webentities"])
+        self.corpora[corpus]['total_webentities'] += len(res["created_webentities"])
         logger.msg("...%s new WEs created in traph in %ss" % (len(res["created_webentities"]), time.time()-s), system="INFO - %s" % corpus)
 
         yield self.db.clean_queue(corpus, page_queue_ids)
@@ -2578,11 +2577,10 @@ class Memory_Structure(customJSONRPC):
                 returnD(res)
 
             # Create new webentities
-            for weid, prefixes in res["result"]["created_webentities"].items():
-                yield self.db.add_WE(corpus, weid, prefixes)
-                self.corpora[corpus]['total_webentities'] += 1
-
+            yield self.db.add_WEs(corpus, res["result"]["created_webentities"])
+            self.corpora[corpus]['total_webentities'] += len(res["created_webentities"])
             self.corpora[corpus]['recent_changes'] += 1
+
         self.jsonrpc_get_webentity_creationrules(corpus=corpus)
         if onlycreate:
             returnD(format_result("Webentity creation rule added"))
