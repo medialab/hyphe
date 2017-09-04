@@ -124,6 +124,9 @@ class TraphServerFactory(Factory):
           default_webentity_creation_rule=default_WECR or self.default_WECR,
           webentity_creation_rules=WECRs or self.WECRs
         )
+
+    def doStart(self):
+        Factory.doStart(self)
         # stdin message received by childprocess to know when traph is ready
         print "READY"
 
