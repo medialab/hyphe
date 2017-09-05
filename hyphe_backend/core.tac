@@ -125,7 +125,6 @@ class Core(customJSONRPC):
                 returnD(format_error("Please stop currently running crawls before modifiying the crawler's settings"))
             else:
                 redeploy = True
-        oldram = self.corpora[corpus]["options"]["ram"]
         oldkeep = self.corpora[corpus]["options"]["keepalive"]
         if "phantom" in options:
             redeploy = True
@@ -138,14 +137,6 @@ class Core(customJSONRPC):
                 returnD(res)
         if "keepalive" in options and options["keepalive"] != oldkeep:
             self.traphs.corpora[corpus].keepalive = options["keepalive"]
-        if "ram" in options and options["ram"] != oldram:
-            res = yield self.jsonrpc_stop_corpus(corpus, _quiet=True)
-            if is_error(res):
-                returnD(res)
-            corpus_conf = yield self.db.get_corpus(corpus)
-            res = yield self.jsonrpc_start_corpus(corpus, password=corpus_conf["password"])
-            if is_error(res):
-                returnD(res)
         returnD(format_result(self.corpora[corpus]["options"]))
 
     @inlineCallbacks
