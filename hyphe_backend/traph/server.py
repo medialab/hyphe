@@ -125,8 +125,7 @@ class TraphServerFactory(Factory):
           webentity_creation_rules=WECRs or self.WECRs
         )
 
-    def doStart(self):
-        Factory.doStart(self)
+    def ready(self):
         # stdin message received by childprocess to know when traph is ready
         print "READY"
 
@@ -146,5 +145,15 @@ if __name__ == "__main__":
         options = {}
     traph = TraphServerFactory(corpus, **options)
     endpoint = UNIXServerEndpoint(reactor, sock)
-    endpoint.listen(traph)
+    server_listening_deferred = endpoint.listen(traph)
+
+    @server_listening_deferred.addErrback
+    def server_listening_failed(failure):
+        print failure.value
+        reactor.stop()
+
+    @server_listening_deferred.addCallback
+    def server_listen_callback(twisted_port):
+        traph.ready()
+
     reactor.run()
