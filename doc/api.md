@@ -93,6 +93,7 @@ The API will always answer as such:
     * __`get_webentity_for_url_as_lru`__
     * __`get_webentities`__
     * __`search_webentities`__
+    * __`wordsearch_webentities`__
     * __`get_webentities_by_status`__
     * __`get_webentities_by_name`__
     * __`get_webentities_by_tag_value`__
@@ -356,7 +357,7 @@ The API will always answer as such:
  + _`depth`_ (optional, default: `0`)
  + _`phantom_crawl`_ (optional, default: `false`)
  + _`phantom_timeouts`_ (optional, default: `{}`)
- + _`download_delay`_ (optional, default: `0.35`)
+ + _`download_delay`_ (optional, default: `0.5`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):
@@ -604,10 +605,25 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.
- Returns all results at once if  `count` `_ (optional, default: `= -1 ; otherwise results will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.`)
-  * `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"/"status"/"lruset"/"startpages"/...). For instance `["hyphe", "www"]`
+ Returns all results at once if `count` `_ (optional, default: `= -1 ; otherwise results will be paginated with `count` results per page`)
+ + _`using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.
+  * `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name", "lru prefixes", "startpages" & "homepage"). For instance `["hyphe", "www"]`
   * `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into. For instance: `[["name", "hyphe"], ["indegree", [3, 1000]]]`
-  * see description of `sort` `light` and `semilight` in `get_webentities` above.
+  * see description of `sort`, `light` and `semilight` in `get_webentities` above.
+
+
+- __`wordsearch_webentities`:__
+ + _`allFieldsKeywords`_ (optional, default: `[]`)
+ + _`fieldKeywords`_ (optional, default: `[]`)
+ + _`sort`_ (optional, default: `null`)
+ + _`count`_ (optional, default: `100`)
+ + _`page`_ (optional, default: `0`)
+ + _`light`_ (optional, default: `false`)
+ + _`semilight`_ (optional, default: `true`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Same as `search_webentities` except that search is only matching exact full words
+ + _`and that `allFieldsKeywords` query also search into tags values.
 
 
 - __`get_webentities_by_status`:__
@@ -618,7 +634,7 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all WebEntities having their status equal to `status` (one of "in"/"out"/"undecided"/"discovered").
- Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`.
+ Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`.
 
 
 - __`get_webentities_by_name`:__
@@ -629,7 +645,7 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all WebEntities having their name equal to `name`.
- Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`.
+ Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`.
 
 
 - __`get_webentities_by_tag_value`:__
@@ -642,7 +658,7 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all WebEntities having at least one tag in any namespace/category equal to `value`.
- Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`.
+ Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`.
 
  function() {
               }""" % (namespace
@@ -664,7 +680,7 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all WebEntities having at least one tag in a specific `category` for a specific `namespace`.
- Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`.
+ Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`.
 
 
 - __`get_webentities_mistagged`:__
@@ -677,7 +693,7 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all WebEntities of status `status` with no tag of the namespace "USER" or multiple tags for some USER categories if `multiple_values` is true or no tag for at least one existing USER category if `missing_a_category` is true.
- Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`.
+ Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`.
 
 
 - __`get_webentities_uncrawled`:__
@@ -687,7 +703,7 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all IN WebEntities which have no crawljob associated with it.
- Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `advanced_search_webentities` for explanations on `sort` `count` and `page`.
+ Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`.
 
 
 - __`get_webentities_page`:__
