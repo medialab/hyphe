@@ -80,12 +80,14 @@ class Core(customJSONRPC):
     def jsonrpc_list_corpus(self):
         """Returns the list of all existing corpora with metas."""
         res = {}
-        corpora = yield self.db.list_corpus()
+        corpora = yield self.db.list_corpus(fields=[
+          "name", "password",
+          "total_crawls", "total_pages", "total_pages_crawled", "total_webentities",
+          "webentities_in", "webentities_out", "webentities_undecided", "webentities_discovered",
+          "created_at", "last_activity"
+        ])
         for corpus in corpora:
             corpus["password"] = (corpus["password"] != "")
-            del(corpus["options"])
-            if "tlds" in corpus:
-                del(corpus["tlds"])
             corpus.update(self.jsonrpc_test_corpus(corpus.pop('_id'))["result"])
             res[corpus["corpus_id"]] = corpus
         returnD(format_result(res))
