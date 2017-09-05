@@ -608,7 +608,7 @@ The API will always answer as such:
  Returns all results at once if `count` `_ (optional, default: `= -1 ; otherwise results will be paginated with `count` results per page`)
  + _`using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.
   * `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name", "lru prefixes", "startpages" & "homepage"). For instance `["hyphe", "www"]`
-  * `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into. For instance: `[["name", "hyphe"], ["indegree", [3, 1000]]]`
+  * `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (note: only exact values will be matched when querying on field status field). For instance: `[["name", "hyphe"], ["indegree", [3, 1000]]]`
   * see description of `sort`, `light` and `semilight` in `get_webentities` above.
 
 

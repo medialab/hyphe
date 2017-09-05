@@ -2121,7 +2121,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, light=False, semilight=True, corpus=DEFAULT_CORPUS, _exactSearch=False):
-        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.\nReturns all results at once if `count` == -1 ; otherwise results will be paginated with `count` results per page, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"\, "lru prefixes"\, "startpages" & "homepage"). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into. For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort`\, `light` and `semilight` in `get_webentities` above."""
+        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.\nReturns all results at once if `count` == -1 ; otherwise results will be paginated with `count` results per page, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"\, "lru prefixes"\, "startpages" & "homepage"). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (note: only exact values will be matched when querying on field status field). For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort`\, `light` and `semilight` in `get_webentities` above."""
         indegree_filter = False
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -2150,10 +2150,14 @@ class Memory_Structure(customJSONRPC):
             if type(kv) is list and len(kv) == 2 and kv[0] and kv[1] and type(kv[0]) in [str, unicode] and type(kv[1]) in [str, unicode]:
                 if "$and" not in query:
                     query["$and"] = []
+                exactSearch = _exactSearch or kv[0] == "status"
+                kv[1] = kv[1].strip()
+                if kv[0] == "status":
+                    kv[1] = kv[1].upper()
                 if " " in kv[1]:
-                    query["$and"].append({"$or": [{kv[0]: v if _exactSearch else self.escape_regexp(v)} for v in kv[1].strip().split(" ")]})
+                    query["$and"].append({"$or": [{kv[0]: v if exactSearch else self.escape_regexp(v)} for v in kv[1].split(" ")]})
                 else:
-                    query["$and"].append({kv[0]: kv[1] if _exactSearch else self.escape_regexp(kv[1])})
+                    query["$and"].append({kv[0]: kv[1] if exactSearch else self.escape_regexp(kv[1])})
             elif type(kv) is list and len(kv) == 2 and kv[0] and kv[1] and type(kv[0]) in [str, unicode] and type(kv[1]) is list and len(kv[1]) == 2 and type(kv[1][0]) in [int, float] and type(kv[1][1]) in [int, float]:
                 indegree_filter = kv[1]
             else:
