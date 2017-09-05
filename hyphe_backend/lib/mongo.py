@@ -209,10 +209,7 @@ class MongoDB(object):
     def add_WEs(self, corpus, new_WEs):
         if not new_WEs:
             returnD(None)
-        WEs = []
-        for weid, prefixes in new_WEs.items():
-            WEs.append(self.new_WE(weid, prefixes))
-        yield self.WEs(corpus).insert_many(WEs)
+        yield self.WEs(corpus).insert_many([self.new_WE(weid, prefixes) for weid, prefixes in new_WEs.items()])
 
     @inlineCallbacks
     def upsert_WE(self, corpus, weid, metas, updateTimestamp=True):

@@ -2575,9 +2575,10 @@ class Memory_Structure(customJSONRPC):
             res = yield self.traphs.call(corpus, "add_webentity_creation_rule", variation, getWECR(regexp, variation))
             if is_error(res):
                 returnD(res)
+            res = res["result"]
 
             # Create new webentities
-            yield self.db.add_WEs(corpus, res["result"]["created_webentities"])
+            yield self.db.add_WEs(corpus, res["created_webentities"])
             self.corpora[corpus]['total_webentities'] += len(res["created_webentities"])
             self.corpora[corpus]['recent_changes'] += 1
 
