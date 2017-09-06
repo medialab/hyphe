@@ -1,7 +1,6 @@
 import os, sys
 import json, msgpack
 from time import time, sleep
-from Queue import Queue
 from twisted.python import log
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
@@ -272,6 +271,20 @@ class TraphProcessProtocol(ProcessProtocol):
         self.corpus.status = "stopping"
         if self.transport.pid:
             self.transport.signalProcess("TERM")
+
+class Queue(object):
+
+    def __init__(self):
+        self.queue = []
+
+    def empty(self):
+        return len(self.queue) == 0
+
+    def put_nowait(self, value):
+        self.queue.append(value)
+
+    def get_nowait(self):
+        return self.queue.pop(0)
 
 class TraphClientProtocol(LineOnlyReceiver):
 
