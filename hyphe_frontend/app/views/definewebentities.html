@@ -1,0 +1,251 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-12">
+                <h1 class="page-title">DEFINE WEB ENTIT{{list.length | y_ies | uppercase}}</h1>
+                <p class="text-info">
+                  Check the <span hyphe-glossary="boundaries"></span> of each <span hyphe-glossary="web entity"></span> before creating it
+                </p>
+
+                <!-- Pagination  -->
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="text-center">
+                      <pagination total-items="list.length" ng-model="$parent.paginationPage" items-per-page="paginationLength" boundary-links="true" max-size="paginationNumPages" ng-if="list.length > paginationLength"></pagination>
+                    </div>
+                  </div>
+                </div>
+
+                <div ng-show="!(list.length || createdList.length || existingList.length || retry)">
+                  <h3>
+                    <img src="img/loader.svg" alt="loader"/>
+                    Loading, please wait for just a few seconds...
+                  </h3>
+                </div>
+
+                <table class="sliders-commands" ng-show="list.length > 0">
+                  <tr>
+                    <td>
+                      Sliders:
+                    </td>
+                    <td>
+                      <button
+                        class="btn btn-default btn-xs"
+                        ng-click="moveAllSliders('left')"
+                      >ALL TO LEFT</button>
+                    </td>
+                    <td>
+                      <button
+                        class="btn btn-default btn-xs"
+                        ng-click="moveAllSliders('right')"
+                      >ALL TO RIGHT</button>
+                    </td>
+                  </tr>
+                </table>
+
+                <div class="container-fluid">
+                  <div
+                    class="row no-gutter define-we-row"
+                    ng-repeat="obj in list|paginate:paginationPage:paginationLength track by $index"
+                    ng-class="{active: $parent.activeRow == ($index+paginationLength*paginationPage) && obj.status=='loaded', 'bg-danger':obj.status=='error', 'bg-warning':obj.status=='conflict', selectable:obj.status=='error'}"
+                    ng-click="$parent.activeRow = ($index+paginationLength*paginationPage)"
+                    ng-mouseover="$parent.activeRow = ($index+paginationLength*paginationPage)"
+                  >
+                    <div class="col-md-1 col-row-id">
+                      <div class="content-row-id">
+                        {{obj.id+1}}
+                      </div>
+                    </div>
+
+                    <div class="col-md-12">
+                      <div class="row-content">
+
+                        <!-- Loading and pending-->
+                        <div ng-if="obj.status == 'loading' || obj.status == 'pending'" class="info-content">
+                          <p class="loading-p text-muted">
+                            <img src="img/loader.svg" alt="loader"/>
+                            {{obj.status|titlecase}}
+                          </p>
+                        </div>
+
+                        <!-- Loaded -->
+                        <div ng-if="obj.status == 'loaded'">
+                          
+                          <!-- The UX slider component -->
+                          <div hyphe-prefix-slider ng-class="{blurred: $parent.activeRow != ($index+paginationLength*paginationPage)}"></div>
+                          
+                          <!-- Added when conflicts are anticipated -->
+                          <div ng-if="obj.conflicts.length > 0" class="conflicts">
+                            <small class="text-warning">
+                              <span class="glyphicon glyphicon-warning-sign"></span>
+                              Same web entity defined row{{obj.conflicts.length|plural}} <span ng-repeat="r in obj.conflicts track by $index">{{r+1}}{{ $index == obj.conflicts.length-1 ? '' : $index == obj.conflicts.length-2 ? ' and ' : ', '}}</span>
+                            </small>
+                          </div>
+
+                        </div>
+
+                        <!-- Created or Existing -->
+                        <div ng-if="obj.status == 'created' || obj.status == 'existing'" class="info-content">
+
+                          <p class="loading-p" ng-class="{'text-info':obj.status=='existing', 'text-success':obj.status=='created'}">
+                            
+                            <strong>{{obj.status|titlecase}}</strong>
+                            as {{obj.webentity.name}}
+                          </p>
+
+                        </div>
+
+                        <!-- Conflicted -->
+                        <div ng-if="obj.status == 'conflict'" class="info-content">
+
+                          <p class="loading-p text-warning">
+                            
+                            <strong>{{obj.status|titlecase}}</strong> - web entity defined in a previous row
+
+                            <!-- Collapsing button -->
+                            <button type="button" class="btn btn-link btn-xs text-muted" data-toggle="collapse" data-target="#conflict-info-{{obj.id}}">more info</button>
+                          </p>
+
+                          <!-- Collapsed info -->
+                          <div id="conflict-info-{{obj.id}}" class="collapse">
+                            URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
+                            <br/>
+                            LRU prefixes:
+                            <ul>
+                              <li ng-repeat="lru in obj.prefixes">{{lru}}</li>
+                            </ul>
+                          </div>
+
+                        </div>
+
+                        <!-- Error -->
+                        <div ng-if="obj.status == 'error'" class="info-content">
+                          
+                          <p class="loading-p text-danger">
+                            <strong>Error</strong>
+
+                            <!-- Collapsing button -->
+                            <button type="button" class="btn btn-link btn-xs text-muted" data-toggle="collapse" data-target="#error-info-{{obj.id}}">more info</button>
+                          </p>
+
+                          <!-- Collapsed info -->
+                          <div id="error-info-{{obj.id}}" class="collapse">
+                            URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
+                            <br/>
+                            {{obj.infoMessage}}
+                          </div>
+                        </div>
+                      
+                      </div>
+                    </div>
+
+                    <div class="col-md-1 col-row-remove">
+                      <div class="content-row-remove">
+                        <button
+                          class="btn btn-link btn-xs pull-right"
+                          ng-click="removeLine(obj.id)"
+                          ng-show="$parent.activeRow == ($index+paginationLength*paginationPage) && obj.status=='loaded'"
+                        >
+                          <span class="glyphicon glyphicon-remove"></span> REMOVE
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            
+            <!-- Pagination  -->
+            <div class="row">
+              <div class="col-md-12">
+                <div class="text-center">
+                  <pagination total-items="list.length" ng-model="$parent.paginationPage" items-per-page="paginationLength" boundary-links="true" max-size="paginationNumPages" ng-if="list.length > paginationLength"></pagination>
+                </div>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6 col-md-offset-3">
+                <div ng-if="createdList.length + existingList.length == 0 || retry">
+                  <div class="text-center">
+                    <div ng-if="!(creating || loadingWebentities || simulatingCreationRules)">
+                      <div class="text-center">
+                        <button class="btn btn-primary" ng-click="createWebEntities()" ng-show="list.length">CREATE WEB ENTIT{{list.length | y_ies | uppercase}}</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div ng-if="createdList.length + existingList.length > 0">
+                  <hr/>
+                  <h1>You created {{createdList.length}} web entit{{createdList.length | y_ies}}</h1>
+
+                  <table class="creation-bilan-table">
+                    <tr>
+                      <td ng-if="errorList.length > 0" class="bg-danger text-danger">
+                        {{errorList.length}} URL{{errorList.length | plural}}
+                        <br/>
+                        {{errorList.length | were_was}} ignored
+                      </td>
+
+                      <td ng-if="conflictedList.length > 0" class="bg-warning text-warning">
+                        {{conflictedList.length}} web entit{{conflictedList.length | y_ies}}
+                        <br/>
+                        {{conflictedList.length | were_was}} previously defined
+                      </td>
+
+                      <td ng-if="createdList.length > 0" class="bg-success text-success">
+                        {{createdList.length}} web entit{{createdList.length | y_ies}}
+                        <br/>
+                        {{createdList.length | were_was}} created
+                      </td>
+
+                      <td ng-if="existingList.length > 0" class="bg-info text-info">
+                        {{existingList.length}} web entit{{existingList.length | y_ies}}
+                        <br/>
+                        already existed
+                      </td>
+                    </tr>
+                    <tr>
+                      <td ng-if="errorList.length > 0" class="bg-danger">
+                        <button class="btn btn-default" ng-click="doRetry(retryConflicted)">RETRY</button>
+                      </td>
+                       <td ng-if="conflictedList.length > 0" class="bg-warning">
+                        <div class="checkbox" ng-if="errorList.length > 0">
+                          <label>
+                            <input type="checkbox" ng-model="$parent.$parent.retryConflicted"> <span hyphe-glossary="retry as well"></span>
+                          </label>
+                        </div>
+                        <button ng-if="errorList.length == 0" class="btn btn-primary" ng-click="doRetry(true)">RETRY</button>
+                      </td>
+                      <td ng-if="createdList.length > 0" class="bg-success">
+                        <button class="btn btn-primary" ng-click="doCrawl(crawlExisting)">CRAWL WEB ENTIT{{createdList.length | y_ies | uppercase}}</button>
+                      </td>
+                      <td ng-if="existingList.length > 0" class="bg-info">
+                        <div class="checkbox" ng-if="createdList.length > 0">
+                          <label>
+                            <input type="checkbox" ng-model="$parent.$parent.crawlExisting"> <span hyphe-glossary="crawl as well"></span>
+                          </label>
+                        </div>
+                        <button ng-if="createdList.length == 0" class="btn btn-primary" ng-click="doCrawl(true)">CHECK &amp; CRAWL</button>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

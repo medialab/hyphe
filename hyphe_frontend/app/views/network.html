@@ -1,0 +1,223 @@
+<div class="container-fluid fullheight">
+  <div class="row no-gutter" ng-include="'partials/topbar_fixed.html'">
+  </div>
+  <div class="fullheight-side-panel" ng-include="'partials/sidebar.html'"></div>
+  <div class="fullheight-main-panel">
+    <div class="sigma-placeholder" ng-show="loading">
+      <center>
+        <spinner text="'LOADING NETWORK'"/>
+      </center>
+    </div>
+    <!-- <div
+      class="sigma-parent"
+      ng-show="!loading"
+      ng-class="{pointable: overNode}"
+    >
+      <div class="sigma-expand" id="sigma"></div>
+      <div class="sigma-tools">
+        <div class="btn-group-vertical">
+          <button
+            id="stopFA2"
+            type="button"
+            class="btn btn-primary btn-xs"
+            ng-click="toggleSpatialization()"
+            tooltip-placement="right"
+            tooltip="{{spatializationRunning ? 'Stop layout' : 'Run layout'}}"
+          >
+            <span class="glyphicon glyphicon-play" ng-show="!spatializationRunning"></span>
+            <span class="glyphicon glyphicon-pause" ng-show="spatializationRunning"></span>
+          </button>
+          <button
+            type="button"
+            class="btn btn-link btn-xs"
+            ng-click="reloadData()"
+            tooltip-placement="right"
+            tooltip="Refresh webentities"
+          >
+            <span class="glyphicon glyphicon-refresh"></span>
+          </button>
+          <button
+            type="button"
+            class="btn btn-link btn-xs"
+            ng-click="sigmaRecenter()"
+            tooltip-placement="right"
+            tooltip="Recenter"
+          >
+            <span class="glyphicon glyphicon-record"></span>
+          </button>
+          <button
+            type="button"
+            class="btn btn-link btn-xs"
+            ng-click="sigmaZoom()"
+            tooltip-placement="right"
+            tooltip="Zoom"
+          >
+            <span class="glyphicon glyphicon-plus"></span>
+          </button>
+          <button
+            type="button"
+            class="btn btn-link btn-xs"
+            ng-click="sigmaUnzoom()"
+            tooltip-placement="right"
+            tooltip="Dezoom"
+          >
+            <span class="glyphicon glyphicon-minus"></span>
+          </button>
+        </div>
+      </div>
+    </div> -->
+
+    <!-- <div class="network-key" ng-show="!loading">
+      <div class="floating-button">
+        <button
+          class="btn btn-default"
+          ng-click="downloadNetwork()"
+          ng-class="{disabled:loading}"
+        >
+          <span class="glyphicon glyphicon-download"></span>
+          DOWNLOAD GEXF
+        </button>
+      </div>
+
+      <div class="collapse-button pointable" ng-click="keyCollapsed = !keyCollapsed">
+        <center>
+          KEY
+          <span class="glyphicon" ng-class="{'glyphicon-chevron-right':keyCollapsed, 'glyphicon-chevron-down':!keyCollapsed}"></span>
+        </center>
+      </div>
+
+      <div class="container-fluid hidden-xs" ng-click="keyCollapsed = !keyCollapsed">
+
+        <div class="row" collapse="keyCollapsed">
+          <div class="col-sm-4">
+            <div ng-show="categorization === 'HYPHE_internal_status'">
+              <h4>WEB ENTITY STATUS</h4>
+              <p ng-show="settings.in">
+                <span class="dot dot-in"></span>&nbsp;IN
+              </p>
+              <p ng-show="settings.undecided">
+                <span class="dot dot-undecided"></span>&nbsp;UNDECIDED
+              </p>
+              <p ng-show="settings.discovered">
+                <span class="dot dot-discovered"></span>&nbsp;DISCOVERED
+                <span class="text-info" ng-show="settings.discoveredMinDegree>0"><br>Cited by {{settings.discoveredMinDegree}}+ entities only</span>
+              </p>
+              <p ng-show="settings.out">
+                <span class="dot dot-out"></span>&nbsp;OUT
+              </p>
+            </div>
+            <div ng-show="categorization !== 'HYPHE_internal_status'">
+              <h4 class="uppercase">{{categorization}}</h4>
+              <p ng-repeat="cat in uniqCategories[categorization].legend">
+                <span class="dot" style="background-color: {{cat.color}}"></span> {{cat.name}}
+              </p>
+            </div>
+            <br>
+          </div>
+          <div class="col-sm-4">
+            <h4>SIZE</h4>
+            <p>
+              <span class="dot dot-small"></span>&nbsp;<span class="dot dot-medium"></span>&nbsp;<span class="dot dot-big"></span> DEGREE: Small web entities are linked to few others, big entities are linked with many others
+            </p>
+            <br>
+          </div>
+          <div class="col-sm-4">
+            <h4>LINKS</h4>
+            <p>
+              <span class="line-link"></span> Hyperlink between entities
+            </p>
+            <br>
+          </div>
+        </div>
+      </div>
+    </div> -->
+
+    <!-- <div class="sigma-floating hidden-xs" ng-show="!loading">
+      <div class="flatpanel">
+        <div class="flatpanel-heading flatpanel-clickable" ng-click="filteringCollapsed = !filteringCollapsed">
+          FILTERING
+          <span class="pull-right">
+            &nbsp;&nbsp;
+            <span class="glyphicon" ng-class="{'glyphicon-chevron-down':!filteringCollapsed, 'glyphicon-chevron-right':filteringCollapsed}"></span>
+          </span>
+        </div>
+        <div class="flatpanel-body" collapse="filteringCollapsed">
+
+          <div class="flatpanel-textblock">
+            Presets:
+            <a class="btn btn-link" ng-repeat="choice in presetNames" ng-click="applyPreset($index)">{{choice}}</a>
+          </div>
+
+          <div class="flatpanel-textblock flatpanel-separated">
+            
+            <div class="row">
+              <div class="col-lg-12">
+                <hyphe-status-box statuses="statuses" counts="counts" change="touchSettings()" disabled="loading"></hyphe-status-box>
+                <br>
+                <br>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-lg-8">
+                <label>Limit DISCOVERED</label>
+                <br>
+                <select class="form-control" ng-change="touchSettings()" ng-disabled="loading" ng-model="statuses.discoveredMinDegree">
+                  <option value="0">Display every discovered</option>
+                  <option ng-show="webentities.discovered_2.length" value="2">Cited by 2+ entities only ({{webentities.discovered_2.length}})</option>
+                  <option ng-show="webentities.discovered_3.length" value="3">Cited by 3+ entities only ({{webentities.discovered_3.length}})</option>
+                  <option ng-show="webentities.discovered_4.length" value="4">Cited by 4+ entities only ({{webentities.discovered_4.length}})</option>
+                  <option ng-show="webentities.discovered_5.length" value="5">Cited by 5+ entities only ({{webentities.discovered_5.length}})</option>
+                </select>
+              </div>
+              <div class="col-lg-4">
+                <label>Isolated entities</label>
+                <br>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" ng-change="touchSettings()" ng-disabled="loading" ng-model="statuses.hideIsolated"> Hide
+                  </label>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="flatpanel-textblock flatpanel-right flatpanel-separated" collapse="!settingsChanged">
+            <button class="btn btn-default" ng-click="revertSettings()"><span class="glyphicon glyphicon-remove"></span> CANCEL</button>
+            <button class="btn btn-primary" ng-click="applySettings()"><span class="glyphicon glyphicon-ok"></span> APPLY CHANGES</button>
+          </div>
+
+        </div>
+
+      </div>
+    </div> -->
+
+    <!-- <div class="sigma-floating-cat hidden-xs" ng-show="!loading && uniqCategoriesExist">
+      <div class="flatpanel">
+        <div class="flatpanel-heading flatpanel-clickable" ng-click="categorizingCollapsed = !categorizingCollapsed">
+          CATEGORIZING
+          <span class="pull-right">
+            &nbsp;&nbsp;
+            <span class="glyphicon" ng-class="{'glyphicon-chevron-down':!categorizingCollapsed, 'glyphicon-chevron-right':categorizingCollapsed}"></span>
+          </span>
+        </div>
+        <div class="flatpanel-body" collapse="categorizingCollapsed">
+          <div class="flatpanel-textblock">
+            <div class="row">
+              <div class="col-lg-12">
+                <label>Color web entities by</label>
+                <br>
+                <select class="form-control" ng-change="updateCategorization()" ng-disabled="loading" ng-model="categorization">
+                  <option value="HYPHE_internal_status">WEB ENTITY STATUS</option>
+                  <option ng-repeat="(cat, obj) in uniqCategories" value="{{cat}}">{{cat | uppercase}}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> -->
+
+  </div>
+</div>

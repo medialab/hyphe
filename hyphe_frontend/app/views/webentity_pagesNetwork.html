@@ -1,0 +1,107 @@
+    <div class="container-fluid fullheight">
+      <div class="row no-gutter" ng-include="'partials/topbar_fixed.html'">
+      </div>
+      <div class="fullheight-side-panel" ng-include="'partials/sidebar.html'"></div>
+      <div class="fullheight-main-panel">
+        <div class="pages-network-header">
+          <div class="row">
+            <div class="col-md-12">
+
+            <h1>
+              {{webentity.name}}
+            </h1>
+            <span class="text-info">Explore and edit this web entity</span>
+
+            <br>
+            <br>
+            
+            <webentity-tabs></webentity-tabs>
+            
+            <br>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="sigma-parent pages-network"
+          ng-class="{pointable: overNode}"
+        >
+          <div class="sigma-expand" id="sigma-pages"></div>
+          <div class="sigma-tools">
+            <div class="btn-group-vertical">
+              <button 
+                type="button"
+                class="btn btn-primary btn-xs"
+                ng-click="toggleSpatialization()"
+                tooltip-placement="right"
+                tooltip="{{spatializationRunning ? 'Stop layout' : 'Run layout'}}"
+              >
+                <span class="glyphicon glyphicon-play" ng-if="!spatializationRunning"></span>
+                <span class="glyphicon glyphicon-pause" ng-if="spatializationRunning"></span>
+              </button>
+              <button
+                type="button"
+                class="btn btn-link btn-xs"
+                ng-click="sigmaRecenter()"
+                tooltip-placement="right"
+                tooltip="Recenter"
+              >
+                <span class="glyphicon glyphicon-record"></span>
+              </button>
+              <button
+                type="button"
+                class="btn btn-link btn-xs"
+                ng-click="sigmaZoom()"
+                tooltip-placement="right"
+                tooltip="Zoom"
+              >
+                <span class="glyphicon glyphicon-plus"></span>
+              </button>
+              <button
+                type="button"
+                class="btn btn-link btn-xs"
+                ng-click="sigmaUnzoom()"
+                tooltip-placement="right"
+                tooltip="Dezoom"
+              >
+                <span class="glyphicon glyphicon-minus"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="network-key" ng-if="!loading">
+          <div class="collapse-button pointable" ng-click="keyCollapsed = !keyCollapsed">
+            <center>
+              KEY
+              <span class="glyphicon" ng-class="{'glyphicon-chevron-right':keyCollapsed, 'glyphicon-chevron-down':!keyCollapsed}"></span>
+            </center>
+          </div>
+          <div class="container-fluid hidden-xs" ng-click="keyCollapsed = !keyCollapsed">
+            <div class="row" collapse="keyCollapsed">
+              <div class="col-md-4">
+                <h4>NODES</h4>
+                <p>
+                  <span class="dot" style="background-color: #428bca;"></span>&nbsp;Prefix, homepage or startpage of this web entity
+                </p>
+                <p>
+                  <span class="dot"></span>&nbsp;Web page of this web entity
+                </p>
+              </div>
+              <div class="col-md-4">
+                <h4>SIZE</h4>
+                <p>
+                  <span class="dot dot-small"></span>&nbsp;<span class="dot dot-medium"></span>&nbsp;<span class="dot dot-big"></span> DEGREE: Small pages are linked to few others, big pages are linked with many others
+                </p>
+              </div>
+              <div class="col-md-4">
+                <h4>LINKS</h4>
+                <p>
+                  <span class="line-link"></span> Hypertext link between pages
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,343 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-12">
+                <h1>
+                  WEB ENTITIES
+                </h1>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-8">
+                
+                <div class="flatpanel">
+                  <div class="flatpanel-heading flatpanel-clickable" ng-click="filteringCollapsed = !filteringCollapsed">
+                    FILTERING
+                    <div class="pull-right">
+                      <span ng-show="filteringCollapsed" class="glyphicon glyphicon-chevron-right"></span>
+                      <span ng-show="!filteringCollapsed" class="glyphicon glyphicon-chevron-down"></span>
+                    </div>
+                  </div>
+                  <div class="flatpanel-body" collapse="filteringCollapsed">
+
+                    <div class="flatpanel-textblock">
+
+                      <!-- Status selector -->
+                      <hyphe-status-box statuses="statuses" counts="counts" change="touchSettings()" disabled="loading"></hyphe-status-box>
+                      
+                      <div class="flatpanel-input-spacer"></div>
+
+                      <div class="row">
+
+                        <!-- Search -->
+                        <div class="col-md-8 col-lg-10">
+                          <div class="input-group">
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
+                            <input
+                              type="text"
+                              class="form-control"
+                              placeholder="Type a query"
+                              ng-model="query"
+                              ng-change="touchSettings()"
+                              ng-press-enter="applySettings()"
+                            ></input>
+                          </div>
+                        </div>
+
+                        <!-- Results per page -->
+                        <div class="col-md-4 col-lg-2 hidden-sm">
+                          <div class="input-group results-per-page pull-right" title="WEB ENTITIES PER PAGE">
+                            <span class="input-group-addon">#</span>
+                            <input
+                              type="text"
+                              class="form-control"
+                              placeholder=""
+                              ng-model="paginationLength"
+                              ng-change="touchSettings()"
+                              ng-press-enter="applySettings()"
+                            ></input>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+  
+                    <!-- Validation panel -->
+                    <div class="flatpanel-textblock flatpanel-right flatpanel-separated" collapse="!settingsChanged">
+                      <button class="btn btn-default" ng-click="revertSettings()"><span class="glyphicon glyphicon-remove"></span> CANCEL</button>
+                      <button class="btn btn-primary" ng-click="applySettings()"><span class="glyphicon glyphicon-ok"></span> APPLY CHANGES</button>
+                    </div>
+
+                  </div>
+                </div>
+
+                <br>
+
+                <!-- List -->
+                <div class="panel panel-default webentities-list-table">
+                  
+                  <!-- Default panel contents -->
+                  <div class="panel-heading hyphe-gray">
+                    <form class="form-inline search-ariane-string" role="form" >
+
+                      <div class="form-group" ng-if="!(status.in && status.out && status.undecided && status.discovered)">
+                        <button type="button" class="btn btn-default" disabled="disabled">{{statusesSummary}}</button>
+                      </div>
+
+                      <div class="form-group" ng-if="settings.query && settings.query != ''">
+                        <button type="button" class="btn btn-default" ng-click="clearQuery()"><span class="glyphicon glyphicon-remove"></span> {{settings.query}}</button>
+                      </div>
+
+                      <div class="form-group search-ariane-string-text pull-right" ng-if="!loading">
+                        {{fullListLength}} WEB ENTIT{{fullListLength | y_ies | uppercase}}
+                      </div>
+                      
+                    </form>
+                  </div>
+
+                  <table class="table table-condensed table-striped">
+                    <thead>
+                      <tr ng-if="!loading && fullListLength > 0">
+                        <th class="cell-checkbox"><input type="checkbox" ng-model="$parent.$parent.pageChecked" ng-change="updatePageSelection()" tooltip="{{$parent.pageChecked ? 'Uncheck' : 'Check'}} all on this page"></th>
+                        <th class="cell-link"></th>
+                        <th class="cell-name pointable" ng-click="toggleSort('name')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort != 'name'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort == 'name' && sortAsc"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort == 'name' && !sortAsc"></span>
+                          Name
+                        </th>
+                        <th class="cell-status pointable" ng-click="toggleSort('status')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort != 'status'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort == 'status' && sortAsc"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort == 'status' && !sortAsc"></span>
+                          Status
+                        </th>
+                        <th class="cell-last-crawled hidden-xs pointable" ng-click="toggleSort('crawled')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort != 'crawled'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort == 'crawled' && sortAsc"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort == 'crawled' && !sortAsc"></span>
+                          <span tooltip="Crawled">Cr.</span>
+                        </th>
+                        <th class="cell-cited pointable" ng-click="toggleSort('indegree')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort != 'indegree'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort == 'indegree' && sortAsc"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort == 'indegree' && !sortAsc"></span>
+                          Cited
+                        </th>
+                        <th class="cell-last-modif hidden-xs hidden-sm hidden-md pointable" ng-click="toggleSort('last_modification_date')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort != 'last_modification_date'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort == 'last_modification_date' && sortAsc"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort == 'last_modification_date' && !sortAsc"></span>
+                          Last modif.
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+
+                      <!-- Rows -->
+                      <tr
+                        class="webentity-row webentity-row-selectable"
+                        ng-if="!loading"
+                        ng-repeat="obj in list track by $index"
+                        ng-click="toggleRow(obj.id)"
+                        ng-class="{'bg-selected':obj.checked || obj.hover}"
+                        ng-mouseenter="obj.hover = true"
+                        ng-mouseleave="obj.hover = false"
+                      >
+                        <td class="cell-checkbox"><input type="checkbox" ng-checked="obj.checked"></td>
+                        <td class="cell-link">
+                          <a
+                            ng-show="obj.webentity.homepage"
+                            href="{{obj.webentity.homepage}}"
+                            target="_blank"
+                            ng-click="$event.stopPropagation();"
+                            tooltip="{{obj.webentity.homepage}}"
+                            tooltip-append-to-body="true"
+                          ><span class="glyphicon glyphicon-link"></span></a>
+                        </td>
+                        <td class="cell-name">
+                          <span>{{obj.webentity.name}}</span>
+                          <webentity-link corpus-id="corpusId" webentity-id="obj.webentity.id">
+                        </td>
+                        <td class="cell-status">
+                          <span
+                            ng-class="{
+                              'webentity-color-in':obj.webentity.status == 'IN',
+                              'webentity-color-undecided':obj.webentity.status == 'UNDECIDED',
+                              'webentity-color-out':obj.webentity.status == 'OUT',
+                              'webentity-color-discovered':obj.webentity.status == 'DISCOVERED'
+                            }"
+                          >{{obj.webentity.status}}</span>
+                        </td>
+                        <td class="cell-last-crawled hidden-xs">
+                          <!-- <span tooltip="HARVESTING: {{obj.webentity.crawling_status}} INDEXING: {{obj.webentity.indexing_status}}"> -->
+                            <span class="table-glyphicon glyphicon glyphicon-ok text-muted" ng-show="obj.webentity.crawled"></span>
+                            <span ng-show="!obj.webentity.crawled">&nbsp;&nbsp;&nbsp;</span>
+                          <!-- </span> -->
+                        </td>
+                        <td class="cell-cited">
+                          {{obj.webentity.indegree}}
+                        </td>
+                        <td class="cell-last-modif hidden-xs hidden-sm hidden-md">
+                          <span tooltip="{{obj.webentity.last_modification_date|date}}">{{obj.webentity.last_modification_date|prettyDate}}</span>
+                        </td>
+                      </tr>
+
+                    </tbody>
+                  </table>
+
+                  <div class="webentities-list-noresult-container" ng-if="!loading && fullListLength == 0">
+                    <span class="text-info">No result</span>
+                  </div>
+
+                  <div class="webentities-list-loading-container" ng-if="loading">
+                    <spinner text="'LOADING'"/>
+                  </div>
+
+                </div>
+
+                <!-- Easter Egg -->
+                <div ng-if="!statuses.in && !statuses.out && !statuses.undecided && !statuses.discovered">
+                  <h3 class="text-info">You chose to display nothing. Enjoy some user mockery! :&nbsp;)</h3>
+                  <img ng-if="randomEasterEgg == 0" src="img/egg_linda.gif">
+                  <img ng-if="randomEasterEgg == 1" src="img/egg_scooter.gif">
+                  <img ng-if="randomEasterEgg == 2" src="img/egg_howdevpictureusers.gif">
+                  <img ng-if="randomEasterEgg == 3" src="img/egg_userandphone.gif">
+                  <img ng-if="randomEasterEgg == 4" src="img/egg_selfie.gif">
+                </div>
+
+
+                <!-- Pagination  -->
+                <div class="pagination-container">
+                  <pagination
+                  total-items="fullListLength"
+                  ng-model="paginationPage"
+                  items-per-page="settings.paginationLength"
+                  max-size="paginationNumPages"
+                  ng-show="fullListLength > settings.paginationLength && !loading"
+                  ng-change="pageChanged()"
+                  ></pagination>
+                </div>
+                <div class="input-group page-input" ng-show="fullListLength > settings.paginationLength && paginationMaxPage > paginationNumPages && !loading">
+                  <input
+                    type="text"
+                    class="form-control page-input"
+                    placeholder=""
+                    ng-model="paginationPage"
+                    ng-change="validatePage()"
+                    ng-press-enter="pageChanged()"
+                  ></input>
+                  <span class="input-group-addon">/ {{ paginationMaxPage }}</span>
+                </div>
+              </div>
+
+              <div class="col-md-4">
+
+                <!-- Checked Actions -->
+                <div ng-if="checkedList.length > 0">
+                  <div class="flatpanel">
+                    <div class="flatpanel-heading selection-background">
+                      SELECTION: {{checkedList.length}} WEB ENTIT{{checkedList.length | y_ies | uppercase}}
+                    </div>
+                    <div class="flatpanel-body">
+                      
+                      <!-- List preview -->
+                      <div class="selected-webentities-container">
+                        <table>
+                          <tr
+                            ng-repeat="id in checkedList"
+                          >
+                            <td class="webentity-name">
+                              {{webentitiesCheckStack[id].name}}
+                            </td>
+                            <td class="remove-button">
+                              <button
+                                class="btn btn-xs btn-link"
+                                ng-click="uncheck(id)"
+                              > 
+                                <span class="glyphicon glyphicon-remove"></span>
+                              </button>
+                            </td>
+                          </tr>
+                        </table>
+                      </div>
+
+                      <button
+                        class="btn btn-default btn-link pull-right"
+                        ng-click="uncheckAll()"
+                      > 
+                        <span class="glyphicon glyphicon-remove"></span>
+                        REMOVE ALL
+                      </button>
+
+                      <br>
+                      
+                      <div class="flatpanel-textblock">
+                        
+                        <form class="form-inline action" role="form">
+                          <div class="form-group">
+                            <select class="form-control" ng-model="$parent.selected_setStatus">
+                              <option value="none">set to...</option>
+                              <option value="IN">IN</option>
+                              <option value="UNDECIDED">UNDECIDED</option>
+                              <option value="OUT">OUT</option>
+                            </select>
+                          </div>
+                          <div class="form-group">
+                            <button
+                              class="btn btn-default"
+                              ng-disabled="selected_setStatus == 'none' || loading"
+                              ng-click="doSetStatus()"
+                            >SET STATUS</button>
+                          </div>
+                        </form>
+
+                        <form class="form-inline action" role="form">
+                          <div class="form-group">
+                            <button
+                              class="btn btn-default"
+                              ng-class="{disabled: loading}"
+                              ng-click="doCrawl()"
+                            >CRAWL</button>
+                          </div>
+                        </form>
+
+                        <form class="form-inline action" role="form">
+                          <div class="form-group">
+                            <select class="form-control" ng-model="$parent.selected_mergeTarget">
+                              <option value="none">merge into...</option>
+                              <option
+                                ng-repeat="id in checkedList"
+                                value="{{id}}"
+                              >{{webentitiesCheckStack[id].name}}</option>
+                            </select>
+                          </div>
+                          <div class="form-group">
+                            <button
+                              class="btn btn-default"
+                              ng-disabled="selected_mergeTarget == 'none' || loading"
+                              ng-click="doMerge()"
+                            >MERGE</button>
+                          </div>
+                        </form>
+
+                      </div>
+                  
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>

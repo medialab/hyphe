@@ -1,0 +1,98 @@
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-xs-12 sidebar-col">
+                <disclaimer/>
+                <ul class="nav nav-pills nav-stacked sidebar">
+
+                  <!-- Overview -->
+                  <li ng-class="{active: currentPage=='overview'}">
+                    <a href="#/project/{{corpusId}}/overview">
+                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-home"></span></span></td><td>OVERVIEW</td></tr></table>
+                    </a>
+                  </li>
+
+                  <li class="spacer"></li>
+                  
+                  <!-- Import URLs -->
+                  <li ng-class="{active: currentPage=='importurls'}">
+                    <a href="#/project/{{corpusId}}/importurls">
+                      <table><tr><td><span class="symbol">1</span></td><td>IMPORT</td></tr></table>
+                    </a>
+                  </li>
+
+                  <!-- Crawl -->
+                  <li ng-class="{active: currentPage=='monitorCrawls'}">
+                    <a href="#/project/{{corpusId}}/monitorCrawls">
+                      <table><tr><td><span class="symbol">2</span></td><td>CRAWLS</td></tr></table>
+                    </a>
+                  </li>
+                                    
+                  <!-- Prospect -->
+                  <li ng-class="{active: currentPage=='prospect'}">
+                    <a href="#/project/{{corpusId}}/prospect">
+                      <table><tr><td><span class="symbol">3</span></td><td>PROSPECT</td></tr></table>
+                    </a>
+                  </li>
+                  
+                  <li class="spacer"></li>
+                  
+                  <!-- Web entities list -->
+                  <li ng-class="{active: currentPage=='listWebentities'}">
+                    <a href="#/project/{{corpusId}}/listWebentities">
+                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-list"></span></td><td>WEB ENTITIES</td></tr></table>
+                    </a>
+                  </li>
+
+                  <!-- Visualize Network -->
+                  <li ng-class="{active: currentPage=='network'}">
+                    <a href="#/project/{{corpusId}}/network">
+                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-asterisk"></span></td><td>NETWORK</td></tr></table>
+                    </a>
+                  </li>
+
+                  <!-- Export -->
+                  <li ng-class="{active: currentPage=='export'}">
+                    <a href="#/project/{{corpusId}}/export">
+                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-download-alt"></span></td><td>EXPORT</td></tr></table>
+                    </a>
+                  </li>
+
+                  <li class="spacer"></li>
+                  
+                  <li ng-class="{active: currentPage=='settings'}">
+                    <a href="#/project/{{corpusId}}/settings">
+                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-cog"></span></td><td>SETTINGS</td></tr></table>
+                    </a>
+                  </li>
+
+                  <li class="spacer"></li>
+                  
+                  <li ng-class="{active: currentPage=='help'}">
+                    <a href="#/project/{{corpusId}}/help">
+                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-question-sign"></span></td><td>HELP</td></tr></table>
+                    </a>
+                  </li>
+
+
+                  <!--
+                  <li>
+                    <a href="#/project/{{corpusId}}">
+                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-list"></span></td><td>PROJECT HISTORY</td></tr></table>
+                    </a>
+                  </li>
+                  
+                  <li class="spacer"></li>
+                  
+                  <li>
+                    <a href="#/project/{{corpusId}}">
+                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-wrench"></span></td><td>PROJECT SETTINGS</td></tr></table>
+                    </a>
+                  </li>
+
+                   -->
+                  
+                  <li class="spacer"></li>
+                </ul>
+              </div>
+            </div>
+          </div>

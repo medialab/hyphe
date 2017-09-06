@@ -1,0 +1,309 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-12">
+                <h1>
+                  PROSPECT
+                </h1>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-8">
+
+
+                <div class="flatpanel">
+                  <div class="flatpanel-heading flatpanel-clickable" ng-click="filteringCollapsed = !filteringCollapsed">
+                    FILTERING
+                    <div class="pull-right">
+                      <span ng-show="filteringCollapsed" class="glyphicon glyphicon-chevron-right"></span>
+                      <span ng-show="!filteringCollapsed" class="glyphicon glyphicon-chevron-down"></span>
+                    </div>
+                  </div>
+                  <div class="flatpanel-body" collapse="filteringCollapsed">
+
+                    <div class="flatpanel-textblock">
+
+                      <!-- Search -->
+                      <div class="input-group">
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
+                        <input
+                          type="text"
+                          class="form-control"
+                          placeholder="Type a query"
+                          ng-model="query"
+                          ng-change="touchSettings()"
+                          ng-press-enter="applySettings()"
+                        >
+                      </div>
+
+                      <!-- Range selector -->
+                      <!-- <div class="prospect-range-selector">
+                        <rangeselector data="rangeObj">
+                      </div> -->
+
+                    </div>
+
+                    <!-- Validation panel -->
+                    <div class="flatpanel-textblock flatpanel-right flatpanel-separated" collapse="!settingsChanged">
+                      <button class="btn btn-default" ng-click="revertSettings()"><span class="glyphicon glyphicon-remove"></span> CANCEL</button>
+                      <button class="btn btn-primary" ng-click="applySettings()"><span class="glyphicon glyphicon-ok"></span> APPLY CHANGES</button>
+                    </div>
+
+                  </div>
+                </div>
+
+                <br>
+
+                <div class="panel panel-default webentities-list-table">
+              
+                  <!-- Default panel contents -->
+                  <div class="panel-heading hyphe-gray">
+                    <form class="form-inline search-ariane-string" role="form">
+
+                      <div class="form-group">
+                        <button type="button" class="btn btn-default" disabled="disabled">DISCOVERED</button>
+                      </div>
+
+                      <div class="form-group" ng-if="settings.query && settings.query != ''">
+                        <button type="button" class="btn btn-default" ng-click="clearQuery()"><span class="glyphicon glyphicon-remove"></span> {{settings.query}}</button>
+                      </div>
+
+                      <div class="form-group search-ariane-string-text pull-right" ng-if="!loading">
+                        {{fullListLength}} DISCOVERED WEB ENTIT{{fullListLength > 1 ? 'IES' : 'Y'}}
+                      </div>
+                      
+                    </form>
+                  </div>
+
+                  <table class="table table-condensed table-striped">
+                    <thead>
+                      <tr ng-if="!loading && fullListLength > 0">
+                        <th class="cell-action"></th>
+                        <th class="cell-link"></th>
+                        <th>Name</th>
+                        <th class="cell-cited"><span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt"></span> Cited</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+
+                      <!-- Rows -->
+                      <tr
+                        class="webentity-row"
+                        ng-if="!loading"
+                        ng-repeat="obj in list track by $index"
+                        ng-class="{'bg-selected': obj.hover}"
+                        ng-mouseenter="obj.hover = true"
+                        ng-mouseleave="obj.hover = false"
+                      >
+                        <td class="cell-action">
+                          
+                          <div class="btn-group btn-group-status-selector">
+
+                            <label
+                              class="btn btn-default btn-xs btn-in"
+                              ng-model="obj.webentity.status"
+                              btn-radio="'IN'"
+                              ng-click="setStatus(obj, 'IN')"
+                              ng-class="{disabled:loading}"
+                            >IN</label>
+
+                            <label
+                              class="btn btn-default btn-xs btn-undecided"
+                              ng-model="obj.webentity.status"
+                              btn-radio="'UNDECIDED'"
+                              ng-click="setStatus(obj, 'UNDECIDED')"
+                              ng-class="{disabled:loading}"
+                            >UND.</label>
+
+                            <label
+                              class="btn btn-default btn-xs btn-out"
+                              ng-model="obj.webentity.status"
+                              btn-radio="'OUT'"
+                              ng-click="setStatus(obj, 'OUT')"
+                              ng-class="{disabled:loading}"
+                            >OUT</label>
+
+                          </div>
+
+                          <!-- <button class="btn btn-xs btn-link" title="Explore Web Entity" ng-click="openPreview(obj)"><span class="glyphicon glyphicon-share"></span></button> -->
+
+                        </td>
+                        <td class="cell-link">
+                          <a
+                            ng-show="obj.webentity.homepage"
+                            href="{{obj.webentity.homepage}}"
+                            target="_blank"
+                            ng-click="$event.stopPropagation();"
+                            tooltip="{{obj.webentity.homepage}}"
+                          ><span class="glyphicon glyphicon-link"></span></a>
+                        </td>
+                        <td class="cell-name">{{obj.webentity.name}} <webentity-link corpus-id="corpusId" webentity-id="obj.webentity.id"></td>
+                        <td class="cell-cited">{{obj.webentity.indegree}}</td>
+                      </tr>
+
+                    </tbody>
+                  </table>
+
+                  <div class="webentities-list-noresult-container" ng-if="!loading && fullListLength == 0">
+                    <span class="text-info">No result</span>
+                  </div>
+
+                  <div class="webentities-list-loading-container" ng-if="loading">
+                    <spinner text="'LOADING'"/>
+                  </div>
+
+                </div>
+
+                <!-- Pagination  -->
+                <div class="text-center">
+                  <pagination
+                  total-items="fullListLength"
+                  ng-model="$parent.paginationPage"
+                  items-per-page="paginationLength"
+                  boundary-links="true"
+                  max-size="paginationNumPages"
+                  ng-if="fullListLength > paginationLength && !loading"
+                  ng-change="pageChanged()"
+                ></pagination>
+                </div>
+
+
+              </div>
+
+              <div class="col-md-4">
+                
+                <div class="flatpanel">
+
+                  <!-- IN -->
+                  <div class="flatpanel-heading flatpanel-clickable" ng-click="setToInCollapsed = !setToInCollapsed" ng-show="setToIn>0">
+                    {{setToIn}} SET TO <span class="webentity-color-in">IN</span>
+                    <div class="pull-right">
+                      <span ng-show="setToInCollapsed" class="glyphicon glyphicon-chevron-right"></span>
+                      <span ng-show="!setToInCollapsed" class="glyphicon glyphicon-chevron-down"></span>
+                    </div>
+                  </div>
+                  <div class="flatpanel-body" collapse="setToInCollapsed" ng-show="setToIn>0">
+
+                    <div class="flatpanel-textblock text-muted" ng-if="setToIn == 0">empty</div>
+
+                    <div class="selected-webentities-container" ng-if="setToIn > 0">
+                      <table>
+                        <tr
+                          ng-repeat="(k,obj) in setIndex"
+                          ng-if="obj.status == 'IN'"
+                        >
+                          <td class="webentity-name">
+                            {{obj.webentity.name}}
+                          </td>
+                          <td class="remove-button">
+                            <button
+                              class="btn btn-xs btn-link"
+                              ng-click="removeFromSetIndex(k)"
+                            > 
+                              <span class="glyphicon glyphicon-remove"></span>
+                            </button>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+
+                    <div class="flatpanel-textblock" ng-if="setToIn > 0">
+                      <button
+                        class="btn btn-default"
+                        ng-click="doCrawl('IN')"
+                      >CRAWL</button>
+                    </div>
+
+                  </div>
+
+                  <!-- UNDECIDED -->
+                  <div class="flatpanel-heading flatpanel-clickable flatpanel-whitespace" ng-click="setToUndecidedCollapsed = !setToUndecidedCollapsed" ng-show="setToUndecided>0">
+                    {{setToUndecided}} SET TO <span class="webentity-color-undecided">UNDECIDED</span>
+                    <div class="pull-right">
+                      <span ng-show="setToUndecidedCollapsed" class="glyphicon glyphicon-chevron-right"></span>
+                      <span ng-show="!setToUndecidedCollapsed" class="glyphicon glyphicon-chevron-down"></span>
+                    </div>
+                  </div>
+                  <div class="flatpanel-body" collapse="setToUndecidedCollapsed" ng-show="setToUndecided>0">
+                    
+                    <div class="flatpanel-textblock text-muted" ng-if="setToUndecided == 0">empty</div>
+
+                    <div class="selected-webentities-container" ng-if="setToUndecided > 0">
+                      <table>
+                        <tr
+                          ng-repeat="(k,obj) in setIndex"
+                          ng-if="obj.status == 'UNDECIDED'"
+                        >
+                          <td class="webentity-name">
+                            {{obj.webentity.name}}
+                          </td>
+                        <!--
+                          <td class="remove-button">
+                            <button
+                              class="btn btn-xs btn-link"
+                              ng-click="removeFromSetIndex(k)"
+                            > 
+                              <span class="glyphicon glyphicon-remove"></span>
+                            </button>
+                          </td>
+                        -->
+                        </tr>
+                      </table>
+                    </div>
+
+                  </div>
+
+                  <!-- OUT -->
+                  <div class="flatpanel-heading flatpanel-clickable flatpanel-whitespace" ng-click="setToOutCollapsed = !setToOutCollapsed" ng-show="setToOut>0">
+                    {{setToOut}} SET TO <span class="webentity-color-out">OUT</span>
+                    <div class="pull-right">
+                      <span ng-show="setToOutCollapsed" class="glyphicon glyphicon-chevron-right"></span>
+                      <span ng-show="!setToOutCollapsed" class="glyphicon glyphicon-chevron-down"></span>
+                    </div>
+                  </div>
+                  <div class="flatpanel-body" collapse="setToOutCollapsed" ng-show="setToOut>0">
+                    
+                    <div class="flatpanel-textblock text-muted" ng-if="setToOut == 0">empty</div>
+
+                    <div class="selected-webentities-container" ng-if="setToOut > 0">
+                      <table>
+                        <tr
+                          ng-repeat="(k,obj) in setIndex"
+                          ng-if="obj.status == 'OUT'"
+                        >
+                          <td class="webentity-name">
+                            {{obj.webentity.name}}
+                          </td>
+                        <!--
+                          <td class="remove-button">
+                            <button
+                              class="btn btn-xs btn-link"
+                              ng-click="removeFromSetIndex(k)"
+                            > 
+                              <span class="glyphicon glyphicon-remove"></span>
+                            </button>
+                          </td>
+                        -->
+                        </tr>
+                      </table>
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>

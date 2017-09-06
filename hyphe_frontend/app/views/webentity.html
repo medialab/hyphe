@@ -1,0 +1,287 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-12">
+                <h1 class="word-break">
+                  {{webentity.name}}
+                </h1>
+                <span class="text-info">Explore and edit this web entity</span>
+
+                <br>
+                <br>
+                
+                <webentity-tabs></webentity-tabs>
+
+                <div ng-show="webentity && !webentity['loading']">
+
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h3>Identity</h3>
+                      <br>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-8">
+                      <form editable-form name="editableForm" onbeforesave="checkWebEntityHomepage($data)" onaftersave="saveWebEntity()">
+                        <dl class="dl-horizontal dl-editable">
+
+                          <dt class="lightText">ID</dt>
+                          <dd class="lightText">
+                            {{webentity.id}}
+                          </dd>
+
+                          <dt>Name</dt>
+                          <dd>
+                            <span editable-text="webentity.name" e-name="name" e-required ng-click="editableForm.$show()">{{ webentity.name || 'empty' }}</span>
+                          </dd>
+                          <dt ng-show="editableFormError.name"></dt>
+                          <dd class="form-error" ng-show="editableFormError.name">{{editableFormError.name}}</dd>
+
+                          <dt>Status</dt>
+                          <dd>
+                            <span editable-select="webentity.status" e-name="status" e-ng-options="s.value as s.text for s in statuses" ng-click="editableForm.$show()">
+                              {{webentity.status}}
+                            </span>
+                          </dd>
+                          <dt ng-show="editableFormError.status"></dt>
+                          <dd class="form-error" ng-show="editableFormError.status">{{editableFormError.status}}</dd>
+
+                          <dt><span hyphe-glossary="Homepage"/></dt>
+                          <dd class="url-container">
+                            <div editable-text="webentity.homepage" e-name="homepage" e-required>
+                              <a href="{{webentity.homepage}}" target="_blank" title="Open in a new tab">
+                                <span class="glyphicon glyphicon-link"></span>
+                              </a>
+                              <span class="url url-break">
+                                <span class="editable" ng-click="editableForm.$show()">
+                                  {{ webentity.homepage || 'empty' }}
+                                </span>
+                              </span>
+                            </div>
+                          </dd>
+                          <dt ng-show="editableFormError.homepage"></dt>
+                          <dd class="form-error" ng-show="editableFormError.homepage">{{editableFormError.homepage}}</dd>
+
+                          <dt></dt>
+                          <dd>
+                            <br>
+                            <div class="buttons">
+                              <!-- button to show form -->
+                              <button type="button" class="btn btn-primary btn-sm" ng-click="editableForm.$show()" ng-show="!editableForm.$visible">
+                                EDIT
+                              </button>
+                              <!-- buttons to submit / cancel form -->
+                              <span ng-show="editableForm.$visible">
+                                <button type="submit" class="btn btn-primary btn-sm" ng-disabled="editableForm.$waiting">
+                                  SAVE
+                                </button>
+                                <button type="button" class="btn btn-default btn-sm" ng-disabled="editableForm.$waiting" ng-click="editableForm.$cancel()">
+                                  CANCEL
+                                </button>
+                              </span>
+                            </div>
+                          </dd>
+                        
+                        </dl>
+
+                      </form>
+                    </div>
+
+                    <div class="col-md-4">
+                      <p>
+                        <strong><span hyphe-glossary="Prefixes"/></strong>
+                      </p>
+                      <ul class="list-unstyled list-spaced">
+                        <li ng-repeat="lru in webentity.prefixes">
+                          <div class="url-container">
+                            <a href="{{lru|lru_to_url}}" target="_blank" title="Open in a new tab">
+                              <span class="glyphicon glyphicon-link"></span>
+                            </a>
+                            <span class="url url-break">
+                              <span>
+                                {{lru|lru_to_url}}
+                              </span>
+                            </span>
+                          </div>
+                        </li>
+                      </ul>
+                      <br/>
+                      <ul class="list-unstyled features lightText">
+                        <li title="{{webentity['creation_date']|date}}">Created {{webentity['creation_date']|prettyDate}}</li>
+                        <li title="{{webentity['last_modification_date']|date}}">Last modified {{webentity['last_modification_date']|prettyDate}}</li>
+                        <li>Cited by {{webentity['indegree'] | no}} other entit{{webentity['indegree'] | y_ies}}</li>
+                      </ul>
+
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-12">
+                      <hr>
+                      <h3>Features</h3>
+                      <br>
+                      <div class="row">
+                        <div class="col-md-12">
+                          <div class="tagbox freetags">
+                            <div class="tagbox-head">
+                              free tags
+                            </div>
+                            <div class="tagbox-body">
+                              <tags-input
+                                ng-model="webentity.tags.USER.FREETAGS"
+                                on-tag-adding="addTag($tag, 'FREETAGS')"
+                                on-tag-removing="removeTag($tag, 'FREETAGS')">
+                                <auto-complete source="autoComplete($query, 'FREETAGS')">
+                                </auto-complete>
+                              </tags-input>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-4" ng-repeat="cat in tagCategoriesOrder" ng-if="cat !== 'FREETAGS'">
+                          <div class="tagbox">
+                            <div class="tagbox-head">
+                              {{cat}}
+                              <!-- <div class="pull-right">
+                                <button class="btn btn-xs btn-link" ng-click=""> 
+                                  <span class="glyphicon glyphicon-remove"></span>
+                                </button>
+                              </div> -->
+                            </div>
+                            <div class="tagbox-body">
+                              <tags-input
+                                ng-model="webentity.tags.USER[cat]"
+                                on-tag-adding="addTag($tag, cat)"
+                                on-tag-removing="removeTag($tag, cat)">
+                                <auto-complete source="autoComplete($query, cat)">
+                                </auto-complete>
+                              </tags-input>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-3">
+                          <div class="tagbox">
+                            <div class="tagbox-head">
+                              <a class="editable" href="#" editable-text="newCategory" onaftersave="saveNewCategory($data)">
+                                <span ng-show="false">{{newCategory || ''}}</span>
+                                + Add a tag category
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-12">
+                      <hr>
+                      <h3>Crawling</h3>
+                      <br>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-4">
+                      <dl class="dl-horizontal dl-editable">
+
+                        <dt>Crawled</dt>
+                        <dd>
+                          {{webentity.crawled}}
+                        </dd>
+
+                        <dt>Harvesting</dt>
+                        <dd>{{webentity['crawling_status']}}</dd>
+
+                        <dt>Indexing</dt>
+                        <dd>{{webentity['indexing_status']}}</dd>
+
+                        <dt ng-show="!crawls.length"></dt>
+                        <dd ng-show="!crawls.length">
+                          <br>
+                          <button
+                            class="btn btn-default btn-sm"
+                            ng-click="reCrawl()"
+                          ><span class="glyphicon glyphicon-repeat"></span> CRAWL</button>
+                        </dd>
+
+                      </dl>
+                    </div>
+                    <div class="col-md-8">
+                      <div ng-repeat="startpagetype in [{id: 'user', name: 'Manual'}, {id: 'auto', name: 'Automatic'}, {id: 'removed', name: 'Temporary removed'}]">
+                        <p ng-show="webentity.tags['CORE-STARTPAGES'][startpagetype.id]"><strong>{{startpagetype.name}} <span hyphe-glossary="startpages"/></strong></p>
+                        <ul class="list-unstyled list-spaced">
+                          <li ng-repeat="url in webentity.tags['CORE-STARTPAGES'][startpagetype.id]">
+                            <div class="url-container">
+                              <a href="{{url}}" target="_blank" title="Open in a new tab">
+                                <span class="glyphicon glyphicon-link"></span>
+                              </a>
+                              <span class="url url-break">
+                                <span>
+                                  {{url}}
+                                </span>
+                              </span>
+                            </div>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row webentity-crawls" ng-show="crawls.length">
+                    <div class="col-md-4 crawljob-cell" ng-repeat="job in crawls">
+                      <div class="crawljob-cell-content"
+                        ng-class="{
+                          'bg-danger':job.globalStatus == 'CRASHED'
+                          ,'bg-warning':job.globalStatus == 'UNSUCCESSFUL'
+                          ,'bg-blank':job.globalStatus == 'CANCELED'
+                          ,'bg-info':job.globalStatus == 'RETRIED'
+                          ,'bg-primary':job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'
+                          ,'bg-success': job.globalStatus == 'ACHIEVED'}"
+                      >
+                        <p class="title">
+                          Scheduled <span tooltip="{{job.created_at|date}}">{{job.created_at|prettyDate}}</span>
+                        </p>
+                        <p ng-if="job.finished_at" class="subtitle">
+                          Finished in {{job.finished_at - job.created_at|duration}}
+                        </p>
+                        <p class="subtitle" ng-if="job.crawl_arguments.phantom">
+                          <span class="glyphicon glyphicon-bell"></span> Cautious crawl
+                        </p>
+                        <p class="subtitle">
+                          Depth {{job.crawl_arguments.max_depth}}
+                        </p>
+                        <div class="crawljob-animation"
+                          water-loader="{{job.globalStatus}}"
+                          wl-message-only="{{!(job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING')}}"
+                          wl-text-danger="{{job.globalStatus == 'CANCELED'}}"
+                          wl-cog="{{job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'}}"
+                        />
+                        <div><button class="details btn btn-default btn-sm" ng-click="crawlDetails(job)"><span class="glyphicon glyphicon-info-sign"></span> &nbsp; DETAILS</button></div>
+                        <div ng-show="job.globalStatus == 'ACHIEVED' || job.globalStatus == 'UNSUCCESSFUL' || job.globalStatus == 'CANCELED'"><button class="action btn btn-default btn-sm" ng-click="reCrawl(job)"><span class="glyphicon glyphicon-repeat"></span> RECRAWL</button></div>
+                        <div ng-show="job.globalStatus != 'ACHIEVED' && job.globalStatus != 'UNSUCCESSFUL' && job.globalStatus != 'CANCELED'"><button class="action btn btn-default btn-sm" ng-click="abortCrawl(job)"><span class="glyphicon glyphicon-trash"></span> ABORT</button></div>
+                        <div class="stats" ng-class="{'bg-danger':job.globalStatus == 'UNSUCCESSFUL', 'bg-warning':(job.globalStatus == 'ACHIEVED' && job.nb_crawled_pages <= 3)}">
+                          {{job.nb_crawled_pages}} page{{job.nb_crawled_pages | plural}} crawled<span ng-show="job.nb_unindexed_pages">&nbsp;({{job.nb_unindexed_pages}} not indexed yet)</span>
+                          <br>
+                          <span ng-show="job.nb_links || job.nb_pages">{{job.nb_links}} link{{job.nb_links | plural}} &amp; {{job.nb_pages}} page{{job.nb_pages | plural}} discovered</span>
+                          <br>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>

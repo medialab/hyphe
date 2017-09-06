@@ -1,0 +1,134 @@
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+          <div class="welcome-column">
+            <img src="img/hyphe logo med.png"/ title="hyphe-logo">
+            <h1>hyphe</h1>
+            <br/>
+            <br/>
+            <div ng-if="disconnected">
+              <p class="text-danger">
+                YOU ARE DISCONNECTED FROM HYPHE &nbsp; &nbsp;:-(
+              </p>
+            </div>
+
+            <div ng-if="!disconnected && !loading">
+              <div focus-after-collapse collapse="uiMode !== 'default' || corpusList.length == 0">
+                <h3>Select your project</h3>
+                <p class="text-info" ng-if="freeSlots > 0">
+                  {{freeSlots}} project{{freeSlots | plural}} can be put into operation ({{globalStatus.corpus_running}} slots occupied)
+                </p>
+                <p class="text-danger" ng-if="freeSlots == 0">
+                  Hyphe cannot put a new project into operation
+                  <br>
+                  ({{globalStatus.corpus_running}} running, {{globalStatus.ports_left}} port{{globalStatus.ports_left | plural}} &amp; {{globalStatus.ram_left}} Mo ram left available)
+                </p>
+                <input type="text" class="form-control search-project" ng-model="$parent.$parent.search_query" placeholder="Search a project" ng-if="corpusList !== undefined && corpusList.length > 3" ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)">
+                <div class="project-list-container">
+                  <div ng-if="corpusList === undefined">loading...</div>
+                  <div ng-if="corpusList !== undefined">
+                    <div
+                      class="item"
+                      ng-repeat="corpus in corpusList|search:search_query:['name']"
+                      ng-click="selectCorpus(corpus.corpus_id)"
+                      ng-class="{'item-blocked': globalStatus && globalStatus.freeSlots == 0 && !corpus.ready, 'item-ok': !(globalStatus && globalStatus.freeSlots == 0 && !corpus.ready)}"
+                    >
+                      <div class="item-name">
+                        <span class="item-status text-muted" ng-if="corpus.password" tooltip="Password Protected"><span class="glyphicon glyphicon-lock"></span></span>
+                        {{corpus.name}}
+                        <span class="item-status text-muted" ng-if="corpus.ready" tooltip="In Operation"><span class="glyphicon glyphicon-play"></span></span>
+                      </div>
+                      <div class="item-stats text-muted">
+                        {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + '  web entities'}}
+                      </div>
+                      <div class="item-date text-info">
+                        Created
+                        <span tooltip="{{corpus.created_at|date}}" tooltip-placement="bottom">{{corpus.created_at|prettyDate}}</span>
+                        -
+                        Used
+                        <span tooltip="{{corpus.last_activity|date}}" tooltip-placement="bottom">{{corpus.last_activity|prettyDate}}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <br>
+                <p class="text-info">- or -</p>
+                
+                <button class="btn btn-link" ng-show="uiMode == 'default'" ng-click="switchToNew()"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;NEW PROJECT</button>
+              </div>
+
+              <div focus-after-collapse collapse="uiMode !== 'new' && corpusList.length > 0">
+                <h3>New Project</h3>
+                <br>
+                <div ng-if="!starting">
+                  <input type="text" class="form-control" ng-model="$parent.$parent.new_project_name" placeholder="Project Name" ng-press-enter="createCorpus()">
+                  <br>
+                  <div class="checkbox variations-checkbox">
+                    <label>
+                      <input type="checkbox" ng-model="$parent.$parent.passwordProtected"> <span class="glyphicon glyphicon-lock"></span> Protected</span>
+                    </label>
+                  </div>
+                  <input type="password" class="form-control" ng-model="$parent.$parent.$parent.new_project_password" placeholder="Password" ng-if="passwordProtected">
+                  <input type="password" class="form-control" ng-model="$parent.$parent.$parent.new_project_password_2" placeholder="Enter Password Again" ng-if="passwordProtected">
+                  <br>
+                  <p ng-if="new_project_message.length > 0">
+                    <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{new_project_message}}
+                  </p>
+                  <button class="btn btn-primary btn-block" ng-click="createCorpus()">CREATE PROJECT</button>
+
+                  <br>
+                  <p ng-if="login_message.length > 0">
+                    <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
+                  </p>
+
+                  <button class="btn btn-link" ng-click="$parent.$parent.switchToChoice()"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
+                </div>
+
+                <div ng-if="starting">
+                  <spinner class="center" text="'CREATING CORPUS'"/>
+                </div>
+              </div>
+              
+              <div focus-after-collapse collapse="uiMode !== 'login'">
+                <h3>{{corpus.name}}</h3>
+
+                <div class="text-muted">
+                  {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + ' web entities'}}
+                </div>
+
+                <div class="text-info">
+                  Created
+                  <span tooltip="{{corpus.created_at|date}}">{{corpus.created_at|prettyDate}}</span>
+                  -
+                  Used
+                  <span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span>
+                </div>
+
+                <br>
+                <div ng-if="!starting">
+                  <input type="password" class="form-control" ng-model="$parent.$parent.login_password" placeholder="Password" ng-press-enter="logIn()">
+                  <button class="btn btn-primary btn-block" ng-click="logIn()">OPEN PROJECT</button>
+
+                  <br>
+                  <p ng-if="login_message.length > 0">
+                    <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
+                  </p>
+
+                  <button class="btn btn-link" ng-click="$parent.$parent.switchToChoice()"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
+                </div>
+
+                <div ng-if="starting">
+                  <spinner class="center" text="'STARTING CORPUS'"/>
+                </div>
+              
+              </div>
+            </div>
+
+          </div>
+
+
+        </div>
+
+      </div>
+    </div>

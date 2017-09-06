@@ -1,0 +1,29 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            
+            <div class="row">
+              <div class="col-md-12">
+                <h1>
+                  MONITOR CRAWLS
+                </h1>
+              </div>
+            </div>
+
+            <tabset>
+              <tab heading="Last Hour" active="tabs['hour']" ng-click="setTimespan('hour')"><div ng-include="'partials/monitorCrawls_last.html'"></div></tab>
+              <tab heading="Today" active="tabs['day']" ng-click="setTimespan('day')" active="true"><div ng-include="'partials/monitorCrawls_last.html'"></div></tab>
+              <tab heading="This Week" active="tabs['week']" ng-click="setTimespan('week')"><div ng-include="'partials/monitorCrawls_last.html'"></div></tab>
+              <tab heading="All Crawls" active="tabs['all']" ng-click="setTimespan('all')"><div ng-include="'partials/monitorCrawls_all.html'"></div></tab>
+              <tab heading="Details" active="showDetails" ng-if="showDetails"><div class="crawljob-details" ng-include="'partials/monitorCrawl_details.html'"></div></tab>
+            </tabset>
+
+          </div>
+        </div>
+      </div>
+    </div>

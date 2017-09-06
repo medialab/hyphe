@@ -1,0 +1,50 @@
+<div class="btn-group statuses-box">
+  <label
+    class="btn btn-default btn-in"
+    ng-model="statuses.in"
+    ng-change="change"
+    ng-disabled="disabled"    
+    btn-checkbox
+  >
+    <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.in, 'glyphicon-check':statuses.in, 'checkox-muted':!statuses.in}" aria-hidden="true"></span>
+    <span class="label-status">IN</span>
+    <span class="label-count">{{counts.in}}</span>
+  </label>
+
+  <label
+    class="btn btn-default btn-undecided"
+    ng-model="statuses.undecided"
+    ng-change="change"
+    ng-disabled="disabled"    
+    btn-checkbox
+  >
+    <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.undecided, 'glyphicon-check':statuses.undecided, 'checkox-muted':!statuses.undecided}" aria-hidden="true"></span>
+    <span class="label-status">UNDECIDED</span>
+    <span class="label-count">{{counts.undecided}}</span>
+  </label>
+
+  <label
+    class="btn btn-default btn-out"
+    ng-model="statuses.out"
+    ng-change="change"
+    ng-disabled="disabled"    
+    btn-checkbox
+  >
+    <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.out, 'glyphicon-check':statuses.out, 'checkox-muted':!statuses.out}" aria-hidden="true"></span>
+    <span class="label-status">OUT</span>
+    <span class="label-count">{{counts.out}}</span>
+  </label>
+
+  <label
+    class="btn btn-default btn-discovered"
+    ng-model="statuses.discovered"
+    ng-change="change"
+    ng-disabled="disabled"    
+    btn-checkbox
+  >
+    <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.discovered, 'glyphicon-check':statuses.discovered, 'checkox-muted':!statuses.discovered}" aria-hidden="true"></span>
+    <span class="label-status">DISCOVERED</span>
+    <span class="label-count">{{counts.discovered}}</span>
+  </label>
+
+</div>

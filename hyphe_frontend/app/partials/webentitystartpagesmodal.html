@@ -1,0 +1,181 @@
+<div class="modal-header">
+  <h3 class="modal-title">{{webentity.name}}</h3>
+</div>
+<div class="modal-body">
+
+  <table class="table table-condensed table-striped table-wesp">
+
+    <thead>
+      <tr>
+        <th
+          class="wesp-modal-cell-link"
+        ></th>
+        <th
+          class="wesp-modal-cell-startpage"
+        >Start page{{startpages.length | plural}}</th>
+        <th
+          class="wesp-modal-cell-lookup"
+        ></th>
+        <th
+          class="wesp-modal-cell-spacing"
+        ></th>
+        <th
+          class="wesp-modal-cell-remove"
+        ></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr
+        ng-repeat="url in startpages track by $index"
+        ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading', 'wesp-modal-removed': removed[url]}"
+      >
+        
+        <td
+          class="wesp-modal-cell-link"
+        >
+          <a href="{{url}}" target="_blank" title="Open in a new tab">
+            <span class="glyphicon glyphicon-link"></span>
+          </a>
+        </td>
+        <td
+          class="wesp-modal-cell-startpage"
+        >
+          <div class="url-container">
+            <span class="url url-break">
+              <span>
+                {{url}}
+              </span>
+            </span>
+          </div>          
+        </td>
+        
+        <td
+          class="wesp-modal-cell-lookup"
+        >
+          <span class="pull-right">
+            <!-- Lookup loaded -->
+            <span
+              ng-if=" lookups[url].status == 'issue'"
+              class="text-warning warning-message"
+              tooltip="HTTP code: {{lookups[url].httpStatus}}"
+            >
+              {{lookups[url].httpStatus|explicitHttpCode}}
+            </span>
+
+            <minispinner ng-if="lookups[url].status == 'loading'"></minispinner>
+
+            <span
+              ng-if="lookups[url].status != 'loading'"
+              class="glyphicon"
+              ng-class="{
+                'glyphicon-ok': lookups[url].status == 'success'
+              , 'text-success': lookups[url].status == 'success'
+
+              , 'glyphicon-exclamation-sign': lookups[url].status == 'issue'
+              , 'text-warning':               lookups[url].status == 'issue'
+              }"
+
+              tooltip-animation="true"
+              tooltip-placement="top"
+              tooltip-trigger="mouseenter"
+              tooltip="Lookup {{lookups[url].status}}"
+              tooltip-append-to-body="true"
+            ></span>
+
+            <!-- Lookup fail -->
+            <span ng-if="lookups[url].status == 'fail'" class="text-danger">
+              lookup fail
+            </span>
+
+          </span>
+        </td>
+        <td
+          class="wesp-modal-cell-spacing"
+        ></td>
+        <td
+          class="wesp-modal-cell-remove"
+        >
+          <button
+            class="btn btn-link btn-xs"
+            title="Remove"
+            ng-click="removeStartPage(url)"
+          >
+            <span class="glyphicon glyphicon-remove"></span>
+          </button>
+        </td>
+
+      </tr>
+    </tbody>
+
+  </table>
+
+  <div collapse="collapseProgressBar" >
+    <progressbar ng-if="startpagesSummary.percent == 0" value="100" class="progress-striped active" >startpage{{startpages.length | plural}}</progressbar>
+    <progressbar ng-if="startpagesSummary.percent > 0" value="startpagesSummary.percent" >{{startpagesSummary.percent}}% tested</progressbar>
+  </div>
+
+  <div>
+    <div class="input-group" ng-class="{'has-error': newStartPagesInvalid}">
+      <span class="input-group-addon">ADD START PAGES</span>
+      <input
+        type="textarea"
+        id="add-sp-{{webentity.id}}"
+        class="form-control input-sm start-page-input"
+        ng-model="newStartPagesURLs"
+        ng-change="validateNewStartPages()"
+        ng-press-enter="addStartPages()"
+        placeholder="Enter one or multiple URLs"
+      >
+      <span class="input-group-btn">
+        <button
+          type="button"
+          class="btn btn-default btn-sm"
+          ng-click="addStartPages()"
+          ng-disabled="newStartPagesInvalid"
+        >
+          OK
+        </button>
+      </span>
+    </div>
+    <p class="startpages-report" ng-show="urlsToAdd.length > 1 || urlErrors.length" ng-class="{'startpages-valid': !urlErrors.length}">
+      {{urlsToAdd.length}} unique new URL{{urlsToAdd.length | plural}} found<span ng-show="urlErrors.length"> and {{urlErrors.length}} error{{urlErrors.length | plural}}:</span>
+    </p>
+    <ul class="startpages-report clearboth" ng-show="urlErrors.length">
+      <li ng-repeat="err in urlErrors track by $index">
+        {{err}}
+      </li>
+    </ul>
+    <br class="clearboth">
+  </div>
+
+  <div collapse="!collapseProgressBar">
+
+    <div ng-show="startpagesSummary.diagnostic.ready">
+      <h4 class="text-success">READY TO CRAWL</h4>
+      <p ng-show="startpagesSummary.diagnostic.issues" class="text-success">
+        At least one page is valid, allowing the crawl to start successfully.
+      </p>
+      <p ng-show="startpagesSummary.diagnostic.issues" class="text-warning">
+        A little warning, though.
+        <br>
+        Some start pages have issues and cannot be crawled. It will not block the crawl but you may want to fix this.
+      </p>
+    </div>
+
+    <div ng-show="startpagesSummary.diagnostic.doomed">
+      <h4 class="text-danger">DOOMED CRAWL</h4>
+      <p class="text-danger">
+        This web entity has no valid start page. Hyphe will not be able to start crawling it.
+      </p>
+      <p class="text-muted">
+        You can still try to launch it, though. Miracles happen.
+      </p>
+    </div>
+
+  </div>
+
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" ng-click="ok()">OK</button>
+</div>

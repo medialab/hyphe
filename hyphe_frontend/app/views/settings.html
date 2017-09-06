@@ -1,0 +1,84 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-12">
+                <h1>
+                  SETTINGS
+                </h1>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <div ng-if="!loading">
+
+                  <button class="btn btn-danger" ng-click="destroy()"><span class="glyphicon glyphicon-trash"></span> DESTROY CORPUS</button>
+                  <button class="btn btn-warning" ng-click="resetCorpus()"><span class="glyphicon glyphicon-repeat"></span> RESET</button>
+
+                  <h3>CRAWLING</h3>
+                  <dl class="dl-horizontal">
+
+                    <dt>Maximum Depth</dt>
+                    <dd>{{options.max_depth}}</dd>
+                    
+                    <dt>Startpages mode</dt>
+                    <dd>{{options.defaultStartpagesMode | arrayToString}}</dd>
+
+                  </dl>
+
+                  <div ng-if='options.proxy.host'>
+                    <h3>PROXY</h3>
+                    <dl class="dl-horizontal">
+
+                      <dt>Host</dt>
+                      <dd>{{options.proxy.host}}</dd>
+
+                      <dt>Port</dt>
+                      <dd>{{options.proxy.port}}</dd>
+                    
+                    </dl>
+                  </div>
+                  
+                  <h3>CAUTIOUS CRAWL</h3>
+                  <dl class="dl-horizontal">
+
+                    <dt>Timeout</dt>
+                    <dd>{{options.phantom.timeout}}</dd>
+
+                    <dt>Ajax Timeout</dt>
+                    <dd>{{options.phantom.ajax_timeout}}</dd>
+                    
+                    <dt>Idle Timeout</dt>
+                    <dd>{{options.phantom.idle_timeout}}</dd>
+
+                  </dl>
+
+                  <h3>CAUTIOUS DOMAINS</h3>
+                  <ul>
+                    <li ng-repeat="domain in options.phantom.whitelist_domains">{{domain}}</li>
+                  </ul>
+
+                  <h3>REDIRECTION DOMAINS</h3>
+                  <ul>
+                    <li ng-repeat="domain in options.follow_redirects">{{domain}}</li>
+                  </ul>
+
+                  <h3>WEBENTITY CREATION RULES</h3>
+                  <ul>
+                    <li ng-repeat="rule in creationrules">{{rule.domain}} : {{rule.type}}{{rule.https ? ' (https)' : ''}}</li>
+                  </ul>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>

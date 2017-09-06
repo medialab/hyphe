@@ -1,0 +1,49 @@
+<div class="container-fluid hyphe-prefix-slider">
+	<div class="row">
+		<div class="col-md-4">
+			<div class="name-container" ng-class="{bold: obj.WEstatus=='exists'}">
+				<a href="{{obj.url}}" target="_blank"
+                  ng-click="$event.stopPropagation();"
+                ><span class="glyphicon glyphicon-link"></span></a>
+                {{obj.name}}
+			</div>
+			<div class="status-container">{{obj.statusText}}</div>
+            <div class="prefix-link">
+                <a
+            href="{{obj.lru|cutPrefixToUrl:obj.truePrefixLength}}"
+            target="_blank"
+            ng-click="$event.stopPropagation();"
+                ><span class="glyphicon glyphicon-link"></span></a>
+            </div>
+		</div>
+		<div class="col-md-8">
+    	    <div class="slider-button-container"
+              hyphe-prefix-slider-button="{cursor:'pointer'}">
+      	        <div class="slider-hitbox"></div>
+      	        <div class="slider-bar"></div>
+      	        <div class="slider-button"></div>
+            </div>
+			<table>
+				<tr>
+					<td class="stem"
+                      ng-repeat="stem in obj.pretty_lru track by $index"
+                      ng-class="{
+                        inblock: $index < $parent.obj.prefixLength,
+                        pointable: clickableStem($index)
+                      }"
+                      ng-click="clickStem($index)">
+                        {{stem}}
+                    </td>
+				</tr>
+				<tbody ng-repeat="webEntity in obj.parentWebEntities">
+					<tr>
+						<td class="webentity-spacer"></td>
+					</tr>
+					<tr class="webentity-row" ng-class="{selected: obj.prefixLength==webEntity.stems_count + 1 - obj.tldLength}">
+						<td class="webentity-stem" ng-repeat="i in getRange(webEntity.stems_count + 1 - obj.tldLength)"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

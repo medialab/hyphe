@@ -1,0 +1,354 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-12">
+                <h1>
+                  {{webentity.name}}
+                </h1>
+                <span class="text-info">Explore and edit this web entity</span>
+
+                <br>
+                <br>
+                
+                <webentity-tabs></webentity-tabs>
+                
+                <br>
+                
+                <div ng-if="loading">
+                  <spinner text="'LOADING'"/>
+                </div>
+
+                <div ng-if="!loading" class="webentity-explorer">
+
+                  <ol class="breadcrumb breadcrumb-subtitled">
+
+                    <!-- Home -->
+                    <li>
+                      <span ng-if="path.length == 0">
+                        <span class="glyphicon glyphicon-home"></span> Web Entity
+                      </span>
+                      <span ng-if="path.length > 0">
+                        <a href ng-click="goTo()"><span class="glyphicon glyphicon-home"></span> Web Entity</a>
+                      </span>
+                    </li>
+
+                    <!-- Path elements > Home -->
+                    <li ng-repeat="obj in path track by $index">
+                      <a  ng-if="path.length > $index+1" href ng-click="goTo(obj.node)">{{obj.label}}</a>
+                      <span ng-if="path.length == $index+1">{{obj.label}}</span>
+                    </li>
+                    
+                  </ol>
+
+                  <div ng-if="pathUrl != ''">
+                    <p><small class="text-muted">{{pathUrl}} <a href="{{pathUrl}}" class="btn btn-link btn-xs" target="_blank"><span class="glyphicon glyphicon-share-alt"></span></a></small></p>
+
+                    <button class="btn btn-default btn-sm" ng-click="goToParent()"><span class="glyphicon glyphicon-circle-arrow-left"></span> BACK</button>
+                    
+                    <button
+                      class="btn btn-default btn-sm pull-right"
+                      ng-if="creationRuleLoaded && creationRule == null"
+                      ng-click="addWECreationRule()"
+                    >ADD A RULE TO SPLIT THIS IN DIFFERENT WEB ENTITIES</button>
+
+                    <button
+                      class="btn btn-default btn-sm pull-right btn-warning"
+                      ng-if="creationRuleLoaded && creationRule != null"
+                      ng-click="removeWECreationRule()"
+                    >REMOVE WEB ENTITY CREATION RULE</button>
+                  </div>
+
+                  <br>
+                  <br>
+
+
+                  <!-- TABLE: EXTERNAL PREFIXES -->
+                  <table class="table table-condensed table-explorer" ng-if="items_webentities.length > 0">
+                    <thead>
+                      <tr>
+                        <th class="pointable" ng-click="toogleSortWebentities('sortlabel')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_webentities != 'sortlabel'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_webentities == 'sortlabel' && sort_asc_webentities"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_webentities == 'sortlabel' && !sort_asc_webentities"></span>
+                          Prefixes of other web entit{{items_webentities.length | y_ies}}
+                        </th>
+                        <th class="cell-webentity pointable" ng-click="toogleSortWebentities('webentityname')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_webentities != 'webentityname'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_webentities == 'webentityname' && sort_asc_webentities"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_webentities == 'webentityname' && !sort_asc_webentities"></span>
+                          Web entity
+                        </th>
+                        <th class="cell-action"></th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr
+                        ng-repeat="obj in items_webentities|sortByField:sort_webentities:sort_asc_webentities|paginate:items_webentity:pagination_items_per_page track by $index"
+                      >
+                        <td> <!-- Label column -->
+
+                          <div>
+                            <span title="{{obj.url}}">
+                              <span class="glyphicon glyphicon-briefcase" tooltip="Prefix of another web entity"></span>
+                              {{obj.label}}
+                            </span>
+                          </div>
+                          
+                        </td>
+                        
+                        <td class="cell-webentity"><a href="#/project/{{corpusId}}/webentity/{{obj.data.id}}/explorer">{{obj.data.name}}</a></td>
+                        
+                        <td class="cell-action"><button class="btn btn-default btn-xs" ng-click="mergeIntoCurrent(obj.data.id)">MERGE INTO THIS</button></td>
+                      
+                      </tr>
+                    </tbody>
+                  </table>
+                  <pagination
+                    ng-if="items_webentities.length > pagination_items_per_page"
+                    ng-model="$parent.$parent.items_webentity"
+                    total-items="items_webentities.length"
+                    items-per-page="pagination_items_per_page"
+                    max-size="pagination_max_size"
+                    class="pagination-sm"
+                    boundary-links="true"
+                  ></pagination>
+
+                  <!-- TABLE: PREFIX -->
+                  <table class="table table-condensed table-explorer" ng-if="items_prefixes.length > 0">
+                    <thead>
+                      <tr>
+                        <th class="pointable" ng-click="toogleSortPrefixes('sortlabel')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_prefixes != 'sortlabel'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_prefixes == 'sortlabel' && sort_asc_prefixes"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_prefixes == 'sortlabel' && !sort_asc_prefixes"></span>
+                          Prefixes of {{webentity.name}}
+                        </th>
+                        <th class="cell-info pointable" ng-click="toogleSortPrefixes('pagesCount')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_prefixes != 'pagesCount'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_prefixes == 'pagesCount' && sort_asc_prefixes"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_prefixes == 'pagesCount' && !sort_asc_prefixes"></span>
+                          Pages
+                        </th>
+                        <th class="cell-action"></th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr
+                        ng-repeat="obj in items_prefixes|sortByField:sort_prefixes:sort_asc_prefixes track by $index"
+                      >
+                        <td> <!-- Label column -->
+
+                          <div>
+                            <a href ng-click="goTo(obj.node)" title="{{obj.url}}">
+                              <span class="glyphicon glyphicon-briefcase" tooltip="This prefix contains {{obj.pagesCount == 0 ? 'no page' : obj.pagesCount == 1 ? '1 page' : obj.pagesCount+' pages'}}"></span>
+                              {{obj.label}}
+                            </a>
+                          </div>
+                          
+                        </td>
+                        
+                        <td class="cell-info">
+                          
+                          <span ng-if="obj.pagesCount == 0" class="text-muted">
+                            None
+                          </span>
+                          <span ng-if="obj.pagesCount > 0">
+                            {{obj.pagesCount}}
+                          </span>
+
+                        </td>
+                        
+                        <td class="cell-action">
+                          <button class="btn btn-default btn-xs" ng-click="removePrefix(obj)">REMOVE PREFIX</button>
+                        </td>
+                      
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <!-- TABLE: FOLDER -->
+                  <table class="table table-condensed table-explorer" ng-if="items_folders.length > 0">
+                    <thead>
+                      <tr>
+                        <th class="pointable" ng-click="toogleSortFolders('sortlabel')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_folders != 'sortlabel'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_folders == 'sortlabel' && sort_asc_folders"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_folders == 'sortlabel' && !sort_asc_folders"></span>
+                          Folders
+                        </th>
+                        <th class="cell-type pointable" ng-click="toogleSortFolders('type')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_folders != 'type'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_folders == 'type' && sort_asc_folders"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_folders == 'type' && !sort_asc_folders"></span>
+                          Type
+                        </th>
+                        <th class="cell-info pointable" ng-click="toogleSortFolders('pagesCount')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_folders != 'pagesCount'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_folders == 'pagesCount' && sort_asc_folders"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_folders == 'pagesCount' && !sort_asc_folders"></span>
+                          Pages
+                        </th>
+                        <th class="cell-action"></th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr
+                        ng-repeat="obj in items_folders|sortByField:sort_folders:sort_asc_folders|paginate:items_folder:pagination_items_per_page track by $index"
+                      >
+                        <td> <!-- Label column -->
+
+                          <div>
+                            <a href ng-click="goTo(obj.node)" title="{{obj.url}}">
+                              <span class="glyphicon glyphicon-folder-close" tooltip="This folder contains {{obj.pagesCount == 0 ? 'no page' : obj.pagesCount == 1 ? '1 page' : obj.pagesCount+' pages'}}"></span>
+                              {{obj.label}}
+                            </a>
+                          </div>
+                          
+                        </td>
+                        
+                        <td class="cell-type">{{obj.type}}</td>
+                        
+                        <td class="cell-info">
+                          
+                          <span ng-if="obj.pagesCount == 0" class="text-muted">
+                            None
+                          </span>
+                          <span ng-if="obj.pagesCount > 0">
+                            {{obj.pagesCount}}
+                          </span>
+
+                        </td>
+                        
+                        <td class="cell-action">
+                          
+                            <button ng-if="!obj.isPrefix" class="btn btn-default btn-xs" ng-click="newWebEntity(obj)">NEW WEB ENTITY</button>
+                          
+                        </td>
+                      
+                      </tr>
+                    </tbody>
+                  </table>
+                  <pagination
+                    ng-if="items_folders.length > pagination_items_per_page"
+                    ng-model="$parent.$parent.items_folder"
+                    total-items="items_folders.length"
+                    items-per-page="pagination_items_per_page"
+                    max-size="pagination_max_size"
+                    class="pagination-sm"
+                    boundary-links="true"
+                  ></pagination>
+
+                  <!-- TABLE: PAGE -->
+                  <table class="table table-condensed table-explorer" ng-if="items_pages.length > 0">
+                    <thead>
+                      <tr>
+                        <th class="pointable" ng-click="toogleSortPages('sortlabel')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_pages != 'sortlabel'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_pages == 'sortlabel' && sort_asc_pages"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_pages == 'sortlabel' && !sort_asc_pages"></span>
+                          Pages
+                        </th>
+                        <th class="cell-type pointable" ng-click="toogleSortPages('type')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_pages != 'type'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_pages == 'type' && sort_asc_pages"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_pages == 'type' && !sort_asc_pages"></span>
+                          Type
+                        </th>
+                        <th class="cell-info pointable" ng-click="toogleSortPages('crawled')">
+                          <span class="table-glyphicon glyphicon glyphicon-sort glyphicon-muted" ng-if="sort_pages != 'crawled'"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes" ng-if="sort_pages == 'crawled' && sort_asc_pages"></span>
+                          <span class="table-glyphicon glyphicon glyphicon-sort-by-attributes-alt" ng-if="sort_pages == 'crawled' && !sort_asc_pages"></span>
+                          Info
+                        </th>
+                        <th class="cell-action"></th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr
+                        ng-repeat="obj in items_pages|sortByField:sort_pages:sort_asc_pages|paginate:items_page:pagination_items_per_page track by $index"
+                      >
+                        <td> <!-- Label column -->
+
+                          <!-- case: page -->
+                        
+                          <span title="{{obj.url}}">
+                            <span class="glyphicon glyphicon-file" tooltip="Page"></span>
+                            {{obj.label}}
+                            <a href="{{obj.data.url}}" class="btn btn-link btn-xs" target="_blank"><span class="glyphicon glyphicon-share-alt"></span></a>
+                          </span>
+                          
+                        </td>
+                        
+                        <td class="cell-type">{{obj.type}}</td>
+                        
+                        <td class="cell-info">
+                          
+                          <span>
+                            {{obj.crawled ? 'crawled' : 'not crawled'}}
+                          </span>
+
+                        </td>
+                        
+                        <td class="cell-action">
+                          <button ng-if="!obj.isPrefix" class="btn btn-default btn-xs" ng-click="newWebEntity(obj)">NEW WEB ENTITY</button>
+                        </td>
+                      
+                      </tr>
+                    </tbody>
+                  </table>
+                  <pagination
+                    ng-if="items_pages.length > pagination_items_per_page"
+                    ng-model="$parent.$parent.items_page"
+                    total-items="items_pages.length"
+                    items-per-page="pagination_items_per_page"
+                    max-size="pagination_max_size"
+                    class="pagination-sm"
+                    boundary-links="true"
+                  ></pagination>
+
+                  
+
+                  <!-- Related (parent) web entities -->
+                  <table class="table table-condensed table-explorer" ng-if="path.length == 0 && parentWebentities.length > 0">
+                    <thead>
+                      <tr>
+                        <th>Related web entit{{parentWebentities.length | y_ies}}</th>
+                        <th>Prefixes</th>
+                        <th class="cell-action"></th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr
+                        ng-repeat="obj in parentWebentities track by $index"
+                      >
+                        <td><a href="#/project/{{corpusId}}/webentity/{{obj.id}}/explorer">{{obj.name}}</a></td>
+                        <td><span ng-repeat="lru in obj.prefixes">{{lru|lru_to_url}}<br/></span></td>
+                        
+                        <td class="cell-action"><button class="btn btn-default btn-xs" ng-click="mergeIntoCurrent(obj.id)">MERGE INTO THIS</button></td>
+                      
+                      </tr>
+                    </tbody>
+                  </table>
+
+
+                </div>
+                
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>

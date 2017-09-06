@@ -1,0 +1,24 @@
+<div class="water-loader">
+	<div class="ball" ng-if="!messageOnly && !cog">
+	  
+	  <div class="wave delay">
+	    <div class="wave">
+	    </div>
+	  </div>
+	  <div class="water-loader-content" ng-class="{{msgClassExpr}}">
+	  	{{waterLoaderMessage}}
+		</div>
+
+	</div>
+
+	<div class="cog-container"  ng-if="!messageOnly && cog">
+		<img class="cog" src="img/cog.svg">
+		<div class="water-loader-content cog-message" ng-class="{{msgClassExpr}}">
+			{{waterLoaderMessage}}
+		</div>
+	</div>
+
+	<div class="water-loader-content message-lonely" ng-if="messageOnly" ng-class="{'text-danger':textDanger}">
+		{{waterLoaderMessage}}
+	</div>
+</div>

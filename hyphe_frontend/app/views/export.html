@@ -1,0 +1,305 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-12">
+                <h1>
+                  EXPORT WEB ENTITIES
+                </h1>
+              </div>
+            </div>
+
+            <div ng-if="!working">
+
+              <div class="row">
+                <div class="col-md-12">
+                  
+                  <div class="export-presets">
+                    <span>Presets:</span>
+                    <a class="btn btn-link" ng-repeat="preset in presets" ng-click="applyPreset($index)">{{preset.name}}</a>
+                  </div>
+                  
+                  <div class="bulleted-title">
+                    <div class="big-bullet-number">1</div>
+                    <h3>
+                      Filter web entities by status
+                    </h3>
+                  </div>
+
+                  <br>
+
+                  <hyphe-status-box statuses="statuses" counts="counts"></hyphe-status-box>
+
+                  <br>
+                  <br>
+                  <br>
+
+                  <div class="bulleted-title">
+                    <div class="big-bullet-number">2</div>
+                    <h3>
+                      Select columns to export
+                    </h3>
+                  </div>
+
+                  <br>
+
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-3">
+
+                  <p>
+                    <span class="text-muted">Identity</span>
+                  </p>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.id.val" type="checkbox">
+                      {{columns.id.name}}
+                      <span class="text-muted">
+                        (<span hyphe-glossary="web entity identifier"/>)
+                      </span>
+                    </label>
+                  </div>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.name.val" type="checkbox">
+                      {{columns.name.name}}
+                    </label>
+                  </div>
+
+                  <br>
+                  
+                  <p>
+                    <span class="text-muted">Status</span>
+                  </p>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.indegree.val" type="checkbox">
+                      {{columns.indegree.name}}
+                    </label>
+                  </div>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.status.val" type="checkbox">
+                      {{columns.status.name}}
+                    </label>
+                  </div>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.crawling_status.val" type="checkbox">
+                      {{columns.crawling_status.name}}
+                    </label>
+                  </div>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.indexing_status.val" type="checkbox">
+                      {{columns.indexing_status.name}}
+                    </label>
+                  </div>
+
+                  <br>
+
+                </div>
+                <div class="col-md-3">
+
+                  <p>
+                    <span class="text-muted">URLs</span>
+                  </p>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.prefixes.val" type="checkbox">
+                      {{columns.prefixes.name}}
+                      <span class="text-muted">
+                        (URLs separated by spaces)
+                      </span>
+                    </label>
+                  </div>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.prefixes_lru.val" type="checkbox">
+                      {{columns.prefixes_lru.name}}
+                      <span class="text-muted">
+                        (<span hyphe-glossary="LRUs"/> separated by spaces)
+                      </span>
+                    </label>
+                  </div>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.home_page.val" type="checkbox">
+                      <span hyphe-glossary="HOME PAGE"/>
+                    </label>
+                  </div>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.start_pages.val" type="checkbox">
+                      <span hyphe-glossary="START PAGES"/>
+                    </label>
+                  </div>
+
+                  <br>
+                  
+                </div>
+                <div class="col-md-3">
+
+                  <p>
+                    <span class="text-muted">Dates</span>
+                  </p>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.creation_date.val" type="checkbox">
+                      CREATION DATE
+                    </label>
+                  </div>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.creation_date_timestamp.val" type="checkbox">
+                      CREATION as <span hyphe-glossary="TIMESTAMP"/>
+                    </label>
+                  </div>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.last_modification_date.val" type="checkbox">
+                      LAST MODIFICATION DATE
+                    </label>
+                  </div>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.last_modification_date_timestamp.val" type="checkbox">
+                      LAST MODIFICATION as <span hyphe-glossary="TIMESTAMP"/>
+                    </label>
+                  </div>
+
+                  <br>
+
+                </div>
+                <div class="col-md-3">
+
+
+                  <p>
+                    <span class="text-muted">Metadata</span>
+                  </p>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.user_tags.val" type="checkbox">
+                      {{columns.user_tags.name}}
+                    </label>
+                  </div>
+
+                  <div class="checkbox">
+                    <label>
+                      <input ng-model="columns.core_tags.val" type="checkbox">
+                      {{columns.core_tags.name}}
+                    </label>
+                  </div>
+
+                  <br>
+
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-12">
+                  
+                  <div class="bulleted-title">
+                    <div class="big-bullet-number">3</div>
+                    <h3>
+                      File format
+                    </h3>
+                  </div>
+
+                  <br>
+
+                  <div class="radio">
+                    <label>
+                      <input type="radio" ng-model="$parent.fileFormat" name="optionsRadios" value="CSV" checked>
+                      CSV - comma-separated values
+                    </label>
+                  </div>
+
+                  <div class="radio">
+                    <label>
+                      <input type="radio" ng-model="$parent.fileFormat" name="optionsRadios" value="SCSV" checked>
+                      SCSV - semicolon-separated values
+                    </label>
+                  </div>
+
+                  <div class="radio">
+                    <label>
+                      <input type="radio" ng-model="$parent.fileFormat" name="optionsRadios" value="TSV" checked>
+                      TSV - tabulation-separated values
+                    </label>
+                  </div>
+
+                  <div class="radio">
+                    <label>
+                      <input type="radio" ng-model="$parent.fileFormat" name="optionsRadios" value="JSON" checked>
+                      JSON
+                    </label>
+                  </div>
+
+                  <div class="radio">
+                    <label>
+                      <input type="radio" ng-model="$parent.fileFormat" name="optionsRadios" value="TEXT" checked>
+                      TEXT / MD - Markdown readable as text
+                    </label>
+                  </div>
+
+                  <br>
+
+                  <div class="bulleted-title">
+                    <div class="big-bullet-number">4</div>
+                    <h3>
+                      Name and Download
+                    </h3>
+                  </div>
+
+                  <br>
+
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 col-lg-4">
+
+                  <div class="input-group">
+                    <input type="text" class="form-control" ng-model="$parent.projectName">
+                    <span class="input-group-btn">
+                      <button class="btn btn-primary" ng-click="download()"><span class="glyphicon glyphicon-download"/> DOWNLOAD {{fileFormat}}</button>
+                    </span>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+            
+            <div class="row" ng-if="working" >
+              <div class="col-md-12">
+                <spinner text="'WORKING'"></spinner>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>

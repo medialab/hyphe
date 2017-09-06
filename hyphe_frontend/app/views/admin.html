@@ -1,0 +1,138 @@
+    <div class="container-fluid">
+      <div class="row admin-connect" ng-if="!corpusList">
+        <h3>Restricted access</h3>
+        <input type="password" placeholder="admin password" ng-model="$parent.password" ng-press-enter="connect()"></input>
+        <p ng-if="passwordError" class="bg-danger">{{passwordError}}</p>
+        <button class="btn btn-default" ng-click="cancel()">CANCEL</button>
+        <button class="btn btn-primary" ng-click="connect()">OK</button>
+      </div>
+      <div class="row" ng-if="corpusList">
+        <div class="col-md-12">
+          <div class="welcome-column">
+            <a href="#/login">
+              <img src="img/hyphe logo med.png" title="hyphe-logo"/>
+            </a>
+            <h1>hyphe</h1>
+
+            <h3>
+              {{corpusList.length}} corp{{corpusList.length > 1 ? 'ora' : 'us'}} &mdash;
+              {{globalStatus.ram_left}} Mo of free RAM &mdash;
+              Corpus slots: {{globalStatus.corpus_running}} in operation &amp; {{globalStatus.ports_left}} free &mdash;
+              Crawls: {{globalStatus.crawls_running}} running &amp; {{globalStatus.crawls_pending}} pending
+            </h3>
+            <br>
+            <table class="table">
+              <tr>
+                <th>Project</th>
+                <th>Status</th>
+                <th><dl class="dl-horizontal"><dt>Time</dt></dl></th>
+                <th><dl class="dl-horizontal"><dt>Crawl</dt></dl></th>
+                <th><dl class="dl-horizontal"><dt>Web Entities</dt></dl></th>
+                <th>Actions</th>
+              </tr>
+              
+              <tr ng-repeat="corpus in corpusList">
+
+                <td>
+                  <p>
+                    <strong class="project-name">
+                      {{corpus.name}}
+                    </strong>
+                  </p>
+                  <p>
+                    <span class="label label-warning"><span ng-if="corpus.password"><span class="glyphicon glyphicon-lock"></span> Password Protected</span></span>
+                    
+                    <span class="label label-success"><span ng-if="!corpus.password">Not protected</span></span>
+                    </span>
+                  </p>
+                  <p>
+                    <code>{{corpus.corpus_id}}</code>
+                  </p>
+                </td>
+
+                <td>
+                  
+
+                  <span ng-if="corpus.ready" class="text-success">
+                    <span class="glyphicon glyphicon-ok-sign"></span> ready
+                  </span>
+                  <span ng-if="!corpus.ready" class="text-warning">
+                    <span class="glyphicon glyphicon-exclamation-sign"></span>
+                    {{corpus.status}}
+                  </span>
+
+                </td>
+
+                <td>
+                  <dl class="dl-horizontal">
+
+                    <dt>created</dt>
+                    <dd><span tooltip="{{corpus.created_at|date}}">{{corpus.created_at|prettyDate}}</span></dd>
+
+                    <dt>last activity</dt>
+                    <dd><span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span></dd>
+
+                    <dt>last index</dt>
+                    <dd><span tooltip="{{corpus.last_index_loop|date}}">{{corpus.last_index_loop|prettyDate}}</span></dd>
+
+                  </dl>
+                </td>
+
+                <td>
+                  <dl class="dl-horizontal">
+
+                    <dt>Crawls</dt>
+                    <dd>{{corpus.total_crawls}}</dd>
+
+                    <dt>Crawled pages</dt>
+                    <dd>{{corpus.total_pages_crawled}}</dd>
+
+                    <dt>Pages</dt>
+                    <dd>{{corpus.total_pages}}</dd>
+
+                  </dl>
+                </td>
+
+                <td>
+                  <dl class="dl-horizontal">
+
+                    <dt>in</dt>
+                    <dd>{{corpus.webentities_in}}</dd>
+
+                    <dt>undecided</dt>
+                    <dd>{{corpus.webentities_undecided}}</dd>
+
+                    <dt>out</dt>
+                    <dd>{{corpus.webentities_out}}</dd>
+
+                    <dt>discovered</dt>
+                    <dd>{{corpus.webentities_discovered}}</dd>
+
+                    <hr>
+                    
+                    <dt>TOTAL</dt>
+                    <dd>{{corpus.total_webentities}}</dd>
+
+                  </dl>
+                </td>
+
+                <td>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn" ng-click="startCorpus(corpus.corpus_id, corpus.password)" ng-class="{disabled: corpus.ready, 'btn-default': corpus.ready, 'btn-primary':!corpus.ready}">START</button>
+                    <button class="btn btn-default" ng-click="stopCorpus(corpus.corpus_id)" ng-class="{disabled: !corpus.ready}">STOP</button>
+                    <button class="btn btn-default" ng-click="openCorpus(corpus.corpus_id, corpus.name)" ng-class="{disabled: !corpus.ready}">OPEN</button>
+                  </div>
+
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-sm btn-danger" ng-click="destroyCorpus(corpus.corpus_id)" ng-class="{disabled: !corpus.ready}">DESTROY</button>
+                    <button class="btn btn-sm btn-danger" ng-click="resetCorpus(corpus.corpus_id)" ng-class="{disabled: !corpus.ready}">RESET</button>
+                  </div>
+                </td>
+
+              </tr>
+            </table>
+
+          </div>
+        </div>
+      </div>
+    </div>

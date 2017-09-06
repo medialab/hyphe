@@ -1,0 +1,83 @@
+<div ng-if="!listLoaded">
+	<br>
+	<p class="text-muted">
+		Loading crawl jobs
+	</p>
+</div>
+<div ng-if="listLoaded && lastCrawlJobs.length == 0">
+	<br>
+	<p class="text-info">
+		No crawl job
+	</p>
+</div>
+
+<table class="table table-condensed fixed" ng-if="listLoaded && lastCrawlJobs.length > 0">
+  <col width="" />
+  <col width="60px"/>
+  <col width="80px" class="hidden-xs" />
+  <col width="120px" />
+  <col width="140px" class="hidden-xs hidden-sm" />
+  <col width="120px" class="hidden-xs hidden-sm hidden-md" />
+  <col width="120px" class="hidden-xs hidden-sm" />
+  <col width="100px" class="hidden-xs hidden-sm" />
+
+  <thead>
+    <tr>
+      <th>Web entity Name</th>
+      <th>Depth</th>
+      <th class="hidden-xs">Cautious</th>
+      <th>Status</th>
+      <th class="hidden-xs hidden-sm"><small>Pages Indexed&nbsp;/&nbsp;Crawled</small></th>
+      <th class="hidden-xs hidden-sm hidden_md"><small>Discovered Pages&nbsp;/&nbsp;Links</small></th>
+      <th class="hidden-xs hidden-sm">Scheduled</th>
+      <th class="hidden-xs hidden-sm">Duration</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <!-- Rows -->
+    <tr
+      ng-repeat="job in crawlJobs|paginate:$parent.paginationPage:paginationLength track by $index"
+      ng-click="displayDetails(job)"
+      class="crawljob-row-content"
+      ng-class="{
+        'bg-danger':job.globalStatus == 'CRASHED'
+        ,'bg-warning':job.globalStatus == 'UNSUCCESSFUL'
+        ,'bg-blank':job.globalStatus == 'CANCELED'
+        ,'bg-info':job.globalStatus == 'RETRIED'
+        ,'bg-primary':job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'
+        ,'bg-success': job.globalStatus == 'ACHIEVED'}"
+    >
+      <td>{{job.webentity_name}}</td>
+      <td>{{job.crawl_arguments.max_depth}}</td>
+      <td class="hidden-xs">
+        <div ng-if="job.crawl_arguments.phantom">
+          <span class="glyphicon glyphicon-bell"></span> YES
+        </div>
+        <div ng-if="!job.crawl_arguments.phantom">
+          No
+        </div>
+      </td>
+      <td><span>{{job.globalStatus}}</span>
+      </td>
+      <td class="hidden-xs hidden-sm">{{job.nb_crawled_pages - job.nb_unindexed_pages}} / {{job.nb_crawled_pages}}</td>
+      <td class="hidden-xs hidden-sm hidden_md">{{job.nb_pages}} / {{job.nb_links}}</td>
+      <td class="hidden-xs hidden-sm"><span tooltip="{{job.created_at|date}}">{{job.created_at|prettyDate}}</span></td>
+      <td class="hidden-xs hidden-sm"><div ng-if="job.finished_at - job.created_at > 0">{{(job.finished_at - job.scheduled_at)|duration}}</div></td>
+    </tr>
+
+  </tbody>
+</table>
+
+<!-- Pagination  -->
+<div class="text-center">
+  <pagination
+    total-items="crawlJobs.length"
+    ng-model="$parent.$parent.$parent.paginationPage"
+    items-per-page="paginationLength"
+    boundary-links="true"
+    max-size="paginationNumPages"
+    ng-show="crawlJobs.length > paginationLength"
+    ng-change="pageChanged()"
+  ></pagination>
+</div>

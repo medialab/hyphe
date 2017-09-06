@@ -1,0 +1,201 @@
+    <div class="container-fluid">
+      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+      </div>
+      <div class="row no-gutter">
+        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
+        </div>
+        <div class="col-lg-10 col-md-9 col-sm-8">
+          <div class="container-fluid main">
+            <div class="row">
+              <div class="col-md-12">
+                <h1>
+                  PREPARE CRAWLS
+                </h1>
+                <p class="text-info">
+                   Each <span hyphe-glossary="web entity"></span> needs at least one <span hyphe-glossary="start page"></span>, as a starting point for <span hyphe-glossary="crawling"></span>.
+                </p>
+
+                <!-- Pagination -->
+                <div class="text-center">
+                  <pagination total-items="list.length" ng-model="$parent.paginationPage" items-per-page="paginationLength" boundary-links="true" max-size="paginationNumPages" ng-if="list.length > paginationLength"></pagination>
+                </div>
+                
+              </div>
+            </div>
+
+            <!-- Cells -->
+            <div class="row crawl-cells-container">
+              <div
+                class="col-md-4 col-lg-3 crawl-cell"
+                ng-repeat="obj in list|paginate:paginationPage:paginationLength track by $index"
+                ng-click="openWebentity(obj.id)"
+                ng-mouseenter="obj.displayRemove = true"
+                ng-mouseleave="obj.displayRemove = false"
+              >
+                <div
+                  class="crawl-cell-content"
+                  ng-class="{'bg-waiting':obj.status == 'loading', 'bg-neutral':obj.status == 'loaded' || obj.status == 'pending', 'bg-danger':obj.status == 'error', 'bg-success':obj.status == 'scheduled'}"
+                >
+                  <p class="title">
+                    <span class="crawl-cell-text-muted">{{obj.id+1}}</span>. {{obj.webentity.name}}
+                  </p>
+
+                  <!-- Status only -->
+                  <p
+                    ng-if="obj.status != 'error' && obj.status != 'loaded'"
+                    class="status text-center"
+                    ng-class="{'text-muted':obj.status == 'loading', 'text-danger':obj.status == 'error', 'text-success':obj.status == 'scheduled'}"
+                  >
+                    {{obj.status|uppercase}}
+                  </p>
+
+                  <!-- Loaded : No start page -->
+                  <p
+                    ng-if="obj.status == 'loaded' && obj.webentity.startpages.length == 0"
+                    class="info text-center"
+                  >
+                    auto <span class="text-muted">start pages</span>
+                    <small><span
+                      class="glyphicon glyphicon-ok"
+                      tooltip-animation="true"
+                      tooltip-placement="top"
+                      tooltip-trigger="mouseenter"
+                      tooltip="Ready to crawl"
+                      tooltip-append-to-body="true"
+                    ></span></small>
+                  </p>
+
+                  <!-- Loaded : Start pages -->
+                  <p
+                    ng-if="obj.status == 'loaded' && obj.webentity.startpages.length > 0"
+                    class="info text-center"
+                  >
+                    {{obj.webentity.startpages.length}} <span class="text-muted">start page{{obj.webentity.startpages.length | plural}}</span>
+                    <span ng-if="obj.summary && obj.summary.stage == 'loaded'">
+                      <small>
+                        <span ng-show="!obj.summary.diagnostic.doomed">
+                          <span
+                            ng-if="obj.summary.diagnostic.ready"
+                            class="glyphicon glyphicon-ok"
+                            tooltip-animation="true"
+                            tooltip-placement="top"
+                            tooltip-trigger="mouseenter"
+                            tooltip="Ready to crawl"
+                            tooltip-append-to-body="true"
+                          ></span>
+                          <span
+                            ng-if="obj.summary.diagnostic.issues"
+                            class="glyphicon glyphicon-info-sign text-muted"
+                            tooltip-animation="true"
+                            tooltip-placement="top"
+                            tooltip-trigger="mouseenter"
+                            tooltip="Non-blocking issues"
+                            tooltip-append-to-body="true"
+                          ></span>
+                        </span>
+                        <span
+                          ng-if="obj.summary.diagnostic.doomed"
+                          class="glyphicon glyphicon-warning-sign text-danger"
+                          tooltip-animation="true"
+                          tooltip-placement="top"
+                          tooltip-trigger="mouseenter"
+                          tooltip="Doomed crawl needs fix :)"
+                          tooltip-append-to-body="true"
+                        ></span>
+                      </small>
+                    </span>
+                  </p>
+
+                  <!-- Remove Button -->
+                  <button
+                    class="btn btn-link btn-xs pull-right"
+                    ng-show="obj.displayRemove && obj.status !== 'scheduled' && obj.status !== 'pending'"
+                    ng-click="$event.stopPropagation(); removeCell(obj.id)"
+                  >
+                    <span class="glyphicon glyphicon-remove"></span>
+                  </button>
+
+                  <!-- Error -->
+                  <p ng-if="obj.status == 'error'" class="text-danger">
+                    ERROR - {{obj.errorMessage}}
+                    <webentity-link ng-if="obj.webentity.id" corpus-id="corpusId" webentity-id="obj.webentity.id">
+                  </p>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- Pagination bottom -->
+            <div class="row">
+              <div class="col-md-12">
+                <div class="text-center">
+                  <pagination total-items="list.length" ng-model="$parent.paginationPage" items-per-page="paginationLength" boundary-links="true" max-size="paginationNumPages" ng-if="list.length > paginationLength"></pagination>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="row">
+              <div class="col-md-12">
+                <div class="progress">
+                  <div class="progress-bar progress-bar-success" style="width: {{statusesSummary.percents.scheduled}}%">
+                    <span>{{statusesSummary.counts.scheduled}} crawls scheduled</span>
+                  </div>
+                  <div class="progress-bar progress-bar-neutral progress-bar-striped active" style="width: {{statusesSummary.percents.pending}}%">
+                    <span>{{statusesSummary.counts.pending}} pending...</span>
+                  </div>
+                  <div class="progress-bar progress-bar-neutral" style="width: {{statusesSummary.percents.loaded}}%">
+                    <span>{{statusesSummary.counts.loaded}} web entit{{statusesSummary.counts.loaded | y_ies}} ready to crawl</span>
+                  </div>
+                  <div class="progress-bar progress-bar-warning" style="width: {{statusesSummary.percents.deleted}}%">
+                    <span>{{statusesSummary.counts.deleted}} deleted</span>
+                  </div>
+                  <div class="progress-bar progress-bar-danger" style="width: {{statusesSummary.percents.error}}%">
+                    <span>{{statusesSummary.counts.error}} error{{statusesSummary.counts.error | plural}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Launch crawl panel -->
+            <div
+              class="row"
+              ng-if="list.length > 0 && !scheduling"
+            >
+              <div class="col-md-12">
+                <div class="text-center">
+                  <p>
+                    Set a <span hyphe-glossary="depth"/> and schedule <span hyphe-glossary="crawls"/>
+                  </p>
+                  <div>
+                    <form class="form-inline" role="form">
+                      <div class="form-group">
+                        <select class="form-control" ng-model="$parent.crawlDepth">
+                          <option ng-repeat="depth in depthRange" value="{{depth}}" ng-selected="{{depth == crawlDepth}}">Depth: {{depth}} click{{depth | plural}}</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <button class="btn btn-primary" ng-click="scheduleCrawls()" ng-class="{'btn-warning': statusesSummary.problems}">SCHEDULE CRAWL{{list.length | plural | uppercase}}</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="row"
+              ng-if="scheduling"
+            >
+              <div class="col-md-12">
+                <div class="text-center">
+                  <p>
+                    <span hyphe-glossary="Crawls"/> scheduled at <span hyphe-glossary="depth"/> {{$parent.crawlDepth}} 
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
