@@ -9,11 +9,12 @@ html, body, .ng-view-container{
 }
 
 /* Global color and font */
-/*body {
+body {
   color: #555;
   font-family: 'Open Sans', sans-serif;
-  background-color: #EFEBE8;
+  /*background-color: #EFEBE8;*/
 }
+/*
 .label, .badge{
   font-family: 'Open Sans', sans-serif;
   font-weight: 400;
@@ -583,16 +584,16 @@ tags-input .tags .tag-item {
 /* ==========================================================================
    View: Login
    ========================================================================== */
-
-/*div.welcome-column{
-	margin-top: 60px;
-	text-align: center;
-  margin-bottom: 200px;
+.welcome-logo{
+  margin-bottom: 16px;
 }
-div.welcome-column h1{
+.welcome-logo h1{
   font-size: 52px;
   font-weight: 300;
+  padding: 0;
+  margin: 0;
 }
+
 .project-list-container{
   max-height: 220px;
   overflow-x: hidden;
@@ -630,6 +631,14 @@ div.welcome-column h1{
   margin-top: 4px;
   font-size: 9px;
 }
+
+/*div.welcome-column{
+	margin-top: 60px;
+	text-align: center;
+  margin-bottom: 200px;
+}
+
+
 input.search-project{
   margin-bottom: 4px;
 }
