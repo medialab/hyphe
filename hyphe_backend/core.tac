@@ -1001,6 +1001,7 @@ class Crawler(customJSONRPC):
             for t in ["", "ajax_", "idle_"]:
                 args['phantom_%stimeout' % t] = phantom_timeouts["%stimeout" % t]
         res = yield self.crawlqueue.add_job(args, corpus, webentity_id)
+        yield self.db.upsert_WE(corpus, webentity_id, {"crawled": True})
         returnD(format_result(res))
 
     @inlineCallbacks
@@ -1034,6 +1035,7 @@ class Crawler(customJSONRPC):
         yield self.db.forget_pages(corpus, existing[0]["crawljob_id"], [i["url"] for i in unindexed_pages])
         yield self.db.update_job_pages(corpus, existing[0]["crawljob_id"])
         yield self.db.add_log(corpus, job_id, "CRAWL_"+crawling_statuses.CANCELED)
+        yield self.db.upsert_WE(corpus, existing[0]["webentity_id"], {"crawled": False})
         returnD(format_result(res))
 
     @inlineCallbacks
@@ -1510,6 +1512,7 @@ class Memory_Structure(customJSONRPC):
             realid = webentity_id["_id"]
         except:
             realid = webentity_id
+        updatedWE = yield self.db.get_WE(corpus, realid)
         if not is_error(res):
             # update local ramcached list of webentities
             for WE in self.corpora[corpus]["webentities"]:
@@ -1521,12 +1524,12 @@ class Memory_Structure(customJSONRPC):
                     if oldstatus == "IN":
                         if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in self.corpora[corpus].get('user_categories', [])]):
                             self.corpora[corpus]["webentities_in_untagged"] -= 1
-                        if realid not in self.corpora[corpus].get('crawled_ids', []):
+                        if not updatedWE["crawled"]:
                             self.corpora[corpus]["webentities_in_uncrawled"] -= 1
                     elif WE["status"] == "IN":
                         if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in self.corpora[corpus].get('user_categories', [])]):
                             self.corpora[corpus]["webentities_in_untagged"] += 1
-                        if realid not in self.corpora[corpus].get('crawled_ids', []):
+                        if not updatedWE["crawled"]:
                             self.corpora[corpus]["webentities_in_uncrawled"] += 1
                     break
         returnD(res)
@@ -1932,7 +1935,7 @@ class Memory_Structure(customJSONRPC):
                     ins += 1
                     if "USER" not in w["tags"] or any([cat not in w["tags"]["USER"] for cat in self.corpora[corpus].get('user_categories', [])]):
                         notg += 1
-                    if w["_id"] not in self.corpora[corpus].get('crawled_ids', []):
+                    if not w["crawled"]:
                         nocr += 1
                 elif w["status"] == "OUT":
                     outs += 1
@@ -1947,11 +1950,6 @@ class Memory_Structure(customJSONRPC):
             self.corpora[corpus]['webentities_undecided'] = unds
             self.corpora[corpus]['webentities_discovered'] = disc
             self.corpora[corpus]['total_webentities'] = ins + outs + unds + disc
-
-            jobs = yield self.db.list_jobs(corpus, fields=["webentity_id", "previous_webentity_id"])
-            if jobs:
-                crawled_dbl_list = [[job["webentity_id"], job["previous_webentity_id"]] if "previous_webentity_id" in job else [job["webentity_id"]] for job in jobs]
-                self.corpora[corpus]['crawled_ids'] = set([_id for dbl_id in crawled_dbl_list for _id in dbl_id])
 
         returnD(WEs)
 
@@ -2271,10 +2269,7 @@ class Memory_Structure(customJSONRPC):
         page, count = self._checkPageCount(page, count)
         if page is None:
             returnD(format_error("page and count arguments must be integers"))
-        crawljobs = yield self.db.list_jobs(corpus, fields=["webentity_id", "previous_webentity_id"])
-        crawled_dbl_list = [[job["webentity_id"], job["previous_webentity_id"]] if "previous_webentity_id" in job else [job["webentity_id"]] for job in crawljobs]
-        self.corpora[corpus]['crawled_ids'] = set([_id for dbl_id in crawled_dbl_list for _id in dbl_id])
-        WEs = [WE for WE in self.corpora[corpus]["webentities"] if WE["status"] == "IN" and WE["_id"] not in self.corpora[corpus].get('crawled_ids', [])]
+        WEs = yield self.db.get_WEs(corpus, {"status": "IN", "crawled": False})
         res = yield self.paginate_webentities(WEs, count=count, page=page, sort=sort, corpus=corpus)
         returnD(res)
 

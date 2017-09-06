@@ -197,6 +197,7 @@ class MongoDB(object):
           "tags": {},
           "homepage": None,
           "startpages": startpages,
+          "crawled": False,
           "creationDate": timestamp,
           "lastModificationDate": timestamp
         }
