@@ -29,7 +29,6 @@
   <meta name="msapplication-TileImage" content="/img/favicon/ms-icon-144x144.png">
   <meta name="theme-color" content="#ffffff">
 
-  <link rel="stylesheet" href="bower_assets/bootstrap/dist/css/bootstrap.min.css">
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,300italic,400italic,700italic|Roboto+Condensed:300,400|Roboto:300,400,700,900' rel='stylesheet' type='text/css'>
 
   <link href="bower_assets/angular-xeditable/dist/css/xeditable.css" rel="stylesheet">
@@ -44,28 +43,14 @@
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
   <![endif]-->
 
-  <div ng-view class="ng-view-container">
+  <div ng-view class="ng-view-container" ng-cloak>
   </div>
 
-  <!-- jQuery -->
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-  <script>window.jQuery || document.write('<script src="bower_assets/jquery/dist/jquery.min.js"><\/script>')</script>
-
-  <!-- Bootstrap js components -->
-  <script src="bower_assets/bootstrap/dist/js/bootstrap.min.js"></script>
-
-  <!-- Sigma -->
-  <!-- // <script src="js/sigma.min.js"></script> -->
-  <script src="js/sigma.min.js"></script>
-  <script src="js/sigma.layout.forceAtlas2.min.js"></script>
-  <script src="js/json_graph_api.js"></script>
-  
   <!-- Angular and co -->
   <script src="bower_assets/angular/angular.min.js"></script>
   <script src="bower_assets/angular-route/angular-route.min.js"></script>
   <script src="bower_assets/angular-sanitize/angular-sanitize.min.js"></script>
-  <script src="bower_assets/angular-bootstrap/ui-bootstrap.min.js"></script>
-  <script src="bower_assets/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+  <script src="bower_assets/angular-messages/angular-messages.min.js"></script>
   <script src="bower_assets/FileSaver.js/FileSaver.min.js"></script>
   <script src="bower_assets/angulartics/dist/angulartics.min.js"></script>
   <script src="bower_assets/angulartics/dist/angulartics-ga.min.js"></script>

@@ -1,0 +1,19 @@
+{
+  "name": "angular-seed",
+  "description": "A starter project for AngularJS",
+  "version": "0.0.0",
+  "homepage": "https://github.com/angular/angular-seed",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "angular": "4.*",
+    "angular-route": "4.*",
+    "angular-sanitize": "4.*",
+    "FileSaver.js": "https://github.com/eligrey/FileSaver.js.git",
+    "angulartics": "1.4.0",
+    "angular-xeditable": "~0.8.0",
+    "ng-tags-input": "3.0.0",
+    "angular-md5": "0.1.10",
+    "angular-material": "1.1.4"
+  }
+}

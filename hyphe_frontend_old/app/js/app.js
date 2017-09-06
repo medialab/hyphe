@@ -4,7 +4,8 @@
 // Declare app level module which depends on filters, and services
 angular.module('hyphe', [
   'ngRoute'
-  ,'ui.bootstrap'
+  ,'ngMessages'
+  ,'ngMaterial'
   ,'angulartics'
   ,'angulartics.google.analytics'
   ,'xeditable'
