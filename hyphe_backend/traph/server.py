@@ -1,4 +1,5 @@
 import os, sys, json, msgpack
+from time import time
 from types import GeneratorType
 from traph import Traph, TraphException, TraphWriteReport, TraphIteratorState
 from twisted.internet import reactor
@@ -13,6 +14,8 @@ class TraphIterator(object):
         self.iter = iterator
         self.query = query
         self.n_iterations = 0
+        self.iteration_time = 0
+        self.total_time = 0
 
 class TraphProtocol(LineOnlyReceiver):
 
@@ -44,6 +47,7 @@ class TraphProtocol(LineOnlyReceiver):
           "iterator": iterator.id,
           "iterations": iterator.n_iterations,
           "atomic_iterations": iteratorState.n_iterations,
+          "iteration_time": iterator.iteration_time,
           "query": iterator.query
         }))
 
@@ -57,7 +61,10 @@ class TraphProtocol(LineOnlyReceiver):
     def iterate(self, iteratorId):
         iterator = self.iterators[iteratorId]
         try:
+            start_time = time()
             state = next(iterator.iter)
+            iterator.iteration_time = time() - start_time
+            iterator.total_time += iterator.iteration_time
             iterator.n_iterations += 1
         except StopIteration:
             del(self.iterators[iteratorId])
@@ -65,7 +72,7 @@ class TraphProtocol(LineOnlyReceiver):
         if not state.done:
             return self.returnIterator(iterator, state)
         del(self.iterators[iteratorId])
-        return self.returnResult(state.result, iterator.query)
+        return self.returnResult(state.result, {"method": iterator.query, "total_time": iterator.total_time})
 
     def lineReceived(self, query):
         try:
