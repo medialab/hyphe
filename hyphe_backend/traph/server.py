@@ -95,13 +95,13 @@ class TraphProtocol(LineOnlyReceiver):
             res = fct(self.traph, *args, **kwargs)
             if type(res) == GeneratorType:
                 iteratorId = id(res)
-                self.iterators[iteratorId] = TraphIterator(iteratorId, res, query)
+                self.iterators[iteratorId] = TraphIterator(iteratorId, res, query["method"])
                 return self.iterate(iteratorId)
         except TraphException as e:
             return self.returnError("Traph raised: %s" % str(e), query)
         except Exception as e:
             return self.returnError(str(e), query)
-        return self.returnResult(res, query)
+        return self.returnResult(res, query["method"])
 
     def lineLengthExceeded(self, line):
         print >> sys.stderr, "WARNING line length exceeded server side %s (max %s)" % (len(line), self.MAX_LENGTH)
