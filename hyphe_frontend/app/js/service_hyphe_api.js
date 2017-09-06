@@ -646,35 +646,38 @@ angular.module('hyphe.service_hyphe_api', [])
             })
           ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
         })
-        .success(function(data, status, headers, config){
-          var target = (data[0] || {}).result
-          if(target !== undefined){
-            if(target && target.corpus && target.corpus.corpus_id && target.corpus.status != "ready") {
-              // Corpus shut down
-              $location.path('/')
-            }
-            // console.log('[OK]', data)
-            successCallback(target, data[0])
-          } else {
-            if(data[0] && data[0].message && data[0].message.status && data[0].message.status != "ready") {
-              // Corpus shut down
-              $location.path('/')
+        .then(
+          // Success
+          function(response){
+            var target = (response.data[0] || {}).result
+            if(target !== undefined){
+              if(target && target.corpus && target.corpus.corpus_id && target.corpus.status != "ready") {
+                // Corpus shut down
+                $location.path('/')
+              }
+              // console.log('[OK]', response.data)
+              successCallback(target, response.data[0])
             } else {
-              console.log('[Error: unexpected]', data)
-              errorCallback(data, status, headers, config)
+              if(response.data[0] && response.data[0].message && response.data[0].message.status && response.data[0].message.status != "ready") {
+                // Corpus shut down
+                $location.path('/')
+              } else {
+                console.log('[Error: unexpected]', response.data)
+                errorCallback(response.data, response.status, response.headers, config)
+              }
             }
+          // Error
+          }, function(response){
+            console.log('[Error: fail]', response.data)
+            errorCallback(response.data, response.status, response.headers, config)
           }
-        })
-        .error(function(data, status, headers, config){
-          console.log('[Error: fail]', data)
-          errorCallback(data, status, headers, config)
-        })
+        )
       }
     }
 
-    function rpcError(data, status, headers, config) {
+    function rpcError(response) {
       // called asynchronously if an error occurs
       // or server returns response with an error status.
-      console.log('RPC Error', data, status, headers, config)
+      console.log('RPC Error', response)
     }
   }])

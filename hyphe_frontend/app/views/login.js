@@ -5,7 +5,6 @@ angular.module('hyphe.loginController', [])
   .controller('Login', ['$scope', 'api', 'utils', '$location', 'corpus'
   ,function($scope, api, utils, $location, corpus) {
     $scope.currentPage = 'login'
-    $scope.Page.setTitle('Hyphe')
 
     $scope.corpusList
     $scope.corpusList_byId = {}
