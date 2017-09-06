@@ -6,33 +6,63 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>My AngularJS App</title>
+  <title>{{Page.title() || "Hyphe"}}</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Favicon from http://www.favicon-generator.org/ -->
+  <link rel="apple-touch-icon" sizes="57x57" href="img/favicon/apple-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="img/favicon/apple-icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="img/favicon/apple-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="img/favicon/apple-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="img/favicon/apple-icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="img/favicon/apple-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="img/favicon/apple-icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="img/favicon/apple-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192"  href="img/favicon/android-icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="img/favicon/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16x16.png">
+  <link rel="manifest" href="img/favicon/manifest.json">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="msapplication-TileImage" content="/img/favicon/ms-icon-144x144.png">
+  <meta name="theme-color" content="#ffffff">
+
+  <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,300italic,400italic,700italic|Roboto+Condensed:300,400|Roboto:300,400,700,900' rel='stylesheet' type='text/css'>
+
+  <link href="bower_components/angular-xeditable/dist/css/xeditable.css" rel="stylesheet">
+  <link href="bower_components/ng-tags-input/ng-tags-input.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/main.css">
+
   <link rel="stylesheet" href="bower_components/html5-boilerplate/dist/css/normalize.css">
   <link rel="stylesheet" href="bower_components/html5-boilerplate/dist/css/main.css">
   <link rel="stylesheet" href="app.css">
   <script src="bower_components/html5-boilerplate/dist/js/vendor/modernizr-2.8.3.min.js"></script>
 </head>
 <body>
-  <ul class="menu">
-    <li><a href="#!/view1">view1</a></li>
-    <li><a href="#!/view2">view2</a></li>
-  </ul>
-
+  
   <!--[if lt IE 7]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
   <![endif]-->
 
-  <div ng-view></div>
-
-  <div>Angular seed app: v<span app-version></span></div>
+  <div ng-view class="ng-view-container" ng-cloak>
 
   <!-- In production use:
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/x.x.x/angular.min.js"></script>
   -->
-  <script src="bower_components/angular/angular.js"></script>
+  <script src="bower_components/angular/angular.min.js"></script>
   <script src="bower_components/angular-route/angular-route.js"></script>
+  <script src="bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+  <script src="bower_components/angular-messages/angular-messages.min.js"></script>
+  <script src="bower_components/FileSaver.js/FileSaver.min.js"></script>
+  <script src="bower_components/angulartics/dist/angulartics.min.js"></script>
+  <script src="bower_components/angulartics/dist/angulartics-ga-cordova.min.js"></script>
+  <script src="bower_components/angular-xeditable/dist/js/xeditable.min.js"></script>
+  <script src="bower_components/angular-md5/angular-md5.min.js"></script>
+  <script src="bower_components/ng-tags-input/ng-tags-input.min.js"></script>
+
   <script src="app.js"></script>
   <script src="view1/view1.js"></script>
   <script src="view2/view2.js"></script>
