@@ -10,7 +10,7 @@ angular.module('hyphe', [
   ,'angulartics.google.tagmanager'
   ,'xeditable'
   ,'ngTagsInput'
-  // ,'hyphe.analytics'
+  ,'hyphe.analytics'
   ,'hyphe.conf'
   ,'hyphe.filters'
   ,'hyphe.services'
@@ -89,7 +89,7 @@ angular.module('hyphe', [
     $scope.Page = Page
   }])
 
-/*angular.module('hyphe.analytics', [])
+angular.module('hyphe.analytics', [])
 .run(['googleAnalyticsId', function(googleAnalyticsId) {
 
   if(googleAnalyticsId) {
@@ -101,4 +101,3 @@ angular.module('hyphe', [
   }
 
 }])
-*/
