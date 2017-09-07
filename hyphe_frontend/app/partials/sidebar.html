@@ -1,98 +1,87 @@
-          <div class="container-fluid">
-            <div class="row">
-              <div class="col-xs-12 sidebar-col">
-                <disclaimer/>
-                <ul class="nav nav-pills nav-stacked sidebar">
+<div layout-fill layout="column" style="overflow-y: auto">
+  <div>
+    <disclaimer/>
+  </div>
+  <md-list class="md-dense" flex>
+    
+    <md-list-item class="md-2-line" ng-href="#!/project/{{corpusId}}/overview" md-colors="{background: (currentPage=='overview') ? ('default-background-50') : ('default-background')}">
+      <md-icon class="md-avatar">home</md-icon>
+      <div class="md-list-item-text" layout="column">
+        <h3>OVERVIEW</h3>
+        <p></p>
+      </div>
+    </md-list-item>
 
-                  <!-- Overview -->
-                  <li ng-class="{active: currentPage=='overview'}">
-                    <a href="#/project/{{corpusId}}/overview">
-                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-home"></span></span></td><td>OVERVIEW</td></tr></table>
-                    </a>
-                  </li>
+    <md-divider ></md-divider>
 
-                  <li class="spacer"></li>
-                  
-                  <!-- Import URLs -->
-                  <li ng-class="{active: currentPage=='importurls'}">
-                    <a href="#/project/{{corpusId}}/importurls">
-                      <table><tr><td><span class="symbol">1</span></td><td>IMPORT</td></tr></table>
-                    </a>
-                  </li>
+    <md-list-item class="md-2-line" ng-href="#!/project/{{corpusId}}/importurls" md-colors="{background: (currentPage=='importurls') ? ('default-background-50') : ('default-background')}">
+      <md-icon class="md-avatar">add</md-icon>
+      <div class="md-list-item-text" layout="column">
+        <h3>IMPORT</h3>
+        <p></p>
+      </div>
+    </md-list-item>
 
-                  <!-- Crawl -->
-                  <li ng-class="{active: currentPage=='monitorCrawls'}">
-                    <a href="#/project/{{corpusId}}/monitorCrawls">
-                      <table><tr><td><span class="symbol">2</span></td><td>CRAWLS</td></tr></table>
-                    </a>
-                  </li>
-                                    
-                  <!-- Prospect -->
-                  <li ng-class="{active: currentPage=='prospect'}">
-                    <a href="#/project/{{corpusId}}/prospect">
-                      <table><tr><td><span class="symbol">3</span></td><td>PROSPECT</td></tr></table>
-                    </a>
-                  </li>
-                  
-                  <li class="spacer"></li>
-                  
-                  <!-- Web entities list -->
-                  <li ng-class="{active: currentPage=='listWebentities'}">
-                    <a href="#/project/{{corpusId}}/listWebentities">
-                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-list"></span></td><td>WEB ENTITIES</td></tr></table>
-                    </a>
-                  </li>
+    <md-list-item class="md-2-line" ng-href="#!/project/{{corpusId}}/monitorCrawls" md-colors="{background: (currentPage=='monitorCrawls') ? ('default-background-50') : ('default-background')}">
+      <md-icon class="md-avatar">toys</md-icon>
+      <div class="md-list-item-text" layout="column">
+        <h3>CRAWL</h3>
+        <p></p>
+      </div>
+    </md-list-item>
 
-                  <!-- Visualize Network -->
-                  <li ng-class="{active: currentPage=='network'}">
-                    <a href="#/project/{{corpusId}}/network">
-                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-asterisk"></span></td><td>NETWORK</td></tr></table>
-                    </a>
-                  </li>
+    <md-list-item class="md-2-line" ng-href="#!/project/{{corpusId}}/prospect" md-colors="{background: (currentPage=='prospect') ? ('default-background-50') : ('default-background')}">
+      <md-icon class="md-avatar">lightbulb_outline</md-icon>
+      <div class="md-list-item-text" layout="column">
+        <h3>PROSPECT</h3>
+        <p></p>
+      </div>
+    </md-list-item>
 
-                  <!-- Export -->
-                  <li ng-class="{active: currentPage=='export'}">
-                    <a href="#/project/{{corpusId}}/export">
-                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-download-alt"></span></td><td>EXPORT</td></tr></table>
-                    </a>
-                  </li>
+    <md-divider ></md-divider>
 
-                  <li class="spacer"></li>
-                  
-                  <li ng-class="{active: currentPage=='settings'}">
-                    <a href="#/project/{{corpusId}}/settings">
-                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-cog"></span></td><td>SETTINGS</td></tr></table>
-                    </a>
-                  </li>
+    <md-list-item class="md-2-line" ng-href="#!/project/{{corpusId}}/listWebentities" md-colors="{background: (currentPage=='listWebentities') ? ('default-background-50') : ('default-background')}">
+      <md-icon class="md-avatar">list</md-icon>
+      <div class="md-list-item-text" layout="column">
+        <h3>WEB ENTITIES</h3>
+        <p></p>
+      </div>
+    </md-list-item>
 
-                  <li class="spacer"></li>
-                  
-                  <li ng-class="{active: currentPage=='help'}">
-                    <a href="#/project/{{corpusId}}/help">
-                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-question-sign"></span></td><td>HELP</td></tr></table>
-                    </a>
-                  </li>
+    <md-list-item class="md-2-line" ng-href="#!/project/{{corpusId}}/network" md-colors="{background: (currentPage=='network') ? ('default-background-50') : ('default-background')}">
+      <md-icon class="md-avatar">my_location</md-icon>
+      <div class="md-list-item-text" layout="column">
+        <h3>NETWORK</h3>
+        <p></p>
+      </div>
+    </md-list-item>
+
+    <md-list-item class="md-2-line" ng-href="#!/project/{{corpusId}}/export" md-colors="{background: (currentPage=='export') ? ('default-background-50') : ('default-background')}">
+      <md-icon class="md-avatar">file_download</md-icon>
+      <div class="md-list-item-text" layout="column">
+        <h3>EXPORT</h3>
+        <p></p>
+      </div>
+    </md-list-item>
+
+    <md-divider ></md-divider>
+
+    <md-list-item class="md-2-line" ng-href="#!/project/{{corpusId}}/settings" md-colors="{background: (currentPage=='settings') ? ('default-background-50') : ('default-background')}">
+      <md-icon class="md-avatar">settings</md-icon>
+      <div class="md-list-item-text" layout="column">
+        <h3>SETTINGS</h3>
+        <p></p>
+      </div>
+    </md-list-item>
+
+    <md-list-item class="md-2-line" ng-href="#!/project/{{corpusId}}/help" md-colors="{background: (currentPage=='help') ? ('default-background-50') : ('default-background')}">
+      <md-icon class="md-avatar">help</md-icon>
+      <div class="md-list-item-text" layout="column">
+        <h3>HELP</h3>
+        <p></p>
+      </div>
+    </md-list-item>
 
 
-                  <!--
-                  <li>
-                    <a href="#/project/{{corpusId}}">
-                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-list"></span></td><td>PROJECT HISTORY</td></tr></table>
-                    </a>
-                  </li>
-                  
-                  <li class="spacer"></li>
-                  
-                  <li>
-                    <a href="#/project/{{corpusId}}">
-                      <table><tr><td><span class="symbol"><span class="glyphicon glyphicon-wrench"></span></td><td>PROJECT SETTINGS</td></tr></table>
-                    </a>
-                  </li>
 
-                   -->
-                  
-                  <li class="spacer"></li>
-                </ul>
-              </div>
-            </div>
-          </div>
+</div>
