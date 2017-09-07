@@ -4,8 +4,112 @@
   <div flex>
     <div layout="row" layout-fill>
       <div class="sidebar-width" ng-include="'partials/sidebar.html'"></div>
-      <div flex>
+      <div flex md-colors="{background: 'default-background-50'}">
+        
         <!-- Content -->
+        <div ng-show="corpusStatus">
+
+          <!-- Welcome message when empty -->
+          <div layout-padding ng-hide="corpusStatus.corpus.traph.webentities.total">
+            <h1>
+              Welcome to your Hyphe corpus!
+            </h1>
+            <p class="md-body-1">
+              Start defining the first <span hyphe-glossary="web entities"></span> of your corpus by <a href="#/project/{{corpusId}}/importurls">importing urls</a> to <span hyphe-glossary="crawl"></span>.
+            </p>
+          </div>
+
+          <!-- Information when corpus not empty -->
+          <div layout-padding ng-show="corpusStatus.corpus.traph.webentities.total">
+            <h1>
+              OVERVIEW
+            </h1>
+            
+            <div layout="row">
+              <md-content flex layout="column" layout-padding layout-margin layout-align="start center">
+                <h3>
+                  CRAWL JOBS
+                </h3>
+                <p class="md-body-1" ng-show="corpusStatus.corpus.crawler.jobs_finished">
+                  {{corpusStatus.corpus.crawler.jobs_finished}} achieved
+                </p>
+                <p class="md-body-1" ng-show="corpusStatus.corpus.crawler.jobs_running">
+                  {{corpusStatus.corpus.crawler.jobs_running}} running
+                </p>
+                <p class="md-body-1" ng-show="corpusStatus.corpus.crawler.jobs_pending">
+                  {{corpusStatus.corpus.crawler.jobs_pending}} pending
+                </p>
+                <p class="md-body-1">
+                  Last indexation <a href="#" tooltip="{{corpusStatus.corpus.traph.last_index|date}}">{{corpusStatus.corpus.traph.last_index|prettyDate}}</a>
+                <p class="md-body-1" ng-show="corpusStatus.corpus.traph.job_running">
+                  Currently: {{corpusStatus.corpus.traph.job_running}}
+                </p>
+              </md-content>
+              <md-content flex layout="column" layout-padding layout-margin layout-align="start center">
+                <h3>
+                  CONTENT CRAWLED
+                </h3>
+                <p class="md-body-1" >
+                  {{corpusStatus.corpus.crawler.pages_crawled|no}} page{{corpusStatus.corpus.crawler.pages_crawled|plural}} crawled
+                </p>
+                <p class="md-body-1" ng-if="corpusStatus.corpus.traph.pages_to_index" >
+                  including {{corpusStatus.corpus.traph.pages_to_index}} unindexed yet
+                </p>
+                <p class="md-body-1" >
+                  {{corpusStatus.corpus.crawler.pages_found|no}} page{{corpusStatus.corpus.crawler.pages_found|plural}} discovered
+                </p>
+                <p class="md-body-1" ng-show="corpusStatus.corpus.crawler.links_found" >
+                  {{corpusStatus.corpus.crawler.links_found}} link{{corpusStatus.corpus.crawler.links_found|plural}} discovered
+                </p>
+              </md-content>
+            </div>
+
+            <h2>
+              WEB ENTITIES
+            </h2>
+
+            <div layout="row">
+              <div class="round-cell-content">
+                <p class="title">
+                  IN
+                </p>
+                <p class="content md-body-1">
+                  {{corpusStatus.corpus.traph.webentities.IN|none}}
+                </p>
+              </div>
+            
+              <div class="round-cell-content">
+                <p class="title">
+                  UNDECIDED
+                </p>
+                <p class="content md-body-1">
+                  {{corpusStatus.corpus.traph.webentities.UNDECIDED|none}}
+                </p>
+              </div>
+
+              <div class="round-cell-content">
+                <p class="title">
+                  DISCOVERED
+                </p>
+                <p class="content md-body-1">
+                  {{corpusStatus.corpus.traph.webentities.DISCOVERED|none}}
+                </p>
+              </div>
+          
+              <div class="round-cell-content">
+                <p class="title">
+                  OUT
+                </p>
+                <p class="content md-body-1">
+                  {{corpusStatus.corpus.traph.webentities.OUT|none}}
+                </p>
+              </div> 
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
     </div>
   </div>

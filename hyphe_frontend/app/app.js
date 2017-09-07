@@ -49,6 +49,11 @@ angular.module('hyphe', [
   $routeProvider.otherwise({redirectTo: '/login'});
 }])
 
+// Routing
+.config(function($locationProvider) {
+   $locationProvider.hashPrefix("")
+})
+
 // X-Editable
 .run(function(editableOptions, editableThemes) {
   editableOptions.theme = 'bs3'; // Can be also 'bs2', 'bs3', 'default'

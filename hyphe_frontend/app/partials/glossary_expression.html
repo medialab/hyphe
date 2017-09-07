@@ -1,1 +1,4 @@
-<span ng-if="def" Popover-animation="true" popover-placement="top" popover-trigger="mouseenter" popover="{{def.definition}}" popover-title="{{def.title}}" class="definition" popover-append-to-body="true">{{originalExpression}}</span><span ng-if="!def">{{originalExpression}}</span>
+<span class="definition">
+	<md-tooltip md-direction="top" ng-if="def">{{def.definition}}</md-tooltip>
+	{{originalExpression}}
+</span>
