@@ -1938,6 +1938,7 @@ ul.startpages-report{
   -webkit-transform: scale(1.1);
       -ms-transform: scale(1.1);
           transform: scale(1.1);
+
 }
 .sk-folding-cube .sk-cube:before {
   content: '';
@@ -1947,7 +1948,6 @@ ul.startpages-report{
   width: 100%;
   height: 100%;
   background-color: #428bca;
-  border: 1px solid rgba(255, 255, 255, 0.6);
   -webkit-animation: sk-foldCubeAngle 2.4s infinite linear both;
           animation: sk-foldCubeAngle 2.4s infinite linear both;
   -webkit-transform-origin: 100% 100%;
