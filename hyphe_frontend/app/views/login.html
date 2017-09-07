@@ -75,9 +75,8 @@
           ng-click="selectCorpus(corpus.corpus_id)"
         >
           <md-icon ng-if="corpus.password && !corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">lock</md-icon>
-          <md-icon ng-if="corpus.password && corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">lock_open</md-icon>
           <md-icon ng-if="!corpus.password && !corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">stop</md-icon>
-          <md-icon ng-if="!corpus.password && corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">play_circle_outline</md-icon>
+          <md-icon ng-if="corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">play_circle_outline</md-icon>
           <div class="md-list-item-text" layout="column">
             <h3>{{ corpus.name }}</h3>
             <h4>{{ corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + '  web entities' }}</h4>
@@ -144,6 +143,6 @@
       layout="column"
       layout-align="center center"
     >
-      <spinner class="center" text="'CREATING CORPUS'"/>
+      <spinner class="center" text="'STARTING CORPUS'"/>
   </div>
 </div>
