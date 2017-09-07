@@ -53,6 +53,7 @@
         <label>Search corpus</label>
         <md-icon>search</md-icon>
         <input
+          focus-me="{{true}}"
           ng-model="$parent.$parent.search_query"
           ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)"
         >
@@ -102,7 +103,7 @@
       <h3>Create new corpus</h3>
       <md-input-container >
         <label>Corpus Name</label>
-        <input ng-model="$parent.new_project_name" ng-press-enter="createCorpus()">
+        <input focus-me="{{true}}" ng-model="$parent.new_project_name" ng-press-enter="createCorpus()">
       </md-input-container>
 
       <md-checkbox ng-model="$parent.passwordProtected" aria-label="Password Protected">
@@ -156,7 +157,7 @@
       
       <md-input-container>
         <label>Password</label>
-        <input type="password" ng-model="$parent.login_password" ng-press-enter="logIn()">
+        <input focus-me="{{true}}" type="password" ng-model="$parent.login_password" ng-press-enter="logIn()">
       </md-input-container>
       
       <p ng-if="new_project_message.length > 0">
