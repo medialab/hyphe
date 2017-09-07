@@ -177,9 +177,8 @@ class MongoDB(object):
         res = yield self.WEs(corpus).find_one({"_id": weid})
         returnD(res)
 
-    def new_WE(self, weid, prefixes, name=None, status="DISCOVERED", startpages=[], timestamp=None):
-        if not timestamp:
-            timestamp = now_ts()
+    def new_WE(self, weid, prefixes, name=None, status="DISCOVERED", startpages=[], tags={}):
+        timestamp = now_ts()
         if not name:
             for p in prefixes:
                 try:
@@ -194,7 +193,7 @@ class MongoDB(object):
           "prefixes": prefixes,
           "name": name,
           "status": status,
-          "tags": {},
+          "tags": tags,
           "homepage": None,
           "startpages": startpages,
           "crawled": False,
@@ -203,8 +202,8 @@ class MongoDB(object):
         }
 
     @inlineCallbacks
-    def add_WE(self, corpus, weid, prefixes, name=None, status="DISCOVERED", startpages=[]):
-        yield self.upsert_WE(corpus, weid, self.new_WE(weid, prefixes, name, status, startpages), False)
+    def add_WE(self, corpus, weid, prefixes, name=None, status="DISCOVERED", startpages=[], tags={}):
+        yield self.upsert_WE(corpus, weid, self.new_WE(weid, prefixes, name, status, startpages, tags), False)
 
     @inlineCallbacks
     def add_WEs(self, corpus, new_WEs):

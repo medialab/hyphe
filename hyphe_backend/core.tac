@@ -1350,7 +1350,7 @@ class Memory_Structure(customJSONRPC):
             WEstatus = status.upper()
             if WEstatus not in WEBENTITIES_STATUSES:
                 returnD(format_error('Status %s is not a valid WebEntity Status, please provide one of the following values: %s' % (WEstatus, WEBENTITIES_STATUSES)))
-        yield self.db.add_WE(corpus, weid, lru_prefixes, name, WEstatus, startpages)
+        yield self.db.add_WE(corpus, weid, lru_prefixes, name, WEstatus, startpages, tags)
         new_WE = yield self.return_new_webentity(lru_prefixes[0], True, 'lru', corpus=corpus)
         if is_error(new_WE):
             returnD(new_WE)
