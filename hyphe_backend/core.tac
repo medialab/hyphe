@@ -2193,11 +2193,13 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentities_by_tag_value(self, value, namespace=None, category=None, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all WebEntities having at least one tag in any namespace/category equal to `value`.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`."""
+        namespace = self._cleanupTagsKey(namespace)
+        category = self._cleanupTagsKey(category)
         page, count = self._checkPageCount(page, count)
         if page is None:
             returnD(format_error("page and count arguments must be integers"))
         if namespace and category:
-            query = {"tags.%s.%s": {"$all": [value]}}
+            query = {"tags.%s.%s": value}
         elif namespace:
             query = {"$where":
               """function() {
@@ -2235,6 +2237,8 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentities_by_tag_category(self, namespace, category, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all WebEntities having at least one tag in a specific `category` for a specific `namespace`.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`."""
+        namespace = self._cleanupTagsKey(namespace)
+        category = self._cleanupTagsKey(category)
         page, count = self._checkPageCount(page, count)
         if page is None:
             returnD(format_error("page and count arguments must be integers"))
@@ -2318,8 +2322,15 @@ class Memory_Structure(customJSONRPC):
 
   # TAGS
 
+    def _cleanupTagsKey(self, key):
+        if key and "." in key:
+            key = key.replace(".", "_")
+        return key
+
     def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
         """Adds for a `corpus` a tag `namespace:category=value` to a WebEntity defined by `webentity_id`."""
+        namespace = self._cleanupTagsKey(namespace)
+        category = self._cleanupTagsKey(category)
         return self.update_webentity(webentity_id, "tags", value, "push", category, namespace, _commit=_commit, corpus=corpus)
 
     # TODO handle as single mongo query
@@ -2333,10 +2344,14 @@ class Memory_Structure(customJSONRPC):
 
     def jsonrpc_rm_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
         """Removes for a `corpus` a tag `namespace:category=value` associated with a WebEntity defined by `webentity_id` if it is set."""
+        namespace = self._cleanupTagsKey(namespace)
+        category = self._cleanupTagsKey(category)
         return self.update_webentity(webentity_id, "tags", value, "pop", category, namespace, _commit=_commit, corpus=corpus)
 
     def jsonrpc_set_webentity_tag_values(self, webentity_id, namespace, category, values, corpus=DEFAULT_CORPUS, _commit=True):
         """Replaces for a `corpus` all existing tags of a WebEntity defined by `webentity_id` for a specific `namespace` and `category` by a list of `values` or a single tag."""
+        namespace = self._cleanupTagsKey(namespace)
+        category = self._cleanupTagsKey(category)
         if not isinstance(values, list):
             values = [values]
         return self.update_webentity(webentity_id, "tags", values, "update", category, namespace, _commit=_commit, corpus=corpus)
@@ -2371,6 +2386,7 @@ class Memory_Structure(customJSONRPC):
 
     def jsonrpc_get_tags(self, namespace=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a tree of all existing tags of the webentities hierarchised by namespaces and categories. Optionally limits to a specific `namespace`."""
+        namespace = self._cleanupTagsKey(namespace)
         tags = self.ramcache_tags(corpus)
         if is_error(tags):
             return tags
@@ -2389,6 +2405,7 @@ class Memory_Structure(customJSONRPC):
 
     def jsonrpc_get_tag_categories(self, namespace=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a list of all existing categories of the webentities tags. Optionally limits to a specific `namespace`."""
+        namespace = self._cleanupTagsKey(namespace)
         tags = self.ramcache_tags(corpus)
         if is_error(tags):
             return tags
@@ -2405,6 +2422,8 @@ class Memory_Structure(customJSONRPC):
 
     def jsonrpc_get_tag_values(self, namespace=None, category=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a list of all existing values in the webentities tags. Optionally limits to a specific `namespace` and/or `category`."""
+        namespace = self._cleanupTagsKey(namespace)
+        category = self._cleanupTagsKey(category)
         tags = self.ramcache_tags(corpus)
         if is_error(tags):
             return tags
