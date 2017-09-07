@@ -12,7 +12,6 @@ html, body, .ng-view-container{
 body {
   color: #555;
   font-family: 'Open Sans', sans-serif;
-  /*background-color: #EFEBE8;*/
 }
 h1, h2, h3, h4, h5, h6{
   font-weight: 300;

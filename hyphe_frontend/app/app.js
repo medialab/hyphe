@@ -73,6 +73,7 @@ angular.module('hyphe', [
   })
 })
 
+// TODO: check why these lines are also above
 .run(function(editableOptions, editableThemes) {
   editableOptions.theme = 'bs3'; // Can be also 'bs2', 'bs3', 'default'
   editableThemes.bs3.inputClass = 'input-sm';
@@ -84,10 +85,75 @@ angular.module('hyphe', [
   $analyticsProvider.virtualPageviews(true);
 }])
 
+// Page controller
 .controller('pageCtrl', ['$scope', 'Page'
   ,function($scope, Page) {
     $scope.Page = Page
   }])
+
+// Color theme
+.config(function($mdThemingProvider) {
+	$mdThemingProvider.definePalette('hypheBackground', {
+    '50': 'f9f7f7',
+    '100': 'efebe8',
+    '200': 'e6e2df',
+    '300': 'dbd7d4',
+    '400': 'cdcac8',
+    '500': 'bfbcba',
+    '600': 'b6b3b1',
+    '700': 'b3afae',
+    '800': 'a5a3a1',
+    '900': '8e8e8d',
+    'A100': 'efebe8',
+    'A200': 'dbd7d4',
+    'A400': 'bfbcba',
+    'A700': '8e8e8d',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': ['50', '100', //hues which contrast should be 'dark' by default
+     '200', '300', '400', '500', '600', '700', 'A100', 'A200', 'A400'],
+    'contrastLightColors': undefined    // could also specify this if default was 'dark'
+  })
+
+  $mdThemingProvider.definePalette('hypheBlue', {
+    '50': 'e6f1f8',
+    '100': 'c0dcee',
+    '200': '98c6e3',
+    '300': '70afd8',
+    '400': '509fd1',
+    '500': '328dc7',
+    '600': '3489bd',
+    '700': '3681ae',
+    '800': '387ca1',
+    '900': '3c7289',
+    'A100': 'c0efff',
+    'A200': '8fe3ff',
+    'A400': '4cd5ff',
+    'A700': '2ca9eb',
+    'contrastDefaultColor': 'light',
+    'contrastDarkColors': ['50', '100', //hues which contrast should be 'dark' by default
+     '200', '300', '400', 'A100', 'A200', 'A400', 'A700'],
+    'contrastLightColors': undefined    // could also specify this if default was 'dark'
+  })
+
+	$mdThemingProvider.theme('default')
+		.primaryPalette('hypheBlue', {
+	      'default': '500',
+	      'hue-1': '100',  
+	      'hue-2': '600',  
+	      'hue-3': 'A100'  
+	    })
+	    .accentPalette('teal', {
+	      'default': '300'
+	    })
+	    .warnPalette('pink')
+	    .backgroundPalette('hypheBackground', {
+	      'default': '100',
+	      'hue-1': '50',
+	      'hue-2': '300',
+	      'hue-3': '600'
+	    })
+
+})
 
 angular.module('hyphe.analytics', [])
 .run(['googleAnalyticsId', function(googleAnalyticsId) {
