@@ -1605,6 +1605,7 @@ class Memory_Structure(customJSONRPC):
             if is_error(res):
                 returnD(res)
             WE = yield self.add_backend_tags(WE, "added", lru_prefix, namespace="PREFIXES", _commit=False, corpus=corpus)
+            WE = yield self.jsonrpc_add_webentity_tag_value(WE, "CORE", "recrawlNeeded", "true", _commit=False, corpus=corpus)
             if "removed" in WE["tags"]["CORE-PREFIXES"] and lru_prefix in WE["tags"]["CORE-PREFIXES"]["removed"]:
                 WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-PREFIXES", "removed", lru_prefix, _commit=False, corpus=corpus)
         if not clean_lrus:
@@ -1623,6 +1624,7 @@ class Memory_Structure(customJSONRPC):
         except ValueError as e:
             returnD(format_error(e))
         WE = yield self.add_backend_tags(webentity_id, "removed", lru_prefix, namespace="PREFIXES", _commit=False, corpus=corpus)
+        WE = yield self.jsonrpc_add_webentity_tag_value(WE, "CORE", "recrawlNeeded", "true", _commit=False, corpus=corpus)
         if "added" in WE["tags"]["CORE-PREFIXES"] and lru_prefix in WE["tags"]["CORE-PREFIXES"]["added"]:
             WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-PREFIXES", "added", lru_prefix,  _commit=False, corpus=corpus)
         res = yield self.traphs.call(corpus, "remove_prefix_from_webentity", lru_prefix, webentity_id)
@@ -1729,6 +1731,7 @@ class Memory_Structure(customJSONRPC):
                             new_WE["tags"][tag_namespace][tag_key].append(tag_val)
         yield self.db.update_jobs(corpus, {'webentity_id': old_WE["_id"]}, {'webentity_id': new_WE["_id"], 'previous_webentity_id': old_WE["_id"], 'previous_webentity_name': old_WE["name"]})
         new_WE = yield self.add_backend_tags(new_WE, "mergedWebEntities", "%s: %s (%s)" % (old_WE["_id"], old_WE["name"], old_WE["status"]), _commit=False, corpus=corpus)
+        new_WE = yield self.jsonrpc_add_webentity_tag_value(new_WE, "CORE", "recrawlNeeded", "true", _commit=False, corpus=corpus)
         yield self.db.upsert_WE(corpus, good_webentity_id, new_WE)
         self.corpora[corpus]['total_webentities'] -= 1
         self.corpora[corpus]['recent_changes'] += 1
@@ -2343,9 +2346,8 @@ class Memory_Structure(customJSONRPC):
         if not namespace:
             namespace = "CORE"
         else: namespace = "CORE-%s" % namespace
-        WE = yield self.jsonrpc_add_webentity_tag_value(webentity_id, namespace, key, value, _commit=False, corpus=corpus)
-        res = yield self.jsonrpc_add_webentity_tag_value(WE, "CORE", "recrawlNeeded", "true", _commit=_commit, corpus=corpus)
-        returnD(res)
+        WE = yield self.jsonrpc_add_webentity_tag_value(webentity_id, namespace, key, value, _commit=_commit, corpus=corpus)
+        returnD(WE)
 
     def ramcache_tags(self, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
