@@ -663,7 +663,7 @@ angular.module('hyphe.service_hyphe_api', [])
                 $location.path('/')
               } else {
                 console.log('[Error: unexpected]', response.data)
-                errorCallback(response.data, response.status, response.headers, config)
+                errorCallback(response.data, response.status, response.headers, response.config)
               }
             }
           // Error

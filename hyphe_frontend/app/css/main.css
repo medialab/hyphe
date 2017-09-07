@@ -115,6 +115,136 @@ ul.list-spaced li {
 
 
 /* ==========================================================================
+   Menus and side bar
+   ========================================================================== */
+.sidebar-width {
+  width: 200px;
+}
+.topbar-height {
+  height: 48px;
+}
+.topbar-branding{
+  padding-top: 6px;
+  padding-right: 6px;
+  opacity: 0.6;
+}
+.topbar-branding:hover{
+  opacity: 0.9;
+}
+.topbar-project{
+  font-weight: 600;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+/*.header{
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 50px;
+  z-index: 1000;
+}
+.topbar{
+  background-color: #EFEBE8;
+  font-size: 18px;
+}
+.topbar-fixed .topbar-project{
+  width: 200px;
+  position: absolute;
+  z-index: 20;
+}
+
+
+.topbar-project table{
+  width: 100%
+}
+.topbar-project td{
+  vertical-align: top;
+}
+.topbar-fixed .topbar-center{
+  width: 100%;
+  padding-left: 200px;
+  position: absolute;
+}
+.topbar-status{
+  text-align: center;
+  font-weight: 300;
+  height: 50px;
+  padding-top: 12px;
+}
+.topbar-status .progress{
+  height: 4px;
+  margin-top: 7px;
+  border-radius: 0px;
+}
+.topbar-status .progress .progress-bar{
+  transition: none;
+}
+
+.topbar .close-button{
+  cursor: pointer;
+}
+
+.sidebar-col{
+  background-color: #EFEBE8;
+  border-radius: 0px 0px 6px 0px;
+  padding-right: 0px;
+  padding-top: 60px;
+  left: 0;
+}
+.sidebar span.symbol{
+  float: left;
+  width: 32px;
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+.sidebar li.spacer{
+  margin-bottom: 24px;
+}
+*/
+
+/*.sidebar>li>a{
+  color: #1B4C6B;
+  border-radius: 4px 0px 0px 4px;
+  font-weight: 400;
+}
+.sidebar>li:not(.inactive)>a:hover, .sidebar>li:not(.inactive)>a:focus{
+  background-color: #FFF;
+  color: #1B4C6B;
+}
+.sidebar>li.inactive>a:hover, .sidebar>li.inactive>a:focus{
+  background-color: #EFEBE8;
+  cursor: default;
+}
+.sidebar>li.active>a, .sidebar>li.active>a:hover, .sidebar>li.active>a, .sidebar>li.active>a:focus{
+  background-color: #FFF;
+  color: #000;
+  font-weight: 600;
+}
+
+.import-info{
+  margin-top: 8px;
+}
+
+#define-we-button{
+  margin-top: 6px;
+}
+
+@media (max-width: 768px) {
+  .sidebar>li>a{
+    border-radius: 4px 4px 4px 4px;
+    padding: 2px 15px;
+  }
+  .sidebar-col{
+    padding-top: 120px;
+    position: relative;
+    padding-right: 15px;
+  }
+}
+*/
+
+/* ==========================================================================
    Tweaks needed by Angular-UI-bootstrap
    ========================================================================== */
 /*.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
@@ -383,137 +513,7 @@ tags-input .tags .tag-item {
 
 
 
-/* ==========================================================================
-   Top bar
-   ========================================================================== */
-/*.header{
-  position: fixed;
-  top: 0;
-  width: 100%;
-  height: 50px;
-  z-index: 1000;
-}
-.topbar{
-  background-color: #EFEBE8;
-  font-size: 18px;
-}
-.topbar-fixed .topbar-project{
-  width: 200px;
-  position: absolute;
-  z-index: 20;
-}
-.topbar-project{
-  background-color: #428bca;
-  color: #FFF;
-  padding: 6px;
-  font-weight: 600;
-  height: 50px;
-  overflow: hidden;
-  font-size: 14px;
-}
-.topbar-project .corpus-name{
-  overflow: hidden;
-}
-.topbar-project table{
-  width: 100%
-}
-.topbar-project td{
-  vertical-align: top;
-}
-.topbar-fixed .topbar-center{
-  width: 100%;
-  padding-left: 200px;
-  position: absolute;
-}
-.topbar-status{
-  text-align: center;
-  font-weight: 300;
-  height: 50px;
-  padding-top: 12px;
-}
-.topbar-status .progress{
-  height: 4px;
-  margin-top: 7px;
-  border-radius: 0px;
-}
-.topbar-status .progress .progress-bar{
-  transition: none;
-}
-.topbar-branding{
-  text-align: right;
-  padding-top: 4px;
-  opacity: 0.6;
-}
-.topbar-branding:hover{
-  opacity: 0.9;
-}
-.topbar .close-button{
-  cursor: pointer;
-}*/
 
-
-
-/* ==========================================================================
-   Sidebar nav
-   ========================================================================== */
-/*.sidebar-col{
-  background-color: #EFEBE8;
-  border-radius: 0px 0px 6px 0px;
-  padding-right: 0px;
-  padding-top: 60px;
-  left: 0;
-}
-.sidebar span.symbol{
-  float: left;
-  width: 32px;
-  font-size: 16px;
-  opacity: 0.8;
-}
-
-.sidebar li.spacer{
-  margin-bottom: 24px;
-}
-*/
-
-/*.sidebar>li>a{
-  color: #1B4C6B;
-  border-radius: 4px 0px 0px 4px;
-  font-weight: 400;
-}
-.sidebar>li:not(.inactive)>a:hover, .sidebar>li:not(.inactive)>a:focus{
-  background-color: #FFF;
-  color: #1B4C6B;
-}
-.sidebar>li.inactive>a:hover, .sidebar>li.inactive>a:focus{
-  background-color: #EFEBE8;
-  cursor: default;
-}
-.sidebar>li.active>a, .sidebar>li.active>a:hover, .sidebar>li.active>a, .sidebar>li.active>a:focus{
-  background-color: #FFF;
-  color: #000;
-  font-weight: 600;
-}
-
-.import-info{
-  margin-top: 8px;
-}
-
-#define-we-button{
-  margin-top: 6px;
-}
-
-@media (max-width: 768px) {
-  .sidebar>li>a{
-    border-radius: 4px 4px 4px 4px;
-    padding: 2px 15px;
-  }
-  .sidebar-col{
-    padding-top: 120px;
-    position: relative;
-    padding-right: 15px;
-  }
-}
-*/
 
 
 /* ==========================================================================

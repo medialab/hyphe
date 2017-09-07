@@ -5,7 +5,6 @@ angular.module('hyphe.overviewController', [])
   .controller('Overview', ['$scope', 'api', 'utils', 'corpus'
   ,function($scope, api, utils, corpus) {
     $scope.currentPage = 'overview'
-    $scope.Page.setTitle('Overview')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 

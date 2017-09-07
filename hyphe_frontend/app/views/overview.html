@@ -1,117 +1,14 @@
-    <div class="container-fluid">
-      <div class="row no-gutter" ng-include="'partials/topbar.html'">
+<div layout="column" layout-fill>
+  <div class="topbar-height" ng-include="'partials/topbar.html'">
+  </div>
+  <div flex>
+    <div layout="row" layout-fill>
+      <div class="sidebar-width">
+        
       </div>
-      <div class="row no-gutter">
-        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
-        </div>
-        <div class="col-lg-10 col-md-9 col-sm-8">
-          <div class="container-fluid main">
-            <div class="row">
-              <div ng-show="corpusStatus" class="col-md-12">
- 
-                <div ng-hide="corpusStatus.corpus.traph.webentities.total">
-                  <h1>
-                    Welcome to your Hyphe corpus!
-                  </h1>
-                  <p>
-                    Start defining the first <span hyphe-glossary="web entities"></span> of your corpus by <a href="#/project/{{corpusId}}/importurls">importing urls</a> to <span hyphe-glossary="crawl"></span>.
-                  </p>
-                </div>
-
-                <div ng-show="corpusStatus.corpus.traph.webentities.total">
-                  <h1>
-                    OVERVIEW
-                  </h1>
-                  <div class="col-md-4 col-lg-3 status-cell">
-                    <div class="status-cell-content">
-                      <p class="title">
-                        CRAWL JOBS
-                      </p>
-                      <p ng-show="corpusStatus.corpus.crawler.jobs_finished" class="content">
-                        {{corpusStatus.corpus.crawler.jobs_finished}} achieved
-                      </p>
-                      <p ng-show="corpusStatus.corpus.crawler.jobs_running" class="content">
-                        {{corpusStatus.corpus.crawler.jobs_running}} running
-                      </p>
-                      <p ng-show="corpusStatus.corpus.crawler.jobs_pending" class="content">
-                        {{corpusStatus.corpus.crawler.jobs_pending}} pending
-                      </p>
-                      <p class="content">
-                        Last indexation <a href="#" tooltip="{{corpusStatus.corpus.traph.last_index|date}}">{{corpusStatus.corpus.traph.last_index|prettyDate}}</a>
-                      <p ng-show="corpusStatus.corpus.traph.job_running" class="content">
-                        Currently: {{corpusStatus.corpus.traph.job_running}}
-                      </p>
-                      </p>
-                    </div>
-                  </div>
-    
-                  <div class="col-md-4 col-lg-3 status-cell">
-                    <div class="status-cell-content">
-                      <p class="title">
-                        CONTENT CRAWLED
-                      </p>
-                      <p class="content">
-                        {{corpusStatus.corpus.crawler.pages_crawled|no}} page{{corpusStatus.corpus.crawler.pages_crawled|plural}} crawled
-                      </p>
-                      <p ng-if="corpusStatus.corpus.traph.pages_to_index" class="content">
-                        including {{corpusStatus.corpus.traph.pages_to_index}} unindexed yet
-                      </p>
-                      <p class="content">
-                        {{corpusStatus.corpus.crawler.pages_found|no}} page{{corpusStatus.corpus.crawler.pages_found|plural}} discovered
-                      </p>
-                      <p ng-show="corpusStatus.corpus.crawler.links_found" class="content">
-                        {{corpusStatus.corpus.crawler.links_found}} link{{corpusStatus.corpus.crawler.links_found|plural}} discovered
-                      </p>
-                    </div>
-                  </div>
-
-                  <h2 class="clearboth">
-                    WEB ENTITIES
-                  </h2>
-
-                  <div class="round-cell-content">
-                    <p class="title">
-                      IN
-                    </p>
-                    <p class="content">
-                      {{corpusStatus.corpus.traph.webentities.IN|none}}
-                    </p>
-                  </div>
-                
-                  <div class="round-cell-content">
-                    <p class="title">
-                      UNDECIDED
-                    </p>
-                    <p class="content">
-                      {{corpusStatus.corpus.traph.webentities.UNDECIDED|none}}
-                    </p>
-                  </div>
-
-                  <div class="round-cell-content">
-                    <p class="title">
-                      DISCOVERED
-                    </p>
-                    <p class="content">
-                      {{corpusStatus.corpus.traph.webentities.DISCOVERED|none}}
-                    </p>
-                  </div>
-              
-                  <div class="round-cell-content">
-                    <p class="title">
-                      OUT
-                    </p>
-                    <p class="content">
-                      {{corpusStatus.corpus.traph.webentities.OUT|none}}
-                    </p>
-                  </div> 
- 
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-        </div>
+      <div flex>
+        
       </div>
     </div>
+  </div>
+</div>

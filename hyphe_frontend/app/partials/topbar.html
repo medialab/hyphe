@@ -1,25 +1,21 @@
-        <div class="container-fluid header">
-          <div class="row topbar">
-          	<div class="col-lg-2 col-md-3 col-sm-4 topbar-project">
-              <table>
-                <tr>
-                  <td>
-                    <div class="corpus-name">
-        		          {{corpusName}}
-                    </div>
-                  </td>
-                  <td>
-                    <div class="close-button pull-right">
-                      <span class="glyphicon glyphicon-remove" ng-close-corpus></span>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-		        </div>
-		        <div class="col-lg-4 col-lg-offset-2 col-md-4 col-md-offset-1 col-sm-4 topbar-center" hyphe-status>
-		        </div>
-		        <div class="col-lg-2 col-lg-offset-2 col-md-3 col-md-offset-1 col-sm-4 topbar-branding hidden-xs">
-		          <a href="http://tools.medialab.sciences-po.fr"><img src="img/medialab.png" title="Sciences Po | médialab"></a>
-		        </div>
-	        </div>
-        </div>
+<div layout="row" layout-fill>
+  <div layout="row" class="sidebar-width topbar-project" md-colors="{background: 'default-primary-500'}">
+    <div flex>
+      <div layout-fill layout="row" layout-padding layout-align="start center">
+        {{corpusName}}
+      </div>
+    </div>
+    <div >
+      <md-button class="md-icon-button" style="margin-right: 0;" aria-label="Close corpus">
+        <md-icon md-colors="{color: 'default-primary-50'}" ng-close-corpus>close</md-icon>
+      </md-button>
+    </div>
+  </div>
+  <div flex layout="row">
+    <div flex hyphe-status>
+    </div>
+    <div class="topbar-branding sidebar-width" layout="row" layout-align="end center">
+      <a href="http://tools.medialab.sciences-po.fr"><img src="img/medialab.png" title="Sciences Po | médialab"></a>
+    </div>
+  </div>
+</div>

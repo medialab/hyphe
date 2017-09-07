@@ -85,12 +85,6 @@ angular.module('hyphe', [
   $analyticsProvider.virtualPageviews(true);
 }])
 
-// Page controller
-.controller('pageCtrl', ['$scope', 'Page'
-  ,function($scope, Page) {
-    $scope.Page = Page
-  }])
-
 // Color theme
 .config(function($mdThemingProvider) {
 	$mdThemingProvider.definePalette('hypheBackground', {
