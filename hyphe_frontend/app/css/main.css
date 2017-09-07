@@ -14,6 +14,9 @@ body {
   font-family: 'Open Sans', sans-serif;
   /*background-color: #EFEBE8;*/
 }
+h1, h2, h3, h4, h5, h6{
+  font-weight: 300;
+}
 /*
 .label, .badge{
   font-family: 'Open Sans', sans-serif;
@@ -585,7 +588,7 @@ tags-input .tags .tag-item {
    View: Login
    ========================================================================== */
 .welcome-logo{
-  margin-bottom: 16px;
+  margin: 12px;
 }
 .welcome-logo h1{
   font-size: 52px;

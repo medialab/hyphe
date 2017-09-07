@@ -1,148 +1,149 @@
-<div layout="row" layout-fill layout-align="space-between stretch">
-  
-  <div layout="column" flex="40" layout-padding>
-    <div class="welcome-logo" layout="column" layout-align="start center" flex="66">
+<div layout="row" layout-fill layout-align="center stretch">
+  <div layout="column" style="width: 480px;" layout-align="stretch center">
+
+    <!-- Logo -->
+    <div
+      class="welcome-logo" 
+      layout="column"
+      layout-align="start center"
+    >
       <img src="img/hyphe logo med.png" title="hyphe-logo">
       <h1>hyphe</h1>
     </div>
-    <p ng-if="freeSlots > 0">
-      {{freeSlots}} project{{freeSlots | plural}} can be put into operation ({{globalStatus.corpus_running}} slots occupied)
-    </p>
-    <p ng-if="freeSlots == 0">
-      Hyphe cannot put a new project into operation
-      <br>
-      ({{globalStatus.corpus_running}} running, {{globalStatus.ports_left}} port{{globalStatus.ports_left | plural}} &amp; {{globalStatus.ram_left}} Mo ram left available)
-    </p>
-  </div>
 
-  <div layout="column" flex="60">
-    <div class="welcome-column" layout="column" layout-fill>
-
-      <div ng-if="disconnected">
-        <p class="text-danger"><!-- TODO: color -->
-          YOU ARE DISCONNECTED FROM HYPHE &nbsp; &nbsp;:-(
-        </p>
-      </div>
-
-      <div ng-if="!disconnected && !loading" layout="column">
-        <md-button class="md-raised md-primary" ng-show="uiMode == 'default'" ng-click="switchToNew()"><md-icon>add</md-icon> New Corpus</md-button>
-        <div ng-show="uiMode == 'default' && corpusList.length > 0" layout=column>
-          <md-input-container>
-            <label>Search corpus</label>
-            <md-icon>search</md-icon>
-            <input
-              ng-model="$parent.$parent.search_query"
-              ng-if="corpusList !== undefined && corpusList.length > 3"
-              ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)"
-            >
-          </md-input-container>
-          <md-progress-circular md-mode="indeterminate" ng-if="corpusList == undefined"></md-progress-circular>
-          <md-list ng-if="corpusList !== undefined">
-            <md-list-item
-              class="md-3-line"
-              ng-repeat="corpus in corpusList|search:search_query:['name']"
-              ng-click="selectCorpus(corpus.corpus_id)"
-            >
-              <md-icon ng-if="corpus.password && !corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">lock</md-icon>
-              <md-icon ng-if="corpus.password && corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">lock_open</md-icon>
-              <md-icon ng-if="!corpus.password && !corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">stop</md-icon>
-              <md-icon ng-if="!corpus.password && corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">play_circle_outline</md-icon>
-              <div class="md-list-item-text" layout="column">
-                <h3>{{ corpus.name }}</h3>
-                <h4>{{ corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + '  web entities' }}</h4>
-                <p>
-                  Created
-                  <span tooltip="{{corpus.created_at|date}}" tooltip-placement="bottom">{{corpus.created_at|prettyDate}}</span>
-                  -
-                  Used
-                  <span tooltip="{{corpus.last_activity|date}}" tooltip-placement="bottom">{{corpus.last_activity|prettyDate}}</span>
-                </p>
-              </div>
-            </md-list-item>
-          </md-list>
-        </div>
-
-        <div ng-show="uiMode == 'new' || corpusList.length == 0" layout="column">
-          <h3>Create new corpus</h3>
-          <div ng-if="!starting" layout="column">
-            <md-input-container>
-              <label>Corpus Name</label>
-              <input ng-model="$parent.$parent.new_project_name" ng-press-enter="createCorpus()">
-            </md-input-container>
-
-            <br>
-
-            <md-checkbox ng-model="$parent.$parent.passwordProtected" aria-label="Password Protected">
-              <md-icon>lock</md-icon> Password protection
-            </md-checkbox>
-
-            <md-input-container ng-if="passwordProtected">
-              <label>Password</label>
-              <input type="password" ng-model="$parent.$parent.$parent.new_project_password" ng-press-enter="createCorpus()">
-            </md-input-container>
-            <md-input-container ng-if="passwordProtected">
-              <label>Enter Passwork Again</label>
-              <input type="password" ng-model="$parent.$parent.$parent.new_project_password_2" ng-press-enter="createCorpus()">
-            </md-input-container>
-
-            <p ng-if="new_project_message.length > 0">
-              <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{new_project_message}}
-            </p>
-
-            <p ng-if="login_message.length > 0">
-              <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
-            </p>
-
-            <div layout="row" layout-align="start start">
-              <md-button class="md-raised md-primary" ng-click="createCorpus()">
-                Create Project
-              </md-button>
-              <md-button ng-click="$parent.$parent.switchToChoice()">
-                Cancel
-              </md-button>
-            </div>
-          </div>
-
-          <div ng-if="starting">
-            <spinner class="center" text="'CREATING CORPUS'"/>
-          </div>
-        </div>
-        
-        <div ng-show="uiMode == 'login'">
-          <h3>{{corpus.name}}</h3>
-
-          <div class="text-muted">
-            {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + ' web entities'}}
-          </div>
-
-          <div class="text-info">
-            Created
-            <span tooltip="{{corpus.created_at|date}}">{{corpus.created_at|prettyDate}}</span>
-            -
-            Used
-            <span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span>
-          </div>
-
-          <br>
-          <div ng-if="!starting">
-            <input type="password" class="form-control" ng-model="$parent.$parent.login_password" placeholder="Password" ng-press-enter="logIn()">
-            <button class="btn btn-primary btn-block" ng-click="logIn()">OPEN PROJECT</button>
-
-            <br>
-            <p ng-if="login_message.length > 0">
-              <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
-            </p>
-
-            <button class="btn btn-link" ng-click="$parent.$parent.switchToChoice()"><span class="glyphicon glyphicon-remove"></span>&nbsp;CANCEL</button>
-          </div>
-
-          <div ng-if="starting">
-            <spinner class="center" text="'STARTING CORPUS'"/>
-          </div>
-        
-        </div>
-      </div>
-
+    <!-- Disconnected message -->
+    <div
+      ng-if="disconnected"
+    >
+      <p>
+        YOU ARE DISCONNECTED FROM HYPHE &nbsp; &nbsp;:-(
+      </p>
     </div>
+
+    <!-- Slot information -->
+    <div
+      ng-if="!disconnected && !loading"
+    >
+      <!-- <p ng-if="freeSlots > 0">
+        {{freeSlots}} project{{freeSlots | plural}} can be put into operation ({{globalStatus.corpus_running}} slots occupied)
+      </p>
+      <p ng-if="freeSlots == 0">
+        Hyphe cannot put a new project into operation
+        <br>
+        ({{globalStatus.corpus_running}} running, {{globalStatus.ports_left}} port{{globalStatus.ports_left | plural}} &amp; {{globalStatus.ram_left}} Mo ram left available)
+      </p> -->
+    </div>
+
+    <!-- New corpus button -->
+    <div
+      ng-if="!disconnected"
+    >
+      <md-button class="md-raised md-primary" ng-show="uiMode == 'default'" ng-click="switchToNew()" layout-fill>
+        <md-icon>add</md-icon> New Corpus
+      </md-button>
+    </div>
+
+    <!-- Search corpus field -->
+    <div
+      ng-if="!disconnected && !loading && uiMode == 'default' && corpusList.length > 0"
+      layout="column"
+      layout-align="stretch stretch"
+    >
+      <md-input-container ng-if="corpusList !== undefined && corpusList.length > 3" style="margin-bottom: 0;">
+        <label>Search corpus</label>
+        <md-icon>search</md-icon>
+        <input
+          ng-model="$parent.$parent.search_query"
+          ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)"
+        >
+      </md-input-container>
+    </div>
+
+    <!-- Corpus list -->
+    <div
+      flex
+      ng-if="!disconnected && !loading && uiMode == 'default' && corpusList.length > 0"
+      style="overflow-y: auto;"
+      layout="column"
+      layout-align="center center"
+    >
+      <md-progress-circular md-mode="indeterminate" ng-if="corpusList == undefined"></md-progress-circular>
+      <md-list ng-if="corpusList !== undefined">
+        <md-list-item
+          class="md-3-line"
+          ng-repeat="corpus in corpusList|search:search_query:['name']"
+          ng-click="selectCorpus(corpus.corpus_id)"
+        >
+          <md-icon ng-if="corpus.password && !corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">lock</md-icon>
+          <md-icon ng-if="corpus.password && corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">lock_open</md-icon>
+          <md-icon ng-if="!corpus.password && !corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">stop</md-icon>
+          <md-icon ng-if="!corpus.password && corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">play_circle_outline</md-icon>
+          <div class="md-list-item-text" layout="column">
+            <h3>{{ corpus.name }}</h3>
+            <h4>{{ corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + '  web entities' }}</h4>
+            <p>
+              Created
+              <span tooltip="{{corpus.created_at|date}}" tooltip-placement="bottom">{{corpus.created_at|prettyDate}}</span>
+              -
+              Used
+              <span tooltip="{{corpus.last_activity|date}}" tooltip-placement="bottom">{{corpus.last_activity|prettyDate}}</span>
+            </p>
+          </div>
+        </md-list-item>
+      </md-list>
+    </div>
+
+    <!-- Create new corpus -->
+    <div
+      flex
+      ng-if="(uiMode == 'new' || corpusList.length == 0) && !starting"
+      layout="column"
+      layout-align="start stretch"
+    >
+      <h3>Create new corpus</h3>
+      <md-input-container >
+        <label>Corpus Name</label>
+        <input ng-model="$parent.new_project_name" ng-press-enter="createCorpus()">
+      </md-input-container>
+
+      <md-checkbox ng-model="$parent.passwordProtected" aria-label="Password Protected">
+        <md-icon>lock</md-icon> Password protection
+      </md-checkbox>
+
+      <md-input-container ng-if="passwordProtected">
+        <label>Password</label>
+        <input type="password" ng-model="$parent.$parent.new_project_password" ng-press-enter="createCorpus()">
+      </md-input-container>
+      <md-input-container ng-if="passwordProtected">
+        <label>Enter Passwork Again</label>
+        <input type="password" ng-model="$parent.$parent.new_project_password_2" ng-press-enter="createCorpus()">
+      </md-input-container>
+
+      <p ng-if="new_project_message.length > 0">
+        <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{new_project_message}}
+      </p>
+
+      <p ng-if="login_message.length > 0">
+        <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
+      </p>
+
+      <div layout="row" layout-align="start start">
+        <md-button class="md-raised md-primary" ng-click="createCorpus()" style="margin-left: 0;">
+          Create Project
+        </md-button>
+        <md-button ng-click="$parent.switchToChoice()">
+          Cancel
+        </md-button>
+      </div>
+    </div>
+
+    <!-- Starting corpus spinner -->
+    <div
+      flex
+      ng-if="starting"
+      layout="column"
+      layout-align="center center"
+    >
+      <spinner class="center" text="'CREATING CORPUS'"/>
   </div>
 </div>
