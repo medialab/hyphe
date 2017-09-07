@@ -65,10 +65,10 @@
       ng-if="!disconnected && !loading && uiMode == 'default' && corpusList.length > 0"
       style="overflow-y: auto;"
       layout="column"
-      layout-align="center center"
+      layout-align="center stretch"
     >
       <md-progress-circular md-mode="indeterminate" ng-if="corpusList == undefined"></md-progress-circular>
-      <md-list ng-if="corpusList !== undefined">
+      <md-list ng-if="corpusList !== undefined" layout-fill>
         <md-list-item
           class="md-3-line"
           ng-repeat="corpus in corpusList|search:search_query:['name']"
