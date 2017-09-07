@@ -4,7 +4,7 @@
   <div flex>
     <div layout="row" layout-fill>
       <div class="sidebar-width" ng-include="'partials/sidebar.html'"></div>
-      <div flex md-colors="{background: 'default-background-50'}">
+      <div flex md-colors="{background: 'default-background-50'}" style="overflow-y: auto;">
         
         <!-- Content -->
         <div ng-show="corpusStatus">
@@ -21,9 +21,11 @@
 
           <!-- Information when corpus not empty -->
           <div layout-padding ng-show="corpusStatus.corpus.traph.webentities.total">
-            <h1>
-              OVERVIEW
-            </h1>
+            <div class="page-header">
+              <h1>
+                OVERVIEW
+              </h1>
+            </div>
             
             <div layout="row">
               <md-content flex layout="column" layout-padding layout-margin layout-align="start center">

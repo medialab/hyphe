@@ -252,42 +252,48 @@ angular.module('hyphe.services', [])
 
   .factory('droppableTextArea', [function(){
     return function(droppableTextArea, $scope, callback){
-      //============== DRAG & DROP =============
-      // adapted from http://jsfiddle.net/danielzen/utp7j/
+      if (droppableTextArea) {
 
-      // init event handlers
-      function dragEnterLeave(evt) {
-        evt.stopPropagation()
-        evt.preventDefault()
-        $scope.$apply(function(){
-          $scope.dropClass = 'over'
-        })
-      }
-      droppableTextArea.addEventListener("dragenter", dragEnterLeave, false)
-      droppableTextArea.addEventListener("dragleave", dragEnterLeave, false)
-      droppableTextArea.addEventListener("dragover", function(evt) {
-        evt.stopPropagation()
-        evt.preventDefault()
-        var ok = evt.dataTransfer && evt.dataTransfer.types && evt.dataTransfer.types.indexOf('Files') >= 0
-        $scope.$apply(function(){
-          $scope.dropClass = ok ? 'over' : 'over-error'
-        })
-      }, false)
-      droppableTextArea.addEventListener("drop", function(evt) {
-        // console.log('drop evt:', JSON.parse(JSON.stringify(evt.dataTransfer)))
-        evt.stopPropagation()
-        evt.preventDefault()
-        $scope.$apply(function(){
-          $scope.dropClass = 'over'
-        })
-        var files = evt.dataTransfer.files
-        if (files.length == 1) {
+        //============== DRAG & DROP =============
+        // adapted from http://jsfiddle.net/danielzen/utp7j/
+
+        // init event handlers
+        function dragEnterLeave(evt) {
+          evt.stopPropagation()
+          evt.preventDefault()
           $scope.$apply(function(){
-            callback(files[0])
-            $scope.dropClass = ''
+            $scope.dropClass = 'over'
           })
         }
-      }, false)
+        droppableTextArea.addEventListener("dragenter", dragEnterLeave, false)
+        droppableTextArea.addEventListener("dragleave", dragEnterLeave, false)
+        droppableTextArea.addEventListener("dragover", function(evt) {
+          evt.stopPropagation()
+          evt.preventDefault()
+          var ok = evt.dataTransfer && evt.dataTransfer.types && evt.dataTransfer.types.indexOf('Files') >= 0
+          $scope.$apply(function(){
+            $scope.dropClass = ok ? 'over' : 'over-error'
+          })
+        }, false)
+        droppableTextArea.addEventListener("drop", function(evt) {
+          // console.log('drop evt:', JSON.parse(JSON.stringify(evt.dataTransfer)))
+          evt.stopPropagation()
+          evt.preventDefault()
+          $scope.$apply(function(){
+            $scope.dropClass = 'over'
+          })
+          var files = evt.dataTransfer.files
+          if (files.length == 1) {
+            $scope.$apply(function(){
+              callback(files[0])
+              $scope.dropClass = ''
+            })
+          }
+        }, false)
+
+      } else {
+        console.log('Error: No droppable text area')
+      }
     }
   }])
 

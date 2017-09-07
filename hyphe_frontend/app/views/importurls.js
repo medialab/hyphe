@@ -2,10 +2,9 @@
 
 angular.module('hyphe.importurlsController', [])
 
-  .controller('ImportUrls', ['$scope', 'FileLoader', 'Parser', 'extractURLs', 'droppableTextArea', 'store', 'corpus'
-  ,function($scope, FileLoader, Parser, extractURLs, droppableTextArea, store, corpus) {
+  .controller('ImportUrls', ['$scope', 'FileLoader', 'Parser', 'extractURLs', 'droppableTextArea', 'store', 'corpus', '$timeout'
+  ,function($scope, FileLoader, Parser, extractURLs, droppableTextArea, store, corpus, $timeout) {
     $scope.currentPage = 'importurls'
-    $scope.Page.setTitle('Import')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
     
@@ -21,6 +20,7 @@ angular.module('hyphe.importurlsController', [])
     $scope.headline = true
     $scope.previewMaxRow = 4
     $scope.previewMaxCol = 3
+    $scope.differedLoading = false
 
     $scope.settingsTouched = false
     $scope.justImported = false
@@ -30,6 +30,15 @@ angular.module('hyphe.importurlsController', [])
     $scope.$watch('dataText', updatePreview)
     $scope.$watch('parsingOption', updatePreview)
     $scope.$watch('headline', updatePreview)
+
+    // This trick to turn around a bug about textarea initialization
+    $timeout(function(){
+      $scope.differedLoading = true
+      $timeout(function(){
+        // Make the text area droppable
+        droppableTextArea(document.getElementById("droppable-text-area"), $scope, $scope.readFile)
+      }, 10)
+    })
 
     function updatePreview() {
       
@@ -183,7 +192,4 @@ angular.module('hyphe.importurlsController', [])
         }
       })
     }
-
-    // Make the text area droppable
-    droppableTextArea(document.getElementById("droppable-text-area"), $scope, $scope.readFile)
   }])

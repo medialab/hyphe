@@ -1,116 +1,131 @@
-    <div class="container-fluid">
-      <div class="row no-gutter" ng-include="'partials/topbar.html'">
-      </div>
-      <div class="row no-gutter">
-        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
-        </div>
-        <div class="col-lg-10 col-md-9 col-sm-8">
-          <div class="container-fluid main">
-            <div class="row">
-              <div class="col-md-12">
-                <h1 class="page-title">IMPORT URLS</h1>
+<div layout="column" layout-fill>
+  <div class="topbar-height" ng-include="'partials/topbar.html'">
+  </div>
+  <div flex>
+    <div layout="row" layout-fill>
+      <div class="sidebar-width" ng-include="'partials/sidebar.html'"></div>
+      <div
+        flex
+        md-colors="{background: 'default-background-50'}"
+        style="overflow-y: auto;"
+      >
+        
+        <!-- Content -->
+        <div layout-padding layout-fill layout="column">
+          <div class="page-header">
+            <h1>
+              IMPORT URLS
+            </h1>
+            <span class="md-subhead">
+              Import URLs to build <span hyphe-glossary="web entities"></span>
+            </span>
+          </div>
+
+          <div flex layout="row">
+
+            <!-- Left column: text area -->
+            <div flex="30" layout="column">
+              <div>
+                <md-button ng-click="loadFile()" layout-fill>
+                  <md-icon>file_upload</md-icon>
+                  Import file
+                </md-button>
               </div>
-            </div>
-            <div class="row">
-              <div class="col-md-8">
-                <p class="text-info">Import URLs to build <span hyphe-glossary="web entities"></span></p>
-              </div>
-              <div class="col-md-4">
-                <button type="button" class="btn btn-link pull-right" ng-click="loadFile()"><span class="glyphicon glyphicon-upload"></span> Import file</button>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-12">
+              <md-input-container class="md-block" ng-if="differedLoading">
+                <label>Paste your data or drop a file here</label>
                 <textarea
-                  rows="5"
                   id="droppable-text-area"
-                  class="form-control"
-                  placeholder="Paste your data or drop a file here"
                   ng-class="dropClass"
-                  ng-model="dataText"
+                  ng-model="$parent.dataText"
                   ng-paste='handlePaste()'
+                  rows="12"
+                  max-rows="12"
+                  md-colors="{background: 'default-primary-50'}"
                 ></textarea>
-
-                <br/>
-                <div ng-show="dataText!=''">
-                  <ul class="nav nav-tabs" role="tablist">
-                    <li ng-class="{active: parsingOption=='text'}"><a href="" ng-click="parsingOption='text'; settingsTouched = true">Parse as text</a></li>
-                    <li ng-class="{active: parsingOption=='csv'}"><a href="" ng-click="parsingOption='csv'; settingsTouched = true">Parse as CSV</a></li>
-                    <li ng-class="{active: parsingOption=='scsv'}"><a href="" ng-click="parsingOption='scsv'; settingsTouched = true">Parse as SCSV</a></li>
-                    <li ng-class="{active: parsingOption=='tsv'}"><a href="" ng-click="parsingOption='tsv'; settingsTouched = true">Parse as TSV</a></li>
-                  </ul>
-                  
-                  <div ng-if="parsingOption=='csv' || parsingOption=='tsv' || parsingOption=='scsv'">
-                    <div class="row">
-                      <div class="col-md-8">
-                        <br/>
-                        <p class="text-info">Preview for <strong>{{parsingOption=='csv' ? 'comma' : parsingOption=='tsv' ? 'tabulation' : 'semicolon'}}</strong>-separated values</p>
-                        <div class="preview-container">
-                          <table class="table table-condensed table-striped table-bordered preview-table">
-                            <thead ng-if="table.length > 0">
-                              <tr>
-                                <th ng-repeat="col in table[0]|limitTo:previewMaxCol track by $index">
-                                  {{col}}
-                                </th>
-                                <th ng-if="table[0].length > previewMaxCol">...</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr ng-repeat="row in table|limitTo:previewMaxRow|stripFirst track by $index">
-                                <td ng-repeat="col in row|limitTo:previewMaxCol track by $index">
-                                  {{col}}
-                                </td>
-                                <td ng-if="row.length > previewMaxCol">...</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                          <span class="text-muted" ng-if="table.length > previewMaxRow">({{table.length - previewMaxRow}} more rows)</span>
-                        </div>
-                      </div>
-                      <div class="col-md-4">
-
-                        <br/>
-                        <div class="checkbox">
-                          <label>
-                            <input type="checkbox" ng-model="$parent.headline" ng-click="settingsTouched = true"> First line has column names
-                          </label>
-                        </div>
-
-                        <span>Where are the URLs?</span>
-                        <select class="form-control" ng-model="selectedColumn" ng-options="col.name for col in columns"></select>
-
-                        <br/>
-                        <a class="btn btn-primary" href="#/project/{{corpusId}}/definewebentities">DEFINE WEB ENTIT{{table.length | y_ies | uppercase}}</a>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div ng-show="parsingOption=='text'">
-                    <div class="row">
-                      <div class="col-md-8">
-                        <br/>
-                        <p class="text-info">Preview of urls fetched in full text</p>
-                        <div class="preview-container">
-                          <ul>
-                            <li ng-repeat="url in textPreview|limitTo:previewMaxRow">{{url}}</li>
-                            <li class="text-muted" ng-if="textPreview.length > previewMaxRow">({{textPreview.length - previewMaxRow}} more)</li>
-                          </ul>
-                        </div>
-                      </div>
-                      <div class="cold-md-4">
-                        <br/>
-                        <a class="btn btn-primary" href="#/project/{{corpusId}}/definewebentities">DEFINE WEB ENTIT{{textPreview.length | y_ies | uppercase}}</a>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-                
-                <!-- This hidden input is used for loading the files via the dropdown of the nav tabs -->
-                <input id="hidden-file-input" type="file" name="hidden-file-input" style="display: none;" onchange="angular.element(this).scope().setFile(this)"/>
-              </div>
+              </md-input-container>
             </div>
+            
+            <!-- Right column: parsing -->
+            <div flex="70" layout="column" style="padding-left: 24px" ng-show="dataText!=''">
+              <md-input-container>
+                <label>Parse data as </label>
+                <md-select ng-model="parsingOption" ng-click="settingsTouched = true">
+                  <md-option value="text">TEXT (search for URLs)</md-option>
+                  <md-option value="csv">CSV (comma-separated table)</md-option>
+                  <md-option value="scsv">SCSV (semicolon-separated table)</md-option>
+                  <md-option value="tsv">TSV (tab-separated table)</md-option>
+                </md-select>
+              </md-input-container>
+
+              <div ng-if="parsingOption=='csv' || parsingOption=='tsv' || parsingOption=='scsv'" layout="column">
+                
+                <p class="md-body-2">Preview of data as <strong>{{parsingOption=='csv' ? 'comma' : parsingOption=='tsv' ? 'tabulation' : 'semicolon'}}</strong>-separated values:</p>
+
+                <div class="preview-container">
+                  <table class="preview-table">
+                    <thead ng-if="table.length > 0">
+                      <tr>
+                        <th ng-repeat="col in table[0]|limitTo:previewMaxCol track by $index">
+                          {{col}}
+                        </th>
+                        <th ng-if="table[0].length > previewMaxCol">...</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="row in table|limitTo:previewMaxRow|stripFirst track by $index">
+                        <td ng-repeat="col in row|limitTo:previewMaxCol track by $index">
+                          {{col}}
+                        </td>
+                        <td ng-if="row.length > previewMaxCol">...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <small ng-if="table.length > previewMaxRow">({{table.length - previewMaxRow}} more rows)</small>
+                </div>
+
+                <br>
+
+                <md-checkbox ng-model="$parent.headline" aria-label="First line contains column names" ng-click="settingsTouched = true" class="md-primary">
+                  First line contains column names
+                </md-checkbox>
+
+                <md-input-container>
+                  <label>Column containing the URLs</label>
+                  <md-select ng-model="selectedColumn" ng-click="settingsTouched = true">
+                    <md-option ng-repeat="col in columns" ng-value="col">{{col.name}}</md-option>
+                  </md-select>
+                </md-input-container>
+
+                <md-button class="md-raised md-primary" href="#/project/{{corpusId}}/definewebentities" layout-fill>
+                  DEFINE WEB ENTIT{{table.length | y_ies | uppercase}}
+                </md-button>
+
+              </div>
+
+              <div ng-if="parsingOption=='text'" layout="column">
+                
+                <p class="md-body-2">Preview of urls fetched from full text:</p>
+
+                <div class="preview-container">
+                      <ul>
+                        <li ng-repeat="url in textPreview|limitTo:previewMaxRow">{{url}}</li>
+                        <li class="text-muted" ng-if="textPreview.length > previewMaxRow">({{textPreview.length - previewMaxRow}} more)</li>
+                      </ul>
+                    </div>
+
+                <br>
+
+                <md-button class="md-raised md-primary" href="#/project/{{corpusId}}/definewebentities" layout-fill>
+                  DEFINE WEB ENTIT{{table.length | y_ies | uppercase}}
+                </md-button>
+
+              </div>
+
+            </div>
+
           </div>
         </div>
       </div>
     </div>
+  </div>
+</div>

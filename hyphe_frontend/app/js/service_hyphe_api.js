@@ -669,7 +669,7 @@ angular.module('hyphe.service_hyphe_api', [])
           // Error
           }, function(response){
             console.log('[Error: fail]', response.data)
-            errorCallback(response.data, response.status, response.headers, config)
+            errorCallback(response.data, response.status, response.headers, response.config)
           }
         )
       }
