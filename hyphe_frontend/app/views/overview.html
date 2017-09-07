@@ -40,7 +40,7 @@
                   {{corpusStatus.corpus.crawler.jobs_pending}} pending
                 </p>
                 <p class="md-body-1">
-                  Last indexation <a href="#" tooltip="{{corpusStatus.corpus.traph.last_index|date}}">{{corpusStatus.corpus.traph.last_index|prettyDate}}</a>
+                  Last indexation {{corpusStatus.corpus.traph.last_index|prettyDate}}
                 <p class="md-body-1" ng-show="corpusStatus.corpus.traph.job_running">
                   Currently: {{corpusStatus.corpus.traph.job_running}}
                 </p>
