@@ -136,6 +136,47 @@
       </div>
     </div>
 
+    <!-- Login to corpus -->
+    <div
+      flex
+      ng-if="uiMode == 'login' && !starting"
+      layout="column"
+      layout-align="start stretch"
+    >
+      <h3>Login to {{ corpus.name }}</h3>
+      <p>
+        {{corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + ' web entities'}}
+        <br>
+        Created
+        <span tooltip="{{corpus.created_at|date}}">{{corpus.created_at|prettyDate}}</span>
+        -
+        Used
+        <span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span>
+      </p>
+      
+      <md-input-container>
+        <label>Password</label>
+        <input type="password" ng-model="$parent.login_password" ng-press-enter="logIn()">
+      </md-input-container>
+      
+      <p ng-if="new_project_message.length > 0">
+        <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{new_project_message}}
+      </p>
+
+      <p ng-if="login_message.length > 0">
+        <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{login_message}}
+      </p>
+
+      <div layout="row" layout-align="start start">
+        <md-button class="md-raised md-primary" ng-click="logIn()" style="margin-left: 0;">
+          Open Corpus
+        </md-button>
+        <md-button ng-click="$parent.switchToChoice()">
+          Cancel
+        </md-button>
+      </div>
+    </div>
+
     <!-- Starting corpus spinner -->
     <div
       flex
