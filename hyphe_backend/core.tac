@@ -308,6 +308,7 @@ class Core(customJSONRPC):
         self.corpora[corpus]["webentities_undecided"] = corpus_conf['webentities_undecided']
         self.corpora[corpus]["webentities_discovered"] = corpus_conf['webentities_discovered']
         self.corpora[corpus]["webentities_links"] = pickle.loads(corpus_conf['webentities_links'])
+        self.corpora[corpus]["tags"] = pickle.loads(corpus_conf['tags'])
         self.corpora[corpus]["crawls"] = corpus_conf['total_crawls']
         self.corpora[corpus]["pages_found"] = corpus_conf['total_pages']
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
@@ -333,6 +334,7 @@ class Core(customJSONRPC):
           "webentities_undecided": self.corpora[corpus]['webentities_undecided'],
           "webentities_discovered": self.corpora[corpus]['webentities_discovered'],
           "webentities_links": pickle.dumps(self.corpora[corpus]["webentities_links"]),
+          "tags": pickle.dumps(self.corpora[corpus]['tags']),
           "total_crawls": self.corpora[corpus]['crawls'],
           "total_pages": self.corpora[corpus]['pages_found'],
           "total_pages_crawled": self.corpora[corpus]['pages_crawled'],
@@ -784,7 +786,7 @@ class Core(customJSONRPC):
             nofollow = []
 
         if "CORE" in WE["tags"] and "recrawlNeeded" in WE["tags"]["CORE"]:
-            yield self.store.jsonrpc_rm_webentity_tag_key(webentity_id, "CORE", "recrawlNeeded", corpus=corpus)
+            yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawlNeeded", "true", corpus=corpus)
         res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE["prefixes"], nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, corpus=corpus, _autostarts=autostarts)
         returnD(res)
 
@@ -1345,6 +1347,7 @@ class Memory_Structure(customJSONRPC):
             if not isinstance(startpages, list):
                 startpages = [startpages]
             tags["CORE-STARTPAGES"] = {"user": startpages}
+            self.add_tags_to_dictionary("CORE-STARTPAGES", "user", startpages, corpus=corpus)
         WEstatus = "DISCOVERED"
         if status:
             WEstatus = status.upper()
@@ -1382,8 +1385,6 @@ class Memory_Structure(customJSONRPC):
             WE = yield self.db.get_WE(corpus, webentity_id)
             if not WE:
                 returnD(format_error("ERROR could not retrieve WebEntity with id %s" % webentity_id))
-        if field_name == "tags" and array_namespace == "USER":
-            self.corpora[corpus]['recent_tagging'] = True
         try:
             if isinstance(value, list):
                 value = [i.encode('utf-8') for i in value]
@@ -2257,13 +2258,19 @@ class Memory_Structure(customJSONRPC):
         if status not in WEBENTITIES_STATUSES:
             returnD(format_error("status argument must be one of %s" % ",".join(WEBENTITIES_STATUSES)))
         if missing_a_category or multiple_values:
-            categories = yield self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus)
-            if is_error(categories):
-                returnD(categories)
+            categories = self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus)["result"]
+        query = {"status": status}
         if multiple_values:
-            WEs = [WE for WE in self.corpora[corpus]["webentities"] if WE["status"] == status and ("USER" in WE["tags"] and any([cat in WE["tags"]["USER"] and len(WE["tags"]["USER"][cat]) > 1 for cat in self.corpora[corpus].get('user_categories', [])]))]
+            query["$or"] = []
+            for cat in categories:
+                query["$or"].append({"tags.USER.%s" % cat: {"$exists": True, "$not": {"$size": 1}}})
+        elif missing_a_category:
+            query["$or"] = []
+            for cat in categories:
+                query["$or"].append({"tags.USER.%s" % cat: {"$exists": False}})
         else:
-            WEs = [WE for WE in self.corpora[corpus]["webentities"] if WE["status"] == status and ("USER" not in WE["tags"] or (missing_a_category and any([cat not in WE["tags"]["USER"] for cat in self.corpora[corpus].get('user_categories', [])])))]
+            query["tags.USER"] = {"$exists": False}
+        WEs = yield sef.db.get_WEs(corpus, query)
         res = yield self.paginate_webentities(WEs, count=count, page=page, sort=sort, corpus=corpus)
         returnD(res)
 
@@ -2326,10 +2333,37 @@ class Memory_Structure(customJSONRPC):
             key = key.replace(".", "_")
         return key
 
+
+    def add_tags_to_dictionary(self, namespace, category, values, corpus=DEFAULT_CORPUS):
+        if not isinstance(values, list):
+            values = [values]
+        if namespace not in self.corpora[corpus]["tags"]:
+            self.corpora[corpus]["tags"][namespace] = {}
+        if category not in self.corpora[corpus]["tags"][namespace]:
+            self.corpora[corpus]["tags"][namespace][category] = {}
+            self.db.WEs(corpus).create_index(sortasc('tags.%s.%s' % (namespace, category)), background=True)
+        for value in values:
+            if value not in self.corpora[corpus]["tags"][namespace][category]:
+                self.corpora[corpus]["tags"][namespace][category][value] = 0
+            self.corpora[corpus]["tags"][namespace][category][value] += 1
+
+    def remove_tag_from_dictionary(self, namespace, category, value, corpus=DEFAULT_CORPUS):
+        try:
+            self.corpora[corpus]["tags"][namespace][category][value] -= 1
+        except:
+            return
+        if self.corpora[corpus]["tags"][namespace][category][value] <= 0:
+            del(self.corpora[corpus]["tags"][namespace][category][value])
+        if not self.corpora[corpus]["tags"][namespace][category]:
+            del(self.corpora[corpus]["tags"][namespace][category])
+        if not self.corpora[corpus]["tags"][namespace]:
+            del(self.corpora[corpus]["tags"][namespace])
+
     def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
         """Adds for a `corpus` a tag `namespace:category=value` to a WebEntity defined by `webentity_id`."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
+        self.add_tags_to_dictionary(namespace, category, value, corpus=corpus)
         return self.update_webentity(webentity_id, "tags", value, "push", category, namespace, _commit=_commit, corpus=corpus)
 
     # TODO handle as single mongo query
@@ -2337,23 +2371,12 @@ class Memory_Structure(customJSONRPC):
         """Adds for a `corpus` a tag `namespace:category=value` to a bunch of WebEntities defined by a list of `webentity_ids`."""
         return self.batch_webentities_edit("add_webentity_tag_value", webentity_ids, corpus, namespace, category, value)
 
-    def jsonrpc_rm_webentity_tag_key(self, webentity_id, namespace, category, corpus=DEFAULT_CORPUS, _commit=True):
-        """Removes for a `corpus` all tags within `namespace:category` associated with a WebEntity defined by `webentity_id` if it is set."""
-        return self.jsonrpc_set_webentity_tag_values(webentity_id, namespace, category, [], _commit=_commit, corpus=corpus)
-
     def jsonrpc_rm_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
         """Removes for a `corpus` a tag `namespace:category=value` associated with a WebEntity defined by `webentity_id` if it is set."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
+        self.remove_tag_from_dictionary(namespace, category, value, corpus=corpus)
         return self.update_webentity(webentity_id, "tags", value, "pop", category, namespace, _commit=_commit, corpus=corpus)
-
-    def jsonrpc_set_webentity_tag_values(self, webentity_id, namespace, category, values, corpus=DEFAULT_CORPUS, _commit=True):
-        """Replaces for a `corpus` all existing tags of a WebEntity defined by `webentity_id` for a specific `namespace` and `category` by a list of `values` or a single tag."""
-        namespace = self._cleanupTagsKey(namespace)
-        category = self._cleanupTagsKey(category)
-        if not isinstance(values, list):
-            values = [values]
-        return self.update_webentity(webentity_id, "tags", values, "update", category, namespace, _commit=_commit, corpus=corpus)
 
     @inlineCallbacks
     def add_backend_tags(self, webentity_id, key, value, namespace="", corpus=DEFAULT_CORPUS, _commit=True):
@@ -2363,32 +2386,10 @@ class Memory_Structure(customJSONRPC):
         WE = yield self.jsonrpc_add_webentity_tag_value(webentity_id, namespace, key, value, _commit=_commit, corpus=corpus)
         returnD(WE)
 
-    def ramcache_tags(self, corpus=DEFAULT_CORPUS):
-        if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
-        tags = self.corpora[corpus]['tags']
-        if tags == {} or self.corpora[corpus]['recent_tagging']:
-            tags = {}
-            for w in self.corpora[corpus]["webentities"]:
-                for ns, cats in w["tags"].items():
-                    if ns not in tags:
-                        tags[ns] = {}
-                    for cat, vals in cats.items():
-                        if cat not in tags[ns]:
-                            tags[ns][cat] = []
-                        for v in vals:
-                            if v not in tags[ns][cat]:
-                                tags[ns][cat].append(v)
-            self.corpora[corpus]['recent_tagging'] = False
-            self.corpora[corpus]['tags'] = tags
-        return tags
-
     def jsonrpc_get_tags(self, namespace=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a tree of all existing tags of the webentities hierarchised by namespaces and categories. Optionally limits to a specific `namespace`."""
         namespace = self._cleanupTagsKey(namespace)
-        tags = self.ramcache_tags(corpus)
-        if is_error(tags):
-            return tags
+        tags = self.corpora[corpus]['tags']
         if namespace:
             if namespace not in tags.keys():
                 return format_result({})
@@ -2397,17 +2398,12 @@ class Memory_Structure(customJSONRPC):
 
     def jsonrpc_get_tag_namespaces(self, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a list of all existing namespaces of the webentities tags."""
-        tags = self.ramcache_tags(corpus)
-        if is_error(tags):
-            return tags
-        return format_result(tags.keys())
+        return format_result(self.corpora[corpus]['tags'].keys())
 
     def jsonrpc_get_tag_categories(self, namespace=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a list of all existing categories of the webentities tags. Optionally limits to a specific `namespace`."""
         namespace = self._cleanupTagsKey(namespace)
-        tags = self.ramcache_tags(corpus)
-        if is_error(tags):
-            return tags
+        tags = self.corpora[corpus]['tags']
         categories = set()
         for ns in tags.keys():
             if not namespace or (ns == namespace):
@@ -2416,22 +2412,19 @@ class Memory_Structure(customJSONRPC):
             usercat = set(categories)
             if "FREETAGS" in usercat:
                 usercat.remove("FREETAGS")
-            self.corpora[corpus]["user_categories"] = usercat
         return format_result(list(categories))
 
     def jsonrpc_get_tag_values(self, namespace=None, category=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a list of all existing values in the webentities tags. Optionally limits to a specific `namespace` and/or `category`."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
-        tags = self.ramcache_tags(corpus)
-        if is_error(tags):
-            return tags
+        tags = self.corpora[corpus]['tags']
         values = set()
         for ns in tags.keys():
             if not namespace or (ns == namespace):
                 for cat in tags[ns].keys():
                     if not category or (cat == category):
-                        values |= set(tags[ns][cat])
+                        values |= set(tags[ns][cat].keys())
         return format_result(list(values))
 
   # PAGES, LINKS & NETWORKS

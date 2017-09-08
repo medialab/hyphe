@@ -64,6 +64,7 @@ class MongoDB(object):
           "webentities_undecided": 0,
           "webentities_discovered": 0,
           "webentities_links": pickle.dumps({}),
+          "tags": pickle.dumps({}),
           "total_crawls": 0,
           "total_pages": 0,
           "total_pages_crawled": 0,
