@@ -104,6 +104,7 @@ class MongoDB(object):
             yield self.db()['corpus'].create_index(sortdesc('last_activity'), background=True)
             yield self.WEs(corpus).create_index(sortasc('name'), background=True)
             yield self.WEs(corpus).create_index(sortasc('status'), background=True)
+            yield self.WEs(corpus).create_index(sortasc('crawled'), background=True)
             yield self.WEs(corpus).create_index(mongosort(textIndex("$**")), background=True)
             yield self.WECRs(corpus).create_index(sortasc('prefix'), background=True)
             yield self.pages(corpus).create_index(sortasc('timestamp'), background=True)
