@@ -28,7 +28,7 @@ from hyphe_backend.lib.creationrules import getPreset as getWECR
 from hyphe_backend.lib.user_agents import agents as useragents
 from hyphe_backend.lib.tlds import collect_tlds
 from hyphe_backend.lib.jobsqueue import JobsQueue
-from hyphe_backend.lib.mongo import MongoDB, sortdesc
+from hyphe_backend.lib.mongo import MongoDB, sortasc, sortdesc
 from hyphe_backend.lib.jsonrpc_custom import customJSONRPC
 from txjsonrpc.jsonrpc import Introspection
 
@@ -1414,10 +1414,16 @@ class Memory_Structure(customJSONRPC):
                 elif array_behavior == "update":
                     arr = value
                 if array_key:
-                    tmparr[array_key] = arr
+                    if not arr and array_key in tmparr:
+                        del(tmparr[array_key])
+                    else:
+                        tmparr[array_key] = arr
                     if array_namespace:
                         tmparr2 = WE.get(field_name, {})
-                        tmparr2[array_namespace] = tmparr
+                        if not tmparr and array_namespace in tmparr2:
+                            del(tmparr2[array_namespace])
+                        else:
+                            tmparr2[array_namespace] = tmparr
                         tmparr = tmparr2
                     arr = tmparr
                 WE[field_name] = arr
