@@ -2136,8 +2136,7 @@ class Memory_Structure(customJSONRPC):
                 regexp = self.escape_regexp(k)
                 if "$and" not in query:
                     query["$and"] = []
-                for f in ["name", "prefixes", "startpages", "homepage"]:
-                    query["$and"].append({f: regexp})
+                query["$and"].append({"$or": [{f: regexp} for f in ["name", "prefixes", "startpages", "homepage"]]})
         for kv in fieldKeywords:
             if type(kv) is list and len(kv) == 2 and kv[0] and kv[1] and type(kv[0]) in [str, unicode] and type(kv[1]) in [str, unicode]:
                 if "$and" not in query:
