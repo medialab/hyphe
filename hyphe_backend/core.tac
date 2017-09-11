@@ -226,7 +226,6 @@ class Core(customJSONRPC):
         if corpus not in self.corpora:
             self.corpora[corpus] = {}
         now = now_ts()
-        self.corpora[corpus]["webentities"] = []
         self.corpora[corpus]["total_webentities"] = 0
         self.corpora[corpus]["webentities_in"] = 0
         self.corpora[corpus]["webentities_in_untagged"] = 0
@@ -245,7 +244,6 @@ class Core(customJSONRPC):
         self.corpora[corpus]["pages_crawled"] = 0
         self.corpora[corpus]["pages_queued"] = 0
         self.corpora[corpus]["links_found"] = 0
-        self.corpora[corpus]["last_WE_update"] = now
         self.corpora[corpus]["last_index_loop"] = now
         self.corpora[corpus]["last_links_loop"] = 0
         self.corpora[corpus]["stats_loop"] = LoopingCall(self.store.save_webentities_stats, corpus)
@@ -516,7 +514,7 @@ class Core(customJSONRPC):
           }
         }
         status['corpus'].update(self.jsonrpc_test_corpus(corpus)["result"])
-        if not self.corpus_ready(corpus) or "webentities" not in self.corpora[corpus]:
+        if not self.corpus_ready(corpus):
             return format_result(status)
         if not self.corpora[corpus]['crawls']:
             self.corpora[corpus]['crawls_pending'] = 0
@@ -771,7 +769,7 @@ class Core(customJSONRPC):
         if status not in WEBENTITIES_STATUSES:
             returnD(format_error("ERROR: status argument must be one of '%s'" % "','".join(WEBENTITIES_STATUSES)))
         if status != WE["status"]:
-            yield self.store.jsonrpc_set_webentity_status(webentity_id, status, corpus=corpus)
+            yield self.store.jsonrpc_set_webentity_status(WE, status, corpus=corpus)
 
         subs = yield self.store.traphs.call(corpus, "get_webentity_child_webentities", WE["_id"], WE["prefixes"])
 
@@ -1004,6 +1002,7 @@ class Crawler(customJSONRPC):
                 args['phantom_%stimeout' % t] = phantom_timeouts["%stimeout" % t]
         res = yield self.crawlqueue.add_job(args, corpus, webentity_id)
         yield self.db.upsert_WE(corpus, webentity_id, {"crawled": True})
+        self.corpora[corpus]["webentities_in_uncrawled"] -= 1
         returnD(format_result(res))
 
     @inlineCallbacks
@@ -1038,6 +1037,7 @@ class Crawler(customJSONRPC):
         yield self.db.update_job_pages(corpus, existing[0]["crawljob_id"])
         yield self.db.add_log(corpus, job_id, "CRAWL_"+crawling_statuses.CANCELED)
         yield self.db.upsert_WE(corpus, existing[0]["webentity_id"], {"crawled": False})
+        self.corpora[corpus]["webentities_in_uncrawled"] += 1
         returnD(format_result(res))
 
     @inlineCallbacks
@@ -1082,8 +1082,7 @@ class Memory_Structure(customJSONRPC):
         self.corpora[corpus]['reset'] = False
         self.corpora[corpus]['loop_running'] = None
         self.corpora[corpus]['loop_running_since'] = now
-        self.corpora[corpus]['last_WE_update'] = now
-        self.corpora[corpus]['recent_tagging'] = True
+        reactor.callInThread(self.count_webentities, corpus)
         reactor.callInThread(self.rank_webentities, corpus)
         if not _noloop:
             reactor.callLater(10 if _delay else 1, self.corpora[corpus]['index_loop'].start, 0.2, True)
@@ -1235,12 +1234,12 @@ class Memory_Structure(customJSONRPC):
         if is_error(weid):
             returnD(weid)
         weid = weid["result"]
+        WE = yield self.db.get_WE(corpus, weid)
         if test_bool_arg(new):
             if source:
                 yield self.jsonrpc_add_webentity_tag_value(weid, 'CORE', 'createdBy', "user via %s" % source, corpus=corpus)
             self.corpora[corpus]['recent_changes'] += 1
-            self.corpora[corpus]['total_webentities'] += 1
-        WE = yield self.db.get_WE(corpus, weid)
+            self.update_webentities_counts(WE, WE["status"], new=True, corpus=corpus)
         job = yield self.db.list_jobs(corpus, {'webentity_id': weid}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
         WE = self.format_webentity(WE, job, corpus=corpus)
         WE['created'] = True if new else False
@@ -1439,7 +1438,7 @@ class Memory_Structure(customJSONRPC):
                     yield self.db.remove_WE(corpus, webentity_id)
                     yield self.db.update_jobs(corpus, {'webentity_id': WE["_id"]}, {'webentity_id': None, 'previous_webentity_id': WE["_id"], 'previous_webentity_name': WE["name"]})
                     self.corpora[corpus]['recent_changes'] += 1
-                    self.corpora[corpus]['total_webentities'] -= 1
+                    self.update_webentities_counts(WE, WE["status"], deleted=True, corpus=corpus)
                     returnD(format_result("webentity %s had no LRUprefix left and was removed." % webentity_id))
             else:
                 returnD(WE)
@@ -1513,33 +1512,41 @@ class Memory_Structure(customJSONRPC):
         status = status.upper()
         if status not in WEBENTITIES_STATUSES:
             returnD(format_error("ERROR: status argument must be one of '%s'" % "','".join(WEBENTITIES_STATUSES)))
-
-        res = yield self.update_webentity(webentity_id, "status", status, corpus=corpus, _commit=_commit)
         try:
             realid = webentity_id["_id"]
+            oldWE = webentity_id
         except:
             realid = webentity_id
-        updatedWE = yield self.db.get_WE(corpus, realid)
+            oldWE = yield self.db.get_WE(corpus, webentity_id)
+        res = yield self.update_webentity(oldWE, "status", status, corpus=corpus, _commit=_commit)
         if not is_error(res):
-            # update local ramcached list of webentities
-            for WE in self.corpora[corpus]["webentities"]:
-                if WE["_id"] == realid:
-                    oldstatus = WE["status"]
-                    WE["status"] = status.upper()
-                    self.corpora[corpus]["webentities_%s" % status.lower()] += 1
-                    self.corpora[corpus]["webentities_%s" % oldstatus.lower()] -= 1
-                    if oldstatus == "IN":
-                        if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in self.corpora[corpus].get('user_categories', [])]):
-                            self.corpora[corpus]["webentities_in_untagged"] -= 1
-                        if not updatedWE["crawled"]:
-                            self.corpora[corpus]["webentities_in_uncrawled"] -= 1
-                    elif WE["status"] == "IN":
-                        if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in self.corpora[corpus].get('user_categories', [])]):
-                            self.corpora[corpus]["webentities_in_untagged"] += 1
-                        if not updatedWE["crawled"]:
-                            self.corpora[corpus]["webentities_in_uncrawled"] += 1
-                    break
+            self.update_webentities_counts(oldWE, status, corpus=corpus)
         returnD(res)
+
+    def update_webentities_counts(self, WE, newStatus, new=False, deleted=False, corpus=DEFAULT_CORPUS):
+        oldStatus = WE["status"]
+        if not new:
+            if not deleted and oldStatus == newStatus:
+                return
+            self.corpora[corpus]["webentities_%s" % oldStatus.lower()] -= 1
+        elif not deleted:
+            self.corpora[corpus]['total_webentities'] += 1
+        if not deleted:
+            self.corpora[corpus]["webentities_%s" % newStatus.lower()] += 1
+        elif not new:
+            self.corpora[corpus]['total_webentities'] -= 1
+        if "IN" in [oldStatus, newStatus]:
+            categories = self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus)["result"]
+        if oldStatus == "IN" and not new:
+            if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in categories]):
+                self.corpora[corpus]["webentities_in_untagged"] -= 1
+            if not WE["crawled"]:
+                self.corpora[corpus]["webentities_in_uncrawled"] -= 1
+        if newStatus == "IN" and not deleted:
+            if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in categories]):
+                self.corpora[corpus]["webentities_in_untagged"] += 1
+            if not WE["crawled"]:
+                self.corpora[corpus]["webentities_in_uncrawled"] += 1
 
     def jsonrpc_set_webentities_status(self, webentity_ids, status, corpus=DEFAULT_CORPUS):
         """Changes for a `corpus` the status of a set of WebEntities defined by a list of `webentity_ids` to `status` (one of "in"/"out"/"undecided"/"discovered")."""
@@ -1618,7 +1625,6 @@ class Memory_Structure(customJSONRPC):
         if not clean_lrus:
             returnD(format_success("No need to add these prefixes to this webentity"))
         res = yield self.update_webentity(WE, "prefixes", clean_lrus, "push", corpus=corpus)
-        self.corpora[corpus]['recent_changes'] += 1
         returnD(res)
 
     @inlineCallbacks
@@ -1638,7 +1644,6 @@ class Memory_Structure(customJSONRPC):
         if is_error(res):
             returnD(res)
         res = yield self.update_webentity(WE, "prefixes", lru_prefix, "pop", corpus=corpus)
-        self.corpora[corpus]['recent_changes'] += 1
         returnD(res)
 
     @inlineCallbacks
@@ -1740,8 +1745,8 @@ class Memory_Structure(customJSONRPC):
         new_WE = yield self.add_backend_tags(new_WE, "mergedWebEntities", "%s: %s (%s)" % (old_WE["_id"], old_WE["name"], old_WE["status"]), _commit=False, corpus=corpus)
         new_WE = yield self.jsonrpc_add_webentity_tag_value(new_WE, "CORE", "recrawlNeeded", "true", _commit=False, corpus=corpus)
         yield self.db.upsert_WE(corpus, good_webentity_id, new_WE)
-        self.corpora[corpus]['total_webentities'] -= 1
         self.corpora[corpus]['recent_changes'] += 1
+        self.update_webentities_counts(old_WE, new_WE["status"], deleted=True, corpus=corpus)
         returnD(format_result("Merged %s into %s" % (old_webentity_id, good_webentity_id)))
 
     def jsonrpc_merge_webentities_into_another(self, old_webentity_ids, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False, corpus=DEFAULT_CORPUS):
@@ -1761,8 +1766,8 @@ class Memory_Structure(customJSONRPC):
         if is_error(res):
             returnD(res)
         yield self.db.update_jobs(corpus, {'webentity_id': WE["_id"]}, {'webentity_id': None, 'previous_webentity_id': WE["_id"], 'previous_webentity_name': WE["name"]})
-        self.corpora[corpus]['total_webentities'] -= 1
         self.corpora[corpus]['recent_changes'] += 1
+        self.update_webentities_counts(WE, WE["status"], deleted=True, corpus=corpus)
         returnD(format_result("WebEntity %s (%s) was removed" % (webentity_id, WE["name"])))
 
 
@@ -1808,8 +1813,10 @@ class Memory_Structure(customJSONRPC):
 
         # Create new webentities
         yield self.db.add_WEs(corpus, res["created_webentities"])
-        self.corpora[corpus]['total_webentities'] += len(res["created_webentities"])
-        logger.msg("...%s new WEs created in traph in %ss" % (len(res["created_webentities"]), time.time()-s), system="INFO - %s" % corpus)
+        new = len(res["created_webentities"])
+        self.corpora[corpus]['total_webentities'] += new
+        self.corpora[corpus]['webentities_discovered'] += new
+        logger.msg("...%s new WEs created in traph in %ss" % (new, time.time()-s), system="INFO - %s" % corpus)
 
         yield self.db.clean_queue(corpus, page_queue_ids)
 
@@ -1838,7 +1845,7 @@ class Memory_Structure(customJSONRPC):
             yield self.traphs.call(corpus, "clear")
             returnD(None)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
-        yield self.ramcache_webentities(corpus=corpus)
+        reactor.callInThread(self.count_webentities, corpus)
         crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
         if crashed:
             self.corpora[corpus]['loop_running'] = "Cleaning up index error"
@@ -1922,46 +1929,23 @@ class Memory_Structure(customJSONRPC):
   # RETRIEVE & SEARCH WEBENTITIES
 
     @inlineCallbacks
-    def ramcache_webentities(self, corpus=DEFAULT_CORPUS):
-        WEs = self.corpora[corpus]['webentities']
-        if WEs == [] or self.corpora[corpus]['recent_changes'] or self.corpora[corpus]['recent_tagging']:
-
-            self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus)
-
-            WEs = yield self.db.get_WEs(corpus)
-            if is_error(WEs):
-                returnD(WEs)
-            self.corpora[corpus]['last_WE_update'] = now_ts()
-            self.corpora[corpus]['webentities'] = WEs
-
-            ins  = 0
-            nocr = 0
-            outs = 0
-            unds = 0
-            disc = 0
-            notg = 0
-            for w in WEs:
-                if w["status"] == "IN":
-                    ins += 1
-                    if "USER" not in w["tags"] or any([cat not in w["tags"]["USER"] for cat in self.corpora[corpus].get('user_categories', [])]):
-                        notg += 1
-                    if not w["crawled"]:
-                        nocr += 1
-                elif w["status"] == "OUT":
-                    outs += 1
-                elif w["status"] == "UNDECIDED":
-                    unds += 1
-                else:
-                    disc += 1
-            self.corpora[corpus]['webentities_in'] = ins
-            self.corpora[corpus]['webentities_in_untagged'] = notg
-            self.corpora[corpus]['webentities_in_uncrawled'] = nocr
-            self.corpora[corpus]['webentities_out'] = outs
-            self.corpora[corpus]['webentities_undecided'] = unds
-            self.corpora[corpus]['webentities_discovered'] = disc
-            self.corpora[corpus]['total_webentities'] = ins + outs + unds + disc
-
-        returnD(WEs)
+    def count_webentities(self, corpus=DEFAULT_CORPUS):
+        ins  = yield self.db.count_WEs(corpus, {"status": "IN"})
+        nocr = yield self.db.count_WEs(corpus, {"status": "IN", "crawled": False})
+        outs = yield self.db.count_WEs(corpus, {"status": "OUT"})
+        unds = yield self.db.count_WEs(corpus, {"status": "UNDECIDED"})
+        disc = yield self.db.count_WEs(corpus, {"status": "DISCOVERED"})
+        query = {"status": "IN", "$or": [{"tags.USER": {"$exists": False}}]}
+        for cat in self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus)["result"]:
+            query["$or"].append({"tags.USER.%s" % cat: {"$exists": False}})
+        notg = yield self.db.count_WEs(corpus, query)
+        self.corpora[corpus]['webentities_in'] = ins
+        self.corpora[corpus]['webentities_in_untagged'] = notg
+        self.corpora[corpus]['webentities_in_uncrawled'] = nocr
+        self.corpora[corpus]['webentities_out'] = outs
+        self.corpora[corpus]['webentities_undecided'] = unds
+        self.corpora[corpus]['webentities_discovered'] = disc
+        self.corpora[corpus]['total_webentities'] = ins + outs + unds + disc
 
     def jsonrpc_get_webentity(self, webentity_id, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a WebEntity defined by its `webentity_id`."""
@@ -2107,7 +2091,7 @@ class Memory_Structure(customJSONRPC):
             WEs = yield self.db.get_WEs(corpus, list_ids)
             count = -1
         else:
-            WEs = yield self.ramcache_webentities(corpus=corpus)
+            WEs = yield self.db.get_WEs(corpus)
             if is_error(WEs):
                 returnD(WEs)
         res = yield self.paginate_webentities(WEs, count, page, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
@@ -2609,6 +2593,7 @@ class Memory_Structure(customJSONRPC):
             yield self.db.add_WEs(corpus, res["created_webentities"])
             new = len(res["created_webentities"])
             self.corpora[corpus]['total_webentities'] += new
+            self.corpora[corpus]['webentities_discovered'] += new
             news += new
         self.corpora[corpus]['recent_changes'] += news
         self.jsonrpc_get_webentity_creationrules(corpus=corpus)

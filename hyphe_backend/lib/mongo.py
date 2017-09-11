@@ -165,6 +165,11 @@ class MongoDB(object):
         yield self.stats(corpus).drop()
 
     @inlineCallbacks
+    def count_WEs(self, corpus, query):
+        res = yield self.WEs(corpus).count(query)
+        returnD(res)
+
+    @inlineCallbacks
     def get_WEs(self, corpus, query=None):
         if not query:
             res = yield self.WEs(corpus).find()
