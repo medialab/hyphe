@@ -146,10 +146,10 @@ angular.module('hyphe', [
 	    })
 	    .warnPalette('pink')
 	    .backgroundPalette('hypheBackground', {
-	      'default': '100',
+	      'default': '50',
 	      'hue-1': '50',
-	      'hue-2': '300',
-	      'hue-3': '600'
+	      'hue-2': '100',
+	      'hue-3': '300'
 	    })
 
 })
