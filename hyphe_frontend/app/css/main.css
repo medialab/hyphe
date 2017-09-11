@@ -133,13 +133,6 @@ ul.list-spaced li {
 .topbar-height {
   height: 48px;
 }
-.topbar-branding{
-  padding: 6px;
-  opacity: 0.6;
-}
-.topbar-branding:hover{
-  opacity: 0.9;
-}
 .topbar-project{
   font-weight: 600;
   font-size: 14px;
