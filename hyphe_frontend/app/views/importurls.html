@@ -125,6 +125,9 @@
 
           </div>
         </div>
+
+        <!-- This hidden input is used for loading the files via the dropdown of the nav tabs -->
+        <input id="hidden-file-input" type="file" name="hidden-file-input" style="display: none;" onchange="angular.element(this).scope().setFile(this)"/>
       </div>
     </div>
   </div>

@@ -160,7 +160,8 @@ angular.module('hyphe.importurlsController', [])
 
     // File loading interactions
     $scope.loadFile = function(){
-      $('#hidden-file-input').trigger('click');
+      var fileInput = document.getElementById('hidden-file-input')
+      fileInput.click()
     }
 
     $scope.setFile = function(element) {
