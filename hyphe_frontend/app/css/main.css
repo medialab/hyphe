@@ -23,6 +23,9 @@ a {
   border-bottom: 1px dotted #777;
   cursor: help;
 }
+.page-header {
+  padding: 8px;
+}
 .page-header h1 {
   margin: 0;
 }
@@ -757,6 +760,7 @@ textarea.over-error{
 .preview-table {
   margin-bottom: 2px;
   font-weight: 300;
+  font-size: 0.9em;
 }
 .preview-table td, .preview-table th {
   background-color: #FFF;
@@ -770,13 +774,16 @@ textarea.over-error{
    View: Define Web Entities
    ========================================================================== */
 .define-entity-repeated-item {
-  height: 78px;
+  height: 84px;
 }
 .define-entity-row-id {
   width: 64px;
   padding-right: 24px;
   font-size: 24px;
   font-weight: 300;
+}
+.define-entity-row-remove {
+  width: 36px;
 }
 /*.define-we-row{
   padding-left: 64px;

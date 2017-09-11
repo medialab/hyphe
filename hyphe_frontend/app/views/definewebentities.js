@@ -323,9 +323,10 @@ angular.module('hyphe.definewebentitiesController', [])
           })
 
         // Status message
-        var count = $scope.createdList.length
-        ,msg = count + ' web entit' + (count>1 ? 'ies' : 'y') + ' created'
-        $scope.status = {message: msg}
+        // var count = $scope.createdList.length
+        // ,msg = count + ' web entit' + (count>1 ? 'ies' : 'y') + ' created'
+        // $scope.status = {message: msg}
+        $scope.status = {}
         
         $scope.creating = false
       })

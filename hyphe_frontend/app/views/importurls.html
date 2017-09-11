@@ -11,7 +11,7 @@
       >
         
         <!-- Content -->
-        <div layout-padding layout-fill layout="column">
+        <div layout-fill layout="column">
           <div class="page-header">
             <h1>
               IMPORT URLS
@@ -24,7 +24,7 @@
           <div flex layout="row">
 
             <!-- Left column: text area -->
-            <div flex="30" layout="column">
+            <div flex="30" layout="column" style="padding-left: 8px">
               <div>
                 <md-button ng-click="loadFile()" layout-fill>
                   <md-icon>file_upload</md-icon>
@@ -32,7 +32,7 @@
                 </md-button>
               </div>
               <md-input-container class="md-block" ng-if="differedLoading">
-                <label>Paste your data or drop a file here</label>
+                <label>Paste or drag and drop data here</label>
                 <textarea
                   id="droppable-text-area"
                   ng-class="dropClass"
@@ -46,7 +46,7 @@
             </div>
             
             <!-- Right column: parsing -->
-            <div flex="70" layout="column" style="padding-left: 24px" ng-show="dataText!=''">
+            <div flex="70" layout="column" style="padding: 0px 8px 0px 16px;" ng-show="dataText!=''">
               <md-input-container>
                 <label>Parse data as </label>
                 <md-select ng-model="parsingOption" ng-click="settingsTouched = true">
@@ -96,9 +96,11 @@
                   </md-select>
                 </md-input-container>
 
-                <md-button class="md-raised md-primary" href="#/project/{{corpusId}}/definewebentities" layout-fill>
-                  DEFINE WEB ENTIT{{table.length | y_ies | uppercase}}
-                </md-button>
+                <div>
+                  <md-button class="md-raised md-primary" href="#/project/{{corpusId}}/definewebentities" layout-fill>
+                    DEFINE WEB ENTIT{{table.length | y_ies | uppercase}}
+                  </md-button>
+                </div>
 
               </div>
 

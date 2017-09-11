@@ -14,9 +14,9 @@
         <div layout-fill layout="column">
 
           <!-- Title -->
-          <div layout-padding class="page-header">
+          <div class="page-header">
             <h1>
-              DEFINE WEB ENTIT{{list.length | y_ies | uppercase}} {{activeRow}}
+              DEFINE WEB ENTIT{{list.length | y_ies | uppercase}}
             </h1>
             <span class="md-subhead">
               Check the <span hyphe-glossary="boundaries"></span> of each <span hyphe-glossary="web entity"></span> before creating it
@@ -36,6 +36,7 @@
 
           <!-- Sliders global commands -->
           <div
+            ng-if="list.length || retry"
             layout="row"
             layout-align="start center"
             layout-padding
@@ -52,11 +53,12 @@
 
           <!-- List (virtual repeat) -->
           <div
-            ng-if="(list.length || createdList.length || existingList.length || retry)"
+            ng-if="list.length || retry"
             flex
           >
             <md-virtual-repeat-container
               layout-fill
+              style="background-color: #FFF"
             >
               <div
                 md-virtual-repeat="obj in list"
@@ -71,11 +73,11 @@
                   <div>{{obj.id+1}}</div>
                 </div>
 
-                <div flex>
+                <div flex style="padding-top: 4px">
                   
                   <!-- Loading and pending-->
                   <div ng-if="obj.status == 'loading' || obj.status == 'pending'" class="info-content">
-                    {{obj.status|titlecase}}
+                    <em>{{obj.status|titlecase}}</em>
                   </div>
 
                   <!-- Loaded -->
@@ -95,11 +97,166 @@
 
                   </div>
 
-                  
+                  <!-- Created or Existing -->
+                  <div ng-if="obj.status == 'created' || obj.status == 'existing'" layout-padding>
+                    <strong>{{obj.status|titlecase}}</strong>
+                    as {{obj.webentity.name}}
+                  </div>
+
+                  <!-- Conflicted -->
+                  <div ng-if="obj.status == 'conflict'" layout-padding>
+                    <strong>{{obj.status|titlecase}}</strong> - web entity defined in a previous row
+
+                    <!-- Collapsing button -->
+                    <!-- <button type="button" class="btn btn-link btn-xs text-muted" data-toggle="collapse" data-target="#conflict-info-{{obj.id}}">more info</button> -->
+
+                    <!-- Collapsed info -->
+                    <!-- <div id="conflict-info-{{obj.id}}" class="collapse">
+                      URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
+                      <br/>
+                      LRU prefixes:
+                      <ul>
+                        <li ng-repeat="lru in obj.prefixes">{{lru}}</li>
+                      </ul>
+                    </div> -->
+
+                    <!-- Error -->
+                    <div ng-if="obj.status == 'error'" layout-padding>
+                      <strong>Error</strong>
+
+                      <!-- Collapsing button -->
+                      <!-- <button type="button" class="btn btn-link btn-xs text-muted" data-toggle="collapse" data-target="#error-info-{{obj.id}}">more info</button> -->
+
+                      <!-- Collapsed info -->
+                      <!-- <div id="error-info-{{obj.id}}" class="collapse">
+                        URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
+                        <br/>
+                        {{obj.infoMessage}}
+                      </div> -->
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <div class="define-entity-row-remove" layout="column" layout-align="start end">
+                  <md-button
+                    class="md-icon-button"
+                    ng-click="removeLine(obj.id)"
+                    ng-show="$parent.activeRow == $index && obj.status=='loaded'"
+                  >
+                    <md-icon>close</md-icon>
+                  </md-button>
                 </div>
 
               </div>
             </md-virtual-repeat-container>
+          </div>
+
+          <!-- Create web entities -->
+          <div
+            ng-if="(createdList.length + existingList.length == 0 || retry) && !(creating || loadingWebentities || simulatingCreationRules)"
+            layout="column"
+          >
+            <md-button
+              class="md-primary md-raised"
+              ng-click="createWebEntities()"
+              ng-show="list.length"
+              layout-fill
+            >CREATE WEB ENTIT{{list.length | y_ies | uppercase}}</md-button>
+          </div>
+
+          <!-- Post diagnostic -->
+          <div
+            ng-if="createdList.length + existingList.length > 0"
+            layout="column"
+          >
+            <hr/>
+            <div layout-padding>
+              <h1>{{createdList.length}} web entit{{createdList.length | y_ies}} were created</h1>
+            </div>
+
+            <div layout="row" style="padding: 8px">
+
+              <!-- Errors -->
+              <div
+                flex="25"
+                layout="column"
+                style="padding:8px"
+                ng-if="errorList.length > 0"
+                md-colors="{background: 'default-warn-100', color:'default-warn-700'}"
+              >
+                <div style="height: 60px; text-align: center;">
+                  {{errorList.length}} URL{{errorList.length | plural}}
+                  <br/>
+                  {{errorList.length | were_was}} ignored
+                </div>
+                <div style="height: 60px" layout="column" layout-align="center center">
+                  <md-button class="md-raised md-warn" ng-click="doRetry(retryConflicted)">RETRY</md-button>
+                </div>
+              </div>
+
+              <!-- Conflicted -->
+              <div
+                flex="25"
+                layout="column"
+                style="padding:8px"
+                ng-if="conflictedList.length > 0"
+                md-colors="{background: 'default-accent-100', color:'default-accent-700'}"
+              >
+                <div style="height: 60px; text-align: center;">
+                  {{conflictedList.length}} web entit{{conflictedList.length | y_ies}}
+                  <br/>
+                  {{conflictedList.length | were_was}} previously defined
+                </div>
+                <div style="height: 60px" layout="column" layout-align="center center">
+                  <md-checkbox class="md-accent" ng-model="$parent.$parent.retryConflicted" ng-if="errorList.length > 0">
+                    Retry as well
+                  </md-checkbox>
+                  <md-button class="md-raised md-accent" ng-if="errorList.length == 0" ng-click="doRetry(true)">RETRY</md-button>
+                </div>
+              </div>
+
+              <!-- Created -->
+              <div
+                flex="25"
+                layout="column"
+                style="padding:8px"
+                ng-if="createdList.length > 0"
+                md-colors="{background: 'default-background-100'}"
+              >
+                <div style="height: 60px; text-align: center;">
+                  {{createdList.length}} web entit{{createdList.length | y_ies}}
+                  <br/>
+                  {{createdList.length | were_was}} created
+                </div>
+                <div style="height: 60px" layout="column" layout-align="center center">
+                  <md-button class="md-raised" ng-click="doCrawl(crawlExisting)">CRAWL WEB ENTIT{{createdList.length | y_ies | uppercase}}</md-button>
+                </div>
+              </div>
+
+              <!-- Existing -->
+              <div
+                flex="25"
+                layout="column"
+                style="padding:8px"
+                ng-if="existingList.length > 0"
+                md-colors="{background: 'default-primary-100', color:'default-primary-700'}"
+              >
+                <div style="height: 60px; text-align: center;">
+                  {{existingList.length}} web entit{{existingList.length | y_ies}}
+                  <br/>
+                  already existed
+                </div>
+                <div style="height: 60px" layout="column" layout-align="center center">
+                  <md-checkbox class="md-primary" ng-model="$parent.$parent.crawlExisting" ng-if="createdList.length > 0">
+                    Crawl as well
+                  </md-checkbox>
+                  <md-button class="md-raised md-primary" ng-if="createdList.length == 0" ng-click="doCrawl(true)">CHECK &amp; CRAWL</md-button>
+                </div>
+              </div>
+
+            </div>
           </div>
 
         </div>
