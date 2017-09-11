@@ -1,14 +1,25 @@
-              <div
-                class="topbar-status"
-                ng-class="{'bg-primary':status.background=='primary', 'bg-success':status.background=='success', 'bg-info':status.background=='info', 'bg-warning':status.background=='warning', 'bg-danger':status.background=='danger'}"
-                >
-                <div class="message">{{status.message}}</div>
-                <div class="progress" ng-if="status.progress">
-                  <div class="progress-bar" role="progressbar" aria-valuenow="{{status.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{status.progress}}%;">
-                    <span class="sr-only">{{status.progress}}% Complete</span>
-                  </div>
-                  <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="{{status.progressPending}}" aria-valuemin="0" aria-valuemax="100" style="width: {{status.progressPending}}%;">
-                    <span class="sr-only">{{status.progressPending}}% Pending</span>
-                  </div>
-                </div>
-              </div>
+<div layout="column" layout-fill>
+
+  <div
+    layout-padding
+    layout="row"
+    layout-align="center center"
+    md-colors="{'background':(status.background=='warning' || status.background=='danger') ? ('default-warn-50') : ('default-background-100')}"
+    flex
+  ><em>{{status.message}}</em></div>
+  
+  <md-progress-linear
+    ng-if="status.progress && status.progress==0"
+    ng-class="{'md-warn':status.background=='warning' || status.background=='danger', 'md-primary':status.background=='success' || status.background=='primary'|| status.background=='info'}"
+    md-mode="indeterminate"
+  ></md-progress-linear>
+  
+  <md-progress-linear
+    ng-if="status.progress && status.progress>0"
+    ng-class="{'md-warn':status.background=='warning' || status.background=='danger', 'md-primary':status.background=='success' || status.background=='primary'|| status.background=='info'}"
+    md-mode="buffer"
+    value="{{status.progress}}"
+    md-buffer-value="{{status.progressPending}}"
+  ></md-progress-linear>
+
+</div>
