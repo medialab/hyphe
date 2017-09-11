@@ -269,7 +269,7 @@ angular.module('hyphe.service_utils', [])
 
     ns.URL_fix = function(url){
       // Trim
-      url = $.trim(url)
+      url = (''+url).trim()
 
       if(url == '')
         return ''
@@ -290,7 +290,7 @@ angular.module('hyphe.service_utils', [])
 
     ns.URL_stripLastSlash = function(url){
       // Trim
-      url = $.trim(url)
+      url = (''+url).trim()
 
       url = url.replace(/\/$/, '')
 

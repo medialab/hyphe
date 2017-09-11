@@ -439,23 +439,34 @@ angular.module('hyphe.service_hyphe_api', [])
           }
       )
 
-    ns.getCorpusTLDs = function(){
-      var list_tlds
-      $.ajax({
-        async: false
-        ,method: 'POST'
-        ,url: surl
+    ns.list_tlds = undefined
+    ns.downloadCorpusTLDs = function(callback){
+      $http({
+        method: 'POST',
+        url: surl
         ,data: JSON.stringify({
           method: API.CORPUS_TLDS_GET,
           params: [corpus.getId()],
         })
         ,headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-        ,success: function(result){
-          list_tlds = result[0].result
-        }
-      })
-      return list_tlds
-    };
+      }).then(function successCallback(response) {
+          // this callback will be called asynchronously
+          // when the response is available
+          ns.list_tlds = response.data[0].result
+          callback(ns.list_tlds)
+        }, function errorCallback(response) {
+          // called asynchronously if an error occurs
+          // or server returns response with an error status.
+          console.error('Impossible to retrieve TLDs', response)
+        })
+    }
+    ns.getCorpusTLDs = function(){
+      if(ns.list_tlds === undefined){
+        console.warn('No TLD list loaded. Use downloadCorpusTLDs() before using getCorpusTLDs().')
+        console.log(ns.list_tlds)
+      }
+      return ns.list_tlds
+    }
 
     ns.getCorpusOptions = buildApiCall(
         API.CORPUS_OPTIONS_GET

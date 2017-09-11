@@ -5,7 +5,6 @@ angular.module('hyphe.definewebentitiesController', [])
   .controller('DefineWebEntities', ['$scope', 'store', 'utils', 'api', 'QueriesBatcher', '$location', 'PrefixConflictsIndex', 'corpus'
   ,function($scope, store, utils, api, QueriesBatcher, $location, PrefixConflictsIndex, corpus) {
     $scope.currentPage = 'definewebentities'
-    $scope.Page.setTitle('Define Web Entities')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
@@ -32,48 +31,51 @@ angular.module('hyphe.definewebentitiesController', [])
 
     // Build the basic list of web entities
     var list
-    if(store.get('parsedUrls_type') == 'list'){
-      list = store.get('parsedUrls')
-        .sort(utils.sort_URLs_as_LRUs)
-        .map(function(url, i){
+    api.downloadCorpusTLDs(function(){
+      
+      if(store.get('parsedUrls_type') == 'list'){
+        list = store.get('parsedUrls')
+          .sort(utils.sort_URLs_as_LRUs)
+          .map(function(url, i){
+            return {
+                id: i
+                ,url: url
+              }
+          })
+      } else if(store.get('parsedUrls_type') == 'table') {
+        var settings = store.get('parsedUrls_settings')
+        ,table = store.get('parsedUrls')
+        
+        // Table headline
+        $scope.headline = table.shift().filter(function(d,i){return i != settings.urlColId})
+        
+        list = table.map(function(row, i){
+          var meta = {}
+          table[0].forEach(function(colName,j){
+            if(j != settings.urlColId)
+              meta[colName] = row[j]
+          })
           return {
-              id: i
-              ,url: url
-            }
+            id:i
+            ,url:row[settings.urlColId]
+            ,row:row.filter(function(d,i){return i != settings.urlColId})
+            ,meta:meta
+          }
         })
-    } else if(store.get('parsedUrls_type') == 'table') {
-      var settings = store.get('parsedUrls_settings')
-      ,table = store.get('parsedUrls')
-      
-      // Table headline
-      $scope.headline = table.shift().filter(function(d,i){return i != settings.urlColId})
-      
-      list = table.map(function(row, i){
-        var meta = {}
-        table[0].forEach(function(colName,j){
-          if(j != settings.urlColId)
-            meta[colName] = row[j]
-        })
-        return {
-          id:i
-          ,url:row[settings.urlColId]
-          ,row:row.filter(function(d,i){return i != settings.urlColId})
-          ,meta:meta
-        }
-      })
-    }
+      }
 
-    if(!list || !list.length){
-      $location.path('/project/'+$scope.corpusId+'/importurls')
-    }
+      if(!list || !list.length){
+        $location.path('/project/'+$scope.corpusId+'/importurls')
+      }
 
-    // Clean store
-    store.remove('parsedUrls')
-    store.remove('parsedUrls_type')
-    store.remove('parsedUrls_settings')
+      // Clean store
+      store.remove('parsedUrls')
+      store.remove('parsedUrls_type')
+      store.remove('parsedUrls_settings')
 
-    // Build the list
-    bootstrapUrlList(list)
+      // Build the list
+      bootstrapUrlList(list)
+    })
 
     // Fetching parent web entities
     var fetchParentWebEntities = function(){
