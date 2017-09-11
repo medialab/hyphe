@@ -562,7 +562,6 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
             settings.prefix                               // lru_prefix
             ,settings.regexp                              // Regexp rule
-            ,settings.apply_to_existing_pages || false
             ,corpus.getId()
           ]}
       )

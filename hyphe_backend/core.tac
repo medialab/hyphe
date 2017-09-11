@@ -2588,7 +2588,7 @@ class Memory_Structure(customJSONRPC):
         returnD(format_error("No existing WebEntityCreationRule found for prefix %s." % lru_prefix))
 
     @inlineCallbacks
-    def jsonrpc_add_webentity_creationrule(self, lru_prefix, regexp, onlycreate=False, corpus=DEFAULT_CORPUS):
+    def jsonrpc_add_webentity_creationrule(self, lru_prefix, regexp, corpus=DEFAULT_CORPUS):
         """Adds to a `corpus` a new WebEntityCreationRule set for a `lru_prefix` to a specific `regexp` or one of "subdomain"/"subdomain-N"/"domain"/"path-N"/"prefix+N"/"page" N being an integer. It will immediately by applied to past crawls."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -2607,25 +2607,23 @@ class Memory_Structure(customJSONRPC):
 
             # Create new webentities
             yield self.db.add_WEs(corpus, res["created_webentities"])
-            self.corpora[corpus]['total_webentities'] += len(res["created_webentities"])
-            self.corpora[corpus]['recent_changes'] += 1
-
+            new = len(res["created_webentities"])
+            self.corpora[corpus]['total_webentities'] += new
+            news += new
+        self.corpora[corpus]['recent_changes'] += news
         self.jsonrpc_get_webentity_creationrules(corpus=corpus)
-        if onlycreate:
-            returnD(format_result("Webentity creation rule added"))
 
+        # Remove potential homepage from parent WE that would belong to the new WEs
         for variation in variations:
             res = yield self.jsonrpc_get_lru_definedprefixes(variation, corpus=corpus, _include_homepages=True)
             if not is_error(res):
-                yield self.jsonrpc_add_webentities_tag_value([r["_id"] for r in res["result"]], "CORE", "recrawlNeeded", "true", corpus=corpus)
-                # Remove potential homepage from parent WE that would belong to the new WEs
+                yield self.jsonrpc_add_webentities_tag_value([r["id"] for r in res["result"]], "CORE", "recrawlNeeded", "true", corpus=corpus)
                 for parent in [p for p in res["result"] if p["homepage"]]:
                     parenthomelru = urllru.url_to_lru_clean(parent["homepage"], self.corpora[corpus]["tlds"])
                     if parenthomelru != variation and urllru.has_prefix(parenthomelru, variations):
                         if config['DEBUG']:
                             logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
                         yield self.jsonrpc_set_webentity_homepage(parent["_id"], "", corpus=corpus)
-        self.corpora[corpus]['recent_changes'] += news
         returnD(format_result("Webentity creation rule added and applied: %s new webentities created" % news))
 
     @inlineCallbacks

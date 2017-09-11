@@ -652,7 +652,6 @@ angular.module('hyphe.webentityController', [])
       api.addWECreationRules({
           prefix: currentNode.lru
           ,regexp: 'prefix+1'
-          ,apply_to_existing_pages: true
         }
         ,function(result){
 
