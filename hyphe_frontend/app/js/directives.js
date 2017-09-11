@@ -8,6 +8,10 @@ angular.module('hyphe.directives', [])
   .directive('hyphePrefixSlider', ['utils', function(utils){
     return {
       restrict: 'A'
+      ,scope: {
+        rowActive: '=',
+        obj: '='
+      }
       ,templateUrl: 'partials/webentityslider.html'
       ,link: function(scope, el, attrs) {
         
@@ -79,7 +83,7 @@ angular.module('hyphe.directives', [])
     }
   }])
 
-  .directive('hyphePrefixSliderButton', [function() {
+  .directive('hyphePrefixSliderButton', ['$timeout', function($timeout) {
 	  return {
       restrict: 'A'
       ,link: function(scope, el, attrs) {
@@ -90,9 +94,8 @@ angular.module('hyphe.directives', [])
         // Keeping an updated version of x-coordinates where the slider makes something happen
 	      var steps
         
-        scope.$watch(function(){  // Watch active state (!.blurred container)
-            var container = el.parent().parent().parent().parent()
-            return container.hasClass('blurred')
+        scope.$watch(function(){
+            return scope.rowActive
           }, updateCoordinates)
         
         // scope.$watch(function(){  // Watch coordinate changes
@@ -111,17 +114,19 @@ angular.module('hyphe.directives', [])
             return el.parent().find('table>tbody>tr>td.stem').length
           }, updateCoordinates)
 
-        $(window).resize(updateCoordinates)
+        window.addEventListener('resize', updateCoordinates, false);
 
-	      var z_idx = el.css('z-index')
-	      ,drg_w = el.outerWidth()
-        ,pos_x = el.offset().left + drg_w
+        var z_idx = el.css('z-index')
+        ,drg_w = el[0].clientWidth
+        ,pos_x = el[0].getBoundingClientRect().left + drg_w
         
         el.css('cursor', opt.cursor)
-        	.on("mousedown", startDrag)
+          .on("mousedown", startDrag)
 
-        updateCoordinates(true)
-
+        $timeout(function(){
+          updateCoordinates(true)
+        }, 200)
+        
         return el
 
 
@@ -129,8 +134,8 @@ angular.module('hyphe.directives', [])
 
         function startDrag(e) {
           updateSteps()
-          drg_w = el.outerWidth()
-          pos_x = el.offset().left + drg_w - e.pageX
+          drg_w = el[0].clientWidth
+          pos_x = el[0].getBoundingClientRect().left + drg_w - e.pageX
           z_idx = el.css('z-index')
 
           e.preventDefault(); // disable selection
@@ -138,11 +143,10 @@ angular.module('hyphe.directives', [])
           el
           	.addClass('draggable')
           	.css('z-index', 1000)
-	        	.parents()
+	        	.parent() // .parents()
           		.on("mousemove", updateDrag)
 	        
-	        $('body')
-	        	.one("mouseup", endDrag)
+          document.body.addEventListener("mouseup", endDrag, {once: true})
         }
 
         function updateDrag(e) {
@@ -159,9 +163,7 @@ angular.module('hyphe.directives', [])
           // boundaries
           x = applyBoundaries(x)
 
-          $('.draggable').offset({
-              left:x
-          })
+          document.querySelector('.draggable').style.left = x
 
           // update prefix
           var closestStepId = -1
@@ -188,22 +190,23 @@ angular.module('hyphe.directives', [])
           el
           	.removeClass('draggable')
 						.css('z-index', z_idx)
-						.parents()
+						.parent() // .parents()
           		.off("mousemove", updateDrag)
           updatePosition()
         }
 
         function updateSteps(){
-        	steps = el.parent().find('table>tbody>tr>td.stem').toArray().map(function(td){
-        		var $td = $(td)
-        		return $td.offset().left + $td.outerWidth()
+          var elArray = []
+          angular.forEach(el.parent().find('td'), function(e){
+            elArray.push(e)
+          })
+          steps = elArray.map(function(td, i){
+            return td.getBoundingClientRect().left + td.clientWidth
         	})
         }
 
         function updateBoundaries(){
-          el.offset({
-              left:applyBoundaries(el.offset().left)
-          })
+          el[0].style.left = applyBoundaries(el[0].getBoundingClientRect().left) + 'px'
         }
 
         function applyBoundaries(x){
@@ -216,16 +219,15 @@ angular.module('hyphe.directives', [])
         }
 
         function updatePosition(){
-          var container = el.parent().parent().parent().parent()
-          if(!container.hasClass('blurred')){
-            var x = steps[(scope.obj.prefixLength || 1)-1] || 0
-            el.offset({
-              left:x
-            })
-          }
+            console.log('Update Position', el.parent()[0].textContent.replace(/[^a-z]/gi, '').replace('link', ''))
+            // var x = (steps[(scope.obj.prefixLength || 1)-1] || 0)
+            // Dirty hack:
+            var x = (steps[(scope.obj.prefixLength || 1)-1] || 0) - el.parent()[0].getBoundingClientRect().left + 70
+            el[0].style.left = x + 'px'
         }
 
         function updateCoordinates(forceUpdateAll){
+          console.log('Update Coordinates', el.parent()[0].textContent.replace(/[^a-z]/gi, '').replace('link', ''))
           var container = el.parent().parent().parent().parent()
           if(forceUpdateAll || !container.hasClass('blurred')){
             updateSteps()

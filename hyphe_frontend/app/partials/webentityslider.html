@@ -1,49 +1,64 @@
-<div class="container-fluid hyphe-prefix-slider">
-	<div class="row">
-		<div class="col-md-4">
-			<div class="name-container" ng-class="{bold: obj.WEstatus=='exists'}">
-				<a href="{{obj.url}}" target="_blank"
-                  ng-click="$event.stopPropagation();"
-                ><span class="glyphicon glyphicon-link"></span></a>
-                {{obj.name}}
-			</div>
-			<div class="status-container">{{obj.statusText}}</div>
-            <div class="prefix-link">
-                <a
-            href="{{obj.lru|cutPrefixToUrl:obj.truePrefixLength}}"
-            target="_blank"
-            ng-click="$event.stopPropagation();"
-                ><span class="glyphicon glyphicon-link"></span></a>
-            </div>
+<div layout="row" layout-fill class="hyphe-prefix-slider">
+  
+  <!-- Slider -->
+  <div class="slider-button-container"
+    hyphe-prefix-slider-button="{cursor:'pointer'}"
+  >
+    <div class="slider-hitbox"></div>
+    <div class="slider-bar"></div>
+    <div class="slider-button"></div>
+  </div>
+
+  <!-- Name and status -->
+  <div style="width: 200px" layout="column">
+		<div class="name-container" ng-class="{bold: obj.WEstatus=='exists'}">
+			<a
+        href="{{obj.url}}"
+        target="_blank"
+        ng-click="$event.stopPropagation();"
+      ><md-icon class="md-primary">link</md-icon></a>
+      {{obj.name}} {{rowActive}}
 		</div>
-		<div class="col-md-8">
-    	    <div class="slider-button-container"
-              hyphe-prefix-slider-button="{cursor:'pointer'}">
-      	        <div class="slider-hitbox"></div>
-      	        <div class="slider-bar"></div>
-      	        <div class="slider-button"></div>
-            </div>
-			<table>
+		<div class="status-container">{{obj.statusText}}</div>
+  </div>
+
+  <!-- Prefix link -->
+  <div class="prefix-link" layout="column" layout-align="center center">
+    <div>
+      <a
+        layout-fill
+        href="{{obj.lru|cutPrefixToUrl:obj.truePrefixLength}}"
+        target="_blank"
+        ng-click="$event.stopPropagation();"
+      ><md-icon class="md-primary" ng-style="{'font-size':'18px'}">link</md-icon></a>
+    </div>
+  </div>
+
+  <!-- Stems -->
+	<div flex>
+    <table>
+			<tr>
+				<td
+          class="stem"
+          ng-repeat="stem in obj.pretty_lru track by $index"
+          ng-class="{
+            inblock: $index < $parent.obj.prefixLength,
+            pointable: clickableStem($index)
+          }"
+          ng-click="clickStem($index)"
+        >
+          {{stem}}
+        </td>
+			</tr>
+			<tbody ng-repeat="webEntity in obj.parentWebEntities">
 				<tr>
-					<td class="stem"
-                      ng-repeat="stem in obj.pretty_lru track by $index"
-                      ng-class="{
-                        inblock: $index < $parent.obj.prefixLength,
-                        pointable: clickableStem($index)
-                      }"
-                      ng-click="clickStem($index)">
-                        {{stem}}
-                    </td>
+					<td class="webentity-spacer"></td>
 				</tr>
-				<tbody ng-repeat="webEntity in obj.parentWebEntities">
-					<tr>
-						<td class="webentity-spacer"></td>
-					</tr>
-					<tr class="webentity-row" ng-class="{selected: obj.prefixLength==webEntity.stems_count + 1 - obj.tldLength}">
-						<td class="webentity-stem" ng-repeat="i in getRange(webEntity.stems_count + 1 - obj.tldLength)"></td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-	</div>
+				<tr class="webentity-row" ng-class="{selected: obj.prefixLength==webEntity.stems_count + 1 - obj.tldLength}">
+					<td class="webentity-stem" ng-repeat="i in getRange(webEntity.stems_count + 1 - obj.tldLength)"></td>
+				</tr>
+			</tbody>
+		</table>
+  </div>
+
 </div>

@@ -139,28 +139,6 @@ ul.list-spaced li {
   overflow: hidden;
 }
 
-/* ==========================================================================
-   Tweaks needed by Angular-UI-bootstrap
-   ========================================================================== */
-/*.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
-label.btn.btn-default.disabled.active{
-  box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
-}*/
-
-
-
-/* ==========================================================================
-   "No-gutter" option for bootstrap rows
-   ========================================================================== */
-
-/* remove spacing between middle columns */
-@media (min-width: 768px) { /* sm screen and up */
-  /*.row.no-gutter>[class*='col-']{
-    padding-right:0;
-    padding-left:0;
-  }*/
-}
-
 
 
 /* ==========================================================================
@@ -604,38 +582,6 @@ div.admin-connect button{
   font-size: 16px;
 }
 
-/*.clearboth{
-  padding-top: 25px;
-  clear: both;
-}
-.status-cells-container{
-  padding: 6px;
-}
-.status-cell{
-  padding:6px;
-  height: 220px;
-}
-.status-cell-content{
-  height: 100%;
-  padding: 5px;
-  border: 1px solid #FFF;
-  
-  background-color: #EFEBE8;
-  overflow: hidden;
-}
-.status-cell .title{
-  text-align: center;
-  font-size: 24px;
-  font-weight:300;
-}
-.status-cell .content{
-  text-align: center;
-  font-size: 16px;
-}
-
-*/
-
-
 
 
 /* ==========================================================================
@@ -818,21 +764,20 @@ textarea.over-error{
   padding: 6px;
 }
 
-/*
-.preview-container{
-  overflow: auto;
-}
-table.sliders-commands tr td {
-  padding: 3px;
-}
-table.sliders-commands {
-  margin-bottom: 12px;
-}*/
 
 
 /* ==========================================================================
    View: Define Web Entities
    ========================================================================== */
+.define-entity-repeated-item {
+  height: 78px;
+}
+.define-entity-row-id {
+  width: 64px;
+  padding-right: 24px;
+  font-size: 24px;
+  font-weight: 300;
+}
 /*.define-we-row{
   padding-left: 64px;
   padding-right: 94px;
@@ -1502,7 +1447,7 @@ ul.startpages-report{
 /* ==========================================================================
    Module: Web Entity Slider
    ========================================================================== */
-/*.hyphe-prefix-slider{
+.hyphe-prefix-slider{
   -webkit-user-select: none;         
   -moz-user-select: none;
   -ms-user-select: none;
@@ -1523,16 +1468,8 @@ ul.startpages-report{
   color: #f08060;
 }
 
-.hyphe-prefix-slider .prefix-link a{
-  color: #888;
-  font-size: 0.8em;
-  margin: 0px;
-  position: absolute;
-  right: 0px;
-  top: 12px;
-}
-.hyphe-prefix-slider .prefix-link a:hover{
-  color: #444;
+.hyphe-prefix-slider .prefix-link{
+  width: 36px;
 }
 
 .hyphe-prefix-slider .stem{
@@ -1564,10 +1501,10 @@ ul.startpages-report{
   -webkit-box-shadow: none;
   -moz-box-shadow:    none;
   box-shadow:         none;
-}*/
+}
 
 /* bars showing web entities */
-/*.hyphe-prefix-slider tr>td.webentity-stem{
+.hyphe-prefix-slider tr>td.webentity-stem{
   border-bottom: 4px solid #cfc9c4;
   height: 6px;
 }
@@ -1585,10 +1522,10 @@ ul.startpages-report{
 }
 .blurred>.hyphe-prefix-slider tr>td.webentity-stem{
   border-color:#ebe7e4;
-}*/
+}
 
 /* slider button */
-/*.hyphe-prefix-slider .slider-button-container{
+.hyphe-prefix-slider .slider-button-container{
   position: absolute;
   margin-top: 20px;
   cursor: pointer;
@@ -1617,11 +1554,11 @@ ul.startpages-report{
 }
 .hyphe-prefix-slider .slider-button-container .slider-button{
   position: absolute;
-  width: 16px;
-  height: 16px;
-  margin-left: -8px;
+  width: 10px;
+  height: 10px;
+  margin-left: -9px;
   margin-top: -8px;
-  border-radius: 8px 8px 8px 8px;
+  border-radius: 10px 10px 10px 10px;
   background-color: #ff846f;
   border: 4px solid #000;
   -webkit-box-shadow: 0px 3px 2px 0px rgba(0, 0, 0, 0.2);
@@ -1638,7 +1575,7 @@ ul.startpages-report{
 .blurred>.hyphe-prefix-slider .slider-button-container{
   left: 0px;
   opacity: 0;
-}*/
+}
 
 
 

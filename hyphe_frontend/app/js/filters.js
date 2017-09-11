@@ -133,7 +133,7 @@ angular.module('hyphe.filters', [])
   .filter('cutPrefixToUrl', ['utils', function(utils){
     return function(lru, cut) {
       cut = cut || Infinity
-      var cutLru = lru.split('|')
+      var cutLru = (lru||'').split('|')
         .filter(function(stem, i){
           return i < cut
         })

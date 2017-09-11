@@ -11,19 +11,97 @@
       >
         
         <!-- Content -->
-        <div layout-padding layout-fill layout="column">
-          <div class="page-header">
+        <div layout-fill layout="column">
+
+          <!-- Title -->
+          <div layout-padding class="page-header">
             <h1>
-              DEFINE WEB ENTIT{{list.length | y_ies | uppercase}}
+              DEFINE WEB ENTIT{{list.length | y_ies | uppercase}} {{activeRow}}
             </h1>
             <span class="md-subhead">
               Check the <span hyphe-glossary="boundaries"></span> of each <span hyphe-glossary="web entity"></span> before creating it
             </span>
           </div>
 
-          <div>
-            
+          <!-- Initial loading -->
+          <div
+            flex
+            ng-show="!(list.length || createdList.length || existingList.length || retry)"
+            layout="column"
+            layout-align="center center"
+            layout-padding
+          >
+            <spinner class="center" text=""/>
           </div>
+
+          <!-- Sliders global commands -->
+          <div
+            layout="row"
+            layout-align="start center"
+            layout-padding
+            ng-show="(list.length || createdList.length || existingList.length || retry)"
+          >
+            <div>Move all sliders</div>
+            <md-button
+              ng-click="moveAllSliders('left')"
+            >TO THE LEFT</md-button>
+            <md-button
+              ng-click="moveAllSliders('right')"
+            >TO THE RIGHT</md-button>
+          </div>
+
+          <!-- List (virtual repeat) -->
+          <div
+            ng-if="(list.length || createdList.length || existingList.length || retry)"
+            flex
+          >
+            <md-virtual-repeat-container
+              layout-fill
+            >
+              <div
+                md-virtual-repeat="obj in list"
+                class="define-entity-repeated-item"
+                flex
+                layout="row"
+                ng-class="{active: $parent.$parent.activeRow == $index && obj.status=='loaded', 'bg-danger':obj.status=='error', 'bg-warning':obj.status=='conflict', selectable:obj.status=='error'}"
+                ng-click="$parent.$parent.activeRow = $index"
+                ng-mouseover="$parent.$parent.activeRow = $index"
+              >
+                <div class="define-entity-row-id" layout="row" layout-align="end start">
+                  <div>{{obj.id+1}}</div>
+                </div>
+
+                <div flex>
+                  
+                  <!-- Loading and pending-->
+                  <div ng-if="obj.status == 'loading' || obj.status == 'pending'" class="info-content">
+                    {{obj.status|titlecase}}
+                  </div>
+
+                  <!-- Loaded -->
+                  <div ng-if="obj.status == 'loaded'" layout="column">
+                    
+                    <!-- The UX slider component -->
+                    <!-- <div flex hyphe-prefix-slider ng-class="{blurred: $parent.$parent.activeRow != $index}"></div> -->
+                    <div flex hyphe-prefix-slider ng-class="{blurred: $parent.$parent.activeRow != $index}" row-active="$parent.$parent.activeRow == $index" obj="obj"></div>
+                    
+                    <!-- Added when conflicts are anticipated -->
+                    <div ng-if="obj.conflicts.length > 0" class="conflicts">
+                      <small class="text-warning">
+                        <span class="glyphicon glyphicon-warning-sign"></span>
+                        Same web entity defined row{{obj.conflicts.length|plural}} <span ng-repeat="r in obj.conflicts track by $index">{{r+1}}{{ $index == obj.conflicts.length-1 ? '' : $index == obj.conflicts.length-2 ? ' and ' : ', '}}</span>
+                      </small>
+                    </div>
+
+                  </div>
+
+                  
+                </div>
+
+              </div>
+            </md-virtual-repeat-container>
+          </div>
+
         </div>
 
       </div>
