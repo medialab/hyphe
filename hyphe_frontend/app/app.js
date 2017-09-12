@@ -141,7 +141,7 @@ angular.module('hyphe', [
 	      'hue-2': '600',  
 	      'hue-3': 'A100'  
 	    })
-	    .accentPalette('teal', {
+	    .accentPalette('purple', {
 	      'default': '300'
 	    })
 	    .warnPalette('pink')

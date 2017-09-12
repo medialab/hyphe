@@ -55,7 +55,7 @@ angular.module('hyphe.directives', [])
           }
         }
 
-        scope.$watch(function(){// Watch object change
+        scope.$watch(function(){ // Watch object change
             return scope.obj
           } ,function(){
             scope.updateNameAndStatus()

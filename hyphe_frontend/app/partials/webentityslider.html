@@ -11,7 +11,7 @@
 
   <!-- Name and status -->
   <div style="width: 256px" layout="column">
-		<div class="name-container" ng-class="{bold: obj.WEstatus=='exists'}">
+		<div>
 			<a
         href="{{obj.url}}"
         target="_blank"
@@ -19,7 +19,10 @@
       ><md-icon class="md-primary">link</md-icon></a>
       {{obj.name}}
 		</div>
-		<div class="status-container">{{obj.statusText}}</div>
+		<div
+      ng-show="obj.WEstatus != 'new'"
+      md-colors="{'color': 'accent'}"
+    >{{obj.statusText}}</div>
   </div>
 
   <!-- Prefix link -->
@@ -30,7 +33,9 @@
         href="{{obj.lru|cutPrefixToUrl:obj.truePrefixLength}}"
         target="_blank"
         ng-click="$event.stopPropagation();"
-      ><md-icon class="md-primary" ng-style="{'font-size':'18px'}">link</md-icon></a>
+      >
+        <md-icon class="md-primary" ng-style="{'font-size':'18px'}">link</md-icon>
+      </a>
     </div>
   </div>
 
@@ -42,22 +47,22 @@
           class="stem"
           ng-repeat="stem in obj.pretty_lru track by $index"
           ng-class="{
-            inblock: $index < $parent.obj.prefixLength,
+            inblock: $index < obj.prefixLength,
             pointable: clickableStem($index)
+          }"
+          md-colors="{
+            'background': (rowActive)
+              ? ( ($index < obj.prefixLength) ? ('accent-500') : ('background-50-0.0') )
+              : ( ($index < obj.prefixLength) ? ('background-200') : ('background-50-0.0') ),
+            'color': (rowActive)
+              ? ( ($index < obj.prefixLength) ? ('accent-50') : ('grey-900') )
+              : ( ($index < obj.prefixLength) ? ('grey-500') : ('grey-400') )
           }"
           ng-click="clickStem($index)"
         >
           {{stem}}
         </td>
 			</tr>
-			<tbody ng-repeat="webEntity in obj.parentWebEntities">
-				<tr>
-					<td class="webentity-spacer"></td>
-				</tr>
-				<tr class="webentity-row" ng-class="{selected: obj.prefixLength==webEntity.stems_count + 1 - obj.tldLength}">
-					<td class="webentity-stem" ng-repeat="i in getRange(webEntity.stems_count + 1 - obj.tldLength)"></td>
-				</tr>
-			</tbody>
 		</table>
   </div>
 

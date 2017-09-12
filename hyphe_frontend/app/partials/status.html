@@ -9,7 +9,7 @@
   ><em>{{status.message}}</em></div>
   
   <md-progress-linear
-    ng-if="status.message.length > 0 && !(status.progress && status.progress>0) && !status.background=='danger'"
+    ng-if="status.message.length > 0 && !(status.progress && status.progress>0) && status.background!='danger'"
     ng-class="{'md-warn':status.background=='warning' || status.background=='danger', 'md-primary':status.background=='success' || status.background=='primary'|| status.background=='info'}"
     md-mode="indeterminate"
   ></md-progress-linear>
