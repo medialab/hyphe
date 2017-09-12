@@ -19,10 +19,128 @@
               PREPARE CRAWLS
             </h1>
             <span class="md-subhead">
-              Each <span hyphe-glossary="web entity"></span> needs at least one <span hyphe-glossary="start page"></span>, as a starting point for <span hyphe-glossary="crawling"></span>
+              Each <span hyphe-glossary="web entity"></span> needs at least one <span hyphe-glossary="start page"></span> for <span hyphe-glossary="crawling"></span>. Set a <span hyphe-glossary="depth"></span> and schedule <span hyphe-glossary="crawls"></span>.
             </span>
           </div>
 
+          <!-- Tiles -->
+          <div flex style="padding: 8px; overflow: auto">
+            <md-grid-list md-cols="5" md-gutter="8px" md-row-height="1:1">
+              <md-grid-tile
+                ng-repeat="obj in list|paginate:paginationPage:paginationLength track by $index"
+                ng-click="openWebentity(obj.id)"
+                ng-mouseenter="obj.displayRemove = true"
+                ng-mouseleave="obj.displayRemove = false"
+                md-colors="{
+                  'background': (obj.status == 'loading')
+                    ? ('default-background-100')
+                    : (
+                      (obj.status == 'loaded' || obj.status == 'pending')
+                      ? ('default-background-500')
+                      : (
+                        (obj.status == 'error')
+                        ? ('default-warn-500')
+                        : ('default-primary-500')
+                      )
+                    )
+                }"
+                class="pointable-grid-tile"
+              >
+                <md-grid-tile-header>
+                  <h3 style="word-break: break-all">{{obj.id+1}}. {{obj.webentity.name}}</h3>
+                  <div
+                    class="grid-tile-close"
+                    ng-show="obj.displayRemove && obj.status !== 'scheduled' && obj.status !== 'pending'"
+                    ng-click="$event.stopPropagation(); removeCell(obj.id)"
+                  >
+                    <md-button class="md-icon-button">
+                      <md-tooltip md-direction="top">Remove</md-tooltip>
+                      <md-icon>close</md-icon>
+                    </md-button>
+                  </div>
+                </md-grid-tile-header>
+
+                <!-- Status only -->
+                <div
+                  ng-if="obj.status != 'error' && obj.status != 'loaded'"
+                  md-colors="{'color': 'default-background-600'}"
+                >
+                  {{obj.status|uppercase}}
+                </div>
+
+                <!-- Loaded : No start page -->
+                <div
+                  ng-if="obj.status == 'loaded' && obj.webentity.startpages.length == 0"
+                  layout="column"
+                  layout-align="center center"
+                >
+                  <div>
+                    <md-tooltip md-direction="right">Ready to crawl</md-tooltip>
+                    <md-icon>done</md-icon>
+                  </div>
+                  <div>
+                    auto <span class="text-muted">start pages</span>
+                  </div>
+                </div>
+
+                <!-- Loaded : Start pages -->
+                <div
+                  ng-if="obj.status == 'loaded' && obj.webentity.startpages.length > 0"
+                  layout="column"
+                  layout-align="center center"
+                >
+                  <div ng-if="obj.summary && obj.summary.stage == 'loaded'">
+                    <div ng-show="!obj.summary.diagnostic.doomed">
+                      <div ng-if="obj.summary.diagnostic.ready">
+                        <md-tooltip md-direction="right">Ready to crawl</md-tooltip>
+                        <md-icon>done</md-icon>
+                      </div>
+                      <div ng-if="obj.summary.diagnostic.issues">
+                        <md-tooltip md-direction="right">Non-blocking issues</md-tooltip>
+                        <md-icon>info</md-icon>
+                      </div>
+                    </div>
+                    <div ng-if="obj.summary.diagnostic.doomed">
+                      <md-tooltip md-direction="right">Doomed crawl needs fix :)</md-tooltip>
+                      <md-icon md-colors="{'color':'default-warn'}">warning</md-icon>
+                    </div>
+                  </div>
+                  <div>
+                    {{obj.webentity.startpages.length}} <span class="text-muted">start page{{obj.webentity.startpages.length | plural}}</span>
+                  </div>
+                </div>
+
+                <!-- Error -->
+                <div
+                  ng-if="obj.status == 'error'"
+                  layout="column"
+                  layout-align="center center"
+                >
+                  <div>
+                    ERROR - {{obj.errorMessage}}
+                  </div>
+                  <webentity-link ng-if="obj.webentity.id" corpus-id="corpusId" webentity-id="obj.webentity.id">
+                </div>
+
+              </md-grid-tile>
+            </md-grid-list>
+          </div>
+
+          <!-- Launch crawl panel -->
+          <div
+            ng-if="list.length > 0 && !scheduling"
+            layout="column"
+          >
+            <div layout="row" layout-align="center center">
+              <md-select ng-model="$parent.crawlDepth">
+                <md-option ng-repeat="depth in depthRange" value="{{depth}}">Depth: {{depth}} click{{depth | plural}}</md-option>
+              </md-select>
+              <md-button class="md-raised" ng-class="{'md-primary':!statusesSummary.problems, 'md-warn':statusesSummary.problems}" ng-click="scheduleCrawls()">
+                <md-tooltip md-direction="right" ng-if="statusesSummary.problems">Some web entities have issues</md-tooltip>
+                Schedule crawl{{list.length | plural}}
+              </md-button>
+            </div>
+          </div>
         </div>
 
       </div>

@@ -32,6 +32,18 @@ a {
 .page-header .md-subhead {
   margin: 0;
 }
+.grid-tile-close {
+  position: absolute;
+  top: 2px;
+  right: -5px;
+}
+.pointable-grid-tile {
+  cursor: pointer;
+  opacity: 0.8;
+}
+.pointable-grid-tile:hover {
+  opacity: 1.0;
+}
 /*
 .label, .badge{
   font-family: 'Open Sans', sans-serif;
