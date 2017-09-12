@@ -1517,9 +1517,10 @@ ul.startpages-report{
   margin-left: -6px;
   margin-top: 17px;
   border-radius: 7px 7px 7px 7px;
+  display: none;
 }
 .hyphe-prefix-slider .slider-button-container:hover .slider-button-hover{
-  background-color: #FFF;
+  display: initial;
 }
 
 

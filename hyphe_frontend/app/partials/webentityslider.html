@@ -38,10 +38,10 @@
       }"
       md-colors="{
         'background': (rowActive)
-          ? ( ($index < obj.prefixLength) ? ('accent-500-0.9') : ('background-50-0.0') )
+          ? ( ($index < obj.prefixLength) ? ('primary-500-0.9') : ('background-50-0.0') )
           : ( ($index < obj.prefixLength) ? ('background-200') : ('background-50-0.0') ),
         'color': (rowActive)
-          ? ( ($index < obj.prefixLength) ? ('accent-50') : ('grey-900') )
+          ? ( ($index < obj.prefixLength) ? ('primary-50') : ('grey-900') )
           : ( ($index < obj.prefixLength) ? ('grey-500') : ('grey-400') )
       }"
       ng-click="clickStem($index)"
@@ -57,13 +57,16 @@
       <div class="slider-hitbox"></div>
       <div
         class="slider-bar"
-        md-colors="{'background': 'accent-700'}"
+        md-colors="{'background': 'primary-700'}"
       ></div>
       <div
         class="slider-button"
-        md-colors="{'background': 'accent-700'}"
+        md-colors="{'background': 'primary-700'}"
       ></div>
-      <div class="slider-button-hover"></div>
+      <div
+        class="slider-button-hover"
+        md-colors="{'background': 'primary-100'}"
+      ></div>
     </div>
   </div>
 

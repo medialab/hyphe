@@ -117,9 +117,10 @@ angular.module('hyphe.directives', [])
 
         window.addEventListener('resize', updateCoordinates, false);
 
-        var z_idx = el.css('z-index')
-        ,drg_w = el[0].clientWidth
-        ,pos_x = el[0].getBoundingClientRect().left + drg_w
+        var drag_offset
+        var predrag_x
+        var predrag_z = el.css('z-index')
+        var dragging = false
         
         el.css('cursor', opt.cursor)
           .on("mousedown", startDrag)
@@ -134,10 +135,11 @@ angular.module('hyphe.directives', [])
         // functions used in this directive
 
         function startDrag(e) {
-          /*updateSteps()
-          drg_w = el[0].clientWidth
-          pos_x = el[0].getBoundingClientRect().left + drg_w - e.pageX
-          z_idx = el.css('z-index')
+          dragging = true
+          updateSteps()
+          drag_offset = e.pageX
+          predrag_x = +el[0].style.left.replace('px', '')
+          predrag_z = el.css('z-index')
 
           e.preventDefault(); // disable selection
 
@@ -147,12 +149,12 @@ angular.module('hyphe.directives', [])
 	        	.parent() // .parents()
           		.on("mousemove", updateDrag)
 	        
-          document.body.addEventListener("mouseup", endDrag, {once: true})*/
+          document.body.addEventListener("mouseup", endDrag, {once: true})
         }
 
         function updateDrag(e) {
-          /*updateSteps()
-          var x = e.pageX + pos_x - drg_w
+          updateSteps()
+          var x = predrag_x + e.pageX - drag_offset
 
           // magnetic steps
           steps.forEach(function(step, i){
@@ -164,14 +166,14 @@ angular.module('hyphe.directives', [])
           // boundaries
           x = applyBoundaries(x)
 
-          document.querySelector('.draggable').style.left = x
+          el[0].style.left = x + 'px'
 
           // update prefix
           var closestStepId = -1
           ,cs_dist = Number.MAX_VALUE
           steps.forEach(function(step, i){
-            var d = Math.abs(step - x)
-            if(d < cs_dist){
+            var d = Math.abs(x - step)
+            if(d >= 0 && d < cs_dist){
               cs_dist = d
               closestStepId = i+1
             }
@@ -184,16 +186,17 @@ angular.module('hyphe.directives', [])
             if(scope.conflictsIndex)
               scope.conflictsIndex.addToLruIndex(scope.obj)
             scope.$apply()
-          }*/
+          }
         }
 
         function endDrag() {
-          /*el
+          dragging = false
+          el
           	.removeClass('draggable')
-						.css('z-index', z_idx)
+						.css('z-index', predrag_z)
 						.parent() // .parents()
           		.off("mousemove", updateDrag)
-          updatePosition()*/
+          updatePosition()
         }
 
         function updateSteps(){
@@ -206,12 +209,6 @@ angular.module('hyphe.directives', [])
             current += span.clientWidth
             return current
         	})
-          console.log('steps', steps.join(' - '))
-        }
-
-        /*function updateBoundaries(){
-          console.log('Update Boundaries: ', applyBoundaries(el[0].getBoundingClientRect().left), "->", el[0].style.left)
-          el[0].style.left = applyBoundaries(el[0].getBoundingClientRect().left) + 'px'
         }
 
         function applyBoundaries(x){
@@ -221,13 +218,12 @@ angular.module('hyphe.directives', [])
           if(x < steps[minstep])
             x = steps[minstep]
           return x
-        }*/
+        }
 
         function updatePosition(){
-          
+          if (dragging) { return }
+          console.log('update position')
           var x = (steps[(scope.obj.prefixLength || 1)-1] || 0)
-          console.log('Update Position to', x /*, el.parent()[0].textContent.replace(/[^a-z]/gi, '').replace('link', '')*/)
-          // el[0].style.left = '0px'
           el[0].style.left = x + 'px'
         }
 
@@ -236,7 +232,6 @@ angular.module('hyphe.directives', [])
             updateSteps()
             if (steps.length > 0) {
               scope.sliderHidden = false
-              // updateBoundaries()
               updatePosition()
             } else {
               scope.sliderHidden = true
