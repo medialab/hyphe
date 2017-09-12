@@ -10,7 +10,7 @@
         <div ng-show="corpusStatus">
 
           <!-- Welcome message when empty -->
-          <div layout-padding ng-hide="corpusStatus.corpus.traph.webentities.total">
+          <div ng-hide="corpusStatus.corpus.traph.webentities.total" class="page-header">
             <h1>
               Welcome to your Hyphe corpus!
             </h1>
@@ -19,16 +19,17 @@
             </p>
           </div>
 
+          <!-- Header when corpus not empty -->
+          <div class="page-header" ng-show="corpusStatus.corpus.traph.webentities.total">
+            <h1>
+              OVERVIEW
+            </h1>
+          </div>
+
           <!-- Information when corpus not empty -->
-          <div layout-padding ng-show="corpusStatus.corpus.traph.webentities.total">
-            <div class="page-header">
-              <h1>
-                OVERVIEW
-              </h1>
-            </div>
-            
+          <div ng-show="corpusStatus.corpus.traph.webentities.total" style="padding:8px">
             <div layout="row">
-              <md-content flex layout="column" layout-padding layout-margin layout-align="start center">
+              <md-content flex layout="column" layout-align="start center" style="padding:8px; margin-right:8px;" md-colors="{background: 'default-background-100'}">
                 <h3>
                   CRAWL JOBS
                 </h3>
@@ -47,7 +48,7 @@
                   Currently: {{corpusStatus.corpus.traph.job_running}}
                 </p>
               </md-content>
-              <md-content flex layout="column" layout-padding layout-margin layout-align="start center">
+              <md-content flex layout="column" layout-align="start center" style="padding:8px;" md-colors="{background: 'default-background-100'}">
                 <h3>
                   CONTENT CRAWLED
                 </h3>
