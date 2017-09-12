@@ -2,11 +2,10 @@
 
 angular.module('hyphe.preparecrawlsController', [])
 
-  .controller('PrepareCrawls', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', '$modal', 'corpus', '$timeout', '$interval'
-  ,function($scope, api, store, utils, $location, QueriesBatcher, $modal, corpus, $timeout, $interval) {
+  .controller('PrepareCrawls', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', 'corpus', '$timeout', '$interval'
+  ,function($scope, api, store, utils, $location, QueriesBatcher, corpus, $timeout, $interval) {
     
     $scope.currentPage = 'prepareCrawls'
-    $scope.Page.setTitle('Prepare Crawls')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
@@ -412,7 +411,7 @@ angular.module('hyphe.preparecrawlsController', [])
     /* Instanciate and open the Modal */
     function instanciateModal(obj) {
 
-      var modalInstance = $modal.open({
+      /*var modalInstance = $modal.open({
           templateUrl: 'partials/webentitystartpagesmodal.html'
         , size: 'lg'
         , controller: 'webentityStartPagesModalController'
@@ -435,7 +434,7 @@ angular.module('hyphe.preparecrawlsController', [])
               }
             }
         }
-      })
+      })*/
 
       modalInstance.result.then(function (feedback) {
         // On 'OK'
