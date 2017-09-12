@@ -29,7 +29,6 @@
             ng-show="!(list.length || createdList.length || existingList.length || retry)"
             layout="column"
             layout-align="center center"
-            layout-padding
           >
             <spinner class="center" text=""/>
           </div>
@@ -39,8 +38,8 @@
             ng-if="list.length || retry"
             layout="row"
             layout-align="start center"
-            layout-padding
             ng-show="(list.length || createdList.length || existingList.length || retry)"
+            style="padding: 8px"
           >
             <div>Move all sliders</div>
             <md-button
@@ -172,7 +171,7 @@
             layout="column"
           >
             <hr/>
-            <div layout-padding>
+            <div style="padding: 8px;">
               <h1>{{createdList.length}} web entit{{createdList.length | y_ies}} were created</h1>
             </div>
 
