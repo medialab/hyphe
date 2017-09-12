@@ -36,11 +36,11 @@
                     ? ('default-background-100')
                     : (
                       (obj.status == 'loaded' || obj.status == 'pending')
-                      ? ('default-background-500')
+                      ? ('default-background-300')
                       : (
                         (obj.status == 'error')
-                        ? ('default-warn-500')
-                        : ('default-primary-500')
+                        ? ('default-warn-300')
+                        : ('default-primary-300')
                       )
                     )
                 }"
@@ -139,6 +139,16 @@
                 <md-tooltip md-direction="right" ng-if="statusesSummary.problems">Some web entities have issues</md-tooltip>
                 Schedule crawl{{list.length | plural}}
               </md-button>
+            </div>
+          </div>
+
+          <!-- Scheduling -->
+          <div
+            ng-if="scheduling"
+            layout="column"
+          >
+            <div layout="row" layout-align="center center">
+              <span hyphe-glossary="Crawls"/> scheduled at <span hyphe-glossary="depth"/> {{$parent.crawlDepth}}
             </div>
           </div>
         </div>
