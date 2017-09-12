@@ -1,14 +1,5 @@
 <div layout="row" layout-fill class="hyphe-prefix-slider">
   
-  <!-- Slider -->
-  <div class="slider-button-container"
-    hyphe-prefix-slider-button="{cursor:'pointer'}"
-  >
-    <div class="slider-hitbox"></div>
-    <div class="slider-bar"></div>
-    <div class="slider-button"></div>
-  </div>
-
   <!-- Name and status -->
   <div style="width: 256px" layout="column">
 		<div>
@@ -26,44 +17,54 @@
   </div>
 
   <!-- Prefix link -->
-  <div class="prefix-link" layout="column" layout-align="center center">
-    <div>
-      <a
-        layout-fill
-        href="{{obj.lru|cutPrefixToUrl:obj.truePrefixLength}}"
-        target="_blank"
-        ng-click="$event.stopPropagation();"
-      >
-        <md-icon class="md-primary" ng-style="{'font-size':'18px'}">link</md-icon>
-      </a>
-    </div>
+  <div class="prefix-link" layout="column">
+    <a
+      layout-fill
+      href="{{obj.lru|cutPrefixToUrl:obj.truePrefixLength}}"
+      target="_blank"
+      ng-click="$event.stopPropagation();"
+    >
+      <md-icon class="md-primary" ng-style="{'font-size':'18px'}">link</md-icon>
+    </a>
   </div>
 
   <!-- Stems -->
-	<div flex>
-    <table>
-			<tr>
-				<td
-          class="stem"
-          ng-repeat="stem in obj.pretty_lru track by $index"
-          ng-class="{
-            inblock: $index < obj.prefixLength,
-            pointable: clickableStem($index)
-          }"
-          md-colors="{
-            'background': (rowActive)
-              ? ( ($index < obj.prefixLength) ? ('accent-500') : ('background-50-0.0') )
-              : ( ($index < obj.prefixLength) ? ('background-200') : ('background-50-0.0') ),
-            'color': (rowActive)
-              ? ( ($index < obj.prefixLength) ? ('accent-50') : ('grey-900') )
-              : ( ($index < obj.prefixLength) ? ('grey-500') : ('grey-400') )
-          }"
-          ng-click="clickStem($index)"
-        >
-          {{stem}}
-        </td>
-			</tr>
-		</table>
+	<div flex layout="row" class="stem-container">
+		<span
+      class="stem"
+      ng-repeat="stem in obj.pretty_lru track by $index"
+      ng-class="{
+        pointable: clickableStem($index)
+      }"
+      md-colors="{
+        'background': (rowActive)
+          ? ( ($index < obj.prefixLength) ? ('accent-500-0.9') : ('background-50-0.0') )
+          : ( ($index < obj.prefixLength) ? ('background-200') : ('background-50-0.0') ),
+        'color': (rowActive)
+          ? ( ($index < obj.prefixLength) ? ('accent-50') : ('grey-900') )
+          : ( ($index < obj.prefixLength) ? ('grey-500') : ('grey-400') )
+      }"
+      ng-click="clickStem($index)"
+    >
+      {{stem}}
+    </span>
+
+    <!-- Slider -->
+    <div class="slider-button-container"
+      hyphe-prefix-slider-button="{cursor:'pointer'}"
+      ng-show="!sliderHidden && rowActive"
+    >
+      <div class="slider-hitbox"></div>
+      <div
+        class="slider-bar"
+        md-colors="{'background': 'accent-700'}"
+      ></div>
+      <div
+        class="slider-button"
+        md-colors="{'background': 'accent-700'}"
+      ></div>
+      <div class="slider-button-hover"></div>
+    </div>
   </div>
 
 </div>

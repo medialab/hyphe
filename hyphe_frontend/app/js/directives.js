@@ -93,6 +93,7 @@ angular.module('hyphe.directives', [])
 
         // Keeping an updated version of x-coordinates where the slider makes something happen
 	      var steps
+        scope.sliderHidden = true
         
         scope.$watch(function(){
             return scope.rowActive
@@ -133,7 +134,7 @@ angular.module('hyphe.directives', [])
         // functions used in this directive
 
         function startDrag(e) {
-          updateSteps()
+          /*updateSteps()
           drg_w = el[0].clientWidth
           pos_x = el[0].getBoundingClientRect().left + drg_w - e.pageX
           z_idx = el.css('z-index')
@@ -146,11 +147,11 @@ angular.module('hyphe.directives', [])
 	        	.parent() // .parents()
           		.on("mousemove", updateDrag)
 	        
-          document.body.addEventListener("mouseup", endDrag, {once: true})
+          document.body.addEventListener("mouseup", endDrag, {once: true})*/
         }
 
         function updateDrag(e) {
-          updateSteps()
+          /*updateSteps()
           var x = e.pageX + pos_x - drg_w
 
           // magnetic steps
@@ -183,29 +184,33 @@ angular.module('hyphe.directives', [])
             if(scope.conflictsIndex)
               scope.conflictsIndex.addToLruIndex(scope.obj)
             scope.$apply()
-          }
+          }*/
         }
 
         function endDrag() {
-          el
+          /*el
           	.removeClass('draggable')
 						.css('z-index', z_idx)
 						.parent() // .parents()
           		.off("mousemove", updateDrag)
-          updatePosition()
+          updatePosition()*/
         }
 
         function updateSteps(){
           var elArray = []
-          angular.forEach(el.parent().find('td'), function(e){
+          angular.forEach(el.parent().find('span'), function(e){
             elArray.push(e)
           })
-          steps = elArray.map(function(td, i){
-            return td.getBoundingClientRect().left + td.clientWidth
+          var current = 0
+          steps = elArray.map(function(span, i){
+            current += span.clientWidth
+            return current
         	})
+          console.log('steps', steps.join(' - '))
         }
 
-        function updateBoundaries(){
+        /*function updateBoundaries(){
+          console.log('Update Boundaries: ', applyBoundaries(el[0].getBoundingClientRect().left), "->", el[0].style.left)
           el[0].style.left = applyBoundaries(el[0].getBoundingClientRect().left) + 'px'
         }
 
@@ -216,23 +221,26 @@ angular.module('hyphe.directives', [])
           if(x < steps[minstep])
             x = steps[minstep]
           return x
-        }
+        }*/
 
         function updatePosition(){
-            console.log('Update Position', el.parent()[0].textContent.replace(/[^a-z]/gi, '').replace('link', ''))
-            // var x = (steps[(scope.obj.prefixLength || 1)-1] || 0)
-            // Dirty hack:
-            var x = (steps[(scope.obj.prefixLength || 1)-1] || 0) - el.parent()[0].getBoundingClientRect().left + 70
-            el[0].style.left = x + 'px'
+          
+          var x = (steps[(scope.obj.prefixLength || 1)-1] || 0)
+          console.log('Update Position to', x /*, el.parent()[0].textContent.replace(/[^a-z]/gi, '').replace('link', '')*/)
+          // el[0].style.left = '0px'
+          el[0].style.left = x + 'px'
         }
 
         function updateCoordinates(forceUpdateAll){
-          console.log('Update Coordinates', el.parent()[0].textContent.replace(/[^a-z]/gi, '').replace('link', ''))
-          var container = el.parent().parent().parent().parent()
-          if(forceUpdateAll || !container.hasClass('blurred')){
+          if(forceUpdateAll || !scope.rowActive){
             updateSteps()
-            updateBoundaries()
-            updatePosition()
+            if (steps.length > 0) {
+              scope.sliderHidden = false
+              // updateBoundaries()
+              updatePosition()
+            } else {
+              scope.sliderHidden = true
+            }
           }
         }
 	  }
