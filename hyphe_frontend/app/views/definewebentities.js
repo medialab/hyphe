@@ -261,6 +261,7 @@ angular.module('hyphe.definewebentitiesController', [])
                   }
                 }
               ,function(we){                        // Success callback
+                console.log('CREATED')
                   obj.status = 'created'
                   obj.webentity = we
                 }

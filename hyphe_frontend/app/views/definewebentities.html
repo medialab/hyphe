@@ -76,7 +76,7 @@
                   
                   <!-- Loading and pending-->
                   <div ng-if="obj.status == 'loading' || obj.status == 'pending'" class="info-content">
-                    <em>{{obj.status|titlecase}}</em>
+                    <em md-colors="{'color': 'default-background-600'}">{{obj.status|titlecase}}</em>
                   </div>
 
                   <!-- Loaded -->
@@ -88,52 +88,65 @@
                     
                     <!-- Added when conflicts are anticipated -->
                     <div ng-if="obj.conflicts.length > 0" class="conflicts">
-                      <small class="text-warning">
-                        <span class="glyphicon glyphicon-warning-sign"></span>
+                      <small md-colors="{'color': 'default-background-600'}">
                         Same web entity defined row{{obj.conflicts.length|plural}} <span ng-repeat="r in obj.conflicts track by $index">{{r+1}}{{ $index == obj.conflicts.length-1 ? '' : $index == obj.conflicts.length-2 ? ' and ' : ', '}}</span>
                       </small>
                     </div>
 
                   </div>
 
-                  <!-- Created or Existing -->
-                  <div ng-if="obj.status == 'created' || obj.status == 'existing'" layout-padding>
+                  <!-- Created -->
+                  <div
+                    ng-if="obj.status == 'created'"
+                    style="padding:8px"
+                  >
+                    <strong>{{obj.status|titlecase}}</strong>
+                    as {{obj.webentity.name}}
+                  </div>
+
+                  <!-- Existing -->
+                  <div
+                    ng-if="obj.status == 'existing'"
+                    style="padding:8px"
+                    md-colors="{color:'default-primary-500'}"
+                  >
                     <strong>{{obj.status|titlecase}}</strong>
                     as {{obj.webentity.name}}
                   </div>
 
                   <!-- Conflicted -->
-                  <div ng-if="obj.status == 'conflict'" layout-padding>
-                    <strong>{{obj.status|titlecase}}</strong> - web entity defined in a previous row
-
-                    <!-- Collapsing button -->
-                    <!-- <button type="button" class="btn btn-link btn-xs text-muted" data-toggle="collapse" data-target="#conflict-info-{{obj.id}}">more info</button> -->
-
-                    <!-- Collapsed info -->
-                    <!-- <div id="conflict-info-{{obj.id}}" class="collapse">
-                      URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
-                      <br/>
-                      LRU prefixes:
-                      <ul>
-                        <li ng-repeat="lru in obj.prefixes">{{lru}}</li>
-                      </ul>
-                    </div> -->
-
-                    <!-- Error -->
-                    <div ng-if="obj.status == 'error'" layout-padding>
-                      <strong>Error</strong>
-
-                      <!-- Collapsing button -->
-                      <!-- <button type="button" class="btn btn-link btn-xs text-muted" data-toggle="collapse" data-target="#error-info-{{obj.id}}">more info</button> -->
-
-                      <!-- Collapsed info -->
-                      <!-- <div id="error-info-{{obj.id}}" class="collapse">
-                        URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
-                        <br/>
-                        {{obj.infoMessage}}
-                      </div> -->
+                  <div
+                    ng-if="obj.status == 'conflict'"
+                    md-colors="{background: 'default-accent-100', color:'default-accent-700'}"
+                    style="padding: 8px"
+                    layout="column"
+                  >
+                    <div>
+                      <strong>{{obj.status|titlecase}}</strong> - web entity defined in a previous row
                     </div>
 
+                    <div style="font-size: 0.8em" md-colors="{color:'default-accent-500'}">
+                      URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
+                      LRU prefixes:
+                      <span ng-repeat="lru in obj.prefixes">{{lru}} </span>
+                    </div>
+                  </div>
+
+                  <!-- Error -->
+                  <div
+                    ng-if="obj.status == 'error'"
+                    md-colors="{background: 'default-warn-100', color:'default-warn-700'}"
+                    style="padding: 8px"
+                    layout="column"
+                  >
+                    <div>
+                      <strong>ERROR</strong>
+                    </div>
+
+                    <div style="font-size: 0.8em" md-colors="{color:'default-warn-500'}">
+                      URL: <a href="{{obj.url}}" target="_blank">{{obj.url}}</a>
+                      Info: {{obj.infoMessage}}
+                    </div>
                   </div>
 
                 </div>
@@ -170,9 +183,8 @@
             ng-if="createdList.length + existingList.length > 0"
             layout="column"
           >
-            <hr/>
             <div style="padding: 8px;">
-              <h1>{{createdList.length}} web entit{{createdList.length | y_ies}} were created</h1>
+              <h1>{{createdList.length}} web entit{{createdList.length | y_ies}} created</h1>
             </div>
 
             <div layout="row" style="padding: 8px">

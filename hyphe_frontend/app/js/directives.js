@@ -222,7 +222,6 @@ angular.module('hyphe.directives', [])
 
         function updatePosition(){
           if (dragging) { return }
-          console.log('update position')
           var x = (steps[(scope.obj.prefixLength || 1)-1] || 0)
           el[0].style.left = x + 'px'
         }
