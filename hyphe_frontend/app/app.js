@@ -109,7 +109,7 @@ angular.module('hyphe', [
     'A700': '7F6656',
     'contrastDefaultColor': 'light',
     'contrastDarkColors': ['50', '100', //hues which contrast should be 'dark' by default
-     '200', '300', '400', '500', '600', '700', 'A100', 'A200', 'A400'],
+     '200', 'A100'],
     'contrastLightColors': undefined    // could also specify this if default was 'dark'
   })
 
