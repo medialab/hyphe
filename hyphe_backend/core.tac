@@ -170,18 +170,18 @@ class Core(customJSONRPC):
             returnD(self.corpus_error())
 
         # Forbid same corpus name as existing
-        existing = yield self.db.get_corpus_by_name(name)
+        existing = yield self.db.get_corpus_by_name(name, fields=["_id"])
         if existing:
             returnD(format_error('There already is a corpus named "%s".' % name))
 
         # Generate unique corpus id
         corpus = clean_corpus_id(name)
         corpus_idx = 1
-        existing = yield self.db.get_corpus(corpus)
+        existing = yield self.db.get_corpus(corpus, fields=["_id"])
         while existing:
             corpus = "%s-%s" % (clean_corpus_id(name), corpus_idx)
             corpus_idx += 1
-            existing = yield self.db.get_corpus(corpus)
+            existing = yield self.db.get_corpus(corpus, fields=["_id"])
 
         # Get TLDs for corpus
         tlds = yield collect_tlds()
@@ -372,13 +372,11 @@ class Core(customJSONRPC):
             logger.msg("Could not stop corpus: %s" % res, system="ERROR - %s" % corpus)
         returnD(res)
 
-    @inlineCallbacks
     def jsonrpc_get_corpus_tlds(self, corpus=DEFAULT_CORPUS):
         """Returns the tree of TLDs rules built from Mozilla's list at the creation of `corpus`."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
-        corpus_conf = yield self.db.get_corpus(corpus)
-        returnD(format_result(corpus_conf["tlds"]))
+        returnD(format_result(self.corpora[corpus]["tlds"]))
 
     @inlineCallbacks
     def jsonrpc_backup_corpus(self, corpus=DEFAULT_CORPUS):

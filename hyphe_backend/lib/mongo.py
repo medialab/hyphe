@@ -78,15 +78,14 @@ class MongoDB(object):
         })
         yield self.init_corpus_indexes(corpus)
 
-
     @inlineCallbacks
-    def get_corpus(self, corpus):
-        res = yield self.db()["corpus"].find_one({"_id": corpus})
+    def get_corpus(self, corpus, *args, **kwargs):
+        res = yield self.db()["corpus"].find_one({"_id": corpus}, *args, **kwargs)
         returnD(res)
 
     @inlineCallbacks
-    def get_corpus_by_name(self, corpus):
-        res = yield self.db()["corpus"].find_one({"name": corpus})
+    def get_corpus_by_name(self, corpus, *args, **kwargs):
+        res = yield self.db()["corpus"].find_one({"name": corpus}, *args, **kwargs)
         returnD(res)
 
     @inlineCallbacks
