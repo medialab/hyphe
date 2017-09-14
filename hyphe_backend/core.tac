@@ -401,7 +401,11 @@ class Core(customJSONRPC):
         test_and_make_dir(path)
         with open(os.path.join(path, "options.json"), "w") as f:
             options = yield self.db.get_corpus(corpus)
+            for key in ["tags", "webentities_links"]:
+                del(options[key])
             jsondump(options, f)
+        with open(os.path.join(path, "tags.json"), "w") as f:
+            jsondump(self.corpora[corpus]["tags"], f)
         with open(os.path.join(path, "crawls.json"), "w") as f:
             crawls = yield self.jsonrpc_listjobs(corpus=corpus)
             if is_error(crawls):
