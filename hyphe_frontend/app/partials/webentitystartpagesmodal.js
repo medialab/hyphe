@@ -3,7 +3,10 @@
 angular.module('hyphe.webentityStartPagesModalController', [])
 
   .controller('webentityStartPagesModalController'
-  ,function( $scope,  api,  utils, QueriesBatcher, $timeout, $modal, $modalInstance, webentity, lookups, lookupEngine, updaters) {
+  ,function( $scope, api,  utils, QueriesBatcher, $timeout, $mdDialog, webentity, lookups, lookupEngine, updaters) { 
+
+    $scope.closeOpenedDialog  = closeOpenedDialog;
+    
     $scope.lookups = lookups
     $scope.webentity = webentity
     $scope.startpagesSummary = {

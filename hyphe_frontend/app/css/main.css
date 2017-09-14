@@ -1313,26 +1313,14 @@ span.editable{
 /* ==========================================================================
    Module: Web Entity Start Pages Modal
    ========================================================================== */
+.wesp-modal-loading{
+  opacity: 0.6;
+}
+.wesp-modal-removed{
+  opacity: 0.2;
+}
 /*.table-wesp td, .table-wesp th{
   max-width: 0;
-}
-.table-wesp td.wesp-modal-cell-link{
-  max-width: 20px;
-  width: 20px;
-}
-.table-wesp td.wesp-modal-cell-remove{
-  max-width: 30px;
-  width: 30px;
-}
-.table-wesp td.wesp-modal-cell-spacing{
-  max-width: 10px;
-  width: 10px;
-}
-.table-wesp td.wesp-modal-cell-startpage{
-}
-.table-wesp td.wesp-modal-cell-lookup{
-  max-width: 280px;
-  width: 280px;
 }
 .table-wesp td.wesp-modal-cell-lookup .warning-message {
   padding-right: 6px;
@@ -1342,12 +1330,7 @@ span.editable{
     width: 100px;
   }
 }
-.wesp-modal-loading{
-  opacity: 0.6;
-}
-.wesp-modal-removed{
-  opacity: 0.2;
-}
+
 .page-input input.ng-invalid, .page-input input.ng-invalid:focus{
   border-color: red;
 }

@@ -1,114 +1,104 @@
-<div class="modal-header">
+<md-dialog aria-label="Mango (Fruit)">
+  <form>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>{{webentity.name}}</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="cancel()">
+          <md-icon aria-label="Close dialog">close</md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+    <md-dialog-content style="max-width:800px;max-height:810px; ">
+      <md-tabs md-dynamic-height md-border-bottom>
+        <md-tab label="Start pages">
+          <div layout="column">
+            <md-list class="md-dense" flex style="overflow-y: auto">
+              <md-list-item
+                ng-repeat="url in startpages track by $index"
+                class="md-2-line"
+                ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading', 'wesp-modal-removed': removed[url]}"
+              >
+                <!-- Avatar -->
+                <div class="md-avatar" ng-if="lookups[url].status == 'loading'" layout="column" layout-align="center center">
+                  <minispinner></minispinner>
+                </div>
+                <md-icon
+                  ng-if="lookups[url].status == 'success'"
+                  class="md-avatar-icon"
+                  title="Lookup {{lookups[url].status}}"
+                >done</md-icon>
+                <md-icon
+                  ng-if="lookups[url].status == 'issue'"
+                  class="md-avatar-icon md-warn"
+                  title="Lookup {{lookups[url].status}}"
+                  md-colors="{'background': 'default-warn'}"
+                >warning</md-icon>
+
+                <div class="md-list-item-text">
+                  <h3>
+                    <div class="url-container">
+                      <span class="url url-break">
+                        <span>
+                          <a href="{{url}}" target="_blank" title="Open in a new tab">
+                            <md-icon>link</md-icon>
+                          </a>
+                          {{url}}
+                        </span>
+                      </span>
+                    </div>          
+                  </h3>
+                  <p>
+                    <span
+                      ng-if=" lookups[url].status == 'issue'"
+                      md-colors="{'color': 'default-warn'}"
+                    >
+                      <md-tooltip md-direction="left">HTTP code: {{lookups[url].httpStatus}}</md-tooltip>
+                      {{lookups[url].httpStatus|explicitHttpCode}}
+                    </span>
+                    <span
+                      ng-if="lookups[url].status == 'fail'"
+                      md-colors="{'color': 'default-warn'}"
+                    >
+                      lookup fail
+                    </span>
+                  </p>
+                </div>
+                <md-button ng-click="removeStartPage(url)" class="md-secondary md-icon-button">
+                  <md-icon>close</md-icon>
+                </md-button>
+              </md-list-item>
+            </md-list>
+          </div>
+        </md-tab>
+        <md-tab label="two">
+          <md-content class="md-padding">
+            <h1 class="md-display-2">Tab Two</h1>
+            <p>Lorem ipsum dolor sit amet</p>
+          </md-content>
+        </md-tab>
+      </md-tabs>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
+        More on Wikipedia
+      </md-button>
+      <span flex></span>
+      <md-button ng-click="answer('not useful')" >
+        Not Useful
+      </md-button>
+      <md-button ng-click="answer('useful')" style="margin-right:20px;" >
+        Useful
+      </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>
+
+<!-- <div class="modal-header">
   <h3 class="modal-title">{{webentity.name}}</h3>
 </div>
 <div class="modal-body">
-
-  <table class="table table-condensed table-striped table-wesp">
-
-    <thead>
-      <tr>
-        <th
-          class="wesp-modal-cell-link"
-        ></th>
-        <th
-          class="wesp-modal-cell-startpage"
-        >Start page{{startpages.length | plural}}</th>
-        <th
-          class="wesp-modal-cell-lookup"
-        ></th>
-        <th
-          class="wesp-modal-cell-spacing"
-        ></th>
-        <th
-          class="wesp-modal-cell-remove"
-        ></th>
-      </tr>
-    </thead>
-
-    <tbody>
-      <tr
-        ng-repeat="url in startpages track by $index"
-        ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading', 'wesp-modal-removed': removed[url]}"
-      >
-        
-        <td
-          class="wesp-modal-cell-link"
-        >
-          <a href="{{url}}" target="_blank" title="Open in a new tab">
-            <span class="glyphicon glyphicon-link"></span>
-          </a>
-        </td>
-        <td
-          class="wesp-modal-cell-startpage"
-        >
-          <div class="url-container">
-            <span class="url url-break">
-              <span>
-                {{url}}
-              </span>
-            </span>
-          </div>          
-        </td>
-        
-        <td
-          class="wesp-modal-cell-lookup"
-        >
-          <span class="pull-right">
-            <!-- Lookup loaded -->
-            <span
-              ng-if=" lookups[url].status == 'issue'"
-              class="text-warning warning-message"
-              tooltip="HTTP code: {{lookups[url].httpStatus}}"
-            >
-              {{lookups[url].httpStatus|explicitHttpCode}}
-            </span>
-
-            <minispinner ng-if="lookups[url].status == 'loading'"></minispinner>
-
-            <span
-              ng-if="lookups[url].status != 'loading'"
-              class="glyphicon"
-              ng-class="{
-                'glyphicon-ok': lookups[url].status == 'success'
-              , 'text-success': lookups[url].status == 'success'
-
-              , 'glyphicon-exclamation-sign': lookups[url].status == 'issue'
-              , 'text-warning':               lookups[url].status == 'issue'
-              }"
-
-              tooltip-animation="true"
-              tooltip-placement="top"
-              tooltip-trigger="mouseenter"
-              tooltip="Lookup {{lookups[url].status}}"
-              tooltip-append-to-body="true"
-            ></span>
-
-            <!-- Lookup fail -->
-            <span ng-if="lookups[url].status == 'fail'" class="text-danger">
-              lookup fail
-            </span>
-
-          </span>
-        </td>
-        <td
-          class="wesp-modal-cell-spacing"
-        ></td>
-        <td
-          class="wesp-modal-cell-remove"
-        >
-          <button
-            class="btn btn-link btn-xs"
-            title="Remove"
-            ng-click="removeStartPage(url)"
-          >
-            <span class="glyphicon glyphicon-remove"></span>
-          </button>
-        </td>
-
-      </tr>
-    </tbody>
-
-  </table>
 
   <div collapse="collapseProgressBar" >
     <progressbar ng-if="startpagesSummary.percent == 0" value="100" class="progress-striped active" >startpage{{startpages.length | plural}}</progressbar>

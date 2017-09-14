@@ -28,7 +28,7 @@
             <md-grid-list md-cols="5" md-gutter="8px" md-row-height="1:1">
               <md-grid-tile
                 ng-repeat="obj in list|paginate:paginationPage:paginationLength track by $index"
-                ng-click="openWebentity(obj.id)"
+                ng-click="openWebentity(obj.id, $event)"
                 ng-mouseenter="obj.displayRemove = true"
                 ng-mouseleave="obj.displayRemove = false"
                 md-colors="{
