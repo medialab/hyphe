@@ -307,24 +307,28 @@ class Core(customJSONRPC):
         self.corpora[corpus]["webentities_out"] = corpus_conf['webentities_out']
         self.corpora[corpus]["webentities_undecided"] = corpus_conf['webentities_undecided']
         self.corpora[corpus]["webentities_discovered"] = corpus_conf['webentities_discovered']
-        self.corpora[corpus]["webentities_links"] = msgpack.unpackb(corpus_conf['webentities_links'])
-        self.corpora[corpus]["tags"] = msgpack.unpackb(corpus_conf['tags'])
         self.corpora[corpus]["crawls"] = corpus_conf['total_crawls']
+        self.corpora[corpus]["crawls_pending"] = corpus_conf.get("crawls_pending", 0),
+        self.corpora[corpus]["crawls_running"] = corpus_conf.get("crawls_running", 0),
         self.corpora[corpus]["pages_found"] = corpus_conf['total_pages']
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
+        self.corpora[corpus]["pages_queued"] = corpus_conf.get('total_pages_queued', 0)
+        self.corpora[corpus]["links_found"] =  corpus_conf.get('total_links_found', 0)
         self.corpora[corpus]["recent_changes"] = int(corpus_conf.get('recent_changes', False))
         self.corpora[corpus]["last_index_loop"] = corpus_conf['last_index_loop']
         self.corpora[corpus]["links_duration"] = corpus_conf.get("links_duration", 1)
         self.corpora[corpus]["last_links_loop"] = corpus_conf['last_links_loop']
+        self.corpora[corpus]["tags"] = msgpack.unpackb(corpus_conf['tags'])
+        self.corpora[corpus]["webentities_links"] = msgpack.unpackb(corpus_conf['webentities_links'])
         self.corpora[corpus]["reset"] = False
         if not _noloop:
             reactor.callLater(5, self.corpora[corpus]['jobs_loop'].start, 1, False)
         yield self.store._init_loop(corpus, _noloop=_noloop)
-        yield self.update_corpus(corpus)
+        yield self.update_corpus(corpus, True, True)
 
     @inlineCallbacks
-    def update_corpus(self, corpus=DEFAULT_CORPUS):
-        yield self.db.update_corpus(corpus, {
+    def update_corpus(self, corpus=DEFAULT_CORPUS, include_tags=False, include_links=False):
+        conf = {
           "options": self.corpora[corpus]["options"],
           "total_webentities": self.corpora[corpus]['total_webentities'],
           "webentities_in": self.corpora[corpus]['webentities_in'],
@@ -333,17 +337,24 @@ class Core(customJSONRPC):
           "webentities_out": self.corpora[corpus]['webentities_out'],
           "webentities_undecided": self.corpora[corpus]['webentities_undecided'],
           "webentities_discovered": self.corpora[corpus]['webentities_discovered'],
-          "webentities_links": Binary(msgpack.packb(self.corpora[corpus]['webentities_links'])),
-          "tags": Binary(msgpack.packb(self.corpora[corpus]['tags'])),
           "total_crawls": self.corpora[corpus]['crawls'],
+          "crawls_pending": self.corpora[corpus]["crawls_pending"],
+          "crawls_running": self.corpora[corpus]["crawls_running"],
           "total_pages": self.corpora[corpus]['pages_found'],
           "total_pages_crawled": self.corpora[corpus]['pages_crawled'],
+          "total_pages_queued": self.corpora[corpus]['pages_queued'],
+          "total_links_found": self.corpora[corpus]['links_found'],
           "recent_changes": self.corpora[corpus]['recent_changes'] > 0,
           "last_index_loop": self.corpora[corpus]['last_index_loop'],
           "links_duration": self.corpora[corpus]['links_duration'],
           "last_links_loop": self.corpora[corpus]['last_links_loop'],
           "last_activity": now_ts()
-        })
+        }
+        if include_tags:
+          conf["tags"] = Binary(msgpack.packb(self.corpora[corpus]['tags']))
+        if include_links:
+          conf["webentities_links"] = Binary(msgpack.packb(self.corpora[corpus]['webentities_links']))
+        yield self.db.update_corpus(corpus, conf)
 
     @inlineCallbacks
     def stop_loops(self, corpus=DEFAULT_CORPUS):
@@ -360,7 +371,7 @@ class Core(customJSONRPC):
         if corpus in self.corpora:
             yield self.stop_loops(corpus)
             if corpus in self.traphs.corpora:
-                yield self.update_corpus(corpus)
+                yield self.update_corpus(corpus, True, True)
                 if _block:
                     yield self.traphs.stop_corpus(corpus, _quiet)
                 else:
@@ -1837,6 +1848,7 @@ class Memory_Structure(customJSONRPC):
         for target, links in self.corpora[corpus]["webentities_links"].items():
             ranks[target] = len(links)
         self.corpora[corpus]['webentities_ranks'] = ranks
+        yield self.update_corpus(corpus, False, True)
 
     @inlineCallbacks
     def index_batch_loop(self, corpus=DEFAULT_CORPUS):
@@ -1950,6 +1962,7 @@ class Memory_Structure(customJSONRPC):
         self.corpora[corpus]['webentities_undecided'] = unds
         self.corpora[corpus]['webentities_discovered'] = disc
         self.corpora[corpus]['total_webentities'] = ins + outs + unds + disc
+        yield self.update_corpus(corpus)
 
     def jsonrpc_get_webentity(self, webentity_id, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a WebEntity defined by its `webentity_id`."""
@@ -2340,6 +2353,7 @@ class Memory_Structure(customJSONRPC):
             if value not in self.corpora[corpus]["tags"][namespace][category]:
                 self.corpora[corpus]["tags"][namespace][category][value] = 0
             self.corpora[corpus]["tags"][namespace][category][value] += 1
+        yield self.update_corpus(corpus, True)
 
     def remove_tag_from_dictionary(self, namespace, category, value, corpus=DEFAULT_CORPUS):
         try:
@@ -2352,6 +2366,7 @@ class Memory_Structure(customJSONRPC):
             del(self.corpora[corpus]["tags"][namespace][category])
         if not self.corpora[corpus]["tags"][namespace]:
             del(self.corpora[corpus]["tags"][namespace])
+        yield self.update_corpus(corpus, True)
 
     def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
         """Adds for a `corpus` a tag `namespace:category=value` to a WebEntity defined by `webentity_id`."""
