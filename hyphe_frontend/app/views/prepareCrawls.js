@@ -705,7 +705,7 @@ angular.module('hyphe.preparecrawlsController', [])
         })
       }
 
-      // Add a start page
+      // Add start pages
       $scope.addStartPages = function() {
         if (!$scope.urlsToAdd.length || $scope.newStartPagesInvalid) {
           return

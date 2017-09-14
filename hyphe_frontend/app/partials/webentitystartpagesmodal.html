@@ -9,76 +9,81 @@
         </md-button>
       </div>
     </md-toolbar>
-    <md-dialog-content style="width:800px;max-height:810px; ">
+    <md-dialog-content style="width:600px;max-height:810px; ">
 
       <md-tabs md-dynamic-height md-border-bottom>
         <md-tab label="Start pages">
-          <div layout="column">
+          <div layout="column" layout-fill>
             
             <!-- List of start pages with lookups -->
-            <md-list class="md-dense" flex style="overflow-y: auto">
-              <md-list-item
-                ng-repeat="url in startpages track by $index"
-                class="md-2-line"
-                ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading', 'wesp-modal-removed': removed[url]}"
-              >
-                <!-- Avatar -->
-                <div
-                  class="md-avatar"
-                  ng-if="lookups[url].status == 'loading'"
-                  style="padding-left: 5px"
+            <div flex>
+              <md-list class="md-dense">
+                <md-list-item
+                  ng-repeat="url in startpages track by $index"
+                  class="md-2-line"
+                  ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading', 'wesp-modal-removed': removed[url]}"
                 >
-                  <minispinner></minispinner>
-                </div>
-                <md-icon
-                  ng-if="lookups[url].status == 'success'"
-                  class="md-avatar-icon"
-                  title="Lookup {{lookups[url].status}}"
-                >done</md-icon>
-                <md-icon
-                  ng-if="lookups[url].status == 'issue'"
-                  class="md-avatar-icon md-warn"
-                  title="Lookup {{lookups[url].status}}"
-                  md-colors="{'background': 'default-warn'}"
-                >warning</md-icon>
+                  <!-- Avatar -->
+                  <div
+                    class="md-avatar"
+                    ng-if="lookups[url].status == 'loading'"
+                  >
+                    <minispinner></minispinner>
+                  </div>
+                  <md-icon
+                    ng-if="lookups[url].status == 'success'"
+                    class="md-avatar-icon"
+                    title="Lookup {{lookups[url].status}}"
+                  >done</md-icon>
+                  <md-icon
+                    ng-if="lookups[url].status == 'issue'"
+                    class="md-avatar-icon md-warn"
+                    title="Lookup {{lookups[url].status}}"
+                    md-colors="{'background': 'default-warn'}"
+                  >warning</md-icon>
 
-                <div class="md-list-item-text">
-                  <h3>
-                    <div class="url-container">
-                      <span class="url url-break">
-                        <span>
-                          <a href="{{url}}" target="_blank" title="Open in a new tab">
-                            <md-icon>link</md-icon>
-                          </a>
-                          {{url}}
+                  <div class="md-list-item-text">
+                    <h3>
+                      <div class="url-container">
+                        <span class="url url-break">
+                          <span>
+                            <a href="{{url}}" target="_blank" title="Open in a new tab">
+                              <md-icon>link</md-icon>
+                            </a>
+                            {{url}}
+                          </span>
                         </span>
+                      </div>          
+                    </h3>
+                    <p>
+                      <span
+                        ng-if=" lookups[url].status == 'issue'"
+                        md-colors="{'color': 'default-warn'}"
+                      >
+                        <md-tooltip md-direction="left">HTTP code: {{lookups[url].httpStatus}}</md-tooltip>
+                        {{lookups[url].httpStatus|explicitHttpCode}}
                       </span>
-                    </div>          
-                  </h3>
-                  <p>
-                    <span
-                      ng-if=" lookups[url].status == 'issue'"
-                      md-colors="{'color': 'default-warn'}"
-                    >
-                      <md-tooltip md-direction="left">HTTP code: {{lookups[url].httpStatus}}</md-tooltip>
-                      {{lookups[url].httpStatus|explicitHttpCode}}
-                    </span>
-                    <span
-                      ng-if="lookups[url].status == 'fail'"
-                      md-colors="{'color': 'default-warn'}"
-                    >
-                      lookup fail
-                    </span>
-                  </p>
-                </div>
-                <md-button ng-click="removeStartPage(url)" class="md-secondary md-icon-button">
-                  <md-icon>close</md-icon>
-                </md-button>
-              </md-list-item>
-            </md-list>
+                      <span
+                        ng-if="lookups[url].status == 'fail'"
+                        md-colors="{'color': 'default-warn'}"
+                      >
+                        lookup fail
+                      </span>
+                    </p>
+                  </div>
+                  <md-button ng-click="removeStartPage(url)" class="md-secondary md-icon-button">
+                    <md-icon>close</md-icon>
+                  </md-button>
+                </md-list-item>
+              </md-list>
+            </div>
 
             <!-- Add start pages -->
-            <div layout="row" flex md-colors="{'background': 'default-primary-50'}" style="padding: 8px">
+            <div
+              layout="row"
+              md-colors="{'background': 'default-primary-50'}"
+              style="padding: 8px"
+            >
               <md-input-container flex class="md-block">
                 <label>Add one or more start pages</label>
                 <input

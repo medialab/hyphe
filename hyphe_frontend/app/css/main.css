@@ -1543,10 +1543,10 @@ ul.startpages-report{
 /* Spinner Slices */
 .sp-slices {
   border-radius: 50%;
-  border-top: 8px rgba(0, 0, 0, 0.75) solid;
-  border-left: 8px rgba(0, 0, 0, 0.25) solid;
-  border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-  border-right: 8px rgba(0, 0, 0, 0.25) solid;
+  border-top: 20px rgba(0, 0, 0, 0.75) solid;
+  border-left: 20px rgba(0, 0, 0, 0.25) solid;
+  border-bottom: 20px rgba(0, 0, 0, 0.25) solid;
+  border-right: 20px rgba(0, 0, 0, 0.25) solid;
   -webkit-animation: spSlices 1s infinite linear;
   animation: spSlices 1s infinite linear;
   width: 0;
@@ -1555,66 +1555,66 @@ ul.startpages-report{
 
 @-webkit-keyframes spSlices {
   0% {
-    border-top: 8px rgba(0, 0, 0, 0.75) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+    border-top: 20px rgba(0, 0, 0, 0.75) solid;
+    border-right: 20px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 20px rgba(0, 0, 0, 0.25) solid;
+    border-left: 20px rgba(0, 0, 0, 0.25) solid;
   }
   25% {
-    border-top: 8px rgba(0, 0, 0, 0.25) solid;
-    border-right: 8px rgba(0, 0, 0, 0.75) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+    border-top: 20px rgba(0, 0, 0, 0.25) solid;
+    border-right: 20px rgba(0, 0, 0, 0.75) solid;
+    border-bottom: 20px rgba(0, 0, 0, 0.25) solid;
+    border-left: 20px rgba(0, 0, 0, 0.25) solid;
   }
   50% {
-    border-top: 8px rgba(0, 0, 0, 0.25) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.75) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+    border-top: 20px rgba(0, 0, 0, 0.25) solid;
+    border-right: 20px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 20px rgba(0, 0, 0, 0.75) solid;
+    border-left: 20px rgba(0, 0, 0, 0.25) solid;
   }
   75% {
-    border-top: 8px rgba(0, 0, 0, 0.25) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.75) solid;
+    border-top: 20px rgba(0, 0, 0, 0.25) solid;
+    border-right: 20px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 20px rgba(0, 0, 0, 0.25) solid;
+    border-left: 20px rgba(0, 0, 0, 0.75) solid;
   }
   100% {
-    border-top: 8px rgba(0, 0, 0, 0.75) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+    border-top: 20px rgba(0, 0, 0, 0.75) solid;
+    border-right: 20px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 20px rgba(0, 0, 0, 0.25) solid;
+    border-left: 20px rgba(0, 0, 0, 0.25) solid;
   }
 }
 @keyframes spSlices {
   0% {
-    border-top: 8px rgba(0, 0, 0, 0.75) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+    border-top: 20px rgba(0, 0, 0, 0.75) solid;
+    border-right: 20px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 20px rgba(0, 0, 0, 0.25) solid;
+    border-left: 20px rgba(0, 0, 0, 0.25) solid;
   }
   25% {
-    border-top: 8px rgba(0, 0, 0, 0.25) solid;
-    border-right: 8px rgba(0, 0, 0, 0.75) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+    border-top: 20px rgba(0, 0, 0, 0.25) solid;
+    border-right: 20px rgba(0, 0, 0, 0.75) solid;
+    border-bottom: 20px rgba(0, 0, 0, 0.25) solid;
+    border-left: 20px rgba(0, 0, 0, 0.25) solid;
   }
   50% {
-    border-top: 8px rgba(0, 0, 0, 0.25) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.75) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+    border-top: 20px rgba(0, 0, 0, 0.25) solid;
+    border-right: 20px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 20px rgba(0, 0, 0, 0.75) solid;
+    border-left: 20px rgba(0, 0, 0, 0.25) solid;
   }
   75% {
-    border-top: 8px rgba(0, 0, 0, 0.25) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.75) solid;
+    border-top: 20px rgba(0, 0, 0, 0.25) solid;
+    border-right: 20px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 20px rgba(0, 0, 0, 0.25) solid;
+    border-left: 20px rgba(0, 0, 0, 0.75) solid;
   }
   100% {
-    border-top: 8px rgba(0, 0, 0, 0.75) solid;
-    border-right: 8px rgba(0, 0, 0, 0.25) solid;
-    border-bottom: 8px rgba(0, 0, 0, 0.25) solid;
-    border-left: 8px rgba(0, 0, 0, 0.25) solid;
+    border-top: 20px rgba(0, 0, 0, 0.75) solid;
+    border-right: 20px rgba(0, 0, 0, 0.25) solid;
+    border-bottom: 20px rgba(0, 0, 0, 0.25) solid;
+    border-left: 20px rgba(0, 0, 0, 0.25) solid;
   }
 }
 
