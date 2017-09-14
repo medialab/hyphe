@@ -308,8 +308,8 @@ class Core(customJSONRPC):
         self.corpora[corpus]["webentities_undecided"] = corpus_conf['webentities_undecided']
         self.corpora[corpus]["webentities_discovered"] = corpus_conf['webentities_discovered']
         self.corpora[corpus]["crawls"] = corpus_conf['total_crawls']
-        self.corpora[corpus]["crawls_pending"] = corpus_conf.get("crawls_pending", 0),
-        self.corpora[corpus]["crawls_running"] = corpus_conf.get("crawls_running", 0),
+        self.corpora[corpus]["crawls_pending"] = corpus_conf.get("crawls_pending", 0)
+        self.corpora[corpus]["crawls_running"] = corpus_conf.get("crawls_running", 0)
         self.corpora[corpus]["pages_found"] = corpus_conf['total_pages']
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
         self.corpora[corpus]["pages_queued"] = corpus_conf.get('total_pages_queued', 0)
