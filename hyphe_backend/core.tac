@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import sys, time
-import subprocess, pickle
+import subprocess
+import msgpack
+from bson.binary import Binary
 from json import dump as jsondump
 from random import randint
 from datetime import datetime
@@ -305,8 +307,8 @@ class Core(customJSONRPC):
         self.corpora[corpus]["webentities_out"] = corpus_conf['webentities_out']
         self.corpora[corpus]["webentities_undecided"] = corpus_conf['webentities_undecided']
         self.corpora[corpus]["webentities_discovered"] = corpus_conf['webentities_discovered']
-        self.corpora[corpus]["webentities_links"] = pickle.loads(corpus_conf['webentities_links'])
-        self.corpora[corpus]["tags"] = pickle.loads(corpus_conf['tags'])
+        self.corpora[corpus]["webentities_links"] = msgpack.unpackb(corpus_conf['webentities_links'])
+        self.corpora[corpus]["tags"] = msgpack.unpackb(corpus_conf['tags'])
         self.corpora[corpus]["crawls"] = corpus_conf['total_crawls']
         self.corpora[corpus]["pages_found"] = corpus_conf['total_pages']
         self.corpora[corpus]["pages_crawled"] = corpus_conf['total_pages_crawled']
@@ -331,8 +333,8 @@ class Core(customJSONRPC):
           "webentities_out": self.corpora[corpus]['webentities_out'],
           "webentities_undecided": self.corpora[corpus]['webentities_undecided'],
           "webentities_discovered": self.corpora[corpus]['webentities_discovered'],
-          "webentities_links": pickle.dumps(self.corpora[corpus]["webentities_links"]),
-          "tags": pickle.dumps(self.corpora[corpus]['tags']),
+          "webentities_links": Binary(msgpack.packb(self.corpora[corpus]['webentities_links'])),
+          "tags": Binary(msgpack.packb(self.corpora[corpus]['tags'])),
           "total_crawls": self.corpora[corpus]['crawls'],
           "total_pages": self.corpora[corpus]['pages_found'],
           "total_pages_crawled": self.corpora[corpus]['pages_crawled'],
