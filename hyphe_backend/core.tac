@@ -1829,6 +1829,8 @@ class Memory_Structure(customJSONRPC):
         returnD(True)
 
     def rank_webentities(self, corpus=DEFAULT_CORPUS):
+        if not self.parent.corpus_ready(corpus):
+            returnD(None)
         ranks = {}
         if not self.corpora[corpus]["webentities_links"]:
             return
@@ -1930,6 +1932,8 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def count_webentities(self, corpus=DEFAULT_CORPUS):
+        if not self.parent.corpus_ready(corpus):
+            returnD(None)
         ins  = yield self.db.count_WEs(corpus, {"status": "IN"})
         nocr = yield self.db.count_WEs(corpus, {"status": "IN", "crawled": False})
         outs = yield self.db.count_WEs(corpus, {"status": "OUT"})
