@@ -19,7 +19,7 @@ class JobsQueue(object):
         self.scrapyd = 'http://%s:%s/' % (environ.get('HYPHE_CRAWLER_HOST', config['host']), int(environ.get('HYPHE_CRAWLER_PORT', config['scrapy_port'])))
         self.queue = None
         self.depiler = LoopingCall(self.depile)
-        self.depiler.start(1, True)
+        self.depiler.start(0.2, True)
 
     @inlineCallbacks
     def init_queue(self):

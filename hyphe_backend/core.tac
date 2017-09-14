@@ -962,7 +962,7 @@ class Crawler(customJSONRPC):
             returnD(canceljobs)
         yield self.db.drop_corpus_collections(corpus)
         if _recreate:
-            self.corpora[corpus]['jobs_loop'].start(10, False)
+            reactor.callLater(5, self.corpora[corpus]['jobs_loop'].start, 1, False)
         returnD(format_result('Crawling database reset.'))
 
     @inlineCallbacks
