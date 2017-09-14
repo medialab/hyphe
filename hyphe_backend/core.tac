@@ -1843,12 +1843,13 @@ class Memory_Structure(customJSONRPC):
 
         returnD(True)
 
+    @inlineCallbacks
     def rank_webentities(self, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(None)
         ranks = {}
         if not self.corpora[corpus]["webentities_links"]:
-            return
+            returnD(None)
         yield self.parent.update_corpus(corpus, False, True)
         for target, links in self.corpora[corpus]["webentities_links"].items():
             ranks[target] = len(links)
