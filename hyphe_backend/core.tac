@@ -388,8 +388,8 @@ class Core(customJSONRPC):
     def jsonrpc_get_corpus_tlds(self, corpus=DEFAULT_CORPUS):
         """Returns the tree of TLDs rules built from Mozilla's list at the creation of `corpus`."""
         if not self.corpus_ready(corpus):
-            returnD(self.corpus_error(corpus))
-        returnD(format_result(self.corpora[corpus]["tlds"]))
+            return self.corpus_error(corpus)
+        return format_result(self.corpora[corpus]["tlds"])
 
     @inlineCallbacks
     def jsonrpc_backup_corpus(self, corpus=DEFAULT_CORPUS):
