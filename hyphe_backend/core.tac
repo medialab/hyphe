@@ -1845,10 +1845,10 @@ class Memory_Structure(customJSONRPC):
         ranks = {}
         if not self.corpora[corpus]["webentities_links"]:
             return
+        yield self.parent.update_corpus(corpus, False, True)
         for target, links in self.corpora[corpus]["webentities_links"].items():
             ranks[target] = len(links)
         self.corpora[corpus]['webentities_ranks'] = ranks
-        yield self.update_corpus(corpus, False, True)
 
     @inlineCallbacks
     def index_batch_loop(self, corpus=DEFAULT_CORPUS):
@@ -1962,7 +1962,7 @@ class Memory_Structure(customJSONRPC):
         self.corpora[corpus]['webentities_undecided'] = unds
         self.corpora[corpus]['webentities_discovered'] = disc
         self.corpora[corpus]['total_webentities'] = ins + outs + unds + disc
-        yield self.update_corpus(corpus)
+        yield self.parent.update_corpus(corpus)
 
     def jsonrpc_get_webentity(self, webentity_id, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a WebEntity defined by its `webentity_id`."""
@@ -2353,7 +2353,7 @@ class Memory_Structure(customJSONRPC):
             if value not in self.corpora[corpus]["tags"][namespace][category]:
                 self.corpora[corpus]["tags"][namespace][category][value] = 0
             self.corpora[corpus]["tags"][namespace][category][value] += 1
-        yield self.update_corpus(corpus, True)
+        yield self.parent.update_corpus(corpus, True)
 
     def remove_tag_from_dictionary(self, namespace, category, value, corpus=DEFAULT_CORPUS):
         try:
@@ -2366,7 +2366,7 @@ class Memory_Structure(customJSONRPC):
             del(self.corpora[corpus]["tags"][namespace][category])
         if not self.corpora[corpus]["tags"][namespace]:
             del(self.corpora[corpus]["tags"][namespace])
-        yield self.update_corpus(corpus, True)
+        yield self.parent.update_corpus(corpus, True)
 
     def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
         """Adds for a `corpus` a tag `namespace:category=value` to a WebEntity defined by `webentity_id`."""
