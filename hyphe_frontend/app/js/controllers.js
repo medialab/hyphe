@@ -23,9 +23,6 @@ angular.module('hyphe.controllers', [
     ,'hyphe.prospectController'
     ,'hyphe.webentityController'
     ,'hyphe.helpController'
-
-    // Partials
-    ,'hyphe.webentityStartPagesModalController'
   ])
 
 ;

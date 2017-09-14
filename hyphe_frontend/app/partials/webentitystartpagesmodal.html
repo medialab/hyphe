@@ -9,10 +9,13 @@
         </md-button>
       </div>
     </md-toolbar>
-    <md-dialog-content style="max-width:800px;max-height:810px; ">
+    <md-dialog-content style="width:800px;max-height:810px; ">
+
       <md-tabs md-dynamic-height md-border-bottom>
         <md-tab label="Start pages">
           <div layout="column">
+            
+            <!-- List of start pages with lookups -->
             <md-list class="md-dense" flex style="overflow-y: auto">
               <md-list-item
                 ng-repeat="url in startpages track by $index"
@@ -20,7 +23,11 @@
                 ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading', 'wesp-modal-removed': removed[url]}"
               >
                 <!-- Avatar -->
-                <div class="md-avatar" ng-if="lookups[url].status == 'loading'" layout="column" layout-align="center center">
+                <div
+                  class="md-avatar"
+                  ng-if="lookups[url].status == 'loading'"
+                  style="padding-left: 5px"
+                >
                   <minispinner></minispinner>
                 </div>
                 <md-icon
@@ -69,6 +76,71 @@
                 </md-button>
               </md-list-item>
             </md-list>
+
+            <!-- Add start pages -->
+            <div layout="row" flex md-colors="{'background': 'default-primary-50'}" style="padding: 8px">
+              <md-input-container flex class="md-block">
+                <label>Add one or more start pages</label>
+                <input
+                  type="text"
+                  id="add-sp-{{webentity.id}}"
+                  ng-model="newStartPagesURLs"
+                  ng-change="validateNewStartPages()"
+                  ng-press-enter="addStartPages()"
+                >
+                <div
+                  class="hint"
+                  ng-show="urlsToAdd.length > 1 || urlErrors.length"
+                  md-colors="{'color':(urlErrors.length)?('default-warn'):('default-primary')}"
+                >
+                  {{urlsToAdd.length}} unique new URL{{urlsToAdd.length | plural}} found<span ng-show="urlErrors.length"> and {{urlErrors.length}} error{{urlErrors.length | plural}}:
+                  <span ng-repeat="err in urlErrors track by $index">{{err}} </span>
+                </div>
+                <div
+                  class="hint"
+                  ng-show="urlsToAdd.length > 1 || urlErrors.length"
+                  md-colors="{'color':(urlErrors.length)?('default-warn'):('default-primary')}"
+                >
+                  {{urlsToAdd.length}} unique new URL{{urlsToAdd.length | plural}} found<span ng-show="urlErrors.length"> and {{urlErrors.length}} error{{urlErrors.length | plural}}:
+                  <span ng-repeat="err in urlErrors track by $index">{{err}} </span>
+                </div>
+              </md-input-container>
+              <div layout="column" layout-align="center center">
+                <md-button
+                  class="md-icon-button"
+                  ng-click="addStartPages()"
+                  ng-disabled="newStartPagesInvalid"
+                >
+                  <md-icon class="material-icons">add</md-icon>
+                </md-button>
+              </div>
+            </div>
+
+            <!-- Diagnostic -->
+            <div ng-show="startpagesSummary.diagnostic.ready">
+              <h4 md-colors="{'color':'default-primary'}">READY TO CRAWL</h4>
+              <p ng-show="startpagesSummary.diagnostic.issues" md-colors="{'color':'default-primary'}">
+                At least one page is valid, allowing the crawl to start successfully.
+              </p>
+              <p ng-show="startpagesSummary.diagnostic.issues" md-colors="{'color':'default-accent'}">
+                A little warning, though.
+                <br>
+                Some start pages have issues and cannot be crawled. It will not block the crawl but you may want to fix this.
+              </p>
+            </div>
+            <div ng-show="startpagesSummary.diagnostic.doomed">
+              <h4 md-colors="{'color':'default-warn'}">DOOMED CRAWL</h4>
+              <p md-colors="{'color':'default-warn'}">
+                This web entity has no valid start page. Hyphe will not be able to start crawling it.
+              </p>
+              <p style="opacity: 0.5">
+                You can still try to launch it, though. Miracles happen.
+              </p>
+            </div>
+
+            <!-- Progress bar -->
+            <md-progress-linear md-mode="determinate" value="startpagesSummary.percent"></md-progress-linear>
+
           </div>
         </md-tab>
         <md-tab label="two">
@@ -81,91 +153,10 @@
     </md-dialog-content>
 
     <md-dialog-actions layout="row">
-      <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
-        More on Wikipedia
-      </md-button>
       <span flex></span>
-      <md-button ng-click="answer('not useful')" >
-        Not Useful
-      </md-button>
-      <md-button ng-click="answer('useful')" style="margin-right:20px;" >
-        Useful
+      <md-button ng-click="hide()">
+        Ok
       </md-button>
     </md-dialog-actions>
   </form>
 </md-dialog>
-
-<!-- <div class="modal-header">
-  <h3 class="modal-title">{{webentity.name}}</h3>
-</div>
-<div class="modal-body">
-
-  <div collapse="collapseProgressBar" >
-    <progressbar ng-if="startpagesSummary.percent == 0" value="100" class="progress-striped active" >startpage{{startpages.length | plural}}</progressbar>
-    <progressbar ng-if="startpagesSummary.percent > 0" value="startpagesSummary.percent" >{{startpagesSummary.percent}}% tested</progressbar>
-  </div>
-
-  <div>
-    <div class="input-group" ng-class="{'has-error': newStartPagesInvalid}">
-      <span class="input-group-addon">ADD START PAGES</span>
-      <input
-        type="textarea"
-        id="add-sp-{{webentity.id}}"
-        class="form-control input-sm start-page-input"
-        ng-model="newStartPagesURLs"
-        ng-change="validateNewStartPages()"
-        ng-press-enter="addStartPages()"
-        placeholder="Enter one or multiple URLs"
-      >
-      <span class="input-group-btn">
-        <button
-          type="button"
-          class="btn btn-default btn-sm"
-          ng-click="addStartPages()"
-          ng-disabled="newStartPagesInvalid"
-        >
-          OK
-        </button>
-      </span>
-    </div>
-    <p class="startpages-report" ng-show="urlsToAdd.length > 1 || urlErrors.length" ng-class="{'startpages-valid': !urlErrors.length}">
-      {{urlsToAdd.length}} unique new URL{{urlsToAdd.length | plural}} found<span ng-show="urlErrors.length"> and {{urlErrors.length}} error{{urlErrors.length | plural}}:</span>
-    </p>
-    <ul class="startpages-report clearboth" ng-show="urlErrors.length">
-      <li ng-repeat="err in urlErrors track by $index">
-        {{err}}
-      </li>
-    </ul>
-    <br class="clearboth">
-  </div>
-
-  <div collapse="!collapseProgressBar">
-
-    <div ng-show="startpagesSummary.diagnostic.ready">
-      <h4 class="text-success">READY TO CRAWL</h4>
-      <p ng-show="startpagesSummary.diagnostic.issues" class="text-success">
-        At least one page is valid, allowing the crawl to start successfully.
-      </p>
-      <p ng-show="startpagesSummary.diagnostic.issues" class="text-warning">
-        A little warning, though.
-        <br>
-        Some start pages have issues and cannot be crawled. It will not block the crawl but you may want to fix this.
-      </p>
-    </div>
-
-    <div ng-show="startpagesSummary.diagnostic.doomed">
-      <h4 class="text-danger">DOOMED CRAWL</h4>
-      <p class="text-danger">
-        This web entity has no valid start page. Hyphe will not be able to start crawling it.
-      </p>
-      <p class="text-muted">
-        You can still try to launch it, though. Miracles happen.
-      </p>
-    </div>
-
-  </div>
-
-</div>
-<div class="modal-footer">
-  <button class="btn btn-primary" ng-click="ok()">OK</button>
-</div>
