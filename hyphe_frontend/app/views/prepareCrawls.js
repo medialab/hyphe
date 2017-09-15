@@ -621,6 +621,11 @@ angular.module('hyphe.preparecrawlsController', [])
       }, 0)
     }
 
+
+
+
+
+
     /***
     ****  DIALOG CONTROLLER
     ***/
@@ -641,7 +646,9 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.newStartPagesURLs = ''
       $scope.removed = {}
 
-      $scope.conflictsResolutionMode = false
+      $scope.newStartPagesStack = []
+      $scope.checkStartpagesProgress = 0
+      $scope.checkStartpagesConflicts = 0
 
       $scope.hide = function() {
         $mdDialog.hide();
@@ -670,6 +677,13 @@ angular.module('hyphe.preparecrawlsController', [])
         if (!$scope.urlsToAdd.length || $scope.newStartPagesInvalid) {
           return
         }
+        $scope.newStartPagesStack = $scope.urlsToAdd.map(function(url){
+          return {url:url, status:'pending', webentity: webentity, minPrefix:undefined}
+        })
+
+        checkNextStartpageBelonging(webentity)
+
+        /*
         var url = $scope.urlsToAdd.shift()
         var processNextStartpage = function () {
           if ($scope.urlsToAdd.length) {
@@ -689,7 +703,7 @@ angular.module('hyphe.preparecrawlsController', [])
           queryFail: function () {
             switchToConflictsResolutionMode(url, webentity, processNextStartpage)
           },
-        })
+        })*/
       }
 
       $scope.removeStartPage = function (url) {
@@ -737,21 +751,6 @@ angular.module('hyphe.preparecrawlsController', [])
         )
       }
 
-      function addStartPageAndUpdate(webentity, url, callback){
-        if ((webentity.startpages || []).indexOf(url) < 0) {
-          _addStartPage(webentity, url, function () {
-            if ($scope.startpages.indexOf(url) < 0) {
-              $scope.startpages.push(url)
-            }
-            updateStartpagesSummary($scope.startpages)
-            updaters.webentityAddStartPage(webentity.id, url)
-            if (callback) {
-              callback()
-            }
-          })
-        }
-      }
-
       // This function only performs the API call
       function _addStartPage(webentity, url, successCallback){
         api.addStartPage({
@@ -770,29 +769,77 @@ angular.module('hyphe.preparecrawlsController', [])
         )
       }
 
-      function checkStartpageBelonging(webentity, url, callbacks) {
+      function checkNextStartpageBelonging(webentity) {
+        // Get next pending start page
+        var obj
+        $scope.newStartPagesStack.some(function(o){
+          if (o.status == 'pending') {
+            o.status = 'checking'
+            obj = o
+            return true
+          } else return false
+        })
+
+        updateCheckStartpagesSummary()
+
+        if (obj === undefined) return
+
+        var callbacks = {
+          success: function () {
+            // Add start page and update
+            if ((webentity.startpages || []).indexOf(url) < 0) {
+              _addStartPage(webentity, url, function () {
+                if ($scope.startpages.indexOf(url) < 0) {
+                  $scope.startpages.push(url)
+                }
+                updateStartpagesSummary($scope.startpages)
+                updaters.webentityAddStartPage(webentity.id, url)
+                $timeout(function(){checkNextStartpageBelonging(webentity)})
+              })
+            }
+          },
+          otherWebentity: function (prefix) {
+            obj.status='other webentity'
+            obj.minPrefix = prefix
+            $timeout(function(){checkNextStartpageBelonging(webentity)})
+          },
+          queryFail: function () {
+            obj.status='fail'
+            $timeout(function(){checkNextStartpageBelonging(webentity)})
+          }
+        }
+
         api.getCreationRulesResult({
-            urlList: [url]
+            urlList: [obj.url]
           }
           ,function (data) {
-            if (!data[url])
+            if (!data[obj.url])
               callbacks.queryFail()
-            else if (~webentity.prefixes.indexOf(data[url]))
+            else if (~webentity.prefixes.indexOf(data[obj.url]))
               callbacks.success()
-            else callbacks.otherWebentity(data[url])
+            else callbacks.otherWebentity(data[obj.url])
           }
           ,function (data, status, headers, config) {
             // API call fail
             callbacks.queryFail()
             // Note: cannot access global status bar from modal
-            console.error('Could not get web entity for url '+url, data, status, headers, config)
+            console.error('Could not get web entity for url '+obj.url, data, status, headers, config)
           }
         )
       }
 
-      function switchToConflictsResolutionMode(url, webentity, callback, minPrefix) {
-        $scope.conflictsResolutionMode = true
+      function updateCheckStartpagesSummary() {
+        var total = $scope.newStartPagesStack.length
+        var count = $scope.newStartPagesStack.filter(function(o){
+          return o.status != 'pending' && o.status != 'checking'
+        }).length
+        $scope.checkStartpagesProgress = Math.round(100 * count / total)
+        $scope.checkStartpagesConflicts = $scope.newStartPagesStack.filter(function(o){
+          return o.status == 'other webentity' || o.status == 'fail'
+        }).length
+      }
 
+      function switchToConflictsResolutionMode(url, webentity, callback, minPrefix) {
         /* Instanciate and open the Modal */
         /*var modalInstance = $modal.open({
           templateUrl: 'partials/startpagemodal.html'
@@ -872,69 +919,6 @@ angular.module('hyphe.preparecrawlsController', [])
           $scope.addingErrors.push(url)
           callback()
         })*/
-      }
-
-      /* (Sub-)Modal controller */
-      function startPageModalCtrl($scope, $modalInstance, url, webentity, minPrefix) {
-        $scope.url = url
-        $scope.webentity = webentity
-        $scope.minPrefixLength = ((minPrefix || "").match(/\|/g) || []).length - 1
-        $scope.wwwVariations = true
-        $scope.httpsVariations = true
-
-        // Bootstrapping the object for the Prefix Slider
-        var obj = {}
-        obj.url = utils.URL_fix(url)
-        obj.lru = utils.URL_to_LRU(utils.URL_stripLastSlash(obj.url))
-        obj.tld = utils.LRU_getTLD(obj.lru)
-        obj.tldLength = obj.tld != ""
-        obj.json_lru = utils.URL_to_JSON_LRU(utils.URL_stripLastSlash(obj.url))
-        obj.pretty_lru = utils.URL_to_pretty_LRU(utils.URL_stripLastSlash(obj.url))
-          .map(function(stem){
-              var maxLength = 12
-              if(stem.length > maxLength+3){
-                return stem.substr(0,maxLength) + '...'
-              }
-              return stem
-            })
-        obj.prefixLength = Math.max($scope.minPrefixLength + 1, !!obj.tldLength + 2 + !!obj.json_lru.port)
-        obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
-        obj.conflicts = []
-        // obj_setStatus(obj, 'loading')
-        $scope.obj = obj
-
-        // Load parent web entities
-        api.getLruParentWebentities({
-              lru: $scope.obj.lru
-            }
-            ,function(we_list){
-              $scope.obj.parentWebEntities = we_list
-              $scope.obj.status = 'loaded'
-              if (minPrefix){
-                $scope.obj.parentWebEntities.unshift({
-                  stems_count: $scope.minPrefixLength + 1
-                })
-              }
-            }
-            ,function(data, status, headers, config){
-              $scope.obj.status = 'error'
-              $scope.obj.errorMessage = 'Oops... The server query failed'
-            }
-          )
-
-        $scope.ok = function () {
-          var feedback = {
-            task:$scope.obj.task
-            ,prefix: utils.LRU_truncate($scope.obj.lru, $scope.obj.truePrefixLength)
-            ,wwwVariations: $scope.wwwVariations
-            ,httpsVariations: $scope.httpsVariations
-          }
-          $modalInstance.close(feedback);
-        };
-
-        $scope.cancel = function () {
-          $modalInstance.dismiss('cancel');
-        };
       }
 
     }

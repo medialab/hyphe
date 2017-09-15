@@ -1,0 +1,30 @@
+<div ng-if="data.status=='other webentity'">
+  <div ng-if="obj.status=='error'">
+    {{obj.errorMessage}}
+  </div>
+  <div ng-if="obj.status=='loaded'" layout="column">
+
+    <div hyphe-prefix-slider="{editMode:true}" row-active="true" obj="obj"></div>
+
+    <div ng-if="obj.task.type == 'addPrefix'" class="pull-left">
+      <form class="form-inline" ng-show="false">
+        <div class="form-group">
+          <div class="checkbox variations-checkbox">
+            <label>
+              <input type="checkbox" ng-model="wwwVariations"> Include <span hyphe-glossary="www variations"></span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="checkbox variations-checkbox">
+            <label>
+              <input type="checkbox" ng-model="httpsVariations"> Include <span hyphe-glossary="https variations"></span>
+            </label>
+          </div>
+        </div>
+      </form>
+    </div>
+    <button class="btn btn-primary" ng-click="ok()">{{obj.task.type == 'addPrefix' ? 'ADD PREFIX' : obj.task.type == 'merge' ? 'MERGE' : 'OK'}}</button>
+    <button class="btn btn-default" ng-click="cancel()">CANCEL</button>
+  </div>
+</div>

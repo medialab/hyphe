@@ -12,8 +12,8 @@
     <md-dialog-content style="width:600px;max-height:810px; ">
 
       <md-tabs md-dynamic-height md-border-bottom>
-        <md-tab label="Start pages" ng-disabled="conflictsResolutionMode">
-          <div layout="column" layout-fill>
+        <md-tab label="Start pages" ng-disabled="newStartPagesStack.length>0">
+          <div layout="column" layout-fill md-colors="{background: 'default-background-50'}">
             
             <!-- List of start pages with lookups -->
             <div flex>
@@ -145,60 +145,47 @@
 
           </div>
         </md-tab>
-        <md-tab label="Resolve conflicts" ng-if="conflictsResolutionMode">
-          <div layout="column">
-            <div layout="row">
+        <md-tab label="Check new start pages" ng-if="newStartPagesStack.length>0">
+          <div layout="column" md-colors="{background: 'default-background-50'}">
+            <div layout="column" ng-if="checkStartpagesProgress < 100">
+              <md-content flex style="padding: 8px">
+                {{checkStartpagesProgress}}% checked
+              </md-content>
+              <md-progress-linear md-mode="determinate" value="{{checkStartpagesProgress}}"></md-progress-linear>
+            </div>
+            <div layout="row" ng-if="checkStartpagesProgress == 100 && checkStartpagesConflicts>0">
               <div layout="column" layout-align="center center" style="margin:16px">
                 <md-icon>warning</md-icon>
               </div>
-              <md-content flex style="padding: 8px">
-                 One or more proposed <span hyphe-glossary="start pages"></span> are not inside the <span hyphe-glossary="boundaries"></span> of the <span hyphe-glossary="web entity"></span>
+              <md-content flex style="padding: 16px 8px 8px 8px">
+                {{checkStartpagesConflicts}} proposed 
+                <span ng-if="checkStartpagesConflicts <= 1">
+                  <span hyphe-glossary="start page"></span> is
+                </span>
+                <span ng-if="checkStartpagesConflicts > 1">
+                  <span hyphe-glossary="start pages"></span> are
+                </span>
+                not inside the <span hyphe-glossary="boundaries"></span> of the <span hyphe-glossary="web entity"></span>
               </md-content>
             </div>
 
-            <div ng-if="obj.status=='loading'">
-              <span class="text-muted">Loading</span>
+            <div ng-repeat="obj in newStartPagesStack">
+              <hyphe-startpage-checker data='obj'></hyphe-startpage-checker>
             </div>
-            <div ng-if="obj.status=='error'" class="bg-danger">
-              {{obj.errorMessage}}
-            </div>
-            <div ng-if="obj.status=='loaded'" class="slider-container">
-              <div hyphe-prefix-slider="{editMode:true}"></div>
-            </div>
+
           </div>
         </md-tab>
       </md-tabs>
     </md-dialog-content>
 
     <md-dialog-actions>
-      <div layout-fill layout="row" ng-if="!conflictsResolutionMode">
-        <span flex></span>
-        <md-button ng-click="hide()">
-          Ok
-        </md-button>
-      </div>
-      <div layout-fill layout="row" ng-if="conflictsResolutionMode">
-        <div ng-if="obj.task.type == 'addPrefix'" class="pull-left">
-          <form class="form-inline" ng-show="false">
-            <div class="form-group">
-              <div class="checkbox variations-checkbox">
-                <label>
-                  <input type="checkbox" ng-model="wwwVariations"> Include <span hyphe-glossary="www variations"></span>
-                </label>
-              </div>
-            </div>
-            <div class="form-group">
-              <div class="checkbox variations-checkbox">
-                <label>
-                  <input type="checkbox" ng-model="httpsVariations"> Include <span hyphe-glossary="https variations"></span>
-                </label>
-              </div>
-            </div>
-          </form>
-        </div>
-        <button class="btn btn-primary" ng-click="ok()">{{obj.task.type == 'addPrefix' ? 'ADD PREFIX' : obj.task.type == 'merge' ? 'MERGE' : 'OK'}}</button>
-        <button class="btn btn-default" ng-click="cancel()">CANCEL</button>
-      </div>
+      <span flex></span>
+      <md-button ng-click="hide()" ng-if="checkStartpagesConflicts==0">
+        Ok
+      </md-button>
+      <md-button ng-click="hide()" ng-if="checkStartpagesConflicts>0">
+        Cancel
+      </md-button>
     </md-dialog-actions>
   </form>
 </md-dialog>
