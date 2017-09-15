@@ -105,9 +105,7 @@ The API will always answer as such:
   + [TAGS](#tags)
     * __`add_webentity_tag_value`__
     * __`add_webentities_tag_value`__
-    * __`rm_webentity_tag_key`__
     * __`rm_webentity_tag_value`__
-    * __`set_webentity_tag_values`__
     * __`get_tags`__
     * __`get_tag_namespaces`__
     * __`get_tag_categories`__
@@ -742,15 +740,6 @@ The API will always answer as such:
  Adds for a `corpus` a tag `namespace:category`_ (optional, default: `value` to a bunch of WebEntities defined by a list of `webentity_ids`.`)
 
 
-- __`rm_webentity_tag_key`:__
- + _`webentity_id`_ (mandatory)
- + _`namespace`_ (mandatory)
- + _`category`_ (mandatory)
- + _`corpus`_ (optional, default: `"--hyphe--"`)
-
- Removes for a `corpus` all tags within `namespace:category` associated with a WebEntity defined by `webentity_id` if it is set.
-
-
 - __`rm_webentity_tag_value`:__
  + _`webentity_id`_ (mandatory)
  + _`namespace`_ (mandatory)
@@ -759,16 +748,6 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Removes for a `corpus` a tag `namespace:category`_ (optional, default: `value` associated with a WebEntity defined by `webentity_id` if it is set.`)
-
-
-- __`set_webentity_tag_values`:__
- + _`webentity_id`_ (mandatory)
- + _`namespace`_ (mandatory)
- + _`category`_ (mandatory)
- + _`values`_ (mandatory)
- + _`corpus`_ (optional, default: `"--hyphe--"`)
-
- Replaces for a `corpus` all existing tags of a WebEntity defined by `webentity_id` for a specific `namespace` and `category` by a list of `values` or a single tag.
 
 
 - __`get_tags`:__
@@ -871,7 +850,6 @@ The API will always answer as such:
 - __`add_webentity_creationrule`:__
  + _`lru_prefix`_ (mandatory)
  + _`regexp`_ (mandatory)
- + _`onlycreate`_ (optional, default: `false`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Adds to a `corpus` a new WebEntityCreationRule set for a `lru_prefix` to a specific `regexp` or one of "subdomain"/"subdomain-N"/"domain"/"path-N"/"prefix+N"/"page" N being an integer. It will immediately by applied to past crawls.
