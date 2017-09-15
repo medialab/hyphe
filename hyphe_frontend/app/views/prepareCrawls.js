@@ -438,39 +438,6 @@ angular.module('hyphe.preparecrawlsController', [])
         // $scope.status = 'You cancelled the dialog.';
       });
 
-      /*var modalInstance = $modal.open({
-          templateUrl: 'partials/webentitystartpagesmodal.html'
-        , size: 'lg'
-        , controller: 'webentityStartPagesModalController'
-        , resolve: {
-            webentity: function () {
-                return obj.webentity
-              }
-          , lookups: function () {
-              return $scope.lookups
-            }
-          , lookupEngine: function () {
-              return lookupEngine
-            }
-          // Updaters are used to propagate editions from modal to mother page
-          , updaters: function () {
-              return {
-                webentityAddStartPage: webentityAddStartPage,
-                webentityRemoveStartPage: webentityRemoveStartPage,
-                mergeWebentities: mergeWebentities
-              }
-            }
-        }
-      })
-
-      modalInstance.result.then(function (feedback) {
-        // On 'OK'
-
-      }, function (f) {
-        // On dismiss: nothing happens
-      })*/
-
-
     }
 
     // Lookup Engine
@@ -658,19 +625,7 @@ angular.module('hyphe.preparecrawlsController', [])
     ****  DIALOG CONTROLLER
     ***/
     function webentityStartPagesDialogController($scope, $mdDialog, webentity, lookups, lookupEngine, updaters) {
-      console.log('Web Entity', webentity, lookups, lookupEngine, updaters)
-      $scope.hide = function() {
-        $mdDialog.hide();
-      }
 
-      $scope.cancel = function() {
-        $mdDialog.cancel();
-      }
-
-      $scope.answer = function(answer) {
-        $mdDialog.hide(answer);
-      }
-      
       $scope.lookups = lookups
       $scope.webentity = webentity
       $scope.startpagesSummary = {
@@ -685,6 +640,12 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.newStartPagesInvalid = false
       $scope.newStartPagesURLs = ''
       $scope.removed = {}
+
+      $scope.conflictsResolutionMode = false
+
+      $scope.hide = function() {
+        $mdDialog.hide();
+      }
 
       $scope.validateNewStartPages = function(){
         $scope.urlsToAdd = []
@@ -705,7 +666,6 @@ angular.module('hyphe.preparecrawlsController', [])
         })
       }
 
-      // Add start pages
       $scope.addStartPages = function() {
         if (!$scope.urlsToAdd.length || $scope.newStartPagesInvalid) {
           return
@@ -724,15 +684,14 @@ angular.module('hyphe.preparecrawlsController', [])
             addStartPageAndUpdate(webentity, url, processNextStartpage)
           },
           otherWebentity: function (prefix) {
-            startPageModal(url, webentity, processNextStartpage, prefix)
+            switchToConflictsResolutionMode(url, webentity, processNextStartpage, prefix)
           },
           queryFail: function () {
-            startPageModal(url, webentity, processNextStartpage)
+            switchToConflictsResolutionMode(url, webentity, processNextStartpage)
           },
         })
       }
 
-      // Remove a start page
       $scope.removeStartPage = function (url) {
         removeStartPageAndUpdate($scope.webentity, url)
       }
@@ -831,9 +790,11 @@ angular.module('hyphe.preparecrawlsController', [])
         )
       }
 
-      function startPageModal(url, webentity, callback, minPrefix) {
+      function switchToConflictsResolutionMode(url, webentity, callback, minPrefix) {
+        $scope.conflictsResolutionMode = true
+
         /* Instanciate and open the Modal */
-        var modalInstance = $modal.open({
+        /*var modalInstance = $modal.open({
           templateUrl: 'partials/startpagemodal.html'
           ,size: 'lg'
           ,controller: startPageModalCtrl
@@ -910,7 +871,7 @@ angular.module('hyphe.preparecrawlsController', [])
         // On dismiss: nothing happened, run next new startpage
           $scope.addingErrors.push(url)
           callback()
-        })
+        })*/
       }
 
       /* (Sub-)Modal controller */

@@ -4,7 +4,7 @@
       <div class="md-toolbar-tools">
         <h2>{{webentity.name}}</h2>
         <span flex></span>
-        <md-button class="md-icon-button" ng-click="cancel()">
+        <md-button class="md-icon-button" ng-click="hide()">
           <md-icon aria-label="Close dialog">close</md-icon>
         </md-button>
       </div>
@@ -12,7 +12,7 @@
     <md-dialog-content style="width:600px;max-height:810px; ">
 
       <md-tabs md-dynamic-height md-border-bottom>
-        <md-tab label="Start pages">
+        <md-tab label="Start pages" ng-disabled="conflictsResolutionMode">
           <div layout="column" layout-fill>
             
             <!-- List of start pages with lookups -->
@@ -145,20 +145,60 @@
 
           </div>
         </md-tab>
-        <md-tab label="two">
-          <md-content class="md-padding">
-            <h1 class="md-display-2">Tab Two</h1>
-            <p>Lorem ipsum dolor sit amet</p>
-          </md-content>
+        <md-tab label="Resolve conflicts" ng-if="conflictsResolutionMode">
+          <div layout="column">
+            <div layout="row">
+              <div layout="column" layout-align="center center" style="margin:16px">
+                <md-icon>warning</md-icon>
+              </div>
+              <md-content flex style="padding: 8px">
+                 One or more proposed <span hyphe-glossary="start pages"></span> are not inside the <span hyphe-glossary="boundaries"></span> of the <span hyphe-glossary="web entity"></span>
+              </md-content>
+            </div>
+
+            <div ng-if="obj.status=='loading'">
+              <span class="text-muted">Loading</span>
+            </div>
+            <div ng-if="obj.status=='error'" class="bg-danger">
+              {{obj.errorMessage}}
+            </div>
+            <div ng-if="obj.status=='loaded'" class="slider-container">
+              <div hyphe-prefix-slider="{editMode:true}"></div>
+            </div>
+          </div>
         </md-tab>
       </md-tabs>
     </md-dialog-content>
 
-    <md-dialog-actions layout="row">
-      <span flex></span>
-      <md-button ng-click="hide()">
-        Ok
-      </md-button>
+    <md-dialog-actions>
+      <div layout-fill layout="row" ng-if="!conflictsResolutionMode">
+        <span flex></span>
+        <md-button ng-click="hide()">
+          Ok
+        </md-button>
+      </div>
+      <div layout-fill layout="row" ng-if="conflictsResolutionMode">
+        <div ng-if="obj.task.type == 'addPrefix'" class="pull-left">
+          <form class="form-inline" ng-show="false">
+            <div class="form-group">
+              <div class="checkbox variations-checkbox">
+                <label>
+                  <input type="checkbox" ng-model="wwwVariations"> Include <span hyphe-glossary="www variations"></span>
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="checkbox variations-checkbox">
+                <label>
+                  <input type="checkbox" ng-model="httpsVariations"> Include <span hyphe-glossary="https variations"></span>
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+        <button class="btn btn-primary" ng-click="ok()">{{obj.task.type == 'addPrefix' ? 'ADD PREFIX' : obj.task.type == 'merge' ? 'MERGE' : 'OK'}}</button>
+        <button class="btn btn-default" ng-click="cancel()">CANCEL</button>
+      </div>
     </md-dialog-actions>
   </form>
 </md-dialog>
