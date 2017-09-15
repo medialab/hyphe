@@ -28,7 +28,7 @@ from hcicrawler.linkextractor import RegexpLinkExtractor
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
-from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM
+from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM, STORE_HTML
 from hcicrawler.samples import DEFAULT_INPUT
 from hcicrawler.errors import error_name
 
@@ -228,7 +228,8 @@ class PagesCrawler(Spider):
 
     def _make_html_page(self, response, lru, lrulinks):
         p = self._make_raw_page(response, lru)
-        p['body'] = Binary(response.body.encode('zip'))
+        if STORE_HTML:
+            p['body'] = Binary(response.body.encode('zip'))
         p['lrulinks'] = lrulinks
         return p
 

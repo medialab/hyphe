@@ -5,11 +5,12 @@
     "proxy_host": "",
     "proxy_port": 3128,
     "db_name": "hyphe",
-    "scrapy_port" : 6800,
-    "max_depth" : 3,
-    "download_delay" : 0.5,
-    "max_simul_requests" : 24,
-    "max_simul_requests_per_host" : 1
+    "scrapy_port": 6800,
+    "max_depth": 3,
+    "download_delay": 0.5,
+    "store_crawled_html_content": true,
+    "max_simul_requests": 24,
+    "max_simul_requests_per_host": 1
   },
   "traph": {
     "keepalive": 1800,

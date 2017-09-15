@@ -35,6 +35,11 @@ Typical important options to set depending on your situation are highlighted as 
   + `download_delay [int]`:
 
     usually `1`, the pause time (in seconds) taken by the crawler between two queries of the same crawl
+
+  + `store_crawled_html_content [bool]`:
+
+    usually `true`, lets one disable archiving of full zipped HTML content of webpages crawled in MongoDB. This has to be set to true to use Hyphe in combination with [hyphe2solr](http://github.com/medialab/hyphe2solr)
+
   + `max_simul_requests [int]`:
 
     usually `12`, the maximum number of concurrent queries performed by the crawler

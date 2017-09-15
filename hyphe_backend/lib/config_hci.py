@@ -39,6 +39,8 @@ def load_config():
           'host': conf['mongo-scrapy']['proxy_host'],
           'port': conf['mongo-scrapy']['proxy_port']
         }
+        if 'store_crawled_html_content' not in conf['mongo-scrapy']:
+            conf['mongo-scrapy']['store_crawled_html_content'] = True
 
   # Set default creation rules if missing
     if "defaultCreationRule" not in conf:
@@ -93,7 +95,8 @@ GLOBAL_CONF_SCHEMA = {
     "int_fields": ["mongo_port", "proxy_port", "scrapy_port", "max_depth", "max_simul_requests", "max_simul_requests_per_host"],
     "str_fields": ["host", "proxy_host", "db_name"],
     "extra_fields": {
-      "download_delay": float
+      "download_delay": float,
+      "store_crawled_html_content": bool
     }
   }, "traph": {
     "type": dict,

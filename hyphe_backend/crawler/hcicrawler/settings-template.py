@@ -44,6 +44,8 @@ PHANTOM = {
   "AJAX_TIMEOUT": {{phantom_ajax_timeout}}
 }
 
+STORE_HTML = {{store_crawled_html_content}}
+
 if 'SCRAPY_JOB' in os.environ:
     JOBID = os.environ['SCRAPY_JOB']
 else:
