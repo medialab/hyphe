@@ -9,7 +9,7 @@
         </md-button>
       </div>
     </md-toolbar>
-    <md-dialog-content style="width:800px;max-height:810px; ">
+    <md-dialog-content style="width:640px;max-height:810px; ">
 
       <md-tabs md-dynamic-height md-border-bottom>
         <md-tab label="Start pages" ng-disabled="newStartPagesStack.length>0">
@@ -21,12 +21,12 @@
                 <md-list-item
                   ng-repeat="url in startpages track by $index"
                   class="md-2-line"
-                  ng-class="{'wesp-modal-loading' : lookups[url].status == 'loading', 'wesp-modal-removed': removed[url]}"
+                  ng-class="{'wesp-modal-loading' : lookups[url].status == undefined || lookups[url].status == 'loading', 'wesp-modal-removed': removed[url]}"
                 >
                   <!-- Avatar -->
                   <div
                     class="md-avatar"
-                    ng-if="lookups[url].status == 'loading'"
+                    ng-if="lookups[url].status == undefined || lookups[url].status == 'loading'"
                   >
                     <minispinner></minispinner>
                   </div>

@@ -467,19 +467,16 @@ angular.module('hyphe.directives', [])
           })
         }
 
-        /*$scope.ok = function () {
-          var feedback = {
-            task:$scope.obj.task
-            ,prefix: utils.LRU_truncate($scope.obj.lru, $scope.obj.truePrefixLength)
-            ,wwwVariations: $scope.wwwVariations
-            ,httpsVariations: $scope.httpsVariations
-          }
-          $modalInstance.close(feedback);
-        };
+        $scope.ok = function () {
+          $scope.resolve({
+            task:$scope.obj.task,
+            prefix: utils.LRU_truncate($scope.obj.lru, $scope.obj.truePrefixLength),
+            wwwVariations: $scope.wwwVariations,
+            httpsVariations: $scope.httpsVariations,
+            url: $scope.data.url
+          })
+        }
 
-        $scope.cancel = function () {
-          $modalInstance.dismiss('cancel');
-        };*/
       }
     }
   }])

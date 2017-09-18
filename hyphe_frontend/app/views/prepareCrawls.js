@@ -458,15 +458,15 @@ angular.module('hyphe.preparecrawlsController', [])
       ns.notifySuccessful = function(lookup, httpStatus, redirectUrl){
         if (redirectUrl){
           api.getWebentity(
-              { url: redirectUrl }
-          , function(WE){
-              lookup.status = (WE.id === lookup.webentity.id) ? ('success') : ('issue')
-              lookup.httpStatus = (WE.id === lookup.webentity.id) ? (200) : (httpStatus)
-            }
-          , function(data){
-              lookup.status = 'issue'
-              lookup.httpStatus = httpStatus
-            }
+            { url: redirectUrl }
+            , function(WE){
+                lookup.status = (WE.id === lookup.webentity.id) ? ('success') : ('issue')
+                lookup.httpStatus = (WE.id === lookup.webentity.id) ? (200) : (httpStatus)
+              }
+            , function(data){
+                lookup.status = 'issue'
+                lookup.httpStatus = httpStatus
+              }
           )
         } else {
           lookup.status = (+httpStatus == 200) ? ('success') : ('issue')
@@ -482,15 +482,17 @@ angular.module('hyphe.preparecrawlsController', [])
       }
 
       ns.doLookups = function(lookups, urls){
-
         var unlooked = []
         Object.keys(urls).forEach(function(url){
-            if (lookups[url] === undefined) {
-                unlooked.push({
-                    url: url,
-                    webentity: urls[url]
-                })
+          if (lookups[url] === undefined) {
+            if (urls[url] === undefined) {
+              console.error('Lookup error: an url has been passed without a webentity reference', url)
             }
+            unlooked.push({
+                url: url,
+                webentity: urls[url]
+            })
+          }
         })
 
         if(unlooked.length > 0){
@@ -500,23 +502,23 @@ angular.module('hyphe.preparecrawlsController', [])
             lookupQB.addQuery(
                 api.urlLookup                         // Query call
                 ,{                                    // Query settings
-                    url: urlObj['url']
+                    url: urlObj.url
                     ,timeout: timeout
                   }
                 ,function(httpStatus, extra){         // Success callback
                     
-                    lookupEngine.notifySuccessful(lookups[urlObj['url']], httpStatus, extra.location)
+                    lookupEngine.notifySuccessful(lookups[urlObj.url], httpStatus, extra.location)
 
                   }
                 ,function(data, status, headers){     // Fail callback
 
-                    lookupEngine.notifyFail(lookups[urlObj['url']])
+                    lookupEngine.notifyFail(lookups[urlObj.url])
 
                   }
                 ,{                                    // Options
-                    label: 'lookup '+urlObj['url']
+                    label: 'lookup '+urlObj.url
                     ,before: function(){
-                        lookups[urlObj['url']] = lookupEngine.initLookup(urlObj['url'], urlObj['webentity'])
+                        lookups[urlObj.url] = lookupEngine.initLookup(urlObj.url, urlObj.webentity)
                       }
                     ,simultaneousQueries: 5
                   }
@@ -674,6 +676,10 @@ angular.module('hyphe.preparecrawlsController', [])
       }
 
       $scope.addStartPages = function() {
+        // Last check
+        $scope.validateNewStartPages()
+        if ($scope.newStartPagesInvalid) return
+
         if (!$scope.urlsToAdd.length || $scope.newStartPagesInvalid) {
           return
         }
@@ -719,7 +725,11 @@ angular.module('hyphe.preparecrawlsController', [])
       }, true)
 
       // Init
-      lookupEngine.doLookups($scope.lookups, $scope.startpages)
+      var spIndex = {}
+      $scope.startpages.forEach(function(url){
+        spIndex[url] = $scope.webentity
+      })
+      lookupEngine.doLookups($scope.lookups, spIndex)
 
       // Functions
       function removeStartPageAndUpdate(webentity, url){
@@ -794,10 +804,6 @@ angular.module('hyphe.preparecrawlsController', [])
             if ((webentity.startpages || []).indexOf(obj.url) < 0) {
               // Add the start page to the entity
               _addStartPage(webentity, obj.url, function () {
-                if ($scope.startpages.indexOf(obj.url) < 0) {
-                  $scope.startpages.push(obj.url)
-                }
-                updateStartpagesSummary($scope.startpages)
                 updaters.webentityAddStartPage(webentity.id, obj.url)
                 $timeout(function(){checkNextStartpageBelonging(webentity)})
               })
@@ -841,7 +847,6 @@ angular.module('hyphe.preparecrawlsController', [])
       }
 
       function updateCheckStartpagesSummary() {
-        console.log('update check start pages summary', $scope.newStartPagesStack)
         var total = $scope.newStartPagesStack.length
         var count = $scope.newStartPagesStack.filter(function(o){
           return o.status != 'pending' && o.status != 'checking'
@@ -853,7 +858,6 @@ angular.module('hyphe.preparecrawlsController', [])
       }
 
       function resolveCase(feedback) {
-        function callback(){}
         if(feedback.task){
           if(feedback.task.type == 'addPrefix'){
             // Add Prefix
@@ -874,40 +878,64 @@ angular.module('hyphe.preparecrawlsController', [])
                 ,lru: prefixes
               }
               ,function(){                          // Success callback
-                addStartPageAndUpdate(webentity, url, callback)
+                // Add the start page to the entity
+                _addStartPage(webentity, feedback.url, function () {
+                  if ($scope.startpages.indexOf(feedback.url) < 0) {
+                    $scope.startpages.push(feedback.url)
+                  }
+                  updateStartpagesSummary($scope.startpages)
+                  updaters.webentityAddStartPage(webentity.id, feedback.url)
+                  $timeout(function(){checkNextStartpageBelonging(webentity)})
+                })
+                // Remove the start page from the checking list
+                $timeout(function(){
+                  $scope.newStartPagesStack = $scope.newStartPagesStack.filter(function(o){
+                    return o.url != feedback.url
+                  })
+                  $scope.$apply()
+                })
               }
               ,function(data, status, headers, config){     // Fail callback
                 // Note: cannot access global status bar from modal
                 console.error('Prefix could not be added', data, status, headers, config)
                 $scope.urlErrors.push(url + " (" + data[0].message + ")")
                 $scope.addingErrors.push(url)
-                callback()
               })
 
           } else if (feedback.task.type == 'merge') {
             
             // Merge web entities
-            /*api.webentityMergeInto({
+            api.webentityMergeInto({
                 oldWebentityId: webentity.id
                 ,goodWebentityId: feedback.task.webentity.id
                 ,mergeNameAndStatus: true
               }
               ,function(data){
-                // Remove current entity and add the other one
-                addStartPageAndUpdate(feedback.task.webentity, url, function(){
+                // Add the start page to the entity
+                _addStartPage(webentity, feedback.url, function () {
+                  if ($scope.startpages.indexOf(feedback.url) < 0) {
+                    $scope.startpages.push(feedback.url)
+                  }
+                  updateStartpagesSummary($scope.startpages)
+                  updaters.webentityAddStartPage(webentity.id, feedback.url)
                   updaters.mergeWebentities(webentity, feedback.task.webentity)
+                  // $timeout(function(){checkNextStartpageBelonging(webentity)})
                 })
-                $modalInstance.close()
-                callback()
+                // Remove the start page from the checking list
+                $timeout(function(){
+                  $scope.newStartPagesStack = $scope.newStartPagesStack.filter(function(o){
+                    return o.url != feedback.url
+                  })
+                  $scope.$apply()
+                })
               }
               ,function(data, status, headers, config){
                 // Note: cannot access global status bar from modal
                 console.error('Merge failed', data, status, headers, config)
                 $scope.urlErrors.push(url + " (" + data[0].message + ")")
                 $scope.addingErrors.push(url)
-                callback()
               }
-            )*/
+            )
           } else if (feedback.task.type == 'drop') {
             var url = feedback.task.url
             $timeout(function(){
