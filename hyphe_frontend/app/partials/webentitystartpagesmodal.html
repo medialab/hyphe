@@ -165,12 +165,14 @@
                 <span ng-if="checkStartpagesConflicts > 1">
                   <span hyphe-glossary="start pages"></span> are
                 </span>
-                not inside the <span hyphe-glossary="boundaries"></span> of the <span hyphe-glossary="web entity"></span>
+                not inside the <span hyphe-glossary="boundaries"></span> of the <span hyphe-glossary="web entity"></span>.
+                <br>
+                Below you can tell Hyphe what to do in each situation.
               </md-content>
             </div>
 
             <div ng-repeat="obj in newStartPagesStack">
-              <hyphe-startpage-checker data='obj'></hyphe-startpage-checker>
+              <hyphe-startpage-checker data='obj' resolve='resolveCase'></hyphe-startpage-checker>
             </div>
 
           </div>

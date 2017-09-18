@@ -408,7 +408,8 @@ angular.module('hyphe.directives', [])
       restrict: 'E'
       ,templateUrl: 'partials/startpageChecker.html'
       ,scope: {
-        data: '='
+        data: '=',
+        resolve: '='
       }
       ,link: function($scope, el, attrs) {
         $scope.url = $scope.data.url
@@ -456,6 +457,15 @@ angular.module('hyphe.directives', [])
               $scope.obj.errorMessage = 'Oops... The server query failed'
             }
           )
+
+        $scope.cancel = function () {
+          $scope.resolve({
+            task: {
+              type: 'drop',
+              url: $scope.data.url
+            }
+          })
+        }
 
         /*$scope.ok = function () {
           var feedback = {

@@ -710,6 +710,8 @@ angular.module('hyphe.preparecrawlsController', [])
         removeStartPageAndUpdate($scope.webentity, url)
       }
 
+      $scope.resolveCase = resolveCase
+
       $scope.$watch('lookups', function (newValue, oldValue) {
         $timeout(function(){
           updateStartpagesSummary($scope.startpages)
@@ -837,6 +839,77 @@ angular.module('hyphe.preparecrawlsController', [])
         $scope.checkStartpagesConflicts = $scope.newStartPagesStack.filter(function(o){
           return o.status == 'other webentity' || o.status == 'fail'
         }).length
+      }
+
+      function resolveCase(feedback) {
+        if(feedback.task){
+          if(feedback.task.type == 'addPrefix'){
+            // Add Prefix
+            /*var prefix = feedback.prefix
+            ,wwwVariations = feedback.wwwVariations
+            ,httpsVariations = feedback.httpsVariations
+            ,prefixes = utils.LRU_variations(prefix, {
+                wwwlessVariations: wwwVariations
+                ,wwwVariations: wwwVariations
+                ,httpVariations: httpsVariations
+                ,httpsVariations: httpsVariations
+                ,smallerVariations: false
+              })
+            
+            // Query call
+            api.addPrefix({                         // Query settings
+                webentityId: webentity.id
+                ,lru: prefixes
+              }
+              ,function(){                          // Success callback
+                addStartPageAndUpdate(webentity, url, callback)
+              }
+              ,function(data, status, headers, config){     // Fail callback
+                // Note: cannot access global status bar from modal
+                console.error('Prefix could not be added', data, status, headers, config)
+                $scope.urlErrors.push(url + " (" + data[0].message + ")")
+                $scope.addingErrors.push(url)
+                callback()
+              })*/
+
+          } else if (feedback.task.type == 'merge') {
+            
+            // Merge web entities
+            /*api.webentityMergeInto({
+                oldWebentityId: webentity.id
+                ,goodWebentityId: feedback.task.webentity.id
+                ,mergeNameAndStatus: true
+              }
+              ,function(data){
+                // Remove current entity and add the other one
+                addStartPageAndUpdate(feedback.task.webentity, url, function(){
+                  updaters.mergeWebentities(webentity, feedback.task.webentity)
+                })
+                $modalInstance.close()
+                callback()
+              }
+              ,function(data, status, headers, config){
+                // Note: cannot access global status bar from modal
+                console.error('Merge failed', data, status, headers, config)
+                $scope.urlErrors.push(url + " (" + data[0].message + ")")
+                $scope.addingErrors.push(url)
+                callback()
+              }
+            )*/
+          } else if (feedback.task.type == 'drop') {
+            var url = feedback.task.url
+            $timeout(function(){
+              $scope.newStartPagesStack = $scope.newStartPagesStack.filter(function(o){
+                return o.url != url
+              })
+              $scope.$apply()
+            })
+          } else {
+            console.error('Check new start page resolution feedback has unknown task', feedback)
+          }
+        } else {
+          console.error('Check new start page resolution feedback is improper', feedback)
+        }
       }
 
       function switchToConflictsResolutionMode(url, webentity, callback, minPrefix) {
