@@ -122,24 +122,38 @@
             </div>
 
             <!-- Diagnostic -->
-            <div ng-show="startpagesSummary.diagnostic.ready">
-              <h4 md-colors="{'color':'default-primary'}">READY TO CRAWL</h4>
-              <p ng-show="startpagesSummary.diagnostic.issues" md-colors="{'color':'default-primary'}">
-                At least one page is valid, allowing the crawl to start successfully.
-              </p>
-              <p ng-show="startpagesSummary.diagnostic.issues" md-colors="{'color':'default-accent'}">
-                A little warning, though.
+            <div ng-show="startpagesSummary.diagnostic.ready" style="padding: 8px">
+              <h3 class="md-title" md-colors="{'color':'default-primary'}">
+                <md-icon class="md-primary">done</md-icon>
+                READY TO CRAWL
+              </h3>
+              <p class="md-body-1" ng-show="startpagesSummary.diagnostic.issues">
+                <span md-colors="{'color':'default-primary'}">
+                  At least one page is valid, allowing the crawl to start successfully.
+                </span>
                 <br>
-                Some start pages have issues and cannot be crawled. It will not block the crawl but you may want to fix this.
+                <span md-colors="{'color':'default-warn'}">
+                  A little warning, though.
+                </span>
+                <span>
+                  Some start pages have issues and cannot be crawled.
+                  It will not block the crawl but you may want to fix it.
+                </span>
               </p>
             </div>
-            <div ng-show="startpagesSummary.diagnostic.doomed">
-              <h4 md-colors="{'color':'default-warn'}">DOOMED CRAWL</h4>
-              <p md-colors="{'color':'default-warn'}">
-                This web entity has no valid start page. Hyphe will not be able to start crawling it.
-              </p>
-              <p style="opacity: 0.5">
-                You can still try to launch it, though. Miracles happen.
+            <div ng-show="startpagesSummary.diagnostic.doomed" style="padding: 8px">
+              <h3 class="md-title" md-colors="{'color':'default-warn'}">
+                <md-icon class="md-warn">warning</md-icon>
+                DOOMED CRAWL
+              </h3>
+              <p class="md-body-1">
+                <span md-colors="{'color':'default-warn'}">
+                  This web entity has no valid start page. Hyphe will not be able to start crawling it.
+                </span>
+                <br>
+                <span style="opacity: 0.5">
+                  You can still try to launch it, though. Miracles happen.
+                </span>
               </p>
             </div>
 
