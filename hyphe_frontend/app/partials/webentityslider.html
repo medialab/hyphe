@@ -12,7 +12,7 @@
 		</div>
 		<div
       ng-show="obj.WEstatus != 'new'"
-      md-colors="{'color': 'accent'}"
+      md-colors="{'color': 'default-accent'}"
     >{{obj.statusText}}</div>
   </div>
 
@@ -38,11 +38,11 @@
       }"
       md-colors="{
         'background': (rowActive)
-          ? ( ($index < obj.prefixLength) ? ('primary-500-0.9') : ('background-50-0.0') )
-          : ( ($index < obj.prefixLength) ? ('background-200') : ('background-50-0.0') ),
+          ? ( ($index < obj.prefixLength) ? ('default-primary-500-0.9') : ('default-background-50-0.0') )
+          : ( ($index < obj.prefixLength) ? ('default-background-200') : ('default-background-50-0.0') ),
         'color': (rowActive)
-          ? ( ($index < obj.prefixLength) ? ('primary-50') : ('grey-900') )
-          : ( ($index < obj.prefixLength) ? ('grey-500') : ('grey-400') )
+          ? ( ($index < obj.prefixLength) ? ('default-primary-50') : ('default-grey-900') )
+          : ( ($index < obj.prefixLength) ? ('default-grey-500') : ('default-grey-400') )
       }"
       ng-click="clickStem($index)"
     >
@@ -57,15 +57,15 @@
       <div class="slider-hitbox"></div>
       <div
         class="slider-bar"
-        md-colors="{'background': 'primary-700'}"
+        md-colors="{'background': 'default-primary-700'}"
       ></div>
       <div
         class="slider-button"
-        md-colors="{'background': 'primary-700'}"
+        md-colors="{'background': 'default-primary-700'}"
       ></div>
       <div
         class="slider-button-hover"
-        md-colors="{'background': 'primary-100'}"
+        md-colors="{'background': 'default-primary-100'}"
       ></div>
     </div>
   </div>

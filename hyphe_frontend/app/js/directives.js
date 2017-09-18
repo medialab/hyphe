@@ -10,7 +10,8 @@ angular.module('hyphe.directives', [])
       restrict: 'A'
       ,scope: {
         rowActive: '=',
-        obj: '='
+        obj: '=',
+        webentity: '=' // Used only in startpageChecker
       }
       ,templateUrl: 'partials/webentityslider.html'
       ,link: function(scope, el, attrs) {
@@ -237,7 +238,7 @@ angular.module('hyphe.directives', [])
             }
           }
         }
-	  }
+      }
     }
 	}])
 
@@ -352,7 +353,6 @@ angular.module('hyphe.directives', [])
       restrict: 'A'
       ,link: function($scope, el, attrs) {
         el[0].onclick = function(){
-          console.log("GAGAAA")
           $location.path('/')
           $scope.$apply()
         }

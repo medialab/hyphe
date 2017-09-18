@@ -1385,6 +1385,7 @@ ul.startpages-report{
 }
 .hyphe-prefix-slider .stem-container {
   position: relative;
+  overflow-y: auto;
 }
 .hyphe-prefix-slider .name-container, .hyphe-prefix-slider .status-container{
   word-break:keep-all;
