@@ -1,9 +1,8 @@
-<div ng-if="data.status=='other webentity'">
-  <hr>
-  <div ng-if="obj.status=='loading'" layout="column">
-    <em>Loading</em>
+<div ng-if="data.status=='other webentity'" style="border-top: 1px #CCC solid; padding: 16px 0px 16px 0px">
+  <div ng-if="obj === undefined || obj.status=='loading'" layout="column">
+    <md-progress-circular md-mode="indeterminate"></md-progress-circular>
   </div>
-  <div ng-if="obj.status=='error'">
+  <div ng-if="obj.status=='error'" md-colors="{'background': 'default-warn'}">
     {{obj.errorMessage}}
   </div>
   <div ng-if="obj.status=='loaded'" layout="column">

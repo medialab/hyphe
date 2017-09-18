@@ -171,7 +171,7 @@
               <div layout="column" layout-align="center center" style="margin:16px">
                 <md-icon>warning</md-icon>
               </div>
-              <md-content flex style="padding: 16px 8px 8px 8px">
+              <md-content flex style="padding: 16px 8px 16px 8px">
                 {{checkStartpagesConflicts}} proposed 
                 <span ng-if="checkStartpagesConflicts <= 1">
                   <span hyphe-glossary="start page"></span> is
@@ -181,7 +181,7 @@
                 </span>
                 not inside the <span hyphe-glossary="boundaries"></span> of the <span hyphe-glossary="web entity"></span>.
                 <br>
-                Below you can tell Hyphe what to do in each situation.
+                Below you can tell Hyphe what to do{{(checkStartpagesConflicts > 1) ? ' in each situation' : ''}}.
               </md-content>
             </div>
 
