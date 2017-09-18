@@ -88,16 +88,14 @@
                   layout="column"
                   layout-align="center center"
                 >
-                  <div ng-if="obj.summary && obj.summary.stage == 'loaded'">
-                    <div ng-show="!obj.summary.diagnostic.doomed">
-                      <div ng-if="obj.summary.diagnostic.ready">
-                        <md-tooltip md-direction="right">Ready to crawl</md-tooltip>
-                        <md-icon>done</md-icon>
-                      </div>
-                      <div ng-if="obj.summary.diagnostic.issues">
-                        <md-tooltip md-direction="right">Non-blocking issues</md-tooltip>
-                        <md-icon>info</md-icon>
-                      </div>
+                  <div ng-if="obj.summary && obj.summary.stage == 'loaded'" layout="row">
+                    <div ng-if="!obj.summary.diagnostic.doomed && obj.summary.diagnostic.issues">
+                      <md-tooltip md-direction="right">Non-blocking issues</md-tooltip>
+                      <md-icon>info</md-icon>
+                    </div>
+                    <div ng-if="!obj.summary.diagnostic.doomed && obj.summary.diagnostic.ready">
+                      <md-tooltip md-direction="right">Ready to crawl</md-tooltip>
+                      <md-icon>done</md-icon>
                     </div>
                     <div ng-if="obj.summary.diagnostic.doomed">
                       <md-tooltip md-direction="right">Doomed crawl needs fix :)</md-tooltip>

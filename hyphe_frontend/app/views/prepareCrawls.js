@@ -340,7 +340,7 @@ angular.module('hyphe.preparecrawlsController', [])
 
         statusIndex[status] = value + 1
       })
-      
+
       // check if globally loading
       for (var status in statusIndex) {
 
@@ -457,20 +457,20 @@ angular.module('hyphe.preparecrawlsController', [])
 
       ns.notifySuccessful = function(lookup, httpStatus, redirectUrl){
         if (redirectUrl){
-            api.getWebentity(
-                { url: redirectUrl }
-              , function(WE){
-                    lookup.status = (WE.id === lookup.webentity.id) ? ('success') : ('issue')
-                    lookup.httpStatus = (WE.id === lookup.webentity.id) ? (200) : (httpStatus)
-                }
-              , function(data){
-                    lookup.status = 'issue'
-                    lookup.httpStatus = httpStatus
-                }
-            )
+          api.getWebentity(
+              { url: redirectUrl }
+          , function(WE){
+              lookup.status = (WE.id === lookup.webentity.id) ? ('success') : ('issue')
+              lookup.httpStatus = (WE.id === lookup.webentity.id) ? (200) : (httpStatus)
+            }
+          , function(data){
+              lookup.status = 'issue'
+              lookup.httpStatus = httpStatus
+            }
+          )
         } else {
-            lookup.status = (+httpStatus == 200) ? ('success') : ('issue')
-            lookup.httpStatus = httpStatus
+          lookup.status = (+httpStatus == 200) ? ('success') : ('issue')
+          lookup.httpStatus = httpStatus
         }
       }
 
@@ -784,19 +784,29 @@ angular.module('hyphe.preparecrawlsController', [])
 
         updateCheckStartpagesSummary()
 
-        if (obj === undefined) return
+        if (obj === undefined) {
+          return
+        }
 
         var callbacks = {
           success: function () {
             // Add start page and update
-            if ((webentity.startpages || []).indexOf(url) < 0) {
-              _addStartPage(webentity, url, function () {
-                if ($scope.startpages.indexOf(url) < 0) {
-                  $scope.startpages.push(url)
+            if ((webentity.startpages || []).indexOf(obj.url) < 0) {
+              // Add the start page to the entity
+              _addStartPage(webentity, obj.url, function () {
+                if ($scope.startpages.indexOf(obj.url) < 0) {
+                  $scope.startpages.push(obj.url)
                 }
                 updateStartpagesSummary($scope.startpages)
-                updaters.webentityAddStartPage(webentity.id, url)
+                updaters.webentityAddStartPage(webentity.id, obj.url)
                 $timeout(function(){checkNextStartpageBelonging(webentity)})
+              })
+              // Remove the start page from the checking list
+              $timeout(function(){
+                $scope.newStartPagesStack = $scope.newStartPagesStack.filter(function(o){
+                  return o.url != obj.url
+                })
+                $scope.$apply()
               })
             }
           },
@@ -831,6 +841,7 @@ angular.module('hyphe.preparecrawlsController', [])
       }
 
       function updateCheckStartpagesSummary() {
+        console.log('update check start pages summary', $scope.newStartPagesStack)
         var total = $scope.newStartPagesStack.length
         var count = $scope.newStartPagesStack.filter(function(o){
           return o.status != 'pending' && o.status != 'checking'
@@ -842,10 +853,11 @@ angular.module('hyphe.preparecrawlsController', [])
       }
 
       function resolveCase(feedback) {
+        function callback(){}
         if(feedback.task){
           if(feedback.task.type == 'addPrefix'){
             // Add Prefix
-            /*var prefix = feedback.prefix
+            var prefix = feedback.prefix
             ,wwwVariations = feedback.wwwVariations
             ,httpsVariations = feedback.httpsVariations
             ,prefixes = utils.LRU_variations(prefix, {
@@ -870,7 +882,7 @@ angular.module('hyphe.preparecrawlsController', [])
                 $scope.urlErrors.push(url + " (" + data[0].message + ")")
                 $scope.addingErrors.push(url)
                 callback()
-              })*/
+              })
 
           } else if (feedback.task.type == 'merge') {
             
