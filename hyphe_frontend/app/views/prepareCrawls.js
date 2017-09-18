@@ -284,12 +284,12 @@ angular.module('hyphe.preparecrawlsController', [])
             if($scope.lookups[url] === undefined){
 
               if (!lookupBatch[url]){
-                lookupBatch[url] = webentity
+                lookupBatch[url] = obj.webentity
               }
 
             } else if($scope.lookups[url].status == 'loading') {
 
-              maxSize-- // Loading lookups occupy a slot
+              maxSize-- // Loading lookups takes a slot
 
             }
 
@@ -306,7 +306,6 @@ angular.module('hyphe.preparecrawlsController', [])
       })
 
       if(Object.keys(lookupBatch).length > 0){
-        // console.log('Lazy lookup', lookupBatch)
         lookupEngine.doLookups($scope.lookups, lookupBatch)
       }
 
@@ -880,12 +879,7 @@ angular.module('hyphe.preparecrawlsController', [])
               ,function(){                          // Success callback
                 // Add the start page to the entity
                 _addStartPage(webentity, feedback.url, function () {
-                  if ($scope.startpages.indexOf(feedback.url) < 0) {
-                    $scope.startpages.push(feedback.url)
-                  }
-                  updateStartpagesSummary($scope.startpages)
                   updaters.webentityAddStartPage(webentity.id, feedback.url)
-                  $timeout(function(){checkNextStartpageBelonging(webentity)})
                 })
                 // Remove the start page from the checking list
                 $timeout(function(){
@@ -913,13 +907,8 @@ angular.module('hyphe.preparecrawlsController', [])
               ,function(data){
                 // Add the start page to the entity
                 _addStartPage(webentity, feedback.url, function () {
-                  if ($scope.startpages.indexOf(feedback.url) < 0) {
-                    $scope.startpages.push(feedback.url)
-                  }
-                  updateStartpagesSummary($scope.startpages)
                   updaters.webentityAddStartPage(webentity.id, feedback.url)
                   updaters.mergeWebentities(webentity, feedback.task.webentity)
-                  // $timeout(function(){checkNextStartpageBelonging(webentity)})
                 })
                 // Remove the start page from the checking list
                 $timeout(function(){
