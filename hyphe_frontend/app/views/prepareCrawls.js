@@ -569,26 +569,32 @@ angular.module('hyphe.preparecrawlsController', [])
     }
 
     function mergeWebentities(sourceWebentity, targetWebentity) {
-      console.log('merge web entities...')
-      // Remove target web entity if it's in the list
+      // Remove source web entity if it's in the list, and target web entity as well
       $scope.list = $scope.list.filter(function(o){
-        if (o.webentity.id !== targetWebentity.id) {
+        if (o.webentity.id !== sourceWebentity.id && o.webentity.id !== targetWebentity.id) {
           return true
         } else {
           obj_setStatus(o, 'deleted')
           return false
         }
       })
-      
-      // Make a small update to find the right obj
-      var obj
-      $scope.list.some(function(o){
-        if (o.webentity.id === sourceWebentity.id) {
-          o.webentity = targetWebentity
-          lazyLookups(targetWebentity.startpages, targetWebentity)
-          obj = o
-          return true
-        }
+
+      // Add the target webentity object for reload
+      var maxid = 0
+      $scope.list.forEach(function(o){
+        maxid = Math.max(maxid, o.id)
+      })
+      var obj = {
+        id: maxid + 1,
+        webentity: targetWebentity,
+        status: 'loading',
+        summary: {}
+      }
+      $scope.list.push(obj)
+
+      // Update data related to the list
+      $scope.list.forEach(function(o){
+        list_byId[o.id] = o
       })
 
       // Ask for full WE data and update existing entity
@@ -881,21 +887,16 @@ angular.module('hyphe.preparecrawlsController', [])
             api.webentityMergeInto({
                 oldWebentityId: webentity.id
                 ,goodWebentityId: feedback.task.webentity.id
-                ,mergeNameAndStatus: true
+                ,mergeNameAndStatus: false
               }
               ,function(data){
                 // Add the start page to the entity
-                _addStartPage(webentity, feedback.url, function () {
-                  updaters.webentityAddStartPage(webentity.id, feedback.url)
+                _addStartPage(feedback.task.webentity, feedback.url, function () {
+                  updaters.webentityAddStartPage(feedback.task.webentity.id, feedback.url)
                   updaters.mergeWebentities(webentity, feedback.task.webentity)
                 })
-                // Remove the start page from the checking list
-                $timeout(function(){
-                  $scope.newStartPagesStack = $scope.newStartPagesStack.filter(function(o){
-                    return o.url != feedback.url
-                  })
-                  $scope.$apply()
-                })
+                // Close modal
+                $scope.hide()
               }
               ,function(data, status, headers, config){
                 // Note: cannot access global status bar from modal
