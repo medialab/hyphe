@@ -119,7 +119,6 @@ echo
       sudo mv /tmp/sources.list /etc/apt/sources.list
     fi
   fi
-fi
 echo " ...updating sources repositories..."
 sudo $repos_tool $repos_updt > /dev/null 2>> install.log || isCentOS || exitAndLog install.log "updating repositories sources list"
 echo
