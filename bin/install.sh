@@ -8,7 +8,7 @@ source bin/common.sh
 if ! isCentOS; then
   if isDebian; then
     echo 'Install for Debian'
-    mongorepo='debian wheezy/mongodb-org/3.2 main'
+    mongorepo='debian jessie/mongodb-org/3.4 main'
     installer='dpkg'
     scrapyd='scrapyd_1.0~r0_all.deb'
     scrapyd_path='https://github.com/medialab/scrapyd/raw/medialab-debian/debs'
@@ -22,7 +22,7 @@ if ! isCentOS; then
   repos_tool='apt-get'
   repos_updt='update'
   packages='python-dev virtualenvwrapper libxml2-dev libxslt1-dev build-essential libffi-dev libssl-dev libstdc++6'
-  pyopenssl_rm='purge python-openssl'
+#  pyopenssl_rm='purge python-openssl'
   apache='apache2'
   apache_path='apache2/sites-available'
 else
@@ -31,7 +31,7 @@ else
   repos_tool='yum'
   repos_updt='check-update'
   packages='python-devel python-setuptools python-virtualenvwrapper libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6'
-  pyopenssl_rm='remove PyOpenSSL'
+ # pyopenssl_rm='remove PyOpenSSL'
   apache='httpd'
   apache_path='httpd/conf.d'
   installer='rpm'
@@ -105,30 +105,8 @@ fi
 echo "Add source repositories..."
 echo "--------------------------"
 echo
-if isCentOS; then
-  if ! which mongod > /dev/null 2>&1 && ! test -f /etc/yum.repos.d/mongodb.repo; then
-    echo " ...preparing Mongo repository..."
-    echo "[mongodb]
-name=MongoDB Repository
-baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64/
-gpgcheck=0
-enabled=1" > mongodb.repo.tmp
-    sudo mv mongodb.repo.tmp /etc/yum.repos.d/mongodb.repo
-  fi
-else
   sudo cp /etc/apt/sources.list{,.hyphebackup-`date +%Y%m%d-%H%M`}
-  # Prepare MongoDB install
-  if ! which mongod > /dev/null 2>&1 ; then
-    echo " ...preparing Mongo repository..."
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927 >> install.log 2>&1 || exitAndLog install.log "downloading Mongo GPG key"
-    if ! sudo rgrep "mongodb.org" /etc/apt/ | grep -v Binary > /dev/null; then
-      cp /etc/apt/sources.list /tmp/sources.list
-      echo >> /tmp/sources.list
-      echo "# MONGODB repository, automatically added by Hyphe's install" >> /tmp/sources.list
-      echo "deb http://repo.mongodb.org/apt/$mongorepo" >> /tmp/sources.list
-      sudo mv /tmp/sources.list /etc/apt/sources.list
-    fi
-  fi
+
   # Prepare ScrapyD install
   if ! isDebian && ! which scrapyd > /dev/null 2>&1 && ! grep "archive.scrapy.org" /etc/apt/sources.list > /dev/null; then
     echo " ...preparing ScrapyD repository..."
@@ -146,30 +124,12 @@ echo " ...updating sources repositories..."
 sudo $repos_tool $repos_updt > /dev/null 2>> install.log || isCentOS || exitAndLog install.log "updating repositories sources list"
 echo
 
-# Install MongoDB
-if ! which mongod > /dev/null 2>&1 ; then
-  echo "Install and start MongoDB..."
-  echo "----------------------------"
-  echo
-  sudo $repos_tool -y install mongodb-org >> install.log || exitAndLog install.log "installing MongoDB"
-  #possible MongoDB config via : vi /etc/mongod.conf
-  if isCentOS; then
-    sudo chkconfig mongod on
-    sudo service mongod restart || exitAndLog install.log "starting MongoDB"
-  elif which systemctl > /dev/null 2>&1; then
-    sudo systemctl unmask mongod >> install.log 2>&1
-    sudo service mongod enable >> install.log 2>&1
-    sudo service mongod restart
-  fi
-  echo
-fi
-
 # Install ScrapyD
 echo "Install and start ScrapyD..."
 echo "----------------------------"
 echo
 echo " ...installing TLS and other requirements for Scrapyd spiders"
-sudo $repos_tool -y $pyopenssl_rm >> install.log 2>&1
+#sudo $repos_tool -y $pyopenssl_rm >> install.log 2>&1
 sudo -H pip -q install --upgrade urllib3[secure] 2>&1 | grep -v "SNIMissing\|InsecurePlatform" >> install.log
 sudo -H pip -q install --upgrade pip >> install.log || exitAndLog install.log "upgrading Hyphe's virtualenv's pip"
 sudo -H pip -q install -r hyphe_backend/crawler/requirements-global-scrapyd.txt >> install.log || exitAndLog install.log "installing Scrapyd requirements"
