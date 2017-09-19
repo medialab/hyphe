@@ -1,4 +1,137 @@
-    <div class="container-fluid">
+<div layout="column" layout-fill>
+  <div class="topbar-height" ng-include="'partials/topbar.html'">
+  </div>
+  <div flex>
+    <div layout="row" layout-fill>
+      <div class="sidebar-width" ng-include="'partials/sidebar.html'"></div>
+      <div
+        flex
+        md-colors="{background: 'default-background-50'}"
+        style="overflow-y: auto;"
+      >
+        
+        <!-- Content -->
+        <div layout-fill layout="column">
+          <div class="page-header">
+            <h1>
+              CRAWLS
+            </h1>
+            <span class="md-subhead">
+              Monitor and manage <span hyphe-glossary="crawl jobs"></span>. For a new <span hyphe-glossary="crawl"></span>, use the <a href="#/project/{{corpusId}}/importurls">IMPORT</a> page.
+            </span>
+          </div>
+          <md-tabs md-border-bottom flex>
+            <md-tab label="last crawl jobs">
+              
+              <!-- Loading -->
+              <div ng-if="!listLoaded" layout-fill layout="column" layout-align="center center">
+                <spinner class="center" text="LOADING"/>
+              </div>
+
+              <!-- Loaded but empty -->
+              <div ng-if="listLoaded && lastCrawlJobs.length == 0" layout-fill layout="column" layout-align="center center">
+                <h3>No crawl job</h3>
+              </div>
+
+              <!-- Loaded -->
+              <div ng-if="listLoaded && lastCrawlJobs.length > 0" layout-fill layout="column" style="padding: 8px; overflow: auto">
+                <md-grid-list
+                  md-cols-xs="1"
+                  md-cols-sm="2"
+                  md-cols-md="3"
+                  md-cols-lg="5"
+                  md-cols-gt-lg="6"
+                  md-gutter="8px"
+                  md-row-height="1:1"
+                >
+                  <md-grid-tile
+                    ng-repeat="job in lastCrawlJobs track by $index"
+                    ng-click="displayDetails(job, $event)"
+                    class="pointable-grid-tile"
+                  >
+                    <div
+                      layout="column"
+                      layout-align="center center"
+                      layout-fill
+                      md-colors="{
+                        'background': (job.globalStatus == 'CRASHED' || job.globalStatus == 'UNSUCCESSFUL')
+                          ? ('default-warn-200')
+                          : (
+                            (job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING')
+                            ? ('default-primary-500')
+                            : (
+                              (job.globalStatus == 'ACHIEVED')
+                              ? ('default-background-200')
+                              : (
+                                (job.globalStatus == 'RETRIED')
+                                ? ('default-primary-200')
+                                : ('default-background-100')
+                              )
+                            )
+                          )
+                      }"
+                    >
+                      <div
+                        water-loader
+                        message="job.globalStatus"
+                        message-only="!(job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING')"
+                        cog="job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING'"
+                      ></div>
+                    </div>
+                    <div
+                      class="crawl-tile-overlay"
+                      layout="column"
+                      layout-fill
+                      style="padding: 8px"
+                      md-colors="{
+                        'color': (job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING')
+                          ? ('default-primary-50')
+                          : ('default-background-700')
+                      }"
+                    >
+                      <div flex>
+                        <p class="title">
+                          {{job.webentity_name || 'Web Entity Loading'}}
+                        </p>
+                        <p class="subtitle">
+                          Scheduled <span tooltip="{{job.created_at|date}}">{{job.created_at|prettyDate}}</span>
+                        </p>
+                        <p ng-if="job.finished_at" class="subtitle">
+                          Finished in {{job.finished_at - job.created_at|duration}}
+                        </p>
+                        <p class="subtitle" ng-if="job.crawl_arguments.phantom">
+                          <span class="glyphicon glyphicon-bell"></span> Cautious crawl
+                        </p>
+                        <p class="subtitle">
+                          Depth {{job.crawl_arguments.max_depth}}
+                        </p>
+                      </div>
+                      <div layout="column" layout-align="center center" class="stats">
+                        <div>
+                          {{job.nb_crawled_pages}} page{{job.nb_crawled_pages | plural}} crawled
+                        </div>
+                        <div ng-show="job.nb_unindexed_pages">
+                          ({{job.nb_unindexed_pages}} not indexed yet)
+                        </div>
+                      </div>
+                    </div>
+
+                  </md-grid-tile>
+                </md-grid-list>
+              </div>
+            </md-tab>
+            <md-tab label="all crawl jobs">
+              TODO
+            </md-tab>
+          </md-tabs>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<!--     <div class="container-fluid">
       <div class="row no-gutter" ng-include="'partials/topbar.html'">
       </div>
       <div class="row no-gutter">
@@ -27,3 +160,4 @@
         </div>
       </div>
     </div>
+ -->

@@ -292,13 +292,12 @@ angular.module('hyphe.directives', [])
       restrict: 'A'
       ,templateUrl: 'partials/waterloader.html'
       ,scope: {
-        
+        message: '=',
+        messageOnly: '=',
+        cog: '='
       }
       ,link: function(scope, el, attrs) {
-        scope.waterLoaderMessage = attrs.waterLoader || ''
-        scope.messageOnly = (attrs.wlMessageOnly == 'true')
-        scope.textDanger = (attrs.wlTextDanger == 'true')
-        scope.cog = (attrs.wlCog == 'true')
+
       }
     }
   }])

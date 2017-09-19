@@ -39,10 +39,10 @@ a {
 }
 .pointable-grid-tile {
   cursor: pointer;
-  opacity: 0.8;
+  opacity: 1.0;
 }
 .pointable-grid-tile:hover {
-  opacity: 1.0;
+  opacity: 0.8;
 }
 .hint {
   /* Position the hint */
@@ -1034,6 +1034,29 @@ textarea.over-error{
 /* ==========================================================================
    View: Monitor Crawls
    ========================================================================== */
+.crawl-tile-overlay {
+  position: absolute;
+  overflow: hidden;
+}
+.crawl-tile-overlay p{
+  white-space: nowrap;
+  margin: 0px;
+}
+.crawl-tile-overlay .title{
+  font-family: 'Roboto', sans-serif;
+  font-weight:400;
+}
+.crawl-tile-overlay .subtitle{
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.9em;
+  font-weight: 300;
+}
+.crawl-tile-overlay .stats{
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.9em;
+  font-weight: 300;
+}
+
 /*.crawljob-cells-container{
   padding-top: 6px;
   margin-left: -21px;
@@ -1094,10 +1117,6 @@ textarea.over-error{
 }
 .crawljob-cell:hover .crawljob-cell-content{
   opacity:0.85;
-}
-.crawljob-cell p{
-  white-space: nowrap;
-  margin-bottom: 0px;
 }
 .crawljob-cell .crawljob-animation{
   position: absolute;
@@ -1470,7 +1489,9 @@ ul.startpages-report{
 }
 .water-loader .ball {
   position: absolute;
-  top: 50%; left: 50%; margin: -80px 0 0 -60px;
+  top: 50%;
+  left: 50%;
+  margin: -67px 0 0 -67px;
   width: 120px; height: 120px;
   padding: 6px;
   border-radius: 100%;
@@ -1492,15 +1513,13 @@ ul.startpages-report{
           animation-delay: 0.3s;
 }
 .water-loader-content {
-  margin-top: -68px;
+  margin-top: -74px;
   text-align: center;
   font-weight: 300;
   font-size: 20px;
 }
 .water-loader-content.message-lonely{
-  margin-top: -35px;
-  width: 200px;
-  margin-left: -100px;
+  margin-top: -12px;
 }
 @-webkit-keyframes wave-animation {
   0% {background-position: 0 bottom;}

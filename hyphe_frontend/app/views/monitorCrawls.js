@@ -5,12 +5,11 @@ angular.module('hyphe.monitorcrawlsController', [])
   .controller('monitorCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location', 'refreshScheduler', 'corpus'
   ,function($scope, api, store, utils, QueriesBatcher, $location, refreshScheduler, corpus){
     $scope.currentPage = 'monitorCrawls'
-    $scope.Page.setTitle('Crawls')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
     
-    $scope.crawlJobs
-    $scope.lastCrawlJobs
+    $scope.crawlJobs = []
+    $scope.lastCrawlJobs = []
     $scope.lastCrawlJobsMax = 48
     $scope.lastCrawlJobsSuppl = 0
     $scope.oldestTimestamp = Date.now()

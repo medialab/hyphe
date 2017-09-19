@@ -5,20 +5,20 @@
 	    <div class="wave">
 	    </div>
 	  </div>
-	  <div class="water-loader-content" ng-class="{{msgClassExpr}}">
-	  	{{waterLoaderMessage}}
+	  <div class="water-loader-content">
+	  	{{message}}
 		</div>
 
 	</div>
 
 	<div class="cog-container"  ng-if="!messageOnly && cog">
 		<img class="cog" src="img/cog.svg">
-		<div class="water-loader-content cog-message" ng-class="{{msgClassExpr}}">
-			{{waterLoaderMessage}}
+		<div class="water-loader-content cog-message" style="text-align: center">
+			{{message}}
 		</div>
 	</div>
 
-	<div class="water-loader-content message-lonely" ng-if="messageOnly" ng-class="{'text-danger':textDanger}">
-		{{waterLoaderMessage}}
+	<div class="water-loader-content message-lonely" ng-if="messageOnly">
+		{{message}}
 	</div>
 </div>
