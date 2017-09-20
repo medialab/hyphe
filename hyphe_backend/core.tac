@@ -2175,7 +2175,7 @@ class Memory_Structure(customJSONRPC):
 
     def jsonrpc_wordsearch_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, light=False, semilight=True, corpus=DEFAULT_CORPUS):
         """Same as `search_webentities` except that search is only matching exact full words, and that `allFieldsKeywords` query also search into tags values."""
-        return self.jsonrpc_search_webentities(allFieldsKeywords, fieldKeywords, sort, count, pages, light, semilight, corpus, True)
+        return self.jsonrpc_search_webentities(allFieldsKeywords, fieldKeywords, sort, count, page, light, semilight, corpus, True)
 
     @inlineCallbacks
     def jsonrpc_get_webentities_by_status(self, status, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
