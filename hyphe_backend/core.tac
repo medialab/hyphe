@@ -2282,7 +2282,7 @@ class Memory_Structure(customJSONRPC):
                 query["$or"].append({"tags.USER.%s" % cat: {"$exists": False}})
         else:
             query["tags.USER"] = {"$exists": False}
-        WEs = yield sef.db.get_WEs(corpus, query)
+        WEs = yield self.db.get_WEs(corpus, query)
         res = yield self.paginate_webentities(WEs, count=count, page=page, sort=sort, corpus=corpus)
         returnD(res)
 
