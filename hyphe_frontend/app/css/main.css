@@ -1521,7 +1521,6 @@ ul.startpages-report{
   width: 120px; height: 120px;
   padding: 6px;
   border-radius: 100%;
-  /*box-shadow: inset 0 0 20px -5px #fff, inset 0 -40px 40px -20px #fff;*/
   border: 1px solid #FFF;
 }
 .water-loader .wave {
@@ -1567,7 +1566,7 @@ ul.startpages-report{
 /* cog */
 .water-loader .cog-container {
   position: absolute;
-  top: 50%; left: 50%; margin: -86px 0 0 -60px;
+  top: 50%; left: 50%; margin: -72px 0 0 -60px;
   width: 120px; height: 120px;
 }
 .water-loader .cog{
