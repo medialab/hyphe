@@ -2402,6 +2402,8 @@ class Memory_Structure(customJSONRPC):
 
     def jsonrpc_get_tags(self, namespace=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a tree of all existing tags of the webentities hierarchised by namespaces and categories. Optionally limits to a specific `namespace`."""
+        if not self.parent.corpus_ready(corpus):
+            return self.parent.corpus_error(corpus)
         namespace = self._cleanupTagsKey(namespace)
         tags = self.corpora[corpus]['tags']
         if namespace:
@@ -2412,10 +2414,14 @@ class Memory_Structure(customJSONRPC):
 
     def jsonrpc_get_tag_namespaces(self, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a list of all existing namespaces of the webentities tags."""
+        if not self.parent.corpus_ready(corpus):
+            return self.parent.corpus_error(corpus)
         return format_result(self.corpora[corpus]['tags'].keys())
 
     def jsonrpc_get_tag_categories(self, namespace=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a list of all existing categories of the webentities tags. Optionally limits to a specific `namespace`."""
+        if not self.parent.corpus_ready(corpus):
+            return self.parent.corpus_error(corpus)
         namespace = self._cleanupTagsKey(namespace)
         tags = self.corpora[corpus]['tags']
         categories = set()
@@ -2430,6 +2436,8 @@ class Memory_Structure(customJSONRPC):
 
     def jsonrpc_get_tag_values(self, namespace=None, category=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a list of all existing values in the webentities tags. Optionally limits to a specific `namespace` and/or `category`."""
+        if not self.parent.corpus_ready(corpus):
+            return self.parent.corpus_error(corpus)
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
         tags = self.corpora[corpus]['tags']
