@@ -424,7 +424,7 @@ angular.module('hyphe.monitorcrawlsController', [])
         this.numItems = 0;
 
         /** @const {number} Number of items to fetch per request. */
-        this.PAGE_SIZE = 50;
+        this.PAGE_SIZE = 20;
 
         this.fetchNumItems_();
       };
@@ -432,12 +432,12 @@ angular.module('hyphe.monitorcrawlsController', [])
       // Required.
       DynamicCrawlJobs.prototype.getItemAtIndex = function(index) {
         var pageNumber = Math.floor(index / this.PAGE_SIZE);
-        var page = this.loadedPages[pageNumber];
+        var page = this.loadedPages[pageNumber]
 
         if (page) {
-          return page[index % this.PAGE_SIZE];
+          return page[index % this.PAGE_SIZE]
         } else if (page !== null) {
-          this.fetchPage_(pageNumber);
+          this.fetchPage_(pageNumber)
         }
       };
 
@@ -458,11 +458,14 @@ angular.module('hyphe.monitorcrawlsController', [])
 
         // We can immediately answer with the crawl jobs, since the
         // webentity names will be updated asynchronously later.
-        this.loadedPages[pageNumber] = []
-        var pageOffset = pageNumber * this.PAGE_SIZE
-        for (var i = pageOffset; i < pageOffset + this.PAGE_SIZE; i++) {
-          this.loadedPages[pageNumber].push($scope.crawlJobs[i])
-        }
+        var self = this
+        $timeout(function(){
+          self.loadedPages[pageNumber] = []
+          var pageOffset = pageNumber * self.PAGE_SIZE
+          for (var i = pageOffset; i < pageOffset + self.PAGE_SIZE; i++) {
+            self.loadedPages[pageNumber].push($scope.crawlJobs[i])
+          }
+        })
       }
 
       DynamicCrawlJobs.prototype.fetchNumItems_ = function() {
