@@ -20,12 +20,12 @@
               Monitor and manage <span hyphe-glossary="crawl jobs"></span>. For a new <span hyphe-glossary="crawl"></span>, use the <a href="#/project/{{corpusId}}/importurls">IMPORT</a> page.
             </span>
           </div>
-          <md-tabs md-border-bottom flex>
+          <md-tabs md-border-bottom flex md-selected="selectedTab">
             <md-tab label="last crawl jobs">
               
               <!-- Loading -->
               <div ng-if="!listLoaded" layout-fill layout="column" layout-align="center center">
-                <spinner class="center" text="LOADING"/>
+                <spinner class="center" text="''"/>
               </div>
 
               <!-- Loaded but empty -->
@@ -45,7 +45,7 @@
                   md-row-height="1:1"
                 >
                   <md-grid-tile
-                    ng-repeat="job in lastCrawlJobs track by $index"
+                    ng-repeat="job in lastCrawlJobs|limitTo:30 track by $index"
                     ng-click="displayDetails(job, $event)"
                     class="pointable-grid-tile"
                   >
@@ -121,7 +121,87 @@
               </div>
             </md-tab>
             <md-tab label="all crawl jobs">
-              TODO
+
+              <!-- Loading -->
+              <div ng-if="!dynamicCrawlJobs" layout-fill layout="column" layout-align="center center">
+                <spinner class="center" text="''"/>
+              </div>
+
+              <!-- List of all crawls -->
+              <div
+                ng-if="dynamicCrawlJobs"
+                layout-fill
+                layout="column"
+              >
+                <div flex>
+                  <md-virtual-repeat-container layout-fill ng-if="dynamicCrawlJobs">
+                    <md-list>
+                      <md-subheader class="md-primary" style="height: 48px">
+                        <div layout="row">
+                          <div flex>
+                            WEB ENTITY NAME
+                          </div>
+                          <div class="md-secondary crawljobs-col-dept">
+                            <span><md-tooltip md-direction="top">Depth</md-tooltip>D</span>
+                          </div>
+                          <div class="md-secondary crawljobs-col-stat">Status</div>
+                          <div class="md-secondary crawljobs-col-inde">
+                            <span><md-tooltip md-direction="top">Pages indexed</md-tooltip>PI</span>
+                          </div>
+                          <div class="md-secondary crawljobs-col-craw">
+                            <span><md-tooltip md-direction="top">Pages Crawled</md-tooltip>PC</span>
+                          </div>
+                          <div class="md-secondary crawljobs-col-disp">
+                            <span><md-tooltip md-direction="top">Discovered Pages</md-tooltip><md-icon style="font-size: 1.5em;">description</md-icon></span>
+                          </div>
+                          <div class="md-secondary crawljobs-col-disl">
+                            <span><md-tooltip md-direction="top">Discovered Links</md-tooltip><md-icon style="font-size: 1.5em;">link</md-icon></span>
+                          </div>
+                          <div class="md-secondary crawljobs-col-sche">SCHEDULED</div> 
+                          <div class="md-secondary crawljobs-col-dura">DURATION</div>
+                        </div>
+                      </md-subheader>
+                      <md-list-item
+                        md-virtual-repeat="job in dynamicCrawlJobs"
+                        md-item-size="48"
+                        md-on-demand
+                        class="crawljob-list-item"
+                        ng-click="displayDetails(job)"
+                        flex
+                        md-colors="{
+                          'background': (job.globalStatus == 'CRASHED' || job.globalStatus == 'UNSUCCESSFUL')
+                            ? ('default-warn-200')
+                            : (
+                              (job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING')
+                              ? ('default-primary-500')
+                              : (
+                                (job.globalStatus == 'ACHIEVED')
+                                ? ('default-background-200')
+                                : (
+                                  (job.globalStatus == 'RETRIED')
+                                  ? ('default-primary-200')
+                                  : ('default-background-100')
+                                )
+                              )
+                            )
+                        }"
+                      >
+                        <span md-truncate flex>
+                          {{job.webentity_name || 'Web Entity Loading'}}
+                        </span>
+                        <div class="md-secondary crawljobs-col-dept">{{job.crawl_arguments.max_depth}}</div>
+                        <div class="md-secondary crawljobs-col-stat">{{job.globalStatus}}</div>
+                        <div class="md-secondary crawljobs-col-inde">{{job.nb_crawled_pages - job.nb_unindexed_pages}}</div>
+                        <div class="md-secondary crawljobs-col-craw">{{job.nb_crawled_pages}}</div>
+                        <div class="md-secondary crawljobs-col-disp">{{job.nb_pages}}</div>
+                        <div class="md-secondary crawljobs-col-disl">{{job.nb_links}}</div>
+                        <div class="md-secondary crawljobs-col-sche"><span><md-tooltip md-direction="left">{{job.created_at|date}}</md-tooltip>{{job.created_at|prettyDate}}</span></div> 
+                        <div class="md-secondary crawljobs-col-dura"><div ng-if="job.finished_at - job.created_at > 0">{{(job.finished_at - job.scheduled_at)|duration}}</div></div>
+                      </md-list-item>
+                    </md-list>
+                  </md-virtual-repeat-container>
+                </div>
+              </div>
             </md-tab>
           </md-tabs>
 
@@ -131,33 +211,3 @@
     </div>
   </div>
 </div>
-<!--     <div class="container-fluid">
-      <div class="row no-gutter" ng-include="'partials/topbar.html'">
-      </div>
-      <div class="row no-gutter">
-        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
-        </div>
-        <div class="col-lg-10 col-md-9 col-sm-8">
-          <div class="container-fluid main">
-            
-            <div class="row">
-              <div class="col-md-12">
-                <h1>
-                  MONITOR CRAWLS
-                </h1>
-              </div>
-            </div>
-
-            <tabset>
-              <tab heading="Last Hour" active="tabs['hour']" ng-click="setTimespan('hour')"><div ng-include="'partials/monitorCrawls_last.html'"></div></tab>
-              <tab heading="Today" active="tabs['day']" ng-click="setTimespan('day')" active="true"><div ng-include="'partials/monitorCrawls_last.html'"></div></tab>
-              <tab heading="This Week" active="tabs['week']" ng-click="setTimespan('week')"><div ng-include="'partials/monitorCrawls_last.html'"></div></tab>
-              <tab heading="All Crawls" active="tabs['all']" ng-click="setTimespan('all')"><div ng-include="'partials/monitorCrawls_all.html'"></div></tab>
-              <tab heading="Details" active="showDetails" ng-if="showDetails"><div class="crawljob-details" ng-include="'partials/monitorCrawl_details.html'"></div></tab>
-            </tabset>
-
-          </div>
-        </div>
-      </div>
-    </div>
- -->

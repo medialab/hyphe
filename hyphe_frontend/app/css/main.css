@@ -1056,7 +1056,33 @@ textarea.over-error{
   font-size: 0.9em;
   font-weight: 300;
 }
-
+.crawljobs-col-dept {
+  padding: 0px 8px 0px 8px;
+  font-size: 0.8em;
+  width: 20px;
+  text-align: right;
+}
+.crawljobs-col-stat {
+  padding: 0px 8px 0px 8px;
+  font-size: 0.8em;
+  width: 80px;
+}
+.crawljobs-col-inde, .crawljobs-col-craw, .crawljobs-col-disp, .crawljobs-col-disl {
+  padding: 0px 8px 0px 8px;
+  font-size: 0.8em;
+  width: 36px;
+  text-align: right;
+}
+.crawljobs-col-sche {
+  padding: 0px 8px 0px 8px;
+  font-size: 0.8em;
+  width: 100px;
+}
+.crawljobs-col-dura {
+  padding: 0px 8px 0px 8px;
+  font-size: 0.8em;
+  width: 80px;
+}
 /*.crawljob-cells-container{
   padding-top: 6px;
   margin-left: -21px;

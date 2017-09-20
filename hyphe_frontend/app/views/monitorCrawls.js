@@ -2,21 +2,34 @@
 
 angular.module('hyphe.monitorcrawlsController', [])
 
-  .controller('monitorCrawls', ['$scope', 'api', 'store', 'utils', 'QueriesBatcher', '$location', 'refreshScheduler', 'corpus'
-  ,function($scope, api, store, utils, QueriesBatcher, $location, refreshScheduler, corpus){
+  .controller('monitorCrawls', 
+  function(
+    $scope,
+    api,
+    store,
+    utils,
+    QueriesBatcher,
+    $location,
+    refreshScheduler,
+    corpus,
+    $timeout
+  ){
     $scope.currentPage = 'monitorCrawls'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+
+    $scope.selectedTab = 0
     
     $scope.crawlJobs = []
     $scope.lastCrawlJobs = []
+    $scope.dynamicCrawlJobs // Virtual repeat
     
     $scope.showDetails
 
     $scope.webentityIndex = {}
 
     $scope.listLoaded = false
-    $scope.status = {message: 'Loading', progress:30}
+    $scope.status = {message: 'Loading'}
 
     /*$scope.pageChanged = function(){
       // console.log('Nous sommes sur la page '+$scope.paginationPage)
@@ -91,17 +104,28 @@ angular.module('hyphe.monitorcrawlsController', [])
       }
     }
 
+    // Load full list of crawl jobs when necessary
+    $scope.$watch('selectedTab', function(){
+      // Explanation: unless the user has clicked on tab 1 (all crawls)
+      // we do not load the full list. Note that $scope.crawlJobs is
+      // supposed to be populated with the lastCrawlJobs, but that does
+      // not mean that we have everything.
+      // So we first get the full list (the function updates $scope.crawlJobs)
+      // then we build $scope.dynamicCrawlJobs, which is necessary to
+      // the virtual repeat.
+      // Why using some lazy loading if we have the full list ?
+      // Because we have to ask for the names of the web entities...
+      if ($scope.selectedTab == 1) {
+        updateAllCrawlJobs(function(){
+          $scope.dynamicCrawlJobs = getDynamicCrawlJobs() // Virtual repeat
+        })
+      }
+    })
+
     // Initialization
-    // $scope.setTimespan($scope.timespan)
-    init()
+    updateLastCrawlJobs()
 
     /// Functions
-    function init() {
-      updateLastCrawlJobs()
-      // scheduleRefresh()
-      // feedBackMainList() // Pass on possible up-to-date data to the common data pool
-      // updateLastCrawlJobs()
-    }
 
     // Loop to refresh crawl jobs
     function scheduleRefresh(){
@@ -117,13 +141,21 @@ angular.module('hyphe.monitorcrawlsController', [])
       
     }
 
-    function loadRequiredWebentities(){
+    function loadRequiredWebentities(minIndex, maxIndex){
+
+      minIndex = minIndex || 0 // Inclusive
+      maxIndex = maxIndex || $scope.crawlJobs.length // Exclusive
 
       var webentityId_list = $scope.crawlJobs
         
         // Find web entities in the list of crawl jobs
         .map(function(job){
             return job.webentity_id
+          })
+
+        // Filter by index
+        .filter(function(job, i){
+            return i >= minIndex && i < maxIndex
           })
 
         // Get those that are not indexed
@@ -156,12 +188,13 @@ angular.module('hyphe.monitorcrawlsController', [])
       })
     }
 
-    function updateAllCrawlJobs(){
+    function updateAllCrawlJobs(callback){
       var from = 0
       var to = null
       updateCrawlJobs(from, to, function(consolidatedCrawlJobs){
         $scope.crawlJobs = consolidatedCrawlJobs
         loadRequiredWebentities()
+        callback()
       })
     }
 
@@ -374,4 +407,69 @@ angular.module('hyphe.monitorcrawlsController', [])
         })
       loadRequiredWebentities()
     }*/
-  }])
+
+    function getDynamicCrawlJobs() {
+      
+      // Here, we set up our model using a class.
+      // Using a plain object would work too. All that matters
+      // is that we implement getItemAtIndex and getLength.
+      
+      var DynamicCrawlJobs = function() {
+        /**
+         * @type {!Object<?Array>} Data pages, keyed by page number (0-index).
+         */
+        this.loadedPages = {};
+
+        /** @type {number} Total number of items. */
+        this.numItems = 0;
+
+        /** @const {number} Number of items to fetch per request. */
+        this.PAGE_SIZE = 50;
+
+        this.fetchNumItems_();
+      };
+
+      // Required.
+      DynamicCrawlJobs.prototype.getItemAtIndex = function(index) {
+        var pageNumber = Math.floor(index / this.PAGE_SIZE);
+        var page = this.loadedPages[pageNumber];
+
+        if (page) {
+          return page[index % this.PAGE_SIZE];
+        } else if (page !== null) {
+          this.fetchPage_(pageNumber);
+        }
+      };
+
+      // Required.
+      DynamicCrawlJobs.prototype.getLength = function() {
+        return this.numItems
+      }
+
+      DynamicCrawlJobs.prototype.fetchPage_ = function(pageNumber) {
+        // Set the page to null so we know it is already being fetched.
+        this.loadedPages[pageNumber] = null;
+
+        // We search for the crawl jobs in the concerned range whose
+        // web entities are not known already
+        var minIndex = Math.max(0, Math.min(this.PAGE_SIZE * pageNumber, $scope.crawlJobs.length - 1))
+        var maxIndex = Math.max(0, Math.min(this.PAGE_SIZE * (pageNumber+1), $scope.crawlJobs.length))
+        loadRequiredWebentities(minIndex, maxIndex)
+
+        // We can immediately answer with the crawl jobs, since the
+        // webentity names will be updated asynchronously later.
+        this.loadedPages[pageNumber] = []
+        var pageOffset = pageNumber * this.PAGE_SIZE
+        for (var i = pageOffset; i < pageOffset + this.PAGE_SIZE; i++) {
+          this.loadedPages[pageNumber].push($scope.crawlJobs[i])
+        }
+      }
+
+      DynamicCrawlJobs.prototype.fetchNumItems_ = function() {
+        this.numItems = $scope.crawlJobs.length
+      }
+      
+      return new DynamicCrawlJobs()
+    }
+
+  })
