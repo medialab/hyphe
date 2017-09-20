@@ -673,13 +673,13 @@ angular.module('hyphe.service_hyphe_api', [])
                 // Corpus shut down
                 $location.path('/')
               } else {
-                console.log('[Error: unexpected]', response.data)
+                console.error('[Error: API call: unexpected response] Response:', response.data)
                 errorCallback(response.data, response.status, response.headers, response.config)
               }
             }
           // Error
           }, function(response){
-            console.log('[Error: fail]', response.data)
+            console.error('[Error: API call fail] Response:', response.data)
             errorCallback(response.data, response.status, response.headers, response.config)
           }
         )
