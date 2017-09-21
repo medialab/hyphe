@@ -260,6 +260,11 @@ angular.module('hyphe.listwebentitiesController', [])
       }
     }
 
+    // Resize subheader
+    window.onresize = function(event) {
+      syncSubheaderWidth()
+    }
+
 
     // Functions
 
@@ -322,6 +327,12 @@ angular.module('hyphe.listwebentitiesController', [])
 
     function refreshEasterEgg(){
       $scope.randomEasterEgg = Math.floor(Math.random()*5)
+    }
+
+    function syncSubheaderWidth() {
+      if (document.querySelector('.follow-md-virtual-repeat-width') && document.querySelector('.md-virtual-repeat-offsetter')) {
+        document.querySelector('.follow-md-virtual-repeat-width').style.width = document.querySelector('.md-virtual-repeat-offsetter').offsetWidth + 'px'
+      }
     }
 
     /// Dynamic list
@@ -421,11 +432,13 @@ angular.module('hyphe.listwebentitiesController', [])
             $scope.status = {}
             $scope.loading = false
             self.loading = false
+            $timeout(syncSubheaderWidth)
           }
           ,function(){
             $scope.status = {message: 'Error loading web entities', background: 'danger'}
             $scope.loading = false
             self.loading = false
+            $timeout(syncSubheaderWidth)
           }
         )
       }
@@ -437,8 +450,6 @@ angular.module('hyphe.listwebentitiesController', [])
       this.querySettings = querySettings
       this.searchToken = undefined
       this.fetchPage_(0)
-
-      
     }
 
     $scope.dynamicWebentities = new DynamicWebentities()

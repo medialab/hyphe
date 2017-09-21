@@ -118,74 +118,106 @@
                 </div>
                 
                 <!-- Loaded with results -->
-                </md-virtual-repeat-container>
-                <md-virtual-repeat-container layout-fill ng-if="dynamicWebentities && dynamicWebentities.numItems>0">
-                  <md-list>
-                    <md-list-item
-                      md-virtual-repeat="obj in dynamicWebentities"
-                      md-item-size="48"
-                      md-on-demand
-                      class="crawljob-list-item"
-                      md-colors="{
-                        'background': obj.selected ? 'default-accent-100' : 'default-background-100'
-                      }"
-                      flex
-                    >
-                      <md-checkbox ng-model="obj.selected" ng-disabled="!obj.webentity"></md-checkbox>
-                      <p flex layout="row">
-                        <a
-                          ng-show="obj.webentity.homepage"
-                          href="{{obj.webentity.homepage}}"
-                          target="_blank"
-                          ng-click="$event.stopPropagation();"
-                          style="margin-right:2px"
-                        >
-                          <md-tooltip md-direction="left">{{obj.webentity.homepage}}</md-tooltip>
-                          <md-icon>link</md-icon>
-                        </a>
-                        <span md-truncate flex>
-                          {{obj.webentity.name || 'Loading'}}
-                        </span>
-                      </p>
+                <div layout-fill layout="column" ng-if="dynamicWebentities && dynamicWebentities.numItems>0">
+                  <md-subheader class="md-primary follow-md-virtual-repeat-width" style="height: 48px">
+                    <div layout="row" style="padding-left: 52px; padding-right: 24px;">
+                      <div flex layout="row">
+                        WEB ENTITY NAME
+                      </div>
                       <div
                         class="welist-col-status"
-                        md-truncate
-                        ng-class="{
-                          'webentity-color-in':obj.webentity.status == 'IN',
-                          'webentity-color-undecided':obj.webentity.status == 'UNDECIDED',
-                          'webentity-color-out':obj.webentity.status == 'OUT',
-                          'webentity-color-discovered':obj.webentity.status == 'DISCOVERED'
-                        }"
                       >
-                        {{obj.webentity.status}}
+                        STATUS
                       </div>
                       <div
                         class="welist-col-last-crawled"
                         hide show-gt-sm
                       >
-                        <md-icon ng-show="obj.webentity.crawled">
-                          <md-tooltip md-direction="right">Has been crawled</md-tooltip>
-                          check
-                        </md-icon>
+                        CRA
                       </div>
                       <div
                         class="welist-col-cited"
                       >
-                        {{obj.webentity.indegree}}
+                        CITED
                       </div>
                       <div
                         class="welist-col-last-modif"
                         hide show-gt-md
                       >
-                        <span md-truncate>
-                          <md-tooltip md-direction="right">{{obj.webentity.last_modification_date|date}}</md-tooltip>
-                          {{obj.webentity.last_modification_date|prettyDate}}
-                        </span>
+                        LAST MODIF
                       </div>
-                      <webentity-link class="md-secondary" corpus-id="corpusId" webentity-id="obj.webentity.id"></webentity-link>
-                    </md-list-item>
-                  </md-list>
-                </md-virtual-repeat-container>
+                    </div>
+                  </md-subheader>
+                  <div flex>
+                    <md-virtual-repeat-container layout-fill>
+                      <md-list>
+                        <md-list-item
+                          md-virtual-repeat="obj in dynamicWebentities"
+                          md-item-size="48"
+                          md-on-demand
+                          class="crawljob-list-item"
+                          md-colors="{
+                            'background': obj.selected ? 'default-accent-100' : 'default-background-100'
+                          }"
+                          flex
+                        >
+                          <md-checkbox ng-model="obj.selected" ng-disabled="!obj.webentity"></md-checkbox>
+                          <p flex layout="row">
+                            <a
+                              ng-show="obj.webentity.homepage"
+                              href="{{obj.webentity.homepage}}"
+                              target="_blank"
+                              ng-click="$event.stopPropagation();"
+                              style="margin-right:2px"
+                            >
+                              <md-tooltip md-direction="left">{{obj.webentity.homepage}}</md-tooltip>
+                              <md-icon>link</md-icon>
+                            </a>
+                            <span md-truncate flex>
+                              {{obj.webentity.name || 'Loading'}}
+                            </span>
+                          </p>
+                          <div
+                            class="welist-col-status"
+                            md-truncate
+                            ng-class="{
+                              'webentity-color-in':obj.webentity.status == 'IN',
+                              'webentity-color-undecided':obj.webentity.status == 'UNDECIDED',
+                              'webentity-color-out':obj.webentity.status == 'OUT',
+                              'webentity-color-discovered':obj.webentity.status == 'DISCOVERED'
+                            }"
+                          >
+                            {{obj.webentity.status}}
+                          </div>
+                          <div
+                            class="welist-col-last-crawled"
+                            hide show-gt-sm
+                          >
+                            <md-icon ng-show="obj.webentity.crawled">
+                              <md-tooltip md-direction="right">Has been crawled</md-tooltip>
+                              check
+                            </md-icon>
+                          </div>
+                          <div
+                            class="welist-col-cited"
+                          >
+                            {{obj.webentity.indegree}}
+                          </div>
+                          <div
+                            class="welist-col-last-modif"
+                            hide show-gt-md
+                          >
+                            <span md-truncate>
+                              <md-tooltip md-direction="right">{{obj.webentity.last_modification_date|date}}</md-tooltip>
+                              {{obj.webentity.last_modification_date|prettyDate}}
+                            </span>
+                          </div>
+                          <webentity-link class="md-secondary" corpus-id="corpusId" webentity-id="obj.webentity.id"></webentity-link>
+                        </md-list-item>
+                      </md-list>
+                    </md-virtual-repeat-container>
+                  </div>
+                </div>
               </div>
             </div>
 
