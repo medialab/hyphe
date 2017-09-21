@@ -102,7 +102,7 @@
                           Finished in {{job.finished_at - job.created_at|duration}}
                         </p>
                         <p class="subtitle" ng-if="job.crawl_arguments.phantom">
-                          <span class="glyphicon glyphicon-bell"></span> Cautious crawl
+                          <md-icon>find_in_page</md-icon> Cautious crawl
                         </p>
                         <p class="subtitle">
                           Depth {{job.crawl_arguments.max_depth}}
@@ -217,35 +217,66 @@
               </div>
 
               <!-- Details -->
-              <md-content ng-if="crawljobsIndex[focusedJobId].webentity_name">
+              <md-content
+                style="padding: 16px"
+                ng-if="crawljobsIndex[focusedJobId].webentity_name"
+                layout="column"
+                md-colors="{
+                  'background': (crawljobsIndex[focusedJobId].globalStatus == 'CRASHED' || crawljobsIndex[focusedJobId].globalStatus == 'UNSUCCESSFUL')
+                    ? ('default-warn-200')
+                    : (
+                      (crawljobsIndex[focusedJobId].globalStatus == 'CRAWLING' || crawljobsIndex[focusedJobId].globalStatus == 'INDEXING' || crawljobsIndex[focusedJobId].globalStatus == 'WAITING')
+                      ? ('default-primary-500')
+                      : (
+                        (crawljobsIndex[focusedJobId].globalStatus == 'ACHIEVED')
+                        ? ('default-background-200')
+                        : (
+                          (crawljobsIndex[focusedJobId].globalStatus == 'RETRIED')
+                          ? ('default-primary-200')
+                          : ('default-background-100')
+                        )
+                      )
+                    )
+                }"
+              >
                 <h2>
                   {{crawljobsIndex[focusedJobId].webentity_name || 'Web Entity Loading'}} - <span class="text-muted" tooltip="{{crawljobsIndex[focusedJobId].created_at|date}}">{{crawljobsIndex[focusedJobId].created_at|prettyDate}}</span>
                 </h2>
 
-                <br>
+                <div layout="row">
+                  <md-button
+                    ng-if="crawljobsIndex[focusedJobId].crawling_status == 'RUNNING' || crawljobsIndex[focusedJobId].crawling_status == 'PENDING'"
+                    class="md-raised md-warn"
+                    ng-click="abortCrawl(crawljobsIndex[focusedJobId])"
+                  >
+                    <md-icon>clear</md-icon>
+                    ABORT CRAWL
+                    <md-tooltip>Stop harvesting and indexing pages for this webentity</md-tooltip>
+                  </md-button>
 
-                <button
-                  ng-if="crawljobsIndex[focusedJobId].crawling_status == 'RUNNING' || crawljobsIndex[focusedJobId].crawling_status == 'PENDING'"
-                  class="btn btn-danger"
-                  ng-click="abortCrawl(crawljobsIndex[focusedJobId])"
-                  title="Stop harvesting and indexing pages for this webentity"
-                ><span class="glyphicon glyphicon-trash"></span> ABORT CRAWL</button>
+                  <md-button
+                    ng-if="crawljobsIndex[focusedJobId].crawling_status == 'FINISHED' && crawljobsIndex[focusedJobId].indexing_status != 'FINISHED'"
+                    class="md-raised md-warn"
+                    ng-click="abortCrawl(crawljobsIndex[focusedJobId])"
+                  >
+                    <md-icon>clear</md-icon>
+                    ABORT INDEXING
+                    <md-tooltip>Stop indexing pages that were harvested but not indexed yet</md-tooltip>
+                  </md-button>
 
-                <button
-                  ng-if="crawljobsIndex[focusedJobId].crawling_status == 'FINISHED' && crawljobsIndex[focusedJobId].indexing_status != 'FINISHED'"
-                  class="btn btn-danger"
-                  ng-click="abortCrawl(crawljobsIndex[focusedJobId])"
-                  title="Stop indexing pages that were harvested but not indexed yet"
-                ><span class="glyphicon glyphicon-trash"></span> ABORT INDEXATION</button>
+                  <md-button
+                    ng-if="crawljobsIndex[focusedJobId].crawling_status == 'CANCELED' || crawljobsIndex[focusedJobId].indexing_status == 'FINISHED' || crawljobsIndex[focusedJobId].indexing_status == 'CANCELED'"
+                    class="md-raised "
+                    ng-click="reCrawl(crawljobsIndex[focusedJobId])"
+                  >
+                    <md-icon>replay</md-icon>
+                    RECRAWL
+                    <md-tooltip>Launch an identical crawl job</md-tooltip>
+                  </md-button>
+                </div>
 
-                <button
-                  ng-if="crawljobsIndex[focusedJobId].crawling_status == 'CANCELED' || crawljobsIndex[focusedJobId].indexing_status == 'FINISHED' || crawljobsIndex[focusedJobId].indexing_status == 'CANCELED'"
-                  class="btn btn-default"
-                  ng-click="reCrawl(crawljobsIndex[focusedJobId])"
-                ><span class="glyphicon glyphicon-repeat"></span> RECRAWL</button>
-
-                <h3>IDENTITY</h3>
-                <dl class="dl-horizontal">
+                <h3 style="margin-bottom:0px">IDENTITY</h3>
+                <dl class="key-value-pairs">
 
                   <dt>Project</dt>
                   <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.project}}</dd>
@@ -264,15 +295,15 @@
 
                 </dl>
 
-                <h3>SETTINGS</h3>
-                <dl class="dl-horizontal">
+                <h3 style="margin-bottom:0px">SETTINGS</h3>
+                <dl class="key-value-pairs">
 
                   <dt><span hyphe-glossary="Depth"/></dt>
                   <dd><span class="badge">{{crawljobsIndex[focusedJobId].crawl_arguments.max_depth}}</span></dd>
 
                   <dt><span hyphe-glossary="Cautious crawl"/></dt>
                   <dd ng-if="crawljobsIndex[focusedJobId].crawl_arguments.phantom">
-                    <span class="glyphicon glyphicon-bell"></span> YES
+                    <md-icon>find_in_page</md-icon> YES
                   </dd>
                   <dd ng-if="!crawljobsIndex[focusedJobId].crawl_arguments.phantom">
                     No
@@ -280,8 +311,8 @@
                   
                 </dl>
 
-                <h3>ACTIVITY</h3>
-                <dl class="dl-horizontal">
+                <h3 style="margin-bottom:0px">ACTIVITY</h3>
+                <dl class="key-value-pairs">
 
                   <dt>Status</dt>
                   <dd><span  ng-class="{
@@ -301,14 +332,14 @@
 
                 </dl>
 
-                <h3>CONTENT</h3>
-                <dl class="dl-horizontal">
+                <h3 style="margin-bottom:0px">CONTENT</h3>
+                <dl class="key-value-pairs">
 
                   <dt>Crawled pages</dt>
                   <dd>{{crawljobsIndex[focusedJobId].nb_crawled_pages}}</dd>
 
                   <div ng-if="crawljobsIndex[focusedJobId].nb_unindexed_pages">
-                  <dt>not indexed yet</dt>
+                    <dt>not indexed yet</dt>
                     <dd>{{crawljobsIndex[focusedJobId].nb_unindexed_pages}}</dd>
                   </div>
 
@@ -325,8 +356,8 @@
 
                 </dl>
 
-                <h3>DURATION</h3>
-                <dl class="dl-horizontal">
+                <h3 style="margin-bottom:0px">DURATION</h3>
+                <dl class="key-value-pairs">
                   <dt>Scheduled</dt>
                   <dd><span tooltip="{{crawljobsIndex[focusedJobId].created_at|date}}">{{crawljobsIndex[focusedJobId].created_at|prettyDate}}</span></dd>
 
@@ -350,30 +381,32 @@
 
                 </dl>
 
-                <h3><span hyphe-glossary="START PAGES"/></h3>
-                <ul>
-                  <li ng-repeat="url in crawljobsIndex[focusedJobId].crawl_arguments.start_urls">
-                    {{url}}
+                <h3 style="margin-bottom:0px"><span hyphe-glossary="START PAGES"/></h3>
+                <dl ng-if="crawljobsIndex[focusedJobId].crawl_arguments.start_urls.length" class="key-value-pairs">
+                  <dd ng-repeat="url in crawljobsIndex[focusedJobId].crawl_arguments.start_urls">
                     <a href="{{url}}" target="_blank" title="Open in a new tab">
-                      <span class="glyphicon glyphicon-share-alt"></span>
-                    </a>
-                  </li>
-                </ul>
+                      <md-icon>link</md-icon>
+                    </a>{{url}}
+                  </dd>
+                </dl>
+                <dl ng-if="!crawljobsIndex[focusedJobId].crawl_arguments.start_urls.length" class="key-value-pairs">
+                  <dd>None</dd>
+                </dl>
 
                 <div ng-if="crawljobsIndex[focusedJobId].crawl_arguments.phantom">
-                <h3>CAUTIOUS CRAWL SETTINGS</h3>
-                <dl class="dl-horizontal">
-                  <dt>Page Timeout</dt>
-                  <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_timeout}}</dd>
-                  <dt>Ajax queries Timeout</dt>
-                  <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_ajax_timeout}}</dd>
-                  <dt>Idle Timeout</dt>
-                  <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_idle_timeout}}</dd>
-                </dl>
+                  <h3 style="margin-bottom:0px">CAUTIOUS CRAWL SETTINGS</h3>
+                  <dl class="key-value-pairs">
+                    <dt>Page Timeout</dt>
+                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_timeout}}</dd>
+                    <dt>Ajax queries Timeout</dt>
+                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_ajax_timeout}}</dd>
+                    <dt>Idle Timeout</dt>
+                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_idle_timeout}}</dd>
+                  </dl>
                 </div>
 
-                <h3>DETAILED SETTINGS</h3>
-                <dl class="dl-horizontal">
+                <h3 style="margin-bottom:0px">DETAILED SETTINGS</h3>
+                <dl class="key-value-pairs">
 
                   <dt>User Agent</dt>
                   <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.user_agent}}</dd>
@@ -385,30 +418,32 @@
                   <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.setting}}</dd>
 
                   <dt>Follow Prefixes</dt>
-                  <dd>
-                    <ul class="list-unstyled">
-                      <li ng-repeat="lru in crawljobsIndex[focusedJobId].crawl_arguments.follow_prefixes">
-                        {{lru}}
-                      </li>
-                    </ul>
-                  </dd>
+                  <div ng-if="crawljobsIndex[focusedJobId].crawl_arguments.follow_prefixes.length">
+                    <dd ng-repeat="lru in crawljobsIndex[focusedJobId].crawl_arguments.follow_prefixes">
+                      {{lru}}
+                    </dd>
+                  </div>
+                  <div ng-if="!crawljobsIndex[focusedJobId].crawl_arguments.follow_prefixes.length">
+                    <dd>
+                      None
+                    </dd>
+                  </div>
 
                   <dt>No-Follow Prefixes</dt>
-                  <dd>
-                    <ul class="list-unstyled">
-                      <li ng-repeat="lru in crawljobsIndex[focusedJobId].crawl_arguments.nofollow_prefixes">
-                        {{lru}}
-                      </li>
-                    </ul>
-                  </dd>
+                  <div ng-if="crawljobsIndex[focusedJobId].crawl_arguments.nofollow_prefixes.length">
+                    <dd ng-repeat="lru in crawljobsIndex[focusedJobId].crawl_arguments.nofollow_prefixes">
+                      {{lru}}
+                    </dd>
+                  </div>
+                  <div ng-if="!crawljobsIndex[focusedJobId].crawl_arguments.nofollow_prefixes.length">
+                    <dd>
+                      None
+                    </dd>
+                  </div>
 
                   <dt>Discover Prefixes</dt>
-                  <dd>
-                    <ul class="list-unstyled">
-                      <li ng-repeat="url in crawljobsIndex[focusedJobId].crawl_arguments.discover_prefixes">
-                        {{url}}
-                      </li>
-                    </ul>
+                  <dd ng-repeat="url in crawljobsIndex[focusedJobId].crawl_arguments.discover_prefixes">
+                    {{url}}
                   </dd>
                   
                 </dl>

@@ -47,7 +47,6 @@ angular.module('hyphe.monitorcrawlsController', [])
         {id:job._id}
         ,function(){
           
-          $scope.setTimespan('day')
           $scope.status = {}
       
         }, function(){

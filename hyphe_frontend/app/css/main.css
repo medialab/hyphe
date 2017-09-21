@@ -15,6 +15,7 @@ body {
 }
 h1, h2, h3, h4, h5, h6{
   font-weight: 300;
+  font-size: 1.7em;
 }
 a {
   text-decoration: none;
@@ -63,7 +64,24 @@ a {
 .hint.ng-leave,
 .hint.ng-enter.ng-enter-active {
   top: 33px;
-  opacity: 1; }
+  opacity: 1;
+}
+dl.key-value-pairs {
+  margin-top: 0px;
+}
+dl.key-value-pairs dt {
+  font-weight: 600;
+  font-size: 0.8em;
+  margin-top: 16px;
+  padding-bottom: 2px;
+}
+dl.key-value-pairs dd {
+  background-color: rgba(255,255,255,0.3);
+  margin-left: 0;
+  padding: 4px;
+  font-family: "Courier New", Courier, monospace;
+}
+
 /*
 .label, .badge{
   font-family: 'Open Sans', sans-serif;
