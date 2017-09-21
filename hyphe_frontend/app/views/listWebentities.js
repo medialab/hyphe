@@ -5,7 +5,6 @@ angular.module('hyphe.listwebentitiesController', [])
   .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location', '$timeout', 'corpus'
   ,function($scope, api, utils, store, $location, $timeout, corpus) {
     $scope.currentPage = 'listWebentities'
-    $scope.Page.setTitle('List Web Entities')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
@@ -83,10 +82,10 @@ angular.module('hyphe.listwebentitiesController', [])
     function validatePagination(){
       var pglength = parseInt(($scope.paginationLength.trim().match(/^[1-9]\d*$/) || [])[0])
       if (pglength > 0 && pglength < 1000) {
-        $('.results-per-page input').removeClass('ng-invalid')
+        // $('.results-per-page input').removeClass('ng-invalid')
         return true
       }
-      $('.results-per-page input').addClass('ng-invalid')
+      // $('.results-per-page input').addClass('ng-invalid')
       return false
     }
 
