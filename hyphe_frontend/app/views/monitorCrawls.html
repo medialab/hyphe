@@ -141,34 +141,34 @@
                 layout-fill
                 layout="column"
               >
+                <md-subheader class="md-primary follow-md-virtual-repeat-width" style="height: 48px">
+                  <div layout="row">
+                    <div flex>
+                      WEB ENTITY NAME
+                    </div>
+                    <div class="md-secondary crawljobs-col-dept">
+                      <span><md-tooltip md-direction="top">Depth</md-tooltip>D</span>
+                    </div>
+                    <div class="md-secondary crawljobs-col-stat">Status</div>
+                    <div class="md-secondary crawljobs-col-inde">
+                      <span><md-tooltip md-direction="top">Pages indexed</md-tooltip>PI</span>
+                    </div>
+                    <div class="md-secondary crawljobs-col-craw">
+                      <span><md-tooltip md-direction="top">Pages Crawled</md-tooltip>PC</span>
+                    </div>
+                    <div class="md-secondary crawljobs-col-disp">
+                      <span><md-tooltip md-direction="top">Discovered Pages</md-tooltip><md-icon style="font-size: 1.5em;">description</md-icon></span>
+                    </div>
+                    <div class="md-secondary crawljobs-col-disl">
+                      <span><md-tooltip md-direction="top">Discovered Links</md-tooltip><md-icon style="font-size: 1.5em;">link</md-icon></span>
+                    </div>
+                    <div class="md-secondary crawljobs-col-sche">SCHEDULED</div> 
+                    <div class="md-secondary crawljobs-col-dura">DURATION</div>
+                  </div>
+                </md-subheader>
                 <div flex>
                   <md-virtual-repeat-container layout-fill ng-if="dynamicCrawlJobs">
                     <md-list>
-                      <md-subheader class="md-primary" style="height: 48px">
-                        <div layout="row">
-                          <div flex>
-                            WEB ENTITY NAME
-                          </div>
-                          <div class="md-secondary crawljobs-col-dept">
-                            <span><md-tooltip md-direction="top">Depth</md-tooltip>D</span>
-                          </div>
-                          <div class="md-secondary crawljobs-col-stat">Status</div>
-                          <div class="md-secondary crawljobs-col-inde">
-                            <span><md-tooltip md-direction="top">Pages indexed</md-tooltip>PI</span>
-                          </div>
-                          <div class="md-secondary crawljobs-col-craw">
-                            <span><md-tooltip md-direction="top">Pages Crawled</md-tooltip>PC</span>
-                          </div>
-                          <div class="md-secondary crawljobs-col-disp">
-                            <span><md-tooltip md-direction="top">Discovered Pages</md-tooltip><md-icon style="font-size: 1.5em;">description</md-icon></span>
-                          </div>
-                          <div class="md-secondary crawljobs-col-disl">
-                            <span><md-tooltip md-direction="top">Discovered Links</md-tooltip><md-icon style="font-size: 1.5em;">link</md-icon></span>
-                          </div>
-                          <div class="md-secondary crawljobs-col-sche">SCHEDULED</div> 
-                          <div class="md-secondary crawljobs-col-dura">DURATION</div>
-                        </div>
-                      </md-subheader>
                       <md-list-item
                         md-virtual-repeat="job in dynamicCrawlJobs"
                         md-item-size="48"

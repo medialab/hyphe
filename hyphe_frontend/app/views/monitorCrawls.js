@@ -87,6 +87,11 @@ angular.module('hyphe.monitorcrawlsController', [])
       }
     })
 
+    // Resize subheader
+    window.onresize = function(event) {
+      syncSubheaderWidth()
+    }
+
     // Initialization
     updateLastCrawlJobs()
     if ($location.search().id) {
@@ -94,7 +99,6 @@ angular.module('hyphe.monitorcrawlsController', [])
       updateSingleCrawlJobs($location.search().id)
       $scope.selectedTab = 2
     }
-
 
     /// Functions
 
@@ -308,6 +312,12 @@ angular.module('hyphe.monitorcrawlsController', [])
       }
     }
 
+    function syncSubheaderWidth() {
+      if (document.querySelector('.follow-md-virtual-repeat-width') && document.querySelector('.md-virtual-repeat-offsetter')) {
+        document.querySelector('.follow-md-virtual-repeat-width').style.width = document.querySelector('.md-virtual-repeat-offsetter').offsetWidth + 'px'
+      }
+    }
+
     function getDynamicCrawlJobs() {
       
       // Here, we set up our model using a class.
@@ -365,6 +375,7 @@ angular.module('hyphe.monitorcrawlsController', [])
           for (var i = pageOffset; i < pageOffset + self.PAGE_SIZE; i++) {
             self.loadedPages[pageNumber].push($scope.crawlJobs[i])
           }
+          syncSubheaderWidth()
         })
       }
 
