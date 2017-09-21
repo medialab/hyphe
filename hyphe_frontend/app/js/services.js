@@ -509,7 +509,7 @@ angular.module('hyphe.services', [])
     }
   }])
 
-  .factory('refreshScheduler', ['$route', function($route){
+  .factory('refreshScheduler', ['$route', '$timeout', function($route, $timeout){
     var ns = {}
 
     ns.msTimeout_min = 2000
@@ -523,16 +523,17 @@ angular.module('hyphe.services', [])
       ns.refreshToken++
 
       var thisToken = ns.refreshToken
+
+      if(slowdown){
+        ns.msTimeout = Math.min(ns.msTimeout_max, ns.msTimeout * 2)
+      } else {
+        ns.msTimeout = ns.msTimeout_min
+      }
       
-      setTimeout(function(){
+      $timeout(function(){
         if(thisToken == ns.refreshToken && $route.current.loadedTemplateUrl == "views/monitorCrawls.html"){
           
-          // If all achieved, we slow down
-          if(slowdown()){
-            ns.msTimeout = Math.min(ns.msTimeout_max, ns.msTimeout * 2)
-          } else {
-            ns.msTimeout = ns.msTimeout_min
-          }
+          
 
           callback()
         }

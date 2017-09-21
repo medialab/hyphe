@@ -63,6 +63,7 @@ angular.module('hyphe.monitorcrawlsController', [])
         store.set('webentities_toCrawl', [obj])
         store.set('webentity_old_crawljob', job)
         $location.path('/project/'+$scope.corpusId+'/prepareCrawls')
+        $location.search({})
       } else {
         $scope.status = {message:'No Web Entity to send', background:'danger'}
       }
@@ -100,13 +101,11 @@ angular.module('hyphe.monitorcrawlsController', [])
     // Loop to refresh crawl jobs
     function scheduleRefresh(){
       refreshScheduler.schedule(
-        function(){ // Slowdown Condition
-          return false
-          // TODO: set proper slowdown condition (below, the old conditions)
-          // return $scope.lastCrawlJobs.length == 0 || !$scope.lastCrawlJobs.some(function(job){return job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING' || job.globalStatus == 'PENDING'})
-        }
-        ,updateLastCrawlJobs // Callback
-        // ,refreshCrawlJobs // Callback
+        $scope.lastCrawlJobs.length == 0
+          || !$scope.lastCrawlJobs.some(function(job){
+            return job.globalStatus == 'CRAWLING' || job.globalStatus == 'INDEXING' || job.globalStatus == 'WAITING' || job.globalStatus == 'PENDING'
+          })
+        , updateLastCrawlJobs // Callback
       )
       
     }
@@ -166,7 +165,7 @@ angular.module('hyphe.monitorcrawlsController', [])
 
     function updateLastCrawlJobs(){
       var now = Date.now()
-      var timespanMs = one_week_in_ms
+      var timespanMs = 3 * one_day_in_ms
       var from = (now - timespanMs)
       var to = null
       updateCrawlJobs({from:from, to:to}, function(consolidatedCrawlJobs){
