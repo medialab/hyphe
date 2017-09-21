@@ -19,58 +19,23 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.corpusId = corpus.getId()
 
     $scope.selectedTab = 0
+    $scope.focusedJobId
     
     $scope.crawlJobs = []
+    $scope.crawljobsIndex = {}
     $scope.lastCrawlJobs = []
     $scope.dynamicCrawlJobs // Virtual repeat
     
-    $scope.showDetails
-
     $scope.webentityIndex = {}
 
     $scope.listLoaded = false
     $scope.status = {message: 'Loading'}
 
-    /*$scope.pageChanged = function(){
-      // console.log('Nous sommes sur la page '+$scope.paginationPage)
-      loadRequiredWebentities()
-    }*/
-
-   /* $scope.setTimespan = function(timespan){
-      if ($location.search().tab != timespan)
-        $location.search({'tab': timespan})
-      if ($location.search().id && timespan != 'details')
-        $location.search('id', undefined)
-      // Sync tabs
-      for(var tab in $scope.tabs){
-        $scope.tabs[tab] = tab == timespan
-      }
-
-      // Do the job
-      $scope.timespan = $location.search().tab || 'day'
-      $scope.showDetails = !!$location.search().id
-
-      $scope.msTimeout = $scope.msTimeout_min
-      scheduleRefresh()
-
-      // Pass on possible up-to-date data to the common data pool
-      feedBackMainList()
-      
-      updateLastCrawlJobs()
-    }*/
-
-    $scope.displayDetails = function(job){
-      if (!job)
-        return $location.search({'tab': 'all', 'id': undefined})
-      if (!$location.search().id)
-        $location.search({'tab': 'details', 'id': job._id})
-      $scope.showDetails = true
-      $scope.lastCrawlJobs = [job]
-
-      $scope.msTimeout = $scope.msTimeout_min
-      scheduleRefresh()
-      
-      // console.log('Details of the job',job)
+    $scope.focusOnJob = function(job){
+      if (!job || !job._id) return
+      $location.search({'id': job._id})
+      $scope.focusedJobId = job._id
+      $scope.selectedTab = 2
     }
 
     $scope.abortCrawl = function(job){
@@ -124,6 +89,12 @@ angular.module('hyphe.monitorcrawlsController', [])
 
     // Initialization
     updateLastCrawlJobs()
+    if ($location.search().id) {
+      $scope.focusedJobId = $location.search().id
+      updateSingleCrawlJobs($location.search().id)
+      $scope.selectedTab = 2
+    }
+
 
     /// Functions
 
@@ -175,14 +146,34 @@ angular.module('hyphe.monitorcrawlsController', [])
     var one_day_in_ms =  86400000    // =     24 * 60 * 60 * 1000
     var one_week_in_ms = 604800000   // = 7 * 24 * 60 * 60 * 1000
 
+    function updateSingleCrawlJobs(jobId){
+      updateCrawlJobs({id_list:[jobId]}, function(consolidatedCrawlJobs){
+        var updatedCrawljob = consolidatedCrawlJobs[0]
+        if (!updatedCrawljob) return
+        if (
+          !$scope.crawlJobs.some(function(job, i){
+            if (job._id == jobId) {
+              $scope.crawlJobs[i] = updatedCrawljob
+              return true
+            } else return false
+          })
+        ) {
+          $scope.crawlJobs.push(updatedCrawljob)
+        }
+        updateCrawlJobsIndex()
+        loadRequiredWebentities()
+      })
+    }
+
     function updateLastCrawlJobs(){
       var now = Date.now()
       var timespanMs = one_week_in_ms
       var from = (now - timespanMs)
       var to = null
-      updateCrawlJobs(from, to, function(consolidatedCrawlJobs){
+      updateCrawlJobs({from:from, to:to}, function(consolidatedCrawlJobs){
         $scope.lastCrawlJobs = consolidatedCrawlJobs
         feedBackMainList() // Pass on possible up-to-date data to the common data pool
+        updateCrawlJobsIndex()
         loadRequiredWebentities()
         scheduleRefresh()
       })
@@ -191,14 +182,15 @@ angular.module('hyphe.monitorcrawlsController', [])
     function updateAllCrawlJobs(callback){
       var from = 0
       var to = null
-      updateCrawlJobs(from, to, function(consolidatedCrawlJobs){
+      updateCrawlJobs({from:from, to:to}, function(consolidatedCrawlJobs){
         $scope.crawlJobs = consolidatedCrawlJobs
+        updateCrawlJobsIndex()
         loadRequiredWebentities()
         callback()
       })
     }
 
-    function updateCrawlJobs(from, to, callback){
+    function updateCrawlJobs(settings, callback) {
       var now = Date.now()
       var timespanMs = one_week_in_ms
 
@@ -207,16 +199,13 @@ angular.module('hyphe.monitorcrawlsController', [])
       api.getCrawlJobs(
 
         // Settings
-        {
-          from: from
-          ,to: to
-        }
+        settings,
 
         // Success callback
-        ,function(crawlJobs){
+        function(crawlJobs) {
 
           $scope.listLoaded = true
-          $scope.status = {message: ''}
+          $scope.status = {}
           
           callback(
             crawlJobs
@@ -232,14 +221,21 @@ angular.module('hyphe.monitorcrawlsController', [])
               })
           )
 
-        }
+        },
 
         // Fail callback
-        ,function(){
+        function() {
           $scope.status = {message: 'Error loading crawl jobs', background:'danger'}
         }
       )
       
+    }
+
+    function updateCrawlJobsIndex() {
+      $scope.crawljobsIndex = {}
+      $scope.crawlJobs.forEach(function(job){
+        $scope.crawljobsIndex[job._id] = job
+      })
     }
 
     function populateWebEntityNames(){
@@ -250,9 +246,9 @@ angular.module('hyphe.monitorcrawlsController', [])
       })
     }
 
-    function loadWebentities(list){
+    function loadWebentities(list) {
       if(list.length > 0){
-        $scope.status = {message: 'Loading', progress:60}
+        $scope.status = {message: 'Loading'}
         api.getWebentities(
           {
             id_list: list
@@ -274,7 +270,7 @@ angular.module('hyphe.monitorcrawlsController', [])
       }
     }
 
-    function feedBackMainList(){
+    function feedBackMainList() {
 
       // This function sends back last jobs to the main list,
       // because we have up to date information on them
@@ -317,96 +313,6 @@ angular.module('hyphe.monitorcrawlsController', [])
         populateWebEntityNames()
       }
     }
-
-    /*function refreshCrawlJobs(){
-      var currentTimespan = $scope.timespan
-      $scope.status = {message: 'Refreshing crawl jobs'}
-      if(currentTimespan == 'all'){
-        // TODO
-      } else {
-        var crawlJobs = $scope.lastCrawlJobs.filter(function(job){
-          return job.indexing_status != "FINISHED" && job.crawling_status != "CANCELED"
-        }).map(function(job){return job._id})
-        
-        api.getCrawlJobs(
-          {id_list: crawlJobs}
-          ,function(crawlJobs){
-            $scope.listLoaded = true
-            if(currentTimespan == $scope.timespan){
-
-              // Enrich
-              crawlJobs = crawlJobs.map(utils.consolidateJob)
-
-              var changes = []
-
-              if($scope.showDetails && crawlJobs.length == 1){
-
-                $scope.lastCrawlJobs = crawlJobs
-
-              } else {
-
-                var crawljobsIndex = {}
-                crawlJobs.forEach(function(job){
-                  crawljobsIndex[job._id] = job
-                })
-
-                $scope.lastCrawlJobs.forEach(function(job, i){
-                  var updatedJob = crawljobsIndex[job._id]
-                  if(updatedJob){
-                    if(updatedJob.globalStatus != job.globalStatus){
-                      changes.push({type:'full', i:i, job:updatedJob})
-                    } else if(updatedJob.nb_crawled_pages != job.nb_crawled_pages
-                        || updatedJob.nb_links != job.nb_links
-                      ) {
-                      changes.push({type:'stats', i:i, job:updatedJob})
-                    }
-                  }
-                })
-
-                changes.forEach(function(change){
-                  switch(change.type){
-                    case('full'):
-                      $scope.lastCrawlJobs[change.i] = change.job
-                      break
-                    case('stats'):
-                      $scope.lastCrawlJobs[change.i].nb_crawled_pages = change.job.nb_crawled_pages
-                      $scope.lastCrawlJobs[change.i].nb_unindexed_pages = change.job.nb_unindexed_pages
-                      $scope.lastCrawlJobs[change.i].nb_links = change.job.nb_links
-                      $scope.lastCrawlJobs[change.i].nb_pages = change.job.nb_pages
-                      break
-                  }
-                })
-              }
-
-              feedBackMainList()
-
-              $scope.status = {message: ''}
-              scheduleRefresh()
-            }
-          }
-          ,function(data, status, headers, config){
-            $scope.status = {message: 'Error refreshing crawl jobs'}
-          }
-        )
-      }
-    }*/
-
-    /*function lastCrawlJobs_build(now, timespanMs){
-      $scope.lastCrawlJobsSuppl = 0
-      $scope.lastCrawlJobs = ($scope.crawlJobs || [])
-        .filter(function(job){
-          return (now - job.created_at < timespanMs) ||
-            (job.indexing_status != "FINISHED" &&
-             job.indexing_status != "CANCELED");
-        })
-        .filter(function(job,i){
-          if(i < $scope.lastCrawlJobsMax)
-            return true
-          $scope.lastCrawlJobsSuppl++
-          return false
-        })
-      loadRequiredWebentities()
-    }*/
 
     function getDynamicCrawlJobs() {
       
