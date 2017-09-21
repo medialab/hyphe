@@ -75,7 +75,51 @@
 
               <!-- Infinite list -->
               <div flex style="padding-left: 8px">
-                <md-virtual-repeat-container layout-fill ng-if="dynamicWebentities">
+
+                <!-- Loading -->
+                <div
+                  layout-fill
+                  ng-if="!dynamicWebentities || (dynamicWebentities.numItems==0 && dynamicWebentities.loading)"
+                  layout="column"
+                  layout-align="center center"
+                >
+                  <spinner text="''"></spinner>
+                </div>
+
+                <!-- Loaded but no results -->
+                <div
+                  layout-fill
+                  ng-if="dynamicWebentities && dynamicWebentities.numItems==0 && !dynamicWebentities.loading && dynamicWebentities.querySettings.field_kw[0][1] != ''"
+                  md-colors="{'background': 'default-background-100'}"
+                  layout="column"
+                  layout-align="center center"
+                >
+                  NO RESULTS
+                </div>
+                
+                <!-- Loaded but no results EASTER EGG -->
+                <div
+                  layout-fill
+                  ng-if="dynamicWebentities && dynamicWebentities.numItems==0 && !dynamicWebentities.loading && dynamicWebentities.querySettings.field_kw[0][1] == ''"
+                  md-colors="{'background': 'default-background-100'}"
+                  layout="column"
+                  layout-align="center center"
+                >
+                  <h3 style="padding: 8px">
+                    You chose to display nothing.
+                    <br>
+                    Enjoy some user mockery! :&nbsp;)
+                  </h3>
+                  <img ng-if="randomEasterEgg == 0" src="img/egg_linda.gif">
+                  <img ng-if="randomEasterEgg == 1" src="img/egg_scooter.gif">
+                  <img ng-if="randomEasterEgg == 2" src="img/egg_howdevpictureusers.gif">
+                  <img ng-if="randomEasterEgg == 3" src="img/egg_userandphone.gif">
+                  <img ng-if="randomEasterEgg == 4" src="img/egg_selfie.gif">
+                </div>
+                
+                <!-- Loaded with results -->
+                </md-virtual-repeat-container>
+                <md-virtual-repeat-container layout-fill ng-if="dynamicWebentities && dynamicWebentities.numItems>0">
                   <md-list>
                     <md-list-item
                       md-virtual-repeat="obj in dynamicWebentities"
@@ -83,7 +127,7 @@
                       md-on-demand
                       class="crawljob-list-item"
                       md-colors="{
-                        'background': obj.selected ? 'default-accent-100' : 'default-background-200'
+                        'background': obj.selected ? 'default-accent-100' : 'default-background-100'
                       }"
                       flex
                     >
@@ -127,7 +171,7 @@
                       <div
                         class="welist-col-cited"
                       >
-                        {{obj.webentity.indegree || '?'}}
+                        {{obj.webentity.indegree}}
                       </div>
                       <div
                         class="welist-col-last-modif"

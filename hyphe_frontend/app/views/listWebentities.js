@@ -128,7 +128,7 @@ angular.module('hyphe.listwebentitiesController', [])
       })
     }
 
-    $scope.toggleRow = function(rowId){
+/*    $scope.toggleRow = function(rowId){
       var obj = $scope.list[rowId]
       if(obj.checked){
         obj.checked = false
@@ -148,12 +148,12 @@ angular.module('hyphe.listwebentitiesController', [])
         }
       })
     }
-
     $scope.uncheckAll = function(){
       while($scope.checkedList.length > 0){
         $scope.uncheck($scope.checkedList[0])
       }
     }
+*/
 
     $scope.clearQuery = function(){
       $scope.query = ""
@@ -335,6 +335,8 @@ angular.module('hyphe.listwebentitiesController', [])
       /** @type {number} Total number of items. */
       this.numItems = 0;
 
+      this.loading = false
+
       /** @type {!Object} Filter settings of the query. */
       this.querySettings = {};
 
@@ -368,6 +370,7 @@ angular.module('hyphe.listwebentitiesController', [])
 
       $scope.status = {message: 'Loading'}
       $scope.loading = true
+      this.loading = true
 
       var self = this
       if (this.searchToken) {
@@ -377,7 +380,6 @@ angular.module('hyphe.listwebentitiesController', [])
             ,page: pageNumber
           }
           ,function(result){
-
             self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
@@ -386,11 +388,13 @@ angular.module('hyphe.listwebentitiesController', [])
               }
               return obj
             })
+            self.loading = false
           }
           ,function(){
             $scope.list = []
             $scope.status = {message: 'Error loading results page', background: 'danger'}
             $scope.loading = false
+            self.loading = false
           }
         )
       } else {
@@ -416,12 +420,12 @@ angular.module('hyphe.listwebentitiesController', [])
             })
             $scope.status = {}
             $scope.loading = false
-
-            console.log($scope.list)
+            self.loading = false
           }
           ,function(){
             $scope.status = {message: 'Error loading web entities', background: 'danger'}
             $scope.loading = false
+            self.loading = false
           }
         )
       }
