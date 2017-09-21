@@ -1361,7 +1361,7 @@ class Memory_Structure(customJSONRPC):
             if not isinstance(startpages, list):
                 startpages = [startpages]
             tags["CORE-STARTPAGES"] = {"user": startpages}
-            self.add_tags_to_dictionary("CORE-STARTPAGES", "user", startpages, corpus=corpus)
+            yield self.add_tags_to_dictionary("CORE-STARTPAGES", "user", startpages, corpus=corpus)
         WEstatus = "DISCOVERED"
         if status:
             WEstatus = status.upper()
@@ -2346,6 +2346,7 @@ class Memory_Structure(customJSONRPC):
         return key
 
 
+    @inlineCallbacks
     def add_tags_to_dictionary(self, namespace, category, values, corpus=DEFAULT_CORPUS):
         if not isinstance(values, list):
             values = [values]
@@ -2360,6 +2361,7 @@ class Memory_Structure(customJSONRPC):
             self.corpora[corpus]["tags"][namespace][category][value] += 1
         yield self.parent.update_corpus(corpus, True)
 
+    @inlineCallbacks
     def remove_tag_from_dictionary(self, namespace, category, value, corpus=DEFAULT_CORPUS):
         try:
             self.corpora[corpus]["tags"][namespace][category][value] -= 1
@@ -2373,24 +2375,28 @@ class Memory_Structure(customJSONRPC):
             del(self.corpora[corpus]["tags"][namespace])
         yield self.parent.update_corpus(corpus, True)
 
+    @inlineCallbacks
     def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
         """Adds for a `corpus` a tag `namespace:category=value` to a WebEntity defined by `webentity_id`."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
-        self.add_tags_to_dictionary(namespace, category, value, corpus=corpus)
-        return self.update_webentity(webentity_id, "tags", value, "push", category, namespace, _commit=_commit, corpus=corpus)
+        yield self.add_tags_to_dictionary(namespace, category, value, corpus=corpus)
+        res = yield self.update_webentity(webentity_id, "tags", value, "push", category, namespace, _commit=_commit, corpus=corpus)
+        returnD(res)
 
     # TODO handle as single mongo query
     def jsonrpc_add_webentities_tag_value(self, webentity_ids, namespace, category, value, corpus=DEFAULT_CORPUS):
         """Adds for a `corpus` a tag `namespace:category=value` to a bunch of WebEntities defined by a list of `webentity_ids`."""
         return self.batch_webentities_edit("add_webentity_tag_value", webentity_ids, corpus, namespace, category, value)
 
+    @inlineCallbacks
     def jsonrpc_rm_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
         """Removes for a `corpus` a tag `namespace:category=value` associated with a WebEntity defined by `webentity_id` if it is set."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
-        self.remove_tag_from_dictionary(namespace, category, value, corpus=corpus)
-        return self.update_webentity(webentity_id, "tags", value, "pop", category, namespace, _commit=_commit, corpus=corpus)
+        yield self.remove_tag_from_dictionary(namespace, category, value, corpus=corpus)
+        res = yield self.update_webentity(webentity_id, "tags", value, "pop", category, namespace, _commit=_commit, corpus=corpus)
+        returnD(res)
 
     @inlineCallbacks
     def add_backend_tags(self, webentity_id, key, value, namespace="", corpus=DEFAULT_CORPUS, _commit=True):
