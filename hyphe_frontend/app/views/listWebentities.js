@@ -8,6 +8,8 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
+    $scope.dynamicWebentities
+
     $scope.list = []
     $scope.checkedList = []
     $scope.webentitiesCheckStack = {} // Web entities once checked
@@ -18,17 +20,7 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.loading = false  // This flag prevents multiple simultaneous queries
     $scope.loadingStatus = false
 
-    $scope.filteringCollapsed = false
-
     $scope.pageChecked = false
-
-    $scope.paginationPage = 1
-    $scope.paginationMaxPage = 1
-    $scope.paginationLength = "20"   // How many items per page
-    $scope.paginationNumPages = 10  // How many pages to display in the pagination
-    
-    $scope.fullListLength = 0
-    $scope.currentSearchToken
 
     $scope.query = ""
     $scope.sort = 'name'
@@ -53,11 +45,6 @@ angular.module('hyphe.listwebentitiesController', [])
 
     $scope.applySettings = function(){
       
-      if (!validatePagination()) {
-        return
-      }
-      $scope.settings.paginationLength = parseInt($scope.paginationLength)
-      
       loadStatus()
 
       for(var status in $scope.statuses){
@@ -79,16 +66,6 @@ angular.module('hyphe.listwebentitiesController', [])
       $scope.touchSettings()
     }
 
-    function validatePagination(){
-      var pglength = parseInt(($scope.paginationLength.trim().match(/^[1-9]\d*$/) || [])[0])
-      if (pglength > 0 && pglength < 1000) {
-        // $('.results-per-page input').removeClass('ng-invalid')
-        return true
-      }
-      // $('.results-per-page input').addClass('ng-invalid')
-      return false
-    }
-
     $scope.touchSettings = function(){
 
       // Check if difference with current settings
@@ -103,63 +80,7 @@ angular.module('hyphe.listwebentitiesController', [])
         difference = true
       }
 
-      if (validatePagination() && $scope.paginationLength != $scope.settings.paginationLength) {
-        difference = true
-      }
-
       $scope.settingsChanged = difference
-    }
-
-    $scope.validatePage = function(){
-      var pgval = parseInt(((""+$scope.paginationPage).trim().match(/^[1-9]\d*$/) || [])[0])
-      if (!(pgval > 0 && pgval <= $scope.paginationMaxPage)) {
-        $('.page-input input').addClass('ng-invalid')
-        return false
-      }
-      $('.page-input input').removeClass('ng-invalid')
-      return true
-
-    }
-
-    $scope.pageChanged = function(){
-      if (!$scope.validatePage()) {
-        return
-      }
-      $scope.status = {message: 'Loading'}
-      $scope.pageChecked = false
-      $scope.loading = true
-
-      api.getResultsPage(
-        {
-          token: $scope.currentSearchToken
-          ,page: $scope.paginationPage - 1
-        }
-        ,function(result){
-
-          $scope.currentSearchToken = result.token
-
-          var allChecked = true
-          $scope.list = result.webentities.map(function(we, i){
-            var checked = $scope.checkedList.some(function(weId){return weId == we.id})
-            ,obj = {
-              id:i
-              ,webentity:we
-              ,checked:checked
-            }
-            if(!checked)
-              allChecked = false
-            return obj
-          })
-          $scope.status = {}
-          $scope.pageChecked = allChecked
-          $scope.loading = false
-        }
-        ,function(){
-          $scope.list = []
-          $scope.status = {message: 'Error loading results page', background: 'danger'}
-          $scope.loading = false
-        }
-      )
     }
 
     $scope.toggleSort = function(field){
@@ -183,10 +104,6 @@ angular.module('hyphe.listwebentitiesController', [])
     }
 
     $scope.loadWebentities = function(query){
-      $scope.status = {message: 'Loading'}
-      $scope.loading = true
-
-      $scope.paginationPage = 1
 
       // Get filtering settings
       var field_kw = [
@@ -202,41 +119,13 @@ angular.module('hyphe.listwebentitiesController', [])
               .join(' ')
           ]
         ]
+      var sort_field = (($scope.sortAsc) ? ($scope.sort) : ('-' + $scope.sort))
 
-      api.searchWebentities(
-        {
-          allFieldsKeywords: query || []
-          ,fieldKeywords: field_kw
-          ,sortField: (($scope.sortAsc) ? ($scope.sort) : ('-' + $scope.sort))
-          ,count: $scope.settings.paginationLength
-          ,page: $scope.paginationPage - 1
-        }
-        ,function(result){
-          $scope.paginationPage = 1
-
-          $scope.fullListLength = result.total_results
-          $scope.paginationMaxPage = parseInt($scope.fullListLength / $scope.paginationLength) + 1
-          $scope.currentSearchToken = result.token
-
-          $scope.list = result.webentities.map(function(we, i){
-            var obj = {
-              id:i
-              ,webentity:we
-              ,checked:$scope.checkedList.some(function(weId){return weId == we.id})
-            }
-            return obj
-          })
-          $scope.status = {}
-          $scope.loading = false
-
-          console.log($scope.list)
-        }
-        ,function(){
-          $scope.list = []
-          $scope.status = {message: 'Error loading web entities', background: 'danger'}
-          $scope.loading = false
-        }
-      )
+      $scope.dynamicWebentities.reload({
+        query: query,
+        field_kw: field_kw,
+        sort_field: sort_field
+      })
     }
 
     $scope.toggleRow = function(rowId){
@@ -371,9 +260,6 @@ angular.module('hyphe.listwebentitiesController', [])
       }
     }
 
-    // Init
-    $scope.applySettings()
-
 
     // Functions
 
@@ -437,4 +323,122 @@ angular.module('hyphe.listwebentitiesController', [])
     function refreshEasterEgg(){
       $scope.randomEasterEgg = Math.floor(Math.random()*5)
     }
+
+    /// Dynamic list
+
+    function DynamicWebentities() {
+      /**
+       * @type {!Object<?Array>} Data pages, keyed by page number (0-index).
+       */
+      this.loadedPages = {};
+
+      /** @type {number} Total number of items. */
+      this.numItems = 0;
+
+      /** @type {!Object} Filter settings of the query. */
+      this.querySettings = {};
+
+      this.searchToken
+
+      /** @const {number} Number of items to fetch per request. */
+      this.PAGE_SIZE = 50;
+
+    };
+
+    // Required.
+    DynamicWebentities.prototype.getItemAtIndex = function(index) {
+      var pageNumber = Math.floor(index / this.PAGE_SIZE);
+      var page = this.loadedPages[pageNumber]
+
+      if (page) {
+        return page[index % this.PAGE_SIZE]
+      } else if (page !== null) {
+        this.fetchPage_(pageNumber)
+      }
+    };
+
+    // Required.
+    DynamicWebentities.prototype.getLength = function() {
+      return this.numItems
+    }
+
+    DynamicWebentities.prototype.fetchPage_ = function(pageNumber) {
+      // Set the page to null so we know it is already being fetched.
+      this.loadedPages[pageNumber] = null
+
+      $scope.status = {message: 'Loading'}
+      $scope.loading = true
+
+      var self = this
+      if (this.searchToken) {
+        api.getResultsPage(
+          {
+            token: self.searchToken
+            ,page: pageNumber
+          }
+          ,function(result){
+
+            self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
+              var obj = {
+                id: pageNumber * self.PAGE_SIZE + i,
+                webentity:we,
+                checked: $scope.checkedList.some(function(weId){return weId == we.id})
+              }
+              return obj
+            })
+          }
+          ,function(){
+            $scope.list = []
+            $scope.status = {message: 'Error loading results page', background: 'danger'}
+            $scope.loading = false
+          }
+        )
+      } else {
+        api.searchWebentities(
+          {
+            allFieldsKeywords: self.querySettings.query || []
+            ,fieldKeywords: self.querySettings.field_kw
+            ,sortField: self.querySettings.sort_field
+            ,count: self.PAGE_SIZE
+            ,page: pageNumber
+          }
+          ,function(result){
+            self.numItems = result.total_results
+            self.searchToken = result.token
+
+            self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
+              var obj = {
+                id: pageNumber * self.PAGE_SIZE + i,
+                webentity:we,
+                checked: $scope.checkedList.some(function(weId){return weId == we.id})
+              }
+              return obj
+            })
+            $scope.status = {}
+            $scope.loading = false
+
+            console.log($scope.list)
+          }
+          ,function(){
+            $scope.status = {message: 'Error loading web entities', background: 'danger'}
+            $scope.loading = false
+          }
+        )
+      }
+    }
+
+    DynamicWebentities.prototype.reload = function(querySettings) {
+      this.loadedPages = {}
+      this.numItems = 0
+      this.querySettings = querySettings
+      this.searchToken = undefined
+      this.fetchPage_(0)
+
+      
+    }
+
+    $scope.dynamicWebentities = new DynamicWebentities()
+
+    // Init
+    $scope.applySettings()
   }])

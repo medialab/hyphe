@@ -30,7 +30,6 @@
                   </div>
                 </md-toolbar> -->
                 <div style="padding: 8px" layout="column">
-                  <div class="md-title">Filtering</div>
 
                   <!-- Status selector -->
                   <hyphe-status-box
@@ -40,27 +39,66 @@
                     disabled="loading"
                   ></hyphe-status-box>
 
+                  <!-- Search -->
+                  <md-input-container flex>
+                    <label>Type a query</label>
+                    <md-icon>search</md-icon>
+                    <input
+                      focus-me="{{true}}"
+                      ng-model="query"
+                      ng-change="touchSettings()"
+                      ng-press-enter="applySettings()"
+                    >
+                  </md-input-container>
+
+                  <!-- Validation -->
                   <div layout="row">
-
-                    <!-- Search -->
-                    <md-input-container flex>
-                      <label>Type a query</label>
-                      <md-icon>search</md-icon>
-                      <input
-                        focus-me="{{true}}"
-                        ng-model="query"
-                        ng-change="touchSettings()"
-                        ng-press-enter="applySettings()"
+                    <div flex></div>
+                    <div>
+                      <md-button
+                        ng-click="revertSettings()"
+                        ng-disabled="!settingsChanged"
                       >
-                    </md-input-container>
-
+                        CANCEL
+                      </md-button>
+                      <md-button
+                        class="md-raised md-primary"
+                        ng-click="applySettings()"
+                        ng-disabled="!settingsChanged"
+                      >
+                        APPLY CHANGES
+                      </md-button>
+                    </div>
                   </div>
 
                 </div>
               </div>
 
               <!-- Infinite list -->
-              <div flex>TODO: Infinite list</div>
+              <div flex>
+                <md-virtual-repeat-container layout-fill ng-if="dynamicWebentities">
+                  <md-list>
+                    <md-list-item
+                      md-virtual-repeat="obj in dynamicWebentities"
+                      md-item-size="48"
+                      md-on-demand
+                      class="crawljob-list-item"
+                      flex
+                    >
+                      <md-checkbox ng-model="obj.selected" ng-disabled="!obj.webentity"></md-checkbox>
+                      <p md-truncate flex>
+                        {{obj.webentity.name || 'Loading'}}
+                      </p>
+                      <div style="width: 20px">
+                        X
+                      </div>
+                      <div style="width: 20px">
+                        X
+                      </div>
+                    </md-list-item>
+                  </md-list>
+                </md-virtual-repeat-container>
+              </div>
             </div>
 
             <!-- Actions -->
