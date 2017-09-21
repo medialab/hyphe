@@ -1,50 +1,66 @@
-<div class="btn-group statuses-box">
-  <label
-    class="btn btn-default btn-in"
+<div class="statuses-box" layout="row">
+  <md-button
+    class="btn-in"
+    ng-class="{'md-raised':!statuses.in}"
     ng-model="statuses.in"
     ng-change="change"
-    ng-disabled="disabled"    
+    ng-disabled="disabled"
+    ng-click="statuses.in = !statuses.in"
+    md-colors="{'background':'default-background-100-0.5'}"
     btn-checkbox
   >
-    <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.in, 'glyphicon-check':statuses.in, 'checkox-muted':!statuses.in}" aria-hidden="true"></span>
+    <md-icon ng-if="!statuses.in" style="opacity: 0.5">check_box_outline_blank</md-icon>
+    <md-icon ng-if="statuses.in" class="status-colored">check_box</md-icon>
     <span class="label-status">IN</span>
     <span class="label-count">{{counts.in}}</span>
-  </label>
+  </md-button>
 
-  <label
-    class="btn btn-default btn-undecided"
+  <md-button
+    class="btn-undecided"
+    ng-class="{'md-raised':!statuses.undecided}"
     ng-model="statuses.undecided"
     ng-change="change"
-    ng-disabled="disabled"    
+    ng-disabled="disabled"
+    ng-click="statuses.undecided = !statuses.undecided"
+    md-colors="{'background':'default-background-100-0.5'}"
     btn-checkbox
   >
-    <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.undecided, 'glyphicon-check':statuses.undecided, 'checkox-muted':!statuses.undecided}" aria-hidden="true"></span>
+    <md-icon ng-if="!statuses.undecided" style="opacity: 0.5">check_box_outline_blank</md-icon>
+    <md-icon ng-if="statuses.undecided" class="status-colored">check_box</md-icon>
     <span class="label-status">UNDECIDED</span>
     <span class="label-count">{{counts.undecided}}</span>
-  </label>
+  </md-button>
 
-  <label
-    class="btn btn-default btn-out"
+  <md-button
+    class="btn-out"
+    ng-class="{'md-raised':!statuses.out}"
     ng-model="statuses.out"
     ng-change="change"
-    ng-disabled="disabled"    
+    ng-disabled="disabled"
+    ng-click="statuses.out = !statuses.out"
+    md-colors="{'background':'default-background-100-0.5'}"
     btn-checkbox
   >
-    <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.out, 'glyphicon-check':statuses.out, 'checkox-muted':!statuses.out}" aria-hidden="true"></span>
+    <md-icon ng-if="!statuses.out" style="opacity: 0.5">check_box_outline_blank</md-icon>
+    <md-icon ng-if="statuses.out" class="status-colored">check_box</md-icon>
     <span class="label-status">OUT</span>
     <span class="label-count">{{counts.out}}</span>
-  </label>
+  </md-button>
 
-  <label
-    class="btn btn-default btn-discovered"
+  <md-button
+    class="btn-discovered"
+    ng-class="{'md-raised':!statuses.discovered}"
     ng-model="statuses.discovered"
     ng-change="change"
-    ng-disabled="disabled"    
+    ng-disabled="disabled"
+    ng-click="statuses.discovered = !statuses.discovered"
+    md-colors="{'background':'default-background-100-0.5'}"
     btn-checkbox
   >
-    <span class="glyphicon" ng-class="{'glyphicon-unchecked':!statuses.discovered, 'glyphicon-check':statuses.discovered, 'checkox-muted':!statuses.discovered}" aria-hidden="true"></span>
+    <md-icon ng-if="!statuses.discovered" style="opacity: 0.5">check_box_outline_blank</md-icon>
+    <md-icon ng-if="statuses.discovered" class="status-colored">check_box</md-icon>
     <span class="label-status">DISCOVERED</span>
     <span class="label-count">{{counts.discovered}}</span>
-  </label>
+  </md-button>
 
 </div>

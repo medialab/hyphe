@@ -1826,22 +1826,37 @@ ul.startpages-report{
 /* ==========================================================================
    Module: Statuses Box
    ========================================================================== */
-.statuses-box .checkox-muted{
+.statuses-box .checkox-muted {
   opacity: 0.5;
 }
-.statuses-box .label-count{
-  color: #AAA;
+.statuses-box .label-count {
+  opacity: 0.5;
   margin-left: 6px;
 }
-.statuses-box .btn-in{
+.statuses-box button {
+  margin: 6px 0px 6px 4px;
+}
+.statuses-box .btn-in {
   border-bottom: 3px solid #333;
 }
-.statuses-box .btn-undecided{
+.statuses-box .btn-in .status-colored {
+  color: #333;
+}
+.statuses-box .btn-undecided {
   border-bottom: 3px solid #ADA299;
 }
-.statuses-box .btn-out{
+.statuses-box .btn-undecided .status-colored {
+  color: #ADA299;
+}
+.statuses-box .btn-out {
   border-bottom: 3px solid #FAA;
 }
-.statuses-box .btn-discovered{
+.statuses-box .btn-out .status-colored {
+  color: #FAA;
+}
+.statuses-box .btn-discovered {
   border-bottom: 3px solid #93BDE0;
+}
+.statuses-box .btn-discovered .status-colored {
+  color: #93BDE0;
 }
