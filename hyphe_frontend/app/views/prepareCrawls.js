@@ -14,10 +14,6 @@ angular.module('hyphe.preparecrawlsController', [])
 
     $scope.scheduling = false
 
-    $scope.paginationPage = 1
-    $scope.paginationLength = 50    // How many items per page
-    $scope.paginationNumPages = 10   // How many pages to display in the pagination
-
     $scope.depthRange = [0,1]
 
     $scope.queriesBatches = []

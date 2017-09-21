@@ -67,7 +67,11 @@
                               : (
                                 (job.globalStatus == 'RETRIED')
                                 ? ('default-primary-200')
-                                : ('default-background-400')
+                                : (
+                                  (job.globalStatus == 'CANCELED')
+                                  ? ('default-background-400')
+                                  : ('default-background-100')
+                                )
                               )
                             )
                           )
@@ -184,7 +188,11 @@
                                 : (
                                   (job.globalStatus == 'RETRIED')
                                   ? ('default-primary-200')
-                                  : ('default-background-400')
+                                  : (
+                                    (job.globalStatus == 'CANCELED')
+                                    ? ('default-background-400')
+                                    : ('default-background-100')
+                                  )
                                 )
                               )
                             )
@@ -233,7 +241,11 @@
                         : (
                           (crawljobsIndex[focusedJobId].globalStatus == 'RETRIED')
                           ? ('default-primary-200')
-                          : ('default-background-400')
+                          : (
+                            (crawljobsIndex[focusedJobId].globalStatus == 'CANCELED')
+                            ? ('default-background-400')
+                            : ('default-background-100')
+                          )
                         )
                       )
                     )

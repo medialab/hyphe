@@ -1584,7 +1584,7 @@ ul.startpages-report{
 /* cog */
 .water-loader .cog-container {
   position: absolute;
-  top: 50%; left: 50%; margin: -72px 0 0 -60px;
+  top: 50%; left: 50%; margin: -68px 0 0 -60px;
   width: 120px; height: 120px;
 }
 .water-loader .cog{

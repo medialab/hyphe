@@ -26,7 +26,7 @@
           <div flex style="padding: 8px; overflow: auto">
             <md-grid-list md-cols="5" md-gutter="8px" md-row-height="1:1">
               <md-grid-tile
-                ng-repeat="obj in list|paginate:paginationPage:paginationLength track by $index"
+                ng-repeat="obj in list track by $index"
                 ng-click="openWebentity(obj.id, $event)"
                 ng-mouseenter="obj.displayRemove = true"
                 ng-mouseleave="obj.displayRemove = false"
@@ -143,10 +143,12 @@
           <div
             ng-if="scheduling"
             layout="column"
+            layout-align="center center"
           >
-            <div layout="row" layout-align="center center">
-              <span hyphe-glossary="Crawls"/> scheduled at <span hyphe-glossary="depth"/> {{$parent.crawlDepth}}
+            <div>
+              <span hyphe-glossary="Crawls"></span> scheduled at <span hyphe-glossary="depth"></span> {{crawlDepth}}
             </div>
+            <div md-colors="{'color': 'default-warn'}">PLEASE DO NOT CLOSE THIS WINDOW</div>
           </div>
         </div>
 

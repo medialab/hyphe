@@ -13,10 +13,6 @@ angular.module('hyphe.definewebentitiesController', [])
     
     $scope.activeRow = 0
     
-    $scope.paginationPage = 1
-    $scope.paginationLength = 50    // How many items per page
-    $scope.paginationNumPages = 10  // How many pages to display in the pagination
-
     $scope.createdList = []
     $scope.existingList = []
     $scope.conflictedList = []
@@ -171,7 +167,6 @@ angular.module('hyphe.definewebentitiesController', [])
           break
       }
 
-      // FIXME: factor this function with the similar one in hyphePrefixSlider directive
       function updateNameAndStatus(obj) {
         obj.truePrefixLength = obj.prefixLength - 1 + obj.tldLength
         var webentityFound
