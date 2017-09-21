@@ -81,6 +81,9 @@ dl.key-value-pairs dd {
   padding: 4px;
   font-family: "Courier New", Courier, monospace;
 }
+.webentity-link-icon {
+  opacity: 0.8;
+}
 
 /*
 .label, .badge{
@@ -1320,6 +1323,23 @@ span.editable{
 /* ==========================================================================
    Factored between different views: Web Entity List
    ========================================================================== */
+.welist-col-status {
+  width: 50px;
+  padding: 0px 8px 0px 8px;
+}
+.welist-col-last-crawled {
+  width: 24px;
+  padding: 0px 8px 0px 8px;
+}
+.welist-col-cited {
+  width: 50px;
+  padding: 0px 8px 0px 8px;
+  text-align: right;
+}
+.welist-col-last-modif {
+  width: 100px;
+  padding: 0px 8px 0px 8px;
+}
 /*.webentities-list-loading-container{
   padding: 24px;
 }
