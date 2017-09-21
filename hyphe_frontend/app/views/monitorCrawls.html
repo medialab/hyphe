@@ -67,7 +67,7 @@
                               : (
                                 (job.globalStatus == 'RETRIED')
                                 ? ('default-primary-200')
-                                : ('default-background-100')
+                                : ('default-background-400')
                               )
                             )
                           )
@@ -184,7 +184,7 @@
                                 : (
                                   (job.globalStatus == 'RETRIED')
                                   ? ('default-primary-200')
-                                  : ('default-background-100')
+                                  : ('default-background-400')
                                 )
                               )
                             )
@@ -233,7 +233,7 @@
                         : (
                           (crawljobsIndex[focusedJobId].globalStatus == 'RETRIED')
                           ? ('default-primary-200')
-                          : ('default-background-100')
+                          : ('default-background-400')
                         )
                       )
                     )
@@ -315,14 +315,7 @@
                 <dl class="key-value-pairs">
 
                   <dt>Status</dt>
-                  <dd><span  ng-class="{
-                    'bg-danger':crawljobsIndex[focusedJobId].globalStatus == 'CRASHED'
-                    ,'bg-warning':crawljobsIndex[focusedJobId].globalStatus == 'UNSUCCESSFUL'
-                    ,'text-danger':crawljobsIndex[focusedJobId].globalStatus == 'CANCELED'
-                    ,'bg-info':crawljobsIndex[focusedJobId].globalStatus == 'RETRIED'
-                    ,'bg-primary':crawljobsIndex[focusedJobId].globalStatus == 'CRAWLING' || crawljobsIndex[focusedJobId].globalStatus == 'INDEXING' || crawljobsIndex[focusedJobId].globalStatus == 'WAITING'
-                    ,'bg-success': crawljobsIndex[focusedJobId].globalStatus == 'ACHIEVED'}"
-                  >{{crawljobsIndex[focusedJobId].globalStatus}}</span></dd>
+                  <dd>{{crawljobsIndex[focusedJobId].globalStatus}}</dd>
 
                   <dt>Harvesting Status</dt>
                   <dd>{{crawljobsIndex[focusedJobId].crawling_status}}</dd>
