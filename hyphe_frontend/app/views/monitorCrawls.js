@@ -140,10 +140,6 @@ angular.module('hyphe.monitorcrawlsController', [])
 
     }
 
-    var one_hour_in_ms = 3600000     // =          60 * 60 * 1000
-    var one_day_in_ms =  86400000    // =     24 * 60 * 60 * 1000
-    var one_week_in_ms = 604800000   // = 7 * 24 * 60 * 60 * 1000
-
     function updateSingleCrawlJobs(jobId){
       updateCrawlJobs({id_list:[jobId]}, function(consolidatedCrawlJobs){
         var updatedCrawljob = consolidatedCrawlJobs[0]
@@ -164,10 +160,13 @@ angular.module('hyphe.monitorcrawlsController', [])
     }
 
     function updateLastCrawlJobs(){
+      var one_hour_in_ms = 3600000     // =          60 * 60 * 1000
+      var one_day_in_ms =  86400000    // =     24 * 60 * 60 * 1000
+      var one_week_in_ms = 604800000   // = 7 * 24 * 60 * 60 * 1000
       var now = Date.now()
       var timespanMs = 3 * one_day_in_ms
       var from = (now - timespanMs)
-      var to = null
+      var to = now
       updateCrawlJobs({from:from, to:to}, function(consolidatedCrawlJobs){
         $scope.lastCrawlJobs = consolidatedCrawlJobs
         feedBackMainList() // Pass on possible up-to-date data to the common data pool
@@ -189,9 +188,6 @@ angular.module('hyphe.monitorcrawlsController', [])
     }
 
     function updateCrawlJobs(settings, callback) {
-      var now = Date.now()
-      var timespanMs = one_week_in_ms
-
       $scope.status = {message: 'Refreshing crawl jobs'}
 
       api.getCrawlJobs(
