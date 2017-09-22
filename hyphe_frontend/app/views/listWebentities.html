@@ -15,6 +15,12 @@
           <div class="page-header">
             <h1>
               WEB ENTITIES
+              <span
+                ng-if="dynamicWebentities && dynamicWebentities.numItems > 0 && counts.in"
+                md-colors="{'color':'default-primary'}"
+              >
+                {{dynamicWebentities.numItems}}/{{(counts.in + counts.out + counts.discovered + counts.undefined)}}
+              </span>
             </h1>
           </div>
 
