@@ -533,8 +533,6 @@ angular.module('hyphe.services', [])
       $timeout(function(){
         if(thisToken == ns.refreshToken && $route.current.loadedTemplateUrl == "views/monitorCrawls.html"){
           
-          
-
           callback()
         }
       }, ns.msTimeout)

@@ -2,8 +2,17 @@
 
 angular.module('hyphe.listwebentitiesController', [])
 
-  .controller('listWebentities', ['$scope', 'api', 'utils', 'store', '$location', '$timeout', 'corpus'
-  ,function($scope, api, utils, store, $location, $timeout, corpus) {
+  .controller('listWebentities', 
+  function(
+    $scope,
+    api,
+    utils,
+    store,
+    $location,
+    $timeout,
+    $route,
+    corpus
+  ) {
     $scope.currentPage = 'listWebentities'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
@@ -12,13 +21,14 @@ angular.module('hyphe.listwebentitiesController', [])
 
     $scope.checkedList = []
     $scope.checkedIndex = {}
+    $scope.allChecked = false
+    $scope.allCheckedDisable = false
+    $scope.allCheckedIndeterminate = false
 
     $scope.randomEasterEgg
 
     $scope.loading = false  // This flag prevents multiple simultaneous queries
     $scope.loadingStatus = false
-
-    $scope.pageChecked = false
 
     $scope.query = ""
     $scope.sort = 'name'
@@ -133,6 +143,26 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.uncheckAll = function(){
       while($scope.checkedList.length > 0){
         $scope.uncheck($scope.checkedList[0])
+      }
+    }
+
+    $scope.toggleCheckAll = function() {
+      if ($scope.allChecked) {
+        $scope.allCheckedDisable = true
+        $scope.dynamicWebentities.uncheckAll(function(){
+          $timeout(function(){
+            $scope.allChecked = false
+            $scope.allCheckedDisable = false
+          })
+        })
+      } else {
+        $scope.allCheckedDisable = true
+        $scope.dynamicWebentities.checkAll(function(){
+          $timeout(function(){
+            $scope.allChecked = true
+            $scope.allCheckedDisable = false
+          })
+        })
       }
     }
 
@@ -272,7 +302,9 @@ angular.module('hyphe.listwebentitiesController', [])
 
     function checkedList_remove(weid){
       var i = $scope.checkedList.indexOf(weid)
-      $scope.checkedList.splice(i, 1)
+      if (i >= 0) {
+        $scope.checkedList.splice(i, 1)
+      }
       delete $scope.checkedIndex[weid]
     }
 
@@ -420,6 +452,96 @@ angular.module('hyphe.listwebentitiesController', [])
         })
       }
     }
+
+    DynamicWebentities.prototype.getCheckedSummary = function() {
+      var summary = {checked:0, unchecked: 0, indeterminate: false}
+      var p
+      for (p = 0; p < Math.ceil(this.numItems / this.PAGE_SIZE); p++) {
+        if (this.loadedPages[p]) {
+          this.loadedPages[p].forEach(function(obj){
+            if (obj.selected) {
+              summary.checked++
+            } else {
+              summary.unchecked++
+            }
+          })
+        } else {
+          summary.indeterminate = true
+        }
+      }
+      return summary
+    }
+
+    DynamicWebentities.prototype.checkAll = function(callback) {
+      this.checkOrUncheckAll(true, callback)
+    }
+
+    DynamicWebentities.prototype.uncheckAll = function(callback) {
+      this.checkOrUncheckAll(false, callback)
+    }
+
+    DynamicWebentities.prototype.checkOrUncheckAll = function(checkValue, callback) {
+      // Strategy: Load each page, check all, and forget
+      var settings = {pagesToLoad: [], totalPages: 0, token: this.searchToken, callback:callback, checkValue:checkValue}
+
+      // Check/Uncheck loaded pages
+      var p
+      for (p = 0; p < Math.ceil(this.numItems / this.PAGE_SIZE); p++) {
+        if (this.loadedPages[p]) {
+          this.loadedPages[p].forEach(function(obj){
+            obj.selected = checkValue
+          })
+        } else {
+          settings.pagesToLoad.push(p)
+        }
+      }
+      settings.totalPages = settings.pagesToLoad.length
+      // Check all the pages
+      this.cascadingCheckPage(settings)
+    }
+
+    DynamicWebentities.prototype.cascadingCheckPage = function(settings) {
+      if ($route.current.loadedTemplateUrl != "views/listWebentities.html") return
+      var percent = Math.round(100 - 100 * settings.pagesToLoad.length/settings.totalPages)
+      var page = settings.pagesToLoad.shift()
+
+      if (page === undefined) {
+        settings.callback()
+      } else {
+        $scope.status = {message: ((settings.checkValue) ? ('Checking') : ('Unchecking')) + ' web entities - please wait', progress:percent}
+        $scope.loading = true
+        self.loading = true
+
+        api.getResultsPage(
+          {
+            token: settings.token
+            ,page: page
+          }
+          ,function(result){
+            if (settings.checkValue) {
+              result.webentities.forEach(function(we, i){
+                checkedList_add(we.id, we)
+              })
+            } else {
+              result.webentities.forEach(function(we, i){
+                checkedList_remove(we.id, we)
+              })
+            }
+            if (settings.pagesToLoad.length > 0) {
+              $scope.dynamicWebentities.cascadingCheckPage(settings)
+            } else {
+              $scope.status = {}
+              $scope.loading = false
+              self.loading = false
+              settings.callback()
+            }
+          }
+          ,function(){
+            $scope.status = {message: 'Error loading results page for "check all"', background: 'danger'}
+          }
+        )
+      }
+    }
     
     function updateSelectionFromList() {
       var checked = []
@@ -453,16 +575,41 @@ angular.module('hyphe.listwebentitiesController', [])
         if ($scope.checkedList.indexOf(weid) >= 0) {
           checkedList_remove(weid)
         }
-      })
-      
+      }) 
+    }
+
+    function updateAllCheckedStatus() {
+      if ($scope.checkedList.length == 0) {
+        $scope.allChecked = false
+        $scope.allCheckedIndeterminate = false
+        return
+      }
+      var s = $scope.dynamicWebentities.getCheckedSummary()
+      if (s.indeterminate) {
+        $scope.allChecked = false
+        $scope.allCheckedIndeterminate = true
+        return
+      }
+      if (s.checked==0 && s.unchecked>0) {
+        $scope.allChecked = false
+        $scope.allCheckedIndeterminate = false
+      } else if (s.checked>0 && s.unchecked==0) {
+        $scope.allChecked = true
+        $scope.allCheckedIndeterminate = false
+      } else {
+        $scope.allChecked = false
+        $scope.allCheckedIndeterminate = true
+      }
+
     }
 
     $scope.dynamicWebentities = new DynamicWebentities()
 
     $scope.$watch('dynamicWebentities', function(){
       updateSelectionFromList()
+      updateAllCheckedStatus()
     }, true)
 
     // Init
     $scope.applySettings()
-  }])
+  })
