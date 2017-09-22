@@ -261,6 +261,7 @@
             <!-- Actions -->
             <div layout="column" flex="30" style="padding: 8px" ng-if="checkedList.length > 0">
 
+              <!-- Title -->
               <div layout="row" md-colors="{'background':'default-accent'}">
                 <div style="padding: 8px" flex>
                   SELECTION: {{checkedList.length}} WEB ENTIT{{checkedList.length | y_ies | uppercase}}
@@ -284,6 +285,55 @@
                 </md-list>
               </div>
 
+              <div layout="column" md-colors="{'background':'default-background-200'}" style="padding: 8px">
+                
+                <div layout="row">
+                  <md-input-container flex>
+                    <label>Status</label>
+                    <md-select ng-model="$parent.selected_setStatus">
+                      <md-option value=""><em>None</em></md-option>
+                      <md-option value="IN">IN</md-option>
+                      <md-option value="UNDECIDED">UNDECIDED</md-option>
+                      <md-option value="OUT">OUT</md-option>
+                    </md-select>
+                  </md-input-container>
+                  <md-button
+                    class="md-primary"
+                    ng-disabled="selected_setStatus == '' || loading"
+                    ng-click="doSetStatus()"
+                  >SET STATUS</md-button>
+                </div>
+
+                <div layout="row">
+                  <md-button
+                    class="md-raised"
+                    ng-click="doCrawl()"
+                    flex
+                  >
+                    <md-icon>opacity</md-icon>
+                    CRAWL
+                  </md-button>
+                </div>
+                
+                <div layout="row">
+                  <md-input-container flex>
+                    <label>Merge into...</label>
+                    <md-select ng-model="$parent.selected_mergeTarget">
+                      <md-option value=""><em>None</em></md-option>
+                      <md-option
+                        ng-repeat="id in checkedList"
+                        value="{{id}}"
+                      >{{checkedIndex[id].name}}</md-option>
+                    </md-select>
+                  </md-input-container>
+                  <md-button
+                    class="md-primary"
+                    ng-disabled="selected_mergeTarget == '' || loading"
+                    ng-click="doMerge()"
+                  >MERGE</md-button>
+                </div>
+
+              </div>
 
             </div>
           </div>

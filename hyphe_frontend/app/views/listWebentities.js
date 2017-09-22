@@ -38,8 +38,8 @@ angular.module('hyphe.listwebentitiesController', [])
     }
     $scope.counts = {}
 
-    $scope.selected_setStatus = 'none'
-    $scope.selected_mergeTarget = 'none'
+    $scope.selected_setStatus = ''
+    $scope.selected_mergeTarget = ''
 
     $scope.applySettings = function(){
       
@@ -146,7 +146,7 @@ angular.module('hyphe.listwebentitiesController', [])
       }
       var list = $scope.checkedList
         .map(function(id){
-          return $scope.webentitiesCheckStack[id]
+          return $scope.checkedIndex[id]
         })
         .map(buildObj)
         .filter(function(obj){return obj.webentity.id !== undefined})
@@ -166,7 +166,7 @@ angular.module('hyphe.listwebentitiesController', [])
     }
 
     $scope.doMerge = function(){
-      if($scope.selected_mergeTarget !== 'none' && !$scope.loading){
+      if($scope.selected_mergeTarget !== '' && !$scope.loading){
 
         $scope.loading = true
         
@@ -193,7 +193,7 @@ angular.module('hyphe.listwebentitiesController', [])
     }
 
     $scope.doSetStatus = function(){
-      if($scope.selected_setStatus !== 'none' && !$scope.loading){
+      if($scope.selected_setStatus !== '' && !$scope.loading){
 
         $scope.loading = true
         
@@ -260,10 +260,13 @@ angular.module('hyphe.listwebentitiesController', [])
     }
 
     function reset(){
+      $scope.loading = false
       $scope.checkedList = []
+      $scope.checkedIndex = {}
+      $scope.dynamicWebentities = new DynamicWebentities()
 
-      $scope.selected_setStatus = 'none'
-      $scope.selected_mergeTarget = 'none'
+      $scope.selected_setStatus = ''
+      $scope.selected_mergeTarget = ''
 
       doQuery()
     }
