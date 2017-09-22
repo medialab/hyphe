@@ -1218,10 +1218,11 @@ textarea.over-error{
 /* ==========================================================================
    View: Web Entities List
    ========================================================================== */
-/*.selected-webentities-container{
+.selected-webentities-container{
   overflow-y: auto;
   max-height: 200px;
 }
+/*
 .selected-webentities-container table{
   width: 100%;
 }

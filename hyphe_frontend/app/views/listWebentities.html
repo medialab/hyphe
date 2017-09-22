@@ -259,8 +259,32 @@
             </div>
 
             <!-- Actions -->
-            <div layout="column" flex="30">
-              TODO: Actions
+            <div layout="column" flex="30" style="padding: 8px" ng-if="checkedList.length > 0">
+
+              <div layout="row" md-colors="{'background':'default-accent'}">
+                <div style="padding: 8px" flex>
+                  SELECTION: {{checkedList.length}} WEB ENTIT{{checkedList.length | y_ies | uppercase}}
+                </div>
+                <div>
+                  <md-button class="md-icon-button" ng-click="uncheckAll()" style="padding: 8px">
+                    <md-icon md-colors="{'color':'default-accent-50'}">close</md-icon>
+                  </md-button>
+                </div>
+              </div>
+
+              <!-- List preview -->
+              <div class="selected-webentities-container">
+                <md-list layout-fill>
+                  <md-list-item ng-repeat="id in checkedList" md-colors="{'background': 'default-background-100'}">
+                    <span md-truncate>{{checkedIndex[id].name}}</span>
+                    <md-button class="md-icon-button md-secondary" ng-click="uncheck(id)">
+                      <md-icon>close</md-icon>
+                    </md-button>
+                  </md-list-item>
+                </md-list>
+              </div>
+
+
             </div>
           </div>
 

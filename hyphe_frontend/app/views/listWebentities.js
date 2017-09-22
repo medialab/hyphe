@@ -10,10 +10,8 @@ angular.module('hyphe.listwebentitiesController', [])
 
     $scope.dynamicWebentities
 
-    $scope.list = []
     $scope.checkedList = []
-    $scope.webentitiesCheckStack = {} // Web entities once checked
-                                      // NB: will contain false positives
+    $scope.checkedIndex = {}
 
     $scope.randomEasterEgg
 
@@ -128,37 +126,15 @@ angular.module('hyphe.listwebentitiesController', [])
       })
     }
 
-/*    $scope.toggleRow = function(rowId){
-      var obj = $scope.list[rowId]
-      if(obj.checked){
-        obj.checked = false
-        checkedList_remove(obj.webentity.id)
-      } else {
-        obj.checked = true
-        checkedList_add(obj.webentity.id, obj.webentity)
-      }
+    $scope.uncheck = function(weid){
+      checkedList_remove(weid)
+      $scope.dynamicWebentities.uncheck(weid)
     }
 
-    $scope.uncheck = function(weId){
-      checkedList_remove(weId)
-      $scope.list.some(function(obj){
-        if(obj.webentity.id == weId){
-          obj.checked = false
-          return true
-        }
-      })
-    }
     $scope.uncheckAll = function(){
       while($scope.checkedList.length > 0){
         $scope.uncheck($scope.checkedList[0])
       }
-    }
-*/
-
-    $scope.clearQuery = function(){
-      $scope.query = ""
-      $scope.applySettings()
-      doQuery()
     }
 
     $scope.doCrawl = function(crawlExisting){
@@ -244,22 +220,6 @@ angular.module('hyphe.listwebentitiesController', [])
       window.open(utils.LRU_to_URL(lru), '_blank');
     }
 
-    $scope.updatePageSelection = function(){
-      if($scope.pageChecked){
-        $scope.list.forEach(function(obj){
-          if(!obj.checked){
-            obj.checked = true
-            checkedList_add(obj.webentity.id, obj.webentity)
-          }
-        })
-      } else {
-        $scope.list.forEach(function(obj){
-          obj.checked = false
-          checkedList_remove(obj.webentity.id)
-        })
-      }
-    }
-
     // Resize subheader
     window.onresize = function(event) {
       syncSubheaderWidth()
@@ -300,13 +260,7 @@ angular.module('hyphe.listwebentitiesController', [])
     }
 
     function reset(){
-      $scope.list
-
       $scope.checkedList = []
-
-      $scope.loading = false  // This flag prevents multiple simultaneous queries
-
-      $scope.paginationPage = 1
 
       $scope.selected_setStatus = 'none'
       $scope.selected_mergeTarget = 'none'
@@ -314,15 +268,15 @@ angular.module('hyphe.listwebentitiesController', [])
       doQuery()
     }
 
-    function checkedList_remove(weId){
-      $scope.checkedList = $scope.checkedList.filter(function(d){
-        return d != weId
-      })
+    function checkedList_remove(weid){
+      var i = $scope.checkedList.indexOf(weid)
+      $scope.checkedList.splice(i, 1)
+      delete $scope.checkedIndex[weid]
     }
 
-    function checkedList_add(weId, we){
-      $scope.checkedList.push(weId)
-      $scope.webentitiesCheckStack[weId] = we
+    function checkedList_add(weid, we){
+      $scope.checkedList.push(weid)
+      $scope.checkedIndex[weid] = we
     }
 
     function refreshEasterEgg(){
@@ -405,7 +359,6 @@ angular.module('hyphe.listwebentitiesController', [])
             self.loading = false
           }
           ,function(){
-            $scope.list = []
             $scope.status = {message: 'Error loading results page', background: 'danger'}
             $scope.loading = false
             self.loading = false
@@ -428,7 +381,8 @@ angular.module('hyphe.listwebentitiesController', [])
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
                 webentity:we,
-                checked: $scope.checkedList.some(function(weId){return weId == we.id})
+                checked: $scope.checkedList.some(function(weId){return weId == we.id}),
+                selected: !!$scope.checkedIndex[we.id]
               }
               return obj
             })
@@ -453,7 +407,60 @@ angular.module('hyphe.listwebentitiesController', [])
       this.fetchPage_(0)
     }
 
+    DynamicWebentities.prototype.uncheck = function(weid) {
+      var p
+      for (p in this.loadedPages) {
+        var items = this.loadedPages[p] || []
+        items.forEach(function(obj){
+          if (obj.webentity && obj.webentity.id == weid) {
+            obj.selected = false
+          }
+        })
+      }
+    }
+    
+    function updateSelectionFromList() {
+      var checked = []
+      var checkedIndex = {}
+      var unchecked = []
+      var p
+      for (p in $scope.dynamicWebentities.loadedPages) {
+        var items = $scope.dynamicWebentities.loadedPages[p] || []
+        items.forEach(function(obj){
+          if (obj.webentity) {
+            if (obj.selected) {
+              var weid = obj.webentity.id
+              checked.push(weid)
+              checkedIndex[weid] = obj.webentity
+            } else {
+              unchecked.push(obj.webentity.id)
+            }
+          }
+        })
+      }
+
+      // Add checked webentity ids
+      checked.forEach(function(weid){
+        if ($scope.checkedList.indexOf(weid) < 0) {
+          checkedList_add(weid, checkedIndex[weid])
+        }
+      })
+
+      // Remove unchecked webentity ids
+      unchecked.forEach(function(weid){
+        if ($scope.checkedList.indexOf(weid) >= 0) {
+          checkedList_remove(weid)
+        }
+      })
+      
+      
+    }
+
     $scope.dynamicWebentities = new DynamicWebentities()
+
+    $scope.$watch('dynamicWebentities', function(){
+      updateSelectionFromList()
+    }, true)
 
     // Init
     $scope.applySettings()
