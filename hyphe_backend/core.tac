@@ -1338,8 +1338,6 @@ class Memory_Structure(customJSONRPC):
         """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as `list_lrus` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        if name:
-            name = name.encode('utf-8')
         if not isinstance(list_lrus, list):
             list_lrus = [list_lrus]
         lru_prefixes_set = set()
@@ -1400,16 +1398,10 @@ class Memory_Structure(customJSONRPC):
             if not WE:
                 returnD(format_error("ERROR could not retrieve WebEntity with id %s" % webentity_id))
         try:
-            if isinstance(value, list):
-                value = [i.encode('utf-8') for i in value]
-            else:
-                value = value.encode('utf-8')
             if array_behavior:
                 if array_key:
-                    array_key = array_key.encode('utf-8')
                     tmparr = WE.get(field_name, {})
                     if array_namespace:
-                        array_namespace = array_namespace.encode('utf-8')
                         tmparr = tmparr[array_namespace] if array_namespace in tmparr else {}
                     arr = tmparr[array_key] if array_key in tmparr else []
                 else:
