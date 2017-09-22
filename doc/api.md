@@ -690,6 +690,8 @@ The API will always answer as such:
  + _`sort`_ (optional, default: `null`)
  + _`count`_ (optional, default: `100`)
  + _`page`_ (optional, default: `0`)
+ + _`light`_ (optional, default: `false`)
+ + _`semilight`_ (optional, default: `false`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all WebEntities of status `status` with no tag of the namespace "USER" or multiple tags for some USER categories if `multiple_values` is true or no tag for at least one existing USER category if `missing_a_category` is true.
@@ -700,6 +702,8 @@ The API will always answer as such:
  + _`sort`_ (optional, default: `null`)
  + _`count`_ (optional, default: `100`)
  + _`page`_ (optional, default: `0`)
+ + _`light`_ (optional, default: `false`)
+ + _`semilight`_ (optional, default: `false`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all IN WebEntities which have no crawljob associated with it.

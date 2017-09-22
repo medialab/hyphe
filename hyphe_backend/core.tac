@@ -2251,7 +2251,7 @@ class Memory_Structure(customJSONRPC):
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_get_webentities_mistagged(self, status='IN', missing_a_category=False, multiple_values=False, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentities_mistagged(self, status='IN', missing_a_category=False, multiple_values=False, sort=None, count=100, page=0, light=False, semilight=False, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all WebEntities of status `status` with no tag of the namespace "USER" or multiple tags for some USER categories if `multiple_values` is true or no tag for at least one existing USER category if `missing_a_category` is true.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -2275,11 +2275,11 @@ class Memory_Structure(customJSONRPC):
         else:
             query["tags.USER"] = {"$exists": False}
         WEs = yield self.db.get_WEs(corpus, query)
-        res = yield self.paginate_webentities(WEs, count=count, page=page, sort=sort, corpus=corpus)
+        res = yield self.paginate_webentities(WEs, count=count, page=page, sort=sort, light=light, semilight=semilight, corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_get_webentities_uncrawled(self, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentities_uncrawled(self, sort=None, count=100, page=0, light=False, semilight=False, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all IN WebEntities which have no crawljob associated with it.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -2287,7 +2287,7 @@ class Memory_Structure(customJSONRPC):
         if page is None:
             returnD(format_error("page and count arguments must be integers"))
         WEs = yield self.db.get_WEs(corpus, {"status": "IN", "crawled": False})
-        res = yield self.paginate_webentities(WEs, count=count, page=page, sort=sort, corpus=corpus)
+        res = yield self.paginate_webentities(WEs, count=count, page=page, sort=sort, light=light, semilight=semilight, corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
