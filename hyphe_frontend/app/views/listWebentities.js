@@ -400,6 +400,8 @@ angular.module('hyphe.listwebentitiesController', [])
               }
               return obj
             })
+            $scope.status = {}
+            $scope.loading = false
             self.loading = false
           }
           ,function(){
