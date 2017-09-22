@@ -34,7 +34,6 @@ angular.module('hyphe.listwebentitiesController', [])
     , out: $scope.statuses.out
     , discovered: $scope.statuses.discovered
     , query: $scope.query
-    , paginationLength: parseInt($scope.paginationLength)
     }
     $scope.counts = {}
 
@@ -455,7 +454,6 @@ angular.module('hyphe.listwebentitiesController', [])
           checkedList_remove(weid)
         }
       })
-      
       
     }
 
