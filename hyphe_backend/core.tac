@@ -2170,7 +2170,7 @@ class Memory_Structure(customJSONRPC):
         return self.jsonrpc_search_webentities(allFieldsKeywords, fieldKeywords, sort, count, page, light, semilight, corpus, True)
 
     @inlineCallbacks
-    def jsonrpc_get_webentities_by_status(self, status, sort=None, count=100, page=0, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentities_by_status(self, status, sort=None, count=100, page=0, light=False, semilight=True, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all WebEntities having their status equal to `status` (one of "in"/"out"/"undecided"/"discovered").\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`."""
         status = status.upper()
         if status not in WEBENTITIES_STATUSES:
@@ -2181,7 +2181,7 @@ class Memory_Structure(customJSONRPC):
         if page is None:
             returnD(format_error("page and count arguments must be integers"))
         WEs = yield self.db.get_WEs(corpus, {"status": status})
-        res = yield self.paginate_webentities(WEs, count, page, sort=sort, light=False, semilight=True, corpus=corpus)
+        res = yield self.paginate_webentities(WEs, count, page, sort=sort, light=light, semilight=semilight, corpus=corpus)
         returnD(res)
 
     @inlineCallbacks

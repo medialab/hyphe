@@ -629,6 +629,8 @@ The API will always answer as such:
  + _`sort`_ (optional, default: `null`)
  + _`count`_ (optional, default: `100`)
  + _`page`_ (optional, default: `0`)
+ + _`light`_ (optional, default: `false`)
+ + _`semilight`_ (optional, default: `true`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all WebEntities having their status equal to `status` (one of "in"/"out"/"undecided"/"discovered").
