@@ -84,6 +84,14 @@ dl.key-value-pairs dd {
 .webentity-link-icon {
   opacity: 0.8;
 }
+.icon-flip {
+  -moz-transform: scaleY(-1);
+  -o-transform: scaleY(-1);
+  -webkit-transform: scaleY(-1);
+  transform: scaleY(-1);
+  filter: FlipV;
+  -ms-filter: "FlipV";
+}
 
 /*
 .label, .badge{
@@ -1328,11 +1336,11 @@ span.editable{
   padding: 0px 8px 0px 8px;
 }
 .welist-col-last-crawled {
-  width: 24px;
+  width: 38px;
   padding: 0px 8px 0px 8px;
 }
 .welist-col-cited {
-  width: 50px;
+  width: 68px;
   padding: 0px 8px 0px 8px;
   text-align: right;
 }

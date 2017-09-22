@@ -23,20 +23,17 @@
               
               <!-- Filtering -->
               <div layout="column">
-                <!-- <md-toolbar>
-                  <div class="md-toolbar-tools">
-                    <md-icon>filter_list</md-icon>
-                    <h2 md-truncate flex>FILTERING</h2>
-                  </div>
-                </md-toolbar> -->
-                <div style="padding: 8px" layout="column">
+                <div
+                  style="padding: 8px; margin: 8px"
+                  layout="column"
+                  md-colors="{'background':'default-background-200'}"
+                >
 
                   <!-- Status selector -->
                   <hyphe-status-box
                     statuses="statuses"
                     counts="counts"
                     change="touchSettings()"
-                    disabled="loading"
                   ></hyphe-status-box>
 
                   <div layout="row">
@@ -118,33 +115,71 @@
                 </div>
                 
                 <!-- Loaded with results -->
-                <div layout-fill layout="column" ng-if="dynamicWebentities && dynamicWebentities.numItems>0">
-                  <md-subheader class="md-primary follow-md-virtual-repeat-width" style="height: 48px">
+                <div
+                  layout-fill
+                  layout="column"
+                  ng-if="dynamicWebentities && dynamicWebentities.numItems > 0"
+                >
+                  <md-subheader
+                    class="follow-md-virtual-repeat-width"
+                  >
                     <div layout="row" style="padding-left: 52px; padding-right: 24px;">
-                      <div flex layout="row">
-                        WEB ENTITY NAME
-                      </div>
                       <div
-                        class="welist-col-status"
+                        flex
+                        class="pointable"
+                        md-colors="{'color': (sort == 'name') ? ('default-accent') : ('default-primary')}"
+                        ng-click="toggleSort('name')"
                       >
-                        STATUS
+                        NAME
+                        <md-icon class="welist-icon md-primary" style="opacity: 0.2" ng-if="sort != 'name'">remove</md-icon>
+                        <md-icon class="welist-icon md-accent" ng-if="sort == 'name' && sortAsc">arrow_downward</md-icon>
+                        <md-icon class="welist-icon md-accent" ng-if="sort == 'name' && !sortAsc">arrow_upward</md-icon>
                       </div>
                       <div
-                        class="welist-col-last-crawled"
+                        class="welist-col-status pointable"
+                        md-colors="{'color': (sort == 'status') ? ('default-accent') : ('default-primary')}"
+                        ng-click="toggleSort('status')"
+                      >
+                        ST
+                        <md-tooltip md-direction="top">Status</md-tooltip>
+                        <md-icon class="welist-icon md-primary" style="opacity: 0.2" ng-if="sort != 'status'">remove</md-icon>
+                        <md-icon class="welist-icon md-accent" ng-if="sort == 'status' && sortAsc">arrow_downward</md-icon>
+                        <md-icon class="welist-icon md-accent" ng-if="sort == 'status' && !sortAsc">arrow_upward</md-icon>
+                      </div>
+                      <div
+                        class="welist-col-last-crawled pointable"
+                        md-colors="{'color': (sort == 'crawled') ? ('default-accent') : ('default-primary')}"
+                        ng-click="toggleSort('crawled')"
                         hide show-gt-sm
                       >
-                        CRA
+                        C
+                        <md-tooltip md-direction="top">Crawled</md-tooltip>
+                        <md-icon class="welist-icon md-primary" style="opacity: 0.2" ng-if="sort != 'crawled'">remove</md-icon>
+                        <md-icon class="welist-icon md-accent" ng-if="sort == 'crawled' && sortAsc">arrow_downward</md-icon>
+                        <md-icon class="welist-icon md-accent" ng-if="sort == 'crawled' && !sortAsc">arrow_upward</md-icon>
                       </div>
                       <div
-                        class="welist-col-cited"
+                        class="welist-col-cited pointable"
+                        ng-click="toggleSort('indegree')"
+                        md-colors="{'color': (sort == 'indegree') ? ('default-accent') : ('default-primary')}"
                       >
                         CITED
+                        <md-tooltip md-direction="top">Number of other web entities citing it in the corpus</md-tooltip>
+                        <md-icon class="welist-icon md-primary" style="opacity: 0.2" ng-if="sort != 'indegree'">remove</md-icon>
+                        <md-icon class="welist-icon md-accent" ng-if="sort == 'indegree' && sortAsc">arrow_downward</md-icon>
+                        <md-icon class="welist-icon md-accent" ng-if="sort == 'indegree' && !sortAsc">arrow_upward</md-icon>
                       </div>
                       <div
-                        class="welist-col-last-modif"
+                        class="welist-col-last-modif pointable"
+                        ng-click="toggleSort('last_modification_date')"
+                        md-colors="{'color': (sort == 'last_modification_date') ? ('default-accent') : ('default-primary')}"
                         hide show-gt-md
                       >
-                        LAST MODIF
+                        LAST MOD
+                        <md-tooltip md-direction="top">Last time the web entity was modified</md-tooltip>
+                        <md-icon class="welist-icon md-primary" style="opacity: 0.2" ng-if="sort != 'last_modification_date'">remove</md-icon>
+                        <md-icon class="welist-icon md-accent" ng-if="sort == 'last_modification_date' && sortAsc">arrow_downward</md-icon>
+                        <md-icon class="welist-icon md-accent" ng-if="sort == 'last_modification_date' && !sortAsc">arrow_upward</md-icon>
                       </div>
                     </div>
                   </md-subheader>
@@ -187,6 +222,7 @@
                               'webentity-color-discovered':obj.webentity.status == 'DISCOVERED'
                             }"
                           >
+                            <md-tooltip md-direction="right">Web entity status: {{obj.webentity.status}}</md-tooltip>
                             {{obj.webentity.status}}
                           </div>
                           <div
@@ -201,14 +237,15 @@
                           <div
                             class="welist-col-cited"
                           >
-                            {{obj.webentity.indegree}}
+                            <md-tooltip md-direction="right">Is cited by {{obj.webentity.indegree|number}} other web entities in the corpus</md-tooltip>
+                            {{obj.webentity.indegree|number}}
                           </div>
                           <div
                             class="welist-col-last-modif"
                             hide show-gt-md
                           >
                             <span md-truncate>
-                              <md-tooltip md-direction="right">{{obj.webentity.last_modification_date|date}}</md-tooltip>
+                              <md-tooltip md-direction="right">Last modified {{obj.webentity.last_modification_date|date}}</md-tooltip>
                               {{obj.webentity.last_modification_date|prettyDate}}
                             </span>
                           </div>

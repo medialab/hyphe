@@ -360,6 +360,7 @@ angular.module('hyphe.listwebentitiesController', [])
 
     // Required.
     DynamicWebentities.prototype.getItemAtIndex = function(index) {
+      syncSubheaderWidth()
       var pageNumber = Math.floor(index / this.PAGE_SIZE);
       var page = this.loadedPages[pageNumber]
 
@@ -432,13 +433,11 @@ angular.module('hyphe.listwebentitiesController', [])
             $scope.status = {}
             $scope.loading = false
             self.loading = false
-            $timeout(syncSubheaderWidth)
           }
           ,function(){
             $scope.status = {message: 'Error loading web entities', background: 'danger'}
             $scope.loading = false
             self.loading = false
-            $timeout(syncSubheaderWidth)
           }
         )
       }
