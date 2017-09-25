@@ -145,9 +145,12 @@ angular.module('hyphe.service_hyphe_api', [])
     ns.getResultsPage = buildApiCall(
         API.WEBENTITY_LIST_SEARCH_GET_PAGE
         ,function(settings){
+          if(settings.idNamesOnly === undefined)
+            settings.idNamesOnly = false
           return [
             settings.token
             ,settings.page
+            ,settings.idNamesOnly
             ,corpus.getId()
           ]}
       )

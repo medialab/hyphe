@@ -2084,7 +2084,7 @@ class Memory_Structure(customJSONRPC):
 
         subset = WEs[page*count:(page+1)*count]
         subset = yield self.format_webentities(subset, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
-        ids = [w["_id"] for w in WEs]
+        ids = [[w["_id"], w["name"]] for w in WEs]
         res = yield self.format_WE_page(len(ids), count, page, subset, corpus=corpus)
 
         query_args = {
@@ -2298,25 +2298,27 @@ class Memory_Structure(customJSONRPC):
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_get_webentities_page(self, pagination_token, n_page, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` the page number `n_page` of WebEntities corresponding to the results of a previous query ran using any of the `get_webentities` or `search_webentities` methods using the returned `pagination_token`."""
+    def jsonrpc_get_webentities_page(self, pagination_token, n_page, idNamesOnly=False, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` the page number `n_page` of WebEntities corresponding to the results of a previous query ran using any of the `get_webentities` or `search_webentities` methods using the returned `pagination_token`. Returns only an array of [id, name] arrays if `idNamesOnly` is true."""
         try:
             page = int(n_page)
         except:
             returnD(format_error("page argument must be an integer"))
-        ids = yield self.db.get_WEs_query(corpus, pagination_token)
-        if not ids:
+        WEs = yield self.db.get_WEs_query(corpus, pagination_token)
+        if not WEs:
             returnD(format_error("No previous query found for token %s on corpus %s" % (pagination_token, corpus)))
-        count = ids["query"]["count"]
-        query_ids = ids["webentities"][page*count:(page+1)*count]
-        if not query_ids:
-            res = yield self.format_WE_page(ids["total"], ids["query"]["count"], page, [], token=pagination_token, corpus=corpus)
+        count = WEs["query"]["count"]
+        WEsPage = WEs["webentities"][page*count:(page+1)*count]
+        if not WEsPage:
+            res = yield self.format_WE_page(WEs["total"], WEs["query"]["count"], page, [], token=pagination_token, corpus=corpus)
             returnD(res)
-        res = yield self.jsonrpc_get_webentities(query_ids, sort=ids["query"]["sort"], count=ids["query"]["count"], light=ids["query"]["light"], semilight=ids["query"]["semilight"], corpus=corpus)
+        if idNamesOnly:
+            returnD(format_result(WEsPage))
+        res = yield self.jsonrpc_get_webentities([w[0] for w in WEsPage], sort=WEs["query"]["sort"], count=WEs["query"]["count"], light=WEs["query"]["light"], semilight=WEs["query"]["semilight"], corpus=corpus)
 
         if is_error(res):
             returnD(res)
-        respage = yield self.format_WE_page(ids["total"], ids["query"]["count"], page, res["result"], token=pagination_token, corpus=corpus)
+        respage = yield self.format_WE_page(WEs["total"], WEs["query"]["count"], page, res["result"], token=pagination_token, corpus=corpus)
         returnD(respage)
 
     @inlineCallbacks
@@ -2326,12 +2328,12 @@ class Memory_Structure(customJSONRPC):
         ranking_field = _ranking_field.lower().strip()
         if ranking_field not in ranking_fields:
             returnD(format_error("ranking_field must be one of %s" % ", ".join(ranking_fields)))
-        ids = yield self.db.get_WEs_query(corpus, pagination_token)
-        if not ids:
+        WEs = yield self.db.get_WEs_query(corpus, pagination_token)
+        if not WEs:
             returnD(format_error("No previous query found for token %s on corpus %s" % (pagination_token, corpus)))
         histogram = {}
-        for wid in ids["webentities"]:
-            rank = self.corpora[corpus]["webentities_ranks"].get(wid, {ranking_field: 0})[ranking_field]
+        for w in WEs["webentities"]:
+            rank = self.corpora[corpus]["webentities_ranks"].get(w[0], {ranking_field: 0})[ranking_field]
             if rank not in histogram:
                 histogram[rank] = 0
             histogram[rank] += 1
