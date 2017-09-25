@@ -5,7 +5,6 @@ angular.module('hyphe.settingsController', [])
   .controller('settings', ['$scope', 'api', 'utils', '$location', 'corpus'
   ,function($scope, api, utils, $location, corpus) {
     $scope.currentPage = 'settings'
-    $scope.Page.setTitle('Settings')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
