@@ -64,33 +64,35 @@
     <div
       flex
       ng-if="!disconnected && !loading && uiMode == 'default' && corpusList.length > 0"
-      style="overflow-y: auto;"
+      
       layout="column"
       layout-align="center stretch"
     >
       <md-progress-circular md-mode="indeterminate" ng-if="corpusList == undefined"></md-progress-circular>
-      <md-list ng-if="corpusList !== undefined" layout-fill>
-        <md-list-item
-          class="md-3-line"
-          ng-repeat="corpus in corpusList|search:search_query:['name']"
-          ng-click="selectCorpus(corpus.corpus_id)"
-        >
-          <md-icon ng-if="corpus.password && !corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">lock</md-icon>
-          <md-icon ng-if="!corpus.password && !corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">stop</md-icon>
-          <md-icon ng-if="corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">play_circle_outline</md-icon>
-          <div class="md-list-item-text" layout="column">
-            <h3>{{ corpus.name }}</h3>
-            <h4>{{ corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + '  web entities' }}</h4>
-            <p>
-              Created
-              <span tooltip="{{corpus.created_at|date}}" tooltip-placement="bottom">{{corpus.created_at|prettyDate}}</span>
-              -
-              Used
-              <span tooltip="{{corpus.last_activity|date}}" tooltip-placement="bottom">{{corpus.last_activity|prettyDate}}</span>
-            </p>
-          </div>
-        </md-list-item>
-      </md-list>
+      <div layout="column" layout-fill style="overflow-y: auto;">
+        <md-list ng-if="corpusList !== undefined" >
+          <md-list-item
+            class="md-3-line"
+            ng-repeat="corpus in corpusList|search:search_query:['name']"
+            ng-click="selectCorpus(corpus.corpus_id)"
+          >
+            <md-icon ng-if="corpus.password && !corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">lock</md-icon>
+            <md-icon ng-if="!corpus.password && !corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">stop</md-icon>
+            <md-icon ng-if="corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">play_circle_outline</md-icon>
+            <div class="md-list-item-text" layout="column">
+              <h3>{{ corpus.name }}</h3>
+              <h4>{{ corpus.total_webentities == 0 ? 'Empty' : corpus.total_webentities == 1 ? '1 web entity' : corpus.total_webentities + '  web entities' }}</h4>
+              <p>
+                Created
+                <span tooltip="{{corpus.created_at|date}}" tooltip-placement="bottom">{{corpus.created_at|prettyDate}}</span>
+                -
+                Used
+                <span tooltip="{{corpus.last_activity|date}}" tooltip-placement="bottom">{{corpus.last_activity|prettyDate}}</span>
+              </p>
+            </div>
+          </md-list-item>
+        </md-list>
+      </div>
     </div>
 
     <!-- Create new corpus -->
