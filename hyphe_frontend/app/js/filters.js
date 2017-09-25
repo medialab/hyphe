@@ -380,6 +380,7 @@ angular.module('hyphe.filters', [])
 
   .filter('arrayToString', [function(){
     return function(arr) {
+      arr = arr || []
       return arr.toString().replace(/,/g, ', ')
     }
   }])

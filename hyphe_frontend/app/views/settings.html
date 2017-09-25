@@ -18,7 +18,7 @@
             </h1>
           </div>
 
-          <div layout="row">
+          <div>
             <md-button
               class="md-raised md-warn"
               ng-click="resetCorpus()"
@@ -92,118 +92,52 @@
               </md-content>
             </div>
 
-            <!-- XXXX -->
+            <!-- CAUTIOUS DOMAINS -->
             <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
-                <h3 style="margin:0px">XXX</h3>
-                <dl class="key-value-pairs">
+                <h3 style="margin:0px">CAUTIOUS DOMAINS</h3>
 
-                  <dt>TTTTTT</dt>
-                  <dd>DDDDDD</dd>
+                <dl class="key-value-pairs" ng-if="options.phantom.whitelist_domains.length>0">
+                  <dd ng-repeat="domain in options.phantom.whitelist_domains" >{{domain}}</dd>
+                </dl>
 
+                <dl class="key-value-pairs" ng-if="!options.phantom.whitelist_domains.length>0">
+                  <dd><em>None</em></dd>
                 </dl>
 
               </md-content>
             </div>
 
-            <!-- XXXX -->
+            <!-- REDIRECTION DOMAINS -->
             <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
-                <h3 style="margin:0px">XXX</h3>
-                <dl class="key-value-pairs">
+                <h3 style="margin:0px">REDIRECTION DOMAINS</h3>
+                <dl class="key-value-pairs" ng-if="options.phantom.follow_redirects.length>0">
+                  <dd ng-repeat="domain in options.phantom.follow_redirects" >{{domain}}</dd>
+                </dl>
 
-                  <dt>TTTTTT</dt>
-                  <dd>DDDDDD</dd>
-
+                <dl class="key-value-pairs" ng-if="!options.phantom.follow_redirects.length>0">
+                  <dd><em>None</em></dd>
                 </dl>
 
               </md-content>
             </div>
 
-            <!-- XXXX -->
-            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+            <!-- WEBENTITY CREATION RULES -->
+            <div flex="100" layout="column" style="padding: 4px">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
-                <h3 style="margin:0px">XXX</h3>
-                <dl class="key-value-pairs">
+                <h3 style="margin:0px">WEBENTITY CREATION RULES</h3>
+                <dl class="key-value-pairs" ng-if="creationrules.length>0">
+                  <dd ng-repeat="rule in creationrules" >{{rule.domain}} : {{rule.type}}{{rule.https ? ' (https)' : ''}}</dd>
+                </dl>
 
-                  <dt>TTTTTT</dt>
-                  <dd>DDDDDD</dd>
-
+                <dl class="key-value-pairs" ng-if="!creationrules.length>0">
+                  <dd><em>None</em></dd>
                 </dl>
 
               </md-content>
             </div>
 
-            <!-- XXXX -->
-            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
-              <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
-                <h3 style="margin:0px">XXX</h3>
-                <dl class="key-value-pairs">
-
-                  <dt>TTTTTT</dt>
-                  <dd>DDDDDD</dd>
-
-                </dl>
-
-              </md-content>
-            </div>
-
-            <!-- XXXX -->
-            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
-              <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
-                <h3 style="margin:0px">XXX</h3>
-                <dl class="key-value-pairs">
-
-                  <dt>TTTTTT</dt>
-                  <dd>DDDDDD</dd>
-
-                </dl>
-
-              </md-content>
-            </div>
-
-            <!-- XXXX -->
-            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
-              <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
-                <h3 style="margin:0px">XXX</h3>
-                <dl class="key-value-pairs">
-
-                  <dt>TTTTTT</dt>
-                  <dd>DDDDDD</dd>
-
-                </dl>
-
-              </md-content>
-            </div>
-
-            <!-- XXXX -->
-            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
-              <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
-                <h3 style="margin:0px">XXX</h3>
-                <dl class="key-value-pairs">
-
-                  <dt>TTTTTT</dt>
-                  <dd>DDDDDD</dd>
-
-                </dl>
-
-              </md-content>
-            </div>
-
-            <!-- XXXX -->
-            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
-              <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
-                <h3 style="margin:0px">XXX</h3>
-                <dl class="key-value-pairs">
-
-                  <dt>TTTTTT</dt>
-                  <dd>DDDDDD</dd>
-
-                </dl>
-
-              </md-content>
-            </div>
-            
           </div>
         </div>
 

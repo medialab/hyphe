@@ -35,7 +35,8 @@ angular.module('hyphe.settingsController', [])
       }
     }
 
-    init()
+    // Init
+    api.downloadCorpusTLDs(init)
 
     function init(){
       $scope.status = {message: "Loading"}
