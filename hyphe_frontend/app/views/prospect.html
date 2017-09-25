@@ -102,7 +102,7 @@
                   <md-subheader
                     class="follow-md-virtual-repeat-width"
                   >
-                    <div layout="row" style="padding-right: 24px; padding-left: 120px;">
+                    <div layout="row" style="padding-right: 24px; padding-left: 100px;">
                       <div
                         flex
                         class="pointable"
@@ -122,41 +122,55 @@
                   </md-subheader>
                   <div flex>
                     <md-virtual-repeat-container layout-fill>
-                      <md-list>
+                      <md-list
+                        md-colors="{
+                          'background': 'default-background-100'
+                        }"
+                      >
                         <md-list-item
                           md-virtual-repeat="obj in dynamicWebentities"
+                          ng-class="{
+                            'discovered-to-in': setIndex[obj.webentity.id].status == 'IN',
+                            'discovered-to-undecided': setIndex[obj.webentity.id].status == 'UNDECIDED',
+                            'discovered-to-out': setIndex[obj.webentity.id].status == 'OUT'
+                          }"
                           md-item-size="48"
                           md-on-demand
-                          class="crawljob-list-item"
-                          md-colors="{
-                            'background': obj.selected ? 'default-accent-100' : 'default-background-100'
-                          }"
                           flex
                         >
                           <div class="mini-status-selector" style="margin-right: 8px">
 
                             <md-button
                               class="btn-in"
-                              ng-class="{'md-raised':obj.webentity.status != 'in'}"
-                              ng-model="obj.webentity.status"
+                              ng-class="{'md-raised':setIndex[obj.webentity.id].status != 'IN'}"
                               ng-click="setStatus(obj, 'IN')"
-                              md-colors="{'background': 'default-background-50-0.5'}"
+                              md-colors="{
+                                'background': (setIndex[obj.webentity.id].status != 'IN')
+                                  ? ('default-background-50')
+                                  : ('default-background-200-0.3')
+                              }"
                             >I</md-button>
 
                             <md-button
                               class="btn-undecided"
-                              ng-class="{'md-raised':obj.webentity.status != 'undecided'}"
-                              ng-model="obj.webentity.status"
+                              ng-class="{'md-raised':setIndex[obj.webentity.id].status != 'UNDECIDED'}"
                               ng-click="setStatus(obj, 'UNDECIDED')"
-                              md-colors="{'background': 'default-background-50-0.5'}"
+                              md-colors="{
+                                'background': (setIndex[obj.webentity.id].status != 'UNDECIDED')
+                                  ? ('default-background-50')
+                                  : ('default-background-200-0.3')
+                              }"
                             >?</md-button>
 
                             <md-button
                               class="btn-out"
-                              ng-class="{'md-raised':obj.webentity.status != 'out'}"
-                              ng-model="obj.webentity.status"
+                              ng-class="{'md-raised':setIndex[obj.webentity.id].status != 'OUT'}"
                               ng-click="setStatus(obj, 'OUT')"
-                              md-colors="{'background': 'default-background-50-0.5'}"
+                              md-colors="{
+                                'background': (setIndex[obj.webentity.id].status != 'OUT')
+                                  ? ('default-background-50')
+                                  : ('default-background-200-0.3')
+                              }"
                             >O</md-button>
 
                           </div>
@@ -192,80 +206,114 @@
             </div>
 
             <!-- Actions -->
-            <div layout="column" flex="30" style="padding: 8px" ng-if="checkedList.length > 0">
+            <div layout="column" flex="30" style="padding: 8px 0px 0px 0px">
 
-              <!-- Title -->
-              <div layout="row" md-colors="{'background':'default-accent'}">
+              <!-- IN: Title -->
+              <div layout="row" md-colors="{'background':'default-background-200'}">
                 <div style="padding: 8px" flex>
-                  SELECTION: {{checkedList.length}} WEB ENTIT{{checkedList.length | y_ies | uppercase}}
-                </div>
-                <div>
-                  <md-button class="md-icon-button" ng-click="uncheckAll()" style="padding: 8px">
-                    <md-icon md-colors="{'color':'default-accent-50'}">close</md-icon>
-                  </md-button>
+                  {{setToIn}} SET TO IN
                 </div>
               </div>
 
-              <!-- List preview -->
-              <div class="selected-webentities-container">
-                <md-list layout-fill>
-                  <md-list-item ng-repeat="id in checkedList" md-colors="{'background': 'default-background-100'}">
-                    <span md-truncate>{{checkedIndex[id].name}}</span>
-                    <md-button class="md-icon-button md-secondary" ng-click="uncheck(id)">
+              <!-- IN: List preview -->
+              <div
+                class="selected-webentities-container"
+                ng-if="setToIn > 0"
+                md-colors="{'background': 'default-background-100'}"
+              >
+                <md-list
+                  class="discovered-to-in"
+                  layout-fill
+                >
+                  <md-list-item
+                    ng-repeat="(k,obj) in setIndex"
+                    ng-if="obj.status == 'IN'"
+                  >
+                    <span md-truncate>{{obj.webentity.name}}</span>
+                    <md-button class="md-icon-button md-secondary" ng-click="removeFromSetIndex(k)">
                       <md-icon>close</md-icon>
                     </md-button>
                   </md-list-item>
                 </md-list>
               </div>
 
-              <div layout="column" md-colors="{'background':'default-background-200'}" style="padding: 8px">
-                
-                <div layout="row">
-                  <md-input-container flex>
-                    <label>Status</label>
-                    <md-select ng-model="$parent.selected_setStatus">
-                      <md-option value=""><em>None</em></md-option>
-                      <md-option value="IN">IN</md-option>
-                      <md-option value="UNDECIDED">UNDECIDED</md-option>
-                      <md-option value="OUT">OUT</md-option>
-                    </md-select>
-                  </md-input-container>
-                  <md-button
-                    class="md-primary"
-                    ng-disabled="selected_setStatus == '' || loading"
-                    ng-click="doSetStatus()"
-                  >SET STATUS</md-button>
-                </div>
+              <!-- IN: ACTION -->
+              <div layout="column" md-colors="{'background':'default-background-100'}" style="padding: 8px" ng-if="setToIn > 0">
+                <md-button
+                  class="md-raised"
+                  ng-click="doCrawl()"
+                  flex
+                >
+                  <md-icon>opacity</md-icon>
+                  CRAWL
+                </md-button>
+              
+              </div>
 
-                <div layout="row">
-                  <md-button
-                    class="md-raised"
-                    ng-click="doCrawl()"
-                    flex
+              <!-- UNDECIDED: Title -->
+              <div
+                layout="row"
+                md-colors="{'background':'default-background-200'}"
+                style="margin-top: 16px"
+              >
+                <div style="padding: 8px" flex>
+                  {{setToUndecided}} SET TO UNDECIDED
+                </div>
+              </div>
+
+              <!-- UNDECIDED: List preview -->
+              <div
+                class="selected-webentities-container-small"
+                ng-if="setToUndecided > 0"
+                md-colors="{'background': 'default-background-100'}"
+              >
+                <md-list
+                  class="discovered-to-undecided"
+                  layout-fill
+                >
+                  <md-list-item
+                    ng-repeat="(k,obj) in setIndex"
+                    ng-if="obj.status == 'UNDECIDED'"
                   >
-                    <md-icon>opacity</md-icon>
-                    CRAWL
-                  </md-button>
-                </div>
-                
-                <div layout="row">
-                  <md-input-container flex>
-                    <label>Merge into...</label>
-                    <md-select ng-model="$parent.selected_mergeTarget">
-                      <md-option value=""><em>None</em></md-option>
-                      <md-option
-                        ng-repeat="id in checkedList"
-                        value="{{id}}"
-                      >{{checkedIndex[id].name}}</md-option>
-                    </md-select>
-                  </md-input-container>
-                  <md-button
-                    class="md-primary"
-                    ng-disabled="selected_mergeTarget == '' || loading"
-                    ng-click="doMerge()"
-                  >MERGE</md-button>
-                </div>
+                    <span md-truncate>{{obj.webentity.name}}</span>
+                    <md-button class="md-icon-button md-secondary" ng-click="removeFromSetIndex(k)">
+                      <md-icon>close</md-icon>
+                    </md-button>
+                  </md-list-item>
+                </md-list>
+              </div>
 
+              <!-- OUT: Title -->
+              <div
+                layout="row"
+                md-colors="{'background':'default-background-200'}"
+                style="margin-top: 16px"
+              >
+                <div style="padding: 8px" flex>
+                  {{setToOut}} SET TO OUT
+                </div>
+              </div>
+
+              <!-- OUT: List preview -->
+              <div
+                class="selected-webentities-container-small"
+                ng-if="setToOut > 0"
+                md-colors="{'background': 'default-background-100'}"
+              >
+                <md-list
+                  class="discovered-to-out"
+                  layout-fill
+                >
+                  <md-list-item
+                    ng-repeat="(k,obj) in setIndex"
+                    ng-if="obj.status == 'OUT'"
+                  >
+                    <span md-truncate>{{obj.webentity.name}}</span>
+                    <md-button class="md-icon-button md-secondary" ng-click="removeFromSetIndex(k)">
+                      <md-icon>close</md-icon>
+                    </md-button>
+                  </md-list-item>
+                </md-list>
               </div>
 
             </div>

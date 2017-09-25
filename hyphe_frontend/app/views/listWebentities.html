@@ -195,12 +195,15 @@
                   </md-subheader>
                   <div flex>
                     <md-virtual-repeat-container layout-fill>
-                      <md-list>
+                      <md-list
+                        md-colors="{
+                          'background': 'default-background-100'
+                        }"
+                      >
                         <md-list-item
                           md-virtual-repeat="obj in dynamicWebentities"
                           md-item-size="48"
                           md-on-demand
-                          class="crawljob-list-item"
                           md-colors="{
                             'background': obj.selected ? 'default-accent-100' : 'default-background-100'
                           }"
@@ -285,7 +288,12 @@
 
               <!-- List preview -->
               <div class="selected-webentities-container">
-                <md-list layout-fill>
+                <md-list 
+                  layout-fill
+                  md-colors="{
+                    'background': 'default-background-100'
+                  }"
+                >
                   <md-list-item ng-repeat="id in checkedList" md-colors="{'background': 'default-background-100'}">
                     <span md-truncate>{{checkedIndex[id].name}}</span>
                     <md-button class="md-icon-button md-secondary" ng-click="uncheck(id)">

@@ -1231,6 +1231,10 @@ textarea.over-error{
   overflow-y: auto;
   max-height: 200px;
 }
+.selected-webentities-container-small{
+  overflow-y: auto;
+  max-height: 100px;
+}
 /*
 .selected-webentities-container table{
   width: 100%;
@@ -1289,6 +1293,15 @@ textarea.over-error{
 /*.prospect-range-selector{
   margin-top: 6px;
 }*/
+.discovered-to-in {
+  background-color: rgba(51, 51, 51, 0.4);
+}
+.discovered-to-undecided {
+  background-color: rgba(173, 162, 153, 0.4);
+}
+.discovered-to-out {
+  background-color: rgba(255, 170, 170, 0.4);
+}
 
 
 

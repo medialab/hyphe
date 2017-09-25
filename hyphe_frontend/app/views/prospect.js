@@ -92,9 +92,11 @@ angular.module('hyphe.prospectController', [])
     }
 
     $scope.setStatus = function(obj, status){
-      if(obj.webentity.status.toLowerCase() === status.toLowerCase()){
+      if($scope.setIndex[obj.webentity.id] && $scope.setIndex[obj.webentity.id].status.toLowerCase() === status.toLowerCase()){
         status = 'DISCOVERED'
       }
+      console.log('Set status to '+status)
+
       api.webentitiesSetStatus(
         {
           webentityId_list: [obj.webentity.id]
@@ -155,6 +157,11 @@ angular.module('hyphe.prospectController', [])
 
     $scope.popLru = function(lru){
       window.open(utils.LRU_to_URL(lru), '_blank');
+    }
+
+    // Resize subheader
+    window.onresize = function(event) {
+      syncSubheaderWidth()
     }
 
     // Functions
