@@ -10,15 +10,15 @@
         style="overflow-y: auto;"
       >
         
-        <!-- Content -->
-        <div layout-fill layout="column">
+        <!-- Content (except destroy and reset) -->
+        <div layout-fill layout="column" ng-if="!destroying && !resetting">
           <div class="page-header">
             <h1>
               SETTINGS
             </h1>
           </div>
 
-          <div>
+          <div ng-if="!loading">
             <md-button
               class="md-raised md-warn"
               ng-click="resetCorpus()"
@@ -139,6 +139,29 @@
             </div>
 
           </div>
+        </div>
+
+        <!-- Content: destroying -->
+        <div
+          layout-fill
+          layout="column"
+          layout-align="center center"
+          ng-if="destroying"
+          style="background-color: #000; color: #FFF"
+        >
+          <img src="img/destroy.gif">
+          PLEASE WAIT DURING DESTRUCTION
+        </div>
+
+        <!-- Content: resetting -->
+        <div
+          layout-fill
+          layout="column"
+          layout-align="center center"
+          ng-if="resetting"
+          md-colors="{'background': 'default-warn-50'}"
+        >
+          PLEASE WAIT DURING RESET...
         </div>
 
       </div>

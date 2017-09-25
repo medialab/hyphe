@@ -10,9 +10,13 @@ angular.module('hyphe.settingsController', [])
 
     $scope.options = {}
     $scope.loading = true
+    $scope.destroying = false
+    $scope.resetting = false
 
     $scope.destroy = function(){
       if (confirm('Are you sure you want to PERMANENTLY destroy this corpus?')) {
+        $scope.destroying = true
+        $scope.status = {message: 'Destroying corpus'}
         api.destroyCorpus({
           id:corpus.getId()
         }, function(){
@@ -25,6 +29,8 @@ angular.module('hyphe.settingsController', [])
 
     $scope.resetCorpus = function(){
       if (confirm('Are you sure you want to reset this corpus?')) {
+        $scope.resetting = true
+        $scope.status = {message: 'Resetting corpus'}
         api.resetCorpus({
           id:corpus.getId()
         }, function(){
