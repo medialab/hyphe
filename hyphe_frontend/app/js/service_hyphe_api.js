@@ -532,6 +532,7 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.id_list    // List of crawl jobs
             ,settings.from || null
             ,settings.to || null
+            ,settings.light || false
             ,corpus.getId()
           ]}
       )

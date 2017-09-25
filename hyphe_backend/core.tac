@@ -605,8 +605,8 @@ class Core(customJSONRPC):
   # BASIC CRAWL METHODS
 
     @inlineCallbacks
-    def jsonrpc_listjobs(self, list_ids=None, from_ts=None, to_ts=None, corpus=DEFAULT_CORPUS):
-        """Returns the list and details of all "finished"/"running"/"pending" crawl jobs of a `corpus`. Optionally returns only the jobs whose id is given in an array of `list_ids` and/or that was created after timestamp `from_ts` or before `to_ts`."""
+    def jsonrpc_listjobs(self, list_ids=None, from_ts=None, to_ts=None, light=False, corpus=DEFAULT_CORPUS):
+        """Returns the list and details of all "finished"/"running"/"pending" crawl jobs of a `corpus`. Optionally returns only the jobs whose id is given in an array of `list_ids` and/or that was created after timestamp `from_ts` or before `to_ts`. Set `light` to true to get only essential metadata for heavy queries."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         query = {}
@@ -622,7 +622,24 @@ class Core(customJSONRPC):
               {"created_at": {"$gte": from_ts}},
               {"indexing_status": {"$ne": indexing_statuses.FINISHED}}
             ]
-        jobs = yield self.db.list_jobs(corpus, query)
+        kwargs = {}
+        if light:
+            kwargs["fields"] = [
+              "webentity_id",
+              "nb_crawled_pages",
+              "nb_unindexed_pages",
+              "nb_pages",
+              "nb_links",
+              "crawl_arguments.max_depth",
+              "crawling_status",
+              "indexing_status",
+              "created_at",
+              "scheduled_at",
+              "started_at",
+              "crawled_at",
+              "finished_at"
+            ]
+        jobs = yield self.db.list_jobs(corpus, query, **kwargs)
         returnD(format_result(list(jobs)))
 
     @inlineCallbacks
