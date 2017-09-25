@@ -249,19 +249,28 @@ md-list.md-dense md-list-item .md-avatar, md-list.md-dense md-list-item .md-list
 
 
 /* ==========================================================================
-   Status selector
+   Mini status selector
    ========================================================================== */
-.btn-group-status-selector .btn-in{
-  border-bottom: 2px solid #333;
+.mini-status-selector .md-button {
+  min-width: 34px;
+  width: 34px;
+  min-height: 34px;
+  height: 34px;
+  margin: 0px;
+  font-size: 0.76em;
+  padding: 0px 2px 0px 2px;
 }
-.btn-group-status-selector .btn-undecided{
-  border-bottom: 2px solid #ADA299;
+.mini-status-selector .btn-in {
+  border-bottom: 4px solid #333;
 }
-.btn-group-status-selector .btn-out{
-  border-bottom: 2px solid #FAA;
+.mini-status-selector .btn-undecided {
+  border-bottom: 4px solid #ADA299;
 }
-.btn-group-status-selector .btn-discovered{
-  border-bottom: 2px solid #93BDE0;
+.mini-status-selector .btn-out {
+  border-bottom: 4px solid #FAA;
+}
+.mini-status-selector .btn-discovered {
+  border-bottom: 4px solid #93BDE0;
 }
 
 
@@ -1866,25 +1875,25 @@ ul.startpages-report{
   margin: 6px 0px 6px 4px;
 }
 .statuses-box .btn-in {
-  border-bottom: 3px solid #333;
+  border-bottom: 4px solid #333;
 }
 .statuses-box .btn-in .status-colored {
   color: #333;
 }
 .statuses-box .btn-undecided {
-  border-bottom: 3px solid #ADA299;
+  border-bottom: 4px solid #ADA299;
 }
 .statuses-box .btn-undecided .status-colored {
   color: #ADA299;
 }
 .statuses-box .btn-out {
-  border-bottom: 3px solid #FAA;
+  border-bottom: 4px solid #FAA;
 }
 .statuses-box .btn-out .status-colored {
   color: #FAA;
 }
 .statuses-box .btn-discovered {
-  border-bottom: 3px solid #93BDE0;
+  border-bottom: 4px solid #93BDE0;
 }
 .statuses-box .btn-discovered .status-colored {
   color: #93BDE0;
