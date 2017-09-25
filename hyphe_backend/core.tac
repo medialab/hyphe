@@ -47,6 +47,7 @@ class Core(customJSONRPC):
         self.db = MongoDB(config['mongo-scrapy'])
         self.traphs = TraphFactory(data_dir=config["traph"]["data_path"])
         self.corpora = {}
+        self.destroying = {}
         self.crawler = Crawler(self)
         self.store = Memory_Structure(self)
         reactor.addSystemEventTrigger('before', 'shutdown', self.close)
@@ -470,19 +471,25 @@ class Core(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_destroy_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False):
-        """Resets a `corpus` then definitely deletes anything associated with it."""
+        """Backups, resets, then definitely deletes a `corpus` and anything associated with it."""
+        if corpus in self.destroying:
+            returnD(format_result("Corpus already being destroyed, patience..."))
+        self.destroying[corpus] = True
         if corpus != TEST_CORPUS:
             yield self.jsonrpc_backup_corpus(corpus)
         if not _quiet:
             logger.msg("Destroying corpus...", system="INFO - %s" % corpus)
         res = yield self.jsonrpc_reinitialize(corpus, _noloop=True, _quiet=_quiet, _nobackup=True, _restart=False)
         if is_error(res):
+            del(self.destroying[corpus])
             returnD(res)
         res = yield self.jsonrpc_stop_corpus(corpus, _quiet, False)
         if is_error(res):
+            del(self.destroying[corpus])
             returnD(res)
         yield self.crawler.jsonrpc_delete_crawler(corpus, _quiet)
         yield self.db.delete_corpus(corpus)
+        del(self.destroying[corpus])
         returnD(format_result("Corpus %s destroyed successfully" % corpus))
 
     @inlineCallbacks
