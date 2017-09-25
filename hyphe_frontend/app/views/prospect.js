@@ -2,24 +2,22 @@
 
 angular.module('hyphe.prospectController', [])
 
-  .controller('prospect', ['$scope', 'api', 'utils', 'corpus', 'store', '$location'
-  ,function($scope, api, utils, corpus, store, $location) {
+  .controller('prospect',
+  function(
+    $scope,
+    api,
+    utils,
+    corpus,
+    store,
+    $location
+  ) {
     $scope.currentPage = 'prospect'
-    $scope.Page.setTitle('Prospect')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
-    $scope.list = []
-    
     $scope.loading = false  // This flag prevents multiple simultaneous queries
 
-    $scope.paginationPage = 1
-    $scope.paginationLength = 20   // How many items per page
-    $scope.paginationNumPages = 10  // How many pages to display in the pagination
-    
-    $scope.fullListLength = 0
-    $scope.currentSearchToken
-
+    $scope.fullListLength = -1
 
     $scope.query
     $scope.settings = {
@@ -63,91 +61,22 @@ angular.module('hyphe.prospectController', [])
       $scope.settingsChanged = difference
     }
 
-    $scope.pageChanged = function(){
-      
-      $scope.status = {message: 'Loading'}
-      $scope.loading = true
-      $scope.rangeObj = {loading:true}
-
-      api.getResultsPage(
-        {
-          token: $scope.currentSearchToken
-          ,page: $scope.paginationPage - 1
-        }
-        ,function(result){
-          $scope.currentSearchToken = result.token
-
-          $scope.list = result.webentities.map(function(we, i){
-            var obj = {
-              id:i
-              ,webentity:we
-              ,status: we.status  // object status is the status visible in UI
-            }
-            return obj
-          })
-          $scope.status = {}
-          $scope.loading = false
-        }
-        ,function(){
-          $scope.list = []
-          $scope.status = {message: 'Error loading results page', background: 'danger'}
-          $scope.loading = false
-        }
-      )
-    }
-
-    $scope.sortChanged = function(){
-      $scope.loadWebentities($scope.lastQuery)
-    }
-
     $scope.loadWebentities = function(query){
-      $scope.status = {message: 'Loading'}
-      $scope.loading = true
-
-      $scope.paginationPage = 1
-
-      // Set last query
-      $scope.lastQuery = $scope.query
 
       // Get filtering settings
       var field_kw = [
           [
-            'status'
-            ,'DISCOVERED'
+            'status',
+            'discovered'
           ]
         ]
+      var sort_field = '-indegree'
 
-      api.searchWebentities(
-        {
-          allFieldsKeywords: query || []
-          ,fieldKeywords: field_kw
-          ,sortField: '-indegree'
-          ,count: $scope.paginationLength
-          ,page: $scope.paginationPage - 1
-        }
-        ,function(result){
-          $scope.paginationPage = 1
-
-          $scope.fullListLength = result.total_results
-          $scope.currentSearchToken = result.token
-
-          $scope.list = result.webentities.map(function(we, i){
-            var obj = {
-              id:i
-              ,webentity:we
-              ,status: we.status  // object status is the status visible in UI
-            }
-            return obj
-          })
-          $scope.status = {}
-          $scope.loading = false
-        }
-        ,function(){
-          $scope.list = []
-          $scope.status = {message: 'Error loading web entities', background: 'danger'}
-          $scope.loading = false
-        }
-      )
+      $scope.dynamicWebentities.reload({
+        query: query,
+        field_kw: field_kw,
+        sort_field: sort_field
+      })
     }
 
     $scope.doQuery = function(){
@@ -228,9 +157,6 @@ angular.module('hyphe.prospectController', [])
       window.open(utils.LRU_to_URL(lru), '_blank');
     }
 
-    // Init
-    $scope.loadWebentities()
-
     // Functions
     function reset(){
       $scope.list
@@ -268,4 +194,232 @@ angular.module('hyphe.prospectController', [])
       }
     }
 
-  }])
+    function syncSubheaderWidth() {
+      if (document.querySelector('.follow-md-virtual-repeat-width') && document.querySelector('.md-virtual-repeat-offsetter')) {
+        document.querySelector('.follow-md-virtual-repeat-width').style.width = document.querySelector('.md-virtual-repeat-offsetter').offsetWidth + 'px'
+      }
+    }
+
+    /// Dynamic webentities list
+
+    function DynamicWebentities() {
+      /**
+       * @type {!Object<?Array>} Data pages, keyed by page number (0-index).
+       */
+      this.loadedPages = {};
+
+      /** @type {number} Total number of items. */
+      this.numItems = 0;
+
+      this.loading = false
+
+      /** @type {!Object} Filter settings of the query. */
+      this.querySettings = {};
+
+      this.searchToken
+
+      /** @const {number} Number of items to fetch per request. */
+      this.PAGE_SIZE = 50;
+
+    };
+
+    // Required.
+    DynamicWebentities.prototype.getItemAtIndex = function(index) {
+      syncSubheaderWidth()
+      var pageNumber = Math.floor(index / this.PAGE_SIZE);
+      var page = this.loadedPages[pageNumber]
+
+      if (page) {
+        return page[index % this.PAGE_SIZE]
+      } else if (page !== null) {
+        this.fetchPage_(pageNumber)
+      }
+    };
+
+    // Required.
+    DynamicWebentities.prototype.getLength = function() {
+      return this.numItems
+    }
+
+    DynamicWebentities.prototype.fetchPage_ = function(pageNumber) {
+      // Set the page to null so we know it is already being fetched.
+      this.loadedPages[pageNumber] = null
+
+      $scope.status = {message: 'Loading'}
+      $scope.loading = true
+      this.loading = true
+
+      var self = this
+      if (this.searchToken) {
+        api.getResultsPage(
+          {
+            token: self.searchToken
+            ,page: pageNumber
+          }
+          ,function(result){
+            self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
+              var obj = {
+                id: pageNumber * self.PAGE_SIZE + i,
+                webentity:we
+              }
+              return obj
+            })
+            $scope.status = {}
+            $scope.loading = false
+            self.loading = false
+          }
+          ,function(){
+            $scope.status = {message: 'Error loading results page', background: 'danger'}
+            $scope.loading = false
+            self.loading = false
+          }
+        )
+      } else {
+        api.searchWebentities(
+          {
+            allFieldsKeywords: self.querySettings.query || []
+            ,fieldKeywords: self.querySettings.field_kw
+            ,sortField: self.querySettings.sort_field
+            ,count: self.PAGE_SIZE
+            ,page: pageNumber
+          }
+          ,function(result){
+            self.numItems = result.total_results
+            self.searchToken = result.token
+
+            self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
+              var obj = {
+                id: pageNumber * self.PAGE_SIZE + i,
+                webentity:we
+              }
+              return obj
+            })
+            $scope.status = {}
+            $scope.loading = false
+            self.loading = false
+          }
+          ,function(){
+            $scope.status = {message: 'Error loading web entities', background: 'danger'}
+            $scope.loading = false
+            self.loading = false
+          }
+        )
+      }
+    }
+
+    DynamicWebentities.prototype.reload = function(querySettings) {
+      this.loadedPages = {}
+      this.numItems = 0
+      this.querySettings = querySettings
+      this.searchToken = undefined
+      this.fetchPage_(0)
+    }
+
+    DynamicWebentities.prototype.uncheck = function(weid) {
+      var p
+      for (p in this.loadedPages) {
+        var items = this.loadedPages[p] || []
+        items.forEach(function(obj){
+          if (obj.webentity && obj.webentity.id == weid) {
+            obj.selected = false
+          }
+        })
+      }
+    }
+
+    DynamicWebentities.prototype.getCheckedSummary = function() {
+      var summary = {checked:0, unchecked: 0, indeterminate: false}
+      var p
+      for (p = 0; p < Math.ceil(this.numItems / this.PAGE_SIZE); p++) {
+        if (this.loadedPages[p]) {
+          this.loadedPages[p].forEach(function(obj){
+            if (obj.selected) {
+              summary.checked++
+            } else {
+              summary.unchecked++
+            }
+          })
+        } else {
+          summary.indeterminate = true
+        }
+      }
+      return summary
+    }
+
+    DynamicWebentities.prototype.checkAll = function(callback) {
+      this.checkOrUncheckAll(true, callback)
+    }
+
+    DynamicWebentities.prototype.uncheckAll = function(callback) {
+      this.checkOrUncheckAll(false, callback)
+    }
+
+    DynamicWebentities.prototype.checkOrUncheckAll = function(checkValue, callback) {
+      // Strategy: Load each page, check all, and forget
+      var settings = {pagesToLoad: [], totalPages: 0, token: this.searchToken, callback:callback, checkValue:checkValue}
+
+      // Check/Uncheck loaded pages
+      var p
+      for (p = 0; p < Math.ceil(this.numItems / this.PAGE_SIZE); p++) {
+        if (this.loadedPages[p]) {
+          this.loadedPages[p].forEach(function(obj){
+            obj.selected = checkValue
+          })
+        } else {
+          settings.pagesToLoad.push(p)
+        }
+      }
+      settings.totalPages = settings.pagesToLoad.length
+      // Check all the pages
+      this.cascadingCheckPage(settings)
+    }
+
+    DynamicWebentities.prototype.cascadingCheckPage = function(settings) {
+      if ($route.current.loadedTemplateUrl != "views/listWebentities.html") return
+      var percent = Math.round(100 - 100 * settings.pagesToLoad.length/settings.totalPages)
+      var page = settings.pagesToLoad.shift()
+
+      if (page === undefined) {
+        settings.callback()
+      } else {
+        $scope.status = {message: ((settings.checkValue) ? ('Checking') : ('Unchecking')) + ' web entities - please wait', progress:percent}
+        $scope.loading = true
+        self.loading = true
+
+        api.getResultsPage(
+          {
+            token: settings.token
+            ,page: page
+          }
+          ,function(result){
+            if (settings.checkValue) {
+              result.webentities.forEach(function(we, i){
+                checkedList_add(we.id, we)
+              })
+            } else {
+              result.webentities.forEach(function(we, i){
+                checkedList_remove(we.id, we)
+              })
+            }
+            if (settings.pagesToLoad.length > 0) {
+              $scope.dynamicWebentities.cascadingCheckPage(settings)
+            } else {
+              $scope.status = {}
+              $scope.loading = false
+              self.loading = false
+              settings.callback()
+            }
+          }
+          ,function(){
+            $scope.status = {message: 'Error loading results page for "check all"', background: 'danger'}
+          }
+        )
+      }
+    }
+
+    $scope.dynamicWebentities = new DynamicWebentities()
+
+    // Init
+    $scope.applySettings()
+
+  })

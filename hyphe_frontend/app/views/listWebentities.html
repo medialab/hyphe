@@ -18,8 +18,9 @@
               <span
                 ng-if="dynamicWebentities && dynamicWebentities.numItems > 0 && counts.in"
                 md-colors="{'color':'default-primary'}"
+                style="font-size: 0.8em"
               >
-                {{dynamicWebentities.numItems}}/{{(counts.in + counts.out + counts.discovered + counts.undefined)}}
+                {{dynamicWebentities.numItems}}&nbsp;/&nbsp;{{(counts.in + counts.out + counts.discovered + counts.undefined)}}
               </span>
             </h1>
           </div>

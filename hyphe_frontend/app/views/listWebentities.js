@@ -384,7 +384,8 @@ angular.module('hyphe.listwebentitiesController', [])
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
                 webentity:we,
-                checked: $scope.checkedList.some(function(weId){return weId == we.id})
+                selected: $scope.checkedIndex[we.id] !== undefined,
+                checked: $scope.checkedIndex[we.id] !== undefined
               }
               return obj
             })
@@ -415,8 +416,8 @@ angular.module('hyphe.listwebentitiesController', [])
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
                 webentity:we,
-                checked: $scope.checkedList.some(function(weId){return weId == we.id}),
-                selected: !!$scope.checkedIndex[we.id]
+                selected: $scope.checkedIndex[we.id] !== undefined,
+                checked: $scope.checkedIndex[we.id] !== undefined
               }
               return obj
             })
