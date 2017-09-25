@@ -252,13 +252,13 @@ md-list.md-dense md-list-item .md-avatar, md-list.md-dense md-list-item .md-list
    Mini status selector
    ========================================================================== */
 .mini-status-selector .md-button {
-  min-width: 34px;
-  width: 34px;
-  min-height: 34px;
-  height: 34px;
+  min-width: 28px;
+  width: 28px;
+  min-height: 28px;
+  height: 28px;
   margin: 0px;
-  font-size: 0.76em;
   padding: 0px 2px 0px 2px;
+  line-height: 2;
 }
 .mini-status-selector .btn-in {
   border-bottom: 4px solid #333;

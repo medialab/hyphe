@@ -51,17 +51,17 @@
                     <div layout="row" layout-align="center center">
                       <!-- Validation -->
                       <md-button
-                        ng-click="revertSettings()"
-                        ng-disabled="!settingsChanged"
-                      >
-                        CANCEL
-                      </md-button>
-                      <md-button
                         class="md-raised md-primary"
                         ng-click="applySettings()"
                         ng-disabled="!settingsChanged"
                       >
                         APPLY CHANGES
+                      </md-button>
+                      <md-button
+                        ng-click="revertSettings()"
+                        ng-disabled="!settingsChanged"
+                      >
+                        CANCEL
                       </md-button>
                     </div>
                   </div>
@@ -102,7 +102,7 @@
                   <md-subheader
                     class="follow-md-virtual-repeat-width"
                   >
-                    <div layout="row" style="padding-right: 24px;">
+                    <div layout="row" style="padding-right: 24px; padding-left: 120px;">
                       <div
                         flex
                         class="pointable"
@@ -141,7 +141,7 @@
                               ng-model="obj.webentity.status"
                               ng-click="setStatus(obj, 'IN')"
                               md-colors="{'background': 'default-background-50-0.5'}"
-                            >IN</md-button>
+                            >I</md-button>
 
                             <md-button
                               class="btn-undecided"
@@ -149,7 +149,7 @@
                               ng-model="obj.webentity.status"
                               ng-click="setStatus(obj, 'UNDECIDED')"
                               md-colors="{'background': 'default-background-50-0.5'}"
-                            >UND</md-button>
+                            >?</md-button>
 
                             <md-button
                               class="btn-out"
@@ -157,7 +157,7 @@
                               ng-model="obj.webentity.status"
                               ng-click="setStatus(obj, 'OUT')"
                               md-colors="{'background': 'default-background-50-0.5'}"
-                            >OUT</md-button>
+                            >O</md-button>
 
                           </div>
 
