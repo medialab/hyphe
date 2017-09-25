@@ -95,7 +95,6 @@ angular.module('hyphe.prospectController', [])
       if($scope.setIndex[obj.webentity.id] && $scope.setIndex[obj.webentity.id].status.toLowerCase() === status.toLowerCase()){
         status = 'DISCOVERED'
       }
-      console.log('Set status to '+status)
 
       api.webentitiesSetStatus(
         {
