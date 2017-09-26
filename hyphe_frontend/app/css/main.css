@@ -1887,8 +1887,15 @@ ul.startpages-report{
 .statuses-box button {
   margin: 6px 0px 6px 4px;
 }
+.statuses-box button.vertical {
+  margin: 0px 6px 4px 6px;
+}
 .statuses-box .btn-in {
   border-bottom: 4px solid #333;
+}
+.statuses-box .btn-in.vertical {
+  border-bottom: none;
+  border-left: 6px solid #333;
 }
 .statuses-box .btn-in .status-colored {
   color: #333;
@@ -1896,17 +1903,29 @@ ul.startpages-report{
 .statuses-box .btn-undecided {
   border-bottom: 4px solid #ADA299;
 }
+.statuses-box .btn-undecided.vertical {
+  border-bottom: none;
+  border-left: 6px solid #ADA299;
+}
 .statuses-box .btn-undecided .status-colored {
   color: #ADA299;
 }
 .statuses-box .btn-out {
   border-bottom: 4px solid #FAA;
 }
+.statuses-box .btn-out.vertical {
+  border-bottom: none;
+  border-left: 6px solid #FAA;
+}
 .statuses-box .btn-out .status-colored {
   color: #FAA;
 }
 .statuses-box .btn-discovered {
   border-bottom: 4px solid #93BDE0;
+}
+.statuses-box .btn-discovered.vertical {
+  border-bottom: none;
+  border-left: 6px solid #93BDE0;
 }
 .statuses-box .btn-discovered .status-colored {
   color: #93BDE0;

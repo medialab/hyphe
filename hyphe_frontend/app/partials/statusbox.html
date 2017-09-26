@@ -69,7 +69,7 @@
 <!-- Vertical version -->
 <div class="statuses-box" layout="column" ng-if="vertical">
   <md-button
-    class="btn-in"
+    class="btn-in vertical"
     ng-class="{'md-raised':!statuses.in}"
     ng-model="statuses.in"
     ng-change="change"
@@ -88,7 +88,7 @@
   </md-button>
 
   <md-button
-    class="btn-undecided"
+    class="btn-undecided vertical"
     ng-class="{'md-raised':!statuses.undecided}"
     ng-model="statuses.undecided"
     ng-change="change"
@@ -107,7 +107,7 @@
   </md-button>
 
   <md-button
-    class="btn-out"
+    class="btn-out vertical"
     ng-class="{'md-raised':!statuses.out}"
     ng-model="statuses.out"
     ng-change="change"
@@ -126,7 +126,7 @@
   </md-button>
 
   <md-button
-    class="btn-discovered"
+    class="btn-discovered vertical"
     ng-class="{'md-raised':!statuses.discovered}"
     ng-model="statuses.discovered"
     ng-change="change"

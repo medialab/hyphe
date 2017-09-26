@@ -33,13 +33,20 @@
     
   </md-toolbar>
 
-  <md-content layout-margin>
-    <hyphe-status-box
-      statuses="statuses"
-      counts="counts"
-      change="touchSettings()"
-      vertical="true"
-    ></hyphe-status-box>
+  <md-content>
+    <div
+      layout="column"
+      md-colors="{'background': 'default-background-200'}"
+      style="padding: 8px"
+    >
+      <p class="md-title">Filter web entities</p>
+      <hyphe-status-box
+        statuses="statuses"
+        counts="counts"
+        change="touchSettings()"
+        vertical="true"
+      ></hyphe-status-box>
+    </div>
   </md-content>
 
 </md-sidenav>
