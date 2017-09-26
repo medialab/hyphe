@@ -7,7 +7,7 @@
     ng-change="change"
     ng-disabled="disabled"
     ng-click="statuses.in = !statuses.in"
-    md-colors="{'background':'default-background-100-0.5'}"
+    md-colors="{'background': (statuses.in) ? ('default-background-100-0.5') : ('default-background-50-0.8')}"
     btn-checkbox
   >
     <md-icon ng-if="!statuses.in" style="opacity: 0.5">check_box_outline_blank</md-icon>
@@ -23,7 +23,7 @@
     ng-change="change"
     ng-disabled="disabled"
     ng-click="statuses.undecided = !statuses.undecided"
-    md-colors="{'background':'default-background-100-0.5'}"
+    md-colors="{'background': (statuses.undecided) ? ('default-background-100-0.5') : ('default-background-50-0.8')}"
     btn-checkbox
   >
     <md-icon ng-if="!statuses.undecided" style="opacity: 0.5">check_box_outline_blank</md-icon>
@@ -39,7 +39,7 @@
     ng-change="change"
     ng-disabled="disabled"
     ng-click="statuses.out = !statuses.out"
-    md-colors="{'background':'default-background-100-0.5'}"
+    md-colors="{'background': (statuses.out) ? ('default-background-100-0.5') : ('default-background-50-0.8')}"
     btn-checkbox
   >
     <md-icon ng-if="!statuses.out" style="opacity: 0.5">check_box_outline_blank</md-icon>
@@ -55,7 +55,7 @@
     ng-change="change"
     ng-disabled="disabled"
     ng-click="statuses.discovered = !statuses.discovered"
-    md-colors="{'background':'default-background-100-0.5'}"
+    md-colors="{'background': (statuses.discovered) ? ('default-background-100-0.5') : ('default-background-50-0.8')}"
     btn-checkbox
   >
     <md-icon ng-if="!statuses.discovered" style="opacity: 0.5">check_box_outline_blank</md-icon>
@@ -75,7 +75,7 @@
     ng-change="change"
     ng-disabled="disabled"
     ng-click="statuses.in = !statuses.in"
-    md-colors="{'background':'default-background-100-0.5'}"
+    md-colors="{'background': (statuses.in) ? ('default-background-100-0.5') : ('default-background-50-0.8')}"
     btn-checkbox
   >
     <div flex layout="row" layout-align="start start">
@@ -94,7 +94,7 @@
     ng-change="change"
     ng-disabled="disabled"
     ng-click="statuses.undecided = !statuses.undecided"
-    md-colors="{'background':'default-background-100-0.5'}"
+    md-colors="{'background': (statuses.undecided) ? ('default-background-100-0.5') : ('default-background-50-0.8')}"
     btn-checkbox
   >
     <div flex layout="row" layout-align="start start">
@@ -113,7 +113,7 @@
     ng-change="change"
     ng-disabled="disabled"
     ng-click="statuses.out = !statuses.out"
-    md-colors="{'background':'default-background-100-0.5'}"
+    md-colors="{'background': (statuses.out) ? ('default-background-100-0.5') : ('default-background-50-0.8')}"
     btn-checkbox
   >
     <div flex layout="row" layout-align="start start">
@@ -132,7 +132,7 @@
     ng-change="change"
     ng-disabled="disabled"
     ng-click="statuses.discovered = !statuses.discovered"
-    md-colors="{'background':'default-background-100-0.5'}"
+    md-colors="{'background': (statuses.discovered) ? ('default-background-100-0.5') : ('default-background-50-0.8')}"
     btn-checkbox
   >
     <div flex layout="row" layout-align="start start">
