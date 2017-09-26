@@ -1,0 +1,45 @@
+<!-- Content -->
+<div
+  layout-fill
+  style="background-color: #F00"
+>
+  Hello World
+
+  <!-- Button -->
+  <!-- <md-button ng-click="toggleSidenav()" class="md-accent">
+    Toggle Sidenav
+  </md-button> -->
+
+</div>
+
+<!-- Side Nav -->
+<md-sidenav
+  class="md-sidenav-right"
+  md-component-id="right"
+  md-disable-backdrop
+  md-whiteframe="4"
+  md-is-open="true"
+>
+
+  <md-toolbar class="md-primary">
+    <div class="md-toolbar-tools">
+      <h2 md-truncate flex>Network Settings</h2>
+
+      <md-button
+        class="md-icon-button"
+        ng-click="toggleSidenav()"
+      ><md-icon>close</md-icon></md-button>
+    </div>
+    
+  </md-toolbar>
+
+  <md-content layout-margin>
+    <hyphe-status-box
+      statuses="statuses"
+      counts="counts"
+      change="touchSettings()"
+      vertical="true"
+    ></hyphe-status-box>
+  </md-content>
+
+</md-sidenav>

@@ -2,18 +2,23 @@
 
 angular.module('hyphe.networkController', ['angular-md5'])
 
-  .controller('network', ['$scope', 'api', 'utils', 'md5', 'corpus', '$window'
-  ,function($scope, api, utils, md5, corpus, $window) {
+  .controller('network',
+  function(
+    $scope,
+    api,
+    utils,
+    md5,
+    corpus,
+    $window
+  ) {
     $scope.currentPage = 'network'
-    $scope.Page.setTitle('Network')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
-    var queryBatchSize = 100
+    // var queryBatchSize = 100
 
-    $scope.resultsList = []
-    $scope.queriesToDo = {}
-    
+    /*$scope.resultsList = []
+    $scope.queriesToDo = {}*/
 
     /*$scope.downloadNetwork = function(){
       var network = $scope.network
@@ -39,10 +44,10 @@ angular.module('hyphe.networkController', ['angular-md5'])
     ]*/
 
     // Init
-    loadCorpus()
+    // loadCorpus()
 
     // Functions
-    function loadCorpus(){
+    /*function loadCorpus(){
       $scope.status = {message: 'Loading web entities'}
       $scope.resultsList = []
       $scope.queriesToDo = {'in':{total:undefined,stack:[]}, 'out':{total:undefined,stack:[]}, 'undecided':{total:undefined,stack:[]}, 'discovered':{total:undefined,stack:[]}}
@@ -56,8 +61,8 @@ angular.module('hyphe.networkController', ['angular-md5'])
         ,function(links){
           $scope.links = links
 
-          /*$window.links = links
-          console.log('LINKS', links)*/
+          // $window.links = links
+          // console.log('LINKS', links)
           
           buildNetwork()
           $scope.status = {}
@@ -70,7 +75,7 @@ angular.module('hyphe.networkController', ['angular-md5'])
           $scope.status = {message: 'Error loading links', background:'danger'}
         }
       )
-    }
+    }*/
 
     /*function buildNetwork(){
       $scope.network = {}
@@ -241,4 +246,4 @@ angular.module('hyphe.networkController', ['angular-md5'])
       // console.log('Network', $scope.network)
     }*/
 
-  }])
+  })

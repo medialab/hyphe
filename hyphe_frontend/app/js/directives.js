@@ -396,6 +396,7 @@ angular.module('hyphe.directives', [])
       , counts: '='
       , change: '='
       , disabled: '='
+      , vertical: '='
       }
       ,link: function(scope, el, attrs) {
       }
@@ -480,4 +481,22 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+  .directive('webentitiesNetworkWidget', function(
+    $mdSidenav
+  ){
+    return {
+      restrict: 'E'
+      ,templateUrl: 'partials/webentitiesNetworkWidget.html'
+      ,scope: {
+        dataLoader: '='
+      }
+      ,link: function($scope, el, attrs) {
+
+        $scope.toggleSidenav = function() {
+          $mdSidenav('right').toggle()
+        }
+
+      }
+    }
+  })
 ;
