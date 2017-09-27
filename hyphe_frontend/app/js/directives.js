@@ -490,10 +490,10 @@ angular.module('hyphe.directives', [])
       restrict: 'E'
       ,templateUrl: 'partials/webentitiesNetworkWidget.html'
       ,scope: {
+        status: '='
       }
       ,link: function($scope, el, attrs) {
-        var queryToken
-        var pageSize = 50
+        var pageSize = 10
 
         $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
         $scope.limitDiscovered = ''
@@ -511,25 +511,43 @@ angular.module('hyphe.directives', [])
 
         $scope.data = {
           in: {
-            loading: true,
+            loading: false,
+            loaded: false,
+            token: undefined,
+            page: 0,
             total: 0,
             webentities: []
           },
           out: {
             loading: false,
+            loaded: false,
+            token: undefined,
+            page: 0,
             total: 0,
             webentities: []
           },
           undecided: {
-            loading: true,
+            loading: false,
+            loaded: false,
+            token: undefined,
+            page: 0,
             total: 0,
             webentities: []
           },
           discovered: {
             loading: false,
+            loaded: false,
+            token: undefined,
+            page: 0,
             total: 0,
             webentities: []
+          },
+          links: {
+            loading: false,
+            loaded: false,
+            links: []
           }
+
         }
         $scope.counts
         $scope.loadingStatus
@@ -583,11 +601,91 @@ angular.module('hyphe.directives', [])
         // Init
         $scope.applySettings()
 
-        // Functions
+        /// Functions
 
         function checkLoadAndUpdate() {
-          // Check if loading is necessary
-          // Load missing data
+          
+          // Check if some web entities require loading
+          var someWebentitiesRequireLoading = ['in', 'out', 'undecided', 'discovered'].some(function(status){
+            if ($scope.settings[status] && !$scope.data[status].loaded) {
+
+              // Web entities of a given status require loading
+              if ($scope.data[status].loading) {
+                // Retrieve from query token
+                $scope.status = {message:'Loading '+status.toUpperCase()+' web entities', progress: Math.round(100 * $scope.data[status].webentities.length/$scope.data[status].total)}
+                api.getResultsPage(
+                  {
+                    token: $scope.data[status].token
+                    ,page: $scope.data[status].page++
+                  }
+                  ,function(result){
+                    $scope.data[status].webentities = $scope.data[status].webentities.concat(result.webentities)
+                    if ($scope.data[status].webentities.length >= $scope.data[status].total) {
+                      $scope.data[status].loading = false
+                      $scope.data[status].loaded = true
+                      $scope.status = {}
+                    }
+                    checkLoadAndUpdate()
+                  }
+                  ,function(){
+                    $scope.status = {message: 'Error loading results page', background: 'danger'}
+                  }
+                )
+              } else {
+                // Initial query
+                $scope.status = {message:'Loading '+status.toUpperCase()+' web entities'}
+                $scope.data[status].loading = true
+                $scope.data[status].loaded = false
+                $scope.data[status].page = 0
+                api.searchWebentities(
+                  {
+                    allFieldsKeywords: []
+                    ,fieldKeywords: [['status', status.toUpperCase()]]
+                    ,count: pageSize
+                    ,page: 0
+                  }
+                  ,function(result){
+                    $scope.data[status].total = result.total_results
+                    $scope.data[status].token = result.token
+
+                    $scope.data[status].webentities = $scope.data[status].webentities.concat(result.webentities)
+                    if ($scope.data[status].webentities.length >= $scope.data[status].total) {
+                      $scope.data[status].loading = false
+                      $scope.data[status].loaded = true
+                      $scope.status = {}
+                    }
+                    checkLoadAndUpdate()
+                  }
+                  ,function(){
+                    $scope.status = {message: 'Error loading web entities', background: 'danger'}
+                  }
+                )
+              }
+              return true
+            } else return false
+          })
+          if (someWebentitiesRequireLoading) { return }
+
+          // Check if links need loading
+          if (!$scope.data.links.loaded) {
+            $scope.status = {message: 'Loading links'}
+            $scope.data.links.loading = true
+            api.getNetwork(
+              {}
+              ,function(links){
+                $scope.data.links.links = links
+                $scope.data.links.loading = false
+                $scope.data.links.loaded = true
+                $scope.status = {}
+                checkLoadAndUpdate()
+              }
+              ,function(data, status, headers, config){
+                $scope.status = {message: 'Error loading links', background:'danger'}
+              }
+            )
+            return
+          }
+
           // Update
         }
 
