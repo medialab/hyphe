@@ -1567,7 +1567,7 @@ class Memory_Structure(customJSONRPC):
         elif not new:
             self.corpora[corpus]['total_webentities'] -= 1
         if "IN" in [oldStatus, newStatus]:
-            categories = self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus)["result"]
+            categories = self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus).get("result", [])
         if oldStatus == "IN" and not new:
             if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in categories]):
                 self.corpora[corpus]["webentities_in_untagged"] -= 1
@@ -1973,7 +1973,7 @@ class Memory_Structure(customJSONRPC):
         unds = yield self.db.count_WEs(corpus, {"status": "UNDECIDED"})
         disc = yield self.db.count_WEs(corpus, {"status": "DISCOVERED"})
         query = {"status": "IN", "$or": [{"tags.USER": {"$exists": False}}]}
-        for cat in self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus)["result"]:
+        for cat in self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus).get("result", []):
             query["$or"].append({"tags.USER.%s" % cat: {"$exists": False}})
         notg = yield self.db.count_WEs(corpus, query)
         self.corpora[corpus]['webentities_in'] = ins
@@ -2286,7 +2286,7 @@ class Memory_Structure(customJSONRPC):
         if status not in WEBENTITIES_STATUSES:
             returnD(format_error("status argument must be one of %s" % ",".join(WEBENTITIES_STATUSES)))
         if missing_a_category or multiple_values:
-            categories = self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus)["result"]
+            categories = self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus).get("result", [])
         query = {"status": status}
         if multiple_values:
             query["$or"] = []
