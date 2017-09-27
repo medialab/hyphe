@@ -705,7 +705,6 @@ angular.module('hyphe.directives', [])
             , discovered: status.corpus.traph.webentities.DISCOVERED
             }
             $scope.loadingStatus = false
-            $timeout(loadStatus, 5000);
           },function(data, status, headers, config){
             $scope.status = {message: 'Error loading status', background:'danger'}
             $scope.loadingStatus = false
