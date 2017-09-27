@@ -1,14 +1,18 @@
 <!-- Content -->
 <div
   layout-fill
-  style="background-color: #F00"
+  style="background-color: #F00; position: relative"
 >
-  Hello World
-
-  <!-- Button -->
-  <!-- <md-button ng-click="toggleSidenav()" class="md-accent">
-    Toggle Sidenav
-  </md-button> -->
+  <md-button
+    class="md-fab md-primary"
+    aria-label="Open network settings"
+    style="position: absolute; right: 16px; top: 16px;"
+    ng-click="toggleSidenav()"
+  >
+    <md-tooltip md-direction="left">Network Viz Settings</md-tooltip>
+    <md-icon>menu</md-icon>
+  </md-button>
+  In progress
 
 </div>
 
@@ -23,7 +27,7 @@
 
   <md-toolbar class="md-primary">
     <div class="md-toolbar-tools">
-      <h2 md-truncate flex>Network Settings</h2>
+      <h2 md-truncate flex>Network Viz Settings</h2>
 
       <md-button
         class="md-icon-button"
@@ -39,13 +43,69 @@
       md-colors="{'background': 'default-background-200'}"
       style="padding: 8px"
     >
-      <p class="md-title">Filter web entities</p>
+      <p class="md-title">Filtering</p>
       <hyphe-status-box
         statuses="statuses"
         counts="counts"
         change="touchSettings()"
         vertical="true"
       ></hyphe-status-box>
+
+      <md-input-container>
+        <label>Filter DISCOVERED web entities</label>
+        <md-select ng-model="limitDiscovered">
+          <md-option value=""><em>No filtering</em></md-option>
+          <md-option value="1+">Hide DISCOVERED with no links</md-option>
+          <md-option value="2+">Display only DISCOVERED with 2+ links</md-option>
+          <md-option value="3+">Display only DISCOVERED with 3+ links</md-option>
+          <md-option value="4+">Display only DISCOVERED with 4+ links</md-option>
+          <md-option value="5+">Display only DISCOVERED with 5+ links</md-option>
+        </md-select>
+      </md-input-container>
+
+      <md-input-container>
+        <label>Filter ALL web entities</label>
+        <md-select ng-model="limitAll">
+          <md-option value=""><em>No filtering</em></md-option>
+          <md-option value="1+">Hide web entities with no links</md-option>
+          <md-option value="2+">Display only web entities with 2+ links</md-option>
+          <md-option value="3+">Display only web entities with 3+ links</md-option>
+          <md-option value="4+">Display only web entities with 4+ links</md-option>
+          <md-option value="5+">Display only web entities with 5+ links</md-option>
+        </md-select>
+      </md-input-container>
+
+      <div layout="row">
+        <!-- Validation -->
+        <md-button
+          class="md-raised md-primary"
+          ng-click="applySettings()"
+          ng-disabled="!settingsChanged"
+        >
+          APPLY CHANGES
+        </md-button>
+        <md-button
+          ng-click="revertSettings()"
+          ng-disabled="!settingsChanged"
+        >
+          CANCEL
+        </md-button>
+      </div>
+    </div>
+    <div
+      style="padding: 8px"
+      layout="column"
+    >
+      <p class="md-title">Key</p>
+      (In progress)
+    </div>
+    <div
+      layout="column"
+      md-colors="{'background': 'default-background-200'}"
+      style="padding: 8px"
+    >
+      <p class="md-title">Tags</p>
+      (In progress)
     </div>
   </md-content>
 

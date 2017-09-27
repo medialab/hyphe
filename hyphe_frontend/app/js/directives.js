@@ -482,18 +482,137 @@ angular.module('hyphe.directives', [])
   }])
 
   .directive('webentitiesNetworkWidget', function(
-    $mdSidenav
+    $mdSidenav,
+    api,
+    $timeout
   ){
     return {
       restrict: 'E'
       ,templateUrl: 'partials/webentitiesNetworkWidget.html'
       ,scope: {
-        dataLoader: '='
       }
       ,link: function($scope, el, attrs) {
+        var queryToken
+        var pageSize = 50
+
+        $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
+        $scope.limitDiscovered = ''
+        $scope.limitAll = ''
+        
+        $scope.settings = {
+          in: $scope.statuses.in
+        , undecided: $scope.statuses.undecided
+        , out: $scope.statuses.out
+        , discovered: $scope.statuses.discovered
+        , limitDiscovered: ''
+        , limitAll: ''
+        }
+        $scope.settingsChanged
+
+        $scope.data = {
+          in: {
+            loading: true,
+            total: 0,
+            webentities: []
+          },
+          out: {
+            loading: false,
+            total: 0,
+            webentities: []
+          },
+          undecided: {
+            loading: true,
+            total: 0,
+            webentities: []
+          },
+          discovered: {
+            loading: false,
+            total: 0,
+            webentities: []
+          }
+        }
+        $scope.counts
+        $scope.loadingStatus
 
         $scope.toggleSidenav = function() {
           $mdSidenav('right').toggle()
+        }
+
+        $scope.applySettings = function(){
+      
+          loadStatus() // Get the number of IN / OUT / UND / DISC
+
+          for(var status in $scope.statuses){
+            $scope.settings[status] = $scope.statuses[status]
+          }
+          $scope.settings.limitDiscovered = $scope.limitDiscovered
+
+          $scope.touchSettings()
+          updateCounts()
+          checkLoadAndUpdate()
+        }
+
+        $scope.revertSettings = function(){
+          for(var status in $scope.statuses){
+            $scope.statuses[status] = $scope.settings[status]
+          }
+          $scope.limitDiscovered = $scope.settings.limitDiscovered
+          $scope.limitAll = $scope.settings.limitAll
+          $scope.touchSettings()
+        }
+
+        $scope.touchSettings = function(){
+
+          // Check if difference with current settings
+          var difference = false
+          for(var status in $scope.statuses){
+            if($scope.statuses[status] != $scope.settings[status]){
+              difference = true
+            }
+          }
+          if ($scope.limitDiscovered != $scope.settings.limitDiscovered) {
+            difference = true
+          }
+          if ($scope.limitAll != $scope.settings.limitAll) {
+            difference = true
+          }
+
+          $scope.settingsChanged = difference
+        }
+
+        // Init
+        $scope.applySettings()
+
+        // Functions
+
+        function checkLoadAndUpdate() {
+          // Check if loading is necessary
+          // Load missing data
+          // Update
+        }
+
+        function loadStatus(callback){
+          if ($scope.loadingStatus) return
+          $scope.loadingStatus = true
+          api.globalStatus({}, function(status){
+            $scope.counts = {
+              in: status.corpus.traph.webentities.IN
+            , undecided: status.corpus.traph.webentities.UNDECIDED
+            , out: status.corpus.traph.webentities.OUT
+            , discovered: status.corpus.traph.webentities.DISCOVERED
+            }
+            $scope.loadingStatus = false
+            $timeout(loadStatus, 5000);
+          },function(data, status, headers, config){
+            $scope.status = {message: 'Error loading status', background:'danger'}
+            $scope.loadingStatus = false
+          })
+        }
+
+        function updateCounts() {
+          $scope.counts = ['in', 'undecided', 'out', 'discovered']
+            .filter(function(k){ return $scope.settings[k] })
+            .map(function(d){ return d.toUpperCase() }).join(' + ')
         }
 
       }
