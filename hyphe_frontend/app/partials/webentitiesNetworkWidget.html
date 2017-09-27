@@ -1,7 +1,7 @@
 <!-- Content -->
 <div
   layout-fill
-  style="background-color: #F00; position: relative"
+  style="position: relative"
 >
   <md-button
     class="md-fab md-primary"
@@ -12,7 +12,139 @@
     <md-tooltip md-direction="left">Network Viz Settings</md-tooltip>
     <md-icon>menu</md-icon>
   </md-button>
-  In progress
+  
+  <div layout="column" layout-fill style="padding: 8px" ng-if="loading">
+    <div style="height: 50px">
+      Please wait during loading:
+    </div>
+    
+    <!-- IN -->
+    <div ng-if="settings.in" style="height: 50px">
+      <div ng-if="!data.in.loading && !data.in.loaded" layout="row" layout-align="start center">
+        <em>IN not loaded</em>
+      </div>
+      <div ng-if="data.in.loading" layout="row" layout-align="start center">
+        <md-progress-circular
+          md-diameter="30"
+          md-mode="indeterminate"
+          ng-if="!data.in.total"
+          style="margin-right: 8px"
+        ></md-progress-circular>
+        <md-progress-circular
+          md-diameter="30"
+          md-mode="determinate"
+          ng-if="data.in.total"
+          value="{{100 * data.in.webentities.length / data.in.total}}"
+          style="margin-right: 8px"
+        ></md-progress-circular>
+        IN loading - {{data.in.webentities.length}} / {{data.in.total}}
+      </div>
+      <div ng-if="data.in.loaded" layout="row" layout-align="start center">
+        IN loaded - {{data.in.webentities.length}} web entities
+      </div>
+    </div>
+
+    <!-- UNDECIDED -->
+    <div ng-if="settings.undecided" style="height: 50px">
+      <div ng-if="!data.undecided.loading && !data.undecided.loaded" layout="row" layout-align="start center">
+        <em>UNDECIDED not loaded</em>
+      </div>
+      <div ng-if="data.undecided.loading" layout="row" layout-align="start center">
+        <md-progress-circular
+          md-diameter="30"
+          md-mode="indeterminate"
+          ng-if="!data.undecided.total"
+          style="margin-right: 8px"
+        ></md-progress-circular>
+        <md-progress-circular
+          md-diameter="30"
+          md-mode="determinate"
+          ng-if="data.undecided.total"
+          value="{{100 * data.undecided.webentities.length / data.undecided.total}}"
+          style="margin-right: 8px"
+        ></md-progress-circular>
+        UNDECIDED loading - {{data.undecided.webentities.length}} / {{data.undecided.total}}
+      </div>
+      <div ng-if="data.undecided.loaded" layout="row" layout-align="start center">
+        UNDECIDED loaded - {{data.undecided.webentities.length}} web entities
+      </div>
+    </div>
+
+    <!-- OUT -->
+    <div ng-if="settings.out" style="height: 50px">
+      <div ng-if="!data.out.loading && !data.out.loaded" layout="row" layout-align="start center">
+        <em>OUT not loaded</em>
+      </div>
+      <div ng-if="data.out.loading" layout="row" layout-align="start center">
+        <md-progress-circular
+          md-diameter="30"
+          md-mode="indeterminate"
+          ng-if="!data.out.total"
+          style="margin-right: 8px"
+        ></md-progress-circular>
+        <md-progress-circular
+          md-diameter="30"
+          md-mode="determinate"
+          ng-if="data.out.total"
+          value="{{100 * data.out.webentities.length / data.out.total}}"
+          style="margin-right: 8px"
+        ></md-progress-circular>
+        OUT loading - {{data.out.webentities.length}} / {{data.out.total}}
+      </div>
+      <div ng-if="data.out.loaded" layout="row" layout-align="start center">
+        OUT loaded - {{data.out.webentities.length}} web entities
+      </div>
+    </div>
+
+    <!-- DISCOVERED -->
+    <div ng-if="settings.discovered" style="height: 50px">
+      <div ng-if="!data.discovered.loading && !data.discovered.loaded" layout="row" layout-align="start center">
+        <em>DISCOVERED not loaded</em>
+      </div>
+      <div ng-if="data.discovered.loading" layout="row" layout-align="start center">
+        <md-progress-circular
+          md-diameter="30"
+          md-mode="indeterminate"
+          ng-if="!data.discovered.total"
+          style="margin-right: 8px"
+        ></md-progress-circular>
+        <md-progress-circular
+          md-diameter="30"
+          md-mode="determinate"
+          ng-if="data.discovered.total"
+          value="{{100 * data.discovered.webentities.length / data.discovered.total}}"
+          style="margin-right: 8px"
+        ></md-progress-circular>
+        DISCOVERED loading - {{data.discovered.webentities.length}} / {{data.discovered.total}}
+      </div>
+      <div ng-if="data.discovered.loaded" layout="row" layout-align="start center">
+        DISCOVERED loaded - {{data.discovered.webentities.length}} web entities
+      </div>
+    </div>
+
+    <!-- LINKS -->
+    <div style="height: 50px">
+      <div ng-if="!data.links.loading && !data.links.loaded" layout="row" layout-align="start center">
+        <em>Links not loaded</em>
+      </div>
+      <div ng-if="data.links.loading" layout="row" layout-align="start center">
+        <md-progress-circular
+          md-diameter="30"
+          md-mode="indeterminate"
+          style="margin-right: 8px"
+        ></md-progress-circular>
+        Links loading
+      </div>
+      <div ng-if="data.links.loaded" layout="row" layout-align="start center">
+        Links loaded - {{data.links.links.length}}
+      </div>
+    </div>
+
+  </div>
+
+  <div layout="column" layout-fill style="padding: 8px" ng-if="!loading">
+    LOADED
+  </div>
 
 </div>
 

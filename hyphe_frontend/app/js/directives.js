@@ -493,7 +493,7 @@ angular.module('hyphe.directives', [])
         status: '='
       }
       ,link: function($scope, el, attrs) {
-        var pageSize = 10
+        var pageSize = 100
 
         $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
         $scope.limitDiscovered = ''
@@ -551,6 +551,7 @@ angular.module('hyphe.directives', [])
         }
         $scope.counts
         $scope.loadingStatus
+        $scope.loading = true
 
         $scope.toggleSidenav = function() {
           $mdSidenav('right').toggle()
@@ -610,6 +611,7 @@ angular.module('hyphe.directives', [])
             if ($scope.settings[status] && !$scope.data[status].loaded) {
 
               // Web entities of a given status require loading
+              $scope.loading = true
               if ($scope.data[status].loading) {
                 // Retrieve from query token
                 $scope.status = {message:'Loading '+status.toUpperCase()+' web entities', progress: Math.round(100 * $scope.data[status].webentities.length/$scope.data[status].total)}
@@ -637,10 +639,10 @@ angular.module('hyphe.directives', [])
                 $scope.data[status].loading = true
                 $scope.data[status].loaded = false
                 $scope.data[status].page = 0
-                api.searchWebentities(
+                api.getWebentities_byStatus(
                   {
-                    allFieldsKeywords: []
-                    ,fieldKeywords: [['status', status.toUpperCase()]]
+                    status: status.toUpperCase()
+                    ,semiLight: true
                     ,count: pageSize
                     ,page: 0
                   }
@@ -668,6 +670,7 @@ angular.module('hyphe.directives', [])
 
           // Check if links need loading
           if (!$scope.data.links.loaded) {
+            $scope.loading = true
             $scope.status = {message: 'Loading links'}
             $scope.data.links.loading = true
             api.getNetwork(
@@ -687,6 +690,8 @@ angular.module('hyphe.directives', [])
           }
 
           // Update
+          $scope.loading = false
+          // TODO: build the network
         }
 
         function loadStatus(callback){

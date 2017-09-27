@@ -108,6 +108,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.sort || ''
             ,settings.count || 100
             ,settings.page || 0
+            // ,settings.light || false                         // Mode light
+            // ,settings.semiLight || false                     // Mode semi-light
             ,corpus.getId()
           ]}
       )
