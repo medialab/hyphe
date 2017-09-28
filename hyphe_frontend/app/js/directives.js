@@ -618,7 +618,7 @@ angular.module('hyphe.directives', [])
                 api.getResultsPage(
                   {
                     token: $scope.data[status].token
-                    ,page: $scope.data[status].page++
+                    ,page: ++$scope.data[status].page
                   }
                   ,function(result){
                     $scope.data[status].webentities = $scope.data[status].webentities.concat(result.webentities)
