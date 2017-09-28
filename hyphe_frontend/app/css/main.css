@@ -166,11 +166,12 @@ table.fixed{
   color: #FFF;
 
 }
-
-/*dl.highlight {
+dl.highlight {
   border-left: 6px solid #428BCA;
   padding-left: 6px;
+  background-color: #FFF;
 }
+/*
 
 .dl-editable dt, .dl-editable dd{
   min-height: 36px;

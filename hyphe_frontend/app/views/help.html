@@ -1,35 +1,41 @@
-    <div class="container-fluid">
-      <div class="row no-gutter" ng-include="'partials/topbar.html'">
-      </div>
-      <div class="row no-gutter">
-        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
-        </div>
-        <div class="col-lg-10 col-md-9 col-sm-8">
-          <div class="container-fluid main">
-            <div class="row">
-              <div class="col-md-12">
-                <h1>
-                  HELP
-                </h1>
-                <p ng-bind-html="hyphePresentation"></p>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-12">
-                <h2>
-                  GLOSSARY
-                </h2>
-                <div ng-repeat="def in definitions track by $index">
-                  <dl ng-class="{highlight: def.id == highlightedDefinition.id}">
-                    <dt><a name="def-{{def.id}}" id="def-{{def.id}}" href="#/project/{{corpusId}}/help/entry/{{def.entries[0]}}">#</a>&nbsp;{{def.title}}</dt>
-                    <dd><span class="search-for-terms" ng-bind-html="def.definitionParsed"></span></dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
+<div layout="column" layout-fill>
+  <div class="topbar-height" ng-include="'partials/topbar.html'">
+  </div>
+  <div flex>
+    <div layout="row" layout-fill>
+      <div class="sidebar-width" ng-include="'partials/sidebar.html'"></div>
+      <div
+        flex
+        md-colors="{background: 'default-background-50'}"
+        style="overflow-y: auto;"
+        id="scrolling-element"
+      >
+        
+        <!-- Content -->
+        <div layout-fill layout="column">
+          <div class="page-header">
+            <h1>
+              HELP
+            </h1>
+            <span class="md-subhead" ng-bind-html="hyphePresentation">
+            </span>
           </div>
 
+          <div style="padding: 8px">
+            <h2>
+              GLOSSARY
+            </h2>
+            <div ng-repeat="def in definitions track by $index">
+              <dl ng-class="{highlight: def.id == highlightedDefinition.id}">
+                <dt><a name="def-{{def.id}}" id="def-{{def.id}}" href="#/project/{{corpusId}}/help/entry/{{def.entries[0]}}">#</a>&nbsp;<strong>{{def.title}}</strong></dt>
+                <dd><span class="search-for-terms" ng-bind-html="def.definitionParsed"></span></dd>
+              </dl>
+            </div>
+          </div>
+          
         </div>
+
       </div>
     </div>
+  </div>
+</div>

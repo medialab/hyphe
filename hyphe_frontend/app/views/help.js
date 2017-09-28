@@ -5,7 +5,6 @@ angular.module('hyphe.helpController', ['ngSanitize'])
   .controller('help', ['$scope', 'api', 'utils', '$location', 'corpus', 'glossary', '$anchorScroll', '$routeParams', '$timeout'
   ,function($scope, api, utils, $location, corpus, glossary, $anchorScroll, $routeParams, $timeout) {
     $scope.currentPage = 'help'
-    $scope.Page.setTitle('Help')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
@@ -33,13 +32,12 @@ angular.module('hyphe.helpController', ['ngSanitize'])
           $scope.highlightedDefinition = entryIndex[$routeParams.entry.toLowerCase()]
           if ($scope.highlightedDefinition) {
             var def = $scope.highlightedDefinition
-              , elid = "#def-"+def.id
-            if ($(elid).offset()) {
-              $('html, body').animate({
-                  scrollTop: $(elid).offset().top - 64
-              }, 400);          
+            var elid = "def-"+def.id
+            var target = document.getElementById(elid)
+            if (target) {
+              animate(document.getElementById('scrolling-element'), "scrollTop", "", 0, target.offsetTop - document.getElementById('scrolling-element').offsetTop - 8, 400, true);
             } else {
-              console.warn('Cannot find element '+elid, $(elid), $(elid).offset())
+              console.warn('Cannot find element '+elid)
             }
           }
         }
@@ -73,5 +71,26 @@ angular.module('hyphe.helpController', ['ngSanitize'])
       return result
     }
 
-  
+    function animate(elem, style, unit, from, to, time, prop) {
+      if (!elem) {
+          return;
+      }
+      var start = new Date().getTime(),
+          timer = setInterval(function () {
+              var step = Math.min(1, (new Date().getTime() - start) / time);
+              if (prop) {
+                  elem[style] = (from + step * (to - from))+unit;
+              } else {
+                  elem.style[style] = (from + step * (to - from))+unit;
+              }
+              if (step === 1) {
+                  clearInterval(timer);
+              }
+          }, 25);
+      if (prop) {
+            elem[style] = from+unit;
+      } else {
+            elem.style[style] = from+unit;
+      }
+  }
   }])
