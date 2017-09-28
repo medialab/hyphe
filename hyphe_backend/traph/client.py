@@ -338,7 +338,7 @@ class TraphClientProtocol(LineOnlyReceiver):
           "kwargs": kwargs
         }
         if method == "clear":
-            self.corpus.log("Dropping cleared traph queued queries: %s calls & %s iterative calls" % (len(self.queue), len(self.iteratorQueue))
+            self.corpus.log("Dropping cleared traph queued queries: %s calls & %s iterative calls" % (len(self.queue), len(self.iteratorQueue)))
             self.iteratorQueue.drop()
             self.queue.drop()
         self.start_query = time()
