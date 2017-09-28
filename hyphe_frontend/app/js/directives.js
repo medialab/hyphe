@@ -753,6 +753,28 @@ angular.module('hyphe.directives', [])
           var g = new Graph({type: 'directed', allowSelfLoops: false})
           g.addNodesFrom(weIndex)
           g.importEdges(validLinks)
+          console.log('before filtering '+g.order+' nodes and '+g.size+' edges')
+
+          // Filtering: mark nodes for deletion
+          var allThreshold = 0
+          var discThreshold = 0
+          if ($scope.settings.limitAll) {
+            allThreshold = +$scope.settings.limitAll
+          }
+          if ($scope.settings.limitDiscovered) {
+            discThreshold = +$scope.settings.limitDiscovered
+          }
+          var nodesToDelete = []
+          g.nodes().forEach(function(nid){
+            var n = g.getNodeAttributes(nid)
+            var degree = g.degree(nid)
+            if (degree < allThreshold || (n.status == 'DISCOVERED' && degree < discThreshold)) {
+              nodesToDelete.push(nid)
+            }
+          })
+          g.dropNodes(nodesToDelete)
+
+          console.log('after filtering '+g.order+' nodes and '+g.size+' edges')
 
           // Make the graph global for console tinkering
           window.g = g
