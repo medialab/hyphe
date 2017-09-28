@@ -276,7 +276,7 @@ class Core(customJSONRPC):
 
         res = yield self.crawler.crawlqueue.send_scrapy_query("listprojects")
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
-            logger.msg("Couldn't find crawler, redploying it...", system="ERROR - %s" % corpus)
+            logger.msg("Couldn't find crawler, redeploying it...", system="ERROR - %s" % corpus)
             res = yield self.crawler.jsonrpc_deploy_crawler(corpus, _quiet=_quiet)
             if is_error(res):
                 returnD(res)

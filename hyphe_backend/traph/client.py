@@ -286,6 +286,9 @@ class Queue(object):
     def get_nowait(self):
         return self.queue.pop(0)
 
+    def drop(self):
+        self.queue = []
+
 class TraphClientProtocol(LineOnlyReceiver):
 
     delimiter = b"\r\n##TxHypheMsgPackDelimiter\r\n"
@@ -323,7 +326,7 @@ class TraphClientProtocol(LineOnlyReceiver):
         if not self.iteratorQueue.empty() and (
           self.queue.empty() or
           (self.last_query and self.last_query["method"] != "iterate_previous_query")
-          ):
+        ):
             queue = self.iteratorQueue
         else: queue = self.queue
         self.deferred, method, args, kwargs = queue.get_nowait()
@@ -335,6 +338,10 @@ class TraphClientProtocol(LineOnlyReceiver):
           "args": args,
           "kwargs": kwargs
         }
+        if method === "clear":
+            self.corpus.log("Dropping cleared traph queued queries: %s calls & %s iterative calls" % (len(self.queue), len(self.iteratorQueue))
+            self.iteratorQueue.drop()
+            self.queue.drop()
         self.start_query = time()
         self.sendLine(msgpack.packb(self.last_query))
 
