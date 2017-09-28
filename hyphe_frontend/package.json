@@ -14,7 +14,8 @@
     "karma-firefox-launcher": "^0.1.7",
     "karma-jasmine": "^0.3.8",
     "karma-junit-reporter": "^0.4.1",
-    "protractor": "^4.0.9"
+    "protractor": "^4.0.9",
+    "webpack": "^3.6.0"
   },
   "scripts": {
     "build": "webpack --colors --progress",
@@ -38,7 +39,6 @@
     "graphology-gexf": "^0.3.1",
     "graphology-hits": "^0.1.0",
     "graphology-layout": "0.0.1",
-    "graphology-layout-forceatlas2": "0.0.1",
-    "webpack": "^3.6.0"
+    "graphology-layout-forceatlas2": "0.0.1"
   }
 }
