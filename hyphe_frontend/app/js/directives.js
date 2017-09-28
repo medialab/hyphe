@@ -690,12 +690,42 @@ angular.module('hyphe.directives', [])
           }
 
           // Update
-          $scope.loading = false
+          $scope.status = {message: 'Building network'}
           buildNetwork()
+          $scope.loading = false
+          $scope.status = {}
         }
 
         function buildNetwork() {
-          
+          var weIndex = {}
+          var stati = ['in', 'out', 'undecided', 'discovered']
+          stati.filter(function(status){
+              return $scope.settings[status]
+            })
+            .forEach(function(status){
+              $scope.data[status].webentities.forEach(function(we){
+                weIndex[we.id] = we
+              })
+            })
+          var validLinks = $scope.data.links.links
+            .filter(function(l){
+              return weIndex[l[0]] !== undefined && weIndex[l[1]] !== undefined
+            })
+            .map(function(l, i){
+              return {
+                key: l[0] + '>' + l[1],
+                source: l[0],
+                target: l[1],
+                attributes: {count:l[2]}
+              }
+            })
+
+          var g = new Graph({type: 'directed', allowSelfLoops: false})
+          g.addNodesFrom(weIndex)
+          g.importEdges(validLinks)
+
+          // Make the graph global for console tinkering
+          window.g = g
         }
 
         function loadStatus(callback){
