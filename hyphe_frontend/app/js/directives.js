@@ -572,6 +572,7 @@ angular.module('hyphe.directives', [])
             $scope.settings[status] = $scope.statuses[status]
           }
           $scope.settings.limitDiscovered = $scope.limitDiscovered
+          $scope.settings.limitAll = $scope.limitAll
 
           $scope.touchSettings()
           updateCounts()
@@ -760,10 +761,10 @@ angular.module('hyphe.directives', [])
           var allThreshold = 0
           var discThreshold = 0
           if ($scope.settings.limitAll) {
-            allThreshold = +$scope.settings.limitAll
+            allThreshold = +$scope.settings.limitAll.replace('+', '')
           }
           if ($scope.settings.limitDiscovered) {
-            discThreshold = +$scope.settings.limitDiscovered
+            discThreshold = +$scope.settings.limitDiscovered.replace('+', '')
           }
           var nodesToDelete = []
           g.nodes().forEach(function(nid){
