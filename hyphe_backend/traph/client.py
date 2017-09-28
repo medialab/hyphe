@@ -331,14 +331,13 @@ class TraphClientProtocol(LineOnlyReceiver):
         else: queue = self.queue
         self.deferred, method, args, kwargs = queue.get_nowait()
         if config["DEBUG"] and (method != "iterate_previous_query" or config["DEBUG"] == 2):
-
             self.corpus.log("Traph client query: %s %s %s" % (method, lightLogVar(args), lightLogVar(kwargs)))
         self.last_query = {
           "method": method,
           "args": args,
           "kwargs": kwargs
         }
-        if method === "clear":
+        if method == "clear":
             self.corpus.log("Dropping cleared traph queued queries: %s calls & %s iterative calls" % (len(self.queue), len(self.iteratorQueue))
             self.iteratorQueue.drop()
             self.queue.drop()
