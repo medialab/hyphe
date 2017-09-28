@@ -42,12 +42,10 @@ angular.module('hyphe.settingsController', [])
     }
 
     // Init
-    api.downloadCorpusTLDs(init)
-
-    function init(){
-      $scope.status = {message: "Loading"}
-      api.globalStatus({
-        }, function(corpus_status){
+    $scope.status = {message: "Loading"}
+    api.downloadCorpusTLDs(function(){
+      api.globalStatus({},
+        function(corpus_status){
 
           console.log('status', corpus_status)
           $scope.options = corpus_status.corpus.options
@@ -66,6 +64,6 @@ angular.module('hyphe.settingsController', [])
           $scope.status = {message: "Error while getting options", background:'danger'}
 
         })
-    }
+    })
 
   }])

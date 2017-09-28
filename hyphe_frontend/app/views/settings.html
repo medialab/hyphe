@@ -18,6 +18,12 @@
             </h1>
           </div>
 
+          <!-- Loading -->
+          <div ng-if="loading" flex layout="column" layout-align="center center">
+            <spinner class="center" text="''"/>
+          </div>
+
+          <!-- Loaded: action -->
           <div ng-if="!loading">
             <md-button
               class="md-raised md-warn"
@@ -36,7 +42,8 @@
             </md-button>
           </div>
 
-          <div style="padding: 4px" layout-wrap layout="row">
+          <!-- Loaded: info -->
+          <div style="padding: 4px" layout-wrap layout="row" ng-if="!loading">
             
             <!-- Crawling -->
             <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
