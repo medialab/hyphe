@@ -14,7 +14,10 @@
   </md-button>
   
   <div layout="column" layout-fill style="padding: 8px" ng-if="loading">
-    
+    <div style="margin-bottom: 8px">
+      <em>Please wait while network data is loading</em>
+    </div>
+
     <!-- IN -->
     <div ng-if="settings.in" style="height: 50px" layout="row" layout-align="start center">
       <div style="margin-right: 8px; width: 50px">

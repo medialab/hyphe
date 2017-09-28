@@ -494,6 +494,7 @@ angular.module('hyphe.directives', [])
       }
       ,link: function($scope, el, attrs) {
         var pageSize = 100
+        $scope.checkLoadAndUpdateCurrentToken = 0
 
         $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
         $scope.limitDiscovered = ''
@@ -516,6 +517,7 @@ angular.module('hyphe.directives', [])
             token: undefined,
             page: 0,
             total: 0,
+            retry: 0,
             webentities: []
           },
           out: {
@@ -524,6 +526,7 @@ angular.module('hyphe.directives', [])
             token: undefined,
             page: 0,
             total: 0,
+            retry: 0,
             webentities: []
           },
           undecided: {
@@ -532,6 +535,7 @@ angular.module('hyphe.directives', [])
             token: undefined,
             page: 0,
             total: 0,
+            retry: 0,
             webentities: []
           },
           discovered: {
@@ -540,6 +544,7 @@ angular.module('hyphe.directives', [])
             token: undefined,
             page: 0,
             total: 0,
+            retry: 0,
             webentities: []
           },
           links: {
@@ -568,7 +573,7 @@ angular.module('hyphe.directives', [])
 
           $scope.touchSettings()
           updateCounts()
-          checkLoadAndUpdate()
+          checkLoadAndUpdate(++$scope.checkLoadAndUpdateCurrentToken)
         }
 
         $scope.revertSettings = function(){
@@ -604,7 +609,7 @@ angular.module('hyphe.directives', [])
 
         /// Functions
 
-        function checkLoadAndUpdate() {
+        function checkLoadAndUpdate(thisToken) {
           
           // Check if some web entities require loading
           var someWebentitiesRequireLoading = ['in', 'out', 'undecided', 'discovered'].some(function(status){
@@ -612,7 +617,7 @@ angular.module('hyphe.directives', [])
 
               // Web entities of a given status require loading
               $scope.loading = true
-              if ($scope.data[status].loading) {
+              if ($scope.data[status].loading && $scope.data[status].token) {
                 // Retrieve from query token
                 $scope.status = {message:'Loading '+status.toUpperCase()+' web entities', progress: Math.round(100 * $scope.data[status].webentities.length/$scope.data[status].total)}
                 api.getResultsPage(
@@ -621,16 +626,28 @@ angular.module('hyphe.directives', [])
                     ,page: ++$scope.data[status].page
                   }
                   ,function(result){
+                    // Stop if this function was called in the meanwhile
+                    if ($scope.checkLoadAndUpdateCurrentToken != thisToken) { return }
+                    
                     $scope.data[status].webentities = $scope.data[status].webentities.concat(result.webentities)
                     if ($scope.data[status].webentities.length >= $scope.data[status].total) {
                       $scope.data[status].loading = false
                       $scope.data[status].loaded = true
                       $scope.status = {}
                     }
-                    checkLoadAndUpdate()
+                    checkLoadAndUpdate(thisToken)
                   }
-                  ,function(){
-                    $scope.status = {message: 'Error loading results page', background: 'danger'}
+                  ,function(data, status, headers, config){
+                    // Stop if this function was called in the meanwhile
+                    if ($scope.checkLoadAndUpdateCurrentToken != thisToken) { return }
+
+                    if ($scope.data[status].retry++ < 3){
+                      console.warn('Error loading results page: Retry', $scope.data[status].retry)
+                      checkLoadAndUpdate(thisToken)
+                    } else {
+                      console.log('Error loading results page:', data, status, headers, config)
+                      $scope.status = {message: 'Error loading results page', background: 'danger'}
+                    }
                   }
                 )
               } else {
@@ -638,7 +655,9 @@ angular.module('hyphe.directives', [])
                 $scope.status = {message:'Loading '+status.toUpperCase()+' web entities'}
                 $scope.data[status].loading = true
                 $scope.data[status].loaded = false
+                $scope.data[status].token = undefined
                 $scope.data[status].page = 0
+                $scope.data[status].retry = 0
                 api.getWebentities_byStatus(
                   {
                     status: status.toUpperCase()
@@ -647,6 +666,9 @@ angular.module('hyphe.directives', [])
                     ,page: 0
                   }
                   ,function(result){
+                    // Stop if this function was called in the meanwhile
+                    if ($scope.checkLoadAndUpdateCurrentToken != thisToken) { return }
+          
                     $scope.data[status].total = result.total_results
                     $scope.data[status].token = result.token
 
@@ -656,10 +678,18 @@ angular.module('hyphe.directives', [])
                       $scope.data[status].loaded = true
                       $scope.status = {}
                     }
-                    checkLoadAndUpdate()
+                    checkLoadAndUpdate(thisToken)
                   }
-                  ,function(){
-                    $scope.status = {message: 'Error loading web entities', background: 'danger'}
+                  ,function(data, status, headers, config){
+                    // Stop if this function was called in the meanwhile
+                    if ($scope.checkLoadAndUpdateCurrentToken != thisToken) { return }
+                    
+                    if ($scope.data[status].retry++ < 3){
+                      console.warn('Error loading web entities: Retry', $scope.data[status].retry)
+                      checkLoadAndUpdate(thisToken)
+                    } else {
+                      $scope.status = {message: 'Error loading web entities', background: 'danger'}
+                    }
                   }
                 )
               }
@@ -680,7 +710,7 @@ angular.module('hyphe.directives', [])
                 $scope.data.links.loading = false
                 $scope.data.links.loaded = true
                 $scope.status = {}
-                checkLoadAndUpdate()
+                checkLoadAndUpdate(thisToken)
               }
               ,function(data, status, headers, config){
                 $scope.status = {message: 'Error loading links', background:'danger'}
