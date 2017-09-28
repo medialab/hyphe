@@ -558,6 +558,8 @@ angular.module('hyphe.directives', [])
         $scope.loadingStatus
         $scope.loading = true
 
+        $scope.network
+
         $scope.toggleSidenav = function() {
           $mdSidenav('right').toggle()
         }
@@ -753,7 +755,6 @@ angular.module('hyphe.directives', [])
           var g = new Graph({type: 'directed', allowSelfLoops: false})
           g.addNodesFrom(weIndex)
           g.importEdges(validLinks)
-          console.log('before filtering '+g.order+' nodes and '+g.size+' edges')
 
           // Filtering: mark nodes for deletion
           var allThreshold = 0
@@ -774,10 +775,30 @@ angular.module('hyphe.directives', [])
           })
           g.dropNodes(nodesToDelete)
 
-          console.log('after filtering '+g.order+' nodes and '+g.size+' edges')
+          // Color nodes by status
+          // TODO: color by other means
+          var statusColors = {
+            IN:              "#333"
+            ,UNDECIDED:      "#ADA299"
+            ,OUT:            "#FAA"
+            ,DISCOVERED:     "#93BDE0"
+          }
+          g.nodes().forEach(function(nid){
+            var n = g.getNodeAttributes(nid)
+            n.color = statusColors[n.status] || '#F00'
+          })
+
+          // Size nodes by indegree
+          // TODO: size by other means
+          g.nodes().forEach(function(nid){
+            var n = g.getNodeAttributes(nid)
+            n.size = Math.sqrt(1 + g.inDegree(nid))
+          })
 
           // Make the graph global for console tinkering
           window.g = g
+
+          $scope.network = g
         }
 
         function loadStatus(callback){
@@ -803,6 +824,27 @@ angular.module('hyphe.directives', [])
             .map(function(d){ return d.toUpperCase() }).join(' + ')
         }
 
+      }
+    }
+  })
+
+.directive('sigmaNetwork', function(
+  ){
+    return {
+      restrict: 'E'
+      ,templateUrl: 'partials/sigmaNetwork.html'
+      ,scope: {
+        network: '='
+      }
+      ,link: function($scope, el, attrs) {
+        $scope.nodesCount
+        $scope.edgesCount
+
+        $scope.$watch('network', function(){
+          var g = $scope.network
+          $scope.nodesCount = g.order
+          $scope.edgesCount = g.size
+        })
       }
     }
   })

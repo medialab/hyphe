@@ -10,7 +10,7 @@
     ng-click="toggleSidenav()"
   >
     <md-tooltip md-direction="left">Network Viz Settings</md-tooltip>
-    <md-icon>menu</md-icon>
+    <md-icon>layers</md-icon>
   </md-button>
   
   <div layout="column" layout-fill style="padding: 8px" ng-if="loading">
@@ -162,8 +162,13 @@
         LINKS
       </div>
     </div>
-
   </div>
+
+  <sigma-network
+    layout-fill
+    ng-if="!loading"
+    network="network"
+  ></sigma-network>
 
 </div>
 
