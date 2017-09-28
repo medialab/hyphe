@@ -286,6 +286,9 @@ class Queue(object):
     def get_nowait(self):
         return self.queue.pop(0)
 
+    def len(self):
+        return len(self.queue)
+
     def drop(self):
         self.queue = []
 
@@ -338,7 +341,7 @@ class TraphClientProtocol(LineOnlyReceiver):
           "kwargs": kwargs
         }
         if method == "clear":
-            self.corpus.log("Dropping cleared traph queued queries: %s calls & %s iterative calls" % (len(self.queue), len(self.iteratorQueue)))
+            self.corpus.log("Dropping cleared traph queued queries: %s calls & %s iterative calls" % (self.queue.len(), self.iteratorQueue.len()))
             self.iteratorQueue.drop()
             self.queue.drop()
         self.start_query = time()
