@@ -691,7 +691,11 @@ angular.module('hyphe.directives', [])
 
           // Update
           $scope.loading = false
-          // TODO: build the network
+          buildNetwork()
+        }
+
+        function buildNetwork() {
+          
         }
 
         function loadStatus(callback){
