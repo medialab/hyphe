@@ -169,7 +169,7 @@
             <md-icon>delete_forever</md-icon>
             DESTROY
           </md-button>
-          
+
           <md-button
             class="md-warn"
             ng-click="resetCorpus(corpus.corpus_id)"
@@ -198,10 +198,11 @@
           </md-button>
           
           <md-button
-            class="md-raised md-primary"
+            class="md-primary"
             ng-click="openCorpus(corpus.corpus_id, corpus.name)"
             ng-if="corpus.ready"
           >
+            <md-icon>arrow_forward</md-icon>
             OPEN
           </md-button>
 
