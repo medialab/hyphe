@@ -1653,7 +1653,9 @@ window.graphlayout = {
   forceAtlas2: forceAtlas2Layout
 };
 window.Graph = __webpack_require__(110);
-window.gexf = __webpack_require__(118);	
+window.gexf = __webpack_require__(118);
+// window.Sigma = require('sigma').default
+// window.SigmaWebGLRenderer = require('sigma/renderers/webgl').default
 
 /***/ }),
 /* 39 */

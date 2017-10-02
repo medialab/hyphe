@@ -8,4 +8,6 @@ window.graphlayout = {
   forceAtlas2: forceAtlas2Layout
 };
 window.Graph = require('graphology');
-window.gexf = require('graphology-gexf');	
+window.gexf = require('graphology-gexf');
+// window.Sigma = require('sigma').default
+// window.SigmaWebGLRenderer = require('sigma/renderers/webgl').default

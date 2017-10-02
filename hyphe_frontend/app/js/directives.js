@@ -793,7 +793,21 @@ angular.module('hyphe.directives', [])
           // TODO: size by other means
           g.nodes().forEach(function(nid){
             var n = g.getNodeAttributes(nid)
-            n.size = Math.sqrt(1 + g.inDegree(nid))
+            n.size = 10 * Math.sqrt(1 + g.inDegree(nid))
+          })
+
+          // Init Label and coordinates
+          g.nodes().forEach(function(nid){
+            var n = g.getNodeAttributes(nid)
+            n.x = Math.random()
+            n.y = Math.random()
+            n.label = n.name
+          })
+
+          // Default color for edges
+          g.edges().forEach(function(eid){
+            var e = g.getEdgeAttributes(eid)
+            e.color = '#DDD'
           })
 
           // Make the graph global for console tinkering
@@ -845,9 +859,14 @@ angular.module('hyphe.directives', [])
 
         $scope.$watch('network', function(){
           var g = $scope.network
+          if ( g===undefined ) return 
           $scope.nodesCount = g.order
           $scope.edgesCount = g.size
           $scope.tooBig = $scope.nodesCount > networkDisplayThreshold.get()
+          
+          var container = document.getElementById('sigma-div')
+          var renderer = new Sigma.WebGLRenderer(container)
+          var sigma = new Sigma(g, renderer)
         })
 
         $scope.displayLargeNetwork = function() {
