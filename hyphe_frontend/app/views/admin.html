@@ -1,138 +1,212 @@
-    <div class="container-fluid">
-      <div class="row admin-connect" ng-if="!corpusList">
-        <h3>Restricted access</h3>
-        <input type="password" placeholder="admin password" ng-model="$parent.password" ng-press-enter="connect()"></input>
-        <p ng-if="passwordError" class="bg-danger">{{passwordError}}</p>
-        <button class="btn btn-default" ng-click="cancel()">CANCEL</button>
-        <button class="btn btn-primary" ng-click="connect()">OK</button>
+<!-- Login -->
+<div
+  layout="column"
+  layout-align="center center"
+  layout-fill
+  ng-if="!corpusList"
+>
+  <!-- If password error -->
+  <div ng-if="passwordError" md-colors="{'background':'default-warn'}" style="padding: 8px">
+    {{passwordError}}
+  </div>
+
+  <!-- Else -->
+  <div ng-if="!passwordError">
+    <h3>Restricted access</h3>
+
+    <md-input-container>
+      <label>Admin password</label>
+      <input
+        type="password"
+        focus-me="{{true}}"
+        ng-model="$parent.password"
+        ng-press-enter="connect()"
+      >
+    </md-input-container>
+
+    <div>
+      <md-button
+        class="md-raised md-primary"
+        ng-click="connect()"
+      >OK</md-button>
+      <md-button
+        ng-click="cancel()"
+      >CANCEL</md-button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin page -->
+<div
+  layout="row"
+  layout-fill
+  ng-if="corpusList"
+>
+  <!-- Left column -->
+  <div style="width: 200px" layout="column">
+    <div
+      class="welcome-logo" 
+      layout="column"
+      layout-align="start center"
+    >
+      <img src="img/HYPHE.svg" title="hyphe-logo" style="width: 180px">
+      <h1 style="font-weight: 100; font-family: Roboto;font-size: 3.5em;">hyphe</h1>
+    </div>
+    <div layout="column">
+      <div style="padding: 8px">
+        {{corpusList.length}} corp{{corpusList.length > 1 ? 'ora' : 'us'}}
       </div>
-      <div class="row" ng-if="corpusList">
-        <div class="col-md-12">
-          <div class="welcome-column">
-            <a href="#/login">
-              <img src="img/hyphe logo med.png" title="hyphe-logo"/>
-            </a>
-            <h1>hyphe</h1>
-
-            <h3>
-              {{corpusList.length}} corp{{corpusList.length > 1 ? 'ora' : 'us'}} &mdash;
-              {{globalStatus.ram_left}} Mo of free RAM &mdash;
-              Corpus slots: {{globalStatus.corpus_running}} in operation &amp; {{globalStatus.ports_left}} free &mdash;
-              Crawls: {{globalStatus.crawls_running}} running &amp; {{globalStatus.crawls_pending}} pending
-            </h3>
-            <br>
-            <table class="table">
-              <tr>
-                <th>Project</th>
-                <th>Status</th>
-                <th><dl class="dl-horizontal"><dt>Time</dt></dl></th>
-                <th><dl class="dl-horizontal"><dt>Crawl</dt></dl></th>
-                <th><dl class="dl-horizontal"><dt>Web Entities</dt></dl></th>
-                <th>Actions</th>
-              </tr>
-              
-              <tr ng-repeat="corpus in corpusList">
-
-                <td>
-                  <p>
-                    <strong class="project-name">
-                      {{corpus.name}}
-                    </strong>
-                  </p>
-                  <p>
-                    <span class="label label-warning"><span ng-if="corpus.password"><span class="glyphicon glyphicon-lock"></span> Password Protected</span></span>
-                    
-                    <span class="label label-success"><span ng-if="!corpus.password">Not protected</span></span>
-                    </span>
-                  </p>
-                  <p>
-                    <code>{{corpus.corpus_id}}</code>
-                  </p>
-                </td>
-
-                <td>
-                  
-
-                  <span ng-if="corpus.ready" class="text-success">
-                    <span class="glyphicon glyphicon-ok-sign"></span> ready
-                  </span>
-                  <span ng-if="!corpus.ready" class="text-warning">
-                    <span class="glyphicon glyphicon-exclamation-sign"></span>
-                    {{corpus.status}}
-                  </span>
-
-                </td>
-
-                <td>
-                  <dl class="dl-horizontal">
-
-                    <dt>created</dt>
-                    <dd><span tooltip="{{corpus.created_at|date}}">{{corpus.created_at|prettyDate}}</span></dd>
-
-                    <dt>last activity</dt>
-                    <dd><span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span></dd>
-
-                    <dt>last index</dt>
-                    <dd><span tooltip="{{corpus.last_index_loop|date}}">{{corpus.last_index_loop|prettyDate}}</span></dd>
-
-                  </dl>
-                </td>
-
-                <td>
-                  <dl class="dl-horizontal">
-
-                    <dt>Crawls</dt>
-                    <dd>{{corpus.total_crawls}}</dd>
-
-                    <dt>Crawled pages</dt>
-                    <dd>{{corpus.total_pages_crawled}}</dd>
-
-                    <dt>Pages</dt>
-                    <dd>{{corpus.total_pages}}</dd>
-
-                  </dl>
-                </td>
-
-                <td>
-                  <dl class="dl-horizontal">
-
-                    <dt>in</dt>
-                    <dd>{{corpus.webentities_in}}</dd>
-
-                    <dt>undecided</dt>
-                    <dd>{{corpus.webentities_undecided}}</dd>
-
-                    <dt>out</dt>
-                    <dd>{{corpus.webentities_out}}</dd>
-
-                    <dt>discovered</dt>
-                    <dd>{{corpus.webentities_discovered}}</dd>
-
-                    <hr>
-                    
-                    <dt>TOTAL</dt>
-                    <dd>{{corpus.total_webentities}}</dd>
-
-                  </dl>
-                </td>
-
-                <td>
-                  <div class="btn-group btn-group-sm">
-                    <button class="btn" ng-click="startCorpus(corpus.corpus_id, corpus.password)" ng-class="{disabled: corpus.ready, 'btn-default': corpus.ready, 'btn-primary':!corpus.ready}">START</button>
-                    <button class="btn btn-default" ng-click="stopCorpus(corpus.corpus_id)" ng-class="{disabled: !corpus.ready}">STOP</button>
-                    <button class="btn btn-default" ng-click="openCorpus(corpus.corpus_id, corpus.name)" ng-class="{disabled: !corpus.ready}">OPEN</button>
-                  </div>
-
-                  <div class="btn-group btn-group-sm">
-                    <button class="btn btn-sm btn-danger" ng-click="destroyCorpus(corpus.corpus_id)" ng-class="{disabled: !corpus.ready}">DESTROY</button>
-                    <button class="btn btn-sm btn-danger" ng-click="resetCorpus(corpus.corpus_id)" ng-class="{disabled: !corpus.ready}">RESET</button>
-                  </div>
-                </td>
-
-              </tr>
-            </table>
-
-          </div>
-        </div>
+      <div style="padding: 8px">
+        {{globalStatus.ram_left}} Mo of free RAM
+      </div>
+      <div style="padding: 8px">
+        Corpus slots: {{globalStatus.corpus_running}} in operation &amp; {{globalStatus.ports_left}} free
+      </div>
+      <div style="padding: 8px">
+        Crawls: {{globalStatus.crawls_running}} running &amp; {{globalStatus.crawls_pending}} pending
       </div>
     </div>
+  </div>
+  <div flex layout="row" style="overflow-y: auto" layout-wrap>
+    <div
+      flex="50"
+      ng-repeat="corpus in corpusList"
+    >
+      <md-card
+        style="background-color: #FFF"
+      >
+        <md-card-title>
+          <md-card-title-text>
+            <span class="md-headline">
+              {{corpus.name}}
+            </span>
+            <span class="md-subhead">
+              ID: {{corpus.corpus_id}}
+            </span>
+          </md-card-title-text>
+          <md-card-title-media>
+            <div class="md-media-lg card-media" style="padding: 8px" layout="column">
+              <div layout="row" class="webentity-color-in">
+                <div style="width: 80px; text-align: right; padding-right: 8px">{{corpus.webentities_in}}</div>
+                <div>IN</div>
+              </div>
+              <div layout="row" class="webentity-color-undecided">
+                <div style="width: 80px; text-align: right; padding-right: 8px">{{corpus.webentities_undecided}}</div>
+                <div>UND.</div>
+              </div>
+              <div layout="row" class="webentity-color-out">
+                <div style="width: 80px; text-align: right; padding-right: 8px">{{corpus.webentities_out}}</div>
+                <div>OUT</div>
+              </div>
+              <div layout="row" class="webentity-color-discovered">
+                <div style="width: 80px; text-align: right; padding-right: 8px">{{corpus.webentities_discovered}}</div>
+                <div>DISC.</div>
+              </div>
+              <div layout="row">
+                <div style="width: 80px; text-align: right; padding-right: 8px"><em>{{corpus.total_webentities}}</em></div>
+                <div><em>TOTAL</em></div>
+              </div>
+            </div>
+          </md-card-title-media>
+        </md-card-title>
+        <md-card-content>
+          <div layout="row">
+            <div flex="30" layout="column">
+              <div>
+                <md-icon ng-if="corpus.password && !corpus.ready" ng-style="{'font-size': '36px', 'height':'36px'}">lock</md-icon>
+                <md-icon ng-if="!corpus.password && !corpus.ready" ng-style="{'font-size': '36px', 'height':'36px'}">stop</md-icon>
+                <md-icon ng-if="corpus.ready" ng-style="{'font-size': '36px', 'height':'36px'}">play_circle_outline</md-icon>
+              </div>
+              <div>
+                <strong>{{corpus.status|uppercase}}</strong>
+              </div>
+              <div ng-if="corpus.password">Password Protected</div>
+              <div ng-if="!corpus.password">Not protected</div>
+            </div>
+            <div flex="40" layout="column" style="padding: 0px 8px 0px 8px">
+              <div>
+                Created
+                <span>
+                  <md-tooltip md-direction="right">{{corpus.created_at|date}}</md-tooltip>
+                  {{corpus.created_at|prettyDate}}
+                </span>
+              </div>
+              <div>
+                Last activity
+                <span>
+                  <md-tooltip md-direction="right">{{corpus.last_activity|date}}</md-tooltip>
+                  {{corpus.last_activity|prettyDate}}
+                </span>
+              </div>
+              <div>
+                Last index
+                <span>
+                  <md-tooltip md-direction="right">{{corpus.last_index_loop|date}}</md-tooltip>
+                  {{corpus.last_index_loop|prettyDate}}
+                </span>
+              </div>
+            </div>
+            <div flex="30" layout="column">
+              <div>
+                {{corpus.total_crawls}} crawls
+              </div>
+              <div>
+                {{corpus.total_pages_crawled}} crawled pages
+              </div>
+              <div>
+                {{corpus.total_pages}} pages
+              </div>
+            </div>
+          </div>
+        </md-card-content>
+        <md-card-actions layout="row" layout-align="end center">
+
+          <md-button
+            class="md-warn"
+            ng-click="destroyCorpus(corpus.corpus_id)"
+            ng-if="corpus.ready"
+          >
+            <md-icon>delete_forever</md-icon>
+            DESTROY
+          </md-button>
+          
+          <md-button
+            class="md-warn"
+            ng-click="resetCorpus(corpus.corpus_id)"
+            ng-if="corpus.ready"
+          >
+            <md-icon>delete</md-icon>
+            RESET
+          </md-button>
+
+          <md-button
+            class="md-raised md-primary"
+            ng-click="startCorpus(corpus.corpus_id, corpus.password)"
+            ng-if="!corpus.ready"
+          >
+            <md-icon>play_arrow</md-icon>
+            START
+          </md-button>
+
+          <md-button
+            class=""
+            ng-click="stopCorpus(corpus.corpus_id)"
+            ng-if="corpus.ready"
+          >
+            <md-icon>stop</md-icon>
+            STOP
+          </md-button>
+          
+          <md-button
+            class="md-raised md-primary"
+            ng-click="openCorpus(corpus.corpus_id, corpus.name)"
+            ng-if="corpus.ready"
+          >
+            OPEN
+          </md-button>
+
+        </md-card-actions>
+      </md-card>
+    </div>
+  </div>
+</div>

@@ -5,7 +5,6 @@ angular.module('hyphe.adminController', [])
   .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout', 'corpus'
   ,function($scope, api, utils, $location, $timeout, corpus) {
     $scope.currentPage = 'admin'
-    $scope.Page.setTitle('Hyphe - Administration')
     $scope.corpusList
     $scope.corpusList_byId = {}
     $scope.globalStatus
