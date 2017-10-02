@@ -103,7 +103,7 @@ angular.module('hyphe.services', [])
     ns.threshold = undefined
     ns.magnitude = 3
     ns._updateThreshold = function(){
-      ns.threshold = Math.pow(ns.magnitude)
+      ns.threshold = Math.pow(10, ns.magnitude)
     }
     ns.up = function(){
       ns.magnitude++
@@ -111,6 +111,7 @@ angular.module('hyphe.services', [])
     }
     ns.upTo = function(d){
       ns.magnitude = Math.ceil(Math.log(d)/Math.log(10))
+      ns._updateThreshold()
     }
     ns.get = function(){
       return ns.threshold

@@ -874,25 +874,30 @@ angular.module('hyphe.directives', [])
         $scope.loaded = false
 
         $scope.$watch('network', function(){
-          var g = $scope.network
           $scope.loaded = false
-          if ( g===undefined ) return
+          if ( $scope.network === undefined ) return
           $timeout(function(){
             $scope.loaded = true
-            $scope.nodesCount = g.order
-            $scope.edgesCount = g.size
+            $scope.nodesCount = $scope.network.order
+            $scope.edgesCount = $scope.network.size
             $scope.tooBig = $scope.nodesCount > networkDisplayThreshold.get()
-            $timeout(function(){
-              var container = document.getElementById('sigma-div')
-              var renderer = new Sigma.WebGLRenderer(container)
-              var sigma = new Sigma(g, renderer)
-            })
+            refreshSigma()
           })
         })
 
         $scope.displayLargeNetwork = function() {
           networkDisplayThreshold.upTo($scope.nodesCount)
           $scope.tooBig = $scope.nodesCount > networkDisplayThreshold.get()
+          refreshSigma()
+        }
+
+        function refreshSigma() {
+          $timeout(function(){
+            var container = document.getElementById('sigma-div')
+            if (!container) return
+            var renderer = new Sigma.WebGLRenderer(container)
+            var sigma = new Sigma($scope.network, renderer)
+          })
         }
 
       }
