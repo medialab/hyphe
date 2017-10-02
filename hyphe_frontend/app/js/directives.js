@@ -830,6 +830,7 @@ angular.module('hyphe.directives', [])
   })
 
 .directive('sigmaNetwork', function(
+    networkDisplayThreshold
   ){
     return {
       restrict: 'E'
@@ -840,12 +841,20 @@ angular.module('hyphe.directives', [])
       ,link: function($scope, el, attrs) {
         $scope.nodesCount
         $scope.edgesCount
+        $scope.tooBig = true
 
         $scope.$watch('network', function(){
           var g = $scope.network
           $scope.nodesCount = g.order
           $scope.edgesCount = g.size
+          $scope.tooBig = $scope.nodesCount > networkDisplayThreshold.get()
         })
+
+        $scope.displayLargeNetwork = function() {
+          networkDisplayThreshold.upTo($scope.nodesCount)
+          $scope.tooBig = $scope.nodesCount > networkDisplayThreshold.get()
+        }
+
       }
     }
   })

@@ -1,12 +1,39 @@
-<div layout-fill layout="column" layout-align="center center">
+<div layout-fill layout="column" layout-align="center center" ng-if="tooBig">
+  
+  <!-- Round -->
   <div
     md-colors="{'background': 'default-primary'}"
     style="width:200px;height:200px;border-radius:50%;"
     layout="column"
     layout-align="center center"
   >
-    {{nodesCount}} NODES
-    <br>
-    {{edgesCount}} EDGES
+    <div style="height: 24px"><!-- For visual balance --></div>
+    <div><strong>{{nodesCount}} NODES</strong></div>
+    <div><strong>{{edgesCount}} EDGES</strong></div>
+    <div>
+      <md-button>
+        <md-icon style="color:#FFF">file_download</md-icon>
+        Download
+      </md-button>
+    </div>
   </div>
+  
+  <!-- Message -->
+  <div style="margin-top: 16px">
+    THIS NETWORK IS LARGE
+  </div>
+  <div>
+    Displaying it may be slow
+  </div>
+  <div style="margin-top: 16px">
+    <md-button
+      class="md-raised md-primary"
+      ng-click="displayLargeNetwork()"
+    >
+      Display
+    </md-button>
+  </div>
+</div>
+<div layout-fill layout="column" layout-align="center center" ng-if="!tooBig">
+  SIGMA (TODO)
 </div>

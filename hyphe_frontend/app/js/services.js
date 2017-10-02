@@ -98,6 +98,27 @@ angular.module('hyphe.services', [])
     }
   }])
 
+  .factory('networkDisplayThreshold', [function(){
+    var ns = {} // namespace
+    ns.threshold = undefined
+    ns.magnitude = 3
+    ns._updateThreshold = function(){
+      ns.threshold = Math.pow(ns.magnitude)
+    }
+    ns.up = function(){
+      ns.magnitude++
+      ns._updateThreshold()
+    }
+    ns.upTo = function(d){
+      ns.magnitude = Math.ceil(Math.log(d)/Math.log(10))
+    }
+    ns.get = function(){
+      return ns.threshold
+    }
+    ns._updateThreshold()
+    return ns
+  }])
+
   .factory('corpus', ['$routeParams', '$location', 'disclaimer', function($routeParams, $location, disclaimer){
     // NB: corpus id now stored in route
 
