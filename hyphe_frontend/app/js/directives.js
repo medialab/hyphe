@@ -490,7 +490,8 @@ angular.module('hyphe.directives', [])
       restrict: 'E'
       ,templateUrl: 'partials/webentitiesNetworkWidget.html'
       ,scope: {
-        status: '='
+        status: '=',
+        corpusName: '='
       }
       ,link: function($scope, el, attrs) {
         var pageSize = 100
@@ -605,6 +606,13 @@ angular.module('hyphe.directives', [])
           }
 
           $scope.settingsChanged = difference
+        }
+
+        $scope.downloadNetwork = function() {
+          if ($scope.network) {
+            var blob = new Blob([gexf.write($scope.network)], {'type':'text/gexf+xml;charset=utf-8'});
+            saveAs(blob, $scope.corpusName + ".gexf");
+          }
         }
 
         // Init
@@ -865,7 +873,8 @@ angular.module('hyphe.directives', [])
       restrict: 'E'
       ,templateUrl: 'partials/sigmaNetwork.html'
       ,scope: {
-        network: '='
+        network: '=',
+        downloadNetwork: '='
       }
       ,link: function($scope, el, attrs) {
         $scope.nodesCount

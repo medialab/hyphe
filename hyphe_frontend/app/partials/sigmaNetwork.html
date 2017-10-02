@@ -1,3 +1,4 @@
+<!-- Message if too big -->
 <div layout-fill layout="column" layout-align="center center" ng-if="tooBig">
   
   <!-- Round -->
@@ -11,7 +12,11 @@
     <div><strong>{{nodesCount}} NODES</strong></div>
     <div><strong>{{edgesCount}} EDGES</strong></div>
     <div>
-      <md-button>
+      <md-button
+        aria-label="Download network"
+        ng-click="downloadNetwork()"
+      >
+        <md-tooltip md-direction="right">Download GEXF file</md-tooltip>
         <md-icon style="color:#FFF">file_download</md-icon>
         Download
       </md-button>
@@ -28,12 +33,37 @@
   <div style="margin-top: 16px">
     <md-button
       class="md-raised md-primary"
+      aria-label="Display large network"
       ng-click="displayLargeNetwork()"
     >
       Display
     </md-button>
   </div>
 </div>
-<div layout-fill layout="column" layout-align="center center" ng-if="loaded && !tooBig" >
+
+<!-- Sigma network -->
+<div
+  layout-fill
+  layout="column"
+  layout-align="center center"
+  ng-if="loaded && !tooBig"
+  style="position: relative"
+>
+  <!-- Sigma container -->
   <div id="sigma-div" layout-fill style="background-color: #FFF; overflow: hidden"></div>
+
+  <!-- Buttons -->
+  <div
+    style="position: absolute; left: 16px; top: 16px;"
+    layout="column"
+  >
+    <md-button
+      class="md-fab md-primary md-mini"
+      aria-label="Download network"
+      ng-click="downloadNetwork()"
+    >
+      <md-tooltip md-direction="right">Download GEXF file</md-tooltip>
+      <md-icon style="color:#FFF">file_download</md-icon>
+    </md-button>
+  </div>
 </div>
