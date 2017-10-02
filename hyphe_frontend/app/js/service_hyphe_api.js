@@ -84,6 +84,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.CORPUS_OPTIONS_SET                          = 'set_corpus_options'
     API.CORPUS_TEST                                 = 'test_corpus'
     API.CORPUS_PING                                 = 'ping'
+    API.CORPUS_STATISTICS                           = 'store.get_webentities_stats'
 
     ns.getWebentities = buildApiCall(
         API.WEBENTITY_LIST_GET
@@ -399,6 +400,13 @@ angular.module('hyphe.service_hyphe_api', [])
 
     ns.globalStatus = buildApiCall(
         API.STATUS_GET
+        ,function(settings){
+            return [corpus.getId()]
+          }
+      )
+
+    ns.corpusStatistics = buildApiCall(
+        API.CORPUS_STATISTICS
         ,function(settings){
             return [corpus.getId()]
           }
