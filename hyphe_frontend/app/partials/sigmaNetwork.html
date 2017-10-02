@@ -34,6 +34,6 @@
     </md-button>
   </div>
 </div>
-<div layout-fill layout="column" layout-align="center center" ng-show="!tooBig" >
+<div layout-fill layout="column" layout-align="center center" ng-if="loaded && !tooBig" >
   <div id="sigma-div" layout-fill style="background-color: #FFF; overflow: hidden"></div>
 </div>

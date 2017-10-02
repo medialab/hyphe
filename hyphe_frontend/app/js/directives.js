@@ -791,16 +791,19 @@ angular.module('hyphe.directives', [])
 
           // Size nodes by indegree
           // TODO: size by other means
+          var averageArea = (g.order + g.size) / g.order // because node area = 1 + indegree
           g.nodes().forEach(function(nid){
             var n = g.getNodeAttributes(nid)
-            n.size = 10 * Math.sqrt(1 + g.inDegree(nid))
+            n.size = 10 * Math.sqrt(1 + g.inDegree(nid)) / averageArea
           })
 
           // Init Label and coordinates
+          var nodesArea = 2 * g.order
           g.nodes().forEach(function(nid){
             var n = g.getNodeAttributes(nid)
-            n.x = Math.random()
-            n.y = Math.random()
+            var xy = generateRandomCoordinates(nodesArea)
+            n.x = xy.x
+            n.y = xy.y
             n.label = n.name
           })
 
@@ -839,12 +842,24 @@ angular.module('hyphe.directives', [])
             .map(function(d){ return d.toUpperCase() }).join(' + ')
         }
 
+        function generateRandomCoordinates(area) {
+          var d = Infinity
+          var r = Math.sqrt(area / Math.PI || 1)
+          var x, y
+          while (d>r) {
+            x = (0.5 - Math.random()) * 2 * r
+            y = (0.5 - Math.random()) * 2 * r
+            d = Math.sqrt(x*x + y*y)
+          }
+          return {x:x, y:y}
+        }
       }
     }
   })
 
 .directive('sigmaNetwork', function(
-    networkDisplayThreshold
+    networkDisplayThreshold,
+    $timeout
   ){
     return {
       restrict: 'E'
@@ -855,18 +870,24 @@ angular.module('hyphe.directives', [])
       ,link: function($scope, el, attrs) {
         $scope.nodesCount
         $scope.edgesCount
-        $scope.tooBig = true
+        $scope.tooBig = false
+        $scope.loaded = false
 
         $scope.$watch('network', function(){
           var g = $scope.network
-          if ( g===undefined ) return 
-          $scope.nodesCount = g.order
-          $scope.edgesCount = g.size
-          $scope.tooBig = $scope.nodesCount > networkDisplayThreshold.get()
-          
-          var container = document.getElementById('sigma-div')
-          var renderer = new Sigma.WebGLRenderer(container)
-          var sigma = new Sigma(g, renderer)
+          $scope.loaded = false
+          if ( g===undefined ) return
+          $timeout(function(){
+            $scope.loaded = true
+            $scope.nodesCount = g.order
+            $scope.edgesCount = g.size
+            $scope.tooBig = $scope.nodesCount > networkDisplayThreshold.get()
+            $timeout(function(){
+              var container = document.getElementById('sigma-div')
+              var renderer = new Sigma.WebGLRenderer(container)
+              var sigma = new Sigma(g, renderer)
+            })
+          })
         })
 
         $scope.displayLargeNetwork = function() {
