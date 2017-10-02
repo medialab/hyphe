@@ -16,6 +16,7 @@ angular.module('hyphe.service_hyphe_api', [])
 
     API.WEBENTITY_LIST_SEARCH                       = 'store.search_webentities'
     API.WEBENTITY_LIST_SEARCH_GET_PAGE              = 'store.get_webentities_page'
+    API.WEBENTITY_LIST_GET_STATISTICS               = 'store.get_webentities_ranking_stats'
 
     API.WEBENTITY_STARTPAGE_ADD                     = 'store.add_webentity_startpage'
     API.WEBENTITY_STARTPAGE_REMOVE                  = 'store.rm_webentity_startpage'
@@ -151,6 +152,15 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
             settings.token
             ,settings.page
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.getResultsRankings = buildApiCall(
+        API.WEBENTITY_LIST_GET_STATISTICS
+        ,function(settings){
+          return [
+            settings.token
             ,corpus.getId()
           ]}
       )

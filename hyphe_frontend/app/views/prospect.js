@@ -200,6 +200,22 @@ angular.module('hyphe.prospectController', [])
       }
     }
 
+    function getRankings(searchToken) {
+      if (searchToken) {
+        api.getResultsRankings(
+          {
+            token: searchToken
+          }
+          ,function(data){
+            console.log(data)
+          }
+          ,function(){
+            $scope.status = {message: 'Error loading results rankings', background: 'danger'}
+          }
+        )
+      }
+    }
+
     function syncSubheaderWidth() {
       if (document.querySelector('.follow-md-virtual-repeat-width') && document.querySelector('.md-virtual-repeat-offsetter')) {
         document.querySelector('.follow-md-virtual-repeat-width').style.width = document.querySelector('.md-virtual-repeat-offsetter').offsetWidth + 'px'
@@ -303,6 +319,8 @@ angular.module('hyphe.prospectController', [])
             $scope.status = {}
             $scope.loading = false
             self.loading = false
+
+            getRankings(result.token)
           }
           ,function(){
             $scope.status = {message: 'Error loading web entities', background: 'danger'}
