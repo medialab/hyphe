@@ -799,14 +799,17 @@ angular.module('hyphe.directives', [])
 
           // Size nodes by indegree
           // TODO: size by other means
-          var averageArea = (g.order + g.size) / g.order // because node area = 1 + indegree
+          var averageNonNormalizedArea = g.size / g.order // because node area = indegree
+          var minSize = 1
+          var totalArea = 0
           g.nodes().forEach(function(nid){
             var n = g.getNodeAttributes(nid)
-            n.size = 10 * Math.sqrt(1 + g.inDegree(nid)) / averageArea
+            n.size = minSize + Math.sqrt(g.inDegree(nid) / averageNonNormalizedArea) 
+            totalArea += Math.PI * n.size * n.size
           })
 
           // Init Label and coordinates
-          var nodesArea = 2 * g.order
+          var nodesArea = totalArea
           g.nodes().forEach(function(nid){
             var n = g.getNodeAttributes(nid)
             var xy = generateRandomCoordinates(nodesArea)
