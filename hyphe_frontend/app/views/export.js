@@ -5,10 +5,109 @@ angular.module('hyphe.exportController', [])
   .controller('export', ['$scope', 'api', 'utils', 'corpus'
   ,function($scope, api, utils, corpus) {
     $scope.currentPage = 'export'
-    $scope.Page.setTitle('Export')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
-    $scope.backed_up = false
+
+    $scope.dataVolume = 'compact'
+    $scope.compactFields = ['id', 'name', 'prefixes', 'indegree', 'status', 'last_modification_date', 'user_tags']
+    $scope.fields = {
+      id: {
+        name: 'ID'
+        ,accessor: 'id'
+        ,type: 'string'
+        ,description: 'Unique identifier.'
+      }
+      ,name: {
+        name: 'NAME'
+        ,accessor: 'name'
+        ,type: 'string'
+        ,description: 'An explicit name for convenience.'
+      }
+      ,prefixes: {
+        name: 'PREFIXES'
+        ,accessor: 'prefixes'
+        ,type: 'array of lru'
+        ,description: 'List of LRUs defining the boundaries of the web entity.'
+      }
+      ,prefixes_lru: {
+        name: 'PREFIXES AS LRU'
+        ,accessor: 'prefixes'
+        ,type: 'array of string'
+        ,description: 'List of LRUs defining the boundaries of the web entity.'
+      }
+      ,home_page: {
+        name: 'HOME PAGE'
+        ,accessor: 'homepage'
+        ,type: 'string'
+        ,description: 'A URL used as hyperlink when you click on the web entity, for convenience.'
+      }
+      ,start_pages: {
+        name: 'START PAGES'
+        ,accessor: 'startpages'
+        ,type: 'array of string'
+        ,description: 'The list of start pages used the last time it was crawled.'
+      }
+      ,status: {
+        name: 'STATUS'
+        ,accessor: 'status'
+        ,type: 'string'
+        ,description: 'IN / OUT / UNDECIDED / DISCOVERED'
+      }
+      ,indegree: {
+        name: 'INDEGREE'
+        ,accessor: 'indegree'
+        ,type: 'number'
+        ,description: 'Number of other web entities citing it in the corpus'
+      }
+      ,crawling_status: {
+        name: 'CRAWLING STATUS'
+        ,accessor: 'crawling_status'
+        ,type: 'string'
+        ,description: 'Harvesting status of this web entity\'s last crawl job.'
+      }
+      ,indexing_status: {
+        name: 'INDEXING STATUS'
+        ,accessor: 'indexing_status'
+        ,type: 'string'
+        ,description: 'Indexing status of this web entity\'s last crawl job.'
+      }
+      ,creation_date: {
+        name: 'CREATION DATE'
+        ,accessor: 'creation_date'
+        ,type: 'date'
+        ,description: 'When it was created.'
+      }
+      ,last_modification_date: {
+        name: 'LAST MODIFICATION DATE'
+        ,accessor: 'last_modification_date'
+        ,type: 'date'
+        ,description: 'Last time its metadata were modified.'
+      }
+      ,creation_date_timestamp: {
+        name: 'CREATION DATE AS TIMESTAMP'
+        ,accessor: 'creation_date'
+        ,type: 'string'
+        ,description: 'When it was created.'
+      }
+      ,last_modification_date_timestamp: {
+        name: 'LAST MODIFICATION DATE AS TIMESTAMP'
+        ,accessor: 'last_modification_date'
+        ,type: 'string'
+        ,description: 'Last time its metadata were modified.'
+      }
+      ,user_tags: {
+        name: 'TAGS'
+        ,accessor: 'tags.USER'
+        ,type: 'json'
+        ,description: 'Tags manually added by users.'
+      }
+      ,core_tags: {
+        name: 'TECHNICAL INFO'
+        ,accessor: 'tags.CORE'
+        ,type: 'json'
+        ,description: 'Tags added by Hyphe for various technical reasons. Can be used like a log.'
+      }
+    }
 
     var queryBatchSize = 1000
 
@@ -18,211 +117,7 @@ angular.module('hyphe.exportController', [])
 
     $scope.statuses = {in:true, out:false, undecided:false, discovered:false}
     $scope.counts = {}
-    $scope.columns = {
-      id: {
-        name: 'ID'
-        ,accessor: 'id'
-        ,type: 'string'
-        ,val: true
-      }
-      ,name: {
-        name: 'NAME'
-        ,accessor: 'name'
-        ,type: 'string'
-        ,val: true
-      }
-      ,prefixes: {
-        name: 'PREFIXES'
-        ,accessor: 'prefixes'
-        ,type: 'array of lru'
-        ,val: true
-      }
-      ,prefixes_lru: {
-        name: 'PREFIXES AS LRU'
-        ,accessor: 'prefixes'
-        ,type: 'array of string'
-        ,val: false
-      }
-      ,home_page: {
-        name: 'HOME PAGE'
-        ,accessor: 'homepage'
-        ,type: 'string'
-        ,val: true
-      }
-      ,start_pages: {
-        name: 'START PAGES'
-        ,accessor: 'startpages'
-        ,type: 'array of string'
-        ,val: false
-      }
-      ,status: {
-        name: 'STATUS'
-        ,accessor: 'status'
-        ,type: 'string'
-        ,val: true
-      }
-      ,indegree: {
-        name: 'INDEGREE'
-        ,accessor: 'indegree'
-        ,type: 'string'
-        ,val: true
-      }
-      ,crawling_status: {
-        name: 'CRAWLING STATUS'
-        ,accessor: 'crawling_status'
-        ,type: 'string'
-        ,val: true
-      }
-      ,indexing_status: {
-        name: 'INDEXING STATUS'
-        ,accessor: 'indexing_status'
-        ,type: 'string'
-        ,val: false
-      }
-      ,creation_date: {
-        name: 'CREATION DATE'
-        ,accessor: 'creation_date'
-        ,type: 'date'
-        ,val: false
-      }
-      ,last_modification_date: {
-        name: 'LAST MODIFICATION DATE'
-        ,accessor: 'last_modification_date'
-        ,type: 'date'
-        ,val: true
-      }
-      ,creation_date_timestamp: {
-        name: 'CREATION DATE AS TIMESTAMP'
-        ,accessor: 'creation_date'
-        ,type: 'string'
-        ,val: false
-      }
-      ,last_modification_date_timestamp: {
-        name: 'LAST MODIFICATION DATE AS TIMESTAMP'
-        ,accessor: 'last_modification_date'
-        ,type: 'string'
-        ,val: false
-      }
-      ,user_tags: {
-        name: 'TAGS'
-        ,accessor: 'tags.USER'
-        ,type: 'json'
-        ,val: false
-      }
-      ,core_tags: {
-        name: 'TECHNICAL INFO'
-        ,accessor: 'tags.CORE'
-        ,type: 'json'
-        ,val: false
-      }
-    }
-    $scope.presets = [
-      {
-        name:'basic corpus'
-      , statuses: {
-          in: true
-        , undecided: false
-        , out: false
-        , discovered: false
-        }
-      , columns: {
-          id: true
-        , name: true
-        , prefixes: true
-        , prefixes_lru: false
-        , start_pages: false
-        , status: true
-        , indegree: true
-        , crawling_status: true
-        , indexing_status: false
-        , creation_date: false
-        , last_modification_date: true
-        , creation_date_timestamp: false
-        , last_modification_date_timestamp: false
-        , user_tags: false
-        , core_tags: false
-        }
-      }
-    , {
-        name:'full data'
-      , statuses: {
-          in: true
-        , undecided: true
-        , out: true
-        , discovered: true
-        }
-      , columns: {
-          id: true
-        , name: true
-        , prefixes: false
-        , prefixes_lru: true
-        , start_pages: true
-        , status: true
-        , indegree: true
-        , crawling_status: true
-        , indexing_status: true
-        , creation_date: false
-        , last_modification_date: false
-        , creation_date_timestamp: true
-        , last_modification_date_timestamp: true
-        , user_tags: true
-        , core_tags: true
-        }
-      }
-    , {
-        name:'check all'
-      , statuses: {
-          in: true
-        , undecided: true
-        , out: true
-        , discovered: true
-        }
-            , columns: {
-          id: true
-        , name: true
-        , prefixes: true
-        , prefixes_lru: true
-        , start_pages: true
-        , status: true
-        , indegree: true
-        , crawling_status: true
-        , indexing_status: true
-        , creation_date: true
-        , last_modification_date: true
-        , creation_date_timestamp: true
-        , last_modification_date_timestamp: true
-        , user_tags: true
-        , core_tags: true
-        }
-      }
-    , {
-        name:'uncheck all'
-      , statuses: {
-          in: false
-        , undecided: false
-        , out: false
-        , discovered: false
-        }
-            , columns: {
-          id: false
-        , name: false
-        , prefixes: false
-        , prefixes_lru: false
-        , start_pages: false
-        , status: false
-        , indegree: false
-        , crawling_status: false
-        , indexing_status: false
-        , creation_date: false
-        , last_modification_date: false
-        , creation_date_timestamp: false
-        , last_modification_date_timestamp: false
-        , user_tags: false
-        , core_tags: false
-        }
-      }
-
-    ]
+    
     $scope.fileFormat = 'CSV'
 
     $scope.working = false

@@ -1,305 +1,182 @@
-    <div class="container-fluid">
-      <div class="row no-gutter" ng-include="'partials/topbar.html'">
-      </div>
-      <div class="row no-gutter">
-        <div class="col-lg-2 col-md-3 col-sm-4" ng-include="'partials/sidebar.html'">
-        </div>
-        <div class="col-lg-10 col-md-9 col-sm-8">
-          <div class="container-fluid main">
-            <div class="row">
-              <div class="col-md-12">
-                <h1>
-                  EXPORT WEB ENTITIES
-                </h1>
-              </div>
-            </div>
-
-            <div ng-if="!working">
-
-              <div class="row">
-                <div class="col-md-12">
-                  
-                  <div class="export-presets">
-                    <span>Presets:</span>
-                    <a class="btn btn-link" ng-repeat="preset in presets" ng-click="applyPreset($index)">{{preset.name}}</a>
-                  </div>
-                  
-                  <div class="bulleted-title">
-                    <div class="big-bullet-number">1</div>
-                    <h3>
-                      Filter web entities by status
-                    </h3>
-                  </div>
-
-                  <br>
-
-                  <hyphe-status-box statuses="statuses" counts="counts"></hyphe-status-box>
-
-                  <br>
-                  <br>
-                  <br>
-
-                  <div class="bulleted-title">
-                    <div class="big-bullet-number">2</div>
-                    <h3>
-                      Select columns to export
-                    </h3>
-                  </div>
-
-                  <br>
-
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-md-3">
-
-                  <p>
-                    <span class="text-muted">Identity</span>
-                  </p>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.id.val" type="checkbox">
-                      {{columns.id.name}}
-                      <span class="text-muted">
-                        (<span hyphe-glossary="web entity identifier"/>)
-                      </span>
-                    </label>
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.name.val" type="checkbox">
-                      {{columns.name.name}}
-                    </label>
-                  </div>
-
-                  <br>
-                  
-                  <p>
-                    <span class="text-muted">Status</span>
-                  </p>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.indegree.val" type="checkbox">
-                      {{columns.indegree.name}}
-                    </label>
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.status.val" type="checkbox">
-                      {{columns.status.name}}
-                    </label>
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.crawling_status.val" type="checkbox">
-                      {{columns.crawling_status.name}}
-                    </label>
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.indexing_status.val" type="checkbox">
-                      {{columns.indexing_status.name}}
-                    </label>
-                  </div>
-
-                  <br>
-
-                </div>
-                <div class="col-md-3">
-
-                  <p>
-                    <span class="text-muted">URLs</span>
-                  </p>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.prefixes.val" type="checkbox">
-                      {{columns.prefixes.name}}
-                      <span class="text-muted">
-                        (URLs separated by spaces)
-                      </span>
-                    </label>
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.prefixes_lru.val" type="checkbox">
-                      {{columns.prefixes_lru.name}}
-                      <span class="text-muted">
-                        (<span hyphe-glossary="LRUs"/> separated by spaces)
-                      </span>
-                    </label>
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.home_page.val" type="checkbox">
-                      <span hyphe-glossary="HOME PAGE"/>
-                    </label>
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.start_pages.val" type="checkbox">
-                      <span hyphe-glossary="START PAGES"/>
-                    </label>
-                  </div>
-
-                  <br>
-                  
-                </div>
-                <div class="col-md-3">
-
-                  <p>
-                    <span class="text-muted">Dates</span>
-                  </p>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.creation_date.val" type="checkbox">
-                      CREATION DATE
-                    </label>
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.creation_date_timestamp.val" type="checkbox">
-                      CREATION as <span hyphe-glossary="TIMESTAMP"/>
-                    </label>
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.last_modification_date.val" type="checkbox">
-                      LAST MODIFICATION DATE
-                    </label>
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.last_modification_date_timestamp.val" type="checkbox">
-                      LAST MODIFICATION as <span hyphe-glossary="TIMESTAMP"/>
-                    </label>
-                  </div>
-
-                  <br>
-
-                </div>
-                <div class="col-md-3">
-
-
-                  <p>
-                    <span class="text-muted">Metadata</span>
-                  </p>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.user_tags.val" type="checkbox">
-                      {{columns.user_tags.name}}
-                    </label>
-                  </div>
-
-                  <div class="checkbox">
-                    <label>
-                      <input ng-model="columns.core_tags.val" type="checkbox">
-                      {{columns.core_tags.name}}
-                    </label>
-                  </div>
-
-                  <br>
-
-                </div>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-12">
-                  
-                  <div class="bulleted-title">
-                    <div class="big-bullet-number">3</div>
-                    <h3>
-                      File format
-                    </h3>
-                  </div>
-
-                  <br>
-
-                  <div class="radio">
-                    <label>
-                      <input type="radio" ng-model="$parent.fileFormat" name="optionsRadios" value="CSV" checked>
-                      CSV - comma-separated values
-                    </label>
-                  </div>
-
-                  <div class="radio">
-                    <label>
-                      <input type="radio" ng-model="$parent.fileFormat" name="optionsRadios" value="SCSV" checked>
-                      SCSV - semicolon-separated values
-                    </label>
-                  </div>
-
-                  <div class="radio">
-                    <label>
-                      <input type="radio" ng-model="$parent.fileFormat" name="optionsRadios" value="TSV" checked>
-                      TSV - tabulation-separated values
-                    </label>
-                  </div>
-
-                  <div class="radio">
-                    <label>
-                      <input type="radio" ng-model="$parent.fileFormat" name="optionsRadios" value="JSON" checked>
-                      JSON
-                    </label>
-                  </div>
-
-                  <div class="radio">
-                    <label>
-                      <input type="radio" ng-model="$parent.fileFormat" name="optionsRadios" value="TEXT" checked>
-                      TEXT / MD - Markdown readable as text
-                    </label>
-                  </div>
-
-                  <br>
-
-                  <div class="bulleted-title">
-                    <div class="big-bullet-number">4</div>
-                    <h3>
-                      Name and Download
-                    </h3>
-                  </div>
-
-                  <br>
-
-                </div>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-6 col-lg-4">
-
-                  <div class="input-group">
-                    <input type="text" class="form-control" ng-model="$parent.projectName">
-                    <span class="input-group-btn">
-                      <button class="btn btn-primary" ng-click="download()"><span class="glyphicon glyphicon-download"/> DOWNLOAD {{fileFormat}}</button>
-                    </span>
-                  </div>
-                  
-                </div>
-              </div>
-            </div>
-            
-            <div class="row" ng-if="working" >
-              <div class="col-md-12">
-                <spinner text="'WORKING'"></spinner>
-              </div>
-            </div>
-
+<div layout="column" layout-fill>
+  <div class="topbar-height" ng-include="'partials/topbar.html'">
+  </div>
+  <div flex>
+    <div layout="row" layout-fill>
+      <div class="sidebar-width" ng-include="'partials/sidebar.html'"></div>
+      <div
+        flex
+        md-colors="{background: 'default-background-50'}"
+        style="overflow-y: auto;"
+      >
+        
+        <!-- Content -->
+        <div layout-fill layout="column">
+          <div class="page-header">
+            <h1>
+              EXPORT WEB ENTITIES
+            </h1>
+            <span class="md-subhead">
+              Pick a file format and download the list of <span hyphe-glossary="web entities"></span> and their attributes.
+            </span>
           </div>
+          
+          <div class="vspacer"></div>
+
+          <div layout="row">
+            <div flex layout="column" style="padding: 8px">
+              <div layout-fill>
+                <div layout="row">
+                  <div class="big-bullet-number">1</div>
+                  <div layout="column">
+                    <div class="md-headline" style="margin-bottom: 16px">
+                      Filter web entities by status
+                    </div>
+                    <hyphe-status-box
+                      statuses="statuses"
+                      counts="counts"
+                      change="touchSettings()"
+                    ></hyphe-status-box>
+                  </div>
+                </div>
+
+                <div class="vspacer"></div>
+
+                <div layout="row">
+                  <div class="big-bullet-number">2</div>
+                  <div layout="column">
+                    <div class="md-headline" style="margin-bottom: 16px">
+                      Compact or Full?
+                    </div>
+                    <md-radio-group ng-model="dataVolume" class="md-primary">
+                      <md-radio-button value="compact" class="md-align-top-left">
+                        Compact<br/>
+                        <span style="font-size: 0.9em">
+                          These fields only: <span ng-repeat="fid in compactFields">{{fields[fid].name}}{{$last ? '' : ', '}} </span>
+                        </span>
+                      </md-radio-button>
+
+                      <md-radio-button value="full" class="md-align-top-left">
+                        Full<br/>
+                        <span style="font-size: 0.9em">
+                          All fields
+                        </span>
+                      </md-radio-button>
+                    </md-radio-group>
+                  </div>
+                </div>
+
+                <div class="vspacer"></div>
+
+                <div layout="row">
+                  <div class="big-bullet-number">3</div>
+                  <div layout="column">
+                    <div class="md-headline" style="margin-bottom: 16px">
+                      File format
+                    </div>
+                    <md-radio-group ng-model="fileFormat" class="md-primary">
+
+                      <md-radio-button value="CSV" class="md-align-top-left">
+                        CSV<br/>
+                        <span style="font-size: 0.9em">
+                          <kbd>,</kbd> <strong>Comma</strong>-separated values 
+                        </span>
+                      </md-radio-button>
+
+                      <md-radio-button value="SCSV" class="md-align-top-left">
+                        SCSV<br/>
+                        <span style="font-size: 0.9em">
+                          <kbd>;</kbd> <strong>Semicolon</strong>-separated values 
+                        </span>
+                      </md-radio-button>
+
+                      <md-radio-button value="TSV" class="md-align-top-left">
+                        TSV<br/>
+                        <span style="font-size: 0.9em">
+                          <kbd>⇥</kbd> <strong>Tab</strong>-separated values (Excel)
+                        </span>
+                      </md-radio-button>
+
+                      <md-radio-button value="JSON" class="md-align-top-left">
+                        JSON<br/>
+                        <span style="font-size: 0.9em">
+                          A machine-readable tree-like data structure
+                        </span>
+                      </md-radio-button>
+
+                      <md-radio-button value="TEXT" class="md-align-top-left">
+                        TEXT / MD<br/>
+                        <span style="font-size: 0.9em">
+                          Markdown readable as text
+                        </span>
+                      </md-radio-button>
+
+                    </md-radio-group>
+                  </div>
+                </div>
+
+                <div class="vspacer"></div>
+
+                <div layout="row">
+                  <div class="big-bullet-number">4</div>
+                  <div layout="column">
+                    <div class="md-headline" style="margin-bottom: 16px">
+                      Name and Download
+                    </div>
+                    <md-input-container>
+                      <label>File name</label>
+                      <input
+                        ng-model="projectName"
+                        ng-press-enter="download()"
+                      >
+                    </md-input-container>
+                    <div>
+                      <md-button class="md-raised md-primary" layout-fill>
+                        <md-icon>file_download</md-icon>
+                        Download
+                      </md-button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="vspacer"></div>
+
+              </div>
+            </div>
+            <div layout="column" style="width: 300px; padding: 8px">
+              <div class="md-title" style="margin-bottom: 16px">
+                FIELDS
+              </div>
+
+              <md-list class="md-dense" flex>
+                <md-list-item class="md-3-line md-long-text" ng-repeat="(fid, field) in fields">
+                  <md-icon class="md-avatar-icon" ng-if="field.type == 'date'">access_time</md-icon>
+                  <md-icon class="md-avatar-icon" ng-if="field.type == 'string'">title</md-icon>
+                  <md-icon class="md-avatar-icon" ng-if="field.type == 'number'">looks_3</md-icon>
+                  <md-icon class="md-avatar-icon" ng-if="field.type != 'date' && field.type != 'string' && field.type != 'number'">code</md-icon>
+                  <md-tooltip md-direction="left"> {{ field.name }} </md-tooltip>
+                  <div class="md-list-item-text">
+                    <h3> {{ field.name }} </h3>
+                    <h4 style="line-height: 1.3"> {{ field.type }} </h4>
+                    <p style="line-height: 1.3"> {{ field.description }} </p>
+                  </div>
+                </md-list-item>
+              </md-list>
+
+<!--               <div ng-repeat="(fid, field) in fields">
+                {{fid}}
+              </div>
+ -->
+              <!-- Date: event -->
+              <!-- String: explicit / font_download -->
+              <!-- Data: insert_chart -->
+              <!-- Number: looks_4 -->
+            </div>
+          </div>
+
         </div>
+
       </div>
     </div>
+  </div>
+</div>
