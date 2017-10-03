@@ -131,7 +131,7 @@
                       >
                     </md-input-container>
                     <div>
-                      <md-button class="md-raised md-primary" layout-fill>
+                      <md-button class="md-raised md-primary" layout-fill ng-click="download()" ng-disabled="loading">
                         <md-icon>file_download</md-icon>
                         Download
                       </md-button>
@@ -140,6 +140,137 @@
                 </div>
 
                 <div class="vspacer"></div>
+
+                <div layout="column" ng-if="loading">
+                  <div style="margin-bottom: 8px">
+                    <em>Please wait while network data is loading</em>
+                  </div>
+
+                  <!-- IN -->
+                  <div ng-if="statuses.in" style="height: 50px" layout="row" layout-align="start center">
+                    <div style="margin-right: 8px; width: 50px">
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="indeterminate"
+                        ng-if="data.in.loading && !data.in.total"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.in.loading && data.in.total"
+                        value="{{100 * data.in.webentities.length / data.in.total}}"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        style="opacity: 0.5"
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.in.loaded"
+                        value="100"
+                      ></md-progress-circular>
+                    </div>
+                    <div>
+                      IN
+                      <span
+                        md-colors="{'color': 'default-primary'}"
+                        ng-if="data.in.total"
+                      >{{data.in.webentities.length}} / {{data.in.total}}</span>
+                    </div>
+                  </div>
+
+                  <!-- UNDECIDED -->
+                  <div ng-if="statuses.undecided" style="height: 50px" layout="row" layout-align="start center">
+                    <div style="margin-right: 8px; width: 50px">
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="indeterminate"
+                        ng-if="data.undecided.loading && !data.undecided.total"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.undecided.loading && data.undecided.total"
+                        value="{{100 * data.undecided.webentities.length / data.undecided.total}}"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        style="opacity: 0.5"
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.undecided.loaded"
+                        value="100"
+                      ></md-progress-circular>
+                    </div>
+                    <div>
+                      UNDECIDED
+                      <span
+                        md-colors="{'color': 'default-primary'}"
+                        ng-if="data.undecided.total"
+                      >{{data.undecided.webentities.length}} / {{data.undecided.total}}</span>
+                    </div>
+                  </div>
+
+                  <!-- OUT -->
+                  <div ng-if="statuses.out" style="height: 50px" layout="row" layout-align="start center">
+                    <div style="margin-right: 8px; width: 50px">
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="indeterminate"
+                        ng-if="data.out.loading && !data.out.total"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.out.loading && data.out.total"
+                        value="{{100 * data.out.webentities.length / data.out.total}}"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        style="opacity: 0.5"
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.out.loaded"
+                        value="100"
+                      ></md-progress-circular>
+                    </div>
+                    <div>
+                      OUT
+                      <span
+                        md-colors="{'color': 'default-primary'}"
+                        ng-if="data.out.total"
+                      >{{data.out.webentities.length}} / {{data.out.total}}</span>
+                    </div>
+                  </div>
+
+                  <!-- DISCOVERED -->
+                  <div ng-if="statuses.discovered" style="height: 50px" layout="row" layout-align="start center">
+                    <div style="margin-right: 8px; width: 50px">
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="indeterminate"
+                        ng-if="data.discovered.loading && !data.discovered.total"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.discovered.loading && data.discovered.total"
+                        value="{{100 * data.discovered.webentities.length / data.discovered.total}}"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        style="opacity: 0.5"
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.discovered.loaded"
+                        value="100"
+                      ></md-progress-circular>
+                    </div>
+                    <div>
+                      DISCOVERED
+                      <span
+                        md-colors="{'color': 'default-primary'}"
+                        ng-if="data.discovered.total"
+                      >{{data.discovered.webentities.length}} / {{data.discovered.total}}</span>
+                    </div>
+                  </div>
+
+                </div>
 
               </div>
             </div>
@@ -150,11 +281,10 @@
 
               <md-list class="md-dense" flex>
                 <md-list-item class="md-3-line md-long-text" ng-repeat="(fid, field) in fields">
-                  <md-icon class="md-avatar-icon" ng-if="field.type == 'date'">access_time</md-icon>
-                  <md-icon class="md-avatar-icon" ng-if="field.type == 'string'">title</md-icon>
-                  <md-icon class="md-avatar-icon" ng-if="field.type == 'number'">looks_3</md-icon>
-                  <md-icon class="md-avatar-icon" ng-if="field.type != 'date' && field.type != 'string' && field.type != 'number'">code</md-icon>
-                  <md-tooltip md-direction="left"> {{ field.name }} </md-tooltip>
+                  <md-icon class="md-avatar-icon" ng-if="field.type == 'string'">format_quote</md-icon>
+                  <md-icon class="md-avatar-icon" ng-if="field.type == 'number'">plus_one</md-icon>
+                  <md-icon class="md-avatar-icon" ng-if="field.type != 'string' && field.type != 'number'">code</md-icon>
+                  <md-tooltip md-direction="left"> {{ field.name }} as {{ field.type }} </md-tooltip>
                   <div class="md-list-item-text">
                     <h3> {{ field.name }} </h3>
                     <h4 style="line-height: 1.3"> {{ field.type }} </h4>
@@ -163,14 +293,6 @@
                 </md-list-item>
               </md-list>
 
-<!--               <div ng-repeat="(fid, field) in fields">
-                {{fid}}
-              </div>
- -->
-              <!-- Date: event -->
-              <!-- String: explicit / font_download -->
-              <!-- Data: insert_chart -->
-              <!-- Number: looks_4 -->
             </div>
           </div>
 
