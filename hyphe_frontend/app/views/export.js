@@ -301,13 +301,13 @@ angular.module('hyphe.exportController', [])
     function finalize(){
       console.log('Finalize', $scope.data)
 
-      /*if($scope.backupCorpus){
+      if($scope.backupCorpus){
         $scope.backupCorpus = false
         api.backupCorpus({
           id: $scope.corpusId
         }, function(){
         }, function(){})
-      }*/
+      }
 
       // Gather necessary webentities
       var webentities = []
