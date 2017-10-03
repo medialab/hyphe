@@ -490,6 +490,8 @@ class Core(customJSONRPC):
         if is_error(res):
             del(self.destroying[corpus])
             returnD(res)
+        if corpus in self.corpora:
+            yield self.stop_loops(corpus)
         res = yield self.jsonrpc_stop_corpus(corpus, _quiet, False)
         if is_error(res):
             del(self.destroying[corpus])
