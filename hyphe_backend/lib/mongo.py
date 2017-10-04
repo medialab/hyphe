@@ -24,7 +24,7 @@ def sortdesc(field):
 
 class MongoDB(object):
 
-    def __init__(self, conf, pool=10):
+    def __init__(self, conf, pool=100):
         self.host = environ.get('HYPHE_MONGODB_HOST', conf.get("host", conf.get("mongo_host", "localhost")))
         self.port = int(environ.get('HYPHE_MONGODB_PORT', conf.get("port", conf.get("mongo_port", 27017))))
         self.dbname = conf.get("db_name", conf.get("project", "hyphe"))
