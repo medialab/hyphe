@@ -1486,7 +1486,7 @@ class Memory_Structure(customJSONRPC):
     def batch_webentities_edit(self, command, webentity_ids, corpus, *args, **kwargs):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        if type(webentity_ids) != list or type(webentity_ids[0]) != int:
+        if not webentity_ids or type(webentity_ids) != list or type(webentity_ids[0]) != int:
             returnD(format_error("ERROR: webentity_ids must be a list of webentity ids"))
         try:
             func = getattr(self, "jsonrpc_%s" % command)
