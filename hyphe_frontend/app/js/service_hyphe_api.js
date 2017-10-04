@@ -44,9 +44,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_MERGE_INTO                        = 'store.merge_webentity_into_another'
 
     API.WEBENTITY_TAG_VALUE_ADD                     = 'store.add_webentity_tag_value'
-    API.WEBENTITY_TAG_CAT_REMOVE                    = 'store.rm_webentity_tag_key'
     API.WEBENTITY_TAG_VALUE_REMOVE                  = 'store.rm_webentity_tag_value'
-    API.WEBENTITY_TAG_VALUE_LIST_SET                = 'store.set_webentity_tag_values'
     API.WEBENTITY_TAG_LIST_GET                      = 'store.get_tags'
     API.WEBENTITY_TAG_NAMESPACE_LIST_GET            = 'store.get_tag_namespaces'
     API.WEBENTITY_TAG_CAT_LIST_GET                  = 'store.get_tag_categories'
@@ -110,8 +108,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.sort || ''
             ,settings.count || 100
             ,settings.page || 0
-            // ,settings.light || false                         // Mode light
-            // ,settings.semiLight || false                     // Mode semi-light
+            ,settings.light || false                         // Mode light
+            ,settings.semiLight || false                     // Mode semi-light
             ,corpus.getId()
           ]}
       )
@@ -149,9 +147,12 @@ angular.module('hyphe.service_hyphe_api', [])
     ns.getResultsPage = buildApiCall(
         API.WEBENTITY_LIST_SEARCH_GET_PAGE
         ,function(settings){
+          if(settings.idNamesOnly === undefined)
+            settings.idNamesOnly = false
           return [
             settings.token
             ,settings.page
+            ,settings.idNamesOnly
             ,corpus.getId()
           ]}
       )
@@ -560,6 +561,7 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.id_list    // List of crawl jobs
             ,settings.from || null
             ,settings.to || null
+            ,settings.light || false
             ,corpus.getId()
           ]}
       )
@@ -595,7 +597,6 @@ angular.module('hyphe.service_hyphe_api', [])
           return [
             settings.prefix                               // lru_prefix
             ,settings.regexp                              // Regexp rule
-            ,settings.apply_to_existing_pages || false
             ,corpus.getId()
           ]}
       )

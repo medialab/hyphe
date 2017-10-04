@@ -171,7 +171,7 @@ angular.module('hyphe.monitorcrawlsController', [])
       var timespanMs = 3 * one_day_in_ms
       var from = (now - timespanMs)
       var to = now
-      updateCrawlJobs({from:from, to:to}, function(consolidatedCrawlJobs){
+      updateCrawlJobs({from:from, to:to, light: true}, function(consolidatedCrawlJobs){
         $scope.lastCrawlJobs = consolidatedCrawlJobs
         feedBackMainList() // Pass on possible up-to-date data to the common data pool
         updateCrawlJobsIndex()
@@ -183,7 +183,7 @@ angular.module('hyphe.monitorcrawlsController', [])
     function updateAllCrawlJobs(callback){
       var from = 0
       var to = null
-      updateCrawlJobs({from:from, to:to}, function(consolidatedCrawlJobs){
+      updateCrawlJobs({from:from, to:to, light: true}, function(consolidatedCrawlJobs){
         $scope.crawlJobs = consolidatedCrawlJobs
         updateCrawlJobsIndex()
         loadRequiredWebentities()
