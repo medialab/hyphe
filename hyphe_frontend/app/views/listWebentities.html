@@ -336,7 +336,7 @@
                 <div layout="row">
                   <md-input-container flex>
                     <label>Merge into...</label>
-                    <md-select ng-model="$parent.selected_mergeTarget">
+                    <md-select ng-model="$parent.selected_mergeTarget" ng-disabled="loading || checkedList.length < 2">
                       <md-option value=""><em>None</em></md-option>
                       <md-option
                         ng-repeat="id in checkedList"
@@ -346,7 +346,7 @@
                   </md-input-container>
                   <md-button
                     class="md-primary"
-                    ng-disabled="selected_mergeTarget == '' || loading"
+                    ng-disabled="selected_mergeTarget == '' || loading || checkedList.length < 2"
                     ng-click="doMerge()"
                   >MERGE</md-button>
                 </div>
