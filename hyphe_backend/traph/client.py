@@ -32,6 +32,7 @@ class TraphFactory(object):
             os.makedirs(self.data_dir)
         if not os.path.isdir(self.sockets_dir):
             os.makedirs(self.sockets_dir)
+        reactor.addSystemEventTrigger('before', 'shutdown', self.stop)
 
     def log(self, name, msg, error=False, quiet=False):
         if quiet and not error:
@@ -134,7 +135,6 @@ class TraphCorpus(object):
         self.transport = None
         self.protocol = None
         self.client = None
-        reactor.addSystemEventTrigger('before', 'shutdown', self.stop)
 
     def start(self):
         self.error = None

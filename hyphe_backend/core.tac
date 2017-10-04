@@ -163,7 +163,7 @@ class Core(customJSONRPC):
         if not corpus:
             return format_error("Too many instances running already, please try again later")
         if corpus in self.corpora and not self.traphs.starting_corpus(corpus) and not self.traphs.stopped_corpus(corpus):
-            reactor.callInThread(self.jsonrpc_stop_corpus, corpus, True, False)
+            reactor.callInThread(self.jsonrpc_stop_corpus, corpus, True)
         return format_error(self.jsonrpc_test_corpus(corpus)["result"])
 
     @inlineCallbacks
@@ -374,16 +374,13 @@ class Core(customJSONRPC):
             yield deferredSleep(0.1)
 
     @inlineCallbacks
-    def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False, _block=True):
+    def jsonrpc_stop_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False):
         """Stops an existing and running `corpus`. Returns the new corpus status."""
         if corpus in self.corpora:
             yield self.stop_loops(corpus)
             if corpus in self.traphs.corpora:
                 yield self.update_corpus(corpus, True, True)
-                if _block:
-                    yield self.traphs.stop_corpus(corpus, _quiet)
-                else:
-                    reactor.callInThread(self.traphs.stop_corpus, corpus, _quiet)
+                yield self.traphs.stop_corpus(corpus, _quiet)
             del(self.corpora[corpus])
         yield self.db.clean_WEs_query(corpus)
         res = self.jsonrpc_test_corpus(corpus)
@@ -425,7 +422,7 @@ class Core(customJSONRPC):
                 returnD(format_error("Error retrieving webentities: %s" % WEs["message"]))
             jsondump(WEs["result"], f)
         with open(os.path.join(path, "links.json"), "w") as f:
-            links = yield self.store.jsonrpc_get_webentities_network(corpus=corpus)
+            links = self.store.jsonrpc_get_webentities_network(corpus=corpus)
             if is_error(links):
                 returnD(format_error("Error retrieving links: %s" % links["message"]))
             jsondump(links["result"], f)
@@ -492,7 +489,7 @@ class Core(customJSONRPC):
             returnD(res)
         if corpus in self.corpora:
             yield self.stop_loops(corpus)
-        res = yield self.jsonrpc_stop_corpus(corpus, _quiet, False)
+        res = yield self.jsonrpc_stop_corpus(corpus, _quiet)
         if is_error(res):
             del(self.destroying[corpus])
             returnD(res)
@@ -1130,8 +1127,8 @@ class Memory_Structure(customJSONRPC):
         self.corpora[corpus]['reset'] = False
         self.corpora[corpus]['loop_running'] = None
         self.corpora[corpus]['loop_running_since'] = now
-        reactor.callInThread(self.count_webentities, corpus)
-        reactor.callInThread(self.rank_webentities, corpus)
+        yield self.count_webentities(corpus)
+        yield self.rank_webentities(corpus)
         if not _noloop:
             reactor.callLater(10 if _delay else 1, self.corpora[corpus]['index_loop'].start, 0.2, True)
             reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, True)
@@ -1889,7 +1886,7 @@ class Memory_Structure(customJSONRPC):
             yield self.traphs.call(corpus, "clear")
             returnD(None)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
-        reactor.callInThread(self.count_webentities, corpus)
+        yield self.count_webentities(corpus)
         crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
         if crashed:
             self.corpora[corpus]['loop_running'] = "Cleaning up index error"
@@ -1950,7 +1947,7 @@ class Memory_Structure(customJSONRPC):
                 returnD(None)
             self.corpora[corpus]['webentities_links'] = WElinks["result"]
             self.corpora[corpus]['last_links_loop'] = time.time()
-            reactor.callInThread(self.rank_webentities, corpus)
+            yield self.rank_webentities(corpus)
             self.corpora[corpus]['recent_changes'] = 0
             s = time.time() - s
             self.corpora[corpus]['links_duration'] = max(s, self.corpora[corpus]['links_duration'])
@@ -2575,26 +2572,18 @@ class Memory_Structure(customJSONRPC):
         logger.msg("...JSON network generated in %ss" % str(time.time()-s), system="INFO - %s" % corpus)
         returnD(format_result(res))
 
-    @inlineCallbacks
     def jsonrpc_get_webentities_network(self, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` the list of all agregated weighted links between WebEntities."""
         if not self.parent.corpus_ready(corpus):
-            returnD(self.parent.corpus_error(corpus))
+            return self.parent.corpus_error(corpus)
         s = time.time()
         logger.msg("Generating WebEntities network...", system="INFO - %s" % corpus)
-        if not self.corpora[corpus]['webentities_links']:
-            WElinks = yield self.traphs.call(corpus, "get_webentities_inlinks", include_auto=False)
-            if is_error(WElinks):
-                logger.msg(WElinks['message'], system="ERROR - %s" % corpus)
-                returnD(WElinks)
-            self.corpora[corpus]['webentities_links'] = WElinks["result"]
-            reactor.callInThread(self.rank_webentities, corpus)
         res = []
         for target, sources in self.corpora[corpus]["webentities_links"].items():
             for source, weight in sources.items():
                 res.append([source, target, weight])
         logger.msg("...JSON network generated in %ss" % str(time.time()-s), system="INFO - %s" % corpus)
-        returnD(handle_standard_results(res))
+        return handle_standard_results(res)
 
   # CREATION RULES
 
