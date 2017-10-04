@@ -2345,18 +2345,14 @@ class Memory_Structure(customJSONRPC):
         returnD(respage)
 
     @inlineCallbacks
-    def jsonrpc_get_webentities_ranking_stats(self, pagination_token, corpus=DEFAULT_CORPUS, _ranking_field="indegree"):
+    def jsonrpc_get_webentities_ranking_stats(self, pagination_token, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` histogram data on the indegrees of all WebEntities matching a previous query ran using any of the `get_webentities` or `search_webentities` methods using the return `pagination_token`."""
-        ranking_fields = ["indegree"]
-        ranking_field = _ranking_field.lower().strip()
-        if ranking_field not in ranking_fields:
-            returnD(format_error("ranking_field must be one of %s" % ", ".join(ranking_fields)))
         WEs = yield self.db.get_WEs_query(corpus, pagination_token)
         if not WEs:
             returnD(format_error("No previous query found for token %s on corpus %s" % (pagination_token, corpus)))
         histogram = {}
         for w in WEs["webentities"]:
-            rank = self.corpora[corpus]["webentities_ranks"].get(w[0], {ranking_field: 0})[ranking_field]
+            rank = self.corpora[corpus]["webentities_ranks"].get(w[0], 0)
             if rank not in histogram:
                 histogram[rank] = 0
             histogram[rank] += 1
@@ -2741,7 +2737,9 @@ class Memory_Structure(customJSONRPC):
     def jsonrpc_get_webentities_stats(self, corpus=DEFAULT_CORPUS):
         """Returns for a corpus a set of statistics on the WebEntities status repartition of a `corpus` each 5 minutes."""
         res = yield self.db.get_stats(corpus)
-        returnD(res)
+        for r in res:
+            del(r["_id"])
+        returnD(format_result(res))
 
 
 
