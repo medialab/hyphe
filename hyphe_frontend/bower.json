@@ -17,6 +17,7 @@
     "ng-tags-input": "^3.2.0",
     "angular-md5": "^0.1.10",
     "angular-material": "^1.1.4",
-    "angular-route": "^1.6.6"
+    "angular-route": "^1.6.6",
+    "d3": "^4.11.0"
   }
 }
