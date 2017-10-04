@@ -41,15 +41,11 @@ angular.module('hyphe.overviewController', [])
 
     function loadStatistics() {
       if ($scope.loadingStatistics) return;
-      console.log('loadStatistics...')
       $scope.loadingStatistics = true
       api.corpusStatistics({}, function(data){
-        console.log('...oui')
         $scope.loadingStatistics = false
         $scope.corpusStatistics = data
-        console.log('statistics', data)
       },function(data, status, headers, config){
-        console.log('...non')
         $scope.loadingStatistics = false
         $scope.status = {message: 'Error loading statistics', background:'danger'}
       })

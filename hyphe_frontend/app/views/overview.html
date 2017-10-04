@@ -28,6 +28,13 @@
 
           <!-- Information when corpus not empty -->
           <div ng-show="corpusStatus.corpus.traph.webentities.total" style="padding:8px">
+            <!-- Activity charts -->
+            <div layout="column">
+              <div style="height: 300px; margin-bottom: 8px">
+                <activity-chart data="corpusStatistics" layout-fill layout="column" layout-align="center center"></activity-chart>
+              </div>
+            </div>
+            <!-- Info blocks -->
             <div layout="row">
               <md-content flex layout="column" layout-align="start center" style="padding:8px; margin-right:8px;" md-colors="{background: 'default-background-100'}">
                 <h3>

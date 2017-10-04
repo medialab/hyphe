@@ -868,7 +868,7 @@ angular.module('hyphe.directives', [])
     }
   })
 
-.directive('sigmaNetwork', function(
+  .directive('sigmaNetwork', function(
     networkDisplayThreshold,
     $timeout
   ){
@@ -912,6 +912,100 @@ angular.module('hyphe.directives', [])
           })
         }
 
+      }
+    }
+  })
+
+  .directive('activityChart', function(
+    $timeout
+  ){
+    return {
+      restrict: 'E',
+      scope: {
+        data: '='
+      },
+      link: function($scope, el, attrs) {
+
+        el.html('<div>LOADING</div>')
+
+        $scope.$watch('data', redraw)
+        window.addEventListener('resize', redraw)
+        $scope.$on('$destroy', function(){
+          window.removeEventListener('resize', redraw)
+        })
+
+        function redraw() {
+          if ($scope.data !== undefined){
+            console.log($scope.data)
+            $timeout(function () {
+              el.html('');
+
+              // Setup: dimensions
+              var margin = {top: 0, right: 12, bottom: 0, left: 300};
+              var width = el[0].offsetWidth - margin.left - margin.right - 12;
+              var height = el[0].offsetHeight - margin.top - margin.bottom;
+
+              // Setup: scales
+              var x = d3.scaleLinear()
+                .domain([0, $scope.data.length - 1])
+                .range([0, width])
+
+              var y = d3.scaleLinear()
+                .domain([-3.5, 3.5])
+                .range([height, 0])
+
+              var yAxis = d3.axisLeft(y)
+
+              // Setup: SVG container
+              var svg = d3.select(el[0]).append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+              .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+              var lineFunction = d3.line()
+                .x(function(d, i) { return x(i); })
+                .y(function(d) { return y(d); })
+                .curve(d3.curveCardinal.tension(0.5));
+
+              var curveColor = $scope.highlight ? colors.regionHighlight : colors.topicCurve
+
+              if ($scope.data) {
+                svg
+                  .append("path")
+                    .attr('d', lineFunction($scope.data) )
+                    .attr('stroke', curveColor)
+                    .attr('stroke-width', 1)
+                    .attr('fill', 'none')
+              }
+
+              // Additional informations
+              var overlay = svg.append('g')
+
+              // Line of the selected date
+              overlay.append("line")
+                .attr("x1", x($scope.month))
+                .attr("y1", 0)
+                .attr("x2", x($scope.month))
+                .attr("y2", height)
+                .style("stroke-width", 2)
+                .style("stroke", colors.time)
+                .style("fill", "none");
+
+              // Dot
+              overlay.append("circle")
+                .attr("cx", x($scope.month))
+                .attr("cy", y($scope.data[$scope.month]))
+                .attr("r", 4)
+                .style("fill", curveColor);
+
+            }, 0)
+          }
+        }
+
+        function regionValid(d) {
+          return $scope.statuses[d] && $scope.statuses[d].available
+        }
       }
     }
   })
