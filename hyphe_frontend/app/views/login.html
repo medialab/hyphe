@@ -36,9 +36,9 @@
 
     <!-- New corpus button -->
     <div
-      ng-if="!disconnected"
+      ng-if="!disconnected && !loading"
     >
-      <md-button class="md-raised md-primary" ng-show="uiMode == 'default'" ng-click="switchToNew()" layout-fill>
+      <md-button class="md-raised md-primary" ng-show="uiMode == 'default' && corpusList.length > 0" ng-click="switchToNew()" layout-fill>
         <md-icon>add</md-icon> New Corpus
       </md-button>
     </div>
