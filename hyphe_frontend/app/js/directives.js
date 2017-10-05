@@ -943,11 +943,11 @@ angular.module('hyphe.directives', [])
               
               window.el = el[0]
               // Setup: dimensions
-              var margin = {top: 12, right: 12, bottom: 12, left: 12};
-              var width = el[0].offsetWidth - margin.left - margin.right - 12;
+              var margin = {top: 0, right: 64, bottom: 32, left: 0};
+              var width = el[0].offsetWidth - margin.left - margin.right;
               var height = el[0].offsetHeight - margin.top - margin.bottom;
 
-              // While loading redraw may trigger while not properly resized
+              // While loading redraw may trigger before element being properly sized
               if (width <= 0 || height <= 0) {
                 $timeout(redraw, 250)
                 return
@@ -962,28 +962,61 @@ angular.module('hyphe.directives', [])
                 .domain(d3.extent($scope.data, function(d){return d.total}))
                 .range([height, 0])
 
-              var yAxis = d3.axisLeft(y)
+              var colorize = function(type){
+                if (type=='in') return '#333'
+                if (type=='undecided') return '#ADA299'
+                if (type=='out') return '#E67E7E'
+                if (type=='discovered') return '#75ADDC'
+                return '#ff699b' // Error
+              }
+
+              var stack = d3.stack();
+
+              var area = d3.area()
+                  .x(function(d, i) { return x(new Date(d.data.timestamp)) })
+                  .y0(function(d) { return y(d[0]); })
+                  .y1(function(d) { return y(d[1]); });
 
               // Setup: SVG container
               var svg = d3.select(el[0]).append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
-              .append("g")
+              
+              var g = svg.append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-              var lineFunction = d3.line()
-                .x(function(d, i) { return x(d.timestamp); })
-                .y(function(d) { return y(d.total); })
-                .curve(d3.curveMonotoneX);
+              var keys = ['in', 'undecided', 'out', 'discovered']
+              stack.keys(keys)
 
-              var curveColor = '#000'
+              var layer = g.selectAll(".layer")
+                .data(stack($scope.data))
+                .enter().append("g")
+                  .attr("class", "layer")
+              
+              layer.append("path")
+                  .attr("class", "area")
+                  .style("fill", function(d) { return colorize(d.key) })
+                  .attr("d", area)
 
-              svg
-                .append("path")
-                  .attr('d', lineFunction($scope.data) )
-                  .attr('stroke', curveColor)
-                  .attr('stroke-width', 1)
-                  .attr('fill', 'none')
+              layer.filter(function(d) { return y(d[d.length - 1][0]) - y(d[d.length - 1][1]) > 10; })
+                .append("text")
+                  .attr("x", width - 6)
+                  .attr("y", function(d) { return y((d[d.length - 1][0] + d[d.length - 1][1]) / 2); })
+                  .attr("dy", ".35em")
+                  .style("font", "10px sans-serif")
+                  .style("fill", "#FFF")
+                  .style("text-anchor", "end")
+                  .text(function(d) { return $scope.data[$scope.data.length - 1][d.key] + ' ' + d.key })
+
+              g.append("g")
+                  .attr("class", "axis axis--x")
+                  .attr("transform", "translate(0," + height + ")")
+                  .call(d3.axisBottom(x));
+
+              g.append("g")
+                  .attr("class", "axis axis--y")
+                  .attr("transform", "translate(" + width + ", 0)")
+                  .call(d3.axisRight(y));
 
             })
           }
