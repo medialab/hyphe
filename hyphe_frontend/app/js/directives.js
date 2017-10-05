@@ -965,7 +965,7 @@ angular.module('hyphe.directives', [])
                 .range([0, width])
 
               var y = d3.scaleLinear()
-                .domain(d3.extent($scope.data, function(d){return d3.sum(statusList, function(s){return d[s]})}))
+                .domain([0, d3.max($scope.data, function(d){return d3.sum(statusList, function(s){return d[s]})})])
                 .range([height, 0])
 
               var colorize = function(type){
@@ -1077,7 +1077,7 @@ angular.module('hyphe.directives', [])
                 .range([0, width])
 
               var y = d3.scaleLinear()
-                .domain(d3.extent($scope.data, function(d){return d.in}))
+                .domain([0, d3.max($scope.data, function(d){return d.in})])
                 .range([height, 0])
 
               var colorize = function(type){
