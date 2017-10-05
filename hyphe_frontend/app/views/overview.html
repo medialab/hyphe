@@ -85,7 +85,7 @@
 
             <!-- Activity chart -->
             <div layout="column">
-              <div style="height: 300px; margin: 8px 0px 8px 0px">
+              <div style="height: 300px; margin: 8px 0px 8px 0px; position: relative">
                 <activity-chart
                   data="corpusStatistics"
                   layout-fill
@@ -94,6 +94,9 @@
                   ng-if="displayStatistics"
                   statuses="statuses"
                 ></activity-chart>
+                <div style="position: absolute; top:0; left: 0;">
+                  <div class="md-title">Web entities volume<br>over time</div>
+                </div>
               </div>
             </div>
 
