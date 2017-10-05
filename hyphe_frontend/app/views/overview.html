@@ -83,9 +83,9 @@
 
             </md-grid-list>
 
-            <!-- Activity chart -->
+            <!-- Activity charts -->
             <div layout="column">
-              <div style="height: 300px; margin: 8px 0px 8px 0px; position: relative">
+              <div style="height: 360px; position: relative">
                 <activity-chart
                   data="corpusStatistics"
                   layout-fill
@@ -96,6 +96,19 @@
                 ></activity-chart>
                 <div style="position: absolute; top:0; left: 0;">
                   <div class="md-title">Web entities volume<br>over time</div>
+                </div>
+              </div>
+
+              <div style="height: 240px; position: relative">
+                <activity-chart-2
+                  data="corpusStatistics"
+                  layout-fill
+                  layout="column"
+                  layout-align="center center"
+                  ng-if="displayStatistics"
+                ></activity-chart-2>
+                <div style="position: absolute; top:0; left: 0;">
+                  <div class="md-title">Uncrawled and<br>untagged web entities</div>
                 </div>
               </div>
             </div>
