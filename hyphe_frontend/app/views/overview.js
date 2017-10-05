@@ -13,6 +13,8 @@ angular.module('hyphe.overviewController', [])
     $scope.loadingStatus = false
     $scope.loadingStatistics = false
 
+    $scope.statuses = {in:true, undecided:true, out:true, discovered:true}
+
     // Init
     loadStatus()
     loadStatistics()

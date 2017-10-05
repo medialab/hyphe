@@ -254,7 +254,9 @@ md-list.md-dense md-list-item .md-avatar, md-list.md-dense md-list-item .md-list
 .webentity-background-discovered{
   background-color: #75ADDC;
 }
-
+.webentity-background-null{
+  background-color: rgba(0, 0, 0, 0.1);
+}
 
 
 /* ==========================================================================

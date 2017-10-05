@@ -37,16 +37,8 @@
               md-row-height="1:1"
               md-gutter="8px">
 
-              <md-grid-tile
-                md-rowspan="1"
-                md-colspan="1"
-              >
-                <div
-                  layout-fill
-                  layout="column"
-                  layout-align="center center"
-                  class="webentity-background-in"
-                >
+              <md-grid-tile md-rowspan="1" md-colspan="1">
+                <div layout-fill layout="column" layout-align="center center" class="pointable" ng-class="{'webentity-background-in':statuses.in, 'webentity-background-null': !statuses.in}" ng-click="statuses.in = !statuses.in">
                   <div class="md-title">
                     IN
                   </div>
@@ -56,16 +48,8 @@
                 </div>
               </md-grid-tile>
 
-              <md-grid-tile
-                md-rowspan="1"
-                md-colspan="1"
-              >
-                <div
-                  layout-fill
-                  layout="column"
-                  layout-align="center center"
-                  class="webentity-background-undecided"
-                >
+              <md-grid-tile md-rowspan="1" md-colspan="1">
+                <div layout-fill layout="column" layout-align="center center" class="pointable" ng-class="{'webentity-background-undecided':statuses.undecided, 'webentity-background-null': !statuses.undecided}" ng-click="statuses.undecided = !statuses.undecided">
                   <div class="md-title">
                     UNDECIDED
                   </div>
@@ -75,16 +59,8 @@
                 </div>
               </md-grid-tile>
 
-              <md-grid-tile
-                md-rowspan="1"
-                md-colspan="1"
-              >
-                <div
-                  layout-fill
-                  layout="column"
-                  layout-align="center center"
-                  class="webentity-background-out"
-                >
+              <md-grid-tile md-rowspan="1" md-colspan="1">
+                <div layout-fill layout="column" layout-align="center center" class="pointable" ng-class="{'webentity-background-out':statuses.out, 'webentity-background-null': !statuses.out}" ng-click="statuses.out = !statuses.out">
                   <div class="md-title">
                     OUT
                   </div>
@@ -94,16 +70,8 @@
                 </div>
               </md-grid-tile>
 
-              <md-grid-tile
-                md-rowspan="1"
-                md-colspan="1"
-              >
-                <div
-                  layout-fill
-                  layout="column"
-                  layout-align="center center"
-                  class="webentity-background-discovered"
-                >
+              <md-grid-tile md-rowspan="1" md-colspan="1">
+                <div layout-fill layout="column" layout-align="center center" class="pointable" ng-class="{'webentity-background-discovered':statuses.discovered, 'webentity-background-null': !statuses.discovered}" ng-click="statuses.discovered = !statuses.discovered">
                   <div class="md-title">
                     DISCOVERED
                   </div>
@@ -124,6 +92,7 @@
                   layout="column"
                   layout-align="center center"
                   ng-if="displayStatistics"
+                  statuses="statuses"
                 ></activity-chart>
               </div>
             </div>

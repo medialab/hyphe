@@ -922,13 +922,15 @@ angular.module('hyphe.directives', [])
     return {
       restrict: 'E',
       scope: {
-        data: '='
+        data: '=',
+        statuses: '='
       },
       link: function($scope, el, attrs) {
 
         el.html('<div>LOADING</div>')
 
         $scope.$watch('data', redraw)
+        $scope.$watch('statuses', redraw, true)
 
         window.addEventListener('resize', redraw)
         $scope.$on('$destroy', function(){
@@ -953,13 +955,17 @@ angular.module('hyphe.directives', [])
                 return
               }
 
+              // Status list
+              var statusList = ['in', 'undecided', 'out', 'discovered']
+                .filter(function(d){return $scope.statuses[d]})
+
               // Setup: scales
               var x = d3.scaleTime()
                 .domain(d3.extent($scope.data, function(d) { return new Date(d.timestamp) }))
                 .range([0, width])
 
               var y = d3.scaleLinear()
-                .domain(d3.extent($scope.data, function(d){return d.total}))
+                .domain(d3.extent($scope.data, function(d){return d3.sum(statusList, function(s){return d[s]})}))
                 .range([height, 0])
 
               var colorize = function(type){
@@ -985,8 +991,7 @@ angular.module('hyphe.directives', [])
               var g = svg.append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-              var keys = ['in', 'undecided', 'out', 'discovered']
-              stack.keys(keys)
+              stack.keys(statusList)
 
               var layer = g.selectAll(".layer")
                 .data(stack($scope.data))
