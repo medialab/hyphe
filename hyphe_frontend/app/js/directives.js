@@ -929,29 +929,37 @@ angular.module('hyphe.directives', [])
         el.html('<div>LOADING</div>')
 
         $scope.$watch('data', redraw)
+
         window.addEventListener('resize', redraw)
         $scope.$on('$destroy', function(){
           window.removeEventListener('resize', redraw)
         })
 
+        // Data: timestamp in undecided out discovered in_uncrawled in_untagged total
         function redraw() {
           if ($scope.data !== undefined){
-            console.log($scope.data)
-            $timeout(function () {
+            $timeout(function(){
               el.html('');
-
+              
+              window.el = el[0]
               // Setup: dimensions
-              var margin = {top: 0, right: 12, bottom: 0, left: 300};
+              var margin = {top: 12, right: 12, bottom: 12, left: 12};
               var width = el[0].offsetWidth - margin.left - margin.right - 12;
               var height = el[0].offsetHeight - margin.top - margin.bottom;
 
+              // While loading redraw may trigger while not properly resized
+              if (width <= 0 || height <= 0) {
+                $timeout(redraw, 250)
+                return
+              }
+
               // Setup: scales
-              var x = d3.scaleLinear()
-                .domain([0, $scope.data.length - 1])
+              var x = d3.scaleTime()
+                .domain(d3.extent($scope.data, function(d) { return new Date(d.timestamp) }))
                 .range([0, width])
 
               var y = d3.scaleLinear()
-                .domain([-3.5, 3.5])
+                .domain(d3.extent($scope.data, function(d){return d.total}))
                 .range([height, 0])
 
               var yAxis = d3.axisLeft(y)
@@ -964,42 +972,20 @@ angular.module('hyphe.directives', [])
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
               var lineFunction = d3.line()
-                .x(function(d, i) { return x(i); })
-                .y(function(d) { return y(d); })
-                .curve(d3.curveCardinal.tension(0.5));
+                .x(function(d, i) { return x(d.timestamp); })
+                .y(function(d) { return y(d.total); })
+                .curve(d3.curveMonotoneX);
 
-              var curveColor = $scope.highlight ? colors.regionHighlight : colors.topicCurve
+              var curveColor = '#000'
 
-              if ($scope.data) {
-                svg
-                  .append("path")
-                    .attr('d', lineFunction($scope.data) )
-                    .attr('stroke', curveColor)
-                    .attr('stroke-width', 1)
-                    .attr('fill', 'none')
-              }
+              svg
+                .append("path")
+                  .attr('d', lineFunction($scope.data) )
+                  .attr('stroke', curveColor)
+                  .attr('stroke-width', 1)
+                  .attr('fill', 'none')
 
-              // Additional informations
-              var overlay = svg.append('g')
-
-              // Line of the selected date
-              overlay.append("line")
-                .attr("x1", x($scope.month))
-                .attr("y1", 0)
-                .attr("x2", x($scope.month))
-                .attr("y2", height)
-                .style("stroke-width", 2)
-                .style("stroke", colors.time)
-                .style("fill", "none");
-
-              // Dot
-              overlay.append("circle")
-                .attr("cx", x($scope.month))
-                .attr("cy", y($scope.data[$scope.month]))
-                .attr("r", 4)
-                .style("fill", curveColor);
-
-            }, 0)
+            })
           }
         }
 
