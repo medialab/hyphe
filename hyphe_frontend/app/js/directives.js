@@ -1086,6 +1086,10 @@ angular.module('hyphe.directives', [])
                 if (type=='in_untagged') return '#75dcbd'
                 return '#ff699b' // Error
               }
+              var size = function(type){
+                if (type=='in') return '3px'
+                return '2px'
+              }
 
               var line = d3.line()
                 .curve(d3.curveBasis)
@@ -1128,7 +1132,7 @@ angular.module('hyphe.directives', [])
                   .attr("class", "line")
                   .attr("d", function(d) { return line(d.values) })
                   .style("stroke", function(d) { return colorize(d.type) })
-                  .style("stroke-width", "2px")
+                  .style("stroke-width", function(d){ return size(d.type) })
                   .style("fill", "none")
 
               curve.append("text")
