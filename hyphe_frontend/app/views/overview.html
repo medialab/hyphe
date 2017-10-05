@@ -29,9 +29,95 @@
           <!-- Information when corpus not empty -->
           <div ng-show="corpusStatus.corpus.traph.webentities.total" style="padding:8px">
 
+            <!-- Blocks by status -->
+            <md-grid-list
+              md-cols-xs="2"
+              md-cols-sm="2"
+              md-cols-gt-sm="4"
+              md-row-height="1:1"
+              md-gutter="8px">
+
+              <md-grid-tile
+                md-rowspan="1"
+                md-colspan="1"
+              >
+                <div
+                  layout-fill
+                  layout="column"
+                  layout-align="center center"
+                  class="webentity-background-in"
+                >
+                  <div class="md-title">
+                    IN
+                  </div>
+                  <div class="md-body-1">
+                    {{corpusStatus.corpus.traph.webentities.IN|none}}
+                  </div>
+                </div>
+              </md-grid-tile>
+
+              <md-grid-tile
+                md-rowspan="1"
+                md-colspan="1"
+              >
+                <div
+                  layout-fill
+                  layout="column"
+                  layout-align="center center"
+                  class="webentity-background-undecided"
+                >
+                  <div class="md-title">
+                    UNDECIDED
+                  </div>
+                  <div class="md-body-1">
+                    {{corpusStatus.corpus.traph.webentities.UNDECIDED|none}}
+                  </div>
+                </div>
+              </md-grid-tile>
+
+              <md-grid-tile
+                md-rowspan="1"
+                md-colspan="1"
+              >
+                <div
+                  layout-fill
+                  layout="column"
+                  layout-align="center center"
+                  class="webentity-background-out"
+                >
+                  <div class="md-title">
+                    OUT
+                  </div>
+                  <div class="md-body-1">
+                    {{corpusStatus.corpus.traph.webentities.OUT|none}}
+                  </div>
+                </div>
+              </md-grid-tile>
+
+              <md-grid-tile
+                md-rowspan="1"
+                md-colspan="1"
+              >
+                <div
+                  layout-fill
+                  layout="column"
+                  layout-align="center center"
+                  class="webentity-background-discovered"
+                >
+                  <div class="md-title">
+                    DISCOVERED
+                  </div>
+                  <div class="md-body-1">
+                    {{corpusStatus.corpus.traph.webentities.DISCOVERED|none}}
+                  </div>
+                </div>
+              </md-grid-tile>
+
+            </md-grid-list>
+
             <!-- Activity chart -->
             <div layout="column">
-              <div style="height: 300px; margin-bottom: 8px">
+              <div style="height: 300px; margin: 8px 0px 8px 0px">
                 <activity-chart
                   data="corpusStatistics"
                   layout-fill
@@ -80,48 +166,6 @@
                   {{corpusStatus.corpus.crawler.links_found}} link{{corpusStatus.corpus.crawler.links_found|plural}} discovered
                 </p>
               </md-content>
-            </div>
-
-            <h2>
-              WEB ENTITIES
-            </h2>
-
-            <div layout="row">
-              <div class="round-cell-content">
-                <p class="title">
-                  IN
-                </p>
-                <p class="content md-body-1">
-                  {{corpusStatus.corpus.traph.webentities.IN|none}}
-                </p>
-              </div>
-            
-              <div class="round-cell-content">
-                <p class="title">
-                  UNDECIDED
-                </p>
-                <p class="content md-body-1">
-                  {{corpusStatus.corpus.traph.webentities.UNDECIDED|none}}
-                </p>
-              </div>
-
-              <div class="round-cell-content">
-                <p class="title">
-                  DISCOVERED
-                </p>
-                <p class="content md-body-1">
-                  {{corpusStatus.corpus.traph.webentities.DISCOVERED|none}}
-                </p>
-              </div>
-          
-              <div class="round-cell-content">
-                <p class="title">
-                  OUT
-                </p>
-                <p class="content md-body-1">
-                  {{corpusStatus.corpus.traph.webentities.OUT|none}}
-                </p>
-              </div> 
             </div>
 
           </div>

@@ -241,6 +241,19 @@ md-list.md-dense md-list-item .md-avatar, md-list.md-dense md-list-item .md-list
 .webentity-color-discovered{
   color: #75ADDC;
 }
+.webentity-background-in{
+  background-color: #333;
+  color: #FFF;
+}
+.webentity-background-undecided{
+  background-color: #ADA299;
+}
+.webentity-background-out{
+  background-color: #E67E7E;
+}
+.webentity-background-discovered{
+  background-color: #75ADDC;
+}
 
 
 
@@ -653,7 +666,7 @@ div.admin-connect button{
 /* ==========================================================================
    View: Overview
    ========================================================================== */
-.round-cell-content{
+/*.round-cell-content{
   width: 160px;
   height: 106px;
   border-radius: 80px 80px 80px 80px;
@@ -675,7 +688,7 @@ div.admin-connect button{
   text-align: center;
   font-size: 16px;
 }
-
+*/
 
 
 /* ==========================================================================
