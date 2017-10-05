@@ -227,6 +227,20 @@ md-list.md-dense md-list-item .md-avatar, md-list.md-dense md-list-item .md-list
 
 
 /* ==========================================================================
+   D3 stuff
+   ========================================================================== */
+.d3-rankings-tooltip {
+  position: absolute;
+  width: 200px;
+  height: 18px;
+  pointer-events: none;
+  font-size: 9px;
+}
+
+
+
+
+/* ==========================================================================
    Web entity colors
    ========================================================================== */
 .webentity-color-in{

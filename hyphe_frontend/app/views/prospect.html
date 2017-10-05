@@ -31,7 +31,7 @@
               <!-- Filtering -->
               <div layout="column">
                 <div
-                  style="padding: 8px; margin: 8px"
+                  style="padding: 8px; margin: 8px 8px 0px 8px"
                   layout="column"
                   md-colors="{'background':'default-background-200'}"
                 >
@@ -66,6 +66,19 @@
                     </div>
                   </div>
 
+                </div>
+              </div>
+
+              <!-- Rankings chart -->
+              <div style="height: 80px; position: relative">
+                <rankings-chart
+                  data="rankings"
+                  layout-fill
+                  layout="column"
+                  layout-align="center center"
+                ></rankings-chart>
+                <div style="position: absolute; top:0; right: 32px;">
+                  <small>Indegrees distribution</small>
                 </div>
               </div>
 
