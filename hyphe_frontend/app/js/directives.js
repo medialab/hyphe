@@ -1208,15 +1208,6 @@ angular.module('hyphe.directives', [])
                 .domain(d3.extent(data, function(d){return d.indegree}))
                 .range([height, 0])
 
-              // Axes
-              var formatTick = function(d) { return d };
-              var xAxis = d3.axisTop(x)
-                .ticks(5, formatTick)
-                .tickSize(1)
-              var yAxis = d3.axisLeft(y)
-                .ticks(3, formatTick)
-                .tickSize(2)
-
               // Setup: SVG container
               var svg = d3.select(el[0]).append("svg")
                 .attr("width", width + margin.left + margin.right)
@@ -1226,6 +1217,14 @@ angular.module('hyphe.directives', [])
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
               // Axes
+              var formatTick = function(d) { return d };
+              var xAxis = d3.axisTop(x)
+                .ticks(5, formatTick)
+                .tickSize(1)
+              var yAxis = d3.axisRight(y)
+                .ticks(3, formatTick)
+                .tickSize(2)
+
               g.append("g")
                   .attr("class", "axis axis--x")
                   .attr("transform", "translate(0," + height + ")")
@@ -1233,7 +1232,7 @@ angular.module('hyphe.directives', [])
 
               g.append("g")
                   .attr("class", "axis axis--y")
-                  .attr("transform", "translate(" + width + ", 0)")
+                  // .attr("transform", "translate(" + width + ", 0)")
                   .call(yAxis)
 
               g.selectAll(".domain")
@@ -1250,12 +1249,25 @@ angular.module('hyphe.directives', [])
                   .attr("class", "d3-rankings-tooltip")
                   .style("opacity", 0);
 
+              // Line
+              var line = d3.line()
+                .x(function(d) { return x(d.count) })
+                .y(function(d) { return y(d.indegree) })
+              g.append("path")
+                .datum(data)
+                .attr("fill", "none")
+                .attr("stroke", "steelblue")
+                .attr("stroke-linejoin", "round")
+                .attr("stroke-linecap", "round")
+                .attr("stroke-width", 0.5)
+                .attr("d", line)
+
               // Dots
               g.selectAll("scatter-dots")
                 .data(data)
                 .enter().append("svg:circle")
-                    .attr("cx", function (d,i) { return x(d.count); } )
-                    .attr("cy", function (d) { return y(d.indegree); } )
+                    .attr("cx", function (d,i) { return x(d.count) } )
+                    .attr("cy", function (d) { return y(d.indegree) } )
                     .attr("r", 2)
                 .on("mouseover", function(d) {
                     tooltip.transition()
