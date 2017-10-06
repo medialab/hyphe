@@ -1244,7 +1244,7 @@ angular.module('hyphe.directives', [])
               var data = []
               for (var k in $scope.data) {
                 if (k>0) {
-                  data.push({indegree: k, count: $scope.data[k]})
+                  data.push({indegree: +k, count: +$scope.data[k]})
                 }
               }
 
