@@ -912,12 +912,35 @@ angular.module('hyphe.directives', [])
           $scope.layout.start()
         }
 
+        // These functions will be initialized at Sigma creation
+        $scope.zoomIn = function(){}
+        $scope.zoomOut = function(){}
+        $scope.resetCamera = function(){}
+
         function refreshSigma() {
           $timeout(function(){
             var container = document.getElementById('sigma-div')
             if (!container) return
             var renderer = new Sigma.WebGLRenderer(container)
             var sigma = new Sigma($scope.network, renderer)
+
+            $scope.zoomIn = function(){
+              var camera = renderer.getCamera()
+              var state = camera.getState()
+              camera.animate({ratio: state.ratio / 1.5})
+            }
+
+            $scope.zoomOut = function(){
+              var camera = renderer.getCamera()
+              var state = camera.getState()
+              camera.animate({ratio: state.ratio * 1.5})
+            }
+
+            $scope.resetCamera = function(){
+              var camera = renderer.getCamera()
+              var state = camera.getState()
+              camera.animate({ratio: 1.5, x:0, y:0})
+            }
 
             if ($scope.layout) {
               $scope.layout.kill()
