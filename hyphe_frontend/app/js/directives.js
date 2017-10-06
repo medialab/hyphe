@@ -1271,7 +1271,7 @@ angular.module('hyphe.directives', [])
                 .ticks(5, formatTick)
                 .tickSize(1)
               var yAxis = d3.axisRight(y)
-                .ticks(3, formatTick)
+                .ticks(4, formatTick)
                 .tickSize(2)
 
               g.append("g")
