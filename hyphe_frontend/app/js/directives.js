@@ -928,7 +928,7 @@ angular.module('hyphe.directives', [])
                 strongGravityMode: true,
                 gravity: 0.1,
                 scalingRatio: 10,
-                slowDown: 2 * (1 + Math.log($scope.network.order))
+                slowDown: 1 + Math.log($scope.network.order)
               }
             });
             $scope.layout.start();
