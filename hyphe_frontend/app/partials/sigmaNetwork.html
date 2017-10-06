@@ -13,7 +13,7 @@
     <div><strong>{{edgesCount}} EDGES</strong></div>
     <div>
       <md-button
-        aria-label="Download network"
+        aria-label="Download GEXF file"
         ng-click="downloadNetwork()"
       >
         <md-tooltip md-direction="right">Download GEXF file</md-tooltip>
@@ -47,7 +47,7 @@
   layout="column"
   layout-align="center center"
   ng-if="loaded && !tooBig"
-  style="position: relative"
+  
 >
   <!-- Sigma container -->
   <div id="sigma-div" layout-fill style="background-color: #FFF; overflow: hidden"></div>
@@ -57,9 +57,34 @@
     style="position: absolute; left: 16px; top: 16px;"
     layout="column"
   >
+    <md-progress-circular
+      class="md-accent"
+      ng-if="layout.running"
+      md-mode="indeterminate"
+      style="position: absolute; top: 2px; left: 4px;"
+      md-diameter="47"
+    ></md-progress-circular>
+    <md-button
+      class="md-fab md-accent md-mini"
+      aria-label="Pause Layout"
+      ng-click="stopLayout()"
+      ng-if="layout.running"
+    >
+      <md-tooltip md-direction="right">Pause Layout</md-tooltip>
+      <md-icon style="color:#FFF">pause</md-icon>
+    </md-button>
     <md-button
       class="md-fab md-primary md-mini"
-      aria-label="Download network"
+      aria-label="Start Layout"
+      ng-click="startLayout()"
+      ng-if="!layout.running"
+    >
+      <md-tooltip md-direction="right">Start Layout</md-tooltip>
+      <md-icon style="color:#FFF">play_arrow</md-icon>
+    </md-button>
+    <md-button
+      class="md-fab md-primary md-mini"
+      aria-label="Download GEXF file"
       ng-click="downloadNetwork()"
     >
       <md-tooltip md-direction="right">Download GEXF file</md-tooltip>

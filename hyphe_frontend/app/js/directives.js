@@ -884,6 +884,7 @@ angular.module('hyphe.directives', [])
         $scope.edgesCount
         $scope.tooBig = false
         $scope.loaded = false
+        $scope.layout
 
         $scope.$watch('network', function(){
           $scope.loaded = false
@@ -903,6 +904,14 @@ angular.module('hyphe.directives', [])
           refreshSigma()
         }
 
+        $scope.stopLayout = function(){
+          $scope.layout.stop()
+        }
+
+        $scope.startLayout = function(){
+          $scope.layout.start()
+        }
+
         function refreshSigma() {
           $timeout(function(){
             var container = document.getElementById('sigma-div')
@@ -910,15 +919,24 @@ angular.module('hyphe.directives', [])
             var renderer = new Sigma.WebGLRenderer(container)
             var sigma = new Sigma($scope.network, renderer)
 
-            // var layout = new ForceAtlas2Layout($scope.network, {
-            //   settings: {
-            //     barnesHutOptimize: false,
-            //     strongGravity: true
-            //   }
-            // });
-            // layout.start();
+            if ($scope.layout) {
+              $scope.layout.kill()
+            }
+            $scope.layout = new ForceAtlas2Layout($scope.network, {
+              settings: {
+                barnesHutOptimize: $scope.network.order > 2000,
+                strongGravityMode: true,
+                gravity: 0.1,
+                scalingRatio: 10,
+                slowDown: 2 * (1 + Math.log($scope.network.order))
+              }
+            });
+            $scope.layout.start();
           })
         }
+        $scope.$on("$destroy", function(){
+          $scope.layout.kill()
+        })
 
       }
     }
