@@ -1285,13 +1285,13 @@ angular.module('hyphe.directives', [])
                   .call(yAxis)
 
               g.selectAll(".domain")
-                  .attr("stroke", "#999")
+                  .attr("stroke", "#BBB")
 
               g.selectAll(".tick line")
-                  .attr("stroke", "#999")
+                  .attr("stroke", "#BBB")
 
               g.selectAll(".tick text")
-                  .attr("fill", "#999")
+                  .attr("fill", "#BBB")
 
               // add the tooltip area to the webpage
               var tooltip = d3.select("body").append("div")
