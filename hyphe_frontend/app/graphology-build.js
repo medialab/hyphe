@@ -10042,6 +10042,8 @@ var ANIMATE_DEFAULTS = {
   duration: 150
 };
 
+var DEFAULT_ZOOMING_RATIO = 1.5;
+
 // TODO: animate options = number polymorphism?
 // TODO: pan, zoom, unzoom, reset, rotate, zoomTo
 // TODO: add width / height to camera and add #.resize
@@ -10297,8 +10299,7 @@ var Camera = function (_EventEmitter) {
       var easing = typeof options.easing === 'function' ? options.easing : easings[options.easing];
 
       // Canceling previous animation if needed
-      // if (this.nextFrame)
-      //   cancelAnimationFrame(this.nextFrame);
+      if (this.nextFrame) cancelAnimationFrame(this.nextFrame);
 
       // State
       var start = Date.now(),
@@ -10336,6 +10337,60 @@ var Camera = function (_EventEmitter) {
       } else {
         fn();
       }
+    }
+
+    /**
+     * Method used to zoom the camera.
+     *
+     * @param  {number|object} factorOrOptions - Factor or options.
+     * @return {function}
+     */
+
+  }, {
+    key: 'animatedZoom',
+    value: function animatedZoom(factorOrOptions) {
+
+      if (!factorOrOptions) {
+        return this.animate({ ratio: this.ratio / DEFAULT_ZOOMING_RATIO });
+      } else {
+        if (typeof factorOrOptions === 'number') return this.animate({ ratio: this.ratio / factorOrOptions });else return this.animate({ ratio: this.ratio / (factorOrOptions.factor || DEFAULT_ZOOMING_RATIO) }, factorOrOptions);
+      }
+    }
+
+    /**
+     * Method used to unzoom the camera.
+     *
+     * @param  {number|object} factorOrOptions - Factor or options.
+     * @return {function}
+     */
+
+  }, {
+    key: 'animatedUnzoom',
+    value: function animatedUnzoom(factorOrOptions) {
+
+      if (!factorOrOptions) {
+        return this.animate({ ratio: this.ratio * DEFAULT_ZOOMING_RATIO });
+      } else {
+        if (typeof factorOrOptions === 'number') return this.animate({ ratio: this.ratio * factorOrOptions });else return this.animate({ ratio: this.ratio * (factorOrOptions.factor || DEFAULT_ZOOMING_RATIO) }, factorOrOptions);
+      }
+    }
+
+    /**
+     * Method used to reset the camera.
+     *
+     * @param  {object} options - Options.
+     * @return {function}
+     */
+
+  }, {
+    key: 'animatedReset',
+    value: function animatedReset(options) {
+      return this.animate({
+        x: 0,
+        y: 0,
+        ratio: 1,
+        angle: 0
+      }, options);
     }
   }]);
 
@@ -10420,6 +10475,7 @@ var MouseCaptor = function (_Captor) {
     _this.lastCameraState = null;
     _this.clicks = 0;
     _this.doubleClickTimeout = null;
+    _this.wheelLock = false;
 
     // Binding methods
     _this.handleClick = _this.handleClick.bind(_this);
@@ -10602,26 +10658,38 @@ var MouseCaptor = function (_Captor) {
   }, {
     key: 'handleWheel',
     value: function handleWheel(e) {
-      if (!this.enabled) return;
+      var _this4 = this;
+
+      if (!this.enabled) return false;
 
       var delta = (0, _utils.getWheelDelta)(e);
 
-      if (!delta) return;
+      if (!delta) return false;
 
+      if (this.wheelLock) return false;
+
+      this.wheelLock = true;
+      setTimeout(function () {
+        return _this4.wheelLock = false;
+      }, 30);
+
+      // TODO: handle max zoom
       var ratio = delta > 0 ? 1 / ZOOMING_RATIO : ZOOMING_RATIO;
 
-      var center = (0, _utils.getCenter)(e);
-
       var cameraState = this.camera.getState();
+
+      var newRatio = ratio * cameraState.ratio;
+
+      var center = (0, _utils.getCenter)(e);
 
       var position = this.camera.abstractDisplayToGraph((0, _utils.getX)(e) - center.x, (0, _utils.getY)(e) - center.y);
 
       this.camera.animate({
         x: position.x * (1 - ratio) + cameraState.x,
         y: position.y * (1 - ratio) + cameraState.y,
-        ratio: ratio * cameraState.ratio
+        ratio: newRatio
       }, {
-        easing: 'quadraticOut',
+        easing: this.camera.isAnimated() ? 'quadraticOut' : 'quadraticInOut',
         duration: MOUSE_ZOOM_DURATION
       });
 
@@ -13751,6 +13819,8 @@ var WebGLRenderer = function (_Renderer) {
     _this.nodeArray = null;
     _this.nodeIndicesArray = null;
     _this.nodeOrder = {};
+
+    // TODO: this could be improved by key => index => floatArray
     _this.nodeDataCache = {};
     _this.edgeArray = null;
     _this.edgeIndicesArray = null;
@@ -13937,9 +14007,11 @@ var WebGLRenderer = function (_Renderer) {
 
         // NOTE: for the canvas renderer, testing the pixel's alpha should
         // give some boost but this slows things down for WebGL empirically.
+
+        // TODO: this should be a method from the camera (or can be passed to graph to display somehow)
         var sizeRatio = Math.pow(_this3.camera.getState().ratio, 0.5);
 
-        var quadNodes = getQuadNodes(e.clientX, e.clientY);
+        var quadNodes = getQuadNodes(e.x, e.y);
 
         for (var i = 0, l = quadNodes.length; i < l; i++) {
           var node = quadNodes[i];
@@ -13950,7 +14022,7 @@ var WebGLRenderer = function (_Renderer) {
 
           var size = data.size / sizeRatio;
 
-          if (mouseIsOnNode(e.clientX, e.clientY, pos.x, pos.y, size)) {
+          if (mouseIsOnNode(e.x, e.y, pos.x, pos.y, size)) {
             _this3.hoveredNode = node;
 
             _this3.emit('overNode', { node: node });
@@ -13966,7 +14038,7 @@ var WebGLRenderer = function (_Renderer) {
 
           var _size = _data.size / sizeRatio;
 
-          if (!mouseIsOnNode(e.clientX, e.clientY, _pos.x, _pos.y, _size)) {
+          if (!mouseIsOnNode(e.x, e.y, _pos.x, _pos.y, _size)) {
             _this3.hoveredNode = null;
 
             _this3.emit('outNode', { node: _this3.hoveredNode });
@@ -13979,7 +14051,7 @@ var WebGLRenderer = function (_Renderer) {
       this.listeners.handleDown = function (e) {
         var sizeRatio = Math.pow(_this3.camera.getState().ratio, 0.5);
 
-        var quadNodes = getQuadNodes(e.clientX, e.clientY);
+        var quadNodes = getQuadNodes(e.x, e.y);
 
         for (var i = 0, l = quadNodes.length; i < l; i++) {
           var node = quadNodes[i];
@@ -13990,7 +14062,7 @@ var WebGLRenderer = function (_Renderer) {
 
           var size = data.size / sizeRatio;
 
-          if (mouseIsOnNode(e.clientX, e.clientY, pos.x, pos.y, size)) return _this3.emit('downNode', { node: node });
+          if (mouseIsOnNode(e.x, e.y, pos.x, pos.y, size)) return _this3.emit('downNode', { node: node });
         }
       };
 
@@ -13998,7 +14070,7 @@ var WebGLRenderer = function (_Renderer) {
       this.listeners.handleClick = function (e) {
         var sizeRatio = Math.pow(_this3.camera.getState().ratio, 0.5);
 
-        var quadNodes = getQuadNodes(e.clientX, e.clientY);
+        var quadNodes = getQuadNodes(e.x, e.y);
 
         for (var i = 0, l = quadNodes.length; i < l; i++) {
           var node = quadNodes[i];
@@ -14009,7 +14081,7 @@ var WebGLRenderer = function (_Renderer) {
 
           var size = data.size / sizeRatio;
 
-          if (mouseIsOnNode(e.clientX, e.clientY, pos.x, pos.y, size)) return _this3.emit('clickNode', { node: node });
+          if (mouseIsOnNode(e.x, e.y, pos.x, pos.y, size)) return _this3.emit('clickNode', { node: node });
         }
 
         return _this3.emit('clickStage');
@@ -19182,18 +19254,10 @@ function getCenter(e) {
  *
  * @return {object}
  */
-function getMouseCoords(e, x, y) {
-  if (arguments.length < 2) {
-    x = getX(e);
-    y = getY(e);
-  }
-
-  var center = getCenter(e);
-
-  // TODO: is this really needed to have this strange {x,y} with now?
+function getMouseCoords(e) {
   return {
-    x: x - center.x,
-    y: y - center.y,
+    x: getX(e),
+    y: getY(e),
     clientX: e.clientX,
     clientY: e.clientY,
     ctrlKey: e.ctrlKey,
