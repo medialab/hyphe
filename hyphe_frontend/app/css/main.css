@@ -1972,3 +1972,18 @@ ul.startpages-report{
 .statuses-box .btn-discovered .status-colored {
   color: #93BDE0;
 }
+
+
+
+
+
+/* ==========================================================================
+   Sigma related stuff
+   ========================================================================== */
+.md-button.md-icon-button.sigma-button {
+  background-color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 4px;
+}
+.md-button.md-icon-button.sigma-button:hover {
+  background-color: rgba(255, 255, 255, 1);
+}

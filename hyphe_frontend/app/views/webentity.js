@@ -2,10 +2,17 @@
 
 angular.module('hyphe.webentityController', [])
 
-  .controller('webentity', ['$scope', 'api', 'utils', 'corpus', 'store', '$location', '$timeout'
-  ,function($scope, api, utils, corpus, store, $location, $timeout) {
+  .controller('webentity',
+  function(
+    $scope,
+    api,
+    utils,
+    corpus,
+    store,
+    $location,
+    $timeout
+  ){
     $scope.currentPage = 'webentity'
-    $scope.Page.setTitle('Web Entity')
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
@@ -118,7 +125,6 @@ angular.module('hyphe.webentityController', [])
           $scope.webentity.tags.USER = $scope.webentity.tags.USER || {}
 
           console.log($scope.webentity.name, $scope.webentity)
-          $scope.Page.setTitle($scope.webentity.name)
         }
         ,function(){
           $scope.status = {message: 'Error loading web entity', background: 'danger'}
@@ -237,10 +243,20 @@ angular.module('hyphe.webentityController', [])
       })
       return res
     }
-  }])
+  })
 
-  .controller('webentity.pagesNetwork', ['$scope', 'api', 'utils', 'corpus', '$window'
-  ,function($scope, api, utils, corpus, $window) {
+
+
+
+
+
+  .controller('webentity.pagesNetwork',
+  function($scope,
+    api,
+    utils,
+    corpus,
+    $window
+  ) {
     $scope.currentPage = 'webentity.pagesNetwork'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
@@ -488,12 +504,23 @@ angular.module('hyphe.webentityController', [])
         $scope.sigmaInstance.kill()
       }
     }
-  }])
+  })
 
 
 
-  .controller('webentity.explorer', ['$scope', 'api', 'utils', '$route', 'corpus', '$location', '$rootScope'
-  ,function($scope, api, utils, $route, corpus, $location, $rootScope) {
+
+
+
+
+  .controller('webentity.explorer',
+  function($scope,
+    api,
+    utils,
+    $route,
+    corpus,
+    $location,
+    $rootScope
+  ) {
     $scope.currentPage = 'webentity.explorer'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
@@ -1091,4 +1118,4 @@ angular.module('hyphe.webentityController', [])
       }
     }
 
-  }])
+  })

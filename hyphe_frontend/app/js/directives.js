@@ -884,6 +884,7 @@ angular.module('hyphe.directives', [])
         $scope.edgesCount
         $scope.tooBig = false
         $scope.loaded = false
+        $scope.layout
 
         $scope.$watch('network', function(){
           $scope.loaded = false
@@ -903,6 +904,19 @@ angular.module('hyphe.directives', [])
           refreshSigma()
         }
 
+        $scope.stopLayout = function(){
+          $scope.layout.stop()
+        }
+
+        $scope.startLayout = function(){
+          $scope.layout.start()
+        }
+
+        // These functions will be initialized at Sigma creation
+        $scope.zoomIn = function(){}
+        $scope.zoomOut = function(){}
+        $scope.resetCamera = function(){}
+
         function refreshSigma() {
           $timeout(function(){
             var container = document.getElementById('sigma-div')
@@ -910,15 +924,42 @@ angular.module('hyphe.directives', [])
             var renderer = new Sigma.WebGLRenderer(container)
             var sigma = new Sigma($scope.network, renderer)
 
-            // var layout = new ForceAtlas2Layout($scope.network, {
-            //   settings: {
-            //     barnesHutOptimize: false,
-            //     strongGravity: true
-            //   }
-            // });
-            // layout.start();
+            $scope.zoomIn = function(){
+              var camera = renderer.getCamera()
+              var state = camera.getState()
+              camera.animate({ratio: state.ratio / 1.5})
+            }
+
+            $scope.zoomOut = function(){
+              var camera = renderer.getCamera()
+              var state = camera.getState()
+              camera.animate({ratio: state.ratio * 1.5})
+            }
+
+            $scope.resetCamera = function(){
+              var camera = renderer.getCamera()
+              var state = camera.getState()
+              camera.animate({ratio: 1.5, x:0, y:0})
+            }
+
+            if ($scope.layout) {
+              $scope.layout.kill()
+            }
+            $scope.layout = new ForceAtlas2Layout($scope.network, {
+              settings: {
+                barnesHutOptimize: $scope.network.order > 2000,
+                strongGravityMode: true,
+                gravity: 0.1,
+                scalingRatio: 10,
+                slowDown: 1 + Math.log($scope.network.order)
+              }
+            });
+            $scope.layout.start();
           })
         }
+        $scope.$on("$destroy", function(){
+          $scope.layout.kill()
+        })
 
       }
     }
@@ -1203,7 +1244,7 @@ angular.module('hyphe.directives', [])
               var data = []
               for (var k in $scope.data) {
                 if (k>0) {
-                  data.push({indegree: k, count: $scope.data[k]})
+                  data.push({indegree: +k, count: +$scope.data[k]})
                 }
               }
 
@@ -1230,7 +1271,7 @@ angular.module('hyphe.directives', [])
                 .ticks(5, formatTick)
                 .tickSize(1)
               var yAxis = d3.axisRight(y)
-                .ticks(3, formatTick)
+                .ticks(4, formatTick)
                 .tickSize(2)
 
               g.append("g")
@@ -1244,13 +1285,13 @@ angular.module('hyphe.directives', [])
                   .call(yAxis)
 
               g.selectAll(".domain")
-                  .attr("stroke", "#999")
+                  .attr("stroke", "#BBB")
 
               g.selectAll(".tick line")
-                  .attr("stroke", "#999")
+                  .attr("stroke", "#BBB")
 
               g.selectAll(".tick text")
-                  .attr("fill", "#999")
+                  .attr("fill", "#BBB")
 
               // add the tooltip area to the webpage
               var tooltip = d3.select("body").append("div")

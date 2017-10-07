@@ -31,12 +31,12 @@
               <!-- Filtering -->
               <div layout="column">
                 <div
-                  style="padding: 8px; margin: 8px 8px 0px 8px"
-                  layout="column"
+                  style="padding: 8px; margin: 8px"
+                  layout="row"
                   md-colors="{'background':'default-background-200'}"
                 >
 
-                  <div layout="row">
+                  <div layout="column" flex="50">
 
                     <!-- Search -->
                     <md-input-container flex style="margin-bottom: 0px">
@@ -48,7 +48,7 @@
                         ng-press-enter="applySettings()"
                       >
                     </md-input-container>
-                    <div layout="row" layout-align="center center">
+                    <div layout="row">
                       <!-- Validation -->
                       <md-button
                         class="md-raised md-primary"
@@ -66,21 +66,25 @@
                     </div>
                   </div>
 
+                  <div layout="column" flex="50">
+                    <!-- Rankings chart -->
+                      <div style="position: relative" layout-fill>
+                        <rankings-chart
+                          data="rankings"
+                          layout-fill
+                          layout="column"
+                          layout-align="center center"
+                        ></rankings-chart>
+                        <div style="position: absolute; top:0; right: 8px; text-align: end">
+                          <small>Distribution of citations<br>(log scale)</small>
+                        </div>
+                      </div>
+                  </div>
+
                 </div>
               </div>
 
-              <!-- Rankings chart -->
-              <div style="height: 80px; position: relative">
-                <rankings-chart
-                  data="rankings"
-                  layout-fill
-                  layout="column"
-                  layout-align="center center"
-                ></rankings-chart>
-                <div style="position: absolute; top:0; right: 8px;">
-                  <small>Distribution of citations</small>
-                </div>
-              </div>
+              
 
               <!-- Infinite list -->
               <div flex style="padding: 0px 8px 0px 8px">
