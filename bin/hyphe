@@ -122,11 +122,11 @@ if $START; then
   $CORE_COMMAND 2>&1 || exit 1
   echo "...started..."
 
-  TEST_TIME=30
+  TEST_TIME=45
   ts=0
-  sleep 0.5
+  sleep 1
   while [ $ts -lt $TEST_TIME ] && ! test_core_started_in_log; do
-    sleep 0.5
+    sleep 1
     ts=$(($ts + 1))
     if test_error_in_core_log; then
       exit_on_error
