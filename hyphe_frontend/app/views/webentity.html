@@ -26,8 +26,30 @@
             <div layout="column" flex="50">
               <md-tabs md-border-bottom flex md-selected="selectedTab">
             
-                <!-- Tab: Info -->
-                <md-tab label="Info">
+                <!-- Tab: Identity -->
+                <md-tab label="Identity">
+                  <div layout="column" layout-fill md-colors="{'background': 'default-background-200'}">
+                    <md-content ng-if="!identityEdit" style="padding: 8px" md-colors="{'background': 'default-background-200'}">
+                      <dl class="key-value-pairs">
+
+                        <dt>ID</dt>
+                        <dd>{{webentity.id}}</dd>
+
+                        <dt>Name</dt>
+                        <dd>{{webentity.name}}</dd>
+
+                        <dt>Status</dt>
+                        <dd>{{webentity.status}}</dd>
+
+                        <dt>Home page</dt>
+                        <dd>{{webentity.homepage}}</dd>
+
+                      </dl>
+                      <div layout="row" layout-align="center">
+                        <md-button class="md-raised">Edit</md-button>
+                      </div>
+                    </md-content>
+                  </div>
                 </md-tab>
 
                 <!-- Tab: Prefixes -->
@@ -44,7 +66,7 @@
 
               </md-tabs>
             </div>
-            <div layout="column" flex="50" md-colors="{'background':'default-background-200'}">
+            <div layout="column" flex="50" md-colors="{'background':'default-background-100'}">
               <div
                 layout="row"
                 style="height: 48px;"
