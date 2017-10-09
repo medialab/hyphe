@@ -494,7 +494,7 @@ angular.module('hyphe.directives', [])
         corpusName: '='
       }
       ,link: function($scope, el, attrs) {
-        var pageSize = 100
+        var pageSize = 5000
         $scope.checkLoadAndUpdateCurrentToken = 0
 
         $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
@@ -949,9 +949,9 @@ angular.module('hyphe.directives', [])
               settings: {
                 barnesHutOptimize: $scope.network.order > 2000,
                 strongGravityMode: true,
-                gravity: 0.1,
+                gravity: 0.05,
                 scalingRatio: 10,
-                slowDown: 1 + Math.log($scope.network.order)
+                slowDown: 1 + 0.3 * Math.log($scope.network.order)
               }
             });
             $scope.layout.start();
