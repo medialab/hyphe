@@ -410,8 +410,9 @@ class MongoDB(object):
 
     @inlineCallbacks
     def save_stats(self, corpus, corpus_metas):
-        yield self.stats(corpus).insert({
-          "timestamp": now_ts(),
+        old = yield self.get_last_stats(corpus)
+        del(old["timestamp"])
+        new = {
           "total": corpus_metas["total_webentities"],
           "in": corpus_metas['webentities_in'],
           "in_untagged": corpus_metas['webentities_in_untagged'],
@@ -419,7 +420,15 @@ class MongoDB(object):
           "out": corpus_metas['webentities_out'],
           "discovered": corpus_metas['webentities_discovered'],
           "undecided": corpus_metas['webentities_undecided']
-        })
+        }
+        if old != new:
+            new["timestamp"] = now_ts()
+            yield self.stats(corpus).insert(new)
+
+    @inlineCallbacks
+    def get_last_stats(self, corpus):
+        res = yield self.stats(corpus).find_one(filter=sortdesc("timestamp"))
+        returnD(res)
 
     @inlineCallbacks
     def get_stats(self, corpus):
