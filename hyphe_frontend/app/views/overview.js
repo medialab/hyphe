@@ -12,6 +12,7 @@ angular.module('hyphe.overviewController', [])
     $scope.corpusStatistics
     $scope.loadingStatus = false
     $scope.loadingStatistics = false
+    $scope.statusLogMode = false
 
     $scope.statuses = {in:true, undecided:true, out:true, discovered:true}
 
