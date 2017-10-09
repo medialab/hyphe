@@ -16,6 +16,8 @@ You can try a restricted version of Hyphe at the following url: [http://hyphe.me
 
 ### Papers using Hyphe
 
+* Venturini, T., Jacomy, M., Bounegru, L., & Gray, J. (2018, forthcoming). [Visual Network Exploration for Data Journalists](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3043912). In S. E. I. and B. Franklin (Ed.). Abingdon: Routledge.
+
 * Froio Caterina, "[Nous et les autres. L’altérité sur les sites web des extrêmes droites en France](http://www.cairn.info/article.php?ID_ARTICLE=RES_202_0039&WT.mc_id=RES_202)", Réseaux, 2017/2 (n° 202-203), p. 39-78. DOI : 10.3917/res.202.0039.
 
 * [The AfD’s Facebook Wall as a Hub for Right-Wing Mobilisation in Germany](http://www.kai-arzheimer.com/my-apsa-2015-paper-the-afds-facebook-wall-as-a-hub-for-right-wing-mobilisation-in-germany/)
