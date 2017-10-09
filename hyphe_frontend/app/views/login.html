@@ -15,7 +15,7 @@
     <div
       ng-if="disconnected"
     >
-      <p>
+      <p style="text-align: center">
         YOU ARE DISCONNECTED FROM HYPHE &nbsp; &nbsp;:-(
       </p>
     </div>
@@ -98,7 +98,7 @@
     <!-- Create new corpus -->
     <div
       flex
-      ng-if="(uiMode == 'new' || corpusList.length == 0) && !starting"
+      ng-if="!disconnected && (uiMode == 'new' || corpusList.length == 0) && !starting"
       layout="column"
       layout-align="start stretch"
     >
