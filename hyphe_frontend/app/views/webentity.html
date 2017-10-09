@@ -12,24 +12,64 @@
         
         <!-- Content -->
         <div layout-fill layout="column">
+
           <div class="page-header">
             <h1 class="word-break">
-              {{webentity.name}}
+              {{webentity.name || 'loading'}}
             </h1>
             <span class="md-subhead">
               Explore and edit this <span hyphe-glossary="web entity"></span>.
             </span>
           </div>
 
-          <ul>
-            <li>Prefixes (+ edit?)</li>
-            <li>Other settings (Dates, crawling)</li>
-            <li>Tags</li>
-            <li>Pages -> List</li>
-            <li>Pages -> As folders (change boundaries)</li>
-            <li>Pages -> As network</li>
-            <li>Pages -> Topological profile (most cited inside, outside...)</li>
-          </ul>
+          <div flex layout="row">
+            <div layout="column" flex="50">
+              <md-tabs md-border-bottom flex md-selected="selectedTab">
+            
+                <!-- Tab: Info -->
+                <md-tab label="Info">
+                </md-tab>
+
+                <!-- Tab: Prefixes -->
+                <md-tab label="Prefixes">
+                </md-tab>
+
+                <!-- Tab: Tags -->
+                <md-tab label="Tags">
+                </md-tab>
+
+                <!-- Tab: Crawls -->
+                <md-tab label="Crawls">
+                </md-tab>
+
+              </md-tabs>
+            </div>
+            <div layout="column" flex="50" md-colors="{'background':'default-background-200'}">
+              <div
+                layout="row"
+                style="height: 48px;"
+              >
+                <h3 style="padding: 8px; margin: 0px">Pages</h3>
+                <div flex></div>
+                <md-button class="md-raised" disabled="true">
+                  <md-icon>equalizer</md-icon>
+                  Most cited
+                </md-button>
+                <md-button class="md-raised" disabled="true">
+                  <md-icon>folder</md-icon>
+                  as folders
+                </md-button>
+                <md-button class="md-raised" disabled="true">
+                  <md-icon>bubble_chart</md-icon>
+                  network
+                </md-button>
+              </div>
+              
+              <div style="padding: 8px">
+                TODO: pages list
+              </div>
+            </div>
+          </div>
 
         </div>
 
