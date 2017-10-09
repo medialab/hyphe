@@ -515,17 +515,18 @@ angular.module('hyphe.listwebentitiesController', [])
 
         api.getResultsPage(
           {
-            token: settings.token
-            ,page: page
+            token: settings.token,
+            idNamesOnly: true,
+            page: page
           }
           ,function(result){
             if (settings.checkValue) {
-              result.webentities.forEach(function(we, i){
-                checkedList_add(we.id, we)
+              result.forEach(function(idName, i){
+                checkedList_add(idName[0], {id: idName[0], name:idName[1]})
               })
             } else {
-              result.webentities.forEach(function(we, i){
-                checkedList_remove(we.id, we)
+              result.forEach(function(idName, i){
+                checkedList_remove(idName[0], {id: idName[0], name:idName[1]})
               })
             }
             if (settings.pagesToLoad.length > 0) {

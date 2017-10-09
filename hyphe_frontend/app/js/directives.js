@@ -15,7 +15,7 @@ angular.module('hyphe.directives', [])
       }
       ,templateUrl: 'partials/webentityslider.html'
       ,link: function(scope, el, attrs) {
-        
+
         // Options
         var opt = scope.$eval(attrs.hyphePrefixSlider) || {}
 
@@ -88,30 +88,30 @@ angular.module('hyphe.directives', [])
 	  return {
       restrict: 'A'
       ,link: function(scope, el, attrs) {
-	      
+
 	      var opt = scope.$eval(attrs.hyphePrefixSliderButton) || {}	// allow options to be passed
 	      opt.cursor = opt.cursor || 'move'
 
         // Keeping an updated version of x-coordinates where the slider makes something happen
 	      var steps
         scope.sliderHidden = true
-        
+
         scope.$watch(function(){
             return scope.rowActive
           }, updateCoordinates)
-        
+
         // scope.$watch(function(){  // Watch coordinate changes
         //     return el.parent().offset().left
         //   }, updateCoordinates)
-        
+
         scope.$watch(function(){  // Watch obj changes
             return scope.obj
           }, updateCoordinates)
-        
+
         scope.$watch(function(){  // Watch obj prefix length change
             return scope.obj.prefixLength
           }, updateCoordinates)
-        
+
         scope.$watch(function(){  // Watch steps in DOM
             return el.parent().find('table>tbody>tr>td.stem').length
           }, updateCoordinates)
@@ -122,14 +122,14 @@ angular.module('hyphe.directives', [])
         var predrag_x
         var predrag_z = el.css('z-index')
         var dragging = false
-        
+
         el.css('cursor', opt.cursor)
           .on("mousedown", startDrag)
 
         $timeout(function(){
           updateCoordinates(true)
         }, 200)
-        
+
         return el
 
 
@@ -149,7 +149,7 @@ angular.module('hyphe.directives', [])
           	.css('z-index', 1000)
 	        	.parent() // .parents()
           		.on("mousemove", updateDrag)
-	        
+
           document.body.addEventListener("mouseup", endDrag, {once: true})
         }
 
@@ -265,12 +265,12 @@ angular.module('hyphe.directives', [])
       restrict: 'A'
       ,templateUrl: 'partials/glossary_expression.html'
       ,scope: {
-        
+
       }
       ,link: function(scope, el, attrs) {
         scope.originalExpression = attrs.hypheGlossary
         scope.def = glossary.getDefinition(scope.originalExpression)
-        
+
       }
     }
   }])
@@ -367,7 +367,7 @@ angular.module('hyphe.directives', [])
         rangeObj: '='
       }
       ,link: function(scope, el, attrs) {
-        
+
       }
     }
   }])
@@ -377,7 +377,7 @@ angular.module('hyphe.directives', [])
       scope: { trigger: '@focusMe' },
       link: function(scope, element) {
         scope.$watch('trigger', function(value) {
-          if(value === "true") { 
+          if(value === "true") {
             $timeout(function() {
               element[0].focus()
             })
@@ -494,13 +494,13 @@ angular.module('hyphe.directives', [])
         corpusName: '='
       }
       ,link: function($scope, el, attrs) {
-        var pageSize = 100
+        var pageSize = 5000
         $scope.checkLoadAndUpdateCurrentToken = 0
 
         $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
         $scope.limitDiscovered = ''
         $scope.limitAll = ''
-        
+
         $scope.settings = {
           in: $scope.statuses.in
         , undecided: $scope.statuses.undecided
@@ -566,7 +566,7 @@ angular.module('hyphe.directives', [])
         }
 
         $scope.applySettings = function(){
-      
+
           loadStatus() // Get the number of IN / OUT / UND / DISC
 
           for(var status in $scope.statuses){
@@ -621,7 +621,7 @@ angular.module('hyphe.directives', [])
         /// Functions
 
         function checkLoadAndUpdate(thisToken) {
-          
+
           // Check if some web entities require loading
           var someWebentitiesRequireLoading = ['in', 'out', 'undecided', 'discovered'].some(function(status){
             if ($scope.settings[status] && !$scope.data[status].loaded) {
@@ -639,7 +639,7 @@ angular.module('hyphe.directives', [])
                   ,function(result){
                     // Stop if this function was called in the meanwhile
                     if ($scope.checkLoadAndUpdateCurrentToken != thisToken) { return }
-                    
+
                     $scope.data[status].webentities = $scope.data[status].webentities.concat(result.webentities)
                     if ($scope.data[status].webentities.length >= $scope.data[status].total) {
                       $scope.data[status].loading = false
@@ -679,7 +679,7 @@ angular.module('hyphe.directives', [])
                   ,function(result){
                     // Stop if this function was called in the meanwhile
                     if ($scope.checkLoadAndUpdateCurrentToken != thisToken) { return }
-          
+
                     $scope.data[status].total = result.total_results
                     $scope.data[status].token = result.token
 
@@ -694,7 +694,7 @@ angular.module('hyphe.directives', [])
                   ,function(data, status, headers, config){
                     // Stop if this function was called in the meanwhile
                     if ($scope.checkLoadAndUpdateCurrentToken != thisToken) { return }
-                    
+
                     if ($scope.data[status].retry++ < 3){
                       console.warn('Error loading web entities: Retry', $scope.data[status].retry)
                       checkLoadAndUpdate(thisToken)
@@ -804,7 +804,7 @@ angular.module('hyphe.directives', [])
           var totalArea = 0
           g.nodes().forEach(function(nid){
             var n = g.getNodeAttributes(nid)
-            n.size = minSize + Math.sqrt(g.inDegree(nid) / averageNonNormalizedArea) 
+            n.size = minSize + Math.sqrt(g.inDegree(nid) / averageNonNormalizedArea)
             totalArea += Math.PI * n.size * n.size
           })
 
@@ -884,6 +884,7 @@ angular.module('hyphe.directives', [])
         $scope.edgesCount
         $scope.tooBig = false
         $scope.loaded = false
+        $scope.layout
 
         $scope.$watch('network', function(){
           $scope.loaded = false
@@ -903,14 +904,62 @@ angular.module('hyphe.directives', [])
           refreshSigma()
         }
 
+        $scope.stopLayout = function(){
+          $scope.layout.stop()
+        }
+
+        $scope.startLayout = function(){
+          $scope.layout.start()
+        }
+
+        // These functions will be initialized at Sigma creation
+        $scope.zoomIn = function(){}
+        $scope.zoomOut = function(){}
+        $scope.resetCamera = function(){}
+
         function refreshSigma() {
           $timeout(function(){
             var container = document.getElementById('sigma-div')
             if (!container) return
             var renderer = new Sigma.WebGLRenderer(container)
             var sigma = new Sigma($scope.network, renderer)
+
+            $scope.zoomIn = function(){
+              var camera = renderer.getCamera()
+              var state = camera.getState()
+              camera.animate({ratio: state.ratio / 1.5})
+            }
+
+            $scope.zoomOut = function(){
+              var camera = renderer.getCamera()
+              var state = camera.getState()
+              camera.animate({ratio: state.ratio * 1.5})
+            }
+
+            $scope.resetCamera = function(){
+              var camera = renderer.getCamera()
+              var state = camera.getState()
+              camera.animate({ratio: 1.5, x:0, y:0})
+            }
+
+            if ($scope.layout) {
+              $scope.layout.kill()
+            }
+            $scope.layout = new ForceAtlas2Layout($scope.network, {
+              settings: {
+                barnesHutOptimize: $scope.network.order > 2000,
+                strongGravityMode: true,
+                gravity: 0.05,
+                scalingRatio: 10,
+                slowDown: 1 + Math.log($scope.network.order)
+              }
+            });
+            $scope.layout.start();
           })
         }
+        $scope.$on("$destroy", function(){
+          $scope.layout.kill()
+        })
 
       }
     }
@@ -942,7 +991,7 @@ angular.module('hyphe.directives', [])
           if ($scope.data !== undefined){
             $timeout(function(){
               el.html('');
-              
+
               window.el = el[0]
               // Setup: dimensions
               var margin = {top: 8, right: 64, bottom: 32, left: 0};
@@ -965,7 +1014,7 @@ angular.module('hyphe.directives', [])
                 .range([0, width])
 
               var y = d3.scaleLinear()
-                .domain(d3.extent($scope.data, function(d){return d3.sum(statusList, function(s){return d[s]})}))
+                .domain([0, d3.max($scope.data, function(d){return d3.sum(statusList, function(s){return d[s]})})])
                 .range([height, 0])
 
               var colorize = function(type){
@@ -987,7 +1036,7 @@ angular.module('hyphe.directives', [])
               var svg = d3.select(el[0]).append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
-              
+
               var g = svg.append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -997,7 +1046,7 @@ angular.module('hyphe.directives', [])
                 .data(stack($scope.data))
                 .enter().append("g")
                   .attr("class", "layer")
-              
+
               layer.append("path")
                   .attr("class", "area")
                   .style("fill", function(d) { return colorize(d.key) })
@@ -1058,7 +1107,7 @@ angular.module('hyphe.directives', [])
           if ($scope.data !== undefined){
             $timeout(function(){
               el.html('');
-              
+
               window.el = el[0]
               // Setup: dimensions
               var margin = {top: 16, right: 64, bottom: 32, left: 0};
@@ -1077,7 +1126,7 @@ angular.module('hyphe.directives', [])
                 .range([0, width])
 
               var y = d3.scaleLinear()
-                .domain(d3.extent($scope.data, function(d){return d.in}))
+                .domain([0, d3.max($scope.data, function(d){return d.in})])
                 .range([height, 0])
 
               var colorize = function(type){
@@ -1109,7 +1158,7 @@ angular.module('hyphe.directives', [])
               var svg = d3.select(el[0]).append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
-              
+
               var g = svg.append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
@@ -1144,6 +1193,146 @@ angular.module('hyphe.directives', [])
                   .style("text-anchor", "end")
                   .style("fill", function(d) { return colorize(d.type) })
                   .text(function(d) { return d.type });
+            })
+          }
+        }
+
+        function regionValid(d) {
+          return $scope.statuses[d] && $scope.statuses[d].available
+        }
+      }
+    }
+  })
+
+  .directive('rankingsChart', function(
+    $timeout
+  ){
+    return {
+      restrict: 'E',
+      scope: {
+        data: '='
+      },
+      link: function($scope, el, attrs) {
+
+        el.html('<div>LOADING</div>')
+
+        $scope.$watch('data', redraw)
+
+        window.addEventListener('resize', redraw)
+        $scope.$on('$destroy', function(){
+          window.removeEventListener('resize', redraw)
+        })
+
+        // Data: timestamp in undecided out discovered in_uncrawled in_untagged total
+        function redraw() {
+          if ($scope.data !== undefined){
+            $timeout(function(){
+              el.html('');
+
+              window.el = el[0]
+              // Setup: dimensions
+              var margin = {top: 8, right: 8, bottom: 8, left: 8};
+              var width = el[0].offsetWidth - margin.left - margin.right;
+              var height = el[0].offsetHeight - margin.top - margin.bottom;
+
+              // While loading redraw may trigger before element being properly sized
+              if (width <= 0 || height <= 0) {
+                $timeout(redraw, 250)
+                return
+              }
+
+              var data = []
+              for (var k in $scope.data) {
+                if (k>0) {
+                  data.push({indegree: +k, count: +$scope.data[k]})
+                }
+              }
+
+              // Setup: scales
+              var x = d3.scaleLog()
+                .domain(d3.extent(data, function(d){return d.count}))
+                .range([0, width])
+
+              var y = d3.scaleLog()
+                .domain(d3.extent(data, function(d){return d.indegree}))
+                .range([height, 0])
+
+              // Setup: SVG container
+              var svg = d3.select(el[0]).append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+
+              var g = svg.append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
+              // Axes
+              var formatTick = function(d) { return d };
+              var xAxis = d3.axisTop(x)
+                .ticks(5, formatTick)
+                .tickSize(1)
+              var yAxis = d3.axisRight(y)
+                .ticks(4, formatTick)
+                .tickSize(2)
+
+              g.append("g")
+                  .attr("class", "axis axis--x")
+                  .attr("transform", "translate(0," + height + ")")
+                  .call(xAxis)
+
+              g.append("g")
+                  .attr("class", "axis axis--y")
+                  // .attr("transform", "translate(" + width + ", 0)")
+                  .call(yAxis)
+
+              g.selectAll(".domain")
+                  .attr("stroke", "#BBB")
+
+              g.selectAll(".tick line")
+                  .attr("stroke", "#BBB")
+
+              g.selectAll(".tick text")
+                  .attr("fill", "#BBB")
+
+              // add the tooltip area to the webpage
+              var tooltip = d3.select("body").append("div")
+                  .attr("class", "d3-rankings-tooltip")
+                  .style("opacity", 0);
+
+              // Line
+              var line = d3.line()
+                .x(function(d) { return x(d.count) })
+                .y(function(d) { return y(d.indegree) })
+              g.append("path")
+                .datum(data)
+                .attr("fill", "none")
+                .attr("stroke", "steelblue")
+                .attr("stroke-linejoin", "round")
+                .attr("stroke-linecap", "round")
+                .attr("stroke-width", 0.5)
+                .attr("d", line)
+
+              // Dots
+              g.selectAll("scatter-dots")
+                .data(data)
+                .enter().append("svg:circle")
+                    .attr("cx", function (d,i) { return x(d.count) } )
+                    .attr("cy", function (d) { return y(d.indegree) } )
+                    .attr("r", 2)
+                .on("mouseover", function(d) {
+                    tooltip.transition()
+                         .duration(200)
+                         .style("opacity", .9)
+                    tooltip.html(d.count + ' web entities have<br>an indegree of ' + d.indegree)
+                         .style("left", (d3.event.pageX + 5) + "px")
+                         .style("top", (d3.event.pageY - 28) + "px")
+                })
+                .on("mouseout", function(d) {
+                    tooltip.transition()
+                         .duration(500)
+                         .style("opacity", 0)
+                });
+
+
             })
           }
         }

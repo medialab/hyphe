@@ -24,6 +24,7 @@ angular.module('hyphe.prospectController', [])
       query: $scope.query
     }
     $scope.settingsChanged
+    $scope.rankings = {}
 
     $scope.setToInCollapsed = false
     $scope.setToOutCollapsed = true
@@ -207,7 +208,7 @@ angular.module('hyphe.prospectController', [])
             token: searchToken
           }
           ,function(data){
-            console.log(data)
+            $scope.rankings = data
           }
           ,function(){
             $scope.status = {message: 'Error loading results rankings', background: 'danger'}
