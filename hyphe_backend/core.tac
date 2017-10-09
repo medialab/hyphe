@@ -1127,9 +1127,9 @@ class Memory_Structure(customJSONRPC):
         self.corpora[corpus]['reset'] = False
         self.corpora[corpus]['loop_running'] = None
         self.corpora[corpus]['loop_running_since'] = now
-        yield self.count_webentities(corpus)
-        yield self.rank_webentities(corpus)
         if not _noloop:
+            yield self.rank_webentities(corpus)
+            yield self.count_webentities(corpus)
             reactor.callLater(10 if _delay else 1, self.corpora[corpus]['index_loop'].start, 0.2, True)
             reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, True)
 
@@ -1867,15 +1867,13 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def rank_webentities(self, corpus=DEFAULT_CORPUS):
-        if not self.parent.corpus_ready(corpus):
+        if corpus not in self.corpora or not self.corpora[corpus]["webentities_links"]:
             returnD(None)
         ranks = {}
-        if not self.corpora[corpus]["webentities_links"]:
-            returnD(None)
-        yield self.parent.update_corpus(corpus, False, True)
         for target, links in self.corpora[corpus]["webentities_links"].items():
             ranks[target] = len(links)
         self.corpora[corpus]['webentities_ranks'] = ranks
+        yield self.parent.update_corpus(corpus, False, True)
 
     @inlineCallbacks
     def index_batch_loop(self, corpus=DEFAULT_CORPUS):
@@ -1971,7 +1969,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def count_webentities(self, corpus=DEFAULT_CORPUS):
-        if not self.parent.corpus_ready(corpus):
+        if corpus not in self.corpora:
             returnD(None)
         ins  = yield self.db.count_WEs(corpus, {"status": "IN"})
         nocr = yield self.db.count_WEs(corpus, {"status": "IN", "crawled": False})
