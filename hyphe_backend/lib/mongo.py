@@ -411,7 +411,7 @@ class MongoDB(object):
     @inlineCallbacks
     def save_stats(self, corpus, corpus_metas):
         old = yield self.get_last_stats(corpus)
-        del(old["timestamp"])
+        del(old["timestamp"], old["_id"])
         new = {
           "total": corpus_metas["total_webentities"],
           "in": corpus_metas['webentities_in'],

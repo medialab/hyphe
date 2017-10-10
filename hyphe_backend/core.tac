@@ -1131,7 +1131,7 @@ class Memory_Structure(customJSONRPC):
             yield self.rank_webentities(corpus)
             yield self.count_webentities(corpus)
             reactor.callLater(10 if _delay else 1, self.corpora[corpus]['index_loop'].start, 0.2, True)
-            reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, True)
+            reactor.callLater(10, self.corpora[corpus]['stats_loop'].start, 10, True)
 
     def format_webentity(self, WE, job={}, homepage=None, light=False, semilight=False, light_for_csv=False, weight=None, corpus=DEFAULT_CORPUS):
         if not WE:
