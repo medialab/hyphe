@@ -2398,8 +2398,9 @@ class Memory_Structure(customJSONRPC):
         """Adds for a `corpus` a tag `namespace:category=value` to a WebEntity defined by `webentity_id`."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
-        yield self.add_tags_to_dictionary(namespace, category, value, corpus=corpus)
         res = yield self.update_webentity(webentity_id, "tags", value, "push", category, namespace, _commit=_commit, corpus=corpus)
+        if not is_error(res):
+            yield self.add_tags_to_dictionary(namespace, category, value, corpus=corpus)
         returnD(res)
 
     # TODO handle as single mongo query
@@ -2412,8 +2413,9 @@ class Memory_Structure(customJSONRPC):
         """Removes for a `corpus` a tag `namespace:category=value` associated with a WebEntity defined by `webentity_id` if it is set."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
-        yield self.remove_tag_from_dictionary(namespace, category, value, corpus=corpus)
         res = yield self.update_webentity(webentity_id, "tags", value, "pop", category, namespace, _commit=_commit, corpus=corpus)
+        if not is_error(res):
+            yield self.remove_tag_from_dictionary(namespace, category, value, corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
