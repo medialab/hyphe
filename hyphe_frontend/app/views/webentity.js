@@ -25,7 +25,7 @@ angular.module('hyphe.webentityController', [])
     
     $scope.tagCategories = {}
     $scope.tagsPendingQueries = 0
-    $scope.tagsAutocomplete = []
+    $scope.tagsAutocomplete = {}
     $scope.newCategory = ""
 
     $scope.crawls = []
@@ -301,7 +301,7 @@ angular.module('hyphe.webentityController', [])
         ,function(data){
           var tagCat
           for (tagCat in data) {
-            $scope.tagsAutocomplete[tagCat] = []
+            $scope.tagsAutocomplete[tagCat] = {}
             var tag
             var tagCatValues = data[tagCat]
             for (tag in tagCatValues) {

@@ -164,7 +164,7 @@
                           <br>
 
                           <!-- Tag categories -->
-                          <div ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">
+                          <div ng-repeat="(tagCat, _tv) in tagsAutocomplete" ng-if="tagCat != 'FREETAGS'">
                             <div class="md-title">{{tagCat}}</div>
                             <md-chips
                               ng-model="tagCategories[tagCat]"
