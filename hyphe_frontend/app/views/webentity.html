@@ -113,10 +113,8 @@
                 <md-tab label="Prefixes">
                   <md-virtual-repeat-container layout-fill>
                     <md-list>
-                        <!-- md-item-size="48" -->
                       <md-list-item
                         md-virtual-repeat="lru in webentity.prefixes"
-                        class="crawljob-list-item"
                       >
                         <span md-truncate flex>
                           <a href="{{lru|lru_to_url}}" target="_blank" title="Open in a new tab">
@@ -345,10 +343,6 @@
 
                         </div>
                       </div>
-                      <!-- <div style="padding: 8px" layout="row">
-                        <md-button class="md-raised md-primary">Save changes</md-button>
-                        <md-button class="">Cancel</md-button>
-                      </div> -->
                     </div>
                   </md-tab-body>
                 </md-tab>
@@ -360,12 +354,13 @@
                 layout="row"
                 style="height: 48px;"
               >
-                <h3 style="padding: 8px; margin: 0px">Pages</h3>
+                <h3 style="padding: 8px; margin: 0px" ng-if="pages.length<=0">Pages</h3>
+                <h3 style="padding: 8px; margin: 0px" ng-if="pages.length>=1">{{pages.length}} Pages</h3>
                 <div flex></div>
-                <md-button class="md-raised" disabled="true">
+                <!-- <md-button class="md-raised" disabled="true">
                   <md-icon>equalizer</md-icon>
                   Most cited
-                </md-button>
+                </md-button> -->
                 <md-button class="md-raised" disabled="true">
                   <md-icon>folder</md-icon>
                   as folders
@@ -376,8 +371,34 @@
                 </md-button>
               </div>
               
-              <div style="padding: 8px">
-                TODO: pages list
+              <div flex ng-if="pagesLoading" layout="column" layout-align="center center">
+                <spinner></spinner>
+              </div>
+
+              <div flex ng-if="!pagesLoading">
+                <md-virtual-repeat-container layout-fill>
+                  <md-list>
+                    <md-list-item
+                      md-virtual-repeat="page in pages"
+                    >
+                      <span md-truncate flex>
+                        <a href="{{page.url}}" target="_blank" title="Open in a new tab">
+                          <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
+                          <md-icon>link</md-icon>
+                        </a>
+                        {{page.url}}
+                        <div class="md-secondary" ng-if="page.crawled">
+                          <md-tooltip md-direction="left">Crawled</md-tooltip>
+                          <md-icon>opacity</md-icon>
+                        </div>
+                        <div class="md-secondary" ng-if="!page.crawled">
+                          <md-tooltip md-direction="left">Not crawled</md-tooltip>
+                          <md-icon style="opacity: 0.2">opacity</md-icon>
+                        </div>
+                      </span>
+                    </md-list-item>
+                  </md-list>
+                </md-virtual-repeat-container>
               </div>
             </div>
           </div>

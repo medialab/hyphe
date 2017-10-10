@@ -16,8 +16,6 @@ angular.module('hyphe.webentityController', [])
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
-    // $scope.explorerActive = false
-
     $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
 
     $scope.identityEditMode = false
@@ -29,6 +27,9 @@ angular.module('hyphe.webentityController', [])
     $scope.newCategory = ""
 
     $scope.crawls = []
+
+    $scope.pages = []
+    $scope.pagesLoading = true
 
     $scope.$watch('tagCategories', synchronizeTags, true)
 
@@ -128,9 +129,28 @@ angular.module('hyphe.webentityController', [])
       fetchWebentity()
       fetchCrawls()
       fetchAutocompletionTags()
+      loadPages()
     })
 
     // Functions
+    function loadPages(){
+      $scope.pagesLoading = true
+      $scope.status = {message: 'Load pages'}
+      api.getPages({
+          webentityId:$scope.webentity.id
+        }
+        ,function(result){
+          $scope.pages = result
+          $scope.pagesLoading = false
+          $scope.status = {}
+        }
+        ,function(){
+          $scope.pagesLoading = false
+          $scope.status = {message: 'Error loading pages', background: 'danger'}
+        }
+      )
+    }
+
     function synchronizeTags() {
       if ($scope.tagCategories && $scope.webentity.tags) {
         var comparison = {}
