@@ -26,10 +26,8 @@ angular.module('hyphe.webentityController', [])
     $scope.tagCategories = {}
     $scope.tagsPendingQueries = 0
     $scope.tagsAutocomplete = []
-    /*
-    $scope.tagCategoriesOrder = []
     $scope.newCategory = ""
-    */
+
     $scope.crawls = []
 
     $scope.$watch('tagCategories', synchronizeTags, true)
@@ -107,20 +105,21 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
-    $scope.saveNewCategory = function(category){
-      category = category.trim()
+    $scope.saveNewCategory = function(){
+      var category = $scope.newCategory.trim()
       if (!category || $scope.tagCategories[category]) return false
       if (~category.indexOf('.')) {
         $scope.status = {message: 'Tag categories cannot include dot characters', background: 'warning'}
         return false
       }
-      $scope.tagCategories[category] = {}
-      $scope.tagCategoriesOrder.push(category)
+      $scope.tagCategories[category] = []
+      
       // Wait a frame to render the new category before resetting the form field and focus on input
       $timeout(function(){
         $scope.newCategory = ''
-        $(".tagbox-body:last .host .tags").click()
+        // $(".tagbox-body:last .host .tags").click()
       }, 0)
+      
       return true
     }
 
@@ -146,11 +145,11 @@ angular.module('hyphe.webentityController', [])
         }
         for (tagCat in comparison) {
           var tags = comparison[tagCat]
-          var tagsToAdd = tags.new.filter(function(tag){
-            return tags.old.indexOf(tag) < 0
+          var tagsToAdd = (tags.new || []).filter(function(tag){
+            return (tags.old || []).indexOf(tag) < 0
           })
-          var tagsToRemove = tags.old.filter(function(tag){
-            return tags.new.indexOf(tag) < 0
+          var tagsToRemove = (tags.old || []).filter(function(tag){
+            return (tags.new || []).indexOf(tag) < 0
           })
           tagsToAdd.forEach(function(tag){
             addTag(tag, tagCat)
@@ -165,6 +164,8 @@ angular.module('hyphe.webentityController', [])
     function addTag(tag, category){
       $scope.status = {message: 'Adding tag'}
       $scope.tagsPendingQueries++
+      $scope.webentity.tags.USER[category] = $scope.webentity.tags.USER[category] || []
+      $scope.webentity.tags.USER[category].push(tag)
       
       return api.addTag({
           webentityId: $scope.webentity.id
@@ -189,6 +190,10 @@ angular.module('hyphe.webentityController', [])
     function removeTag(tag, category){
       $scope.status = {message: 'Removing tag'}
       $scope.tagsPendingQueries++
+      $scope.webentity.tags.USER[category] = $scope.webentity.tags.USER[category].filter(function(t){
+        return t != tag
+      })
+
       return api.removeTag({
           webentityId: $scope.webentity.id
           ,category: category

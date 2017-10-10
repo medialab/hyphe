@@ -159,10 +159,40 @@
                           <br>
 
                           <!-- Tag categories -->
-                          <div class="md-title">Tag categories</div>
                           <div ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">
-                            {{tagCat}}
+                            <div class="md-title">{{tagCat}}</div>
+                            <md-chips
+                              ng-model="tagCategories[tagCat]"
+                              readonly="tagsPendingQueries>0 || tagCategories[tagCat].length > 0"
+                              md-removable="tagsPendingQueries<=0"
+                              md-max-chips="1"
+                            >
+                              <md-autocomplete
+                                md-selected-item="selectedItem"
+                                md-search-text="searchText"
+                                md-items="tag in autoComplete(searchText, tagCat)"
+                                md-item-text="tag"
+                                placeholder="Set tag"
+                              >
+                                <span md-highlight-text="searchText">{{tag}}</span>
+                              </md-autocomplete>
+                            </md-chips>
+                            <br>
                           </div>
+
+
+                          <div
+                            layout="row"
+                            md-colors="{'background': 'default-background-100'}"
+                            style="padding: 8px; margin-top: 16px"
+                          >
+                            <md-input-container flex>
+                              <label>New category</label>
+                              <input ng-model="newCategory" ng-press-enter="saveNewCategory()">
+                            </md-input-container>
+                            <md-button class="md-primary" ng-click="saveNewCategory()">Add</md-button>
+                          </div>
+
                         </div>
                       </div>
                       <!-- <div style="padding: 8px" layout="row">
