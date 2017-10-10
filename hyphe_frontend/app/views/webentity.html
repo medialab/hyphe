@@ -28,79 +28,84 @@
             
                 <!-- Tab: Identity -->
                 <md-tab label="Identity">
-                  <div layout="column" layout-fill md-colors="{'background': 'default-background-200'}">
+                  <div layout-fill md-colors="{'background': 'default-background-200'}" style="overflow-y: auto">
+                    <div layout="column">
 
-                    <!-- Info -->
-                    <md-content ng-if="!identityEditMode" style="padding: 8px" md-colors="{'background': 'default-background-200'}">
-                      <dl class="key-value-pairs">
+                      <!-- Info -->
+                      <div
+                        ng-if="!identityEditMode"
+                        style="padding: 8px"
+                        md-colors="{'background': 'default-background-200'}"
+                        layout="column"
+                      >
+                        <dl class="key-value-pairs">
 
-                        <dt>ID</dt>
-                        <dd>{{webentity.id}}</dd>
+                          <dt>ID</dt>
+                          <dd>{{webentity.id}}</dd>
 
-                        <dt>Name</dt>
-                        <dd>{{webentity.name || '...'}}</dd>
+                          <dt>Name</dt>
+                          <dd>{{webentity.name || '...'}}</dd>
 
-                        <dt>Status</dt>
-                        <dd>{{webentity.status || '...'}}</dd>
+                          <dt>Status</dt>
+                          <dd>{{webentity.status || '...'}}</dd>
 
-                        <dt>Home page</dt>
-                        <dd>
-                          <a href="{{webentity.homepage}}" target="_blank" title="Open in a new tab">
-                            <md-tooltip md-direction="left">Open home page in a new tab</md-tooltip>
-                            <md-icon>link</md-icon>
-                          </a>
-                          {{webentity.homepage}}
-                        </dd>
+                          <dt>Home page</dt>
+                          <dd>
+                            <a href="{{webentity.homepage}}" target="_blank" title="Open in a new tab">
+                              <md-tooltip md-direction="left">Open home page in a new tab</md-tooltip>
+                              <md-icon>link</md-icon>
+                            </a>
+                            {{webentity.homepage}}
+                          </dd>
 
-                      </dl>
-                      <div layout="row" layout-align="center">
-                        <md-button class="md-raised" ng-click="enableEditMode()" ng-disabled="webentity.loading">Edit</md-button>
+                        </dl>
+
+                        <div layout="row" layout-align="center">
+                          <md-button class="md-raised" ng-click="enableEditMode()" ng-disabled="webentity.loading">Edit</md-button>
+                        </div>
                       </div>
-                    </md-content>
 
-                    <!-- Edit -->
-                    <div layout="column" ng-if="identityEditMode" style="padding: 8px" >
-                      <md-input-container>
-                        <label>Name</label>
-                        <input ng-model="$parent.webentityEdit_name">
-                      </md-input-container>
-                      <md-input-container>
-                        <label>Status</label>
-                        <md-select ng-model="$parent.webentityEdit_status">
-                          <md-option value="IN">IN</md-option>
-                          <md-option value="UNDECIDED">UNDECIDED</md-option>
-                          <md-option value="OUT">OUT</md-option>
-                        </md-select>
-                      </md-input-container>
-                      <md-input-container>
-                        <label>Homepage</label>
-                        <input ng-model="$parent.webentityEdit_homepage">
-                        <div class="hint" md-colors="{'color': 'default-warn'}">{{homepageErrorMessage}}</div>
-                      </md-input-container>
-                      <div layout="row">
-                        <md-button class="md-raised md-primary" ng-click="saveWebEntity()" ng-disabled="identityEditLoading">Save changes</md-button>
-                        <md-button class="" ng-click="disableEditMode()" ng-disabled="identityEditLoading">Cancel</md-button>
+                      <!-- Edit -->
+                      <div layout="column" ng-if="identityEditMode" style="padding: 8px" md-colors="{'background': 'default-background-50'}">
+                        <md-input-container>
+                          <label>Name</label>
+                          <input ng-model="$parent.webentityEdit_name">
+                        </md-input-container>
+                        <md-input-container>
+                          <label>Status</label>
+                          <md-select ng-model="$parent.webentityEdit_status">
+                            <md-option value="IN">IN</md-option>
+                            <md-option value="UNDECIDED">UNDECIDED</md-option>
+                            <md-option value="OUT">OUT</md-option>
+                          </md-select>
+                        </md-input-container>
+                        <md-input-container>
+                          <label>Homepage</label>
+                          <input ng-model="$parent.webentityEdit_homepage">
+                          <div class="hint" md-colors="{'color': 'default-warn'}">{{homepageErrorMessage}}</div>
+                        </md-input-container>
+                        <div layout="row" style="padding-bottom: 8px" layout-align="center">
+                          <md-button class="md-raised md-primary" ng-click="saveWebEntity()" ng-disabled="identityEditLoading">Save changes</md-button>
+                          <md-button class="" ng-click="disableEditMode()" ng-disabled="identityEditLoading">Cancel</md-button>
+                        </div>
+                      </div>
+
+                      <!-- Other info -->
+                      <div style="padding: 8px; margin-top: 16px" md-colors="{'background': 'default-background-200'}">
+                        <dl class="key-value-pairs">
+
+                          <dt>Created {{webentity['creation_date']|prettyDate}}</dt>
+                          <dd>{{webentity['creation_date']|date}}</dd>
+                          
+                          <dt>Last modified {{webentity['last_modification_date']|prettyDate}}</dt>
+                          <dd>{{webentity['last_modification_date']|date}}</dd>
+                          
+                          <dt>Cited by</dt>
+                          <dd>{{webentity['indegree'] | no}} other entit{{webentity['indegree'] | y_ies}}</dd>
+                          
+                        </dl>
                       </div>
                     </div>
-                  </div>
-                </md-tab>
-
-                <!-- Tab: Info -->
-                <md-tab label="Info">
-                  <div layout="column" layout-fill md-colors="{'background': 'default-background-200'}" style="padding: 8px">
-                  
-                    <dl class="key-value-pairs">
-
-                      <dt>Created {{webentity['creation_date']|prettyDate}}</dt>
-                      <dd>{{webentity['creation_date']|date}}</dd>
-                      
-                      <dt>Last modified {{webentity['last_modification_date']|prettyDate}}</dt>
-                      <dd>{{webentity['last_modification_date']|date}}</dd>
-                      
-                      <dt>Cited by</dt>
-                      <dd>{{webentity['indegree'] | no}} other entit{{webentity['indegree'] | y_ies}}</dd>
-                      
-                    </dl>
                   </div>
                 </md-tab>
 
