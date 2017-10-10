@@ -116,6 +116,9 @@ The API will always answer as such:
     * __`get_webentity_subwebentities`__
     * __`get_webentity_parentwebentities`__
     * __`get_webentity_pagelinks_network`__
+    * __`get_webentity_referrers`__
+    * __`get_webentity_referrals`__
+    * __`get_webentity_ego_network`__
     * __`get_webentities_network`__
   + [CREATION RULES](#creation-rules)
     * __`get_default_webentity_creationrule`__
@@ -205,7 +208,7 @@ The API will always answer as such:
 - __`destroy_corpus`:__
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Resets a `corpus` then definitely deletes anything associated with it.
+ Backups, resets, then definitely deletes a `corpus` and anything associated with it.
 
 
 - __`clear_all`:__
@@ -241,9 +244,10 @@ The API will always answer as such:
  + _`list_ids`_ (optional, default: `null`)
  + _`from_ts`_ (optional, default: `null`)
  + _`to_ts`_ (optional, default: `null`)
+ + _`light`_ (optional, default: `false`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns the list and details of all "finished"/"running"/"pending" crawl jobs of a `corpus`. Optionally returns only the jobs whose id is given in an array of `list_ids` and/or that was created after timestamp `from_ts` or before `to_ts`.
+ Returns the list and details of all "finished"/"running"/"pending" crawl jobs of a `corpus`. Optionally returns only the jobs whose id is given in an array of `list_ids` and/or that was created after timestamp `from_ts` or before `to_ts`. Set `light` to true to get only essential metadata for heavy queries.
 
 
 - __`propose_webentity_startpages`:__
@@ -713,9 +717,10 @@ The API will always answer as such:
 - __`get_webentities_page`:__
  + _`pagination_token`_ (mandatory)
  + _`n_page`_ (mandatory)
+ + _`idNamesOnly`_ (optional, default: `false`)
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` the page number `n_page` of WebEntities corresponding to the results of a previous query ran using any of the `get_webentities` or `search_webentities` methods using the returned `pagination_token`.
+ Returns for a `corpus` the page number `n_page` of WebEntities corresponding to the results of a previous query ran using any of the `get_webentities` or `search_webentities` methods using the returned `pagination_token`. Returns only an array of [id, name] arrays if `idNamesOnly` is true.
 
 
 - __`get_webentities_ranking_stats`:__
@@ -824,6 +829,37 @@ The API will always answer as such:
  + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true".
+
+
+- __`get_webentity_referrers`:__
+ + _`webentity_id`_ (optional, default: `null`)
+ + _`count`_ (optional, default: `100`)
+ + _`page`_ (optional, default: `0`)
+ + _`light`_ (optional, default: `true`)
+ + _`semilight`_ (optional, default: `false`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` all WebEntities with known links to `webentity_id` ordered by decreasing link weight.
+ Results are paginated and will include a `token` to be reused to collect the other entities via `get_webentities_page`: see `search_webentities` for explanations on `count` and `page`.
+
+
+- __`get_webentity_referrals`:__
+ + _`webentity_id`_ (optional, default: `null`)
+ + _`count`_ (optional, default: `100`)
+ + _`page`_ (optional, default: `0`)
+ + _`light`_ (optional, default: `true`)
+ + _`semilight`_ (optional, default: `false`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` all WebEntities with known links from `webentity_id` ordered by decreasing link weight.
+ Results are paginated and will include a `token` to be reused to collect the other entities via `get_webentities_page`: see `search_webentities` for explanations on `count` and `page`.
+
+
+- __`get_webentity_ego_network`:__
+ + _`webentity_id`_ (optional, default: `null`)
+ + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` a list of all weighted links between webentities linked to `webentity_id`.
 
 
 - __`get_webentities_network`:__

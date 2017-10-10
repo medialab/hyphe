@@ -475,7 +475,7 @@ class Core(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_destroy_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False):
-        """Backups, resets, then definitely deletes a `corpus` and anything associated with it."""
+        """Backups\, resets\, then definitely deletes a `corpus` and anything associated with it."""
         if corpus in self.destroying:
             returnD(format_result("Corpus already being destroyed, patience..."))
         self.destroying[corpus] = True
@@ -1133,10 +1133,12 @@ class Memory_Structure(customJSONRPC):
             reactor.callLater(10 if _delay else 1, self.corpora[corpus]['index_loop'].start, 0.2, True)
             reactor.callLater(60, self.corpora[corpus]['stats_loop'].start, 300, True)
 
-    def format_webentity(self, WE, job={}, homepage=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
+    def format_webentity(self, WE, job={}, homepage=None, light=False, semilight=False, light_for_csv=False, weight=None, corpus=DEFAULT_CORPUS):
         if not WE:
             return None
         res = {'_id': WE["_id"], 'id': WE["_id"], 'name': WE["name"], 'status': WE["status"], 'prefixes': WE["prefixes"]}
+        if weight is not None:
+            res['weight'] = weight
         res['indegree'] = self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0)
         if test_bool_arg(light):
             return res
@@ -1168,7 +1170,7 @@ class Memory_Structure(customJSONRPC):
         return res
 
     re_camelCase = re.compile(r'(.)_(.)')
-    def sortargs_accessor(self, WE, field, jobs={}, corpus=DEFAULT_CORPUS):
+    def sortargs_accessor(self, WE, field, jobs={}, weights=None, corpus=DEFAULT_CORPUS):
         if "_" in field:
             field = self.re_camelCase.sub(lambda x: x.group(1)+x.group(2).upper(), field)
         else: field = field.lower()
@@ -1177,6 +1179,8 @@ class Memory_Structure(customJSONRPC):
         if field == "crawled":
             job = jobs.get(WE["_id"], {})
             return job and job['crawling_status'] not in [crawling_statuses.CANCELED, crawling_statuses.UNCRAWLED]
+        if field == "weight" and weights is not None:
+            return weights.get(WE["_id"], 0)
         if field == "indegree":
             return self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0)
         return None
@@ -1214,7 +1218,7 @@ class Memory_Structure(customJSONRPC):
         return True
 
     @inlineCallbacks
-    def format_webentities(self, WEs, jobs=None, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
+    def format_webentities(self, WEs, jobs=None, light=False, semilight=False, light_for_csv=False, weights=None, corpus=DEFAULT_CORPUS):
         if jobs == None:
             if not (test_bool_arg(light) or test_bool_arg(light_for_csv)):
                 jobs = yield self.get_webentities_jobs(WEs, corpus=corpus)
@@ -1222,7 +1226,7 @@ class Memory_Structure(customJSONRPC):
         homepages = {}
         if not (test_bool_arg(light) or test_bool_arg(semilight) or test_bool_arg(light_for_csv)):
             homepages = yield self.get_webentities_missing_linkpages(WEs, corpus=corpus)
-        returnD([self.format_webentity(WE, jobs.get(WE["_id"], {}), homepages.get(WE["_id"], None), light, semilight, light_for_csv, corpus=corpus) for WE in WEs])
+        returnD([self.format_webentity(WE, jobs.get(WE["_id"], {}), homepages.get(WE["_id"], None), light, semilight, light_for_csv, weight=(weights.get(WE["_id"], 0) if weights else None), corpus=corpus) for WE in WEs])
 
     @inlineCallbacks
     def get_webentities_missing_linkpages(self, WEs, corpus=DEFAULT_CORPUS):
@@ -2083,7 +2087,7 @@ class Memory_Structure(customJSONRPC):
 
     format_field = lambda _,x: x.upper() if type(x) in [str, unicode] else x
     @inlineCallbacks
-    def paginate_webentities(self, WEs, count, page, light=False, semilight=False, light_for_csv=False, sort=None, corpus=DEFAULT_CORPUS):
+    def paginate_webentities(self, WEs, count, page, light=False, semilight=False, light_for_csv=False, sort=None, weights=None, corpus=DEFAULT_CORPUS):
         jobs = None
         if sort and WEs:
             if type(sort) != list:
@@ -2093,11 +2097,11 @@ class Memory_Structure(customJSONRPC):
             for sortkey in reversed(sort):
                 key = sortkey.lstrip("-")
                 reverse = (key != sortkey)
-                if self.sortargs_accessor(WEs[0], key, jobs=jobs, corpus=corpus) != None:
-                    WEs = sorted(WEs, key=lambda x: self.format_field(self.sortargs_accessor(x, key, jobs=jobs, corpus=corpus)), reverse=reverse)
+                if self.sortargs_accessor(WEs[0], key, jobs=jobs, weights=weights, corpus=corpus) != None:
+                    WEs = sorted(WEs, key=lambda x: self.format_field(self.sortargs_accessor(x, key, jobs=jobs, weights=weights, corpus=corpus)), reverse=reverse)
 
         if count == -1 or len(WEs) <= count or light_for_csv:
-            res = yield self.format_webentities(WEs, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
+            res = yield self.format_webentities(WEs, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, weights=weights, corpus=corpus)
             if count == -1:
                 returnD(format_result(res))
             respage = yield self.format_WE_page(len(res), count, page, res, corpus=corpus)
@@ -2105,7 +2109,10 @@ class Memory_Structure(customJSONRPC):
 
         subset = WEs[page*count:(page+1)*count]
         subset = yield self.format_webentities(subset, jobs=jobs, light=light, semilight=semilight, light_for_csv=light_for_csv, corpus=corpus)
-        ids = [[w["_id"], w["name"]] for w in WEs]
+        if not weights:
+            ids = [[w["_id"], w["name"]] for w in WEs]
+        else:
+            ids = [[w["_id"], w["name"], weights.get(w["_id"], 0)] for w in WEs]
         res = yield self.format_WE_page(len(ids), count, page, subset, corpus=corpus)
 
         query_args = {
@@ -2118,7 +2125,7 @@ class Memory_Structure(customJSONRPC):
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_get_webentities(self, list_ids=[], sort=None, count=100, page=0, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS):
+    def jsonrpc_get_webentities(self, list_ids=[], sort=None, count=100, page=0, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS, _weights=None):
         """Returns for a `corpus` all existing WebEntities or only the WebEntities whose id is among `list_ids.\nResults will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Returns all results at once if `list_ids` is provided or `count` == -1 ; otherwise results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\nOther possible options include:\n- order the results with `sort` by inputting a field or list of fields as named in the WebEntities returned objects; optionally prefix a sort field with a "-" to revert the sorting on it; for instance: `["-indegree"\, "name"]` will order by maximum indegree first then by alphabetic order of names\n- set `light` or `semilight` or `light_for_csv` to "true" to collect lighter data with less WebEntities fields."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -2136,7 +2143,7 @@ class Memory_Structure(customJSONRPC):
             WEs = yield self.db.get_WEs(corpus)
             if is_error(WEs):
                 returnD(WEs)
-        res = yield self.paginate_webentities(WEs, count, page, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, corpus=corpus)
+        res = yield self.paginate_webentities(WEs, count, page, light=light, semilight=semilight, light_for_csv=light_for_csv, sort=sort, weights=_weights, corpus=corpus)
         returnD(res)
 
     re_regexp_special_chars = re.compile(r"([.?+*^${}()[\]|\\])")
@@ -2320,7 +2327,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentities_page(self, pagination_token, n_page, idNamesOnly=False, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` the page number `n_page` of WebEntities corresponding to the results of a previous query ran using any of the `get_webentities` or `search_webentities` methods using the returned `pagination_token`. Returns only an array of [id, name] arrays if `idNamesOnly` is true."""
+        """Returns for a `corpus` the page number `n_page` of WebEntities corresponding to the results of a previous query ran using any of the `get_webentities` or `search_webentities` methods using the returned `pagination_token`. Returns only an array of [id\, name] arrays if `idNamesOnly` is true."""
         try:
             page = int(n_page)
         except:
@@ -2335,7 +2342,10 @@ class Memory_Structure(customJSONRPC):
             returnD(res)
         if idNamesOnly:
             returnD(format_result(WEsPage))
-        res = yield self.jsonrpc_get_webentities([w[0] for w in WEsPage], sort=WEs["query"]["sort"], count=WEs["query"]["count"], light=WEs["query"]["light"], semilight=WEs["query"]["semilight"], corpus=corpus)
+        weights = None
+        if len(WEsPage[0]) == 3:
+            weights = {w[0]: w[2] for w in WEsPage}
+        res = yield self.jsonrpc_get_webentities([w[0] for w in WEsPage], sort=WEs["query"]["sort"], count=WEs["query"]["count"], light=WEs["query"]["light"], semilight=WEs["query"]["semilight"], corpus=corpus, _weights=weights)
 
         if is_error(res):
             returnD(res)
@@ -2572,6 +2582,51 @@ class Memory_Structure(customJSONRPC):
             returnD(links)
         res = [list(l) for l in links["result"]]
         logger.msg("...JSON network generated in %ss" % str(time.time()-s), system="INFO - %s" % corpus)
+        returnD(format_result(res))
+
+    @inlineCallbacks
+    def get_webentity_linked_entities(self, webentity_id=None, direction="in", count=100, page=0, light=True, semilight=False, corpus=DEFAULT_CORPUS):
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        WE = yield self.db.get_WE(corpus, webentity_id)
+        if not WE:
+            returnD(format_error("No webentity found for id %s" % webentity_id))
+        if direction == "in":
+            linked = self.corpora[corpus]["webentities_links"].get(webentity_id, {})
+        else:
+            linked = {}
+            for target, sources in self.corpora[corpus]["webentities_links"].items():
+                if webentity_id in sources:
+                    linked[target] = sources[webentity_id]
+        WEs = yield self.db.get_WEs(corpus, {"_id": {"$in": linked.keys()}})
+        res = yield self.paginate_webentities(WEs, count=count, page=page, sort=["-weight", "name"], light=light, semilight=semilight, weights=linked, corpus=corpus)
+        returnD(res)
+
+    def jsonrpc_get_webentity_referrers(self, webentity_id=None, count=100, page=0, light=True, semilight=False, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` all WebEntities with known links to `webentity_id` ordered by decreasing link weight.\nResults are paginated and will include a `token` to be reused to collect the other entities via `get_webentities_page`: see `search_webentities` for explanations on `count` and `page`."""
+        return self.get_webentity_linked_entities(webentity_id, "in", count=count, page=page, light=light, semilight=semilight, corpus=corpus)
+
+    def jsonrpc_get_webentity_referrals(self, webentity_id=None, count=100, page=0, light=True, semilight=False, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` all WebEntities with known links from `webentity_id` ordered by decreasing link weight.\nResults are paginated and will include a `token` to be reused to collect the other entities via `get_webentities_page`: see `search_webentities` for explanations on `count` and `page`."""
+        return self.get_webentity_linked_entities(webentity_id, "out", count=count, page=page, light=light, semilight=semilight, corpus=corpus)
+
+    @inlineCallbacks
+    def jsonrpc_get_webentity_ego_network(self, webentity_id=None, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` a list of all weighted links between webentities linked to `webentity_id`."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        WE = yield self.db.get_WE(corpus, webentity_id)
+        if not WE:
+            returnD(format_error("No webentity found for id %s" % webentity_id))
+        neighbors = set([webentity_id] + self.corpora[corpus]["webentities_links"].get(webentity_id, {}).keys())
+        for target, sources in self.corpora[corpus]["webentities_links"].items():
+            if webentity_id in sources:
+                neighbors.add(target)
+        res = []
+        for target in neighbors:
+            for source, weight in self.corpora[corpus]["webentities_links"].get(target, {}).items():
+                if source in neighbors:
+                    res.append([source, target, weight])
         returnD(format_result(res))
 
     def jsonrpc_get_webentities_network(self, corpus=DEFAULT_CORPUS):
