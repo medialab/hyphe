@@ -19,20 +19,16 @@ angular.module('hyphe.webentityController', [])
     // $scope.explorerActive = false
 
     $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
-    
-    $scope.crawls = []
-    $scope.tagCategories = {}
-    $scope.tagCategoriesOrder = []
-    $scope.newCategory = ""
-    // $scope.editableFormError = {}
+
     $scope.identityEditMode = false
     $scope.identityEditLoading = false
     
-    /*$scope.statuses = [
-      {value: 'IN', text: 'IN'},
-      {value: 'UNDECIDED', text: '? UNDECIDED'},
-      {value: 'OUT', text: 'OUT'}
-    ]*/
+    $scope.tagCategories = {}
+    $scope.tagCategoriesOrder = []
+    $scope.newCategory = ""
+    
+    $scope.crawls = []
+
 
     $scope.enableEditMode = function(){
       $scope.webentityEdit_name = $scope.webentity.name

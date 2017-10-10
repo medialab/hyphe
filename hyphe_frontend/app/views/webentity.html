@@ -85,6 +85,25 @@
                   </div>
                 </md-tab>
 
+                <!-- Tab: Info -->
+                <md-tab label="Info">
+                  <div layout="column" layout-fill md-colors="{'background': 'default-background-200'}" style="padding: 8px">
+                  
+                    <dl class="key-value-pairs">
+
+                      <dt>Created {{webentity['creation_date']|prettyDate}}</dt>
+                      <dd>{{webentity['creation_date']|date}}</dd>
+                      
+                      <dt>Last modified {{webentity['last_modification_date']|prettyDate}}</dt>
+                      <dd>{{webentity['last_modification_date']|date}}</dd>
+                      
+                      <dt>Cited by</dt>
+                      <dd>{{webentity['indegree'] | no}} other entit{{webentity['indegree'] | y_ies}}</dd>
+                      
+                    </dl>
+                  </div>
+                </md-tab>
+
                 <!-- Tab: Prefixes -->
                 <md-tab label="Prefixes">
                   <md-virtual-repeat-container layout-fill>
