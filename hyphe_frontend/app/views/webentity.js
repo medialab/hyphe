@@ -45,7 +45,7 @@ angular.module('hyphe.webentityController', [])
     }
 
     $scope.crawlDetails = function(job){
-      $location.url('/project/'+$scope.corpusId+'/monitorCrawls?tab=details&id='+job._id)
+      $location.url('/project/'+$scope.corpusId+'/monitorCrawls?id='+job._id)
     }
 
     $scope.reCrawl = function(oldjob){
