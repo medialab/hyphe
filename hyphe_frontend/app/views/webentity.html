@@ -87,6 +87,24 @@
 
                 <!-- Tab: Prefixes -->
                 <md-tab label="Prefixes">
+                  <md-virtual-repeat-container layout-fill>
+                    <md-list>
+                        <!-- md-item-size="48" -->
+                      <md-list-item
+                        md-virtual-repeat="lru in webentity.prefixes"
+                        class="crawljob-list-item"
+                      >
+                        <span md-truncate flex>
+                          <a href="{{lru|lru_to_url}}" target="_blank" title="Open in a new tab">
+                            <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
+                            <md-icon>link</md-icon>
+                          </a>
+                          {{lru|lru_to_url}}
+                        </span>
+                        <!-- <md-icon ng-click="" aria-label="Close" class="md-secondary">close</md-icon> -->
+                      </md-list-item>
+                    </md-list>
+                  </md-virtual-repeat-container>
                 </md-tab>
 
                 <!-- Tab: Tags -->
