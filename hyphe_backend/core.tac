@@ -2478,21 +2478,27 @@ class Memory_Structure(customJSONRPC):
   # PAGES, LINKS & NETWORKS
 
     # TODO HANDLE PAGES EXTRA FIELDS
-    def format_pages(self, pages):
-        if is_error(pages):
-            return pages
-        return [{
-          'lru': p['lru'],
-          'crawled': p.get('crawled', None),
-          'url': urllru.lru_to_url(p['lru']),
-          'linked': p.get('indegree', None),
+    def format_page(self, page, linked=False):
+        res = {
+          'lru': page['lru'],
+          'crawled': page.get('crawled', None),
+          'url': urllru.lru_to_url(page['lru']),
          #'crawl_timestamp': p.crawlerTimestamp,
          #'depth': p.depth,
          #'error': p.errorCode,
          #'http_status': p.httpStatusCode,
          #'creation_date': p.creationDate,
          #'last_modification_date': p.lastModificationDate
-        } for p in pages]
+        }
+        if linked:
+            res['linked'] = page.get('indegree', None)
+        return res
+
+
+    def format_pages(self, pages, linked=False):
+        if is_error(pages):
+            return pages
+        return [self.format_page(page, linked=linked) for page in pages]
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
@@ -2522,7 +2528,7 @@ class Memory_Structure(customJSONRPC):
         pages = yield self.traphs.call(corpus, "get_webentity_most_linked_pages", webentity_id, WE["prefixes"], pages_count=npages)
         if is_error(pages):
             returnD(pages)
-        returnD(format_result(self.format_pages(pages["result"])))
+        returnD(format_result(self.format_pages(pages["result"], linked=True)))
 
     def jsonrpc_get_webentity_subwebentities(self, webentity_id, light=False, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all sub-webentities of a WebEntity defined by `webentity_id` (meaning webentities having at least one LRU prefix starting with one of the WebEntity's prefixes)."""
