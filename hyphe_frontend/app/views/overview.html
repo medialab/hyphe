@@ -43,7 +43,7 @@
                     IN
                   </div>
                   <div class="md-headline">
-                    {{corpusStatus.corpus.traph.webentities.IN|none}}
+                    {{corpusStatus.corpus.traph.webentities.IN|number}}
                   </div>
                 </div>
               </md-grid-tile>
@@ -54,7 +54,7 @@
                     UNDECIDED
                   </div>
                   <div class="md-headline">
-                    {{corpusStatus.corpus.traph.webentities.UNDECIDED|none}}
+                    {{corpusStatus.corpus.traph.webentities.UNDECIDED|number}}
                   </div>
                 </div>
               </md-grid-tile>
@@ -65,7 +65,7 @@
                     OUT
                   </div>
                   <div class="md-headline">
-                    {{corpusStatus.corpus.traph.webentities.OUT|none}}
+                    {{corpusStatus.corpus.traph.webentities.OUT|number}}
                   </div>
                 </div>
               </md-grid-tile>
@@ -76,7 +76,7 @@
                     DISCOVERED
                   </div>
                   <div class="md-headline">
-                    {{corpusStatus.corpus.traph.webentities.DISCOVERED|none}}
+                    {{corpusStatus.corpus.traph.webentities.DISCOVERED|number}}
                   </div>
                 </div>
               </md-grid-tile>
@@ -143,16 +143,16 @@
                   CONTENT CRAWLED
                 </h3>
                 <p class="md-body-1" >
-                  {{corpusStatus.corpus.crawler.pages_crawled|no}} page{{corpusStatus.corpus.crawler.pages_crawled|plural}} crawled
+                  {{corpusStatus.corpus.crawler.pages_crawled|number|no}} page{{corpusStatus.corpus.crawler.pages_crawled|plural}} crawled
                 </p>
                 <p class="md-body-1" ng-if="corpusStatus.corpus.traph.pages_to_index" >
-                  including {{corpusStatus.corpus.traph.pages_to_index}} unindexed yet
+                  including {{corpusStatus.corpus.traph.pages_to_index|number}} unindexed yet
                 </p>
                 <p class="md-body-1" >
-                  {{corpusStatus.corpus.crawler.pages_found|no}} page{{corpusStatus.corpus.crawler.pages_found|plural}} discovered
+                  {{corpusStatus.corpus.crawler.pages_found|number|no}} page{{corpusStatus.corpus.crawler.pages_found|plural}} discovered
                 </p>
                 <p class="md-body-1" ng-show="corpusStatus.corpus.crawler.links_found" >
-                  {{corpusStatus.corpus.crawler.links_found}} link{{corpusStatus.corpus.crawler.links_found|plural}} discovered
+                  {{corpusStatus.corpus.crawler.links_found|number}} link{{corpusStatus.corpus.crawler.links_found|plural}} discovered
                 </p>
               </md-content>
             </div>
