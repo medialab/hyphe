@@ -16,24 +16,30 @@ angular.module('hyphe.webentityController', [])
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
-    $scope.explorerActive = false
+    // $scope.explorerActive = false
 
     $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
-    console.log($scope.webentity)
-    $scope.crawls = []
+
+    $scope.identityEditMode = false
+    $scope.identityEditLoading = false
+    
     $scope.tagCategories = {}
     $scope.tagCategoriesOrder = []
     $scope.newCategory = ""
-    $scope.editableFormError = {}
     
-    $scope.statuses = [
-      {value: 'IN', text: 'IN'},
-      {value: 'UNDECIDED', text: '? UNDECIDED'},
-      {value: 'OUT', text: 'OUT'}
-    ]
+    $scope.crawls = []
 
-    function updateWELastModifTime(){
-      $scope.webentity.last_modification_date = (new Date()).getTime()
+
+    $scope.enableEditMode = function(){
+      $scope.webentityEdit_name = $scope.webentity.name
+      $scope.webentityEdit_status = $scope.webentity.status
+      $scope.webentityEdit_homepage = $scope.webentity.homepage
+      $scope.identityEditMode = true
+      $scope.homepageErrorMessage = ''
+    }
+
+    $scope.disableEditMode = function(){
+      $scope.identityEditMode = false
     }
 
     $scope.crawlDetails = function(job){
@@ -63,55 +69,65 @@ angular.module('hyphe.webentityController', [])
       }
     }
 
-    $scope.checkWebEntityHomepage = function($data){
-      var tmpHomepage = $data.homepage+"", lru
-      try{
-        lru = utils.URL_to_JSON_LRU($data.homepage)
-      } catch(e){
-        lru = ""
-      }
-      if (!lru || (lru.scheme !== "http" && lru.scheme !== "https")){
-        $scope.editableFormError.homepage = "Please enter a valid URL!"
-        $timeout(function(){
-          $scope.editableForm.$show()
-        }, 0)
-        $timeout(function(){
-          $(".url-container input").val(tmpHomepage)
-        }, 5)
-        return false
-      }
-      return true
-    }
-
     $scope.saveWebEntity = function(){
-      $scope.editableFormError = {}
-      $scope.status = {message: 'Updating metadata'}
-      return api.webentityUpdate({
-          webentityId: $scope.webentity.id
-          ,name: $scope.webentity.name
-          ,status: $scope.webentity.status
-          ,homepage: $scope.webentity.homepage
-        }
+      var homepageValid = checkWebEntityHomepage($scope.webentityEdit_homepage)
+      if (!homepageValid) {
+        $scope.homepageErrorMessage = 'Invalid URL'
+        return
+      } else {
+        $scope.homepageErrorMessage = ''
+      }
+      $scope.status = {message: 'Updating web entity'}
+      $scope.identityEditLoading = true
+      var settings = {
+        webentityId: $scope.webentity.id
+        ,name: $scope.webentityEdit_name
+        ,status: $scope.webentityEdit_status
+        ,homepage: $scope.webentityEdit_homepage
+      }
+      return api.webentityUpdate(
+        settings
         ,function(result){
           $scope.status = {message: ''}
+          $scope.identityEditLoading = false
+          $scope.identityEditMode = false
+          $scope.webentity.name = settings.name
+          $scope.webentity.status = settings.status
+          $scope.webentity.homepage = settings.homepage
           updateWELastModifTime()
         }
         ,function(error){
-          $scope.status = {message: 'Could not save webentity', background:'warning'}
-          $scope.editableFormError = error[0].message
-          $timeout(function(){
-            $scope.editableForm.$show()
-          }, 0)
+          $scope.status = {message: 'Web entity update failed', background:'warning'}
+          $scope.identityEditLoading = false
         }
       )
     }
 
     // Init
-    fetchWebentity()
-    fetchCrawls()
-    fetchTags()
+    api.downloadCorpusTLDs(function(){
+      fetchWebentity()
+      fetchCrawls()
+      fetchTags()
+    })
 
     // Functions
+    function checkWebEntityHomepage(homepage){
+      var lru
+      try{
+        lru = utils.URL_to_JSON_LRU(homepage)
+      } catch(e){
+        lru = ""
+      }
+      if (!lru || (lru.scheme !== "http" && lru.scheme !== "https")){
+        return false
+      }
+      return true
+    }
+
+    function updateWELastModifTime(){
+      $scope.webentity.last_modification_date = (new Date()).getTime()
+    }
+
     function fetchWebentity(){
       api.getWebentities({
           id_list:[utils.readWebentityIdFromRoute()]

@@ -88,14 +88,18 @@
               <div style="height: 360px; position: relative">
                 <activity-chart
                   data="corpusStatistics"
+                  statuses="statuses"
+                  log-mode="statusLogMode"
                   layout-fill
                   layout="column"
                   layout-align="center center"
                   ng-if="displayStatistics"
-                  statuses="statuses"
                 ></activity-chart>
-                <div style="position: absolute; top:0; left: 0;">
+                <div style="position: absolute; top:0; left: 0;" layout="column">
                   <div class="md-title">Web entities volume<br>over time</div>
+                  <md-switch ng-model="statusLogMode" aria-label="Log" style="margin:0px">
+                    Log curves
+                  </md-switch>
                 </div>
               </div>
 
