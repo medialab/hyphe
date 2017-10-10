@@ -126,12 +126,51 @@
                   </md-virtual-repeat-container>
                 </md-tab>
 
-                <!-- Tab: Tags -->
-                <md-tab label="Tags">
-                </md-tab>
-
                 <!-- Tab: Crawls -->
                 <md-tab label="Crawls">
+                </md-tab>
+
+                <!-- Tab: Tags -->
+                <md-tab>
+                  <md-tab-label><md-icon>local_offer</md-icon> Tags</md-tab-label>
+                  <md-tab-body>
+                    <div layout-fill layout="column">
+                      <div flex style="overflow-y: auto">
+                        <div layout="column" style="padding: 8px">
+                          
+                          <!-- Free tags -->
+                          <div class="md-title">Free tags</div>
+                          <md-chips
+                            ng-model="tagCategories.FREETAGS"
+                            readonly="tagsPendingQueries>0"
+                            md-removable="tagsPendingQueries<=0"
+                          >
+                            <md-autocomplete
+                              md-selected-item="selectedItem"
+                              md-search-text="searchText"
+                              md-items="tag in autoComplete(searchText, 'FREETAGS')"
+                              md-item-text="tag"
+                              placeholder="+ Tag..."
+                            >
+                              <span md-highlight-text="searchText">{{tag}}</span>
+                            </md-autocomplete>
+                          </md-chips>
+                          <br>
+                          <br>
+
+                          <!-- Tag categories -->
+                          <div class="md-title">Tag categories</div>
+                          <div ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">
+                            {{tagCat}}
+                          </div>
+                        </div>
+                      </div>
+                      <!-- <div style="padding: 8px" layout="row">
+                        <md-button class="md-raised md-primary">Save changes</md-button>
+                        <md-button class="">Cancel</md-button>
+                      </div> -->
+                    </div>
+                  </md-tab-body>
                 </md-tab>
 
               </md-tabs>

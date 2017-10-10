@@ -24,11 +24,15 @@ angular.module('hyphe.webentityController', [])
     $scope.identityEditLoading = false
     
     $scope.tagCategories = {}
+    $scope.tagsPendingQueries = 0
+    $scope.tagsAutocomplete = []
+    /*
     $scope.tagCategoriesOrder = []
     $scope.newCategory = ""
-    
+    */
     $scope.crawls = []
 
+    $scope.$watch('tagCategories', synchronizeTags, true)
 
     $scope.enableEditMode = function(){
       $scope.webentityEdit_name = $scope.webentity.name
@@ -103,14 +107,106 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
+    $scope.saveNewCategory = function(category){
+      category = category.trim()
+      if (!category || $scope.tagCategories[category]) return false
+      if (~category.indexOf('.')) {
+        $scope.status = {message: 'Tag categories cannot include dot characters', background: 'warning'}
+        return false
+      }
+      $scope.tagCategories[category] = {}
+      $scope.tagCategoriesOrder.push(category)
+      // Wait a frame to render the new category before resetting the form field and focus on input
+      $timeout(function(){
+        $scope.newCategory = ''
+        $(".tagbox-body:last .host .tags").click()
+      }, 0)
+      return true
+    }
+
     // Init
     api.downloadCorpusTLDs(function(){
       fetchWebentity()
       fetchCrawls()
-      fetchTags()
+      fetchAutocompletionTags()
     })
 
     // Functions
+    function synchronizeTags() {
+      if ($scope.tagCategories && $scope.webentity.tags) {
+        var comparison = {}
+        var tagCat
+        for (tagCat in $scope.tagCategories) {
+          comparison[tagCat] = comparison[tagCat] || {}
+          comparison[tagCat].new = $scope.tagCategories[tagCat]
+        }
+        for (tagCat in $scope.webentity.tags.USER) {
+          comparison[tagCat] = comparison[tagCat] || {}
+          comparison[tagCat].old = $scope.webentity.tags.USER[tagCat]
+        }
+        for (tagCat in comparison) {
+          var tags = comparison[tagCat]
+          var tagsToAdd = tags.new.filter(function(tag){
+            return tags.old.indexOf(tag) < 0
+          })
+          var tagsToRemove = tags.old.filter(function(tag){
+            return tags.new.indexOf(tag) < 0
+          })
+          tagsToAdd.forEach(function(tag){
+            addTag(tag, tagCat)
+          })
+          tagsToRemove.forEach(function(tag){
+            removeTag(tag, tagCat)
+          })
+        }
+      }
+    }
+
+    function addTag(tag, category){
+      $scope.status = {message: 'Adding tag'}
+      $scope.tagsPendingQueries++
+      
+      return api.addTag({
+          webentityId: $scope.webentity.id
+          ,category: category
+          ,value: tag
+        }
+        ,function(){
+          $scope.tagsPendingQueries--
+          $scope.status = {message: ''}
+          updateWELastModifTime()
+        }
+        ,function(error){
+          $scope.tagsPendingQueries--
+          $scope.tagCategories[category] = $scope.tagCategories[category].filter(function(t){
+            return t != tag
+          })
+          $scope.status = {message: 'Could not add tag', background:'warning'}
+        }
+      )
+    }
+
+    function removeTag(tag, category){
+      $scope.status = {message: 'Removing tag'}
+      $scope.tagsPendingQueries++
+      return api.removeTag({
+          webentityId: $scope.webentity.id
+          ,category: category
+          ,value: tag
+        }
+        ,function(){
+          $scope.tagsPendingQueries--
+          $scope.status = {message: ''}
+          updateWELastModifTime()
+        }
+        ,function(error){
+          $scope.tagsPendingQueries--
+          $scope.tagCategories[category].push(tag)
+          $scope.status = {message: 'Could not remove tag', background:'warning'}
+        }
+      )
+    }
+
     function checkWebEntityHomepage(homepage){
       var lru
       try{
@@ -139,6 +235,14 @@ angular.module('hyphe.webentityController', [])
 
           $scope.webentity.prefixes.sort(utils.sort_LRUs)
           $scope.webentity.tags.USER = $scope.webentity.tags.USER || {}
+          $scope.webentity.tags.USER.FREETAGS = $scope.webentity.tags.USER.FREETAGS || []
+          
+          // Clone categories
+          $scope.tagCategories = {}
+          var tagCat
+          for(tagCat in $scope.webentity.tags.USER) {
+            $scope.tagCategories[tagCat] = $scope.webentity.tags.USER[tagCat].slice(0)
+          }
 
           console.log($scope.webentity.name, $scope.webentity)
         }
@@ -164,65 +268,20 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
-    $scope.saveNewCategory = function(category){
-      category = category.trim()
-      if (!category || $scope.tagCategories[category]) return false
-      if (~category.indexOf('.')) {
-        $scope.status = {message: 'Tag categories can not include dot characters', background: 'warning'}
-        return false
-      }
-      $scope.tagCategories[category] = {}
-      $scope.tagCategoriesOrder.push(category)
-      // Wait a frame to render the new category before resetting the form field and focus on input
-      $timeout(function(){
-        $scope.newCategory = ''
-        $(".tagbox-body:last .host .tags").click()
-      }, 0)
-      return true
-    }
-
-    $scope.addTag = function(tag, category){
-      $scope.status = {message: 'Adding tag'}
-      // Add tag to autocompleter
-      if (!$scope.tagCategories[category]) {
-        $scope.tagCategories[category] = {}
-      }
-      $scope.tagCategories[category][searchable(tag.text)] = tag.text
-      return api.addTag({
-          webentityId: $scope.webentity.id
-          ,category: category
-          ,value: tag.text
+    $scope.autoComplete = function(query, category){
+      var searchQuery = searchable(query)
+        , res = []
+      Object.keys($scope.tagsAutocomplete[category] || {}).forEach(function(searchTag){
+        if (searchTag && (!searchQuery || ~searchTag.indexOf(searchQuery))) {
+          res.push($scope.tagsAutocomplete[category][searchTag])
         }
-        ,function(){
-          $scope.status = {message: ''}
-          updateWELastModifTime()
-        }
-        ,function(error){
-          $scope.status = {message: 'Could not add tag', background:'warning'}
-        }
-      )
-    }
-
-    $scope.removeTag = function(tag, category){
-      $scope.status = {message: 'Removing tag'}
-      return api.removeTag({
-          webentityId: $scope.webentity.id
-          ,category: category
-          ,value: tag.text
-        }
-        ,function(){
-          $scope.status = {message: ''}
-          updateWELastModifTime()
-        }
-        ,function(error){
-          $scope.status = {message: 'Could not remove tag', background:'warning'}
-        }
-      )
+      })
+      return res
     }
 
     function searchable(str){
       str = str.trim().toLowerCase()
-      // remove accents, swap ñ for n, etc
+      // remove diacritics
       var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;"
           , to = "aaaaeeeeiiiioooouuuunc------"
       for (var i = 0, l = from.length; i < l; i++) {
@@ -231,34 +290,26 @@ angular.module('hyphe.webentityController', [])
       return str
     }
 
-    function fetchTags(){
+    function fetchAutocompletionTags(){
       api.getTags(
         { namespace: 'USER' }
-        ,function(tags){
-          Object.keys(tags || {}).forEach(function(category){
-            $scope.tagCategories[category] = {}
-            $scope.tagCategoriesOrder.push(category)
-            tags[category].forEach(function(val){
-              $scope.tagCategories[category][searchable(val)] = val
-            })
-          })
+        ,function(data){
+          var tagCat
+          for (tagCat in data) {
+            $scope.tagsAutocomplete[tagCat] = []
+            var tag
+            var tagCatValues = data[tagCat]
+            for (tag in tagCatValues) {
+              $scope.tagsAutocomplete[tagCat][searchable(tag)] = tag
+            }
+          }
         }
-        ,function(tags){
+        ,function(data){
           $scope.status = {message: 'Error loading corpus tags', background: 'danger'}
         }
       )
     }
 
-    $scope.autoComplete = function(query, category){
-      var searchQuery = searchable(query)
-        , res = []
-      Object.keys($scope.tagCategories[category] || {}).forEach(function(searchTag){
-        if (searchTag && (!searchQuery || ~searchTag.indexOf(searchQuery))) {
-          res.push($scope.tagCategories[category][searchTag])
-        }
-      })
-      return res
-    }
   })
 
 
