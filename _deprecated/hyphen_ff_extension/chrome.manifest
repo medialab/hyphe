@@ -1,6 +1,0 @@
-content		hyphen									chrome/content/
-skin		hyphen		classic/1.0					chrome/skin/
-
-
-
-overlay		chrome://browser/content/browser.xul	chrome://hyphen/content/browserOverlay.xul
