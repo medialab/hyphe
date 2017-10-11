@@ -410,8 +410,6 @@ class MongoDB(object):
 
     @inlineCallbacks
     def save_stats(self, corpus, corpus_metas):
-        old = yield self.get_last_stats(corpus)
-        del(old["timestamp"], old["_id"])
         new = {
           "total": corpus_metas["total_webentities"],
           "in": corpus_metas['webentities_in'],
@@ -421,7 +419,10 @@ class MongoDB(object):
           "discovered": corpus_metas['webentities_discovered'],
           "undecided": corpus_metas['webentities_undecided']
         }
-        if old != new:
+        old = yield self.get_last_stats(corpus)
+        if old:
+            del(old["timestamp"], old["_id"])
+        if not old or old != new:
             new["timestamp"] = now_ts()
             yield self.stats(corpus).insert(new)
 
