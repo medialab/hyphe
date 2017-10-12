@@ -307,12 +307,12 @@
                           <br>
 
                           <!-- Tag categories -->
-                          <div ng-repeat="(tagCat, _tv) in tagsAutocomplete" ng-if="tagCat != 'FREETAGS'">
+                          <div ng-repeat="(tagCat, _tv) in tagCategories" ng-if="tagCat != 'FREETAGS'">
                             <div class="md-title">{{tagCat}}</div>
                             <md-chips
                               ng-model="tagCategories[tagCat]"
-                              readonly="tagsPendingQueries>0 || tagCategories[tagCat].length > 0"
-                              md-removable="tagsPendingQueries<=0"
+                              readonly="tagsPendingQueries>0 || (tagCategories[tagCat] && tagCategories[tagCat].length > 0)"
+                              md-removable="tagsPendingQueries <= 0"
                               md-max-chips="1"
                             >
                               <md-autocomplete

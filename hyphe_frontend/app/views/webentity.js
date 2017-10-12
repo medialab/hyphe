@@ -118,7 +118,6 @@ angular.module('hyphe.webentityController', [])
       // Wait a frame to render the new category before resetting the form field and focus on input
       $timeout(function(){
         $scope.newCategory = ''
-        // $(".tagbox-body:last .host .tags").click()
       }, 0)
       
       return true
@@ -263,7 +262,6 @@ angular.module('hyphe.webentityController', [])
           $scope.webentity.tags.USER.FREETAGS = $scope.webentity.tags.USER.FREETAGS || []
           
           // Clone categories
-          $scope.tagCategories = {}
           var tagCat
           for(tagCat in $scope.webentity.tags.USER) {
             $scope.tagCategories[tagCat] = $scope.webentity.tags.USER[tagCat].slice(0)
@@ -325,6 +323,7 @@ angular.module('hyphe.webentityController', [])
           var tagCat
           for (tagCat in data) {
             $scope.tagsAutocomplete[tagCat] = {}
+            $scope.tagCategories[tagCat] = $scope.tagCategories[tagCat] || []
             var tag
             var tagCatValues = data[tagCat]
             for (tag in tagCatValues) {
