@@ -11,7 +11,6 @@ angular.module('hyphe.webentityExplorerController', [])
     $location,
     $rootScope
   ) {
-    $scope.currentPage = 'webentity.explorer'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
@@ -38,12 +37,6 @@ angular.module('hyphe.webentityExplorerController', [])
     $scope.creationRuleLoaded = false
     $scope.creationRule = null
 
-    $scope.pagination_max_size = 7
-    $scope.pagination_items_per_page = 20
-    $scope.items_page = 1
-    $scope.items_folder = 1
-    $scope.items_webentity = 1
-
     $scope.sort_pages = 'sortlabel'
     $scope.sort_asc_pages = true
     $scope.sort_folders = 'sortlabel'
@@ -54,7 +47,9 @@ angular.module('hyphe.webentityExplorerController', [])
     $scope.sort_asc_webentities = true
 
     // Init
-    fetchWebentity(utils.readWebentityIdFromRoute())
+    api.downloadCorpusTLDs(function(){
+      fetchWebentity(utils.readWebentityIdFromRoute())
+    })
 
     $scope.goTo = function(node){
       currentNode = node
