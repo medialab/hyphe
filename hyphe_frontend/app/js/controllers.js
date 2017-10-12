@@ -23,6 +23,7 @@ angular.module('hyphe.controllers', [
     ,'hyphe.prospectController'
     ,'hyphe.webentityController'
     ,'hyphe.webentityExplorerController'
+    ,'hyphe.webentityPagesNetworkController'
     ,'hyphe.helpController'
   ])
 
