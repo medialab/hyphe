@@ -121,6 +121,15 @@
                           {{ item.label }}
                         </h3>
                         <p>Folder ({{ item.subtype_explicit }})</p>
+                        <div class="md-secondary">
+                          {{item.pagesCount == 0 ? 'No page' : item.pagesCount == 1 ? '1 page' : (item.pagesCount|number) + ' pages'}}
+                        </div>
+                        <md-button
+                          class="md-secondary"
+                          ng-click="newWebEntity(item)"
+                        >
+                          New web entity
+                        </md-button>
                       </div>
                     </md-list-item>
 
