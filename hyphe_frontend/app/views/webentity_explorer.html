@@ -9,7 +9,7 @@
         md-colors="{background: 'default-background-50'}"
         style="overflow-y: auto;"
       >
-        
+
         <!-- Content -->
         <div layout-fill layout="column">
 
@@ -71,7 +71,7 @@
             <div flex ng-if="item_list.length > 0">
               <md-virtual-repeat-container layout-fill>
                 <md-list>
-                  
+
                   <div ng-repeat="item in item_list">
 
                     <!-- Type: title -->
@@ -83,16 +83,15 @@
                       </div>
                     </md-toolbar>
 
-                    <!-- Type: prefix -->
+                    <!-- Type: prefix of this web entity -->
                     <md-list-item
                       ng-if="item.type=='prefix'"
                       class="md-2-line"
                       ng-click="goTo(item.node)"
                     >
-                      <md-icon class="md-avatar-icon">work</md-icon>
+                      <md-icon class="md-avatar-icon">folder_special</md-icon>
                       <div class="md-list-item-text">
                         <h3>
-                          
                           {{ item.label }}
                         </h3>
                         <p>Prefix</p>
@@ -125,7 +124,7 @@
                           {{item.pagesCount == 0 ? 'No page' : item.pagesCount == 1 ? '1 page' : (item.pagesCount|number) + ' pages'}}
                         </div>
                         <md-button
-                          class="md-secondary"
+                          class="md-secondary md-primary"
                           ng-click="newWebEntity(item)"
                         >
                           New web entity
@@ -157,7 +156,7 @@
                           <md-icon style="opacity: 0.2">opacity</md-icon>
                         </div>
                         <md-button
-                          class="md-secondary"
+                          class="md-secondary md-primary"
                           ng-click="newWebEntity(item)"
                         >
                           New web entity
@@ -165,22 +164,49 @@
                       </div>
                     </md-list-item>
 
+                    <!-- Type: prefix of CHILD web entity -->
+                    <md-list-item
+                      ng-if="item.type=='otherWebentityPrefix'"
+                      class="md-2-line"
+                      ng-href="#/project/{{corpusId}}/webentityExplorer/{{item.data.id}}"
+                    >
+                      <md-icon class="md-avatar-icon">business_center</md-icon>
+                      <div class="md-list-item-text">
+                        <h3>
+                          {{ item.label }}
+                        </h3>
+                        <p>Prefix of <strong>{{item.data.name}}</strong></p>
+                        <md-button
+                          class="md-secondary md-primary"
+                          ng-click="mergeIntoCurrent(item.data.id)"
+                        >
+                          Merge into this
+                        </md-button>
+                      </div>
+                    </md-list-item>
+
+                    <!-- Type: PARENT web entity -->
+                    <md-list-item
+                      ng-if="item.type=='parentWebentity'"
+                      class="md-2-line"
+                      ng-href="#/project/{{corpusId}}/webentityExplorer/{{item.data.id}}"
+                    >
+                      <md-icon class="md-avatar-icon">business_center</md-icon>
+                      <div class="md-list-item-text">
+                        <h3>
+                          {{ item.label }}
+                        </h3>
+                        <p>Parent web entity</p>
+                        <md-button
+                          class="md-secondary md-primary"
+                          ng-click="mergeIntoCurrent(item.data.id)"
+                        >
+                          Merge into this
+                        </md-button>
+                      </div>
+                    </md-list-item>
+
                   </div>
-                </md-list>
-              </md-virtual-repeat-container>
-            </div>
-
-            <div flex ng-if="webentity_list.length > 0" md-colors="{'background':'default-background-200'}">
-              <md-virtual-repeat-container layout-fill>
-                <md-list>
-                  
-                  <md-list-item class="md-2-line" ng-repeat="item in webentity_list">
-                    <div class="md-list-item-text">
-                      <h3>{{ item.label }}</h3>
-                      <p>External web entity prefix</p>
-                    </div>
-                  </md-list-item>
-
                 </md-list>
               </md-virtual-repeat-container>
             </div>
