@@ -283,6 +283,9 @@ angular.module('hyphe.webentityController', [])
         }
         ,function(result){
           $scope.crawls = result.map(utils.consolidateJob)
+          $scope.crawls.sort(function(a, b){
+            return b.created_at - a.created_at
+          })
           if ($scope.crawls.some(function(job){
             return job.globalStatus != 'ACHIEVED' && job.globalStatus != 'UNSUCCESSFUL' && job.globalStatus != 'CANCELED'
           })) $timeout(fetchCrawls, 3000)
