@@ -139,6 +139,20 @@
                           {{ item.label }}
                         </h3>
                         <p>Page ({{ item.subtype_explicit }})</p>
+                        <div class="md-secondary" ng-if="page.crawled">
+                          <md-tooltip md-direction="left">Crawled</md-tooltip>
+                          <md-icon>opacity</md-icon>
+                        </div>
+                        <div class="md-secondary" ng-if="!page.crawled">
+                          <md-tooltip md-direction="left">Not crawled</md-tooltip>
+                          <md-icon style="opacity: 0.2">opacity</md-icon>
+                        </div>
+                        <md-button
+                          class="md-secondary"
+                          ng-click="newWebEntity(item)"
+                        >
+                          New web entity
+                        </md-button>
                       </div>
                     </md-list-item>
 
