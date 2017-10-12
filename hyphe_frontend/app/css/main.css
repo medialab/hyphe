@@ -92,6 +92,12 @@ dl.key-value-pairs dd {
   filter: FlipV;
   -ms-filter: "FlipV";
 }
+.icon-tilt {
+  -moz-transform: rotateZ(90deg);
+  -o-transform: rotateZ(90deg);
+  -webkit-transform: rotateZ(90deg);
+  transform: rotateZ(90deg);
+}
 .vspacer { /* Vertical spacer */
   height: 32px;
 }
