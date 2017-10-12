@@ -355,7 +355,7 @@
                 style="height: 48px;"
               >
                 <h3 style="padding: 8px; margin: 0px" ng-if="pages.length<=0">Pages</h3>
-                <h3 style="padding: 8px; margin: 0px" ng-if="pages.length>=1">{{pages.length}} Pages</h3>
+                <h3 style="padding: 8px; margin: 0px" ng-if="pages.length>=1">{{pages.length|number}} Pages</h3>
                 <div flex></div>
                 <!-- <md-button class="md-raised" disabled="true">
                   <md-icon>equalizer</md-icon>
@@ -370,6 +370,15 @@
                   network
                 </md-button>
               </div>
+              <div style="height: 64px; padding: 0px 8px" layout="column">
+                <md-input-container style="margin-bottom: 0;">
+                  <label>NOT a full text search</label>
+                  <md-icon>search</md-icon>
+                  <input
+                    ng-model="urlSearchQuery"
+                  >
+                </md-input-container>
+              </div>
               
               <div flex ng-if="pagesLoading" layout="column" layout-align="center center">
                 <spinner></spinner>
@@ -379,7 +388,7 @@
                 <md-virtual-repeat-container layout-fill>
                   <md-list>
                     <md-list-item
-                      md-virtual-repeat="page in pages"
+                      md-virtual-repeat="page in pages | filter:urlSearchQuery:false:url"
                     >
                       <span md-truncate flex>
                         <a href="{{page.url}}" target="_blank" title="Open in a new tab">
