@@ -490,10 +490,15 @@ angular.module('hyphe.webentityExplorerController', [])
             .reduce(function(current, candidate){
               return (current.length>=candidate.length)?(current):(candidate)
             }, '')
+
+          if (prefix == '') {
+            throw('No prefix found')
+          }
+
           var path = prefix 
           var stub = lru.substr(prefix.length, lru.length - prefix.length) || ''
           var currentNode = tree.prefix[prefix]
-
+          
           /*
           
           EXAMPLE
@@ -549,7 +554,13 @@ angular.module('hyphe.webentityExplorerController', [])
 
       $scope.subWebentities.forEach(function(we){
         we.prefixes.forEach(function(lru){
-          pushBranch(lru, {webentity:we}, false)
+          // Check if lru is prefixed by one of this web entity's prefixes
+          // It's not necessarily the case of all these prefixes
+          if ($scope.webentity.prefixes.some(function(p){
+            return lru.indexOf(p) == 0
+          })) {
+            pushBranch(lru, {webentity:we}, false)
+          }
         })
       })
 
