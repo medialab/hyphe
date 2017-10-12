@@ -30,24 +30,11 @@ angular.module('hyphe.webentityExplorerController', [])
     $scope.path
     $scope.pathUrl
 
-    /*$scope.items_prefixes
-    $scope.items_folders
-    $scope.items_pages
-    $scope.items_webentities*/
     $scope.item_list
     $scope.webentity_list
 
     $scope.creationRuleLoaded = false
     $scope.creationRule = null
-
-/*    $scope.sort_pages = 'sortlabel'
-    $scope.sort_asc_pages = true
-    $scope.sort_folders = 'sortlabel'
-    $scope.sort_asc_folders = true
-    $scope.sort_prefixes = 'pagesCount'
-    $scope.sort_asc_prefixes = false
-    $scope.sort_webentities = 'sortlabel'
-    $scope.sort_asc_webentities = true*/
 
     // Init
     api.downloadCorpusTLDs(function(){
@@ -55,7 +42,6 @@ angular.module('hyphe.webentityExplorerController', [])
     })
 
     $scope.goTo = function(node){
-      console.log('Go to node', node)
       currentNode = node
       updateExplorer()
     }
@@ -65,7 +51,6 @@ angular.module('hyphe.webentityExplorerController', [])
     }
 
     $rootScope.$on('$locationChangeSuccess', function() {
-      console.log('LocationChangeSuccess')
       if ($scope.webentity.id !== utils.readWebentityIdFromRoute()) {
         return;
       }
@@ -122,42 +107,6 @@ angular.module('hyphe.webentityExplorerController', [])
         }
       )
     }
-
-    /*$scope.toogleSortPrefixes = function(field){
-      if($scope.sort_prefixes == field){
-        $scope.sort_asc_prefixes = !$scope.sort_asc_prefixes
-      } else {
-        $scope.sort_asc_prefixes = true
-        $scope.sort_prefixes = field
-      }
-    }
-
-    $scope.toogleSortFolders = function(field){
-      if($scope.sort_folders == field){
-        $scope.sort_asc_folders = !$scope.sort_asc_folders
-      } else {
-        $scope.sort_asc_folders = true
-        $scope.sort_folders = field
-      }
-    }
-
-    $scope.toogleSortPages = function(field){
-      if($scope.sort_pages == field){
-        $scope.sort_asc_pages = !$scope.sort_asc_pages
-      } else {
-        $scope.sort_asc_pages = true
-        $scope.sort_pages = field
-      }
-    }
-
-    $scope.toogleSortWebentities = function(field){
-      if($scope.sort_webentities == field){
-        $scope.sort_asc_webentities = !$scope.sort_asc_webentities
-      } else {
-        $scope.sort_asc_webentities = true
-        $scope.sort_webentities = field
-      }
-    }*/
 
     $scope.addWECreationRule = function(){
       $scope.status = {message: 'Loading'}
@@ -320,7 +269,6 @@ angular.module('hyphe.webentityExplorerController', [])
     }
     
     function updateExplorer(){
-      console.log('updateExplorer')
       $scope.item_list = []
       $scope.webentity_list = []
 
@@ -422,21 +370,21 @@ angular.module('hyphe.webentityExplorerController', [])
       if (items_prefixes.length > 0) {
         $scope.item_list.push({
           type: 'title',
-          label: 'Prefix' + ((items_prefixes.length > 1)?('es'):('')) + ' of ' + $scope.webentity.name + ' - ' + items_prefixes.length
+          label: 'Prefix' + ((items_prefixes.length > 1)?('es'):('')) + ' of ' + $scope.webentity.name + ' (' + items_prefixes.length + ')'
         })
         $scope.item_list = $scope.item_list.concat(items_prefixes)
       }
       if (items_folders.length > 0) {
         $scope.item_list.push({
           type: 'title',
-          label: 'Folder' + ((items_folders.length > 1)?('s'):('')) + ' - ' + items_folders.length
+          label: 'Folder' + ((items_folders.length > 1)?('s'):('')) + ' (' + items_folders.length + ')'
         })
         $scope.item_list = $scope.item_list.concat(items_folders)
       }
       if (items_pages.length > 0) {
         $scope.item_list.push({
           type: 'title',
-          label: 'Page' + ((items_pages.length > 1)?('s'):('')) + ' - ' + items_pages.length
+          label: 'Page' + ((items_pages.length > 1)?('s'):('')) + ' (' + items_pages.length + ')'
         })
         $scope.item_list = $scope.item_list.concat(items_pages)
       }
@@ -444,7 +392,7 @@ angular.module('hyphe.webentityExplorerController', [])
       if (items_webentities.length > 0) {
         $scope.webentity_list.push({
           type: 'title',
-          label: 'Other web entit' + ((items_webentities.length > 1)?('ies'):('y')) + ' - ' + items_webentities.length
+          label: 'Other web entit' + ((items_webentities.length > 1)?('ies'):('y')) + ' (' + items_webentities.length + ')'
         })
         $scope.webentity_list = $scope.webentity_list.concat(items_webentities)
       }
@@ -469,29 +417,33 @@ angular.module('hyphe.webentityExplorerController', [])
         })
       }
 
-      function pushFolder(label, url, lru, node, pageCount, isPrefix, type){
+      function pushFolder(label, url, lru, node, pageCount, isPrefix, subtype){
         items_folders.push({
           label: label
+          ,type: 'folder'
           ,sortlabel: label
           ,url: url
           ,lru: lru
           ,node: node
           ,pagesCount: pageCount
           ,isPrefix: isPrefix
-          ,type: explicitType(type)
+          ,subtype: subtype
+          ,subtype_explicit: explicitType(subtype)
         })
       }
 
-      function pushPage(label, url, lru, data, isPrefix, type){
+      function pushPage(label, url, lru, data, isPrefix, subtype){
         items_pages.push({
           label: label
+          ,type: 'page'
           ,sortlabel: label
           ,url: url
           ,lru: lru
           ,data: data
           ,isPrefix: isPrefix
           ,crawled: data.crawled
-          ,type: explicitType(type)
+          ,subtype: subtype
+          ,subtype_explicit: explicitType(subtype)
         })
       }
 
@@ -564,8 +516,6 @@ angular.module('hyphe.webentityExplorerController', [])
           
           while(stub.length > 0){
             
-            // console.log(stub)
-
             if(addPageCount)
               currentNode.pagesCount++
             
@@ -609,7 +559,6 @@ angular.module('hyphe.webentityExplorerController', [])
     }
 
     function updateFromPath(){
-      console.log('updateFromPath')
       var path = ($location.search()['p'] || '').split('/')
       var candidateNode = tree.prefix[path[0]]
       for(var i in path){
@@ -649,7 +598,7 @@ angular.module('hyphe.webentityExplorerController', [])
           return 'Fragment'
           break
         default:
-          return 'Misc.'
+          return 'Prefix-level'
           break
       }
     }

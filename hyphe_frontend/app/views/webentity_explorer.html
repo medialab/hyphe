@@ -72,32 +72,66 @@
               <md-virtual-repeat-container layout-fill>
                 <md-list>
                   
-                  <md-list-item
-                    class="md-2-line"
-                    ng-repeat="item in item_list"
-                    ng-class="{'md-primary': item.type=='title'}"
-                    md-colors="{'background':(item.type=='title')?('default-primary'):('default-background-50-0')}"
-                    ng-click="(item.type=='prefix')?(goTo(item.node)):(undefined)"
-                  >
-                    <md-icon class="md-avatar-icon" ng-if="item.type == 'prefix'">work</md-icon>
-                    <div class="md-list-item-text">
-                      <h3
-                        ng-style="{
-                          'color':(item.type=='title')?('#FFF'):('initial'),
-                          'font-size':(item.type=='title')?('1.2em'):('initial'),
-                          'font-weight':(item.type=='title')?('bold'):('initial')
-                        }"
-                      >
-                        <!-- <a href="{{webentity.homepage}}" target="_blank" title="Open in a new tab">
-                          <md-tooltip md-direction="left">Open home page in a new tab</md-tooltip>
-                          <md-icon>link</md-icon>
-                        </a> -->
-                        {{ item.label }}
-                      </h3>
-                      <p ng-if="item.type == 'prefix'">Web entity prefix</p>
-                    </div>
-                  </md-list-item>
+                  <div ng-repeat="item in item_list">
 
+                    <!-- Type: title -->
+                    <md-toolbar ng-if="item.type=='title'">
+                      <div class="md-toolbar-tools">
+                        <h3>
+                          <span>{{ item.label }}</span>
+                        </h3>
+                      </div>
+                    </md-toolbar>
+
+                    <!-- Type: prefix -->
+                    <md-list-item
+                      ng-if="item.type=='prefix'"
+                      class="md-2-line"
+                      ng-click="goTo(item.node)"
+                    >
+                      <md-icon class="md-avatar-icon">work</md-icon>
+                      <div class="md-list-item-text">
+                        <h3>
+                          {{ item.label }}
+                        </h3>
+                        <p>Prefix</p>
+                      </div>
+                    </md-list-item>
+
+                    <!-- Type: folder -->
+                    <md-list-item
+                      ng-if="item.type=='folder'"
+                      class="md-2-line"
+                      ng-click="goTo(item.node)"
+                    >
+                      <md-icon class="md-avatar-icon">folder</md-icon>
+                      <div class="md-list-item-text">
+                        <h3>
+                          {{ item.label }}
+                        </h3>
+                        <p>Folder ({{ item.subtype_explicit }})</p>
+                      </div>
+                    </md-list-item>
+
+                    <!-- Type: page -->
+                    <md-list-item
+                      ng-if="item.type=='page'"
+                      class="md-2-line"
+                    >
+                      <md-icon class="md-avatar-icon">description</md-icon>
+                      <div class="md-list-item-text">
+                        <h3>
+                          <a href="{{item.url}}" target="_blank" title="Open in a new tab">
+                            <md-tooltip md-direction="left">Open URL in a new tab</md-tooltip>
+                            <md-icon>link</md-icon>
+                          </a>
+                          {{ item.label }}
+                        </h3>
+                        <p>Page ({{ item.subtype_explicit }})</p>
+                      </div>
+                    </md-list-item>
+
+                  </div>
                 </md-list>
               </md-virtual-repeat-container>
             </div>
