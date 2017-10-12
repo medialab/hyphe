@@ -6,3 +6,4 @@ app/bundle.js
 tmp
 .DS_Store
 .idea
+package-lock.json
