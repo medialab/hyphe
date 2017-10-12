@@ -17,7 +17,7 @@
             <h1 class="word-break" md-truncate>
               <span md-colors="{'color': 'default-primary'}">
                 <md-icon class="md-primary">folder</md-icon>
-                Explore as folder:
+                Explore as folders:
               </span>
               {{webentity.name || 'loading'}}
             </h1>
@@ -68,11 +68,50 @@
               >REMOVE WEB ENTITY CREATION RULE</md-button>
             </div>
 
-            <div flex>
+            <div flex ng-if="item_list.length > 0">
               <md-virtual-repeat-container layout-fill>
                 <md-list>
                   
-                  <!-- TODO -->
+                  <md-list-item
+                    class="md-2-line"
+                    ng-repeat="item in item_list"
+                    ng-class="{'md-primary': item.type=='title'}"
+                    md-colors="{'background':(item.type=='title')?('default-primary'):('default-background-50-0')}"
+                    ng-click="(item.type=='prefix')?(goTo(item.node)):(undefined)"
+                  >
+                    <md-icon class="md-avatar-icon" ng-if="item.type == 'prefix'">work</md-icon>
+                    <div class="md-list-item-text">
+                      <h3
+                        ng-style="{
+                          'color':(item.type=='title')?('#FFF'):('initial'),
+                          'font-size':(item.type=='title')?('1.2em'):('initial'),
+                          'font-weight':(item.type=='title')?('bold'):('initial')
+                        }"
+                      >
+                        <!-- <a href="{{webentity.homepage}}" target="_blank" title="Open in a new tab">
+                          <md-tooltip md-direction="left">Open home page in a new tab</md-tooltip>
+                          <md-icon>link</md-icon>
+                        </a> -->
+                        {{ item.label }}
+                      </h3>
+                      <p ng-if="item.type == 'prefix'">Web entity prefix</p>
+                    </div>
+                  </md-list-item>
+
+                </md-list>
+              </md-virtual-repeat-container>
+            </div>
+
+            <div flex ng-if="webentity_list.length > 0" md-colors="{'background':'default-background-200'}">
+              <md-virtual-repeat-container layout-fill>
+                <md-list>
+                  
+                  <md-list-item class="md-2-line" ng-repeat="item in webentity_list">
+                    <div class="md-list-item-text">
+                      <h3>{{ item.label }}</h3>
+                      <p>External web entity prefix</p>
+                    </div>
+                  </md-list-item>
 
                 </md-list>
               </md-virtual-repeat-container>

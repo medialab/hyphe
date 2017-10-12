@@ -19,7 +19,7 @@ angular.module('hyphe.webentityExplorerController', [])
     $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
 
     var tree
-      , currentNode
+    var currentNode = false
 
     $scope.loading = true
 
@@ -29,22 +29,25 @@ angular.module('hyphe.webentityExplorerController', [])
 
     $scope.path
     $scope.pathUrl
-    $scope.items_pages
+
+    /*$scope.items_prefixes
     $scope.items_folders
-    $scope.items_prefixes
-    $scope.items_webentities
+    $scope.items_pages
+    $scope.items_webentities*/
+    $scope.item_list
+    $scope.webentity_list
 
     $scope.creationRuleLoaded = false
     $scope.creationRule = null
 
-    $scope.sort_pages = 'sortlabel'
+/*    $scope.sort_pages = 'sortlabel'
     $scope.sort_asc_pages = true
     $scope.sort_folders = 'sortlabel'
     $scope.sort_asc_folders = true
     $scope.sort_prefixes = 'pagesCount'
     $scope.sort_asc_prefixes = false
     $scope.sort_webentities = 'sortlabel'
-    $scope.sort_asc_webentities = true
+    $scope.sort_asc_webentities = true*/
 
     // Init
     api.downloadCorpusTLDs(function(){
@@ -52,10 +55,8 @@ angular.module('hyphe.webentityExplorerController', [])
     })
 
     $scope.goTo = function(node){
+      console.log('Go to node', node)
       currentNode = node
-      $scope.items_page = 1
-      $scope.items_folder = 1
-      $scope.items_webentity = 1
       updateExplorer()
     }
 
@@ -64,13 +65,14 @@ angular.module('hyphe.webentityExplorerController', [])
     }
 
     $rootScope.$on('$locationChangeSuccess', function() {
+      console.log('LocationChangeSuccess')
       if ($scope.webentity.id !== utils.readWebentityIdFromRoute()) {
         return;
       }
       if ($scope.webentity.prefixes && tree) {
         updateFromPath()
       }
-      if (!~$location.path().indexOf("/explorer"))
+      if (!~$location.path().indexOf("/webentityExplorer"))
         $location.search("p", undefined)
     })
 
@@ -121,7 +123,7 @@ angular.module('hyphe.webentityExplorerController', [])
       )
     }
 
-    $scope.toogleSortPrefixes = function(field){
+    /*$scope.toogleSortPrefixes = function(field){
       if($scope.sort_prefixes == field){
         $scope.sort_asc_prefixes = !$scope.sort_asc_prefixes
       } else {
@@ -155,7 +157,7 @@ angular.module('hyphe.webentityExplorerController', [])
         $scope.sort_asc_webentities = true
         $scope.sort_webentities = field
       }
-    }
+    }*/
 
     $scope.addWECreationRule = function(){
       $scope.status = {message: 'Loading'}
@@ -318,10 +320,14 @@ angular.module('hyphe.webentityExplorerController', [])
     }
     
     function updateExplorer(){
-      $scope.items_pages = []
-      $scope.items_folders = []
-      $scope.items_prefixes = []
-      $scope.items_webentities = []
+      console.log('updateExplorer')
+      $scope.item_list = []
+      $scope.webentity_list = []
+
+      var items_prefixes = []
+      var items_folders = []
+      var items_pages = []
+      var items_webentities = []
 
       if(!currentNode){
         
@@ -412,13 +418,49 @@ angular.module('hyphe.webentityExplorerController', [])
 
       }
 
+      // Compile different lists as single list
+      if (items_prefixes.length > 0) {
+        $scope.item_list.push({
+          type: 'title',
+          label: 'Prefix' + ((items_prefixes.length > 1)?('es'):('')) + ' of ' + $scope.webentity.name + ' - ' + items_prefixes.length
+        })
+        $scope.item_list = $scope.item_list.concat(items_prefixes)
+      }
+      if (items_folders.length > 0) {
+        $scope.item_list.push({
+          type: 'title',
+          label: 'Folder' + ((items_folders.length > 1)?('s'):('')) + ' - ' + items_folders.length
+        })
+        $scope.item_list = $scope.item_list.concat(items_folders)
+      }
+      if (items_pages.length > 0) {
+        $scope.item_list.push({
+          type: 'title',
+          label: 'Page' + ((items_pages.length > 1)?('s'):('')) + ' - ' + items_pages.length
+        })
+        $scope.item_list = $scope.item_list.concat(items_pages)
+      }
+
+      if (items_webentities.length > 0) {
+        $scope.webentity_list.push({
+          type: 'title',
+          label: 'Other web entit' + ((items_webentities.length > 1)?('ies'):('y')) + ' - ' + items_webentities.length
+        })
+        $scope.webentity_list = $scope.webentity_list.concat(items_webentities)
+      }
+
       // Record path in location
-      $location.search({'p':$scope.path.map(function(d){return d.node.stem}).join('/')})
+      if ($scope.path.length) {
+        $location.search({'p':$scope.path.map(function(d){return d.node.stem}).join('/')})
+      } else {
+        $location.search({})
+      }
 
       // Internal functions
       function pushPrefix(label, url, lru, node, pageCount){
-        $scope.items_prefixes.push({
+        items_prefixes.push({
           label: label
+          ,type: 'prefix'
           ,sortlabel: label
           ,url: url
           ,lru: lru
@@ -428,7 +470,7 @@ angular.module('hyphe.webentityExplorerController', [])
       }
 
       function pushFolder(label, url, lru, node, pageCount, isPrefix, type){
-        $scope.items_folders.push({
+        items_folders.push({
           label: label
           ,sortlabel: label
           ,url: url
@@ -441,7 +483,7 @@ angular.module('hyphe.webentityExplorerController', [])
       }
 
       function pushPage(label, url, lru, data, isPrefix, type){
-        $scope.items_pages.push({
+        items_pages.push({
           label: label
           ,sortlabel: label
           ,url: url
@@ -454,7 +496,7 @@ angular.module('hyphe.webentityExplorerController', [])
       }
 
       function pushWebentityPrefix(label, url, lru, data){
-        $scope.items_webentities.push({
+        items_webentities.push({
           label: label
           ,sortlabel: label
           ,url: url
@@ -567,6 +609,7 @@ angular.module('hyphe.webentityExplorerController', [])
     }
 
     function updateFromPath(){
+      console.log('updateFromPath')
       var path = ($location.search()['p'] || '').split('/')
       var candidateNode = tree.prefix[path[0]]
       for(var i in path){
@@ -574,7 +617,8 @@ angular.module('hyphe.webentityExplorerController', [])
           candidateNode = candidateNode.children[path[i]]
         }
       }
-      $scope.goTo(candidateNode)
+      if (candidateNode != currentNode)
+        $scope.goTo(candidateNode)
     }
 
     function cleanStem(stem){
