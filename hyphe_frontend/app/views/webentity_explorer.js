@@ -480,6 +480,14 @@ angular.module('hyphe.webentityExplorerController', [])
 
       
       var pushBranch = function(lru, properties, addPageCount){
+        if (lru.length == 0) { return }
+
+        // Check that the lru ends with a pipe
+        if (lru[lru.length - 1] != "|") {
+          console.warn("LRU does not end with a pipe:", lru)
+          lru = lru + '|'
+        }
+
         try{
           // Find the prefix of the lru
           var prefix = prefixes.filter(function(prefix){
@@ -488,9 +496,9 @@ angular.module('hyphe.webentityExplorerController', [])
             .reduce(function(current, candidate){
               return (current.length>=candidate.length)?(current):(candidate)
             }, '')
-          ,path = prefix 
-          ,stub = lru.substr(prefix.length, lru.length - prefix.length) || ''
-          ,currentNode = tree.prefix[prefix]
+          var path = prefix 
+          var stub = lru.substr(prefix.length, lru.length - prefix.length) || ''
+          var currentNode = tree.prefix[prefix]
 
           /*
           
@@ -533,9 +541,8 @@ angular.module('hyphe.webentityExplorerController', [])
           for(var k in properties){
             currentNode.data[k] = properties[k]
           }
-
         } catch(e){
-          console.log('Unable to push branch in explorer tree', 'lru: '+lru, e)
+          console.error('Unable to push branch in explorer tree', 'lru: '+lru, e)
         }
 
       }
