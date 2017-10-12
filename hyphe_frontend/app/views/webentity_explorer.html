@@ -92,9 +92,20 @@
                       <md-icon class="md-avatar-icon">work</md-icon>
                       <div class="md-list-item-text">
                         <h3>
+                          
                           {{ item.label }}
                         </h3>
                         <p>Prefix</p>
+                        <div class="md-secondary">
+                          {{item.pagesCount == 0 ? 'No page' : item.pagesCount == 1 ? '1 page' : (item.pagesCount|number) + ' pages'}}
+                        </div>
+                        <md-button
+                          class="md-icon-button md-secondary"
+                          ng-click="removePrefix(item)"
+                        >
+                          <md-tooltip md-direction="left">Remove prefix</md-tooltip>
+                          <md-icon>close</md-icon>
+                        </md-button>
                       </div>
                     </md-list-item>
 
