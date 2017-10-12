@@ -84,7 +84,14 @@
               </md-button>
             </div>
 
-            <div layout="row" style="height: 48px" ng-if="pathUrl != ''">
+            <div layout="row" style="padding: 8px; height: 62px">
+              <md-input-container>
+                <label>Sort</label>
+                <md-select ng-model="$parent.itemSort" class="md-no-underline">
+                  <md-option value="pages">by pages count</md-option>
+                  <md-option value="alphabetical">from A to Z</md-option>
+                </md-select>
+              </md-input-container>
               <div flex></div>
               <md-button
                 class="md-primary"
