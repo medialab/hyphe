@@ -31,7 +31,6 @@ angular.module('hyphe.webentityExplorerController', [])
     $scope.pathUrl
 
     $scope.item_list
-    $scope.webentity_list
 
     $scope.creationRuleLoaded = false
     $scope.creationRule = null
@@ -275,11 +274,12 @@ angular.module('hyphe.webentityExplorerController', [])
       var items_prefixes = []
       var items_folders = []
       var items_pages = []
-      var items_webentities = []
+      var items_subwebentities = []
+      var items_parentwebentities = []
 
       if(!currentNode){
         
-        // Home: display prefixes
+        // Home: display prefixes + parent webentities
         
         for(var p in tree.prefix){
           if(tree.prefix[p].data.prefix){
@@ -302,6 +302,16 @@ angular.module('hyphe.webentityExplorerController', [])
           }
         }
 
+        // Parent web entities
+        items_parentwebentities = $scope.parentWebentities.map(function(we){
+          return {
+            label: we.name
+            ,type: 'parentWebentity'
+            ,sortlabel: we.name
+            ,data: we
+          }
+        })
+        
         // Path
         $scope.path = []
         $scope.pathUrl = ''
@@ -388,13 +398,19 @@ angular.module('hyphe.webentityExplorerController', [])
         })
         $scope.item_list = $scope.item_list.concat(items_pages)
       }
-
-      if (items_webentities.length > 0) {
-        $scope.webentity_list.push({
+      if (items_subwebentities.length > 0) {
+        $scope.item_list.push({
           type: 'title',
-          label: 'Other web entit' + ((items_webentities.length > 1)?('ies'):('y')) + ' (' + items_webentities.length + ')'
+          label: 'Child web entit' + ((items_subwebentities.length > 1)?('ies'):('y')) + ' (' + items_subwebentities.length + ')'
         })
-        $scope.webentity_list = $scope.webentity_list.concat(items_webentities)
+        $scope.item_list = $scope.item_list.concat(items_subwebentities)
+      }
+      if (items_parentwebentities.length > 0) {
+        $scope.item_list.push({
+          type: 'title',
+          label: 'Parent web entit' + ((items_parentwebentities.length > 1)?('ies'):('y')) + ' (' + items_parentwebentities.length + ')'
+        })
+        $scope.item_list = $scope.item_list.concat(items_parentwebentities)
       }
 
       // Record path in location
@@ -448,8 +464,9 @@ angular.module('hyphe.webentityExplorerController', [])
       }
 
       function pushWebentityPrefix(label, url, lru, data){
-        items_webentities.push({
+        items_subwebentities.push({
           label: label
+          ,type: 'otherWebentityPrefix'
           ,sortlabel: label
           ,url: url
           ,lru: lru
