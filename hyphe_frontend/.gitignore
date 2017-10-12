@@ -2,7 +2,7 @@ logs/*
 !.gitkeep
 node_modules/
 bower_components/
-app/graphology-build.js
+app/bundle.js
 tmp
 .DS_Store
 .idea
