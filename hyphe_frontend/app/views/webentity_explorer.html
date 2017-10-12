@@ -112,7 +112,18 @@
               </md-button>
             </div>
 
+            <div
+              flex
+              layout="column"
+              layout-align="center center"
+              ng-if="item_list.length == 0"
+              md-colors="{'background':'default-background-100-0.3'}"
+            >
+              NOTHING HERE
+            </div>
+
             <div flex ng-if="item_list.length > 0">
+
               <md-virtual-repeat-container layout-fill>
                 <md-list>
                   
