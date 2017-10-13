@@ -329,7 +329,6 @@ angular.module('hyphe.manageTagsController', [])
         api.getWebentities_byStatus(
           {
             status: 'IN'
-            ,semiLight: true
             ,count: pageSize
             ,page: 0
           }
