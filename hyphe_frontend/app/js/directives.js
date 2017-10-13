@@ -1399,31 +1399,26 @@ angular.module('hyphe.directives', [])
       restrict: 'E'
       ,templateUrl: 'partials/summarizeTagCategory.html'
       ,scope: {
-        tagCat: '='
-      , webentities: '='
+        tagCat: '=',
+        webentities: '='
       }
       ,link: function($scope, el, attrs) {
-        $scope.$watch('tagCat', update())
-        $scope.$watch('webentities', update())
+        $scope.$watch('tagCat', update)
+        $scope.$watch('webentities', update)
 
         function update() {
-          var values = {}
+          var valuesIndex = {}
           $scope.webentities.forEach(function(webentity){
             if (webentity.tags && webentity.tags.USER && webentity.tags.USER[$scope.tagCat]) {
               webentity.tags.USER[$scope.tagCat].forEach(function(val){
-                values[val] = (values[val] || 0) + 1
+                valuesIndex[val] = (valuesIndex[val] || 0) + 1
               })
+            } else {
+              valuesIndex[undefined] = (valuesIndex[undefined] || 0) + 1
             }
           })
 
-          var values_list = Object.keys(values)
-          if (values_list.length == 0) {
-            $scope.message = 'None'
-          } else if (values_list.length == 1) {
-            $scope.message = values_list[0]
-          } else {
-            $scope.message = values_list.length + ' values'
-          }
+          $scope.values = Object.keys(valuesIndex)
         }
       }
     }

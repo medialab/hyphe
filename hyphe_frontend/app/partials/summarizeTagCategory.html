@@ -1,3 +1,21 @@
-<div layout="row" style="background-color: #F00">
-{{message}}
+<div layout="row" ng-if="values.length == 1">
+	-> {{ (values[0]==undefined) ? ('&st;empty&gt;') : (values[0]) }}
+</div>
+<div layout="row" ng-if="values.length > 1">
+	<div layout="column" layout-align="center start" flex style="overflow: hidden">
+		<div>
+			Multiple values
+			({{ values.length }})
+		</div>
+		<div>
+			<md-truncate flex style="font-size: 0.8em; opacity: 0.5;">
+				<span ng-repeat="val in values">
+					{{(val==undefined) ? ('&st;empty&gt;') : (val)}}<span ng-if="!$last">, </span>
+				</span>
+			</md-truncate>
+		</div>
+	</div>
+	<md-button class="md-warn">
+		delete all
+	</md-button>
 </div>
