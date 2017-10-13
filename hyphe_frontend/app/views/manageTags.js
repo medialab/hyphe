@@ -147,6 +147,7 @@ angular.module('hyphe.manageTagsController', [])
     $scope.addTagToSelection = function(tagValue, tagCat, webentities) {
       $scope.status = {message: 'Adding tags'}
       webentities.forEach(function(webentity){
+        webentity.tags.USER = webentity.tags.USER || []
         webentity.tags.USER[tagCat] = webentity.tags.USER[tagCat] || []
         webentity.tags.USER[tagCat].push(tagValue)
       })
