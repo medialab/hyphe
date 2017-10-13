@@ -139,10 +139,11 @@ angular.module('hyphe.manageTagsController', [])
                 values: selection,
                 name: 'Some of ' + selection.length + ' values',
                 remove: function(){
+                  var tagCat = this.tagCat
                   this.values.forEach(function(val){
-                    $scope.tagCategories[this.tagCat][val].selected = false
-                    updateTags()
+                    $scope.tagCategories[tagCat][val].selected = false
                   })
+                  updateTags()
                 }
               })
             } else if (selection.length == 2) {
@@ -153,7 +154,10 @@ angular.module('hyphe.manageTagsController', [])
                 values: selection,
                 name: selection[0] + ' OR ' + selection[1],
                 remove: function(){
-                  $scope.tagCategories[this.tagCat][this.values[0]].selected = false
+                  var tagCat = this.tagCat
+                  this.values.forEach(function(val){
+                    $scope.tagCategories[tagCat][val].selected = false
+                  })
                   updateTags()
                 }
               })
