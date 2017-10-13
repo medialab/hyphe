@@ -21,11 +21,30 @@
             </span>
           </div>
 
-          <div style="background-color: #F88; height: 72px" layout="row" layout-align="center center">
-            FILTER SUMMARY (TODO)
+          <div layout-fill layout="column" layout-align="center center" ng-if="loading">
+            <spinner></spinner>
           </div>
 
-          <md-tabs md-border-bottom flex md-selected="selectedTab">
+          <md-content layout="row" layout-align="start center" ng-if="!loading" md-colors="{'background':'default-background-100-0.5'}" style="height: 100px">
+            <md-card ng-repeat="filter in filters">
+              <md-card-header layout="row" style="padding-right: 4px">
+                <md-card-header-text flex>
+                  <span class="md-title">{{filter.name}}</span>
+                  <span class="md-subhead">{{filter.type == 'special' ? 'All web entities' : filter.tagCat}}</span>
+                </md-card-header-text>
+                <div layout="column" layout="center center">
+                  <md-button class="md-icon-button" ng-click="filter.remove()">
+                    <md-icon>close</md-icon>
+                  </md-button>
+                </div>
+              </md-card-header>
+            </md-card>
+            <!-- <div ng-repeat="filter in filters">
+              {{filter.name}}
+            </div> -->
+          </md-content>
+
+          <md-tabs md-border-bottom flex md-selected="selectedTab" ng-if="!loading">
             
             <!-- Tab: TAGS -->
             <md-tab>
@@ -33,7 +52,7 @@
               <md-tab-body>
                 <div layout-fill layout="column" style="padding: 8px">
                   <p class="md-title">Special filters</p>
-                  <md-radio-group ng-model="generalOption" ng-change="touchSpecialOption()">
+                  <md-radio-group ng-model="$parent.generalOption" ng-change="touchSpecialOption()">
 
                     <md-radio-button value="untagged"> Untagged </md-radio-button>
                     <md-radio-button value="partiallyUntagged"> Partially untagged </md-radio-button>
@@ -49,7 +68,7 @@
                     </md-checkbox>
                     <div ng-repeat="(val, valData) in tagValues">
                       <md-checkbox ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue(tagCat)">
-                        {{val}} <em>{{valData.count}}</em>
+                        {{val}} <em md-colors="{'color':'default-primary'}">{{valData.count|number}}</em>
                       </md-checkbox>
                     </div>
                   </div>
@@ -60,7 +79,7 @@
 
             <!-- Tab: WEB ENTITIES -->
             <md-tab>
-              <md-tab-label><md-icon>list</md-icon> Web entities</md-tab-label>
+              <md-tab-label><md-icon>list</md-icon> Web entities list</md-tab-label>
               <md-tab-body>
                 <div layout-fill layout="column">
 
@@ -70,7 +89,7 @@
 
             <!-- Tab: NETWORK -->
             <md-tab>
-              <md-tab-label><md-icon>bubble_chart</md-icon> Network</md-tab-label>
+              <md-tab-label><md-icon>bubble_chart</md-icon> Web entities network</md-tab-label>
               <md-tab-body>
                 <div layout-fill layout="column">
 

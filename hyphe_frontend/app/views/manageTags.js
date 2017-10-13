@@ -38,6 +38,7 @@ angular.module('hyphe.manageTagsController', [])
     $scope.generalOption = undefined
     $scope.tagCategories = {}
     $scope.tagCategoriesUntagged = {}
+    $scope.filters = []
 
     $scope.touchSpecialOption = function() {
       var tagCat
@@ -78,7 +79,84 @@ angular.module('hyphe.manageTagsController', [])
     // Functions
     function updateTags() {
       if($scope.loading) { return }
+      $scope.filters = []
       
+      if ($scope.generalOption !== undefined) {
+        // There is a general option (special option)
+        // As a consequence everything else is unselected
+        var filter = {
+          type: 'special',
+          value: $scope.generalOption,
+          remove: function(){
+            $scope.generalOption = undefined
+            updateTags()
+          }
+        }
+        if ($scope.generalOption == 'untagged') {
+          filter.name = "Untagged"
+        } else if ($scope.generalOption == 'partiallyUntagged') {
+          filter.name = "Partially Untagged"
+        } else if ($scope.generalOption == 'conflicts') {
+          filter.name = "Conflicts"
+        }
+        $scope.filters.push(filter)
+      } else {
+        // There is no general option: we look at each category
+        var tagCat
+        for (tagCat in $scope.tagCategories) {
+          if ($scope.tagCategoriesUntagged[tagCat]) {
+            // Special option "untagged"
+            $scope.filters.push({
+              type: 'catUntagged',
+              tagCat: tagCat,
+              name: 'Untagged',
+              remove: function(){
+                $scope.tagCategoriesUntagged[tagCat] = false
+                updateTags()
+              }
+            })
+          } else {
+            // Some tags may be tagged
+            var selection = []
+            var val
+            for (val in $scope.tagCategories[tagCat]) {
+              var valData = $scope.tagCategories[tagCat][val]
+              if (valData.selected) {
+                selection.push(val)
+              }
+            }
+            if (selection.length > 1) {
+              // Multiple values selected
+              $scope.filters.push({
+                type: 'cat',
+                tagCat: tagCat,
+                values: selection,
+                name: selection.length + ' values',
+                remove: function(){
+                  selection.forEach(function(val){
+                    $scope.tagCategories[tagCat][val].selected = false
+                    updateTags()
+                  })
+                }
+              })
+            } else if (selection.length == 1) {
+              // Single value selected
+              $scope.filters.push({
+                type: 'cat',
+                tagCat: tagCat,
+                values: selection,
+                name: selection[0],
+                remove: function(){
+                  selection.forEach(function(val){
+                    $scope.tagCategories[tagCat][val].selected = false
+                    updateTags()
+                  })
+                }
+              })
+            }
+          }
+        }
+      }
     }
 
     function buildTagData() {
