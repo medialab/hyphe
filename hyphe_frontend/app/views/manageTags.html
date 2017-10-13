@@ -95,9 +95,9 @@
                       <p class="md-title"><em>Special filters</em></p>
                       <md-radio-group ng-model="$parent.generalOption" ng-change="touchSpecialOption()">
 
-                        <md-radio-button value="untagged"> Untagged </md-radio-button>
-                        <md-radio-button value="partiallyUntagged"> Partially untagged </md-radio-button>
-                        <md-radio-button value="conflicts"> Conflicts </md-radio-button>
+                        <md-radio-button class="md-primary" value="untagged"> Untagged </md-radio-button>
+                        <md-radio-button class="md-primary" value="partiallyUntagged"> Partially untagged </md-radio-button>
+                        <md-radio-button class="md-primary" value="conflicts"> Conflicts </md-radio-button>
 
                       </md-radio-group>
                     </div>
@@ -106,11 +106,11 @@
 
                     <div layout="column" style="padding: 8px 16px">
                       <p class="md-title">Free Tags</p>
-                      <md-checkbox ng-model="tagCategoriesUntagged['FREETAGS']" aria-label="Untagged" ng-change="touchUntagged('FREETAGS')">
+                      <md-checkbox class="md-primary" ng-model="tagCategoriesUntagged['FREETAGS']" aria-label="Untagged" ng-change="touchUntagged('FREETAGS')">
                         <em>Untagged</em>
                       </md-checkbox>
                       <div ng-repeat="(val, valData) in tagCategories.FREETAGS">
-                        <md-checkbox ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue('FREETAGS')">
+                        <md-checkbox class="md-primary" ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue('FREETAGS')">
                           {{val}} <em md-colors="{'color':'default-primary'}">{{valData.count|number}}</em>
                         </md-checkbox>
                       </div>
@@ -120,11 +120,11 @@
 
                     <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column" ng-if="tagCat != 'FREETAGS'" style="padding: 8px 16px">
                       <p class="md-title">{{tagCat}}</p>
-                      <md-checkbox ng-model="tagCategoriesUntagged[tagCat]" aria-label="Untagged" ng-change="touchUntagged(tagCat)">
+                      <md-checkbox class="md-primary" ng-model="tagCategoriesUntagged[tagCat]" aria-label="Untagged" ng-change="touchUntagged(tagCat)">
                         <em>Untagged</em>
                       </md-checkbox>
                       <div ng-repeat="(val, valData) in tagValues">
-                        <md-checkbox ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue(tagCat)">
+                        <md-checkbox class="md-primary" ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue(tagCat)">
                           {{val}} <em md-colors="{'color':'default-primary'}">{{valData.count|number}}</em>
                         </md-checkbox>
                       </div>
