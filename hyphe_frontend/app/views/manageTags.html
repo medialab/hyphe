@@ -25,15 +25,15 @@
             <spinner></spinner>
           </div>
 
-          <md-content layout="row" layout-align="start center" ng-if="!loading" md-colors="{'background':'default-background-100-0.5'}" style="height: 88px">
+          <md-content layout="row" layout-align="start center" ng-if="!loading" md-colors="{'background':'default-background-100-0.5'}" style="height: 106px">
             <md-card ng-repeat="filter in filters">
               <md-card-header layout="row" style="padding: 16px 4px">
                 <md-card-avatar>
                   <md-icon class="md-avatar-icon">local_offer</md-icon>
                 </md-card-avatar>
                 <md-card-header-text flex>
-                  <span class="md-title">{{filter.name}}</span>
-                  <span class="md-subhead">{{filter.type == 'special' ? 'All web entities' : filter.tagCat}}</span>
+                  <span class="md-title" md-truncate>{{filter.name}}</span>
+                  <span class="md-subhead" md-truncate>{{filter.type == 'special' ? 'All web entities' : filter.tagCat}}</span>
                 </md-card-header-text>
                 <div layout="column" layout="center center">
                   <md-button class="md-icon-button" ng-click="filter.remove()">
@@ -50,8 +50,8 @@
                   <md-icon class="md-avatar-icon">search</md-icon>
                 </md-card-avatar>
                 <md-card-header-text flex>
-                  <span class="md-title">{{searchQuery}}</span>
-                  <span class="md-subhead">Search</span>
+                  <span class="md-title" md-truncate>{{searchQuery}}</span>
+                  <span class="md-subhead" md-truncate>Search</span>
                 </md-card-header-text>
                 <div layout="column" layout="center center">
                   <md-button class="md-icon-button" ng-click="$parent.$parent.searchQuery = ''">
@@ -60,6 +60,27 @@
                 </div>
               </md-card-header>
             </md-card>
+
+            <!-- Count -->
+            <div layout="row">
+              <div layout="column" layout-align="center center" ng-if="filters.length>0" style="padding-left: 8px">
+                <md-icon class="md-primary">trending_flat</md-icon>
+              </div>
+              <div layout="column" style="padding-left: 16px">
+                <div class="md-title">
+                  <span md-colors="{'color': 'default-primary'}">
+                    {{displayedEntities.length|number}}
+                  </span>
+                  <span ng-if="displayedEntities.length < data.in.total" style="opacity: 0.5">
+                    / {{data.in.total|number}}
+                  </span>
+                </div>
+                <div style="opacity: 0.5">
+                  WEB&nbsp;ENTITIES
+                </div>
+              </div>
+            </div>
+
           </md-content>
 
           <div flex layout="row" ng-if="!loading">
@@ -134,11 +155,7 @@
                     <md-virtual-repeat-container flex>
                       <md-list md-colors="{'background': 'default-background-100'}">
                         <md-list-item
-                          md-virtual-repeat="
-                            webentity in data.in.webentities
-                              | filter:searchQuery:false:name
-                              | tagFilter:filters:tagCategories
-                          "
+                          md-virtual-repeat="webentity in displayedEntities"
                           md-item-size="48"
                           flex
                           md-colors="{
@@ -189,7 +206,7 @@
 
             </md-tabs>
 
-            <div layout="column" style="width: 416px; margin-left: 16px; padding-top: 16px" ng-if="checkedList.length > 0">
+            <div layout="column" style="width: 328px; margin-left: 8px; padding-top: 8px" ng-if="checkedList.length > 0">
               
               <!-- Title -->
               <div layout="row" md-colors="{'background':'default-accent'}" style="height: 40px">

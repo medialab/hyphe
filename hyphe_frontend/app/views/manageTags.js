@@ -85,27 +85,13 @@ angular.module('hyphe.manageTagsController', [])
     $scope.toggleCheckAll = function() {
       if ($scope.allChecked) {
         // Uncheck all
-        $filter('tagFilter')(
-          $filter('filter')(
-            $scope.data.in.webentities,
-            $scope.searchQuery, false, 'name'
-          ),
-          $scope.filters, $scope.tagCategories
-        )
-          .forEach(function(webentity){
+        $scope.displayedEntities.forEach(function(webentity){
             webentity.selected = false
           })
         $scope.allChecked = false
       } else {
         // Check all
-        $filter('tagFilter')(
-          $filter('filter')(
-            $scope.data.in.webentities,
-            $scope.searchQuery, false, 'name'
-          ),
-          $scope.filters, $scope.tagCategories
-        )
-          .forEach(function(webentity){
+        $scope.displayedEntities.forEach(function(webentity){
             webentity.selected = true
           })
         $scope.allChecked = true
@@ -120,6 +106,10 @@ angular.module('hyphe.manageTagsController', [])
 
     // Watch selected to keep checked data up to date
     $scope.$watch('data.in.webentities', function(){
+      // Displayed entities
+      updateDisplayedEntities()
+
+      // Checked entities
       $scope.checkedList
       if ($scope.data.in.webentities) {
         $scope.checkedList = []
@@ -146,10 +136,23 @@ angular.module('hyphe.manageTagsController', [])
       }
     }, true)
 
+    $scope.$watch('filters', updateDisplayedEntities)
+    $scope.$watch('searchQuery', updateDisplayedEntities)
+
     // Init
     loadInWebentities()
 
     // Functions
+    function updateDisplayedEntities() {
+      $scope.displayedEntities = $filter('tagFilter')(
+        $filter('filter')(
+          $scope.data.in.webentities,
+          $scope.searchQuery, false, 'name'
+        ),
+        $scope.filters, $scope.tagCategories
+      )
+    }
+
     function updateTags() {
       if($scope.loading) { return }
       $scope.filters = []
