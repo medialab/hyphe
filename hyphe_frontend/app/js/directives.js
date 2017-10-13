@@ -324,18 +324,6 @@ angular.module('hyphe.directives', [])
     }
   }])
 
-  .directive('webentityTabs', [function(){
-    return {
-      restrict: 'E'
-      ,templateUrl: 'partials/webentity_tabs.html'
-      ,link: function(scope, el, attrs) {
-        /*if(el.hasClass('tab')){
-          // el.find('.spinner-container').addClass('center')
-        }*/
-      }
-    }
-  }])
-
   .directive('disclaimer', ['disclaimer', '$sce', function(disclaimer, $sce){
     return {
       restrict: 'E'
@@ -355,19 +343,6 @@ angular.module('hyphe.directives', [])
           $location.path('/')
           $scope.$apply()
         }
-      }
-    }
-  }])
-
-  .directive('rangeselector', [function(){
-    return {
-      restrict: 'E'
-      ,templateUrl: 'partials/rangeSelector.html'
-      ,scope: {
-        rangeObj: '='
-      }
-      ,link: function(scope, el, attrs) {
-
       }
     }
   }])
@@ -1418,4 +1393,39 @@ angular.module('hyphe.directives', [])
       }
     }
   })
+
+.directive('summarizeTagCat', [function(){
+    return {
+      restrict: 'E'
+      ,templateUrl: 'partials/summarizeTagCategory.html'
+      ,scope: {
+        tagCat: '='
+      , webentities: '='
+      }
+      ,link: function($scope, el, attrs) {
+        $scope.$watch('tagCat', update())
+        $scope.$watch('webentities', update())
+
+        function update() {
+          var values = {}
+          $scope.webentities.forEach(function(webentity){
+            if (webentity.tags && webentity.tags.USER && webentity.tags.USER[$scope.tagCat]) {
+              webentity.tags.USER[$scope.tagCat].forEach(function(val){
+                values[val] = (values[val] || 0) + 1
+              })
+            }
+          })
+
+          var values_list = Object.keys(values)
+          if (values_list.length == 0) {
+            $scope.message = 'None'
+          } else if (values_list.length == 1) {
+            $scope.message = values_list[0]
+          } else {
+            $scope.message = values_list.length + ' values'
+          }
+        }
+      }
+    }
+  }])
 ;
