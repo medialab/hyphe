@@ -24,8 +24,6 @@ angular.module('hyphe.service_hyphe_api', [])
 
     API.WEBENTITY_PREFIX_ADD                        = 'store.add_webentity_lruprefixes'
     API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
-
-    API.WEBENTITY_LIST_TAG_VALUE_ADD                = 'store.add_webentities_tag_value'
     
     API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'
     API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_pagelinks_network'
@@ -42,6 +40,9 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_FETCH_BY_PREFIX_LRU               = 'store.get_webentity_by_lruprefix'
     API.WEBENTITY_FETCH_BY_PREFIX_URL               = 'store.get_webentity_by_lruprefix_as_url'
     API.WEBENTITY_MERGE_INTO                        = 'store.merge_webentity_into_another'
+
+    API.WEBENTITY_LIST_TAG_VALUE_ADD                = 'store.add_webentities_tag_value'
+    API.WEBENTITY_LIST_TAG_VALUE_REMOVE               = 'store.rm_webentities_tag_value'
 
     API.WEBENTITY_TAG_VALUE_ADD                     = 'store.add_webentity_tag_value'
     API.WEBENTITY_TAG_VALUE_REMOVE                  = 'store.rm_webentity_tag_value'
@@ -462,6 +463,10 @@ angular.module('hyphe.service_hyphe_api', [])
 
     ns.list_tlds = undefined
     ns.downloadCorpusTLDs = function(callback){
+      if (ns.list_tlds) {
+        callback(ns.list_tlds)
+        return ns.list_tlds
+      }
       $http({
         method: 'POST',
         url: surl
@@ -622,11 +627,35 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
+    ns.addTag_webentities = buildApiCall(
+        API.WEBENTITY_LIST_TAG_VALUE_ADD
+        ,function(settings){
+          return [
+            settings.webentityId_list
+            ,settings.namespace || 'USER'
+            ,settings.category || 'FREETAGS'
+            ,settings.value || ''
+            ,corpus.getId()
+          ]}
+      )
+
     ns.removeTag = buildApiCall(
         API.WEBENTITY_TAG_VALUE_REMOVE
         ,function(settings){
           return [
             settings.webentityId
+            ,settings.namespace || 'USER'
+            ,settings.category || 'FREETAGS'
+            ,settings.value || ''
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.removeTag_webentities = buildApiCall(
+        API.WEBENTITY_LIST_TAG_VALUE_REMOVE
+        ,function(settings){
+          return [
+            settings.webentityId_list
             ,settings.namespace || 'USER'
             ,settings.category || 'FREETAGS'
             ,settings.value || ''

@@ -144,6 +144,47 @@ angular.module('hyphe.manageTagsController', [])
     $scope.$watch('filters', updateDisplayedEntities)
     $scope.$watch('searchQuery', updateDisplayedEntities)
 
+    $scope.addTagToSelection = function(tagValue, tagCat, webentities) {
+      $scope.status = {message: 'Adding tags'}
+      webentities.forEach(function(webentity){
+        webentity.tags.USER[tagCat] = webentity.tags.USER[tagCat] || []
+        webentity.tags.USER[tagCat].push(tagValue)
+      })
+      
+      return api.addTag_webentities({
+          webentityId_list: webentities.map(function(we){return we.id})
+          ,category: tagCat
+          ,value: tagValue
+        }
+        ,function(){
+          $scope.status = {message: ''}
+        }
+        ,function(error){
+          $scope.status = {message: 'Could not add tags', background:'warning'}
+        }
+      )
+    }
+
+    $scope.resetTagCategoryForSelection = function(tagCat, webentities) {
+      console.log('Delete', tagCat, " on ", webentities)
+      $scope.status = {message: 'Adding tags'}
+      webentities.forEach(function(webentity){
+        delete webentity.tags.USER[tagCat]
+      })
+      
+      return api.removeTag_webentities({
+          webentityId_list: webentities.map(function(we){return we.id})
+          ,category: tagCat
+        }
+        ,function(){
+          $scope.status = {message: ''}
+        }
+        ,function(error){
+          $scope.status = {message: 'Could not remove tags', background:'warning'}
+        }
+      )
+    }
+
     // Init
     loadInWebentities()
 

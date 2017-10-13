@@ -7,6 +7,7 @@
 	    readonly="false"
 	    md-removable="false"
 	    md-max-chips="1"
+	    md-on-add="addValue()"
 	  >
 	    <md-autocomplete
 	      md-selected-item="selectedItem"
@@ -28,6 +29,7 @@
 	    readonly="true"
 	    md-removable="true"
 	    md-max-chips="1"
+	    md-on-remove="removeValues()"
 	  >
 	    <md-autocomplete
 	      md-selected-item="selectedItem"
@@ -61,8 +63,8 @@
 				</md-truncate>
 			</div>
 		</div>
-		<md-button class="md-warn">
-			delete all
+		<md-button class="md-warn" ng-click="removeValues()">
+			clear all
 		</md-button>
 	</div>
 </div>

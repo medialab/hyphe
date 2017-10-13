@@ -1401,12 +1401,22 @@ angular.module('hyphe.directives', [])
       ,scope: {
         tagCat: '=',
         webentities: '=',
-        tagCategories: '='
+        tagCategories: '=',
+        setValue: '=',
+        deleteValues: '='
       }
       ,link: function($scope, el, attrs) {
         $scope.$watch('tagCat', update)
         $scope.$watch('webentities', update)
         $scope.newValue = []
+
+        $scope.addValue = function() {
+          $scope.setValue($scope.newValue[0], $scope.tagCat, $scope.webentities)
+        }
+
+        $scope.removeValues = function() {
+          $scope.deleteValues($scope.tagCat, $scope.webentities)
+        }
 
         $scope.autoComplete = function(query, category){
           var searchQuery = searchable(query)
