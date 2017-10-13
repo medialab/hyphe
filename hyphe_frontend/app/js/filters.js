@@ -4,23 +4,6 @@
 
 angular.module('hyphe.filters', [])
   
-  .filter('paginate', [function() {
-    return function(array,page,paginationLength) {
-    	return array.filter(function(d,i){
-        return i >= (page-1) * paginationLength && i < page * paginationLength
-      })
-    }
-  }])
-
-  .filter('truncate', [function() {
-    return function(array,limit) {
-      limit = limit || 100
-      return array.filter(function(d,i){
-        return i < limit
-      })
-    }
-  }])
-
   .filter('stripFirst', [function() {
     return function(array) {
       if(array.filter)
@@ -121,6 +104,32 @@ angular.module('hyphe.filters', [])
       return list.filter(function(item){
         return dig(item).match(query)
       })
+    }
+  }])
+
+  .filter('tagFilter', [function(){
+    return function(webentities, filters, tagCategories) {
+      var list = webentities
+      filters.forEach(function(filterObject){
+        var filterFunction = function(){ return true } // Default
+        if (filterObject.type == 'special') {
+          if (filterObject.value == 'untagged') {
+            filterFunction = function(webentity){
+              var result = true
+              var tagCat
+              for (tagCat in tagCategories) {
+                if (webentity.tags.USER && webentity.tags.USER[tagCat] !== undefined) {
+                  result = false
+                }
+              }
+              return result
+            }
+          }
+        }
+        
+        list = list.filter(filterFunction)
+      })
+      return list
     }
   }])
 
