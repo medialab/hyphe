@@ -68,7 +68,7 @@
             <md-tab>
               <md-tab-label><md-icon>local_offer</md-icon> Tag filters</md-tab-label>
               <md-tab-body>
-                <div layout-fill layout="column" style="padding: 8px">
+                <div layout="column" style="padding: 8px">
                   <p class="md-title">Special filters</p>
                   <md-radio-group ng-model="$parent.generalOption" ng-change="touchSpecialOption()">
 
@@ -156,8 +156,8 @@
                           ng-model="webentity.tags.USER[displayCategory]"
                           readonly="true"
                           md-removable="false"
-                        >
-                        </md-chips>
+                        ></md-chips>
+                        <webentity-link class="md-secondary" corpus-id="corpusId" webentity-id="webentity.id"></webentity-link>
                       </md-list-item>
                     </md-list>
                   </md-virtual-repeat-container>
