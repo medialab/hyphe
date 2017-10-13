@@ -15,10 +15,8 @@
 
           <div class="page-header">
             <h1 class="word-break" md-truncate>
-              <span md-colors="{'color': 'default-primary'}">
-                <md-icon class="md-primary">folder</md-icon>
-                Explore as folders:
-              </span>
+              <md-icon>folder</md-icon>
+              Explore as folders:
               {{webentity.name || 'loading'}}
             </h1>
           </div>
@@ -28,47 +26,104 @@
           </div>
 
           <div flex layout="column" ng-if="!loading">
-            <div layout="row" md-colors="{'background': 'default-background-200'}" layout-align="start center">
+            <div layout="row" layout-align="start center">
 
-              <md-button class="md-primary" aria-label="Home" ng-disabled="path.length == 0" ng-click="goTo()">
-                <md-icon>home</md-icon>
-                Web entity
+              <md-button class="md-raised md-primary" ng-click="goToParent()" ng-disabled="pathUrl == ''">
+                <md-icon>arrow_back</md-icon>
+                BACK
               </md-button>
 
-              <div ng-repeat="obj in path track by $index" layout="row">
-                <md-icon>chevron_right</md-icon>
-                <md-button class="md-icon-button" aria-label="{{obj.label}}" ng-disabled="path.length == 0" ng-click="goTo(obj.node)" ng-disabled="path.length == $index+1">
-                  {{obj.label}}
-                </md-button>
+              <md-button
+                class="md-icon-button"
+                aria-label="Home"
+                ng-if="path.length > 0"
+                ng-click="goTo()"
+                style="font-size: 0.74em; margin:0"
+              >
+                <md-icon
+                  style="font-size: 24px; height:24px; width:24px; min-height:24px; min-width:24px"
+                >home</md-icon>
+              </md-button>
+              <div
+                ng-if="path.length == 0"
+                style="font-size: 0.74em; margin:0; white-space: nowrap; text-transform: uppercase; padding-left: 8px"
+                md-colors="{'color':'default-accent'}"
+              >
+                <md-icon
+                  class="md-accent"
+                  style="font-size: 24px; height:24px; width:24px; min-height:24px; min-width:24px"
+                >home</md-icon>
+                Web entity root
               </div>
 
-              <div flex></div>
+              <div ng-repeat="obj in path track by $index" layout="row" layout-align="start center">
+                <md-icon
+                  style="font-size: 18px; height:18px; width:18px; min-height:18px; min-width:18px"
+                >chevron_right</md-icon>
+                <md-button
+                  aria-label="{{obj.label}}"
+                  ng-click="goTo(obj.node)"
+                  ng-if="path.length > 0 && path.length > $index+1"
+                  style="font-size: 0.74em; margin: 0; min-width: 0px"
+                >
+                  {{obj.label}}
+                </md-button>
+                <div
+                  ng-if="path.length == 0 || path.length == $index+1"
+                  style="font-size: 0.74em; margin:0; white-space: nowrap; text-transform: uppercase; padding-left:6px"
+                  md-colors="{'color':'default-accent'}"
+                >
+                  {{obj.label}}
+                </div>
+              </div>
 
-              <md-button class="md-icon-button" aria-label="Link" ng-href="{{pathUrl}}" ng-if="pathUrl != ''">
+              <!-- <div flex></div> -->
+
+              <md-button class="md-icon-button md-primary" aria-label="Link" ng-href="{{pathUrl}}" target="_blank" ng-if="pathUrl != ''">
                 <md-icon>link</md-icon>
               </md-button>
             </div>
 
-            <div layout="row" style="height: 48px" ng-if="pathUrl != ''">
-              <md-button class="md-raised" ng-click="goToParent()">
-                <md-icon>arrow_back</md-icon>
-                BACK
-              </md-button>
+            <div layout="row" style="padding: 8px; height: 62px">
+              <md-input-container>
+                <label>Sort</label>
+                <md-select ng-model="$parent.itemSort" class="md-no-underline">
+                  <md-option value="pages">by pages count</md-option>
+                  <md-option value="alphabetical">from A to Z</md-option>
+                </md-select>
+              </md-input-container>
               <div flex></div>
               <md-button
-                class="md-raised"
+                class="md-primary"
                 ng-if="creationRuleLoaded && creationRule == null"
                 ng-click="addWECreationRule()"
-              >ADD A RULE TO SPLIT THIS IN DIFFERENT WEB ENTITIES</md-button>
+              >
+                <md-icon>content_cut</md-icon>
+                ADD A RULE TO SPLIT THIS IN DIFFERENT WEB ENTITIES
+              </md-button>
 
               <md-button
-                class="md-raised md-warn"
+                class="md-primary"
                 ng-if="creationRuleLoaded && creationRule != null"
                 ng-click="removeWECreationRule()"
-              >REMOVE WEB ENTITY CREATION RULE</md-button>
+              >
+                <md-icon>delete</md-icon>
+                REMOVE WEB ENTITY CREATION RULE
+              </md-button>
+            </div>
+
+            <div
+              flex
+              layout="column"
+              layout-align="center center"
+              ng-if="item_list.length == 0"
+              md-colors="{'background':'default-background-100-0.3'}"
+            >
+              NOTHING HERE
             </div>
 
             <div flex ng-if="item_list.length > 0">
+
               <md-virtual-repeat-container layout-fill>
                 <md-list>
 
@@ -180,6 +235,7 @@
                           class="md-secondary md-primary"
                           ng-click="mergeIntoCurrent(item.data.id)"
                         >
+                          <md-icon class="icon-tilt">call_merge</md-icon>
                           Merge into this
                         </md-button>
                       </div>
@@ -201,6 +257,7 @@
                           class="md-secondary md-primary"
                           ng-click="mergeIntoCurrent(item.data.id)"
                         >
+                          <md-icon class="icon-tilt">call_merge</md-icon>
                           Merge into this
                         </md-button>
                       </div>

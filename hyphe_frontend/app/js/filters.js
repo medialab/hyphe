@@ -4,23 +4,6 @@
 
 angular.module('hyphe.filters', [])
   
-  .filter('paginate', [function() {
-    return function(array,page,paginationLength) {
-    	return array.filter(function(d,i){
-        return i >= (page-1) * paginationLength && i < page * paginationLength
-      })
-    }
-  }])
-
-  .filter('truncate', [function() {
-    return function(array,limit) {
-      limit = limit || 100
-      return array.filter(function(d,i){
-        return i < limit
-      })
-    }
-  }])
-
   .filter('stripFirst', [function() {
     return function(array) {
       if(array.filter)
@@ -121,6 +104,72 @@ angular.module('hyphe.filters', [])
       return list.filter(function(item){
         return dig(item).match(query)
       })
+    }
+  }])
+
+  .filter('tagFilter', [function(){
+    return function(webentities, filters, tagCategories) {
+      var list = webentities
+      filters.forEach(function(filterObject){
+        var filterFunction = function(){ return true } // Default
+
+        if (filterObject.type == 'special') {
+          
+          if (filterObject.value == 'untagged') {
+            filterFunction = function(webentity){
+              var aCategoryIsFilled = false
+              var tagCat
+              for (tagCat in tagCategories) {
+                if (webentity.tags.USER && webentity.tags.USER[tagCat] !== undefined) {
+                  aCategoryIsFilled = true
+                }
+              }
+              return !aCategoryIsFilled
+            }
+
+          } else if (filterObject.value == 'partiallyUntagged') {
+            filterFunction = function(webentity){
+              var aCategoryIsUnfilled = false
+              var tagCat
+              for (tagCat in tagCategories) {
+                if (tagCat != 'FREETAGS' && (!webentity.tags.USER || webentity.tags.USER[tagCat] == undefined) ) {
+                  aCategoryIsUnfilled = true
+                }
+              }
+              return aCategoryIsUnfilled
+            }
+
+          } else if (filterObject.value == 'conflicts') {
+            filterFunction = function(webentity){
+              var aCategoryhasMultiple = false
+              var tagCat
+              for (tagCat in tagCategories) {
+                if (tagCat != 'FREETAGS' && webentity.tags.USER && webentity.tags.USER[tagCat] && webentity.tags.USER[tagCat].length>1 ) {
+                  aCategoryhasMultiple = true
+                }
+              }
+              return aCategoryhasMultiple
+            }
+          }
+
+        } else if (filterObject.type == 'catUntagged') {
+          filterFunction = function(webentity){
+            return !webentity.tags.USER
+              || webentity.tags.USER[filterObject.tagCat] === undefined
+              || webentity.tags.USER[filterObject.tagCat].length == 0
+          }
+
+        } else if (filterObject.type == 'cat') {
+          filterFunction = function(webentity){
+            return webentity.tags.USER
+              && webentity.tags.USER[filterObject.tagCat] !== undefined
+              && webentity.tags.USER[filterObject.tagCat].some(function(t){return filterObject.values.some(function(d){return d==t})})
+          }
+        }
+        
+        list = list.filter(filterFunction)
+      })
+      return list
     }
   }])
 

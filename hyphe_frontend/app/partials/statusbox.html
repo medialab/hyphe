@@ -13,7 +13,7 @@
     <md-icon ng-if="!statuses.in" style="opacity: 0.5">check_box_outline_blank</md-icon>
     <md-icon ng-if="statuses.in" class="status-colored">check_box</md-icon>
     <span class="label-status">IN</span>
-    <span class="label-count">{{counts.in}}</span>
+    <span class="label-count">{{counts.in|number}}</span>
   </md-button>
 
   <md-button
@@ -29,7 +29,7 @@
     <md-icon ng-if="!statuses.undecided" style="opacity: 0.5">check_box_outline_blank</md-icon>
     <md-icon ng-if="statuses.undecided" class="status-colored">check_box</md-icon>
     <span class="label-status">UNDECIDED</span>
-    <span class="label-count">{{counts.undecided}}</span>
+    <span class="label-count">{{counts.undecided|number}}</span>
   </md-button>
 
   <md-button
@@ -45,7 +45,7 @@
     <md-icon ng-if="!statuses.out" style="opacity: 0.5">check_box_outline_blank</md-icon>
     <md-icon ng-if="statuses.out" class="status-colored">check_box</md-icon>
     <span class="label-status">OUT</span>
-    <span class="label-count">{{counts.out}}</span>
+    <span class="label-count">{{counts.out|number}}</span>
   </md-button>
 
   <md-button
@@ -61,7 +61,7 @@
     <md-icon ng-if="!statuses.discovered" style="opacity: 0.5">check_box_outline_blank</md-icon>
     <md-icon ng-if="statuses.discovered" class="status-colored">check_box</md-icon>
     <span class="label-status">DISCOVERED</span>
-    <span class="label-count">{{counts.discovered}}</span>
+    <span class="label-count">{{counts.discovered|number}}</span>
   </md-button>
 
 </div>
@@ -82,7 +82,7 @@
       <md-icon ng-if="!statuses.in" style="opacity: 0.5">check_box_outline_blank</md-icon>
       <md-icon ng-if="statuses.in" class="status-colored">check_box</md-icon>
       <span class="label-status" style="padding-left: 4px">IN</span>
-      <span class="label-count">{{counts.in}}</span>
+      <span class="label-count">{{counts.in|number}}</span>
       <div flex></div>
     </div>
   </md-button>
@@ -101,7 +101,7 @@
       <md-icon ng-if="!statuses.undecided" style="opacity: 0.5">check_box_outline_blank</md-icon>
       <md-icon ng-if="statuses.undecided" class="status-colored">check_box</md-icon>
       <span class="label-status" style="padding-left: 4px">UNDECIDED</span>
-      <span class="label-count">{{counts.undecided}}</span>
+      <span class="label-count">{{counts.undecided|number}}</span>
       <div flex></div>
     </div>
   </md-button>
@@ -120,7 +120,7 @@
       <md-icon ng-if="!statuses.out" style="opacity: 0.5">check_box_outline_blank</md-icon>
       <md-icon ng-if="statuses.out" class="status-colored">check_box</md-icon>
       <span class="label-status" style="padding-left: 4px">OUT</span>
-      <span class="label-count">{{counts.out}}</span>
+      <span class="label-count">{{counts.out|number}}</span>
       <div flex></div>
     </div>
   </md-button>
@@ -139,7 +139,7 @@
       <md-icon ng-if="!statuses.discovered" style="opacity: 0.5">check_box_outline_blank</md-icon>
       <md-icon ng-if="statuses.discovered" class="status-colored">check_box</md-icon>
       <span class="label-status" style="padding-left: 4px">DISCOVERED</span>
-      <span class="label-count">{{counts.discovered}}</span>
+      <span class="label-count">{{counts.discovered|number}}</span>
       <div flex></div>
     </div>
   </md-button>

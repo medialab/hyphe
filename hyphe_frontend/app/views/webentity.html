@@ -131,7 +131,7 @@
 
                 <!-- Tab: Crawls -->
                 <md-tab label="Crawls">
-                  <div
+                  <!-- <div
                     style="padding: 8px"
                     md-colors="{'background': 'default-background-200'}"
                     layout="column"
@@ -148,7 +148,7 @@
                       <dd>{{webentity['indexing_status']}}</dd>
 
                     </dl>
-                  </div>
+                  </div> -->
 
                   <div ng-if="crawls.length == 0" layout="column" layout-align="center">
                     <md-button
@@ -307,12 +307,12 @@
                           <br>
 
                           <!-- Tag categories -->
-                          <div ng-repeat="(tagCat, _tv) in tagsAutocomplete" ng-if="tagCat != 'FREETAGS'">
+                          <div ng-repeat="(tagCat, _tv) in tagCategories" ng-if="tagCat != 'FREETAGS'">
                             <div class="md-title">{{tagCat}}</div>
                             <md-chips
                               ng-model="tagCategories[tagCat]"
-                              readonly="tagsPendingQueries>0 || tagCategories[tagCat].length > 0"
-                              md-removable="tagsPendingQueries<=0"
+                              readonly="tagsPendingQueries>0 || (tagCategories[tagCat] && tagCategories[tagCat].length > 0)"
+                              md-removable="tagsPendingQueries <= 0"
                               md-max-chips="1"
                             >
                               <md-autocomplete
@@ -355,7 +355,7 @@
                 style="height: 48px;"
               >
                 <h3 style="padding: 8px; margin: 0px" ng-if="pages.length<=0">Pages</h3>
-                <h3 style="padding: 8px; margin: 0px" ng-if="pages.length>=1">{{pages.length}} Pages</h3>
+                <h3 style="padding: 8px; margin: 0px" ng-if="pages.length>=1">{{pages.length|number}} Pages</h3>
                 <div flex></div>
                 <!-- <md-button class="md-raised" disabled="true">
                   <md-icon>equalizer</md-icon>
@@ -365,10 +365,19 @@
                   <md-icon>folder</md-icon>
                   as folders
                 </md-button>
-                <md-button class="md-raised" disabled="true">
+                <md-button class="md-raised" ng-href="#/project/{{corpusId}}/webentityPagesNetwork/{{webentity.id}}">
                   <md-icon>bubble_chart</md-icon>
                   network
                 </md-button>
+              </div>
+              <div style="height: 64px; padding: 0px 8px" layout="column">
+                <md-input-container style="margin-bottom: 0;">
+                  <label>NOT a full text search</label>
+                  <md-icon>search</md-icon>
+                  <input
+                    ng-model="urlSearchQuery"
+                  >
+                </md-input-container>
               </div>
               
               <div flex ng-if="pagesLoading" layout="column" layout-align="center center">
@@ -379,7 +388,7 @@
                 <md-virtual-repeat-container layout-fill>
                   <md-list>
                     <md-list-item
-                      md-virtual-repeat="page in pages"
+                      md-virtual-repeat="page in pages | filter:urlSearchQuery:false:url"
                     >
                       <span md-truncate flex>
                         <a href="{{page.url}}" target="_blank" title="Open in a new tab">

@@ -20,7 +20,7 @@
                 md-colors="{'color':'default-primary'}"
                 style="font-size: 0.8em"
               >
-                {{dynamicWebentities.numItems}}&nbsp;/&nbsp;{{(counts.in + counts.out + counts.discovered + counts.undefined)}}
+                {{dynamicWebentities.numItems|number}}&nbsp;/&nbsp;{{(counts.in + counts.out + counts.discovered + counts.undefined)|number}}
               </span>
             </h1>
           </div>
@@ -130,7 +130,7 @@
                   <md-subheader
                     class="follow-md-virtual-repeat-width"
                   >
-                    <div layout="row" style="padding-right: 24px;">
+                    <div layout="row" style="padding-right: 46px;">
                       <div style="padding: 0px 22px 0px 3px; height: 20px;">
                         <md-checkbox ng-checked="allChecked" ng-click="toggleCheckAll()" ng-disabled="allCheckedDisable" md-indeterminate="allCheckedIndeterminate"></md-checkbox>
                       </div>
@@ -242,10 +242,14 @@
                             class="welist-col-last-crawled"
                             hide show-gt-sm
                           >
-                            <md-icon ng-show="obj.webentity.crawled">
-                              <md-tooltip md-direction="right">Has been crawled</md-tooltip>
-                              check
-                            </md-icon>
+                            <div ng-if="obj.webentity.crawled">
+                              <md-tooltip md-direction="left">Crawled</md-tooltip>
+                              <md-icon style="opacity: 0.9">opacity</md-icon>
+                            </div>
+                            <div ng-if="!obj.webentity.crawled">
+                              <md-tooltip md-direction="left">Not crawled</md-tooltip>
+                              <md-icon style="opacity: 0.2">opacity</md-icon>
+                            </div>
                           </div>
                           <div
                             class="welist-col-cited"

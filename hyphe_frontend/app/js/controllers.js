@@ -13,16 +13,17 @@ angular.module('hyphe.controllers', [
     ,'hyphe.overviewController'
     ,'hyphe.importurlsController'
     ,'hyphe.definewebentitiesController'
-    ,'hyphe.newcrawlController'
     ,'hyphe.preparecrawlsController'
     ,'hyphe.monitorcrawlsController'
     ,'hyphe.listwebentitiesController'
     ,'hyphe.exportController'
     ,'hyphe.settingsController'
+    ,'hyphe.manageTagsController'
     ,'hyphe.networkController'
     ,'hyphe.prospectController'
     ,'hyphe.webentityController'
     ,'hyphe.webentityExplorerController'
+    ,'hyphe.webentityPagesNetworkController'
     ,'hyphe.helpController'
   ])
 

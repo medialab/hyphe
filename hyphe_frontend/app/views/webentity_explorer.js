@@ -31,9 +31,14 @@ angular.module('hyphe.webentityExplorerController', [])
     $scope.pathUrl
 
     $scope.item_list
+    $scope.itemSort = 'pages'
 
     $scope.creationRuleLoaded = false
     $scope.creationRule = null
+
+    $scope.$watch('itemSort', function(){
+      updateExplorer()
+    })
 
     // Init
     api.downloadCorpusTLDs(function(){
@@ -268,8 +273,8 @@ angular.module('hyphe.webentityExplorerController', [])
     }
     
     function updateExplorer(){
+      if (tree === undefined) {return}
       $scope.item_list = []
-      $scope.webentity_list = []
 
       var items_prefixes = []
       var items_folders = []
@@ -307,7 +312,7 @@ angular.module('hyphe.webentityExplorerController', [])
           return {
             label: we.name
             ,type: 'parentWebentity'
-            ,sortlabel: we.name
+            ,sortLabel: we.name.toUpperCase()
             ,data: we
           }
         })
@@ -376,41 +381,56 @@ angular.module('hyphe.webentityExplorerController', [])
 
       }
 
+      var sortFunction
+      if ($scope.itemSort == 'pages') {
+        sortFunction = function(a, b) {
+          if (a.pagesCount !== undefined && b.pagesCount !== undefined) {
+            return b.pagesCount - a.pagesCount
+          } else {
+            return a.sortLabel.localeCompare(b.sortLabel)
+          }
+        }
+      } else {
+        sortFunction = function(a, b) {
+          return a.sortLabel.localeCompare(b.sortLabel)
+        }
+      }
+
       // Compile different lists as single list
       if (items_prefixes.length > 0) {
         $scope.item_list.push({
           type: 'title',
           label: 'Prefix' + ((items_prefixes.length > 1)?('es'):('')) + ' of ' + $scope.webentity.name + ' (' + items_prefixes.length + ')'
         })
-        $scope.item_list = $scope.item_list.concat(items_prefixes)
+        $scope.item_list = $scope.item_list.concat(items_prefixes.sort(sortFunction))
       }
       if (items_folders.length > 0) {
         $scope.item_list.push({
           type: 'title',
           label: 'Folder' + ((items_folders.length > 1)?('s'):('')) + ' (' + items_folders.length + ')'
         })
-        $scope.item_list = $scope.item_list.concat(items_folders)
+        $scope.item_list = $scope.item_list.concat(items_folders.sort(sortFunction))
       }
       if (items_pages.length > 0) {
         $scope.item_list.push({
           type: 'title',
           label: 'Page' + ((items_pages.length > 1)?('s'):('')) + ' (' + items_pages.length + ')'
         })
-        $scope.item_list = $scope.item_list.concat(items_pages)
+        $scope.item_list = $scope.item_list.concat(items_pages.sort(sortFunction))
       }
       if (items_subwebentities.length > 0) {
         $scope.item_list.push({
           type: 'title',
           label: 'Child web entit' + ((items_subwebentities.length > 1)?('ies'):('y')) + ' (' + items_subwebentities.length + ')'
         })
-        $scope.item_list = $scope.item_list.concat(items_subwebentities)
+        $scope.item_list = $scope.item_list.concat(items_subwebentities.sort(sortFunction))
       }
       if (items_parentwebentities.length > 0) {
         $scope.item_list.push({
           type: 'title',
           label: 'Parent web entit' + ((items_parentwebentities.length > 1)?('ies'):('y')) + ' (' + items_parentwebentities.length + ')'
         })
-        $scope.item_list = $scope.item_list.concat(items_parentwebentities)
+        $scope.item_list = $scope.item_list.concat(items_parentwebentities.sort(sortFunction))
       }
 
       // Record path in location
@@ -425,7 +445,7 @@ angular.module('hyphe.webentityExplorerController', [])
         items_prefixes.push({
           label: label
           ,type: 'prefix'
-          ,sortlabel: label
+          ,sortLabel: label.toUpperCase()
           ,url: url
           ,lru: lru
           ,node: node
@@ -437,7 +457,7 @@ angular.module('hyphe.webentityExplorerController', [])
         items_folders.push({
           label: label
           ,type: 'folder'
-          ,sortlabel: label
+          ,sortLabel: label.toUpperCase()
           ,url: url
           ,lru: lru
           ,node: node
@@ -452,7 +472,7 @@ angular.module('hyphe.webentityExplorerController', [])
         items_pages.push({
           label: label
           ,type: 'page'
-          ,sortlabel: label
+          ,sortLabel: label.toUpperCase()
           ,url: url
           ,lru: lru
           ,data: data
@@ -467,7 +487,7 @@ angular.module('hyphe.webentityExplorerController', [])
         items_subwebentities.push({
           label: label
           ,type: 'otherWebentityPrefix'
-          ,sortlabel: label
+          ,sortLabel: label.toUpperCase()
           ,url: url
           ,lru: lru
           ,data: data

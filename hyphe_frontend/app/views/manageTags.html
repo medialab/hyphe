@@ -1,0 +1,283 @@
+<div layout="column" layout-fill>
+  <div class="topbar-height" ng-include="'partials/topbar.html'">
+  </div>
+  <div flex>
+    <div layout="row" layout-fill>
+      <div class="sidebar-width" ng-include="'partials/sidebar.html'"></div>
+      <div
+        flex
+        md-colors="{background: 'default-background-50'}"
+        style="overflow-y: auto;"
+      >
+        
+        <!-- Content -->
+        <div layout-fill layout="column">
+          <div class="page-header">
+            <h1>
+              TAGS
+            </h1>
+            <span class="md-subhead">
+              Filter <span hyphe-glossary="web entities"></span> (status <em>IN</em> only). Tag one or a selection of web entities.
+            </span>
+          </div>
+
+          <div flex layout="column" layout-align="center center" ng-if="loading">
+            <spinner></spinner>
+          </div>
+
+          <md-content layout="row" layout-align="start center" ng-if="!loading" md-colors="{'background':'default-background-100-0.5'}" style="height: 106px">
+            <md-card ng-repeat="filter in filters">
+              <md-card-header layout="row" style="padding: 16px 4px">
+                <md-card-avatar>
+                  <md-icon class="md-avatar-icon">local_offer</md-icon>
+                </md-card-avatar>
+                <md-card-header-text flex>
+                  <span class="md-title" md-truncate>{{filter.name}}</span>
+                  <span class="md-subhead" md-truncate>{{filter.type == 'special' ? 'All web entities' : filter.tagCat}}</span>
+                </md-card-header-text>
+                <div layout="column" layout="center center">
+                  <md-button class="md-icon-button" ng-click="filter.remove()">
+                    <md-icon>close</md-icon>
+                  </md-button>
+                </div>
+              </md-card-header>
+            </md-card>
+
+            <!-- Search card -->
+            <md-card ng-if="searchQuery && searchQuery.length > 0">
+              <md-card-header layout="row" style="padding: 16px 4px">
+                <md-card-avatar>
+                  <md-icon class="md-avatar-icon">search</md-icon>
+                </md-card-avatar>
+                <md-card-header-text flex>
+                  <span class="md-title" md-truncate>{{searchQuery}}</span>
+                  <span class="md-subhead" md-truncate>Search</span>
+                </md-card-header-text>
+                <div layout="column" layout="center center">
+                  <md-button class="md-icon-button" ng-click="$parent.$parent.searchQuery = ''">
+                    <md-icon>close</md-icon>
+                  </md-button>
+                </div>
+              </md-card-header>
+            </md-card>
+
+            <!-- Count -->
+            <div layout="row">
+              <div layout="column" layout-align="center center" ng-if="filters.length>0" style="padding-left: 8px">
+                <md-icon class="md-primary">trending_flat</md-icon>
+              </div>
+              <div layout="column" style="padding-left: 16px">
+                <div class="md-title">
+                  <span md-colors="{'color': 'default-primary'}">
+                    {{displayedEntities.length|number}}
+                  </span>
+                  <span ng-if="displayedEntities.length < data.in.total" style="opacity: 0.5">
+                    / {{data.in.total|number}}
+                  </span>
+                </div>
+                <div style="opacity: 0.5">
+                  WEB&nbsp;ENTITIES
+                </div>
+              </div>
+            </div>
+
+          </md-content>
+
+          <div flex layout="row" ng-if="!loading">
+            <md-tabs md-border-bottom flex md-selected="selectedTab">
+              
+              <!-- Tab: TAGS -->
+              <md-tab>
+                <md-tab-label><md-icon>local_offer</md-icon> Tag filters</md-tab-label>
+                <md-tab-body>
+                  <div layout="column">
+                    <div layout="column" style="padding: 8px 16px">
+                      <p class="md-title"><em>Special filters</em></p>
+                      <md-radio-group ng-model="$parent.generalOption" ng-change="touchSpecialOption()">
+
+                        <md-radio-button class="md-primary" value="untagged"> Untagged </md-radio-button>
+                        <md-radio-button class="md-primary" value="partiallyUntagged"> Partially untagged </md-radio-button>
+                        <md-radio-button class="md-primary" value="conflicts"> Conflicts </md-radio-button>
+
+                      </md-radio-group>
+                    </div>
+
+                    <md-divider></md-divider>
+
+                    <div layout="column" style="padding: 8px 16px">
+                      <p class="md-title">Free Tags</p>
+                      <md-checkbox class="md-primary" ng-model="tagCategoriesUntagged['FREETAGS']" aria-label="Untagged" ng-change="touchUntagged('FREETAGS')">
+                        <em>Untagged</em>
+                      </md-checkbox>
+                      <div ng-repeat="(val, valData) in tagCategories.FREETAGS">
+                        <md-checkbox class="md-primary" ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue('FREETAGS')">
+                          {{val}} <em md-colors="{'color':'default-primary'}">{{valData.count|number}}</em>
+                        </md-checkbox>
+                      </div>
+                    </div>
+
+                    <md-divider></md-divider>
+
+                    <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column" ng-if="tagCat != 'FREETAGS'" style="padding: 8px 16px">
+                      <p class="md-title">{{tagCat}}</p>
+                      <md-checkbox class="md-primary" ng-model="tagCategoriesUntagged[tagCat]" aria-label="Untagged" ng-change="touchUntagged(tagCat)">
+                        <em>Untagged</em>
+                      </md-checkbox>
+                      <div ng-repeat="(val, valData) in tagValues">
+                        <md-checkbox class="md-primary" ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue(tagCat)">
+                          {{val}} <em md-colors="{'color':'default-primary'}">{{valData.count|number}}</em>
+                        </md-checkbox>
+                      </div>
+                    </div>
+
+                  </div>
+                </md-tab-body>
+              </md-tab>
+
+              <!-- Tab: WEB ENTITIES -->
+              <md-tab>
+                <md-tab-label><md-icon>list</md-icon> Web entities list</md-tab-label>
+                <md-tab-body>
+                  <div layout-fill layout="column" style="padding-left: 8px">
+
+                    <!-- Web entity settings -->
+                    <div
+                      style="height: 72px; padding: 0px 8px"
+                      layout="row"
+                    >
+                      <div style="padding: 24px 16px 8px 10px">
+                        <md-checkbox ng-checked="allChecked" ng-click="toggleCheckAll()" md-indeterminate="allCheckedIndeterminate"></md-checkbox>
+                      </div>
+
+                      <md-input-container flex style="margin-right: 16px">
+                        <label>Search</label>
+                        <md-icon>search</md-icon>
+                        <input
+                          ng-model="$parent.searchQuery"
+                        >
+                      </md-input-container>
+                      <md-input-container style="width: 240px">
+                        <label>Display a category</label>
+                        <md-select ng-model="$parent.displayCategory">
+                          <md-option value=""><em>None</em></md-option>
+                          <md-option
+                            ng-repeat="(tagCat, tagValues) in tagCategories"
+                            value="{{tagCat}}"
+                          >{{tagCat}}</md-option>
+                        </md-select>
+                      </md-input-container>
+                    </div>
+
+                    <!-- Web entity list -->
+                    <md-virtual-repeat-container flex>
+                      <md-list md-colors="{'background': 'default-background-100'}">
+                        <md-list-item
+                          md-virtual-repeat="webentity in displayedEntities"
+                          md-item-size="48"
+                          flex
+                          md-colors="{
+                            'background': webentity.selected ? 'default-accent-100' : 'default-background-100'
+                          }"
+                        >
+                          <md-checkbox ng-model="webentity.selected"></md-checkbox>
+                          <p flex layout="row">
+                            <a
+                              ng-show="webentity.homepage"
+                              href="{{webentity.homepage}}"
+                              target="_blank"
+                              ng-click="$event.stopPropagation();"
+                              style="margin-right:2px"
+                            >
+                              <md-tooltip md-direction="left">{{webentity.homepage}}</md-tooltip>
+                              <md-icon>link</md-icon>
+                            </a>
+                            <span md-truncate flex>
+                              {{webentity.name}}
+                            </span>
+                          </p>
+                          <md-chips
+                            class="md-secondary md-chips-no-line"
+                            ng-if="displayCategory"
+                            ng-model="webentity.tags.USER[displayCategory]"
+                            readonly="true"
+                            md-removable="false"
+                          ></md-chips>
+                          <webentity-link class="md-secondary" corpus-id="corpusId" webentity-id="webentity.id"></webentity-link>
+                        </md-list-item>
+                      </md-list>
+                    </md-virtual-repeat-container>
+
+                  </div>
+                </md-tab-body>
+              </md-tab>
+
+              <!-- Tab: NETWORK -->
+              <md-tab>
+                <md-tab-label><md-icon>bubble_chart</md-icon> Web entities network</md-tab-label>
+                <md-tab-body>
+                  <div layout-fill layout="column">
+                    
+                  </div>
+                </md-tab-body>
+              </md-tab>
+
+            </md-tabs>
+
+            <div layout="column" style="width: 328px; margin-left: 8px; padding-top: 8px" ng-if="checkedList.length > 0">
+              
+              <!-- Title -->
+              <div layout="row" md-colors="{'background':'default-accent'}" style="height: 40px">
+                <div style="padding: 8px" flex>
+                  SELECTION: {{checkedList.length}} WEB ENTIT{{checkedList.length | y_ies | uppercase}}
+                </div>
+                <div>
+                  <md-button class="md-icon-button" ng-click="uncheckAll()" style="padding: 8px">
+                    <md-icon md-colors="{'color':'default-accent-50'}">close</md-icon>
+                  </md-button>
+                </div>
+              </div>
+
+              <!-- List preview -->
+              <div class="selected-webentities-container-small" flex md-colors="{'background': 'default-background-100'}">
+                <md-virtual-repeat-container layout-fill>
+                  <md-list
+                    flex
+                    layout-fill
+                  >
+                    <md-list-item
+                      md-virtual-repeat="webentity in checkedList"
+                      md-item-size="48"
+                      md-colors="{'background': 'default-background-100'}"
+                    >
+                      <span md-truncate>{{webentity.name}}</span>
+                      <md-button class="md-icon-button md-secondary" ng-click="webentity.selected = false">
+                        <md-icon>close</md-icon>
+                      </md-button>
+                    </md-list-item>
+                  </md-list>
+                </md-virtual-repeat-container>
+              </div>
+
+              <div layout="column" flex style="overflow-y: auto; padding: 8px" md-colors="{'background': 'default-background-200'}">
+                
+                <div layout="column">
+                  <p class="md-title">Free Tags</p>
+                  <summarize-tag-cat tag-cat="'FREETAGS'" webentities="checkedList"></summarize-tag-cat>
+                </div>
+
+                <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column" ng-if="tagCat != 'FREETAGS'">
+                  <p class="md-title">{{tagCat}}</p>
+                  <summarize-tag-cat tag-cat="tagCat" webentities="checkedList"></summarize-tag-cat>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
