@@ -1403,19 +1403,32 @@ angular.module('hyphe.directives', [])
         webentities: '=',
         tagCategories: '=',
         setValue: '=',
-        deleteValues: '='
+        deleteValue: '='
       }
       ,link: function($scope, el, attrs) {
         $scope.$watch('tagCat', update)
         $scope.$watch('webentities', update)
-        $scope.newValue = []
 
-        $scope.addValue = function() {
-          $scope.setValue($scope.newValue[0], $scope.tagCat, $scope.webentities)
+        $scope.transformChip = function(chip) {
+          return {value: chip, count:0}
         }
 
-        $scope.removeValues = function() {
-          $scope.deleteValues($scope.tagCat, $scope.webentities)
+        $scope.addValue = function(chip, freetag) {
+          var webentities
+          if (freetag) {
+            webentities = $scope.webentities
+          } else {
+            webentities = $scope.webentities.filter(function(we){
+              return we.tags.USER === undefined
+                || we.tags.USER[$scope.tagCat] === undefined
+                || we.tags.USER[$scope.tagCat].length == 0
+            })
+          }
+          $scope.setValue(chip.value, $scope.tagCat, webentities)
+        }
+
+        $scope.removeValue = function(chip) {
+          $scope.deleteValue(chip.value, $scope.tagCat, $scope.webentities)
         }
 
         $scope.autoComplete = function(query, category){
@@ -1426,23 +1439,30 @@ angular.module('hyphe.directives', [])
               res.push(searchTag)
             }
           })
-          console.log(res)
           return res
         }
 
         function update() {
           var valuesIndex = {}
+          $scope.undefinedValues = 0
           $scope.webentities.forEach(function(webentity){
             if (webentity.tags && webentity.tags.USER && webentity.tags.USER[$scope.tagCat]) {
               webentity.tags.USER[$scope.tagCat].forEach(function(val){
                 valuesIndex[val] = (valuesIndex[val] || 0) + 1
               })
             } else {
-              valuesIndex[undefined] = (valuesIndex[undefined] || 0) + 1
+              $scope.undefinedValues++
             }
           })
 
-          $scope.values = Object.keys(valuesIndex)
+          $scope.values = []
+          var val
+          for (val in valuesIndex) {
+            $scope.values.push({
+              value: val,
+              count: valuesIndex[val]
+            })
+          }
         }
 
         function searchable(str){

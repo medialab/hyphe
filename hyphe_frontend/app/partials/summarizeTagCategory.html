@@ -1,70 +1,53 @@
-<div style="height: 52px; margin-bottom: 24px;">
-	<!-- Empty value -->
-	<div layout="row" ng-if="values.length == 1 && values[0] == 'undefined'">
-		<md-chips
-			flex
-	    ng-model="newValue"
-	    readonly="false"
-	    md-removable="false"
-	    md-max-chips="1"
-	    md-on-add="addValue()"
-	  >
-	    <md-autocomplete
-	      md-selected-item="selectedItem"
-	      md-search-text="searchText"
-	      md-items="tag in autoComplete(searchText, tagCat)"
-	      md-item-text="tag"
-	      placeholder="Set tag"
-	    >
-	      <span md-highlight-text="searchText">{{tag}}</span>
-	    </md-autocomplete>
-	  </md-chips>
-	</div>
+<div layout="row" style="margin-bottom: 32px;">
+	<!-- Free tags -->
+	<md-chips
+		ng-if="tagCat == 'FREETAGS'"
+		flex
+    ng-model="values"
+    readonly="false"
+    md-removable="true"
+    md-transform-chip="transformChip($chip)"
+    md-on-add="addValue($chip, true)"
+    md-on-remove="removeValue($chip)"
+  >
+    <md-autocomplete
+      md-selected-item="selectedItem"
+      md-search-text="searchText"
+      md-items="tag in autoComplete(searchText, tagCat)"
+      md-item-text="tag"
+      placeholder="Add tag..."
+    >
+      <span md-highlight-text="searchText">{{tag}}</span>
+    </md-autocomplete>
+    <md-chip-template>
+      {{$chip.value}}
+      <em md-colors="{'color':'default-primary'}" style="margin: 0px 4px">{{$chip.count}}</em>
+    </md-chip-template>
+  </md-chips>
 
-	<!-- Single, non-empty value -->
-	<div layout="row" ng-if="values.length == 1 && values[0] != 'undefined'">
-		<md-chips
-			flex
-	    ng-model="values"
-	    readonly="true"
-	    md-removable="true"
-	    md-max-chips="1"
-	    md-on-remove="removeValues()"
-	  >
-	    <md-autocomplete
-	      md-selected-item="selectedItem"
-	      md-search-text="searchText"
-	      md-items="tag in autoComplete(searchText, tagCat)"
-	      md-item-text="tag"
-	      placeholder="Set tag"
-	    >
-	      <span md-highlight-text="searchText">{{tag}}</span>
-	    </md-autocomplete>
-	  </md-chips>
-	</div>
-
-	<!-- Multiple values -->
-	<div layout="row" ng-if="values.length > 1">
-		<div
-			layout="column"
-			layout-align="center start"
-			flex
-			style="overflow: hidden; background-color: #c5bdb5; padding: 4px; border-radius: 4px;"
-		>
-			<div>
-				Multiple values
-				({{ values.length }})
-			</div>
-			<div>
-				<md-truncate flex style="font-size: 0.8em; opacity: 0.5;">
-					<span ng-repeat="val in values">
-						{{(val=='undefined') ? ('&lt;empty&gt;') : (val)}}<span ng-if="!$last">, </span>
-					</span>
-				</md-truncate>
-			</div>
-		</div>
-		<md-button class="md-warn" ng-click="removeValues()">
-			clear all
-		</md-button>
-	</div>
+	<!-- NON Free tags -->
+	<md-chips
+		ng-if="tagCat != 'FREETAGS'"
+		flex
+    ng-model="values"
+    readonly="undefinedValues == 0"
+    md-removable="true"
+    md-transform-chip="transformChip($chip)"
+    md-on-add="addValue($chip, false)"
+    md-on-remove="removeValue($chip)"
+  >
+    <md-autocomplete
+      md-selected-item="selectedItem"
+      md-search-text="searchText"
+      md-items="tag in autoComplete(searchText, tagCat)"
+      md-item-text="tag"
+      placeholder="Set undefined values to..."
+    >
+      <span md-highlight-text="searchText">{{tag}}</span>
+    </md-autocomplete>
+    <md-chip-template>
+      {{$chip.value}}
+      <em md-colors="{'color':'default-primary'}" style="margin: 0px 4px">{{$chip.count}}</em>
+    </md-chip-template>
+  </md-chips>
 </div>

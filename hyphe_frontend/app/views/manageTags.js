@@ -165,16 +165,18 @@ angular.module('hyphe.manageTagsController', [])
       )
     }
 
-    $scope.resetTagCategoryForSelection = function(tagCat, webentities) {
-      console.log('Delete', tagCat, " on ", webentities)
-      $scope.status = {message: 'Adding tags'}
+    $scope.deleteTagFromSelection = function(tagValue, tagCat, webentities) {
+      $scope.status = {message: 'Deleting tags'}
       webentities.forEach(function(webentity){
-        delete webentity.tags.USER[tagCat]
+        webentity.tags.USER[tagCat] = webentity.tags.USER[tagCat].filter(function(d){
+          return d != tagValue
+        })
       })
       
       return api.removeTag_webentities({
           webentityId_list: webentities.map(function(we){return we.id})
           ,category: tagCat
+          ,value: tagValue
         }
         ,function(){
           $scope.status = {message: ''}
