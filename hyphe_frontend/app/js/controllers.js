@@ -18,6 +18,7 @@ angular.module('hyphe.controllers', [
     ,'hyphe.listwebentitiesController'
     ,'hyphe.exportController'
     ,'hyphe.settingsController'
+    ,'hyphe.manageTagsController'
     ,'hyphe.networkController'
     ,'hyphe.prospectController'
     ,'hyphe.webentityController'
