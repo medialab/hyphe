@@ -136,6 +136,17 @@ angular.module('hyphe.filters', [])
               }
               return aCategoryIsUnfilled
             }
+          } else if (filterObject.value == 'conflicts') {
+            filterFunction = function(webentity){
+              var aCategoryhasMultiple = false
+              var tagCat
+              for (tagCat in tagCategories) {
+                if (tagCat != 'FREETAGS' && webentity.tags.USER && webentity.tags.USER[tagCat] && webentity.tags.USER[tagCat].length>1 ) {
+                  aCategoryhasMultiple = true
+                }
+              }
+              return aCategoryhasMultiple
+            }
           }
 
         }
