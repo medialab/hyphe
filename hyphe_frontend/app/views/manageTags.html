@@ -268,26 +268,35 @@
                 </md-virtual-repeat-container>
               </div>
 
-              <div layout="column" flex style="overflow-y: auto; padding: 8px" md-colors="{'background': 'default-background-200'}">
-                
+              <div flex style="overflow-y: auto; padding: 8px" md-colors="{'background': 'default-background-200'}">
                 <div layout="column">
-                  <div class="md-title">
-                    Free Tags {{checkedList.length}}
-                    <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory('FREETAGS')" ng-disabled="displayCategory == 'FREETAGS'">
-                      <md-icon>visibility</md-icon>
-                    </md-button>
+                  <div layout="column">
+                    <div class="md-title">
+                      Free Tags
+                      <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory('FREETAGS')" ng-disabled="displayCategory == 'FREETAGS'">
+                        <md-icon>visibility</md-icon>
+                      </md-button>
+                    </div>
+                    <summarize-tag-cat
+                      tag-cat="'FREETAGS'"
+                      webentities="checkedList"
+                      tag-categories="tagCategories"
+                    ></summarize-tag-cat>
                   </div>
-                  <summarize-tag-cat tag-cat="'FREETAGS'" webentities="checkedList"></summarize-tag-cat>
-                </div>
 
-                <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column" ng-if="tagCat != 'FREETAGS'">
-                  <div class="md-title">
-                    {{tagCat}}
-                    <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory(tagCat)" ng-disabled="displayCategory == tagCat">
-                      <md-icon>visibility</md-icon>
-                    </md-button>
+                  <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column" ng-if="tagCat != 'FREETAGS'">
+                    <div class="md-title">
+                      {{tagCat}}
+                      <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory(tagCat)" ng-disabled="displayCategory == tagCat">
+                        <md-icon>visibility</md-icon>
+                      </md-button>
+                    </div>
+                    <summarize-tag-cat
+                      tag-cat="tagCat"
+                      webentities="checkedList"
+                      tag-categories="tagCategories"
+                    ></summarize-tag-cat>
                   </div>
-                  <summarize-tag-cat tag-cat="tagCat" webentities="checkedList"></summarize-tag-cat>
                 </div>
 
               </div>

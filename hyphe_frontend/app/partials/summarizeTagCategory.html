@@ -1,21 +1,68 @@
-<div layout="row" ng-if="values.length == 1">
-	-> {{ (values[0]==undefined) ? ('&st;empty&gt;') : (values[0]) }}
-</div>
-<div layout="row" ng-if="values.length > 1">
-	<div layout="column" layout-align="center start" flex style="overflow: hidden">
-		<div>
-			Multiple values
-			({{ values.length }})
-		</div>
-		<div>
-			<md-truncate flex style="font-size: 0.8em; opacity: 0.5;">
-				<span ng-repeat="val in values">
-					{{(val==undefined) ? ('&st;empty&gt;') : (val)}}<span ng-if="!$last">, </span>
-				</span>
-			</md-truncate>
-		</div>
+<div style="height: 52px; margin-bottom: 24px;">
+	<!-- Empty value -->
+	<div layout="row" ng-if="values.length == 1 && values[0] == 'undefined'">
+		<md-chips
+			flex
+	    ng-model="newValue"
+	    readonly="false"
+	    md-removable="false"
+	    md-max-chips="1"
+	  >
+	    <md-autocomplete
+	      md-selected-item="selectedItem"
+	      md-search-text="searchText"
+	      md-items="tag in autoComplete(searchText, tagCat)"
+	      md-item-text="tag"
+	      placeholder="Set tag"
+	    >
+	      <span md-highlight-text="searchText">{{tag}}</span>
+	    </md-autocomplete>
+	  </md-chips>
 	</div>
-	<md-button class="md-warn">
-		delete all
-	</md-button>
+
+	<!-- Single, non-empty value -->
+	<div layout="row" ng-if="values.length == 1 && values[0] != 'undefined'">
+		<md-chips
+			flex
+	    ng-model="values"
+	    readonly="true"
+	    md-removable="true"
+	    md-max-chips="1"
+	  >
+	    <md-autocomplete
+	      md-selected-item="selectedItem"
+	      md-search-text="searchText"
+	      md-items="tag in autoComplete(searchText, tagCat)"
+	      md-item-text="tag"
+	      placeholder="Set tag"
+	    >
+	      <span md-highlight-text="searchText">{{tag}}</span>
+	    </md-autocomplete>
+	  </md-chips>
+	</div>
+
+	<!-- Multiple values -->
+	<div layout="row" ng-if="values.length > 1">
+		<div
+			layout="column"
+			layout-align="center start"
+			flex
+			style="overflow: hidden; background-color: #c5bdb5; padding: 4px; border-radius: 4px;"
+		>
+			<div>
+				Multiple values
+				({{ values.length }})
+			</div>
+			<div>
+				<md-truncate flex style="font-size: 0.8em; opacity: 0.5;">
+					<span ng-repeat="val in values">
+						{{(val=='undefined') ? ('&lt;empty&gt;') : (val)}}<span ng-if="!$last">, </span>
+					</span>
+				</md-truncate>
+			</div>
+		</div>
+		<md-button class="md-warn">
+			delete all
+		</md-button>
+	</div>
 </div>

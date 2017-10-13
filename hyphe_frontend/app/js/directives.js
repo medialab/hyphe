@@ -1400,11 +1400,25 @@ angular.module('hyphe.directives', [])
       ,templateUrl: 'partials/summarizeTagCategory.html'
       ,scope: {
         tagCat: '=',
-        webentities: '='
+        webentities: '=',
+        tagCategories: '='
       }
       ,link: function($scope, el, attrs) {
         $scope.$watch('tagCat', update)
         $scope.$watch('webentities', update)
+        $scope.newValue = []
+
+        $scope.autoComplete = function(query, category){
+          var searchQuery = searchable(query)
+            , res = []
+          Object.keys($scope.tagCategories[category] || {}).forEach(function(searchTag){
+            if (searchTag && (!searchQuery || ~searchTag.indexOf(searchQuery))) {
+              res.push(searchTag)
+            }
+          })
+          console.log(res)
+          return res
+        }
 
         function update() {
           var valuesIndex = {}
@@ -1419,6 +1433,17 @@ angular.module('hyphe.directives', [])
           })
 
           $scope.values = Object.keys(valuesIndex)
+        }
+
+        function searchable(str){
+          str = str.trim().toLowerCase()
+          // remove diacritics
+          var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;"
+              , to = "aaaaeeeeiiiioooouuuunc------"
+          for (var i = 0, l = from.length; i < l; i++) {
+            str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i))
+          }
+          return str
         }
       }
     }
