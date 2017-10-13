@@ -31,7 +31,28 @@
             <md-tab>
               <md-tab-label><md-icon>local_offer</md-icon> Tags</md-tab-label>
               <md-tab-body>
-                <div layout-fill layout="column">
+                <div layout-fill layout="column" style="padding: 8px">
+                  <p class="md-title">Special filters</p>
+                  <md-radio-group ng-model="generalOption" ng-change="touchSpecialOption()">
+
+                    <md-radio-button value="untagged"> Untagged </md-radio-button>
+                    <md-radio-button value="partiallyUntagged"> Partially untagged </md-radio-button>
+                    <md-radio-button value="conflicts"> Conflicts </md-radio-button>
+
+                  </md-radio-group>
+                  <hr>
+
+                  <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column">
+                    <p class="md-title">{{tagCat}}</p>
+                    <md-checkbox ng-model="tagCategoriesUntagged[tagCat]" aria-label="Untagged" ng-change="touchUntagged(tagCat)">
+                      <em>Untagged</em>
+                    </md-checkbox>
+                    <div ng-repeat="(val, valData) in tagValues">
+                      <md-checkbox ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue(tagCat)">
+                        {{val}} <em>{{valData.count}}</em>
+                      </md-checkbox>
+                    </div>
+                  </div>
 
                 </div>
               </md-tab-body>

@@ -35,23 +35,73 @@ angular.module('hyphe.manageTagsController', [])
       }
     }
 
+    $scope.generalOption = undefined
+    $scope.tagCategories = {}
+    $scope.tagCategoriesUntagged = {}
+
+    $scope.touchSpecialOption = function() {
+      var tagCat
+      for (tagCat in $scope.tagCategories) {
+        $scope.tagCategoriesUntagged[tagCat] = false
+        var val
+        for (val in $scope.tagCategories[tagCat]) {
+          var valData = $scope.tagCategories[tagCat][val]
+          valData.selected = false
+        }
+      }
+      updateTags()
+    }
+
+    $scope.touchUntagged = function(tagCat) {
+      if (tagCat === undefined) {
+        return
+      } else {
+        $scope.generalOption = undefined
+        var val
+        for (val in $scope.tagCategories[tagCat]) {
+          var valData = $scope.tagCategories[tagCat][val]
+          valData.selected = false
+        }
+      }
+      updateTags()
+    }
+
+    $scope.touchTagValue = function(tagCat) {
+      $scope.generalOption = undefined
+      $scope.tagCategoriesUntagged[tagCat] = false
+      updateTags()
+    }
+
     // Init
     loadInWebentities()
 
     // Functions
+    function updateTags() {
+      if($scope.loading) { return }
+      
+    }
+
     function buildTagData() {
       $scope.tagCategories = {}
+      $scope.tagCategoriesUntagged = {}
 
+      var tagCat
       $scope.data.in.webentities
         .map(function(d){return d.tags.USER || {}})
         .forEach(function(d){
-          var tagCat
           for (tagCat in d) {
             $scope.tagCategories[tagCat] = $scope.tagCategories[tagCat] || {}
             var val = d[tagCat]
-            $scope.tagCategories[tagCat][val] = ($scope.tagCategories[tagCat][val] || 0) + 1
+            $scope.tagCategories[tagCat][val] = ($scope.tagCategories[tagCat][val] || {count:0, selected:false})
+            $scope.tagCategories[tagCat][val].count++
           }
         })
+
+      for (tagCat in $scope.tagCategories) {
+        $scope.tagCategoriesUntagged[tagCat] = false
+      }
+
+      $scope.loading = false
 
       console.log($scope.tagCategories)
     }
