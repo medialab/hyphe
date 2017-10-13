@@ -112,14 +112,26 @@ angular.module('hyphe.manageTagsController', [])
       }
     }
 
-    // All check button
+    $scope.uncheckAll = function() {
+      $scope.data.in.webentities.forEach(function(webentity){
+        webentity.selected = false
+      })
+    }
+
+    // Watch selected to keep checked data up to date
     $scope.$watch('data.in.webentities', function(){
+      $scope.checkedList
       if ($scope.data.in.webentities) {
-        var someChecked = $scope.data.in.webentities.some(function(webentity){
-          return webentity.selected
-        })
-        var someUnchecked = $scope.data.in.webentities.some(function(webentity){
-          return !webentity.selected
+        $scope.checkedList = []
+        var someChecked
+        var someUnchecked
+        $scope.data.in.webentities.forEach(function(webentity){
+          if (webentity.selected) {
+            someChecked = true
+            $scope.checkedList.push(webentity)
+          } else {
+            someUnchecked = true
+          }
         })
         if (!someChecked) {
           $scope.allChecked = false
