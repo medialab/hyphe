@@ -159,9 +159,11 @@ angular.module('hyphe.manageTagsController', [])
         }
         ,function(){
           $scope.status = {message: ''}
+          updateTags()
         }
         ,function(error){
           $scope.status = {message: 'Could not add tags', background:'warning'}
+          updateTags()
         }
       )
     }
@@ -181,9 +183,11 @@ angular.module('hyphe.manageTagsController', [])
         }
         ,function(){
           $scope.status = {message: ''}
+          updateTags()
         }
         ,function(error){
           $scope.status = {message: 'Could not remove tags', background:'warning'}
+          updateTags()
         }
       )
     }

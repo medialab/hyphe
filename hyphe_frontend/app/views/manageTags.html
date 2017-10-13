@@ -25,7 +25,13 @@
             <spinner></spinner>
           </div>
 
-          <md-content layout="row" layout-align="start center" ng-if="!loading" md-colors="{'background':'default-background-100-0.5'}" style="height: 106px">
+          <md-content
+            layout="row"
+            layout-align="start center"
+            ng-if="!loading"
+            md-colors="{'background':'default-background-100-0.5'}"
+            style="height: 106px"
+          >
             <md-card ng-repeat="filter in filters">
               <md-card-header layout="row" style="padding: 16px 4px">
                 <md-card-avatar>
@@ -80,7 +86,6 @@
                 </div>
               </div>
             </div>
-
           </md-content>
 
           <div flex layout="row" ng-if="!loading">
