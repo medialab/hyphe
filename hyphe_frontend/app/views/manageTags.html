@@ -14,7 +14,7 @@
         <div layout-fill layout="column">
           <div class="page-header">
             <h1>
-              TAGS
+              TAGS {{searchQuery}}
             </h1>
             <span class="md-subhead">
               Filter <span hyphe-glossary="web entities"></span> (status <em>IN</em> only). Tag one or a group of them.
@@ -54,7 +54,7 @@
                   <span class="md-subhead">Search</span>
                 </md-card-header-text>
                 <div layout="column" layout="center center">
-                  <md-button class="md-icon-button" ng-click="searchQuery = ''">
+                  <md-button class="md-icon-button" ng-click="$parent.$parent.searchQuery = ''">
                     <md-icon>close</md-icon>
                   </md-button>
                 </div>
@@ -126,7 +126,11 @@
                   <md-virtual-repeat-container flex>
                     <md-list>
                       <md-list-item
-                        md-virtual-repeat="webentity in data.in.webentities | filter:searchQuery:false:name"
+                        md-virtual-repeat="
+                          webentity in data.in.webentities
+                            | filter:searchQuery:false:name
+                            | tagFilter:filters:tagCategories
+                        "
                         md-item-size="48"
                         flex
                       >
