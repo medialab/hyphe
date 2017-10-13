@@ -25,9 +25,12 @@
             <spinner></spinner>
           </div>
 
-          <md-content layout="row" layout-align="start center" ng-if="!loading" md-colors="{'background':'default-background-100-0.5'}" style="height: 100px">
+          <md-content layout="row" layout-align="start center" ng-if="!loading" md-colors="{'background':'default-background-100-0.5'}" style="height: 88px">
             <md-card ng-repeat="filter in filters">
-              <md-card-header layout="row" style="padding-right: 4px">
+              <md-card-header layout="row" style="padding: 16px 4px">
+                <md-card-avatar>
+                  <md-icon class="md-avatar-icon">local_offer</md-icon>
+                </md-card-avatar>
                 <md-card-header-text flex>
                   <span class="md-title">{{filter.name}}</span>
                   <span class="md-subhead">{{filter.type == 'special' ? 'All web entities' : filter.tagCat}}</span>
@@ -39,9 +42,24 @@
                 </div>
               </md-card-header>
             </md-card>
-            <!-- <div ng-repeat="filter in filters">
-              {{filter.name}}
-            </div> -->
+
+            <!-- Search card -->
+            <md-card ng-if="searchQuery && searchQuery.length > 0">
+              <md-card-header layout="row" style="padding: 16px 4px">
+                <md-card-avatar>
+                  <md-icon class="md-avatar-icon">search</md-icon>
+                </md-card-avatar>
+                <md-card-header-text flex>
+                  <span class="md-title">{{searchQuery}}</span>
+                  <span class="md-subhead">Search</span>
+                </md-card-header-text>
+                <div layout="column" layout="center center">
+                  <md-button class="md-icon-button" ng-click="searchQuery = ''">
+                    <md-icon>close</md-icon>
+                  </md-button>
+                </div>
+              </md-card-header>
+            </md-card>
           </md-content>
 
           <md-tabs md-border-bottom flex md-selected="selectedTab" ng-if="!loading">
@@ -83,6 +101,63 @@
               <md-tab-body>
                 <div layout-fill layout="column">
 
+                  <!-- Web entity settings -->
+                  <div style="height: 72px; padding: 0px 8px" layout="row">
+                    <md-input-container flex style="margin-right: 16px">
+                      <label>Search</label>
+                      <md-icon>search</md-icon>
+                      <input
+                        ng-model="$parent.searchQuery"
+                      >
+                    </md-input-container>
+                    <md-input-container style="width: 240px">
+                      <label>Display a category</label>
+                      <md-select ng-model="$parent.displayCategory">
+                        <md-option value=""><em>None</em></md-option>
+                        <md-option
+                          ng-repeat="(tagCat, tagValues) in tagCategories"
+                          value="{{tagCat}}"
+                        >{{tagCat}}</md-option>
+                      </md-select>
+                    </md-input-container>
+                  </div>
+
+                  <!-- Web entity list -->
+                  <md-virtual-repeat-container flex>
+                    <md-list>
+                      <md-list-item
+                        md-virtual-repeat="webentity in data.in.webentities | filter:searchQuery:false:name"
+                        md-item-size="48"
+                        flex
+                      >
+                        <md-checkbox ng-model="webentity.selected"></md-checkbox>
+                        <p flex layout="row">
+                          <a
+                            ng-show="webentity.homepage"
+                            href="{{webentity.homepage}}"
+                            target="_blank"
+                            ng-click="$event.stopPropagation();"
+                            style="margin-right:2px"
+                          >
+                            <md-tooltip md-direction="left">{{webentity.homepage}}</md-tooltip>
+                            <md-icon>link</md-icon>
+                          </a>
+                          <span md-truncate flex>
+                            {{webentity.name}}
+                          </span>
+                        </p>
+                        <md-chips
+                          class="md-secondary md-chips-no-line"
+                          ng-if="displayCategory"
+                          ng-model="webentity.tags.USER[displayCategory]"
+                          readonly="true"
+                          md-removable="false"
+                        >
+                        </md-chips>
+                      </md-list-item>
+                    </md-list>
+                  </md-virtual-repeat-container>
+
                 </div>
               </md-tab-body>
             </md-tab>
@@ -92,7 +167,7 @@
               <md-tab-label><md-icon>bubble_chart</md-icon> Web entities network</md-tab-label>
               <md-tab-body>
                 <div layout-fill layout="column">
-
+                  
                 </div>
               </md-tab-body>
             </md-tab>

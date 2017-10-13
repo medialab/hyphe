@@ -182,6 +182,10 @@ md-list.md-dense md-list-item .md-list-item-inner .md-avatar {
   height: 40px;
 }
 
+.md-chips-no-line md-chips-wrap{
+  box-shadow: none;
+}
+
 
 
 /* ==========================================================================

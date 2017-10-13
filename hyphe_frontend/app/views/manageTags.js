@@ -40,6 +40,9 @@ angular.module('hyphe.manageTagsController', [])
     $scope.tagCategoriesUntagged = {}
     $scope.filters = []
 
+    $scope.searchQuery
+    $scope.displayCategory
+
     $scope.touchSpecialOption = function() {
       var tagCat
       for (tagCat in $scope.tagCategories) {
