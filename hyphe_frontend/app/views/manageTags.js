@@ -182,9 +182,11 @@ angular.module('hyphe.manageTagsController', [])
         .forEach(function(d){
           for (tagCat in d) {
             $scope.tagCategories[tagCat] = $scope.tagCategories[tagCat] || {}
-            var val = d[tagCat]
-            $scope.tagCategories[tagCat][val] = ($scope.tagCategories[tagCat][val] || {count:0, selected:false})
-            $scope.tagCategories[tagCat][val].count++
+            var values = d[tagCat]
+            values.forEach(function(val){
+              $scope.tagCategories[tagCat][val] = ($scope.tagCategories[tagCat][val] || {count:0, selected:false})
+              $scope.tagCategories[tagCat][val].count++
+            })
           }
         })
 
