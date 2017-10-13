@@ -13,7 +13,6 @@ angular.module('hyphe.controllers', [
     ,'hyphe.overviewController'
     ,'hyphe.importurlsController'
     ,'hyphe.definewebentitiesController'
-    ,'hyphe.newcrawlController'
     ,'hyphe.preparecrawlsController'
     ,'hyphe.monitorcrawlsController'
     ,'hyphe.listwebentitiesController'
