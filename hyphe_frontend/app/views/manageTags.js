@@ -146,12 +146,14 @@ angular.module('hyphe.manageTagsController', [])
 
     $scope.addTagToSelection = function(tagValue, tagCat, webentities) {
       $scope.status = {message: 'Adding tags'}
+      var webentityId_list = webentities.map(function(we){return we.id})
       webentities.forEach(function(webentity){
         webentity.tags.USER = webentity.tags.USER || []
         webentity.tags.USER[tagCat] = webentity.tags.USER[tagCat] || []
         webentity.tags.USER[tagCat].push(tagValue)
       })
-      
+      buildTagData()
+
       return api.addTag_webentities({
           webentityId_list: webentities.map(function(we){return we.id})
           ,category: tagCat
@@ -159,11 +161,9 @@ angular.module('hyphe.manageTagsController', [])
         }
         ,function(){
           $scope.status = {message: ''}
-          updateTags()
         }
         ,function(error){
           $scope.status = {message: 'Could not add tags', background:'warning'}
-          updateTags()
         }
       )
     }
@@ -175,6 +175,7 @@ angular.module('hyphe.manageTagsController', [])
           return d != tagValue
         })
       })
+      buildTagData()
       
       return api.removeTag_webentities({
           webentityId_list: webentities.map(function(we){return we.id})
@@ -183,11 +184,9 @@ angular.module('hyphe.manageTagsController', [])
         }
         ,function(){
           $scope.status = {message: ''}
-          updateTags()
         }
         ,function(error){
           $scope.status = {message: 'Could not remove tags', background:'warning'}
-          updateTags()
         }
       )
     }
