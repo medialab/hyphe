@@ -128,18 +128,30 @@ angular.module('hyphe.manageTagsController', [])
                 selection.push(val)
               }
             }
-            if (selection.length > 1) {
-              // Multiple values selected
+            if (selection.length > 2) {
+              // 3+ values selected
               $scope.filters.push({
                 type: 'cat',
                 tagCat: tagCat,
                 values: selection,
-                name: selection.length + ' values',
+                name: 'Some of ' + selection.length + ' values',
                 remove: function(){
                   this.values.forEach(function(val){
                     $scope.tagCategories[this.tagCat][val].selected = false
                     updateTags()
                   })
+                }
+              })
+            } else if (selection.length == 2) {
+              // 2 values selected
+              $scope.filters.push({
+                type: 'cat',
+                tagCat: tagCat,
+                values: selection,
+                name: selection[0] + ' OR ' + selection[1],
+                remove: function(){
+                  $scope.tagCategories[this.tagCat][this.values[0]].selected = false
+                  updateTags()
                 }
               })
             } else if (selection.length == 1) {

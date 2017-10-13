@@ -158,6 +158,13 @@ angular.module('hyphe.filters', [])
               || webentity.tags.USER[filterObject.tagCat] === undefined
               || webentity.tags.USER[filterObject.tagCat].length == 0
           }
+
+        } else if (filterObject.type == 'cat') {
+          filterFunction = function(webentity){
+            return webentity.tags.USER
+              && webentity.tags.USER[filterObject.tagCat] !== undefined
+              && webentity.tags.USER[filterObject.tagCat].some(function(t){return filterObject.values.some(function(d){return d==t})})
+          }
         }
         
         list = list.filter(filterFunction)
