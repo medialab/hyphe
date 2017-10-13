@@ -86,6 +86,28 @@
                 </div>
               </div>
             </div>
+
+            <!-- Selection -->
+            <div layout="row" ng-if="checkedList.length>0">
+              <div layout="column" layout-align="center center" style="padding-left: 8px">
+                <md-icon class="md-accent">trending_flat</md-icon>
+              </div>
+              <div layout="column" style="padding-left: 16px">
+                <div class="md-title">
+                  <span md-colors="{'color': 'default-accent'}">
+                    {{checkedList.length|number}}
+                  </span>
+                </div>
+                <div md-colors="{'color': 'default-accent'}">
+                  SELECTED
+                </div>
+              </div>
+              <div layout="column" layout-align="center center">
+                <md-button class="md-icon-button" ng-click="uncheckAll()" style="padding: 8px">
+                  <md-icon md-colors="{'color':'default-accent'}">close</md-icon>
+                </md-button>
+              </div>
+            </div>
           </md-content>
 
           <div flex layout="row" ng-if="!loading">
