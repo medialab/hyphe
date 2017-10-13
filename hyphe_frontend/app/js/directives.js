@@ -1428,7 +1428,14 @@ angular.module('hyphe.directives', [])
         }
 
         $scope.removeValue = function(chip) {
-          $scope.deleteValue(chip.value, $scope.tagCat, $scope.webentities)
+          var webentities = $scope.webentities.filter(function(webentity){
+            return webentity.tags.USER
+              && webentity.tags.USER[$scope.tagCat]
+              && webentity.tags.USER[$scope.tagCat].some(function(val){
+                return val == chip.value
+              })
+          })
+          $scope.deleteValue(chip.value, $scope.tagCat, webentities)
         }
 
         $scope.autoComplete = function(query, category){

@@ -167,7 +167,7 @@ angular.module('hyphe.manageTagsController', [])
 
     $scope.deleteTagFromSelection = function(tagValue, tagCat, webentities) {
       $scope.status = {message: 'Deleting tags'}
-      webentities.forEach(function(webentity){
+      var webentities_cured = webentities.map(function(webentity){
         webentity.tags.USER[tagCat] = webentity.tags.USER[tagCat].filter(function(d){
           return d != tagValue
         })
