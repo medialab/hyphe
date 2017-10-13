@@ -112,6 +112,7 @@ angular.module('hyphe.filters', [])
       var list = webentities
       filters.forEach(function(filterObject){
         var filterFunction = function(){ return true } // Default
+
         if (filterObject.type == 'special') {
           
           if (filterObject.value == 'untagged') {
@@ -125,6 +126,7 @@ angular.module('hyphe.filters', [])
               }
               return !aCategoryIsFilled
             }
+
           } else if (filterObject.value == 'partiallyUntagged') {
             filterFunction = function(webentity){
               var aCategoryIsUnfilled = false
@@ -136,6 +138,7 @@ angular.module('hyphe.filters', [])
               }
               return aCategoryIsUnfilled
             }
+
           } else if (filterObject.value == 'conflicts') {
             filterFunction = function(webentity){
               var aCategoryhasMultiple = false
@@ -149,6 +152,12 @@ angular.module('hyphe.filters', [])
             }
           }
 
+        } else if (filterObject.type == 'catUntagged') {
+          filterFunction = function(webentity){
+            return !webentity.tags.USER
+              || webentity.tags.USER[filterObject.tagCat] === undefined
+              || webentity.tags.USER[filterObject.tagCat].length == 0
+          }
         }
         
         list = list.filter(filterFunction)

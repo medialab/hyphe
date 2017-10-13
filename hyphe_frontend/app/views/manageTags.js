@@ -114,7 +114,7 @@ angular.module('hyphe.manageTagsController', [])
               tagCat: tagCat,
               name: 'Untagged',
               remove: function(){
-                $scope.tagCategoriesUntagged[tagCat] = false
+                $scope.tagCategoriesUntagged[this.tagCat] = false
                 updateTags()
               }
             })
@@ -136,8 +136,8 @@ angular.module('hyphe.manageTagsController', [])
                 values: selection,
                 name: selection.length + ' values',
                 remove: function(){
-                  selection.forEach(function(val){
-                    $scope.tagCategories[tagCat][val].selected = false
+                  this.values.forEach(function(val){
+                    $scope.tagCategories[this.tagCat][val].selected = false
                     updateTags()
                   })
                 }
@@ -150,10 +150,8 @@ angular.module('hyphe.manageTagsController', [])
                 values: selection,
                 name: selection[0],
                 remove: function(){
-                  selection.forEach(function(val){
-                    $scope.tagCategories[tagCat][val].selected = false
-                    updateTags()
-                  })
+                  $scope.tagCategories[this.tagCat][this.values[0]].selected = false
+                  updateTags()
                 }
               })
             }
