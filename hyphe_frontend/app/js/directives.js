@@ -1008,7 +1008,7 @@ angular.module('hyphe.directives', [])
                 }
 
                 var line = d3.line()
-                  .curve(d3.curveBasis)
+                  .curve(d3.curveStepBefore)
                   .x(function(d) { return x(new Date(d.timestamp)) })
                   .y(function(d) { return y(d.value) })
 
@@ -1191,7 +1191,7 @@ angular.module('hyphe.directives', [])
               }
 
               var line = d3.line()
-                .curve(d3.curveBasis)
+                .curve(d3.curveStepBefore)
                 .x(function(d) { return x(new Date(d.timestamp)) })
                 .y(function(d) { return y(d.value) })
 
