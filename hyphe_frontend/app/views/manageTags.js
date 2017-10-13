@@ -49,6 +49,8 @@ angular.module('hyphe.manageTagsController', [])
     $scope.searchQuery
     $scope.displayCategory
 
+    $scope.network
+
     $scope.touchSpecialOption = function() {
       var tagCat
       for (tagCat in $scope.tagCategories) {
@@ -136,8 +138,67 @@ angular.module('hyphe.manageTagsController', [])
       }
     }, true)
 
+    $scope.focusCategory = function(tagCat) {
+      $scope.displayCategory = tagCat
+      $scope.selectedTab = 1
+    }
+
     $scope.$watch('filters', updateDisplayedEntities)
     $scope.$watch('searchQuery', updateDisplayedEntities)
+
+    $scope.addTagToSelection = function(tagValue, tagCat, webentities) {
+      $scope.status = {message: 'Adding tags'}
+      var webentityId_list = webentities.map(function(we){return we.id})
+      webentities.forEach(function(webentity){
+        webentity.tags.USER = webentity.tags.USER || []
+        webentity.tags.USER[tagCat] = webentity.tags.USER[tagCat] || []
+        webentity.tags.USER[tagCat].push(tagValue)
+      })
+      buildTagData()
+
+      return api.addTag_webentities({
+          webentityId_list: webentities.map(function(we){return we.id})
+          ,category: tagCat
+          ,value: tagValue
+        }
+        ,function(){
+          $scope.status = {message: ''}
+        }
+        ,function(error){
+          $scope.status = {message: 'Could not add tags', background:'warning'}
+        }
+      )
+    }
+
+    $scope.deleteTagFromSelection = function(tagValue, tagCat, webentities) {
+      $scope.status = {message: 'Deleting tags'}
+      var webentities_cured = webentities.map(function(webentity){
+        webentity.tags.USER[tagCat] = webentity.tags.USER[tagCat].filter(function(d){
+          return d != tagValue
+        })
+      })
+      buildTagData()
+      
+      return api.removeTag_webentities({
+          webentityId_list: webentities.map(function(we){return we.id})
+          ,category: tagCat
+          ,value: tagValue
+        }
+        ,function(){
+          $scope.status = {message: ''}
+        }
+        ,function(error){
+          $scope.status = {message: 'Could not remove tags', background:'warning'}
+        }
+      )
+    }
+
+    $scope.downloadNetwork = function() {
+      if ($scope.network) {
+        var blob = new Blob([gexf.write($scope.network)], {'type':'text/gexf+xml;charset=utf-8'});
+        saveAs(blob, $scope.corpusName + ".gexf");
+      }
+    }
 
     // Init
     loadInWebentities()
@@ -324,7 +385,6 @@ angular.module('hyphe.manageTagsController', [])
         api.getWebentities_byStatus(
           {
             status: 'IN'
-            ,semiLight: true
             ,count: pageSize
             ,page: 0
           }
@@ -348,7 +408,7 @@ angular.module('hyphe.manageTagsController', [])
             // Stop if this function was called in the meanwhile
             if (data.in.token != thisToken) { return }
 
-            if ($scope.data[status].retry++ < 3){
+            if ($scope.data.in.retry++ < 3){
               console.warn('Error loading web entities: Retry', $scope.data.in.retry)
               loadInWebentities(thisToken)
             } else {
@@ -364,6 +424,7 @@ angular.module('hyphe.manageTagsController', [])
         $scope.loading = true
         $scope.status = {message: 'Loading links'}
         $scope.data.links.loading = true
+        $scope.data.links.loaded = false
         api.getNetwork(
           {}
           ,function(links){
@@ -374,6 +435,8 @@ angular.module('hyphe.manageTagsController', [])
             buildNetwork()
           }
           ,function(data, status, headers, config){
+            $scope.data.links.loading = false
+            $scope.data.links.loaded = false
             $scope.status = {message: 'Error loading links', background:'danger'}
           }
         )
@@ -381,18 +444,11 @@ angular.module('hyphe.manageTagsController', [])
       }
     }
 
-    // TODO
     function buildNetwork() {
-      /*var weIndex = {}
-      var stati = ['in', 'out', 'undecided', 'discovered']
-      stati.filter(function(status){
-          return $scope.settings[status]
-        })
-        .forEach(function(status){
-          $scope.data[status].webentities.forEach(function(we){
-            weIndex[we.id] = we
-          })
-        })
+      var weIndex = {}
+      $scope.data.in.webentities.forEach(function(we){
+        weIndex[we.id] = we
+      })
       var validLinks = $scope.data.links.links
         .filter(function(l){
           return weIndex[l[0]] !== undefined && weIndex[l[1]] !== undefined
@@ -409,25 +465,6 @@ angular.module('hyphe.manageTagsController', [])
       var g = new Graph({type: 'directed', allowSelfLoops: false})
       g.addNodesFrom(weIndex)
       g.importEdges(validLinks)
-
-      // Filtering: mark nodes for deletion
-      var allThreshold = 0
-      var discThreshold = 0
-      if ($scope.settings.limitAll) {
-        allThreshold = +$scope.settings.limitAll.replace('+', '')
-      }
-      if ($scope.settings.limitDiscovered) {
-        discThreshold = +$scope.settings.limitDiscovered.replace('+', '')
-      }
-      var nodesToDelete = []
-      g.nodes().forEach(function(nid){
-        var n = g.getNodeAttributes(nid)
-        var degree = g.degree(nid)
-        if (degree < allThreshold || (n.status == 'DISCOVERED' && degree < discThreshold)) {
-          nodesToDelete.push(nid)
-        }
-      })
-      g.dropNodes(nodesToDelete)
 
       // Color nodes by status
       // TODO: color by other means
@@ -472,6 +509,18 @@ angular.module('hyphe.manageTagsController', [])
       // Make the graph global for console tinkering
       window.g = g
 
-      $scope.network = g*/
+      $scope.network = g
+    }
+
+    function generateRandomCoordinates(area) {
+      var d = Infinity
+      var r = Math.sqrt(area / Math.PI || 1)
+      var x, y
+      while (d>r) {
+        x = (0.5 - Math.random()) * 2 * r
+        y = (0.5 - Math.random()) * 2 * r
+        d = Math.sqrt(x*x + y*y)
+      }
+      return {x:x, y:y}
     }
   })

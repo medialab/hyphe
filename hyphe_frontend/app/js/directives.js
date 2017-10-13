@@ -852,7 +852,8 @@ angular.module('hyphe.directives', [])
       ,templateUrl: 'partials/sigmaNetwork.html'
       ,scope: {
         network: '=',
-        downloadNetwork: '='
+        downloadNetwork: '=',
+        startOnLoad: '='
       }
       ,link: function($scope, el, attrs) {
         $scope.nodesCount
@@ -929,7 +930,9 @@ angular.module('hyphe.directives', [])
                 slowDown: 1 + Math.log($scope.network.order)
               }
             });
-            $scope.layout.start();
+            if ($scope.startOnLoad || $scope.startOnLoad === undefined) {
+              $scope.layout.start();
+            }
           })
         }
         $scope.$on("$destroy", function(){
@@ -1008,7 +1011,7 @@ angular.module('hyphe.directives', [])
                 }
 
                 var line = d3.line()
-                  .curve(d3.curveBasis)
+                  .curve(d3.curveStepBefore)
                   .x(function(d) { return x(new Date(d.timestamp)) })
                   .y(function(d) { return y(d.value) })
 
@@ -1191,7 +1194,7 @@ angular.module('hyphe.directives', [])
               }
 
               var line = d3.line()
-                .curve(d3.curveBasis)
+                .curve(d3.curveStepBefore)
                 .x(function(d) { return x(new Date(d.timestamp)) })
                 .y(function(d) { return y(d.value) })
 
@@ -1399,31 +1402,88 @@ angular.module('hyphe.directives', [])
       restrict: 'E'
       ,templateUrl: 'partials/summarizeTagCategory.html'
       ,scope: {
-        tagCat: '='
-      , webentities: '='
+        tagCat: '=',
+        webentities: '=',
+        tagCategories: '=',
+        setValue: '=',
+        deleteValue: '='
       }
       ,link: function($scope, el, attrs) {
-        $scope.$watch('tagCat', update())
-        $scope.$watch('webentities', update())
+        $scope.$watch('tagCat', update)
+        $scope.$watch('webentities', update)
+
+        $scope.transformChip = function(chip) {
+          return {value: chip, count:0}
+        }
+
+        $scope.addValue = function(chip, freetag) {
+          var webentities
+          if (freetag) {
+            webentities = $scope.webentities
+          } else {
+            webentities = $scope.webentities.filter(function(we){
+              return we.tags.USER === undefined
+                || we.tags.USER[$scope.tagCat] === undefined
+                || we.tags.USER[$scope.tagCat].length == 0
+            })
+          }
+          $scope.setValue(chip.value, $scope.tagCat, webentities)
+        }
+
+        $scope.removeValue = function(chip) {
+          var webentities = $scope.webentities.filter(function(webentity){
+            return webentity.tags.USER
+              && webentity.tags.USER[$scope.tagCat]
+              && webentity.tags.USER[$scope.tagCat].some(function(val){
+                return val == chip.value
+              })
+          })
+          $scope.deleteValue(chip.value, $scope.tagCat, webentities)
+        }
+
+        $scope.autoComplete = function(query, category){
+          var searchQuery = searchable(query)
+            , res = []
+          Object.keys($scope.tagCategories[category] || {}).forEach(function(searchTag){
+            if (searchTag && (!searchQuery || ~searchTag.indexOf(searchQuery))) {
+              res.push(searchTag)
+            }
+          })
+          return res
+        }
 
         function update() {
-          var values = {}
+          var valuesIndex = {}
+          $scope.undefinedValues = 0
           $scope.webentities.forEach(function(webentity){
             if (webentity.tags && webentity.tags.USER && webentity.tags.USER[$scope.tagCat]) {
               webentity.tags.USER[$scope.tagCat].forEach(function(val){
-                values[val] = (values[val] || 0) + 1
+                valuesIndex[val] = (valuesIndex[val] || 0) + 1
               })
+            } else {
+              $scope.undefinedValues++
             }
           })
 
-          var values_list = Object.keys(values)
-          if (values_list.length == 0) {
-            $scope.message = 'None'
-          } else if (values_list.length == 1) {
-            $scope.message = values_list[0]
-          } else {
-            $scope.message = values_list.length + ' values'
+          $scope.values = []
+          var val
+          for (val in valuesIndex) {
+            $scope.values.push({
+              value: val,
+              count: valuesIndex[val]
+            })
           }
+        }
+
+        function searchable(str){
+          str = str.trim().toLowerCase()
+          // remove diacritics
+          var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;"
+              , to = "aaaaeeeeiiiioooouuuunc------"
+          for (var i = 0, l = from.length; i < l; i++) {
+            str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i))
+          }
+          return str
         }
       }
     }

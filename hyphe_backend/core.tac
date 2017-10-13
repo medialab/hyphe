@@ -2428,6 +2428,11 @@ class Memory_Structure(customJSONRPC):
             yield self.remove_tag_from_dictionary(namespace, category, value, corpus=corpus)
         returnD(res)
 
+    # TODO handle as single mongo query
+    def jsonrpc_rm_webentities_tag_value(self, webentity_ids, namespace, category, value, corpus=DEFAULT_CORPUS):
+        """Removes for a `corpus` a tag `namespace:category=value` to a bunch of WebEntities defined by a list of `webentity_ids`."""
+        return self.batch_webentities_edit("rm_webentity_tag_value", webentity_ids, corpus, namespace, category, value)
+
     @inlineCallbacks
     def add_backend_tags(self, webentity_id, key, value, namespace="", corpus=DEFAULT_CORPUS, _commit=True):
         if not namespace:

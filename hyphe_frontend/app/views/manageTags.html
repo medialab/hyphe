@@ -25,7 +25,13 @@
             <spinner></spinner>
           </div>
 
-          <md-content layout="row" layout-align="start center" ng-if="!loading" md-colors="{'background':'default-background-100-0.5'}" style="height: 106px">
+          <md-content
+            layout="row"
+            layout-align="start center"
+            ng-if="!loading"
+            md-colors="{'background':'default-background-100-0.5'}"
+            style="height: 106px"
+          >
             <md-card ng-repeat="filter in filters">
               <md-card-header layout="row" style="padding: 16px 4px">
                 <md-card-avatar>
@@ -81,10 +87,31 @@
               </div>
             </div>
 
+            <!-- Selection -->
+            <div layout="row" ng-if="checkedList.length>0">
+              <div layout="column" layout-align="center center" style="padding-left: 8px">
+                <md-icon class="md-accent">trending_flat</md-icon>
+              </div>
+              <div layout="column" style="padding-left: 16px">
+                <div class="md-title">
+                  <span md-colors="{'color': 'default-accent'}">
+                    {{checkedList.length|number}}
+                  </span>
+                </div>
+                <div md-colors="{'color': 'default-accent'}">
+                  SELECTED
+                </div>
+              </div>
+              <div layout="column" layout-align="center center">
+                <md-button class="md-icon-button" ng-click="uncheckAll()" style="padding: 8px">
+                  <md-icon md-colors="{'color':'default-accent'}">close</md-icon>
+                </md-button>
+              </div>
+            </div>
           </md-content>
 
           <div flex layout="row" ng-if="!loading">
-            <md-tabs md-border-bottom flex md-selected="selectedTab">
+            <md-tabs md-border-bottom flex md-selected="$parent.selectedTab">
               
               <!-- Tab: TAGS -->
               <md-tab>
@@ -105,7 +132,12 @@
                     <md-divider></md-divider>
 
                     <div layout="column" style="padding: 8px 16px">
-                      <p class="md-title">Free Tags</p>
+                      <p class="md-title">
+                        Free Tags
+                        <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory('FREETAGS')" ng-disabled="displayCategory == 'FREETAGS'">
+                          <md-icon>visibility</md-icon>
+                        </md-button>
+                      </p>
                       <md-checkbox class="md-primary" ng-model="tagCategoriesUntagged['FREETAGS']" aria-label="Untagged" ng-change="touchUntagged('FREETAGS')">
                         <em>Untagged</em>
                       </md-checkbox>
@@ -119,7 +151,12 @@
                     <md-divider></md-divider>
 
                     <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column" ng-if="tagCat != 'FREETAGS'" style="padding: 8px 16px">
-                      <p class="md-title">{{tagCat}}</p>
+                      <p class="md-title">
+                        {{tagCat}}
+                        <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory(tagCat)" ng-disabled="displayCategory == tagCat">
+                          <md-icon>visibility</md-icon>
+                        </md-button>
+                      </p>
                       <md-checkbox class="md-primary" ng-model="tagCategoriesUntagged[tagCat]" aria-label="Untagged" ng-change="touchUntagged(tagCat)">
                         <em>Untagged</em>
                       </md-checkbox>
@@ -215,8 +252,17 @@
               <md-tab>
                 <md-tab-label><md-icon>bubble_chart</md-icon> Web entities network</md-tab-label>
                 <md-tab-body>
-                  <div layout-fill layout="column">
-                    
+                  <div layout-fill layout="column" layout-align="center center" ng-if="!data.links.loaded">
+                    <spinner text="'LOADING LINKS'"></spinner>
+                  </div>
+                  <div layout-fill layout="column" ng-if="data.links.loaded">
+                    <div style="width: 100%; height: 99%">
+                      <sigma-network
+                        network="network"
+                        download-network="downloadNetwork"
+                        start-on-load="false"
+                      ></sigma-network>
+                    </div>
                   </div>
                 </md-tab-body>
               </md-tab>
@@ -258,16 +304,39 @@
                 </md-virtual-repeat-container>
               </div>
 
-              <div layout="column" flex style="overflow-y: auto; padding: 8px" md-colors="{'background': 'default-background-200'}">
-                
+              <div flex style="overflow-y: auto; padding: 8px" md-colors="{'background': 'default-background-200'}">
                 <div layout="column">
-                  <p class="md-title">Free Tags</p>
-                  <summarize-tag-cat tag-cat="'FREETAGS'" webentities="checkedList"></summarize-tag-cat>
-                </div>
+                  <div layout="column">
+                    <div class="md-title">
+                      Free Tags
+                      <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory('FREETAGS')" ng-disabled="displayCategory == 'FREETAGS'">
+                        <md-icon>visibility</md-icon>
+                      </md-button>
+                    </div>
+                    <summarize-tag-cat
+                      tag-cat="'FREETAGS'"
+                      webentities="checkedList"
+                      tag-categories="tagCategories"
+                      set-value="addTagToSelection"
+                      delete-value="deleteTagFromSelection"
+                    ></summarize-tag-cat>
+                  </div>
 
-                <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column" ng-if="tagCat != 'FREETAGS'">
-                  <p class="md-title">{{tagCat}}</p>
-                  <summarize-tag-cat tag-cat="tagCat" webentities="checkedList"></summarize-tag-cat>
+                  <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column" ng-if="tagCat != 'FREETAGS'">
+                    <div class="md-title">
+                      {{tagCat}}
+                      <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory(tagCat)" ng-disabled="displayCategory == tagCat">
+                        <md-icon>visibility</md-icon>
+                      </md-button>
+                    </div>
+                    <summarize-tag-cat
+                      tag-cat="tagCat"
+                      webentities="checkedList"
+                      tag-categories="tagCategories"
+                      set-value="addTagToSelection"
+                      delete-value="deleteTagFromSelection"
+                    ></summarize-tag-cat>
+                  </div>
                 </div>
 
               </div>
