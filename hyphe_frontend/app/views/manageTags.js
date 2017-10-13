@@ -11,8 +11,7 @@ angular.module('hyphe.manageTagsController', [])
     $location,
     $timeout
   ) {
-    var pageSize = 5000
-    $scope.loadInWebentitiesCurrentToken = 0
+    var pageSize = 1000
 
     $scope.currentPage = 'manageTags'
     $scope.corpusName = corpus.getName()
@@ -34,6 +33,10 @@ angular.module('hyphe.manageTagsController', [])
         links: []
       }
     }
+
+    $scope.$on("$destroy", function(){
+      $scope.data = {}
+    })
 
     $scope.generalOption = undefined
     $scope.tagCategories = {}
@@ -211,7 +214,7 @@ angular.module('hyphe.manageTagsController', [])
           }
           ,function(result){
             // Stop if this function was called in the meanwhile
-            if ($scope.loadInWebentitiesCurrentToken != thisToken) { return }
+            if ($scope.data.in.token != thisToken) { return }
             console.log(result)
             $scope.data.in.webentities = $scope.data.in.webentities.concat(result.webentities)
             if ($scope.data.in.webentities.length >= $scope.data.in.total) {
@@ -226,7 +229,7 @@ angular.module('hyphe.manageTagsController', [])
           }
           ,function(data, status, headers, config){
             // Stop if this function was called in the meanwhile
-            if ($scope.loadInWebentitiesCurrentToken != thisToken) { return }
+            if ($scope.data.in.token != thisToken) { return }
 
             if ($scope.data.in.retry++ < 3){
               console.warn('Error loading results page: Retry', $scope.data.in.retry)
@@ -265,12 +268,12 @@ angular.module('hyphe.manageTagsController', [])
               loadLinks()
               buildTagData()
             } else {
-              loadInWebentities(thisToken)
+              loadInWebentities(result.token)
             }
           }
           ,function(data, headers, config){
             // Stop if this function was called in the meanwhile
-            if ($scope.loadInWebentitiesCurrentToken != thisToken) { return }
+            if (data.in.token != thisToken) { return }
 
             if ($scope.data[status].retry++ < 3){
               console.warn('Error loading web entities: Retry', $scope.data.in.retry)
