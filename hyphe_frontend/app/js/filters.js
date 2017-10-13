@@ -113,18 +113,31 @@ angular.module('hyphe.filters', [])
       filters.forEach(function(filterObject){
         var filterFunction = function(){ return true } // Default
         if (filterObject.type == 'special') {
+          
           if (filterObject.value == 'untagged') {
             filterFunction = function(webentity){
-              var result = true
+              var aCategoryIsFilled = false
               var tagCat
               for (tagCat in tagCategories) {
                 if (webentity.tags.USER && webentity.tags.USER[tagCat] !== undefined) {
-                  result = false
+                  aCategoryIsFilled = true
                 }
               }
-              return result
+              return !aCategoryIsFilled
+            }
+          } else if (filterObject.value == 'partiallyUntagged') {
+            filterFunction = function(webentity){
+              var aCategoryIsUnfilled = false
+              var tagCat
+              for (tagCat in tagCategories) {
+                if (tagCat != 'FREETAGS' && (!webentity.tags.USER || webentity.tags.USER[tagCat] == undefined) ) {
+                  aCategoryIsUnfilled = true
+                }
+              }
+              return aCategoryIsUnfilled
             }
           }
+
         }
         
         list = list.filter(filterFunction)
