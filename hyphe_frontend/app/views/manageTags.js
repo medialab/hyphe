@@ -9,7 +9,8 @@ angular.module('hyphe.manageTagsController', [])
     corpus,
     utils,
     $location,
-    $timeout
+    $timeout,
+    $filter
   ) {
     var pageSize = 1000
 
@@ -43,6 +44,8 @@ angular.module('hyphe.manageTagsController', [])
     $scope.tagCategoriesUntagged = {}
     $scope.filters = []
 
+    $scope.allChecked = false
+    $scope.allCheckedIndeterminate = false
     $scope.searchQuery
     $scope.displayCategory
 
@@ -78,6 +81,58 @@ angular.module('hyphe.manageTagsController', [])
       $scope.tagCategoriesUntagged[tagCat] = false
       updateTags()
     }
+
+    $scope.toggleCheckAll = function() {
+      if ($scope.allChecked) {
+        // Uncheck all
+        $filter('tagFilter')(
+          $filter('filter')(
+            $scope.data.in.webentities,
+            $scope.searchQuery, false, 'name'
+          ),
+          $scope.filters, $scope.tagCategories
+        )
+          .forEach(function(webentity){
+            webentity.selected = false
+          })
+        $scope.allChecked = false
+      } else {
+        // Check all
+        $filter('tagFilter')(
+          $filter('filter')(
+            $scope.data.in.webentities,
+            $scope.searchQuery, false, 'name'
+          ),
+          $scope.filters, $scope.tagCategories
+        )
+          .forEach(function(webentity){
+            webentity.selected = true
+          })
+        $scope.allChecked = true
+      }
+    }
+
+    // All check button
+    $scope.$watch('data.in.webentities', function(){
+      if ($scope.data.in.webentities) {
+        var someChecked = $scope.data.in.webentities.some(function(webentity){
+          return webentity.selected
+        })
+        var someUnchecked = $scope.data.in.webentities.some(function(webentity){
+          return !webentity.selected
+        })
+        if (!someChecked) {
+          $scope.allChecked = false
+          $scope.allCheckedIndeterminate = false
+        } else if (!someUnchecked) {
+          $scope.allChecked = true
+          $scope.allCheckedIndeterminate = false
+        } else {
+          $scope.allChecked = false
+          $scope.allCheckedIndeterminate = true
+        }
+      }
+    }, true)
 
     // Init
     loadInWebentities()
@@ -203,7 +258,6 @@ angular.module('hyphe.manageTagsController', [])
 
       $scope.loading = false
 
-      console.log($scope.tagCategories)
     }
 
     function loadInWebentities(thisToken) {
