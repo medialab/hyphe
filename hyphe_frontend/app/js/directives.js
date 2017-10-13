@@ -852,7 +852,8 @@ angular.module('hyphe.directives', [])
       ,templateUrl: 'partials/sigmaNetwork.html'
       ,scope: {
         network: '=',
-        downloadNetwork: '='
+        downloadNetwork: '=',
+        startOnLoad: '='
       }
       ,link: function($scope, el, attrs) {
         $scope.nodesCount
@@ -929,7 +930,9 @@ angular.module('hyphe.directives', [])
                 slowDown: 1 + Math.log($scope.network.order)
               }
             });
-            $scope.layout.start();
+            if ($scope.startOnLoad || $scope.startOnLoad === undefined) {
+              $scope.layout.start();
+            }
           })
         }
         $scope.$on("$destroy", function(){

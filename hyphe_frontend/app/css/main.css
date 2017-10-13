@@ -186,6 +186,10 @@ md-list.md-dense md-list-item .md-list-item-inner .md-avatar {
   box-shadow: none;
 }
 
+.fix-scroll-glitch {
+  background-color: #F00;
+}
+
 
 
 /* ==========================================================================

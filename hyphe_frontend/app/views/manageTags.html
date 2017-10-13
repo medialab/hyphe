@@ -252,8 +252,17 @@
               <md-tab>
                 <md-tab-label><md-icon>bubble_chart</md-icon> Web entities network</md-tab-label>
                 <md-tab-body>
-                  <div layout-fill layout="column">
-                    
+                  <div layout-fill layout="column" layout-align="center center" ng-if="!data.links.loaded">
+                    <spinner text="'LOADING LINKS'"></spinner>
+                  </div>
+                  <div layout-fill layout="column" ng-if="data.links.loaded">
+                    <div style="width: 100%; height: 99%">
+                      <sigma-network
+                        network="network"
+                        download-network="downloadNetwork"
+                        start-on-load="false"
+                      ></sigma-network>
+                    </div>
                   </div>
                 </md-tab-body>
               </md-tab>
