@@ -936,6 +936,11 @@ angular.module('hyphe.directives', [])
               camera.animate({ratio: 1.5, x:0, y:0})
             }
 
+            // Defaults to some unzoom
+            var camera = renderer.getCamera()
+            var state = camera.getState()
+            camera.animate({ratio: 1.2, x:0, y:0})
+
             if ($scope.layout) {
               $scope.layout.kill()
             }
