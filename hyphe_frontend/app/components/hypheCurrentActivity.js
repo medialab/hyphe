@@ -12,7 +12,21 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
       },
       templateUrl: 'components/hypheCurrentActivity.html',
       link: function($scope, el, attrs) {
+        
+        $scope.$watch('status', redraw)
+        window.addEventListener('resize', redraw)
+        $scope.$on('$destroy', function(){
+          window.removeEventListener('resize', redraw)
+        })
 
+        function redraw() {
+          redrawCrawledPages()
+          // TODO: other charts
+        }
+
+        function redrawCrawledPages() {
+          
+        }
       }
     }
   })
