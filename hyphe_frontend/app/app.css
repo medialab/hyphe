@@ -181,6 +181,22 @@ dl.highlight {
   opacity: 0.5;
 }
 
+@keyframes fallingdrop {
+    from {
+      transform: translateY(0%);
+    }
+    to {
+      transform: translateY(100%);
+    }
+}
+
+.falling-drop {
+  animation-name: fallingdrop;
+  animation-duration: 0.8s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in;
+}
+
 
 
 /* ==========================================================================
