@@ -141,7 +141,7 @@ angular.module('hyphe.manageTagsController', [])
 
     $scope.focusCategory = function(tagCat) {
       $scope.displayCategory = tagCat
-      $scope.selectedTab = 1
+      $scope.selectedTab = 0
     }
 
     $scope.$watch('filters', updateDisplayedEntities)
