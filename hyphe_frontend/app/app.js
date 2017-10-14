@@ -19,6 +19,7 @@ angular.module('hyphe', [
   ,'hyphe.service_glossary'
   ,'hyphe.directives'
   ,'hyphe.controllers'
+  ,'hyphe.components'
 ])
 
 // Default conf settings for retrocompatibility
