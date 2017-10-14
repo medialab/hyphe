@@ -9,6 +9,7 @@
 
 angular.module('hyphe.components', [
     'hyphe.sigmaNetworkComponent'
+    ,'hyphe.prefixSliderComponent'
   ])
 
 ;

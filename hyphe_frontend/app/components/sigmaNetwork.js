@@ -1,8 +1,5 @@
 'use strict';
 
-/* Directives */
-
-
 angular.module('hyphe.sigmaNetworkComponent', [])
 
   .directive('sigmaNetwork', function(
