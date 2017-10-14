@@ -51,6 +51,7 @@ angular.module('hyphe.manageTagsController', [])
     $scope.displayCategory
 
     $scope.network
+    $scope.networkTabAlreadyOpened = false
 
     $scope.touchSpecialOption = function() {
       var tagCat
@@ -148,6 +149,7 @@ angular.module('hyphe.manageTagsController', [])
     $scope.$watch('searchQuery', updateDisplayedEntities)
     $scope.$watch('displayedEntities', updateNetwork)
     $scope.$watch('checkedList', updateNetwork)
+    $scope.$watch('selectedTab', checkNetworkTabFirstOpening)
 
     $scope.addTagToSelection = function(tagValue, tagCat, webentities) {
       $scope.status = {message: 'Adding tags'}
@@ -207,6 +209,19 @@ angular.module('hyphe.manageTagsController', [])
     loadInWebentities()
 
     // Functions
+    function checkNetworkTabFirstOpening() {
+      if ($scope.selectedTab == 1) {
+        if (!$scope.networkTabAlreadyOpened) {
+          $scope.networkTabAlreadyOpened = true
+          // TODO: RUN LAYOUT
+          console.log('TODO Run Layout')
+        }
+      } else {
+        // TODO: STOP LAYOUT
+        console.log('TODO Stop Layout')
+      }
+    }
+
     function updateDisplayedEntities() {
       $scope.displayedEntities = $filter('tagFilter')(
         $filter('filter')(
