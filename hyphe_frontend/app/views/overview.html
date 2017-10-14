@@ -123,24 +123,78 @@
               </div>
             </div>
 
+            <!-- Current activity -->
+            <h3>Current activity</h3>
+
+            <!-- Crawl jobs -->
+            <div layout="row">
+              <h3>
+                {{(
+                  corpusStatus.corpus.crawler.jobs_running
+                  + corpusStatus.corpus.crawler.jobs_pending
+                  + corpusStatus.corpus.crawler.jobs_finished
+                )|number}}
+                Crawl jobs
+              </h3>
+              <div layout="row" style="padding-top: 38px; margin-left: 16px">
+                <div md-colors="{'color':'default-primary'}" style="margin-right: 16px">
+                  {{corpusStatus.corpus.crawler.jobs_running|number}} running
+                </div>
+                <div md-colors="{'color':'default-background-300'}" style="margin-right: 16px">
+                  {{corpusStatus.corpus.crawler.jobs_pending|number}} pending
+                </div>
+                <div md-colors="{'color':'default-background-500'}">
+                  {{corpusStatus.corpus.crawler.jobs_finished|number}} finished
+                </div>
+              </div>
+            </div>
+            <md-grid-list
+              style="margin-bottom: 8px"
+              md-cols="8"
+              md-cols-sm="16"
+              md-cols-md="24"
+              md-cols-gt-md="36"
+              md-gutter="4px"
+              md-row-height="1:1"
+            >
+              <!-- Cubes -->
+              <md-grid-tile
+                class="visual-crawl-job-tile"
+                ng-repeat="job in visualCrawlJobs"
+                md-colors="{
+                  'background':
+                    (job.status == 'running')
+                    ? ('default-primary-500')
+                    : (
+                      (job.status == 'finished')
+                      ? ('default-background-200')
+                      : ('default-background-100-0.5')
+                    )
+                }"
+              >
+                <md-tooltip md-direction="top">{{job.status}}</md-tooltip>
+              </md-grid-tile>
+            </md-grid-list>
+
+
             <!-- Info blocks -->
             <div layout="row">
               <md-content flex layout="column" layout-align="start center" style="padding:8px; margin-right:8px;" md-colors="{background: 'default-background-100'}">
                 <h3>
                   CRAWL JOBS
                 </h3>
-                <p class="md-body-1" ng-show="corpusStatus.corpus.crawler.jobs_finished">
+                <p class="md-body-1" ng-show="true || corpusStatus.corpus.crawler.jobs_finished">
                   {{corpusStatus.corpus.crawler.jobs_finished}} achieved
                 </p>
-                <p class="md-body-1" ng-show="corpusStatus.corpus.crawler.jobs_running">
+                <p class="md-body-1" ng-show="true || corpusStatus.corpus.crawler.jobs_running">
                   {{corpusStatus.corpus.crawler.jobs_running}} running
                 </p>
-                <p class="md-body-1" ng-show="corpusStatus.corpus.crawler.jobs_pending">
+                <p class="md-body-1" ng-show="true || corpusStatus.corpus.crawler.jobs_pending">
                   {{corpusStatus.corpus.crawler.jobs_pending}} pending
                 </p>
                 <p class="md-body-1">
                   Last indexation {{corpusStatus.corpus.traph.last_index|prettyDate}}
-                <p class="md-body-1" ng-show="corpusStatus.corpus.traph.job_running">
+                <p class="md-body-1" ng-show="true || corpusStatus.corpus.traph.job_running">
                   Currently: {{corpusStatus.corpus.traph.job_running}}
                 </p>
               </md-content>
@@ -151,13 +205,13 @@
                 <p class="md-body-1" >
                   {{corpusStatus.corpus.crawler.pages_crawled|number|no}} page{{corpusStatus.corpus.crawler.pages_crawled|plural}} crawled
                 </p>
-                <p class="md-body-1" ng-if="corpusStatus.corpus.traph.pages_to_index" >
+                <p class="md-body-1" ng-if="true || corpusStatus.corpus.traph.pages_to_index" >
                   including {{corpusStatus.corpus.traph.pages_to_index|number}} unindexed yet
                 </p>
                 <p class="md-body-1" >
                   {{corpusStatus.corpus.crawler.pages_found|number|no}} page{{corpusStatus.corpus.crawler.pages_found|plural}} discovered
                 </p>
-                <p class="md-body-1" ng-show="corpusStatus.corpus.crawler.links_found" >
+                <p class="md-body-1" ng-show="true || corpusStatus.corpus.crawler.links_found" >
                   {{corpusStatus.corpus.crawler.links_found|number}} link{{corpusStatus.corpus.crawler.links_found|plural}} discovered
                 </p>
               </md-content>

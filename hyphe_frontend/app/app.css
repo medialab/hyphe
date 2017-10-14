@@ -177,6 +177,10 @@ dl.highlight {
   padding: 0px 8px 8px 0px;
 }
 
+.visual-crawl-job-tile:hover {
+  opacity: 0.5;
+}
+
 
 
 /* ==========================================================================
