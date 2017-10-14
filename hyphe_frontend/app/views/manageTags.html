@@ -262,13 +262,24 @@
                   <div layout-fill layout="column" layout-align="center center" ng-if="!data.links.loaded">
                     <spinner text="'LOADING LINKS'"></spinner>
                   </div>
-                  <div layout-fill layout="column" ng-if="data.links.loaded">
+                  <div layout-fill layout="column" ng-if="data.links.loaded" style="position: relative">
                     <div style="width: 100%; height: 99%">
                       <sigma-network
                         network="network"
                         download-network="downloadNetwork"
                         suspend-layout="selectedTab != 1"
                       ></sigma-network>
+                    </div>
+                    <div style="position:absolute; top: 8px; right: 8px;" layout="column" layout-align="start end">
+                      <div md-colors="{'color':'default-accent'}" ng-if="checkedList.length > 0">
+                        {{checkedList.length|number}} selected
+                      </div>
+                      <div md-colors="{'color':'default-primary'}" ng-if="displayedEntities.length > 0">
+                        {{displayedEntities.length|number}} filtered
+                      </div>
+                      <div md-colors="{'color':'default-background-300'}" ng-if="data.in.webentities.length - displayedEntities.length > 0">
+                        {{(data.in.webentities.length - displayedEntities.length)|number}} left aside
+                      </div>
                     </div>
                   </div>
                 </md-tab-body>
