@@ -16,6 +16,8 @@ angular.module('hyphe.overviewController', [])
 
     $scope.statuses = {in:true, undecided:true, out:true, discovered:true}
 
+    $scope.visualCrawlJobs = [] // Updated on each status load
+
     // Init
     loadStatus()
     loadStatistics()
@@ -36,6 +38,7 @@ angular.module('hyphe.overviewController', [])
           status.corpus.traph.job_running = ""
         }
         $scope.corpusStatus = status
+        updateVisualCrawlJobs()
       },function(data, status, headers, config){
         $scope.loadingStatus = false
         $scope.status = {message: 'Error loading status', background:'danger'}
@@ -52,6 +55,32 @@ angular.module('hyphe.overviewController', [])
       },function(data, status, headers, config){
         $scope.loadingStatistics = false
         $scope.status = {message: 'Error loading statistics', background:'danger'}
+      })
+    }
+
+    function updateVisualCrawlJobs() {
+      // The goal is to not reinitialize the list each time
+
+      // Add crawl jobs if needed
+      for (
+        var i = $scope.visualCrawlJobs.length;
+        i <= $scope.corpusStatus.corpus.crawler.jobs_finished
+          + $scope.corpusStatus.corpus.crawler.jobs_pending
+          + $scope.corpusStatus.corpus.crawler.jobs_running;
+        i++
+      ) {
+        $scope.visualCrawlJobs.push({status:'finished'})
+      }
+
+      // Update the statuses
+      $scope.visualCrawlJobs.forEach(function(job, i){
+        if (i < $scope.corpusStatus.corpus.crawler.jobs_running) {
+          job.status = 'running'
+        } else if (i < $scope.corpusStatus.corpus.crawler.jobs_running + $scope.corpusStatus.corpus.crawler.jobs_pending) {
+          job.status = 'pending'
+        } else {
+          job.status = 'finished'
+        }
       })
     }
 

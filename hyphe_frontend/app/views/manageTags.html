@@ -30,7 +30,7 @@
             layout-align="start center"
             ng-if="!loading"
             md-colors="{'background':'default-background-100-0.5'}"
-            style="height: 106px"
+            style="height: 106px; margin-bottom: 8px"
           >
             <md-card ng-repeat="filter in filters">
               <md-card-header layout="row" style="padding: 16px 4px">
@@ -111,71 +111,78 @@
           </md-content>
 
           <div flex layout="row" ng-if="!loading">
-            <md-tabs md-border-bottom flex md-selected="$parent.selectedTab">
-              
-              <!-- Tab: TAGS -->
-              <md-tab>
-                <md-tab-label><md-icon>local_offer</md-icon> Tag filters</md-tab-label>
-                <md-tab-body>
-                  <div layout="column">
-                    <div layout="column" style="padding: 8px 16px">
-                      <p class="md-title"><em>Special filters</em></p>
-                      <md-radio-group ng-model="$parent.generalOption" ng-change="touchSpecialOption()">
 
-                        <md-radio-button class="md-primary" value="untagged"> Untagged </md-radio-button>
-                        <md-radio-button class="md-primary" value="partiallyUntagged"> Partially untagged </md-radio-button>
-                        <md-radio-button class="md-primary" value="conflicts"> Conflicts </md-radio-button>
+            <!-- Tag filters -->
+            <div layout="column" style="width: 280px;">
 
-                      </md-radio-group>
-                    </div>
+              <!-- Title -->
+              <div layout="row" md-colors="{'background':'default-primary'}" style="height: 40px">
+                <div style="padding: 8px" flex>
+                  TAG FILTERS
+                </div>
+              </div>
 
-                    <md-divider></md-divider>
+              <!-- Content -->
+              <div flex style="overflow-y: auto">
+                <div layout="column" style="padding: 8px 16px">
+                  <p class="md-title"><em>Special filters</em></p>
+                  <md-radio-group ng-model="$parent.generalOption" ng-change="touchSpecialOption()">
 
-                    <div layout="column" style="padding: 8px 16px">
-                      <p class="md-title">
-                        Free Tags
-                        <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory('FREETAGS')" ng-disabled="displayCategory == 'FREETAGS'">
-                          <md-icon>visibility</md-icon>
-                        </md-button>
-                      </p>
-                      <md-checkbox class="md-primary" ng-model="tagCategoriesUntagged['FREETAGS']" aria-label="Untagged" ng-change="touchUntagged('FREETAGS')">
-                        <em>Untagged</em>
-                      </md-checkbox>
-                      <div ng-repeat="(val, valData) in tagCategories.FREETAGS">
-                        <md-checkbox class="md-primary" ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue('FREETAGS')">
-                          {{val}} <em md-colors="{'color':'default-primary'}">{{valData.count|number}}</em>
-                        </md-checkbox>
-                      </div>
-                    </div>
+                    <md-radio-button class="md-primary" value="untagged"> <em>Untagged</em> </md-radio-button>
+                    <md-radio-button class="md-primary" value="partiallyUntagged"> <em>Partially untagged</em> </md-radio-button>
+                    <md-radio-button class="md-primary" value="conflicts"> <em>Conflicts</em> </md-radio-button>
 
-                    <md-divider></md-divider>
+                  </md-radio-group>
+                </div>
 
-                    <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column" ng-if="tagCat != 'FREETAGS'" style="padding: 8px 16px">
-                      <p class="md-title">
-                        {{tagCat}}
-                        <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory(tagCat)" ng-disabled="displayCategory == tagCat">
-                          <md-icon>visibility</md-icon>
-                        </md-button>
-                      </p>
-                      <md-checkbox class="md-primary" ng-model="tagCategoriesUntagged[tagCat]" aria-label="Untagged" ng-change="touchUntagged(tagCat)">
-                        <em>Untagged</em>
-                      </md-checkbox>
-                      <div ng-repeat="(val, valData) in tagValues">
-                        <md-checkbox class="md-primary" ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue(tagCat)">
-                          {{val}} <em md-colors="{'color':'default-primary'}">{{valData.count|number}}</em>
-                        </md-checkbox>
-                      </div>
-                    </div>
+                <md-divider></md-divider>
 
+                <div layout="column" style="padding: 8px 16px">
+                  <p class="md-title">
+                    Free Tags
+                    <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory('FREETAGS')" ng-disabled="displayCategory == 'FREETAGS'">
+                      <md-icon>visibility</md-icon>
+                    </md-button>
+                  </p>
+                  <md-checkbox class="md-primary" ng-model="tagCategoriesUntagged['FREETAGS']" aria-label="Untagged" ng-change="touchUntagged('FREETAGS')">
+                    <em>Untagged</em>
+                  </md-checkbox>
+                  <div ng-repeat="(val, valData) in tagCategories.FREETAGS">
+                    <md-checkbox class="md-primary" ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue('FREETAGS')">
+                      {{val}} <em md-colors="{'color':'default-primary'}">{{valData.count|number}}</em>
+                    </md-checkbox>
                   </div>
-                </md-tab-body>
-              </md-tab>
+                </div>
 
+                <md-divider></md-divider>
+
+                <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column" ng-if="tagCat != 'FREETAGS'" style="padding: 8px 16px">
+                  <p class="md-title">
+                    {{tagCat}}
+                    <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory(tagCat)" ng-disabled="displayCategory == tagCat">
+                      <md-icon>visibility</md-icon>
+                    </md-button>
+                  </p>
+                  <md-checkbox class="md-primary" ng-model="tagCategoriesUntagged[tagCat]" aria-label="Untagged" ng-change="touchUntagged(tagCat)">
+                    <em>Untagged</em>
+                  </md-checkbox>
+                  <div ng-repeat="(val, valData) in tagValues">
+                    <md-checkbox class="md-primary" ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue(tagCat)">
+                      {{val}} <em md-colors="{'color':'default-primary'}">{{valData.count|number}}</em>
+                    </md-checkbox>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TABS -->
+            <md-tabs md-border-bottom flex md-selected="$parent.selectedTab" style="margin:0px 8px">
+              
               <!-- Tab: WEB ENTITIES -->
               <md-tab>
-                <md-tab-label><md-icon>list</md-icon> Web entities list</md-tab-label>
+                <md-tab-label><md-icon>list</md-icon> {{displayedEntities.length|number}} Web entities</md-tab-label>
                 <md-tab-body>
-                  <div layout-fill layout="column" style="padding-left: 8px">
+                  <div layout-fill layout="column">
 
                     <!-- Web entity settings -->
                     <div
@@ -193,7 +200,7 @@
                           ng-model="$parent.searchQuery"
                         >
                       </md-input-container>
-                      <md-input-container style="width: 240px">
+                      <md-input-container style="width: 200px">
                         <label>Display a category</label>
                         <md-select ng-model="$parent.displayCategory">
                           <md-option value=""><em>None</em></md-option>
@@ -255,13 +262,24 @@
                   <div layout-fill layout="column" layout-align="center center" ng-if="!data.links.loaded">
                     <spinner text="'LOADING LINKS'"></spinner>
                   </div>
-                  <div layout-fill layout="column" ng-if="data.links.loaded">
+                  <div layout-fill layout="column" ng-if="data.links.loaded" style="position: relative">
                     <div style="width: 100%; height: 99%">
                       <sigma-network
                         network="network"
                         download-network="downloadNetwork"
-                        start-on-load="false"
+                        suspend-layout="selectedTab != 1"
                       ></sigma-network>
+                    </div>
+                    <div style="position:absolute; top: 8px; right: 8px;" layout="column" layout-align="start end">
+                      <div md-colors="{'color':'default-accent'}" ng-if="checkedList.length > 0">
+                        {{checkedList.length|number}} selected
+                      </div>
+                      <div md-colors="{'color':'default-primary'}" ng-if="displayedEntities.length > 0">
+                        {{displayedEntities.length|number}} filtered
+                      </div>
+                      <div md-colors="{'color':'default-background-300'}" ng-if="data.in.webentities.length - displayedEntities.length > 0">
+                        {{(data.in.webentities.length - displayedEntities.length)|number}} left aside
+                      </div>
                     </div>
                   </div>
                 </md-tab-body>
@@ -269,7 +287,7 @@
 
             </md-tabs>
 
-            <div layout="column" style="width: 328px; margin-left: 8px; padding-top: 8px" ng-if="checkedList.length > 0">
+            <div layout="column" style="width: 320px;" ng-if="checkedList.length > 0">
               
               <!-- Title -->
               <div layout="row" md-colors="{'background':'default-accent'}" style="height: 40px">
