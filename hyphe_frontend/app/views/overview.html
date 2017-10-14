@@ -24,64 +24,70 @@
             <h1>
               OVERVIEW
             </h1>
+            <span class="md-subhead">
+              Monitor the state of web entities and the activity on this corpus
+            </span>
           </div>
 
           <!-- Information when corpus not empty -->
           <div ng-show="corpusStatus.corpus.traph.webentities.total" style="padding:8px">
 
             <!-- Blocks by status -->
-            <md-grid-list
-              md-cols-xs="2"
-              md-cols-sm="2"
-              md-cols-gt-sm="4"
-              md-row-height="1:1"
-              md-gutter="8px">
+            <div style="padding-right: 64px">
+              <md-grid-list
+                md-cols-xs="2"
+                md-cols-sm="2"
+                md-cols-gt-sm="4"
+                md-row-height="1:1"
+                md-gutter="8px"
+              >
 
-              <md-grid-tile md-rowspan="1" md-colspan="1">
-                <div layout-fill layout="column" layout-align="center center" class="pointable" ng-class="{'webentity-background-in':statuses.in, 'webentity-background-null': !statuses.in}" ng-click="statuses.in = !statuses.in">
-                  <div class="md-title">
-                    IN
+                <md-grid-tile md-rowspan="1" md-colspan="1">
+                  <div layout-fill layout="column" layout-align="center center" class="pointable" ng-class="{'webentity-background-in':statuses.in, 'webentity-background-null': !statuses.in}" ng-click="statuses.in = !statuses.in">
+                    <div class="md-title">
+                      IN
+                    </div>
+                    <div class="md-headline">
+                      {{corpusStatus.corpus.traph.webentities.IN|number}}
+                    </div>
                   </div>
-                  <div class="md-headline">
-                    {{corpusStatus.corpus.traph.webentities.IN|number}}
-                  </div>
-                </div>
-              </md-grid-tile>
+                </md-grid-tile>
 
-              <md-grid-tile md-rowspan="1" md-colspan="1">
-                <div layout-fill layout="column" layout-align="center center" class="pointable" ng-class="{'webentity-background-undecided':statuses.undecided, 'webentity-background-null': !statuses.undecided}" ng-click="statuses.undecided = !statuses.undecided">
-                  <div class="md-title">
-                    UNDECIDED
+                <md-grid-tile md-rowspan="1" md-colspan="1">
+                  <div layout-fill layout="column" layout-align="center center" class="pointable" ng-class="{'webentity-background-undecided':statuses.undecided, 'webentity-background-null': !statuses.undecided}" ng-click="statuses.undecided = !statuses.undecided">
+                    <div class="md-title">
+                      UNDECIDED
+                    </div>
+                    <div class="md-headline">
+                      {{corpusStatus.corpus.traph.webentities.UNDECIDED|number}}
+                    </div>
                   </div>
-                  <div class="md-headline">
-                    {{corpusStatus.corpus.traph.webentities.UNDECIDED|number}}
-                  </div>
-                </div>
-              </md-grid-tile>
+                </md-grid-tile>
 
-              <md-grid-tile md-rowspan="1" md-colspan="1">
-                <div layout-fill layout="column" layout-align="center center" class="pointable" ng-class="{'webentity-background-out':statuses.out, 'webentity-background-null': !statuses.out}" ng-click="statuses.out = !statuses.out">
-                  <div class="md-title">
-                    OUT
+                <md-grid-tile md-rowspan="1" md-colspan="1">
+                  <div layout-fill layout="column" layout-align="center center" class="pointable" ng-class="{'webentity-background-out':statuses.out, 'webentity-background-null': !statuses.out}" ng-click="statuses.out = !statuses.out">
+                    <div class="md-title">
+                      OUT
+                    </div>
+                    <div class="md-headline">
+                      {{corpusStatus.corpus.traph.webentities.OUT|number}}
+                    </div>
                   </div>
-                  <div class="md-headline">
-                    {{corpusStatus.corpus.traph.webentities.OUT|number}}
-                  </div>
-                </div>
-              </md-grid-tile>
+                </md-grid-tile>
 
-              <md-grid-tile md-rowspan="1" md-colspan="1">
-                <div layout-fill layout="column" layout-align="center center" class="pointable" ng-class="{'webentity-background-discovered':statuses.discovered, 'webentity-background-null': !statuses.discovered}" ng-click="statuses.discovered = !statuses.discovered">
-                  <div class="md-title">
-                    DISCOVERED
+                <md-grid-tile md-rowspan="1" md-colspan="1">
+                  <div layout-fill layout="column" layout-align="center center" class="pointable" ng-class="{'webentity-background-discovered':statuses.discovered, 'webentity-background-null': !statuses.discovered}" ng-click="statuses.discovered = !statuses.discovered">
+                    <div class="md-title">
+                      DISCOVERED
+                    </div>
+                    <div class="md-headline">
+                      {{corpusStatus.corpus.traph.webentities.DISCOVERED|number}}
+                    </div>
                   </div>
-                  <div class="md-headline">
-                    {{corpusStatus.corpus.traph.webentities.DISCOVERED|number}}
-                  </div>
-                </div>
-              </md-grid-tile>
+                </md-grid-tile>
 
-            </md-grid-list>
+              </md-grid-list>
+            </div>
 
             <!-- Activity charts -->
             <div layout="column">
