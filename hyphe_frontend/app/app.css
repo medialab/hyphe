@@ -811,7 +811,7 @@ textarea.over-error {
   opacity: 0;
   width: 100%; height: 100%;
   border-radius: 100%;
-  background: url(../img/water.png);
+  background: url(img/water.png);
   -webkit-animation: wave-animation 1s infinite linear, loading-animation 10s infinite ease-in;
           animation: wave-animation 1s infinite linear, loading-animation 10s infinite ease-in;
   background-size: 200px 100px;
