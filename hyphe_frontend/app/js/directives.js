@@ -864,7 +864,7 @@ angular.module('hyphe.directives', [])
         $scope.loaded = false
         $scope.layout
 
-        $scope.stateOnSuspendLayout
+        $scope.stateOnSuspendLayout = ($scope.startLayoutOnLoad === undefined || $scope.startLayoutOnLoad)
 
         $scope.$watch('network', function(){
           $scope.loaded = false
@@ -879,7 +879,7 @@ angular.module('hyphe.directives', [])
         })
 
         $scope.$watch('suspendLayout', function(){
-          
+          if ($scope.layout === undefined) { return }
           if ($scope.suspendLayout === true) {
             $scope.stateOnSuspendLayout = $scope.layout.running
             $scope.stopLayout()
