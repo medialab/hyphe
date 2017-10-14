@@ -11,6 +11,7 @@ angular.module('hyphe.components', [
     'hyphe.sigmaNetworkComponent'
     ,'hyphe.prefixSliderComponent'
     ,'hyphe.startpageCheckerComponent'
+    ,'hyphe.webentitiesNetworkWidgetComponent'
   ])
 
 ;
