@@ -12,6 +12,7 @@ angular.module('hyphe.components', [
     ,'hyphe.prefixSliderComponent'
     ,'hyphe.startpageCheckerComponent'
     ,'hyphe.webentitiesNetworkWidgetComponent'
+    ,'hyphe.activityChartsComponent'
   ])
 
 ;

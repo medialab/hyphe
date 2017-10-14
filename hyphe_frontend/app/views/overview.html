@@ -95,8 +95,8 @@
                   layout-align="center center"
                   ng-if="displayStatistics"
                 ></activity-chart>
-                <div style="position: absolute; top:0; left: 0;" layout="column">
-                  <div class="md-title">Web entities volume<br>over time</div>
+                <div class="compact-chart-title-overlay" md-colors="{'background':'default-background-50-0.6'}" layout="column">
+                  <div class="md-title">Web entities<br>volume<br>over time</div>
                   <md-switch ng-model="statusLogMode" aria-label="Log" style="margin:0px">
                     Log curves
                   </md-switch>
@@ -111,8 +111,8 @@
                   layout-align="center center"
                   ng-if="displayStatistics"
                 ></activity-chart-2>
-                <div style="position: absolute; top:0; left: 0;">
-                  <div class="md-title">Uncrawled and<br>untagged web entities</div>
+                <div class="compact-chart-title-overlay" md-colors="{'background':'default-background-50-0.6'}">
+                  <div class="md-title">Uncrawled<br>and untagged<br>web entities</div>
                 </div>
               </div>
             </div>

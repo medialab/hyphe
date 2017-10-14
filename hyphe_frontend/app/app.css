@@ -170,6 +170,13 @@ dl.highlight {
   background-color: #FFF;
 }
 
+.compact-chart-title-overlay {
+  position: absolute;
+  top:0;
+  left: 0;
+  padding: 0px 8px 8px 0px;
+}
+
 
 
 /* ==========================================================================
