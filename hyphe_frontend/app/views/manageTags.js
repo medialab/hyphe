@@ -10,7 +10,8 @@ angular.module('hyphe.manageTagsController', [])
     utils,
     $location,
     $timeout,
-    $filter
+    $filter,
+    $mdColors
   ) {
     var pageSize = 1000
 
@@ -145,6 +146,8 @@ angular.module('hyphe.manageTagsController', [])
 
     $scope.$watch('filters', updateDisplayedEntities)
     $scope.$watch('searchQuery', updateDisplayedEntities)
+    $scope.$watch('displayedEntities', updateNetwork)
+    $scope.$watch('checkedList', updateNetwork)
 
     $scope.addTagToSelection = function(tagValue, tagCat, webentities) {
       $scope.status = {message: 'Adding tags'}
@@ -466,17 +469,9 @@ angular.module('hyphe.manageTagsController', [])
       g.addNodesFrom(weIndex)
       g.importEdges(validLinks)
 
-      // Color nodes by status
-      // TODO: color by other means
-      var statusColors = {
-        IN:              "#333"
-        ,UNDECIDED:      "#ADA299"
-        ,OUT:            "#FAA"
-        ,DISCOVERED:     "#93BDE0"
-      }
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)
-        n.color = statusColors[n.status] || '#F00'
+        n.color = '#AAA'
       })
 
       // Size nodes by indegree
@@ -486,7 +481,8 @@ angular.module('hyphe.manageTagsController', [])
       var totalArea = 0
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)
-        n.size = minSize + Math.sqrt(g.inDegree(nid) / averageNonNormalizedArea)
+        n.initialsize = minSize + Math.sqrt(g.inDegree(nid) / averageNonNormalizedArea)
+        n.size = n.initialsize
         totalArea += Math.PI * n.size * n.size
       })
 
@@ -503,13 +499,50 @@ angular.module('hyphe.manageTagsController', [])
       // Default color for edges
       g.edges().forEach(function(eid){
         var e = g.getEdgeAttributes(eid)
-        e.color = '#DDD'
+        e.color = $mdColors.getThemeColor('default-background-100')
       })
 
       // Make the graph global for console tinkering
       window.g = g
 
       $scope.network = g
+      updateNetwork()
+    }
+
+    function updateNetwork() {
+      var g = $scope.network
+      if (g === undefined) { return }
+
+      // Build webentity index
+      var webentityIndex = {}
+      $scope.data.in.webentities.forEach(function(we){
+        webentityIndex[we.id] = {selected:false, displayed: false}
+      })
+      $scope.displayedEntities.forEach(function(we){
+        webentityIndex[we.id].displayed = true
+      })
+      $scope.checkedList.forEach(function(we){
+        webentityIndex[we.id].selected = true
+      })
+
+      // Color network
+      var colors = {
+        selected: $mdColors.getThemeColor('default-accent'),
+        displayed: $mdColors.getThemeColor('default-primary-700'),
+        regular: $mdColors.getThemeColor('default-background-100')
+      }
+      g.nodes().forEach(function(nid){
+        if (webentityIndex[nid].selected) {
+          g.setNodeAttribute(nid, 'color', colors.selected)
+          g.setNodeAttribute(nid, 'size', 2.0 * +g.getNodeAttribute(nid, 'initialsize'))
+        } else if (webentityIndex[nid].displayed) {
+          g.setNodeAttribute(nid, 'color', colors.displayed)
+          g.setNodeAttribute(nid, 'size', 1.2 * +g.getNodeAttribute(nid, 'initialsize'))
+        } else {
+          g.setNodeAttribute(nid, 'color', colors.regular)
+          g.setNodeAttribute(nid, 'size', 1.0 * +g.getNodeAttribute(nid, 'initialsize'))
+        }
+      })
     }
 
     function generateRandomCoordinates(area) {
