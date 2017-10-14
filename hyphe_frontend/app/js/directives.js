@@ -853,7 +853,9 @@ angular.module('hyphe.directives', [])
       ,scope: {
         network: '=',
         downloadNetwork: '=',
-        startOnLoad: '='
+        suspendLayout: '=',            // Optional. Stops layout when suspendLayout becomes true
+        startLayoutOnShow: '=',         // Optional. Starts layout when suspendLayout becomes false
+        startLayoutOnLoad: '='          // Optional. Default: true
       }
       ,link: function($scope, el, attrs) {
         $scope.nodesCount
@@ -861,6 +863,8 @@ angular.module('hyphe.directives', [])
         $scope.tooBig = false
         $scope.loaded = false
         $scope.layout
+
+        $scope.stateOnSuspendLayout
 
         $scope.$watch('network', function(){
           $scope.loaded = false
@@ -874,6 +878,18 @@ angular.module('hyphe.directives', [])
           })
         })
 
+        $scope.$watch('suspendLayout', function(){
+          
+          if ($scope.suspendLayout === true) {
+            $scope.stateOnSuspendLayout = $scope.layout.running
+            $scope.stopLayout()
+          } else if ($scope.suspendLayout === false) {
+            if ($scope.startLayoutOnShow === true || $scope.stateOnSuspendLayout) {
+              $scope.startLayout()
+            }
+          }
+        })
+
         $scope.displayLargeNetwork = function() {
           networkDisplayThreshold.upTo($scope.nodesCount)
           $scope.tooBig = $scope.nodesCount > networkDisplayThreshold.get()
@@ -881,10 +897,12 @@ angular.module('hyphe.directives', [])
         }
 
         $scope.stopLayout = function(){
+          if ($scope.layout === undefined) { return }
           $scope.layout.stop()
         }
 
         $scope.startLayout = function(){
+          if ($scope.layout === undefined) { return }
           $scope.layout.start()
         }
 
@@ -930,7 +948,10 @@ angular.module('hyphe.directives', [])
                 slowDown: 1 + Math.log($scope.network.order)
               }
             });
-            if ($scope.startOnLoad || $scope.startOnLoad === undefined) {
+            if (
+              ($scope.startLayoutOnLoad || $scope.startLayoutOnLoad === undefined)
+              && (!$scope.suspendLayout || $scope.suspendLayout === undefined)
+            ) {
               $scope.layout.start();
             }
           })
