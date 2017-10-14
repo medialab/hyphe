@@ -529,7 +529,7 @@ angular.module('hyphe.manageTagsController', [])
       var colors = {
         selected: $mdColors.getThemeColor('default-accent'),
         displayed: $mdColors.getThemeColor('default-primary-700'),
-        regular: $mdColors.getThemeColor('default-background-100')
+        regular: $mdColors.getThemeColor('default-background-200')
       }
       g.nodes().forEach(function(nid){
         if (webentityIndex[nid].selected) {
