@@ -32,15 +32,15 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
           var crawledPagesAfter = 0
           if (oldStatus && oldStatus.corpus && oldStatus.corpus.crawler && oldStatus.corpus.crawler.pages_crawled) {
             crawledPagesBefore = oldStatus.corpus.crawler.pages_crawled
-            if(oldStatus.corpus.traph && oldStatus.corpus.traph.pages_to_index) {
+            /*if(oldStatus.corpus.traph && oldStatus.corpus.traph.pages_to_index) {
               crawledPagesBefore += oldStatus.corpus.traph.pages_to_index
-            }
+            }*/
           }
           if (newStatus && newStatus.corpus && newStatus.corpus.crawler && newStatus.corpus.crawler.pages_crawled) {
             crawledPagesAfter = newStatus.corpus.crawler.pages_crawled
-            if(newStatus.corpus.traph && newStatus.corpus.traph.pages_to_index) {
+            /*if(newStatus.corpus.traph && newStatus.corpus.traph.pages_to_index) {
               crawledPagesAfter += newStatus.corpus.traph.pages_to_index
-            }
+            }*/
           }
           
           $scope.isCrawling = crawledPagesAfter > crawledPagesBefore
@@ -93,8 +93,8 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
                 })
                 .map(function(status){
                   return {
-                    crawled: status.corpus.crawler.pages_crawled + status.corpus.traph.pages_to_index,
-                    indexed: status.corpus.crawler.pages_crawled
+                    crawled: status.corpus.crawler.pages_crawled,
+                    indexed: status.corpus.crawler.pages_crawled - status.corpus.traph.pages_to_index
                   }
                 })
 

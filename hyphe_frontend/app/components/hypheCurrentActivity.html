@@ -46,7 +46,7 @@
                 style="text-align: center; overflow: hidden"
               >
                 <div style="z-index: 1; font-size:0.8em">
-                  {{(status.corpus.crawler.pages_crawled + status.corpus.traph.pages_to_index)|number}}<br>CRAWLED PAGES
+                  {{(status.corpus.crawler.pages_crawled)|number}}<br>CRAWLED PAGES
                 </div>
               </div>
             </div>
@@ -70,7 +70,7 @@
           layout-align="center center"
           md-colors="{'color':'default-primary'}"
         >
-          {{(status.corpus.crawler.pages_crawled + status.corpus.traph.pages_to_index)|number}} CRAWLED PAGES
+          {{(status.corpus.crawler.pages_crawled)|number}} CRAWLED PAGES
         </div>
         <div layout="column" flex>
           <div
@@ -95,7 +95,7 @@
           layout-align="center center"
           md-colors="{'color':'default-warn-900'}"
         >
-          {{(status.corpus.crawler.pages_crawled)|number}} INDEXED PAGES
+          {{(status.corpus.crawler.pages_crawled - status.corpus.traph.pages_to_index)|number}} INDEXED PAGES
         </div>
       </div>
     </md-grid-tile>
