@@ -14,6 +14,7 @@ angular.module('hyphe.components', [
     ,'hyphe.webentitiesNetworkWidgetComponent'
     ,'hyphe.activityChartsComponent'
     ,'hyphe.hypheCurrentActivityComponent'
+    ,'hyphe.rankingsChartComponent'
   ])
 
 ;
