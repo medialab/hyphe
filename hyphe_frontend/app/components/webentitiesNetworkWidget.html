@@ -287,6 +287,18 @@
           <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}} (tag)</md-option>
         </md-select>
       </md-input-container>
+
+      <div layout="row" style="padding-bottom: 16px" ng-repeat="item in nodeColorMap">
+        <div style="width: 48px" layout="column" layout-align="center center">
+          <md-icon ng-style="{'color':item.color}">fiber_manual_record</md-icon>
+        </div>
+        <div flex layout="column" layout-align="center start" style="padding-left: 8px">
+          <div class="network-key-text">
+            {{item.name}}
+            <span ng-if="item.count">({{item.count}})</span>
+          </div>
+        </div>
+      </div>
     </div>
     
   </md-content>

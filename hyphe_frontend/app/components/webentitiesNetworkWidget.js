@@ -179,6 +179,56 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               g.setNodeAttribute(nid, 'color', colors[g.getNodeAttribute(nid, 'status')])
             })
 
+          } else {
+
+            // Node colors by tag
+            var tagCat = $scope.nodeColorMode
+            var colorArray = [
+              "#565ad7",
+              "#6cab33",
+              "#be44c8",
+              "#bf5b2d",
+              "#ec335b"
+            ]
+            var colorDefault = "#999"
+            var colorUntagged = "#DDD"
+            var colors = {undefined: colorUntagged}
+            var untaggedCount = 0
+            $scope.nodeColorMap = Object.keys($scope.tagCategories[tagCat])
+              .map(function(tagValue){
+                var d = $scope.tagCategories[tagCat][tagValue]
+                d.name = tagValue
+                return d
+              })
+              .sort(function(a, b){
+                return b.count - a.count
+              })
+              .map(function(d, i){
+                if (i<colorArray.length) {
+                  d.color = colorArray[i]
+                } else {
+                  d.color = colorDefault
+                }
+                colors[d.name] = d.color
+                return d
+              })
+            var g = $scope.network
+            if (g === undefined) { return }
+            g.nodes().forEach(function(nid){
+              var tags = g.getNodeAttribute(nid, 'tags')
+              var color
+              if (tags == undefined || tags.USER == undefined || tags.USER[tagCat] === undefined) {
+                color = colorUntagged
+                untaggedCount++
+              } else {
+                color = colors[tags.USER[tagCat]]
+              }
+              g.setNodeAttribute(nid, 'color', color)
+            })
+            if (untaggedCount > 0) {
+              $scope.nodeColorMap.push({name: 'Untagged', color: colorUntagged, count: untaggedCount})
+            }
+
           }
           // console.log('Update colors to', $scope.nodeColorMode)
         }
