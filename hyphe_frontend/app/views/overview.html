@@ -112,6 +112,9 @@
             <div layout="row">
               <div style="width:140px; padding: 0px 16px 0px 8px;">
                 <div class="md-title">WEB ENTITY VOLUME OVER TIME</div>
+                <md-switch ng-model="statusLogMode" aria-label="Log" style="margin:0px">
+                  Log curves
+                </md-switch>
               </div>
               <div flex layout="column">
                 <div style="height: 300px; position: relative">
@@ -124,11 +127,6 @@
                     layout-align="center center"
                     ng-if="displayStatistics"
                   ></activity-chart>
-                  <div class="compact-chart-title-overlay" md-colors="{'background':'default-background-50-0.6'}" layout="column">
-                    <md-switch ng-model="statusLogMode" aria-label="Log" style="margin:0px">
-                      Log curves
-                    </md-switch>
-                  </div>
                 </div>
               </div>
             </div>

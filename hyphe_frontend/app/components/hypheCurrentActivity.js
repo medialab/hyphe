@@ -27,8 +27,8 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
           }
 
           // Is it crawling?
-          var crawledPagesBefore = 0
-          var crawledPagesAfter = 0
+          var crawledPagesBefore
+          var crawledPagesAfter
           if (oldStatus && oldStatus.corpus && oldStatus.corpus.crawler && oldStatus.corpus.crawler.pages_crawled) {
             crawledPagesBefore = oldStatus.corpus.crawler.pages_crawled
             /*if(oldStatus.corpus.traph && oldStatus.corpus.traph.pages_to_index) {
@@ -42,7 +42,11 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
             }*/
           }
           
-          $scope.isCrawling = crawledPagesAfter > crawledPagesBefore
+          if (crawledPagesAfter === undefined || crawledPagesBefore === undefined) {
+            $scope.isCrawling = false
+          } else {
+            $scope.isCrawling = crawledPagesAfter > crawledPagesBefore
+          }
         })
         
       }
