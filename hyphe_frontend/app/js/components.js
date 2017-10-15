@@ -15,6 +15,7 @@ angular.module('hyphe.components', [
     ,'hyphe.activityChartsComponent'
     ,'hyphe.hypheCurrentActivityComponent'
     ,'hyphe.rankingsChartComponent'
+    ,'hyphe.summarizeTagCatComponent'
   ])
 
 ;
