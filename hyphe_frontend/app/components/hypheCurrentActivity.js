@@ -30,12 +30,19 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
           // Is it crawling?
           var crawledPagesBefore = 0
           var crawledPagesAfter = 0
-          if (oldStatus && oldStatus.crawler && oldStatus.crawler.pages_crawled) {
-            crawledPagesBefore = oldStatus.crawler.pages_crawled
+          if (oldStatus && oldStatus.corpus && oldStatus.corpus.crawler && oldStatus.corpus.crawler.pages_crawled) {
+            crawledPagesBefore = oldStatus.corpus.crawler.pages_crawled
+            if(oldStatus.corpus.traph && oldStatus.corpus.traph.pages_to_index) {
+              crawledPagesBefore += oldStatus.corpus.traph.pages_to_index
+            }
           }
-          if (newStatus && newStatus.crawler && newStatus.crawler.pages_crawled) {
-            crawledPagesAfter = newStatus.crawler.pages_crawled
+          if (newStatus && newStatus.corpus && newStatus.corpus.crawler && newStatus.corpus.crawler.pages_crawled) {
+            crawledPagesAfter = newStatus.corpus.crawler.pages_crawled
+            if(newStatus.corpus.traph && newStatus.corpus.traph.pages_to_index) {
+              crawledPagesAfter += newStatus.corpus.traph.pages_to_index
+            }
           }
+          
           $scope.isCrawling = crawledPagesAfter > crawledPagesBefore
         })
         
@@ -98,7 +105,7 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
 
               var maxCrawled = d3.max(data, function(d){return d.crawled})
               var y = d3.scaleLinear()
-                .domain([maxCrawled - $scope.scale, maxCrawled])
+                .domain([Math.max(0, maxCrawled - $scope.scale), maxCrawled])
                 .range([height, 0])
               
               var colorizeLine = function(type){
@@ -234,7 +241,7 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
 
               var maxValue = d3.max(data, function(d){return d.value})
               var y = d3.scaleLinear()
-                .domain([maxValue - $scope.scale, maxValue])
+                .domain([Math.max(0, maxValue - $scope.scale), maxValue])
                 .range([height, 0])
               
               var lineColor = '#666'
