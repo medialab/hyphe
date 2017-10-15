@@ -86,7 +86,45 @@
       layout="column"
     >
       <p class="md-title">Key</p>
-      (In progress)
+      
+      <div layout="row" style="padding-bottom: 32px">
+        <div style="width: 48px" layout="column" layout-align="center center">
+          <md-icon>fiber_manual_record</md-icon>
+        </div>
+        <div flex layout="column" layout-align="center start" style="padding-left: 8px">
+          <div class="network-key-text">
+            Each dot or <em>node</em> is a <span hyphe-glossary="page"></span>
+          </div>
+        </div>
+      </div>
+
+      <div layout="row" style="padding-bottom: 32px">
+        <div style="width: 48px" layout="column" layout-align="center center">
+          <md-icon style="transform: rotate(-30deg)">remove</md-icon>
+        </div>
+        <div flex layout="column" layout-align="center start" style="padding-left: 8px">
+          <div class="network-key-text">
+            Each line or <em>edge</em> or <em>link</em> represents a <span hyphe-glossary="hyperlink"></span>.
+            <br>
+            Links are oriented even though it is not figured in the image.
+          </div>
+        </div>
+      </div>
+
+      <p>NODE COLOR</p>
+
+      <div layout="row" style="padding-bottom: 16px" ng-repeat="item in nodeColorMap">
+        <div style="width: 48px" layout="column" layout-align="center center">
+          <md-icon ng-style="{'color':item.color}">fiber_manual_record</md-icon>
+        </div>
+        <div flex layout="column" layout-align="center start" style="padding-left: 8px">
+          <div class="network-key-text">
+            {{item.name}}
+            <span ng-if="item.count">({{item.count}})</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   </md-content>
 
