@@ -83,6 +83,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.network
 
         $scope.nodeColorMode = '_webentitystatus'
+        $scope.nodeSizeMode = 'indegree'
+        $scope.nodeSizeBaseRatio = 1
         $scope.tagCategories = {}
 
         $scope.toggleSidenav = function() {
@@ -140,12 +142,19 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         }
 
         $scope.$watch('nodeColorMode', updateNodeColors)
+        $scope.$watch('nodeSizeMode', updateNodeSizes)
+        $scope.$watch('nodeSizeBaseRatio', updateNodeSizes)
 
         // Init
         $scope.applySettings()
 
         /// Functions
         
+        function updateNetworkAppearance() {
+          updateNodeColors()
+          updateNodeSizes()
+        }
+
         function updateNodeColors() {
           $scope.nodeColorMap = []
           if ($scope.nodeColorMode == '') {
@@ -233,6 +242,32 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           // console.log('Update colors to', $scope.nodeColorMode)
         }
 
+        function updateNodeSizes() {
+          var g = $scope.network
+          if (g === undefined) { return }
+          var averageNonNormalizedArea = g.size / g.order // because node area = indegree
+          var minSize = 1
+          var values = []
+          g.nodes().forEach(function(nid){
+            var value = 1
+            if ($scope.nodeSizeMode == 'indegree') {
+              value = g.inDegree(nid)
+            } else if ($scope.nodeSizeMode == 'outdegree') {
+              value = g.outDegree(nid)
+            } else if ($scope.nodeSizeMode == 'degree') {
+              value = g.degree(nid)
+            }
+            var size = $scope.nodeSizeBaseRatio * (minSize + Math.sqrt(value / averageNonNormalizedArea))
+            values.push(value)
+            g.setNodeAttribute(nid, 'size', size)
+          })
+
+          $scope.nodeSizeMap = [
+            {size: 0.5, name: 'Smallest node', value: d3.min(values)},
+            {size: 1.2, name: 'Biggest node', value: d3.max(values)}
+          ]
+        }
+
         function buildTagData() {
           $scope.tagCategories = {}
 
@@ -254,7 +289,6 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
                 })
             }
           })
-          console.log($scope.tagCategories)
         }
 
         function checkLoadAndUpdate(thisToken) {
@@ -422,25 +456,15 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           })
           g.dropNodes(nodesToDelete)
 
-          // Color nodes (default)
+          // Default nodes appearance
           g.nodes().forEach(function(nid){
             var n = g.getNodeAttributes(nid)
             n.color = '#666'
-          })
-
-          // Size nodes by indegree
-          // TODO: size by other means
-          var averageNonNormalizedArea = g.size / g.order // because node area = indegree
-          var minSize = 1
-          var totalArea = 0
-          g.nodes().forEach(function(nid){
-            var n = g.getNodeAttributes(nid)
-            n.size = minSize + Math.sqrt(g.inDegree(nid) / averageNonNormalizedArea)
-            totalArea += Math.PI * n.size * n.size
+            n.size = 1
           })
 
           // Init Label and coordinates
-          var nodesArea = totalArea
+          var nodesArea = g.order * 10
           g.nodes().forEach(function(nid){
             var n = g.getNodeAttributes(nid)
             var xy = generateRandomCoordinates(nodesArea)
@@ -460,7 +484,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
           $scope.network = g
 
-          updateNodeColors()
+          updateNetworkAppearance()
         }
 
         function loadStatus(callback){

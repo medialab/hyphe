@@ -279,25 +279,76 @@
         </div>
       </div>
 
-      <md-input-container ng-if="network">
-        <label>NODE COLOR</label>
-        <md-select ng-model="$parent.nodeColorMode">
-          <md-option value=""><em>No color</em></md-option>
-          <md-option value="_webentitystatus">Web entity status</md-option>
-          <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}} (tag)</md-option>
-        </md-select>
-      </md-input-container>
+      <div layout="column" ng-if="network">
 
-      <div layout="row" style="padding-bottom: 16px" ng-repeat="item in nodeColorMap">
-        <div style="width: 48px" layout="column" layout-align="center center">
-          <md-icon ng-style="{'color':item.color}">fiber_manual_record</md-icon>
-        </div>
-        <div flex layout="column" layout-align="center start" style="padding-left: 8px">
-          <div class="network-key-text">
-            {{item.name}}
-            <span ng-if="item.count">({{item.count}})</span>
+        <md-input-container>
+          <label>NODE COLOR</label>
+          <md-select ng-model="$parent.nodeColorMode">
+            <md-option value=""><em>No color</em></md-option>
+            <md-option value="_webentitystatus">Web entity status</md-option>
+            <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}} (tag)</md-option>
+          </md-select>
+        </md-input-container>
+
+        <div layout="row" style="padding-bottom: 16px" ng-repeat="item in nodeColorMap">
+          <div style="width: 48px" layout="column" layout-align="center center">
+            <md-icon ng-style="{'color':item.color}">fiber_manual_record</md-icon>
+          </div>
+          <div flex layout="column" layout-align="center start" style="padding-left: 8px">
+            <div class="network-key-text">
+              {{item.name}}
+              <span ng-if="item.count">({{item.count}})</span>
+            </div>
           </div>
         </div>
+
+        <div layout="row">
+          <md-input-container flex>
+            <label>NODE SIZE</label>
+            <md-select ng-model="$parent.nodeSizeMode">
+              <md-option value="degree">Degree</md-option>
+              <md-option value="indegree">Indegree</md-option>
+              <md-option value="outdegree">Outdegree</md-option>
+            </md-select>
+          </md-input-container>
+          <div layout="row" layout-align="center center">
+            <md-button class="md-icon-button" style="margin: 0px" ng-click="$parent.nodeSizeBaseRatio = 1.2 * $parent.nodeSizeBaseRatio">
+              <md-icon>add_circle_outline</md-icon>
+              <md-tooltip md-direction="top">Bigger nodes</md-tooltip>
+            </md-button>
+            <md-button class="md-icon-button" style="margin: 0px" ng-click="$parent.nodeSizeBaseRatio = 0.8 * $parent.nodeSizeBaseRatio">
+              <md-icon>remove_circle_outline</md-icon>
+              <md-tooltip md-direction="top">Smaller nodes</md-tooltip>
+            </md-button>
+          </div>
+        </div>
+
+        <div class="network-key-text" ng-if="nodeSizeMode == 'degree'" style="padding-bottom: 16px">
+          <em>The DEGREE of a web entity is the number of other web entities it cites plus the number of other web entities citing it.</em>
+        </div>
+
+        <div class="network-key-text" ng-if="nodeSizeMode == 'indegree'" style="padding-bottom: 16px">
+          <em>The INDEGREE of a web entity is the number of other web entities citing it.</em>
+        </div>
+
+        <div class="network-key-text" ng-if="nodeSizeMode == 'outdegree'" style="padding-bottom: 16px">
+          <em>The OUTDEGREE of a web entity is the number of other web entities it cites.</em>
+        </div>
+
+        <div layout="row" style="padding-bottom: 16px" ng-repeat="item in nodeSizeMap">
+          <div style="width: 48px" layout="column" layout-align="center center">
+            <md-icon ng-style="{'transform':'scale('+item.size+')'}">fiber_manual_record</md-icon>
+          </div>
+          <div flex layout="column" layout-align="center start" style="padding-left: 8px">
+            <div class="network-key-text">
+              {{item.name}}
+              <br>
+              {{nodeSizeMode|uppercase}} of
+              <span>{{item.value}}</span>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
     
