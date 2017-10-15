@@ -14,7 +14,7 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
       link: function($scope, el, attrs) {
 
         $scope.statusListSize = 10
-        $scope.scale = 50
+        $scope.scale = 100
 
         $scope.statusList = []
         $scope.isCrawling = false
@@ -168,6 +168,114 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
               g.append("g")
                   .attr("class", "axis axis--y")
                   .call(d3.axisRight(y).ticks(5))
+                .select(".domain")
+                  .remove()
+
+              g.selectAll(".domain")
+                  .attr("stroke", "#999")
+
+              g.selectAll(".tick line")
+                  .attr("stroke", "#999")
+
+              g.selectAll(".tick text")
+                  .attr("fill", "#999")
+
+            })
+          }
+        }
+      }
+    }
+  })
+
+.directive('hcaSimpleChart', function(
+    $timeout,
+    $mdColors
+  ){
+    return {
+      restrict: 'A',
+      scope: {
+        statusList: '=',
+        statusListSize: '=',
+        scale: '=',
+        key: '='
+      },
+      link: function($scope, el, attrs) {
+        
+        $scope.$watch('statusList', redraw, true)
+        window.addEventListener('resize', redraw)
+        $scope.$on('$destroy', function(){
+          window.removeEventListener('resize', redraw)
+        })
+
+        function redraw() {
+          if ($scope.statusList !== undefined){
+            $timeout(function(){
+              el.html('');
+
+              window.el = el[0]
+              // Setup: dimensions
+              var margin = {top: 2, right: 0, bottom: 0, left: 0};
+              var width = el[0].offsetWidth - margin.left - margin.right;
+              var height = el[0].offsetHeight - margin.top - margin.bottom;
+
+              // While loading redraw may trigger before element being properly sized
+              if (width <= 0 || height <= 0) {
+                $timeout(redraw, 250)
+                return
+              }
+
+              // Data
+              var data = $scope.statusList
+                .filter(function(status){
+                  return status && status.corpus && status.corpus.crawler
+                })
+                .map(function(status, i){
+                  return {
+                    x: i,
+                    value: status.corpus.crawler[$scope.key]
+                  }
+                })
+
+              // Setup: scales
+              var x = d3.scaleLinear()
+                .domain([0, $scope.statusListSize-1])
+                .range([0, width])
+
+              var maxValue = d3.max(data, function(d){return d.value})
+              var y = d3.scaleLinear()
+                .domain([maxValue - $scope.scale, maxValue])
+                .range([height, 0])
+              
+              var lineColor = '#666'
+
+              var line = d3.line()
+                .curve(d3.curveLinear)
+                .x(function(d) { return x(d.x) })
+                .y(function(d) { return y(d.value) })
+
+              // Setup: SVG container
+              var svg = d3.select(el[0]).append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+
+              var g = svg.append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
+
+              g.append("path")
+                  .datum(data)
+                  .attr("class", "line")
+                  .attr("d", line)
+                  .style("stroke", lineColor)
+                  .style("stroke-width", "4px")
+                  .style("fill", "none")
+
+              // Axis
+              g.append("g")
+                  .attr("class", "axis axis--y")
+                  .call(d3.axisRight(y).ticks(3))
+                .select(".domain")
+                  .remove()
 
               g.selectAll(".domain")
                   .attr("stroke", "#999")

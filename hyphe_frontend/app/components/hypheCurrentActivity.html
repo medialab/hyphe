@@ -119,10 +119,10 @@
               </div>
             </div>
             <div flex="60" style="padding: 8px" layout="column" layout-align="center center">
-              <div ng-if="status.corpus.traph.job_running">
+              <div ng-if="status.corpus.traph.job_running" style="text-align: center">
                 {{status.corpus.traph.job_running|uppercase}}
               </div>
-              <div ng-if="!status.corpus.traph.job_running">
+              <div ng-if="!status.corpus.traph.job_running" style="text-align: center">
                 HYPHE IS RESTING
               </div>
             </div>
@@ -137,10 +137,60 @@
       </div>
     </md-grid-tile>
 
-    <md-grid-tile md-rowspan="1" md-colspan="1" style="background-color: #F00">
-      <div layout-fill layout="column" layout-align="center center">
-        <div class="md-title">
-          Bloc 4
+    <md-grid-tile md-rowspan="1" md-colspan="1">
+      <div layout-fill layout="column">
+        <div
+          style="height:24px; font-size:0.8em;"
+          layout="column"
+          layout-align="center center"
+          md-colors="{'color':'default-background-700'}"
+        >
+          {{status.corpus.crawler.pages_found|number}} PAGES FOUND
+        </div>
+        <div layout="column" flex>
+          <div
+            flex=50
+            layout="column"
+          >
+            <div
+              layout-fill
+              layout="column"
+              layout-align="center center"
+              md-colors="{'background':'default-background-100'}"
+              hca-simple-chart
+              status-list="statusList"
+              status-list-size="statusListSize"
+              scale="scale/2"
+              key="'pages_found'"
+            >
+            </div>
+          </div>
+          <div style="height: 16px"></div>
+          <div
+            flex=50
+            layout="column"
+          >
+            <div
+              layout-fill
+              layout="column"
+              layout-align="center center"
+              md-colors="{'background':'default-background-100'}"
+              hca-simple-chart
+              status-list="statusList"
+              status-list-size="statusListSize"
+              scale="scale/2"
+              key="'links_found'"
+            >
+            </div>
+          </div>
+        </div>
+        <div
+          style="height:24px; font-size:0.8em;"
+          layout="column"
+          layout-align="center center"
+          md-colors="{'color':'default-background-700'}"
+        >
+          {{status.corpus.crawler.links_found|number}} LINKS FOUND
         </div>
       </div>
     </md-grid-tile>
