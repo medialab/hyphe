@@ -169,6 +169,14 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
                   .attr("class", "axis axis--y")
                   .call(d3.axisRight(y).ticks(5))
 
+              g.selectAll(".domain")
+                  .attr("stroke", "#999")
+
+              g.selectAll(".tick line")
+                  .attr("stroke", "#999")
+
+              g.selectAll(".tick text")
+                  .attr("fill", "#999")
 
             })
           }
