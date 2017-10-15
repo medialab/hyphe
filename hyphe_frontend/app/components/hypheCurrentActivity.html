@@ -46,7 +46,7 @@
                 style="text-align: center; overflow: hidden"
               >
                 <div style="z-index: 1; font-size:0.8em">
-                  {{status.corpus.crawler.pages_crawled|number}}<br>CRAWLED PAGES
+                  {{(status.corpus.crawler.pages_crawled + status.corpus.traph.pages_to_index)|number}}<br>CRAWLED PAGES
                 </div>
               </div>
             </div>
@@ -70,7 +70,7 @@
           layout-align="center center"
           md-colors="{'color':'default-primary'}"
         >
-          {{status.corpus.crawler.pages_crawled|number}} CRAWLED PAGES
+          {{(status.corpus.crawler.pages_crawled + status.corpus.traph.pages_to_index)|number}} CRAWLED PAGES
         </div>
         <div layout="column" flex>
           <div
@@ -93,9 +93,9 @@
           style="height:24px; font-size:0.8em;"
           layout="column"
           layout-align="center center"
-          md-colors="{'color':'default-background-700'}"
+          md-colors="{'color':'default-warn-900'}"
         >
-          {{(status.corpus.crawler.pages_crawled - status.corpus.traph.pages_to_index)|number}} INDEXED PAGES
+          {{(status.corpus.crawler.pages_crawled)|number}} INDEXED PAGES
         </div>
       </div>
     </md-grid-tile>
@@ -121,13 +121,16 @@
                 >
                 </div>
               </div>
-              <div style="height: 24px; padding:0px 8px; font-size:0.8em">
+              <div
+                style="height: 24px; padding:0px 8px; font-size:0.8em"
+                md-colors="{'color':'default-warn-900'}"
+              >
                 {{status.corpus.traph.pages_to_index|number}} UNINDEXED PAGES
               </div>
             </div>
             <div flex="60" style="padding: 8px" layout="column" layout-align="center center">
               <div ng-if="status.corpus.traph.job_running" style="text-align: center">
-                {{status.corpus.traph.job_running|uppercase}}
+                HYPHE IS {{status.corpus.traph.job_running|uppercase}}
               </div>
               <div ng-if="!status.corpus.traph.job_running" style="text-align: center">
                 HYPHE IS RESTING
@@ -136,7 +139,7 @@
           </div>
         </div>
         <div
-          style="height:24px; text-align: center"
+          style="height:24px; text-align: center; font-size:0.8em;"
           md-colors="{'color':'default-primary'}"
         >
           HYPHE CORE

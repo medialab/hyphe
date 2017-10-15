@@ -93,8 +93,8 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
                 })
                 .map(function(status){
                   return {
-                    crawled: status.corpus.crawler.pages_crawled,
-                    indexed: status.corpus.crawler.pages_crawled - status.corpus.traph.pages_to_index
+                    crawled: status.corpus.crawler.pages_crawled + status.corpus.traph.pages_to_index,
+                    indexed: status.corpus.crawler.pages_crawled
                   }
                 })
 
@@ -110,7 +110,7 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
               
               var colorizeLine = function(type){
                 if (type == 'crawled') return '#328dc7'
-                if (type == 'indexed') return '#666'
+                if (type == 'indexed') return $mdColors.getThemeColor('default-warn-900')
                 return '#ff699b' // Error
               }
 
@@ -318,7 +318,7 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
 
               // Setup: scales
               var x = d3.scaleLog()
-                .domain([1, 1000])
+                .domain([0.6, 1000])
                 .range([0, width])
 
               // Setup: SVG container
