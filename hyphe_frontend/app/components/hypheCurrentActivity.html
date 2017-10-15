@@ -111,8 +111,15 @@
             layout="column"
           >
             <div flex="40" layout="column">
-              <div flex style="background-color: #900">
-                Chart (TODO)
+              <div flex>
+                <div
+                  layout-fill
+                  layout="column"
+                  layout-align="center center"
+                  hca-unindexed-chart
+                  status="status"
+                >
+                </div>
               </div>
               <div style="height: 24px; padding:0px 8px; font-size:0.8em">
                 {{status.corpus.traph.pages_to_index|number}} UNINDEXED PAGES

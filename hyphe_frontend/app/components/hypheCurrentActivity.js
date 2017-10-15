@@ -171,15 +171,6 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
                 .select(".domain")
                   .remove()
 
-              g.selectAll(".domain")
-                  .attr("stroke", "#999")
-
-              g.selectAll(".tick line")
-                  .attr("stroke", "#999")
-
-              g.selectAll(".tick text")
-                  .attr("fill", "#999")
-
             })
           }
         }
@@ -277,14 +268,77 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
                 .select(".domain")
                   .remove()
 
-              g.selectAll(".domain")
-                  .attr("stroke", "#999")
+            })
+          }
+        }
+      }
+    }
+  })
 
-              g.selectAll(".tick line")
-                  .attr("stroke", "#999")
+.directive('hcaUnindexedChart', function(
+    $timeout,
+    $mdColors
+  ){
+    return {
+      restrict: 'A',
+      scope: {
+        status: '='
+      },
+      link: function($scope, el, attrs) {
+        
+        $scope.$watch('status', redraw)
+        window.addEventListener('resize', redraw)
+        $scope.$on('$destroy', function(){
+          window.removeEventListener('resize', redraw)
+        })
 
-              g.selectAll(".tick text")
-                  .attr("fill", "#999")
+        function redraw() {
+          if ($scope.status !== undefined){
+            $timeout(function(){
+              el.html('');
+
+              window.el = el[0]
+              // Setup: dimensions
+              var margin = {top: 4, right: 16, bottom: 4, left: 4};
+              var width = el[0].offsetWidth - margin.left - margin.right;
+              var height = el[0].offsetHeight - margin.top - margin.bottom;
+
+              // While loading redraw may trigger before element being properly sized
+              if (width <= 0 || height <= 0) {
+                $timeout(redraw, 250)
+                return
+              }
+
+              // Setup: scales
+              var x = d3.scaleLog()
+                .domain([1, 1000])
+                .range([0, width])
+
+              // Setup: SVG container
+              var svg = d3.select(el[0]).append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+
+              var g = svg.append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
+              g.append('rect')
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('width', x(Math.max(1, $scope.status.corpus.traph.pages_to_index)))
+                .attr('height', height)
+                .attr('fill', $mdColors.getThemeColor('default-warn-300'))
+
+              // Axis
+              var formatTick = function(d) { return d };
+              var xAxis = d3.axisBottom(x)
+                .ticks(5, formatTick)
+
+              g.append("g")
+                  .attr("class", "axis axis--x")
+                  .call(xAxis)
+                .select(".domain")
+                  .remove()
 
             })
           }
