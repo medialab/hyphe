@@ -13,7 +13,7 @@
         <div layout="column" flex>
           <div flex="50" style="position: relative" layout="column" layout-align="start center">
             <div
-              ng-if="status.corpus.traph.pages_to_index > 0"
+              ng-if="isCrawling"
               style="position: absolute; top: 0%; text-align: center; width: 100%; height: 100%; transform: translateY(16px);"
             >
               <div class="falling-drop" layout-fill>
@@ -45,29 +45,58 @@
                 layout-align="center center"
                 style="text-align: center; overflow: hidden"
               >
-                <div style="z-index: 1">
-                  {{status.corpus.crawler.pages_crawled|number}}<br>PAGES CRAWLED
+                <div style="z-index: 1; font-size:0.8em">
+                  {{status.corpus.crawler.pages_crawled|number}}<br>CRAWLED PAGES
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div
-          style="height:24px; text-align: center"
+          style="height:24px; font-size:0.8em;"
+          layout="column"
+          layout-align="center center"
           md-colors="{'color':'default-primary'}"
         >HYPHE DATABASE</div>
       </div>
     </md-grid-tile>
 
 
-    <md-grid-tile md-rowspan="1" md-colspan="1" style="background-color: #F00">
-      <div
-        layout-fill
-        layout="column"
-        layout-align="center center"
-        hca-crawled-pages-chart
-        status-list="statusList"
-      >
+    <md-grid-tile md-rowspan="1" md-colspan="1">
+      <div layout-fill layout="column">
+        <div
+          style="height:24px; font-size:0.8em;"
+          layout="column"
+          layout-align="center center"
+          md-colors="{'color':'default-primary'}"
+        >
+          {{status.corpus.crawler.pages_crawled|number}} CRAWLED PAGES
+        </div>
+        <div layout="column" flex>
+          <div
+            flex
+            layout="column"
+          >
+            <div
+              layout-fill
+              layout="column"
+              layout-align="center center"
+              hca-crawled-pages-chart
+              status-list="statusList"
+              status-list-size="statusListSize"
+              scale="scale"
+            >
+            </div>
+          </div>
+        </div>
+        <div
+          style="height:24px; font-size:0.8em;"
+          layout="column"
+          layout-align="center center"
+          md-colors="{'color':'default-background-700'}"
+        >
+          {{(status.corpus.crawler.pages_crawled - status.corpus.traph.pages_to_index)|number}} INDEXED PAGES
+        </div>
       </div>
     </md-grid-tile>
 

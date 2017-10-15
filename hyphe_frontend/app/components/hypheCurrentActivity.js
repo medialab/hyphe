@@ -12,12 +12,22 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
       },
       templateUrl: 'components/hypheCurrentActivity.html',
       link: function($scope, el, attrs) {
-        var statusListSize = 10
+
+        $scope.statusListSize = 10
+        $scope.scale = 50
 
         $scope.statusList = []
         $scope.isCrawling = false
 
         $scope.$watch('status', function(newStatus, oldStatus){
+          if (newStatus) {
+            $scope.statusList.push(newStatus)
+            if ($scope.statusList.length > $scope.statusListSize) {
+              $scope.statusList.shift()
+            }
+          }
+
+          // Is it crawling?
           var crawledPagesBefore = 0
           var crawledPagesAfter = 0
           if (oldStatus && oldStatus.crawler && oldStatus.crawler.pages_crawled) {
@@ -34,25 +44,134 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
   })
 
 .directive('hcaCrawledPagesChart', function(
-    $timeout
+    $timeout,
+    $mdColors
   ){
     return {
       restrict: 'A',
       scope: {
-        statusList: '='
+        statusList: '=',
+        statusListSize: '=',
+        scale: '='
       },
       link: function($scope, el, attrs) {
         
-        $scope.$watch('status', update)
+        $scope.$watch('statusList', redraw, true)
         window.addEventListener('resize', redraw)
         $scope.$on('$destroy', function(){
           window.removeEventListener('resize', redraw)
         })
 
         function redraw() {
-        }
+          if ($scope.statusList !== undefined){
+            $timeout(function(){
+              el.html('');
 
-        function update() {
+              window.el = el[0]
+              // Setup: dimensions
+              var margin = {top: 2, right: 0, bottom: 0, left: 0};
+              var width = el[0].offsetWidth - margin.left - margin.right;
+              var height = el[0].offsetHeight - margin.top - margin.bottom;
+
+              // While loading redraw may trigger before element being properly sized
+              if (width <= 0 || height <= 0) {
+                $timeout(redraw, 250)
+                return
+              }
+
+              // Data
+              var data = $scope.statusList
+                .filter(function(status){
+                  return status && status.corpus && status.corpus.crawler
+                })
+                .map(function(status){
+                  return {
+                    crawled: status.corpus.crawler.pages_crawled,
+                    indexed: status.corpus.crawler.pages_crawled - status.corpus.traph.pages_to_index
+                  }
+                })
+
+              // Setup: scales
+              var x = d3.scaleLinear()
+                .domain([0, $scope.statusListSize-1])
+                .range([0, width])
+
+              var maxCrawled = d3.max(data, function(d){return d.crawled})
+              var y = d3.scaleLinear()
+                .domain([maxCrawled - $scope.scale, maxCrawled])
+                .range([height, 0])
+              
+              var colorizeLine = function(type){
+                if (type == 'crawled') return '#328dc7'
+                if (type == 'indexed') return '#666'
+                return '#ff699b' // Error
+              }
+
+              var colorizeArea = function(type){
+                if (type == 'crawled') return $mdColors.getThemeColor('default-warn-300')
+                if (type == 'indexed') return $mdColors.getThemeColor('default-background-200')
+                return '#ff699b' // Error
+              }
+
+              var line = d3.line()
+                .curve(d3.curveLinear)
+                .x(function(d) { return x(d.x) })
+                .y(function(d) { return y(d.value) })
+
+              var area = d3.area()
+                .x(function(d) { return x(d.x) })
+                .y0(function(d) { return y(0) })
+                .y1(function(d) { return y(d.value) })
+
+              var curves = ['crawled', 'indexed'].map(function(k){
+                return {
+                  type: k,
+                  values: data.map(function(d, i){
+                    return {x: i, value: d[k]}
+                  })
+                }
+              })
+
+              // Setup: SVG container
+              var svg = d3.select(el[0]).append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+
+              var g = svg.append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
+              // Areas
+              var areaG = g.selectAll(".area")
+                .data(curves)
+                .enter().append("g")
+                  .attr("class", "area")
+
+              areaG.append("path")
+                  .attr("class", "area")
+                  .attr("d", function(d) { return area(d.values) })
+                  .style("fill", function(d) { return colorizeArea(d.type) })
+
+              // Curves
+              var curve = g.selectAll(".curve")
+                .data(curves.reverse())
+                .enter().append("g")
+                  .attr("class", "curve")
+
+              curve.append("path")
+                  .attr("class", "line")
+                  .attr("d", function(d) { return line(d.values) })
+                  .style("stroke", function(d) { return colorizeLine(d.type) })
+                  .style("stroke-width", "4px")
+                  .style("fill", "none")
+
+              // Axis
+              g.append("g")
+                  .attr("class", "axis axis--y")
+                  .call(d3.axisRight(y).ticks(5))
+
+
+            })
+          }
         }
       }
     }
