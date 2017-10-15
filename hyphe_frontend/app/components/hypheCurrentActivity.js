@@ -13,8 +13,8 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
       templateUrl: 'components/hypheCurrentActivity.html',
       link: function($scope, el, attrs) {
 
-        $scope.statusListSize = 10
-        $scope.scale = 100
+        $scope.statusListSize = 20
+        $scope.scale = 250
 
         $scope.statusList = []
         $scope.isCrawling = false
