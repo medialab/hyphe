@@ -78,7 +78,6 @@
   <md-content>
     <div
       layout="column"
-      md-colors="{'background': 'default-background-200'}"
       style="padding: 8px"
     >
     <div
@@ -121,6 +120,35 @@
           <div class="network-key-text">
             {{item.name}}
             <span ng-if="item.count">({{item.count}})</span>
+          </div>
+        </div>
+      </div>
+
+      <div layout="row" layout-align="start center">
+        <p style="margin-right: 16px">NODE SIZE: DEGREE</p>
+        <md-button class="md-icon-button" style="margin: 0px" ng-click="nodeSizeBaseRatio = 1.2 * nodeSizeBaseRatio">
+          <md-icon>add_circle_outline</md-icon>
+          <md-tooltip md-direction="top">Bigger nodes</md-tooltip>
+        </md-button>
+        <md-button class="md-icon-button" style="margin: 0px" ng-click="nodeSizeBaseRatio = 0.8 * nodeSizeBaseRatio">
+          <md-icon>remove_circle_outline</md-icon>
+          <md-tooltip md-direction="top">Smaller nodes</md-tooltip>
+        </md-button>
+      </div>
+      <div class="network-key-text" ng-if="nodeSizeMode == 'degree'" style="padding-bottom: 16px">
+        <em>The DEGREE of a web entity is the number of other web entities it cites plus the number of other web entities citing it.</em>
+      </div>
+
+      <div layout="row" style="padding-bottom: 16px" ng-repeat="item in nodeSizeMap">
+        <div style="width: 48px" layout="column" layout-align="center center">
+          <md-icon ng-style="{'transform':'scale('+item.size+')'}">fiber_manual_record</md-icon>
+        </div>
+        <div flex layout="column" layout-align="center start" style="padding-left: 8px">
+          <div class="network-key-text">
+            {{item.name}}
+            <br>
+            DEGREE of
+            <span>{{item.value}}</span>
           </div>
         </div>
       </div>

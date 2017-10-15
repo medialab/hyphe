@@ -245,6 +245,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         function updateNodeSizes() {
           var g = $scope.network
           if (g === undefined) { return }
+            
           var minSize = 1
           var values = []
           g.nodes().forEach(function(nid){
