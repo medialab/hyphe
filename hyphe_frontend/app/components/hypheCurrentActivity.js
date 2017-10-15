@@ -14,7 +14,6 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
       link: function($scope, el, attrs) {
 
         $scope.statusListSize = 20
-        $scope.scale = 250
 
         $scope.statusList = []
         $scope.isCrawling = false
@@ -245,11 +244,17 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
                 .range([height, 0])
               
               var lineColor = '#666'
+              var areaColor = $mdColors.getThemeColor('default-background-200')
 
               var line = d3.line()
                 .curve(d3.curveLinear)
                 .x(function(d) { return x(d.x) })
                 .y(function(d) { return y(d.value) })
+
+              var area = d3.area()
+                .x(function(d) { return x(d.x) })
+                .y0(function(d) { return y(0) })
+                .y1(function(d) { return y(d.value) })
 
               // Setup: SVG container
               var svg = d3.select(el[0]).append("svg")
@@ -259,13 +264,18 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
               var g = svg.append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
+              g.append("path")
+                  .datum(data)
+                  .attr("class", "area")
+                  .attr("d", area)
+                  .style("fill", areaColor)
 
               g.append("path")
                   .datum(data)
                   .attr("class", "line")
                   .attr("d", line)
                   .style("stroke", lineColor)
-                  .style("stroke-width", "4px")
+                  .style("stroke-width", "2px")
                   .style("fill", "none")
 
               // Axis
@@ -317,8 +327,9 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
               }
 
               // Setup: scales
+              var minDomain = 0.5
               var x = d3.scaleLog()
-                .domain([0.6, 1000])
+                .domain([minDomain, 1000])
                 .range([0, width])
 
               // Setup: SVG container
@@ -332,7 +343,7 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
               g.append('rect')
                 .attr('x', 0)
                 .attr('y', 0)
-                .attr('width', x(Math.max(1, $scope.status.corpus.traph.pages_to_index)))
+                .attr('width', x(Math.max(minDomain, $scope.status.corpus.traph.pages_to_index)))
                 .attr('height', height)
                 .attr('fill', $mdColors.getThemeColor('default-warn-300'))
 
