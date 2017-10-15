@@ -245,7 +245,6 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         function updateNodeSizes() {
           var g = $scope.network
           if (g === undefined) { return }
-          var averageNonNormalizedArea = g.size / g.order // because node area = indegree
           var minSize = 1
           var values = []
           g.nodes().forEach(function(nid){
@@ -257,7 +256,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             } else if ($scope.nodeSizeMode == 'degree') {
               value = g.degree(nid)
             }
-            var size = $scope.nodeSizeBaseRatio * (minSize + Math.sqrt(value / averageNonNormalizedArea))
+            var size = $scope.nodeSizeBaseRatio * (minSize + Math.sqrt(value))
             values.push(value)
             g.setNodeAttribute(nid, 'size', size)
           })
