@@ -19,6 +19,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
 
     $scope.includeExternalLinks = false
     $scope.network
+    $scope.nodeColorMap
 
     $scope.toggleSidenav = function() {
       $mdSidenav('right').toggle()
@@ -136,16 +137,34 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       g.importEdges(links)
 
       // Color
+      var colors = {
+        crawled: '#333',
+        uncrawled: '#93BDE0',
+        startpage: '#F00'
+      }
+      var counts = {
+        crawled: 0,
+        uncrawled: 0,
+        startpage: 0
+      }
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)
-        n.color = '#93BDE0'
-        if (n.crawled) {
-          n.color = '#333'
-        }
         if (n.startPage) {
-          n.color = '#F00'
+          n.color = colors.startpage
+          counts.startpage++
+        } else if (n.crawled) {
+          n.color = colors.crawled
+          counts.crawled++
+        } else {
+          n.color = colors.uncrawled
+          counts.uncrawled++
         }
       })
+      $scope.nodeColorMap = [
+        {name: 'Start Pages', color: colors.startpage, count: counts.startpage},
+        {name: 'Crawled Pages', color: colors.crawled, count: counts.crawled},
+        {name: 'Uncrawled Pages', color: colors.uncrawled, count: counts.uncrawled}
+      ]
 
       // Size
       var averageNonNormalizedArea = g.size / g.order // because node area = indegree

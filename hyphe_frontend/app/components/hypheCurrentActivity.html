@@ -1,0 +1,210 @@
+<div>
+  <md-grid-list
+    md-cols="2"
+    md-cols-gt-md="4"
+    md-row-height="1:1"
+    md-gutter="8px"
+  >
+
+    <md-grid-tile md-rowspan="1" md-colspan="1">
+      <div layout-fill layout="column">
+        <div style="height:24px"></div>
+        <div layout="column" flex>
+          <div flex="50" style="position: relative" layout="column" layout-align="start center">
+            <div
+              ng-if="isCrawling"
+              style="position: absolute; top: 0%; text-align: center; width: 100%; height: 100%; transform: translateY(16px);"
+            >
+              <div class="falling-drop" layout-fill>
+                <md-icon style="font-size: 36px; height: 36px; width: 36px;" md-colors="{'color': 'default-background-200'}">opacity</md-icon>
+              </div>
+            </div>
+            <img src="img/cloud.svg" style="height: 70%">
+            <div style="position: absolute; top: 30%; text-align: center; width: 100%">
+              WEB
+            </div>
+          </div>
+          <div
+            flex="50"
+            style="
+              border-right: 4px solid #328dc7;
+              border-bottom: 4px solid #328dc7;
+              border-left: 4px solid #328dc7;
+              border-bottom-left-radius: 8px;
+              border-bottom-right-radius: 8px;
+              width: 100%;
+            "
+            layout="column"
+          >
+            <div flex style="padding: 16px 4px 4px 4px" layout="column">
+              <div
+                flex
+                md-colors="{'background': 'default-background-200'}"
+                layout="column"
+                layout-align="center center"
+                style="text-align: center; overflow: hidden"
+              >
+                <div style="z-index: 1; font-size:0.8em">
+                  {{(status.corpus.crawler.pages_crawled)|number}}<br>CRAWLED PAGES
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          style="height:24px; font-size:0.8em;"
+          layout="column"
+          layout-align="center center"
+          md-colors="{'color':'default-primary'}"
+        >HYPHE DATABASE</div>
+      </div>
+    </md-grid-tile>
+
+
+    <md-grid-tile md-rowspan="1" md-colspan="1">
+      <div layout-fill layout="column">
+        <div
+          style="height:24px; font-size:0.8em;"
+          layout="column"
+          layout-align="center center"
+          md-colors="{'color':'default-primary'}"
+        >
+          {{(status.corpus.crawler.pages_crawled)|number}} CRAWLED PAGES
+        </div>
+        <div layout="column" flex>
+          <div
+            flex
+            layout="column"
+          >
+            <div
+              layout-fill
+              layout="column"
+              layout-align="center center"
+              hca-crawled-pages-chart
+              status-list="statusList"
+              status-list-size="statusListSize"
+              scale="100"
+            >
+            </div>
+          </div>
+        </div>
+        <div
+          style="height:24px; font-size:0.8em;"
+          layout="column"
+          layout-align="center center"
+          md-colors="{'color':'default-warn-900'}"
+        >
+          {{(status.corpus.crawler.pages_crawled - status.corpus.traph.pages_to_index)|number}} INDEXED PAGES
+        </div>
+      </div>
+    </md-grid-tile>
+
+
+    <md-grid-tile md-rowspan="1" md-colspan="1">
+      <div layout-fill layout="column">
+        <div style="height:24px"></div>
+        <div layout="column" flex>
+          <div
+            flex
+            style="border: 4px solid #328dc7;"
+            layout="column"
+          >
+            <div flex="40" layout="column">
+              <div flex>
+                <div
+                  layout-fill
+                  layout="column"
+                  layout-align="center center"
+                  hca-unindexed-chart
+                  status="status"
+                >
+                </div>
+              </div>
+              <div
+                style="height: 24px; padding:0px 8px; font-size:0.8em"
+                md-colors="{'color':'default-warn-900'}"
+              >
+                {{status.corpus.traph.pages_to_index|number}} UNINDEXED PAGES
+              </div>
+            </div>
+            <div flex="60" style="padding: 8px" layout="column" layout-align="center center" md-colors="{'background':'default-primary'}">
+              <div
+                ng-if="status.corpus.traph.job_running"
+                style="text-align: center"
+              >
+                HYPHE IS {{status.corpus.traph.job_running|uppercase}}
+              </div>
+              <div ng-if="!status.corpus.traph.job_running" style="text-align: center">
+                HYPHE IS WAITING
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          style="height:24px; text-align: center; font-size:0.8em;"
+          md-colors="{'color':'default-primary'}"
+        >
+          HYPHE CORE
+        </div>
+      </div>
+    </md-grid-tile>
+
+    <md-grid-tile md-rowspan="1" md-colspan="1">
+      <div layout-fill layout="column">
+        <div
+          style="height:24px; font-size:0.8em;"
+          layout="column"
+          layout-align="center center"
+          md-colors="{'color':'default-background-700'}"
+        >
+          {{status.corpus.crawler.pages_found|number}} PAGES FOUND
+        </div>
+        <div layout="column" flex>
+          <div
+            flex=50
+            layout="column"
+          >
+            <div
+              layout-fill
+              layout="column"
+              layout-align="center center"
+              hca-simple-chart
+              status-list="statusList"
+              status-list-size="statusListSize"
+              scale="2500"
+              key="'pages_found'"
+            >
+            </div>
+          </div>
+          <div style="height: 16px"></div>
+          <div
+            flex=50
+            layout="column"
+          >
+            <div
+              layout-fill
+              layout="column"
+              layout-align="center center"
+              hca-simple-chart
+              status-list="statusList"
+              status-list-size="statusListSize"
+              scale="10000"
+              key="'links_found'"
+            >
+            </div>
+          </div>
+        </div>
+        <div
+          style="height:24px; font-size:0.8em;"
+          layout="column"
+          layout-align="center center"
+          md-colors="{'color':'default-background-700'}"
+        >
+          {{status.corpus.crawler.links_found|number}} LINKS FOUND
+        </div>
+      </div>
+    </md-grid-tile>
+
+
+  </md-grid-list>
+</div>

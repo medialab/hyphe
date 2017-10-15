@@ -64,7 +64,7 @@ angular.module('hyphe.overviewController', [])
       // Add crawl jobs if needed
       for (
         var i = $scope.visualCrawlJobs.length;
-        i <= $scope.corpusStatus.corpus.crawler.jobs_finished
+        i < $scope.corpusStatus.corpus.crawler.jobs_finished
           + $scope.corpusStatus.corpus.crawler.jobs_pending
           + $scope.corpusStatus.corpus.crawler.jobs_running;
         i++

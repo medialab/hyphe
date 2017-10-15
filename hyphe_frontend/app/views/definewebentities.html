@@ -169,12 +169,12 @@
           <div
             ng-if="(createdList.length + existingList.length == 0 || retry) && !(creating || loadingWebentities || simulatingCreationRules)"
             layout="column"
+            md-colors="{'background': 'default-background-100-0.5'}"
           >
             <md-button
               class="md-primary md-raised"
               ng-click="createWebEntities()"
               ng-show="list.length"
-              layout-fill
             >CREATE WEB ENTIT{{list.length | y_ies | uppercase}}</md-button>
           </div>
 

@@ -39,10 +39,9 @@ a {
   margin: 0;
 }
 
-.grid-tile-close {
-  position: absolute;
-  top: 2px;
-  right: -5px;
+.md-grid-tile-header-hack figcaption{
+  width: 100%;
+  height: 100%;
 }
 
 .pointable-grid-tile {
@@ -181,6 +180,25 @@ dl.highlight {
   opacity: 0.5;
 }
 
+@keyframes fallingdrop {
+    from {
+      transform: translateY(0%);
+    }
+    to {
+      transform: translateY(100%);
+    }
+}
+
+.falling-drop {
+  animation-name: fallingdrop;
+  animation-duration: 0.8s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in;
+}
+
+.network-key-text {
+  font-size: 0.9em;
+}
 
 
 /* ==========================================================================

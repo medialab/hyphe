@@ -25,7 +25,7 @@ angular.module('hyphe.filters', [])
 
   .filter('uppercase', [function () {
     return function (input) {
-      return input.toUpperCase()
+      return (''+input).toUpperCase()
     }
   }])
 

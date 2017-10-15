@@ -45,17 +45,20 @@
                 }"
                 class="pointable-grid-tile"
               >
-                <md-grid-tile-header>
-                  <h3>{{obj.id+1}}. {{obj.webentity.name}}</h3>
-                  <div
-                    class="grid-tile-close"
-                    ng-show="obj.displayRemove && obj.status !== 'scheduled' && obj.status !== 'pending'"
-                    ng-click="$event.stopPropagation(); removeCell(obj.id)"
-                  >
-                    <md-button class="md-icon-button">
-                      <md-tooltip md-direction="top">Remove</md-tooltip>
-                      <md-icon>close</md-icon>
-                    </md-button>
+                <md-grid-tile-header class="md-grid-tile-header-hack">
+                  <div layout="row" layout-fill layout-align="start center">
+                    <div flex>
+                      <h3 md-truncate>{{obj.id+1}}. {{obj.webentity.name}}</h3>
+                    </div>
+                    <div
+                      ng-show="obj.displayRemove && obj.status !== 'scheduled' && obj.status !== 'pending'"
+                      style="width: 48px"
+                    >
+                      <md-button class="md-icon-button" ng-click="$event.stopPropagation(); removeCell(obj.id)">
+                        <md-tooltip md-direction="top">Remove</md-tooltip>
+                        <md-icon>close</md-icon>
+                      </md-button>
+                    </div>
                   </div>
                 </md-grid-tile-header>
 

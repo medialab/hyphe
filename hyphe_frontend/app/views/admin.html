@@ -54,16 +54,16 @@
     </div>
     <div layout="column">
       <div style="padding: 8px">
-        {{corpusList.length}} corp{{corpusList.length > 1 ? 'ora' : 'us'}}
+        {{corpusList.length|number}} corp{{corpusList.length > 1 ? 'ora' : 'us'}}
       </div>
       <div style="padding: 8px">
-        {{globalStatus.ram_left}} Mo of free RAM
+        {{globalStatus.ram_left|number}} Mo of free RAM
       </div>
       <div style="padding: 8px">
-        Corpus slots: {{globalStatus.corpus_running}} in operation &amp; {{globalStatus.ports_left}} free
+        Corpus slots: {{globalStatus.corpus_running|number}} in operation &amp; {{globalStatus.ports_left|number}} free
       </div>
       <div style="padding: 8px">
-        Crawls: {{globalStatus.crawls_running}} running &amp; {{globalStatus.crawls_pending}} pending
+        Crawls: {{globalStatus.crawls_running|number}} running &amp; {{globalStatus.crawls_pending|number}} pending
       </div>
     </div>
   </div>
@@ -87,23 +87,23 @@
           <md-card-title-media>
             <div class="md-media-lg card-media" style="padding: 8px" layout="column">
               <div layout="row" class="webentity-color-in">
-                <div style="width: 80px; text-align: right; padding-right: 8px">{{corpus.webentities_in}}</div>
+                <div style="width: 80px; text-align: right; padding-right: 8px">{{corpus.webentities_in|number}}</div>
                 <div>IN</div>
               </div>
               <div layout="row" class="webentity-color-undecided">
-                <div style="width: 80px; text-align: right; padding-right: 8px">{{corpus.webentities_undecided}}</div>
+                <div style="width: 80px; text-align: right; padding-right: 8px">{{corpus.webentities_undecided|number}}</div>
                 <div>UND.</div>
               </div>
               <div layout="row" class="webentity-color-out">
-                <div style="width: 80px; text-align: right; padding-right: 8px">{{corpus.webentities_out}}</div>
+                <div style="width: 80px; text-align: right; padding-right: 8px">{{corpus.webentities_out|number}}</div>
                 <div>OUT</div>
               </div>
               <div layout="row" class="webentity-color-discovered">
-                <div style="width: 80px; text-align: right; padding-right: 8px">{{corpus.webentities_discovered}}</div>
+                <div style="width: 80px; text-align: right; padding-right: 8px">{{corpus.webentities_discovered|number}}</div>
                 <div>DISC.</div>
               </div>
               <div layout="row">
-                <div style="width: 80px; text-align: right; padding-right: 8px"><em>{{corpus.total_webentities}}</em></div>
+                <div style="width: 80px; text-align: right; padding-right: 8px"><em>{{corpus.total_webentities|number}}</em></div>
                 <div><em>TOTAL</em></div>
               </div>
             </div>
@@ -148,13 +148,13 @@
             </div>
             <div flex="30" layout="column">
               <div>
-                {{corpus.total_crawls}} crawls
+                {{corpus.total_crawls|number}} crawls
               </div>
               <div>
-                {{corpus.total_pages_crawled}} crawled pages
+                {{corpus.total_pages_crawled|number}} crawled pages
               </div>
               <div>
-                {{corpus.total_pages}} pages
+                {{corpus.total_pages|number}} pages
               </div>
             </div>
           </div>

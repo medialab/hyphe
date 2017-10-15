@@ -71,12 +71,12 @@ angular.module('hyphe.adminController', [])
           // a must be equal to b
           return 0;
         })
-        console.log('list',list)
+        // console.log('list',list)
 
       },function(data, status, headers, config){
         $scope.loadingList = false
         $scope.corpusList = ''
-        console.log('Error loading corpus list')
+        console.error('Error loading corpus list')
       })
     }
 
@@ -150,7 +150,7 @@ angular.module('hyphe.adminController', [])
       $scope.loadingStatus = true
       api.globalStatus({},function(status){
         $scope.loadingStatus = false
-        console.log('Global Status', status.hyphe)
+        // console.log('Global Status', status.hyphe)
         $scope.globalStatus = status.hyphe
       }, function(){
         $scope.loadingStatus = false
