@@ -254,16 +254,41 @@
       layout="column"
     >
       <p class="md-title">Key</p>
-      (In progress)
+
+      <div layout="row" style="padding-bottom: 32px">
+        <div style="width: 48px" layout="column" layout-align="center center">
+          <md-icon>fiber_manual_record</md-icon>
+        </div>
+        <div flex layout="column" layout-align="center start" style="padding-left: 8px">
+          <div class="network-key-text">
+            Each dot or <em>node</em> is a <span hyphe-glossary="web entity"></span>
+          </div>
+        </div>
+      </div>
+
+      <div layout="row" style="padding-bottom: 32px">
+        <div style="width: 48px" layout="column" layout-align="center center">
+          <md-icon style="transform: rotate(-30deg)">remove</md-icon>
+        </div>
+        <div flex layout="column" layout-align="center start" style="padding-left: 8px">
+          <div class="network-key-text">
+            Each line or <em>edge</em> or <em>link</em> represents one or more <span hyphe-glossary="hyperlinks"></span> from a web entity to another.
+            <br>
+            Links are oriented even though it is not figured in the image.
+          </div>
+        </div>
+      </div>
+
+      <md-input-container ng-if="network">
+        <label>NODE COLOR</label>
+        <md-select ng-model="$parent.nodeColorMode">
+          <md-option value=""><em>No color</em></md-option>
+          <md-option value="_webentitystatus">Web entity status</md-option>
+          <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}} (tag)</md-option>
+        </md-select>
+      </md-input-container>
     </div>
-    <div
-      layout="column"
-      md-colors="{'background': 'default-background-200'}"
-      style="padding: 8px"
-    >
-      <p class="md-title">Tags</p>
-      (In progress)
-    </div>
+    
   </md-content>
 
 </md-sidenav>

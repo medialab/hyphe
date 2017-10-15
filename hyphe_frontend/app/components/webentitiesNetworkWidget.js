@@ -82,6 +82,9 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
         $scope.network
 
+        $scope.nodeColorMode = '_webentitystatus'
+        $scope.tagCategories = {}
+
         $scope.toggleSidenav = function() {
           $mdSidenav('right').toggle()
         }
@@ -136,10 +139,73 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           }
         }
 
+        $scope.$watch('nodeColorMode', updateNodeColors)
+
         // Init
         $scope.applySettings()
 
         /// Functions
+        
+        function updateNodeColors() {
+          $scope.nodeColorMap = []
+          if ($scope.nodeColorMode == '') {
+
+            // All nodes to black
+            $scope.nodeColorMap = [{color:'#000', name:'All nodes'}]
+            var g = $scope.network
+            if (g === undefined) { return }
+            g.nodes().forEach(function(nid){
+              g.setNodeAttribute(nid, 'color', $scope.nodeColorMap[0].color)
+            })
+
+          } else if ($scope.nodeColorMode == '_webentitystatus') {
+
+            // Node colors by web entity status
+            var colors = {
+              'IN': '#333',
+              'UNDECIDED': '#ADA299',
+              'OUT': '#FAA',
+              'DISCOVERED': '#93BDE0'
+            }
+            $scope.nodeColorMap = [
+              {color:colors.IN, name:'IN'},
+              {color:colors.UNDECIDED, name:'UNDECIDED'},
+              {color:colors.OUT, name:'OUT'},
+              {color:colors.DISCOVERED, name:'DISCOVERED'}
+            ]
+            var g = $scope.network
+            if (g === undefined) { return }
+            g.nodes().forEach(function(nid){
+              g.setNodeAttribute(nid, 'color', colors[g.getNodeAttribute(nid, 'status')])
+            })
+
+          }
+          // console.log('Update colors to', $scope.nodeColorMode)
+        }
+
+        function buildTagData() {
+          $scope.tagCategories = {}
+
+          var tagCat
+          ['in', 'undecided', 'out', 'discovered'].forEach(function(status){
+            if($scope.statuses[status]) {
+              var webentities = $scope.data[status].webentities
+              webentities
+                .map(function(d){return d.tags.USER || {}})
+                .forEach(function(d){
+                  for (tagCat in d) {
+                    $scope.tagCategories[tagCat] = $scope.tagCategories[tagCat] || {}
+                    var values = d[tagCat]
+                    values.forEach(function(val){
+                      $scope.tagCategories[tagCat][val] = ($scope.tagCategories[tagCat][val] || {count:0, selected:false})
+                      $scope.tagCategories[tagCat][val].count++
+                    })
+                  }
+                })
+            }
+          })
+          console.log($scope.tagCategories)
+        }
 
         function checkLoadAndUpdate(thisToken) {
 
@@ -253,6 +319,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
           // Update
           $scope.status = {message: 'Building network'}
+          buildTagData()
           buildNetwork()
           $scope.loading = false
           $scope.status = {}
@@ -305,17 +372,10 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           })
           g.dropNodes(nodesToDelete)
 
-          // Color nodes by status
-          // TODO: color by other means
-          var statusColors = {
-            IN:              "#333"
-            ,UNDECIDED:      "#ADA299"
-            ,OUT:            "#FAA"
-            ,DISCOVERED:     "#93BDE0"
-          }
+          // Color nodes (default)
           g.nodes().forEach(function(nid){
             var n = g.getNodeAttributes(nid)
-            n.color = statusColors[n.status] || '#F00'
+            n.color = '#666'
           })
 
           // Size nodes by indegree
@@ -349,6 +409,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           window.g = g
 
           $scope.network = g
+
+          updateNodeColors()
         }
 
         function loadStatus(callback){

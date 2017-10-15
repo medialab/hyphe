@@ -197,6 +197,9 @@ dl.highlight {
   animation-timing-function: ease-in;
 }
 
+.network-key-text {
+  font-size: 0.9em;
+}
 
 
 /* ==========================================================================
