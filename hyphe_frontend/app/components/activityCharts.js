@@ -3,7 +3,8 @@
 angular.module('hyphe.activityChartsComponent', [])
  
 .directive('activityChart', function(
-    $timeout
+    $timeout,
+    $filter
   ){
     return {
       restrict: 'E',
@@ -170,7 +171,7 @@ angular.module('hyphe.activityChartsComponent', [])
                     .style("font", "10px sans-serif")
                     .style("fill", "#FFF")
                     .style("text-anchor", "end")
-                    .text(function(d) { return $scope.data[$scope.data.length - 1][d.key] + ' ' + d.key })
+                    .text(function(d) { return $filter('number')($scope.data[$scope.data.length - 1][d.key]) + ' ' + d.key })
 
                 g.append("g")
                     .attr("class", "axis axis--x")
