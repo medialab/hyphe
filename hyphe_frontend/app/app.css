@@ -39,10 +39,9 @@ a {
   margin: 0;
 }
 
-.grid-tile-close {
-  position: absolute;
-  top: 2px;
-  right: -5px;
+.md-grid-tile-header-hack figcaption{
+  width: 100%;
+  height: 100%;
 }
 
 .pointable-grid-tile {
