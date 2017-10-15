@@ -128,12 +128,15 @@
                 {{status.corpus.traph.pages_to_index|number}} UNINDEXED PAGES
               </div>
             </div>
-            <div flex="60" style="padding: 8px" layout="column" layout-align="center center">
-              <div ng-if="status.corpus.traph.job_running" style="text-align: center">
+            <div flex="60" style="padding: 8px" layout="column" layout-align="center center" md-colors="{'background':'default-primary'}">
+              <div
+                ng-if="status.corpus.traph.job_running"
+                style="text-align: center"
+              >
                 HYPHE IS {{status.corpus.traph.job_running|uppercase}}
               </div>
               <div ng-if="!status.corpus.traph.job_running" style="text-align: center">
-                HYPHE IS RESTING
+                HYPHE IS WAITING
               </div>
             </div>
           </div>
