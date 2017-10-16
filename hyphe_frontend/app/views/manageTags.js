@@ -107,6 +107,52 @@ angular.module('hyphe.manageTagsController', [])
       })
     }
 
+    $scope.focusCategory = function(tagCat) {
+      $scope.displayCategory = tagCat
+      $scope.selectedTab = 0
+    }
+
+    $scope.deleteTagFromSelection = function(tagValue, tagCat, webentities) {
+      $scope.status = {message: 'Deleting tags'}
+      var webentities_cured = webentities.map(function(webentity){
+        webentity.tags.USER[tagCat] = webentity.tags.USER[tagCat].filter(function(d){
+          return d != tagValue
+        })
+      })
+      buildTagData()
+      
+      return api.removeTag_webentities({
+          webentityId_list: webentities.map(function(we){return we.id})
+          ,category: tagCat
+          ,value: tagValue
+        }
+        ,function(){
+          $scope.status = {message: ''}
+        }
+        ,function(error){
+          $scope.status = {message: 'Could not remove tags', background:'warning'}
+        }
+      )
+    }
+
+    $scope.downloadNetwork = function() {
+      if ($scope.network) {
+        var blob = new Blob([gexf.write($scope.network)], {'type':'text/gexf+xml;charset=utf-8'});
+        saveAs(blob, $scope.corpusName + ".gexf");
+      }
+    }
+
+    $scope.networkNodeClick = function(nid) {
+      $scope.displayedEntities.some(function(webentity){
+        if (webentity.id == nid) {
+          webentity.selected = !webentity.selected
+          return true
+        }
+      })
+    }
+
+    // Watchers
+
     // Watch selected to keep checked data up to date
     $scope.$watch('data.in.webentities', function(){
       // Displayed entities
@@ -139,11 +185,6 @@ angular.module('hyphe.manageTagsController', [])
       }
     }, true)
 
-    $scope.focusCategory = function(tagCat) {
-      $scope.displayCategory = tagCat
-      $scope.selectedTab = 0
-    }
-
     $scope.$watch('filters', updateDisplayedEntities)
     $scope.$watch('searchQuery', updateDisplayedEntities)
     $scope.$watch('displayedEntities', updateNetwork)
@@ -171,36 +212,6 @@ angular.module('hyphe.manageTagsController', [])
           $scope.status = {message: 'Could not add tags', background:'warning'}
         }
       )
-    }
-
-    $scope.deleteTagFromSelection = function(tagValue, tagCat, webentities) {
-      $scope.status = {message: 'Deleting tags'}
-      var webentities_cured = webentities.map(function(webentity){
-        webentity.tags.USER[tagCat] = webentity.tags.USER[tagCat].filter(function(d){
-          return d != tagValue
-        })
-      })
-      buildTagData()
-      
-      return api.removeTag_webentities({
-          webentityId_list: webentities.map(function(we){return we.id})
-          ,category: tagCat
-          ,value: tagValue
-        }
-        ,function(){
-          $scope.status = {message: ''}
-        }
-        ,function(error){
-          $scope.status = {message: 'Could not remove tags', background:'warning'}
-        }
-      )
-    }
-
-    $scope.downloadNetwork = function() {
-      if ($scope.network) {
-        var blob = new Blob([gexf.write($scope.network)], {'type':'text/gexf+xml;charset=utf-8'});
-        saveAs(blob, $scope.corpusName + ".gexf");
-      }
     }
 
     // Init

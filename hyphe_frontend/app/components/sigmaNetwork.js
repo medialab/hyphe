@@ -12,11 +12,15 @@ angular.module('hyphe.sigmaNetworkComponent', [])
       ,scope: {
         network: '=',
         downloadNetwork: '=',
-        suspendLayout: '=',            // Optional. Stops layout when suspendLayout becomes true
+        suspendLayout: '=',             // Optional. Stops layout when suspendLayout becomes true
         startLayoutOnShow: '=',         // Optional. Starts layout when suspendLayout becomes false
-        startLayoutOnLoad: '='          // Optional. Default: true
+        startLayoutOnLoad: '=',         // Optional. Default: true
+        onNodeClick: '='
       }
       ,link: function($scope, el, attrs) {
+        var sigma
+        var renderer
+
         $scope.nodesCount
         $scope.edgesCount
         $scope.tooBig = false
@@ -36,6 +40,8 @@ angular.module('hyphe.sigmaNetworkComponent', [])
             refreshSigma()
           })
         })
+
+        $scope.$watch('onNodeClick', updateMouseEvents)
 
         $scope.$watch('suspendLayout', function(){
           if ($scope.layout === undefined) { return }
@@ -70,12 +76,17 @@ angular.module('hyphe.sigmaNetworkComponent', [])
         $scope.zoomOut = function(){}
         $scope.resetCamera = function(){}
 
+        $scope.$on("$destroy", function(){
+          $scope.layout.kill()
+        })
+
+        /// Functions
         function refreshSigma() {
           $timeout(function(){
             var container = document.getElementById('sigma-div')
             if (!container) return
-            var renderer = new Sigma.WebGLRenderer(container)
-            var sigma = new Sigma($scope.network, renderer)
+            renderer = new Sigma.WebGLRenderer(container)
+            sigma = new Sigma($scope.network, renderer)
 
             $scope.zoomIn = function(){
               var camera = renderer.getCamera()
@@ -116,13 +127,34 @@ angular.module('hyphe.sigmaNetworkComponent', [])
               ($scope.startLayoutOnLoad || $scope.startLayoutOnLoad === undefined)
               && (!$scope.suspendLayout || $scope.suspendLayout === undefined)
             ) {
-              $scope.layout.start();
+              $scope.layout.start()
             }
+
+            updateMouseEvents()
+
           })
         }
-        $scope.$on("$destroy", function(){
-          $scope.layout.kill()
-        })
+
+        function updateMouseEvents() {
+          if (sigma === undefined || renderer === undefined) {
+            return
+          }
+
+          if ($scope.onNodeClick !== undefined) {
+            renderer.on('clickNode', function(e){
+              $timeout(function(){
+                $scope.onNodeClick(e.node)
+              })
+            })
+            renderer.on('overNode', function(e){
+              el[0].classList.add('pointable')
+            })
+            renderer.on('outNode', function(e){
+              el[0].classList.remove('pointable')
+            })
+
+          }
+        }
 
       }
     }

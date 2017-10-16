@@ -5,7 +5,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 .directive('webentitiesNetworkWidget', function(
     $mdSidenav,
     api,
-    $timeout
+    $timeout,
+    $window
   ){
     return {
       restrict: 'E'
@@ -86,6 +87,11 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.nodeSizeMode = 'indegree'
         $scope.nodeSizeBaseRatio = 1
         $scope.tagCategories = {}
+
+        $scope.networkNodeClick = function(nid) {
+          var url = '#/project/'+$scope.$parent.corpusId+'/webentity/'+nid
+          $window.open(url, '_blank');
+        }
 
         $scope.toggleSidenav = function() {
           $mdSidenav('right').toggle()
