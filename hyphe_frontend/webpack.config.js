@@ -1,6 +1,14 @@
 module.exports = {
-  entry: './graphology-builder.js',
+  entry: './build.js',
   output: {
-    filename: './app/graphology-build.js'
+    filename: './app/bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
+      }
+    ]
   }
 };
