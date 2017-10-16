@@ -566,7 +566,8 @@ angular.module('hyphe.service_utils', [])
     ns.prettyDate = function(date){
       // Code adapted from http://webdesign.onyou.ch/2010/08/04/javascript-time-ago-pretty-date/
       var time_formats = [
-        [60, 'just now', 'just now'],                 // 60
+        [5, 'just now', 'just now'],                  // 5
+        [60, 'seconds ago', 'in seconds'],            // 60
         [120, '1 minute ago', '1 minute from now'],   // 60*2
         [3600, 'minutes', 60],                        // 60*60, 60
         [7200, '1 hour ago', '1 hour from now'],      // 60*60*2
