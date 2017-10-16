@@ -314,7 +314,14 @@ angular.module('hyphe.listwebentitiesController', [])
     }
 
     function refreshEasterEgg(){
-      $scope.randomEasterEgg = Math.floor(Math.random()*5)
+      var easterEggs = [
+        'img/egg_linda.gif',
+        'img/egg_scooter.gif',
+        'img/egg_howdevpictureusers.gif',
+        'img/egg_userandphone.gif',
+        'img/egg_selfie.gif'
+      ]
+      $scope.randomEasterEgg = easterEggs[Math.floor(Math.random()*5)]
     }
 
     function syncSubheaderWidth() {
