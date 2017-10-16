@@ -14,12 +14,14 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
       link: function($scope, el, attrs) {
 
         $scope.statusListSize = 20
+        $scope.lastActivity
 
         $scope.statusList = []
         $scope.isCrawling = false
 
         $scope.$watch('status', function(newStatus, oldStatus){
           if (newStatus) {
+            $scope.lastActivity = Math.max($scope.status.corpus.traph.last_index, $scope.status.corpus.traph.last_links)
             $scope.statusList.push(newStatus)
             if ($scope.statusList.length > $scope.statusListSize) {
               $scope.statusList.shift()

@@ -133,9 +133,13 @@
                 style="text-align: center"
               >
                 HYPHE IS {{status.corpus.traph.job_running|uppercase}}
+                <br>
+                <span ng-if="lastActivity">since {{lastActivity|prettyDate}}</span>
               </div>
               <div ng-if="!status.corpus.traph.job_running" style="text-align: center">
                 HYPHE IS WAITING
+                <br>
+                <span ng-if="lastActivity">since {{lastActivity|prettyDate}}</span>
               </div>
             </div>
           </div>
