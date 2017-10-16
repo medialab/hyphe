@@ -177,7 +177,8 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
               // Axis
               g.append("g")
                   .attr("class", "axis axis--y")
-                  .call(d3.axisRight(y).ticks(5))
+                  .attr("transform", "translate(" + width + ", 0)")
+                  .call(d3.axisLeft(y).ticks(5))
                 .select(".domain")
                   .remove()
 
@@ -285,7 +286,8 @@ angular.module('hyphe.hypheCurrentActivityComponent', [])
               // Axis
               g.append("g")
                   .attr("class", "axis axis--y")
-                  .call(d3.axisRight(y).ticks(3))
+                  .attr("transform", "translate(" + width + ", 0)")
+                  .call(d3.axisLeft(y).ticks(3))
                 .select(".domain")
                   .remove()
 
