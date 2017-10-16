@@ -20,6 +20,8 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     $scope.includeExternalLinks = false
     $scope.network
     $scope.nodeColorMap
+    $scope.nodeSizeMap
+    $scope.nodeSizeBaseRatio = 0.5
 
     $scope.toggleSidenav = function() {
       $mdSidenav('right').toggle()
@@ -31,6 +33,8 @@ angular.module('hyphe.webentityPagesNetworkController', [])
         saveAs(blob, $scope.corpusName + ".gexf");
       }
     }
+
+    $scope.$watch('nodeSizeBaseRatio', updateNetwork)
 
     // Init
     api.downloadCorpusTLDs(function(){
@@ -87,6 +91,56 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       )
     }
 
+    function updateNetwork() {
+      var g = $scope.network
+      if (g === undefined) { return }
+
+      // Color
+      var colors = {
+        crawled: '#333',
+        uncrawled: '#93BDE0',
+        startpage: '#F00'
+      }
+      var counts = {
+        crawled: 0,
+        uncrawled: 0,
+        startpage: 0
+      }
+      g.nodes().forEach(function(nid){
+        var n = g.getNodeAttributes(nid)
+        if (n.startPage) {
+          n.color = colors.startpage
+          counts.startpage++
+        } else if (n.crawled) {
+          n.color = colors.crawled
+          counts.crawled++
+        } else {
+          n.color = colors.uncrawled
+          counts.uncrawled++
+        }
+      })
+      $scope.nodeColorMap = [
+        {name: 'Start Pages', color: colors.startpage, count: counts.startpage},
+        {name: 'Crawled Pages', color: colors.crawled, count: counts.crawled},
+        {name: 'Uncrawled Pages', color: colors.uncrawled, count: counts.uncrawled}
+      ]
+
+      // Size
+      var minSize = 1
+      var values = []
+      g.nodes().forEach(function(nid){
+        var value = g.degree(nid)
+        var size = $scope.nodeSizeBaseRatio * (minSize + Math.sqrt(g.degree(nid)))
+        values.push(value)
+        g.setNodeAttribute(nid, 'size', size)
+      })
+
+      $scope.nodeSizeMap = [
+        {size: 0.5, name: 'Smallest node', value: d3.min(values)},
+        {size: 1.2, name: 'Biggest node', value: d3.max(values)}
+      ]
+    }
+
     function buildNetwork(json){
       var nIndex = {}
       json.forEach(function(d){
@@ -136,48 +190,15 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       g.addNodesFrom(nIndex)
       g.importEdges(links)
 
-      // Color
-      var colors = {
-        crawled: '#333',
-        uncrawled: '#93BDE0',
-        startpage: '#F00'
-      }
-      var counts = {
-        crawled: 0,
-        uncrawled: 0,
-        startpage: 0
-      }
+      // Default appearance
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)
-        if (n.startPage) {
-          n.color = colors.startpage
-          counts.startpage++
-        } else if (n.crawled) {
-          n.color = colors.crawled
-          counts.crawled++
-        } else {
-          n.color = colors.uncrawled
-          counts.uncrawled++
-        }
-      })
-      $scope.nodeColorMap = [
-        {name: 'Start Pages', color: colors.startpage, count: counts.startpage},
-        {name: 'Crawled Pages', color: colors.crawled, count: counts.crawled},
-        {name: 'Uncrawled Pages', color: colors.uncrawled, count: counts.uncrawled}
-      ]
-
-      // Size
-      var averageNonNormalizedArea = g.size / g.order // because node area = indegree
-      var minSize = 1
-      var totalArea = 0
-      g.nodes().forEach(function(nid){
-        var n = g.getNodeAttributes(nid)
-        n.size = minSize + Math.sqrt(g.inDegree(nid) / averageNonNormalizedArea)
-        totalArea += Math.PI * n.size * n.size
+        n.color = '#999'
+        n.size = 1
       })
 
       // Init Label and coordinates
-      var nodesArea = totalArea
+      var nodesArea = g.order * 10
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)
         var xy = generateRandomCoordinates(nodesArea)
@@ -196,6 +217,9 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       window.g = g
 
       $scope.network = g
+
+      updateNetwork()
+
       $scope.loading = false
     }
 
