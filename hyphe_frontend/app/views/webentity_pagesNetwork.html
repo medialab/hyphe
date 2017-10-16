@@ -17,7 +17,9 @@
             <h1 class="word-break" md-truncate>
               <md-icon>bubble_chart</md-icon>
               Pages network:
-              {{webentity.name || 'loading'}}
+              <a ng-href="#/project/{{corpusId}}/webentity/{{webentity.id}}">
+                {{webentity.name || 'loading'}}
+              </a>
             </h1>
           </div>
 
