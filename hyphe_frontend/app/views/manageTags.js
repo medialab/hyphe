@@ -135,6 +135,23 @@ angular.module('hyphe.manageTagsController', [])
       )
     }
 
+    $scope.saveNewCategory = function(){
+      var category = $scope.newCategory.trim()
+      if (!category || $scope.tagCategories[category]) return false
+      if (~category.indexOf('.')) {
+        $scope.status = {message: 'Tag categories cannot include dot characters', background: 'warning'}
+        return false
+      }
+      $scope.tagCategories[category] = []
+      
+      // Wait a frame to render the new category before resetting the form field and focus on input
+      $timeout(function(){
+        $scope.newCategory = ''
+      }, 0)
+      
+      return true
+    }
+
     $scope.downloadNetwork = function() {
       if ($scope.network) {
         var blob = new Blob([gexf.write($scope.network)], {'type':'text/gexf+xml;charset=utf-8'});
