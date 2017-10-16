@@ -167,6 +167,7 @@
           <div
             flex=50
             layout="column"
+            style="position: relative"
           >
             <div
               layout-fill
@@ -179,11 +180,17 @@
               key="'pages_found'"
             >
             </div>
+            <div style="position: absolute; top: 4px; left: 4px; font-size: 0.6em">
+              Last pages batch
+              <br>
+              {{status.corpus.traph.last_index|prettyDate}}
+            </div>
           </div>
           <div style="height: 16px"></div>
           <div
             flex=50
             layout="column"
+            style="position: relative"
           >
             <div
               layout-fill
@@ -195,6 +202,11 @@
               scale="10000"
               key="'links_found'"
             >
+            </div>
+            <div style="position: absolute; top: 4px; left: 4px; font-size: 0.6em">
+              Last links cache
+              <br>
+              {{status.corpus.traph.last_links|prettyDate}}
             </div>
           </div>
         </div>
