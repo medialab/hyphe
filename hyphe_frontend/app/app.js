@@ -22,10 +22,6 @@ angular.module('hyphe', [
   ,'hyphe.components'
 ])
 
-// Default conf settings for retrocompatibility
-.value('googleAnalyticsId', '')
-.value('disclaimer', '')
-
 // Route
 .config(['$routeProvider', function($routeProvider) {
   $routeProvider.when('/login', {templateUrl: 'views/login.html', controller: 'Login'});
@@ -157,8 +153,8 @@ angular.module('hyphe', [
 })
 
 angular.module('hyphe.analytics', [])
-.run(['googleAnalyticsId', function(googleAnalyticsId) {
-  
+.run(['config', function(config) {
+  var googleAnalyticsId = config.get('googleAnalyticsId')
   if(googleAnalyticsId) {
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

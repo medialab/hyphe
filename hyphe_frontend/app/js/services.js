@@ -137,7 +137,7 @@ angular.module('hyphe.services', [])
     return ns
   }])
 
-  .factory('corpus', ['$routeParams', '$location', 'disclaimer', function($routeParams, $location, disclaimer){
+  .factory('corpus', ['$routeParams', '$location', function($routeParams, $location){
     // NB: corpus id now stored in route
 
   	var ns = this    // Namespace
@@ -160,11 +160,6 @@ angular.module('hyphe.services', [])
       if(ns.name !== undefined)
         return ns.name
       return ns.storage[ns.storageKeys.name]
-    }
-
-    // Disclaimer is in corpus because corpus is everywhere
-    ns.getDisclaimer = function(){
-      return disclaimer
     }
 
     return ns

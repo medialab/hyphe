@@ -98,11 +98,12 @@ angular.module('hyphe.directives', [])
     }
   }])
 
-  .directive('disclaimer', ['disclaimer', '$sce', function(disclaimer, $sce){
+  .directive('disclaimer', ['config', '$sce', function(config, $sce){
     return {
       restrict: 'E'
       ,templateUrl: 'partials/disclaimer.html'
       ,link: function($scope, el, attrs) {
+        var disclaimer = config.get('disclaimer')
         $scope.display = disclaimer.trim().length > 0
         $scope.disclaimer = $sce.trustAsHtml(disclaimer)
       }
