@@ -2,7 +2,12 @@
 
 angular.module('hyphe.service_hyphe_api', [])
 
-  .factory('api', ['serverURL', '$http', 'corpus', '$location', function(surl, $http, corpus, $location) {
+  .factory('api', ['config', '$http', 'corpus', '$location', function(config, $http, corpus, $location) {
+    var surl = config.get('serverURL')
+    if (!surl) {
+      console.error('[Error] NO SERVER URL SPECIFIED. Please check front end config file.')
+    }
+
     var ns = {} // Namespace
     ,API = {}
 
