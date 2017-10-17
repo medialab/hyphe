@@ -2,11 +2,22 @@
 
 angular.module('hyphe.helpController', ['ngSanitize'])
 
-  .controller('help', ['$scope', 'api', 'utils', '$location', 'corpus', 'glossary', '$anchorScroll', '$routeParams', '$timeout'
-  ,function($scope, api, utils, $location, corpus, glossary, $anchorScroll, $routeParams, $timeout) {
+  .controller('help', function(
+    $scope,
+    api,
+    utils,
+    $location,
+    corpus,
+    glossary,
+    $anchorScroll,
+    $routeParams,
+    $timeout,
+    config
+  ) {
     $scope.currentPage = 'help'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.hyBro = config.get('hyBroURL')
 
     // Build index
     var entryIndex = {}
@@ -93,4 +104,4 @@ angular.module('hyphe.helpController', ['ngSanitize'])
             elem.style[style] = from+unit;
       }
   }
-  }])
+})

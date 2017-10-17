@@ -78,6 +78,23 @@ angular.module('hyphe.services', [])
     }
   }])
 
+  .factory('config', ['$injector', function($injector){
+    function get(configConstant){
+      var data
+      try {
+        data = $injector.get(configConstant)
+      } catch(e) {
+        data = undefined
+        console.warn('WARNING: "'+configConstant + '" constant not present in frontend config file');
+      }
+      return data
+    }
+
+    return {
+      get: get
+    }
+  }])
+
   .factory('store', [function(){
     var savedData = {}
     

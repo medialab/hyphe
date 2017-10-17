@@ -9,6 +9,8 @@ angular.module('hyphe.conf', [])
   .constant('serverURL', '/##WEBPATH##-api/')
   .constant('googleAnalyticsId', '')
   .constant('disclaimer', '')
+  .constant('hyBroURL', '')
+  
 
 
 ;

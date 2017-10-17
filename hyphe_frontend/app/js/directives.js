@@ -23,6 +23,17 @@ angular.module('hyphe.directives', [])
     }
   }])
 
+  .directive('hybroMenuLink', ['config', function(config){
+    return {
+      restrict: 'A',
+      scope: {
+      },
+      link: function($scope){
+        $scope.hyBro = config.get('hyBroURL')
+      }
+    }
+  }])
+
   .directive('hypheGlossary', ['glossary', function(glossary){
     return {
       restrict: 'A'

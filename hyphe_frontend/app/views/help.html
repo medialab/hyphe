@@ -21,6 +21,30 @@
             </span>
           </div>
 
+          <div style="padding: 8px" ng-if="hyBro">
+            <h2>
+              HYPHE BROWSER
+            </h2>
+            <div layout="row">
+              <div style="width: 160px" layout="column" layout-align="center center">
+                <img src="img/hybro.png" style="border: 2px solid #000">
+              </div>
+              <div flex style="padding-left: 16px" layout="column" layout-align="center">
+                <p><strong>Hyphe Browser</strong> or "<strong>HyBro</strong>" is a separate application that connects to the same server. It complements the web interface and allows you to build your corpus <em>while browsing the web</em>.</p>
+                <md-button
+                  class="md-raised md-primary"
+                  ng-href="{{hyBro}}"
+                  target="_blank"
+                >
+                  <md-icon style="transform: rotateY(180deg)">
+                    web
+                  </md-icon>
+                  Download Hyphe Browser
+                </md-button>
+              </div>
+            </div>
+          </div>
+
           <div style="padding: 8px">
             <h2>
               GLOSSARY
