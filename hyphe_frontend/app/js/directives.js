@@ -29,7 +29,7 @@ angular.module('hyphe.directives', [])
       scope: {
       },
       link: function($scope){
-        $scope.hyBro = config.get('hyBroURL')
+        $scope.$parent.hyBro = config.get('hyBroURL')
       }
     }
   }])
