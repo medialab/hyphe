@@ -336,6 +336,8 @@ class Core(customJSONRPC):
 
     @inlineCallbacks
     def update_corpus(self, corpus=DEFAULT_CORPUS, include_tags=False, include_links=False):
+        if corpus not in self.corpora:
+            returnD(None)
         conf = {
           "options": self.corpora[corpus]["options"],
           "total_webentities": self.corpora[corpus]['total_webentities'],
@@ -653,7 +655,7 @@ class Core(customJSONRPC):
         # Runs a monitoring task on the list of jobs in the database to update their status from scrapy API and indexing tasks
         if corpus not in self.corpora:
             returnD(None)
-        if self.corpora[corpus]['reset']:
+        if self.corpora[corpus].get('reset', False):
             yield self.db.queue(corpus).drop()
             returnD(None)
         scrapyjobs = yield self.crawler.list(corpus)
@@ -662,8 +664,6 @@ class Core(customJSONRPC):
                 logger.msg("Problem dialoguing with scrapyd server: %s" % scrapyjobs, system="WARNING - %s" % corpus)
             returnD(None)
         scrapyjobs = scrapyjobs['result']
-        self.corpora[corpus]['crawls_pending'] = len(scrapyjobs['pending']) + self.crawler.crawlqueue.count_waiting_jobs(corpus)
-        self.corpora[corpus]['crawls_running'] = len(scrapyjobs['running'])
         results = yield DeferredList([
             self.db.queue(corpus).count(),
             self.db.pages(corpus).count(),
@@ -673,12 +673,16 @@ class Core(customJSONRPC):
             if not bl:
                 logger.msg("Problem dialoguing with MongoDB: %s" % res, system="WARNING - %s" % corpus)
                 returnD(None)
+        if corpus not in self.corpora:
+            returnD(None)
         self.corpora[corpus]['pages_queued'] = results[0][1]
         self.corpora[corpus]['pages_crawled'] = results[1][1]
         jobs = results[2][1]
         self.corpora[corpus]['crawls'] = len(jobs)
         self.corpora[corpus]['pages_found'] = sum([j['nb_pages'] for j in jobs])
         self.corpora[corpus]['links_found'] = sum([j['nb_links'] for j in jobs])
+        self.corpora[corpus]['crawls_pending'] = len(scrapyjobs['pending']) + self.crawler.crawlqueue.count_waiting_jobs(corpus)
+        self.corpora[corpus]['crawls_running'] = len(scrapyjobs['running'])
         yield self.update_corpus(corpus)
         # clean lost jobs
         yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.PENDING, 'indexing_status': 'BATCH_FINISHED'}, {'crawling_status': crawling_statuses.RUNNING, "started_at": now_ts()})
@@ -711,7 +715,7 @@ class Core(customJSONRPC):
         if len(update_ids):
             yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.FINISHED, 'finished_at': now_ts()})
             yield self.db.add_log(corpus, update_ids, "INDEX_"+indexing_statuses.FINISHED)
-            if self.corpora[corpus]['options']['phantom'].get('autoretry', False):
+            if corpus in self.corpora and self.corpora[corpus]['options']['phantom'].get('autoretry', False):
                 # Try to restart in phantom mode all regular crawls that seem to have failed (less than 3 pages found for a depth of at least 1)
                 res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.max_depth': {'$gt': 0}})
                 for job in res:
@@ -1346,6 +1350,8 @@ class Memory_Structure(customJSONRPC):
 
     def jsonrpc_declare_webentity_by_lruprefix_as_url(self, url, name=None, status=None, startpages=[], lruVariations=True, corpus=DEFAULT_CORPUS):
         """Creates for a `corpus` a WebEntity defined for the LRU prefix given as a `url` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
         try:
             url, lru_prefix = urllru.url_clean_and_convert(url, self.corpora[corpus]["tlds"], False)
         except ValueError as e:
@@ -1358,6 +1364,8 @@ class Memory_Structure(customJSONRPC):
 
     def jsonrpc_declare_webentity_by_lrus_as_urls(self, list_urls, name=None, status=None, startpages=[], lruVariations=True, corpus=DEFAULT_CORPUS):
         """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as URLs under `list_urls` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
         if not isinstance(list_urls, list):
             list_urls = [list_urls]
         list_lrus = []
@@ -1986,6 +1994,8 @@ class Memory_Structure(customJSONRPC):
         for cat in self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus).get("result", []):
             query["$or"].append({"tags.USER.%s" % cat: {"$exists": False}})
         notg = yield self.db.count_WEs(corpus, query)
+        if corpus not in self.corpora:
+            returnD(None)
         self.corpora[corpus]['webentities_in'] = ins
         self.corpora[corpus]['webentities_in_untagged'] = notg
         self.corpora[corpus]['webentities_in_uncrawled'] = nocr
