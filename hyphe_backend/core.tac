@@ -1290,6 +1290,8 @@ class Memory_Structure(customJSONRPC):
             returnD(weid)
         weid = weid["result"]
         WE = yield self.db.get_WE(corpus, weid)
+        if not WE:
+            returnD(format_error("Could not retrieve WE for prefix %s" % lru_prefix))
         if test_bool_arg(new):
             if source:
                 yield self.jsonrpc_add_webentity_tag_value(weid, 'CORE', 'createdBy', "user via %s" % source, corpus=corpus)
