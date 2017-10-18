@@ -22,7 +22,7 @@ angular.module('hyphe.overviewController', [])
     loadStatus()
     loadStatistics()
     $scope.statusLoop = setInterval(loadStatus, 1000)
-    $scope.statisticsLoop = setInterval(loadStatistics, 300000)
+    $scope.statisticsLoop = setInterval(loadStatistics, 10000)
     $scope.$on('$destroy', function(){
       clearInterval($scope.statusLoop)
       clearInterval($scope.statisticsLoop)
