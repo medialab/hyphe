@@ -45,7 +45,10 @@ class customJSONRPC(JSONRPC):
             content = request.args['request'][0]
         self.callback = request.args['callback'][0] if 'callback' in request.args else None
         self.is_jsonp = True if self.callback else False
-        parsed = jsonrpclib.loads(content)
+        try:
+            parsed = jsonrpclib.loads(content)
+        except ValueError:
+            parsed = {"content": content, "method": None, "params": {}}
         functionPath = parsed.get("method")
 
         if self.debug:
