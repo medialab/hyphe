@@ -120,7 +120,10 @@ def url_to_lru(url, tldtree={}, encode_utf8=True):
                 else:
                     host = host.lower().split(".")
                     if tldtree:
-                        tld = get_tld_from_host_arr(host, tldtree)
+                        try:
+                            tld = get_tld_from_host_arr(host, tldtree)
+                        except:
+                            raise ValueError("Not an url: %s" % url)
                         rmstems = tld.count('.') + 1 if tld else 0
                         while rmstems:
                             host.pop()
