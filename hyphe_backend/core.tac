@@ -2736,7 +2736,7 @@ class Memory_Structure(customJSONRPC):
                     if parenthomelru != variation and urllru.has_prefix(parenthomelru, variations):
                         if config['DEBUG']:
                             logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
-                        yield self.jsonrpc_set_webentity_homepage(parent["_id"], "", corpus=corpus)
+                        yield self.jsonrpc_set_webentity_homepage(parent["id"], "", corpus=corpus)
         returnD(format_result("Webentity creation rule added and applied: %s new webentities created" % news))
 
     @inlineCallbacks
