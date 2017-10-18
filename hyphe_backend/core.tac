@@ -329,8 +329,8 @@ class Core(customJSONRPC):
         self.corpora[corpus]["tags"] = msgpack.unpackb(corpus_conf['tags'])
         self.corpora[corpus]["webentities_links"] = msgpack.unpackb(corpus_conf['webentities_links'])
         self.corpora[corpus]["reset"] = False
-        if not _noloop:
-            reactor.callLater(5, self.corpora[corpus]['jobs_loop'].start, 1, False)
+        if not _noloop and not self.corpora[corpus]['jobs_loop'].running:
+            self.corpora[corpus]['jobs_loop'].start(1, False)
         yield self.store._init_loop(corpus, _noloop=_noloop)
         yield self.update_corpus(corpus, True, True)
 
@@ -1006,8 +1006,8 @@ class Crawler(customJSONRPC):
         if is_error(canceljobs):
             returnD(canceljobs)
         yield self.db.drop_corpus_collections(corpus)
-        if _recreate:
-            reactor.callLater(5, self.corpora[corpus]['jobs_loop'].start, 1, False)
+        if _recreate and not self.corpora[corpus]['jobs_loop'].running:
+            self.corpora[corpus]['jobs_loop'].start(1, False)
         returnD(format_result('Crawling database reset.'))
 
     @inlineCallbacks
@@ -1130,8 +1130,10 @@ class Memory_Structure(customJSONRPC):
         if not _noloop:
             yield self.rank_webentities(corpus)
             yield self.count_webentities(corpus)
-            reactor.callLater(10 if _delay else 1, self.corpora[corpus]['index_loop'].start, 0.2, True)
-            reactor.callLater(10, self.corpora[corpus]['stats_loop'].start, 10, True)
+            if not self.corpora[corpus]['index_loop'].running:
+                self.corpora[corpus]['index_loop'].start(0.2, False)
+            if not self.corpora[corpus]['stats_loop'].running:
+                self.corpora[corpus]['stats_loop'].start(10, False)
 
     def format_webentity(self, WE, job={}, homepage=None, light=False, semilight=False, light_for_csv=False, weight=None, corpus=DEFAULT_CORPUS):
         if not WE:
