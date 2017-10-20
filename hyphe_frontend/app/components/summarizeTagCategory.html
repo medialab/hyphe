@@ -16,6 +16,7 @@
       md-items="tag in autoComplete(searchText, tagCat)"
       md-item-text="tag"
       placeholder="Add tag..."
+      md-min-length=0
     >
       <span md-highlight-text="searchText">{{tag}}</span>
     </md-autocomplete>
@@ -42,6 +43,7 @@
       md-items="tag in autoComplete(searchText, tagCat)"
       md-item-text="tag"
       placeholder="Set undefined values to..."
+      md-min-length=0
     >
       <span md-highlight-text="searchText">{{tag}}</span>
     </md-autocomplete>
