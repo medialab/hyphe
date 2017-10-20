@@ -1135,7 +1135,7 @@ class Memory_Structure(customJSONRPC):
             yield self.rank_webentities(corpus)
             yield self.count_webentities(corpus)
             if not self.corpora[corpus]['index_loop'].running:
-                self.corpora[corpus]['index_loop'].start(0.2, False)
+                self.corpora[corpus]['index_loop'].start(0.05, False)
             if not self.corpora[corpus]['stats_loop'].running:
                 self.corpora[corpus]['stats_loop'].start(10, False)
 
