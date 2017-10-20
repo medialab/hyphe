@@ -2310,17 +2310,12 @@ class Memory_Structure(customJSONRPC):
         status = status.upper()
         if status not in WEBENTITIES_STATUSES:
             returnD(format_error("status argument must be one of %s" % ",".join(WEBENTITIES_STATUSES)))
-        if missing_a_category or multiple_values:
-            categories = self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus).get("result", [])
         query = {"status": status}
-        if multiple_values:
-            query["$or"] = []
-            for cat in categories:
-                query["$or"].append({"tags.USER.%s" % cat: {"$exists": True, "$not": {"$size": 1}}})
-        elif missing_a_category:
-            query["$or"] = []
-            for cat in categories:
-                query["$or"].append({"tags.USER.%s" % cat: {"$exists": False}})
+        if missing_a_category or multiple_values:
+            checker = {"$exists": True, "$not": {"$size": 1}} if multiple_values else {"$exists": False}
+            categories = self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus).get("result", [])
+            if categories:
+                query["$or"] = [{"tags.USER.%s" % cat: checker} for cat in categories]
         else:
             query["tags.USER"] = {"$exists": False}
         WEs = yield self.db.get_WEs(corpus, query)
