@@ -4,18 +4,14 @@ To let you know where we're heading, we describe here what we have in mind for H
 
 ## Next features in the pile
 
-- Import a webentities corpus and autorecrawl from scratch from a previously exported corpus
-- Stable javascript enabled crawling using new Phantom v2.0
 - Display a webentity's ego network
+- Import a webentities corpus and autorecrawl from scratch from a previously exported corpus
+- Stabilize javascript enabled crawling using new Phantom v2.0
 - Advanced corpus and crawls settings from the interface (already accesible from the API only)
 - Propose a monitoring tool to identify possibly failed or incomplete crawls
 
 
 ## New features we are dreaming about
-
-### - A rich tagging interface:
-
-Hyphe already permits to catalog webentities with rich tagging (namespace:key=value) individually, but we didn't have the time to build the dedicated User Interface for handling them all at once yet.
 
 ### - Text-content analysis:
 
