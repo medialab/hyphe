@@ -92,7 +92,7 @@ angular.module('hyphe.exportController', [])
         ,description: 'When it was created, as a text date.'
         ,accessor: 'creation_date'
         ,preprocess: function(d){
-          return (new Date(+d*1000)).toLocaleString()
+          return (new Date(+d)).toLocaleString()
         }
       }
       ,last_modification_date_timestamp: {
@@ -107,7 +107,7 @@ angular.module('hyphe.exportController', [])
         ,description: 'Last time its metadata were modified, as a text date.'
         ,accessor: 'last_modification_date'
         ,preprocess: function(d){
-          return (new Date(+d*1000)).toLocaleString()
+          return (new Date(+d)).toLocaleString()
         }
       }
       ,user_tags: {
