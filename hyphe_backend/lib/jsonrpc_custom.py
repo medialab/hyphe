@@ -79,7 +79,7 @@ class customJSONRPC(JSONRPC):
             d = None
             #if hasattr(function, 'requires_auth'):
             #    d = maybeDeferred(self.auth, token, functionPath)
-        except jsonrpclib.Fault as f:
+        except (jsonrpclib.Fault, AttributeError) as f:
             self._cbRender(f, request, id, version)
         else:
             if not self.is_jsonp:
