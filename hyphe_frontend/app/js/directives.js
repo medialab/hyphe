@@ -104,7 +104,7 @@ angular.module('hyphe.directives', [])
       ,templateUrl: 'partials/disclaimer.html'
       ,link: function($scope, el, attrs) {
         var disclaimer = config.get('disclaimer')
-        $scope.display = disclaimer.trim().length > 0
+        $scope.display = disclaimer && disclaimer.trim().length > 0
         $scope.disclaimer = $sce.trustAsHtml(disclaimer)
       }
     }
