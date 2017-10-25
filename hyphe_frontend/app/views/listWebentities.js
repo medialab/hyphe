@@ -349,7 +349,7 @@ angular.module('hyphe.listwebentitiesController', [])
       this.searchToken
 
       /** @const {number} Number of items to fetch per request. */
-      this.PAGE_SIZE = 50;
+      this.PAGE_SIZE = 15;
 
     };
 
