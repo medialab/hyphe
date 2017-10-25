@@ -1767,10 +1767,14 @@ class Memory_Structure(customJSONRPC):
             new_WE["name"] = old_WE["name"]
             new_WE["status"] = old_WE["status"]
         if test_bool_arg(include_home_and_startpages_as_startpages):
+            if not old_WE["startpages"]:
+                old_WE["startpages"] = []
             if old_WE["homepage"]:
                 if new_WE["homepage"]:
                     old_WE["startpages"].append(new_WE["homepage"])
                 new_WE["homepage"] = old_WE["homepage"]
+            if not new_WE["startpages"]:
+                new_WE["startpages"] = []
             for page in old_WE["startpages"]:
                 new_WE["startpages"].append(page)
                 if "CORE-STARTPAGES" in old_WE["tags"] and not include_tags:
