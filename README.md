@@ -8,6 +8,10 @@ Hyphe aims at providing a tool to crawl data from the web to generate networks b
 
 You can try a restricted version of Hyphe at the following url: [http://hyphe.medialab.sciences-po.fr/demo/](http://hyphe.medialab.sciences-po.fr/demo/)
 
+## Video
+
+* [Explorer les internets avec Hyphe]{https://vimeo.com/235804282} (Septembre 2017, in French). Mathieu Jacomy presents Hyphe at Sciences Po CEVIPOF during METSEM, a seminar on digital methods in social sciences.
+
 ## Papers and references
 
 ### Papers about Hyphe
