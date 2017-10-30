@@ -129,6 +129,36 @@
                   </md-virtual-repeat-container>
                 </md-tab>
 
+                <!-- Tab: Start pages -->
+                <md-tab label="Start pages">
+                  
+                    <md-list>
+                      <div
+                        ng-repeat="startpagetype in [
+                          {id: 'user', name: 'Manual'},
+                          {id: 'auto', name: 'Automatic'},
+                          {id: 'removed', name: 'Temporary removed'}
+                        ]"
+                      >
+                        <md-subheader class="md-primary" ng-show="webentity.tags['CORE-STARTPAGES'][startpagetype.id]">
+                          {{startpagetype.name}} start pages
+                        </md-subheader>
+                        <md-list-item
+                          ng-repeat="url in webentity.tags['CORE-STARTPAGES'][startpagetype.id]"
+                        >
+                          <span md-truncate flex>
+                            <a href="{{url}}" target="_blank" title="Open in a new tab">
+                              <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
+                              <md-icon>link</md-icon>
+                            </a>
+                            {{url}}
+                          </span>
+                        </md-list-item>
+                      </div>
+                    </md-list>
+                  
+                </md-tab>
+
                 <!-- Tab: Crawls -->
                 <md-tab label="Crawls">
                   <!-- <div
