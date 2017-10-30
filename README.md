@@ -22,7 +22,9 @@ You can try a restricted version of Hyphe at the following url: [http://hyphe.me
 
 * [The AfD’s Facebook Wall as a Hub for Right-Wing Mobilisation in Germany](http://www.kai-arzheimer.com/my-apsa-2015-paper-the-afds-facebook-wall-as-a-hub-for-right-wing-mobilisation-in-germany/)
 
-* Pedroja, Cynthia, et al. "[Dépasser la liste: quand la bibliothèque entre dans la danse des corpus web.](https://hal.archives-ouvertes.fr/hal-01386536/document)" Digital Humanities 2016 (DH2016). Jagiellonian University & Pedagogical University, 2016.
+* Pedroja, Cynthia, et al. "[Dépasser la liste : quand la bibliothèque entre dans la danse des corpus web.](https://hal.archives-ouvertes.fr/hal-01386536/document)" Digital Humanities 2016 (DH2016). Jagiellonian University & Pedagogical University, 2016.
+
+* de Carvalho Pereira, Débora "[Produits laitiers : les réseaux d'influence sur le web](https://f.hypotheses.org/wp-content/blogs.dir/3105/files/2017/10/Rapport-REPASTOL-PEREIRA-2017.compressed.pdf)"
 
 
 ## Easy start
