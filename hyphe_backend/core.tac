@@ -262,6 +262,9 @@ class Core(customJSONRPC):
                 returnD(format_error("Wrong password"))
             returnD(format_success(True))
 
+        if self.corpus_ready(corpus) or self.traphs.status_corpus(corpus, simplify=True) == "starting":
+            returnD(self.jsonrpc_test_corpus(corpus, _msg="Corpus already ready"))
+
         corpus_conf = yield self.db.get_corpus(corpus)
         if not corpus_conf:
             if _create_if_missing:
@@ -270,9 +273,6 @@ class Core(customJSONRPC):
             returnD(format_error("No corpus existing with ID %s, please create it first!" % corpus))
         if corpus_conf['password'] and password != config.get("ADMIN_PASSWORD", None) and corpus_conf['password'] not in [password, salt(password)]:
             returnD(format_error("Wrong auth for password-protected corpus %s" % corpus))
-
-        if self.corpus_ready(corpus) or self.traphs.status_corpus(corpus, simplify=True) == "starting":
-            returnD(self.jsonrpc_test_corpus(corpus, _msg="Corpus already ready"))
 
         res = yield self.crawler.crawlqueue.send_scrapy_query("listprojects")
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
