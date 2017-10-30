@@ -202,6 +202,15 @@ def lru_to_url(lru, encode_utf8=True, nocheck=False):
             pass
     return url
 
+def safe_lrus_to_urls(lrus):
+    res = []
+    for lru in lrus:
+        try:
+            res.append(lru_to_url(lru))
+        except ValueError:
+            pass
+    return res
+
 def url_clean_and_convert(url, tldtree={}, lru_encode_utf8=True):
     url = url_clean(url)
     lru = url_to_lru_clean(url, tldtree, lru_encode_utf8)

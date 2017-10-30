@@ -740,9 +740,9 @@ class Core(customJSONRPC):
                 if is_error(pages):
                     returnD(pages)
                 pages = pages["result"]
-                starts[startrule] = [urllru.lru_to_url(p["lru"]) for p in pages]
+                starts[startrule] = urllru.safe_lrus_to_urls([p["lru"] for p in pages])
             elif startrule == "prefixes":
-                starts[startrule] = [urllru.lru_to_url(lru) for lru in WE["prefixes"]]
+                starts[startrule] = urllru.safe_lrus_to_urls(WE["prefixes"])
             elif startrule == "startpages":
                 starts[startrule] = WE["startpages"]
             elif startrule == "homepage":
@@ -1170,7 +1170,7 @@ class Memory_Structure(customJSONRPC):
             return res
         if test_bool_arg(light_for_csv):
             return {'id': WE["_id"], 'name': WE["name"], 'status': WE["status"],
-                    'prefixes': "|".join([urllru.lru_to_url(lru, nocheck=True) for lru in WE["prefixes"]]),
+                    'prefixes': "|".join(urllru.safe_lrus_to_urls(WE["prefixes"])),
                     'tags': "|".join(["|".join(res['tags'][ns][key]) for ns in res['tags'] for key in res['tags'][ns] if ns.startswith("CORE")])}
         res['startpages'] = WE["startpages"]
         return res
