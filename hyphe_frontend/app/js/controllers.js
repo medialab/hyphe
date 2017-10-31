@@ -25,6 +25,7 @@ angular.module('hyphe.controllers', [
     ,'hyphe.webentityExplorerController'
     ,'hyphe.webentityPagesNetworkController'
     ,'hyphe.helpController'
+    ,'hyphe.toolNetworkTagStatsController'
   ])
 
 ;

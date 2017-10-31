@@ -1,0 +1,92 @@
+<div layout="column" layout-fill>
+  <div class="topbar-height" ng-include="'partials/topbar.html'">
+  </div>
+  <div flex>
+    <div layout="row" layout-fill>
+      <div class="sidebar-width" ng-include="'partials/sidebar.html'"></div>
+      <div
+        flex
+        md-colors="{background: 'default-background-50'}"
+        style="overflow-y: auto;"
+      >
+        <!-- Content -->
+        <div layout-fill layout="column">
+          <div class="page-header">
+            <h1>
+              TAGS AND TOPOLOGY STATISTICS
+            </h1>
+            <span class="md-subhead">
+              Statistics about the relative correlation and distribution of content (tags) and structure (topology). Only <span hyphe-glossary="web entities"></span> of <span hyphe-glossary="status"></span> "IN" are considered.
+            </span>
+          </div>
+
+          <!-- Loading -->
+          <div layout="column" layout-fill style="padding: 8px" ng-if="loading">
+            <div style="margin-bottom: 8px">
+              <em>Please wait while network data is loading</em>
+            </div>
+
+            <!-- IN -->
+            <div style="height: 50px" layout="row" layout-align="start center">
+              <div style="margin-right: 8px; width: 50px">
+                <md-progress-circular
+                  md-diameter="42"
+                  md-mode="indeterminate"
+                  ng-if="data.in.loading && !data.in.total"
+                ></md-progress-circular>
+                <md-progress-circular
+                  md-diameter="42"
+                  md-mode="determinate"
+                  ng-if="data.in.loading && data.in.total"
+                  value="{{100 * data.in.webentities.length / data.in.total}}"
+                ></md-progress-circular>
+                <md-progress-circular
+                  style="opacity: 0.5"
+                  md-diameter="42"
+                  md-mode="determinate"
+                  ng-if="data.in.loaded"
+                  value="100"
+                ></md-progress-circular>
+              </div>
+              <div>
+                IN
+                <span
+                  md-colors="{'color': 'default-primary'}"
+                  ng-if="data.in.total"
+                >{{data.in.webentities.length}} / {{data.in.total}}</span>
+              </div>
+            </div>
+
+            <!-- LINKS -->
+            <div style="height: 50px" layout="row" layout-align="start center">
+              <div style="margin-right: 8px; width: 50px">
+                <md-progress-circular
+                  md-diameter="42"
+                  md-mode="indeterminate"
+                  ng-if="data.links.loading"
+                ></md-progress-circular>
+                <md-progress-circular
+                  style="opacity: 0.5"
+                  md-diameter="42"
+                  md-mode="determinate"
+                  ng-if="data.links.loaded"
+                  value="100"
+                ></md-progress-circular>
+              </div>
+              <div>
+                LINKS
+              </div>
+            </div>
+          </div>
+
+          <!-- Loaded -->
+          <div layout="column" layout-fill style="padding: 8px" ng-if="!loading">
+            DATA LOADED
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
