@@ -55,14 +55,14 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
     }
 
     // Init
-    checkLoadAndUpdate()
+    checkLoadAndUpdate(++$scope.checkLoadAndUpdateCurrentToken)
 
     /// Functions
     function buildTagData() {
       $scope.tagCategories = {}
 
       var tagCat
-      ['in', 'undecided', 'out', 'discovered'].forEach(function(status){
+      ['in'].forEach(function(status){
         if($scope.statuses[status]) {
           var webentities = $scope.data[status].webentities
           webentities
@@ -201,11 +201,8 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
 
     function buildNetwork() {
       var weIndex = {}
-      var stati = ['in', 'out', 'undecided', 'discovered']
-      stati.filter(function(status){
-          return $scope.settings[status]
-        })
-        .forEach(function(status){
+      var statuses = ['in']
+      statuses.forEach(function(status){
           $scope.data[status].webentities.forEach(function(we){
             weIndex[we.id] = we
           })
@@ -227,25 +224,6 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
       g.addNodesFrom(weIndex)
       g.importEdges(validLinks)
 
-      // Filtering: mark nodes for deletion
-      var allThreshold = 0
-      var discThreshold = 0
-      if ($scope.settings.limitAll) {
-        allThreshold = +$scope.settings.limitAll.replace('+', '')
-      }
-      if ($scope.settings.limitDiscovered) {
-        discThreshold = +$scope.settings.limitDiscovered.replace('+', '')
-      }
-      var nodesToDelete = []
-      g.nodes().forEach(function(nid){
-        var n = g.getNodeAttributes(nid)
-        var degree = g.degree(nid)
-        if (degree < allThreshold || (n.status == 'DISCOVERED' && degree < discThreshold)) {
-          nodesToDelete.push(nid)
-        }
-      })
-      g.dropNodes(nodesToDelete)
-
       // Default nodes appearance
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)
@@ -257,9 +235,8 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
       var nodesArea = g.order * 10
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)
-        var xy = generateRandomCoordinates(nodesArea)
-        n.x = xy.x
-        n.y = xy.y
+        n.x = Math.random()
+        n.y = Math.random()
         n.label = n.name
       })
 
@@ -273,8 +250,6 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
       window.g = g
 
       $scope.network = g
-
-      updateNetworkAppearance()
     }
 
     function loadStatus(callback){
