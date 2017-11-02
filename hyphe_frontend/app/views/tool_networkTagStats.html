@@ -113,6 +113,19 @@
               <md-card style="background: white">
                 <md-card-title>
                   <md-card-title-text>
+                    <span class="md-headline">Modularity = <strong>{{attributeData.stats.modularity|number}}</strong> for the "{{selectedCategory}}" partitioning</span>
+                  </md-card-title-text>
+                </md-card-title>
+                <md-card-content>
+                  Modularity is the fraction of the edges that fall within the given groups minus the expected fraction if edges were distributed at random.
+                  <br><br>
+                  The value of the modularity lies in the range [−1/2,1). It is positive if the number of edges within groups exceeds the number expected on the basis of chance. For a given division of the network's vertices into some modules, modularity reflects the concentration of edges within modules compared with random distribution of links between all nodes regardless of modules. See more on <a href="https://en.wikipedia.org/wiki/Modularity_(networks)" target="_blank">Wikipedia</a>.
+                </md-card-content>
+              </md-card>
+
+              <md-card style="background: white">
+                <md-card-title>
+                  <md-card-title-text>
                     <span class="md-headline">Links between value-groups</span>
                     <span class="md-subhead">Value-groups are sets of web entities with the same "{{selectedCategory}}". How are they linked?</span>
                   </md-card-title-text>
@@ -149,6 +162,9 @@
                         This formula is adapted from this paper: <em>Newman, M. E. J. (2006). Modularity and community structure in networks. Proceedings of the National Academy of …, 103(23), 8577–8582. <a href="http://doi.org/10.1073/pnas.0601602103" target="_blank">http://doi.org/10.1073/pnas.0601602103</a></em>
                         <br><br>
                         The rationale for using this metric is that is less sensitive to group sizes (the very same idea behind modularity). Raw edge count emphasizes big groups. On the contrary, traditional density emphasizes small clusters. Normalized density works on any cluster size.
+                      </p>
+                      <p ng-show="normalizedDensityDetails">
+                        Modularity = {{attributeData.stats.modularity|number}} for the "{{selectedCategory}}" partitioning. Modularity is literally the sum of normalized densities inside a same group (green circles) minus the sum of normalized densities from one group to another (red circles). Big green circles indicate the most dense groups. Big red circles are remarkable amounts of links from one group to another (taking into account the size of groups).
                       </p>
                       <p ng-show="normalizedDensityDetails">
                         <md-button ng-click="normalizedDensityDetails = false">Less details</md-button>
