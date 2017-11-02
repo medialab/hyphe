@@ -66,17 +66,17 @@
 
     <md-divider ></md-divider>
 
+    <md-list-item ng-href="#/project/{{corpusId}}/tools" md-colors="{background: (currentPage=='tools') ? ('default-background-50') : ('default-background-100')}">
+      <span>
+        <md-icon class="md-avatar">toys</md-icon>
+        TOOLS
+      </span>
+    </md-list-item>
+
     <md-list-item ng-href="#/project/{{corpusId}}/settings" md-colors="{background: (currentPage=='settings') ? ('default-background-50') : ('default-background-100')}">
       <span>
         <md-icon class="md-avatar">settings</md-icon>
         SETTINGS
-      </span>
-    </md-list-item>
-
-    <md-list-item ng-href="#/project/{{corpusId}}/help" md-colors="{background: (currentPage=='help') ? ('default-background-50') : ('default-background-100')}">
-      <span>
-        <md-icon class="md-avatar">help</md-icon>
-        HELP
       </span>
     </md-list-item>
 
@@ -86,6 +86,13 @@
           web
         </md-icon>
         HYBRO
+      </span>
+    </md-list-item>
+
+    <md-list-item ng-href="#/project/{{corpusId}}/help" md-colors="{background: (currentPage=='help') ? ('default-background-50') : ('default-background-100')}">
+      <span>
+        <md-icon class="md-avatar">help</md-icon>
+        HELP
       </span>
     </md-list-item>
 

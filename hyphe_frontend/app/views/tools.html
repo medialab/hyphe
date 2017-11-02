@@ -1,0 +1,61 @@
+<div layout="column" layout-fill>
+  <div class="topbar-height" ng-include="'partials/topbar.html'">
+  </div>
+  <div flex>
+    <div layout="row" layout-fill>
+      <div class="sidebar-width" ng-include="'partials/sidebar.html'"></div>
+      <div
+        flex
+        md-colors="{background: 'default-background-50'}"
+        style="overflow-y: auto;"
+        id="scrolling-element"
+      >
+        
+        <!-- Content -->
+        <div layout-fill layout="column">
+          <div class="page-header">
+            <h1>
+              TOOLS
+            </h1>
+            <span class="md-subhead">
+              Additional modules that help you accomplish specific tasks or explore some aspects of the data.
+            </span>
+          </div>
+
+          <div layout="column" style="padding: 8px; overflow: auto">
+            <md-grid-list
+              md-cols-xs="1"
+              md-cols-sm="2"
+              md-cols-md="3"
+              md-cols-lg="5"
+              md-cols-gt-lg="6"
+              md-gutter="8px"
+              md-row-height="1:1"
+            >
+              <md-grid-tile
+                class="pointable-grid-tile"
+                ng-click="goTo('/project/'+corpusId+'/tools/netTagStats')"
+                md-colors="{'background': 'default-background-200'}"
+              >
+                <div layout="column" layout-align="center center">
+                  <md-icon>insert_chart</md-icon>
+                  <span>
+                    TAGS AND
+                  </span>
+                  <span>
+                    TOPOLOGY
+                  </span>
+                  <span>
+                    STATISTICS
+                  </span>
+                </div>
+              </md-grid-tile>
+            </md-grid-list>
+          </div>
+          
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
