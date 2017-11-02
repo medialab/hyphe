@@ -46,6 +46,7 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
     $scope.network
 
     $scope.tagCategories = {}
+    $scope.selectedCategory
 
     $scope.downloadNetwork = function() {
       if ($scope.network) {
@@ -72,13 +73,16 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
                 $scope.tagCategories[tagCat] = $scope.tagCategories[tagCat] || {}
                 var values = d[tagCat]
                 values.forEach(function(val){
-                  $scope.tagCategories[tagCat][val] = ($scope.tagCategories[tagCat][val] || {count:0, selected:false})
+                  $scope.tagCategories[tagCat][val] = ($scope.tagCategories[tagCat][val] || {count:0})
                   $scope.tagCategories[tagCat][val].count++
                 })
               }
             })
         }
       })
+
+      $scope.selectedCategory = Object.keys($scope.tagCategories)[0] || ''
+
     }
 
     function checkLoadAndUpdate(thisToken) {

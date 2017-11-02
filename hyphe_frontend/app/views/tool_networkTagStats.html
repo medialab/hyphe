@@ -81,7 +81,9 @@
 
           <!-- Loaded -->
           <div layout="column" style="padding: 8px" ng-if="!loading">
-            DATA LOADED
+            <md-select ng-model="$parent.selectedCategory" class="md-accent">
+              <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}}</md-option>
+            </md-select>
           </div>
 
         </div>
