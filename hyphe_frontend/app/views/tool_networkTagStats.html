@@ -81,11 +81,11 @@
 
           <!-- Loaded -->
           <div layout="column" ng-if="!loading">
-            <div md-colors="{'background': 'default-accent-50'}" style="padding: 8px" layout="row">
+            <div md-colors="{'background': 'default-background-100-0.5'}" style="padding-left: 16px; margin: 16px 16px 0px 16px" layout="row">
               <div layout="column" layout-align="center" style="margin-right: 16px; padding-bottom: 8px;">
                 Pick a tag category:
               </div>
-              <md-select ng-model="$parent.selectedCategory">
+              <md-select ng-model="$parent.selectedCategory" class="md-accent">
                 <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}}</md-option>
               </md-select>
             </div>
