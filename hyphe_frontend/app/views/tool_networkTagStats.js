@@ -174,6 +174,7 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
 
     function buildTagData() {
       $scope.tagCategories = {}
+      $scope.noTagCatExceptFreetags = true
 
       var tagCat
       ['in'].forEach(function(status){
@@ -189,6 +190,10 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
                   $scope.tagCategories[tagCat][val] = ($scope.tagCategories[tagCat][val] || {count:0})
                   $scope.tagCategories[tagCat][val].count++
                 })
+
+                if (tagCat != 'FREETAGS') {
+                  $scope.noTagCatExceptFreetags = false
+                }
               }
             })
         }

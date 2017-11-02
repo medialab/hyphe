@@ -79,8 +79,13 @@
             </div>
           </div>
 
+          <!-- Loaded but no tag categories -->
+          <div ng-if="!loading && noTagCatExceptFreetags" style="margin: 8px; padding: 16px" md-colors="{'background': 'default-accent-50'}">
+            This tool only works if you have previously <a href="#/project/{{corpusId}}/manageTags">tagged</a> web entities.
+          </div>
+
           <!-- Loaded -->
-          <div layout="column" ng-if="!loading">
+          <div layout="column" ng-if="!loading && !noTagCatExceptFreetags">
             <md-content style="padding: 8px">
 
               <div md-colors="{'background': 'default-background-100-0.5'}" style="margin: 8px; padding: 8px">
