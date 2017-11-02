@@ -128,6 +128,72 @@ angular.module('hyphe.networkTagStatsComponent', [])
     }
   })
 
+.directive('ntsConnectivitySkewnessChart', function(
+    $timeout
+  ){
+    return {
+      restrict: 'A',
+      scope: {
+        data: '=',
+        value: '='
+      },
+      link: function($scope, el, attrs) {
+
+        el.html('<div>LOADING</div>')
+
+        $scope.$watch('data', redraw)
+        $scope.$watch('value', redraw)
+
+        window.addEventListener('resize', redraw)
+        $scope.$on('$destroy', function(){
+          window.removeEventListener('resize', redraw)
+        })
+
+        function redraw() {
+          if ($scope.data !== undefined){
+            $timeout(function(){
+              el.html('');
+              drawValueInboundOutbound(d3.select(el[0]), $scope.data, $scope.value)
+            })
+          }
+        }
+      }
+    }
+  })
+
+.directive('ntsConnectivitySkewnessDistributionChart', function(
+    $timeout
+  ){
+    return {
+      restrict: 'A',
+      scope: {
+        data: '=',
+        value: '='
+      },
+      link: function($scope, el, attrs) {
+
+        el.html('<div>LOADING</div>')
+
+        $scope.$watch('data', redraw)
+        $scope.$watch('value', redraw)
+
+        window.addEventListener('resize', redraw)
+        $scope.$on('$destroy', function(){
+          window.removeEventListener('resize', redraw)
+        })
+
+        function redraw() {
+          if ($scope.data !== undefined){
+            $timeout(function(){
+              el.html('');
+              drawValueSkewnessDistribution(d3.select(el[0]), $scope.data, $scope.value)
+            })
+          }
+        }
+      }
+    }
+  })
+
 // Functions imported from Graph Recipes
 function drawValuesDistribution(container, attData) {
   // Rank values by count

@@ -206,6 +206,42 @@
                 </md-card-content>
               </md-card>
 
+              <md-card style="background: white" ng-if="selectedValue != ''">
+                <md-card-title>
+                  <md-card-title-text>
+                    <span class="md-headline">Connectivity Skewness of value-group "{{selectedValue}}"</span>
+                  </md-card-title-text>
+                </md-card-title>
+                <md-card-content>
+                  <div
+                    nts-connectivity-skewness-chart
+                    data="attributeData"
+                    value="selectedValue"
+                  ></div>
+                  <p>
+                    Compare inbound links to outbound links. Bars display normalized density. Internal links not counted. Being cited is usually considered more favorable than citing.
+                  </p>
+                </md-card-content>
+              </md-card>
+
+              <md-card style="background: white" ng-if="selectedValue != ''">
+                <md-card-title>
+                  <md-card-title-text>
+                    <span class="md-headline">Connectivity Skewness Distribution of value-group "{{selectedValue}}" towards other value-groups</span>
+                  </md-card-title-text>
+                </md-card-title>
+                <md-card-content>
+                  <div
+                    nts-connectivity-skewness-distribution-chart
+                    data="attributeData"
+                    value="selectedValue"
+                  ></div>
+                  <p>
+                    Compare inbound to outbound normalized densities group by group. Hints at the structure of power balance.
+                  </p>
+                </md-card-content>
+              </md-card>
+
             </md-content>
  
           </div>
