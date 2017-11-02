@@ -186,7 +186,6 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
                 $scope.tagCategories[tagCat] = $scope.tagCategories[tagCat] || {}
                 var values = d[tagCat]
                 values.forEach(function(val){
-                  if (val == '') { val = untaggedPlaceholder }
                   $scope.tagCategories[tagCat][val] = ($scope.tagCategories[tagCat][val] || {count:0})
                   $scope.tagCategories[tagCat][val].count++
                 })
@@ -194,6 +193,19 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
             })
         }
       })
+
+      // Untagged
+      for (tagCat in $scope.tagCategories) {
+        var totalTagged = 0
+        var tagVal
+        for (tagVal in $scope.tagCategories[tagCat]) {
+          totalTagged += $scope.tagCategories[tagCat][tagVal].count
+        }
+        var untaggedCount = $scope.data['in'].webentities.length - totalTagged
+        if (untaggedCount > 0) {
+          $scope.tagCategories[tagCat][untaggedPlaceholder] = {count: untaggedCount}
+        }
+      }
 
       $scope.selectedCategory = Object.keys($scope.tagCategories)[0] || ''
 

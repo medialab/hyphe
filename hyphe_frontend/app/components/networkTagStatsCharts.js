@@ -109,6 +109,7 @@ angular.module('hyphe.networkTagStatsComponent', [])
         el.html('<div>LOADING</div>')
 
         $scope.$watch('data', redraw)
+        $scope.$watch('value', redraw)
 
         window.addEventListener('resize', redraw)
         $scope.$on('$destroy', function(){
