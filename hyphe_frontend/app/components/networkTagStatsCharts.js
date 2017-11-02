@@ -3,8 +3,7 @@
 angular.module('hyphe.networkTagStatsComponent', [])
  
 .directive('ntsDistributionOfValuesChart', function(
-    $timeout,
-    $filter
+    $timeout
   ){
     return {
       restrict: 'A',
@@ -26,10 +25,7 @@ angular.module('hyphe.networkTagStatsComponent', [])
           if ($scope.data !== undefined){
             $timeout(function(){
               el.html('');
-
               drawValuesDistribution(d3.select(el[0]), $scope.data)
-
-
             })
           }
         }
@@ -37,6 +33,67 @@ angular.module('hyphe.networkTagStatsComponent', [])
     }
   })
 
+.directive('ntsGroupToGroupEdgesCountChart', function(
+    $timeout
+  ){
+    return {
+      restrict: 'A',
+      scope: {
+        data: '=',
+      },
+      link: function($scope, el, attrs) {
+
+        el.html('<div>LOADING</div>')
+
+        $scope.$watch('data', redraw)
+
+        window.addEventListener('resize', redraw)
+        $scope.$on('$destroy', function(){
+          window.removeEventListener('resize', redraw)
+        })
+
+        function redraw() {
+          if ($scope.data !== undefined){
+            $timeout(function(){
+              el.html('');
+              drawFlowMatrix(d3.select(el[0]), $scope.data)
+            })
+          }
+        }
+      }
+    }
+  })
+
+.directive('ntsGroupToGroupNormalizedDensityChart', function(
+    $timeout
+  ){
+    return {
+      restrict: 'A',
+      scope: {
+        data: '=',
+      },
+      link: function($scope, el, attrs) {
+
+        el.html('<div>LOADING</div>')
+
+        $scope.$watch('data', redraw)
+
+        window.addEventListener('resize', redraw)
+        $scope.$on('$destroy', function(){
+          window.removeEventListener('resize', redraw)
+        })
+
+        function redraw() {
+          if ($scope.data !== undefined){
+            $timeout(function(){
+              el.html('');
+              drawNormalizedDensityMatrix(d3.select(el[0]), $scope.data)
+            })
+          }
+        }
+      }
+    }
+  })
 
 // Functions imported from Graph Recipes
 function drawValuesDistribution(container, attData) {

@@ -16,7 +16,7 @@
               TAGS AND TOPOLOGY STATISTICS
             </h1>
             <span class="md-subhead">
-              Statistics about the relative correlation and distribution of content (tags) and structure (topology). Only <span hyphe-glossary="web entities"></span> of <span hyphe-glossary="status"></span> "IN" are considered.
+              Explore the relations between content (tags) and structure (topology). Only <span hyphe-glossary="web entities"></span> of <span hyphe-glossary="status"></span> "IN" are considered.
             </span>
           </div>
 
@@ -81,22 +81,22 @@
 
           <!-- Loaded -->
           <div layout="column" ng-if="!loading">
-            <div md-colors="{'background': 'default-background-100-0.5'}" style="padding-left: 16px; margin: 16px 16px 0px 16px" layout="row">
-              <div layout="column" layout-align="center" style="margin-right: 16px; padding-bottom: 8px;">
-                Pick a tag category:
-              </div>
-              <md-select ng-model="$parent.selectedCategory" class="md-accent">
-                <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}}</md-option>
-              </md-select>
-            </div>
-
             <md-content style="padding: 8px">
+
+              <div md-colors="{'background': 'default-background-100-0.5'}" style="padding-left: 16px; margin: 0px 8px" layout="row">
+                <div layout="column" layout-align="center" style="margin-right: 16px; padding-bottom: 8px;">
+                  Pick a tag category:
+                </div>
+                <md-select ng-model="$parent.selectedCategory" class="md-accent">
+                  <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}}</md-option>
+                </md-select>
+              </div>
  
               <md-card style="background: white">
                 <md-card-title>
                   <md-card-title-text>
                     <span class="md-headline">Distribution of values</span>
-                    <span class="md-subhead">How many web entities per {{selectedCategory}}?</span>
+                    <span class="md-subhead">How many web entities per "{{selectedCategory}}"?</span>
                   </md-card-title-text>
                 </md-card-title>
                 <md-card-content>
@@ -108,10 +108,56 @@
                      The size of these groups is an important contextual information for the other metrics below.
                   </p>
                 </md-card-content>
-                <md-card-actions>
-                </md-card-actions>
-
               </md-card>
+
+              <md-card style="background: white">
+                <md-card-title>
+                  <md-card-title-text>
+                    <span class="md-headline">Links between value-groups</span>
+                    <span class="md-subhead">Value-groups are sets of web entities with the same "{{selectedCategory}}". How are they linked?</span>
+                  </md-card-title-text>
+                </md-card-title>
+                <md-card-content>
+                  <md-tabs md-dynamic-height md-border-bottom>
+                    <md-tab label="Count">
+                      <div
+                        nts-group-to-group-edges-count-chart
+                        data="attributeData"
+                      ></div>
+                      <p>
+                        This matrix displays how many edges there are from a value-group to another (or possibly the same). The value-groups are defined by web entities having the same "{{selectedCategory}}". The sum of all values is the size of the network, ie. its total number of edges. Note that bigger groups naturally get more links. Columns are ordered by group size.
+                      </p>
+                    </md-tab>
+                    <md-tab label="Normalized density">
+                      <div
+                        nts-group-to-group-normalized-density-chart
+                        data="attributeData"
+                      ></div>
+                      <p>
+                        This matrix displays how many links there are from a value-group to another (or the same) versus the expected number of links. We call it "normalized density" by analogy with traditional edge density, which is the actual number of edges versus the potential number of edges. The version presented here uses Mark Newman's formula of modularity. Normalized density can therefore be interpreted as the contribution of each pair of value-groups to modularity. Values on the diagonal (green) contribute positively while others (red) contribute negatively.
+                      </p>
+                      <p ng-show="!normalizedDensityDetails">
+                        <md-button ng-click="normalizedDensityDetails = true">More details</md-button>
+                      </p>
+                      <p ng-show="normalizedDensityDetails">
+                        The formula for this normalized density is this one:
+                        <br><br>
+                        <em>D = 1/(4*m) + Sum[Aij - ki*kj/(2*m)]</em>
+                        <br><br>
+                        Where <em>i</em> is a node from group 1 and <em>j</em> from group 2, <em>m</em> is the size of the network (edges count), <em>Aij = 1</em> if there is an edge from <em>i</em> to <em>j</em> and 0 else, <em>ki</em> is the outdegree of <em>i</em> and <em>kj</em> the indegree of <em>j</em>.
+                        <br><br>
+                        This formula is adapted from this paper: <em>Newman, M. E. J. (2006). Modularity and community structure in networks. Proceedings of the National Academy of …, 103(23), 8577–8582. <a href="http://doi.org/10.1073/pnas.0601602103" target="_blank">http://doi.org/10.1073/pnas.0601602103</a></em>
+                        <br><br>
+                        The rationale for using this metric is that is less sensitive to group sizes (the very same idea behind modularity). Raw edge count emphasizes big groups. On the contrary, traditional density emphasizes small clusters. Normalized density works on any cluster size.
+                      </p>
+                      <p ng-show="normalizedDensityDetails">
+                        <md-button ng-click="normalizedDensityDetails = false">Less details</md-button>
+                      </p>
+                    </md-tab>
+                  </md-tabs>
+                </md-card-content>
+              </md-card>
+
 
             </md-content>
  
