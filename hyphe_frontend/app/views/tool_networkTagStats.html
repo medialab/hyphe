@@ -80,12 +80,38 @@
           </div>
 
           <!-- Loaded -->
-          <div layout="column" style="padding: 8px" ng-if="!loading">
-            <md-select ng-model="$parent.selectedCategory" class="md-accent">
-              <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}}</md-option>
-            </md-select>
-          </div>
+          <div layout="column" ng-if="!loading">
+            <div md-colors="{'background': 'default-accent-50'}" style="padding: 8px" layout="row">
+              <div layout="column" layout-align="center" style="margin-right: 16px; padding-bottom: 8px;">
+                Pick a tag category:
+              </div>
+              <md-select ng-model="$parent.selectedCategory">
+                <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}}</md-option>
+              </md-select>
+            </div>
 
+            <md-content style="padding: 8px">
+ 
+              <md-card style="background: white">
+                <md-card-header>
+                  <md-card-header-text>
+                    <h3 md-title>Distribution of values</h3>
+                  </md-card-header-text>
+                </md-card-header>
+                <md-card-content>
+                  <div
+                    nts-distribution-of-values-chart
+                    data="attributeData"
+                  ></div>
+                </md-card-content>
+                <md-card-actions>
+                </md-card-actions>
+
+              </md-card>
+
+            </md-content>
+ 
+          </div>
         </div>
 
       </div>

@@ -47,6 +47,9 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
 
     $scope.tagCategories = {}
     $scope.selectedCategory
+    $scope.attributeData = {}
+    $scope.$watch('selectedCategory', buildAttData)
+    $scope.$watch('network', buildAttData)
 
     $scope.downloadNetwork = function() {
       if ($scope.network) {
@@ -59,6 +62,113 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
     checkLoadAndUpdate(++$scope.checkLoadAndUpdateCurrentToken)
 
     /// Functions
+
+    // Aggregated attribute data
+    function buildAttData() {
+      var g = $scope.network
+
+      if (g && $scope.selectedCategory) {
+        var attData = {}
+
+        // Aggregate distribution of values
+        attData.valuesIndex = {}
+        g.nodes().forEach(function(nid){
+          var n = g.getNodeAttributes(nid)
+          if (attData.valuesIndex[n[$scope.selectedCategory]]) {
+            attData.valuesIndex[n[$scope.selectedCategory]].nodes++
+          } else {
+            attData.valuesIndex[n[$scope.selectedCategory]] = {nodes: 1}
+          }
+        })
+        attData.values = d3.keys(attData.valuesIndex)
+        var valuesCounts = d3.values(attData.valuesIndex).map(function(d){return d.nodes})
+        attData.distributionStats = {}
+        attData.distributionStats.differentValues = valuesCounts.length
+        attData.distributionStats.sizeOfSmallestValue = d3.min(valuesCounts)
+        attData.distributionStats.sizeOfBiggestValue = d3.max(valuesCounts)
+        attData.distributionStats.medianSize = d3.median(valuesCounts)
+        attData.distributionStats.deviation = d3.deviation(valuesCounts)
+        attData.distributionStats.valuesUnitary = valuesCounts.filter(function(d){return d==1}).length
+        attData.distributionStats.valuesAbove1Percent = valuesCounts.filter(function(d){return d>=g.order*0.01}).length
+        attData.distributionStats.valuesAbove10Percent = valuesCounts.filter(function(d){return d>=g.order*0.1}).length
+
+        // Count edge flow
+        attData.valueFlow = {}
+        attData.values.forEach(function(v1){
+          attData.valueFlow[v1] = {}
+          attData.values.forEach(function(v2){
+            attData.valueFlow[v1][v2] = {count: 0, expected: 0, nd:0}
+          })
+        })
+        g.edges().forEach(function(eid){ // Edges count
+          var nsid = g.source(eid)
+          var ntid = g.target(eid)
+          attData.valueFlow[g.getNodeAttribute(nsid, $scope.selectedCategory)][g.getNodeAttribute(ntid, $scope.selectedCategory)].count++
+        })
+        // For normalized density, we use the same version as the one used in Newmans' Modularity
+        // Newman, M. E. J. (2006). Modularity and community structure in networks. Proceedings of the National Academy of …, 103(23), 8577–8582. http://doi.org/10.1073/pnas.0601602103
+        // Here, for a directed network
+        g.nodes().forEach(function(nsid){
+          g.nodes().forEach(function(ntid){
+            var expected = g.outDegree(nsid) * g.inDegree(ntid) / (2 * g.size)
+            attData.valueFlow[g.getNodeAttribute(nsid, $scope.selectedCategory)][g.getNodeAttribute(ntid, $scope.selectedCategory)].expected += expected
+          })
+        })
+        attData.values.forEach(function(v1){
+          attData.values.forEach(function(v2){
+            attData.valueFlow[v1][v2].nd = ( attData.valueFlow[v1][v2].count - attData.valueFlow[v1][v2].expected ) / (4 * g.size) 
+          })
+        })
+
+        // Value stats related to connectivity
+        attData.values.forEach(function(v){
+          attData.valuesIndex[v].internalLinks = attData.valueFlow[v][v].count
+          attData.valuesIndex[v].internalNDensity = attData.valueFlow[v][v].nd
+
+          attData.valuesIndex[v].inboundLinks = d3.sum(attData.values
+              .filter(function(v2){ return v2 != v})
+              .map(function(v2){ return attData.valueFlow[v2][v].count })
+            )
+
+          attData.valuesIndex[v].inboundNDensity = d3.sum(attData.values
+              .filter(function(v2){ return v2 != v})
+              .map(function(v2){ return attData.valueFlow[v2][v].nd })
+            )
+
+          attData.valuesIndex[v].outboundLinks = d3.sum(attData.values
+              .filter(function(v2){ return v2 != v})
+              .map(function(v2){ return attData.valueFlow[v][v2].count })
+            )
+
+          attData.valuesIndex[v].outboundNDensity = d3.sum(attData.values
+              .filter(function(v2){ return v2 != v})
+              .map(function(v2){ return attData.valueFlow[v][v2].nd })
+            )
+
+          attData.valuesIndex[v].externalLinks = attData.valuesIndex[v].inboundLinks + attData.valuesIndex[v].outboundLinks
+          attData.valuesIndex[v].externalNDensity = attData.valuesIndex[v].inboundNDensity + attData.valuesIndex[v].outboundNDensity
+
+        })
+
+        // Global statistics
+        attData.stats = {}
+
+        // Modularity (based on previous computations)
+        attData.stats.modularity = 0
+        attData.values.forEach(function(v1){
+          attData.values.forEach(function(v2){
+            if (v1==v2) {
+              attData.stats.modularity += attData.valueFlow[v1][v2].nd
+            } else {
+              attData.stats.modularity -= attData.valueFlow[v1][v2].nd
+            }
+          })
+        })
+
+        $scope.attributeData = attData
+      }
+    }
+
     function buildTagData() {
       $scope.tagCategories = {}
 
@@ -235,13 +345,29 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
         n.size = 1
       })
 
-      // Init Label and coordinates
+      // Init Label, coordinates and tags
       var nodesArea = g.order * 10
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)
         n.x = Math.random()
         n.y = Math.random()
         n.label = n.name
+
+        // Tags
+        var tagCat
+        for (tagCat in $scope.tagCategories) {
+          if (tagCat == "FREETAGS") {
+            n[tagCat] = []
+            if (n.tags && n.tags.USER && n.tags.USER[tagCat]) {
+              n[tagCat] = n.tags.USER[tagCat]
+            }
+          } else {
+            n[tagCat] = ''
+            if (n.tags && n.tags.USER && n.tags.USER[tagCat] && n.tags.USER[tagCat].length > 0) {
+              n[tagCat] = n.tags.USER[tagCat].join('|')
+            }
+          }
+        }
       })
 
       // Default color for edges
