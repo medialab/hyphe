@@ -8,7 +8,7 @@ angular.module('hyphe.networkTagStatsComponent', [])
     return {
       restrict: 'A',
       scope: {
-        data: '=',
+        data: '='
       },
       link: function($scope, el, attrs) {
 
@@ -39,7 +39,7 @@ angular.module('hyphe.networkTagStatsComponent', [])
     return {
       restrict: 'A',
       scope: {
-        data: '=',
+        data: '='
       },
       link: function($scope, el, attrs) {
 
@@ -70,7 +70,7 @@ angular.module('hyphe.networkTagStatsComponent', [])
     return {
       restrict: 'A',
       scope: {
-        data: '=',
+        data: '='
       },
       link: function($scope, el, attrs) {
 
@@ -88,6 +88,38 @@ angular.module('hyphe.networkTagStatsComponent', [])
             $timeout(function(){
               el.html('');
               drawNormalizedDensityMatrix(d3.select(el[0]), $scope.data)
+            })
+          }
+        }
+      }
+    }
+  })
+
+.directive('ntsNormalizedDensityProfileChart', function(
+    $timeout
+  ){
+    return {
+      restrict: 'A',
+      scope: {
+        data: '=',
+        value: '='
+      },
+      link: function($scope, el, attrs) {
+
+        el.html('<div>LOADING</div>')
+
+        $scope.$watch('data', redraw)
+
+        window.addEventListener('resize', redraw)
+        $scope.$on('$destroy', function(){
+          window.removeEventListener('resize', redraw)
+        })
+
+        function redraw() {
+          if ($scope.data !== undefined){
+            $timeout(function(){
+              el.html('');
+              drawValueInternalExternal(d3.select(el[0]), $scope.data, $scope.value)
             })
           }
         }

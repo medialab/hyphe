@@ -83,13 +83,13 @@
           <div layout="column" ng-if="!loading">
             <md-content style="padding: 8px">
 
-              <div md-colors="{'background': 'default-background-100-0.5'}" style="padding-left: 16px; margin: 0px 8px" layout="row">
-                <div layout="column" layout-align="center" style="margin-right: 16px; padding-bottom: 8px;">
-                  Pick a tag category:
-                </div>
-                <md-select ng-model="$parent.selectedCategory" class="md-accent">
-                  <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}}</md-option>
-                </md-select>
+              <div md-colors="{'background': 'default-background-100-0.5'}" style="margin: 8px; padding: 8px">
+                <md-input-container style="min-width: 200px">
+                  <label>TAG CATEGORY</label>
+                  <md-select ng-model="$parent.selectedCategory" class="md-accent">
+                    <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}}</md-option>
+                  </md-select>
+                </md-input-container>
               </div>
  
               <md-card style="background: white">
@@ -174,6 +174,37 @@
                 </md-card-content>
               </md-card>
 
+              <div md-colors="{'background': 'default-background-100-0.5'}" style="margin: 32px 8px 8px 8px; padding: 8px">
+                <md-input-container style="min-width: 200px">
+                  <label>TAG VALUE FOR "{{selectedCategory}}"</label>
+                  <md-select ng-model="$parent.selectedValue" class="md-accent">
+                    <md-option value=""><em>None</em></md-option>
+                    <md-option value="{{tagValue}}" ng-repeat="(tagValue, tagValueObj) in tagCategories[selectedCategory]">{{tagValue}}</md-option>
+                  </md-select>
+                </md-input-container>
+              </div>
+
+              <!-- Spacer -->
+              <div style="height: 200px" ng-show="selectedValue == ''">
+              </div>
+
+              <md-card style="background: white" ng-if="selectedValue != ''">
+                <md-card-title>
+                  <md-card-title-text>
+                    <span class="md-headline">Normalized Density Profile of value-group "{{selectedValue}}"</span>
+                  </md-card-title-text>
+                </md-card-title>
+                <md-card-content>
+                  <div
+                    nts-normalized-density-profile-chart
+                    data="attributeData"
+                    value="selectedValue"
+                  ></div>
+                  <p>
+                    Compare internal to external connectivity. Normalized density is used to eliminate group size bias. <em>Internal</em> much bigger than <em>External</em> indicate that the group is a "cluster" or "module".
+                  </p>
+                </md-card-content>
+              </md-card>
 
             </md-content>
  

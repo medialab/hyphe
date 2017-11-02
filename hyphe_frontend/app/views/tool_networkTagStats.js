@@ -18,6 +18,8 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
     var pageSize = 5000
     $scope.checkLoadAndUpdateCurrentToken = 0
 
+    var untaggedPlaceholder = '[untagged]'
+
     $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
     $scope.limitDiscovered = ''
     $scope.limitAll = ''
@@ -47,6 +49,7 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
 
     $scope.tagCategories = {}
     $scope.selectedCategory
+    $scope.selectedValue = ''
     $scope.attributeData = {}
     $scope.$watch('selectedCategory', buildAttData)
     $scope.$watch('network', buildAttData)
@@ -183,6 +186,7 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
                 $scope.tagCategories[tagCat] = $scope.tagCategories[tagCat] || {}
                 var values = d[tagCat]
                 values.forEach(function(val){
+                  if (val == '') { val = untaggedPlaceholder }
                   $scope.tagCategories[tagCat][val] = ($scope.tagCategories[tagCat][val] || {count:0})
                   $scope.tagCategories[tagCat][val].count++
                 })
@@ -362,7 +366,7 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
               n[tagCat] = n.tags.USER[tagCat]
             }
           } else {
-            n[tagCat] = ''
+            n[tagCat] = untaggedPlaceholder
             if (n.tags && n.tags.USER && n.tags.USER[tagCat] && n.tags.USER[tagCat].length > 0) {
               n[tagCat] = n.tags.USER[tagCat].join('|')
             }
