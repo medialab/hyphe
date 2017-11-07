@@ -207,6 +207,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             ]
             var colorDefault = "#777"
             var colorUntagged = "#BBB"
+            var colorError = "#600"
             var colors = {undefined: colorUntagged}
             var untaggedCount = 0
             $scope.nodeColorMap = Object.keys($scope.tagCategories[tagCat])
@@ -231,12 +232,12 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             if (g === undefined) { return }
             g.nodes().forEach(function(nid){
               var tags = g.getNodeAttribute(nid, 'tags')
-              var color
+              var color = colorError
               if (tags == undefined || tags.USER == undefined || tags.USER[tagCat] === undefined) {
                 color = colorUntagged
                 untaggedCount++
               } else {
-                color = colors[tags.USER[tagCat]]
+                color = colors[tags.USER[tagCat]] || colorError
               }
               g.setNodeAttribute(nid, 'color', color)
             })
