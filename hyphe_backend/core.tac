@@ -265,13 +265,22 @@ class Core(customJSONRPC):
         if self.corpus_ready(corpus) or self.traphs.status_corpus(corpus, simplify=True) == "starting":
             returnD(self.jsonrpc_test_corpus(corpus, _msg="Corpus already ready"))
 
+        if corpus not in self.corpora:
+            self.corpora[corpus] = {}
+        if "starting" in self.corpora[corpus]:
+            returnD(self.jsonrpc_test_corpus(corpus, _msg="Corpus already starting"))
+        self.corpora[corpus]["starting"] = True
+
         corpus_conf = yield self.db.get_corpus(corpus)
         if not corpus_conf:
             if _create_if_missing:
                 res = yield self.jsonrpc_create_corpus(corpus, password, _noloop=_noloop, _quiet=_quiet)
+                del(self.corpora[corpus]["starting"])
                 returnD(res)
+            del(self.corpora[corpus])
             returnD(format_error("No corpus existing with ID %s, please create it first!" % corpus))
         if corpus_conf['password'] and password != config.get("ADMIN_PASSWORD", None) and corpus_conf['password'] not in [password, salt(password)]:
+            del(self.corpora[corpus]["starting"])
             returnD(format_error("Wrong auth for password-protected corpus %s" % corpus))
 
         res = yield self.crawler.crawlqueue.send_scrapy_query("listprojects")
@@ -279,11 +288,13 @@ class Core(customJSONRPC):
             logger.msg("Couldn't find crawler, redeploying it...", system="ERROR - %s" % corpus)
             res = yield self.crawler.jsonrpc_deploy_crawler(corpus, _quiet=_quiet)
             if is_error(res):
+                del(self.corpora[corpus]["starting"])
                 returnD(res)
 
         if self.traphs.is_full():
             if not _quiet:
                 logger.msg("Could not start extra corpus, all slots busy", system="WARNING - %s" % corpus)
+            del(self.corpora[corpus]["starting"])
             returnD(self.corpus_error())
 
         # Fix possibly old corpus confs
@@ -297,8 +308,10 @@ class Core(customJSONRPC):
         wecrs = dict((cr["prefix"], cr["regexp"]) for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] != "DEFAULT_WEBENTITY_CREATION_RULE")
         res = self.traphs.start_corpus(corpus, quiet=_quiet, keepalive=corpus_conf['options']['keepalive'], default_WECR=getWECR(corpus_conf['options']['defaultCreationRule']), WECRs=wecrs)
         if not res:
+            del(self.corpora[corpus]["starting"])
             returnD(format_error(self.jsonrpc_test_corpus(corpus)["result"]))
         yield self.prepare_corpus(corpus, corpus_conf, _noloop)
+        del(self.corpora[corpus]["starting"])
         returnD(self.jsonrpc_test_corpus(corpus))
 
     @inlineCallbacks
