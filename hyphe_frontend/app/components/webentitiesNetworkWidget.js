@@ -480,6 +480,21 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             n.label = n.name
           })
 
+          // Tags
+          g.nodes().forEach(function(nid){
+            var n = g.getNodeAttributes(nid)
+            var tagCat
+            for (tagCat in $scope.tagCategories) {
+              var tagVal = ''
+              try {
+                tagVal = n.tags.USER[tagCat]
+              } catch(e) {
+                tagVal = ''
+              }
+              n[tagCat] = tagVal
+            }
+          })
+
           // Default color for edges
           g.edges().forEach(function(eid){
             var e = g.getEdgeAttributes(eid)
