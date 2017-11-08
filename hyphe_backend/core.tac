@@ -1238,7 +1238,7 @@ class Memory_Structure(customJSONRPC):
     def get_webentities_missing_linkpages(self, WEs, corpus=DEFAULT_CORPUS):
         homepages = {}
         homepWEs = [w for w in WEs if not w["homepage"]]
-        results = yield DeferredList([self.traphs.call(corpus, "get_webentity_most_linked_pages", WE["_id"], WE["prefixes"], pages_count=2) for WE in homepWEs], consumeErrors=True)
+        results = yield DeferredList([self.traphs.call(corpus, "get_webentity_most_linked_pages", WE["_id"], WE["prefixes"], pages_count=50) for WE in homepWEs], consumeErrors=True)
         res = []
         for i, (bl, pgs) in enumerate(results):
             WE = homepWEs[i]
