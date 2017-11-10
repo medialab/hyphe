@@ -1,0 +1,258 @@
+<div layout="column" layout-fill>
+  <div class="topbar-height" ng-include="'partials/topbar.html'">
+  </div>
+  <div flex>
+    <div layout="row" layout-fill>
+      <div class="sidebar-width" ng-include="'partials/sidebar.html'"></div>
+      <div
+        flex
+        md-colors="{background: 'default-background-50'}"
+        style="overflow-y: auto;"
+      >
+        <!-- Content -->
+        <div layout-fill layout="column">
+          <div class="page-header">
+            <h1>
+              TAGS AND TOPOLOGY STATISTICS
+            </h1>
+            <span class="md-subhead">
+              Explore the relations between content (tags) and structure (topology). Only <span hyphe-glossary="web entities"></span> of <span hyphe-glossary="status"></span> "IN" are considered.
+            </span>
+          </div>
+
+          <!-- Loading -->
+          <div layout="column" style="padding: 8px" ng-if="loading">
+            <div style="margin-bottom: 8px">
+              <em>Please wait while network data is loading</em>
+            </div>
+
+            <!-- IN -->
+            <div style="height: 50px" layout="row" layout-align="start center">
+              <div style="margin-right: 8px; width: 50px">
+                <md-progress-circular
+                  md-diameter="42"
+                  md-mode="indeterminate"
+                  ng-if="data.in.loading && !data.in.total"
+                ></md-progress-circular>
+                <md-progress-circular
+                  md-diameter="42"
+                  md-mode="determinate"
+                  ng-if="data.in.loading && data.in.total"
+                  value="{{100 * data.in.webentities.length / data.in.total}}"
+                ></md-progress-circular>
+                <md-progress-circular
+                  style="opacity: 0.5"
+                  md-diameter="42"
+                  md-mode="determinate"
+                  ng-if="data.in.loaded"
+                  value="100"
+                ></md-progress-circular>
+              </div>
+              <div>
+                IN
+                <span
+                  md-colors="{'color': 'default-primary'}"
+                  ng-if="data.in.total"
+                >{{data.in.webentities.length}} / {{data.in.total}}</span>
+              </div>
+            </div>
+
+            <!-- LINKS -->
+            <div style="height: 50px" layout="row" layout-align="start center">
+              <div style="margin-right: 8px; width: 50px">
+                <md-progress-circular
+                  md-diameter="42"
+                  md-mode="indeterminate"
+                  ng-if="data.links.loading"
+                ></md-progress-circular>
+                <md-progress-circular
+                  style="opacity: 0.5"
+                  md-diameter="42"
+                  md-mode="determinate"
+                  ng-if="data.links.loaded"
+                  value="100"
+                ></md-progress-circular>
+              </div>
+              <div>
+                LINKS
+              </div>
+            </div>
+          </div>
+
+          <!-- Loaded but no tag categories -->
+          <div ng-if="!loading && noTagCatExceptFreetags" style="margin: 8px; padding: 16px" md-colors="{'background': 'default-accent-50'}">
+            This tool only works if you have previously <a href="#/project/{{corpusId}}/manageTags">tagged</a> web entities.
+          </div>
+
+          <!-- Loaded -->
+          <div layout="column" ng-if="!loading && !noTagCatExceptFreetags">
+            <md-content style="padding: 8px">
+
+              <div md-colors="{'background': 'default-background-100-0.5'}" style="margin: 8px; padding: 8px">
+                <md-input-container style="min-width: 200px">
+                  <label>TAG CATEGORY</label>
+                  <md-select ng-model="$parent.selectedCategory" class="md-accent">
+                    <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}}</md-option>
+                  </md-select>
+                </md-input-container>
+              </div>
+ 
+              <md-card style="background: white">
+                <md-card-title>
+                  <md-card-title-text>
+                    <span class="md-headline">Distribution of values</span>
+                    <span class="md-subhead">How many web entities per "{{selectedCategory}}"?</span>
+                  </md-card-title-text>
+                </md-card-title>
+                <md-card-content>
+                  <div
+                    nts-distribution-of-values-chart
+                    data="attributeData"
+                  ></div>
+                  <p>
+                     The size of these groups is an important contextual information for the other metrics below.
+                  </p>
+                </md-card-content>
+              </md-card>
+
+              <md-card style="background: white">
+                <md-card-title>
+                  <md-card-title-text>
+                    <span class="md-headline">Modularity = <strong>{{attributeData.stats.modularity|number}}</strong> for the "{{selectedCategory}}" partitioning</span>
+                  </md-card-title-text>
+                </md-card-title>
+                <md-card-content>
+                  Modularity is the fraction of the edges that fall within the given groups minus the expected fraction if edges were distributed at random.
+                  <br><br>
+                  The value of the modularity lies in the range [−1/2,1). It is positive if the number of edges within groups exceeds the number expected on the basis of chance. For a given division of the network's vertices into some modules, modularity reflects the concentration of edges within modules compared with random distribution of links between all nodes regardless of modules. See more on <a href="https://en.wikipedia.org/wiki/Modularity_(networks)" target="_blank">Wikipedia</a>.
+                </md-card-content>
+              </md-card>
+
+              <md-card style="background: white">
+                <md-card-title>
+                  <md-card-title-text>
+                    <span class="md-headline">Links between value-groups</span>
+                    <span class="md-subhead">Value-groups are sets of web entities with the same "{{selectedCategory}}". How are they linked?</span>
+                  </md-card-title-text>
+                </md-card-title>
+                <md-card-content>
+                  <md-tabs md-dynamic-height md-border-bottom>
+                    <md-tab label="Count">
+                      <div
+                        nts-group-to-group-edges-count-chart
+                        data="attributeData"
+                      ></div>
+                      <p>
+                        This matrix displays how many edges there are from a value-group to another (or possibly the same). The value-groups are defined by web entities having the same "{{selectedCategory}}". The sum of all values is the size of the network, ie. its total number of edges. Note that bigger groups naturally get more links. Columns are ordered by group size.
+                      </p>
+                    </md-tab>
+                    <md-tab label="Normalized density">
+                      <div
+                        nts-group-to-group-normalized-density-chart
+                        data="attributeData"
+                      ></div>
+                      <p>
+                        This matrix displays how many links there are from a value-group to another (or the same) versus the expected number of links. We call it "normalized density" by analogy with traditional edge density, which is the actual number of edges versus the potential number of edges. The version presented here uses Mark Newman's formula of modularity. Normalized density can therefore be interpreted as the contribution of each pair of value-groups to modularity. Values on the diagonal (green) contribute positively while others (red) contribute negatively.
+                      </p>
+                      <p ng-show="!normalizedDensityDetails">
+                        <md-button ng-click="normalizedDensityDetails = true">More details</md-button>
+                      </p>
+                      <p ng-show="normalizedDensityDetails">
+                        The formula for this normalized density is this one:
+                        <br><br>
+                        <em>D = 1/(4*m) + Sum[Aij - ki*kj/(2*m)]</em>
+                        <br><br>
+                        Where <em>i</em> is a node from group 1 and <em>j</em> from group 2, <em>m</em> is the size of the network (edges count), <em>Aij = 1</em> if there is an edge from <em>i</em> to <em>j</em> and 0 else, <em>ki</em> is the outdegree of <em>i</em> and <em>kj</em> the indegree of <em>j</em>.
+                        <br><br>
+                        This formula is adapted from this paper: <em>Newman, M. E. J. (2006). Modularity and community structure in networks. Proceedings of the National Academy of …, 103(23), 8577–8582. <a href="http://doi.org/10.1073/pnas.0601602103" target="_blank">http://doi.org/10.1073/pnas.0601602103</a></em>
+                        <br><br>
+                        The rationale for using this metric is that is less sensitive to group sizes (the very same idea behind modularity). Raw edge count emphasizes big groups. On the contrary, traditional density emphasizes small clusters. Normalized density works on any cluster size.
+                      </p>
+                      <p ng-show="normalizedDensityDetails">
+                        Modularity = {{attributeData.stats.modularity|number}} for the "{{selectedCategory}}" partitioning. Modularity is literally the sum of normalized densities inside a same group (green circles) minus the sum of normalized densities from one group to another (red circles). Big green circles indicate the most dense groups. Big red circles are remarkable amounts of links from one group to another (taking into account the size of groups).
+                      </p>
+                      <p ng-show="normalizedDensityDetails">
+                        <md-button ng-click="normalizedDensityDetails = false">Less details</md-button>
+                      </p>
+                    </md-tab>
+                  </md-tabs>
+                </md-card-content>
+              </md-card>
+
+              <div md-colors="{'background': 'default-background-100-0.5'}" style="margin: 32px 8px 8px 8px; padding: 8px">
+                <md-input-container style="min-width: 200px">
+                  <label>TAG VALUE FOR "{{selectedCategory}}"</label>
+                  <md-select ng-model="$parent.selectedValue" class="md-accent">
+                    <md-option value=""><em>None</em></md-option>
+                    <md-option value="{{tagValue}}" ng-repeat="(tagValue, tagValueObj) in tagCategories[selectedCategory]">{{tagValue}}</md-option>
+                  </md-select>
+                </md-input-container>
+              </div>
+
+              <!-- Spacer -->
+              <div style="height: 200px" ng-show="selectedValue == ''">
+              </div>
+
+              <md-card style="background: white" ng-if="selectedValue != ''">
+                <md-card-title>
+                  <md-card-title-text>
+                    <span class="md-headline">Normalized Density Profile of value-group "{{selectedValue}}"</span>
+                  </md-card-title-text>
+                </md-card-title>
+                <md-card-content>
+                  <div
+                    nts-normalized-density-profile-chart
+                    data="attributeData"
+                    value="selectedValue"
+                  ></div>
+                  <p>
+                    Compare internal to external connectivity. Normalized density is used to eliminate group size bias. <em>Internal</em> much bigger than <em>External</em> indicates that the group is a "cluster" or "module".
+                  </p>
+                </md-card-content>
+              </md-card>
+
+              <md-card style="background: white" ng-if="selectedValue != ''">
+                <md-card-title>
+                  <md-card-title-text>
+                    <span class="md-headline">Connectivity Skewness of value-group "{{selectedValue}}"</span>
+                  </md-card-title-text>
+                </md-card-title>
+                <md-card-content>
+                  <div
+                    nts-connectivity-skewness-chart
+                    data="attributeData"
+                    value="selectedValue"
+                  ></div>
+                  <p>
+                    Compare inbound links to outbound links. Bars display normalized density. Internal links not counted. Being cited is usually considered more favorable than citing.
+                  </p>
+                </md-card-content>
+              </md-card>
+
+              <md-card style="background: white" ng-if="selectedValue != ''">
+                <md-card-title>
+                  <md-card-title-text>
+                    <span class="md-headline">Connectivity Skewness Distribution of value-group "{{selectedValue}}" towards other value-groups</span>
+                  </md-card-title-text>
+                </md-card-title>
+                <md-card-content>
+                  <div
+                    nts-connectivity-skewness-distribution-chart
+                    data="attributeData"
+                    value="selectedValue"
+                  ></div>
+                  <p>
+                    Compare inbound to outbound normalized densities group by group. Hints at the structure of power balance.
+                  </p>
+                </md-card-content>
+              </md-card>
+
+            </md-content>
+ 
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

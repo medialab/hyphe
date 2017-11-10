@@ -44,6 +44,8 @@ angular.module('hyphe', [
   $routeProvider.when('/project/:corpusId/webentity/:webentityId', {templateUrl: 'views/webentity.html', controller: 'webentity'});
   $routeProvider.when('/project/:corpusId/webentityExplorer/:webentityId', {templateUrl: 'views/webentity_explorer.html', controller: 'webentityExplorer', reloadOnSearch: false});
   $routeProvider.when('/project/:corpusId/webentityPagesNetwork/:webentityId', {templateUrl: 'views/webentity_pagesNetwork.html', controller: 'webentityPagesNetwork'});
+  $routeProvider.when('/project/:corpusId/tools', {templateUrl: 'views/tools.html', controller: 'tools'});
+  $routeProvider.when('/project/:corpusId/tools/netTagStats', {templateUrl: 'views/tool_networkTagStats.html', controller: 'toolNetworkTagStats'});
   $routeProvider.otherwise({redirectTo: '/login'});
 }])
 

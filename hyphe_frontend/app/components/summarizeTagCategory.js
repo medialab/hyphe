@@ -2,7 +2,7 @@
 
 angular.module('hyphe.summarizeTagCatComponent', [])
 
-  .directive('summarizeTagCat', [function(){
+  .directive('summarizeTagCat', ['$timeout', function($timeout){
     return {
       restrict: 'E'
       ,templateUrl: 'components/summarizeTagCategory.html'
@@ -58,26 +58,28 @@ angular.module('hyphe.summarizeTagCatComponent', [])
         }
 
         function update() {
-          var valuesIndex = {}
-          $scope.undefinedValues = 0
-          $scope.webentities.forEach(function(webentity){
-            if (webentity.tags && webentity.tags.USER && webentity.tags.USER[$scope.tagCat]) {
-              webentity.tags.USER[$scope.tagCat].forEach(function(val){
-                valuesIndex[val] = (valuesIndex[val] || 0) + 1
+          $timeout(function(){
+            var valuesIndex = {}
+            $scope.undefinedValues = 0
+            $scope.webentities.forEach(function(webentity){
+              if (webentity.tags && webentity.tags.USER && webentity.tags.USER[$scope.tagCat] && webentity.tags.USER[$scope.tagCat].length>0) {
+                webentity.tags.USER[$scope.tagCat].forEach(function(val){
+                  valuesIndex[val] = (valuesIndex[val] || 0) + 1
+                })
+              } else {
+                $scope.undefinedValues++
+              }
+            })
+
+            $scope.values = []
+            var val
+            for (val in valuesIndex) {
+              $scope.values.push({
+                value: val,
+                count: valuesIndex[val]
               })
-            } else {
-              $scope.undefinedValues++
             }
           })
-
-          $scope.values = []
-          var val
-          for (val in valuesIndex) {
-            $scope.values.push({
-              value: val,
-              count: valuesIndex[val]
-            })
-          }
         }
 
         function searchable(str){

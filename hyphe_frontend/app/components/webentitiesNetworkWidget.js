@@ -207,6 +207,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             ]
             var colorDefault = "#777"
             var colorUntagged = "#BBB"
+            var colorError = "#600"
             var colors = {undefined: colorUntagged}
             var untaggedCount = 0
             $scope.nodeColorMap = Object.keys($scope.tagCategories[tagCat])
@@ -231,12 +232,12 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             if (g === undefined) { return }
             g.nodes().forEach(function(nid){
               var tags = g.getNodeAttribute(nid, 'tags')
-              var color
+              var color = colorError
               if (tags == undefined || tags.USER == undefined || tags.USER[tagCat] === undefined) {
                 color = colorUntagged
                 untaggedCount++
               } else {
-                color = colors[tags.USER[tagCat]]
+                color = colors[tags.USER[tagCat]] || colorError
               }
               g.setNodeAttribute(nid, 'color', color)
             })
@@ -477,6 +478,21 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             n.x = xy.x
             n.y = xy.y
             n.label = n.name
+          })
+
+          // Tags
+          g.nodes().forEach(function(nid){
+            var n = g.getNodeAttributes(nid)
+            var tagCat
+            for (tagCat in $scope.tagCategories) {
+              var tagVal = ''
+              try {
+                tagVal = n.tags.USER[tagCat]
+              } catch(e) {
+                tagVal = ''
+              }
+              n[tagCat] = tagVal
+            }
           })
 
           // Default color for edges
