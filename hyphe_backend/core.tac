@@ -275,7 +275,8 @@ class Core(customJSONRPC):
         if not corpus_conf:
             if _create_if_missing:
                 res = yield self.jsonrpc_create_corpus(corpus, password, _noloop=_noloop, _quiet=_quiet)
-                del(self.corpora[corpus]["starting"])
+                if "starting" in self.corpora[corpus]:
+                    del(self.corpora[corpus]["starting"])
                 returnD(res)
             del(self.corpora[corpus])
             returnD(format_error("No corpus existing with ID %s, please create it first!" % corpus))
