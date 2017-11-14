@@ -10,7 +10,7 @@ You can try a restricted version of Hyphe at the following url: [http://hyphe.me
 
 ## Video
 
-* [Explorer les internets avec Hyphe]{https://vimeo.com/235804282} (Septembre 2017, in French). Mathieu Jacomy presents Hyphe at Sciences Po CEVIPOF during METSEM, a seminar on digital methods in social sciences.
+* [Explorer les internets avec Hyphe](https://vimeo.com/235804282) (Septembre 2017, in French). Mathieu Jacomy presents Hyphe at Sciences Po CEVIPOF during METSEM, a seminar on digital methods in social sciences.
 
 ## Papers and references
 
