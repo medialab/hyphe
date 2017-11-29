@@ -144,4 +144,4 @@ This work is supported by [DIME-WEB](http://dimeweb.dime-shs.sciences-po.fr/) pa
 
 Hyphe is a free software released under [LGPL](LICENSE.LGPL) &amp; [CECILL-C](LICENSE.CECILL-C) licenses.
 
-"[...] I hear _kainos_ [(greek: "now")] in the sense of thick, ongoing presence, with __hyphae__ infusing all sorts of temporalities and materialities.", Donna Harraway, Staying with the Trouble, Making kin with the Chthlucene p.2
+"[...] I hear _kainos_ [(greek: "now")] in the sense of thick, ongoing presence, with __hyphae__ infusing all sorts of temporalities and materialities.", Donna J. Haraway, Staying with the Trouble, Making kin with the Chthlucene p.2
