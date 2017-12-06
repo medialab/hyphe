@@ -1,4 +1,2 @@
-_deprecated
 doc
-hyphe_frontend/test
-hyphe_www_client
+bin/hyphe-phantomjs-2.0.0

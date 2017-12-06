@@ -1,21 +1,21 @@
-FROM buildpack-deps:wheezy
+FROM python:2.7-alpine
 
-ENV LANG C.UTF-8
+COPY ./hyphe_backend/crawler/requirements-global-scrapyd.txt /requirements-global-scrapyd.txt
 
-RUN apt-get update \
-  && apt-get install python2.7-dev python-pip python-support --no-install-recommends -y \
-  && wget -q -P ./ https://github.com/medialab/scrapyd/raw/medialab-debian/debs/scrapyd_1.0~r0_all.deb \
-  && pip install service_identity \
-  && pip install pymongo==2.7 \
-  && pip install txmongo==0.6 \
-  && pip install selenium==2.42.1 \
-  && pip install Scrapy==0.18 \
-  && dpkg -i scrapyd_1.0~r0_all.deb
+RUN apk --update add gcc musl-dev libffi-dev openssl-dev libxml2-dev libxslt-dev \
+        && pip install --no-cache-dir -r requirements-global-scrapyd.txt \
+        && pip --no-cache-dir install Scrapy==0.24.6 \
+        && pip --no-cache-dir install scrapyd==1.0.1 \
+        && apk del gcc musl-dev \
+	&& rm /var/cache/apk/*
+
+COPY ./config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe
 
 EXPOSE 6800
 
 VOLUME ["/var/lib/scrapyd"]
+
 VOLUME ["/var/log/scrapyd"]
 
-# Set scrapyd as run entrypoint
-CMD ["/usr/bin/scrapyd"]
+CMD ["scrapyd"]
+

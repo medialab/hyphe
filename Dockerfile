@@ -1,43 +1,38 @@
-FROM python:2.7
+FROM python:2.7-alpine
 
 WORKDIR /app
 
-# Install system dependencies
-
-RUN apt-get update && apt-get install openjdk-7-jdk -y --no-install-recommends
-
-
-# App python dependencies
+ENV PYTHONPATH $PYTHONPATH:/app
 
 COPY requirements.txt /app/requirements.txt
 
-ENV WORKON_HOME /opt/virtualenvs
-
-RUN mkdir -p ${WORKON_HOME} \
-  && pip install virtualenv \
-  && pip install virtualenvwrapper \
-  && /bin/bash -c "source $(which virtualenvwrapper.sh) \
-  && mkvirtualenv --no-site-packages hyphe \
-  && workon hyphe \
-  && add2virtualenv $(pwd) \
-  && pip install -r /app/requirements.txt" \
-  && pip install Scrapy==0.24 \
-  && echo 'source $(which virtualenvwrapper.sh) && workon hyphe' | tee /root/.bashrc
+RUN apk --update add gcc git musl-dev libxml2-dev libxslt-dev libffi-dev openssl-dev \
+        && pip install --no-cache-dir --requirement /app/requirements.txt \
+        && pip install --no-cache-dir Scrapy==0.24.6 \
+        && apk del gcc git musl-dev \
+	&& rm /var/cache/apk/*
 
 
-# Install app
-
+ 
 COPY ./bin /app/bin
+
 COPY ./config /app/config
+
 COPY ./hyphe_backend /app/hyphe_backend
 
-RUN sed "s|##HYPHEPATH##|"`pwd`"|" /app/config/config.json.example | sed 's|"OPEN_CORS_API": false,|"OPEN_CORS_API": true,|' > /app/config/config.json \
-  && mkdir -p /app/hyphe_backend/crawler/config \
-  && cp /app/config/config.json /app/hyphe_backend/crawler/config/config.json
+COPY ./docker-entrypoint.py /app/docker-entrypoint.py
 
+RUN cp /app/config/config.json.example /app/config/config.json
 
-# Start hyphe
+RUN chmod +x /app/docker-entrypoint.py
+
+RUN chmod +x /app/hyphe_backend/core.tac
 
 EXPOSE 6978
 
-CMD /bin/bash -c "source $(which virtualenvwrapper.sh) && workon hyphe && twistd -y /app/hyphe_backend/core.tac --nodaemon --pidfile="
+VOLUME ["/app/config"]
+
+VOLUME ["/app/traph-data"]
+
+ENTRYPOINT ["/app/docker-entrypoint.py"]
+

@@ -96,33 +96,48 @@ Please read the dedicated [WebService documentation](doc/serve.md) to do so.
 Docker enables isolated install and execution of software stacks, which can be an easy way to install Hyphe locally on an individual computer, including on unsupported distributions like MacOS.
 Follow [Docker install instructions](https://docs.docker.com/installation/) to install Docker on your machine.
 
-[Install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line.
+Once you've Docker installed and running, [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line.
+
+You've now two options to get Hyphe Docker images:
+
+### Pull official image from Docker Store (recommended way)
+
+```bash
+docker-compose pull
+```
+
+### Or build your own images from the source code
+
+```bash
+docker-compose build
+```
+
+It will take a couple of minutes to download or build everything.
+
+### Create and run containers
+
+Once done, you can run Hyphe containers with this command:
 
 ```bash
 docker-compose up
 ```
 
-When using [boot2docker](http://boot2docker.io/) for instance on MacOS, you might need beforehand to run the following:
-```bash
-boot2docker up
-# and copy paste the 3 lines starting with export to set the environment variables
-```
+You can use `-d` option to run containers in the background. 
 
-It will take a couple of minutes to spin everything up for the first time.
-Once the services are ready, you can access the frontend interface by connecting on its IP address:
+Once the services are ready, you can access the frontend interface by connecting on `localhost` or the Docker host IP address:
 
 ```bash
-open http://$(docker inspect -f '{{.NetworkSettings.IPAddress}}' hyphe_frontend_1):8000
+open http://localhost
 ```
 
-Or, if you use boot2docker:
+
+It could be useful to see the containers logs, you can do it with:
 
 ```bash
-open http://$(boot2docker ip):8000
+docker-compose logs
 ```
 
-**Notice**: this is not a production setup. Get some inspiration from the `docker-compose.yml` to understand how to distribute the application on one or many machines.
-
+Use `-f` option to follow the logs output./
 
 ## Advanced developers features & contributing
 
