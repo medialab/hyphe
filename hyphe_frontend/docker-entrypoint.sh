@@ -4,7 +4,7 @@ CONFIGFILE=/frontend/app/conf/conf.js
 
 /bin/cp /frontend/app/conf/conf_default.js $CONFIGFILE
 
-sed --in-place "s|'serverURL'\s*,.*|'serverURL', '//' + window.location.hostname + ':' + window.location.port + '/api/')|" $CONFIGFILE
+sed --in-place "s|'serverURL'\s*,.*|'serverURL', '//' + window.location.hostname + ':' + window.location.port + '/' + window.location.pathname + 'api/')|" $CONFIGFILE
 
 [[ ! -z ${HYPHE_GOOGLE_ANALYTICS_ID} ]] && sed --in-place "s|'googleAnalyticsId'\s*,.*|'googleAnalyticsId', '${HYPHE_GOOGLE_ANALYTICS_ID}')|" $CONFIGFILE
 
