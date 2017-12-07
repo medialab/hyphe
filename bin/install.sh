@@ -204,9 +204,9 @@ else
   echo "...already installed..."
 fi
 echo "...setting config..."
-#possible config via : vi config/scrapyd.config
+#possible config via : vi hyphe_backend/crawler/scrapyd.config
 sudo rm -f /etc/scrapyd/conf.d/100-hyphe
-sudo cp -f `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe || exitAndLog install.log "configuring ScrapyD"
+sudo cp -f `pwd`/hyphe_backend/crawler/scrapyd.config /etc/scrapyd/conf.d/100-hyphe || exitAndLog install.log "configuring ScrapyD"
 echo "...restarting daemon..."
 sudo service scrapyd stop || sudo /etc/init.d/scrapyd stop || sudo pkill -9 -f scrapyd >> install.log 2>&1
 sudo service scrapyd restart || sudo /etc/init.d/scrapyd restart

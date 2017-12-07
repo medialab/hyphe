@@ -30,7 +30,6 @@ bin/hyphe-phantomjs-2.0.0
 bin/update_tlds_list.sh
 config/apache2_example.conf
 config/config.json.example
-config/scrapyd.config
 COPYING
 doc
 hyphe_backend

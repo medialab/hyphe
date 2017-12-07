@@ -200,7 +200,7 @@ sudo chown -R <user>:<user> /var/lib/scrapyd /var/log/scrapyd
 Finally, on all distributions, add Hyphe's specific config for ScrapyD:
 
 ```bash
-sudo ln -s `pwd`/config/scrapyd.config /etc/scrapyd/conf.d/100-hyphe
+sudo ln -s `pwd`/hyphe_backend/crawler/scrapyd.config /etc/scrapyd/conf.d/100-hyphe
 ```
 
 Then restart the service on Debian/Ubuntu/CentOS:
