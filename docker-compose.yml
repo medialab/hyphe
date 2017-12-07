@@ -26,9 +26,7 @@ services:
       - "backend:backend"
   crawler:
     image: scpomedialab/hyphe_crawler:latest
-    build: 
-       context: .
-       dockerfile: ./hyphe_backend/crawler/Dockerfile
+    build: ./hyphe_backend/crawler
     links:
       - "mongo:mongo"
   mongo:
