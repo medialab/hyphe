@@ -1,7 +1,9 @@
 version: "2"
 volumes:
+    archives:
+    config:
     traph-data:
-    mongo-data: 
+    mongo-data:
 services:
   backend:
     image: scpomedialab/hyphe_backend:latest
@@ -16,6 +18,8 @@ services:
      - HYPHE_CRAWLER_PORT=6800
      - HYPHE_TRAPH_DATAPATH=/app/traph-data
     volumes:
+      - archives:/app/archives
+      - config:/app/config
       - traph-data:/app/traph-data
   frontend:
     image: scpomedialab/hyphe_frontend:latest
