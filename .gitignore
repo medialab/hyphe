@@ -2,6 +2,8 @@ bin/hyphe-phantomjs*
 config/apache2.conf
 config/config.json*
 config/salt
+config-backend.env
+config-frontend.env
 hyphe-server.lock
 *.pyc
 pip-log.txt

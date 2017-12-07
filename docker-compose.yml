@@ -11,11 +11,11 @@ services:
     links:
      - "mongo:mongo"
      - "crawler:crawler"
+    env_file:
+     - config-backend.env
     environment:
      - HYPHE_MONGODB_HOST=mongo
-     - HYPHE_MONGODB_PORT=27017
      - HYPHE_CRAWLER_HOST=crawler
-     - HYPHE_CRAWLER_PORT=6800
      - HYPHE_TRAPH_DATAPATH=/app/traph-data
     volumes:
       - archives:/app/archives
@@ -28,6 +28,8 @@ services:
       - "80:80"
     links:
       - "backend:backend"
+    env_file:
+     - config-frontend.env
   crawler:
     image: scpomedialab/hyphe_crawler:latest
     build: ./hyphe_backend/crawler

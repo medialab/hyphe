@@ -11,6 +11,9 @@ sed --in-place "s|'serverURL'\s*,.*|'serverURL', '//' + window.location.hostname
 
 [[ ! -z ${HYPHE_DISCLAIMER} ]] && sed --in-place "s|'disclaimer'\s*,.*|'disclaimer', '${HYPHE_DISCLAIMER}')|" $CONFIGFILE
 
+
+[[ ! -z ${HYPHE_BROWSER_URL} ]] && sed --in-place "s|'hyBroURL'\s*,.*|'hyBroURL', '${HYPHE_BROWSER_URL}')|" $CONFIGFILE
+
 chmod -R 550 /frontend/app && chown -R nginx:nginx /frontend/app
 
 exec "$@"
