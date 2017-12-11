@@ -17,5 +17,5 @@ VOLUME ["/var/lib/scrapyd"]
 
 VOLUME ["/var/log/scrapyd"]
 
-CMD ["scrapyd"]
+CMD ["scrapyd","--pidfile="]
 
