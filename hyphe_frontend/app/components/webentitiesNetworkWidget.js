@@ -491,7 +491,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               } catch(e) {
                 tagVal = ''
               }
-              n[tagCat] = tagVal
+              n[tagCat.trim()] = tagVal
             }
           })
 
