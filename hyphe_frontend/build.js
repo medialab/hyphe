@@ -17,6 +17,7 @@ require('angulartics/dist/angulartics-gtm.min.js');
 require('angular-md5');
 require('angular-xeditable');
 require('ng-tags-input');
+require('angular-bowser');
 
 // D3
 window.d3 = require('d3');
