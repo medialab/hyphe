@@ -9,7 +9,6 @@ angular.module('hyphe', [
   ,'ngMaterial'
   ,'angulartics'
   ,'angulartics.google.tagmanager'
-  ,'xeditable'
   ,'ngTagsInput'
   ,'hyphe.analytics'
   ,'hyphe.conf'
@@ -55,13 +54,6 @@ angular.module('hyphe', [
    $locationProvider.hashPrefix("")
 })
 
-// X-Editable
-.run(function(editableOptions, editableThemes) {
-  editableOptions.theme = 'bs3'; // Can be also 'bs2', 'bs3', 'default'
-  editableThemes.bs3.inputClass = 'input-sm';
-  editableThemes.bs3.buttonsClass = 'btn-sm';
-})
-
 // ngTagsInput
 .config(function(tagsInputConfigProvider) {
   tagsInputConfigProvider.setDefaults('tagsInput', {
@@ -77,13 +69,6 @@ angular.module('hyphe', [
     ,loadOnDownArrow: true
     ,loadOnEmpty: true
   })
-})
-
-// TODO: check why these lines are also above
-.run(function(editableOptions, editableThemes) {
-  editableOptions.theme = 'bs3'; // Can be also 'bs2', 'bs3', 'default'
-  editableThemes.bs3.inputClass = 'input-sm';
-  editableThemes.bs3.buttonsClass = 'btn-sm';
 })
 
 .run(['bowser', function(bowser) {
