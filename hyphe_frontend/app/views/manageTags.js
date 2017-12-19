@@ -417,6 +417,7 @@ angular.module('hyphe.manageTagsController', [])
           {
             status: 'IN'
             ,count: pageSize
+            ,semiLight: true
             ,page: 0
           }
           ,function(result){
