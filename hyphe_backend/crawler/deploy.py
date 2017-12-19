@@ -76,6 +76,7 @@ try:
     config['mongo-scrapy']['hyphePath'] = os.path.sep.join(curpath.split(os.path.sep)[:-3])
     config['mongo-scrapy']['db_name'] = config['mongo-scrapy']['db_name'].lower()
     config['mongo-scrapy']['project'] = project.lower()
+    config['mongo-scrapy']['log_level'] = 'DEBUG' if config['DEBUG'] > 1 else 'INFO'
     config["mongo-scrapy"]["host"] = os.environ.get('HYPHE_MONGODB_HOST', config["mongo-scrapy"]["host"])
     for _to in ["", "idle_", "ajax_"]:
         config['mongo-scrapy']['phantom_%stimeout' % _to] = config['phantom']['%stimeout' % _to]

@@ -3,6 +3,8 @@ import os, uuid
 HYPHE_PROJECT = '{{db_name}}.{{project}}'
 BOT_NAME = 'hcicrawler'
 
+LOG_LEVEL = '{{log_level}}'
+
 SPIDER_MODULES = ['hcicrawler.spiders']
 NEWSPIDER_MODULE = 'hcicrawler.spiders'
 
