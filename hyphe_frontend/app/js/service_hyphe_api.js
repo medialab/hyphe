@@ -719,14 +719,14 @@ angular.module('hyphe.service_hyphe_api', [])
             if(target !== undefined){
               if(target && target.corpus && target.corpus.corpus_id && target.corpus.status != "ready") {
                 // Corpus shut down
-                $location.path('/')
+                $location.path('/login')
               }
               // console.log('[OK]', response.data)
               successCallback(target, response.data[0])
             } else {
               if(response.data[0] && response.data[0].message && response.data[0].message.status && response.data[0].message.status != "ready") {
                 // Corpus shut down
-                $location.path('/')
+                $location.path('/login')
               } else {
                 console.error('[Error: API call: unexpected response] Response:', response.data)
                 errorCallback(response.data, response.status, response.headers, response.config)
