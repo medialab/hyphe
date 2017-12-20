@@ -1,5 +1,4 @@
 // CSS Files
-require('angular-xeditable/dist/css/xeditable.css');
 require('ng-tags-input/build/ng-tags-input.min.css');
 require('angular-material/angular-material.min.css');
 
@@ -15,8 +14,8 @@ require('angular-material');
 require('angulartics');
 require('angulartics/dist/angulartics-gtm.min.js');
 require('angular-md5');
-require('angular-xeditable');
 require('ng-tags-input');
+require('angular-bowser');
 
 // D3
 window.d3 = require('d3');

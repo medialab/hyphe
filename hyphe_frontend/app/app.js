@@ -3,12 +3,12 @@
 // Declare app level module which depends on views, and components
 angular.module('hyphe', [
   'ngRoute'
+  ,'jlareau.bowser'
   ,'ngMessages'
   ,'ngSanitize'
   ,'ngMaterial'
   ,'angulartics'
   ,'angulartics.google.tagmanager'
-  ,'xeditable'
   ,'ngTagsInput'
   ,'hyphe.analytics'
   ,'hyphe.conf'
@@ -54,13 +54,6 @@ angular.module('hyphe', [
    $locationProvider.hashPrefix("")
 })
 
-// X-Editable
-.run(function(editableOptions, editableThemes) {
-  editableOptions.theme = 'bs3'; // Can be also 'bs2', 'bs3', 'default'
-  editableThemes.bs3.inputClass = 'input-sm';
-  editableThemes.bs3.buttonsClass = 'btn-sm';
-})
-
 // ngTagsInput
 .config(function(tagsInputConfigProvider) {
   tagsInputConfigProvider.setDefaults('tagsInput', {
@@ -78,12 +71,11 @@ angular.module('hyphe', [
   })
 })
 
-// TODO: check why these lines are also above
-.run(function(editableOptions, editableThemes) {
-  editableOptions.theme = 'bs3'; // Can be also 'bs2', 'bs3', 'default'
-  editableThemes.bs3.inputClass = 'input-sm';
-  editableThemes.bs3.buttonsClass = 'btn-sm';
-})
+.run(['bowser', function(bowser) {
+  if ( bowser.msie ) {
+    alert("Outdated browser:\n\nYour browser is not HTML5. Hyphe will not be functional, please use Firefox or another HTML5 browser.");
+  }
+}])
 
 // Analytics
 .config(['$analyticsProvider', function ($analyticsProvider) {
