@@ -50,6 +50,8 @@ if "HYPHE_TRAPH_MAX_SIM_PAGES"  in environ: setConfig("max_simul_pages_indexing"
 
 if "HYPHE_DEFAULT_CREATION_RULE"       in environ: setConfig("defaultCreationRule", environ["HYPHE_DEFAULT_CREATION_RULE"],configdata)
 
+# TODO: Phantom config
+
 if "HYPHE_ADMIN_PASSWORD"  in environ: setConfig("ADMIN_PASSWORD", environ["HYPHE_ADMIN_PASSWORD"] or None,configdata)
 if "HYPHE_OPEN_CORS_API"   in environ: setConfig("OPEN_CORS_API", strToBool(environ["HYPHE_OPEN_CORS_API"]),configdata)
 if "HYPHE_DEBUG"           in environ: setConfig("DEBUG", int(environ["HYPHE_DEBUG"]),configdata)

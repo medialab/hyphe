@@ -6,7 +6,7 @@ Hyphe aims at providing a tool to crawl data from the web to generate networks b
 
 ## Demo
 
-You can try a restricted version of Hyphe at the following url: [http://hyphe.medialab.sciences-po.fr/demo/](http://hyphe.medialab.sciences-po.fr/demo/)
+You can try a limited version of Hyphe at the following url: [http://hyphe.medialab.sciences-po.fr/demo/](http://hyphe.medialab.sciences-po.fr/demo/)
 
 ## Video
 
@@ -31,82 +31,30 @@ You can try a restricted version of Hyphe at the following url: [http://hyphe.me
 * de Carvalho Pereira, Débora "[Produits laitiers : les réseaux d'influence sur le web](https://f.hypotheses.org/wp-content/blogs.dir/3105/files/2017/10/Rapport-REPASTOL-PEREIRA-2017.compressed.pdf)"
 
 
-## Easy start
+## How to install it?
 
-__DISCLAIMER:__ Hyphe has changed a lot between version `0.1` and `0.2`. Migrating from an older version by pulling the code from git was guaranteed as best as possible, although it is highly recommended to reinstall from scratch. Older corpora can be reran by exporting the list of WebEntities from the old version and recrawl from that list of urls in the new version.
-
-
-### Install a release
-
-For an easy install, the best solution is to download directly the [release version](https://github.com/medialab/Hypertext-Corpus-Initiative/releases), which was built to run against various GNU/Linux distributions (Ubuntu, Debian, CentOS...).
-
-MacOS users and other distribution can now also run Hyphe locally on their machine using [Docker](https://www.docker.com) thanks to @oncletom's work. [See the dedicated section below](#docker-setup).
-
-Just uncompress the release archive, go into the directory and run the installation script.
-
-Do __not__ use `sudo`: the script will do so on its own and will ask for your password only once. This works so in order to install all missing dependencies at once, including mainly Python (python-dev, pip, virtualEnv, virtualEnvWrapper...), Apache2, MongoDB & ScrapyD.
-
-If you are not comfortable with this, you can read the script and run the steps line by line or follow the [Advanced install instructions](doc/install.md) for more control on what is actually installed.
-
-```bash
-# WARNING: DO NOT prefix any of these commands with sudo!
-tar xzvf hyphe-release-*.tar.gz
-cd Hyphe
-./bin/install.sh
-```
-
-To install from git sources of if you want to contribute to Hyphe's development, please follow the [Advanced install documentation](doc/install.md).
+__DISCLAIMER:__ Hyphe has changed a lot in the past few years. Migrating from an older version by pulling the code from git is therefore not guaranteed, it is highly recommended to reinstall from scratch. Older corpora can be reran by exporting the list of WebEntities from the old version and recrawl from that list of urls in the new version.
 
 
-### Configure Hyphe
+### Easy way: using Docker
 
-Before starting Hyphe, you should probably adjust the settings first. Everything you need to change is in the global configuration file ```config/config.json```.
+For an easy install, the best solution is to rely on [Docker](https://www.docker.com).
 
-Please read the [Configuration documentation](doc/config.md) for details.
+Docker enables isolated install and execution of software stacks, which makes simple installing a whole set of dependencies.
 
+First follow [Docker install instructions](https://docs.docker.com/installation/) to install Docker on your machine.
 
-### Run Hyphe
+Once you've got Docker installed and running, [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line.
 
-Hyphe relies on a web interface communicating with a server daemon which must be running at all times.
-To start, stop or restart the daemon, run (again, __no__ `sudo`):
+Then you just need to get or build Hyphe's Docker images:
 
-```bash
-bin/hyphe <start|restart|stop> [--nologs]
-```
-
-By default the starter will display Hyphe's log in the console using ```tail```. You can ```Ctrl-C``` whenever you want without shutting it off. Use the ```--nologs``` option to disable this.
-
-You can always check the logs for both the core backend and each corpus' MemoryStructure in the ```log``` directory:
-
-```bash
-tail -f log/hyphe-*.log
-```
-
-As soon as the daemon is started, you can start playing with the web interface on your local machine at the following url: [http://localhost/hyphe](http://localhost/hyphe).
-
-
-### Serve on the web
-
-Using the website on localhost, you can already use Hyphe. Although, if you want to let others use it as well (typically if you installed on a distant server), you need to make a few adjustments to the Apache configuration.
-
-Please read the dedicated [WebService documentation](doc/serve.md) to do so.
-
-## Docker setup
-
-Docker enables isolated install and execution of software stacks, which can be an easy way to install Hyphe locally on an individual computer, including on unsupported distributions like MacOS.
-Follow [Docker install instructions](https://docs.docker.com/installation/) to install Docker on your machine.
-
-Once you've Docker installed and running, [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line.
-
-You've now two options to get Hyphe Docker images:
-
-### Pull official image from Docker Store (recommended way)
+- Either pull official image from Docker Store (recommended way):
 
 ```bash
 docker-compose pull
 ```
 
-### Or build your own images from the source code
+- Or build your own images from the source code (mostly for development when editing the sourcecode, and for some specific configuration settings)
 
 ```bash
 docker-compose build
@@ -114,30 +62,101 @@ docker-compose build
 
 It will take a couple of minutes to download or build everything.
 
-### Create and run containers
-
-Once done, you can run Hyphe containers with this command:
+Finally, you can run Hyphe containers with this command (once you've setup the configuration first, [see section below](#configure-hyphe)):
 
 ```bash
 docker-compose up
 ```
 
-You can use `-d` option to run containers in the background. 
+It will display all Hyphe's logs in the console and stop Hyphe when pressing ```Ctrl+C```
 
-Once the services are ready, you can access the frontend interface by connecting on `localhost` or the Docker host IP address:
+You can rather start with `docker-compose up -d` option to run containers in the background (then use `docker-compose stop` to stop it or `docker-compose down` to stop it and remove all relying data).
+
+You can inspect the logs of the various Docker containers using ```docker-compose logs```, or with option `-f` to track latest entries.
+
+Run `docker-compose help` to get more explanations on any extra advanced use of Docker.
+
+If you encounter issues with the Docker builds, please report an [issue](/issues) including the "Image ID" of the Docker images you used from the output of `docker images`.
+
+
+### Manual way (complex)
+
+If your computer or server relies on an Operating System which is too old to run Docker, if you want to contribute to Hyphe's backend development or for any other personal reason, you might want to rather install Hyphe manually by following the [detailed install instructions](doc/install.md).
+
+Please note there are many dependencies which are not always trivial to install and that you might run in quite a bit of issues. You can ask for some help by [opening an issue](https://github.com/medialab/hyphe/issues) and describing your problem, hopefully someone will find some time to try and help you.
+
+Hyphe relies on a web interface with a server daemon which must be running at all times. To start, stop or restart the daemon, run (without `sudo`):
 
 ```bash
-open http://localhost
+bin/hyphe <start|restart|stop> [--nologs]
 ```
 
+By default the starter will display Hyphe's log in the console using ```tail```. You can ```Ctrl+C``` whenever you want without shutting it off. Use the ```--nologs``` option to disable this.
 
-It could be useful to see the containers logs, you can do it with:
+You can always check the logs for both the core backend and each corpus' MemoryStructure in the ```log``` directory.
+
+
+## Configure Hyphe
+
+Before running Hyphe, you should probably adjust the settings first. Please read the [Configuration documentation](doc/config.md) for detailed explanation of each available setting.
+
+### If you installed using Docker
+
+Most of the settings should rather be set by editing the files `config-backend.env` and `config-frontend.env`. First copy the configuration files:
 
 ```bash
-docker-compose logs
+cp config-backend.env{.example,}
+cp config-frontend.env{.example,}
 ```
 
-Use `-f` option to follow the logs output./
+Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
+
+Then restart the Docker container to take changes into account:
+```bash
+docker-compose stop
+docker-compose up -d
+```
+
+TODO: explain data volumes
+
+TODO: Explain complex configs and how to edit by adjusting the config directory into its volume after first up
+
+
+### If you installed manually:
+
+Everything you need to change is in the global configuration file ```config/config.json```.
+
+Restart Hyphe to take changes into account: ```bin/hyphe restart```
+
+
+## Serve Hyphe on the web
+
+As soon as the Docker container or the manual daemon is started, you can start playing with the web interface on your local machine at the following url:
+- Docker install: [http://localhost/](http://localhost/)
+- manual install: [http://localhost/hyphe](http://localhost/hyphe).
+
+For personal uses, you can already use Hyphe as such. Although, if you want to let others use it as well (typically if you installed on a distant server), you need to serve it on a webserver and make a few adjustments to do so.
+
+**If you installed with Docker**, and Hyphe is the only web service your server will host, you can already access it directly on the Docker host IP address such as [http://127.0.0.1](http://127.0.0.1).
+
+By default `docker-compose` runs its image to be served on the port 80, so if your server is bound for instance to mySuperHyphe.com, Hyphe will be immediately accessible at this url.
+
+If your server already exposes the port 80 for another service, Dockerwill fail to run Hyphe (with an error ```bind: address already in use```), you should either deactivate your existing webservice or edit `docker-compose.yml` and change in `services/frontend/ports` the first occurence of 80 into the desired port then restart the container  by running ```docker-compose stop && docker compose up -d```. You can then serve Hyphe using for instance Apache or Nginx by redirecting the port to another domain or path.
+
+For instance if you setup Docker to serve Hyphe on port 8081, and you want it accessible on "http://www.MyGreatDomain.com/hyphe/", you can do so with Apache like this:
+
+```apache
+<VirtualHost *:80>
+  ServerName mygreatdomain.com
+  <Location /hyphe>
+    ProxyPass http://localhost:8081/ connectiontimeout=30 timeout=900
+    ProxyPassReverse http://localhost:8081/
+  </Location>
+</VirtualHost>
+```
+
+**If you installed manually**, please read the dedicated [WebService documentation](doc/serve.md).
+
 
 ## Advanced developers features & contributing
 
