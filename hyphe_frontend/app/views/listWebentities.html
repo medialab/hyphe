@@ -41,6 +41,7 @@
                     statuses="statuses"
                     counts="counts"
                     change="touchSettings()"
+                    disabled="dynamicWebentities.loading"
                   ></hyphe-status-box>
 
                   <div layout="row">
@@ -54,6 +55,7 @@
                         ng-model="query"
                         ng-change="touchSettings()"
                         ng-press-enter="applySettings()"
+                        ng-disabled="dynamicWebentities.loading"
                       >
                     </md-input-container>
                     <div layout="row" layout-align="center center">
