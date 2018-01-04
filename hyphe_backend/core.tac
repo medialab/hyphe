@@ -1367,7 +1367,7 @@ class Memory_Structure(customJSONRPC):
     def jsonrpc_declare_webentity_by_lruprefix_as_url(self, url, name=None, status=None, startpages=[], lruVariations=True, corpus=DEFAULT_CORPUS):
         """Creates for a `corpus` a WebEntity defined for the LRU prefix given as a `url` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity."""
         if not self.parent.corpus_ready(corpus):
-            returnD(self.parent.corpus_error(corpus))
+            return self.parent.corpus_error(corpus)
         try:
             url, lru_prefix = urllru.url_clean_and_convert(url, self.corpora[corpus]["tlds"], False)
         except ValueError as e:

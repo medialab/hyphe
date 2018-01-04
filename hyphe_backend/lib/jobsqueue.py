@@ -137,7 +137,8 @@ class JobsQueue(object):
         else:
             yield self.db.update_job(job["corpus"], job_id, res['jobid'], ts)
             yield self.db.add_log(job["corpus"], job_id, "CRAWL_SCHEDULED", ts)
-            del(self.queue[job_id])
+            if job_id in self.queue:
+                del(self.queue[job_id])
 
     def cancel_corpus_jobs(self, corpus):
         for _id, job in self.queue.items():
