@@ -17,6 +17,7 @@ class JobsQueue(object):
     def __init__(self, config):
         self.db = MongoDB(config)
         self.scrapyd = 'http://%s:%s/' % (environ.get('HYPHE_CRAWLER_HOST', config['host']), int(environ.get('HYPHE_CRAWLER_PORT', config['scrapy_port'])))
+        self.db_name = config["db_name"]
         self.queue = None
         self.depiler = LoopingCall(self.depile)
         self.depiler.start(0.2, True)
@@ -65,7 +66,10 @@ class JobsQueue(object):
             elif ">Finished<" in line:
                 read = None
             elif read == "running":
-                corpus = line[line.find(".") + 1 : line.find("<", 2)]
+                pattern = ">" + self.db_name + "_"
+                if pattern not in line:
+                    continue
+                corpus = line.split(pattern)[1].split("</td>")[0]
                 if corpus not in status:
                     status[corpus] = 0
                 status[corpus] += 1
