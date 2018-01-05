@@ -1004,7 +1004,7 @@ class Crawler(customJSONRPC):
             returnD('No crawler deployed, hence no job to cancel')
         list_jobs = list_jobs['result']
         while 'running' in list_jobs and (list_jobs['running'] + list_jobs['pending']):
-            yield DeferredList([self.jsonrpc_cancel(item['id'], corpus=corpus) for item in list_jobs['running'] + list_jobs['pending']], consumeErrors=True)
+            yield DeferredList([self.jsonrpc_cancel(item['id'], corpus=corpus) for item in list_jobs['pending'] + list_jobs['running']], consumeErrors=True)
             list_jobs = yield self.list(corpus)
             if is_error(list_jobs):
                 returnD(list_jobs)
@@ -1020,9 +1020,15 @@ class Crawler(customJSONRPC):
             logger.msg("Empty crawl list + mongodb queue", system="INFO - %s" % corpus)
         if self.corpora[corpus]['jobs_loop'].running:
             self.corpora[corpus]['jobs_loop'].stop()
-        canceljobs = yield self.jsonrpc_cancel_all(corpus)
-        if is_error(canceljobs):
-            returnD(canceljobs)
+        self.crawlqueue.cancel_corpus_jobs(corpus)
+        list_jobs = yield self.list(corpus)
+        if is_error(list_jobs):
+            returnD('No crawler deployed, hence no job to cancel')
+        list_jobs = list_jobs['result']
+        for item in list_jobs['pending'] + list_jobs['running']:
+            args = {'project': corpus_project(corpus), 'job': item['id']}
+            yield self.crawlqueue.send_scrapy_query('cancel', args)
+            yield self.crawlqueue.send_scrapy_query('cancel', args)
         yield self.db.drop_corpus_collections(corpus)
         if _recreate and not self.corpora[corpus]['jobs_loop'].running:
             self.corpora[corpus]['jobs_loop'].start(1, False)
@@ -1933,6 +1939,13 @@ class Memory_Structure(customJSONRPC):
             self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
             job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id', 'crawljob_id', 'crawl_arguments', 'webentity_id'], limit=1)
             if not job:
+                jobs = yield self.db.list_jobs(corpus)
+                if not jobs:
+                    self.corpora[corpus]['reset'] = True
+                    yield self.db.queue(corpus).drop()
+                    yield self.traphs.call(corpus, "clear")
+                    self.corpora[corpus]['reset'] = False
+                    returnD(None)
                 logger.msg("Indexing job with pages in queue but not found in jobs: %s" % oldest_page_in_queue['_job'], system="WARNING - %s" % corpus)
                 job = {
                   '_id': 'unknown',
