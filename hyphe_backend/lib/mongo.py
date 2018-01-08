@@ -167,7 +167,6 @@ class MongoDB(object):
         yield self.logs(corpus).drop()
         yield self.queries(corpus).drop()
         yield self.stats(corpus).drop()
-        yield self.db().drop_database(corpus)
 
     @inlineCallbacks
     def count_WEs(self, corpus, query):
