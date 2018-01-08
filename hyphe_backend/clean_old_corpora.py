@@ -5,6 +5,7 @@ import sys
 from time import time
 from warnings import filterwarnings
 filterwarnings(action='ignore', category=DeprecationWarning, message="Python 2.6 is no longer supported by the Python core team")
+from pymongo import Connection
 from twisted.internet import reactor, defer
 from txjsonrpc.web.jsonrpc import Proxy
 from hyphe_backend.lib import config_hci
@@ -29,6 +30,7 @@ proxy = Proxy('http://127.0.0.1:%d' % config['core_api_port'])
 def handleList(res):
     if res['code'] == 'fail':
         defer.returnValue(printError(res['message']))
+    destroyed = []
     for cid, corpus in res['result'].items():
         since = time() * 1000 - corpus['last_activity']
         if since > delay:
@@ -44,6 +46,12 @@ def handleList(res):
             res = yield proxy.callRemote('destroy_corpus', cid)
             if res['code'] == 'fail':
                 print sys.stderr, "WARNING: could not destroy old corpus %s: %s" % (cid, res['message'])
+            else:
+                destroyed.append(cid)
+
+    c = Connection(config["mongo-scrapy"]["host"], config["mongo-scrapy"]["port"])
+    for d in destroyed:
+        c.drop_database('%s_%s' % (config["mongo-scrapy"]["db_name"], d)
 
 
 def printError(error):
