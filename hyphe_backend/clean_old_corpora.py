@@ -51,7 +51,7 @@ def handleList(res):
 
     c = Connection(config["mongo-scrapy"]["host"], config["mongo-scrapy"]["port"])
     for d in destroyed:
-        c.drop_database('%s_%s' % (config["mongo-scrapy"]["db_name"], d)
+        c.drop_database('%s_%s' % (config["mongo-scrapy"]["db_name"], d))
 
 
 def printError(error):
