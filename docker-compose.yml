@@ -6,7 +6,7 @@ volumes:
     mongo-data:
 services:
   backend:
-    image: scpomedialab/hyphe_backend:latest
+    image: scpomedialab/hyphe_backend:${TAG}
     build: .
     links:
      - "mongo:mongo"
@@ -22,16 +22,16 @@ services:
       - config:/app/config
       - traph-data:/app/traph-data
   frontend:
-    image: scpomedialab/hyphe_frontend:latest
+    image: scpomedialab/hyphe_frontend:${TAG}
     build: ./hyphe_frontend
     ports:
-      - "80:80"
+      - "${PUBLIC_PORT}:80"
     links:
       - "backend:backend"
     env_file:
      - config-frontend.env
   crawler:
-    image: scpomedialab/hyphe_crawler:latest
+    image: scpomedialab/hyphe_crawler:${TAG}
     build: ./hyphe_backend/crawler
     links:
       - "mongo:mongo"
