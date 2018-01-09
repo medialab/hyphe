@@ -35,6 +35,8 @@ You can try a limited version of Hyphe at the following url: [http://hyphe.media
 
 __DISCLAIMER:__ Hyphe has changed a lot in the past few years. Migrating from an older version by pulling the code from git is therefore not guaranteed, it is highly recommended to reinstall from scratch. Older corpora can be reran by exporting the list of WebEntities from the old version and recrawl from that list of urls in the new version.
 
+Before running Hyphe, you will probably want to adjust the settings first. Please read the [Configuration documentation](doc/config.md) for detailed explanation of each available option.
+
 
 ### Easy way: using Docker
 
@@ -48,13 +50,40 @@ Once you've got Docker installed and running, [install Docker Compose](https://d
 
 Then you just need to get or build Hyphe's Docker images:
 
-- Either pull official image from Docker Store (recommended way):
+- First download Hyphe's codebase from this git repository (recommended way to benefit from future updates) or from a [zipped release](https://github.com/medialab/hyphe/releases) and enter the resulting directory.
+
+```bash
+git clone https://github.com/medialab/hyphe.git hyphe
+cd hyphe
+```
+
+- Then copy the default configuration files and edit them to adjust the settings to your needs:
+
+```bash
+cp .env.example .env
+cp config-backend.env.example config-backend.env
+cp config-frontend.env.example config-frontend.env
+```
+
+The `.env` file lets you configure:
+ + `PUBLIC_PORT`: the web port on which Hyphe will be served (usually 80 for a monoservice server, or any other value you like and will have to redirect for a shared host)
+ + `TAG`: the reference Docker image you want to work with:
+  - `latest` (or `prod`) for the last stable release
+  - `staging` for intermediate unstable developments
+
+For `config-backend.env` and `config-frontend.env`, adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
+
+TODO: explain data volumes
+
+- Then build or collect the Hyphe's Docker containers:
+
+ + Either by pulling official images from Docker Store (recommended way):
 
 ```bash
 docker-compose pull
 ```
 
-- Or build your own images from the source code (mostly for development when editing the sourcecode, and for some specific configuration settings)
+ + Or by building your own images from the source code (mostly for development when editing the sourcecode, and for some specific configuration settings)
 
 ```bash
 docker-compose build
@@ -62,21 +91,28 @@ docker-compose build
 
 It will take a couple of minutes to download or build everything.
 
-Finally, you can run Hyphe containers with this command (once you've setup the configuration first, [see section below](#configure-hyphe)):
+- Finally run Hyphe containers with the following command:
 
 ```bash
 docker-compose up
 ```
 
-It will display all Hyphe's logs in the console and stop Hyphe when pressing ```Ctrl+C```
+It will display all of Hyphe's logs in the console and stop Hyphe when pressing ```Ctrl+C```
 
 You can rather start with `docker-compose up -d` option to run containers in the background (then use `docker-compose stop` to stop it or `docker-compose down` to stop it and remove all relying data).
+
+Whenever you change any configuration file, restart the Docker container to take the changes into account:
+
+```bash
+docker-compose stop
+docker-compose up -d
+```
 
 You can inspect the logs of the various Docker containers using ```docker-compose logs```, or with option `-f` to track latest entries.
 
 Run `docker-compose help` to get more explanations on any extra advanced use of Docker.
 
-If you encounter issues with the Docker builds, please report an [issue](/issues) including the "Image ID" of the Docker images you used from the output of `docker images`.
+If you encounter issues with the Docker builds, please report an [issue](/issues) including the "Image ID" of the Docker images you used from the output of `docker images` or the last commit ID (read from `git log`) if you installed from source.
 
 
 ### Manual way (complex)
@@ -93,40 +129,9 @@ bin/hyphe <start|restart|stop> [--nologs]
 
 By default the starter will display Hyphe's log in the console using ```tail```. You can ```Ctrl+C``` whenever you want without shutting it off. Use the ```--nologs``` option to disable this.
 
+All settings can be configured directly from the global configuration file ```config/config.json```. Restart Hyphe afterwards to take changes into account: ```bin/hyphe restart```
+
 You can always check the logs for both the core backend and each corpus' MemoryStructure in the ```log``` directory.
-
-
-## Configure Hyphe
-
-Before running Hyphe, you should probably adjust the settings first. Please read the [Configuration documentation](doc/config.md) for detailed explanation of each available setting.
-
-### If you installed using Docker
-
-Most of the settings should rather be set by editing the files `config-backend.env` and `config-frontend.env`. First copy the configuration files:
-
-```bash
-cp config-backend.env{.example,}
-cp config-frontend.env{.example,}
-```
-
-Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
-
-Then restart the Docker container to take changes into account:
-```bash
-docker-compose stop
-docker-compose up -d
-```
-
-TODO: explain data volumes
-
-TODO: Explain complex configs and how to edit by adjusting the config directory into its volume after first up
-
-
-### If you installed manually:
-
-Everything you need to change is in the global configuration file ```config/config.json```.
-
-Restart Hyphe to take changes into account: ```bin/hyphe restart```
 
 
 ## Serve Hyphe on the web
@@ -141,7 +146,7 @@ For personal uses, you can already use Hyphe as such. Although, if you want to l
 
 By default `docker-compose` runs its image to be served on the port 80, so if your server is bound for instance to mySuperHyphe.com, Hyphe will be immediately accessible at this url.
 
-If your server already exposes the port 80 for another service, Dockerwill fail to run Hyphe (with an error ```bind: address already in use```), you should either deactivate your existing webservice or edit `docker-compose.yml` and change in `services/frontend/ports` the first occurence of 80 into the desired port then restart the container  by running ```docker-compose stop && docker compose up -d```. You can then serve Hyphe using for instance Apache or Nginx by redirecting the port to another domain or path.
+If your server already exposes the port 80 for another service, Dockerwill fail to run Hyphe (with an error ```bind: address already in use```), you should either deactivate your existing webservice or edit the `.env` configuation file and change the `PUBLIC_PORT` value from 80 into the desired port then restart the container by running ```docker-compose stop && docker compose up -d```. You can then serve Hyphe using for instance Apache or Nginx by redirecting the port to another domain or path.
 
 For instance if you setup Docker to serve Hyphe on port 8081, and you want it accessible on "http://www.MyGreatDomain.com/hyphe/", you can do so with Apache like this:
 

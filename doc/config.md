@@ -4,6 +4,8 @@ The following describes all configuration options one can set from the config.js
 
 For installations using Docker, most of these variables should be set using Environment variables to be defined in the files `config-backend.env` and `config-frontend.env`.
 
+Some rare advanced options are not directly configurable for Docker using these Environment variables. You should not require those for most uses, but if necessary, you can edit them by editing the files within the `config` directory of Hyphe after the Docker container has been started at least once.
+
 
 ## Backend core API
 
