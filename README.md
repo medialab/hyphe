@@ -42,11 +42,11 @@ Before running Hyphe, you will probably want to adjust the settings first. Pleas
 
 For an easy install, the best solution is to rely on [Docker](https://www.docker.com).
 
-Docker enables isolated install and execution of software stacks, which makes simple installing a whole set of dependencies.
+Docker enables isolated install and execution of software stacks, which makes simple installing a whole set of dependencies. Although, it requires at least 3GB of empty space to be deployed.
 
-First follow [Docker install instructions](https://docs.docker.com/installation/) to install Docker on your machine.
+First follow [Docker's installation instructions](https://docs.docker.com/installation/) to install Docker on your machine.
 
-Once you've got Docker installed and running, [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line.
+Once you've got Docker installed and running, [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line (it might already come built-in with Docker when installing on Windows or Mac OS X).
 
 Then you just need to get or build Hyphe's Docker images:
 
@@ -66,14 +66,15 @@ cp config-frontend.env.example config-frontend.env
 ```
 
 The `.env` file lets you configure:
- + `PUBLIC_PORT`: the web port on which Hyphe will be served (usually 80 for a monoservice server, or any other value you like and will have to redirect for a shared host)
  + `TAG`: the reference Docker image you want to work with:
   - `latest` (or `prod`) for the last stable release
   - `staging` for intermediate unstable developments
+ + `PUBLIC_PORT`: the web port on which Hyphe will be served (usually 80 for a monoservice server, or any other value you like and will have to redirect for a shared host)
+ + `DATA_PATH`: using Hyphe can quickly consume several gigabytes of hard drive. By default, volumes will be stored within Docker's default directories but you can define your own path here.
+__WARNING:__ `DATA_PATH` MUST be either empty, or a full absolute path including leading and trailing slashes.
 
-For `config-backend.env` and `config-frontend.env`, adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
+Hyphe's internal settings are adjustable within `config-backend.env` and `config-frontend.env`. Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
 
-TODO: explain data volumes
 
 - Then build or collect the Hyphe's Docker containers:
 
@@ -97,9 +98,17 @@ It will take a couple of minutes to download or build everything.
 docker-compose up
 ```
 
-It will display all of Hyphe's logs in the console and stop Hyphe when pressing ```Ctrl+C```
+It will display all of Hyphe's logs in the console and stop Hyphe when pressing ```Ctrl+C```.
 
-You can rather start with `docker-compose up -d` option to run containers in the background (then use `docker-compose stop` to stop it or `docker-compose down` to stop it and remove all relying data).
+Or to run the containers in the background:
+
+```bash
+docker-compose up -d
+```
+
+Then to stop it, use `docker-compose stop` (or `docker-compose down` to stop it and remove all relying data).
+
+You can inspect the logs of the various Docker containers using ```docker-compose logs```, or with option `-f` to track latest entries.
 
 Whenever you change any configuration file, restart the Docker container to take the changes into account:
 
@@ -107,8 +116,6 @@ Whenever you change any configuration file, restart the Docker container to take
 docker-compose stop
 docker-compose up -d
 ```
-
-You can inspect the logs of the various Docker containers using ```docker-compose logs```, or with option `-f` to track latest entries.
 
 Run `docker-compose help` to get more explanations on any extra advanced use of Docker.
 

@@ -18,9 +18,9 @@ services:
      - HYPHE_CRAWLER_HOST=crawler
      - HYPHE_TRAPH_DATAPATH=/app/traph-data
     volumes:
-      - archives:/app/archives
       - config:/app/config
-      - traph-data:/app/traph-data
+      - ${DATA_PATH}archives:/app/archives
+      - ${DATA_PATH}traph-data:/app/traph-data
   frontend:
     image: scpomedialab/hyphe_frontend:${TAG}
     build: ./hyphe_frontend
@@ -38,4 +38,4 @@ services:
   mongo:
     image: mongo:3.0
     volumes:
-      - mongo-data:/data/db
+      - ${DATA_PATH}mongo-data:/data/db
