@@ -5,7 +5,7 @@ import sys
 from time import time
 from warnings import filterwarnings
 filterwarnings(action='ignore', category=DeprecationWarning, message="Python 2.6 is no longer supported by the Python core team")
-from pymongo import Connection
+from pymongo import MongoClient
 from twisted.internet import reactor, defer
 from txjsonrpc.web.jsonrpc import Proxy
 from hyphe_backend.lib import config_hci
@@ -49,7 +49,7 @@ def handleList(res):
             else:
                 destroyed.append(cid)
 
-    c = Connection(config["mongo-scrapy"]["host"], config["mongo-scrapy"]["port"])
+    c = MongoClient(config["mongo-scrapy"]["host"], config["mongo-scrapy"]["mongo_port"])
     for d in destroyed:
         c.drop_database('%s_%s' % (config["mongo-scrapy"]["db_name"], d))
 
