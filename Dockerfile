@@ -10,10 +10,8 @@ RUN apk --update add gcc git musl-dev libxml2-dev libxslt-dev libffi-dev openssl
         && pip install --no-cache-dir --requirement /app/requirements.txt \
         && pip install --no-cache-dir Scrapy==0.24.6 \
         && apk del gcc git musl-dev \
-	&& rm /var/cache/apk/*
+        && rm /var/cache/apk/*
 
-
- 
 COPY ./bin /app/bin
 
 COPY ./config /app/config
@@ -35,4 +33,3 @@ VOLUME ["/app/config"]
 VOLUME ["/app/traph-data"]
 
 ENTRYPOINT ["/app/docker-entrypoint.py"]
-
