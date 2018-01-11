@@ -5,7 +5,7 @@ CONFIGFILE=/frontend/app/conf/conf.js
 /bin/cp /frontend/app/conf/conf_default.js $CONFIGFILE
 
 # This sets the API url & handle the case of microsoft browsers not handling CORS correctly
-sed --in-place "s|'serverURL'\s*,.*|'serverURL', '//' + window.location.hostname + ':' + window.location.port + window.location.pathname.slice(1) + '/api/')|" $CONFIGFILE
+sed --in-place "s|'serverURL'\s*,.*|'serverURL', window.location.pathname === '/' ? '/api/' : window.location.pathname + '/api/')|" $CONFIGFILE
 
 [[ ! -z ${HYPHE_GOOGLE_ANALYTICS_ID} ]] && sed --in-place "s|'googleAnalyticsId'\s*,.*|'googleAnalyticsId', '${HYPHE_GOOGLE_ANALYTICS_ID}')|" $CONFIGFILE
 
