@@ -71,7 +71,7 @@ The `.env` file lets you configure:
   - `staging` for intermediate unstable developments
  + `PUBLIC_PORT`: the web port on which Hyphe will be served (usually 80 for a monoservice server, or any other value you like and will have to redirect for a shared host)
  + `DATA_PATH`: using Hyphe can quickly consume several gigabytes of hard drive. By default, volumes will be stored within Docker's default directories but you can define your own path here.
-__WARNING:__ `DATA_PATH` MUST be either empty, or a full absolute path including leading and trailing slashes.
+__WARNING:__ `DATA_PATH` MUST be either empty, or a full absolute path including leading and trailing slashes. When installing under Windows, it should always remain empty (so you should install Hyphe from a drive with enough available space).
 
 Hyphe's internal settings are adjustable within `config-backend.env` and `config-frontend.env`. Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
 
@@ -84,7 +84,7 @@ Hyphe's internal settings are adjustable within `config-backend.env` and `config
 docker-compose pull
 ```
 
- + Or by building your own images from the source code (mostly for development when editing the sourcecode, and for some specific configuration settings)
+ + Or by building your own images from the source code (mostly for development when editing the sourcecode, and for some specific configuration settings):
 
 ```bash
 docker-compose build

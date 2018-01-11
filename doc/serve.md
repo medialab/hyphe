@@ -20,4 +20,3 @@ To run the website on a distant server and make Hyphe accessible from the web, a
 
 - Optionally setup a GoogleAnalytics id in `hyphe_frontend/app/conf/conf.js`
 
-
