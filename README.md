@@ -188,6 +188,6 @@ Discover more of our projects at [médialab tools](http://tools.medialab.science
 
 This work is supported by [DIME-WEB](http://dimeweb.dime-shs.sciences-po.fr/) part of [DIME-SHS](http://www.sciencespo.fr/dime-shs/) research equipment financed by the EQUIPEX program (ANR-10-EQPX-19-01).
 
-Hyphe is a free software released under [LGPL](LICENSE.LGPL) &amp; [CECILL-C](LICENSE.CECILL-C) licenses.
+Hyphe is a free open source software released under [AGPL 3.0 license](LICENSE.AGPL).
 
 "[...] I hear _kainos_ [(greek: "now")] in the sense of thick, ongoing presence, with __hyphae__ infusing all sorts of temporalities and materialities.", Donna J. Haraway, Staying with the Trouble, Making kin with the Chthlucene p.2
