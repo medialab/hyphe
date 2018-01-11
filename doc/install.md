@@ -227,6 +227,10 @@ bin/hyphe <start|restart|stop> [--nologs]
 
 You should now be able to enjoy Hyphe at [http://localhost/hyphe](http://localhost/hyphe)!
 
+By default the starter will display Hyphe's log in the console using ```tail```. You can ```Ctrl+C``` whenever you want without shutting it off. Use the ```--nologs``` option to disable this.
+
+You can always check the logs for both the core backend and each corpus' MemoryStructure in the ```log``` directory.
+
 
 ## Extra) [Unnecessary for now] Install [PhantomJS](http://phantomjs.org/)
 
