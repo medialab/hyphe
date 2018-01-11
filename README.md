@@ -178,5 +178,6 @@ Hyphe is a free open source software released under [AGPL 3.0 license](LICENSE.A
 
 <blockquote>
 <i>[...] I hear _kainos_ [(greek: "now")] in the sense of thick, ongoing presence, with __hyphae__ infusing all sorts of temporalities and materialities."</i>
+
 Donna J. Haraway, Staying with the Trouble, Making kin with the Chthlucene p.2
 </blockquote>
