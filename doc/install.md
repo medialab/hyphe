@@ -1,42 +1,37 @@
-# Installation
+# Manual Installation
 
 __Notes:__
-- Hyphe is intended to be installed using Docker on most OS (Windows, Mac OS X, Linux). Building manually is only possible under Linux distributions, and is not guaranteed and can be complex due to a variety of issues. Please rather use the regular Docker install if you have little experience with shell.
+- Hyphe is intended to be installed using Docker on most OS (Windows, Mac OS X, Linux). Building manually is only possible under Linux distributions. It can be complex due to a variety of issues and is therefore not guaranteed. Please rather use the regular Docker install if you have little experience with command line and Linux administration.
 - MongoDB is limited to 2Go databases on 32bit systems, so we recommand to always install Hyphe on a 64bit machine.
 - Do __not__ add `sudo` to any of the following example commands. Every line of shell written here should be ran from Hyphe's root directory and `sudo` should only be used when explicitly listed.
 
-The easiest way to install Hyphe is by uncompressing the [gzipped release](https://github.com/medialab/Hypertext-Corpus-Initiative/releases). It has been successfully tested on a variety of blank distributions of Ubuntu, Debian and CentOS. Please let us know if you get it working on other versions!
-
-  Distribution  |   Version         | precision     |  OK ?
-:--------------:|:-----------------:|:-------------:|:-------------:
-    Ubuntu      |   12.04.5 LTS     | server        |   ✓
-    Ubuntu      |   12.04.5 LTS     | desktop       |   ✓
-    Ubuntu      |   14.04.1 LTS     | server        |   ✓
-    Ubuntu      |   14.04.1 LTS     | desktop       |   ✓
-    Ubuntu      |   14.10           | desktop       |   ✓
-    Ubuntu      |   15.04           | desktop       |   —  (ScrapyD + Upstart issue with Ubuntu 15 so far)
-    CentOS      |   5.7             | server        |   —  (issues due to missing upstart & python2.4)
-    CentOS      |   6.4 Final       | server        |   ✓
-    Debian      |   6.0.10 squeeze  | server        |   ✓
-    Debian      |   7.5 wheezy      | server        |   ✓
-    Debian      |   7.8 wheezy      | livecd gnome  |   ✓
-    Debian      |   8.0 jessie      | livecd gnome  |   —  (MongoDB not supporting Debian 8 yet)
-    RedHat      |   7.3 Maipo       | server        |   ✓  (Be careful to use step by step advanced installation<br/>Warning: ScrapyD won't be installed as service and will have to be ran manually)
+The following installation instructions have been tested and under Ubuntu 16.04.3 LTS. It should be possible to adapt these commands to older Ubuntu versions and diverse Debian and CentOS distributions (using yum instead of apt where necessary and so on).
 
 
-Just uncompress the release archive, go into the directory and run the installation script.
+[MongoDB](http://www.mongodb.org/) (a NoSQL database server), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) (a crawler framework server) and Python 2.7 are required for the backend to work.
 
-Do not use `sudo`: the script will do so on its own and ask for your password only once. This works so in order to install all missing dependencies at once, including mainly Python (python-dev, pip, virtualEnv, virtualEnvWrapper...), Apache2, MongoDB & ScrapyD.
 
+## 0) Get global requirements
+
+First, install possible missing required basics using apt/aptitude:
 
 ```bash
-# WARNING: DO NOT prefix any of these commands with `sudo`!
-tar xzvf hyphe-release-*.tar.gz
-cd hyphe
-./bin/install.sh
+sudo apt-get update
+sudo apt-get install git curl apache2 build-essential gcc musl-dev python2.7-dev python-pip libxml2-dev libxslt1-dev openssl libssl-dev libffi-dev
+#libstdc++6-dev
 ```
 
-If you are not comfortable with this or if you prefer to install from git sources, please follow the steps below.
+Or, with yum under CentOS/RedHat like distributions, the packages names can be slightly different and some extra commands might be required:
+```bash
+sudo yum check-update
+sudo yum install git curl httpd gcc python2.7-devel python-setuptools python-pip libxml2-devel libxslt-devel openssl-devel libffi-devel
+#libstdc++.so.6
+# Fix possibly misnamed pip
+pip > /dev/null || alias pip="python-pip"
+# Activate Apache's autorestart on reboot
+sudo chkconfig --levels 235 httpd on
+sudo service httpd restart
+```
 
 
 ## 1) Clone the source code
@@ -46,171 +41,76 @@ git clone https://github.com/medialab/hyphe hyphe
 cd hyphe
 ```
 
-From here on, you can also run `bin/install.sh` to go faster as with the release, or follow the next steps.
 
+## 2) Install [MongoDB](http://www.mongodb.org/)
 
-## 2) Get requirements and dependencies
+As they are usually very old, we recommand not to use the MongoDB packages shipped within distributions official repositorie).
+Rather follow official installation instructions: [https://docs.mongodb.com/tutorials/](https://docs.mongodb.com/tutorials/). Search the link for "MongoDB Community Edition" for your distribution and follow the instructions. For instance for Ubuntu 16.04:
 
-[MongoDB](http://www.mongodb.org/) (a NoSQL database server), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) (a crawler framework server) and Python 2.7 are required for the backend to work.
-
-
-### 2.1) Prerequisites:
-
-Install possible missing required basics:
-
-For Debian/Ubuntu:
 ```bash
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 sudo apt-get update
-sudo apt-get install curl wget python-dev python-pip apache2 libapache2-mod-proxy-html libxml2-dev libxslt1-dev build-essential libffi-dev libssl-dev libstdc++6-dev
-```
-
-Or for CentOS/RedHat:
-```bash
-sudo yum check-update
-sudo yum install curl wget python-devel python-setuptools python-pip httpd libxml2-devel libxslt-devel gcc libffi-devel openssl-devel libstdc++.so.6
-
-# Fix possibly misnamed pip
-pip > /dev/null || alias pip="python-pip"
-
-# Activate Apache's autorestart on reboot
-sudo chkconfig --levels 235 httpd on
-sudo service httpd restart
-```
-
-
-### 2.2) Install [MongoDB](http://www.mongodb.org/)
-
-As they are usually very old, we recommand not to use the MongoDB packages shipped within distributions official repositories.
-Below are basic examples to manually install MongoDB (3.0) on Debian/Ubuntu/CentOS, although it does not seem to be supported on all distributions yet, so please read [official documentation](http://docs.mongodb.org/manual/administration/install-on-linux/) for more details.
-If you'd rather install an older version 2.x, you can follow the dedicated isntructions in the `bin/install.sh` script to see examples.
-
-On Debian/Ubuntu:
-```bash
-# Install the GPG key for the package repository
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-
-# Add the repository to apt's sources list
-sudo apt-get install lsb-release
-distrib=$(cat /etc/issue | sed -r 's/^(\S+) .*/\L\1/')
-listrepo="main"
-if [ "$distrib" = "ubuntu" ]; then listrepo="multiverse"; fi
-echo "deb http://repo.mongodb.org/apt/$distrib "$(lsb_release -sc)"/mongodb-org/3.0 $listrepo" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
-
-# Update apt's sources list & install
-sudo apt-get update
-sudo apt-get install mongodb-org
-```
-
-On CentOS/RedHat, this is slightly more complex:
-```bash
-# Test whether SELinux runs
-# If it says enabled, you will have to do a few more steps after the installation, see here: http://docs.mongodb.org/manual/tutorial/install-mongodb-on-red-hat/#run-mongodb
-sestatus
-
-# Add the repository to yum's sources list
-echo "[mongodb-org-3.0]
-name=MongoDB Repository
-baseurl=http://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.0/x86_64/
-gpgcheck=0
-enabled=1" | sudo tee /etc/yum.repos.d/mongodb-org-3.0.list
-
-# Update yum's sources list & install
-sudo yum check-update
-sudo yum install mongodb-org
-
-# Let MongoDB autostart on reboot
-sudo chkconfig mongod on
+sudo apt-get install -y mongodb-org
 sudo service mongod restart
 ```
 
-For development and administrative use, you can also optionally install one of the following projects to easily access MongoDB's databases:
+For development and administrative use, you can also optionally install one of the following projects to easily access and manage MongoDB's databases:
 - [RockMongo](http://rockmongo.com/wiki/installation?lang=en_us): a PHP web admin interface
 - [RoboMongo](http://robomongo.org/): a shell-centric GUI
 
 
-### 2.3) Install [ScrapyD](http://scrapyd.readthedocs.org/en/latest/)
+## 3) Install [ScrapyD](http://scrapyd.readthedocs.org/en/latest/)
 
-On all distribs, start by installing globally the python dependencies required by Hyphe's Scrapy spider so that ScrapyD can use them (versions are fixed to avoid breakage: [pymongo3 currently breaks txmongo](https://github.com/twisted/txmongo/issues/80)):
+Unfortunately, ScrapingHub does not provide anymore official repository packages for ScrapyD so it needs to be installed manually (cf [https://github.com/scrapy/scrapyd/issues/258](https://github.com/scrapy/scrapyd/issues/258)).
 
-```bash
-sudo pip install pymongo==2.7
-sudo pip install txmongo==0.6
-sudo pip install selenium==2.42.1
-```
-
-Then easily install ScrapyD on Ubuntu:
+- Start by installing Scrapy and ScrapyD via pip (fixed versions are required for compatibility with Hyphe):
 
 ```bash
-# Install the GPG key for the package repository
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 627220E7
-
-# Add the repository to apt's sources list
-echo "deb http://archive.scrapy.org/ubuntu scrapy main" | sudo tee /etc/apt/sources.list.d/scrapy.list
-
-# Update apt's sources list & install
-sudo apt-get update
-sudo apt-get install scrapy-0.24
-sudo apt-get install scrapyd
-```
-
-For other distributions, first install python scrapy globally via pip:
-
-```bash
-sudo pip install Scrapy==0.18
-```
-
-Then follow the next steps on CentOS & Debian: ScrapingHub unfortunately only provides ScrapyD packages for Ubuntu, so we had to build our own:
-
-For Debian:
-
-```bash
-# Download our homemade package...
-wget --no-check-certificate "https://github.com/medialab/scrapyd/raw/medialab-debian/debs/scrapyd_1.0~r0_all.deb"
-
-sudo dpkg -i scrapyd_1.0~r0_all.deb
-rm -rf scrapyd_1.0~r0_all.deb
-
-# You can later remove the homemade package by running:
-# sudo dpkg -r scrapyd` to remove
-```
-
-Or for CentOS:
-
-```bash
-# Download our homemade package...
-wget --no-check-certificate "https://github.com/medialab/scrapyd/raw/medialab-centos/rpms/scrapyd_1.0.1-3.el6.x86_64.rpm"
-
-sudo rpm -i scrapyd_1.0.1-3.el6.x86_64.rpm
-rm -rf scrapyd_1.0.1-3.el6.x86_64.rpm
-
-# You can later remove the homemade package by running:
-# sudo rpm -e scrapyd
-```
-
-Alternatively, for RedHat > v6, or for others if none of the above work, you can install ScrapyD as python package and run it manually instead of as a service:
-```bash
+sudo pip install Scrapy==0.24.6
 sudo pip install scrapyd==1.0.1
-
-# Create environnement
-sudo mkdir -p /etc/scrapyd/conf.d /var/lib/scrapyd /var/log/scrapyd
-# Change <user> with your user
-sudo chown -R <user>:<user> /var/lib/scrapyd /var/log/scrapyd
 ```
 
-Finally, on all distributions, add Hyphe's specific config for ScrapyD:
+- Install Hyphe's config for ScrapyD:
 
 ```bash
+sudo mkdir -p /etc/scrapyd/conf.d
 sudo ln -s `pwd`/hyphe_backend/crawler/scrapyd.config /etc/scrapyd/conf.d/100-hyphe
 ```
 
-Then restart the service on Debian/Ubuntu/CentOS:
+- Create a `scrapy` user to run the service:
+
 ```bash
-sudo /etc/init.d/scrapyd restart
+sudo adduser --system --home /var/lib/scrapyd --gecos "scrapy" --no-create-home --disabled-password --quiet scrapy
 ```
 
-Or run it manually for RedHat > v6:
+- Create ScrapyD's directories (adapt these to the directories defined in scrapyd.config if you changed them) and setup their rights for the `scrapy` user:
+
 ```bash
-nohup scrapyd &
+sudo mkdir -p /var/log/scrapyd
+sudo mkdir -p /var/lib/scrapyd/eggs
+sudo mkdir -p /var/lib/scrapyd/dbs
+sudo mkdir -p /var/lib/scrapyd/items
+sudo chown scrapy:nogroup /var/log/scrapyd /var/lib/scrapyd /var/lib/scrapyd/eggs /var/lib/scrapyd/dbs /var/lib/scrapyd/items
+```
+
+- Install globally the python dependencies required by Hyphe's Scrapy spider so that ScrapyD can use them.
+
+```bash
+sudo pip install pymongo txmongo selenium==2.42.1 urllib3[secure]
+```
+
+- Start scrapyd manually:
+
+__Disclaimer:__ The following method is ugly. ScrapyD should ideally rather be installed as a SystemD service (or, depending on your distribution, SysVInit or Upstart) which would be way better.
+
+```bash
+sudo nohup scrapyd -u scrapy -g --pidfile /var/run/scrapyd.pid -l /var/log/scrapyd/scrapyd.log &
+```
+
+And if you want it to always start when your machine boots, you can (again, very ugly instead of a service) set it as a `@reboot` cronjob by running `sudo crontab -e` and add within the following line:
+```cronjob
+@reboot         nohup scrapyd -u scrapy -g --pidfile /var/run/scrapyd.pid -l /var/log/scrapyd/scrapyd.log &
 ```
 
 You can test whether ScrapyD is properly installed and running by querying [http://localhost:6800/listprojects.json](http://localhost:6800/listprojects.json). If everything is normal, you should see something like this:
@@ -219,39 +119,37 @@ You can test whether ScrapyD is properly installed and running by querying [http
 {"status": "ok", "projects": []}
 ```
 
-### 2.4) Setup a Python virtual environment with Hyphe's dependencies
+
+## 5) Setup Hyphe's backend Python virtual environment:
 
 We recommend using virtualenv with virtualenvwrapper:
 ```bash
 # Install VirtualEnv & Wrapper
 sudo pip install virtualenv
 sudo pip install virtualenvwrapper
-source $(which virtualenvwrapper.sh)
+source virtualenvwrapper.sh
 
 # Create Hyphe's VirtualEnv & install dependencies
-mkvirtualenv --no-site-packages hyphe
-workon hyphe
+mkvirtualenv hyphe-traph
 add2virtualenv $(pwd)
 pip install -r requirements.txt
 deactivate
 ```
 
-### 2.5) [Unnecessary for now] Install [PhantomJS](http://phantomjs.org/)
+## 6) Build Hyphe's frontend:
 
-__Important:__ Crawling with PhantomJS is currently only possible as an advanced option in Hyphe. Do not bother with this section except for advanced use or development.
+First install [nodeJs](https://nodejs.org/en/), preferably a recent version from their own repositories ([https://nodejs.org/en/download/package-manager/](https://nodejs.org/en/download/package-manager/)) than from the distribution's official repositories.
 
-Hyphe ships with a compiled binary of PhantomJS-2.0 for Ubuntu, unfortunately it is not cross-compatible with other distributions: so when on CentOS or Debian, you should compile your own from sources.
+Then in the frontend's directory, install dependencies and build the bundle:
 
 ```bash
-./bin/install_phantom.sh
+cd hyphe_frontend
+npm install
 ```
 
-Note that PhantomJS 1.9.7 is easily downloadable as binary, altough it uses a very outdated version of WebKit and PhantomJS 2+ is required to handle modern websites such as Facebook.
+## 7) Configure Hyphe:
 
-
-## 3) Prepare and configure
-
-### 3.1) Setup the backend
+### 7.1) Setup the backend
 
 - Copy and adapt the sample `config.json.example` to `config.json` in the `config` directory:
 
@@ -262,7 +160,7 @@ sed "s|##HYPHEPATH##|"`pwd`"|" config/config.json.example > config/config.json
 - Edit the `config.json` file and adjust the settings as explained in the [configuration documentation](config.md)
 
 
-### 3.2) Set the frontend
+### 7.2) Setup the frontend
 
 Copy and adapt the sample `conf_default.json` to `conf.json` in the `hyphe_frontend/app/conf` directory:
 ```bash
@@ -270,14 +168,14 @@ sed "s|##WEBPATH##|hyphe|" hyphe_frontend/app/conf/conf_default.js > hyphe_front
 ```
 
 
-### 3.3) Serve everything with Apache
+### 7.3) Serve everything with Apache
 
-The backend core API relies on a Twited web server serving on a dedicated port (defined as `twisted.port` in `config.json` just before). For external access, proxy redirection is handled by Apache.
+The backend core API relies on a Twisted web server serving on a dedicated port (defined as `core_api_port` in `config.json` just before). For external access, proxy redirection is handled by Apache.
 
 - Copy and adapt the sample `apache2_example.conf` from the `config` directory:
 
 ```bash
-twport=$(grep '"twisted.port"' config/config.json | sed 's/[^0-9]//g')
+twport=$(grep '"core_api_port"' config/config.json | sed 's/[^0-9]//g')
 sed "s|##HYPHEPATH##|"`pwd`"|" config/apache2_example.conf |
 sed "s|##TWISTEDPORT##|$twport|" |
 sed "s|##WEBPATH##|hyphe|" > config/apache2.conf
@@ -293,7 +191,7 @@ sudo a2enmod proxy
 sudo a2enmod proxy_http
 
 # Install & enable site
-sudo ln -s `pwd`/config/apache2.conf /etc/apache2/sites-available/hyphe
+sudo ln -s `pwd`/config/apache2.conf /etc/apache2/sites-available/hyphe.conf
 sudo a2ensite hyphe
 
 # Reload Apache
@@ -319,7 +217,7 @@ This will install Hyphe locally only first: [http://localhost/hyphe](http://loca
 If you encounter issues here or would like to serve Hyphe on the web, please [see the related documentation](serve.md).
 
 
-### 3.4) Run Hyphe!
+### 7.4) Run Hyphe!
 
 To start, stop or restart the server's daemon, run (with the proper rights, so __no__ `sudo` if you installed as your user!):
 
@@ -328,3 +226,16 @@ bin/hyphe <start|restart|stop> [--nologs]
 ```
 
 You should now be able to enjoy Hyphe at [http://localhost/hyphe](http://localhost/hyphe)!
+
+
+## Extra) [Unnecessary for now] Install [PhantomJS](http://phantomjs.org/)
+
+__Important:__ Crawling with PhantomJS is currently only possible as an advanced option in Hyphe. Do not bother with this section except for advanced use or development.
+
+Hyphe ships with a compiled binary of PhantomJS-2.0 for Ubuntu, unfortunately it is not cross-compatible with other distributions: so when on CentOS or Debian, you should compile your own from sources.
+
+```bash
+./bin/install_phantom.sh
+```
+
+Note that PhantomJS 1.9.7 is easily downloadable as binary, altough it uses a very outdated version of WebKit and PhantomJS 2+ is required to handle modern websites such as Facebook.
