@@ -9,7 +9,7 @@ Hyphe relies on the following main components/directories:
   + core.tac: a Twisted based JSON-RPC API controller
   + crawler: a Scrapy spider project to build and deploy on ScrapyD
   + lib: shared libraries between the two
-  + traph: A couple of Twisted server/client for easy dialogue with the Traph processes
+  + traph: A couple of Twisted server/client for easy dialogue with the hyphe-traph processes
 - `hyphe_frontend`: a JavaScript web application powered with Angular.js to constitute and explore web corpora through the backend API
 
 Other useful directories are:
@@ -41,7 +41,7 @@ A simple python script `hyphe_backend/test_client.py` which could certainly be g
 
 ```bash
 source $(which virtualenvwrapper.sh)
-workon hyphe
+workon hyphe-traph
 ./hyphe_backend/test_client.py get_status
 ./hyphe_backend/test_client.py create_corpus test
 ./hyphe_backend/test_client.py declare_page http://medialab.sciences-po.fr test
@@ -58,13 +58,10 @@ In `bin/samples/` can be found multiple examples of advanced routines ran direcl
 
 ## Contribute to the frontend
 
-The Javascript dependencies are currently shipped with git sources until proper grunt/gulp/cat is setup.
+The Javascript dependencies for the frontend are packaged as a bundle which needs to be rebuilt for changes to be taken into account whenever new dependencies are added. You can simply do so by running from the `hyphe_frontend` directory:
 
-In the mean time, to update dependencies, you can run the following after having installed [Node.js](https://nodejs.org/download/):
 ```bash
-sudo npm install -g bower
-cd hyphe_frontend
-bower install
+npm run build
 ```
 
 
@@ -72,19 +69,5 @@ bower install
 
 ```bash
 bin/build_apidoc.sh
-```
-
-
-## Update the list of TLDs used by the frontend from [Mozilla's list](https://publicsuffix.org/list/)
-
-```bash
-bin/update_tlds_list.sh
-```
-
-
-## Build a release
-
-```bash
-bin/build_release.sh <optional version_id>
 ```
 

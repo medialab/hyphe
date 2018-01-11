@@ -1,6 +1,6 @@
 #!/bin/bash
 source $(which virtualenvwrapper.sh)
-workon hyphe
+workon hyphe-traph
 
 OLDSTATUS=$1
 NEWSTATUS=$2

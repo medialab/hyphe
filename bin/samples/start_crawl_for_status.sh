@@ -1,6 +1,6 @@
 #!/bin/bash
 source $(which virtualenvwrapper.sh)
-workon hyphe
+workon hyphe-traph
 
 statuses=$(echo $1 | sed 's/^\(.*\)$/\U\1/')
 depth=$(echo $2 | grep "^[0-9]*$")

@@ -1,6 +1,6 @@
 #!/bin/bash
 source $(which virtualenvwrapper.sh)
-workon hyphe
+workon hyphe-traph
 
 echo "status,urls_prefixes,id,name,tags"
 ./hyphe_backend/test_client.py inline store.get_webentities "" False False "name" 100000 0 True |
