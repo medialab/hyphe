@@ -27,14 +27,14 @@ Docker enables isolated install and execution of software stacks, which helps in
 
 Docker's containers are a bit voluminous: you should ensure at least 4GB of empty space is available before installing.
 
-- Install Docker:
+- **Install Docker:**
 
   First, you should deploy Docker on your machine following its [official installation instructions](https://docs.docker.com/installation/).
 
   Once you've got Docker installed and running, [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line (it might already come built-in with Docker when installing on Windows or Mac OS X).
 
 
-- Download Hyphe:
+- **Download Hyphe:**
 
   Collect Hyphe's sourcecode from this git repository (recommended way to benefit from future updates) or download and uncompress a [zipped release](https://github.com/medialab/hyphe/releases), then enter the resulting directory:
 
@@ -43,7 +43,7 @@ Docker's containers are a bit voluminous: you should ensure at least 4GB of empt
   cd hyphe
   ```
 
-- Configure it:
+- **Configure it:**
 
   Then copy the default configuration files and edit them to adjust the settings to your needs:
 
@@ -66,7 +66,7 @@ Docker's containers are a bit voluminous: you should ensure at least 4GB of empt
   Hyphe's internal settings are adjustable within `config-backend.env` and `config-frontend.env`. Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
 
 
-- Prepare the Docker containers:
+- **Prepare the Docker containers:**
 
   Either build or collect Hyphe's Docker containers:
 
@@ -85,7 +85,7 @@ Docker's containers are a bit voluminous: you should ensure at least 4GB of empt
   Pulling should be faster, but it will still take a few minutes to download or build everything either way.
 
 
-- Start Hyphe:
+- **Start Hyphe:**
 
   Finally run Hyphe containers with the following command, which will display all of Hyphe's logs in the console and run until pressing `Ctrl+C`.
 
@@ -100,7 +100,7 @@ Docker's containers are a bit voluminous: you should ensure at least 4GB of empt
   ```
 
 
-- Stop and monitor Hyphe:
+- **Stop and monitor Hyphe:**
 
   Then to stop it, use `docker-compose stop` (or `docker-compose down` to stop it and clean relying data).
 
