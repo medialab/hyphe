@@ -1,17 +1,17 @@
 # Hyphe: web corpus builder & links crawler
 
-Welcome to [Hyphe](http://hyphe.medialab.sciences-po.fr), a research-driven webcrawler developped at [SciencesPo's médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Web project (Equipex)](http://www.sciencespo.fr/dime-shs/).
+Welcome to [Hyphe](http://hyphe.medialab.sciences-po.fr), a research-driven web crawler developped at the [SciencesPo médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Web project (ANR-10-EQPX-19-01)](http://www.sciencespo.fr/dime-shs/).
 
-Hyphe aims at providing a tool to crawl data from the web and generate networks between what we call WebEntities, which can be single pages as well as a website, subdomains or parts of it, or even a combination of such.
+Hyphe aims at providing a tool to crawl data from the web and generate networks between what we call "web entitiesé, which can be single pages as well as a website, subdomains or parts of it, or even a combination of those.
 
 ## Demo
 
 You can try a limited version of Hyphe at the following url: [http://hyphe.medialab.sciences-po.fr/demo/](http://hyphe.medialab.sciences-po.fr/demo/)
 
 
-## How to install it?
+## How to install?
 
-Before running Hyphe, you will probably want to adjust the settings first. Please read the [Configuration documentation](doc/config.md) for detailed explanation of each available option.
+Before running Hyphe, you may want to adjust the settings first. The default config will work but you will need to tune it for your own need. There is a procedure to change the configuration after the installation. However we recommend to take a look at the [Configuration documentation](doc/config.md) for detailed explanation of each available option.
 
 
 ### Migrating older versions
@@ -25,16 +25,16 @@ For an easy install either on Linux, Mac OS X or Windows, the best solution is t
 
 Docker enables isolated install and execution of software stacks, which helps installing easily a whole set of dependencies.
 
-Docker's containers are a bit voluminous: you should ensure at least 4GB of empty space is available before installing.
+Docker's containers are sizeable: you should ensure **at least 4GB** of empty space is available before installing.
 
-- **Install Docker:**
+1. **Install Docker**
 
   First, you should deploy Docker on your machine following its [official installation instructions](https://docs.docker.com/installation/).
 
-  Once you've got Docker installed and running, [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line (it might already come built-in with Docker when installing on Windows or Mac OS X).
+  Once you've got Docker installed and running, you may have to [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line. Docker Compose is installed along with Docker on Windows and Mac OS X.
 
 
-- **Download Hyphe:**
+2. **Download Hyphe**
 
   Collect Hyphe's sourcecode from this git repository (recommended way to benefit from future updates) or download and uncompress a [zipped release](https://github.com/medialab/hyphe/releases), then enter the resulting directory:
 
@@ -43,7 +43,7 @@ Docker's containers are a bit voluminous: you should ensure at least 4GB of empt
   cd hyphe
   ```
 
-- **Configure it:**
+3. **Configure**
 
   Then copy the default configuration files and edit them to adjust the settings to your needs:
 
@@ -72,17 +72,17 @@ Docker's containers are a bit voluminous: you should ensure at least 4GB of empt
   Hyphe's internal settings are adjustable within `config-backend.env` and `config-frontend.env`. Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
 
 
-- **Prepare the Docker containers:**
+4. **Prepare the Docker containers**
 
-  Either build or collect Hyphe's Docker containers:
+  You have two options: either build or collect Hyphe's Docker containers.
 
-  + By pulling our official preassembled images from the Docker Store (recommended way):
+  + **Recommended: Pull our official preassembled images** from the Docker Store
 
     ```bash
     docker-compose pull
     ```
 
-  + Or by building your own images from the source code (mostly for development or if you intend to edit the code, and for some very specific configuration settings):
+  + Alternative: build your own images from the source code (mostly for development or if you intend to edit the code, and for some very specific configuration settings):
 
     ```bash
     docker-compose build
@@ -91,7 +91,7 @@ Docker's containers are a bit voluminous: you should ensure at least 4GB of empt
   Pulling should be faster, but it will still take a few minutes to download or build everything either way.
 
 
-- **Start Hyphe:**
+5. **Start Hyphe**
 
   Finally run Hyphe containers with the following command, which will display all of Hyphe's logs in the console and run until pressing `Ctrl+C`.
 
@@ -106,7 +106,7 @@ Docker's containers are a bit voluminous: you should ensure at least 4GB of empt
   ```
 
 
-- **Stop and monitor Hyphe:**
+6. **Stop and monitor Hyphe**
 
   Then to stop it, use `docker-compose stop` (or `docker-compose down` to stop it and clean relying data).
 
