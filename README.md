@@ -27,15 +27,16 @@ Docker enables isolated install and execution of software stacks, which helps in
 
 Docker's containers are a bit voluminous: you should ensure at least 4GB of empty space is available before installing.
 
-First install Docker on your machine following its [official installation instructions](https://docs.docker.com/installation/).
+- Install Docker:
 
-Once you've got Docker installed and running, [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line (it might already come built-in with Docker when installing on Windows or Mac OS X).
+  First, you should deploy Docker on your machine following its [official installation instructions](https://docs.docker.com/installation/).
 
-Then you just need to get or build Hyphe's Docker images:
+  Once you've got Docker installed and running, [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line (it might already come built-in with Docker when installing on Windows or Mac OS X).
 
-- Download the code:
 
-  First collect Hyphe's sourcecode from this git repository (recommended way to benefit from future updates) or download and uncompress a [zipped release](https://github.com/medialab/hyphe/releases), then enter the resulting directory:
+- Download Hyphe:
+
+  Collect Hyphe's sourcecode from this git repository (recommended way to benefit from future updates) or download and uncompress a [zipped release](https://github.com/medialab/hyphe/releases), then enter the resulting directory:
 
   ```bash
   git clone https://github.com/medialab/hyphe.git hyphe
@@ -97,6 +98,9 @@ Then you just need to get or build Hyphe's Docker images:
   ```bash
   docker-compose up -d
   ```
+
+
+- Stop and monitor Hyphe:
 
   Then to stop it, use `docker-compose stop` (or `docker-compose down` to stop it and clean relying data).
 
