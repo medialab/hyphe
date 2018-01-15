@@ -29,19 +29,19 @@ Docker's containers are sizeable: you should ensure **at least 4GB** of empty sp
 
 #### 1. **Install Docker**
 
-  First, you should deploy Docker on your machine following its [official installation instructions](https://docs.docker.com/installation/).
+First, you should deploy Docker on your machine following its [official installation instructions](https://docs.docker.com/installation/).
 
-  Once you've got Docker installed and running, you may have to [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line. Docker Compose is installed along with Docker on Windows and Mac OS X.
+Once you've got Docker installed and running, you may have to [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line. Docker Compose is installed along with Docker on Windows and Mac OS X.
 
 
 #### 2. **Download Hyphe**
 
-  Collect Hyphe's sourcecode from this git repository (recommended way to benefit from future updates) or download and uncompress a [zipped release](https://github.com/medialab/hyphe/releases), then enter the resulting directory:
+Collect Hyphe's sourcecode from this git repository (recommended way to benefit from future updates) or download and uncompress a [zipped release](https://github.com/medialab/hyphe/releases), then enter the resulting directory:
 
-  ```bash
-  git clone https://github.com/medialab/hyphe.git hyphe
-  cd hyphe
-  ```
+```bash
+git clone https://github.com/medialab/hyphe.git hyphe
+cd hyphe
+```
 
 #### 3. **Configure**
 
@@ -60,13 +60,16 @@ The `.env` file lets you configure:
   + `preprod`: for intermediate unstable developments
 + `PUBLIC_PORT`: the web port on which Hyphe will be served (usually 80 for a monoservice server, or any other port you like which will have to be redirected for a shared host)
 + `DATA_PATH`: using Hyphe can quickly consume several gigabytes of hard drive. By default, volumes will be stored within Docker's default directories but you can define your own path here.
+
   __WARNING:__ `DATA_PATH` MUST be either empty, or a full absolute path including leading and trailing slashes.
+
   It is not currently supported under Windows, and should always remain empty in this case (so you should install Hyphe from a drive with enough available space).
 + `RESTART_POLICY`: the way you want containers to be restarted.
   + `no`: is the default restart policy, and it will not restart a container automatically under any circumstance
   + `always`: policy will always restart the container if it stops
   + `on-failure`: policy restarts containers if the exit code indicates an on-failure error
   + `unless-stopped`: policy always restarts containers unless it is explicitly stopped
+
   If you want to start Hyphe at boot, you should use `always` policy and make sure Docker daemon is also started at boot time with your service manager.
 
 Hyphe's internal settings are adjustable within `config-backend.env` and `config-frontend.env`. Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
@@ -74,54 +77,54 @@ Hyphe's internal settings are adjustable within `config-backend.env` and `config
 
 #### 4. **Prepare the Docker containers**
 
-  You have two options: either build or collect Hyphe's Docker containers.
+You have two options: either build or collect Hyphe's Docker containers.
 
-  + **Recommended: Pull** our official preassembled images from the Docker Store
++ **Recommended: Pull** our official preassembled images from the Docker Store
 
-    ```bash
-    docker-compose pull
-    ```
+  ```bash
+  docker-compose pull
+  ```
 
-  + **Alternative: Build** your own images from the source code (mostly for development or if you intend to edit the code, and for some very specific configuration settings):
++ **Alternative: Build** your own images from the source code (mostly for development or if you intend to edit the code, and for some very specific configuration settings):
 
-    ```bash
-    docker-compose build
-    ```
+  ```bash
+  docker-compose build
+  ```
 
-  Pulling should be faster, but it will still take a few minutes to download or build everything either way.
+Pulling should be faster, but it will still take a few minutes to download or build everything either way.
 
 
 #### 5. **Start Hyphe**
 
-  Finally run Hyphe containers with the following command, which will display all of Hyphe's logs in the console and run until pressing `Ctrl+C`.
+Finally run Hyphe containers with the following command, which will display all of Hyphe's logs in the console and run until pressing `Ctrl+C`.
 
-  ```bash
-  docker-compose up
-  ```
+```bash
+docker-compose up
+```
 
-  Or run the containers in the background (for production on a server):
+Or run the containers in the background (for production on a server):
 
-  ```bash
-  docker-compose up -d
-  ```
+```bash
+docker-compose up -d
+```
 
 
 #### 6. **Stop and monitor Hyphe**
 
-  Then to stop it, use `docker-compose stop` (or `docker-compose down` to stop it and clean relying data).
+Then to stop it, use `docker-compose stop` (or `docker-compose down` to stop it and clean relying data).
 
-  You can inspect the logs of the various Docker containers using `docker-compose logs`, or with option `-f` to track latest entries like with `tail`.
+You can inspect the logs of the various Docker containers using `docker-compose logs`, or with option `-f` to track latest entries like with `tail`.
 
-  Whenever you change any configuration file, restart the Docker container to take the changes into account:
+Whenever you change any configuration file, restart the Docker container to take the changes into account:
 
-  ```bash
-  docker-compose stop
-  docker-compose up -d
-  ```
+```bash
+docker-compose stop
+docker-compose up -d
+```
 
-  Run `docker-compose help` to get more explanations on any extra advanced use of Docker.
+Run `docker-compose help` to get more explanations on any extra advanced use of Docker.
 
-  If you encounter issues with the Docker builds, please report an [issue](/issues) including the "Image ID" of the Docker images you used from the output of `docker images` or the last commit ID (read from `git log`) if you installed from source.
+If you encounter issues with the Docker builds, please report an [issue](/issues) including the "Image ID" of the Docker images you used from the output of `docker images` or the last commit ID (read from `git log`) if you installed from source.
 
 
 ### Manual install (complex and only for Linux)
