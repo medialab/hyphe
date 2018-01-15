@@ -1,8 +1,8 @@
 # Hyphe: web corpus builder & links crawler
 
-Welcome to Hyphe: developped by [SciencesPo's médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Web project (Equipex)](http://www.sciencespo.fr/dime-shs/).
+Welcome to [Hyphe](http://hyphe.medialab.sciences-po.fr), a research-driven webcrawler developped at [SciencesPo's médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Web project (Equipex)](http://www.sciencespo.fr/dime-shs/).
 
-[Hyphe](http://hyphe.medialab.sciences-po.fr) aims at providing a tool to crawl data from the web to generate networks between what we call WebEntities, which can be single pages as well as a website or a combination of such.
+Hyphe aims at providing a tool to crawl data from the web and generate networks between what we call WebEntities, which can be single pages as well as a website, subdomains or parts of it, or even a combination of such.
 
 ## Demo
 
@@ -11,99 +11,110 @@ You can try a limited version of Hyphe at the following url: [http://hyphe.media
 
 ## How to install it?
 
-__DISCLAIMER:__ Hyphe has changed a lot in the past few years. Migrating from an older version by pulling the code from git is therefore not guaranteed, it is highly recommended to reinstall from scratch. Older corpora can be reran by exporting the list of WebEntities from the old version and recrawl from that list of urls in the new version.
-
 Before running Hyphe, you will probably want to adjust the settings first. Please read the [Configuration documentation](doc/config.md) for detailed explanation of each available option.
 
 
-### Easy way: using Docker
+### Migrating older versions
+
+Hyphe has changed a lot in the past few years. Migrating from an older version by pulling the code from git is therefore not guaranteed, it is highly recommended to reinstall from scratch. Older corpora can be rebuilt by exporting the list of WebEntities from the old version and recrawl from that list of urls in the new version.
+
+
+### Easy install: using Docker
 
 For an easy install either on Linux, Mac OS X or Windows, the best solution is to rely on [Docker](https://www.docker.com).
 
-Docker enables isolated install and execution of software stacks, which makes simple installing a whole set of dependencies. Although, you should ensure at least 4GB of empty space is available before installing.
+Docker enables isolated install and execution of software stacks, which helps installing easily a whole set of dependencies.
 
-First follow [Docker's installation instructions](https://docs.docker.com/installation/) to install Docker on your machine.
+Docker's containers are a bit voluminous: you should ensure at least 4GB of empty space is available before installing.
+
+First install Docker on your machine following its [official installation instructions](https://docs.docker.com/installation/).
 
 Once you've got Docker installed and running, [install Docker Compose](https://docs.docker.com/compose/install/) to set up and orchestrate Hyphe services in a single line (it might already come built-in with Docker when installing on Windows or Mac OS X).
 
 Then you just need to get or build Hyphe's Docker images:
 
-- First download Hyphe's codebase from this git repository (recommended way to benefit from future updates) or from a [zipped release](https://github.com/medialab/hyphe/releases) and enter the resulting directory.
+- Download the code:
 
-```bash
-git clone https://github.com/medialab/hyphe.git hyphe
-cd hyphe
-```
+  First collect Hyphe's sourcecode from this git repository (recommended way to benefit from future updates) or download and uncompress a [zipped release](https://github.com/medialab/hyphe/releases), then enter the resulting directory:
 
-- Then copy the default configuration files and edit them to adjust the settings to your needs:
+  ```bash
+  git clone https://github.com/medialab/hyphe.git hyphe
+  cd hyphe
+  ```
 
-```bash
-cp .env.example .env
-cp config-backend.env.example config-backend.env
-cp config-frontend.env.example config-frontend.env
-```
+- Configure it:
 
-The `.env` file lets you configure:
- + `TAG`: the reference Docker image you want to work with:
+  Then copy the default configuration files and edit them to adjust the settings to your needs:
 
-   +  `latest` (or `prod`) for the last stable release
-   + `staging` for intermediate unstable developments
+  ```bash
+  # use "copy" instead of "cp" under Windows powershell
+  cp .env.example .env
+  cp config-backend.env.example config-backend.env
+  cp config-frontend.env.example config-frontend.env
+  ```
 
- + `PUBLIC_PORT`: the web port on which Hyphe will be served (usually 80 for a monoservice server, or any other value you like and will have to redirect for a shared host)
- + `DATA_PATH`: using Hyphe can quickly consume several gigabytes of hard drive. By default, volumes will be stored within Docker's default directories but you can define your own path here.
+  The `.env` file lets you configure:
+  + `TAG`: the reference Docker image you want to work with among
+    + `latest` (or `prod`) for the last stable release
+    + `staging` for intermediate unstable developments
+  + `PUBLIC_PORT`: the web port on which Hyphe will be served (usually 80 for a monoservice server, or any other port you like which will have to be redirected for a shared host)
+  + `DATA_PATH`: using Hyphe can quickly consume several gigabytes of hard drive. By default, volumes will be stored within Docker's default directories but you can define your own path here (except.
+    __WARNING:__ `DATA_PATH` MUST be either empty, or a full absolute path including leading and trailing slashes.
+    It is not currently supported under Windows, and should always remain empty in this case (so you should install Hyphe from a drive with enough available space).
 
-__WARNING:__ `DATA_PATH` MUST be either empty, or a full absolute path including leading and trailing slashes. When installing under Windows, it should always remain empty (so you should install Hyphe from a drive with enough available space).
-
-Hyphe's internal settings are adjustable within `config-backend.env` and `config-frontend.env`. Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
-
-
-- Then build or collect the Hyphe's Docker containers:
-
- + Either by pulling official images from Docker Store (recommended way):
-
-```bash
-docker-compose pull
-```
-
- + Or by building your own images from the source code (mostly for development when editing the sourcecode, and for some specific configuration settings):
-
-```bash
-docker-compose build
-```
-
-It will take a couple of minutes to download or build everything.
-
-- Finally run Hyphe containers with the following command:
-
-```bash
-docker-compose up
-```
-
-It will display all of Hyphe's logs in the console and stop Hyphe when pressing ```Ctrl+C```.
-
-Or to run the containers in the background:
-
-```bash
-docker-compose up -d
-```
-
-Then to stop it, use `docker-compose stop` (or `docker-compose down` to stop it and remove all relying data).
-
-You can inspect the logs of the various Docker containers using ```docker-compose logs```, or with option `-f` to track latest entries.
-
-Whenever you change any configuration file, restart the Docker container to take the changes into account:
-
-```bash
-docker-compose stop
-docker-compose up -d
-```
-
-Run `docker-compose help` to get more explanations on any extra advanced use of Docker.
-
-If you encounter issues with the Docker builds, please report an [issue](/issues) including the "Image ID" of the Docker images you used from the output of `docker images` or the last commit ID (read from `git log`) if you installed from source.
+  Hyphe's internal settings are adjustable within `config-backend.env` and `config-frontend.env`. Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
 
 
-### Manual way (complex) (only for Linux)
+- Prepare the Docker containers:
+
+  Either build or collect Hyphe's Docker containers:
+
+  + By pulling our official preassembled images from the Docker Store (recommended way):
+
+    ```bash
+    docker-compose pull
+    ```
+
+  + Or by building your own images from the source code (mostly for development or if you intend to edit the code, and for some very specific configuration settings):
+
+    ```bash
+    docker-compose build
+    ```
+
+  Pulling should be faster, but it will still take a few minutes to download or build everything either way.
+
+
+- Start Hyphe:
+
+  Finally run Hyphe containers with the following command, which will display all of Hyphe's logs in the console and run until pressing `Ctrl+C`.
+
+  ```bash
+  docker-compose up
+  ```
+
+  Or run the containers in the background (for production on a server):
+
+  ```bash
+  docker-compose up -d
+  ```
+
+  Then to stop it, use `docker-compose stop` (or `docker-compose down` to stop it and clean relying data).
+
+  You can inspect the logs of the various Docker containers using `docker-compose logs`, or with option `-f` to track latest entries like with `tail`.
+
+  Whenever you change any configuration file, restart the Docker container to take the changes into account:
+
+  ```bash
+  docker-compose stop
+  docker-compose up -d
+  ```
+
+  Run `docker-compose help` to get more explanations on any extra advanced use of Docker.
+
+  If you encounter issues with the Docker builds, please report an [issue](/issues) including the "Image ID" of the Docker images you used from the output of `docker images` or the last commit ID (read from `git log`) if you installed from source.
+
+
+### Manual install (complex and only for Linux)
 
 If your computer or server relies on an old Linux distribution unable to run Docker, if you want to contribute to Hyphe's backend development or for any other personal reason, you might want to rather install Hyphe manually by following the [manual install instructions](doc/install.md).
 
