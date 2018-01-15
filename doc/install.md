@@ -18,14 +18,12 @@ First, install possible missing required basics using apt/aptitude:
 ```bash
 sudo apt-get update
 sudo apt-get install git curl apache2 build-essential gcc musl-dev python2.7-dev python-pip libxml2-dev libxslt1-dev openssl libssl-dev libffi-dev
-#libstdc++6-dev
 ```
 
 Or, with yum under CentOS/RedHat like distributions, the packages names can be slightly different and some extra commands might be required:
 ```bash
 sudo yum check-update
 sudo yum install git curl httpd gcc python2.7-devel python-setuptools python-pip libxml2-devel libxslt-devel openssl-devel libffi-devel
-#libstdc++.so.6
 # Fix possibly misnamed pip
 pip > /dev/null || alias pip="python-pip"
 # Activate Apache's autorestart on reboot
