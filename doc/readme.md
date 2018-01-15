@@ -1,9 +1,9 @@
 # Hyphe documentation
 
-- [Docker Installation](README.md#how-to-install-it)
-- [Manual Installation](doc/install.md)
-- [Serve Hyphe publicly on the web](doc/serve.md)
-- [Configuration](doc/config.md)
-- [Roadmap for the future](doc/roadmap.md)
-- [Information for developers](doc/dev.md)
-- [Backend API documentation](doc/api.md)
+- [Docker Installation](../README.md#how-to-install-it)
+- [Manual Installation](install.md)
+- [Serve Hyphe publicly on the web](serve.md)
+- [Configuration](config.md)
+- [Roadmap for the future](roadmap.md)
+- [Information for developers](dev.md)
+- [Backend API documentation](api.md)
