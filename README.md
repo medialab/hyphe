@@ -82,7 +82,7 @@ Docker's containers are sizeable: you should ensure **at least 4GB** of empty sp
     docker-compose pull
     ```
 
-  + **Alternative: build** your own images from the source code (mostly for development or if you intend to edit the code, and for some very specific configuration settings):
+  + **Alternative: Build** your own images from the source code (mostly for development or if you intend to edit the code, and for some very specific configuration settings):
 
     ```bash
     docker-compose build
