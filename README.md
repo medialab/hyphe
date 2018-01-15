@@ -76,13 +76,13 @@ Docker's containers are sizeable: you should ensure **at least 4GB** of empty sp
 
   You have two options: either build or collect Hyphe's Docker containers.
 
-  + **Recommended: Pull our official preassembled images** from the Docker Store
+  + **Recommended: Pull** our official preassembled images from the Docker Store
 
     ```bash
     docker-compose pull
     ```
 
-  + Alternative: build your own images from the source code (mostly for development or if you intend to edit the code, and for some very specific configuration settings):
+  + **Alternative: build** your own images from the source code (mostly for development or if you intend to edit the code, and for some very specific configuration settings):
 
     ```bash
     docker-compose build
