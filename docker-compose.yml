@@ -6,6 +6,7 @@ volumes:
     mongo-data:
 services:
   backend:
+    restart: ${RESTART_POLICY}
     image: scpomedialab/hyphe_backend:${TAG}
     build: .
     links:
@@ -22,6 +23,7 @@ services:
       - ${DATA_PATH}archives:/app/archives
       - ${DATA_PATH}traph-data:/app/traph-data
   frontend:
+    restart: ${RESTART_POLICY}
     image: scpomedialab/hyphe_frontend:${TAG}
     build: ./hyphe_frontend
     ports:
@@ -31,11 +33,13 @@ services:
     env_file:
      - config-frontend.env
   crawler:
+    restart: ${RESTART_POLICY}
     image: scpomedialab/hyphe_crawler:${TAG}
     build: ./hyphe_backend/crawler
     links:
       - "mongo:mongo"
   mongo:
+    restart: ${RESTART_POLICY}
     image: mongo:3.0
     volumes:
       - ${DATA_PATH}mongo-data:/data/db

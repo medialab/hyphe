@@ -62,6 +62,12 @@ Docker's containers are a bit voluminous: you should ensure at least 4GB of empt
   + `DATA_PATH`: using Hyphe can quickly consume several gigabytes of hard drive. By default, volumes will be stored within Docker's default directories but you can define your own path here (except.
     __WARNING:__ `DATA_PATH` MUST be either empty, or a full absolute path including leading and trailing slashes.
     It is not currently supported under Windows, and should always remain empty in this case (so you should install Hyphe from a drive with enough available space).
+  + `RESTART_POLICY`: the way you want containers to be restarted.
+    + `no` is the default restart policy, and it will not restart a container under any circumstance
+    + `always` policy will always restart the container if it stops
+    + `on-failure` policy restarts containers if the exit code indicates an on-failure error
+    + `unless-stopped` policy always restarts containers unless it is explicitly stopped
+    If you want to start Hyphe at boot, you should use `always` policy and make sure Docker daemon is also started at boot time with your service manager.
 
   Hyphe's internal settings are adjustable within `config-backend.env` and `config-frontend.env`. Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
 
