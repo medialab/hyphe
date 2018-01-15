@@ -100,7 +100,7 @@ sudo pip install pymongo txmongo selenium==2.42.1 urllib3[secure]
 
 - Start scrapyd manually:
 
-__Disclaimer:__ The following method is ugly. ScrapyD should ideally rather be installed as a SystemD service (or, depending on your distribution, SysVInit or Upstart) which would be way better.
+__Disclaimer:__ The following method is ugly. ScrapyD should ideally rather be installed as a SystemD service (or, depending on your distribution, SysVInit or Upstart) which would be way better. You're very welcome to propose a proper alternative if you manage to make it work! :)
 
 ```bash
 sudo nohup scrapyd -u scrapy -g --pidfile /var/run/scrapyd.pid -l /var/log/scrapyd/scrapyd.log &
