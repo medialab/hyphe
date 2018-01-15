@@ -1,8 +1,8 @@
 # Hyphe: web corpus builder & links crawler
 
-Welcome to [Hyphe](http://hyphe.medialab.sciences-po.fr), a research-driven web crawler developped at the [SciencesPo médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Web project (ANR-10-EQPX-19-01)](http://www.sciencespo.fr/dime-shs/).
+Welcome to [Hyphe](http://hyphe.medialab.sciences-po.fr), a research-driven web crawler developped at the [Sciences Po médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Web project (ANR-10-EQPX-19-01)](http://www.sciencespo.fr/dime-shs/).
 
-Hyphe aims at providing a tool to crawl data from the web and generate networks between what we call "web entitiesé, which can be single pages as well as a website, subdomains or parts of it, or even a combination of those.
+Hyphe aims at providing a tool to crawl data from the web and generate networks between what we call "web entities", which can be single pages as well as a website, subdomains or parts of it, or even a combination of those.
 
 ## Demo
 
@@ -11,12 +11,12 @@ You can try a limited version of Hyphe at the following url: [http://hyphe.media
 
 ## How to install?
 
-Before running Hyphe, you may want to adjust the settings first. The default config will work but you will need to tune it for your own need. There is a procedure to change the configuration after the installation. However we recommend to take a look at the [Configuration documentation](doc/config.md) for detailed explanation of each available option.
+Before running Hyphe, you may want to adjust the settings first. The default config will work but you will probably need to tune it for your own needs. There is a procedure to change the configuration after the installation. However we recommend to take a look at the [Configuration documentation](doc/config.md) for detailed explanation of each available option.
 
 
 ### Migrating older versions
 
-Hyphe has changed a lot in the past few years. Migrating from an older version by pulling the code from git is therefore not guaranteed, it is highly recommended to reinstall from scratch. Older corpora can be rebuilt by exporting the list of WebEntities from the old version and recrawl from that list of urls in the new version.
+Hyphe has changed a lot in the past few years. Migrating from an older version by pulling the code from git is therefore not guaranteed, it is highly recommended to reinstall from scratch. Older corpora can be rebuilt by exporting the list of webEntities from the old version and recrawl from that list of urls in the new version.
 
 
 ### Easy install: using Docker
@@ -45,31 +45,31 @@ Docker's containers are sizeable: you should ensure **at least 4GB** of empty sp
 
 #### 3. **Configure**
 
-  Then copy the default configuration files and edit them to adjust the settings to your needs:
+Then copy the default configuration files and edit them to adjust the settings to your needs:
 
-  ```bash
-  # use "copy" instead of "cp" under Windows powershell
-  cp .env.example .env
-  cp config-backend.env.example config-backend.env
-  cp config-frontend.env.example config-frontend.env
-  ```
+```bash
+# use "copy" instead of "cp" under Windows powershell
+cp .env.example .env
+cp config-backend.env.example config-backend.env
+cp config-frontend.env.example config-frontend.env
+```
 
-  The `.env` file lets you configure:
-  + `TAG`: the reference Docker image you want to work with among
-    + `latest` (or `prod`) for the last stable release
-    + `staging` for intermediate unstable developments
-  + `PUBLIC_PORT`: the web port on which Hyphe will be served (usually 80 for a monoservice server, or any other port you like which will have to be redirected for a shared host)
-  + `DATA_PATH`: using Hyphe can quickly consume several gigabytes of hard drive. By default, volumes will be stored within Docker's default directories but you can define your own path here (except.
-    __WARNING:__ `DATA_PATH` MUST be either empty, or a full absolute path including leading and trailing slashes.
-    It is not currently supported under Windows, and should always remain empty in this case (so you should install Hyphe from a drive with enough available space).
-  + `RESTART_POLICY`: the way you want containers to be restarted.
-    + `no` is the default restart policy, and it will not restart a container under any circumstance
-    + `always` policy will always restart the container if it stops
-    + `on-failure` policy restarts containers if the exit code indicates an on-failure error
-    + `unless-stopped` policy always restarts containers unless it is explicitly stopped
-    If you want to start Hyphe at boot, you should use `always` policy and make sure Docker daemon is also started at boot time with your service manager.
+The `.env` file lets you configure:
++ `TAG`: the reference Docker image you want to work with among
+  + `prod`: for the last stable release
+  + `preprod`: for intermediate unstable developments
++ `PUBLIC_PORT`: the web port on which Hyphe will be served (usually 80 for a monoservice server, or any other port you like which will have to be redirected for a shared host)
++ `DATA_PATH`: using Hyphe can quickly consume several gigabytes of hard drive. By default, volumes will be stored within Docker's default directories but you can define your own path here.
+  __WARNING:__ `DATA_PATH` MUST be either empty, or a full absolute path including leading and trailing slashes.
+  It is not currently supported under Windows, and should always remain empty in this case (so you should install Hyphe from a drive with enough available space).
++ `RESTART_POLICY`: the way you want containers to be restarted.
+  + `no`: is the default restart policy, and it will not restart a container automatically under any circumstance
+  + `always`: policy will always restart the container if it stops
+  + `on-failure`: policy restarts containers if the exit code indicates an on-failure error
+  + `unless-stopped`: policy always restarts containers unless it is explicitly stopped
+  If you want to start Hyphe at boot, you should use `always` policy and make sure Docker daemon is also started at boot time with your service manager.
 
-  Hyphe's internal settings are adjustable within `config-backend.env` and `config-frontend.env`. Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
+Hyphe's internal settings are adjustable within `config-backend.env` and `config-frontend.env`. Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
 
 
 #### 4. **Prepare the Docker containers**
