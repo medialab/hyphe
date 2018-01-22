@@ -455,44 +455,41 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           }
           var nodesToDelete = []
           g.nodes().forEach(function(nid){
-            var n = g.getNodeAttributes(nid)
             var degree = g.degree(nid)
-            if (degree < allThreshold || (n.status == 'DISCOVERED' && degree < discThreshold)) {
+            if (degree < allThreshold || (g.getNodeAttribute(nid, "status") == 'DISCOVERED' && degree < discThreshold)) {
               nodesToDelete.push(nid)
             }
           })
           g.dropNodes(nodesToDelete)
 
-          // Default nodes appearance
-          g.nodes().forEach(function(nid){
-            var n = g.getNodeAttributes(nid)
-            n.color = '#666'
-            n.size = 1
-          })
-
-          // Init Label and coordinates
           var nodesArea = g.order * 10
           g.nodes().forEach(function(nid){
-            var n = g.getNodeAttributes(nid)
-            var xy = generateRandomCoordinates(nodesArea)
-            n.x = xy.x
-            n.y = xy.y
-            n.label = n.name
-          })
+            // Remove duplicate fields
+            g.removeNodeAttribute(nid, 'id')
+            g.removeNodeAttribute(nid, '_id')
 
-          // Tags
-          g.nodes().forEach(function(nid){
-            var n = g.getNodeAttributes(nid)
+            // Default nodes appearance
+            g.setNodeAttribute(nid, 'color', '#666')
+            g.setNodeAttribute(nid, 'size', 1)
+
+            // Init Label and coordinates
+            var xy = generateRandomCoordinates(nodesArea)
+            g.setNodeAttribute(nid, 'x', xy.x)
+            g.setNodeAttribute(nid, 'y', xy.y)
+            g.setNodeAttribute(nid, 'label', g.getNodeAttribute(nid, 'name'))
+
+            // Tags
             var tagCat
             for (tagCat in $scope.tagCategories) {
               var tagVal = ''
               try {
-                tagVal = n.tags.USER[tagCat]
+                tagVal = g.getNodeAttribute(nid, 'tags').USER[tagCat]
               } catch(e) {
                 tagVal = ''
               }
-              n[tagCat.trim()] = tagVal
+              g.setNodeAttribute(nid, tagCat.trim(), tagVal);
             }
+            g.removeNodeAttribute(nid, "tags");
           })
 
           // Default color for edges
