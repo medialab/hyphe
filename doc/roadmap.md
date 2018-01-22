@@ -5,8 +5,8 @@ To let you know where we're heading, we describe here what we have in mind for H
 ## Next features in the pile
 
 - Display a webentity's ego network
-- Import a webentities corpus and autorecrawl from scratch from a previously exported corpus
-- Stabilize javascript enabled crawling using new Phantom v2.0
+- Import a previously exported corpus of web entities, and autorebuild & recrawl it from scratch in a few clicks
+- Stabilize javascript enabled crawling (using for instance PhantomJS 2, Pupeteer, Fathom...)
 - Advanced corpus and crawls settings from the interface (already accesible from the API only)
 - Propose a monitoring tool to identify possibly failed or incomplete crawls
 
@@ -29,7 +29,7 @@ It would be nice to include the concept of the time evolution of a web corpus in
 
 ## Refactoring we have in mind
 
-Hyphe already has a long story of development. Almost 5 years have passed since the very first idea. So part of the software's architecture requires some cleaning.
+Hyphe already has a long story of development. Almost 8 years have passed since the very first idea and multiple full rewrites already happened. But parts of the software's architecture could still benefit from some more cleaning.
 
 ### - A new core API?
 

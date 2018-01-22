@@ -2,11 +2,10 @@
 
 __Notes:__
 - Hyphe is intended to be installed using Docker on most OS (Windows, Mac OS X, Linux). Building manually is only possible under Linux distributions. It can be complex due to a variety of issues and is therefore not guaranteed. Please rather use the regular Docker install if you have little experience with command line and Linux administration.
-- MongoDB is limited to 2Go databases on 32bit systems, so we recommand to always install Hyphe on a 64bit machine.
-- Do __not__ add `sudo` to any of the following example commands. Every line of shell written here should be ran from Hyphe's root directory and `sudo` should only be used when explicitly listed.
+- MongoDB is limited to 2GB databases on 32bit systems, so we recommend to always install Hyphe on a 64bit machine.
+- Do __not__ add `sudo` to any of the following example commands. Every piece of shell written here should be ran from Hyphe's root directory and `sudo` should only be used when explicitly listed.
 
-The following installation instructions have been tested and under Ubuntu 16.04.3 LTS. It should be possible to adapt these commands to older Ubuntu versions and diverse Debian and CentOS distributions (using yum instead of apt where necessary and so on).
-
+The following installation instructions have been tested under Ubuntu 16.04.3 LTS. It should be possible to adapt these commands to older Ubuntu versions and diverse Debian and CentOS distributions (using `yum` instead of `apt` where necessary and so on).
 
 [MongoDB](http://www.mongodb.org/) (a NoSQL database server), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) (a crawler framework server) and Python 2.7 are required for the backend to work.
 
@@ -42,8 +41,11 @@ cd hyphe
 
 ## 2) Install [MongoDB](http://www.mongodb.org/)
 
-As they are usually very old, we recommand not to use the MongoDB packages shipped within distributions official repositorie).
-Rather follow official installation instructions: [https://docs.mongodb.com/tutorials/](https://docs.mongodb.com/tutorials/). Search the link for "MongoDB Community Edition" for your distribution and follow the instructions. For instance for Ubuntu 16.04:
+As they are usually very old, we recommend not to use the MongoDB packages shipped within distributions official repositories.
+
+Rather follow official installation instructions: [https://docs.mongodb.com/tutorials/](https://docs.mongodb.com/tutorials/). Search the link for "MongoDB Community Edition" for your distribution and follow the instructions.
+
+For instance for Ubuntu 16.04:
 
 ```bash
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
@@ -92,21 +94,22 @@ sudo mkdir -p /var/lib/scrapyd/items
 sudo chown scrapy:nogroup /var/log/scrapyd /var/lib/scrapyd /var/lib/scrapyd/eggs /var/lib/scrapyd/dbs /var/lib/scrapyd/items
 ```
 
-- Install globally the python dependencies required by Hyphe's Scrapy spider so that ScrapyD can use them.
+- Install globally the python dependencies required by Hyphe's Scrapy spider so that ScrapyD can use them:
 
 ```bash
 sudo pip install pymongo txmongo selenium==2.42.1 urllib3[secure]
 ```
 
-- Start scrapyd manually:
+- Start ScrapyD manually:
 
-__Disclaimer:__ The following method is ugly. ScrapyD should ideally rather be installed as a SystemD service (or, depending on your distribution, SysVInit or Upstart) which would be way better. You're very welcome to propose a proper alternative if you manage to make it work! :)
+__Disclaimer:__ The following method is ugly. ScrapyD should ideally rather be installed as a SystemD service (or, depending on your distribution, SysVinit or Upstart) which would be way better. You're very welcome to propose a proper reproducible alternative if you manage to make it work! :) (hints [here](http://scrapy-docs.yawik.org/build/html/install/scrapy.html) and [there](https://github.com/scrapy/scrapyd/issues/217) and from [Twisted's doc](http://twistedmatrix.com/documents/current/core/howto/systemd.html))
 
 ```bash
 sudo nohup scrapyd -u scrapy -g --pidfile /var/run/scrapyd.pid -l /var/log/scrapyd/scrapyd.log &
 ```
 
-And if you want it to always start when your machine boots, you can (again, very ugly instead of a service) set it as a `@reboot` cronjob by running `sudo crontab -e` and add within the following line:
+And if you want it to always start when your machine boots, you can (again, very ugly instead of a service) set it as a `@reboot` cronjob by running `sudo crontab -e` and add the following line within:
+
 ```cronjob
 @reboot         nohup scrapyd -u scrapy -g --pidfile /var/run/scrapyd.pid -l /var/log/scrapyd/scrapyd.log &
 ```
@@ -118,9 +121,10 @@ You can test whether ScrapyD is properly installed and running by querying [http
 ```
 
 
-## 5) Setup Hyphe's backend Python virtual environment:
+## 4) Setup Hyphe's backend Python virtual environment
 
 We recommend using virtualenv with virtualenvwrapper:
+
 ```bash
 # Install VirtualEnv & Wrapper
 sudo pip install virtualenv
@@ -134,20 +138,25 @@ pip install -r requirements.txt
 deactivate
 ```
 
-## 6) Build Hyphe's frontend:
+**Warning:** the virtualenv's name (`hyphe_traph`) matters. Do not change it, or edit the value within the starter script `bin/hyphe`.
 
-First install [nodeJs](https://nodejs.org/en/), preferably a recent version from their own repositories ([https://nodejs.org/en/download/package-manager/](https://nodejs.org/en/download/package-manager/)) than from the distribution's official repositories.
 
-Then in the frontend's directory, install dependencies and build the bundle:
+## 5) Build Hyphe's frontend
+
+First install [nodeJs](https://nodejs.org/en/), preferably a [recent version from official source]https://nodejs.org/en/download/package-manager/) than deprecated old versions from your distribution's official repositories.
+
+Then in Hyphe's frontend directory, install dependencies and build the bundle:
 
 ```bash
 cd hyphe_frontend
 npm install
+cd ..
 ```
 
-## 7) Configure Hyphe:
 
-### 7.1) Setup the backend
+## 6) Configure Hyphe
+
+### 6.1) Setup the backend
 
 - Copy and adapt the sample `config.json.example` to `config.json` in the `config` directory:
 
@@ -158,15 +167,16 @@ sed "s|##HYPHEPATH##|"`pwd`"|" config/config.json.example > config/config.json
 - Edit the `config.json` file and adjust the settings as explained in the [configuration documentation](config.md)
 
 
-### 7.2) Setup the frontend
+### 6.2) Setup the frontend
 
 Copy and adapt the sample `conf_default.json` to `conf.json` in the `hyphe_frontend/app/conf` directory:
+
 ```bash
 sed "s|##WEBPATH##|hyphe|" hyphe_frontend/app/conf/conf_default.js > hyphe_frontend/app/conf/conf.js
 ```
 
 
-### 7.3) Serve everything with Apache
+### 6.3) Serve everything with Apache
 
 The backend core API relies on a Twisted web server serving on a dedicated port (defined as `core_api_port` in `config.json` just before). For external access, proxy redirection is handled by Apache.
 
@@ -212,10 +222,10 @@ sudo service httpd reload
 
 This will install Hyphe locally only first: [http://localhost/hyphe](http://localhost/hyphe). The page should be accessible even though the website should not work yet since we have not started the server, see next section.
 
-If you encounter issues here or would like to serve Hyphe on the web, please [see the related documentation](serve.md).
+If you encounter issues here or would like to serve Hyphe on the web, please [see the related documentation](serve.md#if-you-installed-manually).
 
 
-### 7.4) Run Hyphe!
+## 7) Run Hyphe!
 
 To start, stop or restart the server's daemon, run (with the proper rights, so __no__ `sudo` if you installed as your user!):
 
@@ -225,12 +235,12 @@ bin/hyphe <start|restart|stop> [--nologs]
 
 You should now be able to enjoy Hyphe at [http://localhost/hyphe](http://localhost/hyphe)!
 
-By default the starter will display Hyphe's log in the console using ```tail```. You can ```Ctrl+C``` whenever you want without shutting it off. Use the ```--nologs``` option to disable this.
+By default the starter will display Hyphe's log in the console using `tail`. You can `Ctrl+C` whenever you want without shutting it off. Use the `--nologs` option to disable this.
 
-You can always check the logs for both the core backend and each corpus' MemoryStructure in the ```log``` directory.
+You can always check all logs in the `log` directory.
 
 
-## Extra) [Unnecessary for now] Install [PhantomJS](http://phantomjs.org/)
+## Extra) Install [PhantomJS](http://phantomjs.org/) [Unrequired for now]
 
 __Important:__ Crawling with PhantomJS is currently only possible as an advanced option in Hyphe. Do not bother with this section except for advanced use or development.
 
