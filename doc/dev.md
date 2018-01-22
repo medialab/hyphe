@@ -4,7 +4,7 @@
 
 Hyphe relies on the following main components/directories:
 
-- `[hyphe-traph](https://github.com/medialab/hyphe-traph)`: a dedicated database designed for WebEntities & WebEntityLinks handling
+- [`hyphe-traph`](https://github.com/medialab/hyphe-traph): a dedicated database designed for WebEntities & WebEntityLinks handling
 - `hyphe_backend`: Python 2.6/2.7 controllers for the crawling and backend API, with MongoDB buffer database to store crawled data
   + core.tac: a Twisted based JSON-RPC API controller
   + crawler: a Scrapy spider project to build and deploy on ScrapyD
