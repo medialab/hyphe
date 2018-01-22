@@ -34,7 +34,7 @@ The API will always answer as such:
 
 grep 'def jsonrpc_\|accessible jsonrpc\|^  #' hyphe_backend/core.tac        |
  sed 's/# accessible jsonrpc.*\(".*"\)/- [Commands for namespace: \1](#/'   |
- sed 's/^  #\s*\(.*\)$/+ [\1](#/'                                          |
+ sed 's/^  #\s*\(.*\)$/+ [\1](#/'                                           |
  sed 's/^.*jsonrpc\_\(.*\)(self.*$/* __`\1`__/' > /tmp/hyphedocapi.tmp
 
 cat /tmp/hyphedocapi.tmp | while read line; do
@@ -58,16 +58,16 @@ grep 'def jsonrpc_\|accessible jsonrpc\|"""\|^  #' hyphe_backend/core.tac   |
  sed 's/^ \+"""/ /'                                                         |
  sed 's/"""$/\n/'                                                           |
  sed 's/^.*jsonrpc\_/\n- __`/'                                              |
- sed 's/(self[, ]*/`:__\n + _`/'                                            |
+ sed 's/(self[, ]*/`:__\n  + _`/'                                           |
  sed 's/):$/\n/'                                                            |
  sed 's/\\n- /\n  * /g'                                                     |
  sed 's/\\n\s*/\n /g'                                                       |
- grep -v '^ + _`$'                                                          |
- sed 's/\([^\\]\), /\1\n + _`/g'                                            |
+ grep -v '^  + _`$'                                                         |
+ sed 's/\([^\\]\), /\1\n  + _`/g'                                           |
  sed 's/\\,/,/g'                                                            |
- sed 's/^ + \(_`[a-z_]\+_*\)$/ + \1`_ (mandatory)/i'                        |
+ sed 's/^  + \(_`[a-z_]\+_*\)$/  + \1`_ (mandatory)/i'                      |
  sed 's/=\("*.*"*\)$/`_ (optional, default: `\1`)/'                         |
- grep -v '^ + _`_'                                                          |
+ grep -v '^  + _`_'                                                         |
  sed 's/ms.WebEntityStatus.*IN]/"IN"/'                                      |
  sed "s/config\['mongo-scrapy'\]\['download_delay'\]/$downloaddelay/"       |
  sed 's/DEFAULT_CORPUS/"'"$defcorpus"'"/'                                   |

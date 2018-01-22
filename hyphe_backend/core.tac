@@ -544,7 +544,7 @@ class Core(customJSONRPC):
             returnD(res)
         returnD("Corpus %s cleaned up" % corpus_metas['_id'])
 
-  # CORE & CORPUS STATUS
+  # CORE AND CORPUS STATUS
 
     def jsonrpc_get_status(self, corpus=DEFAULT_CORPUS):
         """Returns global metadata on Hyphe's status and specific information on a `corpus`."""
@@ -2012,7 +2012,7 @@ class Memory_Structure(customJSONRPC):
             yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.PENDING})
             yield self.db.add_log(corpus, update_ids, "INDEX_"+indexing_statuses.PENDING)
 
-  # RETRIEVE & SEARCH WEBENTITIES
+  # RETRIEVE AND SEARCH WEBENTITIES
 
     @inlineCallbacks
     def count_webentities(self, corpus=DEFAULT_CORPUS):
@@ -2530,7 +2530,7 @@ class Memory_Structure(customJSONRPC):
                         values |= set(tags[ns][cat].keys())
         return format_result(list(values))
 
-  # PAGES, LINKS & NETWORKS
+  # PAGES, LINKS AND NETWORKS
 
     # TODO HANDLE PAGES EXTRA FIELDS
     def format_page(self, page, linked=False):
