@@ -2,7 +2,7 @@
 
 The following describes all configuration options one can set for Hyphe.
 
-For installations using Docker, most of these variables should be set using Environment variables to be defined in the files `config-backend.env` and `config-frontend.env`.
+For installations using Docker, most of these variables should be set using Environment variables to be defined in the files `config-backend.env` and `config-frontend.env`. Docker unfortunately does not support environment variables on multiple lines, so even though it is not much readable, the variables which are expressed ad arrays or JSON objects should always remain monoline and not be surrounded by quotes (as in the `config-backend.env.example`).
 
 Some rare advanced options are not directly configurable for Docker using these Environment variables. You should not require those for most uses, but if necessary, you can set them up by editing the files within the `config` directory of Hyphe after the Docker container has been started at least once (use `docker volume ls` to identify the config volume, then `docker volume inspect <VOLUME_NAME>` to collect the path given in `Mountpoint`, you will find the config files to edit within using sudo).
 
@@ -77,22 +77,22 @@ Typical important options to set depending on your situation are highlighted as 
   usually `6978`, the port through which the server and the web interface will communicate. Typically useful when wanting to deploy multiple Hyphe instances on the same server
 
 
-- __`defaultStartpagesMode [str | str array]`__ (should be edited in `config.json` even for Docker by accessing the content of the config volume):
+- __`defaultStartpagesMode [str | str array]`__ (in Docker: __`HYPHE_DEFAULT_STARTPAGES_MODE`__):
 
   usually `["prefixes", "pages-5"]`, possibly one or many of `"startpages"`, `"prefixes"`, `"pages-<N>"`. Sets the default behavior when crawling discovered WebEntities with no startpage manually set. When using only `"startpages"`, crawl will fail on WebEntities with no humanly set startpage. With other options, Hyphe will try respectively the `"N"` most linked pages known of the WebEntity (`"pages-<N>"`) or all of its prefixes (`"prefixes"`), then add them automatically to the WebEntity's startpages on success during crawl.
 
 
-- __`defaultCreationRule [str]`__ (in Docker: `HYPHE_DEFAULT_CREATION_RULE`):
+- __`defaultCreationRule [str]`__ (in Docker: __`HYPHE_DEFAULT_CREATION_RULE`__):
 
   usually `"domain"`, possibly one of `"subdomain"`, `"subdomain-<N>"`, `"domain"`, `"path-<N>"`, `"page"`, `"prefix+<N>"`. Sets the default behavior when discovering new web pages, meaning the creation of a new WebEntity for each different discovered `"domain"`, `"subdomain"`, etc. `<N>` being an integer. Read [more about creation rules in the wiki](https://github.com/medialab/hyphe/wiki/Web-entities#web-entities-creation-rules) and the [dedicated code](/hyphe_backend/lib/creationrules.py)
 
 
-- __`creationRules [object]`__ (should be edited in `config.json` even for Docker by accessing the content of the config volume):
+- __`creationRules [object]`__ (in Docker: __`HYPHE_CREATION_RULES`__):
 
   see default values for example, an object defined with domain names as keys and creationrules as values (read `defaultCreationRule` above for explanations on creationrules)
 
 
-- __`discoverPrefixes [str array]`__ (should be edited in `config.json` even for Docker by accessing the content of the config volume):
+- __`discoverPrefixes [str array]`__ (in Docker: __`HYPHE_FOLLOW_REDIRECTS`__):
 
   see default values for example, a list of domain names for which the crawler will automatically try to resolve redirections in order to avoid having links shorteners in the middle of the graph of links
 
