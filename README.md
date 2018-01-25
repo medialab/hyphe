@@ -75,6 +75,8 @@ The `.env` file lets you configure:
 
 Hyphe's internal settings are adjustable within `config-backend.env` and `config-frontend.env`. Adjust the settings values to your needs following [recommendations from the config documentation](doc/config.md).
 
+If you want to restrict Hyphe's access to a selected few, you should leave `HYPHE_OPEN_CORS_API` false in `config-backend.env`, and setup `HYPHE_HTPASSWORD_USER` & `HYPHE_HTPASSWORD_PASS` in `config-frontend.env` (use `openssl passwd -apr1` to generate your password's encrypted value).
+
 
 #### 4. Prepare the Docker containers
 

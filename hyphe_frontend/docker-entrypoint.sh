@@ -7,13 +7,18 @@ CONFIGFILE=/frontend/app/conf/conf.js
 # This sets the API url & handle the case of microsoft browsers not handling CORS correctly
 sed --in-place "s|'serverURL'\s*,.*|'serverURL', window.location.pathname === '/' ? '/api/' : window.location.pathname + '/api/')|" $CONFIGFILE
 
-[[ ! -z ${HYPHE_GOOGLE_ANALYTICS_ID} ]] && sed --in-place "s|'googleAnalyticsId'\s*,.*|'googleAnalyticsId', '${HYPHE_GOOGLE_ANALYTICS_ID}')|" $CONFIGFILE
+[[ ! -z ${HYPHE_GOOGLE_ANALYTICS_ID} ]] &&
+  sed --in-place "s|'googleAnalyticsId'\s*,.*|'googleAnalyticsId', '${HYPHE_GOOGLE_ANALYTICS_ID}')|" $CONFIGFILE
 
+[[ ! -z ${HYPHE_DISCLAIMER} ]] &&
+  sed --in-place "s|'disclaimer'\s*,.*|'disclaimer', '${HYPHE_DISCLAIMER}')|" $CONFIGFILE
 
-[[ ! -z ${HYPHE_DISCLAIMER} ]] && sed --in-place "s|'disclaimer'\s*,.*|'disclaimer', '${HYPHE_DISCLAIMER}')|" $CONFIGFILE
+[[ ! -z ${HYPHE_BROWSER_URL} ]] &&
+  sed --in-place "s|'hyBroURL'\s*,.*|'hyBroURL', '${HYPHE_BROWSER_URL}')|" $CONFIGFILE
 
-
-[[ ! -z ${HYPHE_BROWSER_URL} ]] && sed --in-place "s|'hyBroURL'\s*,.*|'hyBroURL', '${HYPHE_BROWSER_URL}')|" $CONFIGFILE
+[[ ! -z ${HYPHE_HTPASSWORD_USER} ]] && [[ ! -z ${HYPHE_HTPASSWORD_PASS} ]] &&
+  printf "${HYPHE_HTPASSWORD_USER}:${HYPHE_HTPASSWORD_PASS}\n" > .htpasswd &&
+  sed -r --in-place 's|( location / \{)|\1\n        auth_basic Restricted;\n        auth_basic_user_file /frontend/.htpasswd;|' /etc/nginx/conf.d/default.conf
 
 chmod -R 550 /frontend/app && chown -R nginx:nginx /frontend/app
 
