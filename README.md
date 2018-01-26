@@ -130,6 +130,19 @@ Run `docker-compose help` to get more explanations on any extra advanced use of 
 If you encounter issues with the Docker builds, please report an [issue](https://github.com/medialab/hyphe/issues) including the "Image ID" of the Docker images you used from the output of `docker images` or, if you installed from source, the last commit ID (read from `git log`).
 
 
+#### 7. Update to future versions
+
+If you installed from git by pulling our builds from DockerHub, you should be able to update Hyphe to future minor releases by simply doing the following:
+
+```bash
+docker-compose down
+git pull
+docker-compose pull
+# eventually edit your configuration files to use new options
+docker-compose up -d
+```
+
+
 ### Manual install (complex and only for Linux)
 
 If your computer or server relies on an old Linux distribution unable to run Docker, if you want to contribute to Hyphe's backend development, or for any other personal reason, you might want to rather install Hyphe manually by following the [manual install instructions](doc/install.md).
