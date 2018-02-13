@@ -12,7 +12,7 @@ require('angular-animate');
 require('angular-aria');
 require('angular-material');
 require('angulartics');
-require('angulartics/dist/angulartics-gtm.min.js');
+require('angulartics-google-analytics');
 require('angular-md5');
 require('ng-tags-input');
 require('angular-bowser');

@@ -2,8 +2,8 @@
 
 angular.module('hyphe.adminController', [])
 
-  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout', 'corpus'
-  ,function($scope, api, utils, $location, $timeout, corpus) {
+  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout', 'corpus', '$analytics'
+  ,function($scope, api, utils, $location, $timeout, corpus, $analytics) {
     $scope.currentPage = 'admin'
     $scope.corpusList
     $scope.corpusList_byId = {}
