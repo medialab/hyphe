@@ -8,7 +8,7 @@ angular.module('hyphe', [
   ,'ngSanitize'
   ,'ngMaterial'
   ,'angulartics'
-  ,'angulartics.google.analytics'
+  ,'angulartics.google.tagmanager'
   ,'ngTagsInput'
   ,'hyphe.analytics'
   ,'hyphe.conf'
@@ -79,7 +79,7 @@ angular.module('hyphe', [
 
 // Analytics
 .config(['$analyticsProvider', function ($analyticsProvider) {
-  // $analyticsProvider.virtualPageviews(true)
+  $analyticsProvider.virtualPageviews(true);
 }])
 
 // Color theme
