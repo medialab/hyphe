@@ -191,6 +191,8 @@ See our [roadmap](doc/roadmap.md)!
 
 * JACOMY, Mathieu, GIRARD, Paul, OOGHE, Benjamin, et al, "[Hyphe, a curation-oriented approach to web crawling for the social sciences.](http://www.aaai.org/ocs/index.php/ICWSM/ICWSM16/paper/view/13051/12797)", in International AAAI Conference on Web and Social Media. Association for the Advancement of Artificial Intelligence, 2016.
 
+* Plique, G., Jacomy, M., Ooghe-Tabanou B., GIRARD, P., "It's a Tree... It's a Graph... It's a Traph!!!! Designing an on-file multi-level graph index for the Hyphe web crawler". ([Video](https://fosdem.org/2018/schedule/event/multi_level_graph_index/) / [Slides](https://medialab.github.io/hyphe-traph/fosdem2018/)) Presentation at the FOSDEM, Brussels, BELGIUM, February 3rd, 2018.
+
 ### Publications using Hyphe
 
 * Venturini, T., Jacomy, M., Bounegru, L., & Gray, J. (2018, forthcoming), "[Visual Network Exploration for Data Journalists](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3043912)", in S. E. I. and B. Franklin (Ed.). Abingdon: Routledge.
