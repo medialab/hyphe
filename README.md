@@ -207,6 +207,8 @@ See our [roadmap](doc/roadmap.md)!
 
 * OJALA, Mace "[Mining with Hyphe](https://ethos.itu.dk/2017/01/05/mining-with-hyphe-reflections-on-publicethos-13/)", 2018 (a blog post on Ethos Lab's blog)
 
+* CREPEL, Maxime, BOULLIER, Dominique, JACOMY, Mathieu, OOGHE-TABANOU, Benjamin, ANTOLINOS-BASSO, Diego, MONSALLIER, Paul  "[Privacy web corpus](http://tools.medialab.sciences-po.fr/privacy/)", 2017.
+
 ## Credits & License
 
 [Mathieu Jacomy](https://github.com/jacomyma), [Benjamin Ooghe-Tabanou](https://github.com/boogheta) & [Guillaume Plique](https://github.com/Yomguithereal) @ [Sciences Po médialab](https://github.com/medialab)
