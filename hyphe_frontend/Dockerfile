@@ -7,7 +7,7 @@ WORKDIR /frontend
 RUN apk --update add git nodejs \
     && npm install \
     && npm run build \
-    && npm cache clean \
+    && npm cache clean --force \
     && apk del git nodejs \
     && rm -fr node_modules \
     && rm /var/cache/apk/*
