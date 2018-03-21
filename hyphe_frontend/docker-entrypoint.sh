@@ -1,5 +1,7 @@
 #!/bin/sh 
 
+export NS=$(cat /etc/resolv.conf |grep nameserver|awk -F" " '{print $2}')
+
 CONFIGFILE=/frontend/app/conf/conf.js
 
 /bin/cp /frontend/app/conf/conf_default.js $CONFIGFILE
@@ -21,5 +23,7 @@ sed --in-place "s|'serverURL'\s*,.*|'serverURL', window.location.pathname === '/
   sed -r --in-place 's|( location / \{)|\1\n        auth_basic Restricted;\n        auth_basic_user_file /frontend/.htpasswd;|' /etc/nginx/conf.d/default.conf
 
 chmod -R 550 /frontend/app && chown -R nginx:nginx /frontend/app
+
+envsubst '\$NS \$BACKEND_HOST \$BACKEND_PORT' < /etc/nginx/conf.d/docker-nginx-vhost.template > /etc/nginx/conf.d/default.conf
 
 exec "$@"
