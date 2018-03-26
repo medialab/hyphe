@@ -489,7 +489,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               }
               g.setNodeAttribute(nid, tagCat.trim(), tagVal);
             }
-            g.removeNodeAttribute(nid, "tags");
+            // g.removeNodeAttribute(nid, "tags");
           })
 
           // Default color for edges
