@@ -114,9 +114,8 @@ angular.module('hyphe.directives', [])
     return {
       restrict: 'A'
       ,link: function($scope, el, attrs) {
-        el[0].onclick = function(){
+        $scope.closeCorpus = function(){
           $location.path('/')
-          $scope.$apply()
         }
       }
     }
