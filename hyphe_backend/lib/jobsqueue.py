@@ -17,6 +17,7 @@ class JobsQueue(object):
     def __init__(self, config):
         self.db = MongoDB(config)
         self.scrapyd = 'http://%s:%s/' % (environ.get('HYPHE_CRAWLER_HOST', config['host']), int(environ.get('HYPHE_CRAWLER_PORT', config['scrapy_port'])))
+        self.max_simul_crawls = config["max_simul_requests"]
         self.db_name = config["db_name"]
         self.queue = None
         self.depiler = LoopingCall(self.depile)
@@ -122,7 +123,7 @@ class JobsQueue(object):
             returnD(None)
 
         status = yield self.get_scrapyd_status()
-        if not status or status["pending"] > 0:
+        if not status or status["pending"] > 0 or status["running"] >= self.max_simul_crawls:
             returnD(None)
         # Add some random wait to allow possible concurrent Hyphe instance
         # to compete for ScrapyD's empty slots
