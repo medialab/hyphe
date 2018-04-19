@@ -57,7 +57,7 @@ class JobsQueue(object):
         except Exception as e:
             logger.msg("WARNING: ScrapyD's monitoring website seems down: %s %s" % (type(e), e))
             returnD(None)
-        status = {"pending": 0}
+        status = {"pending": 0, "running": 0}
         read = None
         for line in jobs.split("><tr"):
             if ">Pending<" in line:
@@ -74,6 +74,7 @@ class JobsQueue(object):
                 if corpus not in status:
                     status[corpus] = 0
                 status[corpus] += 1
+                status[read] += 1
             elif read:
                 status[read] += 1
         returnD(status)
