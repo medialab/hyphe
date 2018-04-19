@@ -340,7 +340,10 @@ class Core(customJSONRPC):
         self.corpora[corpus]["last_index_loop"] = corpus_conf['last_index_loop']
         self.corpora[corpus]["links_duration"] = corpus_conf.get("links_duration", 1)
         self.corpora[corpus]["last_links_loop"] = corpus_conf['last_links_loop']
-        self.corpora[corpus]["tags"] = msgpack.unpackb(corpus_conf['tags'])
+        try:
+            self.corpora[corpus]["tags"] = msgpack.unpackb(corpus_conf['tags'])
+        except:
+            self.corpora[corpus]["tags"] = {}
         self.corpora[corpus]["webentities_links"] = msgpack.unpackb(corpus_conf['webentities_links'])
         self.corpora[corpus]["reset"] = False
         if not _noloop and not self.corpora[corpus]['jobs_loop'].running:
