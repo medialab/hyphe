@@ -99,19 +99,23 @@ mongo $hyphedb --eval "db.corpus.find({_id: '$oldcorpus'}).forEach( function(x){
 
 # Create mongo collections for new corpus
 echo "Copy collections in MongoDB..."
-for coll in jobs logs pages queries queue stats; do
+for coll in creationrules jobs logs pages queries queue stats webentities; do
   echo " - $coll"
-  mongoexport -d $hyphedb -c "$oldcorpus.$coll" | mongoimport -d $hyphedb -c "$newcorpus.$coll" --drop
+  mongoexport -d "${hyphedb}_${oldcorpus}" -c "$coll" | mongoimport -d "${hyphedb}_${newcorpus}" -c "$coll" --drop
 done
 
 # Copy Traph data
 echo "Copy traph data..."
 cp -r "$traphdir/$oldcorpus" "$traphdir/$newcorpus"
 
-# Deploy new crawler
-bin/deploy_scrapy_spider.sh "$newcorpus"
-
 # Restart Hyphe
 echo "Corpus $oldcorpus successfully cloned into $newcorpus"
 echo "Restarting Hyphe now..."
 bin/hyphe start --nologs
+sleep 10
+
+# Deploy new crawler
+./hyphe_backend/test_client.py start_corpus "$newcorpus"
+sleep 10
+./hyphe_backend/test_client.py crawl.deploy_crawler "$newcorpus"
+
