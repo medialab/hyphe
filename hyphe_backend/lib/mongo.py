@@ -52,7 +52,7 @@ class MongoDB(object):
     @inlineCallbacks
     def add_corpus(self, corpus, name, password, options, tlds=None):
         now = now_ts()
-        yield self.db()["corpus"].insert({
+        yield self.db()["corpus"].insert_one({
           "_id": corpus,
           "name": name,
           "password": salt(password),
@@ -99,7 +99,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def update_corpus(self, corpus, modifs):
-        yield self.db()["corpus"].update({"_id": corpus}, {"$set": modifs})
+        yield self.db()["corpus"].update_one({"_id": corpus}, {"$set": modifs})
 
     @inlineCallbacks
     def delete_corpus(self, corpus):
@@ -239,7 +239,7 @@ class MongoDB(object):
     def upsert_WE(self, corpus, weid, metas, updateTimestamp=True):
         if updateTimestamp:
             metas["lastModificationDate"] = now_ts()
-        yield self.WEs(corpus).update({"_id": weid}, {"$set": metas}, upsert=True)
+        yield self.WEs(corpus).update_one({"_id": weid}, {"$set": metas}, upsert=True)
 
     @inlineCallbacks
     def remove_WE(self, corpus, weid):
@@ -262,7 +262,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def add_WECR(self, corpus, prefix, regexp):
-        yield self.WECRs(corpus).update({"prefix": prefix}, {"$set": {"regexp": regexp, "name": name_creationrule(regexp, prefix)}}, upsert=True)
+        yield self.WECRs(corpus).update_one({"prefix": prefix}, {"$set": {"regexp": regexp, "name": name_creationrule(regexp, prefix)}}, upsert=True)
 
     @inlineCallbacks
     def remove_WECR(self, corpus, prefix):
@@ -295,7 +295,7 @@ class MongoDB(object):
             timestamp = now_ts()
         if type(job) != list:
             job = [job]
-        yield self.logs(corpus).insert([{'_job': _id, 'timestamp': timestamp, 'log': msg} for _id in job], multi=True)
+        yield self.logs(corpus).insert_many([{'_job': _id, 'timestamp': timestamp, 'log': msg} for _id in job])
 
     @inlineCallbacks
     def list_jobs(self, corpus, specs={}, **kwargs):
@@ -311,7 +311,7 @@ class MongoDB(object):
         if not timestamp:
             timestamp = now_ts()
         _id = str(uuid())
-        yield self.jobs(corpus).insert({
+        yield self.jobs(corpus).insert_one({
           "_id": _id,
           "crawljob_id": None,
           "webentity_id": webentity_id,
@@ -334,7 +334,7 @@ class MongoDB(object):
     def update_job(self, corpus, job_id, crawl_id, timestamp=None):
         if not timestamp:
             timestamp = now_ts()
-        yield self.jobs(corpus).update({"_id": job_id}, {"$set": {"crawljob_id": crawl_id, "scheduled_at": timestamp}})
+        yield self.jobs(corpus).update_one({"_id": job_id}, {"$set": {"crawljob_id": crawl_id, "scheduled_at": timestamp}})
 
     @inlineCallbacks
     def update_jobs(self, corpus, specs, modifs, **kwargs):
@@ -345,8 +345,7 @@ class MongoDB(object):
         update = {"$set": modifs}
         if "inc" in kwargs:
             update["$inc"] = kwargs.pop("inc")
-        kwargs["multi"] = True
-        yield self.jobs(corpus).update(specs, update, **kwargs)
+        yield self.jobs(corpus).update_many(specs, update, **kwargs)
 
     @inlineCallbacks
     def get_waiting_jobs(self, corpus):
@@ -355,8 +354,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def forget_pages(self, corpus, job, urls, **kwargs):
-        kwargs["multi"] = True
-        yield self.pages(corpus).update({"_job": job, "url": {"$in": urls}}, {"$set": {"forgotten": True}}, **kwargs)
+        yield self.pages(corpus).update_many({"_job": job, "url": {"$in": urls}}, {"$set": {"forgotten": True}}, **kwargs)
 
     @inlineCallbacks
     def count_pages(self, corpus, job, **kwargs):
@@ -393,7 +391,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def save_WEs_query(self, corpus, ids, query_options):
-        res = yield self.queries(corpus).insert({
+        res = yield self.queries(corpus).insert_one({
           "webentities": ids,
           "total": len(ids),
           "query": query_options
@@ -425,7 +423,7 @@ class MongoDB(object):
             del(old["timestamp"], old["_id"])
         if not old or old != new:
             new["timestamp"] = now_ts()
-            yield self.stats(corpus).insert(new)
+            yield self.stats(corpus).insert_one(new)
 
     @inlineCallbacks
     def get_last_stats(self, corpus):
