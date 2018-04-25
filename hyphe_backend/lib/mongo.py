@@ -396,7 +396,7 @@ class MongoDB(object):
           "total": len(ids),
           "query": query_options
         })
-        returnD(str(res))
+        returnD(str(res.inserted_id))
 
     @inlineCallbacks
     def get_WEs_query(self, corpus, token):
