@@ -53,6 +53,7 @@ class OutputStore(MongoOutput):
         d = dict(item)
         d['_id'] = "%s/%s" % (item['lru'], item['size'])
         d['_job'] = self.jobid
+        d['forgotten'] = False
         yield self.pageStore.update({'_id': d['_id']}, d, upsert=True, safe=True)
         returnValue(item)
 

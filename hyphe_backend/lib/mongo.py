@@ -358,7 +358,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def count_pages(self, corpus, job, **kwargs):
-        tot = yield self.pages(corpus).count({"_job": job, "forgotten": {"$ne": True}}, **kwargs)
+        tot = yield self.pages(corpus).count({"_job": job, "forgotten": False}, **kwargs)
         returnD(tot)
 
     @inlineCallbacks
