@@ -24,7 +24,7 @@ def sortdesc(field):
 
 class MongoDB(object):
 
-    def __init__(self, conf, pool=100):
+    def __init__(self, conf, pool=25):
         self.host = environ.get('HYPHE_MONGODB_HOST', conf.get("host", conf.get("mongo_host", "localhost")))
         self.port = int(environ.get('HYPHE_MONGODB_PORT', conf.get("port", conf.get("mongo_port", 27017))))
         self.dbname = conf.get("db_name", conf.get("project", "hyphe"))
@@ -43,10 +43,10 @@ class MongoDB(object):
             pass
 
     @inlineCallbacks
-    def list_corpus(self, *args, **kwargs):
-        if "filter" not in kwargs:
-            kwargs["filter"] = sortdesc("last_activity")
-        res = yield self.db()['corpus'].find(*args, **kwargs)
+    def list_corpus(self, **kwargs):
+        if "sort" not in kwargs:
+            kwargs["sort"] = sortdesc("last_activity")
+        res = yield self.db()['corpus'].find(**kwargs)
         returnD(res)
 
     @inlineCallbacks
@@ -84,14 +84,18 @@ class MongoDB(object):
         yield self.init_corpus_indexes(corpus)
 
     @inlineCallbacks
-    def get_corpus(self, corpus, *args, **kwargs):
-        res = yield self.db()["corpus"].find_one({"_id": corpus}, *args, **kwargs)
-        returnD(res)
+    def get_corpus(self, corpus, **kwargs):
+        if "limit" not in kwargs:
+            kwargs["limit"] = 1
+        res = yield self.db()["corpus"].find({"_id": corpus}, **kwargs)
+        returnD(res[0] if res else None)
 
     @inlineCallbacks
-    def get_corpus_by_name(self, corpus, *args, **kwargs):
-        res = yield self.db()["corpus"].find_one({"name": corpus}, *args, **kwargs)
-        returnD(res)
+    def get_corpus_by_name(self, corpus, **kwargs):
+        if "limit" not in kwargs:
+            kwargs["limit"] = 1
+        res = yield self.db()["corpus"].find({"name": corpus}, **kwargs)
+        returnD(res[0] if res else None)
 
     @inlineCallbacks
     def update_corpus(self, corpus, modifs):
@@ -99,7 +103,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def delete_corpus(self, corpus):
-        yield self.db()["corpus"].remove({'_id': corpus})
+        yield self.db()["corpus"].delete_one({'_id': corpus})
         yield self.drop_corpus_collections(corpus)
         yield self.conn.drop_database(corpus)
 
@@ -117,16 +121,25 @@ class MongoDB(object):
             yield self.pages(corpus).create_index(sortasc('_job') + sortasc('forgotten'), background=True)
             yield self.pages(corpus).create_index(sortasc('url'), background=True)
             yield self.queue(corpus).create_index(sortasc('timestamp'), background=True)
+            yield self.queue(corpus).create_index(sortasc('_job'), background=True)
             yield self.queue(corpus).create_index(sortasc('_job') + sortdesc('timestamp'), background=True)
             yield self.logs(corpus).create_index(sortasc('timestamp'), background=True)
-            yield self.jobs(corpus).create_index(sortasc('crawling_status'), background=True)
-            yield self.jobs(corpus).create_index(sortasc('indexing_status'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('created_at'), background=True)
             yield self.jobs(corpus).create_index(sortasc('webentity_id'), background=True)
             yield self.jobs(corpus).create_index(sortasc('webentity_id') + sortasc('created_at'), background=True)
             yield self.jobs(corpus).create_index(sortasc('webentity_id') + sortdesc('created_at'), background=True)
             yield self.jobs(corpus).create_index(sortasc('webentity_id') + sortasc("crawling_status") + sortasc("indexing_status") + sortasc('created_at'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('previous_webentity_id'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('crawljob_id'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('crawljob_id') + sortasc('crawling_status'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('crawljob_id') + sortasc('indexing_status'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('crawljob_id') + sortasc('crawling_status') + sortasc('indexing_status'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('crawling_status'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('indexing_status'), background=True)
+            yield self.jobs(corpus).create_index(sortasc('crawling_status') + sortasc('indexing_status'), background=True)
             yield self.jobs(corpus).create_index(sortasc('crawling_status') + sortasc('indexing_status') + sortasc('created_at'), background=True)
             yield self.stats(corpus).create_index(sortasc('timestamp'), background=True)
+            yield self.stats(corpus).create_index(sortdesc('timestamp'), background=True)
         except OperationFailure as e:
             # catch and destroy old indices built with older pymongo versions
             if retry:
@@ -185,8 +198,8 @@ class MongoDB(object):
 
     @inlineCallbacks
     def get_WE(self, corpus, weid):
-        res = yield self.WEs(corpus).find_one({"_id": weid})
-        returnD(res)
+        res = yield self.WEs(corpus).find({"_id": weid}, limit=1)
+        returnD(res[0] if res else None)
 
     def new_WE(self, weid, prefixes, name=None, status="DISCOVERED", startpages=[], tags={}):
         timestamp = now_ts()
@@ -230,27 +243,21 @@ class MongoDB(object):
 
     @inlineCallbacks
     def remove_WE(self, corpus, weid):
-        yield self.WEs(corpus).remove({"_id": weid})
+        yield self.WEs(corpus).delete_one({"_id": weid})
 
     @inlineCallbacks
     def get_WECRs(self, corpus):
-        res = yield self.WECRs(corpus).find()
-        for r in res:
-            del(r["_id"])
+        res = yield self.WECRs(corpus).find(projection={'_id': False})
         returnD(res)
 
     @inlineCallbacks
     def find_WECR(self, corpus, prefix):
-        res = yield self.WECRs(corpus).find_one({"prefix": prefix})
-        if res:
-            del(res["_id"])
-        returnD(res or None)
+        res = yield self.WECRs(corpus).find({"prefix": prefix}, projection={'_id': False}, limit=1)
+        returnD(res[0] if res else None)
 
     @inlineCallbacks
     def find_WECRs(self, corpus, prefixes):
-        res = yield self.WECRs(corpus).find({"prefix": {"$in": prefixes}})
-        for r in res:
-            del(r["_id"])
+        res = yield self.WECRs(corpus).find({"prefix": {"$in": prefixes}}, projection={'_id': False})
         returnD(res)
 
     @inlineCallbacks
@@ -259,12 +266,11 @@ class MongoDB(object):
 
     @inlineCallbacks
     def remove_WECR(self, corpus, prefix):
-        yield self.WECRs(corpus).remove({"prefix": prefix})
+        yield self.WECRs(corpus).delete_one({"prefix": prefix})
 
     @inlineCallbacks
     def get_default_WECR(self, corpus):
         res = yield self.find_WECR(corpus, "DEFAULT_WEBENTITY_CREATION_RULE")
-        del(res["_id"])
         returnD(res)
 
     @inlineCallbacks
@@ -274,10 +280,10 @@ class MongoDB(object):
 
     @inlineCallbacks
     def list_logs(self, corpus, job, **kwargs):
-        if "filter" not in kwargs:
-            kwargs["filter"] = sortasc('timestamp')
-        if "fields" not in kwargs:
-            kwargs["fields"] = ['timestamp', 'log']
+        if "sort" not in kwargs:
+            kwargs["sort"] = sortasc('timestamp')
+        if "projection" not in kwargs:
+            kwargs["projection"] = ['timestamp', 'log']
         if type(job) == list:
             job = {"$in": job}
         res = yield self.logs(corpus).find({"_job": job}, **kwargs)
@@ -292,15 +298,10 @@ class MongoDB(object):
         yield self.logs(corpus).insert([{'_job': _id, 'timestamp': timestamp, 'log': msg} for _id in job], multi=True)
 
     @inlineCallbacks
-    def list_jobs(self, corpus, *args, **kwargs):
-        if "filter" not in kwargs:
-            kwargs["filter"] = sortasc("crawling_status") + sortasc("indexing_status") + sortasc("created_at")
-        jobs = yield self.jobs(corpus).find(*args, **kwargs)
-        for j in jobs:
-            if "created_at" not in j and "timestamp" in j:
-                j["created_at"] = j["timestamp"]
-                for k in ['start', 'crawl', 'finish']:
-                    j["%sed_at" % k] = None
+    def list_jobs(self, corpus, specs={}, **kwargs):
+        if "sort" not in kwargs:
+            kwargs["sort"] = sortasc("crawling_status") + sortasc("indexing_status") + sortasc("created_at")
+        jobs = yield self.jobs(corpus).find(specs, **kwargs)
         if jobs and "limit" in kwargs and kwargs["limit"] == 1:
             jobs = jobs[0]
         returnD(jobs)
@@ -349,7 +350,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def get_waiting_jobs(self, corpus):
-        jobs = yield self.jobs(corpus).find({"crawljob_id": None}, fields=["created_at", "crawl_arguments"])
+        jobs = yield self.jobs(corpus).find({"crawljob_id": None}, projection=["created_at", "crawl_arguments"])
         returnD((corpus, jobs))
 
     @inlineCallbacks
@@ -370,8 +371,8 @@ class MongoDB(object):
 
     @inlineCallbacks
     def get_queue(self, corpus, specs={}, **kwargs):
-        if "filter" not in kwargs:
-            kwargs["filter"] = sortasc('timestamp')
+        if "sort" not in kwargs:
+            kwargs["sort"] = sortasc('timestamp')
         res = yield self.queue(corpus).find(specs, **kwargs)
         if res and "limit" in kwargs and kwargs["limit"] == 1:
             res = res[0]
@@ -388,7 +389,7 @@ class MongoDB(object):
             specs = {"_id": {"$in": [ObjectId(_i) for _i in specs]}}
         elif type(specs) in [str, unicode, bytes]:
             specs = {"_id": ObjectId(specs)}
-        yield self.queue(corpus).remove(specs, **kwargs)
+        yield self.queue(corpus).delete_many(specs, **kwargs)
 
     @inlineCallbacks
     def save_WEs_query(self, corpus, ids, query_options):
@@ -401,12 +402,12 @@ class MongoDB(object):
 
     @inlineCallbacks
     def get_WEs_query(self, corpus, token):
-        res = yield self.queries(corpus).find_one({"_id": ObjectId(token)})
-        returnD(res)
+        res = yield self.queries(corpus).find({"_id": ObjectId(token)}, limit=1)
+        returnD(res[0] if res else None)
 
     @inlineCallbacks
     def clean_WEs_query(self, corpus):
-        yield self.queries(corpus).remove({})
+        yield self.queries(corpus).delete_many({})
 
     @inlineCallbacks
     def save_stats(self, corpus, corpus_metas):
@@ -428,10 +429,10 @@ class MongoDB(object):
 
     @inlineCallbacks
     def get_last_stats(self, corpus):
-        res = yield self.stats(corpus).find_one(filter=sortdesc("timestamp"))
-        returnD(res)
+        res = yield self.stats(corpus).find(sort=sortdesc("timestamp"), limit=1)
+        returnD(res[0] if res else None)
 
     @inlineCallbacks
     def get_stats(self, corpus):
-        res = yield self.stats(corpus).find(filter=sortasc("timestamp"))
+        res = yield self.stats(corpus).find(projection={'_id': False}, sort=sortasc("timestamp"))
         returnD(res)

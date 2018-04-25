@@ -83,7 +83,7 @@ class Core(customJSONRPC):
     def jsonrpc_list_corpus(self):
         """Returns the list of all existing corpora with metas."""
         res = {}
-        corpora = yield self.db.list_corpus(fields=[
+        corpora = yield self.db.list_corpus(projection=[
           "name", "password",
           "total_crawls", "total_pages", "total_pages_crawled", "total_webentities",
           "webentities_in", "webentities_out", "webentities_undecided", "webentities_discovered",
@@ -173,18 +173,18 @@ class Core(customJSONRPC):
             returnD(self.corpus_error())
 
         # Forbid same corpus name as existing
-        existing = yield self.db.get_corpus_by_name(name, fields=["_id"])
+        existing = yield self.db.get_corpus_by_name(name, projection=[])
         if existing:
             returnD(format_error('There already is a corpus named "%s".' % name))
 
         # Generate unique corpus id
         corpus = clean_corpus_id(name)
         corpus_idx = 1
-        existing = yield self.db.get_corpus(corpus, fields=["_id"])
+        existing = yield self.db.get_corpus(corpus, projection=[])
         while existing:
             corpus = "%s-%s" % (clean_corpus_id(name), corpus_idx)
             corpus_idx += 1
-            existing = yield self.db.get_corpus(corpus, fields=["_id"])
+            existing = yield self.db.get_corpus(corpus, projection=[])
 
         # Get TLDs for corpus
         tlds = yield collect_tlds()
@@ -527,7 +527,7 @@ class Core(customJSONRPC):
             except_corpus_ids = [except_corpus_ids]
         except_str = " except %s" % ", ".join(except_corpus_ids) if except_corpus_ids else ""
         logger.msg("CLEAR_ALL: destroying all corpora%s..." % except_str, system="INFO")
-        corpora = yield self.db.list_corpus(fields=['_id', 'password'])
+        corpora = yield self.db.list_corpus(projection=['password'])
         for corpus in corpora:
             if corpus["_id"] in except_corpus_ids:
                 logger.msg("Skipping corpus %s" % corpus["_id"])
@@ -652,7 +652,7 @@ class Core(customJSONRPC):
             ]
         kwargs = {}
         if light:
-            kwargs["fields"] = [
+            kwargs["projection"] = [
               "webentity_id",
               "nb_crawled_pages",
               "nb_unindexed_pages",
@@ -684,20 +684,11 @@ class Core(customJSONRPC):
                 logger.msg("Problem dialoguing with scrapyd server: %s" % scrapyjobs, system="WARNING - %s" % corpus)
             returnD(None)
         scrapyjobs = scrapyjobs['result']
-        results = yield DeferredList([
-            self.db.queue(corpus).count(),
-            self.db.pages(corpus).count(),
-            self.db.list_jobs(corpus, fields=['nb_pages', 'nb_links'])
-        ], consumeErrors=True)
-        for bl, res in results:
-            if not bl:
-                logger.msg("Problem dialoguing with MongoDB: %s" % res, system="WARNING - %s" % corpus)
-                returnD(None)
         if corpus not in self.corpora:
             returnD(None)
-        self.corpora[corpus]['pages_queued'] = results[0][1]
-        self.corpora[corpus]['pages_crawled'] = results[1][1]
-        jobs = results[2][1]
+        self.corpora[corpus]['pages_queued'] = yield self.db.queue(corpus).count()
+        self.corpora[corpus]['pages_crawled'] = yield self.db.pages(corpus).count()
+        jobs = yield self.db.list_jobs(corpus, projection=['nb_pages', 'nb_links'])
         self.corpora[corpus]['crawls'] = len(jobs)
         self.corpora[corpus]['pages_found'] = sum([j['nb_pages'] for j in jobs])
         self.corpora[corpus]['links_found'] = sum([j['nb_links'] for j in jobs])
@@ -711,16 +702,17 @@ class Core(customJSONRPC):
 
         # update jobs crawling status and pages counts accordingly to crawler's statuses
         running_ids = [job['id'] for job in scrapyjobs['running']]
-        unfinished_indexes = yield self.db.list_jobs(corpus, {'indexing_status': {'$ne': indexing_statuses.FINISHED}}, fields=['crawljob_id'])
-        yield DeferredList([self.db.update_job_pages(corpus, job_id) for job_id in set(running_ids) | set([job['crawljob_id'] for job in unfinished_indexes])], consumeErrors=True)
-        res = yield self.db.list_jobs(corpus, {'crawljob_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, fields=['_id'])
+        unfinished_indexes = yield self.db.list_jobs(corpus, {'indexing_status': {'$ne': indexing_statuses.FINISHED}}, projection=['crawljob_id'])
+        for job_id in set(running_ids) | set([job['crawljob_id'] for job in unfinished_indexes]):
+            yield self.db.update_job_pages(corpus, job_id)
+        res = yield self.db.list_jobs(corpus, {'crawljob_id': {'$in': running_ids}, 'crawling_status': crawling_statuses.PENDING}, projection=[])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
             yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.RUNNING, 'started_at': now_ts()})
             yield self.db.add_log(corpus, update_ids, "CRAWL_"+crawling_statuses.RUNNING)
         # update crawling status for finished jobs
         finished_ids = [job['id'] for job in scrapyjobs['finished']]
-        res = yield self.db.list_jobs(corpus, {'crawljob_id': {'$in': finished_ids}, 'crawling_status': {'$nin': [crawling_statuses.RETRIED, crawling_statuses.CANCELED, crawling_statuses.FINISHED]}}, fields=['_id'])
+        res = yield self.db.list_jobs(corpus, {'crawljob_id': {'$in': finished_ids}, 'crawling_status': {'$nin': [crawling_statuses.RETRIED, crawling_statuses.CANCELED, crawling_statuses.FINISHED]}}, projection=[])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
             yield self.db.update_jobs(corpus, update_ids, {'crawling_status': crawling_statuses.FINISHED, 'crawled_at': now_ts()})
@@ -730,7 +722,7 @@ class Core(customJSONRPC):
         # set index finished for jobs with crawling finished and no page left in queue
         res = yield self.db.list_jobs(corpus, {'crawling_status': crawling_statuses.FINISHED, 'crawljob_id': {'$exists': True}})
         finished_ids = set([job['crawljob_id'] for job in res] + finished_ids)
-        res = yield self.db.list_jobs(corpus, {'crawljob_id': {'$in': list(finished_ids-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$nin': [indexing_statuses.BATCH_RUNNING, indexing_statuses.FINISHED]}}, fields=['_id'])
+        res = yield self.db.list_jobs(corpus, {'crawljob_id': {'$in': list(finished_ids-set(jobs_in_queue))}, 'crawling_status': crawling_statuses.FINISHED, 'indexing_status': {'$nin': [indexing_statuses.BATCH_RUNNING, indexing_statuses.FINISHED]}}, projection=[])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
             yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.FINISHED, 'finished_at': now_ts()})
@@ -879,7 +871,7 @@ class Core(customJSONRPC):
         """Returns for a `corpus` crawl activity logs on a specific WebEntity defined by its `webentity_id`."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
-        jobs = yield self.db.list_jobs(corpus, {'webentity_id': webentity_id}, fields=['_id'])
+        jobs = yield self.db.list_jobs(corpus, {'webentity_id': webentity_id}, projection=[])
         if not jobs:
             returnD(format_error('No job found for WebEntity %s.' % webentity_id))
         res = yield self.db.list_logs(corpus, [a['_id'] for a in list(jobs)])
@@ -1105,7 +1097,7 @@ class Crawler(customJSONRPC):
             returnD(format_error("Job %s was already completed and indexed" % job_id))
         else:
             res = "stopping leftover indexation for job %s" % existing[0]["crawljob_id"]
-        unindexed_pages = yield self.db.get_queue(corpus, {'_job': existing[0]["crawljob_id"]}, fields=["url"])
+        unindexed_pages = yield self.db.get_queue(corpus, {'_job': existing[0]["crawljob_id"]}, projection=["url"])
         yield self.db.update_jobs(corpus, job_id, {'crawling_status': crawling_statuses.CANCELED, 'indexing_status': indexing_statuses.FINISHED, 'finished_at': now_ts(), 'forgotten_pages': len(unindexed_pages)})
         yield self.db.clean_queue(corpus, {'_job': existing[0]["crawljob_id"]})
         yield self.db.forget_pages(corpus, existing[0]["crawljob_id"], [i["url"] for i in unindexed_pages])
@@ -1220,7 +1212,7 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def get_webentities_jobs(self, WEs, corpus=DEFAULT_CORPUS):
         jobs = {}
-        res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE["_id"] for WE in WEs if WE["status"] != "DISCOVERED"]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
+        res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE["_id"] for WE in WEs if WE["status"] != "DISCOVERED"]}}, projection=['webentity_id', 'crawling_status', 'indexing_status'])
         for job in res:
             jobs[job['webentity_id']] = job
         returnD(jobs)
@@ -1323,7 +1315,7 @@ class Memory_Structure(customJSONRPC):
                 yield self.jsonrpc_add_webentity_tag_value(weid, 'CORE', 'createdBy', "user via %s" % source, corpus=corpus)
             self.corpora[corpus]['recent_changes'] += 1
             self.update_webentities_counts(WE, WE["status"], new=True, corpus=corpus)
-        job = yield self.db.list_jobs(corpus, {'webentity_id': weid}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
+        job = yield self.db.list_jobs(corpus, {'webentity_id': weid}, projection=['crawling_status', 'indexing_status'], sort=sortdesc('created_at'), limit=1)
         WE = self.format_webentity(WE, job, corpus=corpus)
         WE['created'] = True if new else False
         returnD(WE)
@@ -1931,7 +1923,7 @@ class Memory_Structure(customJSONRPC):
             returnD(None)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
         yield self.count_webentities(corpus)
-        crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, fields=['_id'], limit=1)
+        crashed = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_RUNNING}, projection=[], limit=1)
         if crashed:
             self.corpora[corpus]['loop_running'] = "Cleaning up index error"
             logger.msg("Indexing job declared as running but probably crashed, trying to restart it.", system="WARNING - %s" % corpus)
@@ -1939,11 +1931,11 @@ class Memory_Structure(customJSONRPC):
             yield self.db.add_log(corpus, crashed['_id'], "INDEX_"+indexing_statuses.BATCH_CRASHED)
             self.corpora[corpus]['loop_running'] = None
             returnD(False)
-        oldest_page_in_queue = yield self.db.get_queue(corpus, limit=1, fields=["_job"], skip=randint(0, 2))
+        oldest_page_in_queue = yield self.db.get_queue(corpus, limit=1, projection=["_job"], skip=randint(0, 2))
         if oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
             self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
-            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, fields=['_id', 'crawljob_id', 'crawl_arguments', 'webentity_id'], limit=1)
+            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, projection=['crawljob_id', 'crawl_arguments', 'webentity_id'], limit=1)
             if not job:
                 jobs = yield self.db.list_jobs(corpus)
                 if not jobs:
@@ -2012,7 +2004,7 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def handle_index_error(self, corpus=DEFAULT_CORPUS):
         # clean possible previous index crashes
-        res = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_CRASHED}, fields=['_id'])
+        res = yield self.db.list_jobs(corpus, {'indexing_status': indexing_statuses.BATCH_CRASHED}, projection=[])
         update_ids = [job['_id'] for job in res]
         if len(update_ids):
             yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.PENDING})
@@ -2060,7 +2052,7 @@ class Memory_Structure(customJSONRPC):
             returnD(weid)
         weid = weid["result"]
         WE = yield self.db.get_WE(corpus, weid)
-        job = yield self.db.list_jobs(corpus, {'webentity_id': WE}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
+        job = yield self.db.list_jobs(corpus, {'webentity_id': WE}, projection=['crawling_status', 'indexing_status'], sort=sortdesc('created_at'), limit=1)
         returnD(format_result(self.format_webentity(WE, job, corpus=corpus)))
 
     def jsonrpc_get_webentity_by_lruprefix_as_url(self, url, corpus=DEFAULT_CORPUS):
@@ -2095,7 +2087,7 @@ class Memory_Structure(customJSONRPC):
         WE = yield self.db.get_WE(corpus, weid)
         if not WE:
             returnD(format_error("WebEntity %s could not be retrieved from mongo" % weid))
-        job = yield self.db.list_jobs(corpus, {'webentity_id': WE["_id"]}, fields=['crawling_status', 'indexing_status'], filter=sortdesc('created_at'), limit=1)
+        job = yield self.db.list_jobs(corpus, {'webentity_id': WE["_id"]}, projection=['crawling_status', 'indexing_status'], sort=sortdesc('created_at'), limit=1)
         returnD(format_result(self.format_webentity(WE, job, corpus=corpus)))
 
     def _checkPageCount(self, page, count):
@@ -2109,7 +2101,7 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def format_WE_page(self, total, count, page, WEs, token=None, corpus=DEFAULT_CORPUS):
         jobs = {}
-        res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE["_id"] for WE in WEs]}}, fields=['webentity_id', 'crawling_status', 'indexing_status'])
+        res = yield self.db.list_jobs(corpus, {'webentity_id': {'$in': [WE["_id"] for WE in WEs]}}, projection=['webentity_id', 'crawling_status', 'indexing_status'])
         for job in res:
             jobs[job['webentity_id']] = job
         for WE in WEs:
@@ -2849,8 +2841,6 @@ class Memory_Structure(customJSONRPC):
     def jsonrpc_get_webentities_stats(self, corpus=DEFAULT_CORPUS):
         """Returns for a corpus a set of statistics on the WebEntities status repartition of a `corpus` each 5 minutes."""
         res = yield self.db.get_stats(corpus)
-        for r in res:
-            del(r["_id"])
         returnD(format_result(res))
 
 

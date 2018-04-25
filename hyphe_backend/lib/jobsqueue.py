@@ -26,7 +26,7 @@ class JobsQueue(object):
     @inlineCallbacks
     def init_queue(self):
         self.queue = {}
-        corpora = yield self.db.list_corpus(fields=[])
+        corpora = yield self.db.list_corpus(projection=[])
         dl = [self.db.get_waiting_jobs(corpus["_id"]) for corpus in corpora]
         alljobs = yield DeferredList(dl, consumeErrors=True)
         for bl, res in alljobs:
