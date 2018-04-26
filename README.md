@@ -13,6 +13,8 @@ You can try a limited version of Hyphe at the following url: [http://hyphe.media
 
 Before running Hyphe, you may want to adjust the settings first. The default config will work but you may want to tune it for your own needs. There is a procedure to change the configuration after the installation. However we recommend to take a look at the [Configuration documentation](doc/config.md) for detailed explanation of each available option.
 
+**Warning:** Hyphe can be quite disk-consuming, a big corpus with a few hundred crawls with a depth 2 can easily take up to 50GB, so if you plan on allowing multiple users, you should ensure at least a few hundreds gigabytes are available on your machine. You can reduce disk-space by setting to false the option `store_crawled_html_content` and limiting the `max_depth` allowed.
+
 
 ### Migrating older versions
 
@@ -25,7 +27,7 @@ For an easy install either on Linux, Mac OS X or Windows, the best solution is t
 
 Docker enables isolated install and execution of software stacks, which helps installing easily a whole set of dependencies.
 
-Docker's containers are sizeable: you should ensure **at least 4GB** of empty space is available before installing.
+Docker's containers are sizeable: you should ensure **at least 4GB** of empty space is available before installing. In any case, as expressed above, for a regular and complete use of Hyphe, you should better ensure at least 100GB are available.
 
 #### 1. Install Docker
 
