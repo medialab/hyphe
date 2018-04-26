@@ -46,7 +46,7 @@ Typical important options to set depending on your situation are highlighted as 
 
   + __`store_crawled_html_content [bool]`__ (in Docker __`HYPHE_STORE_CRAWLED_HTML`__):
 
-    usually `true`, lets one disable archiving of full zipped HTML content of webpages crawled in MongoDB. This has to be set to true to use Hyphe in combination with [hyphe2solr](http://github.com/medialab/hyphe2solr). Set to false to consume a lot less hard drive space.
+    usually `false`, lets one enable archiving of full zipped HTML content of webpages crawled in MongoDB. This has to be set to true to use Hyphe in combination with [hyphe2solr](http://github.com/medialab/hyphe2solr). Set to false to consume a lot less hard drive space.
 
   + `max_simul_requests [int]` (in Docker: `HYPHE_MAX_SIM_REQ`):
 
