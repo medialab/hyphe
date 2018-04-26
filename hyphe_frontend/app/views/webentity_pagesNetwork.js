@@ -30,7 +30,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     $scope.downloadNetwork = function() {
       if ($scope.network) {
         var blob = new Blob([gexf.write($scope.network)], {'type':'text/gexf+xml;charset=utf-8'});
-        saveAs(blob, $scope.corpusName + ".gexf");
+        saveAs(blob, $scope.corpusName + ".gexf", true);
       }
     }
 

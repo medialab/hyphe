@@ -362,7 +362,7 @@ angular.module('hyphe.exportController', [])
         }
 
         var blob = new Blob([JSON.stringify(json)], {type: "application/json;charset=utf-8"})
-        saveAs(blob, $scope.projectName + ".json")
+        saveAs(blob, $scope.projectName + ".json", true)
 
         return true
 
@@ -402,7 +402,7 @@ angular.module('hyphe.exportController', [])
         })
 
         var blob = new Blob(fileContent, {type: "text/x-markdown; charset=UTF-8"})
-        saveAs(blob, $scope.projectName + " MarkDown.txt")
+        saveAs(blob, $scope.projectName + " MarkDown.txt", true)
 
         return true
 
@@ -486,7 +486,7 @@ angular.module('hyphe.exportController', [])
           })
 
           var blob = new Blob(fileContent, {'type': "text/csv;charset=utf-8"});
-          saveAs(blob, $scope.projectName + ".csv");
+          saveAs(blob, $scope.projectName + ".csv", true);
 
         } else if($scope.fileFormat == 'SCSV'){
 
