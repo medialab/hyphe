@@ -359,6 +359,9 @@ angular.module('hyphe.listwebentitiesController', [])
       var pageNumber = Math.floor(index / this.PAGE_SIZE);
       var page = this.loadedPages[pageNumber]
 
+      if (this.numItems && index > this.numItems) {
+        return null
+      }
       if (page) {
         return page[index % this.PAGE_SIZE]
       } else if (page !== null) {
@@ -390,7 +393,7 @@ angular.module('hyphe.listwebentitiesController', [])
             self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
-                webentity:we,
+                webentity: we,
                 selected: $scope.checkedIndex[we.id] !== undefined,
                 checked: $scope.checkedIndex[we.id] !== undefined
               }
@@ -422,7 +425,7 @@ angular.module('hyphe.listwebentitiesController', [])
             self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
-                webentity:we,
+                webentity: we,
                 selected: $scope.checkedIndex[we.id] !== undefined,
                 checked: $scope.checkedIndex[we.id] !== undefined
               }
