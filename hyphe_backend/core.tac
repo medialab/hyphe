@@ -1970,8 +1970,8 @@ class Memory_Structure(customJSONRPC):
         # Run linking WebEntities on a regular basis when needed and not overloaded
         now = now_ts()
         s = time.time()
-        # Build links after at least one index if...
-        if self.corpora[corpus]['recent_changes'] and (
+        # Build links after at least one index if no more than 25000 pages in queue and...
+        if self.corpora[corpus]['recent_changes'] and self.corpora[corpus]['pages_queued'] < 25000 and (
             # pagesqueue is empty
             not self.corpora[corpus]['pages_queued'] or
             # links were not built since more than 8 times the time it takes
