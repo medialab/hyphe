@@ -19,13 +19,11 @@ angular.module('hyphe.overviewController', [])
     $scope.visualCrawlJobs = [] // Updated on each status load
 
     // Init
-    loadStatus()
-    loadStatistics()
     $scope.statusLoop = setInterval(loadStatus, 1000)
-    $scope.statisticsLoop = setInterval(loadStatistics, 10000)
+    $scope.statisticsTask = setTimeout(loadStatistics, 50)
     $scope.$on('$destroy', function(){
       clearInterval($scope.statusLoop)
-      clearInterval($scope.statisticsLoop)
+      clearInterval($scope.statisticsTask)
     })
 
     // Functions
@@ -39,6 +37,13 @@ angular.module('hyphe.overviewController', [])
         }
         $scope.corpusStatus = status
         updateVisualCrawlJobs()
+        if ($scope.corpusStatistics) {
+          var newStats = {'timestamp': (new Date()).getTime()}
+          Object.keys(status.corpus.traph.webentities).forEach(function(k){
+            newStats[k.toLowerCase()] = status.corpus.traph.webentities[k]
+          })
+          $scope.corpusStatistics = $scope.corpusStatistics.concat([newStats])
+        }
       },function(data, status, headers, config){
         $scope.loadingStatus = false
         $scope.status = {message: 'Error loading status', background:'danger'}
@@ -55,6 +60,7 @@ angular.module('hyphe.overviewController', [])
       },function(data, status, headers, config){
         $scope.loadingStatistics = false
         $scope.status = {message: 'Error loading statistics', background:'danger'}
+        $scope.statisticsTask = setTimeout(loadStatistics, 1000)
       })
     }
 
