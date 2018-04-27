@@ -16,6 +16,7 @@ angular.module('hyphe.definewebentitiesController', [])
     $scope.createdList = []
     $scope.existingList = []
     $scope.conflictedList = []
+    $scope.conflictsIndex
     $scope.errorList = []
     
     $scope.retry = false

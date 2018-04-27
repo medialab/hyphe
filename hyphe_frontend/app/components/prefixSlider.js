@@ -8,6 +8,7 @@ angular.module('hyphe.prefixSliderComponent', [])
       ,scope: {
         rowActive: '=',
         obj: '=',
+        conflictsIndex: '=',
         webentity: '=' // Used only in startpageChecker
       }
       ,templateUrl: 'components/prefixSlider.html'
@@ -66,8 +67,12 @@ angular.module('hyphe.prefixSliderComponent', [])
 
         scope.clickStem = function(index){
           if (scope.clickableStem(index)) {
+            if(scope.conflictsIndex)
+              scope.conflictsIndex.removeFromLruIndex(scope.obj)
             scope.obj.prefixLength = index + 1
             scope.updateNameAndStatus()
+            if(scope.conflictsIndex)
+              scope.conflictsIndex.addToLruIndex(scope.obj)
           }
         }
 
