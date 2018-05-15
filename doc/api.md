@@ -281,12 +281,14 @@ The API will always answer as such:
   + _`phantom_crawl`_ (optional, default: `false`)
   + _`status`_ (optional, default: `"IN"`)
   + _`startmode`_ (optional, default: `"default"`)
+  + _`cookies_string`_ (optional, default: `null`)
   + _`phantom_timeouts`_ (optional, default: `{}`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.
  Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.
  Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").
+ Optionally add a known `cookies_string` with auth rights to a protected website.
  Optionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).
 
 
@@ -360,7 +362,8 @@ The API will always answer as such:
   + _`depth`_ (optional, default: `0`)
   + _`phantom_crawl`_ (optional, default: `false`)
   + _`phantom_timeouts`_ (optional, default: `{}`)
-  + _`download_delay`_ (optional, default: `0.5`)
+  + _`download_delay`_ (optional, default: `1`)
+  + _`cookies_string`_ (optional, default: `null`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):
@@ -370,6 +373,7 @@ The API will always answer as such:
   * a `depth` corresponding to the maximum number of clicks done from the start pages
   * `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`
   * a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.
+  * a known `cookies_string` with auth rights to a protected website.
 
 
 - __`cancel`:__

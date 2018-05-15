@@ -795,8 +795,8 @@ class Core(customJSONRPC):
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, phantom_crawl=False, status="IN", startmode="default", phantom_timeouts={}, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`)."""
+    def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, phantom_crawl=False, status="IN", startmode="default", cookies_string=None, phantom_timeouts={}, corpus=DEFAULT_CORPUS):
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a known `cookies_string` with auth rights to a protected website.\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`)."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
 
@@ -846,7 +846,7 @@ class Core(customJSONRPC):
 
         if "CORE" in WE["tags"] and "recrawlNeeded" in WE["tags"]["CORE"]:
             yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawlNeeded", "true", corpus=corpus)
-        res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE["prefixes"], nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, corpus=corpus, _autostarts=autostarts)
+        res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE["prefixes"], nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, cookies_string=cookies_string, corpus=corpus, _autostarts=autostarts)
         returnD(res)
 
     @inlineCallbacks
@@ -1033,8 +1033,8 @@ class Crawler(customJSONRPC):
         returnD(format_result('Crawling database reset.'))
 
     @inlineCallbacks
-    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], corpus=DEFAULT_CORPUS, _autostarts=[]):
-        """Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):\n- a `webentity_id` associated with the crawl a list of `starts` urls to start from\n- a list of `follow_prefixes` to know which links to follow\n- a list of `nofollow_prefixes` to know which links to avoid\n- a `depth` corresponding to the maximum number of clicks done from the start pages\n- `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`\n- a `download_delay` corresponding to the time in seconds spent between two requests by the crawler."""
+    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], cookies_string=None, corpus=DEFAULT_CORPUS, _autostarts=[]):
+        """Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):\n- a `webentity_id` associated with the crawl a list of `starts` urls to start from\n- a list of `follow_prefixes` to know which links to follow\n- a list of `nofollow_prefixes` to know which links to avoid\n- a `depth` corresponding to the maximum number of clicks done from the start pages\n- `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`\n- a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.\n- a known `cookies_string` with auth rights to a protected website."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if not phantom_crawl and urls_match_domainlist(starts, self.corpora[corpus]["options"]['phantom']['whitelist_domains']):
@@ -1061,7 +1061,8 @@ class Crawler(customJSONRPC):
           'follow_prefixes': list(follow_prefixes),
           'nofollow_prefixes': list(nofollow_prefixes),
           'discover_prefixes': list(follow_redirects),
-          'user_agent': useragents[randint(0, len(useragents) - 1)]
+          'user_agent': useragents[randint(0, len(useragents) - 1)],
+          'cookies': cookies_string
         }
         if phantom_crawl:
             phantom_timeouts.update(self.corpora[corpus]["options"]["phantom"])
