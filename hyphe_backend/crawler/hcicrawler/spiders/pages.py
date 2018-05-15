@@ -53,6 +53,9 @@ class PagesCrawler(Spider):
         self.resolved_links = {}
         self.user_agent = args['user_agent']
         self.phantom = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
+        self.cookies = None
+        if "cookies" in args:
+            self.cookies = dict(cookie.split('=') for cookie in re.split(r'\s*;\s*', c) if '=' in cookie)
         if self.phantom:
             self.ph_timeout = int(args.get('phantom_timeout', PHANTOM['TIMEOUT']))
             self.ph_idle_timeout = int(args.get('phantom_idle_timeout', PHANTOM['IDLE_TIMEOUT']))
@@ -266,6 +269,8 @@ class PagesCrawler(Spider):
         kw['meta'] = {'handle_httpstatus_all': True, 'noproxy': noproxy}
         kw['callback'] = self.handle_response
         kw['errback'] = self.handle_error
+        if self.cookies:
+            kw['cookies'] = self.cookies
         if self.phantom:
             kw['method'] = 'HEAD'
         return Request(url, **kw)
