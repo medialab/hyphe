@@ -56,6 +56,7 @@ angular.module('hyphe.summarizeTagCatComponent', [])
               res.push(k)
             }
           })
+          res.sort(function(a,b){return a.localeCompare(b) })
           return res
         }
 
