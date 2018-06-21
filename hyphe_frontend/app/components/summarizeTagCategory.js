@@ -49,9 +49,11 @@ angular.module('hyphe.summarizeTagCatComponent', [])
         $scope.autoComplete = function(query, category){
           var searchQuery = searchable(query)
             , res = []
-          Object.keys($scope.tagCategories[category] || {}).forEach(function(searchTag){
-            if (searchTag && (!searchQuery || ~searchTag.indexOf(searchQuery))) {
-              res.push(searchTag)
+          Object.keys($scope.tagCategories[category] || {})
+          .forEach(function(k){
+            var candidateTag = k.toLowerCase()
+            if (candidateTag && (!searchQuery || ~candidateTag.indexOf(searchQuery))) {
+              res.push(k)
             }
           })
           return res
