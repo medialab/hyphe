@@ -51,7 +51,7 @@ angular.module('hyphe.summarizeTagCatComponent', [])
             , res = []
           Object.keys($scope.tagCategories[category] || {})
           .forEach(function(k){
-            var candidateTag = k.toLowerCase()
+            var candidateTag = searchable(k)
             if (candidateTag && (!searchQuery || ~candidateTag.indexOf(searchQuery))) {
               res.push(k)
             }
