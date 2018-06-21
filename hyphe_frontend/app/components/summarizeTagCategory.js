@@ -2,7 +2,7 @@
 
 angular.module('hyphe.summarizeTagCatComponent', [])
 
-  .directive('summarizeTagCat', ['$timeout', function($timeout){
+  .directive('summarizeTagCat', function($timeout, autocompletion){
     return {
       restrict: 'E'
       ,templateUrl: 'components/summarizeTagCategory.html'
@@ -46,19 +46,7 @@ angular.module('hyphe.summarizeTagCatComponent', [])
           $scope.deleteValue(chip.value, $scope.tagCat, webentities)
         }
 
-        $scope.autoComplete = function(query, category){
-          var searchQuery = searchable(query)
-            , res = []
-          Object.keys($scope.tagCategories[category] || {})
-          .forEach(function(k){
-            var candidateTag = searchable(k)
-            if (candidateTag && (!searchQuery || ~candidateTag.indexOf(searchQuery))) {
-              res.push(k)
-            }
-          })
-          res.sort(function(a,b){return a.localeCompare(b) })
-          return res
-        }
+        $scope.autoComplete = autocompletion.getTagAutoCompleteFunction($scope.tagCategories)
 
         function update() {
           $timeout(function(){
@@ -84,17 +72,6 @@ angular.module('hyphe.summarizeTagCatComponent', [])
             }
           })
         }
-
-        function searchable(str){
-          str = str.trim().toLowerCase()
-          // remove diacritics
-          var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;"
-              , to = "aaaaeeeeiiiioooouuuunc------"
-          for (var i = 0, l = from.length; i < l; i++) {
-            str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i))
-          }
-          return str
-        }
       }
     }
-  }])
+  })

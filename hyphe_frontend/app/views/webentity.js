@@ -10,7 +10,8 @@ angular.module('hyphe.webentityController', [])
     corpus,
     store,
     $location,
-    $timeout
+    $timeout,
+    autocompletion
   ){
     $scope.currentPage = 'webentity'
     $scope.corpusName = corpus.getName()
@@ -294,28 +295,6 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
-    $scope.autoComplete = function(query, category){
-      var searchQuery = searchable(query)
-        , res = []
-      Object.keys($scope.tagsAutocomplete[category] || {}).forEach(function(searchTag){
-        if (searchTag && (!searchQuery || ~searchTag.indexOf(searchQuery))) {
-          res.push($scope.tagsAutocomplete[category][searchTag])
-        }
-      })
-      return res
-    }
-
-    function searchable(str){
-      str = str.trim().toLowerCase()
-      // remove diacritics
-      var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;"
-          , to = "aaaaeeeeiiiioooouuuunc------"
-      for (var i = 0, l = from.length; i < l; i++) {
-        str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i))
-      }
-      return str
-    }
-
     function fetchAutocompletionTags(){
       api.getTags(
         { namespace: 'USER' }
@@ -327,9 +306,10 @@ angular.module('hyphe.webentityController', [])
             var tag
             var tagCatValues = data[tagCat]
             for (tag in tagCatValues) {
-              $scope.tagsAutocomplete[tagCat][searchable(tag)] = tag
+              $scope.tagsAutocomplete[tagCat][autocompletion.searchable(tag)] = tag
             }
           }
+          $scope.autoComplete = autocompletion.getTagAutoCompleteFunction($scope.tagsAutocomplete)
         }
         ,function(data){
           $scope.status = {message: 'Error loading corpus tags', background: 'danger'}

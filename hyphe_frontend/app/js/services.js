@@ -574,4 +574,37 @@ angular.module('hyphe.services', [])
 
     return ns
   }])
+
+  .factory('autocompletion', function(){
+    var ns = {}
+
+    ns.getTagAutoCompleteFunction = function(tagAutocomplete) {
+      return function(query, category){
+        var searchQuery = ns.searchable(query)
+          , res = []
+        Object.keys(tagAutocomplete[category] || {})
+        .forEach(function(k){
+          var candidateTag = ns.searchable(k)
+          if (candidateTag && (!searchQuery || ~candidateTag.indexOf(searchQuery))) {
+            res.push(k)
+          }
+        })
+        res.sort(function(a,b){return a.localeCompare(b) })
+        return res
+      }
+    }
+
+    ns.searchable = function(str){
+      str = str.trim().toLowerCase()
+      // remove diacritics
+      var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;"
+          , to = "aaaaeeeeiiiioooouuuunc------"
+      for (var i = 0, l = from.length; i < l; i++) {
+        str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i))
+      }
+      return str
+    }
+
+    return ns
+  })
 ;
