@@ -38,6 +38,7 @@
     md-on-remove="removeValue($chip)"
   >
     <md-autocomplete
+      ng-if="!(undefinedValues == 0)"
       md-selected-item="selectedItem"
       md-search-text="searchText"
       md-items="tag in autoComplete(searchText, tagCat)"
