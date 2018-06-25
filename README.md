@@ -213,6 +213,18 @@ See our [roadmap](doc/roadmap.md)!
 
 * CAYLA, Nathalie, PEYRACHE-GADEAU, Véronique, [La singularité territoriale générée par le déploiement de la marque Parc naturel régional](https://labexitem.hypotheses.org/452), 2017
 
+* ROGERS, Richard. Digital Methods for Cross-platform Analysis. J. Burgess, A. Marwick e T. Poell (a cura di) The Sage Handbook of Social Media. London: Sage, 2017.
+
+* SERRES, Alexandre et STALDER, Angèle. L'EMI sur le web: cartographie d'un domaine en émergence. In : Journée d'étude GRCDI-ESPE de Caen et Rouen,«L’EMI en questions: enjeux, prescriptions, contenus, apprentissages». 2016.
+
+* BERTHELOT, Marie-Aimée, SEVERO, Marta, et KERGOSIEN, Eric. Cartographier les acteurs d'un territoire: une approche appliquée au patrimoine industriel textile du Nord-Pas-de-Calais. In : CIST2016-En quête de territoire (s)?. 2016. p. 66-72.
+
+* SCHNEIDER, Élisabeth, SERRES, Alexandre, et STALDER, Angèle. L’EMI en partage: essai de cartographie des acteurs. In : 10e Congrès des Enseignants Documentalistes de l'Education Nationale" Enseigner-apprendre l'information-documentation". 2015.
+
+* KERGOSIEN, Eric, JACQUEMIN, Bernard, SEVERO, Marta, et al. Vers l'interopérabilité des données hétérogènes liées au patrimoine industriel textile. In : CiDE. 18. 18e Colloque international sur le Document Électronique. Europia, 2015. p. 145-158.
+
+* MUNK, Anders Kristian. Mapping Wind Energy Controversies Online: Introduction to Methods and Datasets. 2014.
+
 ## Credits & License
 
 [Mathieu Jacomy](https://github.com/jacomyma), [Benjamin Ooghe-Tabanou](https://github.com/boogheta) & [Guillaume Plique](https://github.com/Yomguithereal) @ [Sciences Po médialab](https://github.com/medialab)
