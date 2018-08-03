@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, os
+import sys, os, re
 import pymongo
 import jsonrpclib
 from md5 import md5
@@ -33,6 +33,70 @@ def process_all(hyphe_core, mongo_pages_coll, corpus, status_to_extract=["IN"]):
         total_pages += process_webentities(hyphe, dbpages, wes, corpus)
     print("collected a total of %s pages for %s webentities" % \
         (total_pages, total_wes))
+
+def process_pages_matching_keyword(hyphe_core, mongo_pages_coll, corpus, keyword, content_types=["text/plain", "text/html"]):
+    query = {
+        "status": 200,
+        "content_type": {"$in": content_types},
+        "body" : {"$exists": True}
+    }
+    print("TOTAL valid pages:", mongo_pages_coll.count(query))
+
+    headers = ["url", "webentity_id", "webentity_name"]
+    files = {}
+    for typ in ["html", "text", "canola"]:
+        files[typ] = open("%s-%s-%s.csv" % (corpus, keyword, typ), "w")
+        print >> files[typ], ",".join([k.encode("utf-8") for k in headers + [typ]])
+    match = 0
+    total = 0
+    for page in mongo_pages_coll.find(query):
+        total += 1
+        if not total % 100:
+            print match, "/", total
+
+        body = page["body"].decode('zip')
+        if keyword not in body:
+            continue
+        match +=1
+
+        encoding = page.get("encoding", "")
+        try:
+            body = body.decode(encoding)
+        except Exception :
+            body = body.decode("UTF8", "replace")
+            encoding = "UTF8-replace"
+
+        we = hyphe_core.store.get_webentity_for_url_as_lru(page["lru"], corpus)
+        try:
+            assert we["code"] == "success"
+            page["webentity_id"] = we["result"]["id"]
+            page["webentity_name"] = we["result"]["name"]
+        except:
+            print("WARNING! Could not resolve WebEntity for url %s" % page["url"])
+
+        page["html"] = body
+        page["text"] = textify(body, encoding=encoding)
+        page["canola"] = textify(body, extractor="CanolaExtractor", encoding=encoding)
+
+        for typ in ["html", "text", "canola"]:
+            if keyword not in page[typ]:
+                continue
+            print >> files[typ], ",".join([format_for_csv(page.get(k, "")) for k in headers + [typ]])
+
+    for typ in ["html", "text", "canola"]:
+        files[typ].close()
+
+    print('FOUND %s pages matching "%s"' % (match, keyword))
+
+def format_for_csv(v):
+    if not v:
+        return ""
+    if type(v) != unicode:
+        v = unicode(v)
+    v = re.sub(ur"\s*[\r\n]+\s*", u" ↲ ", v).strip(u" ↲")
+    if "," in v:
+        v = '"%s"' % v.replace('"', '""')
+    return v.encode("utf-8")
 
 def get_status_webentities(hyphe_core, status, corpus):
     print("Retrieving %s web entities" % status)
@@ -157,15 +221,17 @@ if __name__ == '__main__':
     mongoport = 27017
     mongodb = ""
     corpus = ""
+    password = ""
+    keyword = ""
 
     # Initiate Hyphe API connection and ensure corpus started
     try:
         hyphe = jsonrpclib.Server(api, version=1)
     except Exception as e:
         exit('Could not initiate connection to hyphe core')
-	start = hyphe.start_corpus(corpus, password)
-	if start['code'] == 'fail' :
-		exit(start['message'])
+    start = hyphe.start_corpus(corpus, password)
+    if start['code'] == 'fail' :
+        exit(start['message'])
 
     # Initiate MongoDB connection and build index on pages
     try:
@@ -176,4 +242,5 @@ if __name__ == '__main__':
     ensure_index_on_pages(dbpages)
 
     # Run!
-    process_all(hyphe, dbpages, corpus)
+    #process_all(hyphe, dbpages, corpus)
+    process_pages_matching_keyword(hyphe, dbpages, corpus, keyword)
