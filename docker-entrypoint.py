@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import json
-from os import environ,system
+from os import environ,system,path
 from ast import literal_eval
+from shutil import copyfile
 
 def loadConfig(filename):
     with open(filename, "r+") as filecontent:
@@ -25,6 +26,9 @@ def strToBool(string):
         return False
 
 configfile = "/app/config/config.json"
+
+if not path.exists(configfile):
+    copyfile("/app/config/config.json.example", configfile)
 
 configdata = loadConfig(configfile)
 
