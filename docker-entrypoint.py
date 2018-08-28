@@ -28,7 +28,7 @@ def strToBool(string):
 configfile = "/app/config/config.json"
 
 if not path.exists(configfile):
-    copyfile("/app/config/config.json.example", configfile)
+    copyfile("/app/config.sample/config.json.example", configfile)
 
 configdata = loadConfig(configfile)
 

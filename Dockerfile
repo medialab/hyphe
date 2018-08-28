@@ -14,13 +14,13 @@ RUN apk --update add gcc git musl-dev libxml2-dev libxslt-dev libffi-dev openssl
 
 COPY ./bin /app/bin
 
-COPY ./config /app/config
+COPY ./config /app/config.sample
 
 COPY ./hyphe_backend /app/hyphe_backend
 
 COPY ./docker-entrypoint.py /app/docker-entrypoint.py
 
-RUN cp /app/config/config.json.example /app/config/config.json
+RUN mkdir /app/config
 
 RUN chmod +x /app/docker-entrypoint.py
 
