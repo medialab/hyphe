@@ -104,7 +104,7 @@
 
               </div>
 
-              <div ng-if="parsingOption=='text'" layout="column">
+              <div ng-if="parsingOption=='text' && textPreview.length" layout="column">
                 
                 <p class="md-body-2">Preview of urls fetched from full text:</p>
 
@@ -117,7 +117,7 @@
 
                 <br>
 
-                <md-button class="md-raised md-primary" href="#/project/{{corpusId}}/definewebentities" layout-fill>
+                <md-button class="md-raised md-primary" href="#/project/{{corpusId}}/definewebentities">
                   DEFINE WEB ENTIT{{table.length | y_ies | uppercase}}
                 </md-button>
 
