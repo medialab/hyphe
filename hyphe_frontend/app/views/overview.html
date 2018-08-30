@@ -185,7 +185,7 @@
                 >
                   <md-grid-tile
                     class="visual-crawl-job-tile"
-                    ng-repeat="job in visualCrawlJobs"
+                    ng-repeat="job in visualCrawlJobs|limitTo:256"
                     md-colors="{
                       'background':
                         (job.status == 'running')
@@ -200,6 +200,7 @@
                     <md-tooltip md-direction="top">{{job.status}}</md-tooltip>
                   </md-grid-tile>
                 </md-grid-list>
+                <em ng-if="visualCrawlJobs.length>256">Only 256 crawl jobs displayed. Total: {{visualCrawlJobs.length|number}}</em>
               </div>
             </div>
 
