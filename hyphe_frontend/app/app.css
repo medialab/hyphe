@@ -533,6 +533,9 @@ textarea.over-error {
   padding: 6px;
 }
 
+.layout-align-center-center .md-button {
+  padding: 0 16px;
+}
 
 
 /* ==========================================================================

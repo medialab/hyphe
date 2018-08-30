@@ -96,8 +96,8 @@
                   </md-select>
                 </md-input-container>
 
-                <div>
-                  <md-button class="md-raised md-primary" href="#/project/{{corpusId}}/definewebentities" layout-fill>
+                <div layout="column" layout-align="center center">
+                  <md-button class="md-raised md-primary" href="#/project/{{corpusId}}/definewebentities">
                     DEFINE WEB ENTIT{{table.length | y_ies | uppercase}}
                   </md-button>
                 </div>
@@ -117,9 +117,11 @@
 
                 <br>
 
-                <md-button class="md-raised md-primary" href="#/project/{{corpusId}}/definewebentities">
-                  DEFINE WEB ENTIT{{table.length | y_ies | uppercase}}
-                </md-button>
+                <div layout="column" layout-align="center center">
+                  <md-button class="md-raised md-primary" href="#/project/{{corpusId}}/definewebentities">
+                    DEFINE WEB ENTIT{{table.length | y_ies | uppercase}}
+                  </md-button>
+                </div>
 
               </div>
 
