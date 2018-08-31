@@ -1,3 +1,4 @@
+fake-useragent==0.1.10
 hyphe-traph
 msgpack-python>=0.3
 pymongo>=3.4
