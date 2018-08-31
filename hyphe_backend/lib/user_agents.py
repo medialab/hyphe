@@ -17,10 +17,11 @@ def init_client():
     directory = os.path.dirname(__file__)
     path_to_file = os.path.join(directory,"user_agents.txt")
     try:
-        user_agents_client = UserAgent(cache=False)
+        user_agents_client = UserAgent(cache=False) #Instantiation of the UserAgent object
     except FakeUserAgentError:
-        print "Error when trying to instanciate a user-agent with FakeUserAgent. Switching to local list"
-        user_agents_list = open(path_to_file).read().splitlines()
+        print "Error when trying to instantiate a user-agent with FakeUserAgent. Switching to local list"
+        with open(path_to_file) as f: #Transcription of the local user_agents.txt into the user_agents_list
+            user_agents_list = f.read().splitlines()
 
 init_client()
 
