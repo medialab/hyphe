@@ -5,6 +5,7 @@ import os
 import sys
 from fake_useragent import UserAgent, FakeUserAgentError
 import collections
+import random
 
 user_agent_client = None
 user_agent_list = []
@@ -15,7 +16,6 @@ def init_user_agent():
     try:
         user_agent_client = UserAgent(cache=False)
     except FakeUserAgentError:
-        user_agent_list = open('file.txt').read().splitlines()
         print "Error when trying to instanciate a user-agent with FakeUserAgent. Swintching to local list"
 
 init_user_agent()
@@ -24,16 +24,18 @@ def generate_random_useragent():
     directory = os.path.dirname(__file__)
     path_to_file = os.path.join(directory,"user_agents.txt")
 
-    #if user_agent_client is None:
-        #TODO
-    return user_agent_client.random
+    if user_agent_client is None:
+        user_agent_list = open(path_to_file).read().splitlines()
+        random_user_agent = random.choice(user_agent_list)
+    else:
+        random_user_agent = user_agent_client.random
+    return random_user_agent
 
 def update_useragent_list():
     directory = os.path.dirname(__file__)
     path_to_file = os.path.join(directory,"user_agents.txt")
     try:
-        ua = UserAgent(cache=False)
-        ua.update()
+        user_agent_client.update()
     except FakeUserAgentError:
         print "Error when trying to update the user-agents list with FakeUserAgent"
         sys.exit(1)
@@ -61,5 +63,6 @@ def update_useragent_list():
             print "Error storing the list in user_agents.txt"
 
 if __name__ == '__main__':
-    update_useragent_list()
+    #update_useragent_list()
+
 
