@@ -59,7 +59,6 @@ def update_useragents_list():
 
     try:
         with open(path_to_file, "w") as user_agents_file:
-            nb_lines = 0
             for user_agent in new_user_agents_list:
                 print >> user_agents_file, user_agent
     except:
