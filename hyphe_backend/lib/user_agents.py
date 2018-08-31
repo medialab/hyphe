@@ -8,9 +8,10 @@ import collections
 import random
 
 user_agent_client = None
-user_agent_list = []
+user_agents_list = []
 
-def init_user_agent():
+def init_user_agent(): 
+    global user_agent_client
     directory = os.path.dirname(__file__)
     path_to_file = os.path.join(directory,"user_agents.txt")
     try:
@@ -21,12 +22,13 @@ def init_user_agent():
 init_user_agent()
 
 def generate_random_useragent():
+    global user_agents_list
     directory = os.path.dirname(__file__)
     path_to_file = os.path.join(directory,"user_agents.txt")
 
     if user_agent_client is None:
-        user_agent_list = open(path_to_file).read().splitlines()
-        random_user_agent = random.choice(user_agent_list)
+        user_agents_list = open(path_to_file).read().splitlines()
+        random_user_agent = random.choice(user_agents_list)
     else:
         random_user_agent = user_agent_client.random
     return random_user_agent
@@ -36,25 +38,25 @@ def update_useragent_list():
     path_to_file = os.path.join(directory,"user_agents.txt")
     try:
         user_agent_client.update()
-    except FakeUserAgentError:
+    except:
         print "Error when trying to update the user-agents list with FakeUserAgent"
         sys.exit(1)
 
     # Generating a new list of 100 user agents
 
-    user_agents_list = []
+    new_user_agents_list = []
     for x in range(100):
-        useragent = ua.random
-        while useragent in user_agents_list:
-            useragent=ua.random
-        user_agents_list.append(useragent)
+        useragent = user_agent_client.random
+        while useragent in new_user_agents_list:
+            useragent=user_agent_client.random
+        new_user_agents_list.append(useragent)
     print "List of user agents successfully generated"
 
     # Storing the list into user_agents.txt
 
     with open(path_to_file, "w") as user_agents_file:
         nb_lines = 0
-        for user_agent in user_agents_list:
+        for user_agent in new_user_agents_list:
             print >> user_agents_file, user_agent
             nb_lines += 1
         if nb_lines == 100:
@@ -63,6 +65,6 @@ def update_useragent_list():
             print "Error storing the list in user_agents.txt"
 
 if __name__ == '__main__':
-    #update_useragent_list()
+    update_useragent_list()
 
 
