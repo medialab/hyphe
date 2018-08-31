@@ -7,49 +7,53 @@ from fake_useragent import UserAgent, FakeUserAgentError
 import collections
 import random
 
-user_agent_client = None
+user_agents_client = None
 user_agents_list = []
 
-def init_user_agent(): 
-    global user_agent_client
+def init_client(): 
+    """Instantiates the UserAgent object (if possible), otherwise instantiates the list from the user_agents.txt file"""
+    global user_agents_client
+    global user_agents_list
     directory = os.path.dirname(__file__)
     path_to_file = os.path.join(directory,"user_agents.txt")
     try:
-        user_agent_client = UserAgent(cache=False)
+        user_agents_client = UserAgent(cache=False)
     except FakeUserAgentError:
-        print "Error when trying to instanciate a user-agent with FakeUserAgent. Swintching to local list"
+        print "Error when trying to instanciate a user-agent with FakeUserAgent. Switching to local list"
+        user_agents_list = open(path_to_file).read().splitlines()
 
-init_user_agent()
+init_client()
 
 def generate_random_useragent():
+    """Returns a random user agent"""
     global user_agents_list
     directory = os.path.dirname(__file__)
     path_to_file = os.path.join(directory,"user_agents.txt")
 
-    if user_agent_client is None:
-        user_agents_list = open(path_to_file).read().splitlines()
+    if user_agents_client is None:
         random_user_agent = random.choice(user_agents_list)
     else:
-        random_user_agent = user_agent_client.random
+        random_user_agent = user_agents_client.random
     return random_user_agent
 
-def update_useragent_list():
+def update_useragents_list():
+    """Updates the local user_agents.txt file containing 100 user agents"""
     directory = os.path.dirname(__file__)
     path_to_file = os.path.join(directory,"user_agents.txt")
     try:
-        user_agent_client.update()
+        user_agents_client.update()
     except:
         print "Error when trying to update the user-agents list with FakeUserAgent"
         sys.exit(1)
 
     # Generating a new list of 100 user agents
+    
+    new_user_agents_set = set() # Using a set avoids duplicates
+    while len(new_user_agents_set) < 100:
+        new_user_agents_set.add(user_agents_client.random)
+    new_user_agents_list = list(new_user_agents_set)
+    new_user_agents_list.sort()
 
-    new_user_agents_list = []
-    for x in range(100):
-        useragent = user_agent_client.random
-        while useragent in new_user_agents_list:
-            useragent=user_agent_client.random
-        new_user_agents_list.append(useragent)
     print "List of user agents successfully generated"
 
     # Storing the list into user_agents.txt
@@ -65,6 +69,6 @@ def update_useragent_list():
             print "Error storing the list in user_agents.txt"
 
 if __name__ == '__main__':
-    update_useragent_list()
+    update_useragents_list()
 
 
