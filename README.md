@@ -199,13 +199,13 @@ See our [roadmap](doc/roadmap.md)!
 
 * VENTURINI, Tommaso, JACOMY, Mathieu, BOUNEGRU, Liliana & GRAY, Jonathan, (2018, forthcoming), "[Visual Network Exploration for Data Journalists](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3043912)", in S. E. I. and B. Franklin (Ed.). Abingdon: Routledge.
 
-* FROIO, Caterina, "[Nous et les autres. L’altérité sur les sites web des extrêmes droites en France](http://www.cairn.info/article.php?ID_ARTICLE=RES_202_0039&WT.mc_id=RES_202)", in Réseaux, 2017/2 (n° 202-203), p. 39-78. DOI : 10.3917/res.202.0039.
+* FROIO, Caterina, "[Nous et les autres. L’altérité sur les sites web des extrêmes droites en France](http://www.cairn.info/article.php?ID_ARTICLE=RES_202_0039&WT.mc_id=RES_202)", in Réseaux, 2017/2 (n° 202-203), p. 39-78. DOI: 10.3917/res.202.0039.
 
-* ARZHEIMER, Kai, "[The AfD’s Facebook Wall: A new Hub for Right-Wing Mobilisation in Germany?](http://www.kai-arzheimer.com/my-apsa-2015-paper-the-afds-facebook-wall-as-a-hub-for-right-wing-mobilisation-in-germany/)", in American Political Science Association Conference, 2015.
+* ARZHEIMER, Kai, "[The AfD’s Facebook Wall: A new Hub for Right-Wing Mobilisation in Germany?](http://www.kai-arzheimer.com/my-apsa-2015-paper-the-afds-facebook-wall-as-a-hub-for-right-wing-mobilisation-in-germany/)", in [American Political Science Association Conference, 2015](https://convention2.allacademic.com/one/apsa/apsa15/index.php?cmd=Online+Program+View+Paper&selected_paper_id=997634&PHPSESSID=vnpdminlo8d0kvs0u7aprbk8e0).
 
 * PEDROJA, Cynthia, et al. "[Dépasser la liste : quand la bibliothèque entre dans la danse des corpus web.](https://hal.archives-ouvertes.fr/hal-01386536/document)" Digital Humanities 2016 (DH2016). Jagiellonian University & Pedagogical University, 2016.
 
-* DE CARVALHO PEREIRA, Débora "[Produits laitiers : les réseaux d'influence sur le web](https://f.hypotheses.org/wp-content/blogs.dir/3105/files/2017/10/Rapport-REPASTOL-PEREIRA-2017.compressed.pdf)".
+* DE CARVALHO PEREIRA, Débora "[Les réseaux d'influence sur le web dans le domaine des produits laitiers](https://f.hypotheses.org/wp-content/blogs.dir/3105/files/2017/10/Rapport-REPASTOL-PEREIRA-2017.compressed.pdf)".
 
 * OJALA, Mace "[Mining with Hyphe](https://ethos.itu.dk/2017/01/05/mining-with-hyphe-reflections-on-publicethos-13/)", 2018 (a blog post on Ethos Lab's blog)
 
@@ -213,17 +213,18 @@ See our [roadmap](doc/roadmap.md)!
 
 * CAYLA, Nathalie, PEYRACHE-GADEAU, Véronique, [La singularité territoriale générée par le déploiement de la marque Parc naturel régional](https://labexitem.hypotheses.org/452), 2017
 
-* ROGERS, Richard. Digital Methods for Cross-platform Analysis. J. Burgess, A. Marwick e T. Poell (a cura di) The Sage Handbook of Social Media. London: Sage, 2017.
+* ROGERS, Richard. [Digital Methods for Cross-platform Analysis](https://www.researchgate.net/profile/Richard_Rogers13/publication/314100273_Digital_Methods_for_Cross-platform_Analysis/links/58b57ae392851ca13e52cb50/Digital-Methods-for-Cross-platform-Analysis.pdf). J. Burgess, A. Marwick e T. Poell (a cura di) The Sage Handbook of Social Media. London: Sage, 2017.
 
-* SERRES, Alexandre et STALDER, Angèle. L'EMI sur le web: cartographie d'un domaine en émergence. In : Journée d'étude GRCDI-ESPE de Caen et Rouen,«L’EMI en questions: enjeux, prescriptions, contenus, apprentissages». 2016.
+* SERRES, Alexandre et STALDER, Angèle. [L'EMI sur le web: cartographie d'un domaine en émergence](https://archivesic.ccsd.cnrs.fr/sic_01483421/document). In: Journée d'étude GRCDI-ESPE de Caen et Rouen,«L’EMI en questions: enjeux, prescriptions, contenus, apprentissages». 2016.
 
-* BERTHELOT, Marie-Aimée, SEVERO, Marta, et KERGOSIEN, Eric. Cartographier les acteurs d'un territoire: une approche appliquée au patrimoine industriel textile du Nord-Pas-de-Calais. In : CIST2016-En quête de territoire (s)?. 2016. p. 66-72.
+* BERTHELOT, Marie-Aimée, SEVERO, Marta, et KERGOSIEN, Eric. [Cartographier les acteurs d'un territoire: une approche appliquée au patrimoine industriel textile du Nord-Pas-de-Calais](https://hal.archives-ouvertes.fr/hal-01353660/document). In: CIST2016-En quête de territoire (s)?. 2016. p. 66-72.
 
-* SCHNEIDER, Élisabeth, SERRES, Alexandre, et STALDER, Angèle. L’EMI en partage: essai de cartographie des acteurs. In : 10e Congrès des Enseignants Documentalistes de l'Education Nationale" Enseigner-apprendre l'information-documentation". 2015.
+* SCHNEIDER, Élisabeth, SERRES, Alexandre, et STALDER, Angèle. [L’EMI en partage: essai de cartographie des acteurs](https://archivesic.ccsd.cnrs.fr/sic_01217549/document). In: 10e Congrès des Enseignants Documentalistes de l'Education Nationale" Enseigner-apprendre l'information-documentation". 2015.
 
-* KERGOSIEN, Eric, JACQUEMIN, Bernard, SEVERO, Marta, et al. Vers l'interopérabilité des données hétérogènes liées au patrimoine industriel textile. In : CiDE. 18. 18e Colloque international sur le Document Électronique. Europia, 2015. p. 145-158.
+* KERGOSIEN, Eric, JACQUEMIN, Bernard, SEVERO, Marta, et al. [Vers l'interopérabilité des données hétérogènes liées au patrimoine industriel textile](https://hal.univ-lille3.fr/hal-01281716v2/document). In: CiDE. 18. 18e Colloque international sur le Document Électronique. Europia, 2015. p. 145-158.
 
-* MUNK, Anders Kristian. Mapping Wind Energy Controversies Online: Introduction to Methods and Datasets. 2014.
+* MUNK, Anders Kristian. [Mapping Wind Energy Controversies Online: Introduction to Methods and Datasets](http://www.academia.edu/11976139/Mapping_Wind_Energy_Controversies_Online_Introduction_to_Methods_and_Datasets). 2014.
+
 
 ## Credits & License
 
