@@ -41,9 +41,7 @@ def update_useragents_list():
     """Updates the local user_agents.txt file containing 100 user agents"""
     directory = os.path.dirname(__file__)
     path_to_file = os.path.join(directory,"user_agents.txt")
-    try:
-        user_agents_client.update()
-    except:
+    if user_agents_client is None:
         print "Error when trying to update the user-agents list with FakeUserAgent"
         sys.exit(1)
 
@@ -59,15 +57,13 @@ def update_useragents_list():
 
     # Storing the list into user_agents.txt
 
-    with open(path_to_file, "w") as user_agents_file:
-        nb_lines = 0
-        for user_agent in new_user_agents_list:
-            print >> user_agents_file, user_agent
-            nb_lines += 1
-        if nb_lines == 100:
-            print "List of user agents successfully stored in user_agents.txt"
-        else:
-            print "Error storing the list in user_agents.txt"
+    try:
+        with open(path_to_file, "w") as user_agents_file:
+            nb_lines = 0
+            for user_agent in new_user_agents_list:
+                print >> user_agents_file, user_agent
+    except:
+        print "Error writing in user_agents.txt"
 
 if __name__ == '__main__':
     update_useragents_list()
