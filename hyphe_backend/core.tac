@@ -27,7 +27,7 @@ from hyphe_backend.lib import urllru
 from hyphe_backend.lib.utils import *
 from hyphe_backend.lib.config_hci import test_and_make_dir, check_conf_sanity, clean_missing_corpus_options, CORPUS_CONF_SCHEMA, DEFAULT_CORPUS, TEST_CORPUS
 from hyphe_backend.lib.creationrules import getPreset as getWECR
-from hyphe_backend.lib.user_agents import generate_random_useragent
+from hyphe_backend.lib.user_agents import get_random_user_agent
 from hyphe_backend.lib.tlds import collect_tlds
 from hyphe_backend.lib.jobsqueue import JobsQueue
 from hyphe_backend.lib.mongo import MongoDB, sortasc, sortdesc
@@ -904,7 +904,7 @@ class Core(customJSONRPC):
             if tryout > 3:
                 method = "GET"
             headers = {'Accept': ['*/*'],
-                      'User-Agent': [generate_random_useragent()]}
+                      'User-Agent': [get_random_user_agent()]}
             response = yield agent.request(method, url, Headers(headers), None)
         except DNSLookupError as e:
             if use_proxy and self.corpora[corpus]["options"]['proxy']['host'] in str(e):
@@ -1061,7 +1061,7 @@ class Crawler(customJSONRPC):
           'follow_prefixes': list(follow_prefixes),
           'nofollow_prefixes': list(nofollow_prefixes),
           'discover_prefixes': list(follow_redirects),
-          'user_agent': generate_random_useragent(),
+          'user_agent': get_random_user_agent(),
           'cookies': cookies_string
         }
         if phantom_crawl:
