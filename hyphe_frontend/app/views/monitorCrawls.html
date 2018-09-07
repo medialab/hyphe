@@ -140,6 +140,7 @@
                 ng-if="dynamicCrawlJobs"
                 layout-fill
                 layout="column"
+                class="list-all-crawls"
               >
                 <md-subheader class="md-primary follow-md-virtual-repeat-width" style="height: 48px">
                   <div layout="row">
@@ -149,21 +150,42 @@
                     <div class="md-secondary crawljobs-col-dept">
                       <span><md-tooltip md-direction="top">Depth</md-tooltip>D</span>
                     </div>
-                    <div class="md-secondary crawljobs-col-stat">Status</div>
-                    <div class="md-secondary crawljobs-col-inde">
+                    <div class="md-secondary crawljobs-col-stat"
+                      md-colors="{'color': (sort == 'globalStatus') ? ('default-accent') : ('default-primary')}"
+                      ng-click="toggleSort('globalStatus')"
+                    >Status</div>
+                    <div class="md-secondary crawljobs-col-inde"
+                      md-colors="{'color': (sort == 'nb_pages_indexed') ? ('default-accent') : ('default-primary')}"
+                      ng-click="toggleSort('nb_pages_indexed')"
+                    >
                       <span><md-tooltip md-direction="top">Pages indexed</md-tooltip>PI</span>
                     </div>
-                    <div class="md-secondary crawljobs-col-craw">
+                    <div class="md-secondary crawljobs-col-craw"
+                      md-colors="{'color': (sort == 'nb_crawled_pages') ? ('default-accent') : ('default-primary')}"
+                      ng-click="toggleSort('nb_crawled_pages')"
+                    >
                       <span><md-tooltip md-direction="top">Pages Crawled</md-tooltip>PC</span>
                     </div>
-                    <div class="md-secondary crawljobs-col-disp">
+                    <div class="md-secondary crawljobs-col-disp"
+                      md-colors="{'color': (sort == 'nb_pages') ? ('default-accent') : ('default-primary')}"
+                      ng-click="toggleSort('nb_pages')"
+                    >
                       <span><md-tooltip md-direction="top">Discovered Pages</md-tooltip><md-icon style="font-size: 1.5em;">description</md-icon></span>
                     </div>
-                    <div class="md-secondary crawljobs-col-disl">
+                    <div class="md-secondary crawljobs-col-disl"
+                      md-colors="{'color': (sort == 'nb_links') ? ('default-accent') : ('default-primary')}"
+                      ng-click="toggleSort('nb_links')"
+                    >
                       <span><md-tooltip md-direction="top">Discovered Links</md-tooltip><md-icon style="font-size: 1.5em;">link</md-icon></span>
                     </div>
-                    <div class="md-secondary crawljobs-col-sche">SCHEDULED</div> 
-                    <div class="md-secondary crawljobs-col-dura">DURATION</div>
+                    <div class="md-secondary crawljobs-col-sche"
+                      md-colors="{'color': (sort == 'created_at') ? ('default-accent') : ('default-primary')}"
+                      ng-click="toggleSort('created_at')"
+                    >SCHEDULED</div> 
+                    <div class="md-secondary crawljobs-col-dura"
+                      md-colors="{'color': (sort == 'duration') ? ('default-accent') : ('default-primary')}"
+                      ng-click="toggleSort('duration')"
+                    >DURATION</div>
                   </div>
                 </md-subheader>
                 <div flex>
@@ -203,12 +225,12 @@
                         </span>
                         <div class="md-secondary crawljobs-col-dept">{{job.crawl_arguments.max_depth}}</div>
                         <div class="md-secondary crawljobs-col-stat">{{job.globalStatus}}</div>
-                        <div class="md-secondary crawljobs-col-inde">{{job.nb_crawled_pages - job.nb_unindexed_pages}}</div>
+                        <div class="md-secondary crawljobs-col-inde">{{job.nb_pages_indexed}}</div>
                         <div class="md-secondary crawljobs-col-craw">{{job.nb_crawled_pages}}</div>
                         <div class="md-secondary crawljobs-col-disp">{{job.nb_pages}}</div>
                         <div class="md-secondary crawljobs-col-disl">{{job.nb_links}}</div>
                         <div class="md-secondary crawljobs-col-sche"><span><md-tooltip md-direction="left">{{job.created_at|date}}</md-tooltip>{{job.created_at|prettyDate}}</span></div> 
-                        <div class="md-secondary crawljobs-col-dura"><div ng-if="job.finished_at - job.created_at > 0">{{(job.finished_at - job.scheduled_at)|duration}}</div></div>
+                        <div class="md-secondary crawljobs-col-dura"><div ng-if="job.finished_at - job.created_at > 0">{{job.duration|duration}}</div></div>
                       </md-list-item>
                     </md-list>
                   </md-virtual-repeat-container>

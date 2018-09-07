@@ -626,6 +626,10 @@ textarea.over-error {
   width: 80px;
 }
 
+.list-all-crawls .md-secondary {
+  outline-style: none;
+}
+
 
 
 /* ==========================================================================

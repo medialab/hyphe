@@ -25,6 +25,7 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.crawljobsIndex = {}
     $scope.lastCrawlJobs = []
     $scope.dynamicCrawlJobs // Virtual repeat
+    $scope.sort = null
     
     $scope.webentityIndex = {}
 
@@ -210,11 +211,15 @@ angular.module('hyphe.monitorcrawlsController', [])
               .map(utils.consolidateJob)
               // Sort by currently working then reverse chronological order
               .sort(function(a,b){
-                if (a.globalStatus === "CRAWLING" || a.globalStatus === "INDEXING")
-                  return -1
-                if (b.globalStatus === "CRAWLING" || b.globalStatus === "INDEXING")
-                  return 1
-                return b.created_at - a.created_at
+                if (!$scope.sort) {
+                  if (a.globalStatus === "CRAWLING" || a.globalStatus === "INDEXING")
+                    return -1
+                  if (b.globalStatus === "CRAWLING" || b.globalStatus === "INDEXING")
+                    return 1
+                  return b.created_at - a.created_at
+                } else {
+                  return b[$scope.sort] - b["$scope.sort"]
+                }
               })
           )
 
@@ -457,4 +462,25 @@ angular.module('hyphe.monitorcrawlsController', [])
         return deepmerge(prev, next, optionsArgument)
       })
     }
+
+    $scope.toggleSort = function(field){
+      if($scope.sort == field){
+        // Reset
+        $scope.sort = null
+        $scope.crawlJobs = $scope.crawlJobs.sort(function(a,b){
+          if (a.globalStatus === "CRAWLING" || a.globalStatus === "INDEXING")
+            return -1
+          if (b.globalStatus === "CRAWLING" || b.globalStatus === "INDEXING")
+            return 1
+          return b.created_at - a.created_at
+        })
+      } else {
+        $scope.sort = field
+        $scope.crawlJobs = $scope.crawlJobs.sort(function(a,b){
+          return b[$scope.sort] - a[$scope.sort]
+        })
+      }
+      $scope.dynamicCrawlJobs = getDynamicCrawlJobs() // Virtual repeat
+    }
+
   })
