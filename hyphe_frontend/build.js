@@ -31,4 +31,4 @@ window.graphlayout = {
 window.ForceAtlas2Layout = require('graphology-layout-forceatlas2/worker');
 window.Graph = require('graphology');
 window.gexf = require('graphology-gexf');
-window.Sigma = require('sigma/endpoint');
+window.Sigma = require('sigma');

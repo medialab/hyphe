@@ -85,31 +85,28 @@ angular.module('hyphe.sigmaNetworkComponent', [])
           $timeout(function(){
             var container = document.getElementById('sigma-div')
             if (!container) return
-            renderer = new Sigma.WebGLRenderer(container)
-            sigma = new Sigma($scope.network, renderer)
+
+            renderer = new Sigma.WebGLRenderer($scope.network, container)
 
             $scope.zoomIn = function(){
               var camera = renderer.getCamera()
-              var state = camera.getState()
-              camera.animate({ratio: state.ratio / 1.5})
+              camera.animatedZoom()
             }
 
             $scope.zoomOut = function(){
               var camera = renderer.getCamera()
-              var state = camera.getState()
-              camera.animate({ratio: state.ratio * 1.5})
+              camera.animatedUnzoom()
             }
 
             $scope.resetCamera = function(){
               var camera = renderer.getCamera()
-              var state = camera.getState()
-              camera.animate({ratio: 1.5, x:0, y:0})
+              camera.animate({ratio: 1.2, x: 0.5, y: 0.5})
             }
 
             // Defaults to some unzoom
             var camera = renderer.getCamera()
             var state = camera.getState()
-            camera.animate({ratio: 1.2, x:0, y:0})
+            camera.animate({ratio: 1.2, x:0.5, y:0.5})
 
             if ($scope.layout) {
               $scope.layout.kill()
