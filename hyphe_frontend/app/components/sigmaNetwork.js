@@ -18,7 +18,6 @@ angular.module('hyphe.sigmaNetworkComponent', [])
         onNodeClick: '='
       }
       ,link: function($scope, el, attrs) {
-        var sigma
         var renderer
 
         $scope.nodesCount
@@ -133,7 +132,7 @@ angular.module('hyphe.sigmaNetworkComponent', [])
         }
 
         function updateMouseEvents() {
-          if (sigma === undefined || renderer === undefined) {
+          if (renderer === undefined) {
             return
           }
 
