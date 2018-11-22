@@ -185,9 +185,11 @@ See our [roadmap](doc/roadmap.md)!
 
 ## Papers & references
 
-### Tutorials
+### Tutorials / examples
 
 * Explanatory video (french) [Explorer les internets avec Hyphe](https://vimeo.com/235804282) (September 2017). Mathieu Jacomy presents Hyphe at Sciences Po CEVIPOF during METSEM, a seminar on digital methods in social sciences.
+
+* (FR) [Le web du secteur de l'hydrogène](https://www.cellie.fr/2018/11/21/le-graphe-un-pan-de-la-dataviz-exploitable-pour-cartographier-et-explorer-un-secteur-dactivite-2/) par Mathieu Boyer (2018)
 
 ### Publications about Hyphe
 
