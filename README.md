@@ -4,10 +4,11 @@ Welcome to [Hyphe](http://hyphe.medialab.sciences-po.fr), a research-driven web 
 
 Hyphe aims at providing a tool to build web corpus by crawling data from the web and generating networks between what we call "web entities", which can be single pages as well as a website, subdomains or parts of it, or even a combination of those.
 
-## Demo
+## Demo & Tutos
 
 You can try a limited version of Hyphe at the following url: [http://hyphe.medialab.sciences-po.fr/demo/](http://hyphe.medialab.sciences-po.fr/demo/)
 
+You can find extensive tutorials on [Hyphe's Wiki](https://github.com/medialab/hyphe/wiki).
 
 ## How to install?
 
