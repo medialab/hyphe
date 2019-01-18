@@ -7,6 +7,7 @@ ENV PYTHONPATH $PYTHONPATH:/app
 COPY requirements.txt /app/requirements.txt
 
 RUN apk --update add gcc git musl-dev libxml2-dev libxslt-dev libffi-dev openssl-dev \
+        && pip install --upgrade setuptools pip \
         && pip install --no-cache-dir --requirement /app/requirements.txt \
         && pip install --no-cache-dir Scrapy==0.24.6 \
         && apk del gcc git musl-dev \
