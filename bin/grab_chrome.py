@@ -4,7 +4,7 @@ from io import BytesIO
 # import logging
 import os
 # from pathlib import Path
-# import stat
+import stat
 import sys
 from zipfile import ZipFile
 
@@ -13,15 +13,12 @@ from tqdm import tqdm
 
 # from pyppeteer import __chromium_revision__, __pyppeteer_home__
 
-__chromium_revision__ = '71.0.3578.127'
+__chromium_revision__ = '624487'
 # __pyppeteer_home__ = os.environ.get('PYPPETEER_HOME', AppDirs('pyppeteer').user_data_dir)
 __pyppeteer_home__ = './'
-# https://dl.google.com/chrome/mac/stable/GGRO/googlechrome.dmg
-# https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac/LAST_CHANGE
-# https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=Mac/626932/
-# https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Mac%2F626932%2Fchrome-mac.zip?generation=1548755152176266&alt=media
+
 DOWNLOADS_FOLDER = os.path.join(__pyppeteer_home__, 'local-chromium')
-DEFAULT_DOWNLOAD_HOST = 'https://commondatastorage.googleapis.com'
+DEFAULT_DOWNLOAD_HOST = 'https://storage.googleapis.com'
 DOWNLOAD_HOST = DEFAULT_DOWNLOAD_HOST
 BASE_URL = '%s/chromium-browser-snapshots' % (DOWNLOAD_HOST)
 
@@ -40,6 +37,7 @@ downloadURLs = {
     'win32': '%s/Win/%s/chrome-win32.zip' % (BASE_URL, REVISION),
     'win64': '%s/Win_x64/%s/chrome-win32.zip' % (BASE_URL, REVISION),
 }
+
 chromiumExecutable = {
     'linux': os.path.join(DOWNLOADS_FOLDER, REVISION, 'chrome-linux', 'chrome'),
     'mac': os.path.join(DOWNLOADS_FOLDER, REVISION, 'chrome-mac', 'Chromium.app',
@@ -62,12 +60,8 @@ def current_platform():
         return 'win32'
     raise OSError('Unsupported platform: ' + sys.platform)
 
-
 def get_url():
     """Get chromium download url."""
-    print('iciiiiiiii')
-    print(downloadURLs[current_platform()])
-    return "https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Mac%2F626932%2Fchrome-mac.zip?generation=1548755152176266&alt=media"
     return downloadURLs[current_platform()]
 
 
@@ -79,9 +73,6 @@ def download_zip(url):
     # disable warnings so that we don't need a cert.
     # see https://urllib3.readthedocs.io/en/latest/advanced-usage.html for more
     urllib3.disable_warnings()
-
-    print('ici')
-    print(url)
 
     with urllib3.PoolManager() as http:
         # Get data from url.
@@ -118,16 +109,16 @@ def which(pgm):
 def extract_zip(data, path):
     """Extract zipped data to path."""
     # On mac zipfile module cannot extract correctly, so use unzip instead.
-    print("%s/chrome.zip" % (path))
     with ZipFile(data) as zf:
-        zf.extractall("%s/chrome.zip" % (path))
+        zf.extractall(path)
     exec_path = chromium_executable()
-    if not exec_path.exists():
+    if not os.path.exists(exec_path):
         raise IOError('Failed to extract chromium.')
-    exec_path.chmod(exec_path.stat().st_mode | stat.S_IXOTH | stat.S_IXGRP |
-                    stat.S_IXUSR)
+    os.chmod(
+        exec_path,
+        os.stat(exec_path).st_mode | stat.S_IXOTH | stat.S_IXGRP | stat.S_IXUSR
+    )
     print('chromium extracted to: %s' % (path))
-
 
 def download_chromium():
     """Download and extract chromium."""
@@ -155,4 +146,4 @@ def check_chromium():
     """Check if chromium is placed at correct path."""
     return chromium_executable().exists()
 
-print(download_chromium())
+download_chromium()
