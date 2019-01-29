@@ -29,3 +29,5 @@ dependencies/
 # Mac files
 #
 .DS_Store
+local-chromium/
+.vscode/
