@@ -1,16 +1,17 @@
+#!/usr/bin/env python
 # coding: utf8
+"""
+This file is only there as a proof of concepts and developing tests.
+Some functions are duplicated from `install_chromium.py` for an easier reading.
+Please don't use duplicated code.
+It hurts me 🥴.
+"""
+
 import os, signal, sys
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
-
-"""
-This file is only there as a proof of concepts.
-Some functions are duplicated from `install_chromium.py` for an easier reading.
-Please don't use duplicated code.
-It hurs me 🥴.
-"""
 
 def current_platform():
     """Get current platform name by short string."""
@@ -57,6 +58,10 @@ def chromium_executable():
         current_platform()
     )
 
+DEBUG = "--debug" in sys.argv
+clargs = [a for a in sys.argv[1:] if a != "--debug"]
+TEST_URL = clargs[0] if clargs else 'https://fr-fr.facebook.com/santeplusmag/'
+
 ph_timeout = 30
 ph_idle_timeout = 3
 ph_ajax_timeout = 3
@@ -71,11 +76,12 @@ temporary_location = os.path.join(
     temporary_folder
 )
 chrome_options = Options()
-chrome_options.add_argument('--headless')
+if not DEBUG:
+    chrome_options.add_argument('--headless')
 chrome_options.binary_location = chromium_executable()
 driver = webdriver.Chrome(
     executable_path = os.path.join(
-        temporary_folder,
+        temporary_location,
         'chromedriver'
     ),
     chrome_options = chrome_options
@@ -84,7 +90,7 @@ driver = webdriver.Chrome(
 def timeout_alarm(*args):
     raise SeleniumTimeout
 
-driver.get('https://fr-fr.facebook.com/santeplusmag/')
+driver.get(TEST_URL)
 
 with open(os.path.join(base_location, 'hyphe_backend', 'crawler', 'hcicrawler', 'spiders', 'js', 'get_iframes_content.js')) as js:
     get_bod_w_iframes = js.read()
@@ -122,6 +128,5 @@ f1 = open(os.path.join(temporary_location, 'testfile.html'), 'w+')
 f1.write(driver.page_source.encode('utf8'))
 f1.close()
 
-# assert 'Looking Back at Android Security in 2016' in driver.page_source
 driver.close()
 driver.quit()
