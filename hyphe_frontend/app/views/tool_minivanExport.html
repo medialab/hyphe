@@ -1,0 +1,196 @@
+<div layout="column" layout-fill>
+  <div class="topbar-height" ng-include="'partials/topbar.html'">
+  </div>
+  <div flex>
+    <div layout="row" layout-fill>
+      <div class="sidebar-width" ng-include="'partials/sidebar.html'"></div>
+      <div
+        flex
+        md-colors="{background: 'default-background-50'}"
+        style="overflow-y: auto;"
+      >
+
+        <!-- Content -->
+        <div layout-fill layout="column">
+          <div class="page-header">
+            <h1>
+              EXPORT A MINIVAN BUNDLE
+            </h1>
+          </div>
+
+          <div class="vspacer"></div>
+
+          <div layout="row">
+            <div flex layout="column" style="padding: 8px">
+              <div layout-fill>
+                <div layout="row">
+                  <div class="big-bullet-number">1</div>
+                  <div layout="column">
+                    <div class="md-headline" style="margin-bottom: 16px">
+                      Filter web entities by status
+                    </div>
+                    <hyphe-status-box
+                      statuses="statuses"
+                      counts="counts"
+                      change="touchSettings()"
+                    ></hyphe-status-box>
+                  </div>
+                </div>
+
+                <div class="vspacer"></div>
+
+                <div layout="row">
+                  <div class="big-bullet-number">2</div>
+                  <div layout="column">
+                    <div>
+                      <md-button class="md-raised md-primary" layout-fill ng-click="download()" ng-disabled="loading">
+                        <md-icon>file_download</md-icon>
+                        Download
+                      </md-button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="vspacer"></div>
+
+                <div layout="column" ng-if="counts.in && loading">
+                  <div style="margin-bottom: 8px">
+                    <em>Please wait while network data is loading</em>
+                  </div>
+
+                  <!-- IN -->
+                  <div ng-if="statuses.in" style="height: 50px" layout="row" layout-align="start center">
+                    <div style="margin-right: 8px; width: 50px">
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="indeterminate"
+                        ng-if="data.in.loading && !data.in.total"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.in.loading && data.in.total"
+                        value="{{100 * data.in.webentities.length / data.in.total}}"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        style="opacity: 0.5"
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.in.loaded"
+                        value="100"
+                      ></md-progress-circular>
+                    </div>
+                    <div>
+                      IN
+                      <span
+                        md-colors="{'color': 'default-primary'}"
+                        ng-if="data.in.total"
+                      >{{data.in.webentities.length}} / {{data.in.total}}</span>
+                    </div>
+                  </div>
+
+                  <!-- UNDECIDED -->
+                  <div ng-if="statuses.undecided" style="height: 50px" layout="row" layout-align="start center">
+                    <div style="margin-right: 8px; width: 50px">
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="indeterminate"
+                        ng-if="data.undecided.loading && !data.undecided.total"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.undecided.loading && data.undecided.total"
+                        value="{{100 * data.undecided.webentities.length / data.undecided.total}}"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        style="opacity: 0.5"
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.undecided.loaded"
+                        value="100"
+                      ></md-progress-circular>
+                    </div>
+                    <div>
+                      UNDECIDED
+                      <span
+                        md-colors="{'color': 'default-primary'}"
+                        ng-if="data.undecided.total"
+                      >{{data.undecided.webentities.length}} / {{data.undecided.total}}</span>
+                    </div>
+                  </div>
+
+                  <!-- OUT -->
+                  <div ng-if="statuses.out" style="height: 50px" layout="row" layout-align="start center">
+                    <div style="margin-right: 8px; width: 50px">
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="indeterminate"
+                        ng-if="data.out.loading && !data.out.total"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.out.loading && data.out.total"
+                        value="{{100 * data.out.webentities.length / data.out.total}}"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        style="opacity: 0.5"
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.out.loaded"
+                        value="100"
+                      ></md-progress-circular>
+                    </div>
+                    <div>
+                      OUT
+                      <span
+                        md-colors="{'color': 'default-primary'}"
+                        ng-if="data.out.total"
+                      >{{data.out.webentities.length}} / {{data.out.total}}</span>
+                    </div>
+                  </div>
+
+                  <!-- DISCOVERED -->
+                  <div ng-if="statuses.discovered" style="height: 50px" layout="row" layout-align="start center">
+                    <div style="margin-right: 8px; width: 50px">
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="indeterminate"
+                        ng-if="data.discovered.loading && !data.discovered.total"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.discovered.loading && data.discovered.total"
+                        value="{{100 * data.discovered.webentities.length / data.discovered.total}}"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        style="opacity: 0.5"
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.discovered.loaded"
+                        value="100"
+                      ></md-progress-circular>
+                    </div>
+                    <div>
+                      DISCOVERED
+                      <span
+                        md-colors="{'color': 'default-primary'}"
+                        ng-if="data.discovered.total"
+                      >{{data.discovered.webentities.length}} / {{data.discovered.total}}</span>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

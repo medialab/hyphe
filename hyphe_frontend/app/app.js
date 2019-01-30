@@ -46,6 +46,7 @@ angular.module('hyphe', [
   $routeProvider.when('/project/:corpusId/webentityPagesNetwork/:webentityId', {templateUrl: 'views/webentity_pagesNetwork.html', controller: 'webentityPagesNetwork'});
   $routeProvider.when('/project/:corpusId/tools', {templateUrl: 'views/tools.html', controller: 'tools'});
   $routeProvider.when('/project/:corpusId/tools/netTagStats', {templateUrl: 'views/tool_networkTagStats.html', controller: 'toolNetworkTagStats'});
+  $routeProvider.when('/project/:corpusId/tools/minivanExport', {templateUrl: 'views/tool_minivanExport.html', controller: 'toolMinivanExport'});
   $routeProvider.otherwise({redirectTo: '/login'});
 }])
 
@@ -129,9 +130,9 @@ angular.module('hyphe', [
 	$mdThemingProvider.theme('default')
 		.primaryPalette('hypheBlue', {
 	      'default': '500',
-	      'hue-1': '100',  
-	      'hue-2': '600',  
-	      'hue-3': 'A100'  
+	      'hue-1': '100',
+	      'hue-2': '600',
+	      'hue-3': 'A100'
 	    })
 	    .accentPalette('purple', {
 	      'default': '300'
