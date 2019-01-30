@@ -114,8 +114,8 @@ if (typeof(arguments) == "undefined") {
         relaunch = true,
         isClick = function(el){
             // Identify not already clicked clickable elements
-            return !el.hasAttribute('hyphantomas_clicked') && el.href && el.tagName === "A" && el.target !== "_blank";
-            // || el.onclick || el.ondblclick || el.onmousedown);
+            return !el.hasAttribute('hyphantomas_clicked') && el.href || el.onclick || el.ondblclick || el.onmousedown;
+            // && el.tagName === "A" && el.target !== "_blank";
         },
         simulateClick = function(element) {
             const listener = e => e.preventDefault();
