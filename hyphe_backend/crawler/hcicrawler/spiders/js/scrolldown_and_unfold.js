@@ -25,7 +25,7 @@ if (typeof(arguments) == "undefined") {
         ajax_timeout = ajax_timeout * 1000;
 
     // Forbid leaving current page while processing script
-    window.onbeforeunload = function(){return "";};
+    window.onbeforeunload = function(){return false;};
 
     // Control each second whether script finished running or ran for too long
     // and trigger end of async selenium script if so
@@ -46,7 +46,7 @@ if (typeof(arguments) == "undefined") {
             for (var i=0; i<maxTimeoutId; i++) clearTimeout(i);
 
         // Reset regular leaving page behavior
-            window.onbeforeunload = function(){return;};
+            // window.onbeforeunload = function(){return;};
 
         // Run Selenium async-script signal-stopper
             return endScript(timedout);
@@ -114,17 +114,19 @@ if (typeof(arguments) == "undefined") {
         relaunch = true,
         isClick = function(el){
             // Identify not already clicked clickable elements
-            return !el.hasAttribute('hyphantomas_clicked') &&
-              (el.href);
+            return !el.hasAttribute('hyphantomas_clicked') && el.href && el.tagName === "A" && el.target !== "_blank";
             // || el.onclick || el.ondblclick || el.onmousedown);
         },
         simulateClick = function(element) {
+            const listener = e => e.preventDefault();
+            element.addEventListener('click', listener);
             // Try clicking all ways
             try { element.click(); } catch(e0) {
             try { element.onclick(); } catch(e1) {
             try { element.ondblclick(); } catch(e2) {
             try { element.onmousedown(); } catch(e3) {
             }}}}
+            element.removeEventListener(listener);
         },
         unfold = function() {
             // Never run twice simultaneously, plan restart for concurrent calls
