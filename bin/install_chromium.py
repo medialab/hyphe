@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf8
 """Chromium download module."""
 
@@ -93,7 +94,9 @@ def get_chrome_driver_url (base_url, version):
         win32 = '%s/%s/chrome-win32.zip' % (base_url, version),
         win64 = '%s/%s/chromedriver_win32.zip' % (base_url, version),
     )
-    return chromeDriverDownloadURLs.get(current_platform())
+    url = chromeDriverDownloadURLs.get(current_platform())
+    print('Getting chrome driver at : %s' % url)
+    return url
 
 def download_zip(url):
     """Download data from url."""
@@ -117,6 +120,7 @@ def download_zip(url):
         process_bar = tqdm(
             total = total_length,
             file = os.devnull if NO_PROGRESS_BAR else None,
+            unit_scale = True,
         )
 
         # 10 * 1024
@@ -144,12 +148,12 @@ def rm_r(path):
 
 def extract_zip(data, path):
     """Extract zipped data to path."""
+    if not os.path.exists(path):
+        os.makedirs(path)
     # On mac zipfile module cannot extract correctly, so use unzip instead.
     if current_platform() == 'mac':
         import subprocess
         zip_path = '%s/chrome.zip' % path
-        if not os.path.exists(path):
-            os.makedirs(path)
         rm_r(zip_path)
         with open(zip_path, 'wb') as f:
             f.write(data.getvalue())
