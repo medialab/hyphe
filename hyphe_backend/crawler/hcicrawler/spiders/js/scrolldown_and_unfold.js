@@ -25,7 +25,7 @@ if (typeof(arguments) == "undefined") {
         ajax_timeout = ajax_timeout * 1000;
 
     // Forbid leaving current page while processing script
-    window.onbeforeunload = function(){return false;};
+    window.onbeforeunload = function(){return "";};
 
     // Control each second whether script finished running or ran for too long
     // and trigger end of async selenium script if so
@@ -46,7 +46,7 @@ if (typeof(arguments) == "undefined") {
             for (var i=0; i<maxTimeoutId; i++) clearTimeout(i);
 
         // Reset regular leaving page behavior
-            // window.onbeforeunload = function(){return;};
+            window.onbeforeunload = function(){return;};
 
         // Run Selenium async-script signal-stopper
             return endScript(timedout);
