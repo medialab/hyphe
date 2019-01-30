@@ -18,12 +18,12 @@ temporary_location = os.path.join(
     temporary_folder
 )
 VERSION = os.environ.get(
-    'PYPPETEER_CHROMIUM_VERSION',
+    'CHROMIUM_VERSION',
     chromium_working_version
 )
 DOWNLOAD_HOST = 'https://storage.googleapis.com'
 BASE_URL = '%s/chromium-browser-snapshots' % DOWNLOAD_HOST
-NO_PROGRESS_BAR = os.environ.get('PYPPETEER_NO_PROGRESS_BAR', '')
+NO_PROGRESS_BAR = os.environ.get('NO_PROGRESS_BAR', '')
 if NO_PROGRESS_BAR.lower() in ('1', 'true'):
     NO_PROGRESS_BAR = True
 
