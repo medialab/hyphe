@@ -10,7 +10,7 @@
         style="overflow-y: auto;"
         id="scrolling-element"
       >
-        
+
         <!-- Content -->
         <div layout-fill layout="column">
           <div class="page-header">
@@ -50,9 +50,28 @@
                   </span>
                 </div>
               </md-grid-tile>
+
+              <md-grid-tile
+                class="pointable-grid-tile"
+                ng-click="goTo('/project/'+corpusId+'/tools/minivanExport')"
+                md-colors="{'background': 'default-background-200'}"
+              >
+                <div layout="column" layout-align="center center">
+                  <md-icon>cast</md-icon>
+                  <span>
+                    MINIVAN
+                  </span>
+                  <span>
+                    BUNDLE
+                  </span>
+                  <span>
+                    EXPORT
+                  </span>
+                </div>
+              </md-grid-tile>
             </md-grid-list>
           </div>
-          
+
         </div>
 
       </div>
