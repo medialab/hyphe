@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
- 
+
 .directive('webentitiesNetworkWidget', function(
     $mdSidenav,
     api,
@@ -155,7 +155,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.applySettings()
 
         /// Functions
-        
+
         function updateNetworkAppearance() {
           updateNodeColors()
           updateNodeSizes()
@@ -252,7 +252,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         function updateNodeSizes() {
           var g = $scope.network
           if (g === undefined) { return }
-            
+
           var minSize = 1
           var values = []
           g.nodes().forEach(function(nid){
@@ -441,8 +441,13 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             })
 
           var g = new Graph({type: 'directed', allowSelfLoops: false})
-          g.addNodesFrom(weIndex)
-          g.importEdges(validLinks)
+
+          for (var k in weIndex)
+            g.addNode(k, weIndex[k])
+
+          validLinks.forEach(function(l) {
+            g.importEdge(l)
+          })
 
           // Filtering: mark nodes for deletion
           var allThreshold = 0
@@ -453,14 +458,13 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           if ($scope.settings.limitDiscovered) {
             discThreshold = +$scope.settings.limitDiscovered.replace('+', '')
           }
-          var nodesToDelete = []
+
           g.nodes().forEach(function(nid){
             var degree = g.degree(nid)
             if (degree < allThreshold || (g.getNodeAttribute(nid, "status") == 'DISCOVERED' && degree < discThreshold)) {
-              nodesToDelete.push(nid)
+              g.dropNode(nid)
             }
           })
-          g.dropNodes(nodesToDelete)
 
           var nodesArea = g.order * 10
           g.nodes().forEach(function(nid){
@@ -544,4 +548,4 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
     }
   })
 
-  
+
