@@ -1,10 +1,11 @@
 'use strict';
 
+// NOTE: Most of this code was copied over from `export.js` and has a lot of unused code!
 angular.module('hyphe.toolMinivanExportController', [])
 
   .controller('toolMinivanExport', ['$scope', 'api', 'utils', 'corpus'
   ,function($scope, api, utils, corpus) {
-    $scope.currentPage = 'export'
+    $scope.currentPage = 'minivanExport'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
 
@@ -166,6 +167,11 @@ angular.module('hyphe.toolMinivanExportController', [])
         total: 0,
         retry: 0,
         webentities: []
+      },
+      links: {
+        loading: false,
+        loaded: false,
+        links: []
       }
     }
     var pageSize = 100
@@ -291,6 +297,26 @@ angular.module('hyphe.toolMinivanExportController', [])
       })
       if (someWebentitiesRequireLoading) { return }
 
+      if (!$scope.data.links.loaded) {
+        $scope.loading = true
+        $scope.status = {message: 'Loading links'}
+        $scope.data.links.loading = true
+        api.getNetwork(
+          {}
+          ,function(links){
+            $scope.data.links.links = links
+            $scope.data.links.loading = false
+            $scope.data.links.loaded = true
+            $scope.status = {}
+            checkLoadAndUpdate(thisToken)
+          }
+          ,function(data, status, headers, config){
+            $scope.status = {message: 'Error loading links', background:'danger'}
+          }
+        )
+        return
+      }
+
       // Update
       $scope.status = {message: 'Building network'}
       finalize()
@@ -300,6 +326,8 @@ angular.module('hyphe.toolMinivanExportController', [])
 
     function finalize(){
       console.log('Finalize', $scope.data)
+
+      return;
 
       if($scope.backupCorpus){
         $scope.backupCorpus = false

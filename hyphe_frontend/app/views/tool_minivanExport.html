@@ -42,6 +42,9 @@
                 <div layout="row">
                   <div class="big-bullet-number">2</div>
                   <div layout="column">
+                    <div class="md-headline" style="margin-bottom: 16px">
+                      Name and Download
+                    </div>
                     <div>
                       <md-button class="md-raised md-primary" layout-fill ng-click="download()" ng-disabled="loading">
                         <md-icon>file_download</md-icon>
@@ -179,6 +182,27 @@
                         md-colors="{'color': 'default-primary'}"
                         ng-if="data.discovered.total"
                       >{{data.discovered.webentities.length}} / {{data.discovered.total}}</span>
+                    </div>
+                  </div>
+
+                  <!-- LINKS -->
+                  <div style="height: 50px" layout="row" layout-align="start center">
+                    <div style="margin-right: 8px; width: 50px">
+                      <md-progress-circular
+                        md-diameter="42"
+                        md-mode="indeterminate"
+                        ng-if="data.links.loading"
+                      ></md-progress-circular>
+                      <md-progress-circular
+                        style="opacity: 0.5"
+                        md-diameter="42"
+                        md-mode="determinate"
+                        ng-if="data.links.loaded"
+                        value="100"
+                      ></md-progress-circular>
+                    </div>
+                    <div>
+                      LINKS
                     </div>
                   </div>
 
