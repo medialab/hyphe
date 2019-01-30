@@ -74,6 +74,30 @@ def chromium_executable():
         current_platform()
     )
 
+def chrome_driver_executable():
+    """Get path of the chrome driver executable."""
+    chromeDriverExecutable = dict(
+        linux = os.path.join(
+            temporary_location,
+            'chromedriver'
+        ),
+        mac = os.path.join(
+            temporary_location,
+            'chromedriver'
+        ),
+        win32 = os.path.join(
+            temporary_location,
+            'chromedriver.exe'
+        ),
+        win64 = os.path.join(
+            temporary_location,
+            'chromedriver.exe'
+        )
+    )
+    return chromeDriverExecutable.get(
+        current_platform()
+    )
+
 def get_chromium_url(base_url, version):
     """Get chromium download url."""
     chromiumDownloadURLs = dict(
@@ -146,7 +170,7 @@ def rm_r(path):
     elif os.path.exists(path):
         os.remove(path)
 
-def extract_zip(data, path):
+def extract_zip(data, path, exec_path):
     """Extract zipped data to path."""
     if not os.path.exists(path):
         os.makedirs(path)
@@ -172,7 +196,6 @@ def extract_zip(data, path):
     else:
         with ZipFile(data) as zf:
             zf.extractall(str(path))
-    exec_path = chromium_executable()
     if not os.path.exists(exec_path):
         raise IOError('Failed to extract chromium.')
     os.chmod(
@@ -190,7 +213,8 @@ def download_chromium():
                 VERSION
             )
         ),
-        temporary_location
+        temporary_location,
+        chromium_executable()
     )
 
 def download_chrome_driver ():
@@ -202,7 +226,8 @@ def download_chrome_driver ():
         download_zip(
             url
         ),
-        temporary_location
+        temporary_location,
+        chrome_driver_executable()
     )
 
 rm_r(temporary_location)
