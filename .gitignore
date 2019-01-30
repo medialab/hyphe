@@ -1,3 +1,5 @@
+.vscode/
+
 bin/hyphe-phantomjs*
 config/apache2.conf
 config/config.json*
@@ -24,10 +26,8 @@ hyphe_backend/crawler/hcicrawler/tlds_tree.py
 build/
 releases/
 dependencies/
-
+local-chromium/
 #
 # Mac files
 #
 .DS_Store
-local-chromium/
-.vscode/

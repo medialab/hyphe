@@ -118,7 +118,7 @@ with open(os.path.join(base_location, 'hyphe_backend', 'crawler', 'hcicrawler', 
         print("Scrolling/Unfolding crashed: %s %s" % (type(e), e))
         errors += 1
 
-f1 = open('./testfile', 'w+')
+f1 = open(os.path.join(temporary_location, 'testfile.html'), 'w+')
 f1.write(driver.page_source.encode('utf8'))
 f1.close()
 

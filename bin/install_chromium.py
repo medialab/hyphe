@@ -131,8 +131,8 @@ def download_zip(url):
 def which(pgm):
     path = os.getenv('PATH')
     for p in path.split(os.path.pathsep):
-        p = os.path.join(p,pgm)
-        if os.path.exists(p) and os.access(p,os.X_OK):
+        p = os.path.join(p, pgm)
+        if os.path.exists(p) and os.access(p, os.X_OK):
             return p
 
 def rm_r(path):
@@ -175,21 +175,6 @@ def extract_zip(data, path):
         os.stat(exec_path).st_mode | stat.S_IXOTH | stat.S_IXGRP | stat.S_IXUSR
     )
     print('chromium extracted to: %s' % (path))
-
-def chromium_excutable():
-    """[Deprecated] miss-spelled function.
-
-    Use `chromium_executable` instead.
-    """
-    print(
-        '`chromium_excutable` function is deprecated. '
-        'Use `chromium_executable instead.'
-    )
-    return chromium_executable()
-
-def check_chromium():
-    """Check if chromium is placed at correct path."""
-    return chromium_executable().exists()
 
 def download_chromium():
     """Download and extract chromium."""
