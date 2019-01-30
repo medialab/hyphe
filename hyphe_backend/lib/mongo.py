@@ -322,6 +322,7 @@ class MongoDB(object):
           "crawl_arguments": args,
           "crawling_status": crawling_statuses.PENDING,
           "indexing_status": indexing_statuses.PENDING,
+          "text_indexing_status": indexing_statuses.PENDING,
           "created_at": timestamp,
           "scheduled_at": None,
           "started_at": None,
