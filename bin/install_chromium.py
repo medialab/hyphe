@@ -8,6 +8,7 @@ from zipfile import ZipFile
 from tqdm import tqdm
 
 base_location = os.getcwd()
+# Version number provided via https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac/LAST_CHANGE
 chromium_working_version = '624487'
 temporary_folder = os.environ.get(
     'CHROMIUM_LOCATION',
