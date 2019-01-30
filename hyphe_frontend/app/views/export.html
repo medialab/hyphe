@@ -9,7 +9,7 @@
         md-colors="{background: 'default-background-50'}"
         style="overflow-y: auto;"
       >
-        
+
         <!-- Content -->
         <div layout-fill layout="column">
           <div class="page-header">
@@ -20,7 +20,7 @@
               Pick a file format and download the list of <span hyphe-glossary="web entities"></span> and their attributes.
             </span>
           </div>
-          
+
           <div class="vspacer"></div>
 
           <div layout="row">
@@ -79,14 +79,14 @@
                       <md-radio-button value="CSV" class="md-align-top-left">
                         CSV<br/>
                         <span style="font-size: 0.9em">
-                          <kbd>,</kbd> <strong>Comma</strong>-separated values 
+                          <kbd>,</kbd> <strong>Comma</strong>-separated values
                         </span>
                       </md-radio-button>
 
                       <md-radio-button value="SCSV" class="md-align-top-left">
                         SCSV<br/>
                         <span style="font-size: 0.9em">
-                          <kbd>;</kbd> <strong>Semicolon</strong>-separated values 
+                          <kbd>;</kbd> <strong>Semicolon</strong>-separated values
                         </span>
                       </md-radio-button>
 
@@ -141,7 +141,7 @@
 
                 <div class="vspacer"></div>
 
-                <div layout="column" ng-if="loading">
+                <div layout="column" ng-if="counts.in && loading">
                   <div style="margin-bottom: 8px">
                     <em>Please wait while network data is loading</em>
                   </div>
