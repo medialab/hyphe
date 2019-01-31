@@ -1,6 +1,5 @@
 .vscode/
 
-bin/hyphe-phantomjs*
 config/apache2.conf
 config/config.json*
 config/salt

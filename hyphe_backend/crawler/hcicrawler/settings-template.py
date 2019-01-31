@@ -44,7 +44,7 @@ CHROME = {
   "PATH": chromium_executable(os.path.join('{{crawlerPath}}', 'local-chromium')),
   "DRIVER_PATH": chrome_driver_executable(os.path.join('{{crawlerPath}}', 'local-chromium')),
   "JS_PATH": os.path.join('{{crawlerPath}}', 'hcicrawler', 'spiders', 'js'),
-  "TIMEOUT": 30,#{{phantom_timeout}},
+  "TIMEOUT": {{phantom_timeout}},
   "IDLE_TIMEOUT": {{phantom_idle_timeout}},
   "AJAX_TIMEOUT": {{phantom_ajax_timeout}}
 }
