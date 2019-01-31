@@ -1,0 +1,7 @@
+pymongo
+elasticsearch>=6.0.0,<7.0.0
+jsonrpclib
+JPype1
+chardet
+lxml
+dragnet

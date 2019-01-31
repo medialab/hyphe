@@ -36,10 +36,14 @@ services:
     restart: ${RESTART_POLICY}
     image: scpomedialab/hyphe_crawler:${TAG}
     build: ./hyphe_backend/crawler
+    ports:
+      - "6800:6800"
     links:
       - "mongo:mongo"
   mongo:
     restart: ${RESTART_POLICY}
     image: mongo:3.0
+    ports:
+      - "27017:27017"
     volumes:
       - ${DATA_PATH}mongo-data:/data/db

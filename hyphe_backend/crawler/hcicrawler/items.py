@@ -13,3 +13,4 @@ class Page(Item):
     body = Field()
     lrulinks = Field()
     error = Field()
+    indexed = Field()
