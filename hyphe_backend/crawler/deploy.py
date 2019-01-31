@@ -72,8 +72,7 @@ except IOError as e:
 if verbose:
     print "Rendering settings.py with mongo-scrapy config values from config.json..."
 try:
-    curpath = os.path.abspath(getsourcefile(lambda _: None))
-    config['mongo-scrapy']['hyphePath'] = os.path.sep.join(curpath.split(os.path.sep)[:-3])
+    config['mongo-scrapy']['crawlerPath'] = os.path.dirname(os.path.realpath(__file__))
     config['mongo-scrapy']['db_name'] = config['mongo-scrapy']['db_name'].lower()
     config['mongo-scrapy']['project'] = project.lower()
     config['mongo-scrapy']['log_level'] = 'DEBUG' if config['DEBUG'] > 1 else 'INFO'

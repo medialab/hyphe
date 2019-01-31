@@ -1,10 +1,5 @@
 import os, sys
 
-FILEDIR = os.path.dirname(os.path.realpath(__file__))
-LOCALDIR = os.path.join(FILEDIR, 'local-chromium')
-if not os.path.exists(LOCALDIR):
-    os.makedirs(LOCALDIR)
-
 def current_platform():
     """Get current platform name by short string."""
     if sys.platform.startswith('linux'):
@@ -19,7 +14,7 @@ def current_platform():
         return 'win32'
     raise OSError('Unsupported platform: ' + sys.platform)
 
-def chromium_executable(directory=LOCALDIR):
+def chromium_executable(directory):
     """Get path of the chromium executable."""
     chromiumExecutable = dict(
         linux = os.path.join(
@@ -50,7 +45,7 @@ def chromium_executable(directory=LOCALDIR):
         current_platform()
     )
 
-def chrome_driver_executable(directory=LOCALDIR):
+def chrome_driver_executable(directory):
     """Get path of the chrome driver executable."""
     executable = 'chromedriver'
     if 'win' in current_platform():

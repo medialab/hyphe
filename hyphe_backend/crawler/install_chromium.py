@@ -8,7 +8,12 @@ from io import BytesIO
 from zipfile import ZipFile
 from tqdm import tqdm
 
-from chromium_utils import LOCALDIR, current_platform, chromium_executable, chrome_driver_executable
+from hcicrawler.chromium_utils import current_platform, chromium_executable, chrome_driver_executable
+
+FILEDIR = os.path.dirname(os.path.realpath(__file__))
+LOCALDIR = os.path.join(FILEDIR, 'local-chromium')
+if not os.path.exists(LOCALDIR):
+    os.makedirs(LOCALDIR)
 
 # Version number provided via https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac/LAST_CHANGE
 chromium_working_version = '624487'
@@ -138,7 +143,7 @@ def download_chromium(directory):
             )
         ),
         directory,
-        chromium_executable()
+        chromium_executable(LOCALDIR)
     )
 
 def download_chrome_driver(directory):
@@ -151,7 +156,7 @@ def download_chrome_driver(directory):
             url
         ),
         directory,
-        chrome_driver_executable()
+        chrome_driver_executable(LOCALDIR)
     )
 
 INSTALLDIR = sys.argv[1] if len(sys.argv) > 1 else LOCALDIR

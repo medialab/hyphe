@@ -79,7 +79,7 @@ class PagesCrawler(Spider):
             self.name,
             self.crawler.settings['JOBID']
         )
-        if not os.path.exists(self.prefixfiles)
+        if not os.path.exists(self.prefixfiles):
             os.makedirs(self.prefixfiles)
         self.log("Using path %s for headless Chromium crawl" % self.prefixfiles, log.INFO)
         chromedriver_args = []
@@ -101,7 +101,7 @@ class PagesCrawler(Spider):
         self.chromium = Chrome(
             executable_path=CHROME['DRIVER_PATH'],
             service_args=chromedriver_args,
-            chrome_options = chrome_options
+            chrome_options=chrome_options
         )
         self.chromium.implicitly_wait(10)
         self.chromium.set_page_load_timeout(60)
@@ -137,7 +137,7 @@ class PagesCrawler(Spider):
             response._set_body(bod_w_iframes.encode('utf-8'))
 
           # Try to scroll and unfold page
-            self.log("Start PhantomJS scrolling and unfolding", log.INFO)
+            self.log("Start PhantomJS scrolling and unfolding page with status " + str(response.status), log.INFO)
             with open(os.path.join(CHROME["JS_PATH"], "scrolldown_and_unfold.js")) as js:
                 try:
                     signal.signal(signal.SIGALRM, timeout_alarm)
@@ -177,8 +177,7 @@ class PagesCrawler(Spider):
 
         if 300 < response.status < 400 or isinstance(response, HtmlResponse):
             return self.parse_html(response, lru)
-        else:
-            return self._make_raw_page(response, lru)
+        return self._make_raw_page(response, lru)
 
     def handle_error(self, failure, response=None):
         if response:

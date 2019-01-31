@@ -1,6 +1,8 @@
 import os, uuid
 
-HYPHE_PROJECT = '{{db_name}}.{{project}}'
+from chromium_utils import chromium_executable, chrome_driver_executable
+
+HYPHE_PROJECT = '{{db_name}}_{{project}}'
 BOT_NAME = 'hcicrawler'
 
 LOG_LEVEL = '{{log_level}}'
@@ -39,10 +41,10 @@ MONGO_QUEUE_COL = 'queue'
 MONGO_PAGESTORE_COL = 'pages'
 
 CHROME = {
-  "PATH": os.path.join('{{hyphePath}}', 'bin', 'chrome', ''),
-  "DRIVER_PATH": os.path.join('{{hyphePath}}', 'bin', 'chromedriver'),
-  "JS_PATH": os.path.join('{{hyphePath}}', 'hyphe_backend', 'crawler', BOT_NAME, 'spiders', 'js'),
-  "TIMEOUT": {{phantom_timeout}},
+  "PATH": chromium_executable(os.path.join('{{crawlerPath}}', 'local-chromium')),
+  "DRIVER_PATH": chrome_driver_executable(os.path.join('{{crawlerPath}}', 'local-chromium')),
+  "JS_PATH": os.path.join('{{crawlerPath}}', 'hcicrawler', 'spiders', 'js'),
+  "TIMEOUT": 30,#{{phantom_timeout}},
   "IDLE_TIMEOUT": {{phantom_idle_timeout}},
   "AJAX_TIMEOUT": {{phantom_ajax_timeout}}
 }

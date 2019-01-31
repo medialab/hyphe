@@ -12,7 +12,10 @@ from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 
-from chromium_utils import current_platform, chromium_executable, LOCALDIR
+from hcicrawler.chromium_utils import current_platform, chromium_executable, chrome_driver_executable
+
+FILEDIR = os.path.dirname(os.path.realpath(__file__))
+LOCALDIR = os.path.join(FILEDIR, 'local-chromium')
 
 DEBUG = "--debug" in sys.argv
 clargs = [a for a in sys.argv[1:] if a != "--debug"]
@@ -26,12 +29,9 @@ errors = 0
 chrome_options = Options()
 if not DEBUG:
     chrome_options.add_argument('--headless')
-chrome_options.binary_location = chromium_executable()
+chrome_options.binary_location = chromium_executable(LOCALDIR)
 driver = Chrome(
-    executable_path = os.path.join(
-        temporary_location,
-        'chromedriver'
-    ),
+    executable_path = chrome_driver_executable(LOCALDIR),
     chrome_options = chrome_options
 )
 
@@ -40,12 +40,12 @@ def timeout_alarm(*args):
 
 driver.get(TEST_URL)
 
-with open(os.path.join(base_location, 'hyphe_backend', 'crawler', 'hcicrawler', 'spiders', 'js', 'get_iframes_content.js')) as js:
+with open(os.path.join(FILEDIR, 'hcicrawler', 'spiders', 'js', 'get_iframes_content.js')) as js:
     get_bod_w_iframes = js.read()
 
 driver.execute_script(get_bod_w_iframes)
 
-with open(os.path.join(base_location, 'hyphe_backend', 'crawler', 'hcicrawler', 'spiders', 'js', 'scrolldown_and_unfold.js')) as js:
+with open(os.path.join(FILEDIR, 'hcicrawler', 'spiders', 'js', 'scrolldown_and_unfold.js')) as js:
     unfold_and_scoll = js.read()
 
 try:
@@ -74,9 +74,7 @@ except Exception as e:
     print("Scrolling/Unfolding crashed: %s %s" % (type(e), e))
     errors += 1
 
-f1 = open(os.path.join(temporary_location, 'testfile.html'), 'w+')
-f1.write(driver.page_source.encode('utf8'))
-f1.close()
+print(driver.page_source.encode('utf8'))
 
 driver.close()
 driver.quit()
