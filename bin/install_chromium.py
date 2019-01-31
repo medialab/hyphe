@@ -8,17 +8,10 @@ from io import BytesIO
 from zipfile import ZipFile
 from tqdm import tqdm
 
-base_location = os.getcwd()
+from chromium_utils import LOCALDIR, current_platform, chromium_executable, chrome_driver_executable
+
 # Version number provided via https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac/LAST_CHANGE
 chromium_working_version = '624487'
-temporary_folder = os.environ.get(
-    'CHROMIUM_LOCATION',
-    'local-chromium'
-)
-temporary_location = os.path.join(
-    base_location,
-    temporary_folder
-)
 VERSION = os.environ.get(
     'CHROMIUM_VERSION',
     chromium_working_version
@@ -28,75 +21,6 @@ BASE_URL = '%s/chromium-browser-snapshots' % DOWNLOAD_HOST
 NO_PROGRESS_BAR = os.environ.get('NO_PROGRESS_BAR', '')
 if NO_PROGRESS_BAR.lower() in ('1', 'true'):
     NO_PROGRESS_BAR = True
-
-def current_platform():
-    """Get current platform name by short string."""
-    if sys.platform.startswith('linux'):
-        return 'linux'
-    elif sys.platform.startswith('darwin'):
-        return 'mac'
-    elif (sys.platform.startswith('win') or
-          sys.platform.startswith('msys') or
-          sys.platform.startswith('cyg')):
-        if sys.maxsize > 2 ** 31 - 1:
-            return 'win64'
-        return 'win32'
-    raise OSError('Unsupported platform: ' + sys.platform)
-
-def chromium_executable():
-    """Get path of the chromium executable."""
-    chromiumExecutable = dict(
-        linux = os.path.join(
-            temporary_location,
-            'chrome-linux',
-            'chrome'
-        ),
-        mac = os.path.join(
-            temporary_location,
-            'chrome-mac',
-            'Chromium.app',
-            'Contents',
-            'MacOS',
-            'Chromium'
-        ),
-        win32 = os.path.join(
-            temporary_location,
-            'chrome-win32',
-            'chrome.exe'
-        ),
-        win64 = os.path.join(
-            temporary_location,
-            'chrome-win32',
-            'chrome.exe'
-        )
-    )
-    return chromiumExecutable.get(
-        current_platform()
-    )
-
-def chrome_driver_executable():
-    """Get path of the chrome driver executable."""
-    chromeDriverExecutable = dict(
-        linux = os.path.join(
-            temporary_location,
-            'chromedriver'
-        ),
-        mac = os.path.join(
-            temporary_location,
-            'chromedriver'
-        ),
-        win32 = os.path.join(
-            temporary_location,
-            'chromedriver.exe'
-        ),
-        win64 = os.path.join(
-            temporary_location,
-            'chromedriver.exe'
-        )
-    )
-    return chromeDriverExecutable.get(
-        current_platform()
-    )
 
 def get_chromium_url(base_url, version):
     """Get chromium download url."""
@@ -204,7 +128,7 @@ def extract_zip(data, path, exec_path):
     )
     print('chromium extracted to: %s' % (path))
 
-def download_chromium():
+def download_chromium(directory):
     """Download and extract chromium."""
     extract_zip(
         download_zip(
@@ -213,11 +137,11 @@ def download_chromium():
                 VERSION
             )
         ),
-        temporary_location,
+        directory,
         chromium_executable()
     )
 
-def download_chrome_driver ():
+def download_chrome_driver(directory):
     url = get_chrome_driver_url(
         'http://chromedriver.storage.googleapis.com',
         '2.45'
@@ -226,10 +150,11 @@ def download_chrome_driver ():
         download_zip(
             url
         ),
-        temporary_location,
+        directory,
         chrome_driver_executable()
     )
 
-rm_r(temporary_location)
-download_chromium()
-download_chrome_driver()
+INSTALLDIR = sys.argv[1] if len(sys.argv) > 1 else LOCALDIR
+rm_r(INSTALLDIR)
+download_chromium(INSTALLDIR)
+download_chrome_driver(INSTALLDIR)

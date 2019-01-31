@@ -8,55 +8,11 @@ It hurts me 🥴.
 """
 
 import os, signal, sys
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 
-def current_platform():
-    """Get current platform name by short string."""
-    if sys.platform.startswith('linux'):
-        return 'linux'
-    elif sys.platform.startswith('darwin'):
-        return 'mac'
-    elif (sys.platform.startswith('win') or
-          sys.platform.startswith('msys') or
-          sys.platform.startswith('cyg')):
-        if sys.maxsize > 2 ** 31 - 1:
-            return 'win64'
-        return 'win32'
-    raise OSError('Unsupported platform: ' + sys.platform)
-
-def chromium_executable():
-    """Get path of the chromium executable."""
-    chromiumExecutable = dict(
-        linux = os.path.join(
-            temporary_location,
-            'chrome-linux',
-            'chrome'
-        ),
-        mac = os.path.join(
-            temporary_location,
-            'chrome-mac',
-            'Chromium.app',
-            'Contents',
-            'MacOS',
-            'Chromium'
-        ),
-        win32 = os.path.join(
-            temporary_location,
-            'chrome-win32',
-            'chrome.exe'
-        ),
-        win64 = os.path.join(
-            temporary_location,
-            'chrome-win32',
-            'chrome.exe'
-        )
-    )
-    return chromiumExecutable.get(
-        current_platform()
-    )
+from chromium_utils import current_platform, chromium_executable, LOCALDIR
 
 DEBUG = "--debug" in sys.argv
 clargs = [a for a in sys.argv[1:] if a != "--debug"]
@@ -66,20 +22,12 @@ ph_timeout = 30
 ph_idle_timeout = 3
 ph_ajax_timeout = 3
 errors = 0
-base_location = os.getcwd()
-temporary_folder = os.environ.get(
-    'CHROMIUM_LOCATION',
-    'local-chromium'
-)
-temporary_location = os.path.join(
-    base_location,
-    temporary_folder
-)
+
 chrome_options = Options()
 if not DEBUG:
     chrome_options.add_argument('--headless')
 chrome_options.binary_location = chromium_executable()
-driver = webdriver.Chrome(
+driver = Chrome(
     executable_path = os.path.join(
         temporary_location,
         'chromedriver'
@@ -98,31 +46,33 @@ with open(os.path.join(base_location, 'hyphe_backend', 'crawler', 'hcicrawler', 
 driver.execute_script(get_bod_w_iframes)
 
 with open(os.path.join(base_location, 'hyphe_backend', 'crawler', 'hcicrawler', 'spiders', 'js', 'scrolldown_and_unfold.js')) as js:
-    try:
-        signal.signal(
-            signal.SIGALRM,
-            timeout_alarm
-        )
-        signal.alarm(
-            ph_timeout + 30
-        )
-        timedout = driver.execute_async_script(
-            js.read(), ph_timeout,
-            ph_idle_timeout, ph_ajax_timeout
-        )
-        signal.alarm(0)
-        if timedout:
-            raise SeleniumTimeout
-        print("Scrolling/Unfolding finished")
-    except SeleniumTimeout:
-        print("Scrolling/Unfolding timed-out (%ss)" % ph_timeout)
-        errors += 1
-    except WebDriverException as e:
-        print("Scrolling/Unfolding crashed: %s" % (e))
-        errors += 1
-    except Exception as e:
-        print("Scrolling/Unfolding crashed: %s %s" % (type(e), e))
-        errors += 1
+    unfold_and_scoll = js.read()
+
+try:
+    signal.signal(
+        signal.SIGALRM,
+        timeout_alarm
+    )
+    signal.alarm(
+        ph_timeout + 30
+    )
+    timedout = driver.execute_async_script(
+        unfold_and_scoll, ph_timeout,
+        ph_idle_timeout, ph_ajax_timeout
+    )
+    signal.alarm(0)
+    if timedout:
+        raise SeleniumTimeout
+    print("Scrolling/Unfolding finished")
+except SeleniumTimeout:
+    print("Scrolling/Unfolding timed-out (%ss)" % ph_timeout)
+    errors += 1
+except WebDriverException as e:
+    print("Scrolling/Unfolding crashed: %s" % (e))
+    errors += 1
+except Exception as e:
+    print("Scrolling/Unfolding crashed: %s %s" % (type(e), e))
+    errors += 1
 
 f1 = open(os.path.join(temporary_location, 'testfile.html'), 'w+')
 f1.write(driver.page_source.encode('utf8'))
