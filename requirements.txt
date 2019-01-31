@@ -3,7 +3,7 @@ hyphe-traph
 msgpack-python>=0.3
 pymongo>=3.4
 pystache
-selenium==2.42.1
+selenium==3.14.1
 service_identity
 Twisted>=17.5
 txJSON-RPC>=0.5
