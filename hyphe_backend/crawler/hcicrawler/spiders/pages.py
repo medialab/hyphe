@@ -87,9 +87,13 @@ class PagesCrawler(Spider):
         chromedriver_args.append('--log-path=%s-chromedriver.log' % self.prefixfiles)
         chrome_options = Options()
         chrome_options.binary_location = CHROME['PATH']
+        chrome_options.add_argument('no-sandbox')
         chrome_options.add_argument('headless')
-        chrome_options.add_argument('user-data-dir=%s' % self.prefixfiles);
+        chrome_options.add_argument('disable-gpu')
+        chrome_options.add_argument('disable-dev-shm-usage')
+        chrome_options.add_argument('disable-software-rasterizer')
         chrome_options.add_argument('ignore-certificate-errors')
+        chrome_options.add_argument('user-data-dir=%s' % self.prefixfiles);
         #chrome_options.add_argument('user-agent="%s"' % self.user_agent)
         if PROXY and not PROXY.startswith(':'):
             proxy = Proxy();

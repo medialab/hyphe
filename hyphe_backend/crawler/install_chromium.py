@@ -8,7 +8,11 @@ from io import BytesIO
 from zipfile import ZipFile
 from tqdm import tqdm
 
-from hcicrawler.chromium_utils import current_platform, chromium_executable, chrome_driver_executable
+try:
+    from hcicrawler.chromium_utils import which, current_platform, chromium_executable, chrome_driver_executable
+except:
+    from chromium_utils import which, current_platform, chromium_executable, chrome_driver_executable
+
 
 FILEDIR = os.path.dirname(os.path.realpath(__file__))
 LOCALDIR = os.path.join(FILEDIR, 'local-chromium')
@@ -85,13 +89,6 @@ def download_zip(url):
 
     print('\ndownload done.')
     return data
-
-def which(pgm):
-    path = os.getenv('PATH')
-    for p in path.split(os.path.pathsep):
-        p = os.path.join(p, pgm)
-        if os.path.exists(p) and os.access(p, os.X_OK):
-            return p
 
 def rm_r(path):
     if os.path.isdir(path) and not os.path.islink(path):
