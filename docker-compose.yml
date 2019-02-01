@@ -27,7 +27,7 @@ services:
     image: scpomedialab/hyphe_frontend:${TAG}
     build: ./hyphe_frontend
     ports:
-      - "${PUBLIC_PORT}:80"
+      - "${PUBLIC_PORT}:8000"
     links:
       - "backend:backend"
     env_file:

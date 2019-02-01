@@ -14,6 +14,8 @@ RUN apk --update add gcc git musl-dev libxml2-dev libxslt-dev libffi-dev openssl
         && apk del gcc git musl-dev \
         && rm /var/cache/apk/*
 
+RUN adduser -D -u 1000 hyphe
+
 COPY ./bin /app/bin
 
 COPY ./config /app/config.sample
@@ -23,6 +25,7 @@ COPY ./hyphe_backend /app/hyphe_backend
 COPY ./docker-entrypoint.py /app/docker-entrypoint.py
 
 RUN mkdir /app/config
+RUN mkdir /app/traph-data
 
 RUN chmod +x /app/docker-entrypoint.py
 
@@ -30,8 +33,14 @@ RUN chmod +x /app/hyphe_backend/core.tac
 
 EXPOSE 6978
 
+RUN chown -R hyphe:hyphe /app
+
 VOLUME ["/app/config"]
 
 VOLUME ["/app/traph-data"]
+
+RUN ls -la /app/*
+
+USER hyphe
 
 ENTRYPOINT ["/app/docker-entrypoint.py"]
