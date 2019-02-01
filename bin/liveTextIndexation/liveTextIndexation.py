@@ -12,6 +12,8 @@ import time
 from dragnet import extract_content, extract_content_and_comments
 
 BATCH_SIZE = 1000
+DELETE_INDEX = True
+RESET_MONGO = True
 
 
 def ensure_index_on_pages(mongo_pages_coll):
@@ -48,14 +50,8 @@ def index_text_page(hyphe_core, mongo_pages_coll, es, corpus, content_types=["te
             except Exception :
                 body = body.decode("UTF8", "replace")
                 encoding = "UTF8-replace"
-            # We shouldn't do that, prefix tree in memory...
-            we = hyphe_core.store.get_webentity_for_url_as_lru(page["lru"], corpus)
-            try:
-                assert we["code"] == "success"
-                page_to_index["webentity_id"] = we["result"]["id"]
-                page_to_index["webentity_name"] = we["result"]["name"]
-            except:
-                print("WARNING! Could not resolve WebEntity for url %s" % page["url"])
+
+            page_to_index["webentity_id"] = page['webentity_when_crawled']
 
             #page["html"] = body
             page_to_index["text"] = textify(body, encoding=encoding)
@@ -128,6 +124,9 @@ if __name__ == '__main__':
                     "properties":{
                         "lru": {
                             "type": "keyword"
+                        },
+                        "webentity_id": {
+                            "type": "integer"
                         }
                     }
                 }
