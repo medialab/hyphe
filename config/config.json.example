@@ -52,11 +52,13 @@
     "ow.ly"
   ],
   "phantom": {
-    "autoretry": false,
-    "timeout": 600,
+    "autoretry": true,
+    "timeout": 150,
     "idle_timeout": 20,
     "ajax_timeout": 15,
     "whitelist_domains": [
+      "facebook.com",
+      "twitter.com"
     ]
   },
   "ADMIN_PASSWORD": null,
