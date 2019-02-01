@@ -15,9 +15,5 @@ COPY scrapyd.config /etc/scrapyd/conf.d/100-hyphe
 
 EXPOSE 6800
 
-VOLUME ["/var/lib/scrapyd"]
-
-VOLUME ["/var/log/scrapyd"]
-
 CMD ["scrapyd","--pidfile="]
 
