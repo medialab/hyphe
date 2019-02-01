@@ -258,6 +258,7 @@ class PagesCrawler(Spider):
         p['depth'] = 0
         p['timestamp'] = int(time.time()*1000)
         p['indexed'] = False
+        p['webentity_when_crawled'] = self.args['webentity_id']
         return p
 
     def _should_follow(self, depth, fromlru, tolru):

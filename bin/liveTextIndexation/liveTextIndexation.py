@@ -41,14 +41,14 @@ def index_text_page(hyphe_core, mongo_pages_coll, es, corpus, content_types=["te
             total += 1
 
             body = page["body"].decode('zip')
-            
+
             encoding = page.get("encoding", "")
             try:
                 body = body.decode(encoding)
             except Exception :
                 body = body.decode("UTF8", "replace")
                 encoding = "UTF8-replace"
-            # We shouldn't do that, prefix tree in memory... 
+            # We shouldn't do that, prefix tree in memory...
             we = hyphe_core.store.get_webentity_for_url_as_lru(page["lru"], corpus)
             try:
                 assert we["code"] == "success"
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     except Exception as e:
         exit('Could not initiate connection to MongoDB')
     ensure_index_on_pages(dbpages)
-    
+
     # connect to ES
     es = Elasticsearch('localhost:9200')
 
