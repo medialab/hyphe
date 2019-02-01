@@ -9,6 +9,8 @@ RUN apk --update add gcc musl-dev libffi-dev openssl-dev libxml2-dev libxslt-dev
         && apk del gcc musl-dev \
 	&& rm /var/cache/apk/*
 
+RUN install_chromium.py
+
 COPY scrapyd.config /etc/scrapyd/conf.d/100-hyphe
 
 EXPOSE 6800
