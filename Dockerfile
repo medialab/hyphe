@@ -35,8 +35,6 @@ EXPOSE 6978
 
 RUN chown -R hyphe:hyphe /app
 
-VOLUME ["/app/config"]
-
 VOLUME ["/app/traph-data"]
 
 RUN ls -la /app/*
