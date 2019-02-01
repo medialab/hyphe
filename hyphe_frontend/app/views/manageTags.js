@@ -120,7 +120,7 @@ angular.module('hyphe.manageTagsController', [])
         })
       })
       buildTagData()
-      
+
       return api.removeTag_webentities({
           webentityId_list: webentities.map(function(we){return we.id})
           ,category: tagCat
@@ -143,12 +143,12 @@ angular.module('hyphe.manageTagsController', [])
         return false
       }
       $scope.tagCategories[category] = []
-      
+
       // Wait a frame to render the new category before resetting the form field and focus on input
       $timeout(function(){
         $scope.newCategory = ''
       }, 0)
-      
+
       return true
     }
 
@@ -248,7 +248,7 @@ angular.module('hyphe.manageTagsController', [])
     function updateTags() {
       if($scope.loading) { return }
       $scope.filters = []
-      
+
       if ($scope.generalOption !== undefined) {
         // There is a general option (special option)
         // As a consequence everything else is unselected
@@ -421,7 +421,7 @@ angular.module('hyphe.manageTagsController', [])
             ,page: 0
           }
           ,function(result){
-            
+
             $scope.data.in.total = result.total_results
             $scope.data.in.token = result.token
 
@@ -495,8 +495,13 @@ angular.module('hyphe.manageTagsController', [])
         })
 
       var g = new Graph({type: 'directed', allowSelfLoops: false})
-      g.addNodesFrom(weIndex)
-      g.importEdges(validLinks)
+
+      for (var k in weIndex)
+        g.addNode(k, weIndex[k])
+
+      validLinks.forEach(function(l) {
+        g.importEdge(l)
+      })
 
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)
