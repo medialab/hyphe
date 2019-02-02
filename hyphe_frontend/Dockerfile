@@ -8,7 +8,7 @@ COPY . /frontend/
 WORKDIR /frontend
 
 RUN apk --update add git nodejs nodejs-npm \
-    && npm install \
+    && npm ci \
     && npm run build \
     && npm cache clean --force \
     && apk del git nodejs \
