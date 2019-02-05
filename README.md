@@ -238,6 +238,9 @@ See our [roadmap](doc/roadmap.md)!
 
 * WARD, Jeremy, CAFIERO, Florian, FRETIGNY, Raphael, COLGROVE, James & SEROR, Valérie. [France's citizen consultation on vaccination and the challenges of participatory democracy in health](https://www.sciencedirect.com/science/article/pii/S0277953618306282). Social Science & Medicine. 220. 10.1016/j.socscimed.2018.10.032. 2018. DOI: https://doi.org/10.1016/j.socscimed.2018.10.032
 
+* ROMELE, Alberto, SEVERO Marta. [From Philosopher to Network. Using Digital Traces for Understanding
+Paul Ricoeur’s Legacy](https://hal.archives-ouvertes.fr/hal-01294443/document). Azimuth. Philosophical Coordinates in Modern and Contemporary Age, Edizioni Storia e Letteratura, 2016, Philosophy and Digital Traces, VI (6), <azimuthjournal.com> <hal-01294443>
+
 
 ## Credits & License
 
