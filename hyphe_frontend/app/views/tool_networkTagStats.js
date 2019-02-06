@@ -358,7 +358,7 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
       var g = new Graph({type: 'directed', allowSelfLoops: false})
 
       for (var k in weIndex)
-        g.addNode(k, weIndex[k])
+        g.addNode(k, Object.assign({}, weIndex[k]))
 
       validLinks.forEach(function(l) {
         g.importEdge(l)

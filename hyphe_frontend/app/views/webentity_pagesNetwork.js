@@ -189,7 +189,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       var g = new Graph({type: 'directed', allowSelfLoops: false})
 
       for (var k in nIndex)
-        g.addNode(k, nIndex[k])
+        g.addNode(k, Object.assign({}, nIndex[k]))
 
       validLinks.forEach(function(l) {
         g.importEdge(l)
