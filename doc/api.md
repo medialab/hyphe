@@ -817,9 +817,10 @@ The API will always answer as such:
 - __`get_webentity_mostlinked_pages`:__
   + _`webentity_id`_ (mandatory)
   + _`npages`_ (optional, default: `20`)
+  + _`max_prefix_distance`_ (optional, default: `null`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id`.
+ Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id` and optionnally at a maximum depth of `max_prefix_distance`.
 
 
 - __`get_webentity_subwebentities`:__

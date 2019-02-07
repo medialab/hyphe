@@ -748,7 +748,7 @@ class Core(customJSONRPC):
             startrule = startrule.lower()
             nlinks = self.re_linkedpages.search(startrule)
             if nlinks:
-                pages = yield self.store.traphs.call(corpus, "get_webentity_most_linked_pages", WE["_id"], WE["prefixes"], pages_count=int(nlinks.group(1)))
+                pages = yield self.store.traphs.call(corpus, "get_webentity_most_linked_pages", WE["_id"], WE["prefixes"], pages_count=int(nlinks.group(1)), max_depth=2)
                 if is_error(pages):
                     returnD(pages)
                 pages = pages["result"]
@@ -1257,7 +1257,7 @@ class Memory_Structure(customJSONRPC):
     def get_webentities_missing_linkpages(self, WEs, corpus=DEFAULT_CORPUS):
         homepages = {}
         homepWEs = [w for w in WEs if not w["homepage"]]
-        results = yield DeferredList([self.traphs.call(corpus, "get_webentity_most_linked_pages", WE["_id"], WE["prefixes"], pages_count=50) for WE in homepWEs], consumeErrors=True)
+        results = yield DeferredList([self.traphs.call(corpus, "get_webentity_most_linked_pages", WE["_id"], WE["prefixes"], pages_count=50, max_depth=1) for WE in homepWEs], consumeErrors=True)
         res = []
         for i, (bl, pgs) in enumerate(results):
             WE = homepWEs[i]
@@ -2567,17 +2567,23 @@ class Memory_Structure(customJSONRPC):
         returnD(format_result(self.format_pages(pages["result"])))
 
     @inlineCallbacks
-    def jsonrpc_get_webentity_mostlinked_pages(self, webentity_id, npages=20, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id`."""
+    def jsonrpc_get_webentity_mostlinked_pages(self, webentity_id, npages=20, max_prefix_distance=None, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id` and optionnally at a maximum depth of `max_prefix_distance`."""
         try:
             npages = int(npages)
             assert(npages > 0)
         except:
             returnD(format_error("ERROR: npages argument must be a stricly positive integer"))
+        if max_prefix_distance != None:
+            try:
+                max_prefix_distance = int(max_prefix_distance)
+                assert(max_prefix_distance >= 0)
+            except:
+                returnD(format_error("ERROR: max_prefix_distance argument must be null or a positive integer"))
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
-        pages = yield self.traphs.call(corpus, "get_webentity_most_linked_pages", webentity_id, WE["prefixes"], pages_count=npages)
+        pages = yield self.traphs.call(corpus, "get_webentity_most_linked_pages", webentity_id, WE["prefixes"], pages_count=npages, max_depth=max_prefix_distance)
         if is_error(pages):
             returnD(pages)
         returnD(format_result(self.format_pages(pages["result"], linked=True)))
