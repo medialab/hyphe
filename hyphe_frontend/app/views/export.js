@@ -92,7 +92,7 @@ angular.module('hyphe.exportController', [])
         ,description: 'When it was created, as a text date.'
         ,accessor: 'creation_date'
         ,preprocess: function(d){
-          return (new Date(+d)).toLocaleString()
+          return (new Date(+d)).toISOString()
         }
       }
       ,last_modification_date_timestamp: {
@@ -107,7 +107,7 @@ angular.module('hyphe.exportController', [])
         ,description: 'Last time its metadata were modified, as a text date.'
         ,accessor: 'last_modification_date'
         ,preprocess: function(d){
-          return (new Date(+d)).toLocaleString()
+          return (new Date(+d)).toISOString()
         }
       }
       ,user_tags: {
@@ -371,7 +371,7 @@ angular.module('hyphe.exportController', [])
         var fileContent = []
 
         // Title
-        fileContent.push($scope.projectName + '\n' + $scope.projectName.replace(/./gi,'=') + '\nExported ' + (new Date()).toLocaleString() + '\n\n' )
+        fileContent.push($scope.projectName + '\n' + $scope.projectName.replace(/./gi,'=') + '\nExported ' + (new Date()).toISOString() + '\n\n' )
 
         webentities.forEach(function(we){
           var content = '\n\n\n\n' + we.name + '\n' + we.name.replace(/./gi, '-')
