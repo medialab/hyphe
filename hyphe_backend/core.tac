@@ -200,7 +200,7 @@ class Core(customJSONRPC):
                 returnD(format_error(e))
         self.corpora[corpus] = {
           "name": name,
-          "options": clean_missing_corpus_options({}, config),
+          "options": clean_missing_corpus_options(options, config),
           "tlds": tlds
         }
 
