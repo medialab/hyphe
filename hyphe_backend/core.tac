@@ -1791,9 +1791,7 @@ class Memory_Structure(customJSONRPC):
             if not old_WE["startpages"]:
                 old_WE["startpages"] = []
             if old_WE["homepage"]:
-                if new_WE["homepage"]:
-                    old_WE["startpages"].append(new_WE["homepage"])
-                new_WE["homepage"] = old_WE["homepage"]
+                old_WE["startpages"].append(old_WE["homepage"])
             if not new_WE["startpages"]:
                 new_WE["startpages"] = []
             for page in old_WE["startpages"]:
