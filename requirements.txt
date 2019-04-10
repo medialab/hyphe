@@ -10,3 +10,7 @@ txJSON-RPC>=0.5
 txmongo>=16.3
 urllib3[secure]
 virtualenvwrapper
+
+click
+jsonrpclib
+progressbar2
