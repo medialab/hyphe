@@ -277,7 +277,6 @@ class MongoDB(object):
     def set_default_WECR(self, corpus, regexp):
         yield self.add_WECR(corpus, "DEFAULT_WEBENTITY_CREATION_RULE", regexp)
 
-
     @inlineCallbacks
     def list_logs(self, corpus, job, **kwargs):
         if "sort" not in kwargs:
@@ -351,6 +350,11 @@ class MongoDB(object):
     def get_waiting_jobs(self, corpus):
         jobs = yield self.jobs(corpus).find({"crawljob_id": None}, projection=["created_at", "crawl_arguments"])
         returnD((corpus, jobs))
+
+    @inlineCallbacks
+    def check_pages(self, corpus):
+        res = yield self.pages(corpus).find_one()
+        returnD(res is not None)
 
     @inlineCallbacks
     def forget_pages(self, corpus, job, urls, **kwargs):
