@@ -1758,7 +1758,7 @@ class Memory_Structure(customJSONRPC):
         old_webentity_id = int(old_webentity_id)
         good_webentity_id = int(good_webentity_id)
         if old_webentity_id == good_webentity_id:
-            returnD(format_error('ERROR: old_webentity_id and good_webentity_id are identical: %s' % old_webentity_id)
+            returnD(format_error('ERROR: old_webentity_id and good_webentity_id are identical: %s' % old_webentity_id))
         old_WE = yield self.db.get_WE(corpus, old_webentity_id)
         if not old_WE:
             returnD(format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id))
