@@ -204,6 +204,8 @@ See our [roadmap](doc/roadmap.md)!
 
 ### Publications using Hyphe
 
+* ÁLVARO SÁNCHEZ, Sandra, 2019, "[A Topological Space for Design, Participation and Production. Tracking Spaces of Transformation](http://peerproduction.net/editsuite/issues/issue-13-open/peer-reviewed-papers/a-topological-space-for-design-participation-and-production/)", in Journal of Peer Production, Issue 13: OPEN.
+
 * VENTURINI, Tommaso, JACOMY, Mathieu, BOUNEGRU, Liliana & GRAY, Jonathan, (2018, forthcoming), "[Visual Network Exploration for Data Journalists](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3043912)", in S. E. I. and B. Franklin (Ed.). Abingdon: Routledge.
 
 * FROIO, Caterina, "[Nous et les autres. L’altérité sur les sites web des extrêmes droites en France](http://www.cairn.info/article.php?ID_ARTICLE=RES_202_0039&WT.mc_id=RES_202)", in Réseaux, 2017/2 (n° 202-203), p. 39-78. DOI: 10.3917/res.202.0039.
