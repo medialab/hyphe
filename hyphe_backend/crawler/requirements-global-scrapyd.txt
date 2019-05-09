@@ -1,3 +1,4 @@
+Twisted>=18,<=19
 selenium==2.42.1
 service_identity==14
 urllib3[secure]
