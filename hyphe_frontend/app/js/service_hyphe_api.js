@@ -442,7 +442,7 @@ angular.module('hyphe.service_hyphe_api', [])
             return [
               settings.name
               ,settings.password
-              ,settings.options || []
+              ,settings.options || {}
             ]
           }
       )
