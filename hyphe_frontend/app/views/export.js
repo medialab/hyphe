@@ -50,12 +50,12 @@ angular.module('hyphe.exportController', [])
         ,description: 'A URL used as hyperlink when you click on the web entity, for convenience.'
         ,accessor: 'homepage'
       }
-      /*,start_pages: { //???
+      ,start_pages: {
         name: 'START PAGES'
         ,type: 'array of string'
         ,description: 'The list of start pages used the last time it was crawled.'
         ,accessor: 'startpages'
-      }*/
+      }
       ,crawled: {
         name: 'CRAWLED'
         ,type: 'string'
