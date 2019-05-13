@@ -128,6 +128,8 @@ def cli(archive_dir, corpus_name, api_url, filter_discovered, destroy_existing, 
         sleep(1)
     print 'Corpus successfully created and ready:', cid
 
+    # TODO : handle manually added creation rules
+
     # IDENTIFY WEIRD CASES OF PREFIXES SHARED
     bad_WEs = {}
     prefixes = {}
