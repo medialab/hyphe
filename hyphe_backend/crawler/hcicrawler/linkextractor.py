@@ -11,7 +11,7 @@ import re
 from urlparse import urljoin
 from w3lib.html import remove_entities
 from scrapy.link import Link
-from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.linkextractors.sgml import SgmlLinkExtractor
 
 linkre = re.compile(r"<a[^>]*href\s*=\s*(\"[^\">]+[\">]|'[^'>]+['>]|[^\s>]+[\s>])", re.DOTALL | re.IGNORECASE)
 

@@ -9,7 +9,7 @@ COPY requirements.txt /app/requirements.txt
 RUN apk --update add gcc git musl-dev libxml2-dev libxslt-dev libffi-dev openssl-dev \
         && pip install --cache-dir=/tmp/pipcache --upgrade setuptools pip \
         && pip install --cache-dir=/tmp/pipcache --requirement /app/requirements.txt \
-        && pip install --cache-dir=/tmp/pipcache Scrapy==0.24.6 \
+        && pip install --cache-dir=/tmp/pipcache Scrapy==1.6.0 \
         && rm -r /tmp/pipcache \
         && apk del gcc git musl-dev \
         && rm /var/cache/apk/*

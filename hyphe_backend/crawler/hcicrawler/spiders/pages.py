@@ -8,17 +8,14 @@ try:
 except:
     from bson.binary import Binary
 
-from scrapy import log
-try:
-    from scrapy.spider import Spider
-except:
-    from scrapy.spider import BaseSpider as Spider
+from logging import log
+from scrapy.spiders import BaseSpider as Spider
 from scrapy.http import Request, HtmlResponse
-from scrapy.linkextractor import IGNORED_EXTENSIONS
+from scrapy.linkextractors import IGNORED_EXTENSIONS
 from scrapy.utils.url import url_has_any_extension
-from scrapyd.config import Config as scrapyd_config
 from scrapy.signals import spider_closed, spider_error
 from scrapy.xlib.pydispatch import dispatcher
+from scrapyd.config import Config as scrapyd_config
 
 from selenium.webdriver import PhantomJS
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities

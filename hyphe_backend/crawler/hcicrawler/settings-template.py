@@ -8,12 +8,12 @@ LOG_LEVEL = '{{log_level}}'
 SPIDER_MODULES = ['hcicrawler.spiders']
 NEWSPIDER_MODULE = 'hcicrawler.spiders'
 
-ITEM_PIPELINES = [
-    'hcicrawler.pipelines.ResolveLinks',
-    'hcicrawler.pipelines.OutputStore',
-    'hcicrawler.pipelines.RemoveBody',
-    'hcicrawler.pipelines.OutputQueue',
-]
+ITEM_PIPELINES = {
+    'hcicrawler.pipelines.ResolveLinks': 100,
+    'hcicrawler.pipelines.OutputStore': 200,
+    'hcicrawler.pipelines.RemoveBody': 300,
+    'hcicrawler.pipelines.OutputQueue': 400,
+}
 
 CONCURRENT_REQUESTS = {{max_simul_requests}}
 CONCURRENT_REQUESTS_PER_DOMAIN = {{max_simul_requests_per_host}}

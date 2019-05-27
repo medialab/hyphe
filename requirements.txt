@@ -5,7 +5,8 @@ pymongo>=3.4
 pystache
 selenium==2.42.1
 service_identity
-Twisted>=17.5
+scrapyd-client==1.2.0a1
+Twisted>=18,<=19
 txJSON-RPC>=0.5
 txmongo>=16.3
 urllib3[secure]
