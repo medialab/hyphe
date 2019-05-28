@@ -845,7 +845,7 @@ class Core(customJSONRPC):
             nofollow = []
 
         if "CORE" in WE["tags"] and "recrawlNeeded" in WE["tags"]["CORE"]:
-            yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawlNeeded", "true", corpus=corpus)
+            yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawlNeeded", "true", corpus=corpus, _automatic=True)
         res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE["prefixes"], nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, cookies_string=cookies_string, corpus=corpus, _autostarts=autostarts)
         returnD(res)
 
@@ -1278,7 +1278,7 @@ class Memory_Structure(customJSONRPC):
                 if self.validate_linkpage(page_url, prefixes):
                     homepages[WE["_id"]] = page_url
                     if p["indegree"] > 2:
-                        self.jsonrpc_set_webentity_homepage(WE["_id"], page_url, corpus=corpus, _declare_page=False)
+                        self.jsonrpc_set_webentity_homepage(WE["_id"], page_url, corpus=corpus, _declare_page=False, _automatic=True)
                         break
                 else:
                     for pr in prefixes:
@@ -1313,7 +1313,7 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("Could not retrieve WE for prefix %s" % lru_prefix))
         if test_bool_arg(new):
             if source:
-                yield self.jsonrpc_add_webentity_tag_value(weid, 'CORE', 'createdBy', "user via %s" % source, corpus=corpus)
+                yield self.jsonrpc_add_webentity_tag_value(weid, 'CORE', 'createdBy', "user via %s" % source, corpus=corpus, _automatic=True)
             self.corpora[corpus]['recent_changes'] += 1
             self.update_webentities_counts(WE, WE["status"], new=True, corpus=corpus)
         job = yield self.db.list_jobs(corpus, {'webentity_id': weid}, projection=['crawling_status', 'indexing_status'], sort=sortdesc('created_at'), limit=1)
@@ -1442,7 +1442,7 @@ class Memory_Structure(customJSONRPC):
                 if parent["homepage"] and urllru.has_prefix(urllru.url_to_lru_clean(parent["homepage"], self.corpora[corpus]["tlds"]), new_WE["prefixes"]):
                     if config['DEBUG']:
                         logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
-                    self.jsonrpc_set_webentity_homepage(parent["_id"], "", corpus=corpus)
+                    self.jsonrpc_set_webentity_homepage(parent["_id"], "", corpus=corpus, _automatic=True)
         returnD(format_result(new_WE))
 
 
@@ -1450,7 +1450,7 @@ class Memory_Structure(customJSONRPC):
 
     # TODO REWRITE AS MONGO DIRECT EDITS
     @inlineCallbacks
-    def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None, corpus=DEFAULT_CORPUS, _commit=True):
+    def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None, update_timestamp=True, corpus=DEFAULT_CORPUS, _commit=True):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         # Get WebEntity if webentity_id not already one from internal call
@@ -1502,7 +1502,7 @@ class Memory_Structure(customJSONRPC):
                 WE[field_name] = value
             if _commit:
                 if len(WE["prefixes"]):
-                    yield self.db.upsert_WE(corpus, webentity_id, WE)
+                    yield self.db.upsert_WE(corpus, webentity_id, WE, update_timestamp=update_timestamp)
                     if field_name == 'prefixes':
                         self.corpora[corpus]['recent_changes'] += 1
                     returnD(format_result("%s field of WebEntity %s updated." % (field_name, webentity_id)))
@@ -1625,7 +1625,7 @@ class Memory_Structure(customJSONRPC):
         return self.batch_webentities_edit("set_webentity_status", webentity_ids, corpus, status)
 
     @inlineCallbacks
-    def jsonrpc_set_webentity_homepage(self, webentity_id, homepage="", corpus=DEFAULT_CORPUS, _declare_page=True):
+    def jsonrpc_set_webentity_homepage(self, webentity_id, homepage="", corpus=DEFAULT_CORPUS, _declare_page=True, _automatic=False):
         """Changes for a `corpus` the homepage of a WebEntity defined by `webentity_id` to `homepage`."""
         homepage = (homepage or "").strip()
         try:
@@ -1646,7 +1646,7 @@ class Memory_Structure(customJSONRPC):
                     logger.msg("ERROR while declaring homepage %s" % homepage, system="DEBUG - %s" % corpus)
                 elif res["result"]["created"]:
                     returnD(format_error("WARNING: this page does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity."))
-        res = yield self.update_webentity(webentity_id, "homepage", homepage, corpus=corpus)
+        res = yield self.update_webentity(webentity_id, "homepage", homepage, update_timestamp=(not _automatic), corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
@@ -1675,7 +1675,7 @@ class Memory_Structure(customJSONRPC):
                 if old_WE["homepage"] and urllru.has_prefix(urllru.url_to_lru_clean(old_WE["homepage"], self.corpora[corpus]["tlds"]), lru_prefixes):
                     if config['DEBUG']:
                         logger.msg("Removing homepage %s from parent WebEntity %s" % (old_WE["homepage"], old_WE["name"]), system="DEBUG - %s" % corpus)
-                    yield self.jsonrpc_set_webentity_homepage(old_WE["_id"], "", corpus=corpus)
+                    yield self.jsonrpc_set_webentity_homepage(old_WE["_id"], "", corpus=corpus, _automatic=True)
                 logger.msg("Removing LRUPrefix %s from WebEntity %s" % (lru_prefix, old_WE["name"]), system="INFO - %s" % corpus)
                 res = yield self.jsonrpc_rm_webentity_lruprefix(old_WE["_id"], lru_prefix, corpus=corpus)
                 if is_error(res):
@@ -1732,7 +1732,7 @@ class Memory_Structure(customJSONRPC):
         WE = yield self.add_backend_tags(webentity_id, source, startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
         if "removed" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["removed"]:
             WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "removed", startpage_url, _commit=False, corpus=corpus)
-        res = yield self.update_webentity(WE, "startpages", startpage_url, "push", corpus=corpus)
+        res = yield self.update_webentity(WE, "startpages", startpage_url, "push", update_timestamp=(not _automatic), corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
@@ -2442,11 +2442,11 @@ class Memory_Structure(customJSONRPC):
         yield self.parent.update_corpus(corpus, True)
 
     @inlineCallbacks
-    def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
+    def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _automatic=False, _commit=True):
         """Adds for a `corpus` a tag `namespace:category=value` to a WebEntity defined by `webentity_id`."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
-        res = yield self.update_webentity(webentity_id, "tags", value, "push", category, namespace, _commit=_commit, corpus=corpus)
+        res = yield self.update_webentity(webentity_id, "tags", value, "push", category, namespace, _commit=_commit, update_timestamp=(not _automatic), corpus=corpus)
         if not is_error(res):
             yield self.add_tags_to_dictionary(namespace, category, value, corpus=corpus)
         returnD(res)
@@ -2476,7 +2476,7 @@ class Memory_Structure(customJSONRPC):
         if not namespace:
             namespace = "CORE"
         else: namespace = "CORE-%s" % namespace
-        WE = yield self.jsonrpc_add_webentity_tag_value(webentity_id, namespace, key, value, _commit=_commit, corpus=corpus)
+        WE = yield self.jsonrpc_add_webentity_tag_value(webentity_id, namespace, key, value, corpus=corpus, _automatic=True, _commit=_commit)
         returnD(WE)
 
     def jsonrpc_get_tags(self, namespace=None, corpus=DEFAULT_CORPUS):
@@ -2768,7 +2768,7 @@ class Memory_Structure(customJSONRPC):
                     if parenthomelru != variation and urllru.has_prefix(parenthomelru, variations):
                         if config['DEBUG']:
                             logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
-                        yield self.jsonrpc_set_webentity_homepage(parent["id"], "", corpus=corpus)
+                        yield self.jsonrpc_set_webentity_homepage(parent["id"], "", corpus=corpus, _automatic=True)
         returnD(format_result("Webentity creation rule added and applied: %s new webentities created" % news))
 
     @inlineCallbacks

@@ -227,7 +227,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def add_WE(self, corpus, weid, prefixes, name=None, status="DISCOVERED", startpages=[], tags={}):
-        yield self.upsert_WE(corpus, weid, self.new_WE(weid, prefixes, name, status, startpages, tags), False)
+        yield self.upsert_WE(corpus, weid, self.new_WE(weid, prefixes, name, status, startpages, tags), update_timestamp=False)
 
     @inlineCallbacks
     def add_WEs(self, corpus, new_WEs):
@@ -236,8 +236,8 @@ class MongoDB(object):
         yield self.WEs(corpus).insert_many([self.new_WE(weid, prefixes) for weid, prefixes in new_WEs.items()])
 
     @inlineCallbacks
-    def upsert_WE(self, corpus, weid, metas, updateTimestamp=True):
-        if updateTimestamp:
+    def upsert_WE(self, corpus, weid, metas, update_timestamp=True):
+        if update_timestamp:
             metas["lastModificationDate"] = now_ts()
         yield self.WEs(corpus).update_one({"_id": weid}, {"$set": metas}, upsert=True)
 
