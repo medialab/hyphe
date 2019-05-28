@@ -1,20 +1,19 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import os, time, signal, re
 import json
+import logging
+
 try:
     from pymongo.binary import Binary
 except:
     from bson.binary import Binary
 
-from logging import log
-from scrapy.spiders import BaseSpider as Spider
+from scrapy.spiders import Spider
 from scrapy.http import Request, HtmlResponse
+from scrapy.signals import spider_closed, spider_error
 from scrapy.linkextractors import IGNORED_EXTENSIONS
 from scrapy.utils.url import url_has_any_extension
-from scrapy.signals import spider_closed, spider_error
-from scrapy.xlib.pydispatch import dispatcher
 from scrapyd.config import Config as scrapyd_config
 
 from selenium.webdriver import PhantomJS
@@ -58,12 +57,17 @@ class PagesCrawler(Spider):
             self.ph_idle_timeout = int(args.get('phantom_idle_timeout', PHANTOM['IDLE_TIMEOUT']))
             self.ph_ajax_timeout = int(args.get('phantom_ajax_timeout', PHANTOM['AJAX_TIMEOUT']))
         self.errors = 0
-        dispatcher.connect(self.closed, spider_closed)
-        dispatcher.connect(self.crashed, spider_error)
+
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super(PagesCrawler, cls).from_crawler(crawler, *args, **kwargs)
+        crawler.signals.connect(spider.spider_closed, signal=spider_closed)
+        crawler.signals.connect(spider.spider_crashed, signal=spider_error)
+        return spider
 
     def start_requests(self):
-        self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'], log.INFO)
-        self.log("ARGUMENTS : "+str(self.args), log.INFO)
+        self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'], logging.INFO)
+        self.log("ARGUMENTS : "+str(self.args), logging.INFO)
         if self.phantom:
             self.init_phantom()
         for url in self.start_urls:
@@ -76,7 +80,7 @@ class PagesCrawler(Spider):
             self.name,
             self.crawler.settings['JOBID']
         )
-        self.log("Using path %s for PhantomJS crawl" % self.prefixfiles, log.INFO)
+        self.log("Using path %s for PhantomJS crawl" % self.prefixfiles, logging.INFO)
         phantom_args = []
         if PROXY and not PROXY.startswith(':'):
             phantom_args.append('--proxy=%s' % PROXY)
@@ -98,14 +102,14 @@ class PagesCrawler(Spider):
         self.phantom.set_page_load_timeout(60)
         self.phantom.set_script_timeout(self.ph_timeout + 15)
 
-    def crashed(self, spider):
+    def spider_crashed(self, spider):
         self.errors += 1
-        self.closed("CRASH")
+        self.spider_closed(spider, reason="CRASH")
 
-    def closed(self, reason):
+    def spider_closed(self, spider, reason=""):
         if self.errors:
-            self.log("%s error%s encountered during the crawl." %
-                (self.errors, 's' if self.errors > 1 else ''), log.ERROR)
+            self.log("%s error%s encountered during the crawl (%s)." %
+                (self.errors, 's' if self.errors > 1 else '', reason), logging.ERROR)
         if self.phantom:
             self.phantom.quit()
             if not self.errors:
@@ -127,7 +131,7 @@ class PagesCrawler(Spider):
             response._set_body(bod_w_iframes.encode('utf-8'))
 
           # Try to scroll and unfold page
-            self.log("Start PhantomJS scrolling and unfolding", log.INFO)
+            self.log("Start PhantomJS scrolling and unfolding", logging.INFO)
             with open(os.path.join(PHANTOM["JS_PATH"], "scrolldown_and_unfold.js")) as js:
                 try:
                     signal.signal(signal.SIGALRM, timeout_alarm)
@@ -138,16 +142,16 @@ class PagesCrawler(Spider):
                     signal.alarm(0)
                     if timedout:
                         raise SeleniumTimeout
-                    self.log("Scrolling/Unfolding finished", log.INFO)
+                    self.log("Scrolling/Unfolding finished", logging.INFO)
                 except SeleniumTimeout:
-                    self.log("Scrolling/Unfolding timed-out (%ss)" % self.ph_timeout, log.WARNING)
+                    self.log("Scrolling/Unfolding timed-out (%ss)" % self.ph_timeout, logging.WARNING)
                     self.errors += 1
                 except WebDriverException as e:
                     err = json.loads(e.msg)['errorMessage']
-                    self.log("Scrolling/Unfolding crashed: %s" % err, log.ERROR)
+                    self.log("Scrolling/Unfolding crashed: %s" % err, logging.ERROR)
                     self.errors += 1
                 except Exception as e:
-                    self.log("Scrolling/Unfolding crashed: %s %s" % (type(e), e), log.ERROR)
+                    self.log("Scrolling/Unfolding crashed: %s %s" % (type(e), e), logging.ERROR)
                     self.errors += 1
                     return self._make_raw_page(response, lru)
             bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
@@ -178,7 +182,7 @@ class PagesCrawler(Spider):
         elif not "://www" in failure.request.url:
             return self._request(failure.request.url.replace('://', '://www.'))
         error = failure.getErrorMessage()
-        self.log("ERROR : %s" % error, log.ERROR)
+        self.log("ERROR : %s" % error, logging.ERROR)
         if PROXY and not PROXY.startswith(':') and "OpenSSL.SSL.Error" in error:
             return self._request(failure.request.url, noproxy=True)
         self.errors += 1
@@ -206,7 +210,7 @@ class PagesCrawler(Spider):
             try:
                 links = self.link_extractor.extract_links(response)
             except Exception as e:
-                self.log("ERROR: links extractor crashed on %s: %s %s" % (response, type(e), e), log.ERROR)
+                self.log("ERROR: links extractor crashed on %s: %s %s" % (response, type(e), e), logging.ERROR)
                 links = []
                 self.errors += 1
         for link in links:
@@ -217,7 +221,7 @@ class PagesCrawler(Spider):
             try:
                 lrulink = url_to_lru_clean(url, TLDS_TREE)
             except ValueError, e:
-                self.log("Error converting URL %s to LRU: %s" % (url, e), log.ERROR)
+                self.log("Error converting URL %s to LRU: %s" % (url, e), logging.ERROR)
                 continue
             lrulinks.append((url, lrulink))
             if self._should_follow(response.meta['depth'], lru, lrulink) and \
