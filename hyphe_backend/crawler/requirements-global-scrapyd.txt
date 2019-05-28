@@ -1,7 +1,0 @@
-Twisted>=18,<=19
-scrapyd-client==1.2.0a1
-selenium==2.42.1
-service_identity==14
-urllib3[secure]
-pymongo==2.7
-txmongo==0.6

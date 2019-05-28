@@ -67,15 +67,15 @@ Unfortunately, ScrapingHub does not provide anymore official repository packages
 - Start by installing Scrapy and ScrapyD via pip (fixed versions are required for compatibility with Hyphe):
 
 ```bash
-sudo pip install Scrapy==0.24.6
-sudo pip install scrapyd==1.0.1
+sudo pip install Scrapy==1.6.0
+sudo pip install scrapyd==1.2.0
 ```
 
 - Install Hyphe's config for ScrapyD:
 
 ```bash
-sudo mkdir -p /etc/scrapyd/conf.d
-sudo ln -s `pwd`/hyphe_backend/crawler/scrapyd.config /etc/scrapyd/conf.d/100-hyphe
+sudo mkdir -p /etc/scrapyd
+sudo ln -s `pwd`/hyphe_backend/crawler/scrapyd.config /etc/scrapyd/scrapyd.conf
 ```
 
 - Create a `scrapy` user to run the service:
@@ -97,7 +97,7 @@ sudo chown scrapy:nogroup /var/log/scrapyd /var/lib/scrapyd /var/lib/scrapyd/egg
 - Install globally the python dependencies required by Hyphe's Scrapy spider so that ScrapyD can use them:
 
 ```bash
-sudo pip install pymongo txmongo selenium==2.42.1 urllib3[secure]
+sudo pip install hyphe_backend/crawler/requirements-scrapyd.txt
 ```
 
 - Start ScrapyD manually:
@@ -138,7 +138,7 @@ pip install -r requirements.txt
 deactivate
 ```
 
-**Warning:** the virtualenv's name (`hyphe_traph`) matters. Do not change it, or edit the value within the starter script `bin/hyphe`.
+**Warning:** the virtualenv's name (`hyphe-traph`) matters. Do not change it, or edit the value within the starter script `bin/hyphe`.
 
 
 ## 5) Build Hyphe's frontend
@@ -189,7 +189,7 @@ sed "s|##TWISTEDPORT##|$twport|" |
 sed "s|##WEBPATH##|hyphe|" > config/apache2.conf
 ```
 
-- Install it as an Apache's site:
+- Install it as an Apache website:
 
 On Debian/Ubuntu:
 
