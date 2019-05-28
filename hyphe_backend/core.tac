@@ -47,6 +47,7 @@ class Core(customJSONRPC):
         self.db = MongoDB(config['mongo-scrapy'])
         self.traphs = TraphFactory(data_dir=config["traph"]["data_path"])
         self.corpora = {}
+        self.existing_corpora = set([])
         self.destroying = {}
         self.crawler = Crawler(self)
         self.store = Memory_Structure(self)
@@ -67,6 +68,9 @@ class Core(customJSONRPC):
           "ready": False,
           "status": self.traphs.status_corpus(corpus, simplify=True),
         }
+        if corpus not in self.existing_corpora:
+            res["status"] = "missing"
+            res["message"] = "Corpus does not exist"
         if res["status"] == "ready":
             res["ready"] = True
         elif res["status"] == "error":
@@ -93,6 +97,7 @@ class Core(customJSONRPC):
             corpus["password"] = (corpus["password"] != "")
             corpus.update(self.jsonrpc_test_corpus(corpus.pop('_id'))["result"])
             res[corpus["corpus_id"]] = corpus
+            self.existing_corpora.add(corpus["corpus_id"])
         returnD(format_result(res))
 
     def jsonrpc_get_corpus_options(self, corpus=DEFAULT_CORPUS):
@@ -152,6 +157,8 @@ class Core(customJSONRPC):
                 yield self.db.add_WECR(corpus, lru, wecr)
 
     def corpus_ready(self, corpus):
+        if corpus not in self.existing_corpora:
+            return False
         if not self.traphs.test_corpus(corpus):
             return False
         if corpus not in self.corpora:
@@ -206,6 +213,7 @@ class Core(customJSONRPC):
 
         # Save corpus in mongo
         yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"], tlds)
+        self.existing_corpora.add(corpus)
 
         # Setup WebEntityCreationRules
         yield self.init_creationrules(corpus)
@@ -256,7 +264,7 @@ class Core(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_start_corpus(self, corpus=DEFAULT_CORPUS, password="", _noloop=False, _quiet=False, _create_if_missing=False):
         """Starts an existing `corpus` possibly `password`-protected. Returns the new corpus status."""
-        # Entrypoint to just test the global password for login2 page
+        # Entrypoint to just test the global password for admin page
         if not corpus:
             if not password or password != config.get("ADMIN_PASSWORD", None):
                 returnD(format_error("Wrong password"))
@@ -283,6 +291,8 @@ class Core(customJSONRPC):
         if corpus_conf['password'] and password != config.get("ADMIN_PASSWORD", None) and corpus_conf['password'] not in [password, salt(password)]:
             del(self.corpora[corpus]["starting"])
             returnD(format_error("Wrong auth for password-protected corpus %s" % corpus))
+
+        self.existing_corpora.add(corpus)
 
         res = yield self.crawler.crawlqueue.send_scrapy_query("listprojects")
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
@@ -518,6 +528,7 @@ class Core(customJSONRPC):
         yield self.crawler.jsonrpc_delete_crawler(corpus, _quiet)
         yield self.db.delete_corpus(corpus)
         del(self.destroying[corpus])
+        self.existing_corpora.remove(corpus)
         returnD(format_result("Corpus %s destroyed successfully" % corpus))
 
     @inlineCallbacks
