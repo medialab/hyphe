@@ -477,6 +477,14 @@ angular.module('hyphe.monitorcrawlsController', [])
       } else {
         $scope.sort = field
         $scope.crawlJobs = $scope.crawlJobs.sort(function(a,b){
+          if (field == "webentity_name") {
+            if (a[field] < b[field]) {
+              return -1;
+            } else if (b[field] < a[field]) {
+              return 1;
+            }
+            return 0;
+          }
           return b[$scope.sort] - a[$scope.sort]
         })
       }
