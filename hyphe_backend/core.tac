@@ -1613,20 +1613,20 @@ class Memory_Structure(customJSONRPC):
                 return
             self.corpora[corpus]["webentities_%s" % oldStatus.lower()] -= 1
         elif not deleted:
-            self.corpora[corpus]['total_webentities'] += 1
+            self.corpora[corpus]["total_webentities"] += 1
         if not deleted:
             self.corpora[corpus]["webentities_%s" % newStatus.lower()] += 1
         elif not new:
-            self.corpora[corpus]['total_webentities'] -= 1
+            self.corpora[corpus]["total_webentities"] -= 1
         if "IN" in [oldStatus, newStatus]:
             categories = self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus).get("result", [])
         if oldStatus == "IN" and not new:
-            if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in categories]):
+            if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in categories if cat != "FREETAGS"]):
                 self.corpora[corpus]["webentities_in_untagged"] -= 1
             if not WE["crawled"]:
                 self.corpora[corpus]["webentities_in_uncrawled"] -= 1
         if newStatus == "IN" and not deleted:
-            if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in categories]):
+            if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in categories if cat != "FREETAGS"]):
                 self.corpora[corpus]["webentities_in_untagged"] += 1
             if not WE["crawled"]:
                 self.corpora[corpus]["webentities_in_uncrawled"] += 1
@@ -2034,6 +2034,8 @@ class Memory_Structure(customJSONRPC):
         disc = yield self.db.count_WEs(corpus, {"status": "DISCOVERED"})
         query = {"status": "IN", "$or": [{"tags.USER": {"$exists": False}}]}
         for cat in self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus).get("result", []):
+            if cat == "FREETAGS":
+                continue
             query["$or"].append({"tags.USER.%s" % cat: {"$exists": False}})
         notg = yield self.db.count_WEs(corpus, query)
         if corpus not in self.corpora:
