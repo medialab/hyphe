@@ -114,7 +114,7 @@ class MongoDB(object):
             yield self.WEs(corpus).create_index(sortasc('name'), background=True)
             yield self.WEs(corpus).create_index(sortasc('status'), background=True)
             yield self.WEs(corpus).create_index(sortasc('crawled'), background=True)
-            yield self.WEs(corpus).create_index(mongosort(textIndex("$**")), background=True)
+            yield self.WEs(corpus).create_index(mongosort(textIndex("$**")), language_override="HYPHE_MONGODB_LANGUAGE_INDEX_FIELD_NAME", background=True)
             yield self.WECRs(corpus).create_index(sortasc('prefix'), background=True)
             yield self.pages(corpus).create_index(sortasc('timestamp'), background=True)
             yield self.pages(corpus).create_index(sortasc('_job'), background=True)
@@ -144,7 +144,7 @@ class MongoDB(object):
             # catch and destroy old indices built with older pymongo versions
             if retry:
                 yield self.db()['corpus'].drop_indexes()
-                for coll in ["pages", "queue", "logs", "jobs", "stats"]:
+                for coll in ["webentities", "pages", "queue", "logs", "jobs", "stats"]:
                     yield self._get_coll(corpus, coll).drop_indexes()
                 yield self.init_corpus_indexes(corpus, retry=False)
             else:
