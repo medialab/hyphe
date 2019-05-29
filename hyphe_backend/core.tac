@@ -2290,6 +2290,7 @@ class Memory_Structure(customJSONRPC):
         """Returns for a `corpus` all WebEntities having at least one tag in any namespace/category equal to `value`.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
+        value = value.strip()
         page, count = self._checkPageCount(page, count)
         if page is None:
             returnD(format_error("page and count arguments must be integers"))
@@ -2420,10 +2421,10 @@ class Memory_Structure(customJSONRPC):
   # TAGS
 
     def _cleanupTagsKey(self, key):
+        # MongoDB considers dots as hierarchy separator in objects and refuses them in object's keys
         if key and "." in key:
             key = key.replace(".", "_")
-        return key
-
+        return key.strip()
 
     @inlineCallbacks
     def add_tags_to_dictionary(self, namespace, category, values, corpus=DEFAULT_CORPUS):
@@ -2459,6 +2460,7 @@ class Memory_Structure(customJSONRPC):
         """Adds for a `corpus` a tag `namespace:category=value` to a WebEntity defined by `webentity_id`."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
+        value = value.strip()
         res = yield self.update_webentity(webentity_id, "tags", value, "push", category, namespace, _commit=_commit, update_timestamp=(not _automatic), corpus=corpus)
         if not is_error(res):
             yield self.add_tags_to_dictionary(namespace, category, value, corpus=corpus)
@@ -2474,6 +2476,7 @@ class Memory_Structure(customJSONRPC):
         """Removes for a `corpus` a tag `namespace:category=value` associated with a WebEntity defined by `webentity_id` if it is set."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
+        value = value.strip()
         res = yield self.update_webentity(webentity_id, "tags", value, "pop", category, namespace, _commit=_commit, corpus=corpus)
         if not is_error(res):
             yield self.remove_tag_from_dictionary(namespace, category, value, corpus=corpus)
