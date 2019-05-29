@@ -707,7 +707,7 @@ class Core(customJSONRPC):
         self.corpora[corpus]['crawls_running'] = len(scrapyjobs['running'])
         yield self.update_corpus(corpus)
         # clean lost jobs
-        yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.PENDING, 'indexing_status': 'BATCH_FINISHED'}, {'crawling_status': crawling_statuses.RUNNING, "started_at": now_ts()})
+        yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.BATCH_FINISHED}, {'crawling_status': crawling_statuses.RUNNING, "started_at": now_ts()})
         if len(scrapyjobs['running']) + len(scrapyjobs['pending']) == 0:
             yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.RUNNING}, {'crawling_status': crawling_statuses.FINISHED, "finished_at": now_ts()})
 
@@ -1910,7 +1910,15 @@ class Memory_Structure(customJSONRPC):
         crawled_pages_left = yield self.db.count_queue(corpus, job['crawljob_id'])
         tot_crawled_pages = yield self.db.count_pages(corpus, job['crawljob_id'])
         if job['_id'] != 'unknown':
-            yield self.db.update_jobs(corpus, job['_id'], {'nb_crawled_pages': tot_crawled_pages, 'nb_unindexed_pages': crawled_pages_left, 'indexing_status': indexing_statuses.BATCH_FINISHED}, inc={'nb_pages': nb_pages, 'nb_links': n_batchlinks})
+            update = {
+                'nb_crawled_pages': tot_crawled_pages,
+                'nb_unindexed_pages': crawled_pages_left,
+                'indexing_status': indexing_statuses.BATCH_FINISHED
+            }
+            if job['crawling_status'] == crawling_statuses.PENDING:
+                update['crawling_status'] = crawling_statuses.RUNNING
+                update["started_at"] = now_ts()
+            yield self.db.update_jobs(corpus, job['_id'], update, inc={'nb_pages': nb_pages, 'nb_links': n_batchlinks})
             yield self.db.add_log(corpus, job['_id'], "INDEX_"+indexing_statuses.BATCH_FINISHED)
 
         returnD(True)
@@ -1947,7 +1955,7 @@ class Memory_Structure(customJSONRPC):
         if oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
             self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
-            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, projection=['crawljob_id', 'crawl_arguments', 'webentity_id'], limit=1)
+            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, projection=['crawljob_id', 'crawl_arguments', 'webentity_id', 'crawling_status'], limit=1)
             if not job:
                 jobs = yield self.db.list_jobs(corpus)
                 if not jobs:
@@ -1960,7 +1968,8 @@ class Memory_Structure(customJSONRPC):
                 job = {
                   '_id': 'unknown',
                   'crawljob_id': oldest_page_in_queue['_job'],
-                  'webentity_id': None
+                  'webentity_id': None,
+                  'crawling_status': None
                 }
             page_items = yield self.db.get_queue(corpus, {'_job': job['crawljob_id']}, limit=config['traph']['max_simul_pages_indexing'])
             if page_items:
