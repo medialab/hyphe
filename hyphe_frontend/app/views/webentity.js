@@ -306,7 +306,7 @@ angular.module('hyphe.webentityController', [])
             var tag
             var tagCatValues = data[tagCat]
             for (tag in tagCatValues) {
-              $scope.tagsAutocomplete[tagCat][autocompletion.searchable(tag)] = tag
+              $scope.tagsAutocomplete[tagCat][tag] = tag
             }
           }
           $scope.autoComplete = autocompletion.getTagAutoCompleteFunction($scope.tagsAutocomplete)
