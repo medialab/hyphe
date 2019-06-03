@@ -328,6 +328,7 @@
                               md-search-text="searchText"
                               md-items="tag in autoComplete(searchText, 'FREETAGS')"
                               md-item-text="tag"
+                              md-min-length=0
                               placeholder="+ Tag..."
                             >
                               <span md-highlight-text="searchText">{{tag}}</span>
@@ -350,6 +351,7 @@
                                 md-search-text="searchText"
                                 md-items="tag in autoComplete(searchText, tagCat)"
                                 md-item-text="tag"
+                                md-min-length=0
                                 placeholder="Set tag"
                               >
                                 <span md-highlight-text="searchText">{{tag}}</span>
