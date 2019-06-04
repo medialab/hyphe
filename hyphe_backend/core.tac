@@ -2455,7 +2455,7 @@ class Memory_Structure(customJSONRPC):
         try:
             self.corpora[corpus]["tags"][namespace][category][value] -= 1
         except:
-            return
+            returnD(None)
         if self.corpora[corpus]["tags"][namespace][category][value] <= 0:
             del(self.corpora[corpus]["tags"][namespace][category][value])
         if not self.corpora[corpus]["tags"][namespace][category]:
