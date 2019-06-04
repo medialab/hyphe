@@ -317,7 +317,7 @@
                         <div layout="column" style="padding: 8px">
                           
                           <!-- Tag categories -->
-                          <div ng-repeat="(tagCat, _tv) in tagCategories" ng-if="tagCat != 'FREETAGS'">
+                          <div ng-repeat="tagCat in tagCategories | toSortedKeysArray" ng-if="tagCat != 'FREETAGS'">
                             <div class="md-title">{{tagCat}}</div>
                             <md-chips
                               ng-model="tagCategories[tagCat]"

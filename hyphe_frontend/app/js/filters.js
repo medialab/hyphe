@@ -208,6 +208,15 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('toSortedKeysArray', [function(){
+    return function(obj){
+      if (!(obj instanceof Object)) {
+        return obj
+      }
+      return Object.keys(obj).sort()
+    }
+  }])
+
   .filter('explicitHttpCode', [function () {
     return function (code) {
       code = ''+code
