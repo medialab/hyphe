@@ -103,6 +103,7 @@ The API will always answer as such:
     * __`get_webentities_page`__
     * __`get_webentities_ranking_stats`__
   + [TAGS](#tags)
+    * __`rebuild_tags_dictionary`__
     * __`add_webentity_tag_value`__
     * __`add_webentities_tag_value`__
     * __`rm_webentity_tag_value`__
@@ -735,6 +736,13 @@ The API will always answer as such:
  Returns for a `corpus` histogram data on the indegrees of all WebEntities matching a previous query ran using any of the `get_webentities` or `search_webentities` methods using the return `pagination_token`.
 
 ### TAGS
+
+- __`rebuild_tags_dictionary`:__
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Administrative function to regenerate for a `corpus` the dictionnary of tag values used by autocompletion features
+  + _`mostly a debug function which should not be used in most cases.
+
 
 - __`add_webentity_tag_value`:__
   + _`webentity_id`_ (mandatory)

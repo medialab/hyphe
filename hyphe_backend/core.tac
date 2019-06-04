@@ -351,12 +351,25 @@ class Core(customJSONRPC):
         self.corpora[corpus]["links_duration"] = corpus_conf.get("links_duration", 1)
         self.corpora[corpus]["last_links_loop"] = corpus_conf['last_links_loop']
         try:
-            self.corpora[corpus]["tags"] = msgpack.unpackb(corpus_conf['tags'])
-        except:
+            tags = msgpack.unpackb(corpus_conf['tags'])
+            for ns, categories in tags.items():
+                ns = ns.decode("utf-8")
+                self.corpora[corpus]["tags"][ns] = {}
+                for cat, values in categories.items():
+                    cat = cat.decode("utf-8")
+                    self.corpora[corpus]["tags"][ns][cat] = {}
+                    for val, count in values.items():
+                        val = val.decode("utf-8")
+                        self.corpora[corpus]["tags"][ns][cat][val] = count
+        except Exception as e:
+            logger.msg("Could not unpack tags from Mongo: %s (%s), rebuilding dictionary..." % (e, type(e)), system="WARNING - %s" % corpus)
             self.corpora[corpus]["tags"] = {}
+        if self.corpora[corpus]["total_webentities"] and not self.corpora[corpus]["tags"]:
+            reactor.callLater(0, self.store.jsonrpc_rebuild_tags_dictionary, corpus)
         try:
             self.corpora[corpus]["webentities_links"] = msgpack.unpackb(corpus_conf['webentities_links'])
-        except:
+        except Exception as e:
+            logger.msg("Could not unpack links from Mongo: %s (%s)" % (e, type(e)), system="WARNING - %s" % corpus)
             self.corpora[corpus]["webentities_links"] = {}
         self.corpora[corpus]["reset"] = False
         if not _noloop and not self.corpora[corpus]['jobs_loop'].running:
@@ -2436,7 +2449,21 @@ class Memory_Structure(customJSONRPC):
         return key.strip()
 
     @inlineCallbacks
-    def add_tags_to_dictionary(self, namespace, category, values, corpus=DEFAULT_CORPUS):
+    def jsonrpc_rebuild_tags_dictionary(self, corpus=DEFAULT_CORPUS):
+        """Administrative function to regenerate for a `corpus` the dictionnary of tag values used by autocompletion features, mostly a debug function which should not be used in most cases."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        WEs = yield self.db.get_WEs(corpus, {"tags.USER": {"$exists": True}}, projection=["tags"])
+        self.corpora[corpus]["tags"] = {}
+        for WE in WEs:
+            for ns in WE["tags"]:
+                for cat in WE["tags"][ns]:
+                    yield self.add_tags_to_dictionary(ns, cat, WE["tags"][ns][cat], corpus, _commit=False)
+        yield self.parent.update_corpus(corpus, True)
+        returnD(format_result(self.corpora[corpus]["tags"]))
+
+    @inlineCallbacks
+    def add_tags_to_dictionary(self, namespace, category, values, corpus=DEFAULT_CORPUS, _commit=True):
         if not isinstance(values, list):
             values = [values]
         if namespace not in self.corpora[corpus]["tags"]:
@@ -2448,7 +2475,8 @@ class Memory_Structure(customJSONRPC):
             if value not in self.corpora[corpus]["tags"][namespace][category]:
                 self.corpora[corpus]["tags"][namespace][category][value] = 0
             self.corpora[corpus]["tags"][namespace][category][value] += 1
-        yield self.parent.update_corpus(corpus, True)
+        if _commit:
+            yield self.parent.update_corpus(corpus, True)
 
     @inlineCallbacks
     def remove_tag_from_dictionary(self, namespace, category, value, corpus=DEFAULT_CORPUS):

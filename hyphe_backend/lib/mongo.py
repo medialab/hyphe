@@ -187,13 +187,13 @@ class MongoDB(object):
         returnD(res)
 
     @inlineCallbacks
-    def get_WEs(self, corpus, query=None):
+    def get_WEs(self, corpus, query=None, **kwargs):
         if not query:
-            res = yield self.WEs(corpus).find()
+            res = yield self.WEs(corpus).find({}, **kwargs)
         else:
             if isinstance(query, list) and isinstance(query[0], int):
                 query = {"_id": {"$in": query}}
-            res = yield self.WEs(corpus).find(query)
+            res = yield self.WEs(corpus).find(query, **kwargs)
         returnD(res)
 
     @inlineCallbacks
