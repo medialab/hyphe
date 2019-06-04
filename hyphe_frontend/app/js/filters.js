@@ -29,6 +29,12 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('slugify', [function () {
+    return function (input) {
+      return input.replace(/[^a-z0-9]/i, '_')
+    }
+  }])
+
   .filter('prettyDate', ['utils', function(utils) {
     return function(timestamp) {
       return utils.prettyDate(timestamp)

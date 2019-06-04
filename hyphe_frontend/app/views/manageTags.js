@@ -147,6 +147,8 @@ angular.module('hyphe.manageTagsController', [])
       // Wait a frame to render the new category before resetting the form field and focus on input
       $timeout(function(){
         $scope.newCategory = ''
+        var slugCat = category.replace(/[^a-z0-9]/i, '_')
+        document.querySelector(".category-"+slugCat+" input").focus()
       }, 0)
 
       return true

@@ -109,7 +109,10 @@ angular.module('hyphe.webentityController', [])
 
     $scope.saveNewCategory = function(){
       var category = $scope.newCategory.trim()
-      if (!category || $scope.tagCategories[category]) return false
+      if (!category || $scope.tagCategories[category]) {
+        $scope.status = {message: 'This category already exists.', background: 'warning'}
+        return false
+      }
       if (~category.indexOf('.')) {
         $scope.status = {message: 'Tag categories cannot include dot characters', background: 'warning'}
         return false
@@ -119,6 +122,8 @@ angular.module('hyphe.webentityController', [])
       // Wait a frame to render the new category before resetting the form field and focus on input
       $timeout(function(){
         $scope.newCategory = ''
+        var slugCat = category.replace(/[^a-z0-9]/i, '_')
+        document.querySelector(".category-"+slugCat+" input").focus()
       }, 0)
       
       return true

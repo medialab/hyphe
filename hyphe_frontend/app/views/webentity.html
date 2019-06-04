@@ -317,7 +317,7 @@
                         <div layout="column" style="padding: 8px">
                           
                           <!-- Tag categories -->
-                          <div ng-repeat="tagCat in tagCategories | toSortedKeysArray" ng-if="tagCat != 'FREETAGS'">
+                          <div ng-repeat="tagCat in tagCategories | toSortedKeysArray" ng-if="tagCat != 'FREETAGS'" class="category-{{tagCat | slugify}}">
                             <div class="md-title">{{tagCat}}</div>
                             <md-chips
                               ng-model="tagCategories[tagCat]"
@@ -370,7 +370,7 @@
                               md-search-text="searchText"
                               md-items="t in []"
                               md-item-text="note"
-                              placeholder="+ Note..."
+                              placeholder="Add note..."
                             >
                               <span md-highlight-text="searchText">{{tag}}</span>
                             </md-autocomplete>

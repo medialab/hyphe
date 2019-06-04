@@ -327,7 +327,7 @@
 
               <div flex style="overflow-y: auto; padding: 8px" md-colors="{'background': 'default-background-200'}">
                 <div layout="column">
-                  <div ng-repeat="tagCat in tagCategories | toSortedKeysArray" layout="column" ng-if="tagCat != 'FREETAGS'">
+                  <div ng-repeat="tagCat in tagCategories | toSortedKeysArray" layout="column" ng-if="tagCat != 'FREETAGS'" class="category-{{tagCat | slugify}}">
                     <div class="md-title">
                       {{tagCat}}
                       <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory(tagCat)" ng-disabled="displayCategory == tagCat">
