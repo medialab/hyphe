@@ -316,27 +316,6 @@
                       <div flex style="overflow-y: auto">
                         <div layout="column" style="padding: 8px">
                           
-                          <!-- Free tags -->
-                          <div class="md-title">Free tags</div>
-                          <md-chips
-                            ng-model="tagCategories.FREETAGS"
-                            readonly="tagsPendingQueries>0"
-                            md-removable="tagsPendingQueries<=0"
-                          >
-                            <md-autocomplete
-                              md-selected-item="selectedItem"
-                              md-search-text="searchText"
-                              md-items="tag in autoComplete(searchText, 'FREETAGS')"
-                              md-item-text="tag"
-                              md-min-length=0
-                              placeholder="+ Tag..."
-                            >
-                              <span md-highlight-text="searchText">{{tag}}</span>
-                            </md-autocomplete>
-                          </md-chips>
-                          <br>
-                          <br>
-
                           <!-- Tag categories -->
                           <div ng-repeat="(tagCat, _tv) in tagCategories" ng-if="tagCat != 'FREETAGS'">
                             <div class="md-title">{{tagCat}}</div>
@@ -360,11 +339,10 @@
                             <br>
                           </div>
 
-
                           <div
                             layout="row"
                             md-colors="{'background': 'default-background-100'}"
-                            style="padding: 8px; margin-top: 16px"
+                            style="padding: 8px"
                           >
                             <md-input-container flex>
                               <label>New category</label>
@@ -373,6 +351,31 @@
                             <md-button class="md-primary" ng-click="saveNewCategory()">Add</md-button>
                           </div>
 
+                          <br>
+                          <br>
+
+                          <!-- Free tags -->
+                          <div class="fieldnotes"
+                            md-colors="{'background': 'default-background-300'}"
+                            style="padding: 8px; margin-top: 16px"
+                          >
+                          <div class="md-title">Field notes</div>
+                          <md-chips
+                            ng-model="tagCategories.FREETAGS"
+                            readonly="tagsPendingQueries>0"
+                            md-removable="tagsPendingQueries<=0"
+                          >
+                            <md-autocomplete
+                              md-selected-item="selectedItem"
+                              md-search-text="searchText"
+                              md-items="t in []"
+                              md-item-text="note"
+                              placeholder="+ Note..."
+                            >
+                              <span md-highlight-text="searchText">{{tag}}</span>
+                            </md-autocomplete>
+                          </md-chips>
+                          </div>
                         </div>
                       </div>
                     </div>

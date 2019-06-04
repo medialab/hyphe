@@ -223,6 +223,9 @@ md-list.md-dense md-list-item .md-list-item-inner .md-avatar {
   background-color: #F00;
 }
 
+.fieldnotes md-chip {
+  clear: both;
+}
 
 
 /* ==========================================================================
