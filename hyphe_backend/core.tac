@@ -51,6 +51,7 @@ class Core(customJSONRPC):
         self.destroying = {}
         self.crawler = Crawler(self)
         self.store = Memory_Structure(self)
+        reactor.callLater(0, self.jsonrpc_list_corpus)
         reactor.addSystemEventTrigger('before', 'shutdown', self.close)
 
     @inlineCallbacks
