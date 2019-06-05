@@ -5,6 +5,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 .directive('webentitiesNetworkWidget', function(
     $mdSidenav,
     api,
+    utils,
     $timeout,
     $window
   ){
@@ -142,7 +143,27 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
         $scope.downloadNetwork = function() {
           if ($scope.network) {
-            var blob = new Blob([gexf.write($scope.network)], {'type':'text/gexf+xml;charset=utf-8'});
+            var blob = new Blob(
+              [gexf.write($scope.network, {
+                formatNode: function(key, attributes) {
+                  return {
+                    label: attributes.label,
+                    attributes: utils.omit(
+                      attributes,
+                      ["label", "color", "x", "y", "size",  // graph fields already present
+                       "tags", "prefixes"]                  // object fields undesired in GEXF
+                    ),
+                    viz: {
+                      color: attributes.color,
+                      x: attributes.x,
+                      y: attributes.y,
+                      size: attributes.size
+                    }
+                  };
+                }
+              })],
+              {'type':'text/gexf+xml;charset=utf-8'}
+            );
             saveAs(blob, $scope.corpusName + ".gexf", true);
           }
         }
