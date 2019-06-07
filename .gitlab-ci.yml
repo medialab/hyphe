@@ -1,0 +1,49 @@
+image: docker:stable
+
+stages:
+  - build
+  - deploy
+
+variables:
+  FRONTEND_IMAGE_NAME: $CI_REGISTRY/scpomedialab/hyphe_frontend:$CI_COMMIT_REF_SLUG
+  BACKEND_IMAGE_NAME: $CI_REGISTRY/scpomedialab/hyphe_backend:$CI_COMMIT_REF_SLUG
+  CRAWLER_IMAGE_NAME: $CI_REGISTRY/scpomedialab/hyphe_crawler:$CI_COMMIT_REF_SLUG
+
+build_backend_image:
+  stage: build
+  script:
+    - docker build -t $BACKEND_IMAGE_NAME -f Dockerfile .
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+    - docker push $BACKEND_IMAGE_NAME
+  environment:
+    name: $CI_COMMIT_REF_SLUG
+  only:
+    - preprod
+    - prod
+    - tags
+
+build_crawler_image:
+  stage: build
+  script:
+    - docker build -t $CRAWLER_IMAGE_NAME -f Dockerfile .
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+    - docker push $CRAWLER_IMAGE_NAME
+  environment:
+    name: $CI_COMMIT_REF_SLUG
+  only:
+    - preprod
+    - prod
+    - tags
+
+build_frontend_image:
+  stage: build
+  script:
+    - docker build -t $FRONTEND_IMAGE_NAME -f Dockerfile .
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+    - docker push $FRONTEND_IMAGE_NAME
+  environment:
+    name: $CI_COMMIT_REF_SLUG
+  only:
+    - preprod
+    - prod
+    - tags
