@@ -25,7 +25,7 @@ build_backend_image:
 build_crawler_image:
   stage: build
   script:
-    - docker build -t $CRAWLER_IMAGE_NAME -f Dockerfile .
+    - docker build -t $CRAWLER_IMAGE_NAME -f ./hyphe_backend/crawler/Dockerfile ./hyphe_backend/crawler/
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
     - docker push $CRAWLER_IMAGE_NAME
   environment:
@@ -38,7 +38,7 @@ build_crawler_image:
 build_frontend_image:
   stage: build
   script:
-    - docker build -t $FRONTEND_IMAGE_NAME -f Dockerfile .
+    - docker build -t $FRONTEND_IMAGE_NAME -f ./hyphe_frontend/Dockerfile ./hyphe_frontend/
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
     - docker push $FRONTEND_IMAGE_NAME
   environment:
@@ -47,3 +47,4 @@ build_frontend_image:
     - preprod
     - prod
     - tags
+
