@@ -51,6 +51,8 @@ build_frontend_image:
 deploy:
   stage: deploy
   image: cdrx/rancher-gitlab-deploy
+  variables:
+    GIT_STRATEGY: none
   script:
     - upgrade --rancher-key $RANCHER_ACCESS_KEY --rancher-secret $RANCHER_SECRET_KEY --rancher-url $RANCHER_URL --environment $RANCHER_ENV --stack $RANCHER_STACK --service $RANCHER_BACKEND_SERVICE --start-before-stopping
     - upgrade --rancher-key $RANCHER_ACCESS_KEY --rancher-secret $RANCHER_SECRET_KEY --rancher-url $RANCHER_URL --environment $RANCHER_ENV --stack $RANCHER_STACK --service $RANCHER_CRAWLER_SERVICE --start-before-stopping
