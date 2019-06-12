@@ -511,6 +511,7 @@ class Core(customJSONRPC):
             logger.msg("Problem while reinitializing crawler... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
         self.init_corpus(corpus)
+        yield self.init_creationrules(corpus)
 
         res = yield self.store.reinitialize(corpus, _noloop=_noloop, _quiet=_quiet, _restart=(not _noloop))
         if is_error(res):
