@@ -870,7 +870,7 @@ class Core(customJSONRPC):
             nofollow = []
 
         if "CORE" in WE["tags"] and "recrawlNeeded" in WE["tags"]["CORE"]:
-            yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawlNeeded", "true", corpus=corpus, _automatic=True)
+            yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawlNeeded", "true", corpus=corpus)
         res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE["prefixes"], nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, cookies_string=cookies_string, corpus=corpus, _autostarts=autostarts)
         returnD(res)
 
