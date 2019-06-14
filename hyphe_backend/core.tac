@@ -272,6 +272,9 @@ class Core(customJSONRPC):
             returnD(format_success(True))
 
         if self.corpus_ready(corpus) or self.traphs.status_corpus(corpus, simplify=True) == "starting":
+            corpus_conf = yield self.db.get_corpus(corpus)
+            if corpus_conf and corpus_conf['password'] and password != config.get("ADMIN_PASSWORD", None) and corpus_conf['password'] not in [password, salt(password)]:
+                returnD(format_error("Wrong auth for password-protected corpus %s" % corpus))
             returnD(self.jsonrpc_test_corpus(corpus, _msg="Corpus already ready"))
 
         if corpus not in self.corpora:
