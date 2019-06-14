@@ -792,7 +792,7 @@ class Core(customJSONRPC):
                 returnD(format_error('ERROR: startmode argument must be either "default" or one or many of "startpages", "pages-<N>" with <N> an int or "prefixes"'))
         if categories:
             returnD(starts)
-        returnD(list(set(s for st in starts.values() for s in st)))
+        returnD(list(set(s for st in starts.values() for s in st if s)))
 
     @inlineCallbacks
     def jsonrpc_propose_webentity_startpages(self, webentity_id, startmode="default", categories=False, save_startpages=False, corpus=DEFAULT_CORPUS):
