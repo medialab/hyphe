@@ -15,10 +15,11 @@ from progressbar import ProgressBar
 @click.command()
 @click.argument('corpus_id')
 @click.argument('api_url')
+@click.option('-d', '--depth', default=2, type=int, show_default=True, help="Depth for the crawls")
 @click.option('-f', '--first', default=1, type=int, show_default=True, help="ID of the first WebEntity to crawl")
 @click.option('-l', '--last', default=10000, type=int, show_default=True, help="ID of the last WebEntity to crawl")
-@click.option('-d', '--depth', default=2, type=int, show_default=True, help="Depth for all crawls")
-def cli(corpus_id, api_url, first, last, depth):
+@click.option('-s', '--skip', default="", type=str, show_default=True, help="IDs of WebEntities to skip, separated by commas")
+def cli(corpus_id, depth, api_url, first, last, skip):
     try:
         hyphe_api = jsonrpclib.Server(api_url, version=1)
         print 'INFO: Connected to API at', api_url
@@ -60,14 +61,19 @@ def cli(corpus_id, api_url, first, last, depth):
         return
 
     # START CRAWLS
+    try:
+        skip = [int(s) for s in skip.split(",") if s.strip()]
+    except:
+        print >> sys.stder, 'WARNING: skip is not formatted properly, it should be integers separated by commas'
+        return
     bar = ProgressBar(max_value=last-first+1)
-    curid = first
-    while curid <= last:
-        res = hyphe_api.crawl_webentity(curid, depth, False, "IN", {}, cid)
+    for curid in bar(range(first, last+1)):
+        if curid in skip:
+            continue
+        res = hyphe_api.crawl_webentity_with_startmode(curid, depth, False, "IN", 'startpages', None, {}, cid)
         if 'code' not in res or res['code'] == 'fail':
             print >> sys.stderr, 'WARNING: Could not start crawl', c, res
             return
-        curid += 1
 
 if __name__ == '__main__':
     cli()
