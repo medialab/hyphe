@@ -21,7 +21,10 @@ re_clean_linkspaces = re.compile(r"^([a-z]+://)\s+")
 SCHEME_FILTERS = [
     "javascript",
     "mailto",
-    "tel"
+    "tel",
+    "smsto",
+    "fb-messenger",
+    "whatsapp"
 ]
 
 def clean_link(link_text):
