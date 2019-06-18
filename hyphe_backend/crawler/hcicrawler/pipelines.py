@@ -78,7 +78,7 @@ class ResolveLinks(object):
     @inlineCallbacks
     def process_item(self, item, spider):
         lrulinks = []
-        for url, lru in item["lrulinks"]:
+        for url, lru in item.get("lrulinks", []):
             if self._should_resolve(lru, spider):
                 if url in spider.resolved_links:
                     lru = spider.resolved_links[url]

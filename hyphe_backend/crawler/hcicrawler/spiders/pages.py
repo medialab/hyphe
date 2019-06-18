@@ -220,7 +220,7 @@ class PagesCrawler(Spider):
                 url = link['url']
             try:
                 lrulink = url_to_lru_clean(url, TLDS_TREE)
-            except ValueError, e:
+            except (ValueError, IndexError) as e:
                 self.log("Error converting URL %s to LRU: %s" % (url, e), logging.ERROR)
                 continue
             lrulinks.append((url, lrulink))
