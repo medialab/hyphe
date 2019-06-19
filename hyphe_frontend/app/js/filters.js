@@ -198,19 +198,19 @@ angular.module('hyphe.filters', [])
   }])
 
   .filter('sortByField', [function(){
-    return function(list,field,asc){
+    return function(list, field, asc){
       var result = list.slice(0)
       
       result.sort(function(a,b){
-        if(a[field] < b[field]) return -1
-        if(a[field] > b[field]) return 1
+        var alc = a[field].toLowerCase(),
+            blc = b[field].toLowerCase()
+        if (alc < blc) return -1
+        if (alc > blc) return 1
         return 0
       })
 
-      if(asc)
-        return result
-      else
-        return result.reverse()
+      if (asc) return result
+      return result.reverse()
     }
   }])
 
@@ -219,7 +219,13 @@ angular.module('hyphe.filters', [])
       if (!(obj instanceof Object)) {
         return obj
       }
-      return Object.keys(obj).sort()
+      return Object.keys(obj).sort(function(a, b){
+        var alc = a.toLowerCase(),
+            blc = b.toLowerCase()
+        if (alc < blc) return -1
+        if (alc > blc) return 1
+        return 0
+      })
     }
   }])
 
