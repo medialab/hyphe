@@ -108,6 +108,7 @@ The API will always answer as such:
     * __`add_webentities_tag_value`__
     * __`rm_webentity_tag_value`__
     * __`rm_webentities_tag_value`__
+    * __`edit_webentity_tag_value`__
     * __`get_tags`__
     * __`get_tag_namespaces`__
     * __`get_tag_categories`__
@@ -782,6 +783,17 @@ The API will always answer as such:
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Removes for a `corpus` a tag `namespace:category`_ (optional, default: `value` to a bunch of WebEntities defined by a list of `webentity_ids`.`)
+
+
+- __`edit_webentity_tag_value`:__
+  + _`webentity_id`_ (mandatory)
+  + _`namespace`_ (mandatory)
+  + _`category`_ (mandatory)
+  + _`old_value`_ (mandatory)
+  + _`new_value`_ (mandatory)
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Replaces for a `corpus` a tag `namespace:category`_ (optional, default: `old_value` into a tag `namespace:category=new_value` for the WebEntity defined by `webentity_id` if it is set.`)
 
 
 - __`get_tags`:__

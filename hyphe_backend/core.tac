@@ -2530,6 +2530,20 @@ class Memory_Structure(customJSONRPC):
         return self.batch_webentities_edit("rm_webentity_tag_value", webentity_ids, corpus, namespace, category, value)
 
     @inlineCallbacks
+    def jsonrpc_edit_webentity_tag_value(self, webentity_id, namespace, category, old_value, new_value, corpus=DEFAULT_CORPUS, _automatic=False, _commit=True):
+        """Replaces for a `corpus` a tag `namespace:category=old_value` into a tag `namespace:category=new_value` for the WebEntity defined by `webentity_id` if it is set."""
+        namespace = self._cleanupTagsKey(namespace)
+        category = self._cleanupTagsKey(category)
+        old_value = old_value.strip()
+        new_value = new_value.strip()
+        WE = yield self.update_webentity(webentity_id, "tags", old_value, "pop", category, namespace, _commit=False, corpus=corpus)
+        res = yield self.update_webentity(WE, "tags", new_value, "push", category, namespace, _commit=_commit, update_timestamp=(not _automatic), corpus=corpus)
+        if not is_error(res):
+            yield self.remove_tag_from_dictionary(namespace, category, old_value, corpus=corpus)
+            yield self.add_tags_to_dictionary(namespace, category, new_value, corpus=corpus)
+        returnD(res)
+
+    @inlineCallbacks
     def add_backend_tags(self, webentity_id, key, value, namespace="", corpus=DEFAULT_CORPUS, _commit=True):
         if not namespace:
             namespace = "CORE"
