@@ -1956,6 +1956,7 @@ class Memory_Structure(customJSONRPC):
                 if 'pages_'+key in links:
                     pages[target][key] = links['pages_'+key]
                     ranks[target] -= 1
+            pages[target]['total'] = pages[target]['crawled'] + pages[target]['uncrawled']
         self.corpora[corpus]['webentities_pages'] = pages
         self.corpora[corpus]['webentities_ranks'] = ranks
         yield self.parent.update_corpus(corpus, False, True)
@@ -2628,7 +2629,6 @@ class Memory_Structure(customJSONRPC):
             res['linked'] = page.get('indegree', None)
         return res
 
-
     def format_pages(self, pages, linked=False):
         if is_error(pages):
             return pages
@@ -2640,10 +2640,20 @@ class Memory_Structure(customJSONRPC):
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
+        if webentity_id not in self.corpora[corpus]['webentities_pages']:
+            self.corpora[corpus]['webentities_pages'][webentity_id] = {
+                'crawled': 0,
+                'uncrawled': 0,
+                'toal': 0,
+            }
         if onlyCrawled:
             pages = yield self.traphs.call(corpus, "get_webentity_crawled_pages", webentity_id, WE["prefixes"])
+            self.corpora[corpus]['webentities_pages']['crawled'] = len(pages)
+            self.corpora[corpus]['webentities_pages']['total'] = self.corpora[corpus]['webentities_pages']['crawled'] + self.corpora[corpus]['webentities_pages']['uncrawled']
         else:
             pages = yield self.traphs.call(corpus, "get_webentity_pages", webentity_id, WE["prefixes"])
+            self.corpora[corpus]['webentities_pages']['total'] = len(pages)
+            self.corpora[corpus]['webentities_pages']['uncrawled'] = self.corpora[corpus]['webentities_pages']['total'] - self.corpora[corpus]['webentities_pages']['crawled']
         if is_error(pages):
             returnD(pages)
         returnD(format_result(self.format_pages(pages["result"])))
