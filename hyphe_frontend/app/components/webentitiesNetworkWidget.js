@@ -284,6 +284,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               value = g.outDegree(nid)
             } else if ($scope.nodeSizeMode == 'degree') {
               value = g.degree(nid)
+            } else {
+              value = g.getNodeAttribute(nid, $scope.nodeSizeMode)
             }
             var size = $scope.nodeSizeBaseRatio * (minSize + Math.sqrt(value))
             values.push(value)
