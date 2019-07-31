@@ -389,8 +389,11 @@
                 layout="row"
                 style="height: 48px;"
               >
-                <h3 style="padding: 8px; margin: 0px" ng-if="pages.length<=0">Pages</h3>
-                <h3 style="padding: 8px; margin: 0px" ng-if="pages.length>=1">{{pages.length|number}} Pages</h3>
+                <h3 style="padding: 8px; margin: 0px" ng-if="webentity.pages_total<=0">No known page</h3>
+                <h3 style="padding: 8px; margin: 0px" ng-if="webentity.pages_total>=1">
+                  {{webentity.pages_total|number}} Page{{webentity.pages_total|plural}}
+                  <small ng-if="webentity.pages_crawled>0">({{webentity.pages_crawled|number}} crawled)</small>
+                </h3>
                 <div flex></div>
                 <!-- <md-button class="md-raised" disabled="true">
                   <md-icon>equalizer</md-icon>
@@ -405,7 +408,7 @@
                   network
                 </md-button>
               </div>
-              <div style="height: 64px; padding: 0px 8px" layout="column">
+              <div style="height: 64px; padding: 0px 8px" layout="column" ng-if="webentity.pages_total>=1">
                 <md-input-container style="margin-bottom: 0;">
                   <label>NOT a full text search</label>
                   <md-icon>search</md-icon>
