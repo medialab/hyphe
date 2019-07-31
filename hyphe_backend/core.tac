@@ -248,6 +248,7 @@ class Core(customJSONRPC):
         self.corpora[corpus]["webentities_discovered"] = 0
         self.corpora[corpus]["tags"] = {}
         self.corpora[corpus]["webentities_links"] = {}
+        self.corpora[corpus]["webentities_pages"] = {}
         self.corpora[corpus]["webentities_ranks"] = {}
         self.corpora[corpus]["creation_rules"] = []
         self.corpora[corpus]["crawls"] = 0
@@ -1947,11 +1948,15 @@ class Memory_Structure(customJSONRPC):
         if corpus not in self.corpora or not self.corpora[corpus]["webentities_links"]:
             returnD(None)
         ranks = {}
+        pages = {}
         for target, links in self.corpora[corpus]["webentities_links"].items():
             ranks[target] = len(links)
+            pages[target] = {'crawled': 0, 'uncrawled': 0}
             for key in ['crawled', 'uncrawled']:
                 if 'pages_'+key in links:
+                    pages[target][key] = links['pages_'+key]
                     ranks[target] -= 1
+        self.corpora[corpus]['webentities_pages'] = pages
         self.corpora[corpus]['webentities_ranks'] = ranks
         yield self.parent.update_corpus(corpus, False, True)
 
