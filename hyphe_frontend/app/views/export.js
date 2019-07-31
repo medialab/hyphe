@@ -9,7 +9,7 @@ angular.module('hyphe.exportController', [])
     $scope.corpusId = corpus.getId()
 
     $scope.dataVolume = 'compact'
-    $scope.compactFields = ['id', 'name', 'prefixes', 'indegree', 'status', 'last_modification_date', 'user_tags']
+    $scope.compactFields = ['id', 'name', 'prefixes', 'indegree', 'pages_total', 'pages_crawled', 'status', 'last_modification_date', 'user_tags']
     $scope.fields = {
       id: {
         name: 'ID'
@@ -79,6 +79,18 @@ angular.module('hyphe.exportController', [])
         ,type: 'number'
         ,description: 'Number of other web entities citing it in the corpus'
         ,accessor: 'indegree'
+      }
+      ,pages_total: {
+        name: 'TOTAL KNOWN PAGES'
+        ,type: 'number'
+        ,description: 'Number of web pages of this web entity visited or linked by other ones'
+        ,accessor: 'pages_total'
+      }
+      ,pages_crawled: {
+        name: 'CRAWLED PAGES'
+        ,type: 'number'
+        ,description: 'Number of web pages of this web entity visited when crawling the entity'
+        ,accessor: 'pages_crawled'
       }
       ,creation_date_timestamp: {
         name: 'CREATION TIMESTAMP'
