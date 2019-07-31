@@ -4,6 +4,7 @@
 import sys, time
 import subprocess
 import msgpack
+from copy import deepcopy
 from bson.binary import Binary
 from json import dump as jsondump
 from random import randint
@@ -1948,6 +1949,9 @@ class Memory_Structure(customJSONRPC):
         ranks = {}
         for target, links in self.corpora[corpus]["webentities_links"].items():
             ranks[target] = len(links)
+            for key in ['crawled', 'uncrawled']:
+                if 'pages_'+key in links:
+                    ranks[target] -= 1
         self.corpora[corpus]['webentities_ranks'] = ranks
         yield self.parent.update_corpus(corpus, False, True)
 
@@ -2713,7 +2717,10 @@ class Memory_Structure(customJSONRPC):
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
         if direction == "in":
-            linked = self.corpora[corpus]["webentities_links"].get(webentity_id, {})
+            linked = deepcopy(self.corpora[corpus]["webentities_links"].get(webentity_id, {}))
+            for key in ['pages_crawled', 'pages_uncrawled']:
+                if key in linked:
+                    del linked[key]
         else:
             linked = {}
             for target, sources in self.corpora[corpus]["webentities_links"].items():
@@ -2739,7 +2746,7 @@ class Memory_Structure(customJSONRPC):
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
-        neighbors = set([webentity_id] + self.corpora[corpus]["webentities_links"].get(webentity_id, {}).keys())
+        neighbors = set([webentity_id] + [k for k in self.corpora[corpus]["webentities_links"].get(webentity_id, {}).keys() if isinstance(k, int)])
         for target, sources in self.corpora[corpus]["webentities_links"].items():
             if webentity_id in sources:
                 neighbors.add(target)
@@ -2759,6 +2766,8 @@ class Memory_Structure(customJSONRPC):
         res = []
         for target, sources in self.corpora[corpus]["webentities_links"].items():
             for source, weight in sources.items():
+                if not isinstance(source, int):
+                    continue
                 res.append([source, target, weight])
         logger.msg("...JSON network generated in %ss" % str(time.time()-s), system="INFO - %s" % corpus)
         return handle_standard_results(res)
