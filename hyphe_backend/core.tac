@@ -1208,9 +1208,8 @@ class Memory_Structure(customJSONRPC):
             res['crawling_status'] = crawling_statuses.UNCRAWLED
             res['indexing_status'] = indexing_statuses.UNINDEXED
             res['crawled'] = False
-        if WE["_id"] in self.corpora[corpus]['webentities_pages']:
-            for key in ['total', 'crawled', 'uncrawled']:
-                res['pages_'+key] = self.corpora[corpus]['webentities_pages'][key]
+        for key in ['total', 'crawled', 'uncrawled']:
+            res['pages_'+key] = self.corpora[corpus]['webentities_pages'].get(WE['_id'], {}).get(key, 0)
         res['homepage'] = WE["homepage"] if WE["homepage"] else homepage if homepage else None
         res['tags'] = {}
         for tag, values in WE["tags"].iteritems():
@@ -2653,12 +2652,12 @@ class Memory_Structure(customJSONRPC):
             }
         if onlyCrawled:
             pages = yield self.traphs.call(corpus, "get_webentity_crawled_pages", webentity_id, WE["prefixes"])
-            self.corpora[corpus]['webentities_pages']['crawled'] = len(pages)
-            self.corpora[corpus]['webentities_pages']['total'] = self.corpora[corpus]['webentities_pages']['crawled'] + self.corpora[corpus]['webentities_pages']['uncrawled']
+            self.corpora[corpus]['webentities_pages'][webentity_id]['crawled'] = len(pages["result"])
+            self.corpora[corpus]['webentities_pages'][webentity_id]['total'] = self.corpora[corpus]['webentities_pages'][webentity_id]['crawled'] + self.corpora[corpus]['webentities_pages'][webentity_id]['uncrawled']
         else:
             pages = yield self.traphs.call(corpus, "get_webentity_pages", webentity_id, WE["prefixes"])
-            self.corpora[corpus]['webentities_pages']['total'] = len(pages)
-            self.corpora[corpus]['webentities_pages']['uncrawled'] = self.corpora[corpus]['webentities_pages']['total'] - self.corpora[corpus]['webentities_pages']['crawled']
+            self.corpora[corpus]['webentities_pages'][webentity_id]['total'] = len(pages["result"])
+            self.corpora[corpus]['webentities_pages'][webentity_id]['uncrawled'] = self.corpora[corpus]['webentities_pages'][webentity_id]['total'] - self.corpora[corpus]['webentities_pages'][webentity_id]['crawled']
         if is_error(pages):
             returnD(pages)
         returnD(format_result(self.format_pages(pages["result"])))
