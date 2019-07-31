@@ -1208,6 +1208,9 @@ class Memory_Structure(customJSONRPC):
             res['crawling_status'] = crawling_statuses.UNCRAWLED
             res['indexing_status'] = indexing_statuses.UNINDEXED
             res['crawled'] = False
+        if WE["_id"] in self.corpora[corpus]['webentities_pages']:
+            for key in ['total', 'crawled', 'uncrawled']:
+                res['pages_'+key] = self.corpora[corpus]['webentities_pages'][key]
         res['homepage'] = WE["homepage"] if WE["homepage"] else homepage if homepage else None
         res['tags'] = {}
         for tag, values in WE["tags"].iteritems():
