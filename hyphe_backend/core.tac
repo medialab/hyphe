@@ -2640,6 +2640,8 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
@@ -2664,6 +2666,8 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentity_mostlinked_pages(self, webentity_id, npages=20, max_prefix_distance=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id` and optionnally at a maximum depth of `max_prefix_distance`."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
         try:
             npages = int(npages)
             assert(npages > 0)
@@ -2693,6 +2697,8 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def get_webentity_relative_webentities(self, webentity_id, relative_type="children", light=False, corpus=DEFAULT_CORPUS):
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
         if relative_type != "children" and relative_type != "parents":
             returnD(format_error("ERROR: relative_type must be set to children or parents"))
         WE = yield self.db.get_WE(corpus, webentity_id)
@@ -2714,6 +2720,8 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentity_pagelinks_network(self, webentity_id=None, include_external_links=False, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true"."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
         s = time.time()
         logger.msg("Generating NodeLinks network for WebEntity %s..." % webentity_id, system="INFO - %s" % corpus)
         include_external = test_bool_arg(include_external_links)
