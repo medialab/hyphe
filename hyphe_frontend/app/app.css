@@ -702,7 +702,13 @@ textarea.over-error {
   padding: 0px 8px 0px 8px;
 }
 
-.welist-col-cited {
+.welist-col-number {
+  width: 68px;
+  padding: 0px 16px 0px 0px;
+  text-align: right;
+}
+
+.welist-col-number-header {
   width: 68px;
   padding: 0px 8px 0px 8px;
   text-align: right;
