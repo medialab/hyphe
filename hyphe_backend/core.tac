@@ -248,8 +248,6 @@ class Core(customJSONRPC):
         self.corpora[corpus]["webentities_discovered"] = 0
         self.corpora[corpus]["tags"] = {}
         self.corpora[corpus]["webentities_links"] = {}
-        self.corpora[corpus]["webentities_pages"] = {}
-        self.corpora[corpus]["webentities_ranks"] = {}
         self.corpora[corpus]["creation_rules"] = []
         self.corpora[corpus]["crawls"] = 0
         self.corpora[corpus]["crawls_running"] = 0
@@ -1195,7 +1193,7 @@ class Memory_Structure(customJSONRPC):
         res = {'_id': WE["_id"], 'id': WE["_id"], 'name': WE["name"], 'status': WE["status"], 'prefixes': WE["prefixes"]}
         if weight is not None:
             res['weight'] = weight
-        res['indegree'] = self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0)
+        res['indegree'] = self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get('indegree', 0)
         if test_bool_arg(light):
             return res
         res['creation_date'] = WE["creationDate"]
@@ -1209,7 +1207,7 @@ class Memory_Structure(customJSONRPC):
             res['indexing_status'] = indexing_statuses.UNINDEXED
             res['crawled'] = False
         for key in ['total', 'crawled']:
-            res['pages_'+key] = self.corpora[corpus]['webentities_pages'].get(WE['_id'], {}).get(key, 0)
+            res['pages_'+key] = self.corpora[corpus]['webentities_links'].get(WE['_id'], {}).get('pages_'+key, 0)
         res['homepage'] = WE["homepage"] if WE["homepage"] else homepage if homepage else None
         res['tags'] = {}
         for tag, values in WE["tags"].iteritems():
@@ -1229,7 +1227,7 @@ class Memory_Structure(customJSONRPC):
 
     re_camelCase = re.compile(r'(.)_(.)')
     def sortargs_accessor(self, WE, field, jobs={}, weights=None, corpus=DEFAULT_CORPUS):
-        if "_" in field:
+        if "_" in field and not field.startswith("pages_"):
             field = self.re_camelCase.sub(lambda x: x.group(1)+x.group(2).upper(), field)
         else: field = field.lower()
         if field in WE:
@@ -1240,10 +1238,9 @@ class Memory_Structure(customJSONRPC):
         if field == "weight" and weights is not None:
             return weights.get(WE["_id"], 0)
         if field == "indegree":
-            return self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0)
+            return self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get('indegree', 0)
         if field.startswith("pages"):
-            field = field.replace("pages", "").lower()
-            return self.corpora[corpus]["webentities_pages"].get(WE["_id"], {}).get(field, 0)
+            return self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get(field, 0)
         return None
 
     @inlineCallbacks
@@ -1953,17 +1950,15 @@ class Memory_Structure(customJSONRPC):
         if corpus not in self.corpora or not self.corpora[corpus]["webentities_links"]:
             returnD(None)
         ranks = {}
-        pages = {}
-        for target, links in self.corpora[corpus]["webentities_links"].items():
-            ranks[target] = len(links)
-            pages[target] = {'crawled': 0, 'uncrawled': 0}
-            for key in ['crawled', 'uncrawled']:
-                if 'pages_'+key in links:
-                    pages[target][key] = links['pages_'+key]
-                    ranks[target] -= 1
-            pages[target]['total'] = pages[target]['crawled'] + pages[target]['uncrawled']
-        self.corpora[corpus]['webentities_pages'] = pages
-        self.corpora[corpus]['webentities_ranks'] = ranks
+        for target, links in self.corpora[corpus]['webentities_links'].items():
+            for key in ['crawled', 'uncrawled', 'total']:
+                if 'pages_'+key not in links:
+                    links['pages_'+key] = 0
+            links['pages_total'] = links['pages_crawled'] + links['pages_uncrawled']
+            if 'indegree' in links:
+                links['indegree'] = len(links) - 4
+            else:
+                links['indegree'] = len(links) - 3
         yield self.parent.update_corpus(corpus, False, True)
 
     @inlineCallbacks
@@ -2293,7 +2288,7 @@ class Memory_Structure(customJSONRPC):
                 returnD(format_error('ERROR: fieldKeywords must be a list of two-string-elements lists or ["indegree", [min_int, max_int]]. %s' % fieldKeywords))
         WEs = yield self.db.get_WEs(corpus, query)
         if indegree_filter:
-            WEs = [w for w in WEs if self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0) >= indegree_filter[0] and self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0) <= indegree_filter[1]]
+            WEs = [w for w in WEs if self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get('indegree', 0) >= indegree_filter[0] and self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get('indegree', 0) <= indegree_filter[1]]
 
         res = yield self.paginate_webentities(WEs, count, page, sort=sort, light=light, semilight=semilight, corpus=corpus)
         returnD(res)
@@ -2454,7 +2449,7 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("No previous query found for token %s on corpus %s" % (pagination_token, corpus)))
         histogram = {}
         for w in WEs["webentities"]:
-            rank = self.corpora[corpus]["webentities_ranks"].get(w[0], 0)
+            rank = self.corpora[corpus]["webentities_links"].get(w[0], {}).get('indegree', 0)
             if rank not in histogram:
                 histogram[rank] = 0
             histogram[rank] += 1
@@ -2647,22 +2642,22 @@ class Memory_Structure(customJSONRPC):
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
-        if webentity_id not in self.corpora[corpus]['webentities_pages']:
-            self.corpora[corpus]['webentities_pages'][webentity_id] = {
-                'crawled': 0,
-                'uncrawled': 0,
-                'toal': 0,
-            }
-        if onlyCrawled:
-            pages = yield self.traphs.call(corpus, "get_webentity_crawled_pages", webentity_id, WE["prefixes"])
-            self.corpora[corpus]['webentities_pages'][webentity_id]['crawled'] = len(pages["result"])
-            self.corpora[corpus]['webentities_pages'][webentity_id]['total'] = self.corpora[corpus]['webentities_pages'][webentity_id]['crawled'] + self.corpora[corpus]['webentities_pages'][webentity_id]['uncrawled']
-        else:
-            pages = yield self.traphs.call(corpus, "get_webentity_pages", webentity_id, WE["prefixes"])
-            self.corpora[corpus]['webentities_pages'][webentity_id]['total'] = len(pages["result"])
-            self.corpora[corpus]['webentities_pages'][webentity_id]['uncrawled'] = self.corpora[corpus]['webentities_pages'][webentity_id]['total'] - self.corpora[corpus]['webentities_pages'][webentity_id]['crawled']
+        if webentity_id not in self.corpora[corpus]['webentities_links']:
+            self.corpora[corpus]['webentities_links'][webentity_id] = {}
+        we_links = self.corpora[corpus]['webentities_links'][webentity_id]
+        for key in ['crawled', 'uncrawled', 'total']:
+            if key not in we_links:
+                we_links['pages_'+key] = 0
+        pages = yield self.traphs.call(corpus, "get_webentity_"+("crawled_" if onlyCrawled else "")+"pages", webentity_id, WE["prefixes"])
         if is_error(pages):
             returnD(pages)
+        if onlyCrawled:
+            we_links['pages_crawled'] = len(pages["result"])
+            we_links['pages_total'] = we_links['pages_crawled'] + we_links['pages_uncrawled']
+        else:
+            we_links['pages_total'] = len(pages["result"])
+            we_links['pages_uncrawled'] = we_links['pages_total'] - we_links['pages_crawled']
+        yield self.parent.update_corpus(corpus, False, True)
         returnD(format_result(self.format_pages(pages["result"])))
 
     @inlineCallbacks
@@ -2746,7 +2741,7 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("No webentity found for id %s" % webentity_id))
         if direction == "in":
             linked = deepcopy(self.corpora[corpus]["webentities_links"].get(webentity_id, {}))
-            for key in ['pages_crawled', 'pages_uncrawled']:
+            for key in ['pages_crawled', 'pages_uncrawled', 'pages_total', 'indegree']:
                 if key in linked:
                     del linked[key]
         else:
