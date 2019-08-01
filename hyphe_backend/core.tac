@@ -2246,7 +2246,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, light=False, semilight=True, corpus=DEFAULT_CORPUS, _exactSearch=False):
-        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.\nReturns all results at once if `count` == -1 ; otherwise results will be paginated with `count` results per page, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"\, "lru prefixes"\, "startpages" & "homepage"). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (note: only exact values will be matched when querying on field status field). For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort`\, `light` and `semilight` in `get_webentities` above."""
+        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.\nReturns all results at once if `count` == -1 ; otherwise results will be paginated with `count` results per page\, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"\, "lru prefixes"\, "startpages" & "homepage"). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (note: only exact values will be matched when querying on field status field). For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort`\, `light` and `semilight` in `get_webentities` above."""
         indegree_filter = False
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -2636,7 +2636,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
+        """Warning: this method can be very slow on webentities with many pages\, privilege paginate_webentity_pages whenever possible. Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         WE = yield self.db.get_WE(corpus, webentity_id)
@@ -2659,6 +2659,57 @@ class Memory_Structure(customJSONRPC):
             we_links['pages_uncrawled'] = we_links['pages_total'] - we_links['pages_crawled']
         yield self.parent.update_corpus(corpus, False, True)
         returnD(format_result(self.format_pages(pages["result"])))
+
+    @inlineCallbacks
+    def jsonrpc_paginate_webentity_pages(self, webentity_id, count=1000, pagination_token=None, onlyCrawled=False, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        WE = yield self.db.get_WE(corpus, webentity_id)
+        if not WE:
+            returnD(format_error("No webentity found for id %s" % webentity_id))
+        try:
+            count = int(count)
+            if count < 1: raise
+        except:
+            returnD(format_error("count should be a positive integer"))
+        if pagination_token:
+            try:
+                total, crawled, token = pagination_token.split('|')
+                total = int(total)
+                crawled = int(crawled)
+            except:
+                returnD(format_error("Pagination token '%s' seems wrong, it should look like <int>|<int>|<b64_string>" % pagination_token))
+        else:
+            total, crawled, token = (0, 0, None)
+        pages = yield self.traphs.call(corpus, "paginate_webentity_pages", webentity_id, WE["prefixes"], page_count=count, pagination_token=token, crawled_only=onlyCrawled)
+        if is_error(pages):
+            returnD(pages)
+        pages = pages['result']
+        total += pages['count']
+        crawled += pages['count_crawled']
+        if pages.get('token'):
+            token = '|'.join([str(total), str(crawled), pages['token']])
+        else:
+            token = None
+            # Update totaux
+            if webentity_id not in self.corpora[corpus]['webentities_links']:
+                self.corpora[corpus]['webentities_links'][webentity_id] = {}
+            we_links = self.corpora[corpus]['webentities_links'][webentity_id]
+            for key in ['crawled', 'uncrawled', 'total']:
+                if key not in we_links:
+                    we_links['pages_'+key] = 0
+            we_links['pages_crawled'] = crawled
+            if onlyCrawled:
+                we_links['pages_total'] = we_links['pages_uncrawled'] + crawled
+            else:
+                we_links['pages_total'] = total
+                we_links['pages_uncrawled'] = total - crawled
+            yield self.parent.update_corpus(corpus, False, True)
+        returnD(format_result({
+            'token': token,
+            'pages': self.format_pages(pages['pages'])
+        }))
 
     @inlineCallbacks
     def jsonrpc_get_webentity_mostlinked_pages(self, webentity_id, npages=20, max_prefix_distance=None, corpus=DEFAULT_CORPUS):

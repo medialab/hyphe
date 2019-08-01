@@ -115,6 +115,7 @@ The API will always answer as such:
     * __`get_tag_values`__
   + [PAGES, LINKS AND NETWORKS](#pages-links-and-networks)
     * __`get_webentity_pages`__
+    * __`paginate_webentity_pages`__
     * __`get_webentity_mostlinked_pages`__
     * __`get_webentity_subwebentities`__
     * __`get_webentity_parentwebentities`__
@@ -614,8 +615,7 @@ The API will always answer as such:
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.
- Returns all results at once if `count` `_ (optional, default: `= -1 ; otherwise results will be paginated with `count` results per page`)
-  + _`using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.
+ Returns all results at once if `count` `_ (optional, default: `= -1 ; otherwise results will be paginated with `count` results per page, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.`)
   * `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name", "lru prefixes", "startpages" & "homepage"). For instance `["hyphe", "www"]`
   * `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (note: only exact values will be matched when querying on field status field). For instance: `[["name", "hyphe"], ["indegree", [3, 1000]]]`
   * see description of `sort`, `light` and `semilight` in `get_webentities` above.
@@ -831,7 +831,17 @@ The API will always answer as such:
   + _`onlyCrawled`_ (optional, default: `true`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true".
+ Warning: this method can be very slow on webentities with many pages, privilege paginate_webentity_pages whenever possible. Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true".
+
+
+- __`paginate_webentity_pages`:__
+  + _`webentity_id`_ (mandatory)
+  + _`count`_ (optional, default: `1000`)
+  + _`pagination_token`_ (optional, default: `null`)
+  + _`onlyCrawled`_ (optional, default: `false`)
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true".
 
 
 - __`get_webentity_mostlinked_pages`:__
