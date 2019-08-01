@@ -1241,6 +1241,9 @@ class Memory_Structure(customJSONRPC):
             return weights.get(WE["_id"], 0)
         if field == "indegree":
             return self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0)
+        if field.startswith("pages"):
+            field = field.replace("pages", "").lower()
+            return self.corpora[corpus]["webentities_pages"].get(WE["_id"], {}).get(field, 0)
         return None
 
     @inlineCallbacks
