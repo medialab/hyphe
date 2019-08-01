@@ -31,6 +31,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
     
     API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'
+    API.WEBENTITY_PAGE_LIST_PAGINATE                = 'store.paginate_webentity_pages'
     API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_pagelinks_network'
     API.WEBENTITY_SUBWEBENTITY_LIST_GET             = 'store.get_webentity_subwebentities'
     API.WEBENTITY_PARENTWEBENTITY_LIST_GET          = 'store.get_webentity_parentwebentities'
@@ -251,6 +252,18 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
               settings.webentityId
+              ,settings.crawledOnly || false
+              ,corpus.getId()
+            ]}
+      )
+
+    ns.getPaginatedPages = buildApiCall(
+        API.WEBENTITY_PAGE_LIST_PAGINATE
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.count || 1000
+              ,settings.token || null
               ,settings.crawledOnly || false
               ,corpus.getId()
             ]}

@@ -420,11 +420,11 @@
               </div>
               -->
               
-              <div flex ng-if="pagesLoading" layout="column" layout-align="center center">
+              <div flex ng-if="pagesLoading && !pagesToken" layout="column" layout-align="center center">
                 <spinner></spinner>
               </div>
 
-              <div flex ng-if="!pagesLoading">
+              <div flex ng-if="!pagesLoading || pagesToken">
                 <md-virtual-repeat-container layout-fill>
                   <md-list>
                     <md-list-item
@@ -445,6 +445,14 @@
                           <md-icon style="opacity: 0.2">opacity</md-icon>
                         </div>
                       </span>
+                    </md-list-item>
+                    <md-list-item ng-if="pagesToken">
+                      <div flex layout="column" layout-align="top center" class="pagination-button">
+                        <spinner ng-if="pagesLoading" style="margin: -15px 0px 0px 0px"></spinner>
+                        <md-button class="md-raised" ng-if="!pagesLoading" ng-click="loadPages()" style="margin: 5px 0px 20px 0px">
+                          {{ pages.length | number }} loaded, click to load more!
+                        </md-button>
+                      </div>
                     </md-list-item>
                   </md-list>
                 </md-virtual-repeat-container>

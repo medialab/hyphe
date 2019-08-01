@@ -31,6 +31,7 @@ angular.module('hyphe.webentityController', [])
 
     $scope.pages = []
     $scope.pagesLoading = true
+    $scope.pagesToken = null
 
     $scope.$watch('tagCategories', synchronizeTags, true)
 
@@ -134,18 +135,21 @@ angular.module('hyphe.webentityController', [])
       fetchWebentity()
       fetchCrawls()
       fetchAutocompletionTags()
-      loadPages()
+      $scope.loadPages()
     })
 
     // Functions
-    function loadPages(){
+    $scope.loadPages = function(){
       $scope.pagesLoading = true
       $scope.status = {message: 'Load pages'}
-      api.getPages({
-          webentityId:$scope.webentity.id
+      api.getPaginatedPages({
+          webentityId: $scope.webentity.id
+          ,count: 5000
+          ,token: $scope.pagesToken
         }
         ,function(result){
-          $scope.pages = result
+          $scope.pages = $scope.pages.concat(result.pages)
+          $scope.pagesToken = result.token
           $scope.pagesLoading = false
           $scope.status = {}
         }
