@@ -32,6 +32,7 @@ angular.module('hyphe.webentityController', [])
     $scope.pages = []
     $scope.pagesLoading = true
     $scope.pagesToken = null
+    $scope.loadAllPages = false
 
     $scope.$watch('tagCategories', synchronizeTags, true)
 
@@ -152,6 +153,9 @@ angular.module('hyphe.webentityController', [])
           $scope.pagesToken = result.token
           $scope.pagesLoading = false
           $scope.status = {}
+          if ($scope.loadAllPages && $scope.pagesToken) {
+            $timeout($scope.loadPages, 0)
+          }
         }
         ,function(){
           $scope.pagesLoading = false

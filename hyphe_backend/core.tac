@@ -2661,7 +2661,7 @@ class Memory_Structure(customJSONRPC):
         returnD(format_result(self.format_pages(pages["result"])))
 
     @inlineCallbacks
-    def jsonrpc_paginate_webentity_pages(self, webentity_id, count=1000, pagination_token=None, onlyCrawled=False, corpus=DEFAULT_CORPUS):
+    def jsonrpc_paginate_webentity_pages(self, webentity_id, count=5000, pagination_token=None, onlyCrawled=False, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
