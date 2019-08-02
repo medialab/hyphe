@@ -138,7 +138,11 @@ angular.module('hyphe.webentityController', [])
     // Functions
     $scope.loadPages = function(){
       $scope.pagesLoading = true
-      $scope.status = {message: 'Load pages'}
+      if (!$scope.loadAllPages) {
+        $scope.status = {message: 'Loading pages'}
+      } else if (!$scope.pagesToken) {
+        $scope.status = {message: 'Loading pages 0 %', progress: 0}
+      }
       api.getPaginatedPages({
           webentityId: $scope.webentity.id
           ,token: $scope.pagesToken
@@ -147,9 +151,12 @@ angular.module('hyphe.webentityController', [])
           $scope.pages = $scope.pages.concat(result.pages)
           $scope.pagesToken = result.token
           $scope.pagesLoading = false
-          $scope.status = {}
           if ($scope.loadAllPages && $scope.pagesToken) {
+            var percent = 99.5 * $scope.pages.length / $scope.webentity.pages_total
+            $scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent}
             $timeout($scope.loadPages, 0)
+          } else {
+            $scope.status = {}
           }
         }
         ,function(){

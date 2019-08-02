@@ -162,7 +162,7 @@ angular.module('hyphe.webentityExplorerController', [])
     // Functions
     function fetchWebentity(id){
 
-      $scope.status = {message: 'Loading'}
+      $scope.status = {message: 'Loading Web Entity'}
       
       api.getWebentities({
           id_list:[id]
@@ -246,7 +246,7 @@ angular.module('hyphe.webentityExplorerController', [])
     function checkTripleLoading(){
       var count = 0
 
-      if($scope.pagesToken == null){
+      if($scope.pagesToken === null){
         count += 90
       }else{
         count += 89.5 * $scope.pages.length / $scope.webentity.pages_total
@@ -257,7 +257,7 @@ angular.module('hyphe.webentityExplorerController', [])
       if($scope.parentWebentities !== undefined){
         count += 5
       }
-      if(count < 100 && $scope.pagesToken != null){
+      if(count < 100 || $scope.pagesToken !== null){
         $scope.status = {message: 'Loading ' + Math.round(count) + ' %', progress:count}
       } else {
         $scope.loading = false

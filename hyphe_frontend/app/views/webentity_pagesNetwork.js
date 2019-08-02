@@ -81,9 +81,9 @@ angular.module('hyphe.webentityPagesNetworkController', [])
           var percent = 100 * $scope.pages.length / $scope.webentity.pages_total
           //$scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent / 4}
           $scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent}
-          if ($scope.loadAllPages && $scope.token) {
+          if ($scope.loadAll && $scope.token) {
             $timeout(loadPages, 0)
-          } else if ($scope.token == null) {
+          } else if ($scope.token === null) {
             loadNetwork()
           }
         }
@@ -95,7 +95,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
 
     function loadNetwork(){
       if (!$scope.token) {
-        //$scope.status = {message: 'Loading links', progress: 25}
+        //$scope.status = {message: 'Loading links 0 %', progress: 25}
         $scope.status = {message: 'Loading links'}
       }
       //api.getPaginatedPagesNetwork({
