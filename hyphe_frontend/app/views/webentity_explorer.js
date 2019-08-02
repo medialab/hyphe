@@ -9,6 +9,7 @@ angular.module('hyphe.webentityExplorerController', [])
     $route,
     corpus,
     $location,
+    $timeout,
     $rootScope
   ) {
     $scope.corpusName = corpus.getName()
@@ -22,8 +23,10 @@ angular.module('hyphe.webentityExplorerController', [])
     var currentNode = false
 
     $scope.loading = true
+    $scope.loadAllPages = true
+    $scope.pagesToken
 
-    $scope.pages
+    $scope.pages = []
     $scope.subWebentities
     $scope.parentWebentities
 
@@ -63,6 +66,10 @@ angular.module('hyphe.webentityExplorerController', [])
       }
       if (!~$location.path().indexOf("/webentityExplorer"))
         $location.search("p", undefined)
+    })
+
+    $scope.$on('$destroy', function(){
+      $scope.loadAllPages = false
     })
 
     $scope.newWebEntity = function(obj){
@@ -178,14 +185,20 @@ angular.module('hyphe.webentityExplorerController', [])
     }
 
     function loadPages(){
-      api.getPages({
-          webentityId:$scope.webentity.id
+      api.getPaginatedPages({
+          webentityId: $scope.webentity.id
+          ,token: $scope.pagesToken || null
         }
         ,function(result){
 
-          $scope.pages = result
+          $scope.pages = $scope.pages.concat(result.pages)
+          $scope.pagesToken = result.token
 
           checkTripleLoading()
+
+          if ($scope.loadAllPages && $scope.pagesToken) {
+            $timeout(loadPages, 0)
+          }
 
         }
         ,function(){
@@ -233,17 +246,19 @@ angular.module('hyphe.webentityExplorerController', [])
     function checkTripleLoading(){
       var count = 0
 
-      if($scope.pages !== undefined){
-        count++
+      if($scope.pagesToken == null){
+        count += 90
+      }else{
+        count += 89.5 * $scope.pages.length / $scope.webentity.pages_total
       }
       if($scope.subWebentities !== undefined){
-        count++
+        count += 5
       }
       if($scope.parentWebentities !== undefined){
-        count++
+        count += 5
       }
-      if(count < 3){
-        $scope.status = {message: 'Loading ' + count + '/3', progress:count*33}
+      if(count < 100 && $scope.pagesToken != null){
+        $scope.status = {message: 'Loading ' + Math.round(count) + ' %', progress:count}
       } else {
         $scope.loading = false
 
