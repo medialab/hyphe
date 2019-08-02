@@ -36,6 +36,10 @@ angular.module('hyphe.webentityController', [])
 
     $scope.$watch('tagCategories', synchronizeTags, true)
 
+    $scope.$on('$destroy', function(){
+      $scope.loadAllPages = false
+    })
+
     $scope.enableEditMode = function(){
       $scope.webentityEdit_name = $scope.webentity.name
       $scope.webentityEdit_status = $scope.webentity.status
@@ -131,21 +135,12 @@ angular.module('hyphe.webentityController', [])
       return true
     }
 
-    // Init
-    api.downloadCorpusTLDs(function(){
-      fetchWebentity()
-      fetchCrawls()
-      fetchAutocompletionTags()
-      $scope.loadPages()
-    })
-
     // Functions
     $scope.loadPages = function(){
       $scope.pagesLoading = true
       $scope.status = {message: 'Load pages'}
       api.getPaginatedPages({
           webentityId: $scope.webentity.id
-          ,count: 5000
           ,token: $scope.pagesToken
         }
         ,function(result){
@@ -163,6 +158,14 @@ angular.module('hyphe.webentityController', [])
         }
       )
     }
+
+    // Init
+    api.downloadCorpusTLDs(function(){
+      fetchWebentity()
+      fetchCrawls()
+      fetchAutocompletionTags()
+      $scope.loadPages()
+    })
 
     function synchronizeTags() {
       if ($scope.tagCategories && $scope.webentity.tags) {

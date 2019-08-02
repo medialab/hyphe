@@ -262,7 +262,7 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
               settings.webentityId
-              ,settings.count || 1000
+              ,settings.count || 5000
               ,settings.token || null
               ,settings.crawledOnly || false
               ,corpus.getId()
