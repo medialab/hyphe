@@ -78,7 +78,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
           $scope.pagesToken = result.token
 
           var percent = Math.round(100 * $scope.pages.length / $scope.webentity.pages_total)
-          $scope.status = {message: 'Loading pages ' + percent + ' %', progress: percent}            
+          $scope.status = {message: 'Loading pages ' + percent + ' %', progress: percent}
 
           if ($scope.loadAllPages && $scope.pagesToken) {
             $timeout(loadPages, 0)
@@ -105,7 +105,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
           buildNetwork(result)
         }
         ,function(){
-          $scope.status = {message: 'Error loading web entity', background: 'danger'}
+          $scope.status = {message: 'Error loading links', background: 'danger'}
         }
       )
     }
@@ -210,7 +210,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       for (var k in nIndex)
         g.addNode(k, Object.assign({}, nIndex[k]))
 
-      validLinks.forEach(function(l) {
+      links.forEach(function(l) {
         g.importEdge(l)
       })
 
