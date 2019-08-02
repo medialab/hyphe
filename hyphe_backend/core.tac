@@ -2639,6 +2639,7 @@ class Memory_Structure(customJSONRPC):
         """Warning: this method can be very slow on webentities with many pages\, privilege paginate_webentity_pages whenever possible. Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
+        onlyCrawled = test_bool_arg(onlyCrawled)
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
@@ -2665,6 +2666,7 @@ class Memory_Structure(customJSONRPC):
         """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
+        onlyCrawled = test_bool_arg(onlyCrawled)
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
@@ -2767,7 +2769,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pagelinks_network(self, webentity_id=None, include_external_links=False, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true"."""
+        """Warning: this method can be very slow on webentities with many pages or links\, privilege paginate_webentity_pagelinks_network whenever possible. Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         s = time.time()
@@ -2782,6 +2784,42 @@ class Memory_Structure(customJSONRPC):
         res = [list(l) for l in links["result"]]
         logger.msg("...JSON network generated in %ss" % str(time.time()-s), system="INFO - %s" % corpus)
         returnD(format_result(res))
+
+    @inlineCallbacks
+    def jsonrpc_paginate_webentity_pagelinks_network(self, webentity_id=None, count=5000, pagination_token=None, include_external_links=False, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` `count` internal NodeLinks of a WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following links. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true"."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        include_external = test_bool_arg(include_external_links)
+        WE = yield self.db.get_WE(corpus, webentity_id)
+        if not WE:
+            returnD(format_error("No webentity found for id %s" % webentity_id))
+        try:
+            count = int(count)
+            if count < 1: raise
+        except:
+            returnD(format_error("count should be a positive integer"))
+        if pagination_token:
+            try:
+                total, token = pagination_token.split('|')
+                total = int(total)
+            except:
+                returnD(format_error("Pagination token '%s' seems wrong, it should look like <int>|<b64_string>" % pagination_token))
+        else:
+            total, token = (0, None)
+        links = yield self.traphs.call(corpus, "paginate_webentity_pagelinks", webentity_id, WE["prefixes"], links_count=count, pagination_token=token, include_inbound=include_external, include_outbound=include_external)
+        if is_error(links):
+            returnD(links)
+        links = links['result']
+        total += links['count']
+        if links.get('token'):
+            token = '|'.join([str(total), links['token']])
+        else:
+            token = None
+        returnD(format_result({
+            'token': token,
+            'links': [list(l) for l in links['links']]
+        }))
 
     @inlineCallbacks
     def get_webentity_linked_entities(self, webentity_id=None, direction="in", count=100, page=0, light=True, semilight=False, corpus=DEFAULT_CORPUS):

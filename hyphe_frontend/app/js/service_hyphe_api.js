@@ -33,6 +33,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'
     API.WEBENTITY_PAGE_LIST_PAGINATE                = 'store.paginate_webentity_pages'
     API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_pagelinks_network'
+    API.WEBENTITY_PAGES_NETWORK_PAGINATE            = 'store.paginate_webentity_pagelinks_network'
     API.WEBENTITY_SUBWEBENTITY_LIST_GET             = 'store.get_webentity_subwebentities'
     API.WEBENTITY_PARENTWEBENTITY_LIST_GET          = 'store.get_webentity_parentwebentities'
     API.WEBENTITY_EDIT                              = 'store.basic_edit_webentity'
@@ -274,6 +275,18 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
               settings.webentityId
+              ,settings.includeExternalLinks
+              ,corpus.getId()
+            ]}
+      )
+
+    ns.getPaginatedPagesNetwork = buildApiCall(
+        API.WEBENTITY_PAGES_NETWORK_PAGINATE
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.count || 5000
+              ,settings.token || null
               ,settings.includeExternalLinks
               ,corpus.getId()
             ]}

@@ -16,9 +16,10 @@ angular.module('hyphe.webentityPagesNetworkController', [])
 
     $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
     $scope.pages = []
-    $scope.pagesToken
+    $scope.links = []
+    $scope.token
     $scope.loading = true
-    $scope.loadAllPages = true
+    $scope.loadAll = true
 
     $scope.includeExternalLinks = false
     $scope.network
@@ -40,7 +41,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     $scope.$watch('nodeSizeBaseRatio', updateNetwork)
 
     $scope.$on('$destroy', function(){
-      $scope.loadAllPages = false
+      $scope.loadAll = false
     })
 
     // Init
@@ -66,23 +67,23 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     }
 
     function loadPages(){
-      if (!$scope.pagesToken) {
+      if (!$scope.token) {
         $scope.status = {message: 'Loading pages 0 %', progress: 0}
       }
       api.getPaginatedPages({
           webentityId: $scope.webentity.id
-          ,token: $scope.pagesToken || null
+          ,token: $scope.token || null
         }
         ,function(result){
           $scope.pages = $scope.pages.concat(result.pages)
-          $scope.pagesToken = result.token
+          $scope.token = result.token
 
-          var percent = Math.round(100 * $scope.pages.length / $scope.webentity.pages_total)
-          $scope.status = {message: 'Loading pages ' + percent + ' %', progress: percent}
-
-          if ($scope.loadAllPages && $scope.pagesToken) {
+          var percent = 100 * $scope.pages.length / $scope.webentity.pages_total
+          //$scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent / 4}
+          $scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent}
+          if ($scope.loadAllPages && $scope.token) {
             $timeout(loadPages, 0)
-          } else if ($scope.pagesToken == null) {
+          } else if ($scope.token == null) {
             loadNetwork()
           }
         }
@@ -93,16 +94,30 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     }
 
     function loadNetwork(){
-      $scope.status = {message: 'Loading links'}
+      if (!$scope.token) {
+        //$scope.status = {message: 'Loading links', progress: 25}
+        $scope.status = {message: 'Loading links'}
+      }
+      //api.getPaginatedPagesNetwork({
       api.getPagesNetwork({
           webentityId: $scope.webentity.id
           ,includeExternalLinks: $scope.includeExternalLinks
+        //,token: $scope.token
         }
         ,function(result){
-          $scope.status = {}
-          $scope.webentity.loading = false
+          //$scope.links = $scope.links.concat(result.links)
+          $scope.links = result
+          $scope.token = result.token
 
-          buildNetwork(result)
+          if ($scope.loadAll && $scope.token) {
+            var percent = $scope.links.length / ($scope.webentity.pages_total + 50 * $scope.webentity.pages_crawled)
+            $scope.status = {message: 'Loading links ' + Math.round(100 * percent)+ ' %', progress: 25 + 75 * percent}
+            $timeout(loadNetwork, 0)
+          } else if (!$scope.token) {
+            $scope.status = {message: 'Building network'}
+            $scope.webentity.loading = false
+            buildNetwork()
+          }
         }
         ,function(){
           $scope.status = {message: 'Error loading links', background: 'danger'}
@@ -160,9 +175,9 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       ]
     }
 
-    function buildNetwork(json){
+    function buildNetwork(){
       var nIndex = {}
-      json.forEach(function(d){
+      $scope.links.forEach(function(d){
         nIndex[d[0]] = true
         nIndex[d[1]] = true
       })
@@ -190,7 +205,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       }
 
       var linksIdIndex = {}
-      var links = json.map(function(d){
+      var links = $scope.links.map(function(d){
         return {
           key: d[0] + '>' + d[1],
           source: d[0],
@@ -244,6 +259,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
 
       updateNetwork()
 
+      $scope.status = {}
       $scope.loading = false
     }
 
