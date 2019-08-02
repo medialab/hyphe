@@ -131,6 +131,7 @@ angular.module('hyphe.webentityExplorerController', [])
 
           $scope.status = {message: ''}
           $scope.loading = false
+          $scope.pages = []
           fetchWebentity(utils.readWebentityIdFromRoute())
           updateExplorer()
         }
