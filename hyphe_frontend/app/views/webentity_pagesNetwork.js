@@ -7,6 +7,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     api,
     utils,
     corpus,
+    $timeout,
     $window,
     $mdSidenav
   ) {
@@ -14,8 +15,10 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     $scope.corpusId = corpus.getId()
 
     $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
-    $scope.pages
+    $scope.pages = []
+    $scope.pagesToken
     $scope.loading = true
+    $scope.loadAllPages = true
 
     $scope.includeExternalLinks = false
     $scope.network
@@ -35,6 +38,10 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     }
 
     $scope.$watch('nodeSizeBaseRatio', updateNetwork)
+
+    $scope.$on('$destroy', function(){
+      $scope.loadAllPages = false
+    })
 
     // Init
     api.downloadCorpusTLDs(function(){
@@ -59,13 +66,25 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     }
 
     function loadPages(){
-      $scope.status = {message: 'Loading pages'}
-      api.getPages({
-          webentityId:$scope.webentity.id
+      if (!$scope.pagesToken) {
+        $scope.status = {message: 'Loading pages 0 %', progress: 0}
+      }
+      api.getPaginatedPages({
+          webentityId: $scope.webentity.id
+          ,token: $scope.pagesToken || null
         }
         ,function(result){
-          $scope.pages = result
-          loadNetwork()
+          $scope.pages = $scope.pages.concat(result.pages)
+          $scope.pagesToken = result.token
+
+          var percent = Math.round(100 * $scope.pages.length / $scope.webentity.pages_total)
+          $scope.status = {message: 'Loading pages ' + percent + ' %', progress: percent}            
+
+          if ($scope.loadAllPages && $scope.pagesToken) {
+            $timeout(loadPages, 0)
+          } else if ($scope.pagesToken == null) {
+            loadNetwork()
+          }
         }
         ,function(){
           $scope.status = {message: 'Error loading pages', background: 'danger'}
