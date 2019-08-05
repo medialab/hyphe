@@ -120,6 +120,7 @@ The API will always answer as such:
     * __`get_webentity_subwebentities`__
     * __`get_webentity_parentwebentities`__
     * __`get_webentity_pagelinks_network`__
+    * __`paginate_webentity_pagelinks_network`__
     * __`get_webentity_referrers`__
     * __`get_webentity_referrals`__
     * __`get_webentity_ego_network`__
@@ -836,7 +837,7 @@ The API will always answer as such:
 
 - __`paginate_webentity_pages`:__
   + _`webentity_id`_ (mandatory)
-  + _`count`_ (optional, default: `1000`)
+  + _`count`_ (optional, default: `5000`)
   + _`pagination_token`_ (optional, default: `null`)
   + _`onlyCrawled`_ (optional, default: `false`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
@@ -874,7 +875,17 @@ The API will always answer as such:
   + _`include_external_links`_ (optional, default: `false`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true".
+ Warning: this method can be very slow on webentities with many pages or links, privilege paginate_webentity_pagelinks_network whenever possible. Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true".
+
+
+- __`paginate_webentity_pagelinks_network`:__
+  + _`webentity_id`_ (optional, default: `null`)
+  + _`count`_ (optional, default: `10`)
+  + _`pagination_token`_ (optional, default: `null`)
+  + _`include_external_outlinks`_ (optional, default: `false`)
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` internal page links for `count` source pages of a WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following links. Optionally add external NodeLinks (the frontier) by setting `include_external_outlinks` to "true".
 
 
 - __`get_webentity_referrers`:__

@@ -49,7 +49,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_MERGE_INTO                        = 'store.merge_webentity_into_another'
 
     API.WEBENTITY_LIST_TAG_VALUE_ADD                = 'store.add_webentities_tag_value'
-    API.WEBENTITY_LIST_TAG_VALUE_REMOVE               = 'store.rm_webentities_tag_value'
+    API.WEBENTITY_LIST_TAG_VALUE_REMOVE             = 'store.rm_webentities_tag_value'
 
     API.WEBENTITY_TAG_VALUE_ADD                     = 'store.add_webentity_tag_value'
     API.WEBENTITY_TAG_VALUE_REMOVE                  = 'store.rm_webentity_tag_value'
@@ -285,7 +285,7 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
               settings.webentityId
-              ,settings.count || 5000
+              ,settings.count || 10
               ,settings.token || null
               ,settings.includeExternalLinks
               ,corpus.getId()

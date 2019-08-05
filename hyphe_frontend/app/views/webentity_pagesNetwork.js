@@ -79,8 +79,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
           $scope.token = result.token
 
           var percent = 100 * $scope.pages.length / $scope.webentity.pages_total
-          //$scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent / 4}
-          $scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent}
+          $scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent / 4}
           if ($scope.loadAll && $scope.token) {
             $timeout(loadPages, 0)
           } else if ($scope.token === null) {
@@ -95,28 +94,25 @@ angular.module('hyphe.webentityPagesNetworkController', [])
 
     function loadNetwork(){
       if (!$scope.token) {
-        //$scope.status = {message: 'Loading links 0 %', progress: 25}
-        $scope.status = {message: 'Loading links'}
+        $scope.status = {message: 'Loading links 0 %', progress: 25}
       }
-      //api.getPaginatedPagesNetwork({
-      api.getPagesNetwork({
+      api.getPaginatedPagesNetwork({
           webentityId: $scope.webentity.id
           ,includeExternalLinks: $scope.includeExternalLinks
-        //,token: $scope.token
+          ,token: $scope.token
         }
         ,function(result){
-          //$scope.links = $scope.links.concat(result.links)
-          $scope.links = result
+          $scope.links = $scope.links.concat(result.links)
           $scope.token = result.token
 
           if ($scope.loadAll && $scope.token) {
-            var percent = $scope.links.length / ($scope.webentity.pages_total + 50 * $scope.webentity.pages_crawled)
+            var percent = $scope.links.length / ($scope.webentity.pages_total + 100 * $scope.webentity.pages_crawled)
             $scope.status = {message: 'Loading links ' + Math.round(100 * percent)+ ' %', progress: 25 + 75 * percent}
             $timeout(loadNetwork, 0)
           } else if (!$scope.token) {
             $scope.status = {message: 'Building network'}
             $scope.webentity.loading = false
-            buildNetwork()
+            $timeout(buildNetwork, 0)
           }
         }
         ,function(){

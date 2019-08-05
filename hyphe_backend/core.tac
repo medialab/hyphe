@@ -2786,11 +2786,11 @@ class Memory_Structure(customJSONRPC):
         returnD(format_result(res))
 
     @inlineCallbacks
-    def jsonrpc_paginate_webentity_pagelinks_network(self, webentity_id=None, count=5000, pagination_token=None, include_external_links=False, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` `count` internal NodeLinks of a WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following links. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true"."""
+    def jsonrpc_paginate_webentity_pagelinks_network(self, webentity_id=None, count=10, pagination_token=None, include_external_outlinks=False, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` internal page links for `count` source pages of a WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following links. Optionally add external NodeLinks (the frontier) by setting `include_external_outlinks` to "true"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        include_external = test_bool_arg(include_external_links)
+        include_external = test_bool_arg(include_external_outlinks)
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
@@ -2801,24 +2801,26 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("count should be a positive integer"))
         if pagination_token:
             try:
-                total, token = pagination_token.split('|')
+                total, total_pages, token = pagination_token.split('|')
                 total = int(total)
+                total_pages = int(total_pages)
             except:
                 returnD(format_error("Pagination token '%s' seems wrong, it should look like <int>|<b64_string>" % pagination_token))
         else:
-            total, token = (0, None)
-        links = yield self.traphs.call(corpus, "paginate_webentity_pagelinks", webentity_id, WE["prefixes"], links_count=count, pagination_token=token, include_inbound=include_external, include_outbound=include_external)
+            total, total_pages, token = (0, 0, None)
+        links = yield self.traphs.call(corpus, "paginate_webentity_pagelinks", webentity_id, WE["prefixes"], source_page_count=count, pagination_token=token, include_outbound=include_external_outlinks)
         if is_error(links):
             returnD(links)
         links = links['result']
-        total += links['count']
+        total += links['count_pagelinks']
+        total_pages += links['count_sourcepages']
         if links.get('token'):
-            token = '|'.join([str(total), links['token']])
+            token = '|'.join([str(total), str(total_pages), links['token']])
         else:
             token = None
         returnD(format_result({
             'token': token,
-            'links': [list(l) for l in links['links']]
+            'links': [list(l) for l in links['pagelinks']]
         }))
 
     @inlineCallbacks
