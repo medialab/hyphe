@@ -32,7 +32,7 @@ Docker's containers are sizeable: you should ensure **at least 4GB** of empty sp
 
 #### 1. Install Docker
 
-First, you should deploy **Docker** on your machine following its [official installation instructions](https://docs.docker.com/installation/).
+First, you should deploy **Docker** on your machine following its [official installation instructions](https://docs.docker.com/install/).
 
 Once you've got Docker installed and running, you will need **Docker Compose** to set up and orchestrate Hyphe services in a single line. Docker Compose is already installed along with Docker on Windows and Mac OS X, but you may need to [install it for Linux](https://docs.docker.com/compose/install/).
 
@@ -195,7 +195,7 @@ See our [roadmap](doc/roadmap.md)!
 
 ### Publications about Hyphe
 
-* JACOMY, Mathieu, GIRARD, Paul, OOGHE-TABANOU, Benjamin, et al, "[Hyphe, a curation-oriented approach to web crawling for the social sciences.](http://www.aaai.org/ocs/index.php/ICWSM/ICWSM16/paper/view/13051/12797)", in International AAAI Conference on Web and Social Media. Association for the Advancement of Artificial Intelligence, 2016.
+* JACOMY, Mathieu, GIRARD, Paul, OOGHE-TABANOU, Benjamin, et al, "[Hyphe, a curation-oriented approach to web crawling for the social sciences.](https://spire.sciencespo.fr/hdl:/2441/6obemb2hsj9pboj9bbvc7sftne/resources/jacomy-all-hyphe-icwsm-2016.pdf)", in International AAAI Conference on Web and Social Media. Association for the Advancement of Artificial Intelligence, 2016.
 
 * PLIQUE, Guillaume, JACOMY, Mathieu, OOGHE-TABANOU, Benjamin & GIRARD, Paul, "It's a Tree... It's a Graph... It's a Traph!!!! Designing an on-file multi-level graph index for the Hyphe web crawler". ([Video](https://fosdem.org/2018/schedule/event/multi_level_graph_index/) / [Slides](https://medialab.github.io/hyphe-traph/fosdem2018/)) Presentation at the FOSDEM, Brussels, BELGIUM, February 3rd, 2018.
 
