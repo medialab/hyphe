@@ -787,7 +787,7 @@ class Core(customJSONRPC):
             elif startrule == "startpages":
                 starts[startrule] = WE["startpages"]
             elif startrule == "homepage":
-                starts[startrule] = WE["homepage"]
+                starts[startrule] = [WE["homepage"]]
             else:
                 returnD(format_error('ERROR: startmode argument must be either "default" or one or many of "startpages", "pages-<N>" with <N> an int or "prefixes"'))
         if categories:
