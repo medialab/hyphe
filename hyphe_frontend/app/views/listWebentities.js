@@ -359,7 +359,7 @@ angular.module('hyphe.listwebentitiesController', [])
       var pageNumber = Math.floor(index / this.PAGE_SIZE);
       var page = this.loadedPages[pageNumber]
 
-      if (this.numItems && index > this.numItems) {
+      if (this.numItems && index >= this.numItems) {
         return null
       }
       if (page) {
