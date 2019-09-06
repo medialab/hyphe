@@ -169,7 +169,7 @@ sed "s|##HYPHEPATH##|"`pwd`"|" config/config.json.example > config/config.json
 
 ### 6.2) Setup the frontend
 
-Copy and adapt the sample `conf_default.json` to `conf.json` in the `hyphe_frontend/app/conf` directory:
+Copy and adapt the sample `conf_default.js` to `conf.js` in the `hyphe_frontend/app/conf` directory:
 
 ```bash
 sed "s|##WEBPATH##|hyphe|" hyphe_frontend/app/conf/conf_default.js > hyphe_frontend/app/conf/conf.js
