@@ -38,6 +38,11 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       }
     }
 
+    $scope.networkNodeClick = function(node) {
+      var url = $scope.network.getNodeAttribute(node, 'url')
+      $window.open(url, '_blank');
+    }
+
     $scope.$watch('nodeSizeBaseRatio', updateNetwork)
 
     $scope.$on('$destroy', function(){
