@@ -2461,7 +2461,9 @@ class Memory_Structure(customJSONRPC):
         # MongoDB considers dots as hierarchy separator in objects and refuses them in object's keys
         if key and "." in key:
             key = key.replace(".", "_")
-        return key.strip()
+        if key:
+            key = key.strip()
+        return key
 
     @inlineCallbacks
     def jsonrpc_rebuild_tags_dictionary(self, corpus=DEFAULT_CORPUS):
