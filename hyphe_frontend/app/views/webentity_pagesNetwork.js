@@ -183,8 +183,8 @@ angular.module('hyphe.webentityPagesNetworkController', [])
         nIndex[d[1]] = true
       })
 
-      var startPagesIndex = {}
-      $scope.webentity.startpages.forEach(function(url){
+      var startPagesIndex = {};
+      ($scope.webentity.startpages || []).forEach(function(url){
         startPagesIndex[url] = true
       })
 
