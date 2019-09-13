@@ -3,9 +3,9 @@
 
     <!-- Logo -->
     <div
-      class="welcome-logo" 
-      layout="column"
-      layout-align="start center"
+            class="welcome-logo"
+            layout="column"
+            layout-align="start center"
     >
       <img src="img/HYPHE.svg" title="hyphe-logo" style="width: 180px">
       <h1 style="font-weight: 100; font-family: Roboto;font-size: 3.5em;">hyphe</h1>
@@ -13,7 +13,7 @@
 
     <!-- Disconnected message -->
     <div
-      ng-if="disconnected"
+            ng-if="disconnected"
     >
       <p style="text-align: center">
         YOU ARE DISCONNECTED FROM HYPHE &nbsp; &nbsp;:-(
@@ -22,7 +22,7 @@
 
     <!-- Slot information -->
     <div
-      ng-if="!disconnected && !loading"
+            ng-if="!disconnected && !loading"
     >
       <!-- <p ng-if="freeSlots > 0">
         {{freeSlots}} project{{freeSlots | plural}} can be put into operation ({{globalStatus.corpus_running}} slots occupied)
@@ -36,7 +36,7 @@
 
     <!-- New corpus button -->
     <div
-      ng-if="!disconnected && !loading"
+            ng-if="!disconnected && !loading"
     >
       <md-button class="md-raised md-primary" ng-show="uiMode == 'default' && corpusList.length > 0" ng-click="switchToNew()" layout-fill>
         <md-icon>add</md-icon> New Corpus
@@ -45,36 +45,36 @@
 
     <!-- Search corpus field -->
     <div
-      ng-if="!disconnected && !loading && uiMode == 'default' && corpusList.length > 0"
-      layout="column"
-      layout-align="stretch stretch"
+            ng-if="!disconnected && !loading && uiMode == 'default' && corpusList.length > 0"
+            layout="column"
+            layout-align="stretch stretch"
     >
       <md-input-container ng-if="corpusList !== undefined && corpusList.length > 3" style="margin-bottom: 0;">
         <label>Search corpus</label>
         <md-icon>search</md-icon>
         <input
-          focus-me="{{true}}"
-          ng-model="$parent.$parent.search_query"
-          ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)"
+                focus-me="{{true}}"
+                ng-model="$parent.$parent.search_query"
+                ng-press-enter="selectCorpus((corpusList|search:search_query:['name'])[0].corpus_id)"
         >
       </md-input-container>
     </div>
 
     <!-- Corpus list -->
     <div
-      flex
-      ng-if="!disconnected && !loading && uiMode == 'default' && corpusList.length > 0"
-      
-      layout="column"
-      layout-align="center stretch"
+            flex
+            ng-if="!disconnected && !loading && uiMode == 'default' && corpusList.length > 0"
+
+            layout="column"
+            layout-align="center stretch"
     >
       <md-progress-circular md-mode="indeterminate" ng-if="corpusList == undefined"></md-progress-circular>
       <div layout="column" layout-fill style="overflow-y: auto;">
         <md-list ng-if="corpusList !== undefined" >
           <md-list-item
-            class="md-3-line"
-            ng-repeat="corpus in corpusList|search:search_query:['name']"
-            ng-click="selectCorpus(corpus.corpus_id)"
+                  class="md-3-line"
+                  ng-repeat="corpus in corpusList|search:search_query:['name']"
+                  ng-click="selectCorpus(corpus.corpus_id)"
           >
             <md-icon ng-if="!corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">stop</md-icon>
             <md-icon ng-if="corpus.ready" ng-style="{'font-size': '36px'}" class="md-avatar">play_circle_outline</md-icon>
@@ -96,10 +96,10 @@
 
     <!-- Create new corpus -->
     <div
-      flex
-      ng-if="!disconnected && (uiMode == 'new' || corpusList.length == 0) && !starting"
-      layout="column"
-      layout-align="start stretch"
+            flex
+            ng-if="!disconnected && (uiMode == 'new' || corpusList.length == 0) && !starting"
+            layout="column"
+            layout-align="start stretch"
     >
       <h3>Create new corpus</h3>
       <md-input-container >
@@ -140,10 +140,10 @@
 
     <!-- Login to corpus -->
     <div
-      flex
-      ng-if="uiMode == 'login' && !starting"
-      layout="column"
-      layout-align="start stretch"
+            flex
+            ng-if="uiMode == 'login' && !starting"
+            layout="column"
+            layout-align="start stretch"
     >
       <h3>Login to {{ corpus.name }}</h3>
       <p>
@@ -155,12 +155,12 @@
         Used
         <span tooltip="{{corpus.last_activity|date}}">{{corpus.last_activity|prettyDate}}</span>
       </p>
-      
+
       <md-input-container>
         <label>Password</label>
         <input focus-me="{{true}}" type="password" ng-model="$parent.login_password" ng-press-enter="logIn()">
       </md-input-container>
-      
+
       <p ng-if="new_project_message.length > 0">
         <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;{{new_project_message}}
       </p>
@@ -181,11 +181,37 @@
 
     <!-- Starting corpus spinner -->
     <div
-      flex
-      ng-if="starting"
-      layout="column"
-      layout-align="center center"
+            flex
+            ng-if="starting"
+            layout="column"
+            layout-align="center center"
     >
       <spinner class="center" text="'STARTING CORPUS'"/>
-  </div>
+    </div>
+
+    <div  layout="row" layout-align="center"  md-colors="{background: 'default-background-100'}">
+
+      <md-list-item ng-href="https://medialab.sciencespo.fr" target="_blank" aria-label="médialab website">
+        <span layout-padding >
+          <img height="40" src="img/medialab.png" title="Sciences Po | médialab" border="0">
+        </span>
+      </md-list-item>
+      <md-list-item ng-href="https://github.com/medialab/hyphe" target="_blank" aria-label="GitHub MediaLab">
+        <span layout-padding >
+          <img height="40" src="img/GitHub_Logo_Grey.png" title="GitHub | médialab" border="0">
+        </span>
+      </md-list-item>
+      <md-list-item ng-href="https://dime-shs.sciencespo.fr/en/" target="_blank" aria-label="GitHub MediaLab">
+        <span layout-padding >
+          <img height="40" src="img/logo-DIME-SHS_Grey.png"  title="Médialab | DIME-SHS"  border="0">
+        </span>
+      </md-list-item>
+      <md-list-item ng-href="http://tools.medialab.sciences-po.fr/" target="_blank" aria-label="GitHub MediaLab">
+        <span layout-padding ">
+          <img height="40" src="img/medialabTools"  title="Médialab | Tools"  border="0">
+        </span>
+      </md-list-item>
+    </div>
+
+
 </div>
