@@ -62,6 +62,8 @@ angular.module('hyphe.prospectController', [])
       $scope.settingsChanged = difference
     }
 
+
+
     $scope.loadWebentities = function(query){
 
       // Get filtering settings
@@ -446,5 +448,16 @@ angular.module('hyphe.prospectController', [])
 
     // Init
     $scope.applySettings()
+
+    $scope.$on('$locationChangeStart', function( event ) {
+      var toIn =$scope.setToIn
+      if(toIn){
+        var answer = confirm("You have set "+toIn+" web entities IN without crawling it. Do you really want to leave this page ?")
+        if (!answer) {
+          event.preventDefault();
+        }
+      }
+
+    });
 
   })
