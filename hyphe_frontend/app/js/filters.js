@@ -61,13 +61,13 @@ angular.module('hyphe.filters', [])
 
   .filter('none', [function(){
     return function(integer) {
-      return (integer == 0 ? 'None' : integer)
+      return (!integer ? 'None' : integer)
     }
   }])
 
   .filter('no', [function(){
     return function(integer) {
-      return (integer == 0 ? 'No' : integer)
+      return (!integer ? 'No' : integer)
     }
   }])
 
