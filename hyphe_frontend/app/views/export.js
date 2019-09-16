@@ -80,6 +80,18 @@ angular.module('hyphe.exportController', [])
         ,description: 'Number of other web entities citing it in the corpus'
         ,accessor: 'indegree'
       }
+      ,outdegree: {
+        name: 'OUTDEGREE'
+        ,type: 'number'
+        ,description: 'Number of other web entities cited by it in the corpus'
+        ,accessor: 'outdegree'
+      }
+      ,undirected_degree: {
+        name: 'NEIGHBOORS COUNT'
+        ,type: 'number'
+        ,description: 'Number of other web entities cited by it or citing it in the corpus'
+        ,accessor: 'undirected_degree'
+      }
       ,pages_total: {
         name: 'TOTAL KNOWN PAGES'
         ,type: 'number'

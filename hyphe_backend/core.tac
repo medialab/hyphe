@@ -9,6 +9,7 @@ from bson.binary import Binary
 from json import dump as jsondump
 from random import randint
 from datetime import datetime
+from collections import defaultdict
 from twisted.internet import reactor
 from twisted.python import log as logger
 from twisted.python.logfile import LogFile
@@ -1193,7 +1194,8 @@ class Memory_Structure(customJSONRPC):
         res = {'_id': WE["_id"], 'id': WE["_id"], 'name': WE["name"], 'status': WE["status"], 'prefixes': WE["prefixes"]}
         if weight is not None:
             res['weight'] = weight
-        res['indegree'] = self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get('indegree', 0)
+        for key in ['undirected_', 'in', 'out']:
+            res[key + 'degree'] = self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get(key + 'degree', 0)
         if test_bool_arg(light):
             return res
         res['creation_date'] = WE["creationDate"]
@@ -1207,7 +1209,7 @@ class Memory_Structure(customJSONRPC):
             res['indexing_status'] = indexing_statuses.UNINDEXED
             res['crawled'] = False
         for key in ['total', 'crawled']:
-            res['pages_'+key] = self.corpora[corpus]['webentities_links'].get(WE['_id'], {}).get('pages_'+key, 0)
+            res['pages_' + key] = self.corpora[corpus]['webentities_links'].get(WE['_id'], {}).get('pages_' + key, 0)
         res['homepage'] = WE["homepage"] if WE["homepage"] else homepage if homepage else None
         res['tags'] = {}
         for tag, values in WE["tags"].iteritems():
@@ -1237,9 +1239,7 @@ class Memory_Structure(customJSONRPC):
             return job and job['crawling_status'] not in [crawling_statuses.CANCELED, crawling_statuses.UNCRAWLED]
         if field == "weight" and weights is not None:
             return weights.get(WE["_id"], 0)
-        if field == "indegree":
-            return self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get('indegree', 0)
-        if field.startswith("pages"):
+        if field.startswith("pages") or field.endswith("degree"):
             return self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get(field, 0)
         return None
 
@@ -1949,16 +1949,24 @@ class Memory_Structure(customJSONRPC):
     def rank_webentities(self, corpus=DEFAULT_CORPUS):
         if corpus not in self.corpora or not self.corpora[corpus]["webentities_links"]:
             returnD(None)
-        ranks = {}
+        outlinks = defaultdict(set)
+        alllinks = defaultdict(set)
         for target, links in self.corpora[corpus]['webentities_links'].items():
             for key in ['crawled', 'uncrawled', 'total']:
                 if 'pages_'+key not in links:
                     links['pages_'+key] = 0
             links['pages_total'] = links['pages_crawled'] + links['pages_uncrawled']
-            if 'indegree' in links:
-                links['indegree'] = len(links) - 4
-            else:
-                links['indegree'] = len(links) - 3
+            for key in ['undirected_', 'in', 'out']:
+                links[key + 'degree'] = links.get(key + 'degree', 0)
+            links['indegree'] = len(links) - 6
+            for source in links:
+                if isinstance(source, int):
+                    outlinks[source].add(target)
+                    alllinks[source].add(target)
+                    alllinks[target].add(source)
+        for target, links in self.corpora[corpus]['webentities_links'].items():
+            links["undirected_degree"] = len(alllinks[target])
+            links["outdegree"] = len(outlinks[target])
         yield self.parent.update_corpus(corpus, False, True)
 
     @inlineCallbacks
@@ -2246,7 +2254,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, light=False, semilight=True, corpus=DEFAULT_CORPUS, _exactSearch=False):
-        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.\nReturns all results at once if `count` == -1 ; otherwise results will be paginated with `count` results per page\, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"\, "lru prefixes"\, "startpages" & "homepage"). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (note: only exact values will be matched when querying on field status field). For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort`\, `light` and `semilight` in `get_webentities` above."""
+        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.\nReturns all results at once if `count` == -1 ; otherwise results will be paginated with `count` results per page\, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"\, "lru prefixes"\, "startpages" & "homepage"). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (notes: this does not work with undirected_degree and outdegree ; only exact values will be matched when querying on field status field). For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort`\, `light` and `semilight` in `get_webentities` above."""
         indegree_filter = False
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -2650,7 +2658,7 @@ class Memory_Structure(customJSONRPC):
         we_links = self.corpora[corpus]['webentities_links'][webentity_id]
         for key in ['crawled', 'uncrawled', 'total']:
             if key not in we_links:
-                we_links['pages_'+key] = 0
+                we_links['pages_' + key] = 0
         pages = yield self.traphs.call(corpus, "get_webentity_"+("crawled_" if onlyCrawled else "")+"pages", webentity_id, WE["prefixes"])
         if is_error(pages):
             returnD(pages)
@@ -2702,7 +2710,7 @@ class Memory_Structure(customJSONRPC):
             we_links = self.corpora[corpus]['webentities_links'][webentity_id]
             for key in ['crawled', 'uncrawled', 'total']:
                 if key not in we_links:
-                    we_links['pages_'+key] = 0
+                    we_links['pages_' + key] = 0
             we_links['pages_crawled'] = crawled
             if onlyCrawled:
                 we_links['pages_total'] = we_links['pages_uncrawled'] + crawled
@@ -2834,7 +2842,7 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("No webentity found for id %s" % webentity_id))
         if direction == "in":
             linked = deepcopy(self.corpora[corpus]["webentities_links"].get(webentity_id, {}))
-            for key in ['pages_crawled', 'pages_uncrawled', 'pages_total', 'indegree']:
+            for key in ['pages_crawled', 'pages_uncrawled', 'pages_total', 'undirected_degree', 'indegree', 'outdegree']:
                 if key in linked:
                     del linked[key]
         else:
