@@ -166,6 +166,28 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
+    /*
+    $scope.toggleStartPages=function(WE){
+      if ($scope.id ==="NotAStartPage"){
+        WE.startpages.append($scope.url)
+      }
+      else if ($scope.id ==="IsAStartPage"){
+        var index =WE.startpages.indexOf($scope.url)
+        WE.startpages.splice(index,1)
+      }
+    }
+    */
+    $scope.toggleStartPages=function(WE){
+      if (!WE.startpages.includes($scope.url)){
+        $scope.isStartPage=false
+      }
+      else {
+        $scope.isStartPage = true
+      }
+      $scope.$watch($scope.isStartPage, console.log($scope.isStartPage))
+    }
+
+
     // Init
     api.downloadCorpusTLDs(function(){
       fetchWebentity()
