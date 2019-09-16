@@ -141,7 +141,7 @@
                         ]"
                       >
                         <md-subheader class="md-primary" ng-show="webentity.tags['CORE-STARTPAGES'][startpagetype.id]">
-                          {{startpagetype.name}} start pages
+                          {{startpagetype.name}} start page
                         </md-subheader>
                         <md-list-item
                           ng-repeat="url in webentity.tags['CORE-STARTPAGES'][startpagetype.id]"
@@ -436,6 +436,25 @@
                           <md-icon>link</md-icon>
                         </a>
                         {{page.url}}
+                        <div class="md-secondary" ng-if="webentity.startpages.includes(page.url)">
+                          <md-button
+                                class="StartPage"
+                                ng-click="console.log('onlemetdehors')"
+                        >
+                            <md-tooltip md-direction="left">Remove from start pages</md-tooltip>
+                            <md-icon>toggle_on</md-icon>
+                          </md-button>
+                        </div>
+                        <div class="md-secondary" ng-if="!webentity.startpages.includes(page.url)">
+                          <md-button
+                                  class="NotAStartPage"
+                                  ng-click="console.log('onlemetdedans')"
+                          >
+                            <md-tooltip md-direction="left">Set as a start page</md-tooltip>
+                            <md-icon style="opacity: 0.2">toggle_off</md-icon>
+                          </md-button>
+                        </div>
+
                         <div class="md-secondary" ng-if="page.crawled">
                           <md-tooltip md-direction="left">Crawled</md-tooltip>
                           <md-icon>opacity</md-icon>
