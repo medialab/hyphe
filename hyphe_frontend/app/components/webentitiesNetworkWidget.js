@@ -219,13 +219,13 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
             // Node colors by tag
             var tagCat = $scope.nodeColorMode
-            var colorArray = [
+            var colorArray =["#b4834a",
               "#5689d7",
-              "#6cab33",
-              "#c13cf6",
-              "#eaa31d",
-              "#ec335b"
-            ]
+              "#ded600",
+              "#b20a23",
+              "#9dc9c2",
+              "#9847a4",
+              "#88d984",]
             var colorDefault = "#777"
             var colorUntagged = "#BBB"
             var colorError = "#600"
