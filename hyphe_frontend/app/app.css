@@ -512,7 +512,15 @@ tags-input .tags .tag-item {
   font-size: 9px;
 }
 
+.credits-list{
+  font-size :20px;
+}
 
+.credits-list .md-list-item-inner{
+    font-weight:lighter;
+    text-align: center;
+    height: 80px;
+}
 
 /* ==========================================================================
    View: Import URLs
