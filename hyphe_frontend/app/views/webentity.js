@@ -148,6 +148,9 @@ angular.module('hyphe.webentityController', [])
           ,token: $scope.pagesToken
         }
         ,function(result){
+          result.pages.forEach(function(page){
+              page.isStartPage = $scope.webentity.startpages.includes(page.url)
+          });
           $scope.pages = $scope.pages.concat(result.pages)
           $scope.pagesToken = result.token
           $scope.pagesLoading = false
@@ -166,25 +169,65 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
-    /*
-    $scope.toggleStartPages=function(WE){
-      if ($scope.id ==="NotAStartPage"){
-        WE.startpages.append($scope.url)
+    function _addStartPage(webentity, page){
+      api.addStartPage({
+            webentityId: webentity.id
+            ,url: page.url
+          }
+          ,function () {
+          }
+          ,function (data, status, headers, config) {
+            // API call fail
+            // Note: cannot access global status bar from modal
+            console.error('Start page could not be added', data, status, headers, config)
+            $scope.RemoveStartPageOnPage(page)
+          }
+      )
+    }
+    function _removeStartPage(webentity, page){
+      api.removeStartPage({
+            webentityId: webentity.id
+            ,url: page.url
+          }
+          ,function () {
+          }
+          ,function (data, status, headers, config) {
+            // API call fail
+            // Note: cannot access global status bar from modal
+            console.error('Start page could not be removed', data, status, headers, config)
+            $scope.AddStartPageOnPage(page)
+          }
+      )
+    }
+
+    $scope.RemoveStartPageOnPage=function(page){
+      Object.keys($scope.webentity.tags['CORE-STARTPAGES']).forEach(function(type){
+        if($scope.webentity.tags['CORE-STARTPAGES'][type].includes(page.url)){
+          var pos = $scope.webentity.tags['CORE-STARTPAGES'][type].indexOf(page.url)
+          $scope.webentity.tags['CORE-STARTPAGES'][type].splice(pos,1);
+        }
+      })
+    }
+
+    $scope.AddStartPageOnPage=function(page){
+      if($scope.webentity.tags['CORE-STARTPAGES']['user']){
+        $scope.webentity.tags['CORE-STARTPAGES']['user'].push(page.url);
       }
-      else if ($scope.id ==="IsAStartPage"){
-        var index =WE.startpages.indexOf($scope.url)
-        WE.startpages.splice(index,1)
+      else{
+        $scope.webentity.tags['CORE-STARTPAGES'].user=[]
+        $scope.webentity.tags['CORE-STARTPAGES']['user'].push(page.url)
       }
     }
-    */
-    $scope.toggleStartPages=function(WE){
-      if (!WE.startpages.includes($scope.url)){
-        $scope.isStartPage=false
+
+    $scope.toggleStartPages=function(page){
+      if (!page.isStartPage){
+        $scope.RemoveStartPageOnPage(page)
+        _removeStartPage($scope.webentity,page)
+          }
+      else{
+        $scope.AddStartPageOnPage(page)
+        _addStartPage( $scope.webentity, page)
       }
-      else {
-        $scope.isStartPage = true
-      }
-      $scope.$watch($scope.isStartPage, console.log($scope.isStartPage))
     }
 
 
@@ -193,7 +236,6 @@ angular.module('hyphe.webentityController', [])
       fetchWebentity()
       fetchCrawls()
       fetchAutocompletionTags()
-      $scope.loadPages()
     })
 
     function synchronizeTags() {
@@ -313,8 +355,9 @@ angular.module('hyphe.webentityController', [])
             $scope.tagCategories[tagCat] = $scope.webentity.tags.USER[tagCat].slice(0)
           }
 
-          console.log($scope.webentity.name, $scope.webentity)
-        }
+          $scope.loadPages()
+
+          }
         ,function(){
           $scope.status = {message: 'Error loading web entity', background: 'danger'}
         }

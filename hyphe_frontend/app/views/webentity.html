@@ -436,28 +436,10 @@
                           <md-icon>link</md-icon>
                         </a>
                         {{page.url}}
-                        <!--
-                        <div class="md-secondary" ng-if="webentity.startpages.includes(page.url)">
-                          <md-button
-                                id="IsAStartPage"
-                                ng-click="toggleStartPages(webentity)""
-                        >
-                            <md-tooltip md-direction="left">Remove from start pages</md-tooltip>
-                            <md-icon>toggle_on</md-icon>
-                          </md-button>
+                        <div>
+                          <md-switch class="md-secondary"  title="Set as a Start Page" aria-label="Switch StartPage" ng-model="page.isStartPage" ng-change="toggleStartPages(page)">
+                          </md-switch>
                         </div>
-                        <div class="md-secondary" ng-if="!webentity.startpages.includes(page.url)">
-                          <md-button
-                                  id="NotAStartPage"
-                                  ng-click="toggleStartPages(webentity)"
-                          >
-                            <md-tooltip md-direction="left">Set as a start page</md-tooltip>
-                            <md-icon style="opacity: 0.2">toggle_off</md-icon>
-                          </md-button>
-                        </div>
-                        -->
-                        <md-switch class="md-primary" md-no-ink aria-label="Switch StartPage"  ng-model="$scope.isStartPage">
-                        </md-switch>
                         <div class="md-secondary" ng-if="page.crawled">
                           <md-tooltip md-direction="left">Crawled</md-tooltip>
                           <md-icon>opacity</md-icon>
