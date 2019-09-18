@@ -430,25 +430,23 @@
                     <md-list-item
                       md-virtual-repeat="page in pages | filter:urlSearchQuery:false:url"
                     >
-                      <span md-truncate flex>
-                        <a href="{{page.url}}" target="_blank" title="Open in a new tab">
+                      <a href="{{page.url}}" target="_blank">
                           <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
                           <md-icon>link</md-icon>
                         </a>
-                        {{page.url}}
-                        <div>
-                          <md-switch class="md-secondary"  title="Set as a Start Page" aria-label="Switch StartPage" ng-model="page.isStartPage" ng-change="toggleStartPages(page)">
-                          </md-switch>
-                        </div>
-                        <div class="md-secondary" ng-if="page.crawled">
-                          <md-tooltip md-direction="left">Crawled</md-tooltip>
-                          <md-icon>opacity</md-icon>
-                        </div>
-                        <div class="md-secondary" ng-if="!page.crawled">
-                          <md-tooltip md-direction="left">Not crawled</md-tooltip>
-                          <md-icon style="opacity: 0.2">opacity</md-icon>
-                        </div>
-                      </span>
+                      <div md-truncate flex >&nbsp;{{page.url}}</div>
+                      <div class="md-primary">
+                        <md-switch ng-if="true" md-no-ink="" aria-label="Set as StartPage" ng-model="page.isStartPage" ng-change="toggleStartPages(page)"></md-switch>
+                        <md-tooltip md-direction="left">Set as Startpage</md-tooltip>
+                      </div>
+                      <div class="md-secondary" ng-if="page.crawled">
+                        <md-tooltip md-direction="left">Crawled</md-tooltip>
+                        <md-icon>opacity</md-icon>
+                      </div>
+                      <div class="md-secondary" ng-if="!page.crawled">
+                        <md-tooltip md-direction="left">Not crawled</md-tooltip>
+                        <md-icon style="opacity: 0.2">opacity</md-icon>
+                      </div>
                     </md-list-item>
                     <md-list-item ng-show="pagesToken">
                       <div flex layout="row" layout-align="center center" class="pagination-button">
