@@ -180,7 +180,8 @@ angular.module('hyphe.webentityController', [])
             // API call fail
             // Note: cannot access global status bar from modal
             console.error('Start page could not be added', data, status, headers, config)
-            $scope.RemoveStartPageOnPage(page)
+            RemoveStartPageOnPage(page)
+            page.isStartPage = !page.isStartPage
           }
       )
     }
@@ -195,38 +196,36 @@ angular.module('hyphe.webentityController', [])
             // API call fail
             // Note: cannot access global status bar from modal
             console.error('Start page could not be removed', data, status, headers, config)
-            $scope.AddStartPageOnPage(page)
+            AddStartPageOnPage(page)
+            page.isStartPage = !page.isStartPage
           }
       )
     }
 
-    $scope.RemoveStartPageOnPage=function(page){
+    function RemoveStartPageOnPage(page){
       Object.keys($scope.webentity.tags['CORE-STARTPAGES']).forEach(function(type){
         if($scope.webentity.tags['CORE-STARTPAGES'][type].includes(page.url)){
           var pos = $scope.webentity.tags['CORE-STARTPAGES'][type].indexOf(page.url)
-          $scope.webentity.tags['CORE-STARTPAGES'][type].splice(pos,1);
+          $scope.webentity.tags['CORE-STARTPAGES'][type].splice(pos, 1);
         }
       })
     }
 
-    $scope.AddStartPageOnPage=function(page){
-      if($scope.webentity.tags['CORE-STARTPAGES']['user']){
-        $scope.webentity.tags['CORE-STARTPAGES']['user'].push(page.url);
+    function AddStartPageOnPage(page){
+      if(!$scope.webentity.tags['CORE-STARTPAGES']['user']) {
+        $scope.webentity.tags['CORE-STARTPAGES'].user = []
       }
-      else{
-        $scope.webentity.tags['CORE-STARTPAGES'].user=[]
-        $scope.webentity.tags['CORE-STARTPAGES']['user'].push(page.url)
-      }
+      $scope.webentity.tags['CORE-STARTPAGES']['user'].push(page.url);
     }
 
     $scope.toggleStartPages=function(page){
       if (!page.isStartPage){
-        $scope.RemoveStartPageOnPage(page)
-        _removeStartPage($scope.webentity,page)
-          }
+        RemoveStartPageOnPage(page)
+        _removeStartPage($scope.webentity, page)
+      }
       else{
-        $scope.AddStartPageOnPage(page)
-        _addStartPage( $scope.webentity, page)
+        AddStartPageOnPage(page)
+        _addStartPage($scope.webentity, page)
       }
     }
 
