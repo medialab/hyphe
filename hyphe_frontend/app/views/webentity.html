@@ -433,7 +433,10 @@
                       <a href="{{page.url}}" target="_blank">
                           <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
                           <md-icon>link</md-icon>
-                        </a>
+                      </a>
+                      <div ng-if="page.url===webentity.homepage">
+                        &nbsp;<md-icon>home</md-icon>
+                      </div>
                       <div md-truncate flex >&nbsp;{{page.url}}</div>
                       <div class="md-primary">
                         <md-switch ng-if="true" md-no-ink="" aria-label="Set as StartPage" ng-model="page.isStartPage" ng-change="toggleStartPages(page)"></md-switch>
