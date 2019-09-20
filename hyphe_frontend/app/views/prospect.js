@@ -449,7 +449,7 @@ angular.module('hyphe.prospectController', [])
     // Init
     $scope.applySettings()
 
-    $scope.$on('$locationChangeStart', function( event ) {
+    var confirmLeavePage =function( event ) {
       var toIn = $scope.setToIn
       if(toIn){
         var answer = confirm("You have set as IN "+toIn+" web entit" + (toIn > 1 ? "ies" : "y") + " which you should probably crawl. Do you really want to leave this page?")
@@ -457,7 +457,11 @@ angular.module('hyphe.prospectController', [])
           event.preventDefault();
         }
       }
+     }
 
-    });
+    $scope.$on('$locationChangeStart', confirmLeavePage)
 
+    window.onbeforeunload=function(){
+      return ''
+    }
   })
