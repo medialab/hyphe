@@ -398,7 +398,7 @@ angular.module('hyphe.webentityController', [])
           }
           $scope.autoComplete = autocompletion.getTagAutoCompleteFunction($scope.tagsAutocomplete)
         }
-        ,function(data){
+        ,function(){
           $scope.status = {message: 'Error loading corpus tags', background: 'danger'}
         }
       )

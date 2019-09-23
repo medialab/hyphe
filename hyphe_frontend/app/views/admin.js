@@ -2,14 +2,21 @@
 
 angular.module('hyphe.adminController', [])
 
-  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout', 'corpus'
-  ,function($scope, api, utils, $location, $timeout, corpus) {
+  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout', 'corpus',
+  function($scope, api, utils, $location, $timeout, corpus, autocompletion) {
     $scope.currentPage = 'admin'
     $scope.corpusList
     $scope.corpusList_byId = {}
     $scope.globalStatus
     $scope.loadingStatus = false
     $scope.loadingList = false
+    $scope.corpusAutocomplete = {}
+    $scope.reverse = false
+    $scope.currentSort='name'
+
+
+
+
 
     // Connection
     $scope.password = ""
@@ -101,7 +108,67 @@ angular.module('hyphe.adminController', [])
       
     }
 
-    function startCorpus(id, password){
+    /*
+    //Sort By
+    $scope.sortBy = function(newPropertySort) {
+      if($scope.currentSort == newPropertySort) {
+        $scope.reverse = !$scope.reverse
+      }
+      else {
+        $scope.reverse = false;
+        $scope.currentSort = newPropertySort;
+      }
+      console.log('hey')
+        //$scope.reverse = ($scope.propertyName === propertyName) ? !$scope.reverse : false;
+    };
+
+
+    //Search
+    $scope.nameAutoComplete=function(){
+        var listNames=$scope.corpusList.map(function(corpus){return corpus.name})
+        for (name in listNames) {
+          $scope.corpusAutocomplete[name] = name
+        }
+      $scope.autoComplete = autocompletion.getTagAutoCompleteFunction($scope.corpusAutocomplete)
+    }
+
+/*
+    function nameAutocomplete ($timeout, $q) {
+      var self = this;
+
+      // list of `state` value/display objects
+      self.names = $scope.corpusList.map(function (corpus) {
+        return corpus.name
+      })
+      self.selectedItem = null;
+      self.searchText = null;
+      self.querySearch = querySearch;
+
+      function querySearch(query) {
+        var results = query ? self.names.filter(createFilterFor(query)) : self.names;
+        var deferred = $q.defer();
+        $timeout(function () {
+          deferred.resolve(results);
+        }, Math.random() * 1000, false);
+        return deferred.promise;
+      }
+*/
+      /**
+       * Build `states` list of key/value pairs
+
+
+      function createFilterFor(query) {
+        var lowercaseQuery = query.toLowerCase();
+
+        return function filterFn(state) {
+          return (state.value.indexOf(lowercaseQuery) === 0);
+        };
+      }
+    }
+       */
+
+
+          function startCorpus(id, password){
       api.startCorpus({
         id: id
         ,password: password

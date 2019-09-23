@@ -42,6 +42,7 @@
   layout-fill
   ng-if="corpusList"
 >
+
   <!-- Left column -->
   <div style="width: 200px" layout="column">
     <div
@@ -57,20 +58,61 @@
         {{corpusList.length|number}} corp{{corpusList.length > 1 ? 'ora' : 'us'}}
       </div>
       <div style="padding: 8px">
-        {{globalStatus.ram_left|number}} Mo of free RAM
+        Crawls : {{globalStatus.crawls_running|number}} running &amp; {{globalStatus.crawls_pending|number}} pending
       </div>
-      <div style="padding: 8px">
-        Corpus slots: {{globalStatus.corpus_running|number}} in operation &amp; {{globalStatus.ports_left|number}} free
-      </div>
-      <div style="padding: 8px">
-        Crawls: {{globalStatus.crawls_running|number}} running &amp; {{globalStatus.crawls_pending|number}} pending
-      </div>
+      <!--<div ng-init="nameAutoComplete()"></div> -->
+    <md-autocomplete
+            md-item-text="name"
+            md-items="name in autoComplete(searchText)"
+            md-min-length=0
+            md-search-text="searchText"
+            md-selected-item="selectedItem"
+            placeholder="Search Corpus"
+    >
+      <span md-highlight-text="searchText">{{name}}</span>
+
+    </md-autocomplete>
+
+<!--
+      <md-autocomplete flex required
+                       md-input-name="autocompleteField"
+                       md-input-minlength="2"
+                       md-input-maxlength="18"
+                       md-no-cache="noCache"
+                       md-selected-item="selectedItem"
+                       md-search-text="searchText"
+                       md-items="item in querySearch(searchText)"
+                       md-item-text="item.display"
+                       md-require-match=""
+                       md-floating-label="Search for a corpus">
+        <md-item-template>
+          <span md-highlight-text="ctrl.searchText">{{item.display}}</span>
+        </md-item-template>
+        <div ng-messages="searchForm.autocompleteField.$error" ng-if="searchForm.autocompleteField.$touched">
+          <div ng-message="required">You <b>must</b> have a favorite state.</div>
+          <div ng-message="md-require-match">Please select an existing state.</div>
+          <div ng-message="minlength">Your entry is not long enough.</div>
+          <div ng-message="maxlength">Your entry is too long.</div>
+        </div>
+      </md-autocomplete>
+-->
+        <md-input-container>
+        <md-select ng-model="currentSort"   placeholder="Sort by" ng-class="{reverse: reverse}" >
+          <md-option value="name">Name</md-option>
+          <md-option value="last_activity">Last Used</md-option>
+          <md-option value="created_at">Last Created</md-option>
+          <md-option value="total_pages_crawled">Size</md-option>
+        </md-select>
+      </md-input-container>
+      <md-checkbox ng-model="reverse" aria-label="Reversed">
+        Invert sort
+      </md-checkbox>
     </div>
   </div>
   <div flex layout="row" style="overflow-y: auto" layout-wrap>
     <div
       flex="50"
-      ng-repeat="corpus in corpusList"
+      ng-repeat="corpus in corpusList  | orderBy:currentSort:reverse"
     >
       <md-card
         style="background-color: #FFF"
