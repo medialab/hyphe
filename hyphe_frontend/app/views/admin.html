@@ -61,17 +61,20 @@
         Crawls : {{globalStatus.crawls_running|number}} running &amp; {{globalStatus.crawls_pending|number}} pending
       </div>
       <!--<div ng-init="nameAutoComplete()"></div> -->
-    <md-autocomplete
-            md-item-text="name"
-            md-items="name in autoComplete(searchText)"
-            md-min-length=0
-            md-search-text="searchText"
-            md-selected-item="selectedItem"
-            placeholder="Search Corpus"
-    >
-      <span md-highlight-text="searchText">{{name}}</span>
+      <md-divider></md-divider>
+      <div style="padding: 8px">
 
-    </md-autocomplete>
+        <md-autocomplete
+              md-item-text="name"
+              md-items="name in autoComplete(query)"
+              md-min-length=0
+              md-search-text="query"
+              md-selected-item="selectedItem"
+              placeholder="Search Corpus"
+         >
+          <span md-highlight-text="query">{{name}}</span>
+        </md-autocomplete>
+      </div>
 
 <!--
       <md-autocomplete flex required
@@ -96,6 +99,7 @@
         </div>
       </md-autocomplete>
 -->
+      <div style="margin-left:8px">
         <md-input-container>
         <md-select ng-model="currentSort"   placeholder="Sort by" ng-class="{reverse: reverse}" >
           <md-option value="name">Name</md-option>
@@ -112,7 +116,7 @@
   <div flex layout="row" style="overflow-y: auto" layout-wrap>
     <div
       flex="50"
-      ng-repeat="corpus in corpusList  | orderBy:currentSort:reverse"
+      ng-repeat="corpus in corpusList  | orderBy:currentSort:reverse | filter:query"
     >
       <md-card
         style="background-color: #FFF"
