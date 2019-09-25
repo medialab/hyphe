@@ -141,7 +141,7 @@
                         ]"
                       >
                         <md-subheader class="md-primary" ng-show="webentity.tags['CORE-STARTPAGES'][startpagetype.id]">
-                          {{startpagetype.name}} start page
+                          {{startpagetype.name}} start page{{webentity.tags['CORE-STARTPAGES'][startpagetype.id].length | plural}}
                         </md-subheader>
                         <md-list-item
                           ng-repeat="url in webentity.tags['CORE-STARTPAGES'][startpagetype.id]"
