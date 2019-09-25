@@ -11,6 +11,7 @@ angular.module('hyphe.listwebentitiesController', [])
     $location,
     $timeout,
     $route,
+    $window,
     corpus
   ) {
     $scope.currentPage = 'listWebentities'
@@ -258,6 +259,7 @@ angular.module('hyphe.listwebentitiesController', [])
     // Functions
 
     function loadStatus(callback){
+      $timeout.cancel($scope.jobsToCome)
       if ($scope.loadingStatus) return
       $scope.loadingStatus = true
       api.globalStatus({}, function(status){
@@ -268,7 +270,7 @@ angular.module('hyphe.listwebentitiesController', [])
         , discovered: status.corpus.traph.webentities.DISCOVERED
         }
         $scope.loadingStatus = false
-        $timeout(loadStatus, 5000);
+        $scope.jobsToCome=$timeout(loadStatus, 5000);
       },function(data, status, headers, config){
         $scope.status = {message: 'Error loading status', background:'danger'}
         $scope.loadingStatus = false
@@ -624,4 +626,8 @@ angular.module('hyphe.listwebentitiesController', [])
 
     // Init
     $scope.applySettings()
+
+    $scope.$on('$destroy', function () {
+      $timeout.cancel($scope.jobsToCome)
+    })
   })

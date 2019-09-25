@@ -38,6 +38,11 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       }
     }
 
+    $scope.networkNodeClick = function(node) {
+      var url = $scope.network.getNodeAttribute(node, 'url')
+      $window.open(url, '_blank');
+    }
+
     $scope.$watch('nodeSizeBaseRatio', updateNetwork)
 
     $scope.$on('$destroy', function(){
@@ -178,8 +183,8 @@ angular.module('hyphe.webentityPagesNetworkController', [])
         nIndex[d[1]] = true
       })
 
-      var startPagesIndex = {}
-      $scope.webentity.startpages.forEach(function(url){
+      var startPagesIndex = {};
+      ($scope.webentity.startpages || []).forEach(function(url){
         startPagesIndex[url] = true
       })
 

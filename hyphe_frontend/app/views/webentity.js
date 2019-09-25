@@ -148,6 +148,9 @@ angular.module('hyphe.webentityController', [])
           ,token: $scope.pagesToken
         }
         ,function(result){
+          result.pages.forEach(function(page){
+              page.isStartPage = $scope.webentity.startpages.includes(page.url)
+          });
           $scope.pages = $scope.pages.concat(result.pages)
           $scope.pagesToken = result.token
           $scope.pagesLoading = false
@@ -166,12 +169,59 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
+    $scope.toggleStartPages=function(page){
+      var remove, msg1, msg2, func;
+      if (page.isStartPage){
+        remove = false
+        msg1 = "Add"
+        msg2 = "add"
+        func = "addStartPage"
+      }else{
+        remove = true
+        msg1 = "Remov"
+        msg2 = "remov"
+        func = "removeStartPage"
+      }
+      UpdateStartPagesForPage(page, remove)
+      $scope.status = {message: msg1+'ing startpage'}
+      api[func]({
+           webentityId: $scope.webentity.id
+          ,url: page.url
+        }
+        ,function () {
+          $scope.status = {}
+        }
+        ,function (data, status, headers, config) {
+          // API call fail
+          $scope.status = {message: 'Error '+msg2+'ing startpage', background: 'danger'}
+          console.error('Startpage could not be '+msg2+'ed', data, status, headers, config)
+          UpdateStartPagesForPage(page, !remove)
+          page.isStartPage = !page.isStartPage
+        }
+      )
+    }
+
+    function UpdateStartPagesForPage(page, remove){
+      if (remove) {
+        Object.keys($scope.webentity.tags['CORE-STARTPAGES']).forEach(function(type){
+          if($scope.webentity.tags['CORE-STARTPAGES'][type].includes(page.url)){
+            var pos = $scope.webentity.tags['CORE-STARTPAGES'][type].indexOf(page.url)
+            $scope.webentity.tags['CORE-STARTPAGES'][type].splice(pos, 1);
+          }
+        })
+      } else {
+        if(!$scope.webentity.tags['CORE-STARTPAGES']['user']) {
+          $scope.webentity.tags['CORE-STARTPAGES'].user = []
+        }
+        $scope.webentity.tags['CORE-STARTPAGES']['user'].push(page.url);
+      }
+    }
+
     // Init
     api.downloadCorpusTLDs(function(){
       fetchWebentity()
       fetchCrawls()
       fetchAutocompletionTags()
-      $scope.loadPages()
     })
 
     function synchronizeTags() {
@@ -291,8 +341,9 @@ angular.module('hyphe.webentityController', [])
             $scope.tagCategories[tagCat] = $scope.webentity.tags.USER[tagCat].slice(0)
           }
 
-          console.log($scope.webentity.name, $scope.webentity)
-        }
+          $scope.loadPages()
+
+          }
         ,function(){
           $scope.status = {message: 'Error loading web entity', background: 'danger'}
         }
@@ -334,7 +385,7 @@ angular.module('hyphe.webentityController', [])
           }
           $scope.autoComplete = autocompletion.getTagAutoCompleteFunction($scope.tagsAutocomplete)
         }
-        ,function(data){
+        ,function(){
           $scope.status = {message: 'Error loading corpus tags', background: 'danger'}
         }
       )

@@ -66,7 +66,7 @@
                       </div>
 
                       <!-- Edit -->
-                      <div layout="column" ng-if="identityEditMode" style="padding: 8px" md-colors="{'background': 'default-background-50'}">
+                      <form  layout="column" ng-if="identityEditMode" style="padding: 8px" md-colors="{'background': 'default-background-50'}">
                         <md-input-container>
                           <label>Name</label>
                           <input ng-model="$parent.webentityEdit_name">
@@ -85,10 +85,10 @@
                           <div class="hint" md-colors="{'color': 'default-warn'}">{{homepageErrorMessage}}</div>
                         </md-input-container>
                         <div layout="row" style="padding-bottom: 8px" layout-align="center">
-                          <md-button class="md-raised md-primary" ng-click="saveWebEntity()" ng-disabled="identityEditLoading">Save changes</md-button>
+                          <md-button type="submit" class="md-raised md-primary" ng-click="saveWebEntity()" ng-disabled="identityEditLoading">Save changes</md-button>
                           <md-button class="" ng-click="disableEditMode()" ng-disabled="identityEditLoading">Cancel</md-button>
                         </div>
-                      </div>
+                      </form>
 
                       <!-- Other info -->
                       <div style="padding: 8px; margin-top: 16px" md-colors="{'background': 'default-background-200'}">
@@ -149,7 +149,7 @@
                         ]"
                       >
                         <md-subheader class="md-primary" ng-show="webentity.tags['CORE-STARTPAGES'][startpagetype.id]">
-                          {{startpagetype.name}} start pages
+                          {{startpagetype.name}} start page{{webentity.tags['CORE-STARTPAGES'][startpagetype.id].length | plural}}
                         </md-subheader>
                         <md-list-item
                           ng-repeat="url in webentity.tags['CORE-STARTPAGES'][startpagetype.id]"
@@ -438,21 +438,26 @@
                     <md-list-item
                       md-virtual-repeat="page in pages | filter:urlSearchQuery:false:url"
                     >
-                      <span md-truncate flex>
-                        <a href="{{page.url}}" target="_blank" title="Open in a new tab">
+                      <a href="{{page.url}}" target="_blank">
                           <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
                           <md-icon>link</md-icon>
-                        </a>
-                        {{page.url}}
-                        <div class="md-secondary" ng-if="page.crawled">
-                          <md-tooltip md-direction="left">Crawled</md-tooltip>
-                          <md-icon>opacity</md-icon>
-                        </div>
-                        <div class="md-secondary" ng-if="!page.crawled">
-                          <md-tooltip md-direction="left">Not crawled</md-tooltip>
-                          <md-icon style="opacity: 0.2">opacity</md-icon>
-                        </div>
-                      </span>
+                      </a>
+                      <div ng-if="page.url===webentity.homepage">
+                        &nbsp;<md-icon>home</md-icon>
+                      </div>
+                      <div md-truncate flex >&nbsp;{{page.url}}</div>
+                      <div class="md-primary">
+                        <md-switch ng-if="true" md-no-ink="" aria-label="Set as StartPage" ng-model="page.isStartPage" ng-change="toggleStartPages(page)"></md-switch>
+                        <md-tooltip md-direction="left">Set as StartPage</md-tooltip>
+                      </div>
+                      <div class="md-secondary" ng-if="page.crawled">
+                        <md-tooltip md-direction="left">Crawled</md-tooltip>
+                        <md-icon>opacity</md-icon>
+                      </div>
+                      <div class="md-secondary" ng-if="!page.crawled">
+                        <md-tooltip md-direction="left">Not crawled</md-tooltip>
+                        <md-icon style="opacity: 0.2">opacity</md-icon>
+                      </div>
                     </md-list-item>
                     <md-list-item ng-show="pagesToken">
                       <div flex layout="row" layout-align="center center" class="pagination-button">
