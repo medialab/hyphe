@@ -532,17 +532,12 @@ tags-input .tags .tag-item {
   justify-content: center;
 }
 
-.credits-list-footer .md-list-item-inner{
-  font-weight:lighter;
+.credits-list .md-list-item-inner, .credits-list-footer .md-list-item-inner{
+  font-weight: lighter;
   text-align: center;
   height: 80px;
 }
 
-.credits-list .md-list-item-inner{
-    font-weight:lighter;
-    text-align: center;
-    height: 80px;
-}
 .pusher {
   height: 120px;
 }
