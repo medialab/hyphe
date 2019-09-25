@@ -461,10 +461,15 @@ angular.module('hyphe.prospectController', [])
      }
 
     $scope.$on('$locationChangeStart', confirmLeavePage)
-    $window.onbeforeunload = function () {
+
+    $window.onbeforeunload = function(){
       if($scope.setToIn>0) {
         return "you have set some entities as IN which you should probably crawl. Do you really want to leave this page?"
       }
     }
+
+    $scope.$on('$destroy', function(){
+      $window.onbeforeunload = null;
+    })
 
   })
