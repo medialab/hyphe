@@ -169,70 +169,53 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
-    function _addStartPage(webentity, page){
-      $scope.status = {message: 'Adding startpage'}
-      api.addStartPage({
-           webentityId: webentity.id
-          ,url: page.url
-        }
-        ,function () {
-          $scope.status = {}
-        }
-        ,function (data, status, headers, config) {
-          // API call fail
-          $scope.status = {message: 'Error adding startpage', background: 'danger'}
-          console.error('Start page could not be added', data, status, headers, config)
-          RemoveStartPageOnPage(page)
-          page.isStartPage = !page.isStartPage
-        }
-      )
-    }
-    function _removeStartPage(webentity, page){
-      $scope.status = {message: 'Removing startpage'}
-      api.removeStartPage({
-           webentityId: webentity.id
-          ,url: page.url
-        }
-        ,function () {
-          $scope.status = {}
-        }
-        ,function (data, status, headers, config) {
-          // API call fail
-          $scope.status = {message: 'Error removing startpage', background: 'danger'}
-          console.error('Start page could not be removed', data, status, headers, config)
-          AddStartPageOnPage(page)
-          page.isStartPage = !page.isStartPage
-        }
-      )
-    }
-
-    function RemoveStartPageOnPage(page){
-      Object.keys($scope.webentity.tags['CORE-STARTPAGES']).forEach(function(type){
-        if($scope.webentity.tags['CORE-STARTPAGES'][type].includes(page.url)){
-          var pos = $scope.webentity.tags['CORE-STARTPAGES'][type].indexOf(page.url)
-          $scope.webentity.tags['CORE-STARTPAGES'][type].splice(pos, 1);
-        }
-      })
-    }
-
-    function AddStartPageOnPage(page){
-      if(!$scope.webentity.tags['CORE-STARTPAGES']['user']) {
-        $scope.webentity.tags['CORE-STARTPAGES'].user = []
-      }
-      $scope.webentity.tags['CORE-STARTPAGES']['user'].push(page.url);
-    }
-
     $scope.toggleStartPages=function(page){
-      if (!page.isStartPage){
-        RemoveStartPageOnPage(page)
-        _removeStartPage($scope.webentity, page)
+      var remove, msg1, msg2, func;
+      if (page.isStartPage){
+        remove = false
+        msg1 = "Add"
+        msg2 = "add"
+        func = "addStartPage"
+      }else{
+        remove = true
+        msg1 = "Remov"
+        msg2 = "remov"
+        func = "removeStartPage"
       }
-      else{
-        AddStartPageOnPage(page)
-        _addStartPage($scope.webentity, page)
-      }
+      UpdateStartPagesForPage(page, remove)
+      $scope.status = {message: msg1+'ing startpage'}
+      api[func]({
+           webentityId: $scope.webentity.id
+          ,url: page.url
+        }
+        ,function () {
+          $scope.status = {}
+        }
+        ,function (data, status, headers, config) {
+          // API call fail
+          $scope.status = {message: 'Error '+msg2+'ing startpage', background: 'danger'}
+          console.error('Startpage could not be '+msg2+'ed', data, status, headers, config)
+          UpdateStartPagesForPage(page, !remove)
+          page.isStartPage = !page.isStartPage
+        }
+      )
     }
 
+    function UpdateStartPagesForPage(page, remove){
+      if (remove) {
+        Object.keys($scope.webentity.tags['CORE-STARTPAGES']).forEach(function(type){
+          if($scope.webentity.tags['CORE-STARTPAGES'][type].includes(page.url)){
+            var pos = $scope.webentity.tags['CORE-STARTPAGES'][type].indexOf(page.url)
+            $scope.webentity.tags['CORE-STARTPAGES'][type].splice(pos, 1);
+          }
+        })
+      } else {
+        if(!$scope.webentity.tags['CORE-STARTPAGES']['user']) {
+          $scope.webentity.tags['CORE-STARTPAGES'].user = []
+        }
+        $scope.webentity.tags['CORE-STARTPAGES']['user'].push(page.url);
+      }
+    }
 
     // Init
     api.downloadCorpusTLDs(function(){
