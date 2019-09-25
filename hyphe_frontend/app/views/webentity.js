@@ -170,35 +170,39 @@ angular.module('hyphe.webentityController', [])
     }
 
     function _addStartPage(webentity, page){
+      $scope.status = {message: 'Adding startpage'}
       api.addStartPage({
-            webentityId: webentity.id
-            ,url: page.url
-          }
-          ,function () {
-          }
-          ,function (data, status, headers, config) {
-            // API call fail
-            // Note: cannot access global status bar from modal
-            console.error('Start page could not be added', data, status, headers, config)
-            RemoveStartPageOnPage(page)
-            page.isStartPage = !page.isStartPage
-          }
+           webentityId: webentity.id
+          ,url: page.url
+        }
+        ,function () {
+          $scope.status = {}
+        }
+        ,function (data, status, headers, config) {
+          // API call fail
+          $scope.status = {message: 'Error adding startpage', background: 'danger'}
+          console.error('Start page could not be added', data, status, headers, config)
+          RemoveStartPageOnPage(page)
+          page.isStartPage = !page.isStartPage
+        }
       )
     }
     function _removeStartPage(webentity, page){
+      $scope.status = {message: 'Removing startpage'}
       api.removeStartPage({
-            webentityId: webentity.id
-            ,url: page.url
-          }
-          ,function () {
-          }
-          ,function (data, status, headers, config) {
-            // API call fail
-            // Note: cannot access global status bar from modal
-            console.error('Start page could not be removed', data, status, headers, config)
-            AddStartPageOnPage(page)
-            page.isStartPage = !page.isStartPage
-          }
+           webentityId: webentity.id
+          ,url: page.url
+        }
+        ,function () {
+          $scope.status = {}
+        }
+        ,function (data, status, headers, config) {
+          // API call fail
+          $scope.status = {message: 'Error removing startpage', background: 'danger'}
+          console.error('Start page could not be removed', data, status, headers, config)
+          AddStartPageOnPage(page)
+          page.isStartPage = !page.isStartPage
+        }
       )
     }
 
