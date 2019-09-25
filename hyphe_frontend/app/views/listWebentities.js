@@ -626,10 +626,8 @@ angular.module('hyphe.listwebentitiesController', [])
 
     // Init
     $scope.applySettings()
-    $scope.$on('$locationChangeStart', function () {
+
+    $scope.$on('$destroy', function () {
       $timeout.cancel($scope.jobsToCome)
     })
-    $window.onbeforeunload = function () {
-      $timeout.cancel($scope.jobsToCome)
-    }
   })
