@@ -670,7 +670,13 @@ textarea.over-error {
   outline-style: none;
 }
 
+.icon-to-right{
+  position: absolute;
+  top: 80px;
+  right: 15px;
+}
 
+.md-36 { font-size: 36px; }
 
 /* ==========================================================================
    View: Web Entities List
