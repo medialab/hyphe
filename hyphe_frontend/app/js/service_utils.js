@@ -677,6 +677,74 @@ angular.module('hyphe.service_utils', [])
       return job
     }
 
+      ns.consolidateRichJob = function(job){
+      var richJob = ns.consolidateJob(job)
+          job.max_depth = job.crawl_arguments.max_depth
+          job.setting = job.crawl_arguments.setting
+          job.discover_prefixes = job.crawl_arguments.discover_prefixes
+          job.follow_prefixes = job.crawl_arguments.follow_prefixes
+          job.nofollow_prefixes = job.crawl_arguments.nofollow_prefixes
+          job.start_urls = job.crawl_arguments.start_urls
+          job.user_agent = job.crawl_arguments.user_agent
+          job.durationTotal = (job.finished_at - job.scheduled_at) / 1000
+          job.durationOfCrawl = (job.finished_at - job.started_at) / 1000
+
+      return richJob
+      }
+
+
+    ns.translateValue = function(value, type, mode){
+
+      mode = mode || 'TEXT'
+
+      var array_separator = ' '
+      if (type === 'array of string with pipe') {
+          array_separator = '|'
+          type = 'array of string'
+      }
+
+      if (type == 'string') {
+          return value
+
+      } else if (type == 'number') {
+          if (mode == 'TEXT') {
+              return ''+value
+          } else {
+              return value
+          }
+
+      } else if (type == 'array of string'){
+
+          if (value instanceof Array) {
+              if(mode == 'JSON') {
+                  return value
+              } else if(mode == 'MD') {
+                  return value
+                      .map(function(d) {
+                          return '* ' + d
+                      })
+                      .join('\n')
+              } else {
+                  return value.sort()
+                      .join(array_separator)
+              }
+          } else {
+              console.log(value,'is not an array')
+          }
+
+      } else if(type == 'json'){
+
+          if(mode == 'JSON'){
+              return value
+          } else if(mode == 'MD'){
+              return '```sh\n' + JSON.stringify(value) + '\n```'
+          } else {
+              return JSON.stringify(value)
+          }
+
+      }
+      }
+
     return ns
 
   }])
