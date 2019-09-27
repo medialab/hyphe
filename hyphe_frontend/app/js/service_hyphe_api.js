@@ -743,14 +743,15 @@ angular.module('hyphe.service_hyphe_api', [])
           function(response){
             var target = (response.data[0] || {}).result
             if(target !== undefined){
-              if(target && target.corpus && target.corpus.corpus_id && target.corpus.status != "ready") {
+                console.log($location.path())
+              if(target && target.corpus && target.corpus.corpus_id && target.corpus.status != "ready" && $location.path()!=='/admin') {
                 // Corpus shut down
                 $location.path('/login')
               }
               // console.log('[OK]', response.data)
               successCallback(target, response.data[0])
             } else {
-              if(response.data[0] && response.data[0].message && response.data[0].message.status && response.data[0].message.status != "ready") {
+              if(response.data[0] && response.data[0].message && response.data[0].message.status && response.data[0].message.status != "ready" && $location.path()!=='/admin') {
                 // Corpus shut down
                 $location.path('/login')
               } else {
