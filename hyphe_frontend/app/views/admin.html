@@ -94,7 +94,7 @@
         </md-checkbox>
       </div>
         <md-divider></md-divider>
-      <md-button class="md-raised md-primary" ng-click="backupCorpus(corpus.corpus_id)">
+      <md-button class="md-raised md-primary" ng-click="api.backupCorpus()">
         <md-tooltip md-direction="right">Backup all corpora</md-tooltip>
         <md-icon>backup</md-icon>
         &nbsp;Backup
@@ -105,7 +105,7 @@
   <div flex layout="row" style="overflow-y: auto" layout-wrap>
     <div
       flex="50"
-      ng-repeat="corpus in (corpusList  | orderBy:currentSort:reverse | nonSensitiveFilter:query)"
+      ng-repeat="corpus in corpusList  | orderBy:currentSort:reverse | filter:query"
     >
       <md-card
         style="background-color: #FFF"
@@ -141,11 +141,11 @@
                 <div style="width: 80px; text-align: right; padding-right: 8px"><em>{{corpus.total_webentities|number}}</em></div>
                 <div><em>TOTAL</em></div>
               </div>
-              <div style="width: 160px; text-align: right"><em>
+              <div style="width: 160px; text-align: right">
                 <md-button  class="md-raised" ng-click="backupCorpus(corpus.corpus_id)">
                   <md-tooltip md-direction="down">Backup this corpus </md-tooltip>
                   <md-icon>backup</md-icon>
-                </md-button></em>
+                </md-button>
               </div>
             </div>
           </md-card-title-media>
