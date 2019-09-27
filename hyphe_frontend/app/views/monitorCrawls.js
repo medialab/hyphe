@@ -583,55 +583,35 @@ angular.module('hyphe.monitorcrawlsController', [])
           {id_list: []}
           , function (listCrawls) {
             // Build Headline
-            listCrawls.map(utils.consolidateRichJob)
-            //console.log(listCrawls)
-            var headline = [], csvKeys = []
-            for (var field in $scope.CSVfields) {
-              headline.push(field)
-            }
-            //console.log(headline)
-            //console.log(csvKeys)
+            var headline = Object.keys($scope.CSVfields)
             // Build Table Content
-            var tableContent = []
-            listCrawls.forEach(function (crawl) {
-              var row = []
-              //var entries = Object.entries(crawl).sort((a, b) => b[0].localeCompare(a[0]))
-              headline.forEach(function(field){
-                var value=crawl[field]
+            var tableContent = listCrawls.map(utils.consolidateRichJob).map(function (crawl) {
+              return headline.map(function(field){
+                var value = crawl[field]
                 let type = $scope.CSVfields[field].type
                 if (type == 'date' && value) {
                   value = new Date(+value).toISOString()
                 } else if (type == 'array of string') {
                   value = value.sort().join(' ')
-              }
-                row.push(value)
+                }
+                return value;
               })
-                tableContent.push(row)
             })
+
             // Parsing
             var fileContent = []
-                ,csvElement = function(txt){
-              txt = ''+txt //cast
-              return '"'+txt.replace(/"/gi, '""')+'"'
-            }
-                /*
-                , csvElement = function (txt) {
-              txt = '' + txt //cast
-              return '"' + txt.replace(/"/gi, '""') + '"'
-            }
-            */
+              ,csvElement = function(txt){
+                txt = ''+txt //cast
+                return '"'+txt.replace(/"/gi, '""')+'"'
+              }
 
-
-            fileContent.push(
-                headline.join(',')
-            )
+            fileContent.push(headline.join(','))
             tableContent.forEach(function (row) {
               fileContent.push('\n' + row.map(csvElement).join(','))
             })
 
             var blob = new Blob(fileContent, {'type': "text/csv;charset=utf-8"});
             saveAs(blob, $scope.projectName + ".csv", true);
-
 
             $scope.status = {}
           }
@@ -641,6 +621,6 @@ angular.module('hyphe.monitorcrawlsController', [])
             $scope.status = {message: 'Error downloading crawls', background: 'danger'}
             console.error('Your file could not be downloaded', data, status, headers, config)
           }
-      );
+      )
     }
   })
