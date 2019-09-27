@@ -520,7 +520,6 @@ angular.module('hyphe.service_hyphe_api', [])
     ns.getCorpusTLDs = function(){
       if(ns.list_tlds === undefined){
         console.warn('No TLD list loaded. Use downloadCorpusTLDs() before using getCorpusTLDs().')
-        console.log(ns.list_tlds)
       }
       return ns.list_tlds
     }
@@ -743,7 +742,6 @@ angular.module('hyphe.service_hyphe_api', [])
           function(response){
             var target = (response.data[0] || {}).result
             if(target !== undefined){
-                console.log($location.path())
               if(target && target.corpus && target.corpus.corpus_id && target.corpus.status != "ready" && $location.path()!=='/admin') {
                 // Corpus shut down
                 $location.path('/login')

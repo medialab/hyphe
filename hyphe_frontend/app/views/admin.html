@@ -94,7 +94,7 @@
         </md-checkbox>
       </div>
         <md-divider></md-divider>
-      <md-button class="md-raised md-primary" ng-click="api.backupCorpus()">
+      <md-button class="md-raised md-primary" ng-click="backupAllCorpus()">
         <md-tooltip md-direction="right">Backup all corpora</md-tooltip>
         <md-icon>backup</md-icon>
         &nbsp;Backup
@@ -105,7 +105,7 @@
   <div flex layout="row" style="overflow-y: auto" layout-wrap>
     <div
       flex="50"
-      ng-repeat="corpus in corpusList  | orderBy:currentSort:reverse | filter:query"
+      ng-repeat="corpus in corpusList  | orderBy:currentSort:reverse | nonSensitiveFilter:query"
     >
       <md-card
         style="background-color: #FFF"
