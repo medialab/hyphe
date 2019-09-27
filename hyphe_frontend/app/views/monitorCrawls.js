@@ -32,21 +32,72 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.listLoaded = false
     $scope.status = {message: 'Loading'}
 
-    $scope.fields = {
-      crawled_at: {
-        type: 'date'
-      }
-      ,crawling_status: {
+    $scope.CSVfields = {
+      _id: {
         type: 'string'
       }
       ,crawljob_id: {
         type: 'string'
       }
+      ,webentity_id: {
+        type: 'number'
+      }
+      ,webentity_name: {
+        type: 'string'
+      }
+      ,max_depth: {
+        type: 'number'
+      }
+      ,start_urls: {
+        type: 'array of string'
+      }
+      ,user_agent: {
+        type: 'string'
+      }
+      ,cookies: {
+        type: "string"
+      }
+      ,phantom: {
+        type: "string"
+      }
+      ,globalStatus: {
+        type: 'string'
+      }
+      ,crawling_status: {
+        type: 'string'
+      }
+      ,indexing_status: {
+        type: 'string'
+      }
+      ,nb_pages: {
+        type: 'number'
+      }
+      ,nb_crawled_pages: {
+        type: 'number'
+      }
+      ,nb_pages_indexed: {
+        type: 'number'
+      }
+      ,nb_unindexed_pages: {
+        type: 'number'
+      }
+      ,nb_links: {
+        type: 'number'
+      }
       ,created_at: {
         type: 'date'
       }
-      ,discover_prefixes: {
-        type :'array of string'
+      ,scheduled_at: {
+        type: 'date'
+      }
+      ,started_at: {
+        type: 'date'
+      }
+      ,crawled_at: {
+        type: 'date'
+      }
+      ,finished_at: {
+        type: 'date'
       }
       ,durationOfCrawl: {
         type: 'number'
@@ -54,59 +105,14 @@ angular.module('hyphe.monitorcrawlsController', [])
       ,durationTotal: {
         type: 'number'
       }
-      , finished_at: {
-        type: 'date'
-      }
-      , follow_prefixes: {
+      ,follow_prefixes: {
         type: 'array of string'
       }
-      ,globalStatus: {
-        type: 'string'
-      }
-      ,indexing_status: {
-        type: 'string'
-      }
-      ,max_depth: {
-        type: 'number'
-      }
-      , nb_crawled_pages: {
-        type: 'number'
-      }
-      ,nb_links: {
-        type: 'number'
-      }
-      ,nb_pages: {
-        type: 'number'
-      }
-      , nb_pages_indexed: {
-        type: 'number'
-      }
-      , nb_unindexed_pages: {
-        type: 'number'
-      }
-      , nofollow_prefixes: {
+      ,nofollow_prefixes: {
         type : 'array of string'
       }
-      , scheduled_at: {
-        type: 'date'
-      }
-      ,setting: {
-        type: "string"
-      }
-      ,start_urls: {
-        type: 'array of string'
-      }
-      ,started_at: {
-        type: 'date'
-      }
-      ,user_agent: {
-        type: 'string'
-      }
-      ,webentity_id: {
-        type: 'number'
-      }
-      ,_id: {
-        type: 'string'
+      ,discover_prefixes: {
+        type :'array of string'
       }
     }
 
@@ -580,7 +586,7 @@ angular.module('hyphe.monitorcrawlsController', [])
             listCrawls.map(utils.consolidateRichJob)
             //console.log(listCrawls)
             var headline = [], csvKeys = []
-            for (var field in $scope.fields) {
+            for (var field in $scope.CSVfields) {
               headline.push(field)
             }
             //console.log(headline)
@@ -592,8 +598,8 @@ angular.module('hyphe.monitorcrawlsController', [])
               //var entries = Object.entries(crawl).sort((a, b) => b[0].localeCompare(a[0]))
               headline.forEach(function(field){
                 var value=crawl[field]
-                let type = $scope.fields[field].type
-                if (type == 'date') {
+                let type = $scope.CSVfields[field].type
+                if (type == 'date' && value) {
                   value = new Date(+value).toISOString()
                 } else if (type == 'array of string') {
                   value = value.sort().join(' ')
