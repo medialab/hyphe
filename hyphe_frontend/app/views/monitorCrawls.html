@@ -12,22 +12,18 @@
         
         <!-- Content -->
         <div layout-fill layout="column">
-          <div layout="row">
-            <div class="page-header">
-              <h1>
-                CRAWLS
-              </h1>
-              <span class="md-subhead">
-                Monitor and manage <span hyphe-glossary="crawl jobs"></span>. For a new <span hyphe-glossary="crawl"></span>, use the <a href="#/project/{{corpusId}}/importurls">IMPORT</a> page.
-              </span>
-            </div>
-              <div class="icon-to-right">
-                <md-button class="md-icon-button md-primary"ng-click="downloadCrawlsCSV()">
-                  <md-tooltip md-direction="top">Export all crawls metadata as CSV</md-tooltip>
-                  <md-icon class="md-36">file_download</md-icon>
-                </md-button>
-            </div>
+          <div class="page-header">
+            <h1>
+              CRAWLS
+            </h1>
+            <span class="md-subhead">
+              Monitor and manage <span hyphe-glossary="crawl jobs"></span>. For a new <span hyphe-glossary="crawl"></span>, use the <a href="#/project/{{corpusId}}/importurls">IMPORT</a> page.
+            </span>
           </div>
+          <md-button class="icon-to-right md-primary" ng-click="downloadCrawlsCSV()" ng-show="selectedTab === 1">
+            <md-tooltip md-direction="top">Export all crawls metadata as CSV</md-tooltip>
+            <md-icon>file_download</md-icon>
+          </md-button>
           <md-tabs md-border-bottom flex md-selected="selectedTab">
 
             <!-- Tab: last crawls -->

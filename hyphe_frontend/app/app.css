@@ -666,12 +666,11 @@ textarea.over-error {
 }
 
 .icon-to-right{
-  position: absolute;
-  top: 80px;
-  right: 15px;
+  position: absolute !important;
+  top: 130px;
+  right: 0px;
+  z-index: 10;
 }
-
-.md-36 { font-size: 36px; }
 
 /* ==========================================================================
    View: Web Entities List
