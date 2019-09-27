@@ -678,9 +678,11 @@ angular.module('hyphe.service_utils', [])
     }
 
       ns.consolidateRichJob = function(job){
-      var richJob = ns.consolidateJob(job)
+          var richJob = ns.consolidateJob(job)
+
           job.max_depth = job.crawl_arguments.max_depth
-          job.setting = job.crawl_arguments.setting
+          job.cookies = job.crawl_arguments.cookies
+          job.phantom = job.crawl_arguments.phantom
           job.discover_prefixes = job.crawl_arguments.discover_prefixes
           job.follow_prefixes = job.crawl_arguments.follow_prefixes
           job.nofollow_prefixes = job.crawl_arguments.nofollow_prefixes
@@ -689,7 +691,7 @@ angular.module('hyphe.service_utils', [])
           job.durationTotal = (job.finished_at - job.scheduled_at) / 1000
           job.durationOfCrawl = (job.finished_at - job.started_at) / 1000
 
-      return richJob
+          return richJob
       }
 
 
@@ -743,7 +745,7 @@ angular.module('hyphe.service_utils', [])
           }
 
       }
-      }
+    }
 
     return ns
 
