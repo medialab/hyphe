@@ -205,8 +205,8 @@ angular.module('hyphe.adminController', [])
         id: id
       }, function () {
         refresh()
-      }, function (data, status, headers, config) {
-        alert('Error')
+      }, function (error) {
+        alert('Error calling backup_corpus on ' + id + ': ' + error)
       })
     }
 
@@ -216,8 +216,8 @@ angular.module('hyphe.adminController', [])
       }, function () {
         refresh()
         stopCorpus(id)
-      }, function (data, status, headers, config) {
-        alert('Error')
+      }, function (error) {
+        alert('Error calling backup_corpus on ' + id + ': ' + error)
       })
     }
 
